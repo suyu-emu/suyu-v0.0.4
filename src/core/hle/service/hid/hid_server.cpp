@@ -989,8 +989,7 @@ void IHidServer::ActivateGesture(HLERequestContext& ctx) {
     }
 
     if (result.IsSuccess()) {
-        // TODO: Use gesture id here
-        result = gesture->Activate(parameters.applet_resource_user_id);
+        result = gesture->Activate(parameters.applet_resource_user_id, parameters.basic_gesture_id);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -2449,14 +2448,22 @@ void IHidServer::GetNpadCommunicationMode(HLERequestContext& ctx) {
 
 void IHidServer::SetTouchScreenConfiguration(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto touchscreen_mode{rp.PopRaw<Core::HID::TouchScreenConfigurationForNx>()};
+    auto touchscreen_config{rp.PopRaw<Core::HID::TouchScreenConfigurationForNx>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, touchscreen_mode={}, applet_resource_user_id={}",
-                touchscreen_mode.mode, applet_resource_user_id);
+    LOG_INFO(Service_HID, "called, touchscreen_config={}, applet_resource_user_id={}",
+             touchscreen_config.mode, applet_resource_user_id);
+
+    if (touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Heat2 &&
+        touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Finger) {
+        touchscreen_config.mode = Core::HID::TouchScreenModeForNx::UseSystemSetting;
+    }
+
+    const Result result = GetResourceManager()->GetTouchScreen()->SetTouchScreenConfiguration(
+        touchscreen_config, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::IsFirmwareUpdateNeededForNotification(HLERequestContext& ctx) {
@@ -2484,10 +2491,11 @@ void IHidServer::SetTouchScreenResolution(HLERequestContext& ctx) {
     const auto height{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->GetTouchScreen()->SetTouchscreenDimensions(width, height);
-
     LOG_INFO(Service_HID, "called, width={}, height={}, applet_resource_user_id={}", width, height,
              applet_resource_user_id);
+
+    GetResourceManager()->GetTouchScreen()->SetTouchScreenResolution(width, height,
+                                                                     applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

@@ -1,27 +1,37 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <algorithm>
+
 #include "core/hle/service/hid/hid_debug_server.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "hid_core/hid_types.h"
 #include "hid_core/resource_manager.h"
+#include "hid_core/resources/hid_firmware_settings.h"
+
+#include "hid_core/resources/touch_screen/gesture.h"
+#include "hid_core/resources/touch_screen/touch_screen.h"
+#include "hid_core/resources/touch_screen/touch_types.h"
 
 namespace Service::HID {
 
-IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<ResourceManager> resource)
-    : ServiceFramework{system_, "hid:dbg"}, resource_manager{resource} {
+IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                                 std::shared_ptr<HidFirmwareSettings> settings)
+    : ServiceFramework{system_, "hid:dbg"}, resource_manager{resource}, firmware_settings{
+                                                                            settings} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "DeactivateDebugPad"},
         {1, nullptr, "SetDebugPadAutoPilotState"},
         {2, nullptr, "UnsetDebugPadAutoPilotState"},
-        {10, nullptr, "DeactivateTouchScreen"},
-        {11, nullptr, "SetTouchScreenAutoPilotState"},
-        {12, nullptr, "UnsetTouchScreenAutoPilotState"},
-        {13, nullptr, "GetTouchScreenConfiguration"},
-        {14, nullptr, "ProcessTouchScreenAutoTune"},
-        {15, nullptr, "ForceStopTouchScreenManagement"},
-        {16, nullptr, "ForceRestartTouchScreenManagement"},
-        {17, nullptr, "IsTouchScreenManaged"},
+        {10, &IHidDebugServer::DeactivateTouchScreen, "DeactivateTouchScreen"},
+        {11, &IHidDebugServer::SetTouchScreenAutoPilotState, "SetTouchScreenAutoPilotState"},
+        {12, &IHidDebugServer::UnsetTouchScreenAutoPilotState, "UnsetTouchScreenAutoPilotState"},
+        {13, &IHidDebugServer::GetTouchScreenConfiguration, "GetTouchScreenConfiguration"},
+        {14, &IHidDebugServer::ProcessTouchScreenAutoTune, "ProcessTouchScreenAutoTune"},
+        {15, &IHidDebugServer::ForceStopTouchScreenManagement, "ForceStopTouchScreenManagement"},
+        {16, &IHidDebugServer::ForceRestartTouchScreenManagement, "ForceRestartTouchScreenManagement"},
+        {17, &IHidDebugServer::IsTouchScreenManaged, "IsTouchScreenManaged"},
         {20, nullptr, "DeactivateMouse"},
         {21, nullptr, "SetMouseAutoPilotState"},
         {22, nullptr, "UnsetMouseAutoPilotState"},
@@ -37,7 +47,7 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {60, nullptr, "ClearNpadSystemCommonPolicy"},
         {61, nullptr, "DeactivateNpad"},
         {62, nullptr, "ForceDisconnectNpad"},
-        {91, nullptr, "DeactivateGesture"},
+        {91, &IHidDebugServer::DeactivateGesture, "DeactivateGesture"},
         {110, nullptr, "DeactivateHomeButton"},
         {111, nullptr, "SetHomeButtonAutoPilotState"},
         {112, nullptr, "UnsetHomeButtonAutoPilotState"},
@@ -150,6 +160,170 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
 }
 
 IHidDebugServer::~IHidDebugServer() = default;
+void IHidDebugServer::DeactivateTouchScreen(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    Result result = ResultSuccess;
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = GetResourceManager()->GetTouchScreen()->Deactivate();
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidDebugServer::SetTouchScreenAutoPilotState(HLERequestContext& ctx) {
+    AutoPilotState auto_pilot{};
+    auto_pilot.count = ctx.GetReadBufferNumElements<TouchState>();
+    const auto buffer = ctx.ReadBuffer();
+
+    auto_pilot.count = std::min(auto_pilot.count, static_cast<u64>(auto_pilot.state.size()));
+    memcpy(auto_pilot.state.data(), buffer.data(), auto_pilot.count * sizeof(TouchState));
+
+    LOG_INFO(Service_HID, "called, auto_pilot_count={}", auto_pilot.count);
+
+    const Result result =
+        GetResourceManager()->GetTouchScreen()->SetTouchScreenAutoPilotState(auto_pilot);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidDebugServer::UnsetTouchScreenAutoPilotState(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    const Result result = GetResourceManager()->GetTouchScreen()->UnsetTouchScreenAutoPilotState();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidDebugServer::GetTouchScreenConfiguration(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    Core::HID::TouchScreenConfigurationForNx touchscreen_config{};
+    const Result result = GetResourceManager()->GetTouchScreen()->GetTouchScreenConfiguration(
+        touchscreen_config, applet_resource_user_id);
+
+    if (touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Heat2 &&
+        touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Finger) {
+        touchscreen_config.mode = Core::HID::TouchScreenModeForNx::UseSystemSetting;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(result);
+    rb.PushRaw(touchscreen_config);
+}
+
+void IHidDebugServer::ProcessTouchScreenAutoTune(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    Result result = GetResourceManager()->GetTouchScreen()->ProcessTouchScreenAutoTune();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidDebugServer::ForceStopTouchScreenManagement(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+        return;
+    }
+
+    Result result = ResultSuccess;
+    bool is_touch_active{};
+    bool is_gesture_active{};
+    auto touch_screen = GetResourceManager()->GetTouchScreen();
+    auto gesture = GetResourceManager()->GetGesture();
+
+    if (firmware_settings->IsTouchI2cManaged()) {
+        result = touch_screen->IsActive(is_touch_active);
+        if (result.IsSuccess()) {
+            result = gesture->IsActive(is_gesture_active);
+        }
+        if (result.IsSuccess() && is_touch_active) {
+            result = touch_screen->Deactivate();
+        }
+        if (result.IsSuccess() && is_gesture_active) {
+            result = gesture->Deactivate();
+        }
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidDebugServer::ForceRestartTouchScreenManagement(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        u32 basic_gesture_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, basic_gesture_id={}, applet_resource_user_id={}",
+             parameters.basic_gesture_id, parameters.applet_resource_user_id);
+
+    Result result = ResultSuccess;
+    auto touch_screen = GetResourceManager()->GetTouchScreen();
+    auto gesture = GetResourceManager()->GetGesture();
+
+    if (firmware_settings->IsDeviceManaged() && firmware_settings->IsTouchI2cManaged()) {
+        result = gesture->Activate();
+        if (result.IsSuccess()) {
+            result =
+                gesture->Activate(parameters.applet_resource_user_id, parameters.basic_gesture_id);
+        }
+        if (result.IsSuccess()) {
+            result = touch_screen->Activate();
+        }
+        if (result.IsSuccess()) {
+            result = touch_screen->Activate(parameters.applet_resource_user_id);
+        }
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidDebugServer::IsTouchScreenManaged(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    bool is_touch_active{};
+    bool is_gesture_active{};
+
+    Result result = GetResourceManager()->GetTouchScreen()->IsActive(is_touch_active);
+    if (result.IsSuccess()) {
+        result = GetResourceManager()->GetGesture()->IsActive(is_gesture_active);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(result);
+    rb.Push(is_touch_active | is_gesture_active);
+}
+
+void IHidDebugServer::DeactivateGesture(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    Result result = ResultSuccess;
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = GetResourceManager()->GetGesture()->Deactivate();
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
 
 std::shared_ptr<ResourceManager> IHidDebugServer::GetResourceManager() {
     resource_manager->Initialize();

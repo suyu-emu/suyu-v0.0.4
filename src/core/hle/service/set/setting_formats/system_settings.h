@@ -12,6 +12,7 @@
 #include "common/vector_math.h"
 #include "core/hle/service/set/setting_formats/private_settings.h"
 #include "core/hle/service/set/settings_types.h"
+#include "hid_core/resources/touch_screen/touch_types.h"
 
 namespace Service::Set {
 
@@ -257,8 +258,7 @@ struct SystemSettings {
     std::array<u8, 0x10> analog_stick_user_calibration_left;
     std::array<u8, 0x10> analog_stick_user_calibration_right;
 
-    // nn::settings::system::TouchScreenMode
-    s32 touch_screen_mode;
+    TouchScreenMode touch_screen_mode;
     INSERT_PADDING_BYTES(0x14); // Reserved
 
     TvSettings tv_settings;

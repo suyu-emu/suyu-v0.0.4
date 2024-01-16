@@ -98,9 +98,14 @@ add_library(hid_core STATIC
     resources/system_buttons/sleep_button.h
     resources/touch_screen/gesture.cpp
     resources/touch_screen/gesture.h
-    resources/touch_screen/gesture_types.h
+    resources/touch_screen/gesture_handler.cpp
+    resources/touch_screen/gesture_handler.h
     resources/touch_screen/touch_screen.cpp
     resources/touch_screen/touch_screen.h
+    resources/touch_screen/touch_screen_driver.cpp
+    resources/touch_screen/touch_screen_driver.h
+    resources/touch_screen/touch_screen_resource.cpp
+    resources/touch_screen/touch_screen_resource.h
     resources/touch_screen/touch_types.h
     resources/unique_pad/unique_pad.cpp
     resources/unique_pad/unique_pad.h

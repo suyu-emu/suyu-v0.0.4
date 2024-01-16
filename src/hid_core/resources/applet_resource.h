@@ -13,11 +13,12 @@
 
 namespace Core {
 class System;
-}
+} // namespace Core
 
 namespace Kernel {
+class KEvent;
 class KSharedMemory;
-}
+} // namespace Kernel
 
 namespace Service::HID {
 struct SharedMemoryFormat;
@@ -73,7 +74,8 @@ struct AppletResourceHolder {
     std::recursive_mutex* shared_mutex{nullptr};
     NPadResource* shared_npad_resource{nullptr};
     std::shared_ptr<HandheldConfig> handheld_config{nullptr};
-    long* handle_1;
+    Kernel::KEvent* input_event{nullptr};
+    std::mutex* input_mutex{nullptr};
 };
 
 class AppletResource {
