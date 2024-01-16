@@ -78,10 +78,7 @@ void nvhost_vic::OnClose(DeviceFD fd) {
     if (iter != host1x_file.fd_to_id.end()) {
         system.GPU().ClearCdmaInstance(iter->second);
     }
-    auto it = sessions.find(fd);
-    if (it != sessions.end()) {
-        sessions.erase(it);
-    }
+    sessions.erase(fd);
 }
 
 } // namespace Service::Nvidia::Devices
