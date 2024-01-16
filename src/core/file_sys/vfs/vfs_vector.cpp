@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <utility>
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys {
 VectorVfsFile::VectorVfsFile(std::vector<u8> initial_data, std::string name_, VirtualDir parent_)

@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include "common/common_types.h"
 #include "core/file_sys/system_archive/ng_word.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys::SystemArchive {
 

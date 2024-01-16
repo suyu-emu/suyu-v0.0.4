@@ -5,7 +5,7 @@
 
 #include "common/swap.h"
 #include "core/file_sys/system_archive/time_zone_binary.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 #include "nx_tzdb.h"
 

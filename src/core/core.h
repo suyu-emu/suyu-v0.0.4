@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/file_sys/vfs_types.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace Core::Frontend {
 class EmuWindow;

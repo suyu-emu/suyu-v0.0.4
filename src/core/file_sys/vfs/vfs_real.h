@@ -9,7 +9,7 @@
 #include <string_view>
 #include "common/intrusive_list.h"
 #include "core/file_sys/mode.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace Common::FS {
 class IOFile;

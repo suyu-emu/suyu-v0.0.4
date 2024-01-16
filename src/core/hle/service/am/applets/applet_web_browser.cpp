@@ -15,7 +15,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"

@@ -5,7 +5,7 @@
 
 #include "core/file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.h"
 #include "core/file_sys/fssystem/fssystem_nca_header.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys {
 

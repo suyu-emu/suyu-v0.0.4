@@ -3,7 +3,7 @@
 
 #include "common/logging/log.h"
 #include "core/file_sys/system_archive/system_version.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 #include "core/hle/api_version.h"
 
 namespace FileSys::SystemArchive {

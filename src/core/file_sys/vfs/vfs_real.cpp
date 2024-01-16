@@ -10,8 +10,8 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
-#include "core/file_sys/vfs.h"
-#include "core/file_sys/vfs_real.h"
+#include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/vfs/vfs_real.h"
 
 // For FileTimeStampRaw
 #include <sys/stat.h>
