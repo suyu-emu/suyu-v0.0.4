@@ -126,7 +126,7 @@ void Nvnflinger::ShutdownLayers() {
 
 void Nvnflinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
     nvdrv = std::move(instance);
-    disp_fd = nvdrv->Open("/dev/nvdisp_disp0", 0);
+    disp_fd = nvdrv->Open("/dev/nvdisp_disp0", {});
 }
 
 std::optional<u64> Nvnflinger::OpenDisplay(std::string_view name) {

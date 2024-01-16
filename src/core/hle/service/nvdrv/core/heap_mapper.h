@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "common/common_types.h"
+#include "core/device_memory_manager.h"
 
 namespace Tegra::Host1x {
 class Host1x;
@@ -15,7 +16,7 @@ namespace Service::Nvidia::NvCore {
 
 class HeapMapper {
 public:
-    HeapMapper(VAddr start_vaddress, DAddr start_daddress, size_t size, size_t smmu_id,
+    HeapMapper(VAddr start_vaddress, DAddr start_daddress, size_t size, Core::Asid asid,
                Tegra::Host1x::Host1x& host1x);
     ~HeapMapper();
 
@@ -41,7 +42,7 @@ private:
     VAddr m_vaddress;
     DAddr m_daddress;
     size_t m_size;
-    size_t m_smmu_id;
+    Core::Asid m_asid;
     std::unique_ptr<HeapMapperInternal> m_internal;
 };
 

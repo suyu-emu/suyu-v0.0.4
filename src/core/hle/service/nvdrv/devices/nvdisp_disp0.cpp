@@ -35,7 +35,7 @@ NvResult nvdisp_disp0::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
     return NvResult::NotImplemented;
 }
 
-void nvdisp_disp0::OnOpen(size_t session_id, DeviceFD fd) {}
+void nvdisp_disp0::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {}
 void nvdisp_disp0::OnClose(DeviceFD fd) {}
 
 void nvdisp_disp0::flip(u32 buffer_handle, u32 offset, android::PixelFormat format, u32 width,

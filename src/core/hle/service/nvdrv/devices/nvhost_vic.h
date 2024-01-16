@@ -19,7 +19,7 @@ public:
     NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
                     std::span<u8> inline_output) override;
 
-    void OnOpen(size_t session_id, DeviceFD fd) override;
+    void OnOpen(NvCore::SessionId session_id, DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
 };
 } // namespace Service::Nvidia::Devices

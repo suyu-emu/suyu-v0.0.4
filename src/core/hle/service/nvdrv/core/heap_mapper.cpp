@@ -109,9 +109,9 @@ struct HeapMapper::HeapMapperInternal {
     std::mutex guard;
 };
 
-HeapMapper::HeapMapper(VAddr start_vaddress, DAddr start_daddress, size_t size, size_t smmu_id,
+HeapMapper::HeapMapper(VAddr start_vaddress, DAddr start_daddress, size_t size, Core::Asid asid,
                        Tegra::Host1x::Host1x& host1x)
-    : m_vaddress{start_vaddress}, m_daddress{start_daddress}, m_size{size}, m_smmu_id{smmu_id} {
+    : m_vaddress{start_vaddress}, m_daddress{start_daddress}, m_size{size}, m_asid{asid} {
     m_internal = std::make_unique<HeapMapperInternal>(host1x);
 }
 
@@ -138,7 +138,7 @@ DAddr HeapMapper::Map(VAddr start, size_t size) {
             const size_t offset = inter_addr - m_vaddress;
             const size_t sub_size = inter_addr_end - inter_addr;
             m_internal->device_memory.Map(m_daddress + offset, m_vaddress + offset, sub_size,
-                                          m_smmu_id);
+                                          m_asid);
         }
     }
     m_internal->mapping_overlaps += std::make_pair(interval, 1);

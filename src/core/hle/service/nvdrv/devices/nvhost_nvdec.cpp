@@ -68,7 +68,7 @@ NvResult nvhost_nvdec::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
     return NvResult::NotImplemented;
 }
 
-void nvhost_nvdec::OnOpen(size_t session_id, DeviceFD fd) {
+void nvhost_nvdec::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
     LOG_INFO(Service_NVDRV, "NVDEC video stream started");
     system.SetNVDECActive(true);
     sessions[fd] = session_id;

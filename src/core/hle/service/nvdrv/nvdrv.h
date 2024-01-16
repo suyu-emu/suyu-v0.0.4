@@ -77,7 +77,7 @@ public:
     NvResult VerifyFD(DeviceFD fd) const;
 
     /// Opens a device node and returns a file descriptor to it.
-    DeviceFD Open(const std::string& device_name, size_t session_id);
+    DeviceFD Open(const std::string& device_name, NvCore::SessionId session_id);
 
     /// Sends an ioctl command to the specified file descriptor.
     NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output);

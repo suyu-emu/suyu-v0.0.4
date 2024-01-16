@@ -22,7 +22,8 @@ NvMap::Handle::Handle(u64 size_, Id id_)
     flags.raw = 0;
 }
 
-NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t pSessionId) {
+NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
+                              NvCore::SessionId pSessionId) {
     std::scoped_lock lock(mutex);
     // Handles cannot be allocated twice
     if (allocated) {
@@ -223,7 +224,7 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, bool low_area_pin) {
             }
 
             handle_description->d_address = address;
-            smmu.Map(address, vaddress, map_size, session->smmu_id, true);
+            smmu.Map(address, vaddress, map_size, session->asid, true);
             handle_description->in_heap = false;
         }
     }

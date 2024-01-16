@@ -120,7 +120,7 @@ NvResult nvhost_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     return NvResult::NotImplemented;
 }
 
-void nvhost_gpu::OnOpen(size_t session_id, DeviceFD fd) {}
+void nvhost_gpu::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {}
 void nvhost_gpu::OnClose(DeviceFD fd) {}
 
 NvResult nvhost_gpu::SetNVMAPfd(IoctlSetNvmapFD& params) {

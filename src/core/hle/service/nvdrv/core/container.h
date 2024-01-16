@@ -8,6 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "core/device_memory_manager.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Kernel {
@@ -26,8 +27,12 @@ class SyncpointManager;
 
 struct ContainerImpl;
 
+struct SessionId {
+    size_t id;
+};
+
 struct Session {
-    Session(size_t id_, Kernel::KProcess* process_, size_t smmu_id_);
+    Session(SessionId id_, Kernel::KProcess* process_, Core::Asid asid_);
     ~Session();
 
     Session(const Session&) = delete;
@@ -35,9 +40,9 @@ struct Session {
     Session(Session&&) = default;
     Session& operator=(Session&&) = default;
 
-    size_t id;
+    SessionId id;
     Kernel::KProcess* process;
-    size_t smmu_id;
+    Core::Asid asid;
     bool has_preallocated_area{};
     std::unique_ptr<HeapMapper> mapper{};
     bool is_active{};
@@ -48,10 +53,10 @@ public:
     explicit Container(Tegra::Host1x::Host1x& host1x);
     ~Container();
 
-    size_t OpenSession(Kernel::KProcess* process);
-    void CloseSession(size_t id);
+    SessionId OpenSession(Kernel::KProcess* process);
+    void CloseSession(SessionId id);
 
-    Session* GetSession(size_t id);
+    Session* GetSession(SessionId id);
 
     NvMap& GetNvMapFile();
 
