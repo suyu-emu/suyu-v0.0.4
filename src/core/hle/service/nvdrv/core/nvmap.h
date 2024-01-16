@@ -14,6 +14,7 @@
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Tegra {
@@ -71,7 +72,7 @@ public:
         u8 kind{};        //!< Used for memory compression
         bool allocated{}; //!< If the handle has been allocated with `Alloc`
         bool in_heap{};
-        size_t session_id{};
+        NvCore::SessionId session_id{};
 
         DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds
                            //!< to, this can also be in the nvdrv tmem
@@ -83,7 +84,7 @@ public:
          * if a 0 address is passed
          */
         [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
-                                     size_t pSessionId);
+                                     NvCore::SessionId pSessionId);
 
         /**
          * @brief Increases the dupe counter of the handle for the given session

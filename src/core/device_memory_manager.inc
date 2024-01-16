@@ -215,8 +215,8 @@ void DeviceMemoryManager<Traits>::Free(DAddr start, size_t size) {
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size_t size,
-                                      size_t process_id, bool track) {
-    Core::Memory::Memory* process_memory = registered_processes[process_id];
+                                      Asid asid, bool track) {
+    Core::Memory::Memory* process_memory = registered_processes[asid.id];
     size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
     size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
     std::scoped_lock lk(mapping_guard);
@@ -229,7 +229,7 @@ void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size
         }
         auto phys_addr = static_cast<u32>(GetRawPhysicalAddr(ptr) >> Memory::YUZU_PAGEBITS) + 1U;
         compressed_physical_ptr[start_page_d + i] = phys_addr;
-        InsertCPUBacking(start_page_d + i, new_vaddress, process_id);
+        InsertCPUBacking(start_page_d + i, new_vaddress, asid);
         const u32 base_dev = compressed_device_addr[phys_addr - 1U];
         const u32 new_dev = static_cast<u32>(start_page_d + i);
         if (base_dev == 0) [[likely]] {
@@ -244,7 +244,7 @@ void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size
         impl->multi_dev_address.Register(new_dev, start_id);
     }
     if (track) {
-        TrackContinuityImpl(address, virtual_address, size, process_id);
+        TrackContinuityImpl(address, virtual_address, size, asid);
     }
 }
 
@@ -277,8 +277,8 @@ void DeviceMemoryManager<Traits>::Unmap(DAddr address, size_t size) {
 }
 template <typename Traits>
 void DeviceMemoryManager<Traits>::TrackContinuityImpl(DAddr address, VAddr virtual_address,
-                                                      size_t size, size_t process_id) {
-    Core::Memory::Memory* process_memory = registered_processes[process_id];
+                                                      size_t size, Asid asid) {
+    Core::Memory::Memory* process_memory = registered_processes[asid.id];
     size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
     size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
     uintptr_t last_ptr = 0;
@@ -488,8 +488,8 @@ void DeviceMemoryManager<Traits>::WriteBlockUnsafe(DAddr address, const void* sr
 }
 
 template <typename Traits>
-size_t DeviceMemoryManager<Traits>::RegisterProcess(Memory::Memory* memory_device_inter) {
-    size_t new_id;
+Asid DeviceMemoryManager<Traits>::RegisterProcess(Memory::Memory* memory_device_inter) {
+    size_t new_id{};
     if (!id_pool.empty()) {
         new_id = id_pool.front();
         id_pool.pop_front();
@@ -498,13 +498,13 @@ size_t DeviceMemoryManager<Traits>::RegisterProcess(Memory::Memory* memory_devic
         registered_processes.emplace_back(memory_device_inter);
         new_id = registered_processes.size() - 1U;
     }
-    return new_id;
+    return Asid{new_id};
 }
 
 template <typename Traits>
-void DeviceMemoryManager<Traits>::UnregisterProcess(size_t id) {
-    registered_processes[id] = nullptr;
-    id_pool.push_front(id);
+void DeviceMemoryManager<Traits>::UnregisterProcess(Asid asid) {
+    registered_processes[asid.id] = nullptr;
+    id_pool.push_front(asid.id);
 }
 
 template <typename Traits>
@@ -530,9 +530,9 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     std::atomic_thread_fence(std::memory_order_acquire);
     const size_t page_end = Common::DivCeil(addr + size, Memory::YUZU_PAGESIZE);
     size_t page = addr >> Memory::YUZU_PAGEBITS;
-    auto [process_id, base_vaddress] = ExtractCPUBacking(page);
+    auto [asid, base_vaddress] = ExtractCPUBacking(page);
     size_t vpage = base_vaddress >> Memory::YUZU_PAGEBITS;
-    auto* memory_device_inter = registered_processes[process_id];
+    auto* memory_device_inter = registered_processes[asid.id];
     for (; page != page_end; ++page) {
         std::atomic_uint8_t& count = cached_pages->at(page >> 3).Count(page);
 

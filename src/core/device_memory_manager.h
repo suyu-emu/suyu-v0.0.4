@@ -28,6 +28,10 @@ class Memory;
 template <typename DTraits>
 struct DeviceMemoryManagerAllocator;
 
+struct Asid {
+    size_t id;
+};
+
 template <typename Traits>
 class DeviceMemoryManager {
     using DeviceInterface = typename Traits::DeviceInterface;
@@ -43,15 +47,14 @@ public:
     void AllocateFixed(DAddr start, size_t size);
     void Free(DAddr start, size_t size);
 
-    void Map(DAddr address, VAddr virtual_address, size_t size, size_t process_id,
-             bool track = false);
+    void Map(DAddr address, VAddr virtual_address, size_t size, Asid asid, bool track = false);
 
     void Unmap(DAddr address, size_t size);
 
-    void TrackContinuityImpl(DAddr address, VAddr virtual_address, size_t size, size_t process_id);
-    void TrackContinuity(DAddr address, VAddr virtual_address, size_t size, size_t process_id) {
+    void TrackContinuityImpl(DAddr address, VAddr virtual_address, size_t size, Asid asid);
+    void TrackContinuity(DAddr address, VAddr virtual_address, size_t size, Asid asid) {
         std::scoped_lock lk(mapping_guard);
-        TrackContinuityImpl(address, virtual_address, size, process_id);
+        TrackContinuityImpl(address, virtual_address, size, asid);
     }
 
     // Write / Read
@@ -105,8 +108,8 @@ public:
     void WriteBlock(DAddr address, const void* src_pointer, size_t size);
     void WriteBlockUnsafe(DAddr address, const void* src_pointer, size_t size);
 
-    size_t RegisterProcess(Memory::Memory* memory);
-    void UnregisterProcess(size_t id);
+    Asid RegisterProcess(Memory::Memory* memory);
+    void UnregisterProcess(Asid id);
 
     void UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta);
 
@@ -163,17 +166,17 @@ private:
     static constexpr size_t guest_max_as_bits = 39;
     static constexpr size_t guest_as_size = 1ULL << guest_max_as_bits;
     static constexpr size_t guest_mask = guest_as_size - 1ULL;
-    static constexpr size_t process_id_start_bit = guest_max_as_bits;
+    static constexpr size_t asid_start_bit = guest_max_as_bits;
 
-    std::pair<size_t, VAddr> ExtractCPUBacking(size_t page_index) {
+    std::pair<Asid, VAddr> ExtractCPUBacking(size_t page_index) {
         auto content = cpu_backing_address[page_index];
         const VAddr address = content & guest_mask;
-        const size_t process_id = static_cast<size_t>(content >> process_id_start_bit);
-        return std::make_pair(process_id, address);
+        const Asid asid{static_cast<size_t>(content >> asid_start_bit)};
+        return std::make_pair(asid, address);
     }
 
-    void InsertCPUBacking(size_t page_index, VAddr address, size_t process_id) {
-        cpu_backing_address[page_index] = address | (process_id << process_id_start_bit);
+    void InsertCPUBacking(size_t page_index, VAddr address, Asid asid) {
+        cpu_backing_address[page_index] = address | (asid.id << asid_start_bit);
     }
 
     Common::VirtualBuffer<VAddr> cpu_backing_address;

@@ -67,7 +67,7 @@ NvResult nvmap::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, st
     return NvResult::NotImplemented;
 }
 
-void nvmap::OnOpen(size_t session_id, DeviceFD fd) {
+void nvmap::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
     sessions[fd] = session_id;
 }
 void nvmap::OnClose(DeviceFD fd) {

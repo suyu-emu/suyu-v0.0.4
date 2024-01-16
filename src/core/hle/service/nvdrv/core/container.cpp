@@ -16,9 +16,8 @@
 
 namespace Service::Nvidia::NvCore {
 
-Session::Session(size_t id_, Kernel::KProcess* process_, size_t smmu_id_)
-    : id{id_}, process{process_}, smmu_id{smmu_id_},
-      has_preallocated_area{}, mapper{}, is_active{} {}
+Session::Session(SessionId id_, Kernel::KProcess* process_, Core::Asid asid_)
+    : id{id_}, process{process_}, asid{asid_}, has_preallocated_area{}, mapper{}, is_active{} {}
 
 Session::~Session() = default;
 
@@ -41,7 +40,7 @@ Container::Container(Tegra::Host1x::Host1x& host1x_) {
 
 Container::~Container() = default;
 
-size_t Container::OpenSession(Kernel::KProcess* process) {
+SessionId Container::OpenSession(Kernel::KProcess* process) {
     std::scoped_lock lk(impl->session_guard);
     for (auto& session : impl->sessions) {
         if (!session.is_active) {
@@ -54,14 +53,14 @@ size_t Container::OpenSession(Kernel::KProcess* process) {
     size_t new_id{};
     auto* memory_interface = &process->GetMemory();
     auto& smmu = impl->host1x.MemoryManager();
-    auto smmu_id = smmu.RegisterProcess(memory_interface);
+    auto asid = smmu.RegisterProcess(memory_interface);
     if (!impl->id_pool.empty()) {
         new_id = impl->id_pool.front();
         impl->id_pool.pop_front();
-        impl->sessions[new_id] = Session{new_id, process, smmu_id};
+        impl->sessions[new_id] = Session{SessionId{new_id}, process, asid};
     } else {
         new_id = impl->new_ids++;
-        impl->sessions.emplace_back(new_id, process, smmu_id);
+        impl->sessions.emplace_back(SessionId{new_id}, process, asid);
     }
     auto& session = impl->sessions[new_id];
     session.is_active = true;
@@ -100,18 +99,18 @@ size_t Container::OpenSession(Kernel::KProcess* process) {
         auto start_region = (region_size >> 15) >= 1024 ? smmu.Allocate(region_size) : 0;
         if (start_region != 0) {
             session.mapper = std::make_unique<HeapMapper>(region_start, start_region, region_size,
-                                                          smmu_id, impl->host1x);
-            smmu.TrackContinuity(start_region, region_start, region_size, smmu_id);
+                                                          asid, impl->host1x);
+            smmu.TrackContinuity(start_region, region_start, region_size, asid);
             session.has_preallocated_area = true;
             LOG_CRITICAL(Debug, "Preallocation created!");
         }
     }
-    return new_id;
+    return SessionId{new_id};
 }
 
-void Container::CloseSession(size_t id) {
+void Container::CloseSession(SessionId session_id) {
     std::scoped_lock lk(impl->session_guard);
-    auto& session = impl->sessions[id];
+    auto& session = impl->sessions[session_id.id];
     auto& smmu = impl->host1x.MemoryManager();
     if (session.has_preallocated_area) {
         const DAddr region_start = session.mapper->GetRegionStart();
@@ -121,13 +120,13 @@ void Container::CloseSession(size_t id) {
         session.has_preallocated_area = false;
     }
     session.is_active = false;
-    smmu.UnregisterProcess(impl->sessions[id].smmu_id);
-    impl->id_pool.emplace_front(id);
+    smmu.UnregisterProcess(impl->sessions[session_id.id].asid);
+    impl->id_pool.emplace_front(session_id.id);
 }
 
-Session* Container::GetSession(size_t id) {
+Session* Container::GetSession(SessionId session_id) {
     std::atomic_thread_fence(std::memory_order_acquire);
-    return &impl->sessions[id];
+    return &impl->sessions[session_id.id];
 }
 
 NvMap& Container::GetNvMapFile() {
