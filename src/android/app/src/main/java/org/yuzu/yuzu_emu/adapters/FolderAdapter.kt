@@ -8,19 +8,14 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
-import androidx.recyclerview.widget.AsyncDifferConfig
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 import org.yuzu.yuzu_emu.databinding.CardFolderBinding
 import org.yuzu.yuzu_emu.fragments.GameFolderPropertiesDialogFragment
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesViewModel) :
-    ListAdapter<GameDir, FolderAdapter.FolderViewHolder>(
-        AsyncDifferConfig.Builder(DiffCallback()).build()
-    ) {
+    AbstractDiffAdapter<GameDir, FolderAdapter.FolderViewHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -29,18 +24,11 @@ class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesVie
             .also { return FolderViewHolder(it) }
     }
 
-    override fun onBindViewHolder(holder: FolderAdapter.FolderViewHolder, position: Int) =
-        holder.bind(currentList[position])
-
     inner class FolderViewHolder(val binding: CardFolderBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        private lateinit var gameDir: GameDir
-
-        fun bind(gameDir: GameDir) {
-            this.gameDir = gameDir
-
+        AbstractViewHolder<GameDir>(binding) {
+        override fun bind(model: GameDir) {
             binding.apply {
-                path.text = Uri.parse(gameDir.uriString).path
+                path.text = Uri.parse(model.uriString).path
                 path.postDelayed(
                     {
                         path.isSelected = true
@@ -50,7 +38,7 @@ class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesVie
                 )
 
                 buttonEdit.setOnClickListener {
-                    GameFolderPropertiesDialogFragment.newInstance(this@FolderViewHolder.gameDir)
+                    GameFolderPropertiesDialogFragment.newInstance(model)
                         .show(
                             activity.supportFragmentManager,
                             GameFolderPropertiesDialogFragment.TAG
@@ -58,19 +46,9 @@ class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesVie
                 }
 
                 buttonDelete.setOnClickListener {
-                    gamesViewModel.removeFolder(this@FolderViewHolder.gameDir)
+                    gamesViewModel.removeFolder(model)
                 }
             }
-        }
-    }
-
-    private class DiffCallback : DiffUtil.ItemCallback<GameDir>() {
-        override fun areItemsTheSame(oldItem: GameDir, newItem: GameDir): Boolean {
-            return oldItem == newItem
-        }
-
-        override fun areContentsTheSame(oldItem: GameDir, newItem: GameDir): Boolean {
-            return oldItem == newItem
         }
     }
 }

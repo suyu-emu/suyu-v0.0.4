@@ -114,7 +114,7 @@ void SixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         case Core::HID::NpadStyleIndex::None:
             ASSERT(false);
             break;
-        case Core::HID::NpadStyleIndex::ProController:
+        case Core::HID::NpadStyleIndex::Fullkey:
             set_motion_state(sixaxis_fullkey_state, motion_state[0]);
             break;
         case Core::HID::NpadStyleIndex::Handheld:
@@ -345,7 +345,7 @@ SixAxis::SixaxisParameters& SixAxis::GetSixaxisState(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle) {
     auto& controller = GetControllerFromHandle(sixaxis_handle);
     switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Pokeball:
         return controller.sixaxis_fullkey;
     case Core::HID::NpadStyleIndex::Handheld:
@@ -368,7 +368,7 @@ const SixAxis::SixaxisParameters& SixAxis::GetSixaxisState(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle) const {
     const auto& controller = GetControllerFromHandle(sixaxis_handle);
     switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Pokeball:
         return controller.sixaxis_fullkey;
     case Core::HID::NpadStyleIndex::Handheld:

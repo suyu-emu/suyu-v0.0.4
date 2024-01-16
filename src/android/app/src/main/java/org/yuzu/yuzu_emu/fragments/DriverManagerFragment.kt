@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,20 +14,26 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.DriverAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.io.File
 import java.io.IOException
 
@@ -55,12 +62,43 @@ class DriverManagerFragment : Fragment() {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setNavigationVisibility(visible = false, animated = true)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
 
         driverViewModel.onOpenDriverManager(args.game)
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            binding.toolbarDrivers.inflateMenu(R.menu.menu_driver_manager)
+            driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
+            binding.toolbarDrivers.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.menu_driver_clear -> {
+                        StringSetting.DRIVER_PATH.global = true
+                        driverViewModel.updateDriverList()
+                        (binding.listDrivers.adapter as DriverAdapter)
+                            .replaceList(driverViewModel.driverList.value)
+                        driverViewModel.showClearButton(false)
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+
+            viewLifecycleOwner.lifecycleScope.apply {
+                launch {
+                    repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        driverViewModel.showClearButton.collect {
+                            binding.toolbarDrivers.menu
+                                .findItem(R.id.menu_driver_clear).isVisible = it
+                        }
+                    }
+                }
+            }
+        }
 
         if (!driverViewModel.isInteractionAllowed.value) {
             DriversLoadingDialogFragment().show(
@@ -83,25 +121,6 @@ class DriverManagerFragment : Fragment() {
                 resources.getInteger(R.integer.grid_columns)
             )
             adapter = DriverAdapter(driverViewModel)
-        }
-
-        viewLifecycleOwner.lifecycleScope.apply {
-            launch {
-                driverViewModel.driverList.collectLatest {
-                    (binding.listDrivers.adapter as DriverAdapter).submitList(it)
-                }
-            }
-            launch {
-                driverViewModel.newDriverInstalled.collect {
-                    if (_binding != null && it) {
-                        (binding.listDrivers.adapter as DriverAdapter).apply {
-                            notifyItemChanged(driverViewModel.previouslySelectedDriver)
-                            notifyItemChanged(driverViewModel.selectedDriver)
-                            driverViewModel.setNewDriverInstalled(false)
-                        }
-                    }
-                }
-            }
         }
 
         setInsets()
@@ -160,7 +179,7 @@ class DriverManagerFragment : Fragment() {
                 false
             ) {
                 val driverPath =
-                    "${GpuDriverHelper.driverStoragePath}/${FileUtil.getFilename(result)}"
+                    "${GpuDriverHelper.driverStoragePath}${FileUtil.getFilename(result)}"
                 val driverFile = File(driverPath)
 
                 // Ignore file exceptions when a user selects an invalid zip
@@ -177,12 +196,21 @@ class DriverManagerFragment : Fragment() {
 
                 val driverData = GpuDriverHelper.getMetadataFromZip(driverFile)
                 val driverInList =
-                    driverViewModel.driverList.value.firstOrNull { it.second == driverData }
+                    driverViewModel.driverData.firstOrNull { it.second == driverData }
                 if (driverInList != null) {
                     return@newInstance getString(R.string.driver_already_installed)
                 } else {
-                    driverViewModel.addDriver(Pair(driverPath, driverData))
-                    driverViewModel.setNewDriverInstalled(true)
+                    driverViewModel.onDriverAdded(Pair(driverPath, driverData))
+                    withContext(Dispatchers.Main) {
+                        if (_binding != null) {
+                            val adapter = binding.listDrivers.adapter as DriverAdapter
+                            adapter.addItem(driverData.toDriver())
+                            adapter.selectItem(adapter.currentList.indices.last)
+                            driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
+                            binding.listDrivers
+                                .smoothScrollToPosition(adapter.currentList.indices.last)
+                        }
+                    }
                 }
                 return@newInstance Any()
             }.show(childFragmentManager, IndeterminateProgressDialogFragment.TAG)

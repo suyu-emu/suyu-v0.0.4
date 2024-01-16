@@ -223,7 +223,8 @@ Result Nvnflinger::FindVsyncEvent(Kernel::KReadableEvent** out_vsync_event, u64 
         return VI::ResultNotFound;
     }
 
-    return display->GetVSyncEvent(out_vsync_event);
+    *out_vsync_event = display->GetVSyncEvent();
+    return ResultSuccess;
 }
 
 VI::Display* Nvnflinger::FindDisplay(u64 display_id) {

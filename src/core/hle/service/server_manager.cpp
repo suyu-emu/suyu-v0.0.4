@@ -256,8 +256,13 @@ Result ServerManager::WaitAndProcessImpl() {
 
         // Wait for a signal.
         s32 out_index{-1};
-        R_TRY(Kernel::KSynchronizationObject::Wait(m_system.Kernel(), &out_index, wait_objs.data(),
-                                                   num_objs, -1));
+        R_TRY_CATCH(Kernel::KSynchronizationObject::Wait(m_system.Kernel(), &out_index,
+                                                         wait_objs.data(), num_objs, -1)) {
+            R_CATCH(Kernel::ResultSessionClosed) {
+                // On session closed, index is updated and we don't want to return an error.
+            }
+        }
+        R_END_TRY_CATCH;
         ASSERT(out_index >= 0 && out_index < num_objs);
 
         // Set the output index.

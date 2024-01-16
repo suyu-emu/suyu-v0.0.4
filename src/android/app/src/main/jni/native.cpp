@@ -410,8 +410,8 @@ void EmulationSession::OnGamepadConnectEvent([[maybe_unused]] int index) {
         jauto handheld = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
         if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
-            handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
-            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+            handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
+            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
             handheld->Disconnect();
         }
     }
@@ -770,8 +770,8 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
     ASSERT(user_id);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-        EmulationSession::GetInstance().System(), vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser,
-        FileSys::SaveDataType::SaveData, 1, user_id->AsU128(), 0);
+        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData, 1,
+        user_id->AsU128(), 0);
 
     const auto full_path = Common::FS::ConcatPathSafe(nand_dir, user_save_data_path);
     if (!Common::FS::CreateParentDirs(full_path)) {
@@ -878,7 +878,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
                                                             FileSys::Mode::Read);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-        system, vfsNandDir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
+        {}, vfsNandDir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
         program_id, user_id->AsU128(), 0);
     return ToJString(env, user_save_data_path);
 }

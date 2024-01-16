@@ -74,8 +74,10 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
         return load_result;
     }
 
-    system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
-        *this, system.GetContentProvider(), system.GetFileSystemController()));
+    system.GetFileSystemController().RegisterProcess(
+        process.GetProcessId(), nca->GetTitleId(),
+        std::make_shared<FileSys::RomFSFactory>(*this, system.GetContentProvider(),
+                                                system.GetFileSystemController()));
 
     is_loaded = true;
     return load_result;

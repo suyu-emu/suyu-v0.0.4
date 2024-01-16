@@ -252,4 +252,103 @@ enum class NpadLagerType : u32 {
     U,
 };
 
+// nn::hidtypes::FeatureType
+struct FeatureType {
+    union {
+        u64 raw{};
+        BitField<0, 1, u64> has_left_analog_stick;
+        BitField<1, 1, u64> has_right_analog_stick;
+        BitField<2, 1, u64> has_left_joy_six_axis_sensor;
+        BitField<3, 1, u64> has_right_joy_six_axis_sensor;
+        BitField<4, 1, u64> has_fullkey_joy_six_axis_sensor;
+        BitField<5, 1, u64> has_left_lra_vibration_device;
+        BitField<6, 1, u64> has_right_lra_vibration_device;
+        BitField<7, 1, u64> has_gc_vibration_device;
+        BitField<8, 1, u64> has_erm_vibration_device;
+        BitField<9, 1, u64> has_left_joy_rail_bus;
+        BitField<10, 1, u64> has_right_joy_rail_bus;
+        BitField<11, 1, u64> has_internal_bus;
+        BitField<12, 1, u64> is_palma;
+        BitField<13, 1, u64> has_nfc;
+        BitField<14, 1, u64> has_ir_sensor;
+        BitField<15, 1, u64> is_analog_stick_calibration_supported;
+        BitField<16, 1, u64> is_six_axis_Sensor_user_calibration_supported;
+        BitField<17, 1, u64> has_left_right_joy_battery;
+        BitField<18, 1, u64> has_fullkey_battery;
+        BitField<19, 1, u64> is_disconnect_controller_if_battery_none;
+        BitField<20, 1, u64> has_controller_color;
+        BitField<21, 1, u64> has_grip_color;
+        BitField<22, 1, u64> has_identification_code;
+        BitField<23, 1, u64> has_bluetooth_address;
+        BitField<24, 1, u64> has_mcu;
+        BitField<25, 1, u64> has_notification_led;
+        BitField<26, 1, u64> has_directional_buttons;
+        BitField<27, 1, u64> has_indicator_led;
+        BitField<28, 1, u64> is_button_config_embedded_supported;
+        BitField<29, 1, u64> is_button_config_full_supported;
+        BitField<30, 1, u64> is_button_config_left_supported;
+        BitField<31, 1, u64> is_button_config_right_supported;
+        BitField<32, 1, u64> is_usb_hid_device;
+        BitField<33, 1, u64> is_kuina_device;
+        BitField<34, 1, u64> is_direct_usb_to_bt_switching_device;
+        BitField<35, 1, u64> is_normalize_analog_stick_with_inner_cross;
+    };
+};
+static_assert(sizeof(FeatureType) == 8, "FeatureType is an invalid size");
+
+// This is nn::hid::AssignmentStyle
+struct AssignmentStyle {
+    union {
+        u32 raw{};
+        BitField<0, 1, u32> is_external_assigned;
+        BitField<1, 1, u32> is_external_left_assigned;
+        BitField<2, 1, u32> is_external_right_assigned;
+        BitField<3, 1, u32> is_handheld_assigned;
+        BitField<4, 1, u32> is_handheld_left_assigned;
+        BitField<5, 1, u32> is_handheld_right_assigned;
+    };
+};
+static_assert(sizeof(AssignmentStyle) == 4, "AssignmentStyle is an invalid size");
+
+// This is nn::hid::server::IAbstractedPad::InternalFlags
+struct InternalFlags {
+    union {
+        u32 raw{};
+        BitField<0, 1, u32> is_bound;
+        BitField<1, 1, u32> is_connected;
+        BitField<2, 1, u32> is_battery_low_ovln_required;
+        BitField<3, 1, u32> is_battery_low_ovln_delay_required;
+        BitField<4, 1, u32> is_sample_recieved;
+        BitField<5, 1, u32> is_virtual_input;
+        BitField<6, 1, u32> is_wired;
+        BitField<8, 1, u32> use_center_clamp;
+        BitField<9, 1, u32> has_virtual_six_axis_sensor_acceleration;
+        BitField<10, 1, u32> has_virtual_six_axis_sensor_angle;
+        BitField<11, 1, u32> is_debug_pad;
+    };
+};
+static_assert(sizeof(InternalFlags) == 4, "InternalFlags is an invalid size");
+
+/// This is nn::hid::server::IAbstractedPad
+struct IAbstractedPad {
+    InternalFlags internal_flags;
+    u64 controller_id;
+    u32 controller_number;
+    u64 low_battery_display_delay_time;
+    u64 low_battery_display_delay_interval;
+    FeatureType feature_set;
+    FeatureType disabled_feature_set;
+    AssignmentStyle assignment_style;
+    Core::HID::NpadStyleIndex device_type;
+    Core::HID::NpadInterfaceType interface_type;
+    Core::HID::NpadPowerInfo power_info;
+    u32 pad_state;
+    u32 button_mask;
+    u32 system_button_mask;
+    u8 indicator;
+    std::vector<f32> virtual_six_axis_sensor_acceleration;
+    std::vector<f32> virtual_six_axis_sensor_angle;
+    u64 xcd_handle;
+    u64 color;
+};
 } // namespace Service::HID

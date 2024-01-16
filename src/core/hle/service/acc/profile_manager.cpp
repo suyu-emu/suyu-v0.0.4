@@ -61,9 +61,7 @@ ProfileManager::ProfileManager() {
     OpenUser(*GetUser(current));
 }
 
-ProfileManager::~ProfileManager() {
-    WriteUserSaveFile();
-}
+ProfileManager::~ProfileManager() = default;
 
 /// After a users creation it needs to be "registered" to the system. AddToProfiles handles the
 /// internal management of the users profiles
@@ -112,6 +110,8 @@ Result ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& username)
                     [&uuid](const ProfileInfo& profile) { return uuid == profile.user_uuid; })) {
         return ERROR_USER_ALREADY_EXISTS;
     }
+
+    is_save_needed = true;
 
     return AddUser({
         .user_uuid = uuid,
@@ -326,6 +326,9 @@ bool ProfileManager::RemoveUser(UUID uuid) {
     profiles[*index] = ProfileInfo{};
     std::stable_partition(profiles.begin(), profiles.end(),
                           [](const ProfileInfo& profile) { return profile.user_uuid.IsValid(); });
+
+    is_save_needed = true;
+
     return true;
 }
 
@@ -340,6 +343,8 @@ bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
     profile.username = profile_new.username;
     profile.creation_time = profile_new.timestamp;
 
+    is_save_needed = true;
+
     return true;
 }
 
@@ -348,6 +353,7 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
     const auto index = GetUserIndex(uuid);
     if (index.has_value() && SetProfileBase(uuid, profile_new)) {
         profiles[*index].data = data_new;
+        is_save_needed = true;
         return true;
     }
 
@@ -391,6 +397,10 @@ void ProfileManager::ParseUserSaveFile() {
 }
 
 void ProfileManager::WriteUserSaveFile() {
+    if (!is_save_needed) {
+        return;
+    }
+
     ProfileDataRaw raw{};
 
     for (std::size_t i = 0; i < MAX_USERS; ++i) {
@@ -423,7 +433,10 @@ void ProfileManager::WriteUserSaveFile() {
     if (!save.IsOpen() || !save.SetSize(sizeof(ProfileDataRaw)) || !save.WriteObject(raw)) {
         LOG_WARNING(Service_ACC, "Failed to write save data to file... No changes to user data "
                                  "made in current session will be saved.");
+        return;
     }
+
+    is_save_needed = false;
 }
 
 }; // namespace Service::Account

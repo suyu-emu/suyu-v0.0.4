@@ -413,6 +413,7 @@ struct System::Impl {
         kernel.ShutdownCores();
         services.reset();
         service_manager.reset();
+        fs_controller.Reset();
         cheat_engine.reset();
         telemetry_session.reset();
         time_manager.Shutdown();

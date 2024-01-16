@@ -1094,7 +1094,7 @@ void ConfigureInputPlayer::SetConnectableControllers() {
     };
 
     if (npad_style_set.fullkey == 1) {
-        add_item(Core::HID::NpadStyleIndex::ProController, tr("Pro Controller"));
+        add_item(Core::HID::NpadStyleIndex::Fullkey, tr("Pro Controller"));
     }
 
     if (npad_style_set.joycon_dual == 1) {
@@ -1149,7 +1149,7 @@ Core::HID::NpadStyleIndex ConfigureInputPlayer::GetControllerTypeFromIndex(int i
                      [index](const auto& pair) { return pair.first == index; });
 
     if (it == index_controller_type_pairs.end()) {
-        return Core::HID::NpadStyleIndex::ProController;
+        return Core::HID::NpadStyleIndex::Fullkey;
     }
 
     return it->second;
@@ -1178,7 +1178,7 @@ void ConfigureInputPlayer::UpdateInputDevices() {
 void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
     auto layout = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
     if (debug) {
-        layout = Core::HID::NpadStyleIndex::ProController;
+        layout = Core::HID::NpadStyleIndex::Fullkey;
     }
 
     // List of all the widgets that will be hidden by any of the following layouts that need
@@ -1206,7 +1206,7 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
 
     std::vector<QWidget*> layout_hidden;
     switch (layout) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Handheld:
         layout_hidden = {
             ui->buttonShoulderButtonsSLSRLeft,
@@ -1254,7 +1254,7 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
 void ConfigureInputPlayer::UpdateControllerEnabledButtons() {
     auto layout = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
     if (debug) {
-        layout = Core::HID::NpadStyleIndex::ProController;
+        layout = Core::HID::NpadStyleIndex::Fullkey;
     }
 
     // List of all the widgets that will be disabled by any of the following layouts that need
@@ -1271,7 +1271,7 @@ void ConfigureInputPlayer::UpdateControllerEnabledButtons() {
 
     std::vector<QWidget*> layout_disable;
     switch (layout) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::Handheld:
     case Core::HID::NpadStyleIndex::JoyconLeft:
@@ -1304,7 +1304,7 @@ void ConfigureInputPlayer::UpdateMotionButtons() {
 
     // Show/hide the "Motion 1/2" groupboxes depending on the currently selected controller.
     switch (GetControllerTypeFromIndex(ui->comboControllerType->currentIndex())) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::JoyconLeft:
     case Core::HID::NpadStyleIndex::Handheld:
         // Show "Motion 1" and hide "Motion 2".
@@ -1333,11 +1333,11 @@ void ConfigureInputPlayer::UpdateMotionButtons() {
 void ConfigureInputPlayer::UpdateControllerButtonNames() {
     auto layout = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
     if (debug) {
-        layout = Core::HID::NpadStyleIndex::ProController;
+        layout = Core::HID::NpadStyleIndex::Fullkey;
     }
 
     switch (layout) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::Handheld:
     case Core::HID::NpadStyleIndex::JoyconLeft:

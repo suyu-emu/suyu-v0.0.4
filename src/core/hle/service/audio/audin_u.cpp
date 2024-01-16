@@ -18,11 +18,11 @@ using namespace AudioCore::AudioIn;
 class IAudioIn final : public ServiceFramework<IAudioIn> {
 public:
     explicit IAudioIn(Core::System& system_, Manager& manager, size_t session_id,
-                      const std::string& device_name, const AudioInParameter& in_params, u32 handle,
-                      u64 applet_resource_user_id)
+                      const std::string& device_name, const AudioInParameter& in_params,
+                      Kernel::KProcess* handle, u64 applet_resource_user_id)
         : ServiceFramework{system_, "IAudioIn"},
           service_context{system_, "IAudioIn"}, event{service_context.CreateEvent("AudioInEvent")},
-          impl{std::make_shared<In>(system_, manager, event, session_id)} {
+          process{handle}, impl{std::make_shared<In>(system_, manager, event, session_id)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IAudioIn::GetAudioInState, "GetAudioInState"},
@@ -45,6 +45,8 @@ public:
 
         RegisterHandlers(functions);
 
+        process->Open();
+
         if (impl->GetSystem()
                 .Initialize(device_name, in_params, handle, applet_resource_user_id)
                 .IsError()) {
@@ -55,6 +57,7 @@ public:
     ~IAudioIn() override {
         impl->Free();
         service_context.CloseEvent(event);
+        process->Close();
     }
 
     [[nodiscard]] std::shared_ptr<In> GetImpl() {
@@ -196,6 +199,7 @@ private:
 
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* event;
+    Kernel::KProcess* process;
     std::shared_ptr<AudioCore::AudioIn::In> impl;
     Common::ScratchBuffer<u64> released_buffer;
 };
@@ -267,6 +271,14 @@ void AudInU::OpenAudioIn(HLERequestContext& ctx) {
     auto device_name = Common::StringFromBuffer(device_name_data);
     auto handle{ctx.GetCopyHandle(0)};
 
+    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(handle)};
+    if (process.IsNull()) {
+        LOG_ERROR(Service_Audio, "Failed to get process handle");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultUnknown);
+        return;
+    }
+
     std::scoped_lock l{impl->mutex};
     auto link{impl->LinkToManager()};
     if (link.IsError()) {
@@ -287,8 +299,9 @@ void AudInU::OpenAudioIn(HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "Opening new AudioIn, sessionid={}, free sessions={}", new_session_id,
               impl->num_free_sessions);
 
-    auto audio_in = std::make_shared<IAudioIn>(system, *impl, new_session_id, device_name,
-                                               in_params, handle, applet_resource_user_id);
+    auto audio_in =
+        std::make_shared<IAudioIn>(system, *impl, new_session_id, device_name, in_params,
+                                   process.GetPointerUnsafe(), applet_resource_user_id);
     impl->sessions[new_session_id] = audio_in->GetImpl();
     impl->applet_resource_user_ids[new_session_id] = applet_resource_user_id;
 
@@ -318,6 +331,14 @@ void AudInU::OpenAudioInProtocolSpecified(HLERequestContext& ctx) {
     auto device_name = Common::StringFromBuffer(device_name_data);
     auto handle{ctx.GetCopyHandle(0)};
 
+    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(handle)};
+    if (process.IsNull()) {
+        LOG_ERROR(Service_Audio, "Failed to get process handle");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultUnknown);
+        return;
+    }
+
     std::scoped_lock l{impl->mutex};
     auto link{impl->LinkToManager()};
     if (link.IsError()) {
@@ -338,8 +359,9 @@ void AudInU::OpenAudioInProtocolSpecified(HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "Opening new AudioIn, sessionid={}, free sessions={}", new_session_id,
               impl->num_free_sessions);
 
-    auto audio_in = std::make_shared<IAudioIn>(system, *impl, new_session_id, device_name,
-                                               in_params, handle, applet_resource_user_id);
+    auto audio_in =
+        std::make_shared<IAudioIn>(system, *impl, new_session_id, device_name, in_params,
+                                   process.GetPointerUnsafe(), applet_resource_user_id);
     impl->sessions[new_session_id] = audio_in->GetImpl();
     impl->applet_resource_user_ids[new_session_id] = applet_resource_user_id;
 

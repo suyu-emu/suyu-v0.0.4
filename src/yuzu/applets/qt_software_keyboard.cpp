@@ -832,7 +832,7 @@ void QtSoftwareKeyboardDialog::SetControllerImage() {
     }();
 
     switch (controller_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::GameCube:
         ui->icon_controller->setStyleSheet(
             QStringLiteral("image: url(:/overlay/controller_pro%1.png);").arg(theme));

@@ -27,6 +27,8 @@
 #include "core/hle/result.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
+#include "core/hle/service/filesystem/romfs_controller.h"
+#include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/reporter.h"
@@ -577,9 +579,11 @@ private:
 
 class ISaveDataInfoReader final : public ServiceFramework<ISaveDataInfoReader> {
 public:
-    explicit ISaveDataInfoReader(Core::System& system_, FileSys::SaveDataSpaceId space,
-                                 FileSystemController& fsc_)
-        : ServiceFramework{system_, "ISaveDataInfoReader"}, fsc{fsc_} {
+    explicit ISaveDataInfoReader(Core::System& system_,
+                                 std::shared_ptr<SaveDataController> save_data_controller_,
+                                 FileSys::SaveDataSpaceId space)
+        : ServiceFramework{system_, "ISaveDataInfoReader"}, save_data_controller{
+                                                                save_data_controller_} {
         static const FunctionInfo functions[] = {
             {0, &ISaveDataInfoReader::ReadSaveDataInfo, "ReadSaveDataInfo"},
         };
@@ -626,7 +630,7 @@ private:
 
     void FindAllSaves(FileSys::SaveDataSpaceId space) {
         FileSys::VirtualDir save_root{};
-        const auto result = fsc.OpenSaveDataSpace(&save_root, space);
+        const auto result = save_data_controller->OpenSaveDataSpace(&save_root, space);
 
         if (result != ResultSuccess || save_root == nullptr) {
             LOG_ERROR(Service_FS, "The save root for the space_id={:02X} was invalid!", space);
@@ -723,7 +727,8 @@ private:
     };
     static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
 
-    FileSystemController& fsc;
+    ProcessId process_id = 0;
+    std::shared_ptr<SaveDataController> save_data_controller;
     std::vector<SaveDataInfo> info;
     u64 next_entry_index = 0;
 };
@@ -863,21 +868,20 @@ FSP_SRV::FSP_SRV(Core::System& system_)
     if (Settings::values.enable_fs_access_log) {
         access_log_mode = AccessLogMode::SdCard;
     }
-
-    // This should be true on creation
-    fsc.SetAutoSaveDataCreation(true);
 }
 
 FSP_SRV::~FSP_SRV() = default;
 
 void FSP_SRV::SetCurrentProcess(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    current_process_id = rp.Pop<u64>();
+    current_process_id = ctx.GetPID();
 
     LOG_DEBUG(Service_FS, "called. current_process_id=0x{:016X}", current_process_id);
 
+    const auto res =
+        fsc.OpenProcess(&program_id, &save_data_controller, &romfs_controller, current_process_id);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(res);
 }
 
 void FSP_SRV::OpenFileSystemWithPatch(HLERequestContext& ctx) {
@@ -916,7 +920,8 @@ void FSP_SRV::CreateSaveDataFileSystem(HLERequestContext& ctx) {
               uid[1], uid[0]);
 
     FileSys::VirtualDir save_data_dir{};
-    fsc.CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::NandUser, save_struct);
+    save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::NandUser,
+                                         save_struct);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -931,7 +936,8 @@ void FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx)
     LOG_DEBUG(Service_FS, "called save_struct = {}", save_struct.DebugInfo());
 
     FileSys::VirtualDir save_data_dir{};
-    fsc.CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::NandSystem, save_struct);
+    save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::NandSystem,
+                                         save_struct);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -950,7 +956,8 @@ void FSP_SRV::OpenSaveDataFileSystem(HLERequestContext& ctx) {
     LOG_INFO(Service_FS, "called.");
 
     FileSys::VirtualDir dir{};
-    auto result = fsc.OpenSaveData(&dir, parameters.space_id, parameters.attribute);
+    auto result =
+        save_data_controller->OpenSaveData(&dir, parameters.space_id, parameters.attribute);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
@@ -1001,7 +1008,7 @@ void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISaveDataInfoReader>(
-        std::make_shared<ISaveDataInfoReader>(system, space, fsc));
+        std::make_shared<ISaveDataInfoReader>(system, save_data_controller, space));
 }
 
 void FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage(HLERequestContext& ctx) {
@@ -1009,8 +1016,8 @@ void FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISaveDataInfoReader>(system, FileSys::SaveDataSpaceId::TemporaryStorage,
-                                             fsc);
+    rb.PushIpcInterface<ISaveDataInfoReader>(system, save_data_controller,
+                                             FileSys::SaveDataSpaceId::TemporaryStorage);
 }
 
 void FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute(HLERequestContext& ctx) {
@@ -1050,7 +1057,7 @@ void FSP_SRV::OpenDataStorageByCurrentProcess(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
     if (!romfs) {
-        auto current_romfs = fsc.OpenRomFSCurrentProcess();
+        auto current_romfs = romfs_controller->OpenRomFSCurrentProcess();
         if (!current_romfs) {
             // TODO (bunnei): Find the right error code to use here
             LOG_CRITICAL(Service_FS, "no file system interface available!");
@@ -1078,7 +1085,7 @@ void FSP_SRV::OpenDataStorageByDataId(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called with storage_id={:02X}, unknown={:08X}, title_id={:016X}",
               storage_id, unknown, title_id);
 
-    auto data = fsc.OpenRomFS(title_id, storage_id, FileSys::ContentRecordType::Data);
+    auto data = romfs_controller->OpenRomFS(title_id, storage_id, FileSys::ContentRecordType::Data);
 
     if (!data) {
         const auto archive = FileSys::SystemArchive::SynthesizeSystemArchive(title_id);
@@ -1101,7 +1108,8 @@ void FSP_SRV::OpenDataStorageByDataId(HLERequestContext& ctx) {
 
     const FileSys::PatchManager pm{title_id, fsc, content_provider};
 
-    auto base = fsc.OpenBaseNca(title_id, storage_id, FileSys::ContentRecordType::Data);
+    auto base =
+        romfs_controller->OpenBaseNca(title_id, storage_id, FileSys::ContentRecordType::Data);
     auto storage = std::make_shared<IStorage>(
         system, pm.PatchRomFS(base.get(), std::move(data), FileSys::ContentRecordType::Data));
 
@@ -1129,9 +1137,8 @@ void FSP_SRV::OpenDataStorageWithProgramIndex(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_FS, "called, program_index={}", program_index);
 
-    auto patched_romfs =
-        fsc.OpenPatchedRomFSWithProgramIndex(system.GetApplicationProcessProgramID(), program_index,
-                                             FileSys::ContentRecordType::Program);
+    auto patched_romfs = romfs_controller->OpenPatchedRomFSWithProgramIndex(
+        program_id, program_index, FileSys::ContentRecordType::Program);
 
     if (!patched_romfs) {
         // TODO: Find the right error code to use here
@@ -1152,7 +1159,7 @@ void FSP_SRV::OpenDataStorageWithProgramIndex(HLERequestContext& ctx) {
 void FSP_SRV::DisableAutoSaveDataCreation(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    fsc.SetAutoSaveDataCreation(false);
+    save_data_controller->SetAutoCreate(false);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/page_table.h"
+#include "common/scope_exit.h"
 
 namespace Common {
 
@@ -11,35 +12,22 @@ PageTable::~PageTable() noexcept = default;
 
 bool PageTable::BeginTraversal(TraversalEntry* out_entry, TraversalContext* out_context,
                                Common::ProcessAddress address) const {
-    // Setup invalid defaults.
-    out_entry->phys_addr = 0;
-    out_entry->block_size = page_size;
-    out_context->next_page = 0;
+    out_context->next_offset = GetInteger(address);
+    out_context->next_page = address / page_size;
 
-    // Validate that we can read the actual entry.
-    const auto page = address / page_size;
-    if (page >= backing_addr.size()) {
-        return false;
-    }
-
-    // Validate that the entry is mapped.
-    const auto phys_addr = backing_addr[page];
-    if (phys_addr == 0) {
-        return false;
-    }
-
-    // Populate the results.
-    out_entry->phys_addr = phys_addr + GetInteger(address);
-    out_context->next_page = page + 1;
-    out_context->next_offset = GetInteger(address) + page_size;
-
-    return true;
+    return this->ContinueTraversal(out_entry, out_context);
 }
 
 bool PageTable::ContinueTraversal(TraversalEntry* out_entry, TraversalContext* context) const {
     // Setup invalid defaults.
     out_entry->phys_addr = 0;
     out_entry->block_size = page_size;
+
+    // Regardless of whether the page was mapped, advance on exit.
+    SCOPE_EXIT({
+        context->next_page += 1;
+        context->next_offset += page_size;
+    });
 
     // Validate that we can read the actual entry.
     const auto page = context->next_page;
@@ -55,8 +43,6 @@ bool PageTable::ContinueTraversal(TraversalEntry* out_entry, TraversalContext* c
 
     // Populate the results.
     out_entry->phys_addr = phys_addr + context->next_offset;
-    context->next_page = page + 1;
-    context->next_offset += page_size;
 
     return true;
 }

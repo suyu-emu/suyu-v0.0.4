@@ -12,13 +12,22 @@
 #include "core/debugger/debugger_interface.h"
 #include "core/debugger/gdbstub_arch.h"
 
+namespace Kernel {
+class KProcess;
+}
+
+namespace Core::Memory {
+class Memory;
+}
+
 namespace Core {
 
 class System;
 
 class GDBStub : public DebuggerFrontend {
 public:
-    explicit GDBStub(DebuggerBackend& backend, Core::System& system);
+    explicit GDBStub(DebuggerBackend& backend, Core::System& system,
+                     Kernel::KProcess* debug_process);
     ~GDBStub() override;
 
     void Connected() override;
@@ -42,8 +51,12 @@ private:
     void SendReply(std::string_view data);
     void SendStatus(char status);
 
+    Kernel::KProcess* GetProcess();
+    Core::Memory::Memory& GetMemory();
+
 private:
     Core::System& system;
+    Kernel::KProcess* debug_process;
     std::unique_ptr<GDBStubArch> arch;
     std::vector<char> current_command;
     std::map<VAddr, u32> replaced_instructions;

@@ -22,12 +22,10 @@ void LoopProcess(Core::System& system) {
     std::shared_ptr<HidFirmwareSettings> firmware_settings =
         std::make_shared<HidFirmwareSettings>();
 
-    // TODO: Remove this hack until this service is emulated properly.
-    const auto process_list = system.Kernel().GetProcessList();
-    if (!process_list.empty()) {
-        resource_manager->Initialize();
-        resource_manager->RegisterAppletResourceUserId(process_list[0]->GetId(), true);
-    }
+    // TODO: Remove this hack when am is emulated properly.
+    resource_manager->Initialize();
+    resource_manager->RegisterAppletResourceUserId(system.ApplicationProcess()->GetProcessId(),
+                                                   true);
 
     server_manager->RegisterNamedService(
         "hid", std::make_shared<IHidServer>(system, resource_manager, firmware_settings));
