@@ -7,8 +7,8 @@
 #include "core/file_sys/fssystem/fs_i_storage.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree_template_impl.h"
-#include "core/file_sys/vfs.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 
 namespace FileSys {
 

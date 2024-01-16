@@ -8,8 +8,8 @@
 #include "common/assert.h"
 #include "core/file_sys/fsmitm_romfsbuild.h"
 #include "core/file_sys/ips_layer.h"
-#include "core/file_sys/vfs.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys {
 

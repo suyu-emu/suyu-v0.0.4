@@ -13,7 +13,7 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/file_sys/vfs_types.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace FileSys {
 

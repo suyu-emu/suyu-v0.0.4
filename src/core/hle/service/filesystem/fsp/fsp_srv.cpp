@@ -23,7 +23,7 @@
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/system_archive/system_archive.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 #include "core/hle/result.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp/fs_i_filesystem.h"

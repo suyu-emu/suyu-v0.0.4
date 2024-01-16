@@ -12,7 +12,7 @@
 #include "common/logging/log.h"
 #include "common/swap.h"
 #include "core/file_sys/ips_layer.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys {
 

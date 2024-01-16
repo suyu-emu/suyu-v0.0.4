@@ -9,11 +9,11 @@
 #include "common/swap.h"
 #include "core/file_sys/fsmitm_romfsbuild.h"
 #include "core/file_sys/romfs.h"
-#include "core/file_sys/vfs.h"
-#include "core/file_sys/vfs_cached.h"
-#include "core/file_sys/vfs_concat.h"
-#include "core/file_sys/vfs_offset.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/vfs/vfs_cached.h"
+#include "core/file_sys/vfs/vfs_concat.h"
+#include "core/file_sys/vfs/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys {
 namespace {

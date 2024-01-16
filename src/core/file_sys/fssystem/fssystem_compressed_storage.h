@@ -10,7 +10,7 @@
 #include "core/file_sys/fssystem/fssystem_bucket_tree.h"
 #include "core/file_sys/fssystem/fssystem_compression_common.h"
 #include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
 
