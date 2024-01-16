@@ -41,6 +41,8 @@ Container::Container(Tegra::Host1x::Host1x& host1x_) {
 Container::~Container() = default;
 
 SessionId Container::OpenSession(Kernel::KProcess* process) {
+    using namespace Common::Literals;
+
     std::scoped_lock lk(impl->session_guard);
     for (auto& session : impl->sessions) {
         if (!session.is_active) {
@@ -79,7 +81,7 @@ SessionId Container::OpenSession(Kernel::KProcess* process) {
                                           cur_addr));
             auto svc_mem_info = mem_info.GetSvcMemoryInfo();
 
-            // check if this memory block is heap
+            // Check if this memory block is heap.
             if (svc_mem_info.state == Kernel::Svc::MemoryState::Normal) {
                 if (svc_mem_info.size > region_size) {
                     region_size = svc_mem_info.size;
@@ -96,13 +98,13 @@ SessionId Container::OpenSession(Kernel::KProcess* process) {
             cur_addr = next_address;
         }
         session.has_preallocated_area = false;
-        auto start_region = (region_size >> 15) >= 1024 ? smmu.Allocate(region_size) : 0;
+        auto start_region = region_size >= 32_MiB ? smmu.Allocate(region_size) : 0;
         if (start_region != 0) {
             session.mapper = std::make_unique<HeapMapper>(region_start, start_region, region_size,
                                                           asid, impl->host1x);
             smmu.TrackContinuity(start_region, region_start, region_size, asid);
             session.has_preallocated_area = true;
-            LOG_CRITICAL(Debug, "Preallocation created!");
+            LOG_DEBUG(Debug, "Preallocation created!");
         }
     }
     return SessionId{new_id};
