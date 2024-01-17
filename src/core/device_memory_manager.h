@@ -10,6 +10,7 @@
 #include <mutex>
 
 #include "common/common_types.h"
+#include "common/range_mutex.h"
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
 
@@ -204,7 +205,7 @@ private:
         (1ULL << (device_virtual_bits - page_bits)) / subentries;
     using CachedPages = std::array<CounterEntry, num_counter_entries>;
     std::unique_ptr<CachedPages> cached_pages;
-    std::mutex counter_guard;
+    Common::RangeMutex counter_guard;
     std::mutex mapping_guard;
 };
 
