@@ -5,6 +5,7 @@
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/logging/log.h"
 #include "frontend_common/config.h"
 #include "yuzu/configuration/input_profiles.h"
 
@@ -112,6 +113,8 @@ bool InputProfiles::LoadProfile(const std::string& profile_name, std::size_t pla
         map_profiles.erase(profile_name);
         return false;
     }
+
+    LOG_INFO(Config, "Loading input profile `{}`", profile_name);
 
     map_profiles[profile_name]->ReadQtControlPlayerValues(player_index);
     return true;

@@ -5,6 +5,7 @@
 #include <array>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
@@ -58,6 +59,19 @@ void Config::Initialize(const std::optional<std::string> config_path) {
 }
 
 void Config::WriteToIni() const {
+    std::string config_type;
+    switch (type) {
+    case ConfigType::GlobalConfig:
+        config_type = "Global";
+        break;
+    case ConfigType::PerGameConfig:
+        config_type = "Game Specific";
+        break;
+    case ConfigType::InputProfile:
+        config_type = "Input Profile";
+        break;
+    }
+    LOG_INFO(Config, "Writing {} configuration to: {}", config_type, config_loc);
     FILE* fp = nullptr;
 #ifdef _WIN32
     fp = _wfopen(Common::UTF8ToUTF16W(config_loc).data(), L"wb");
@@ -117,10 +131,10 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
         player_prefix.append("player_").append(ToString(player_index)).append("_");
     }
 
+    const auto profile_name = ReadStringSetting(std::string(player_prefix).append("profile_name"));
+
     auto& player = Settings::values.players.GetValue()[player_index];
     if (IsCustomConfig()) {
-        const auto profile_name =
-            ReadStringSetting(std::string(player_prefix).append("profile_name"));
         if (profile_name.empty()) {
             // Use the global input config
             player = Settings::values.players.GetValue(true)[player_index];
@@ -139,6 +153,10 @@ void Config::ReadPlayerValues(const std::size_t player_index) {
             player.controller_type = controller;
         }
     } else {
+        if (global) {
+            auto& player_global = Settings::values.players.GetValue(true)[player_index];
+            player_global.profile_name = profile_name;
+        }
         std::string connected_key = player_prefix;
         player.connected = ReadBooleanSetting(connected_key.append("connected"),
                                               std::make_optional(player_index == 0));
@@ -412,6 +430,11 @@ void Config::SavePlayerValues(const std::size_t player_index) {
         std::make_optional(static_cast<u8>(Settings::ControllerType::ProController)));
 
     if (!player_prefix.empty() || !Settings::IsConfiguringGlobal()) {
+        if (global) {
+            const auto& player_global = Settings::values.players.GetValue(true)[player_index];
+            WriteStringSetting(std::string(player_prefix).append("profile_name"),
+                               player_global.profile_name, std::make_optional(std::string("")));
+        }
         WriteBooleanSetting(std::string(player_prefix).append("connected"), player.connected,
                             std::make_optional(player_index == 0));
         WriteIntegerSetting(std::string(player_prefix).append("vibration_enabled"),
@@ -468,12 +491,15 @@ void Config::SaveMotionTouchValues() {
 
 void Config::SaveValues() {
     if (global) {
+        LOG_DEBUG(Config, "Saving global generic configuration values");
         SaveDataStorageValues();
         SaveDebuggingValues();
         SaveDisabledAddOnValues();
         SaveNetworkValues();
         SaveWebServiceValues();
         SaveMiscellaneousValues();
+    } else {
+        LOG_DEBUG(Config, "Saving only generic configuration values");
     }
     SaveControlValues();
     SaveCoreValues();
@@ -811,10 +837,6 @@ void Config::WriteString(const std::string& key, const std::string& value) {
 void Config::Reload() {
     ReadValues();
     // To apply default value changes
-    SaveValues();
-}
-
-void Config::Save() {
     SaveValues();
 }
 

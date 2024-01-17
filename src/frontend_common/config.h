@@ -51,7 +51,6 @@ protected:
     [[nodiscard]] bool IsCustomConfig() const;
 
     void Reload();
-    void Save();
 
     /**
      * Derived config classes must implement this so they can reload all platform-specific
