@@ -518,12 +518,21 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
                 continue;
             }
 
+            int user_arg_idx = ++i;
             bool argument_ok;
-            const std::size_t selected_user = args[++i].toUInt(&argument_ok);
+            std::size_t selected_user = args[user_arg_idx].toUInt(&argument_ok);
 
             if (!argument_ok) {
-                LOG_ERROR(Frontend, "Invalid user argument");
-                continue;
+                // try to look it up by username, only finds the first username that matches.
+                const std::string user_arg_str = args[user_arg_idx].toStdString();
+                const auto user_idx = system->GetProfileManager().GetUserIndex(user_arg_str);
+
+                if (user_idx == std::nullopt) {
+                    LOG_ERROR(Frontend, "Invalid user argument");
+                    continue;
+                }
+
+                selected_user = user_idx.value();
             }
 
             if (!system->GetProfileManager().UserExistsIndex(selected_user)) {
@@ -532,6 +541,8 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
             }
 
             Settings::values.current_user = static_cast<s32>(selected_user);
+
+            user_flag_cmd_line = true;
             continue;
         }
 
@@ -1942,7 +1953,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     Settings::LogSettings();
 
-    if (UISettings::values.select_user_on_boot) {
+    if (UISettings::values.select_user_on_boot && !user_flag_cmd_line) {
         const Core::Frontend::ProfileSelectParameters parameters{
             .mode = Service::AM::Applets::UiMode::UserSelector,
             .invalid_uid_list = {},
@@ -1953,6 +1964,11 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
             return;
         }
     }
+
+    // If the user specifies -u (successfully) on the cmd line, don't prompt for a user on first
+    // game startup only. If the user stops emulation and starts a new one, go back to the expected
+    // behavior of asking.
+    user_flag_cmd_line = false;
 
     if (!LoadROM(filename, program_id, program_index, launch_type)) {
         return;
