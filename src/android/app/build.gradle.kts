@@ -3,8 +3,8 @@
 
 import android.annotation.SuppressLint
 import kotlin.collections.setOf
-import org.jetbrains.kotlin.konan.properties.Properties
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
 plugins {
     id("com.android.application")
@@ -13,6 +13,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.20"
     id("androidx.navigation.safeargs.kotlin")
     id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
+    id("com.github.triplet.play") version "3.8.6"
 }
 
 /**
@@ -58,15 +59,7 @@ android {
         targetSdk = 34
         versionName = getGitVersion()
 
-        // If you want to use autoVersion for the versionCode, create a property in local.properties
-        // named "autoVersioned" and set it to "true"
-        val properties = Properties()
-        val versionProperty = try {
-            properties.load(project.rootProject.file("local.properties").inputStream())
-            properties.getProperty("autoVersioned") ?: ""
-        } catch (e: Exception) { "" }
-
-        versionCode = if (versionProperty == "true") {
+        versionCode = if (System.getenv("AUTO_VERSIONED") == "true") {
             autoVersion
         } else {
             1
@@ -221,6 +214,15 @@ ktlint {
     }
 }
 
+play {
+    val keyPath = System.getenv("SERVICE_ACCOUNT_KEY_PATH")
+    if (keyPath != null) {
+        serviceAccountCredentials.set(File(keyPath))
+    }
+    track.set(System.getenv("STORE_TRACK") ?: "internal")
+    releaseStatus.set(ReleaseStatus.COMPLETED)
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -257,14 +259,13 @@ fun runGitCommand(command: List<String>): String {
 }
 
 fun getGitVersion(): String {
+    val gitVersion = runGitCommand(listOf("git", "describe", "--always", "--long"))
     val versionName = if (System.getenv("GITHUB_ACTIONS") != null) {
-        val gitTag = System.getenv("GIT_TAG_NAME") ?: ""
-        gitTag
+        System.getenv("GIT_TAG_NAME") ?: gitVersion
     } else {
-        runGitCommand(listOf("git", "describe", "--always", "--long"))
-            .replace(Regex("(-0)?-[^-]+$"), "")
+        gitVersion
     }
-    return versionName.ifEmpty { "0.0" }
+    return versionName.replace(Regex("(-0)?-[^-]+$"), "").ifEmpty { "0.0" }
 }
 
 fun getGitHash(): String =
