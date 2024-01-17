@@ -91,6 +91,10 @@ void Display::CreateLayer(u64 layer_id, u32 binder_id,
     layers.emplace_back(std::make_unique<Layer>(layer_id, binder_id, *core, *producer,
                                                 std::move(buffer_item_consumer)));
 
+    if (is_abandoned) {
+        this->FindLayer(layer_id)->GetConsumer().Abandon();
+    }
+
     hos_binder_driver_server.RegisterProducer(std::move(producer));
 }
 
@@ -101,6 +105,13 @@ void Display::DestroyLayer(u64 layer_id) {
 
     std::erase_if(layers,
                   [layer_id](const auto& layer) { return layer->GetLayerId() == layer_id; });
+}
+
+void Display::Abandon() {
+    for (auto& layer : layers) {
+        layer->GetConsumer().Abandon();
+    }
+    is_abandoned = true;
 }
 
 Layer* Display::FindLayer(u64 layer_id) {
