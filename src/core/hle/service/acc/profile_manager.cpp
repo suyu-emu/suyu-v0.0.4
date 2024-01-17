@@ -11,6 +11,7 @@
 #include "common/fs/path_util.h"
 #include "common/polyfill_ranges.h"
 #include "common/settings.h"
+#include "common/string_util.h"
 #include "core/hle/service/acc/profile_manager.h"
 
 namespace Service::Account {
@@ -162,6 +163,22 @@ std::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const 
 /// Returns a users profile index based on their profile
 std::optional<std::size_t> ProfileManager::GetUserIndex(const ProfileInfo& user) const {
     return GetUserIndex(user.user_uuid);
+}
+
+/// Returns the first user profile seen based on username (which does not enforce uniqueness)
+std::optional<std::size_t> ProfileManager::GetUserIndex(const std::string& username) const {
+    const auto iter =
+        std::find_if(profiles.begin(), profiles.end(), [&username](const ProfileInfo& p) {
+            const std::string pusername = Common::StringFromFixedZeroTerminatedBuffer(
+                reinterpret_cast<const char*>(p.username.data()), p.username.size());
+
+            return username.compare(pusername) == 0;
+        });
+    if (iter == profiles.end()) {
+        return std::nullopt;
+    }
+
+    return static_cast<std::size_t>(std::distance(profiles.begin(), iter));
 }
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
