@@ -33,7 +33,6 @@ stages:
         cache: 'true'
         version: $(DisplayVersion)
 - stage: build_win
-  dependsOn: format
   displayName: 'build-windows'
   jobs:
   - job: build
