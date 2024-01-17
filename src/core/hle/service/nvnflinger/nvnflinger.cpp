@@ -112,9 +112,7 @@ void Nvnflinger::ShutdownLayers() {
     {
         const auto lock_guard = Lock();
         for (auto& display : displays) {
-            for (size_t layer = 0; layer < display.GetNumLayers(); ++layer) {
-                display.GetLayer(layer).GetConsumer().Abandon();
-            }
+            display.Abandon();
         }
 
         is_abandoned = true;

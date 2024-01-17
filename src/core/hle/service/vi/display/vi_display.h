@@ -98,6 +98,8 @@ public:
         layers.clear();
     }
 
+    void Abandon();
+
     /// Attempts to find a layer with the given ID.
     ///
     /// @param layer_id The layer ID.
@@ -124,6 +126,7 @@ private:
 
     std::vector<std::unique_ptr<Layer>> layers;
     Kernel::KEvent* vsync_event{};
+    bool is_abandoned{};
 };
 
 } // namespace Service::VI
