@@ -22,19 +22,18 @@ namespace FS = Common::FS;
 
 namespace UISettings {
 
-const Themes themes{{
-    {"Default", "default"},
-    {"Default Colorful", "colorful"},
-    {"Dark", "qdarkstyle"},
-    {"Dark Colorful", "colorful_dark"},
-    {"Midnight Blue", "qdarkstyle_midnight_blue"},
-    {"Midnight Blue Colorful", "colorful_midnight_blue"},
+const Themes included_themes{{
+    {"Default", ":/default/"},
+    {"Default Colorful", ":/colorful/"},
+    {"Dark", ":/qdarkstyle/"},
+    {"Dark Colorful", ":/colorful_dark/"},
+    {"Midnight Blue", ":/qdarkstyle_midnight_blue/"},
+    {"Midnight Blue Colorful", ":/colorful_midnight_blue/"},
 }};
 
 bool IsDarkTheme() {
-    const auto& theme = UISettings::values.theme;
-    return theme == std::string("qdarkstyle") || theme == std::string("qdarkstyle_midnight_blue") ||
-           theme == std::string("colorful_dark") || theme == std::string("colorful_midnight_blue");
+    return UISettings::values.theme.contains(QStringLiteral("dark")) ||
+           UISettings::values.theme.contains(QStringLiteral("midnight"));
 }
 
 Values values = {};

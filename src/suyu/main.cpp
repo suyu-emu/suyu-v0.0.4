@@ -3542,7 +3542,7 @@ void GMainWindow::ResetWindowSize1080() {
 }
 
 void GMainWindow::OnConfigure() {
-    const auto old_theme = UISettings::values.theme;
+    const QString old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
 #ifdef __unix__
@@ -4812,9 +4812,8 @@ static void AdjustLinkColor() {
 }
 
 void GMainWindow::UpdateUITheme() {
-    const QString default_theme = QString::fromUtf8(
-        UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second);
-    QString current_theme = QString::fromStdString(UISettings::values.theme);
+    QString default_theme = QString::fromStdString(UISettings::default_theme.data());
+    QString current_theme = UISettings::values.theme;
 
     if (current_theme.isEmpty()) {
         current_theme = default_theme;
@@ -4825,6 +4824,7 @@ void GMainWindow::UpdateUITheme() {
     AdjustLinkColor();
 #else
     if (current_theme == QStringLiteral("default") || current_theme == QStringLiteral("colorful")) {
+        LOG_INFO(Frontend, "Theme is default or colorful: {}", current_theme.toStdString());
         QIcon::setThemeName(current_theme == QStringLiteral("colorful") ? current_theme
                                                                         : startup_icon_theme);
         QIcon::setThemeSearchPaths(QStringList(default_theme_paths));
@@ -4832,33 +4832,55 @@ void GMainWindow::UpdateUITheme() {
             current_theme = QStringLiteral("default_dark");
         }
     } else {
+        LOG_INFO(Frontend, "Theme is NOT default or colorful: {}", current_theme.toStdString());
         QIcon::setThemeName(current_theme);
-        QIcon::setThemeSearchPaths(QStringList(QStringLiteral(":/icons")));
+        // Use icon resources from application binary and current theme subdirectory if it exists
+        QStringList theme_paths;
+        theme_paths << QString::fromStdString(":/icons")
+                    << QStringLiteral("%1/%2/icons")
+                           .arg(QString::fromStdString(
+                                    Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ThemesDir)),
+                                current_theme);
+        QIcon::setThemeSearchPaths(theme_paths);
         AdjustLinkColor();
     }
 #endif
     if (current_theme != default_theme) {
-        QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
-        QFile f(theme_uri);
-        if (!f.open(QFile::ReadOnly | QFile::Text)) {
-            LOG_ERROR(Frontend, "Unable to open style \"{}\", fallback to the default theme",
-                      UISettings::values.theme);
-            current_theme = default_theme;
+        QString theme_uri{current_theme + QStringLiteral("style.qss")};
+        if (tryLoadStylesheet(theme_uri)) {
+            return;
         }
-    }
 
-    QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
-    QFile f(theme_uri);
-    if (f.open(QFile::ReadOnly | QFile::Text)) {
-        QTextStream ts(&f);
-        qApp->setStyleSheet(ts.readAll());
-        setStyleSheet(ts.readAll());
-    } else {
+        // Reading new theme failed, loading default stylesheet
+        LOG_ERROR(Frontend, "Unable to open style \"{}\", fallback to the default theme",
+                  current_theme.toStdString());
+
+        current_theme = default_theme;
+        theme_uri = QStringLiteral(":%1/style.qss").arg(default_theme);
+        if (tryLoadStylesheet(theme_uri)) {
+            return;
+        }
+
+        // Reading default failed, loading empty stylesheet
         LOG_ERROR(Frontend, "Unable to set style \"{}\", stylesheet file not found",
-                  UISettings::values.theme);
+                  current_theme.toStdString());
+
         qApp->setStyleSheet({});
         setStyleSheet({});
     }
+}
+
+bool GMainWindow::tryLoadStylesheet(const QString& theme_path) {
+    QFile theme_file(theme_path);
+    if (theme_file.open(QFile::ReadOnly | QFile::Text)) {
+        LOG_INFO(Frontend, "Loading style in: {}", theme_path.toStdString());
+        QTextStream ts(&theme_file);
+        qApp->setStyleSheet(ts.readAll());
+        setStyleSheet(ts.readAll());
+        return true;
+    }
+    // Opening the file failed
+    return false;
 }
 
 void GMainWindow::LoadTranslation() {
@@ -4919,7 +4941,7 @@ void GMainWindow::changeEvent(QEvent* event) {
     // UpdateUITheme is a decent work around
     if (event->type() == QEvent::PaletteChange) {
         const QPalette test_palette(qApp->palette());
-        const QString current_theme = QString::fromStdString(UISettings::values.theme);
+        const QString& current_theme = UISettings::values.theme;
         // Keeping eye on QPalette::Window to avoid looping. QPalette::Text might be useful too
         static QColor last_window_color;
         const QColor window_color = test_palette.color(QPalette::Active, QPalette::Window);
