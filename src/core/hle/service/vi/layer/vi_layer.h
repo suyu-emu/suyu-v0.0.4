@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
 #include "common/common_types.h"
 
@@ -75,12 +76,12 @@ public:
         return open;
     }
 
-    void Close() {
-        open = false;
+    bool Close() {
+        return std::exchange(open, false);
     }
 
-    void Open() {
-        open = true;
+    bool Open() {
+        return !std::exchange(open, true);
     }
 
 private:

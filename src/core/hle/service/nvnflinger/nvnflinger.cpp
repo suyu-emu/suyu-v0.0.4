@@ -174,24 +174,28 @@ void Nvnflinger::CreateLayerAtId(VI::Display& display, u64 layer_id) {
     display.CreateLayer(layer_id, buffer_id, nvdrv->container);
 }
 
-void Nvnflinger::OpenLayer(u64 layer_id) {
+bool Nvnflinger::OpenLayer(u64 layer_id) {
     const auto lock_guard = Lock();
 
     for (auto& display : displays) {
         if (auto* layer = display.FindLayer(layer_id); layer) {
-            layer->Open();
+            return layer->Open();
         }
     }
+
+    return false;
 }
 
-void Nvnflinger::CloseLayer(u64 layer_id) {
+bool Nvnflinger::CloseLayer(u64 layer_id) {
     const auto lock_guard = Lock();
 
     for (auto& display : displays) {
         if (auto* layer = display.FindLayer(layer_id); layer) {
-            layer->Close();
+            return layer->Close();
         }
     }
+
+    return false;
 }
 
 void Nvnflinger::DestroyLayer(u64 layer_id) {

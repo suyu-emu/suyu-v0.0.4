@@ -74,10 +74,10 @@ public:
     [[nodiscard]] std::optional<u64> CreateLayer(u64 display_id);
 
     /// Opens a layer on all displays for the given layer ID.
-    void OpenLayer(u64 layer_id);
+    bool OpenLayer(u64 layer_id);
 
     /// Closes a layer on all displays for the given layer ID.
-    void CloseLayer(u64 layer_id);
+    bool CloseLayer(u64 layer_id);
 
     /// Destroys the given layer ID.
     void DestroyLayer(u64 layer_id);
