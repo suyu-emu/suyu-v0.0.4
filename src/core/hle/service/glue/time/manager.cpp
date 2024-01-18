@@ -8,7 +8,7 @@
 
 #include "common/settings.h"
 #include "common/time_zone.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/service/glue/time/manager.h"
 #include "core/hle/service/glue/time/time_zone_binary.h"

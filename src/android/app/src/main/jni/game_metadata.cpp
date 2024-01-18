@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <core/core.h>
-#include <core/file_sys/mode.h>
-#include <core/file_sys/patch_manager.h>
-#include <core/loader/nro.h>
-#include <jni.h>
+#include "core/core.h"
+#include "core/file_sys/fs_filesystem.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/loader/loader.h"
+#include "core/loader/nro.h"
+#include "jni.h"
 #include "jni/android_common/android_common.h"
 #include "native.h"
 
@@ -79,7 +79,7 @@ extern "C" {
 jboolean Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getIsValid(JNIEnv* env, jobject obj,
                                                                jstring jpath) {
     const auto file = EmulationSession::GetInstance().System().GetFilesystem()->OpenFile(
-        GetJString(env, jpath), FileSys::Mode::Read);
+        GetJString(env, jpath), FileSys::OpenMode::Read);
     if (!file) {
         return false;
     }

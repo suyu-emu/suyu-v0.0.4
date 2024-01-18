@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -34,8 +34,7 @@ public:
         size_t m_length_and_is_normalized;
 
     public:
-        constexpr WriteBuffer() : m_buffer(nullptr), m_length_and_is_normalized(0) { /* ... */
-        }
+        constexpr WriteBuffer() : m_buffer(nullptr), m_length_and_is_normalized(0) {}
 
         constexpr ~WriteBuffer() {
             if (m_buffer != nullptr) {
@@ -113,35 +112,32 @@ private:
     WriteBuffer m_write_buffer;
 
 public:
-    constexpr Path() : m_str(EmptyPath), m_write_buffer() {
-        /* ... */
-    }
+    constexpr Path() : m_str(EmptyPath), m_write_buffer() {}
 
     constexpr Path(const char* s) : m_str(s), m_write_buffer() {
         m_write_buffer.SetNormalized();
     }
 
-    constexpr ~Path() { /* ... */
-    }
+    constexpr ~Path() = default;
 
     constexpr Result SetShallowBuffer(const char* buffer) {
-        /* Check pre-conditions. */
+        // Check pre-conditions
         ASSERT(m_write_buffer.GetLength() == 0);
 
-        /* Check the buffer is valid. */
+        // Check the buffer is valid
         R_UNLESS(buffer != nullptr, ResultNullptrArgument);
 
-        /* Set buffer. */
+        // Set buffer
         this->SetReadOnlyBuffer(buffer);
 
-        /* Note that we're normalized. */
+        // Note that we're normalized
         this->SetNormalized();
 
         R_SUCCEED();
     }
 
     constexpr const char* GetString() const {
-        /* Check pre-conditions. */
+        // Check pre-conditions
         ASSERT(this->IsNormalized());
 
         return m_str;
@@ -164,69 +160,69 @@ public:
     }
 
     Result Initialize(const Path& rhs) {
-        /* Check the other path is normalized. */
+        // Check the other path is normalized
         const bool normalized = rhs.IsNormalized();
         R_UNLESS(normalized, ResultNotNormalized);
 
-        /* Allocate buffer for our path. */
+        // Allocate buffer for our path
         const auto len = rhs.GetLength();
         R_TRY(this->Preallocate(len + 1));
 
-        /* Copy the path. */
+        // Copy the path
         const size_t copied = Strlcpy<char>(m_write_buffer.Get(), rhs.GetString(), len + 1);
         R_UNLESS(copied == len, ResultUnexpectedInPathA);
 
-        /* Set normalized. */
+        // Set normalized
         this->SetNormalized();
         R_SUCCEED();
     }
 
     Result Initialize(const char* path, size_t len) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
-        /* Initialize. */
+        // Initialize
         R_TRY(this->InitializeImpl(path, len));
 
-        /* Set not normalized. */
+        // Set not normalized
         this->SetNotNormalized();
 
         R_SUCCEED();
     }
 
     Result Initialize(const char* path) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
         R_RETURN(this->Initialize(path, std::strlen(path)));
     }
 
     Result InitializeWithReplaceBackslash(const char* path) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
-        /* Initialize. */
+        // Initialize
         R_TRY(this->InitializeImpl(path, std::strlen(path)));
 
-        /* Replace slashes as desired. */
+        // Replace slashes as desired
         if (const auto write_buffer_length = m_write_buffer.GetLength(); write_buffer_length > 1) {
             Replace(m_write_buffer.Get(), write_buffer_length - 1, '\\', '/');
         }
 
-        /* Set not normalized. */
+        // Set not normalized
         this->SetNotNormalized();
 
         R_SUCCEED();
     }
 
     Result InitializeWithReplaceForwardSlashes(const char* path) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
-        /* Initialize. */
+        // Initialize
         R_TRY(this->InitializeImpl(path, std::strlen(path)));
 
-        /* Replace slashes as desired. */
+        // Replace slashes as desired
         if (m_write_buffer.GetLength() > 1) {
             if (auto* p = m_write_buffer.Get(); p[0] == '/' && p[1] == '/') {
                 p[0] = '\\';
@@ -234,23 +230,23 @@ public:
             }
         }
 
-        /* Set not normalized. */
+        // Set not normalized
         this->SetNotNormalized();
 
         R_SUCCEED();
     }
 
     Result InitializeWithNormalization(const char* path, size_t size) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
-        /* Initialize. */
+        // Initialize
         R_TRY(this->InitializeImpl(path, size));
 
-        /* Set not normalized. */
+        // Set not normalized
         this->SetNotNormalized();
 
-        /* Perform normalization. */
+        // Perform normalization
         PathFlags path_flags;
         if (IsPathRelative(m_str)) {
             path_flags.AllowRelativePath();
@@ -269,7 +265,7 @@ public:
             R_SUCCEED();
         }
 
-        /* Normalize. */
+        // Normalize
         R_TRY(this->Normalize(path_flags));
 
         this->SetNormalized();
@@ -277,30 +273,30 @@ public:
     }
 
     Result InitializeWithNormalization(const char* path) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
         R_RETURN(this->InitializeWithNormalization(path, std::strlen(path)));
     }
 
     Result InitializeAsEmpty() {
-        /* Clear our buffer. */
+        // Clear our buffer
         this->ClearBuffer();
 
-        /* Set normalized. */
+        // Set normalized
         this->SetNormalized();
 
         R_SUCCEED();
     }
 
     Result AppendChild(const char* child) {
-        /* Check the path is valid. */
+        // Check the path is valid
         R_UNLESS(child != nullptr, ResultNullptrArgument);
 
-        /* Basic checks. If we hvea a path and the child is empty, we have nothing to do. */
+        // Basic checks. If we have a path and the child is empty, we have nothing to do
         const char* c = child;
         if (m_str[0]) {
-            /* Skip an early separator. */
+            // Skip an early separator
             if (*c == '/') {
                 ++c;
             }
@@ -308,40 +304,40 @@ public:
             R_SUCCEED_IF(*c == '\x00');
         }
 
-        /* If we don't have a string, we can just initialize. */
+        // If we don't have a string, we can just initialize
         auto cur_len = std::strlen(m_str);
         if (cur_len == 0) {
             R_RETURN(this->Initialize(child));
         }
 
-        /* Remove a trailing separator. */
+        // Remove a trailing separator
         if (m_str[cur_len - 1] == '/' || m_str[cur_len - 1] == '\\') {
             --cur_len;
         }
 
-        /* Get the child path's length. */
+        // Get the child path's length
         auto child_len = std::strlen(c);
 
-        /* Reset our write buffer. */
+        // Reset our write buffer
         WriteBuffer old_write_buffer;
         if (m_write_buffer.Get() != nullptr) {
             old_write_buffer = std::move(m_write_buffer);
             this->ClearBuffer();
         }
 
-        /* Pre-allocate the new buffer. */
+        // Pre-allocate the new buffer
         R_TRY(this->Preallocate(cur_len + 1 + child_len + 1));
 
-        /* Get our write buffer. */
+        // Get our write buffer
         auto* dst = m_write_buffer.Get();
         if (old_write_buffer.Get() != nullptr && cur_len > 0) {
             Strlcpy<char>(dst, old_write_buffer.Get(), cur_len + 1);
         }
 
-        /* Add separator. */
+        // Add separator
         dst[cur_len] = '/';
 
-        /* Copy the child path. */
+        // Copy the child path
         const size_t copied = Strlcpy<char>(dst + cur_len + 1, c, child_len + 1);
         R_UNLESS(copied == child_len, ResultUnexpectedInPathA);
 
@@ -353,21 +349,21 @@ public:
     }
 
     Result Combine(const Path& parent, const Path& child) {
-        /* Get the lengths. */
+        // Get the lengths
         const auto p_len = parent.GetLength();
         const auto c_len = child.GetLength();
 
-        /* Allocate our buffer. */
+        // Allocate our buffer
         R_TRY(this->Preallocate(p_len + c_len + 1));
 
-        /* Initialize as parent. */
+        // Initialize as parent
         R_TRY(this->Initialize(parent));
 
-        /* If we're empty, we can just initialize as child. */
+        // If we're empty, we can just initialize as child
         if (this->IsEmpty()) {
             R_TRY(this->Initialize(child));
         } else {
-            /* Otherwise, we should append the child. */
+            // Otherwise, we should append the child
             R_TRY(this->AppendChild(child));
         }
 
@@ -375,7 +371,7 @@ public:
     }
 
     Result RemoveChild() {
-        /* If we don't have a write-buffer, ensure that we have one. */
+        // If we don't have a write-buffer, ensure that we have one
         if (m_write_buffer.Get() == nullptr) {
             if (const auto len = std::strlen(m_str); len > 0) {
                 R_TRY(this->Preallocate(len));
@@ -383,17 +379,17 @@ public:
             }
         }
 
-        /* Check that it's possible for us to remove a child. */
+        // Check that it's possible for us to remove a child
         auto* p = m_write_buffer.Get();
         s32 len = std::strlen(p);
         R_UNLESS(len != 1 || (p[0] != '/' && p[0] != '.'), ResultNotImplemented);
 
-        /* Handle a trailing separator. */
+        // Handle a trailing separator
         if (len > 0 && (p[len - 1] == '\\' || p[len - 1] == '/')) {
             --len;
         }
 
-        /* Remove the child path segment. */
+        // Remove the child path segment
         while ((--len) >= 0 && p[len]) {
             if (p[len] == '/' || p[len] == '\\') {
                 if (len > 0) {
@@ -406,25 +402,25 @@ public:
             }
         }
 
-        /* Check that length remains > 0. */
+        // Check that length remains > 0
         R_UNLESS(len > 0, ResultNotImplemented);
 
         R_SUCCEED();
     }
 
     Result Normalize(const PathFlags& flags) {
-        /* If we're already normalized, nothing to do. */
+        // If we're already normalized, nothing to do
         R_SUCCEED_IF(this->IsNormalized());
 
-        /* Check if we're normalized. */
+        // Check if we're normalized
         bool normalized;
         size_t dummy;
         R_TRY(PathFormatter::IsNormalized(std::addressof(normalized), std::addressof(dummy), m_str,
                                           flags));
 
-        /* If we're not normalized, normalize. */
+        // If we're not normalized, normalize
         if (!normalized) {
-            /* Determine necessary buffer length. */
+            // Determine necessary buffer length
             auto len = m_write_buffer.GetLength();
             if (flags.IsRelativePathAllowed() && IsPathRelative(m_str)) {
                 len += 2;
@@ -433,20 +429,20 @@ public:
                 len += 1;
             }
 
-            /* Allocate a new buffer. */
+            // Allocate a new buffer
             const size_t size = Common::AlignUp(len, WriteBufferAlignmentLength);
             auto buf = WriteBuffer::Make(size);
             R_UNLESS(buf.Get() != nullptr, ResultAllocationMemoryFailedMakeUnique);
 
-            /* Normalize into it. */
+            // Normalize into it
             R_TRY(PathFormatter::Normalize(buf.Get(), size, m_write_buffer.Get(),
                                            m_write_buffer.GetLength(), flags));
 
-            /* Set the normalized buffer as our buffer. */
+            // Set the normalized buffer as our buffer
             this->SetModifiableBuffer(std::move(buf));
         }
 
-        /* Set normalized. */
+        // Set normalized
         this->SetNormalized();
         R_SUCCEED();
     }
@@ -458,19 +454,19 @@ private:
     }
 
     void SetModifiableBuffer(WriteBuffer&& buffer) {
-        /* Check pre-conditions. */
+        // Check pre-conditions
         ASSERT(buffer.Get() != nullptr);
         ASSERT(buffer.GetLength() > 0);
         ASSERT(Common::IsAligned(buffer.GetLength(), WriteBufferAlignmentLength));
 
-        /* Get whether we're normalized. */
+        // Get whether we're normalized
         if (m_write_buffer.IsNormalized()) {
             buffer.SetNormalized();
         } else {
             buffer.SetNotNormalized();
         }
 
-        /* Set write buffer. */
+        // Set write buffer
         m_write_buffer = std::move(buffer);
         m_str = m_write_buffer.Get();
     }
@@ -481,14 +477,14 @@ private:
     }
 
     Result Preallocate(size_t length) {
-        /* Allocate additional space, if needed. */
+        // Allocate additional space, if needed
         if (length > m_write_buffer.GetLength()) {
-            /* Allocate buffer. */
+            // Allocate buffer
             const size_t size = Common::AlignUp(length, WriteBufferAlignmentLength);
             auto buf = WriteBuffer::Make(size);
             R_UNLESS(buf.Get() != nullptr, ResultAllocationMemoryFailedMakeUnique);
 
-            /* Set write buffer. */
+            // Set write buffer
             this->SetModifiableBuffer(std::move(buf));
         }
 
@@ -497,14 +493,14 @@ private:
 
     Result InitializeImpl(const char* path, size_t size) {
         if (size > 0 && path[0]) {
-            /* Pre allocate a buffer for the path. */
+            // Pre allocate a buffer for the path
             R_TRY(this->Preallocate(size + 1));
 
-            /* Copy the path. */
+            // Copy the path
             const size_t copied = Strlcpy<char>(m_write_buffer.Get(), path, size + 1);
             R_UNLESS(copied >= size, ResultUnexpectedInPathA);
         } else {
-            /* We can just clear the buffer. */
+            // We can just clear the buffer
             this->ClearBuffer();
         }
 
@@ -548,14 +544,14 @@ public:
 };
 
 inline Result SetUpFixedPath(FileSys::Path* out, const char* s) {
-    /* Verify the path is normalized. */
+    // Verify the path is normalized
     bool normalized;
     size_t dummy;
     R_TRY(PathNormalizer::IsNormalized(std::addressof(normalized), std::addressof(dummy), s));
 
     R_UNLESS(normalized, ResultInvalidPathFormat);
 
-    /* Set the fixed path. */
+    // Set the fixed path
     R_RETURN(out->SetShallowBuffer(s));
 }
 
