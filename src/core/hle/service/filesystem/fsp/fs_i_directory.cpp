@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/filesystem/fsp/fs_i_directory.h"
 #include "core/hle/service/ipc_helpers.h"
