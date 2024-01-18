@@ -56,7 +56,7 @@
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
 static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(
-    const FileSys::VirtualFilesystem& vfs, const std::string& path, FileSys::Mode mode) {
+    const FileSys::VirtualFilesystem& vfs, const std::string& path, FileSys::OpenMode mode) {
     return vfs->CreateDirectory(path, mode);
 }
 
@@ -1880,7 +1880,7 @@ bool GMainWindow::SelectAndSetCurrentUser(
 
 void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
     // Ensure all NCAs are registered before launching the game
-    const auto file = vfs->OpenFile(filepath, FileSys::Mode::Read);
+    const auto file = vfs->OpenFile(filepath, FileSys::OpenMode::Read);
     if (!file) {
         return;
     }
@@ -2274,7 +2274,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         open_target = tr("Save Data");
         const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
         auto vfs_nand_dir =
-            vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::Mode::Read);
+            vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
         if (has_user_save) {
             // User save data
@@ -2653,7 +2653,7 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& g
 void GMainWindow::RemoveCacheStorage(u64 program_id) {
     const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
     auto vfs_nand_dir =
-        vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::Mode::Read);
+        vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
     const auto cache_storage_path = FileSys::SaveDataFactory::GetFullPath(
         {}, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::CacheStorage,
@@ -2673,7 +2673,8 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
                                 "cancelled the operation."));
     };
 
-    const auto loader = Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::Mode::Read));
+    const auto loader =
+        Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
     if (loader == nullptr) {
         failed();
         return;
@@ -2717,7 +2718,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     const FileSys::PatchManager pm{title_id, system->GetFileSystemController(), installed};
     auto romfs = pm.PatchRomFS(base_nca.get(), base_romfs, type, packed_update_raw, false);
 
-    const auto out = VfsFilesystemCreateDirectoryWrapper(vfs, path, FileSys::Mode::ReadWrite);
+    const auto out = VfsFilesystemCreateDirectoryWrapper(vfs, path, FileSys::OpenMode::ReadWrite);
 
     if (out == nullptr) {
         failed();
@@ -3015,7 +3016,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
                                        system->GetContentProvider()};
         const auto control = pm.GetControlMetadata();
         const auto loader =
-            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::Mode::Read));
+            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
         game_title = fmt::format("{:016X}", program_id);
         if (control.first != nullptr) {
             game_title = control.first->GetApplicationName();

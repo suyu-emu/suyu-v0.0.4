@@ -17,7 +17,7 @@
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
-#include "core/file_sys/mode.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -347,7 +347,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
-            const auto file = vfs->OpenFile(physical_name, FileSys::Mode::Read);
+            const auto file = vfs->OpenFile(physical_name, FileSys::OpenMode::Read);
             if (!file) {
                 return true;
             }

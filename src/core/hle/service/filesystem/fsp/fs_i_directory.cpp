@@ -8,23 +8,26 @@
 namespace Service::FileSystem {
 
 template <typename T>
-static void BuildEntryIndex(std::vector<FileSys::Entry>& entries, const std::vector<T>& new_data,
-                            FileSys::EntryType type) {
+static void BuildEntryIndex(std::vector<FileSys::DirectoryEntry>& entries,
+                            const std::vector<T>& new_data, FileSys::DirectoryEntryType type) {
     entries.reserve(entries.size() + new_data.size());
 
     for (const auto& new_entry : new_data) {
         auto name = new_entry->GetName();
 
-        if (type == FileSys::EntryType::File && name == FileSys::GetSaveDataSizeFileName()) {
+        if (type == FileSys::DirectoryEntryType::File &&
+            name == FileSys::GetSaveDataSizeFileName()) {
             continue;
         }
 
-        entries.emplace_back(name, type,
-                             type == FileSys::EntryType::Directory ? 0 : new_entry->GetSize());
+        entries.emplace_back(name, static_cast<s8>(type),
+                             type == FileSys::DirectoryEntryType::Directory ? 0
+                                                                            : new_entry->GetSize());
     }
 }
 
-IDirectory::IDirectory(Core::System& system_, FileSys::VirtualDir backend_, OpenDirectoryMode mode)
+IDirectory::IDirectory(Core::System& system_, FileSys::VirtualDir backend_,
+                       FileSys::OpenDirectoryMode mode)
     : ServiceFramework{system_, "IDirectory"}, backend(std::move(backend_)) {
     static const FunctionInfo functions[] = {
         {0, &IDirectory::Read, "Read"},
@@ -34,11 +37,12 @@ IDirectory::IDirectory(Core::System& system_, FileSys::VirtualDir backend_, Open
 
     // TODO(DarkLordZach): Verify that this is the correct behavior.
     // Build entry index now to save time later.
-    if (True(mode & OpenDirectoryMode::Directory)) {
-        BuildEntryIndex(entries, backend->GetSubdirectories(), FileSys::EntryType::Directory);
+    if (True(mode & FileSys::OpenDirectoryMode::Directory)) {
+        BuildEntryIndex(entries, backend->GetSubdirectories(),
+                        FileSys::DirectoryEntryType::Directory);
     }
-    if (True(mode & OpenDirectoryMode::File)) {
-        BuildEntryIndex(entries, backend->GetFiles(), FileSys::EntryType::File);
+    if (True(mode & FileSys::OpenDirectoryMode::File)) {
+        BuildEntryIndex(entries, backend->GetFiles(), FileSys::DirectoryEntryType::File);
     }
 }
 
@@ -46,7 +50,7 @@ void IDirectory::Read(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called.");
 
     // Calculate how many entries we can fit in the output buffer
-    const u64 count_entries = ctx.GetWriteBufferNumElements<FileSys::Entry>();
+    const u64 count_entries = ctx.GetWriteBufferNumElements<FileSys::DirectoryEntry>();
 
     // Cap at total number of entries.
     const u64 actual_entries = std::min(count_entries, entries.size() - next_entry_index);

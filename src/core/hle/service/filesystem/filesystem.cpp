@@ -12,7 +12,6 @@
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/errors.h"
-#include "core/file_sys/mode.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
@@ -56,7 +55,7 @@ Result VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 size
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
 
-    FileSys::EntryType entry_type{};
+    FileSys::DirectoryEntryType entry_type{};
     if (GetEntryType(&entry_type, path) == ResultSuccess) {
         return FileSys::ERROR_PATH_ALREADY_EXISTS;
     }
@@ -214,7 +213,8 @@ Result VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_path_,
 }
 
 Result VfsDirectoryServiceWrapper::OpenFile(FileSys::VirtualFile* out_file,
-                                            const std::string& path_, FileSys::Mode mode) const {
+                                            const std::string& path_,
+                                            FileSys::OpenMode mode) const {
     const std::string path(Common::FS::SanitizePath(path_));
     std::string_view npath = path;
     while (!npath.empty() && (npath[0] == '/' || npath[0] == '\\')) {
@@ -226,7 +226,7 @@ Result VfsDirectoryServiceWrapper::OpenFile(FileSys::VirtualFile* out_file,
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
 
-    if (mode == FileSys::Mode::Append) {
+    if (mode == FileSys::OpenMode::AllowAppend) {
         *out_file = std::make_shared<FileSys::OffsetVfsFile>(file, 0, file->GetSize());
     } else {
         *out_file = file;
@@ -247,7 +247,7 @@ Result VfsDirectoryServiceWrapper::OpenDirectory(FileSys::VirtualDir* out_direct
     return ResultSuccess;
 }
 
-Result VfsDirectoryServiceWrapper::GetEntryType(FileSys::EntryType* out_entry_type,
+Result VfsDirectoryServiceWrapper::GetEntryType(FileSys::DirectoryEntryType* out_entry_type,
                                                 const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
@@ -258,17 +258,17 @@ Result VfsDirectoryServiceWrapper::GetEntryType(FileSys::EntryType* out_entry_ty
     auto filename = Common::FS::GetFilename(path);
     // TODO(Subv): Some games use the '/' path, find out what this means.
     if (filename.empty()) {
-        *out_entry_type = FileSys::EntryType::Directory;
+        *out_entry_type = FileSys::DirectoryEntryType::Directory;
         return ResultSuccess;
     }
 
     if (dir->GetFile(filename) != nullptr) {
-        *out_entry_type = FileSys::EntryType::File;
+        *out_entry_type = FileSys::DirectoryEntryType::File;
         return ResultSuccess;
     }
 
     if (dir->GetSubdirectory(filename) != nullptr) {
-        *out_entry_type = FileSys::EntryType::Directory;
+        *out_entry_type = FileSys::DirectoryEntryType::Directory;
         return ResultSuccess;
     }
 
@@ -282,7 +282,7 @@ Result VfsDirectoryServiceWrapper::GetFileTimeStampRaw(
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
 
-    FileSys::EntryType entry_type;
+    FileSys::DirectoryEntryType entry_type;
     if (GetEntryType(&entry_type, path) != ResultSuccess) {
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
@@ -347,7 +347,7 @@ std::shared_ptr<SaveDataController> FileSystemController::OpenSaveDataController
 std::shared_ptr<FileSys::SaveDataFactory> FileSystemController::CreateSaveDataFactory(
     ProgramId program_id) {
     using YuzuPath = Common::FS::YuzuPath;
-    const auto rw_mode = FileSys::Mode::ReadWrite;
+    const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto vfs = system.GetFilesystem();
     const auto nand_directory =
@@ -686,15 +686,15 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     using YuzuPath = Common::FS::YuzuPath;
     const auto sdmc_dir_path = Common::FS::GetYuzuPath(YuzuPath::SDMCDir);
     const auto sdmc_load_dir_path = sdmc_dir_path / "atmosphere/contents";
-    const auto rw_mode = FileSys::Mode::ReadWrite;
+    const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto nand_directory =
         vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::NANDDir), rw_mode);
     auto sd_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_dir_path), rw_mode);
-    auto load_directory =
-        vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::LoadDir), FileSys::Mode::Read);
-    auto sd_load_directory =
-        vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_load_dir_path), FileSys::Mode::Read);
+    auto load_directory = vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::LoadDir),
+                                            FileSys::OpenMode::Read);
+    auto sd_load_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_load_dir_path),
+                                               FileSys::OpenMode::Read);
     auto dump_directory =
         vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::DumpDir), rw_mode);
 

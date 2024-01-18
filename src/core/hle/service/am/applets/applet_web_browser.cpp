@@ -9,7 +9,7 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
-#include "core/file_sys/mode.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -213,7 +213,7 @@ void ExtractSharedFonts(Core::System& system) {
             std::move(decrypted_data), DECRYPTED_SHARED_FONTS[i]);
 
         const auto temp_dir = system.GetFilesystem()->CreateDirectory(
-            Common::FS::PathToUTF8String(fonts_dir), FileSys::Mode::ReadWrite);
+            Common::FS::PathToUTF8String(fonts_dir), FileSys::OpenMode::ReadWrite);
 
         const auto out_file = temp_dir->CreateFile(DECRYPTED_SHARED_FONTS[i]);
 
@@ -333,7 +333,7 @@ void WebBrowser::ExtractOfflineRomFS() {
     const auto extracted_romfs_dir = FileSys::ExtractRomFS(offline_romfs);
 
     const auto temp_dir = system.GetFilesystem()->CreateDirectory(
-        Common::FS::PathToUTF8String(offline_cache_dir), FileSys::Mode::ReadWrite);
+        Common::FS::PathToUTF8String(offline_cache_dir), FileSys::OpenMode::ReadWrite);
 
     FileSys::VfsRawCopyD(extracted_romfs_dir, temp_dir);
 }

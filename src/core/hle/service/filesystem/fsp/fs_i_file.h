@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "core/file_sys/vfs.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/service.h"
 

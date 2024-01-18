@@ -5,7 +5,8 @@
 
 #include <memory>
 #include "common/common_types.h"
-#include "core/file_sys/directory.h"
+#include "core/file_sys/fs_directory.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/result.h"
 
@@ -26,7 +27,6 @@ class XCI;
 
 enum class BisPartitionId : u32;
 enum class ContentRecordType : u8;
-enum class Mode : u32;
 enum class SaveDataSpaceId : u8;
 enum class SaveDataType : u8;
 enum class StorageId : u8;
@@ -56,13 +56,6 @@ enum class ImageDirectoryId : u32 {
     NAND,
     SdCard,
 };
-
-enum class OpenDirectoryMode : u64 {
-    Directory = (1 << 0),
-    File = (1 << 1),
-    All = Directory | File
-};
-DECLARE_ENUM_FLAG_OPERATORS(OpenDirectoryMode);
 
 using ProcessId = u64;
 using ProgramId = u64;
@@ -237,7 +230,7 @@ public:
      * @return Opened file, or error code
      */
     Result OpenFile(FileSys::VirtualFile* out_file, const std::string& path,
-                    FileSys::Mode mode) const;
+                    FileSys::OpenMode mode) const;
 
     /**
      * Open a directory specified by its path
@@ -250,7 +243,7 @@ public:
      * Get the type of the specified path
      * @return The type of the specified path or error code
      */
-    Result GetEntryType(FileSys::EntryType* out_entry_type, const std::string& path) const;
+    Result GetEntryType(FileSys::DirectoryEntryType* out_entry_type, const std::string& path) const;
 
     /**
      * Get the timestamp of the specified path
