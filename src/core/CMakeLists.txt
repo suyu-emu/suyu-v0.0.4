@@ -58,7 +58,7 @@ add_library(core STATIC
     file_sys/fs_operate_range.h
     file_sys/fs_path.h
     file_sys/fs_path_utility.h
-    file_sys/fs_util_character_encoding.h
+    file_sys/fs_string_util.h
     file_sys/fsmitm_romfsbuild.cpp
     file_sys/fsmitm_romfsbuild.h
     file_sys/fssystem/fs_i_storage.h
@@ -104,25 +104,10 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_switch_storage.h
     file_sys/fssystem/fssystem_utility.cpp
     file_sys/fssystem/fssystem_utility.h
-    file_sys/fssystem/fs_types.h
-    file_sys/bis_factory.cpp
-    file_sys/bis_factory.h
-    file_sys/card_image.cpp
-    file_sys/card_image.h
-    file_sys/common_funcs.h
-    file_sys/content_archive.cpp
-    file_sys/content_archive.h
-    file_sys/control_metadata.cpp
-    file_sys/control_metadata.h
-    file_sys/directory.h
-    file_sys/errors.h
-    file_sys/fsmitm_romfsbuild.cpp
-    file_sys/fsmitm_romfsbuild.h
     file_sys/ips_layer.cpp
     file_sys/ips_layer.h
     file_sys/kernel_executable.cpp
     file_sys/kernel_executable.h
-    file_sys/mode.h
     file_sys/nca_metadata.cpp
     file_sys/nca_metadata.h
     file_sys/partition_filesystem.cpp
@@ -215,7 +200,6 @@ add_library(core STATIC
     hle/kernel/board/nintendo/nx/secure_monitor.h
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
-    hle/kernel/svc_results.h
     hle/kernel/global_scheduler_context.cpp
     hle/kernel/global_scheduler_context.h
     hle/kernel/init/init_slab_setup.cpp
@@ -225,11 +209,11 @@ add_library(core STATIC
     hle/kernel/k_address_arbiter.h
     hle/kernel/k_address_space_info.cpp
     hle/kernel/k_address_space_info.h
+    hle/kernel/k_affinity_mask.h
     hle/kernel/k_auto_object.cpp
     hle/kernel/k_auto_object.h
     hle/kernel/k_auto_object_container.cpp
     hle/kernel/k_auto_object_container.h
-    hle/kernel/k_affinity_mask.h
     hle/kernel/k_capabilities.cpp
     hle/kernel/k_capabilities.h
     hle/kernel/k_class_token.cpp
@@ -253,9 +237,9 @@ add_library(core STATIC
     hle/kernel/k_event_info.h
     hle/kernel/k_handle_table.cpp
     hle/kernel/k_handle_table.h
-    hle/kernel/k_hardware_timer_base.h
     hle/kernel/k_hardware_timer.cpp
     hle/kernel/k_hardware_timer.h
+    hle/kernel/k_hardware_timer_base.h
     hle/kernel/k_interrupt_manager.cpp
     hle/kernel/k_interrupt_manager.h
     hle/kernel/k_light_client_session.cpp
@@ -282,10 +266,10 @@ add_library(core STATIC
     hle/kernel/k_page_bitmap.h
     hle/kernel/k_page_buffer.cpp
     hle/kernel/k_page_buffer.h
-    hle/kernel/k_page_heap.cpp
-    hle/kernel/k_page_heap.h
     hle/kernel/k_page_group.cpp
     hle/kernel/k_page_group.h
+    hle/kernel/k_page_heap.cpp
+    hle/kernel/k_page_heap.h
     hle/kernel/k_page_table.h
     hle/kernel/k_page_table_base.cpp
     hle/kernel/k_page_table_base.h
@@ -350,8 +334,6 @@ add_library(core STATIC
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
-    hle/kernel/svc_common.h
-    hle/kernel/svc_types.h
     hle/kernel/svc/svc_activity.cpp
     hle/kernel/svc/svc_address_arbiter.cpp
     hle/kernel/svc/svc_address_translation.cpp
@@ -389,6 +371,9 @@ add_library(core STATIC
     hle/kernel/svc/svc_thread_profiler.cpp
     hle/kernel/svc/svc_tick.cpp
     hle/kernel/svc/svc_transfer_memory.cpp
+    hle/kernel/svc_common.h
+    hle/kernel/svc_results.h
+    hle/kernel/svc_types.h
     hle/result.h
     hle/service/acc/acc.cpp
     hle/service/acc/acc.h
@@ -519,17 +504,17 @@ add_library(core STATIC
     hle/service/filesystem/fsp/fs_i_filesystem.h
     hle/service/filesystem/fsp/fs_i_storage.cpp
     hle/service/filesystem/fsp/fs_i_storage.h
+    hle/service/filesystem/fsp/fsp_ldr.cpp
+    hle/service/filesystem/fsp/fsp_ldr.h
+    hle/service/filesystem/fsp/fsp_pr.cpp
+    hle/service/filesystem/fsp/fsp_pr.h
     hle/service/filesystem/fsp/fsp_srv.cpp
     hle/service/filesystem/fsp/fsp_srv.h
-    hle/service/filesystem/fsp_ldr.cpp
-    hle/service/filesystem/fsp_ldr.h
-    hle/service/filesystem/fsp_pr.cpp
-    hle/service/filesystem/fsp_pr.h
+    hle/service/filesystem/fsp/fsp_util.h
     hle/service/filesystem/romfs_controller.cpp
     hle/service/filesystem/romfs_controller.h
     hle/service/filesystem/save_data_controller.cpp
     hle/service/filesystem/save_data_controller.h
-    hle/service/filesystem/fsp_util.h
     hle/service/fgm/fgm.cpp
     hle/service/fgm/fgm.h
     hle/service/friend/friend.cpp

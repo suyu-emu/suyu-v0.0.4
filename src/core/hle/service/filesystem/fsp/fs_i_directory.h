@@ -3,11 +3,13 @@
 
 #pragma once
 
-#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/filesystem/fsp/fsp_util.h"
 #include "core/hle/service/service.h"
+
+namespace FileSys {
+struct DirectoryEntry;
+}
 
 namespace Service::FileSystem {
 
