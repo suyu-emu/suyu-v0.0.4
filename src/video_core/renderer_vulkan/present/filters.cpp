@@ -27,43 +27,29 @@ vk::ShaderModule SelectScaleForceShader(const Device& device) {
 
 } // Anonymous namespace
 
-std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device,
-                                                     const MemoryAllocator& memory_allocator,
-                                                     size_t image_count, VkFormat frame_format) {
-    return std::make_unique<WindowAdaptPass>(device, memory_allocator, image_count, frame_format,
+std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format,
                                              CreateNearestNeighborSampler(device),
                                              BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
 }
 
-std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device,
-                                              const MemoryAllocator& memory_allocator,
-                                              size_t image_count, VkFormat frame_format) {
-    return std::make_unique<WindowAdaptPass>(device, memory_allocator, image_count, frame_format,
-                                             CreateBilinearSampler(device),
+std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
 }
 
-std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device,
-                                             const MemoryAllocator& memory_allocator,
-                                             size_t image_count, VkFormat frame_format) {
-    return std::make_unique<WindowAdaptPass>(device, memory_allocator, image_count, frame_format,
-                                             CreateBilinearSampler(device),
+std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              BuildShader(device, PRESENT_BICUBIC_FRAG_SPV));
 }
 
-std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device,
-                                              const MemoryAllocator& memory_allocator,
-                                              size_t image_count, VkFormat frame_format) {
-    return std::make_unique<WindowAdaptPass>(device, memory_allocator, image_count, frame_format,
-                                             CreateBilinearSampler(device),
+std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV));
 }
 
-std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device,
-                                                const MemoryAllocator& memory_allocator,
-                                                size_t image_count, VkFormat frame_format) {
-    return std::make_unique<WindowAdaptPass>(device, memory_allocator, image_count, frame_format,
-                                             CreateBilinearSampler(device),
+std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              SelectScaleForceShader(device));
 }
 

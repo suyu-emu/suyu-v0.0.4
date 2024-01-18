@@ -113,16 +113,18 @@ vk::ImageView CreateWrappedImageView(const Device& device, vk::Image& image, VkF
     });
 }
 
-vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format) {
+vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format,
+                                       VkImageLayout initial_layout) {
     const VkAttachmentDescription attachment{
         .flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT,
         .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .loadOp = initial_layout == VK_IMAGE_LAYOUT_UNDEFINED ? VK_ATTACHMENT_LOAD_OP_DONT_CARE
+                                                              : VK_ATTACHMENT_LOAD_OP_LOAD,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .initialLayout = initial_layout,
         .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
 
@@ -244,8 +246,7 @@ vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
             .binding = static_cast<u32>(i),
             .descriptorType = std::data(types)[i],
             .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT |
-                          VK_SHADER_STAGE_COMPUTE_BIT,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             .pImmutableSamplers = nullptr,
         };
     }
@@ -285,7 +286,8 @@ vk::PipelineLayout CreateWrappedPipelineLayout(const Device& device,
 
 vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderpass,
                                    vk::PipelineLayout& layout,
-                                   std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders) {
+                                   std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders,
+                                   bool enable_blending) {
     const std::array<VkPipelineShaderStageCreateInfo, 2> shader_stages{{
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -363,12 +365,24 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .alphaToOneEnable = VK_FALSE,
     };
 
-    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment{
+    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment_disabled{
         .blendEnable = VK_FALSE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
         .colorBlendOp = VK_BLEND_OP_ADD,
         .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment_enabled{
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
         .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -382,7 +396,8 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_COPY,
         .attachmentCount = 1,
-        .pAttachments = &color_blend_attachment,
+        .pAttachments =
+            enable_blending ? &color_blend_attachment_enabled : &color_blend_attachment_disabled,
         .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
     };
 

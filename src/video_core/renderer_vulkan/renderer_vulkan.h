@@ -59,7 +59,7 @@ public:
 private:
     void Report() const;
 
-    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer);
+    void RenderScreenshot(const Tegra::FramebufferConfig* framebuffer);
 
     Core::TelemetrySession& telemetry_session;
     Tegra::MaxwellDeviceMemoryManager& device_memory;

@@ -125,9 +125,9 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         return;
     }
 
-    RenderScreenshot(*framebuffer);
+    RenderScreenshot(framebuffer);
     Frame* frame = present_manager.GetRenderFrame();
-    blit_swapchain.DrawToFrame(rasterizer, frame, *framebuffer,
+    blit_swapchain.DrawToFrame(rasterizer, frame, std::span(framebuffer, 1),
                                render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
                                swapchain.GetImageViewFormat());
     scheduler.Flush(*frame->render_ready);
@@ -163,7 +163,7 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
-void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& framebuffer) {
+void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig* framebuffer) {
     if (!renderer_settings.screenshot_requested) {
         return;
     }
@@ -228,7 +228,7 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         };
     }();
 
-    blit_screenshot.DrawToFrame(rasterizer, &frame, framebuffer, layout, 1,
+    blit_screenshot.DrawToFrame(rasterizer, &frame, std::span(framebuffer, 1), layout, 1,
                                 VK_FORMAT_B8G8R8A8_UNORM);
 
     const auto buffer_size = static_cast<VkDeviceSize>(layout.width * layout.height * 4);
