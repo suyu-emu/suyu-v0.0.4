@@ -4,6 +4,7 @@
 #include <memory>
 #include "common/input.h"
 #include "common/param_package.h"
+#include "input_common/drivers/android.h"
 #include "input_common/drivers/camera.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
@@ -78,6 +79,7 @@ struct InputSubsystem::Impl {
         RegisterEngine("cemuhookudp", udp_client);
         RegisterEngine("tas", tas_input);
         RegisterEngine("camera", camera);
+        RegisterEngine("android", android);
         RegisterEngine("virtual_amiibo", virtual_amiibo);
         RegisterEngine("virtual_gamepad", virtual_gamepad);
 #ifdef HAVE_SDL2
@@ -109,6 +111,7 @@ struct InputSubsystem::Impl {
         UnregisterEngine(udp_client);
         UnregisterEngine(tas_input);
         UnregisterEngine(camera);
+        UnregisterEngine(android);
         UnregisterEngine(virtual_amiibo);
         UnregisterEngine(virtual_gamepad);
 #ifdef HAVE_SDL2
@@ -129,6 +132,8 @@ struct InputSubsystem::Impl {
         devices.insert(devices.end(), keyboard_devices.begin(), keyboard_devices.end());
         auto mouse_devices = mouse->GetInputDevices();
         devices.insert(devices.end(), mouse_devices.begin(), mouse_devices.end());
+        auto android_devices = android->GetInputDevices();
+        devices.insert(devices.end(), android_devices.begin(), android_devices.end());
 #ifdef HAVE_LIBUSB
         auto gcadapter_devices = gcadapter->GetInputDevices();
         devices.insert(devices.end(), gcadapter_devices.begin(), gcadapter_devices.end());
@@ -156,6 +161,9 @@ struct InputSubsystem::Impl {
         }
         if (engine == mouse->GetEngineName()) {
             return mouse;
+        }
+        if (engine == android->GetEngineName()) {
+            return android;
         }
 #ifdef HAVE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
@@ -237,6 +245,9 @@ struct InputSubsystem::Impl {
         if (engine == mouse->GetEngineName()) {
             return true;
         }
+        if (engine == android->GetEngineName()) {
+            return true;
+        }
 #ifdef HAVE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return true;
@@ -265,6 +276,7 @@ struct InputSubsystem::Impl {
     void BeginConfiguration() {
         keyboard->BeginConfiguration();
         mouse->BeginConfiguration();
+        android->BeginConfiguration();
 #ifdef HAVE_LIBUSB
         gcadapter->BeginConfiguration();
 #endif
@@ -278,6 +290,7 @@ struct InputSubsystem::Impl {
     void EndConfiguration() {
         keyboard->EndConfiguration();
         mouse->EndConfiguration();
+        android->EndConfiguration();
 #ifdef HAVE_LIBUSB
         gcadapter->EndConfiguration();
 #endif
@@ -308,6 +321,7 @@ struct InputSubsystem::Impl {
     std::shared_ptr<TasInput::Tas> tas_input;
     std::shared_ptr<CemuhookUDP::UDPClient> udp_client;
     std::shared_ptr<Camera> camera;
+    std::shared_ptr<Android> android;
     std::shared_ptr<VirtualAmiibo> virtual_amiibo;
     std::shared_ptr<VirtualGamepad> virtual_gamepad;
 
@@ -371,6 +385,14 @@ Camera* InputSubsystem::GetCamera() {
 
 const Camera* InputSubsystem::GetCamera() const {
     return impl->camera.get();
+}
+
+Android* InputSubsystem::GetAndroid() {
+    return impl->android.get();
+}
+
+const Android* InputSubsystem::GetAndroid() const {
+    return impl->android.get();
 }
 
 VirtualAmiibo* InputSubsystem::GetVirtualAmiibo() {
