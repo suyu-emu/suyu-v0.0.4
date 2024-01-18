@@ -7,18 +7,13 @@
 
 namespace FileSys {
 
-constexpr Result ERROR_PATH_NOT_FOUND{ErrorModule::FS, 1};
-constexpr Result ERROR_PATH_ALREADY_EXISTS{ErrorModule::FS, 2};
-constexpr Result ERROR_ENTITY_NOT_FOUND{ErrorModule::FS, 1002};
-constexpr Result ERROR_SD_CARD_NOT_FOUND{ErrorModule::FS, 2001};
-constexpr Result ERROR_OUT_OF_BOUNDS{ErrorModule::FS, 3005};
-constexpr Result ERROR_FAILED_MOUNT_ARCHIVE{ErrorModule::FS, 3223};
-constexpr Result ERROR_INVALID_ARGUMENT{ErrorModule::FS, 6001};
-constexpr Result ERROR_INVALID_OFFSET{ErrorModule::FS, 6061};
-constexpr Result ERROR_INVALID_SIZE{ErrorModule::FS, 6062};
-
+constexpr Result ResultPathNotFound{ErrorModule::FS, 1};
+constexpr Result ResultPathAlreadyExists{ErrorModule::FS, 2};
 constexpr Result ResultUnsupportedSdkVersion{ErrorModule::FS, 50};
 constexpr Result ResultPartitionNotFound{ErrorModule::FS, 1001};
+constexpr Result ResultTargetNotFound{ErrorModule::FS, 1002};
+constexpr Result ResultPortSdCardNoDevice{ErrorModule::FS, 2001};
+constexpr Result ResultNotImplemented{ErrorModule::FS, 3001};
 constexpr Result ResultUnsupportedVersion{ErrorModule::FS, 3002};
 constexpr Result ResultOutOfRange{ErrorModule::FS, 3005};
 constexpr Result ResultAllocationMemoryFailedInFileSystemBuddyHeapA{ErrorModule::FS, 3294};

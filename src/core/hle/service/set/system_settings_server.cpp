@@ -67,13 +67,13 @@ Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System&
     const auto ver_file = romfs->GetFile("file");
     if (ver_file == nullptr) {
         return early_exit_failure("The system version archive didn't contain the file 'file'.",
-                                  FileSys::ERROR_INVALID_ARGUMENT);
+                                  FileSys::ResultInvalidArgument);
     }
 
     auto data = ver_file->ReadAllBytes();
     if (data.size() != sizeof(FirmwareVersionFormat)) {
         return early_exit_failure("The system version file 'file' was not the correct size.",
-                                  FileSys::ERROR_OUT_OF_BOUNDS);
+                                  FileSys::ResultOutOfRange);
     }
 
     std::memcpy(&out_firmware, data.data(), sizeof(FirmwareVersionFormat));

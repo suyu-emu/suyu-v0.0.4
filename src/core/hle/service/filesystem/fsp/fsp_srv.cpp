@@ -430,7 +430,7 @@ void FSP_SRV::OpenSaveDataFileSystem(HLERequestContext& ctx) {
         save_data_controller->OpenSaveData(&dir, parameters.space_id, parameters.attribute);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
-        rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
+        rb.Push(FileSys::ResultTargetNotFound);
         return;
     }
 
@@ -597,7 +597,7 @@ void FSP_SRV::OpenPatchDataStorageByCurrentProcess(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called with storage_id={:02X}, title_id={:016X}", storage_id, title_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
+    rb.Push(FileSys::ResultTargetNotFound);
 }
 
 void FSP_SRV::OpenDataStorageWithProgramIndex(HLERequestContext& ctx) {
