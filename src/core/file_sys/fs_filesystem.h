@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "common/common_funcs.h"
+#include "common/common_types.h"
+
 namespace FileSys {
 
 enum class OpenMode : u32 {
@@ -20,9 +23,6 @@ enum class OpenDirectoryMode : u64 {
     File = (1 << 1),
 
     All = (Directory | File),
-
-    /* TODO: Separate enum, like N? */
-    _NotRequireFileSize = (1 << 31),
 };
 DECLARE_ENUM_FLAG_OPERATORS(OpenDirectoryMode)
 

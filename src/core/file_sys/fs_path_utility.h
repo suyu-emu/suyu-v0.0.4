@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include "common/assert.h"
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/scope_exit.h"
 #include "core/file_sys/fs_directory.h"
@@ -14,7 +15,6 @@
 namespace FileSys {
 
 constexpr inline size_t MountNameLengthMax = 15;
-using Result = ::Result;
 
 namespace StringTraits {
 
@@ -57,15 +57,15 @@ constexpr bool IsInvalidCharacterImpl(char c) {
 } // namespace impl
 
 constexpr bool IsInvalidCharacter(char c) {
-    return impl::IsInvalidCharacterImpl<InvalidCharacters, size(InvalidCharacters)>(c);
+    return impl::IsInvalidCharacterImpl<InvalidCharacters, Common::Size(InvalidCharacters)>(c);
 }
 constexpr bool IsInvalidCharacterForHostName(char c) {
     return impl::IsInvalidCharacterImpl<InvalidCharactersForHostName,
-                                        size(InvalidCharactersForHostName)>(c);
+                                        Common::Size(InvalidCharactersForHostName)>(c);
 }
 constexpr bool IsInvalidCharacterForMountName(char c) {
     return impl::IsInvalidCharacterImpl<InvalidCharactersForMountName,
-                                        size(InvalidCharactersForMountName)>(c);
+                                        Common::Size(InvalidCharactersForMountName)>(c);
 }
 
 } // namespace StringTraits
@@ -177,14 +177,14 @@ constexpr inline bool IsPathStartWithCurrentDirectory(const char* path) {
 }
 
 constexpr inline bool IsSubPath(const char* lhs, const char* rhs) {
-    /* Check pre-conditions. */
+    // Check pre-conditions
     ASSERT(lhs != nullptr);
     ASSERT(rhs != nullptr);
 
-    /* Import StringTraits names for current scope. */
+    // Import StringTraits names for current scope
     using namespace StringTraits;
 
-    /* Special case certain paths. */
+    // Special case certain paths
     if (IsUncPath(lhs) && !IsUncPath(rhs)) {
         return false;
     }
@@ -201,7 +201,7 @@ constexpr inline bool IsSubPath(const char* lhs, const char* rhs) {
         return true;
     }
 
-    /* Check subpath. */
+    // Check subpath
     for (size_t i = 0; /* ... */; ++i) {
         if (lhs[i] == NullTerminator) {
             return rhs[i] == DirectorySeparator;
@@ -213,7 +213,7 @@ constexpr inline bool IsSubPath(const char* lhs, const char* rhs) {
     }
 }
 
-/* Path utilities. */
+// Path utilities
 constexpr inline void Replace(char* dst, size_t dst_size, char old_char, char new_char) {
     ASSERT(dst != nullptr);
     for (char* cur = dst; cur < dst + dst_size && *cur; ++cur) {
@@ -224,10 +224,10 @@ constexpr inline void Replace(char* dst, size_t dst_size, char old_char, char ne
 }
 
 constexpr inline Result CheckUtf8(const char* s) {
-    /* Check pre-conditions. */
+    // Check pre-conditions
     ASSERT(s != nullptr);
 
-    /* Iterate, checking for utf8-validity. */
+    // Iterate, checking for utf8-validity
     while (*s) {
         char utf8_buf[4] = {};
 
@@ -242,7 +242,7 @@ constexpr inline Result CheckUtf8(const char* s) {
     R_SUCCEED();
 }
 
-/* Path formatting. */
+// Path formatting
 class PathNormalizer {
 private:
     enum class PathState {
@@ -256,10 +256,10 @@ private:
 
 private:
     static constexpr void ReplaceParentDirectoryPath(char* dst, const char* src) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Start with a dir-separator. */
+        // Start with a dir-separator
         dst[0] = DirectorySeparator;
 
         auto i = 1;
@@ -292,14 +292,14 @@ private:
 
 public:
     static constexpr bool IsParentDirectoryPathReplacementNeeded(const char* path) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
         if (path[0] != DirectorySeparator && path[0] != AlternateDirectorySeparator) {
             return false;
         }
 
-        /* Check to find a parent reference using alternate separators. */
+        // Check to find a parent reference using alternate separators
         if (path[0] != NullTerminator && path[1] != NullTerminator && path[2] != NullTerminator) {
             size_t i;
             for (i = 0; path[i + 3] != NullTerminator; ++path) {
@@ -333,24 +333,24 @@ public:
 
     static constexpr Result IsNormalized(bool* out, size_t* out_len, const char* path,
                                          bool allow_all_characters = false) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Parse the path. */
+        // Parse the path
         auto state = PathState::Start;
         size_t len = 0;
         while (path[len] != NullTerminator) {
-            /* Get the current character. */
+            // Get the current character
             const char c = path[len++];
 
-            /* Check the current character is valid. */
+            // Check the current character is valid
             if (!allow_all_characters && state != PathState::Start) {
                 R_UNLESS(!IsInvalidCharacter(c), ResultInvalidCharacter);
             }
 
-            /* Process depending on current state. */
+            // Process depending on current state
             switch (state) {
-                /* Import the PathState enums for convenience. */
+                // Import the PathState enums for convenience
                 using enum PathState;
 
             case Start:
@@ -401,9 +401,9 @@ public:
             }
         }
 
-        /* Check the final state. */
+        // Check the final state
         switch (state) {
-            /* Import the PathState enums for convenience. */
+            // Import the PathState enums for convenience
             using enum PathState;
         case Start:
             R_THROW(ResultInvalidPathFormat);
@@ -421,7 +421,7 @@ public:
             break;
         }
 
-        /* Set the output length. */
+        // Set the output length
         *out_len = len;
         R_SUCCEED();
     }
@@ -429,21 +429,21 @@ public:
     static Result Normalize(char* dst, size_t* out_len, const char* path, size_t max_out_size,
                             bool is_windows_path, bool is_drive_relative_path,
                             bool allow_all_characters = false) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Prepare to iterate. */
+        // Prepare to iterate
         const char* cur_path = path;
         size_t total_len = 0;
 
-        /* If path begins with a separator, check that we're not drive relative. */
+        // If path begins with a separator, check that we're not drive relative
         if (cur_path[0] != DirectorySeparator) {
             R_UNLESS(is_drive_relative_path, ResultInvalidPathFormat);
 
             dst[total_len++] = DirectorySeparator;
         }
 
-        /* We're going to need to do path replacement, potentially. */
+        // We're going to need to do path replacement, potentially
         char* replacement_path = nullptr;
         size_t replacement_path_size = 0;
 
@@ -457,7 +457,7 @@ public:
             }
         });
 
-        /* Perform path replacement, if necessary. */
+        // Perform path replacement, if necessary
         if (IsParentDirectoryPathReplacementNeeded(cur_path)) {
             if (std::is_constant_evaluated()) {
                 replacement_path_size = EntryNameLengthMax + 1;
@@ -472,25 +472,24 @@ public:
             cur_path = replacement_path;
         }
 
-        /* Iterate, normalizing path components. */
+        // Iterate, normalizing path components
         bool skip_next_sep = false;
         size_t i = 0;
 
         while (cur_path[i] != NullTerminator) {
-            /* Process a directory separator, if we run into one. */
+            // Process a directory separator, if we run into one
             if (cur_path[i] == DirectorySeparator) {
-                /* Swallow separators. */
+                // Swallow separators
                 do {
                     ++i;
                 } while (cur_path[i] == DirectorySeparator);
 
-                /* Check if we hit end of string. */
+                // Check if we hit end of string
                 if (cur_path[i] == NullTerminator) {
                     break;
                 }
 
-                /* If we aren't skipping the separator, write it, checking that we remain in bounds.
-                 */
+                // If we aren't skipping the separator, write it, checking that we remain in bounds.
                 if (!skip_next_sep) {
                     if (total_len + 1 == max_out_size) {
                         dst[total_len] = NullTerminator;
@@ -501,15 +500,15 @@ public:
                     dst[total_len++] = DirectorySeparator;
                 }
 
-                /* Don't skip the next separator. */
+                // Don't skip the next separator
                 skip_next_sep = false;
             }
 
-            /* Get the length of the current directory component. */
+            // Get the length of the current directory component
             size_t dir_len = 0;
             while (cur_path[i + dir_len] != DirectorySeparator &&
                    cur_path[i + dir_len] != NullTerminator) {
-                /* Check for validity. */
+                // Check for validity
                 if (!allow_all_characters) {
                     R_UNLESS(!IsInvalidCharacter(cur_path[i + dir_len]), ResultInvalidCharacter);
                 }
@@ -517,19 +516,19 @@ public:
                 ++dir_len;
             }
 
-            /* Handle the current dir component. */
+            // Handle the current dir component
             if (IsCurrentDirectory(cur_path + i)) {
                 skip_next_sep = true;
             } else if (IsParentDirectory(cur_path + i)) {
-                /* We should have just written a separator. */
+                // We should have just written a separator
                 ASSERT(dst[total_len - 1] == DirectorySeparator);
 
-                /* We should have started with a separator, for non-windows paths. */
+                // We should have started with a separator, for non-windows paths
                 if (!is_windows_path) {
                     ASSERT(dst[0] == DirectorySeparator);
                 }
 
-                /* Remove the previous component. */
+                // Remove the previous component
                 if (total_len == 1) {
                     R_UNLESS(is_windows_path, ResultDirectoryUnobtainable);
 
@@ -544,15 +543,15 @@ public:
                     } while ((--total_len) != 0);
                 }
 
-                /* We should be pointing to a directory separator, for non-windows paths. */
+                // We should be pointing to a directory separator, for non-windows paths
                 if (!is_windows_path) {
                     ASSERT(dst[total_len] == DirectorySeparator);
                 }
 
-                /* We should remain in bounds. */
+                // We should remain in bounds
                 ASSERT(total_len < max_out_size);
             } else {
-                /* Copy, possibly truncating. */
+                // Copy, possibly truncating
                 if (total_len + dir_len + 1 > max_out_size) {
                     const size_t copy_len = max_out_size - (total_len + 1);
 
@@ -570,7 +569,7 @@ public:
                 }
             }
 
-            /* Advance past the current directory component. */
+            // Advance past the current directory component
             i += dir_len;
         }
 
@@ -583,22 +582,22 @@ public:
             dst[0] = DirectorySeparator;
         }
 
-        /* NOTE: Probable nintendo bug, as max_out_size must be at least total_len + 1 for the null
-         * terminator. */
+        // NOTE: Probable nintendo bug, as max_out_size must be at least total_len + 1 for the null
+        // terminator.
         R_UNLESS(max_out_size >= total_len - 1, ResultTooLongPath);
 
         dst[total_len] = NullTerminator;
 
-        /* Check that the result path is normalized. */
+        // Check that the result path is normalized
         bool is_normalized;
         size_t dummy;
         R_TRY(IsNormalized(std::addressof(is_normalized), std::addressof(dummy), dst,
                            allow_all_characters));
 
-        /* Assert that the result path is normalized. */
+        // Assert that the result path is normalized
         ASSERT(is_normalized);
 
-        /* Set the output length. */
+        // Set the output length
         *out_len = total_len;
         R_SUCCEED();
     }
@@ -607,7 +606,7 @@ public:
 class PathFormatter {
 private:
     static constexpr Result CheckSharedName(const char* name, size_t len) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
         if (len == 1) {
@@ -624,7 +623,7 @@ private:
     }
 
     static constexpr Result CheckHostName(const char* name, size_t len) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
         if (len == 2) {
@@ -640,10 +639,10 @@ private:
 
     static constexpr Result CheckInvalidBackslash(bool* out_contains_backslash, const char* path,
                                                   bool allow_backslash) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Default to no backslashes, so we can just write if we see one. */
+        // Default to no backslashes, so we can just write if we see one
         *out_contains_backslash = false;
 
         while (*path != NullTerminator) {
@@ -670,34 +669,34 @@ public:
 
     static constexpr Result ParseMountName(const char** out, size_t* out_len, char* out_mount_name,
                                            size_t out_mount_name_buffer_size, const char* path) {
-        /* Check pre-conditions. */
+        // Check pre-conditions
         ASSERT(path != nullptr);
         ASSERT(out_len != nullptr);
         ASSERT(out != nullptr);
         ASSERT((out_mount_name == nullptr) == (out_mount_name_buffer_size == 0));
 
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Determine max mount length. */
+        // Determine max mount length
         const auto max_mount_len =
             out_mount_name_buffer_size == 0
                 ? MountNameLengthMax + 1
                 : std::min(MountNameLengthMax + 1, out_mount_name_buffer_size);
 
-        /* Parse the path until we see a drive separator. */
+        // Parse the path until we see a drive separator
         size_t mount_len = 0;
         for (/* ... */; mount_len < max_mount_len && path[mount_len]; ++mount_len) {
             const char c = path[mount_len];
 
-            /* If we see a drive separator, advance, then we're done with the pre-drive separator
-             * part of the mount. */
+            // If we see a drive separator, advance, then we're done with the pre-drive separator
+            // part of the mount.
             if (c == DriveSeparator) {
                 ++mount_len;
                 break;
             }
 
-            /* If we see a directory separator, we're not in a mount name. */
+            // If we see a directory separator, we're not in a mount name
             if (c == DirectorySeparator || c == AlternateDirectorySeparator) {
                 *out = path;
                 *out_len = 0;
@@ -705,19 +704,19 @@ public:
             }
         }
 
-        /* Check to be sure we're actually looking at a mount name. */
+        // Check to be sure we're actually looking at a mount name
         if (mount_len <= 2 || path[mount_len - 1] != DriveSeparator) {
             *out = path;
             *out_len = 0;
             R_SUCCEED();
         }
 
-        /* Check that all characters in the mount name are allowable. */
+        // Check that all characters in the mount name are allowable
         for (size_t i = 0; i < mount_len; ++i) {
             R_UNLESS(!IsInvalidCharacterForMountName(path[i]), ResultInvalidCharacter);
         }
 
-        /* Copy out the mount name. */
+        // Copy out the mount name
         if (out_mount_name_buffer_size > 0) {
             R_UNLESS(mount_len < out_mount_name_buffer_size, ResultTooLongPath);
 
@@ -727,7 +726,7 @@ public:
             out_mount_name[mount_len] = NullTerminator;
         }
 
-        /* Set the output. */
+        // Set the output
         *out = path + mount_len;
         *out_len = mount_len;
         R_SUCCEED();
@@ -742,21 +741,21 @@ public:
                                                  char* out_relative,
                                                  size_t out_relative_buffer_size,
                                                  const char* path) {
-        /* Check pre-conditions. */
+        // Check pre-conditions
         ASSERT(path != nullptr);
         ASSERT(out_len != nullptr);
         ASSERT(out != nullptr);
         ASSERT((out_relative == nullptr) == (out_relative_buffer_size == 0));
 
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Initialize the output buffer, if we have one. */
+        // Initialize the output buffer, if we have one
         if (out_relative_buffer_size > 0) {
             out_relative[0] = NullTerminator;
         }
 
-        /* Check if the path is relative. */
+        // Check if the path is relative
         if (path[0] == Dot && (path[1] == NullTerminator || path[1] == DirectorySeparator ||
                                path[1] == AlternateDirectorySeparator)) {
             if (out_relative_buffer_size > 0) {
@@ -771,10 +770,10 @@ public:
             R_SUCCEED();
         }
 
-        /* Ensure the path isn't a parent directory. */
+        // Ensure the path isn't a parent directory
         R_UNLESS(!(path[0] == Dot && path[1] == Dot), ResultDirectoryUnobtainable);
 
-        /* There was no relative dot path. */
+        // There was no relative dot path
         *out = path;
         *out_len = 0;
         R_SUCCEED();
@@ -782,7 +781,7 @@ public:
 
     static constexpr Result SkipWindowsPath(const char** out, size_t* out_len, bool* out_normalized,
                                             const char* path, bool has_mount_name) {
-        /* We're normalized if and only if the parsing doesn't throw ResultNotNormalized(). */
+        // We're normalized if and only if the parsing doesn't throw ResultNotNormalized()
         *out_normalized = true;
 
         R_TRY_CATCH(ParseWindowsPath(out, out_len, nullptr, 0, path, has_mount_name)) {
@@ -801,21 +800,21 @@ public:
     static constexpr Result ParseWindowsPath(const char** out, size_t* out_len, char* out_win,
                                              size_t out_win_buffer_size, const char* path,
                                              bool has_mount_name) {
-        /* Check pre-conditions. */
+        // Check pre-conditions
         ASSERT(path != nullptr);
         ASSERT(out_len != nullptr);
         ASSERT(out != nullptr);
         ASSERT((out_win == nullptr) == (out_win_buffer_size == 0));
 
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Initialize the output buffer, if we have one. */
+        // Initialize the output buffer, if we have one
         if (out_win_buffer_size > 0) {
             out_win[0] = NullTerminator;
         }
 
-        /* Handle path start. */
+        // Handle path start
         const char* cur_path = path;
         if (has_mount_name && path[0] == DirectorySeparator) {
             if (path[1] == AlternateDirectorySeparator && path[2] == AlternateDirectorySeparator) {
@@ -829,9 +828,9 @@ public:
             }
         }
 
-        /* Handle windows drive. */
+        // Handle windows drive
         if (IsWindowsDrive(cur_path)) {
-            /* Parse up to separator. */
+            // Parse up to separator
             size_t win_path_len = WindowsDriveLength;
             for (/* ... */; cur_path[win_path_len] != NullTerminator; ++win_path_len) {
                 R_UNLESS(!IsInvalidCharacter(cur_path[win_path_len]), ResultInvalidCharacter);
@@ -842,13 +841,13 @@ public:
                 }
             }
 
-            /* Ensure that we're normalized, if we're required to be. */
+            // Ensure that we're normalized, if we're required to be
             if (out_win_buffer_size == 0) {
                 for (size_t i = 0; i < win_path_len; ++i) {
                     R_UNLESS(cur_path[i] != AlternateDirectorySeparator, ResultNotNormalized);
                 }
             } else {
-                /* Ensure we can copy into the normalized buffer. */
+                // Ensure we can copy into the normalized buffer
                 R_UNLESS(win_path_len < out_win_buffer_size, ResultTooLongPath);
 
                 for (size_t i = 0; i < win_path_len; ++i) {
@@ -864,7 +863,7 @@ public:
             R_SUCCEED();
         }
 
-        /* Handle DOS device. */
+        // Handle DOS device
         if (IsDosDevicePath(cur_path)) {
             size_t dos_prefix_len = DosDevicePathPrefixLength;
 
@@ -875,7 +874,7 @@ public:
             }
 
             if (out_win_buffer_size > 0) {
-                /* Ensure we can copy into the normalized buffer. */
+                // Ensure we can copy into the normalized buffer
                 R_UNLESS(dos_prefix_len < out_win_buffer_size, ResultTooLongPath);
 
                 for (size_t i = 0; i < dos_prefix_len; ++i) {
@@ -891,7 +890,7 @@ public:
             R_SUCCEED();
         }
 
-        /* Handle UNC path. */
+        // Handle UNC path
         if (IsUncPath(cur_path, false, true)) {
             const char* final_path = cur_path;
 
@@ -932,13 +931,13 @@ public:
 
             size_t unc_prefix_len = final_path - cur_path;
 
-            /* Ensure that we're normalized, if we're required to be. */
+            // Ensure that we're normalized, if we're required to be
             if (out_win_buffer_size == 0) {
                 for (size_t i = 0; i < unc_prefix_len; ++i) {
                     R_UNLESS(cur_path[i] != DirectorySeparator, ResultNotNormalized);
                 }
             } else {
-                /* Ensure we can copy into the normalized buffer. */
+                // Ensure we can copy into the normalized buffer
                 R_UNLESS(unc_prefix_len < out_win_buffer_size, ResultTooLongPath);
 
                 for (size_t i = 0; i < unc_prefix_len; ++i) {
@@ -954,7 +953,7 @@ public:
             R_SUCCEED();
         }
 
-        /* There's no windows path to parse. */
+        // There's no windows path to parse
         *out = path;
         *out_len = 0;
         R_SUCCEED();
@@ -962,18 +961,18 @@ public:
 
     static constexpr Result IsNormalized(bool* out, size_t* out_len, const char* path,
                                          const PathFlags& flags = {}) {
-        /* Ensure nothing is null. */
+        // Ensure nothing is null
         R_UNLESS(out != nullptr, ResultNullptrArgument);
         R_UNLESS(out_len != nullptr, ResultNullptrArgument);
         R_UNLESS(path != nullptr, ResultNullptrArgument);
 
-        /* Verify that the path is valid utf-8. */
+        // Verify that the path is valid utf-8
         R_TRY(CheckUtf8(path));
 
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Handle the case where the path is empty. */
+        // Handle the case where the path is empty
         if (path[0] == NullTerminator) {
             R_UNLESS(flags.IsEmptyPathAllowed(), ResultInvalidPathFormat);
 
@@ -982,32 +981,32 @@ public:
             R_SUCCEED();
         }
 
-        /* All normalized paths start with a directory separator...unless they're windows paths,
-         * relative paths, or have mount names. */
+        // All normalized paths start with a directory separator...unless they're windows paths,
+        // relative paths, or have mount names.
         if (path[0] != DirectorySeparator) {
             R_UNLESS(flags.IsWindowsPathAllowed() || flags.IsRelativePathAllowed() ||
                          flags.IsMountNameAllowed(),
                      ResultInvalidPathFormat);
         }
 
-        /* Check that the path is allowed to be a windows path, if it is. */
+        // Check that the path is allowed to be a windows path, if it is
         if (IsWindowsPath(path, false)) {
             R_UNLESS(flags.IsWindowsPathAllowed(), ResultInvalidPathFormat);
         }
 
-        /* Skip past the mount name, if one is present. */
+        // Skip past the mount name, if one is present
         size_t total_len = 0;
         size_t mount_name_len = 0;
         R_TRY(SkipMountName(std::addressof(path), std::addressof(mount_name_len), path));
 
-        /* If we had a mount name, check that that was allowed. */
+        // If we had a mount name, check that that was allowed
         if (mount_name_len > 0) {
             R_UNLESS(flags.IsMountNameAllowed(), ResultInvalidPathFormat);
 
             total_len += mount_name_len;
         }
 
-        /* Check that the path starts as a normalized path should. */
+        // Check that the path starts as a normalized path should
         if (path[0] != DirectorySeparator && !IsPathStartWithCurrentDirectory(path) &&
             !IsWindowsPath(path, false)) {
             R_UNLESS(flags.IsRelativePathAllowed(), ResultInvalidPathFormat);
@@ -1017,11 +1016,11 @@ public:
             R_SUCCEED();
         }
 
-        /* Process relative path. */
+        // Process relative path
         size_t relative_len = 0;
         R_TRY(SkipRelativeDotPath(std::addressof(path), std::addressof(relative_len), path));
 
-        /* If we have a relative path, check that was allowed. */
+        // If we have a relative path, check that was allowed
         if (relative_len > 0) {
             R_UNLESS(flags.IsRelativePathAllowed(), ResultInvalidPathFormat);
 
@@ -1034,13 +1033,13 @@ public:
             }
         }
 
-        /* Process windows path. */
+        // Process windows path
         size_t windows_len = 0;
         bool normalized_win = false;
         R_TRY(SkipWindowsPath(std::addressof(path), std::addressof(windows_len),
                               std::addressof(normalized_win), path, mount_name_len > 0));
 
-        /* If the windows path wasn't normalized, we're not normalized. */
+        // If the windows path wasn't normalized, we're not normalized
         if (!normalized_win) {
             R_UNLESS(flags.IsWindowsPathAllowed(), ResultInvalidPathFormat);
 
@@ -1048,22 +1047,22 @@ public:
             R_SUCCEED();
         }
 
-        /* If we had a windows path, check that was allowed. */
+        // If we had a windows path, check that was allowed
         if (windows_len > 0) {
             R_UNLESS(flags.IsWindowsPathAllowed(), ResultInvalidPathFormat);
 
             total_len += windows_len;
 
-            /* We can't have both a relative path and a windows path. */
+            // We can't have both a relative path and a windows path
             R_UNLESS(relative_len == 0, ResultInvalidPathFormat);
 
-            /* A path ending in a windows path isn't normalized. */
+            // A path ending in a windows path isn't normalized
             if (path[0] == NullTerminator) {
                 *out = false;
                 R_SUCCEED();
             }
 
-            /* Check that there are no windows directory separators in the path. */
+            // Check that there are no windows directory separators in the path
             for (size_t i = 0; path[i] != NullTerminator; ++i) {
                 if (path[i] == AlternateDirectorySeparator) {
                     *out = false;
@@ -1072,48 +1071,48 @@ public:
             }
         }
 
-        /* Check that parent directory replacement is not needed if backslashes are allowed. */
+        // Check that parent directory replacement is not needed if backslashes are allowed
         if (flags.IsBackslashAllowed() &&
             PathNormalizer::IsParentDirectoryPathReplacementNeeded(path)) {
             *out = false;
             R_SUCCEED();
         }
 
-        /* Check that the backslash state is valid. */
+        // Check that the backslash state is valid
         bool is_backslash_contained = false;
         R_TRY(CheckInvalidBackslash(std::addressof(is_backslash_contained), path,
                                     flags.IsWindowsPathAllowed() || flags.IsBackslashAllowed()));
 
-        /* Check that backslashes are contained only if allowed. */
+        // Check that backslashes are contained only if allowed
         if (is_backslash_contained && !flags.IsBackslashAllowed()) {
             *out = false;
             R_SUCCEED();
         }
 
-        /* Check that the final result path is normalized. */
+        // Check that the final result path is normalized
         size_t normal_len = 0;
         R_TRY(PathNormalizer::IsNormalized(out, std::addressof(normal_len), path,
                                            flags.IsAllCharactersAllowed()));
 
-        /* Add the normal length. */
+        // Add the normal length
         total_len += normal_len;
 
-        /* Set the output length. */
+        // Set the output length
         *out_len = total_len;
         R_SUCCEED();
     }
 
     static Result Normalize(char* dst, size_t dst_size, const char* path, size_t path_len,
                             const PathFlags& flags) {
-        /* Use StringTraits names for remainder of scope. */
+        // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
-        /* Prepare to iterate. */
+        // Prepare to iterate
         const char* src = path;
         size_t cur_pos = 0;
         bool is_windows_path = false;
 
-        /* Check if the path is empty. */
+        // Check if the path is empty
         if (src[0] == NullTerminator) {
             if (dst_size != 0) {
                 dst[0] = NullTerminator;
@@ -1124,7 +1123,7 @@ public:
             R_SUCCEED();
         }
 
-        /* Handle a mount name. */
+        // Handle a mount name
         size_t mount_name_len = 0;
         if (flags.IsMountNameAllowed()) {
             R_TRY(ParseMountName(std::addressof(src), std::addressof(mount_name_len), dst + cur_pos,
@@ -1133,7 +1132,7 @@ public:
             cur_pos += mount_name_len;
         }
 
-        /* Handle a drive-relative prefix. */
+        // Handle a drive-relative prefix
         bool is_drive_relative = false;
         if (src[0] != DirectorySeparator && !IsPathStartWithCurrentDirectory(src) &&
             !IsWindowsPath(src, false)) {
@@ -1161,7 +1160,7 @@ public:
             }
         }
 
-        /* Handle a windows path. */
+        // Handle a windows path
         if (flags.IsWindowsPathAllowed()) {
             const char* const orig = src;
 
@@ -1187,16 +1186,16 @@ public:
             }
         }
 
-        /* Check for invalid backslash. */
+        // Check for invalid backslash
         bool backslash_contained = false;
         R_TRY(CheckInvalidBackslash(std::addressof(backslash_contained), src,
                                     flags.IsWindowsPathAllowed() || flags.IsBackslashAllowed()));
 
-        /* Handle backslash replacement as necessary. */
+        // Handle backslash replacement as necessary
         if (backslash_contained && flags.IsWindowsPathAllowed()) {
-            /* Create a temporary buffer holding a slash-replaced version of the path. */
-            /* NOTE: Nintendo unnecessarily allocates and replaces here a fully copy of the path,
-             * despite having skipped some of it already. */
+            // Create a temporary buffer holding a slash-replaced version of the path.
+            // NOTE: Nintendo unnecessarily allocates and replaces here a fully copy of the path,
+            // despite having skipped some of it already.
             const size_t replaced_src_len = path_len - (src - path);
 
             char* replaced_src = nullptr;
@@ -1226,7 +1225,7 @@ public:
                                             dst_size - cur_pos, is_windows_path, is_drive_relative,
                                             flags.IsAllCharactersAllowed()));
         } else {
-            /* We can just do normalization. */
+            // We can just do normalization
             size_t dummy;
             R_TRY(PathNormalizer::Normalize(dst + cur_pos, std::addressof(dummy), src,
                                             dst_size - cur_pos, is_windows_path, is_drive_relative,

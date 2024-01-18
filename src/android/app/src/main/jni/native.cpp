@@ -35,9 +35,10 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/submission_package.h"
-#include "core/file_sys/vfs.h"
-#include "core/file_sys/vfs_real.h"
+#include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/error.h"
@@ -154,7 +155,7 @@ void EmulationSession::SurfaceChanged() {
 }
 
 void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) {
-    const auto file = m_system.GetFilesystem()->OpenFile(filepath, FileSys::Mode::Read);
+    const auto file = m_system.GetFilesystem()->OpenFile(filepath, FileSys::OpenMode::Read);
     if (!file) {
         return;
     }
@@ -475,8 +476,8 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_doesUpdateMatchProgram(JNIEnv* en
     u64 program_id = EmulationSession::GetProgramId(env, jprogramId);
     std::string updatePath = GetJString(env, jupdatePath);
     std::shared_ptr<FileSys::NSP> nsp = std::make_shared<FileSys::NSP>(
-        EmulationSession::GetInstance().System().GetFilesystem()->OpenFile(updatePath,
-                                                                           FileSys::Mode::Read));
+        EmulationSession::GetInstance().System().GetFilesystem()->OpenFile(
+            updatePath, FileSys::OpenMode::Read));
     for (const auto& item : nsp->GetNCAs()) {
         for (const auto& nca_details : item.second) {
             if (nca_details.second->GetName().ends_with(".cnmt.nca")) {
@@ -719,7 +720,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
                                                                         jobject instance) {
     const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
     auto vfs_nand_dir = EmulationSession::GetInstance().System().GetFilesystem()->OpenDirectory(
-        Common::FS::PathToUTF8String(nand_dir), FileSys::Mode::Read);
+        Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
     const auto user_id = EmulationSession::GetInstance().System().GetProfileManager().GetUser(
         static_cast<std::size_t>(0));
@@ -889,7 +890,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
 
     const auto nandDir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
     auto vfsNandDir = system.GetFilesystem()->OpenDirectory(Common::FS::PathToUTF8String(nandDir),
-                                                            FileSys::Mode::Read);
+                                                            FileSys::OpenMode::Read);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
         {}, vfsNandDir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,

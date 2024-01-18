@@ -159,7 +159,7 @@ inline InstallResult InstallNSP(Core::System& system, FileSys::VfsFilesystem& vf
     };
 
     std::shared_ptr<FileSys::NSP> nsp;
-    FileSys::VirtualFile file = vfs.OpenFile(filename, FileSys::Mode::Read);
+    FileSys::VirtualFile file = vfs.OpenFile(filename, FileSys::OpenMode::Read);
     if (boost::to_lower_copy(file->GetName()).ends_with(std::string("nsp"))) {
         nsp = std::make_shared<FileSys::NSP>(file);
         if (nsp->IsExtractedType()) {
@@ -224,7 +224,8 @@ inline InstallResult InstallNCA(FileSys::VfsFilesystem& vfs, const std::string& 
         return true;
     };
 
-    const auto nca = std::make_shared<FileSys::NCA>(vfs.OpenFile(filename, FileSys::Mode::Read));
+    const auto nca =
+        std::make_shared<FileSys::NCA>(vfs.OpenFile(filename, FileSys::OpenMode::Read));
     const auto id = nca->GetStatus();
 
     // Game updates necessary are missing base RomFS
@@ -345,8 +346,8 @@ inline std::vector<std::string> VerifyInstalledContents(
 inline GameVerificationResult VerifyGameContents(
     Core::System& system, const std::string& game_path,
     const std::function<bool(size_t, size_t)>& callback) {
-    const auto loader =
-        Loader::GetLoader(system, system.GetFilesystem()->OpenFile(game_path, FileSys::Mode::Read));
+    const auto loader = Loader::GetLoader(
+        system, system.GetFilesystem()->OpenFile(game_path, FileSys::OpenMode::Read));
     if (loader == nullptr) {
         return GameVerificationResult::NotImplemented;
     }

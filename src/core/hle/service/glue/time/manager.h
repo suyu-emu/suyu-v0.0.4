@@ -7,7 +7,7 @@
 #include <string>
 
 #include "common/common_types.h"
-#include "core/file_sys/vfs_types.h"
+#include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/service/glue/time/file_timestamp_worker.h"
 #include "core/hle/service/glue/time/standard_steady_clock_resource.h"
 #include "core/hle/service/glue/time/worker.h"

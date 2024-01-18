@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -71,21 +71,6 @@ static constexpr int Strlcpy(T* dst, const T* src, int count) {
     return static_cast<int>(cur - src);
 }
 
-/* std::size() does not support zero-size C arrays. We're fixing that. */
-template <class C>
-constexpr auto size(const C& c) -> decltype(c.size()) {
-    return std::size(c);
-}
-
-template <class C>
-constexpr std::size_t size(const C& c) {
-    if constexpr (sizeof(C) == 0) {
-        return 0;
-    } else {
-        return std::size(c);
-    }
-}
-
 enum CharacterEncodingResult {
     CharacterEncodingResult_Success = 0,
     CharacterEncodingResult_InsufficientLength = 1,
@@ -116,11 +101,11 @@ public:
 } // namespace impl
 
 constexpr inline CharacterEncodingResult ConvertCharacterUtf8ToUtf32(u32* dst, const char* src) {
-    /* Check pre-conditions. */
+    // Check pre-conditions
     ASSERT(dst != nullptr);
     ASSERT(src != nullptr);
 
-    /* Perform the conversion. */
+    // Perform the conversion
     const auto* p = src;
     switch (impl::CharacterEncodingHelper::GetUtf8NBytes(static_cast<unsigned char>(p[0]))) {
     case 1:
@@ -164,24 +149,24 @@ constexpr inline CharacterEncodingResult ConvertCharacterUtf8ToUtf32(u32* dst, c
         break;
     }
 
-    /* We failed to convert. */
+    // We failed to convert
     return CharacterEncodingResult_InvalidFormat;
 }
 
 constexpr inline CharacterEncodingResult PickOutCharacterFromUtf8String(char* dst,
                                                                         const char** str) {
-    /* Check pre-conditions. */
+    // Check pre-conditions
     ASSERT(dst != nullptr);
     ASSERT(str != nullptr);
     ASSERT(*str != nullptr);
 
-    /* Clear the output. */
+    // Clear the output
     dst[0] = 0;
     dst[1] = 0;
     dst[2] = 0;
     dst[3] = 0;
 
-    /* Perform the conversion. */
+    // Perform the conversion
     const auto* p = *str;
     u32 c = static_cast<u32>(*p);
     switch (impl::CharacterEncodingHelper::GetUtf8NBytes(c)) {
