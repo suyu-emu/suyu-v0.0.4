@@ -554,6 +554,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             findItem(R.id.menu_touchscreen).isChecked = BooleanSetting.TOUCHSCREEN.getBoolean()
         }
 
+        popup.setOnDismissListener { NativeConfig.saveGlobalConfig() }
         popup.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.menu_toggle_fps -> {
@@ -720,7 +721,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.emulation_control_adjust)
             .setView(adjustBinding.root)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+                NativeConfig.saveGlobalConfig()
+            }
             .setNeutralButton(R.string.slider_default) { _: DialogInterface?, _: Int ->
                 setControlScale(50)
                 setControlOpacity(100)
