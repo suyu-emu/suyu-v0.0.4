@@ -3,16 +3,37 @@
 
 #version 460 core
 
-layout (location = 0) in vec2 vert_position;
-layout (location = 1) in vec2 vert_tex_coord;
-
 layout (location = 0) out vec2 frag_tex_coord;
 
-layout (set = 0, binding = 0) uniform MatrixBlock {
-    mat4 modelview_matrix;
+struct ScreenRectVertex {
+    vec2 position;
+    vec2 tex_coord;
 };
 
+layout (push_constant) uniform PushConstants {
+    mat4 modelview_matrix;
+    ScreenRectVertex vertices[4];
+};
+
+// Vulkan spec 15.8.1:
+//   Any member of a push constant block that is declared as an
+//   array must only be accessed with dynamically uniform indices.
+ScreenRectVertex GetVertex(int index) {
+    switch (index) {
+    case 0:
+    default:
+        return vertices[0];
+    case 1:
+        return vertices[1];
+    case 2:
+        return vertices[2];
+    case 3:
+        return vertices[3];
+    }
+}
+
 void main() {
-    gl_Position = modelview_matrix * vec4(vert_position, 0.0, 1.0);
-    frag_tex_coord = vert_tex_coord;
+    ScreenRectVertex vertex = GetVertex(gl_VertexIndex);
+    gl_Position = modelview_matrix * vec4(vertex.position, 0.0, 1.0);
+    frag_tex_coord = vertex.tex_coord;
 }

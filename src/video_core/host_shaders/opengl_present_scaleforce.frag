@@ -26,21 +26,11 @@
 
 #endif
 
-#ifdef VULKAN
-
-#define BINDING_COLOR_TEXTURE 1
-
-#else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
-
-#define BINDING_COLOR_TEXTURE 0
-
-#endif
-
 layout (location = 0) in vec2 tex_coord;
 
 layout (location = 0) out vec4 frag_color;
 
-layout (binding = BINDING_COLOR_TEXTURE) uniform sampler2D input_texture;
+layout (binding = 0) uniform sampler2D input_texture;
 
 const bool ignore_alpha = true;
 

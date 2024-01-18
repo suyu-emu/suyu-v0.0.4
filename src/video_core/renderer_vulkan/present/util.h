@@ -20,7 +20,8 @@ void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& sc
 void ClearColorImage(vk::CommandBuffer& cmdbuf, VkImage image);
 
 vk::ImageView CreateWrappedImageView(const Device& device, vk::Image& image, VkFormat format);
-vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format);
+vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format,
+                                       VkImageLayout initial_layout = VK_IMAGE_LAYOUT_GENERAL);
 vk::Framebuffer CreateWrappedFramebuffer(const Device& device, vk::RenderPass& render_pass,
                                          vk::ImageView& dest_image, VkExtent2D extent);
 vk::Sampler CreateWrappedSampler(const Device& device, VkFilter filter = VK_FILTER_LINEAR);
@@ -37,7 +38,8 @@ vk::PipelineLayout CreateWrappedPipelineLayout(const Device& device,
                                                vk::DescriptorSetLayout& layout);
 vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderpass,
                                    vk::PipelineLayout& layout,
-                                   std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders);
+                                   std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders,
+                                   bool enable_blending = false);
 VkWriteDescriptorSet CreateWriteDescriptorSet(std::vector<VkDescriptorImageInfo>& images,
                                               VkSampler sampler, VkImageView view,
                                               VkDescriptorSet set, u32 binding);

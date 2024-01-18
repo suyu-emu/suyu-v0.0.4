@@ -7,24 +7,12 @@
 
 namespace Vulkan {
 
-std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device,
-                                                     const MemoryAllocator& memory_allocator,
-                                                     size_t image_count, VkFormat frame_format);
+class MemoryAllocator;
 
-std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device,
-                                              const MemoryAllocator& memory_allocator,
-                                              size_t image_count, VkFormat frame_format);
-
-std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device,
-                                             const MemoryAllocator& memory_allocator,
-                                             size_t image_count, VkFormat frame_format);
-
-std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device,
-                                              const MemoryAllocator& memory_allocator,
-                                              size_t image_count, VkFormat frame_format);
-
-std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device,
-                                                const MemoryAllocator& memory_allocator,
-                                                size_t image_count, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeNearestNeighbor(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format);
 
 } // namespace Vulkan
