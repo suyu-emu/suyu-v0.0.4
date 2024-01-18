@@ -169,10 +169,10 @@ std::optional<std::size_t> ProfileManager::GetUserIndex(const ProfileInfo& user)
 std::optional<std::size_t> ProfileManager::GetUserIndex(const std::string& username) const {
     const auto iter =
         std::find_if(profiles.begin(), profiles.end(), [&username](const ProfileInfo& p) {
-            const std::string pusername = Common::StringFromFixedZeroTerminatedBuffer(
+            const std::string profile_username = Common::StringFromFixedZeroTerminatedBuffer(
                 reinterpret_cast<const char*>(p.username.data()), p.username.size());
 
-            return username.compare(pusername) == 0;
+            return username.compare(profile_username) == 0;
         });
     if (iter == profiles.end()) {
         return std::nullopt;
