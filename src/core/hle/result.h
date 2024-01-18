@@ -189,14 +189,14 @@ enum class ErrorModule : u32 {
 union Result {
     u32 raw;
 
-    BitField<0, 9, ErrorModule> module;
-    BitField<9, 13, u32> description;
+    using Module = BitField<0, 9, ErrorModule>;
+    using Description = BitField<9, 13, u32>;
 
     Result() = default;
     constexpr explicit Result(u32 raw_) : raw(raw_) {}
 
     constexpr Result(ErrorModule module_, u32 description_)
-        : raw(module.FormatValue(module_) | description.FormatValue(description_)) {}
+        : raw(Module::FormatValue(module_) | Description::FormatValue(description_)) {}
 
     [[nodiscard]] constexpr bool IsSuccess() const {
         return raw == 0;
@@ -211,7 +211,15 @@ union Result {
     }
 
     [[nodiscard]] constexpr u32 GetInnerValue() const {
-        return static_cast<u32>(module.Value()) | (description << module.bits);
+        return raw;
+    }
+
+    [[nodiscard]] constexpr ErrorModule GetModule() const {
+        return Module::ExtractValue(raw);
+    }
+
+    [[nodiscard]] constexpr u32 GetDescription() const {
+        return Description::ExtractValue(raw);
     }
 
     [[nodiscard]] constexpr bool Includes(Result result) const {
@@ -274,8 +282,9 @@ public:
     }
 
     [[nodiscard]] constexpr bool Includes(Result other) const {
-        return code.module == other.module && code.description <= other.description &&
-               other.description <= description_end;
+        return code.GetModule() == other.GetModule() &&
+               code.GetDescription() <= other.GetDescription() &&
+               other.GetDescription() <= description_end;
     }
 
 private:
@@ -330,6 +339,16 @@ constexpr bool EvaluateResultFailure(const Result& r) {
     return R_FAILED(r);
 }
 
+template <auto... R>
+constexpr bool EvaluateAnyResultIncludes(const Result& r) {
+    return ((r == R) || ...);
+}
+
+template <auto... R>
+constexpr bool EvaluateResultNotIncluded(const Result& r) {
+    return !EvaluateAnyResultIncludes<R...>(r);
+}
+
 template <typename T>
 constexpr void UpdateCurrentResultReference(T result_reference, Result result) = delete;
 // Intentionally not defined
@@ -370,6 +389,13 @@ constexpr void UpdateCurrentResultReference<const Result>(Result result_referenc
 #define ON_RESULT_SUCCESS                                                                          \
     DECLARE_CURRENT_RESULT_REFERENCE_AND_STORAGE(__COUNTER__);                                     \
     ON_RESULT_SUCCESS_2
+
+#define ON_RESULT_INCLUDED_2(...)                                                                  \
+    ON_RESULT_RETURN_IMPL(ResultImpl::EvaluateAnyResultIncludes<__VA_ARGS__>)
+
+#define ON_RESULT_INCLUDED(...)                                                                    \
+    DECLARE_CURRENT_RESULT_REFERENCE_AND_STORAGE(__COUNTER__);                                     \
+    ON_RESULT_INCLUDED_2(__VA_ARGS__)
 
 constexpr inline Result __TmpCurrentResultReference = ResultSuccess;
 
