@@ -719,7 +719,12 @@ private:
             return;
         }
 
-        nvnflinger.OpenLayer(layer_id);
+        if (!nvnflinger.OpenLayer(layer_id)) {
+            LOG_WARNING(Service_VI, "Tried to open layer which was already open");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ResultOperationFailed);
+            return;
+        }
 
         android::OutputParcel parcel;
         parcel.WriteInterface(NativeWindow{*buffer_queue_id});
@@ -737,7 +742,12 @@ private:
 
         LOG_DEBUG(Service_VI, "called. layer_id=0x{:016X}", layer_id);
 
-        nvnflinger.CloseLayer(layer_id);
+        if (!nvnflinger.CloseLayer(layer_id)) {
+            LOG_WARNING(Service_VI, "Tried to close layer which was not open");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ResultOperationFailed);
+            return;
+        }
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
