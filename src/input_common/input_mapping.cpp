@@ -210,6 +210,9 @@ bool MappingFactory::IsDriverValid(const MappingData& data) const {
     if (data.engine == "analog_from_button") {
         return false;
     }
+    if (data.engine == "virtual_gamepad") {
+        return false;
+    }
     return true;
 }
 

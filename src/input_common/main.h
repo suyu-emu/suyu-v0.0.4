@@ -29,6 +29,7 @@ enum Values : int;
 }
 
 namespace InputCommon {
+class Android;
 class Camera;
 class Keyboard;
 class Mouse;
@@ -102,6 +103,12 @@ public:
 
     /// Retrieves the underlying camera input device.
     [[nodiscard]] const Camera* GetCamera() const;
+
+    /// Retrieves the underlying android input device.
+    [[nodiscard]] Android* GetAndroid();
+
+    /// Retrieves the underlying android input device.
+    [[nodiscard]] const Android* GetAndroid() const;
 
     /// Retrieves the underlying virtual amiibo input device.
     [[nodiscard]] VirtualAmiibo* GetVirtualAmiibo();
