@@ -202,14 +202,14 @@ Result IAlbumAccessorService::TranslateResult(Result in_result) {
     }
 
     if ((in_result.raw & 0x3801ff) == ResultUnknown1024.raw) {
-        if (in_result.description - 0x514 < 100) {
+        if (in_result.GetDescription() - 0x514 < 100) {
             return ResultInvalidFileData;
         }
-        if (in_result.description - 0x5dc < 100) {
+        if (in_result.GetDescription() - 0x5dc < 100) {
             return ResultInvalidFileData;
         }
 
-        if (in_result.description - 0x578 < 100) {
+        if (in_result.GetDescription() - 0x578 < 100) {
             if (in_result == ResultFileCountLimit) {
                 return ResultUnknown22;
             }
@@ -244,9 +244,10 @@ Result IAlbumAccessorService::TranslateResult(Result in_result) {
         return ResultUnknown1024;
     }
 
-    if (in_result.module == ErrorModule::FS) {
-        if ((in_result.description >> 0xc < 0x7d) || (in_result.description - 1000 < 2000) ||
-            (((in_result.description - 3000) >> 3) < 0x271)) {
+    if (in_result.GetModule() == ErrorModule::FS) {
+        if ((in_result.GetDescription() >> 0xc < 0x7d) ||
+            (in_result.GetDescription() - 1000 < 2000) ||
+            (((in_result.GetDescription() - 3000) >> 3) < 0x271)) {
             // TODO: Translate FS error
             return in_result;
         }

@@ -68,8 +68,8 @@ json GetReportCommonData(u64 title_id, Result result, const std::string& timesta
     auto out = json{
         {"title_id", fmt::format("{:016X}", title_id)},
         {"result_raw", fmt::format("{:08X}", result.raw)},
-        {"result_module", fmt::format("{:08X}", static_cast<u32>(result.module.Value()))},
-        {"result_description", fmt::format("{:08X}", result.description.Value())},
+        {"result_module", fmt::format("{:08X}", static_cast<u32>(result.GetModule()))},
+        {"result_description", fmt::format("{:08X}", result.GetDescription())},
         {"timestamp", timestamp},
     };
 

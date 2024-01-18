@@ -73,8 +73,8 @@ static void GenerateErrorReport(Core::System& system, Result error_code, const F
         "Program entry point:             0x{:16X}\n"
         "\n",
         Common::g_scm_branch, Common::g_scm_desc, title_id, error_code.raw,
-        2000 + static_cast<u32>(error_code.module.Value()),
-        static_cast<u32>(error_code.description.Value()), info.set_flags, info.program_entry_point);
+        2000 + static_cast<u32>(error_code.GetModule()),
+        static_cast<u32>(error_code.GetDescription()), info.set_flags, info.program_entry_point);
     if (info.backtrace_size != 0x0) {
         crash_report += "Registers:\n";
         for (size_t i = 0; i < info.registers.size(); i++) {
