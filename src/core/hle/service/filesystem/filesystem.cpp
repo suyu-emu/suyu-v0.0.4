@@ -52,12 +52,12 @@ Result VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 size
     std::string path(Common::FS::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (dir == nullptr) {
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
 
     FileSys::DirectoryEntryType entry_type{};
     if (GetEntryType(&entry_type, path) == ResultSuccess) {
-        return FileSys::ERROR_PATH_ALREADY_EXISTS;
+        return FileSys::ResultPathAlreadyExists;
     }
 
     auto file = dir->CreateFile(Common::FS::GetFilename(path));
@@ -81,7 +81,7 @@ Result VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
 
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (dir == nullptr || dir->GetFile(Common::FS::GetFilename(path)) == nullptr) {
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
     if (!dir->DeleteFile(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
@@ -152,12 +152,12 @@ Result VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
     if (Common::FS::GetParentPath(src_path) == Common::FS::GetParentPath(dest_path)) {
         // Use more-optimized vfs implementation rename.
         if (src == nullptr) {
-            return FileSys::ERROR_PATH_NOT_FOUND;
+            return FileSys::ResultPathNotFound;
         }
 
         if (dst && Common::FS::Exists(dst->GetFullPath())) {
             LOG_ERROR(Service_FS, "File at new_path={} already exists", dst->GetFullPath());
-            return FileSys::ERROR_PATH_ALREADY_EXISTS;
+            return FileSys::ResultPathAlreadyExists;
         }
 
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
@@ -194,7 +194,7 @@ Result VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_path_,
     if (Common::FS::GetParentPath(src_path) == Common::FS::GetParentPath(dest_path)) {
         // Use more-optimized vfs implementation rename.
         if (src == nullptr)
-            return FileSys::ERROR_PATH_NOT_FOUND;
+            return FileSys::ResultPathNotFound;
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
             // TODO(DarkLordZach): Find a better error code for this
             return ResultUnknown;
@@ -223,7 +223,7 @@ Result VfsDirectoryServiceWrapper::OpenFile(FileSys::VirtualFile* out_file,
 
     auto file = backing->GetFileRelative(npath);
     if (file == nullptr) {
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
 
     if (mode == FileSys::OpenMode::AllowAppend) {
@@ -241,7 +241,7 @@ Result VfsDirectoryServiceWrapper::OpenDirectory(FileSys::VirtualDir* out_direct
     auto dir = GetDirectoryRelativeWrapped(backing, path);
     if (dir == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
     *out_directory = dir;
     return ResultSuccess;
@@ -252,7 +252,7 @@ Result VfsDirectoryServiceWrapper::GetEntryType(FileSys::DirectoryEntryType* out
     std::string path(Common::FS::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (dir == nullptr) {
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
 
     auto filename = Common::FS::GetFilename(path);
@@ -272,19 +272,19 @@ Result VfsDirectoryServiceWrapper::GetEntryType(FileSys::DirectoryEntryType* out
         return ResultSuccess;
     }
 
-    return FileSys::ERROR_PATH_NOT_FOUND;
+    return FileSys::ResultPathNotFound;
 }
 
 Result VfsDirectoryServiceWrapper::GetFileTimeStampRaw(
     FileSys::FileTimeStampRaw* out_file_time_stamp_raw, const std::string& path) const {
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (dir == nullptr) {
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
 
     FileSys::DirectoryEntryType entry_type;
     if (GetEntryType(&entry_type, path) != ResultSuccess) {
-        return FileSys::ERROR_PATH_NOT_FOUND;
+        return FileSys::ResultPathNotFound;
     }
 
     *out_file_time_stamp_raw = dir->GetFileTimeStamp(Common::FS::GetFilename(path));
@@ -317,7 +317,7 @@ Result FileSystemController::OpenProcess(
 
     const auto it = registrations.find(process_id);
     if (it == registrations.end()) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
+        return FileSys::ResultTargetNotFound;
     }
 
     *out_program_id = it->second.program_id;
@@ -360,12 +360,12 @@ Result FileSystemController::OpenSDMC(FileSys::VirtualDir* out_sdmc) const {
     LOG_TRACE(Service_FS, "Opening SDMC");
 
     if (sdmc_factory == nullptr) {
-        return FileSys::ERROR_SD_CARD_NOT_FOUND;
+        return FileSys::ResultPortSdCardNoDevice;
     }
 
     auto sdmc = sdmc_factory->Open();
     if (sdmc == nullptr) {
-        return FileSys::ERROR_SD_CARD_NOT_FOUND;
+        return FileSys::ResultPortSdCardNoDevice;
     }
 
     *out_sdmc = sdmc;
@@ -377,12 +377,12 @@ Result FileSystemController::OpenBISPartition(FileSys::VirtualDir* out_bis_parti
     LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", id);
 
     if (bis_factory == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
+        return FileSys::ResultTargetNotFound;
     }
 
     auto part = bis_factory->OpenPartition(id);
     if (part == nullptr) {
-        return FileSys::ERROR_INVALID_ARGUMENT;
+        return FileSys::ResultInvalidArgument;
     }
 
     *out_bis_partition = part;
@@ -394,12 +394,12 @@ Result FileSystemController::OpenBISPartitionStorage(
     LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", id);
 
     if (bis_factory == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
+        return FileSys::ResultTargetNotFound;
     }
 
     auto part = bis_factory->OpenPartitionStorage(id, system.GetFilesystem());
     if (part == nullptr) {
-        return FileSys::ERROR_INVALID_ARGUMENT;
+        return FileSys::ResultInvalidArgument;
     }
 
     *out_bis_partition_storage = part;

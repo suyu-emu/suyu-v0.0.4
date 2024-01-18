@@ -31,13 +31,13 @@ void IStorage::Read(HLERequestContext& ctx) {
     if (length < 0) {
         LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(FileSys::ERROR_INVALID_SIZE);
+        rb.Push(FileSys::ResultInvalidSize);
         return;
     }
     if (offset < 0) {
         LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(FileSys::ERROR_INVALID_OFFSET);
+        rb.Push(FileSys::ResultInvalidOffset);
         return;
     }
 
