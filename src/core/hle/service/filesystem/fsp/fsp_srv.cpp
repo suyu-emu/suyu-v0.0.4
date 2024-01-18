@@ -15,9 +15,9 @@
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
-#include "core/file_sys/directory.h"
 #include "core/file_sys/errors.h"
-#include "core/file_sys/mode.h"
+#include "core/file_sys/fs_directory.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/romfs_factory.h"
@@ -52,8 +52,8 @@ public:
     explicit ISaveDataInfoReader(Core::System& system_,
                                  std::shared_ptr<SaveDataController> save_data_controller_,
                                  FileSys::SaveDataSpaceId space)
-        : ServiceFramework{system_, "ISaveDataInfoReader"},
-          save_data_controller{save_data_controller_} {
+        : ServiceFramework{system_, "ISaveDataInfoReader"}, save_data_controller{
+                                                                save_data_controller_} {
         static const FunctionInfo functions[] = {
             {0, &ISaveDataInfoReader::ReadSaveDataInfo, "ReadSaveDataInfo"},
         };

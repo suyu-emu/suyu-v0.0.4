@@ -10,8 +10,8 @@
 namespace Service::FileSystem {
 
 IFileSystem::IFileSystem(Core::System& system_, FileSys::VirtualDir backend_, SizeGetter size_)
-    : ServiceFramework{system_, "IFileSystem"}, backend{std::move(backend_)},
-      size{std::move(size_)} {
+    : ServiceFramework{system_, "IFileSystem"}, backend{std::move(backend_)}, size{std::move(
+                                                                                  size_)} {
     static const FunctionInfo functions[] = {
         {0, &IFileSystem::CreateFile, "CreateFile"},
         {1, &IFileSystem::DeleteFile, "DeleteFile"},
@@ -116,7 +116,7 @@ void IFileSystem::OpenFile(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
 
-    const auto mode = static_cast<FileSys::Mode>(rp.Pop<u32>());
+    const auto mode = static_cast<FileSys::OpenMode>(rp.Pop<u32>());
 
     LOG_DEBUG(Service_FS, "called. file={}, mode={}", name, mode);
 
@@ -140,7 +140,7 @@ void IFileSystem::OpenDirectory(HLERequestContext& ctx) {
 
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
-    const auto mode = rp.PopRaw<OpenDirectoryMode>();
+    const auto mode = rp.PopRaw<FileSys::OpenDirectoryMode>();
 
     LOG_DEBUG(Service_FS, "called. directory={}, mode={}", name, mode);
 
@@ -165,7 +165,7 @@ void IFileSystem::GetEntryType(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_FS, "called. file={}", name);
 
-    FileSys::EntryType vfs_entry_type{};
+    FileSys::DirectoryEntryType vfs_entry_type{};
     auto result = backend.GetEntryType(&vfs_entry_type, name);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};

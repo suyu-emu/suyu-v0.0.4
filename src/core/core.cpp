@@ -21,7 +21,7 @@
 #include "core/debugger/debugger.h"
 #include "core/device_memory.h"
 #include "core/file_sys/bis_factory.h"
-#include "core/file_sys/mode.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
@@ -102,7 +102,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     Common::SplitPath(path, &dir_name, &filename, nullptr);
 
     if (filename == "00") {
-        const auto dir = vfs->OpenDirectory(dir_name, FileSys::Mode::Read);
+        const auto dir = vfs->OpenDirectory(dir_name, FileSys::OpenMode::Read);
         std::vector<FileSys::VirtualFile> concat;
 
         for (u32 i = 0; i < 0x10; ++i) {
@@ -127,10 +127,10 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     }
 
     if (Common::FS::IsDir(path)) {
-        return vfs->OpenFile(path + "/main", FileSys::Mode::Read);
+        return vfs->OpenFile(path + "/main", FileSys::OpenMode::Read);
     }
 
-    return vfs->OpenFile(path, FileSys::Mode::Read);
+    return vfs->OpenFile(path, FileSys::OpenMode::Read);
 }
 
 struct System::Impl {
