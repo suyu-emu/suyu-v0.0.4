@@ -35,6 +35,10 @@ extern template class Setting<unsigned long long>;
 
 namespace UISettings {
 
+/**
+ * Check if the theme is dark
+ * @returns true if the current theme contains the string "dark" in its name
+ */
 bool IsDarkTheme();
 
 struct ContextualShortcut {
@@ -50,25 +54,16 @@ struct Shortcut {
     ContextualShortcut shortcut;
 };
 
-enum class Theme {
-    Default,
-    DefaultColorful,
-    Dark,
-    DarkColorful,
-    MidnightBlue,
-    MidnightBlueColorful,
-};
-
-static constexpr Theme default_theme{
+static constexpr std::string_view default_theme{
 #ifdef _WIN32
-    Theme::DarkColorful
+    "colorful_dark"
 #else
-    Theme::DefaultColorful
+    "colorful"
 #endif
 };
 
 using Themes = std::array<std::pair<const char*, const char*>, 6>;
-extern const Themes themes;
+extern const Themes included_themes;
 
 struct GameDir {
     std::string path;
@@ -160,7 +155,7 @@ struct Values {
     QStringList recent_files;
     Setting<std::string> language{linkage, {}, "language", Category::Paths};
 
-    std::string theme;
+    QString theme;
 
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;

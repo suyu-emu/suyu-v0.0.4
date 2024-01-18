@@ -165,6 +165,12 @@ class GMainWindow : public QMainWindow {
         CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING,
     };
 
+    /**
+     * Try to load a stylesheet from its path. If the path starts with ":/", its embedded in the app
+     * @returns true if the text file could be opened as read-only
+     */
+    bool tryLoadStylesheet(const QString& theme_path);
+
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();

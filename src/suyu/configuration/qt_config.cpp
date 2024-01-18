@@ -260,9 +260,8 @@ void QtConfig::ReadShortcutValues() {
 void QtConfig::ReadUIValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Ui));
 
-    UISettings::values.theme = ReadStringSetting(
-        std::string("theme"),
-        std::string(UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second));
+    UISettings::values.theme = QString::fromStdString(
+        ReadStringSetting(std::string("theme"), std::string(UISettings::default_theme)));
 
     ReadUIGamelistValues();
     ReadUILayoutValues();
@@ -468,10 +467,8 @@ void QtConfig::SaveUIValues() {
     WriteCategory(Settings::Category::Ui);
     WriteCategory(Settings::Category::UiGeneral);
 
-    WriteStringSetting(
-        std::string("theme"), UISettings::values.theme,
-        std::make_optional(std::string(
-            UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second)));
+    WriteStringSetting(std::string("theme"), UISettings::values.theme.toStdString(),
+                       std::make_optional(std::string(UISettings::default_theme)));
 
     SaveUIGamelistValues();
     SaveUILayoutValues();
