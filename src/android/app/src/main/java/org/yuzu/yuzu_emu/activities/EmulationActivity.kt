@@ -49,7 +49,6 @@ import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.MemoryUtil
-import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import java.text.NumberFormat
@@ -169,11 +168,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onPause()
         nfcReader.stopScanning()
         stopMotionSensorListener()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        NativeConfig.saveGlobalConfig()
     }
 
     override fun onUserLeaveHint() {
