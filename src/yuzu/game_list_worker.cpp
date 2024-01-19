@@ -164,18 +164,19 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
     QString out;
     FileSys::VirtualFile update_raw;
     loader.ReadUpdateRaw(update_raw);
-    for (const auto& kv : patch_manager.GetPatchVersionNames(update_raw)) {
-        const bool is_update = kv.first == "Update" || kv.first == "[D] Update";
+    for (const auto& patch : patch_manager.GetPatches(update_raw)) {
+        const bool is_update = patch.name == "Update";
         if (!updatable && is_update) {
             continue;
         }
 
-        const QString type = QString::fromStdString(kv.first);
+        const QString type =
+            QString::fromStdString(patch.enabled ? patch.name : "[D] " + patch.name);
 
-        if (kv.second.empty()) {
+        if (patch.version.empty()) {
             out.append(QStringLiteral("%1\n").arg(type));
         } else {
-            auto ver = kv.second;
+            auto ver = patch.version;
 
             // Display container name for packed updates
             if (is_update && ver == "PACKED") {
