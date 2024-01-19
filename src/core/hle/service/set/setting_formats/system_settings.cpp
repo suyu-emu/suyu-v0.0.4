@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/set/system_settings.h"
+#include "core/hle/service/set/setting_formats/system_settings.h"
 
 namespace Service::Set {
 
@@ -10,6 +10,8 @@ SystemSettings DefaultSystemSettings() {
 
     settings.version = 0x140000;
     settings.flags = 7;
+
+    settings.mii_author_id = Common::UUID::MakeDefault();
 
     settings.color_set_id = ColorSet::BasicWhite;
 
@@ -44,6 +46,10 @@ SystemSettings DefaultSystemSettings() {
 
     settings.device_time_zone_location_name = {"UTC"};
     settings.user_system_clock_automatic_correction_enabled = false;
+
+    settings.primary_album_storage = PrimaryAlbumStorage::SdCard;
+    settings.battery_percentage_flag = true;
+    settings.chinese_traditional_input_method = ChineseTraditionalInputMethod::Unknown0;
 
     return settings;
 }

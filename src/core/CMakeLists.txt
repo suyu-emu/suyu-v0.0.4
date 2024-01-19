@@ -712,22 +712,23 @@ add_library(core STATIC
     hle/service/server_manager.h
     hle/service/service.cpp
     hle/service/service.h
-    hle/service/set/appln_settings.cpp
-    hle/service/set/appln_settings.h
-    hle/service/set/device_settings.cpp
-    hle/service/set/device_settings.h
+    hle/service/set/setting_formats/appln_settings.cpp
+    hle/service/set/setting_formats/appln_settings.h
+    hle/service/set/setting_formats/device_settings.cpp
+    hle/service/set/setting_formats/device_settings.h
+    hle/service/set/setting_formats/system_settings.cpp
+    hle/service/set/setting_formats/system_settings.h
+    hle/service/set/setting_formats/private_settings.cpp
+    hle/service/set/setting_formats/private_settings.h
     hle/service/set/factory_settings_server.cpp
     hle/service/set/factory_settings_server.h
     hle/service/set/firmware_debug_settings_server.cpp
     hle/service/set/firmware_debug_settings_server.h
-    hle/service/set/private_settings.cpp
-    hle/service/set/private_settings.h
     hle/service/set/settings.cpp
     hle/service/set/settings.h
     hle/service/set/settings_server.cpp
     hle/service/set/settings_server.h
-    hle/service/set/system_settings.cpp
-    hle/service/set/system_settings.h
+    hle/service/set/settings_types.h
     hle/service/set/system_settings_server.cpp
     hle/service/set/system_settings_server.h
     hle/service/sm/sm.cpp

@@ -7,24 +7,23 @@
 #include <cstddef>
 
 #include "common/common_types.h"
+#include "common/uuid.h"
+#include "core/hle/service/set/settings_types.h"
 
 namespace Service::Set {
 struct ApplnSettings {
-    std::array<u8, 0x10> reserved_000;
+    INSERT_PADDING_BYTES(0x10); // Reserved
 
     // nn::util::Uuid MiiAuthorId, copied from system settings 0x94B0
-    std::array<u8, 0x10> mii_author_id;
-
-    std::array<u8, 0x30> reserved_020;
+    Common::UUID mii_author_id;
+    INSERT_PADDING_BYTES(0x30); // Reserved
 
     // nn::settings::system::ServiceDiscoveryControlSettings
-    std::array<u8, 0x4> service_discovery_control_settings;
-
-    std::array<u8, 0x20> reserved_054;
+    u32 service_discovery_control_settings;
+    INSERT_PADDING_BYTES(0x20); // Reserved
 
     bool in_repair_process_enable_flag;
-
-    std::array<u8, 0x3> pad_075;
+    INSERT_PADDING_BYTES(0x3);
 };
 static_assert(offsetof(ApplnSettings, mii_author_id) == 0x10);
 static_assert(offsetof(ApplnSettings, service_discovery_control_settings) == 0x50);
