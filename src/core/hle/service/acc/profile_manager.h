@@ -70,6 +70,7 @@ public:
     std::optional<Common::UUID> GetUser(std::size_t index) const;
     std::optional<std::size_t> GetUserIndex(const Common::UUID& uuid) const;
     std::optional<std::size_t> GetUserIndex(const ProfileInfo& user) const;
+    std::optional<std::size_t> GetUserIndex(const std::string& username) const;
     bool GetProfileBase(std::optional<std::size_t> index, ProfileBase& profile) const;
     bool GetProfileBase(Common::UUID uuid, ProfileBase& profile) const;
     bool GetProfileBase(const ProfileInfo& user, ProfileBase& profile) const;
