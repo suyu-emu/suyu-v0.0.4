@@ -97,8 +97,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {3, &ISystemSettingsServer::GetFirmwareVersion, "GetFirmwareVersion"},
         {4, &ISystemSettingsServer::GetFirmwareVersion2, "GetFirmwareVersion2"},
         {5, nullptr, "GetFirmwareVersionDigest"},
-        {7, nullptr, "GetLockScreenFlag"},
-        {8, nullptr, "SetLockScreenFlag"},
+        {7, &ISystemSettingsServer::GetLockScreenFlag, "GetLockScreenFlag"},
+        {8, &ISystemSettingsServer::SetLockScreenFlag, "SetLockScreenFlag"},
         {9, nullptr, "GetBacklightSettings"},
         {10, nullptr, "SetBacklightSettings"},
         {11, nullptr, "SetBluetoothDevicesSettings"},
@@ -157,12 +157,12 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {66, nullptr, "SetUsb30EnableFlag"},
         {67, nullptr, "GetBatteryLot"},
         {68, nullptr, "GetSerialNumber"},
-        {69, nullptr, "GetNfcEnableFlag"},
-        {70, nullptr, "SetNfcEnableFlag"},
+        {69, &ISystemSettingsServer::GetNfcEnableFlag, "GetNfcEnableFlag"},
+        {70, &ISystemSettingsServer::SetNfcEnableFlag, "SetNfcEnableFlag"},
         {71, &ISystemSettingsServer::GetSleepSettings, "GetSleepSettings"},
         {72, &ISystemSettingsServer::SetSleepSettings, "SetSleepSettings"},
-        {73, nullptr, "GetWirelessLanEnableFlag"},
-        {74, nullptr, "SetWirelessLanEnableFlag"},
+        {73, &ISystemSettingsServer::GetWirelessLanEnableFlag, "GetWirelessLanEnableFlag"},
+        {74, &ISystemSettingsServer::SetWirelessLanEnableFlag, "SetWirelessLanEnableFlag"},
         {75, &ISystemSettingsServer::GetInitialLaunchSettings, "GetInitialLaunchSettings"},
         {76, &ISystemSettingsServer::SetInitialLaunchSettings, "SetInitialLaunchSettings"},
         {77, &ISystemSettingsServer::GetDeviceNickName, "GetDeviceNickName"},
@@ -176,8 +176,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {85, nullptr, "SetPtmBatteryLot"},
         {86, nullptr, "GetPtmFuelGaugeParameter"},
         {87, nullptr, "SetPtmFuelGaugeParameter"},
-        {88, nullptr, "GetBluetoothEnableFlag"},
-        {89, nullptr, "SetBluetoothEnableFlag"},
+        {88, &ISystemSettingsServer::GetBluetoothEnableFlag, "GetBluetoothEnableFlag"},
+        {89, &ISystemSettingsServer::SetBluetoothEnableFlag, "SetBluetoothEnableFlag"},
         {90, &ISystemSettingsServer::GetMiiAuthorId, "GetMiiAuthorId"},
         {91, nullptr, "SetShutdownRtcValue"},
         {92, nullptr, "GetShutdownRtcValue"},
@@ -510,6 +510,25 @@ void ISystemSettingsServer::SetUserSystemClockContext(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
+void ISystemSettingsServer::GetLockScreenFlag(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, lock_screen_flag={}", m_system_settings.lock_screen_flag);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(m_system_settings.lock_screen_flag);
+}
+
+void ISystemSettingsServer::SetLockScreenFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.lock_screen_flag = rp.Pop<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, lock_screen_flag={}", m_system_settings.lock_screen_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void ISystemSettingsServer::GetAccountSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
@@ -531,7 +550,7 @@ void ISystemSettingsServer::SetAccountSettings(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetEulaVersions(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET, "called, elements={}", m_system_settings.eula_version_count);
 
     ctx.WriteBuffer(m_system_settings.eula_versions);
 
@@ -557,7 +576,7 @@ void ISystemSettingsServer::SetEulaVersions(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetColorSetId(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
+    LOG_DEBUG(Service_SET, "called, color_set=", m_system_settings.color_set_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -576,7 +595,13 @@ void ISystemSettingsServer::SetColorSetId(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetNotificationSettings(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET, "called, flags={}, volume={}, head_time={}:{}, tailt_time={}:{}",
+             m_system_settings.notification_settings.flags.raw,
+             m_system_settings.notification_settings.volume,
+             m_system_settings.notification_settings.start_time.hour,
+             m_system_settings.notification_settings.start_time.minute,
+             m_system_settings.notification_settings.stop_time.hour,
+             m_system_settings.notification_settings.stop_time.minute);
 
     IPC::ResponseBuilder rb{ctx, 8};
     rb.Push(ResultSuccess);
@@ -601,7 +626,8 @@ void ISystemSettingsServer::SetNotificationSettings(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetAccountNotificationSettings(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET, "called, elements={}",
+             m_system_settings.account_notification_settings_count);
 
     ctx.WriteBuffer(m_system_settings.account_notification_settings);
 
@@ -645,6 +671,7 @@ using Settings =
 static Settings GetSettings() {
     Settings ret;
 
+    // AM
     ret["hbloader"]["applet_heap_size"] = ToBytes(u64{0x0});
     ret["hbloader"]["applet_heap_reservation_size"] = ToBytes(u64{0x8600000});
 
@@ -655,6 +682,24 @@ static Settings GetSettings() {
     ret["time"]["standard_steady_clock_rtc_update_interval_minutes"] = ToBytes(s32{5});
     ret["time"]["standard_steady_clock_test_offset_minutes"] = ToBytes(s32{0});
     ret["time"]["standard_user_clock_initial_year"] = ToBytes(s32{2023});
+
+    // HID
+    ret["hid_debug"]["enables_debugpad"] = ToBytes(bool{true});
+    ret["hid_debug"]["manages_devices"] = ToBytes(bool{true});
+    ret["hid_debug"]["manages_touch_ic_i2c"] = ToBytes(bool{true});
+    ret["hid_debug"]["emulate_future_device"] = ToBytes(bool{false});
+    ret["hid_debug"]["emulate_mcu_hardware_error"] = ToBytes(bool{false});
+    ret["hid_debug"]["enables_rail"] = ToBytes(bool{true});
+    ret["hid_debug"]["emulate_firmware_update_failure"] = ToBytes(bool{false});
+    ret["hid_debug"]["failure_firmware_update"] = ToBytes(s32{0});
+    ret["hid_debug"]["ble_disabled"] = ToBytes(bool{false});
+    ret["hid_debug"]["dscale_disabled"] = ToBytes(bool{false});
+    ret["hid_debug"]["force_handheld"] = ToBytes(bool{true});
+    ret["hid_debug"]["disabled_features_per_id"] = std::vector<u8>(0xa8);
+    ret["hid_debug"]["touch_firmware_auto_update_disabled"] = ToBytes(bool{false});
+
+    // Settings
+    ret["settings_debug"]["is_debug_mode_enabled"] = ToBytes(bool{false});
 
     return ret;
 }
@@ -708,7 +753,15 @@ void ISystemSettingsServer::GetSettingsItemValue(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetTvSettings(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET,
+             "called, flags={}, cmu_mode={}, contrast_ratio={}, hdmi_content_type={}, "
+             "rgb_range={}, tv_gama={}, tv_resolution={}, tv_underscan={}",
+             m_system_settings.tv_settings.flags.raw, m_system_settings.tv_settings.cmu_mode,
+             m_system_settings.tv_settings.contrast_ratio,
+             m_system_settings.tv_settings.hdmi_content_type,
+             m_system_settings.tv_settings.rgb_range, m_system_settings.tv_settings.tv_gama,
+             m_system_settings.tv_settings.tv_resolution,
+             m_system_settings.tv_settings.tv_underscan);
 
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(ResultSuccess);
@@ -735,23 +788,26 @@ void ISystemSettingsServer::SetTvSettings(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetDebugModeFlag(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
+    bool is_debug_mode_enabled = false;
+    GetSettingsItemValue<bool>(is_debug_mode_enabled, "settings_debug", "is_debug_mode_enabled");
+
+    LOG_DEBUG(Service_SET, "called, is_debug_mode_enabled={}", is_debug_mode_enabled);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u32>(0);
+    rb.Push(is_debug_mode_enabled);
 }
 
 void ISystemSettingsServer::GetQuestFlag(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "(STUBBED) called");
+    LOG_INFO(Service_SET, "called, quest_flag={}", m_system_settings.quest_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(QuestFlag::Retail);
+    rb.PushEnum(m_system_settings.quest_flag);
 }
 
 void ISystemSettingsServer::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called");
+    LOG_INFO(Service_SET, "called");
 
     Service::Time::TimeZone::LocationName name{};
     auto res = GetDeviceTimeZoneLocationName(name);
@@ -762,7 +818,7 @@ void ISystemSettingsServer::GetDeviceTimeZoneLocationName(HLERequestContext& ctx
 }
 
 void ISystemSettingsServer::SetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called");
+    LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
     auto name{rp.PopRaw<Service::Time::TimeZone::LocationName>()};
@@ -775,7 +831,7 @@ void ISystemSettingsServer::SetDeviceTimeZoneLocationName(HLERequestContext& ctx
 
 void ISystemSettingsServer::SetRegionCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    m_system_settings.region_code = rp.PopEnum<RegionCode>();
+    m_system_settings.region_code = rp.PopEnum<SystemRegionCode>();
     SetSaveNeeded();
 
     LOG_INFO(Service_SET, "called, region_code={}", m_system_settings.region_code);
@@ -832,15 +888,38 @@ void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(HLERequ
 }
 
 void ISystemSettingsServer::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "(STUBBED) called");
+    LOG_INFO(Service_SET, "called, primary_album_storage={}",
+             m_system_settings.primary_album_storage);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(PrimaryAlbumStorage::SdCard);
+    rb.PushEnum(m_system_settings.primary_album_storage);
+}
+
+void ISystemSettingsServer::GetNfcEnableFlag(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, nfc_enable_flag={}", m_system_settings.nfc_enable_flag);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(m_system_settings.nfc_enable_flag);
+}
+
+void ISystemSettingsServer::SetNfcEnableFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.nfc_enable_flag = rp.Pop<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, nfc_enable_flag={}", m_system_settings.nfc_enable_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ISystemSettingsServer::GetSleepSettings(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET, "called, flags={}, handheld_sleep_plan={}, console_sleep_plan={}",
+             m_system_settings.sleep_settings.flags.raw,
+             m_system_settings.sleep_settings.handheld_sleep_plan,
+             m_system_settings.sleep_settings.console_sleep_plan);
 
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(ResultSuccess);
@@ -861,8 +940,32 @@ void ISystemSettingsServer::SetSleepSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void ISystemSettingsServer::GetWirelessLanEnableFlag(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, wireless_lan_enable_flag={}",
+             m_system_settings.wireless_lan_enable_flag);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(m_system_settings.wireless_lan_enable_flag);
+}
+
+void ISystemSettingsServer::SetWirelessLanEnableFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.wireless_lan_enable_flag = rp.Pop<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, wireless_lan_enable_flag={}",
+             m_system_settings.wireless_lan_enable_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void ISystemSettingsServer::GetInitialLaunchSettings(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+    LOG_INFO(Service_SET, "called, flags={}, timestamp={}",
+             m_system_settings.initial_launch_settings_packed.flags.raw,
+             m_system_settings.initial_launch_settings_packed.timestamp.time_point);
+
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(ResultSuccess);
     rb.PushRaw(m_system_settings.initial_launch_settings_packed);
@@ -913,35 +1016,51 @@ void ISystemSettingsServer::GetProductModel(HLERequestContext& ctx) {
     rb.Push(product_model);
 }
 
-void ISystemSettingsServer::GetMiiAuthorId(HLERequestContext& ctx) {
-    const auto author_id = Common::UUID::MakeDefault();
+void ISystemSettingsServer::GetBluetoothEnableFlag(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, bluetooth_enable_flag={}",
+             m_system_settings.bluetooth_enable_flag);
 
-    LOG_WARNING(Service_SET, "(STUBBED) called, author_id={}", author_id.FormattedString());
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(m_system_settings.bluetooth_enable_flag);
+}
+
+void ISystemSettingsServer::SetBluetoothEnableFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.bluetooth_enable_flag = rp.Pop<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, bluetooth_enable_flag={}",
+             m_system_settings.bluetooth_enable_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ISystemSettingsServer::GetMiiAuthorId(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, author_id={}",
+             m_system_settings.mii_author_id.FormattedString());
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw(author_id);
+    rb.PushRaw(m_system_settings.mii_author_id);
 }
 
 void ISystemSettingsServer::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
-    u8 auto_update_flag{};
-
-    LOG_WARNING(Service_SET, "(STUBBED) called, auto_update_flag={}", auto_update_flag);
+    LOG_INFO(Service_SET, "called, auto_update_flag={}", m_system_settings.auto_update_enable_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(auto_update_flag);
+    rb.Push(m_system_settings.auto_update_enable_flag);
 }
 
 void ISystemSettingsServer::GetBatteryPercentageFlag(HLERequestContext& ctx) {
-    u8 battery_percentage_flag{1};
-
-    LOG_WARNING(Service_SET, "(STUBBED) called, battery_percentage_flag={}",
-                battery_percentage_flag);
+    LOG_DEBUG(Service_SET, "called, battery_percentage_flag={}",
+              m_system_settings.battery_percentage_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(battery_percentage_flag);
+    rb.Push(m_system_settings.battery_percentage_flag);
 }
 
 void ISystemSettingsServer::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
@@ -968,11 +1087,12 @@ void ISystemSettingsServer::GetExternalSteadyClockInternalOffset(HLERequestConte
 }
 
 void ISystemSettingsServer::GetErrorReportSharePermission(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "(STUBBED) called");
+    LOG_INFO(Service_SET, "called, error_report_share_permission={}",
+             m_system_settings.error_report_share_permission);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(ErrorReportSharePermission::Denied);
+    rb.PushEnum(m_system_settings.error_report_share_permission);
 }
 
 void ISystemSettingsServer::GetAppletLaunchFlags(HLERequestContext& ctx) {
@@ -1014,7 +1134,7 @@ void ISystemSettingsServer::GetKeyboardLayout(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called.");
+    LOG_INFO(Service_SET, "called");
 
     Service::Time::Clock::SteadyClockTimePoint time_point{};
     auto res = GetDeviceTimeZoneLocationUpdatedTime(time_point);
@@ -1025,7 +1145,7 @@ void ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(HLERequestConte
 }
 
 void ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called.");
+    LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
     auto time_point{rp.PopRaw<Service::Time::Clock::SteadyClockTimePoint>()};
@@ -1038,7 +1158,7 @@ void ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(HLERequestConte
 
 void ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
     HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called.");
+    LOG_INFO(Service_SET, "called");
 
     Service::Time::Clock::SteadyClockTimePoint time_point{};
     auto res = GetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
@@ -1050,7 +1170,7 @@ void ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
 
 void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "called.");
+    LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
     auto time_point{rp.PopRaw<Service::Time::Clock::SteadyClockTimePoint>()};
@@ -1062,11 +1182,12 @@ void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
 }
 
 void ISystemSettingsServer::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "(STUBBED) called");
+    LOG_INFO(Service_SET, "called, chinese_traditional_input_method={}",
+             m_system_settings.chinese_traditional_input_method);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(ChineseTraditionalInputMethod::Unknown0);
+    rb.PushEnum(m_system_settings.chinese_traditional_input_method);
 }
 
 void ISystemSettingsServer::GetHomeMenuScheme(HLERequestContext& ctx) {
@@ -1094,11 +1215,11 @@ void ISystemSettingsServer::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetFieldTestingFlag(HLERequestContext& ctx) {
-    LOG_WARNING(Service_SET, "(STUBBED) called");
+    LOG_INFO(Service_SET, "called, field_testing_flag={}", m_system_settings.field_testing_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u8>(false);
+    rb.Push(m_system_settings.field_testing_flag);
 }
 
 void ISystemSettingsServer::SetupSettings() {

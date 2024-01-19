@@ -12,10 +12,11 @@
 #include "common/uuid.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
-#include "core/hle/service/set/appln_settings.h"
-#include "core/hle/service/set/device_settings.h"
-#include "core/hle/service/set/private_settings.h"
-#include "core/hle/service/set/system_settings.h"
+#include "core/hle/service/set/setting_formats/appln_settings.h"
+#include "core/hle/service/set/setting_formats/device_settings.h"
+#include "core/hle/service/set/setting_formats/private_settings.h"
+#include "core/hle/service/set/setting_formats/system_settings.h"
+#include "core/hle/service/set/settings_types.h"
 #include "core/hle/service/time/clock_types.h"
 #include "core/hle/service/time/time_zone_types.h"
 
@@ -24,25 +25,6 @@ class System;
 }
 
 namespace Service::Set {
-enum class GetFirmwareVersionType {
-    Version1,
-    Version2,
-};
-
-struct FirmwareVersionFormat {
-    u8 major;
-    u8 minor;
-    u8 micro;
-    INSERT_PADDING_BYTES(1);
-    u8 revision_major;
-    u8 revision_minor;
-    INSERT_PADDING_BYTES(2);
-    std::array<char, 0x20> platform;
-    std::array<u8, 0x40> version_hash;
-    std::array<char, 0x18> display_version;
-    std::array<char, 0x80> display_title;
-};
-static_assert(sizeof(FirmwareVersionFormat) == 0x100, "FirmwareVersionFormat is an invalid size");
 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
                               GetFirmwareVersionType type);
@@ -54,6 +36,18 @@ public:
 
     Result GetSettingsItemValue(std::vector<u8>& out_value, const std::string& category,
                                 const std::string& name);
+
+    template <typename T>
+    Result GetSettingsItemValue(T& value, const std::string& category, const std::string& name) {
+        std::vector<u8> data;
+        const auto result = GetSettingsItemValue(data, category, name);
+        if (result.IsError()) {
+            return result;
+        }
+        ASSERT(data.size() >= sizeof(T));
+        std::memcpy(&value, data.data(), sizeof(T));
+        return result;
+    }
 
     Result GetExternalSteadyClockSourceId(Common::UUID& out_id);
     Result SetExternalSteadyClockSourceId(Common::UUID id);
@@ -80,6 +74,8 @@ private:
     void SetLanguageCode(HLERequestContext& ctx);
     void GetFirmwareVersion(HLERequestContext& ctx);
     void GetFirmwareVersion2(HLERequestContext& ctx);
+    void GetLockScreenFlag(HLERequestContext& ctx);
+    void SetLockScreenFlag(HLERequestContext& ctx);
     void GetExternalSteadyClockSourceId(HLERequestContext& ctx);
     void SetExternalSteadyClockSourceId(HLERequestContext& ctx);
     void GetUserSystemClockContext(HLERequestContext& ctx);
@@ -108,13 +104,19 @@ private:
     void IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void GetPrimaryAlbumStorage(HLERequestContext& ctx);
+    void GetNfcEnableFlag(HLERequestContext& ctx);
+    void SetNfcEnableFlag(HLERequestContext& ctx);
     void GetSleepSettings(HLERequestContext& ctx);
     void SetSleepSettings(HLERequestContext& ctx);
+    void GetWirelessLanEnableFlag(HLERequestContext& ctx);
+    void SetWirelessLanEnableFlag(HLERequestContext& ctx);
     void GetInitialLaunchSettings(HLERequestContext& ctx);
     void SetInitialLaunchSettings(HLERequestContext& ctx);
     void GetDeviceNickName(HLERequestContext& ctx);
     void SetDeviceNickName(HLERequestContext& ctx);
     void GetProductModel(HLERequestContext& ctx);
+    void GetBluetoothEnableFlag(HLERequestContext& ctx);
+    void SetBluetoothEnableFlag(HLERequestContext& ctx);
     void GetMiiAuthorId(HLERequestContext& ctx);
     void GetAutoUpdateEnableFlag(HLERequestContext& ctx);
     void GetBatteryPercentageFlag(HLERequestContext& ctx);
