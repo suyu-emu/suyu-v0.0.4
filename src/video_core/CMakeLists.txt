@@ -122,6 +122,9 @@ add_library(video_core STATIC
     renderer_opengl/present/fsr.h
     renderer_opengl/present/fxaa.cpp
     renderer_opengl/present/fxaa.h
+    renderer_opengl/present/layer.cpp
+    renderer_opengl/present/layer.h
+    renderer_opengl/present/present_uniforms.h
     renderer_opengl/present/smaa.cpp
     renderer_opengl/present/smaa.h
     renderer_opengl/present/util.h

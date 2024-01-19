@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <list>
+#include <span>
+
 #include "common/math_util.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 
@@ -10,9 +13,14 @@ namespace Layout {
 struct FramebufferLayout;
 }
 
+namespace Tegra {
+struct FramebufferConfig;
+}
+
 namespace OpenGL {
 
 class Device;
+class Layer;
 class ProgramManager;
 
 class WindowAdaptPass final {
@@ -21,9 +29,9 @@ public:
                              std::string_view frag_source);
     ~WindowAdaptPass();
 
-    void DrawToFramebuffer(ProgramManager& program_manager, GLuint texture,
-                           const Layout::FramebufferLayout& layout,
-                           const Common::Rectangle<f32>& crop);
+    void DrawToFramebuffer(ProgramManager& program_manager, std::list<Layer>& layers,
+                           std::span<const Tegra::FramebufferConfig> framebuffers,
+                           const Layout::FramebufferLayout& layout);
 
 private:
     const Device& device;

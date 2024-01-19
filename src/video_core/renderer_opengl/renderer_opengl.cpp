@@ -130,10 +130,10 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         return;
     }
 
-    RenderScreenshot(*framebuffer);
+    RenderScreenshot(framebuffer);
 
     state_tracker.BindFramebuffer(0);
-    blit_screen->DrawScreen(*framebuffer, emu_window.GetFramebufferLayout());
+    blit_screen->DrawScreen(std::span(framebuffer, 1), emu_window.GetFramebufferLayout());
 
     ++m_current_frame;
 
@@ -159,7 +159,7 @@ void RendererOpenGL::AddTelemetryFields() {
     telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
 }
 
-void RendererOpenGL::RenderScreenshot(const Tegra::FramebufferConfig& framebuffer) {
+void RendererOpenGL::RenderScreenshot(const Tegra::FramebufferConfig* framebuffer) {
     if (!renderer_settings.screenshot_requested) {
         return;
     }
@@ -181,7 +181,7 @@ void RendererOpenGL::RenderScreenshot(const Tegra::FramebufferConfig& framebuffe
     glRenderbufferStorage(GL_RENDERBUFFER, GL_SRGB8, layout.width, layout.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
-    blit_screen->DrawScreen(framebuffer, layout);
+    blit_screen->DrawScreen(std::span(framebuffer, 1), layout);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
