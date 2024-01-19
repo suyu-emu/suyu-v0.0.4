@@ -47,4 +47,12 @@ jclass GetDoubleClass();
 jmethodID GetDoubleConstructor();
 jfieldID GetDoubleValueField();
 
+jclass GetIntegerClass();
+jmethodID GetIntegerConstructor();
+jfieldID GetIntegerValueField();
+
+jclass GetBooleanClass();
+jmethodID GetBooleanConstructor();
+jfieldID GetBooleanValueField();
+
 } // namespace IDCache

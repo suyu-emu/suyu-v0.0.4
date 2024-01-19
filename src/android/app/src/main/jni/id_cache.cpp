@@ -47,6 +47,14 @@ static jclass s_double_class;
 static jmethodID s_double_constructor;
 static jfieldID s_double_value_field;
 
+static jclass s_integer_class;
+static jmethodID s_integer_constructor;
+static jfieldID s_integer_value_field;
+
+static jclass s_boolean_class;
+static jmethodID s_boolean_constructor;
+static jfieldID s_boolean_value_field;
+
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 namespace IDCache {
@@ -198,6 +206,30 @@ jfieldID GetDoubleValueField() {
     return s_double_value_field;
 }
 
+jclass GetIntegerClass() {
+    return s_integer_class;
+}
+
+jmethodID GetIntegerConstructor() {
+    return s_integer_constructor;
+}
+
+jfieldID GetIntegerValueField() {
+    return s_integer_value_field;
+}
+
+jclass GetBooleanClass() {
+    return s_boolean_class;
+}
+
+jmethodID GetBooleanConstructor() {
+    return s_boolean_constructor;
+}
+
+jfieldID GetBooleanValueField() {
+    return s_boolean_value_field;
+}
+
 } // namespace IDCache
 
 #ifdef __cplusplus
@@ -284,6 +316,18 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_double_value_field = env->GetFieldID(double_class, "value", "D");
     env->DeleteLocalRef(double_class);
 
+    const jclass int_class = env->FindClass("java/lang/Integer");
+    s_integer_class = reinterpret_cast<jclass>(env->NewGlobalRef(int_class));
+    s_integer_constructor = env->GetMethodID(int_class, "<init>", "(I)V");
+    s_integer_value_field = env->GetFieldID(int_class, "value", "I");
+    env->DeleteLocalRef(int_class);
+
+    const jclass boolean_class = env->FindClass("java/lang/Boolean");
+    s_boolean_class = reinterpret_cast<jclass>(env->NewGlobalRef(boolean_class));
+    s_boolean_constructor = env->GetMethodID(boolean_class, "<init>", "(Z)V");
+    s_boolean_value_field = env->GetFieldID(boolean_class, "value", "Z");
+    env->DeleteLocalRef(boolean_class);
+
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
 
@@ -310,6 +354,8 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_pair_class);
     env->DeleteGlobalRef(s_overlay_control_data_class);
     env->DeleteGlobalRef(s_double_class);
+    env->DeleteGlobalRef(s_integer_class);
+    env->DeleteGlobalRef(s_boolean_class);
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);

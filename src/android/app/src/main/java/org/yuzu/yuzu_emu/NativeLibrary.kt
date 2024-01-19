@@ -21,6 +21,7 @@ import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
+import org.yuzu.yuzu_emu.model.InstallResult
 
 /**
  * Class which contains methods that interact
@@ -235,9 +236,12 @@ object NativeLibrary {
     /**
      * Installs a nsp or xci file to nand
      * @param filename String representation of file uri
-     * @param extension Lowercase string representation of file extension without "."
+     * @return int representation of [InstallResult]
      */
-    external fun installFileToNand(filename: String, extension: String): Int
+    external fun installFileToNand(
+        filename: String,
+        callback: (max: Long, progress: Long) -> Boolean
+    ): Int
 
     external fun doesUpdateMatchProgram(programId: String, updatePath: String): Boolean
 
@@ -608,16 +612,5 @@ object NativeLibrary {
     object ButtonState {
         const val RELEASED = 0
         const val PRESSED = 1
-    }
-
-    /**
-     * Result from installFileToNand
-     */
-    object InstallFileToNandResult {
-        const val Success = 0
-        const val SuccessFileOverwritten = 1
-        const val Error = 2
-        const val ErrorBaseGame = 3
-        const val ErrorFilenameExtension = 4
     }
 }
