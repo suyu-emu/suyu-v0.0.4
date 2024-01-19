@@ -44,7 +44,6 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.MemoryUtil
-import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 
@@ -357,27 +356,17 @@ class GamePropertiesFragment : Fragment() {
                 return@registerForActivityResult
             }
 
-            val inputZip = requireContext().contentResolver.openInputStream(result)
             val savesFolder = File(args.game.saveDir)
             val cacheSaveDir = File("${requireContext().cacheDir.path}/saves/")
             cacheSaveDir.mkdir()
 
-            if (inputZip == null) {
-                Toast.makeText(
-                    YuzuApplication.appContext,
-                    getString(R.string.fatal_error),
-                    Toast.LENGTH_LONG
-                ).show()
-                return@registerForActivityResult
-            }
-
-            IndeterminateProgressDialogFragment.newInstance(
+            ProgressDialogFragment.newInstance(
                 requireActivity(),
                 R.string.save_files_importing,
                 false
-            ) {
+            ) { _, _ ->
                 try {
-                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheSaveDir)
+                    FileUtil.unzipToInternalStorage(result.toString(), cacheSaveDir)
                     val files = cacheSaveDir.listFiles()
                     var savesFolderFile: File? = null
                     if (files != null) {
@@ -422,7 +411,7 @@ class GamePropertiesFragment : Fragment() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
-            }.show(parentFragmentManager, IndeterminateProgressDialogFragment.TAG)
+            }.show(parentFragmentManager, ProgressDialogFragment.TAG)
         }
 
     /**
@@ -436,11 +425,11 @@ class GamePropertiesFragment : Fragment() {
             return@registerForActivityResult
         }
 
-        IndeterminateProgressDialogFragment.newInstance(
+        ProgressDialogFragment.newInstance(
             requireActivity(),
             R.string.save_files_exporting,
             false
-        ) {
+        ) { _, _ ->
             val saveLocation = args.game.saveDir
             val zipResult = FileUtil.zipFromInternalStorage(
                 File(saveLocation),
@@ -452,6 +441,6 @@ class GamePropertiesFragment : Fragment() {
                 TaskState.Completed -> getString(R.string.export_success)
                 TaskState.Cancelled, TaskState.Failed -> getString(R.string.export_failed)
             }
-        }.show(parentFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }.show(parentFragmentManager, ProgressDialogFragment.TAG)
     }
 }

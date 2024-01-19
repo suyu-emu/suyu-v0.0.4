@@ -34,7 +34,6 @@ import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
-import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 import java.math.BigInteger
@@ -195,26 +194,20 @@ class InstallableFragment : Fragment() {
                 return@registerForActivityResult
             }
 
-            val inputZip = requireContext().contentResolver.openInputStream(result)
             val cacheSaveDir = File("${requireContext().cacheDir.path}/saves/")
             cacheSaveDir.mkdir()
 
-            if (inputZip == null) {
-                Toast.makeText(
-                    YuzuApplication.appContext,
-                    getString(R.string.fatal_error),
-                    Toast.LENGTH_LONG
-                ).show()
-                return@registerForActivityResult
-            }
-
-            IndeterminateProgressDialogFragment.newInstance(
+            ProgressDialogFragment.newInstance(
                 requireActivity(),
                 R.string.save_files_importing,
                 false
-            ) {
+            ) { progressCallback, _ ->
                 try {
-                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheSaveDir)
+                    FileUtil.unzipToInternalStorage(
+                        result.toString(),
+                        cacheSaveDir,
+                        progressCallback
+                    )
                     val files = cacheSaveDir.listFiles()
                     var successfulImports = 0
                     var failedImports = 0
@@ -287,7 +280,7 @@ class InstallableFragment : Fragment() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
-            }.show(parentFragmentManager, IndeterminateProgressDialogFragment.TAG)
+            }.show(parentFragmentManager, ProgressDialogFragment.TAG)
         }
 
     private val exportSaves = registerForActivityResult(
@@ -297,11 +290,11 @@ class InstallableFragment : Fragment() {
             return@registerForActivityResult
         }
 
-        IndeterminateProgressDialogFragment.newInstance(
+        ProgressDialogFragment.newInstance(
             requireActivity(),
             R.string.save_files_exporting,
             false
-        ) {
+        ) { _, _ ->
             val cacheSaveDir = File("${requireContext().cacheDir.path}/saves/")
             cacheSaveDir.mkdir()
 
@@ -338,6 +331,6 @@ class InstallableFragment : Fragment() {
                 TaskState.Completed -> getString(R.string.export_success)
                 TaskState.Cancelled, TaskState.Failed -> getString(R.string.export_failed)
             }
-        }.show(parentFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }.show(parentFragmentManager, ProgressDialogFragment.TAG)
     }
 }
