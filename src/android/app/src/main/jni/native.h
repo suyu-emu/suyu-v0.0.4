@@ -7,6 +7,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/perf_stats.h"
+#include "frontend_common/content_manager.h"
 #include "jni/applets/software_keyboard.h"
 #include "jni/emu_window/emu_window.h"
 #include "video_core/rasterizer_interface.h"
@@ -29,7 +30,6 @@ public:
     void SetNativeWindow(ANativeWindow* native_window);
     void SurfaceChanged();
 
-    int InstallFileToNand(std::string filename, std::string file_extension);
     void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
                              const std::string& custom_driver_name,
                              const std::string& file_redirect_dir);

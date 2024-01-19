@@ -16,6 +16,7 @@
 #include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
 #include "configuration/qt_config.h"
+#include "frontend_common/content_manager.h"
 #include "input_common/drivers/tas_input.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -122,13 +123,6 @@ class MainWindow;
 enum class EmulatedDirectoryTarget {
     NAND,
     SDMC,
-};
-
-enum class InstallResult {
-    Success,
-    Overwrite,
-    Failure,
-    BaseInstallAttempted,
 };
 
 enum class ReinitializeKeyBehavior {
@@ -427,8 +421,7 @@ private:
     void RemoveCacheStorage(u64 program_id);
     bool SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id,
                                u64* selected_title_id, u8* selected_content_record_type);
-    InstallResult InstallNSP(const QString& filename);
-    InstallResult InstallNCA(const QString& filename);
+    ContentManager::InstallResult InstallNCA(const QString& filename);
     void MigrateConfigFiles();
     void UpdateWindowTitle(std::string_view title_name = {}, std::string_view title_version = {},
                            std::string_view gpu_vendor = {});

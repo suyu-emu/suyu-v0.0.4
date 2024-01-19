@@ -17,6 +17,7 @@
 #include <core/file_sys/patch_manager.h>
 #include <core/file_sys/savedata_factory.h>
 #include <core/loader/nro.h>
+#include <frontend_common/content_manager.h>
 #include <jni.h>
 
 #include "common/detached_tasks.h"
@@ -98,67 +99,6 @@ ANativeWindow* EmulationSession::NativeWindow() const {
 
 void EmulationSession::SetNativeWindow(ANativeWindow* native_window) {
     m_native_window = native_window;
-}
-
-int EmulationSession::InstallFileToNand(std::string filename, std::string file_extension) {
-    jconst copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
-                          std::size_t block_size) {
-        if (src == nullptr || dest == nullptr) {
-            return false;
-        }
-        if (!dest->Resize(src->GetSize())) {
-            return false;
-        }
-
-        using namespace Common::Literals;
-        [[maybe_unused]] std::vector<u8> buffer(1_MiB);
-
-        for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
-            jconst read = src->Read(buffer.data(), buffer.size(), i);
-            dest->Write(buffer.data(), read, i);
-        }
-        return true;
-    };
-
-    enum InstallResult {
-        Success = 0,
-        SuccessFileOverwritten = 1,
-        InstallError = 2,
-        ErrorBaseGame = 3,
-        ErrorFilenameExtension = 4,
-    };
-
-    [[maybe_unused]] std::shared_ptr<FileSys::NSP> nsp;
-    if (file_extension == "nsp") {
-        nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
-        if (nsp->IsExtractedType()) {
-            return InstallError;
-        }
-    } else {
-        return ErrorFilenameExtension;
-    }
-
-    if (!nsp) {
-        return InstallError;
-    }
-
-    if (nsp->GetStatus() != Loader::ResultStatus::Success) {
-        return InstallError;
-    }
-
-    jconst res = m_system.GetFileSystemController().GetUserNANDContents()->InstallEntry(*nsp, true,
-                                                                                        copy_func);
-
-    switch (res) {
-    case FileSys::InstallResult::Success:
-        return Success;
-    case FileSys::InstallResult::OverwriteExisting:
-        return SuccessFileOverwritten;
-    case FileSys::InstallResult::ErrorBaseInstall:
-        return ErrorBaseGame;
-    default:
-        return InstallError;
-    }
 }
 
 void EmulationSession::InitializeGpuDriver(const std::string& hook_lib_dir,
@@ -512,10 +452,20 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env, jobject 
 }
 
 int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject instance,
-                                                            jstring j_file,
-                                                            jstring j_file_extension) {
-    return EmulationSession::GetInstance().InstallFileToNand(GetJString(env, j_file),
-                                                             GetJString(env, j_file_extension));
+                                                            jstring j_file, jobject jcallback) {
+    auto jlambdaClass = env->GetObjectClass(jcallback);
+    auto jlambdaInvokeMethod = env->GetMethodID(
+        jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
+        auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
+                                                   ToJDouble(env, max), ToJDouble(env, progress));
+        return GetJBoolean(env, jwasCancelled);
+    };
+
+    return static_cast<int>(
+        ContentManager::InstallNSP(&EmulationSession::GetInstance().System(),
+                                   EmulationSession::GetInstance().System().GetFilesystem().get(),
+                                   GetJString(env, j_file), callback));
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_doesUpdateMatchProgram(JNIEnv* env, jobject jobj,
