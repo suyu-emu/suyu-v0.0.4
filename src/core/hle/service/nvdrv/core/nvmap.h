@@ -152,6 +152,8 @@ public:
      */
     std::optional<FreeInfo> FreeHandle(Handle::Id handle, bool internal_session);
 
+    void UnmapAllHandles(NvCore::SessionId session_id);
+
 private:
     std::list<std::shared_ptr<Handle>> unmap_queue{};
     std::mutex unmap_queue_lock{}; //!< Protects access to `unmap_queue`
