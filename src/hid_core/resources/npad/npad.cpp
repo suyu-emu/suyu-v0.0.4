@@ -1232,6 +1232,13 @@ Result NPad::RegisterAppletResourceUserId(u64 aruid) {
 }
 
 void NPad::UnregisterAppletResourceUserId(u64 aruid) {
+    // TODO: Remove this once abstract pad is emulated properly
+    const auto aruid_index = npad_resource.GetIndexFromAruid(aruid);
+    for (auto& controller : controller_data[aruid_index]) {
+        controller.is_connected = false;
+        controller.shared_memory = nullptr;
+    }
+
     npad_resource.UnregisterAppletResourceUserId(aruid);
 }
 
