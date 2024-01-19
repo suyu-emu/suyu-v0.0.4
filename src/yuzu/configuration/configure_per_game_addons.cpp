@@ -122,9 +122,8 @@ void ConfigurePerGameAddons::LoadConfiguration() {
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
-    for (const auto& patch : pm.GetPatchVersionNames(update_raw)) {
-        const auto name =
-            QString::fromStdString(patch.first).replace(QStringLiteral("[D] "), QString{});
+    for (const auto& patch : pm.GetPatches(update_raw)) {
+        const auto name = QString::fromStdString(patch.name);
 
         auto* const first_item = new QStandardItem;
         first_item->setText(name);
@@ -136,7 +135,7 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         first_item->setCheckState(patch_disabled ? Qt::Unchecked : Qt::Checked);
 
         list_items.push_back(QList<QStandardItem*>{
-            first_item, new QStandardItem{QString::fromStdString(patch.second)}});
+            first_item, new QStandardItem{QString::fromStdString(patch.version)}});
         item_model->appendRow(list_items.back());
     }
 

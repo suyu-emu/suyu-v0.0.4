@@ -774,9 +774,9 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, 
     return true;
 }
 
-jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getAddonsForFile(JNIEnv* env, jobject jobj,
-                                                                    jstring jpath,
-                                                                    jstring jprogramId) {
+jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env, jobject jobj,
+                                                                     jstring jpath,
+                                                                     jstring jprogramId) {
     const auto path = GetJString(env, jpath);
     const auto vFile =
         Core::GetGameFileFromPath(EmulationSession::GetInstance().System().GetFilesystem(), path);
@@ -793,20 +793,40 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getAddonsForFile(JNIEnv* env,
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);
 
-    auto addons = pm.GetPatchVersionNames(update_raw);
-    auto jemptyString = ToJString(env, "");
-    auto jemptyStringPair = env->NewObject(IDCache::GetPairClass(), IDCache::GetPairConstructor(),
-                                           jemptyString, jemptyString);
-    jobjectArray jaddonsArray =
-        env->NewObjectArray(addons.size(), IDCache::GetPairClass(), jemptyStringPair);
+    auto patches = pm.GetPatches(update_raw);
+    jobjectArray jpatchArray =
+        env->NewObjectArray(patches.size(), IDCache::GetPatchClass(), nullptr);
     int i = 0;
-    for (const auto& addon : addons) {
-        jobject jaddon = env->NewObject(IDCache::GetPairClass(), IDCache::GetPairConstructor(),
-                                        ToJString(env, addon.first), ToJString(env, addon.second));
-        env->SetObjectArrayElement(jaddonsArray, i, jaddon);
+    for (const auto& patch : patches) {
+        jobject jpatch = env->NewObject(
+            IDCache::GetPatchClass(), IDCache::GetPatchConstructor(), patch.enabled,
+            ToJString(env, patch.name), ToJString(env, patch.version),
+            static_cast<jint>(patch.type), ToJString(env, std::to_string(patch.program_id)),
+            ToJString(env, std::to_string(patch.title_id)));
+        env->SetObjectArrayElement(jpatchArray, i, jpatch);
         ++i;
     }
-    return jaddonsArray;
+    return jpatchArray;
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeUpdate(JNIEnv* env, jobject jobj,
+                                                        jstring jprogramId) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    ContentManager::RemoveUpdate(EmulationSession::GetInstance().System().GetFileSystemController(),
+                                 program_id);
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeDLC(JNIEnv* env, jobject jobj,
+                                                     jstring jprogramId) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    ContentManager::RemoveAllDLC(&EmulationSession::GetInstance().System(), program_id);
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeMod(JNIEnv* env, jobject jobj, jstring jprogramId,
+                                                     jstring jname) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    ContentManager::RemoveMod(EmulationSession::GetInstance().System().GetFileSystemController(),
+                              program_id, GetJString(env, jname));
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject jobj,

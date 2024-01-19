@@ -466,12 +466,12 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
     return romfs;
 }
 
-PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile update_raw) const {
+std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     if (title_id == 0) {
         return {};
     }
 
-    std::map<std::string, std::string, std::less<>> out;
+    std::vector<Patch> out;
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
     // Game Updates
@@ -482,20 +482,28 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
 
     const auto update_disabled =
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
-    const auto update_label = update_disabled ? "[D] Update" : "Update";
+    Patch update_patch = {.enabled = !update_disabled,
+                          .name = "Update",
+                          .version = "",
+                          .type = PatchType::Update,
+                          .program_id = title_id,
+                          .title_id = title_id};
 
     if (nacp != nullptr) {
-        out.insert_or_assign(update_label, nacp->GetVersionString());
+        update_patch.version = nacp->GetVersionString();
+        out.push_back(update_patch);
     } else {
         if (content_provider.HasEntry(update_tid, ContentRecordType::Program)) {
             const auto meta_ver = content_provider.GetEntryVersion(update_tid);
             if (meta_ver.value_or(0) == 0) {
-                out.insert_or_assign(update_label, "");
+                out.push_back(update_patch);
             } else {
-                out.insert_or_assign(update_label, FormatTitleVersion(*meta_ver));
+                update_patch.version = FormatTitleVersion(*meta_ver);
+                out.push_back(update_patch);
             }
         } else if (update_raw != nullptr) {
-            out.insert_or_assign(update_label, "PACKED");
+            update_patch.version = "PACKED";
+            out.push_back(update_patch);
         }
     }
 
@@ -539,7 +547,12 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
 
             const auto mod_disabled =
                 std::find(disabled.begin(), disabled.end(), mod->GetName()) != disabled.end();
-            out.insert_or_assign(mod_disabled ? "[D] " + mod->GetName() : mod->GetName(), types);
+            out.push_back({.enabled = !mod_disabled,
+                           .name = mod->GetName(),
+                           .version = types,
+                           .type = PatchType::Mod,
+                           .program_id = title_id,
+                           .title_id = title_id});
         }
     }
 
@@ -557,7 +570,12 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
         if (!types.empty()) {
             const auto mod_disabled =
                 std::find(disabled.begin(), disabled.end(), "SDMC") != disabled.end();
-            out.insert_or_assign(mod_disabled ? "[D] SDMC" : "SDMC", types);
+            out.push_back({.enabled = !mod_disabled,
+                           .name = "SDMC",
+                           .version = types,
+                           .type = PatchType::Mod,
+                           .program_id = title_id,
+                           .title_id = title_id});
         }
     }
 
@@ -584,7 +602,12 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
 
         const auto dlc_disabled =
             std::find(disabled.begin(), disabled.end(), "DLC") != disabled.end();
-        out.insert_or_assign(dlc_disabled ? "[D] DLC" : "DLC", std::move(list));
+        out.push_back({.enabled = !dlc_disabled,
+                       .name = "DLC",
+                       .version = std::move(list),
+                       .type = PatchType::DLC,
+                       .program_id = title_id,
+                       .title_id = dlc_match.back().title_id});
     }
 
     return out;

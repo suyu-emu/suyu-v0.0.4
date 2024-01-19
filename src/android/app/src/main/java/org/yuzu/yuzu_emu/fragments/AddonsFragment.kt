@@ -74,7 +74,7 @@ class AddonsFragment : Fragment() {
 
         binding.listAddons.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = AddonAdapter()
+            adapter = AddonAdapter(addonViewModel)
         }
 
         viewLifecycleOwner.lifecycleScope.apply {
@@ -106,6 +106,21 @@ class AddonsFragment : Fragment() {
                                 positiveAction = { addonViewModel.showModInstallPicker(true) }
                             ).show(parentFragmentManager, MessageDialogFragment.TAG)
                             addonViewModel.showModNoticeDialog(false)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    addonViewModel.addonToDelete.collect {
+                        if (it != null) {
+                            MessageDialogFragment.newInstance(
+                                requireActivity(),
+                                titleId = R.string.confirm_uninstall,
+                                descriptionId = R.string.confirm_uninstall_description,
+                                positiveAction = { addonViewModel.onDeleteAddon(it) }
+                            ).show(parentFragmentManager, MessageDialogFragment.TAG)
+                            addonViewModel.setAddonToDelete(null)
                         }
                     }
                 }

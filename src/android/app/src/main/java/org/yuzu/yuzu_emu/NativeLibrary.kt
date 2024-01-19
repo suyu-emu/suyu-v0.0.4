@@ -22,6 +22,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
 import org.yuzu.yuzu_emu.model.InstallResult
+import org.yuzu.yuzu_emu.model.Patch
 
 /**
  * Class which contains methods that interact
@@ -539,9 +540,29 @@ object NativeLibrary {
      *
      * @param path Path to game file. Can be a [Uri].
      * @param programId String representation of a game's program ID
-     * @return Array of pairs where the first value is the name of an addon and the second is the version
+     * @return Array of available patches
      */
-    external fun getAddonsForFile(path: String, programId: String): Array<Pair<String, String>>?
+    external fun getPatchesForFile(path: String, programId: String): Array<Patch>?
+
+    /**
+     * Removes an update for a given [programId]
+     * @param programId String representation of a game's program ID
+     */
+    external fun removeUpdate(programId: String)
+
+    /**
+     * Removes all DLC for a  [programId]
+     * @param programId String representation of a game's program ID
+     */
+    external fun removeDLC(programId: String)
+
+    /**
+     * Removes a mod installed for a given [programId]
+     * @param programId String representation of a game's program ID
+     * @param name The name of a mod as given by [getPatchesForFile]. This corresponds with the name
+     * of the mod's directory in a game's load folder.
+     */
+    external fun removeMod(programId: String, name: String)
 
     /**
      * Gets the save location for a specific game

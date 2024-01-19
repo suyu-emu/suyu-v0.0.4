@@ -65,6 +65,23 @@ inline bool RemoveBaseContent(const Service::FileSystem::FileSystemController& f
            fs_controller.GetSDMCContents()->RemoveExistingEntry(program_id);
 }
 
+inline bool RemoveMod(const Service::FileSystem::FileSystemController& fs_controller,
+                      const u64 program_id, const std::string& mod_name) {
+    // Check general Mods (LayeredFS and IPS)
+    const auto mod_dir = fs_controller.GetModificationLoadRoot(program_id);
+    if (mod_dir != nullptr) {
+        return mod_dir->DeleteSubdirectoryRecursive(mod_name);
+    }
+
+    // Check SDMC mod directory (RomFS LayeredFS)
+    const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(program_id);
+    if (sdmc_mod_dir != nullptr) {
+        return sdmc_mod_dir->DeleteSubdirectoryRecursive(mod_name);
+    }
+
+    return false;
+}
+
 inline InstallResult InstallNSP(
     Core::System* system, FileSys::VfsFilesystem* vfs, const std::string& filename,
     const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {

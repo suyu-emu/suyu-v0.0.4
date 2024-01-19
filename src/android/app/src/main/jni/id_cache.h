@@ -43,6 +43,15 @@ jfieldID GetOverlayControlDataLandscapePositionField();
 jfieldID GetOverlayControlDataPortraitPositionField();
 jfieldID GetOverlayControlDataFoldablePositionField();
 
+jclass GetPatchClass();
+jmethodID GetPatchConstructor();
+jfieldID GetPatchEnabledField();
+jfieldID GetPatchNameField();
+jfieldID GetPatchVersionField();
+jfieldID GetPatchTypeField();
+jfieldID GetPatchProgramIdField();
+jfieldID GetPatchTitleIdField();
+
 jclass GetDoubleClass();
 jmethodID GetDoubleConstructor();
 jfieldID GetDoubleValueField();
