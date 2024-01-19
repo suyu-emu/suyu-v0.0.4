@@ -156,22 +156,22 @@ class AddonsFragment : Fragment() {
                 descriptionId = R.string.invalid_directory_description
             )
             if (isValid) {
-                IndeterminateProgressDialogFragment.newInstance(
+                ProgressDialogFragment.newInstance(
                     requireActivity(),
                     R.string.installing_game_content,
                     false
-                ) {
+                ) { progressCallback, _ ->
                     val parentDirectoryName = externalAddonDirectory.name
                     val internalAddonDirectory =
                         File(args.game.addonDir + parentDirectoryName)
                     try {
-                        externalAddonDirectory.copyFilesTo(internalAddonDirectory)
+                        externalAddonDirectory.copyFilesTo(internalAddonDirectory, progressCallback)
                     } catch (_: Exception) {
                         return@newInstance errorMessage
                     }
                     addonViewModel.refreshAddons()
                     return@newInstance getString(R.string.addon_installed_successfully)
-                }.show(parentFragmentManager, IndeterminateProgressDialogFragment.TAG)
+                }.show(parentFragmentManager, ProgressDialogFragment.TAG)
             } else {
                 errorMessage.show(parentFragmentManager, MessageDialogFragment.TAG)
             }
