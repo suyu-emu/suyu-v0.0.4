@@ -52,7 +52,7 @@ public:
 
 private:
     void AddTelemetryFields();
-    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer);
+    void RenderScreenshot(const Tegra::FramebufferConfig* framebuffer);
 
     Core::TelemetrySession& telemetry_session;
     Core::Frontend::EmuWindow& emu_window;

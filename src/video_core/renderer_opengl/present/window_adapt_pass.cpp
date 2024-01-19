@@ -2,46 +2,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
+#include "video_core/framebuffer_config.h"
 #include "video_core/host_shaders/opengl_present_vert.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
+#include "video_core/renderer_opengl/present/layer.h"
+#include "video_core/renderer_opengl/present/present_uniforms.h"
 #include "video_core/renderer_opengl/present/window_adapt_pass.h"
 
 namespace OpenGL {
-
-namespace {
-constexpr GLint PositionLocation = 0;
-constexpr GLint TexCoordLocation = 1;
-constexpr GLint ModelViewMatrixLocation = 0;
-
-struct ScreenRectVertex {
-    constexpr ScreenRectVertex(u32 x, u32 y, GLfloat u, GLfloat v)
-        : position{{static_cast<GLfloat>(x), static_cast<GLfloat>(y)}}, tex_coord{{u, v}} {}
-
-    std::array<GLfloat, 2> position;
-    std::array<GLfloat, 2> tex_coord;
-};
-
-/**
- * Defines a 1:1 pixel orthographic projection matrix with (0,0) on the top-left
- * corner and (width, height) on the lower-bottom.
- *
- * The projection part of the matrix is trivial, hence these operations are represented
- * by a 3x2 matrix.
- */
-std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(float width, float height) {
-    std::array<GLfloat, 3 * 2> matrix; // Laid out in column-major order
-
-    // clang-format off
-    matrix[0] = 2.f / width; matrix[2] =  0.f;          matrix[4] = -1.f;
-    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] =  1.f;
-    // Last matrix row is implicitly assumed to be [0, 0, 1].
-    // clang-format on
-
-    return matrix;
-}
-} // namespace
 
 WindowAdaptPass::WindowAdaptPass(const Device& device_, OGLSampler&& sampler_,
                                  std::string_view frag_source)
@@ -65,32 +35,30 @@ WindowAdaptPass::WindowAdaptPass(const Device& device_, OGLSampler&& sampler_,
 
 WindowAdaptPass::~WindowAdaptPass() = default;
 
-void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, GLuint texture,
-                                        const Layout::FramebufferLayout& layout,
-                                        const Common::Rectangle<f32>& crop) {
-    glBindTextureUnit(0, texture);
+void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::list<Layer>& layers,
+                                        std::span<const Tegra::FramebufferConfig> framebuffers,
+                                        const Layout::FramebufferLayout& layout) {
+    GLint old_read_fb;
+    GLint old_draw_fb;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
 
-    const std::array ortho_matrix =
-        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
+    const size_t layer_count = framebuffers.size();
+    std::vector<GLuint> textures(layer_count);
+    std::vector<std::array<GLfloat, 3 * 2>> matrices(layer_count);
+    std::vector<std::array<ScreenRectVertex, 4>> vertices(layer_count);
+
+    auto layer_it = layers.begin();
+    for (size_t i = 0; i < layer_count; i++) {
+        textures[i] = layer_it->ConfigureDraw(matrices[i], vertices[i], program_manager,
+                                              framebuffers[i], layout);
+        layer_it++;
+    }
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
 
     program_manager.BindPresentPrograms(vert.handle, frag.handle);
-    glProgramUniformMatrix3x2fv(vert.handle, ModelViewMatrixLocation, 1, GL_FALSE,
-                                ortho_matrix.data());
-
-    // Map the coordinates to the screen.
-    const auto& screen = layout.screen;
-    const auto x = screen.left;
-    const auto y = screen.top;
-    const auto w = screen.GetWidth();
-    const auto h = screen.GetHeight();
-
-    const std::array vertices = {
-        ScreenRectVertex(x, y, crop.left, crop.top),
-        ScreenRectVertex(x + w, y, crop.right, crop.top),
-        ScreenRectVertex(x, y + h, crop.left, crop.bottom),
-        ScreenRectVertex(x + w, y + h, crop.right, crop.bottom),
-    };
-    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
     glDisable(GL_FRAMEBUFFER_SRGB);
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
@@ -109,7 +77,7 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, GLuint 
     if (device.HasVertexBufferUnifiedMemory()) {
         glBindVertexBuffer(0, 0, 0, sizeof(ScreenRectVertex));
         glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, vertex_buffer_address,
-                               sizeof(vertices));
+                               sizeof(decltype(vertices)::value_type));
     } else {
         glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
     }
@@ -122,7 +90,14 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, GLuint 
                  Settings::values.bg_blue.GetValue() / 255.0f, 1.0f);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    for (size_t i = 0; i < layer_count; i++) {
+        glBindTextureUnit(0, textures[i]);
+        glProgramUniformMatrix3x2fv(vert.handle, ModelViewMatrixLocation, 1, GL_FALSE,
+                                    matrices[i].data());
+        glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices[i]), std::data(vertices[i]));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 }
 
 } // namespace OpenGL
