@@ -25,12 +25,24 @@ enum class InstallResult {
     BaseInstallAttempted,
 };
 
+/**
+ * \brief Removes a single installed DLC
+ * \param fs_controller [FileSystemController] reference from the Core::System instance
+ * \param title_id Unique title ID representing the DLC which will be removed
+ * \return 'true' if successful
+ */
 inline bool RemoveDLC(const Service::FileSystem::FileSystemController& fs_controller,
                       const u64 title_id) {
     return fs_controller.GetUserNANDContents()->RemoveExistingEntry(title_id) ||
            fs_controller.GetSDMCContents()->RemoveExistingEntry(title_id);
 }
 
+/**
+ * \brief Removes all DLC for a game
+ * \param system Raw pointer to the system instance
+ * \param program_id Program ID for the game that will have all of its DLC removed
+ * \return Number of DLC removed
+ */
 inline size_t RemoveAllDLC(Core::System* system, const u64 program_id) {
     size_t count{};
     const auto& fs_controller = system->GetFileSystemController();
@@ -52,6 +64,12 @@ inline size_t RemoveAllDLC(Core::System* system, const u64 program_id) {
     return count;
 }
 
+/**
+ * \brief Removes the installed update for a game
+ * \param fs_controller [FileSystemController] reference from the Core::System instance
+ * \param program_id Program ID for the game that will have its installed update removed
+ * \return 'true' if successful
+ */
 inline bool RemoveUpdate(const Service::FileSystem::FileSystemController& fs_controller,
                          const u64 program_id) {
     const auto update_id = program_id | 0x800;
@@ -59,12 +77,26 @@ inline bool RemoveUpdate(const Service::FileSystem::FileSystemController& fs_con
            fs_controller.GetSDMCContents()->RemoveExistingEntry(update_id);
 }
 
+/**
+ * \brief Removes the base content for a game
+ * \param fs_controller [FileSystemController] reference from the Core::System instance
+ * \param program_id Program ID for the game that will have its base content removed
+ * \return 'true' if successful
+ */
 inline bool RemoveBaseContent(const Service::FileSystem::FileSystemController& fs_controller,
                               const u64 program_id) {
     return fs_controller.GetUserNANDContents()->RemoveExistingEntry(program_id) ||
            fs_controller.GetSDMCContents()->RemoveExistingEntry(program_id);
 }
 
+/**
+ * \brief Removes a mod for a game
+ * \param fs_controller [FileSystemController] reference from the Core::System instance
+ * \param program_id Program ID for the game where [mod_name] will be removed
+ * \param mod_name The name of a mod as given by FileSys::PatchManager::GetPatches. This corresponds
+ * with the name of the mod's directory in a game's load folder.
+ * \return 'true' if successful
+ */
 inline bool RemoveMod(const Service::FileSystem::FileSystemController& fs_controller,
                       const u64 program_id, const std::string& mod_name) {
     // Check general Mods (LayeredFS and IPS)
@@ -82,6 +114,16 @@ inline bool RemoveMod(const Service::FileSystem::FileSystemController& fs_contro
     return false;
 }
 
+/**
+ * \brief Installs an NSP
+ * \param system Raw pointer to the system instance
+ * \param vfs Raw pointer to the VfsFilesystem instance in Core::System
+ * \param filename Path to the NSP file
+ * \param callback Optional callback to report the progress of the installation. The first size_t
+ * parameter is the total size of the virtual file and the second is the current progress. If you
+ * return false to the callback, it will cancel the installation as soon as possible.
+ * \return [InstallResult] representing how the installation finished
+ */
 inline InstallResult InstallNSP(
     Core::System* system, FileSys::VfsFilesystem* vfs, const std::string& filename,
     const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
@@ -136,6 +178,17 @@ inline InstallResult InstallNSP(
     }
 }
 
+/**
+ * \brief Installs an NCA
+ * \param vfs Raw pointer to the VfsFilesystem instance in Core::System
+ * \param filename Path to the NCA file
+ * \param registered_cache Raw pointer to the registered cache that the NCA will be installed to
+ * \param title_type Type of NCA package to install
+ * \param callback Optional callback to report the progress of the installation. The first size_t
+ * parameter is the total size of the virtual file and the second is the current progress. If you
+ * return false to the callback, it will cancel the installation as soon as possible.
+ * \return [InstallResult] representing how the installation finished
+ */
 inline InstallResult InstallNCA(
     FileSys::VfsFilesystem* vfs, const std::string& filename,
     FileSys::RegisteredCache* registered_cache, const FileSys::TitleType title_type,
