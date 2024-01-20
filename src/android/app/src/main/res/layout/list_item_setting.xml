@@ -69,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:visibility="gone"
-                android:text="@string/clear"
+                android:text="@string/use_global_setting"
                 tools:visibility="visible" />
 
         </LinearLayout>
