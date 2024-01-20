@@ -10,12 +10,12 @@ namespace Service::HID {
 
 NpadVibrationBase::NpadVibrationBase() {}
 
-Result NpadVibrationBase::IncrementRefCounter() {
+Result NpadVibrationBase::Activate() {
     ref_counter++;
     return ResultSuccess;
 }
 
-Result NpadVibrationBase::DecrementRefCounter() {
+Result NpadVibrationBase::Deactivate() {
     if (ref_counter > 0) {
         ref_counter--;
     }

@@ -356,10 +356,27 @@ public:
     const NfcState& GetNfc() const;
 
     /**
+     * Sends an on/off vibration to the left device
+     * @return true if vibration had no errors
+     */
+    bool SetVibration(bool should_vibrate);
+
+    /**
+     * Sends an GC vibration to the left device
+     * @return true if vibration had no errors
+     */
+    bool SetVibration(u32 slot, Core::HID::VibrationGcErmCommand erm_command);
+
+    /**
      * Sends a specific vibration to the output device
      * @return true if vibration had no errors
      */
-    bool SetVibration(std::size_t device_index, VibrationValue vibration);
+    bool SetVibration(DeviceIndex device_index, const VibrationValue& vibration);
+
+    /**
+     * @return The last sent vibration
+     */
+    VibrationValue GetActualVibrationValue(DeviceIndex device_index) const;
 
     /**
      * Sends a small vibration to the output device
@@ -564,6 +581,7 @@ private:
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};
     std::size_t nfc_handles{0};
+    VibrationValue last_vibration_value{DEFAULT_VIBRATION_VALUE};
 
     // Temporary values to avoid doing changes while the controller is in configuring mode
     NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};

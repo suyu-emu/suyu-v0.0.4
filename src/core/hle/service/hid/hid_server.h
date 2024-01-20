@@ -97,6 +97,7 @@ private:
     void BeginPermitVibrationSession(HLERequestContext& ctx);
     void EndPermitVibrationSession(HLERequestContext& ctx);
     void IsVibrationDeviceMounted(HLERequestContext& ctx);
+    void SendVibrationValueInBool(HLERequestContext& ctx);
     void ActivateConsoleSixAxisSensor(HLERequestContext& ctx);
     void StartConsoleSixAxisSensor(HLERequestContext& ctx);
     void StopConsoleSixAxisSensor(HLERequestContext& ctx);

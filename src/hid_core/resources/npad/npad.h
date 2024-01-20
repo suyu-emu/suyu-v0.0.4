@@ -10,9 +10,15 @@
 
 #include "common/common_types.h"
 #include "hid_core/hid_types.h"
+#include "hid_core/resources/abstracted_pad/abstract_pad.h"
 #include "hid_core/resources/controller_base.h"
 #include "hid_core/resources/npad/npad_resource.h"
 #include "hid_core/resources/npad/npad_types.h"
+#include "hid_core/resources/npad/npad_vibration.h"
+#include "hid_core/resources/vibration/gc_vibration_device.h"
+#include "hid_core/resources/vibration/n64_vibration_device.h"
+#include "hid_core/resources/vibration/vibration_base.h"
+#include "hid_core/resources/vibration/vibration_device.h"
 
 namespace Core::HID {
 class EmulatedController;
@@ -32,6 +38,7 @@ union Result;
 
 namespace Service::HID {
 class AppletResource;
+struct HandheldConfig;
 struct NpadInternalState;
 struct NpadSixAxisSensorLifo;
 struct NpadSharedMemoryFormat;
@@ -67,31 +74,6 @@ public:
 
     bool SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID::NpadIdType npad_id,
                      NpadJoyDeviceType npad_device_type, NpadJoyAssignmentMode assignment_mode);
-
-    bool VibrateControllerAtIndex(u64 aruid, Core::HID::NpadIdType npad_id,
-                                  std::size_t device_index,
-                                  const Core::HID::VibrationValue& vibration_value);
-
-    void VibrateController(u64 aruid,
-                           const Core::HID::VibrationDeviceHandle& vibration_device_handle,
-                           const Core::HID::VibrationValue& vibration_value);
-
-    void VibrateControllers(
-        u64 aruid, std::span<const Core::HID::VibrationDeviceHandle> vibration_device_handles,
-        std::span<const Core::HID::VibrationValue> vibration_values);
-
-    Core::HID::VibrationValue GetLastVibration(
-        u64 aruid, const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;
-
-    void InitializeVibrationDevice(const Core::HID::VibrationDeviceHandle& vibration_device_handle);
-
-    void InitializeVibrationDeviceAtIndex(u64 aruid, Core::HID::NpadIdType npad_id,
-                                          std::size_t device_index);
-
-    void SetPermitVibrationSession(bool permit_vibration_session);
-
-    bool IsVibrationDeviceMounted(
-        u64 aruid, const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;
 
     Result AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
                                                 Core::HID::NpadIdType npad_id);
@@ -145,7 +127,8 @@ public:
     Result RegisterAppletResourceUserId(u64 aruid);
     void UnregisterAppletResourceUserId(u64 aruid);
     void SetNpadExternals(std::shared_ptr<AppletResource> resource,
-                          std::recursive_mutex* shared_mutex);
+                          std::recursive_mutex* shared_mutex,
+                          std::shared_ptr<HandheldConfig> handheld_config);
 
     AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
 
@@ -161,18 +144,20 @@ public:
 
     Result GetLastActiveNpad(Core::HID::NpadIdType& out_npad_id) const;
 
-private:
-    struct VibrationData {
-        bool device_mounted{};
-        Core::HID::VibrationValue latest_vibration_value{};
-        std::chrono::steady_clock::time_point last_vibration_timepoint{};
-    };
+    NpadVibration* GetVibrationHandler();
+    std::vector<NpadVibrationBase*> GetAllVibrationDevices();
+    NpadVibrationBase* GetVibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    NpadN64VibrationDevice* GetN64VibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    NpadVibrationDevice* GetNSVibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    NpadGcVibrationDevice* GetGcVibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
 
+    void UpdateHandheldAbstractState();
+
+private:
     struct NpadControllerData {
         NpadInternalState* shared_memory = nullptr;
         Core::HID::EmulatedController* device = nullptr;
 
-        std::array<VibrationData, 2> vibration{};
         bool is_connected{};
 
         // Dual joycons can have only one side connected
@@ -191,10 +176,6 @@ private:
     void RequestPadStateUpdate(u64 aruid, Core::HID::NpadIdType npad_id);
     void WriteEmptyEntry(NpadInternalState* npad);
 
-    NpadControllerData& GetControllerFromHandle(
-        u64 aruid, const Core::HID::VibrationDeviceHandle& device_handle);
-    const NpadControllerData& GetControllerFromHandle(
-        u64 aruid, const Core::HID::VibrationDeviceHandle& device_handle) const;
     NpadControllerData& GetControllerFromHandle(
         u64 aruid, const Core::HID::SixAxisSensorHandle& device_handle);
     const NpadControllerData& GetControllerFromHandle(
@@ -215,11 +196,13 @@ private:
     mutable std::mutex mutex;
     NPadResource npad_resource;
     AppletResourceHolder applet_resource_holder{};
+    std::array<AbstractPad, MaxSupportedNpadIdTypes> abstracted_pads;
+    NpadVibration vibration_handler{};
+
     Kernel::KEvent* input_event{nullptr};
     std::mutex* input_mutex{nullptr};
 
     std::atomic<u64> press_state{};
-    bool permit_vibration_session_enabled;
     std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax>
         controller_data{};
 };

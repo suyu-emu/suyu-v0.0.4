@@ -20,12 +20,18 @@ class NpadGcVibrationDevice final : public NpadVibrationBase {
 public:
     explicit NpadGcVibrationDevice();
 
-    Result IncrementRefCounter() override;
-    Result DecrementRefCounter() override;
+    Result Activate() override;
+    Result Deactivate() override;
+
+    Result Mount(IAbstractedPad& abstracted_pad, u32 slot, NpadVibration* handler);
+    Result Unmount();
 
     Result SendVibrationGcErmCommand(Core::HID::VibrationGcErmCommand command);
 
     Result GetActualVibrationGcErmCommand(Core::HID::VibrationGcErmCommand& out_command);
     Result SendVibrationNotificationPattern(Core::HID::VibrationGcErmCommand command);
+
+private:
+    u32 adapter_slot;
 };
 } // namespace Service::HID

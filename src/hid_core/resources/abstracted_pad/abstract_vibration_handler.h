@@ -9,6 +9,10 @@
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
 
+namespace Core::HID {
+class HIDCore;
+}
+
 namespace Service::HID {
 struct AppletResourceHolder;
 class NpadAbstractedPadHolder;
@@ -27,9 +31,11 @@ public:
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
     void SetAppletResource(AppletResourceHolder* applet_resource);
     void SetPropertiesHandler(NpadAbstractPropertiesHandler* handler);
+    void SetVibrationHandler(NpadVibration* handler);
+    void SetHidCore(Core::HID::HIDCore* core);
 
     void SetN64Vibration(NpadN64VibrationDevice* n64_device);
-    void SetVibration(std::span<NpadVibrationDevice*> device);
+    void SetVibration(NpadVibrationDevice* left_device, NpadVibrationDevice* right_device);
     void SetGcVibration(NpadGcVibrationDevice* gc_device);
 
     Result IncrementRefCounter();
@@ -41,9 +47,11 @@ private:
     AppletResourceHolder* applet_resource_holder{nullptr};
     NpadAbstractedPadHolder* abstract_pad_holder{nullptr};
     NpadAbstractPropertiesHandler* properties_handler{nullptr};
+    Core::HID::HIDCore* hid_core{nullptr};
 
     NpadN64VibrationDevice* n64_vibration_device{nullptr};
-    std::array<NpadVibrationDevice*, 2> vibration_device{};
+    NpadVibrationDevice* left_vibration_device{};
+    NpadVibrationDevice* right_vibration_device{};
     NpadGcVibrationDevice* gc_vibration_device{nullptr};
     NpadVibration* vibration_handler{nullptr};
     s32 ref_counter{};

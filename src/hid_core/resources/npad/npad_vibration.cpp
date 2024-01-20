@@ -77,4 +77,8 @@ Result NpadVibration::EndPermitVibrationSession() {
     return ResultSuccess;
 }
 
+u64 NpadVibration::GetSessionAruid() const {
+    return session_aruid;
+}
+
 } // namespace Service::HID

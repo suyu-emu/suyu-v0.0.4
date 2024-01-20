@@ -21,6 +21,7 @@
 #include "hid_core/hid_util.h"
 #include "hid_core/resources/applet_resource.h"
 #include "hid_core/resources/npad/npad.h"
+#include "hid_core/resources/npad/npad_vibration.h"
 #include "hid_core/resources/shared_memory_format.h"
 
 namespace Service::HID {
@@ -31,10 +32,6 @@ NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service
         for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
             auto& controller = controller_data[aruid_index][i];
             controller.device = hid_core.GetEmulatedControllerByIndex(i);
-            controller.vibration[Core::HID::EmulatedDeviceIndex::LeftIndex].latest_vibration_value =
-                Core::HID::DEFAULT_VIBRATION_VALUE;
-            controller.vibration[Core::HID::EmulatedDeviceIndex::RightIndex]
-                .latest_vibration_value = Core::HID::DEFAULT_VIBRATION_VALUE;
             Core::HID::ControllerUpdateCallback engine_callback{
                 .on_change =
                     [this, i](Core::HID::ControllerTriggerType type) { ControllerUpdate(type, i); },
@@ -42,6 +39,10 @@ NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service
             };
             controller.callback_key = controller.device->SetCallback(engine_callback);
         }
+    }
+    for (std::size_t i = 0; i < abstracted_pads.size(); ++i) {
+        abstracted_pads[i] = AbstractPad{};
+        abstracted_pads[i].SetNpadId(IndexToNpadIdType(i));
     }
 }
 
@@ -359,6 +360,7 @@ void NPad::InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id) {
     npad_resource.SignalStyleSetUpdateEvent(aruid, npad_id);
     WriteEmptyEntry(controller.shared_memory);
     hid_core.SetLastActiveController(npad_id);
+    abstracted_pads[NpadIdTypeToIndex(npad_id)].Update();
 }
 
 void NPad::WriteEmptyEntry(NpadInternalState* npad) {
@@ -740,171 +742,6 @@ bool NPad::SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID:
     return true;
 }
 
-bool NPad::VibrateControllerAtIndex(u64 aruid, Core::HID::NpadIdType npad_id,
-                                    std::size_t device_index,
-                                    const Core::HID::VibrationValue& vibration_value) {
-    auto& controller = GetControllerFromNpadIdType(aruid, npad_id);
-    if (!controller.device->IsConnected()) {
-        return false;
-    }
-
-    if (!controller.device->IsVibrationEnabled(device_index)) {
-        if (controller.vibration[device_index].latest_vibration_value.low_amplitude != 0.0f ||
-            controller.vibration[device_index].latest_vibration_value.high_amplitude != 0.0f) {
-            // Send an empty vibration to stop any vibrations.
-            Core::HID::VibrationValue vibration{0.0f, 160.0f, 0.0f, 320.0f};
-            controller.device->SetVibration(device_index, vibration);
-            // Then reset the vibration value to its default value.
-            controller.vibration[device_index].latest_vibration_value =
-                Core::HID::DEFAULT_VIBRATION_VALUE;
-        }
-
-        return false;
-    }
-
-    if (!Settings::values.enable_accurate_vibrations.GetValue()) {
-        using std::chrono::duration_cast;
-        using std::chrono::milliseconds;
-        using std::chrono::steady_clock;
-
-        const auto now = steady_clock::now();
-
-        // Filter out non-zero vibrations that are within 15ms of each other.
-        if ((vibration_value.low_amplitude != 0.0f || vibration_value.high_amplitude != 0.0f) &&
-            duration_cast<milliseconds>(
-                now - controller.vibration[device_index].last_vibration_timepoint) <
-                milliseconds(15)) {
-            return false;
-        }
-
-        controller.vibration[device_index].last_vibration_timepoint = now;
-    }
-
-    Core::HID::VibrationValue vibration{
-        vibration_value.low_amplitude, vibration_value.low_frequency,
-        vibration_value.high_amplitude, vibration_value.high_frequency};
-    return controller.device->SetVibration(device_index, vibration);
-}
-
-void NPad::VibrateController(u64 aruid,
-                             const Core::HID::VibrationDeviceHandle& vibration_device_handle,
-                             const Core::HID::VibrationValue& vibration_value) {
-    if (IsVibrationHandleValid(vibration_device_handle).IsError()) {
-        return;
-    }
-
-    if (!Settings::values.vibration_enabled.GetValue() && !permit_vibration_session_enabled) {
-        return;
-    }
-
-    auto& controller = GetControllerFromHandle(aruid, vibration_device_handle);
-    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
-
-    if (!controller.vibration[device_index].device_mounted || !controller.device->IsConnected()) {
-        return;
-    }
-
-    if (vibration_device_handle.device_index == Core::HID::DeviceIndex::None) {
-        ASSERT_MSG(false, "DeviceIndex should never be None!");
-        return;
-    }
-
-    // Some games try to send mismatched parameters in the device handle, block these.
-    if ((controller.device->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::JoyconLeft &&
-         (vibration_device_handle.npad_type == Core::HID::NpadStyleIndex::JoyconRight ||
-          vibration_device_handle.device_index == Core::HID::DeviceIndex::Right)) ||
-        (controller.device->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::JoyconRight &&
-         (vibration_device_handle.npad_type == Core::HID::NpadStyleIndex::JoyconLeft ||
-          vibration_device_handle.device_index == Core::HID::DeviceIndex::Left))) {
-        return;
-    }
-
-    // Filter out vibrations with equivalent values to reduce unnecessary state changes.
-    if (vibration_value.low_amplitude ==
-            controller.vibration[device_index].latest_vibration_value.low_amplitude &&
-        vibration_value.high_amplitude ==
-            controller.vibration[device_index].latest_vibration_value.high_amplitude) {
-        return;
-    }
-
-    if (VibrateControllerAtIndex(aruid, controller.device->GetNpadIdType(), device_index,
-                                 vibration_value)) {
-        controller.vibration[device_index].latest_vibration_value = vibration_value;
-    }
-}
-
-void NPad::VibrateControllers(
-    u64 aruid, std::span<const Core::HID::VibrationDeviceHandle> vibration_device_handles,
-    std::span<const Core::HID::VibrationValue> vibration_values) {
-    if (!Settings::values.vibration_enabled.GetValue() && !permit_vibration_session_enabled) {
-        return;
-    }
-
-    ASSERT_OR_EXECUTE_MSG(
-        vibration_device_handles.size() == vibration_values.size(), { return; },
-        "The amount of device handles does not match with the amount of vibration values,"
-        "this is undefined behavior!");
-
-    for (std::size_t i = 0; i < vibration_device_handles.size(); ++i) {
-        VibrateController(aruid, vibration_device_handles[i], vibration_values[i]);
-    }
-}
-
-Core::HID::VibrationValue NPad::GetLastVibration(
-    u64 aruid, const Core::HID::VibrationDeviceHandle& vibration_device_handle) const {
-    if (IsVibrationHandleValid(vibration_device_handle).IsError()) {
-        return {};
-    }
-
-    const auto& controller = GetControllerFromHandle(aruid, vibration_device_handle);
-    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
-    return controller.vibration[device_index].latest_vibration_value;
-}
-
-void NPad::InitializeVibrationDevice(
-    const Core::HID::VibrationDeviceHandle& vibration_device_handle) {
-    if (IsVibrationHandleValid(vibration_device_handle).IsError()) {
-        return;
-    }
-
-    const auto aruid = applet_resource_holder.applet_resource->GetActiveAruid();
-    const auto npad_index = static_cast<Core::HID::NpadIdType>(vibration_device_handle.npad_id);
-    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
-
-    if (aruid == 0) {
-        return;
-    }
-
-    InitializeVibrationDeviceAtIndex(aruid, npad_index, device_index);
-}
-
-void NPad::InitializeVibrationDeviceAtIndex(u64 aruid, Core::HID::NpadIdType npad_id,
-                                            std::size_t device_index) {
-    auto& controller = GetControllerFromNpadIdType(aruid, npad_id);
-    if (!Settings::values.vibration_enabled.GetValue()) {
-        controller.vibration[device_index].device_mounted = false;
-        return;
-    }
-
-    controller.vibration[device_index].device_mounted =
-        controller.device->IsVibrationEnabled(device_index);
-}
-
-void NPad::SetPermitVibrationSession(bool permit_vibration_session) {
-    permit_vibration_session_enabled = permit_vibration_session;
-}
-
-bool NPad::IsVibrationDeviceMounted(
-    u64 aruid, const Core::HID::VibrationDeviceHandle& vibration_device_handle) const {
-    if (IsVibrationHandleValid(vibration_device_handle).IsError()) {
-        return false;
-    }
-
-    const auto& controller = GetControllerFromHandle(aruid, vibration_device_handle);
-    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
-    return controller.vibration[device_index].device_mounted;
-}
-
 Result NPad::AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
                                                   Core::HID::NpadIdType npad_id) {
     std::scoped_lock lock{mutex};
@@ -936,11 +773,6 @@ Result NPad::DisconnectNpad(u64 aruid, Core::HID::NpadIdType npad_id) {
 
     LOG_DEBUG(Service_HID, "Npad disconnected {}", npad_id);
     auto& controller = GetControllerFromNpadIdType(aruid, npad_id);
-    for (std::size_t device_idx = 0; device_idx < controller.vibration.size(); ++device_idx) {
-        // Send an empty vibration to stop any vibrations.
-        VibrateControllerAtIndex(aruid, npad_id, device_idx, {});
-        controller.vibration[device_idx].device_mounted = false;
-    }
 
     auto* shared_memory = controller.shared_memory;
     // Don't reset shared_memory->assignment_mode this value is persistent
@@ -1243,22 +1075,17 @@ void NPad::UnregisterAppletResourceUserId(u64 aruid) {
 }
 
 void NPad::SetNpadExternals(std::shared_ptr<AppletResource> resource,
-                            std::recursive_mutex* shared_mutex) {
+                            std::recursive_mutex* shared_mutex,
+                            std::shared_ptr<HandheldConfig> handheld_config) {
     applet_resource_holder.applet_resource = resource;
     applet_resource_holder.shared_mutex = shared_mutex;
     applet_resource_holder.shared_npad_resource = &npad_resource;
-}
+    applet_resource_holder.handheld_config = handheld_config;
 
-NPad::NpadControllerData& NPad::GetControllerFromHandle(
-    u64 aruid, const Core::HID::VibrationDeviceHandle& device_handle) {
-    const auto npad_id = static_cast<Core::HID::NpadIdType>(device_handle.npad_id);
-    return GetControllerFromNpadIdType(aruid, npad_id);
-}
-
-const NPad::NpadControllerData& NPad::GetControllerFromHandle(
-    u64 aruid, const Core::HID::VibrationDeviceHandle& device_handle) const {
-    const auto npad_id = static_cast<Core::HID::NpadIdType>(device_handle.npad_id);
-    return GetControllerFromNpadIdType(aruid, npad_id);
+    for (auto& abstract_pad : abstracted_pads) {
+        abstract_pad.SetExternals(&applet_resource_holder, nullptr, nullptr, nullptr, nullptr,
+                                  &vibration_handler, &hid_core);
+    }
 }
 
 NPad::NpadControllerData& NPad::GetControllerFromHandle(
@@ -1394,6 +1221,99 @@ Result NPad::GetLastActiveNpad(Core::HID::NpadIdType& out_npad_id) const {
     std::scoped_lock lock{mutex};
     out_npad_id = hid_core.GetLastActiveController();
     return ResultSuccess;
+}
+
+NpadVibration* NPad::GetVibrationHandler() {
+    return &vibration_handler;
+}
+
+std::vector<NpadVibrationBase*> NPad::GetAllVibrationDevices() {
+    std::vector<NpadVibrationBase*> vibration_devices;
+
+    for (auto& abstract_pad : abstracted_pads) {
+        auto* left_device = abstract_pad.GetVibrationDevice(Core::HID::DeviceIndex::Left);
+        auto* right_device = abstract_pad.GetVibrationDevice(Core::HID::DeviceIndex::Right);
+        auto* n64_device = abstract_pad.GetGCVibrationDevice();
+        auto* gc_device = abstract_pad.GetGCVibrationDevice();
+
+        if (left_device != nullptr) {
+            vibration_devices.emplace_back(left_device);
+        }
+        if (right_device != nullptr) {
+            vibration_devices.emplace_back(right_device);
+        }
+        if (n64_device != nullptr) {
+            vibration_devices.emplace_back(n64_device);
+        }
+        if (gc_device != nullptr) {
+            vibration_devices.emplace_back(gc_device);
+        }
+    }
+
+    return vibration_devices;
+}
+
+NpadVibrationBase* NPad::GetVibrationDevice(const Core::HID::VibrationDeviceHandle& handle) {
+    if (IsVibrationHandleValid(handle).IsError()) {
+        return nullptr;
+    }
+
+    const auto npad_index = NpadIdTypeToIndex(static_cast<Core::HID::NpadIdType>(handle.npad_id));
+    const auto style_inde = static_cast<Core::HID::NpadStyleIndex>(handle.npad_type);
+    if (style_inde == Core::HID::NpadStyleIndex::GameCube) {
+        return abstracted_pads[npad_index].GetGCVibrationDevice();
+    }
+    if (style_inde == Core::HID::NpadStyleIndex::N64) {
+        return abstracted_pads[npad_index].GetN64VibrationDevice();
+    }
+    return abstracted_pads[npad_index].GetVibrationDevice(handle.device_index);
+}
+
+NpadN64VibrationDevice* NPad::GetN64VibrationDevice(
+    const Core::HID::VibrationDeviceHandle& handle) {
+    if (IsVibrationHandleValid(handle).IsError()) {
+        return nullptr;
+    }
+
+    const auto npad_index = NpadIdTypeToIndex(static_cast<Core::HID::NpadIdType>(handle.npad_id));
+    const auto style_inde = static_cast<Core::HID::NpadStyleIndex>(handle.npad_type);
+    if (style_inde != Core::HID::NpadStyleIndex::N64) {
+        return nullptr;
+    }
+    return abstracted_pads[npad_index].GetN64VibrationDevice();
+}
+
+NpadVibrationDevice* NPad::GetNSVibrationDevice(const Core::HID::VibrationDeviceHandle& handle) {
+    if (IsVibrationHandleValid(handle).IsError()) {
+        return nullptr;
+    }
+
+    const auto npad_index = NpadIdTypeToIndex(static_cast<Core::HID::NpadIdType>(handle.npad_id));
+    const auto style_inde = static_cast<Core::HID::NpadStyleIndex>(handle.npad_type);
+    if (style_inde == Core::HID::NpadStyleIndex::GameCube ||
+        style_inde == Core::HID::NpadStyleIndex::N64) {
+        return nullptr;
+    }
+
+    return abstracted_pads[npad_index].GetVibrationDevice(handle.device_index);
+}
+
+NpadGcVibrationDevice* NPad::GetGcVibrationDevice(const Core::HID::VibrationDeviceHandle& handle) {
+    if (IsVibrationHandleValid(handle).IsError()) {
+        return nullptr;
+    }
+
+    const auto npad_index = NpadIdTypeToIndex(static_cast<Core::HID::NpadIdType>(handle.npad_id));
+    const auto style_inde = static_cast<Core::HID::NpadStyleIndex>(handle.npad_type);
+    if (style_inde != Core::HID::NpadStyleIndex::GameCube) {
+        return nullptr;
+    }
+    return abstracted_pads[npad_index].GetGCVibrationDevice();
+}
+
+void NPad::UpdateHandheldAbstractState() {
+    std::scoped_lock lock{mutex};
+    abstracted_pads[NpadIdTypeToIndex(Core::HID::NpadIdType::Handheld)].Update();
 }
 
 } // namespace Service::HID

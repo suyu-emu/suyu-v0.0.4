@@ -10,6 +10,12 @@ namespace Core {
 class System;
 }
 
+namespace Core::HID {
+struct VibrationDeviceHandle;
+struct VibrationValue;
+struct VibrationDeviceInfo;
+} // namespace Core::HID
+
 namespace Core::Timing {
 struct EventType;
 }
@@ -37,6 +43,11 @@ class SixAxis;
 class SleepButton;
 class TouchScreen;
 class UniquePad;
+class NpadVibrationBase;
+class NpadN64VibrationDevice;
+class NpadGcVibrationDevice;
+class NpadVibrationDevice;
+struct HandheldConfig;
 
 class ResourceManager {
 
@@ -79,6 +90,18 @@ public:
     void EnablePadInput(u64 aruid, bool is_enabled);
     void EnableTouchScreen(u64 aruid, bool is_enabled);
 
+    NpadVibrationBase* GetVibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    NpadN64VibrationDevice* GetN64VibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    NpadVibrationDevice* GetNSVibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    NpadGcVibrationDevice* GetGcVibrationDevice(const Core::HID::VibrationDeviceHandle& handle);
+    Result SetAruidValidForVibration(u64 aruid, bool is_enabled);
+    void SetForceHandheldStyleVibration(bool is_forced);
+    Result IsVibrationAruidActive(u64 aruid, bool& is_active) const;
+    Result GetVibrationDeviceInfo(Core::HID::VibrationDeviceInfo& device_info,
+                                  const Core::HID::VibrationDeviceHandle& handle);
+    Result SendVibrationValue(u64 aruid, const Core::HID::VibrationDeviceHandle& handle,
+                              const Core::HID::VibrationValue& value);
+
     void UpdateControllers(std::chrono::nanoseconds ns_late);
     void UpdateNpad(std::chrono::nanoseconds ns_late);
     void UpdateMouseKeyboard(std::chrono::nanoseconds ns_late);
@@ -112,6 +135,8 @@ private:
     std::shared_ptr<SleepButton> sleep_button = nullptr;
     std::shared_ptr<TouchScreen> touch_screen = nullptr;
     std::shared_ptr<UniquePad> unique_pad = nullptr;
+
+    std::shared_ptr<HandheldConfig> handheld_config = nullptr;
 
     // TODO: Create these resources
     // std::shared_ptr<AudioControl> audio_control = nullptr;
