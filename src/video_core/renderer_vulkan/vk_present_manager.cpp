@@ -329,7 +329,7 @@ void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     // to account for that.
     const bool is_suboptimal = swapchain.NeedsRecreation();
     const bool size_changed =
-        swapchain.GetWidth() < frame->width || swapchain.GetHeight() < frame->height;
+        swapchain.GetWidth() != frame->width || swapchain.GetHeight() != frame->height;
     if (is_suboptimal || size_changed) {
         RecreateSwapchain(frame);
     }
