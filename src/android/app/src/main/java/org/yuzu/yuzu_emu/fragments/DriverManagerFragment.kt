@@ -75,7 +75,7 @@ class DriverManagerFragment : Fragment() {
             driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
             binding.toolbarDrivers.setOnMenuItemClickListener {
                 when (it.itemId) {
-                    R.id.menu_driver_clear -> {
+                    R.id.menu_driver_use_global -> {
                         StringSetting.DRIVER_PATH.global = true
                         driverViewModel.updateDriverList()
                         (binding.listDrivers.adapter as DriverAdapter)
@@ -93,7 +93,7 @@ class DriverManagerFragment : Fragment() {
                     repeatOnLifecycle(Lifecycle.State.STARTED) {
                         driverViewModel.showClearButton.collect {
                             binding.toolbarDrivers.menu
-                                .findItem(R.id.menu_driver_clear).isVisible = it
+                                .findItem(R.id.menu_driver_use_global).isVisible = it
                         }
                     }
                 }
