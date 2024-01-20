@@ -42,9 +42,14 @@ private:
     void RegisterAppletResourceUserId(HLERequestContext& ctx);
     void UnregisterAppletResourceUserId(HLERequestContext& ctx);
     void EnableAppletToGetInput(HLERequestContext& ctx);
+    void SetAruidValidForVibration(HLERequestContext& ctx);
     void EnableAppletToGetSixAxisSensor(HLERequestContext& ctx);
     void EnableAppletToGetPadInput(HLERequestContext& ctx);
     void EnableAppletToGetTouchScreen(HLERequestContext& ctx);
+    void SetVibrationMasterVolume(HLERequestContext& ctx);
+    void GetVibrationMasterVolume(HLERequestContext& ctx);
+    void BeginPermitVibrationSession(HLERequestContext& ctx);
+    void EndPermitVibrationSession(HLERequestContext& ctx);
     void IsJoyConAttachedOnAllRail(HLERequestContext& ctx);
     void AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx);
     void AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx);
@@ -61,6 +66,7 @@ private:
     void FinalizeUsbFirmwareUpdate(HLERequestContext& ctx);
     void InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx);
     void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
+    void SetForceHandheldStyleVibration(HLERequestContext& ctx);
     void IsUsingCustomButtonConfig(HLERequestContext& ctx);
 
     std::shared_ptr<ResourceManager> GetResourceManager();

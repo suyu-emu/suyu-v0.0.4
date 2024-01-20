@@ -14,14 +14,18 @@
 
 namespace Service::HID {
 class NpadVibration;
+struct IAbstractedPad;
 
 /// Handles Npad request from HID interfaces
 class NpadN64VibrationDevice final : public NpadVibrationBase {
 public:
     explicit NpadN64VibrationDevice();
 
-    Result IncrementRefCounter() override;
-    Result DecrementRefCounter() override;
+    Result Activate() override;
+    Result Deactivate() override;
+
+    Result Mount(IAbstractedPad& abstracted_pad, NpadVibration* handler);
+    Result Unmount();
 
     Result SendValueInBool(bool is_vibrating);
     Result SendVibrationNotificationPattern(u32 pattern);

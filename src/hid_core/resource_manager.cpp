@@ -7,6 +7,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "hid_core/hid_core.h"
+#include "hid_core/hid_util.h"
 #include "hid_core/resource_manager.h"
 
 #include "hid_core/resources/applet_resource.h"
@@ -27,6 +28,10 @@
 #include "hid_core/resources/touch_screen/gesture.h"
 #include "hid_core/resources/touch_screen/touch_screen.h"
 #include "hid_core/resources/unique_pad/unique_pad.h"
+#include "hid_core/resources/vibration/gc_vibration_device.h"
+#include "hid_core/resources/vibration/n64_vibration_device.h"
+#include "hid_core/resources/vibration/vibration_base.h"
+#include "hid_core/resources/vibration/vibration_device.h"
 
 namespace Service::HID {
 
@@ -52,6 +57,7 @@ void ResourceManager::Initialize() {
 
     system.HIDCore().ReloadInputDevices();
 
+    handheld_config = std::make_shared<HandheldConfig>();
     InitializeHidCommonSampler();
     InitializeTouchScreenSampler();
     InitializeConsoleSixAxisSampler();
@@ -174,7 +180,7 @@ void ResourceManager::InitializeHidCommonSampler() {
     debug_pad->SetAppletResource(applet_resource, &shared_mutex);
     digitizer->SetAppletResource(applet_resource, &shared_mutex);
     keyboard->SetAppletResource(applet_resource, &shared_mutex);
-    npad->SetNpadExternals(applet_resource, &shared_mutex);
+    npad->SetNpadExternals(applet_resource, &shared_mutex, handheld_config);
     six_axis->SetAppletResource(applet_resource, &shared_mutex);
     mouse->SetAppletResource(applet_resource, &shared_mutex);
     debug_mouse->SetAppletResource(applet_resource, &shared_mutex);
@@ -255,6 +261,121 @@ void ResourceManager::EnablePadInput(u64 aruid, bool is_enabled) {
 void ResourceManager::EnableTouchScreen(u64 aruid, bool is_enabled) {
     std::scoped_lock lock{shared_mutex};
     applet_resource->EnableTouchScreen(aruid, is_enabled);
+}
+
+NpadVibrationBase* ResourceManager::GetVibrationDevice(
+    const Core::HID::VibrationDeviceHandle& handle) {
+    return npad->GetVibrationDevice(handle);
+}
+
+NpadN64VibrationDevice* ResourceManager::GetN64VibrationDevice(
+    const Core::HID::VibrationDeviceHandle& handle) {
+    return npad->GetN64VibrationDevice(handle);
+}
+
+NpadVibrationDevice* ResourceManager::GetNSVibrationDevice(
+    const Core::HID::VibrationDeviceHandle& handle) {
+    return npad->GetNSVibrationDevice(handle);
+}
+
+NpadGcVibrationDevice* ResourceManager::GetGcVibrationDevice(
+    const Core::HID::VibrationDeviceHandle& handle) {
+    return npad->GetGcVibrationDevice(handle);
+}
+
+Result ResourceManager::SetAruidValidForVibration(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{shared_mutex};
+    const bool has_changed = applet_resource->SetAruidValidForVibration(aruid, is_enabled);
+
+    if (has_changed) {
+        auto devices = npad->GetAllVibrationDevices();
+        for ([[maybe_unused]] auto* device : devices) {
+            // TODO
+        }
+    }
+
+    auto* vibration_handler = npad->GetVibrationHandler();
+    if (aruid != vibration_handler->GetSessionAruid()) {
+        vibration_handler->EndPermitVibrationSession();
+    }
+
+    return ResultSuccess;
+}
+
+void ResourceManager::SetForceHandheldStyleVibration(bool is_forced) {
+    handheld_config->is_force_handheld_style_vibration = is_forced;
+}
+
+Result ResourceManager::IsVibrationAruidActive(u64 aruid, bool& is_active) const {
+    std::scoped_lock lock{shared_mutex};
+    is_active = applet_resource->IsVibrationAruidActive(aruid);
+    return ResultSuccess;
+}
+
+Result ResourceManager::GetVibrationDeviceInfo(Core::HID::VibrationDeviceInfo& device_info,
+                                               const Core::HID::VibrationDeviceHandle& handle) {
+    bool check_device_index = false;
+
+    const Result is_valid = IsVibrationHandleValid(handle);
+    if (is_valid.IsError()) {
+        return is_valid;
+    }
+
+    switch (handle.npad_type) {
+    case Core::HID::NpadStyleIndex::Fullkey:
+    case Core::HID::NpadStyleIndex::Handheld:
+    case Core::HID::NpadStyleIndex::JoyconDual:
+    case Core::HID::NpadStyleIndex::JoyconLeft:
+    case Core::HID::NpadStyleIndex::JoyconRight:
+        device_info.type = Core::HID::VibrationDeviceType::LinearResonantActuator;
+        check_device_index = true;
+        break;
+    case Core::HID::NpadStyleIndex::GameCube:
+        device_info.type = Core::HID::VibrationDeviceType::GcErm;
+        break;
+    case Core::HID::NpadStyleIndex::N64:
+        device_info.type = Core::HID::VibrationDeviceType::N64;
+        break;
+    default:
+        device_info.type = Core::HID::VibrationDeviceType::Unknown;
+        break;
+    }
+
+    device_info.position = Core::HID::VibrationDevicePosition::None;
+    if (check_device_index) {
+        switch (handle.device_index) {
+        case Core::HID::DeviceIndex::Left:
+            device_info.position = Core::HID::VibrationDevicePosition::Left;
+            break;
+        case Core::HID::DeviceIndex::Right:
+            device_info.position = Core::HID::VibrationDevicePosition::Right;
+            break;
+        case Core::HID::DeviceIndex::None:
+        default:
+            ASSERT_MSG(false, "DeviceIndex should never be None!");
+            break;
+        }
+    }
+    return ResultSuccess;
+}
+
+Result ResourceManager::SendVibrationValue(u64 aruid,
+                                           const Core::HID::VibrationDeviceHandle& handle,
+                                           const Core::HID::VibrationValue& value) {
+    bool has_active_aruid{};
+    NpadVibrationDevice* device{nullptr};
+    Result result = IsVibrationAruidActive(aruid, has_active_aruid);
+
+    if (result.IsSuccess() && has_active_aruid) {
+        result = IsVibrationHandleValid(handle);
+    }
+    if (result.IsSuccess() && has_active_aruid) {
+        device = GetNSVibrationDevice(handle);
+    }
+    if (device != nullptr) {
+        result = device->SendVibrationValue(value);
+    }
+    return result;
 }
 
 void ResourceManager::UpdateControllers(std::chrono::nanoseconds ns_late) {

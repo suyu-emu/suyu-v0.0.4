@@ -7,6 +7,10 @@
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
 
+namespace Core::HID {
+class EmulatedController;
+}
+
 namespace Kernel {
 class KEvent;
 class KReadableEvent;
@@ -50,7 +54,7 @@ private:
 
     s32 ref_counter{};
     Kernel::KEvent* ir_sensor_event{nullptr};
-    u64 xcd_handle{};
+    Core::HID::EmulatedController* xcd_handle{};
     NpadIrSensorState sensor_state{};
 };
 } // namespace Service::HID

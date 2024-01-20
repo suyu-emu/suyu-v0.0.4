@@ -22,12 +22,16 @@
 #include "hid_core/resources/mouse/mouse.h"
 #include "hid_core/resources/npad/npad.h"
 #include "hid_core/resources/npad/npad_types.h"
+#include "hid_core/resources/npad/npad_vibration.h"
 #include "hid_core/resources/palma/palma.h"
 #include "hid_core/resources/six_axis/console_six_axis.h"
 #include "hid_core/resources/six_axis/seven_six_axis.h"
 #include "hid_core/resources/six_axis/six_axis.h"
 #include "hid_core/resources/touch_screen/gesture.h"
 #include "hid_core/resources/touch_screen/touch_screen.h"
+#include "hid_core/resources/vibration/gc_vibration_device.h"
+#include "hid_core/resources/vibration/n64_vibration_device.h"
+#include "hid_core/resources/vibration/vibration_device.h"
 
 namespace Service::HID {
 
@@ -38,7 +42,7 @@ public:
         : ServiceFramework{system_, "IActiveVibrationDeviceList"}, resource_manager(resource) {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IActiveVibrationDeviceList::InitializeVibrationDevice, "InitializeVibrationDevice"},
+            {0, &IActiveVibrationDeviceList::ActivateVibrationDevice, "ActivateVibrationDevice"},
         };
         // clang-format on
 
@@ -46,22 +50,49 @@ public:
     }
 
 private:
-    void InitializeVibrationDevice(HLERequestContext& ctx) {
+    void ActivateVibrationDevice(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto vibration_device_handle{rp.PopRaw<Core::HID::VibrationDeviceHandle>()};
-
-        if (resource_manager != nullptr && resource_manager->GetNpad()) {
-            resource_manager->GetNpad()->InitializeVibrationDevice(vibration_device_handle);
-        }
 
         LOG_DEBUG(Service_HID, "called, npad_type={}, npad_id={}, device_index={}",
                   vibration_device_handle.npad_type, vibration_device_handle.npad_id,
                   vibration_device_handle.device_index);
 
+        const auto result = ActivateVibrationDeviceImpl(vibration_device_handle);
+
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
+        rb.Push(result);
     }
 
+    Result ActivateVibrationDeviceImpl(const Core::HID::VibrationDeviceHandle& handle) {
+        std::scoped_lock lock{mutex};
+
+        const Result is_valid = IsVibrationHandleValid(handle);
+        if (is_valid.IsError()) {
+            return is_valid;
+        }
+
+        for (std::size_t i = 0; i < list_size; i++) {
+            if (handle.device_index == vibration_device_list[i].device_index &&
+                handle.npad_id == vibration_device_list[i].npad_id &&
+                handle.npad_type == vibration_device_list[i].npad_type) {
+                return ResultSuccess;
+            }
+        }
+        if (list_size == vibration_device_list.size()) {
+            return ResultVibrationDeviceIndexOutOfRange;
+        }
+        const Result result = resource_manager->GetVibrationDevice(handle)->Activate();
+        if (result.IsError()) {
+            return result;
+        }
+        vibration_device_list[list_size++] = handle;
+        return ResultSuccess;
+    }
+
+    mutable std::mutex mutex;
+    std::size_t list_size{};
+    std::array<Core::HID::VibrationDeviceHandle, 0x100> vibration_device_list{};
     std::shared_ptr<ResourceManager> resource_manager;
 };
 
@@ -153,7 +184,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {209, &IHidServer::BeginPermitVibrationSession, "BeginPermitVibrationSession"},
         {210, &IHidServer::EndPermitVibrationSession, "EndPermitVibrationSession"},
         {211, &IHidServer::IsVibrationDeviceMounted, "IsVibrationDeviceMounted"},
-        {212, nullptr, "SendVibrationValueInBool"},
+        {212, &IHidServer::SendVibrationValueInBool, "SendVibrationValueInBool"},
         {300, &IHidServer::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
         {301, &IHidServer::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
         {302, &IHidServer::StopConsoleSixAxisSensor, "StopConsoleSixAxisSensor"},
@@ -1492,59 +1523,13 @@ void IHidServer::ClearNpadCaptureButtonAssignment(HLERequestContext& ctx) {
 void IHidServer::GetVibrationDeviceInfo(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto vibration_device_handle{rp.PopRaw<Core::HID::VibrationDeviceHandle>()};
-    const auto controller = GetResourceManager()->GetNpad();
 
-    Core::HID::VibrationDeviceInfo vibration_device_info;
-    bool check_device_index = false;
-
-    switch (vibration_device_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::Fullkey:
-    case Core::HID::NpadStyleIndex::Handheld:
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        vibration_device_info.type = Core::HID::VibrationDeviceType::LinearResonantActuator;
-        check_device_index = true;
-        break;
-    case Core::HID::NpadStyleIndex::GameCube:
-        vibration_device_info.type = Core::HID::VibrationDeviceType::GcErm;
-        break;
-    case Core::HID::NpadStyleIndex::N64:
-        vibration_device_info.type = Core::HID::VibrationDeviceType::N64;
-        break;
-    default:
-        vibration_device_info.type = Core::HID::VibrationDeviceType::Unknown;
-        break;
-    }
-
-    vibration_device_info.position = Core::HID::VibrationDevicePosition::None;
-    if (check_device_index) {
-        switch (vibration_device_handle.device_index) {
-        case Core::HID::DeviceIndex::Left:
-            vibration_device_info.position = Core::HID::VibrationDevicePosition::Left;
-            break;
-        case Core::HID::DeviceIndex::Right:
-            vibration_device_info.position = Core::HID::VibrationDevicePosition::Right;
-            break;
-        case Core::HID::DeviceIndex::None:
-        default:
-            ASSERT_MSG(false, "DeviceIndex should never be None!");
-            break;
-        }
-    }
-
-    LOG_DEBUG(Service_HID, "called, vibration_device_type={}, vibration_device_position={}",
-              vibration_device_info.type, vibration_device_info.position);
-
-    const auto result = IsVibrationHandleValid(vibration_device_handle);
-    if (result.IsError()) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-        return;
-    }
+    Core::HID::VibrationDeviceInfo vibration_device_info{};
+    const auto result = GetResourceManager()->GetVibrationDeviceInfo(vibration_device_info,
+                                                                     vibration_device_handle);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
     rb.PushRaw(vibration_device_info);
 }
 
@@ -1560,15 +1545,15 @@ void IHidServer::SendVibrationValue(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->GetNpad()->VibrateController(parameters.applet_resource_user_id,
-                                                       parameters.vibration_device_handle,
-                                                       parameters.vibration_value);
-
     LOG_DEBUG(Service_HID,
               "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
               parameters.vibration_device_handle.npad_type,
               parameters.vibration_device_handle.npad_id,
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
+
+    GetResourceManager()->SendVibrationValue(parameters.applet_resource_user_id,
+                                             parameters.vibration_device_handle,
+                                             parameters.vibration_value);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1591,10 +1576,28 @@ void IHidServer::GetActualVibrationValue(HLERequestContext& ctx) {
               parameters.vibration_device_handle.npad_id,
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
+    bool has_active_aruid{};
+    NpadVibrationDevice* device{nullptr};
+    Core::HID::VibrationValue vibration_value{};
+    Result result = GetResourceManager()->IsVibrationAruidActive(parameters.applet_resource_user_id,
+                                                                 has_active_aruid);
+
+    if (result.IsSuccess() && has_active_aruid) {
+        result = IsVibrationHandleValid(parameters.vibration_device_handle);
+    }
+    if (result.IsSuccess() && has_active_aruid) {
+        device = GetResourceManager()->GetNSVibrationDevice(parameters.vibration_device_handle);
+    }
+    if (device != nullptr) {
+        result = device->GetActualVibrationValue(vibration_value);
+    }
+    if (result.IsError()) {
+        vibration_value = Core::HID::DEFAULT_VIBRATION_VALUE;
+    }
+
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw(GetResourceManager()->GetNpad()->GetLastVibration(
-        parameters.applet_resource_user_id, parameters.vibration_device_handle));
+    rb.PushRaw(vibration_value);
 }
 
 void IHidServer::CreateActiveVibrationDeviceList(HLERequestContext& ctx) {
@@ -1609,25 +1612,27 @@ void IHidServer::PermitVibration(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto can_vibrate{rp.Pop<bool>()};
 
-    // nnSDK saves this value as a float. Since it can only be 1.0f or 0.0f we simplify this value
-    // by converting it to a bool
-    Settings::values.vibration_enabled.SetValue(can_vibrate);
-
     LOG_DEBUG(Service_HID, "called, can_vibrate={}", can_vibrate);
 
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->SetVibrationMasterVolume(
+            can_vibrate ? 1.0f : 0.0f);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::IsVibrationPermitted(HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called");
 
-    // nnSDK checks if a float is greater than zero. We return the bool we stored earlier
-    const auto is_enabled = Settings::values.vibration_enabled.GetValue();
+    f32 master_volume{};
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->GetVibrationMasterVolume(
+            master_volume);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(is_enabled);
+    rb.Push(result);
+    rb.Push(master_volume > 0.0f);
 }
 
 void IHidServer::SendVibrationValues(HLERequestContext& ctx) {
@@ -1645,13 +1650,22 @@ void IHidServer::SendVibrationValues(HLERequestContext& ctx) {
     auto vibration_values = std::span(
         reinterpret_cast<const Core::HID::VibrationValue*>(vibration_data.data()), vibration_count);
 
-    GetResourceManager()->GetNpad()->VibrateControllers(applet_resource_user_id,
-                                                        vibration_device_handles, vibration_values);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Result result = ResultSuccess;
+    if (handle_count != vibration_count) {
+        result = ResultVibrationArraySizeMismatch;
+    }
+
+    for (std::size_t i = 0; i < handle_count; i++) {
+        if (result.IsSuccess()) {
+            result = GetResourceManager()->SendVibrationValue(
+                applet_resource_user_id, vibration_device_handles[i], vibration_values[i]);
+        }
+    }
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::SendVibrationGcErmCommand(HLERequestContext& ctx) {
@@ -1666,43 +1680,6 @@ void IHidServer::SendVibrationGcErmCommand(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    /**
-     * Note: This uses yuzu-specific behavior such that the StopHard command produces
-     * vibrations where freq_low == 0.0f and freq_high == 0.0f, as defined below,
-     * in order to differentiate between Stop and StopHard commands.
-     * This is done to reuse the controller vibration functions made for regular controllers.
-     */
-    const auto vibration_value = [parameters] {
-        switch (parameters.gc_erm_command) {
-        case Core::HID::VibrationGcErmCommand::Stop:
-            return Core::HID::VibrationValue{
-                .low_amplitude = 0.0f,
-                .low_frequency = 160.0f,
-                .high_amplitude = 0.0f,
-                .high_frequency = 320.0f,
-            };
-        case Core::HID::VibrationGcErmCommand::Start:
-            return Core::HID::VibrationValue{
-                .low_amplitude = 1.0f,
-                .low_frequency = 160.0f,
-                .high_amplitude = 1.0f,
-                .high_frequency = 320.0f,
-            };
-        case Core::HID::VibrationGcErmCommand::StopHard:
-            return Core::HID::VibrationValue{
-                .low_amplitude = 0.0f,
-                .low_frequency = 0.0f,
-                .high_amplitude = 0.0f,
-                .high_frequency = 0.0f,
-            };
-        default:
-            return Core::HID::DEFAULT_VIBRATION_VALUE;
-        }
-    }();
-
-    GetResourceManager()->GetNpad()->VibrateController(
-        parameters.applet_resource_user_id, parameters.vibration_device_handle, vibration_value);
-
     LOG_DEBUG(Service_HID,
               "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}, "
               "gc_erm_command={}",
@@ -1711,8 +1688,23 @@ void IHidServer::SendVibrationGcErmCommand(HLERequestContext& ctx) {
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id,
               parameters.gc_erm_command);
 
+    bool has_active_aruid{};
+    NpadGcVibrationDevice* gc_device{nullptr};
+    Result result = GetResourceManager()->IsVibrationAruidActive(parameters.applet_resource_user_id,
+                                                                 has_active_aruid);
+
+    if (result.IsSuccess() && has_active_aruid) {
+        result = IsVibrationHandleValid(parameters.vibration_device_handle);
+    }
+    if (result.IsSuccess() && has_active_aruid) {
+        gc_device = GetResourceManager()->GetGcVibrationDevice(parameters.vibration_device_handle);
+    }
+    if (gc_device != nullptr) {
+        result = gc_device->SendVibrationGcErmCommand(parameters.gc_erm_command);
+    }
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::GetActualVibrationGcErmCommand(HLERequestContext& ctx) {
@@ -1725,32 +1717,30 @@ void IHidServer::GetActualVibrationGcErmCommand(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    const auto last_vibration = GetResourceManager()->GetNpad()->GetLastVibration(
-        parameters.applet_resource_user_id, parameters.vibration_device_handle);
-
-    const auto gc_erm_command = [last_vibration] {
-        if (last_vibration.low_amplitude != 0.0f || last_vibration.high_amplitude != 0.0f) {
-            return Core::HID::VibrationGcErmCommand::Start;
-        }
-
-        /**
-         * Note: This uses yuzu-specific behavior such that the StopHard command produces
-         * vibrations where freq_low == 0.0f and freq_high == 0.0f, as defined in the HID function
-         * SendVibrationGcErmCommand, in order to differentiate between Stop and StopHard commands.
-         * This is done to reuse the controller vibration functions made for regular controllers.
-         */
-        if (last_vibration.low_frequency == 0.0f && last_vibration.high_frequency == 0.0f) {
-            return Core::HID::VibrationGcErmCommand::StopHard;
-        }
-
-        return Core::HID::VibrationGcErmCommand::Stop;
-    }();
-
     LOG_DEBUG(Service_HID,
               "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
               parameters.vibration_device_handle.npad_type,
               parameters.vibration_device_handle.npad_id,
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
+
+    bool has_active_aruid{};
+    NpadGcVibrationDevice* gc_device{nullptr};
+    Core::HID::VibrationGcErmCommand gc_erm_command{};
+    Result result = GetResourceManager()->IsVibrationAruidActive(parameters.applet_resource_user_id,
+                                                                 has_active_aruid);
+
+    if (result.IsSuccess() && has_active_aruid) {
+        result = IsVibrationHandleValid(parameters.vibration_device_handle);
+    }
+    if (result.IsSuccess() && has_active_aruid) {
+        gc_device = GetResourceManager()->GetGcVibrationDevice(parameters.vibration_device_handle);
+    }
+    if (gc_device != nullptr) {
+        result = gc_device->GetActualVibrationGcErmCommand(gc_erm_command);
+    }
+    if (result.IsError()) {
+        gc_erm_command = Core::HID::VibrationGcErmCommand::Stop;
+    }
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -1761,21 +1751,24 @@ void IHidServer::BeginPermitVibrationSession(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->GetNpad()->SetPermitVibrationSession(true);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->BeginPermitVibrationSession(
+            applet_resource_user_id);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::EndPermitVibrationSession(HLERequestContext& ctx) {
-    GetResourceManager()->GetNpad()->SetPermitVibrationSession(false);
-
     LOG_DEBUG(Service_HID, "called");
 
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->EndPermitVibrationSession();
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::IsVibrationDeviceMounted(HLERequestContext& ctx) {
@@ -1795,10 +1788,61 @@ void IHidServer::IsVibrationDeviceMounted(HLERequestContext& ctx) {
               parameters.vibration_device_handle.npad_id,
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
+    bool is_mounted{};
+    NpadVibrationBase* device{nullptr};
+    Result result = IsVibrationHandleValid(parameters.vibration_device_handle);
+
+    if (result.IsSuccess()) {
+        device = GetResourceManager()->GetVibrationDevice(parameters.vibration_device_handle);
+    }
+
+    if (device != nullptr) {
+        is_mounted = device->IsVibrationMounted();
+    }
+
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(GetResourceManager()->GetNpad()->IsVibrationDeviceMounted(
-        parameters.applet_resource_user_id, parameters.vibration_device_handle));
+    rb.Push(result);
+    rb.Push(is_mounted);
+}
+
+void IHidServer::SendVibrationValueInBool(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Core::HID::VibrationDeviceHandle vibration_device_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+        bool is_vibrating;
+    };
+    static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_DEBUG(Service_HID,
+              "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}, "
+              "is_vibrating={}",
+              parameters.vibration_device_handle.npad_type,
+              parameters.vibration_device_handle.npad_id,
+              parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id,
+              parameters.is_vibrating);
+
+    bool has_active_aruid{};
+    NpadN64VibrationDevice* n64_device{nullptr};
+    Result result = GetResourceManager()->IsVibrationAruidActive(parameters.applet_resource_user_id,
+                                                                 has_active_aruid);
+
+    if (result.IsSuccess() && has_active_aruid) {
+        result = IsVibrationHandleValid(parameters.vibration_device_handle);
+    }
+    if (result.IsSuccess() && has_active_aruid) {
+        n64_device =
+            GetResourceManager()->GetN64VibrationDevice(parameters.vibration_device_handle);
+    }
+    if (n64_device != nullptr) {
+        result = n64_device->SendValueInBool(parameters.is_vibrating);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void IHidServer::ActivateConsoleSixAxisSensor(HLERequestContext& ctx) {

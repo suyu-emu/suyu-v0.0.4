@@ -115,7 +115,7 @@ Result NpadAbstractIrSensorHandler::GetXcdHandleForNpadWithIrSensor(u64& handle)
     if (sensor_state < NpadIrSensorState::Available) {
         return ResultIrSensorIsNotReady;
     }
-    handle = xcd_handle;
+    // handle = xcd_handle;
     return ResultSuccess;
 }
 

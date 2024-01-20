@@ -12,6 +12,10 @@
 #include "hid_core/resources/npad/npad_types.h"
 #include "hid_core/resources/vibration/vibration_base.h"
 
+namespace Core::HID {
+enum class DeviceIndex : u8;
+}
+
 namespace Service::HID {
 class NpadVibration;
 
@@ -20,16 +24,20 @@ class NpadVibrationDevice final : public NpadVibrationBase {
 public:
     explicit NpadVibrationDevice();
 
-    Result IncrementRefCounter();
-    Result DecrementRefCounter();
+    Result Activate();
+    Result Deactivate();
+
+    Result Mount(IAbstractedPad& abstracted_pad, Core::HID::DeviceIndex index,
+                 NpadVibration* handler);
+    Result Unmount();
 
     Result SendVibrationValue(const Core::HID::VibrationValue& value);
     Result SendVibrationNotificationPattern(u32 pattern);
 
-    Result GetActualVibrationValue(Core::HID::VibrationValue& out_value);
+    Result GetActualVibrationValue(Core::HID::VibrationValue& out_value) const;
 
 private:
-    u32 device_index{};
+    Core::HID::DeviceIndex device_index{};
 };
 
 } // namespace Service::HID

@@ -8,6 +8,10 @@
 #include "common/common_types.h"
 #include "hid_core/hid_types.h"
 
+namespace Core::HID {
+class EmulatedController;
+}
+
 namespace Service::HID {
 static constexpr std::size_t MaxSupportedNpadIdTypes = 10;
 static constexpr std::size_t StyleIndexCount = 7;
@@ -348,7 +352,7 @@ struct IAbstractedPad {
     u8 indicator;
     std::vector<f32> virtual_six_axis_sensor_acceleration;
     std::vector<f32> virtual_six_axis_sensor_angle;
-    u64 xcd_handle;
+    Core::HID::EmulatedController* xcd_handle;
     u64 color;
 };
 } // namespace Service::HID
