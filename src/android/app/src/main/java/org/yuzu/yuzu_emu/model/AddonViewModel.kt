@@ -15,14 +15,17 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AddonViewModel : ViewModel() {
-    private val _addonList = MutableStateFlow(mutableListOf<Addon>())
-    val addonList get() = _addonList.asStateFlow()
+    private val _patchList = MutableStateFlow(mutableListOf<Patch>())
+    val addonList get() = _patchList.asStateFlow()
 
     private val _showModInstallPicker = MutableStateFlow(false)
     val showModInstallPicker get() = _showModInstallPicker.asStateFlow()
 
     private val _showModNoticeDialog = MutableStateFlow(false)
     val showModNoticeDialog get() = _showModNoticeDialog.asStateFlow()
+
+    private val _addonToDelete = MutableStateFlow<Patch?>(null)
+    val addonToDelete = _addonToDelete.asStateFlow()
 
     var game: Game? = null
 
@@ -40,36 +43,47 @@ class AddonViewModel : ViewModel() {
         isRefreshing.set(true)
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val addonList = mutableListOf<Addon>()
-                val disabledAddons = NativeConfig.getDisabledAddons(game!!.programId)
-                NativeLibrary.getAddonsForFile(game!!.path, game!!.programId)?.forEach {
-                    val name = it.first.replace("[D] ", "")
-                    addonList.add(Addon(!disabledAddons.contains(name), name, it.second))
-                }
-                addonList.sortBy { it.title }
-                _addonList.value = addonList
+                val patchList = (
+                    NativeLibrary.getPatchesForFile(game!!.path, game!!.programId)
+                        ?: emptyArray()
+                    ).toMutableList()
+                patchList.sortBy { it.name }
+                _patchList.value = patchList
                 isRefreshing.set(false)
             }
         }
     }
 
+    fun setAddonToDelete(patch: Patch?) {
+        _addonToDelete.value = patch
+    }
+
+    fun onDeleteAddon(patch: Patch) {
+        when (PatchType.from(patch.type)) {
+            PatchType.Update -> NativeLibrary.removeUpdate(patch.programId)
+            PatchType.DLC -> NativeLibrary.removeDLC(patch.programId)
+            PatchType.Mod -> NativeLibrary.removeMod(patch.programId, patch.name)
+        }
+        refreshAddons()
+    }
+
     fun onCloseAddons() {
-        if (_addonList.value.isEmpty()) {
+        if (_patchList.value.isEmpty()) {
             return
         }
 
         NativeConfig.setDisabledAddons(
             game!!.programId,
-            _addonList.value.mapNotNull {
+            _patchList.value.mapNotNull {
                 if (it.enabled) {
                     null
                 } else {
-                    it.title
+                    it.name
                 }
             }.toTypedArray()
         )
         NativeConfig.saveGlobalConfig()
-        _addonList.value.clear()
+        _patchList.value.clear()
         game = null
     }
 

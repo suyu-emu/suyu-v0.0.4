@@ -43,9 +43,26 @@ static jfieldID s_overlay_control_data_landscape_position_field;
 static jfieldID s_overlay_control_data_portrait_position_field;
 static jfieldID s_overlay_control_data_foldable_position_field;
 
+static jclass s_patch_class;
+static jmethodID s_patch_constructor;
+static jfieldID s_patch_enabled_field;
+static jfieldID s_patch_name_field;
+static jfieldID s_patch_version_field;
+static jfieldID s_patch_type_field;
+static jfieldID s_patch_program_id_field;
+static jfieldID s_patch_title_id_field;
+
 static jclass s_double_class;
 static jmethodID s_double_constructor;
 static jfieldID s_double_value_field;
+
+static jclass s_integer_class;
+static jmethodID s_integer_constructor;
+static jfieldID s_integer_value_field;
+
+static jclass s_boolean_class;
+static jmethodID s_boolean_constructor;
+static jfieldID s_boolean_value_field;
 
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
@@ -186,6 +203,38 @@ jfieldID GetOverlayControlDataFoldablePositionField() {
     return s_overlay_control_data_foldable_position_field;
 }
 
+jclass GetPatchClass() {
+    return s_patch_class;
+}
+
+jmethodID GetPatchConstructor() {
+    return s_patch_constructor;
+}
+
+jfieldID GetPatchEnabledField() {
+    return s_patch_enabled_field;
+}
+
+jfieldID GetPatchNameField() {
+    return s_patch_name_field;
+}
+
+jfieldID GetPatchVersionField() {
+    return s_patch_version_field;
+}
+
+jfieldID GetPatchTypeField() {
+    return s_patch_type_field;
+}
+
+jfieldID GetPatchProgramIdField() {
+    return s_patch_program_id_field;
+}
+
+jfieldID GetPatchTitleIdField() {
+    return s_patch_title_id_field;
+}
+
 jclass GetDoubleClass() {
     return s_double_class;
 }
@@ -196,6 +245,30 @@ jmethodID GetDoubleConstructor() {
 
 jfieldID GetDoubleValueField() {
     return s_double_value_field;
+}
+
+jclass GetIntegerClass() {
+    return s_integer_class;
+}
+
+jmethodID GetIntegerConstructor() {
+    return s_integer_constructor;
+}
+
+jfieldID GetIntegerValueField() {
+    return s_integer_value_field;
+}
+
+jclass GetBooleanClass() {
+    return s_boolean_class;
+}
+
+jmethodID GetBooleanConstructor() {
+    return s_boolean_constructor;
+}
+
+jfieldID GetBooleanValueField() {
+    return s_boolean_value_field;
 }
 
 } // namespace IDCache
@@ -278,11 +351,36 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         env->GetFieldID(overlay_control_data_class, "foldablePosition", "Lkotlin/Pair;");
     env->DeleteLocalRef(overlay_control_data_class);
 
+    const jclass patch_class = env->FindClass("org/yuzu/yuzu_emu/model/Patch");
+    s_patch_class = reinterpret_cast<jclass>(env->NewGlobalRef(patch_class));
+    s_patch_constructor = env->GetMethodID(
+        patch_class, "<init>",
+        "(ZLjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V");
+    s_patch_enabled_field = env->GetFieldID(patch_class, "enabled", "Z");
+    s_patch_name_field = env->GetFieldID(patch_class, "name", "Ljava/lang/String;");
+    s_patch_version_field = env->GetFieldID(patch_class, "version", "Ljava/lang/String;");
+    s_patch_type_field = env->GetFieldID(patch_class, "type", "I");
+    s_patch_program_id_field = env->GetFieldID(patch_class, "programId", "Ljava/lang/String;");
+    s_patch_title_id_field = env->GetFieldID(patch_class, "titleId", "Ljava/lang/String;");
+    env->DeleteLocalRef(patch_class);
+
     const jclass double_class = env->FindClass("java/lang/Double");
     s_double_class = reinterpret_cast<jclass>(env->NewGlobalRef(double_class));
     s_double_constructor = env->GetMethodID(double_class, "<init>", "(D)V");
     s_double_value_field = env->GetFieldID(double_class, "value", "D");
     env->DeleteLocalRef(double_class);
+
+    const jclass int_class = env->FindClass("java/lang/Integer");
+    s_integer_class = reinterpret_cast<jclass>(env->NewGlobalRef(int_class));
+    s_integer_constructor = env->GetMethodID(int_class, "<init>", "(I)V");
+    s_integer_value_field = env->GetFieldID(int_class, "value", "I");
+    env->DeleteLocalRef(int_class);
+
+    const jclass boolean_class = env->FindClass("java/lang/Boolean");
+    s_boolean_class = reinterpret_cast<jclass>(env->NewGlobalRef(boolean_class));
+    s_boolean_constructor = env->GetMethodID(boolean_class, "<init>", "(Z)V");
+    s_boolean_value_field = env->GetFieldID(boolean_class, "value", "Z");
+    env->DeleteLocalRef(boolean_class);
 
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
@@ -309,7 +407,10 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_string_class);
     env->DeleteGlobalRef(s_pair_class);
     env->DeleteGlobalRef(s_overlay_control_data_class);
+    env->DeleteGlobalRef(s_patch_class);
     env->DeleteGlobalRef(s_double_class);
+    env->DeleteGlobalRef(s_integer_class);
+    env->DeleteGlobalRef(s_boolean_class);
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);

@@ -7,7 +7,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
-import kotlinx.coroutines.flow.StateFlow
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
@@ -19,6 +18,7 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import org.yuzu.yuzu_emu.model.TaskState
 import java.io.BufferedOutputStream
+import java.io.OutputStream
 import java.lang.NullPointerException
 import java.nio.charset.StandardCharsets
 import java.util.zip.Deflater
@@ -283,12 +283,34 @@ object FileUtil {
 
     /**
      * Extracts the given zip file into the given directory.
+     * @param path String representation of a [Uri] or a typical path delimited by '/'
+     * @param destDir Location to unzip the contents of [path] into
+     * @param progressCallback Lambda that is called with the total number of files and the current
+     * progress through the process. Stops execution as soon as possible if this returns true.
      */
     @Throws(SecurityException::class)
-    fun unzipToInternalStorage(zipStream: BufferedInputStream, destDir: File) {
-        ZipInputStream(zipStream).use { zis ->
+    fun unzipToInternalStorage(
+        path: String,
+        destDir: File,
+        progressCallback: (max: Long, progress: Long) -> Boolean = { _, _ -> false }
+    ) {
+        var totalEntries = 0L
+        ZipInputStream(getInputStream(path)).use { zis ->
+            var tempEntry = zis.nextEntry
+            while (tempEntry != null) {
+                tempEntry = zis.nextEntry
+                totalEntries++
+            }
+        }
+
+        var progress = 0L
+        ZipInputStream(getInputStream(path)).use { zis ->
             var entry: ZipEntry? = zis.nextEntry
             while (entry != null) {
+                if (progressCallback.invoke(totalEntries, progress)) {
+                    return@use
+                }
+
                 val newFile = File(destDir, entry.name)
                 val destinationDirectory = if (entry.isDirectory) newFile else newFile.parentFile
 
@@ -304,6 +326,7 @@ object FileUtil {
                     newFile.outputStream().use { fos -> zis.copyTo(fos) }
                 }
                 entry = zis.nextEntry
+                progress++
             }
         }
     }
@@ -313,14 +336,15 @@ object FileUtil {
      * @param inputFile File representation of the item that will be zipped
      * @param rootDir Directory containing the inputFile
      * @param outputStream Stream where the zip file will be output
-     * @param cancelled [StateFlow] that reports whether this process has been cancelled
+     * @param progressCallback Lambda that is called with the total number of files and the current
+     * progress through the process. Stops execution as soon as possible if this returns true.
      * @param compression Disables compression if true
      */
     fun zipFromInternalStorage(
         inputFile: File,
         rootDir: String,
         outputStream: BufferedOutputStream,
-        cancelled: StateFlow<Boolean>? = null,
+        progressCallback: (max: Long, progress: Long) -> Boolean = { _, _ -> false },
         compression: Boolean = true
     ): TaskState {
         try {
@@ -330,8 +354,10 @@ object FileUtil {
                     zos.setLevel(Deflater.NO_COMPRESSION)
                 }
 
+                var count = 0L
+                val totalFiles = inputFile.walkTopDown().count().toLong()
                 inputFile.walkTopDown().forEach { file ->
-                    if (cancelled?.value == true) {
+                    if (progressCallback.invoke(totalFiles, count)) {
                         return TaskState.Cancelled
                     }
 
@@ -343,6 +369,7 @@ object FileUtil {
                         if (file.isFile) {
                             file.inputStream().use { fis -> fis.copyTo(zos) }
                         }
+                        count++
                     }
                 }
             }
@@ -356,9 +383,14 @@ object FileUtil {
     /**
      * Helper function that copies the contents of a DocumentFile folder into a [File]
      * @param file [File] representation of the folder to copy into
+     * @param progressCallback Lambda that is called with the total number of files and the current
+     * progress through the process. Stops execution as soon as possible if this returns true.
      * @throws IllegalStateException Fails when trying to copy a folder into a file and vice versa
      */
-    fun DocumentFile.copyFilesTo(file: File) {
+    fun DocumentFile.copyFilesTo(
+        file: File,
+        progressCallback: (max: Long, progress: Long) -> Boolean = { _, _ -> false }
+    ) {
         file.mkdirs()
         if (!this.isDirectory || !file.isDirectory) {
             throw IllegalStateException(
@@ -366,7 +398,13 @@ object FileUtil {
             )
         }
 
+        var count = 0L
+        val totalFiles = this.listFiles().size.toLong()
         this.listFiles().forEach {
+            if (progressCallback.invoke(totalFiles, count)) {
+                return
+            }
+
             val newFile = File(file, it.name!!)
             if (it.isDirectory) {
                 newFile.mkdirs()
@@ -381,6 +419,7 @@ object FileUtil {
                     newFile.outputStream().use { os -> bos.copyTo(os) }
                 }
             }
+            count++
         }
     }
 
@@ -427,6 +466,18 @@ object FileUtil {
         }
     }
 
+    fun getInputStream(path: String) = if (path.contains("content://")) {
+        Uri.parse(path).inputStream()
+    } else {
+        File(path).inputStream()
+    }
+
+    fun getOutputStream(path: String) = if (path.contains("content://")) {
+        Uri.parse(path).outputStream()
+    } else {
+        File(path).outputStream()
+    }
+
     @Throws(IOException::class)
     fun getStringFromFile(file: File): String =
         String(file.readBytes(), StandardCharsets.UTF_8)
@@ -434,4 +485,19 @@ object FileUtil {
     @Throws(IOException::class)
     fun getStringFromInputStream(stream: InputStream): String =
         String(stream.readBytes(), StandardCharsets.UTF_8)
+
+    fun DocumentFile.inputStream(): InputStream =
+        YuzuApplication.appContext.contentResolver.openInputStream(uri)!!
+
+    fun DocumentFile.outputStream(): OutputStream =
+        YuzuApplication.appContext.contentResolver.openOutputStream(uri)!!
+
+    fun Uri.inputStream(): InputStream =
+        YuzuApplication.appContext.contentResolver.openInputStream(this)!!
+
+    fun Uri.outputStream(): OutputStream =
+        YuzuApplication.appContext.contentResolver.openOutputStream(this)!!
+
+    fun Uri.asDocumentFile(): DocumentFile? =
+        DocumentFile.fromSingleUri(YuzuApplication.appContext, this)
 }

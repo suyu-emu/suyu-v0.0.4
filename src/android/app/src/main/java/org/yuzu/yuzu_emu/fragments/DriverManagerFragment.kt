@@ -173,11 +173,11 @@ class DriverManagerFragment : Fragment() {
                 return@registerForActivityResult
             }
 
-            IndeterminateProgressDialogFragment.newInstance(
+            ProgressDialogFragment.newInstance(
                 requireActivity(),
                 R.string.installing_driver,
                 false
-            ) {
+            ) { _, _ ->
                 val driverPath =
                     "${GpuDriverHelper.driverStoragePath}${FileUtil.getFilename(result)}"
                 val driverFile = File(driverPath)
@@ -213,6 +213,6 @@ class DriverManagerFragment : Fragment() {
                     }
                 }
                 return@newInstance Any()
-            }.show(childFragmentManager, IndeterminateProgressDialogFragment.TAG)
+            }.show(childFragmentManager, ProgressDialogFragment.TAG)
         }
 }

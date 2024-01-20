@@ -286,6 +286,7 @@
     <string name="custom">Custom</string>
     <string name="notice">Notice</string>
     <string name="import_complete">Import complete</string>
+    <string name="more_options">More options</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
@@ -348,6 +349,8 @@
     <string name="verifying_content">Verifying content…</string>
     <string name="content_install_notice">Content install notice</string>
     <string name="content_install_notice_description">The content that you selected does not match this game.\nInstall anyway?</string>
+    <string name="confirm_uninstall">Confirm uninstall</string>
+    <string name="confirm_uninstall_description">Are you sure you want to uninstall this addon?</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>

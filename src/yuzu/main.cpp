@@ -47,6 +47,7 @@
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/set/system_settings_server.h"
+#include "frontend_common/content_manager.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "yuzu/multiplayer/state.h"
@@ -2476,10 +2477,8 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
 }
 
 void GMainWindow::RemoveBaseContent(u64 program_id, InstalledEntryType type) {
-    const auto& fs_controller = system->GetFileSystemController();
-    const auto res = fs_controller.GetUserNANDContents()->RemoveExistingEntry(program_id) ||
-                     fs_controller.GetSDMCContents()->RemoveExistingEntry(program_id);
-
+    const auto res =
+        ContentManager::RemoveBaseContent(system->GetFileSystemController(), program_id);
     if (res) {
         QMessageBox::information(this, tr("Successfully Removed"),
                                  tr("Successfully removed the installed base game."));
@@ -2491,11 +2490,7 @@ void GMainWindow::RemoveBaseContent(u64 program_id, InstalledEntryType type) {
 }
 
 void GMainWindow::RemoveUpdateContent(u64 program_id, InstalledEntryType type) {
-    const auto update_id = program_id | 0x800;
-    const auto& fs_controller = system->GetFileSystemController();
-    const auto res = fs_controller.GetUserNANDContents()->RemoveExistingEntry(update_id) ||
-                     fs_controller.GetSDMCContents()->RemoveExistingEntry(update_id);
-
+    const auto res = ContentManager::RemoveUpdate(system->GetFileSystemController(), program_id);
     if (res) {
         QMessageBox::information(this, tr("Successfully Removed"),
                                  tr("Successfully removed the installed update."));
@@ -2506,22 +2501,7 @@ void GMainWindow::RemoveUpdateContent(u64 program_id, InstalledEntryType type) {
 }
 
 void GMainWindow::RemoveAddOnContent(u64 program_id, InstalledEntryType type) {
-    u32 count{};
-    const auto& fs_controller = system->GetFileSystemController();
-    const auto dlc_entries = system->GetContentProvider().ListEntriesFilter(
-        FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
-
-    for (const auto& entry : dlc_entries) {
-        if (FileSys::GetBaseTitleID(entry.title_id) == program_id) {
-            const auto res =
-                fs_controller.GetUserNANDContents()->RemoveExistingEntry(entry.title_id) ||
-                fs_controller.GetSDMCContents()->RemoveExistingEntry(entry.title_id);
-            if (res) {
-                ++count;
-            }
-        }
-    }
-
+    const size_t count = ContentManager::RemoveAllDLC(system.get(), program_id);
     if (count == 0) {
         QMessageBox::warning(this, GetGameListErrorRemoving(type),
                              tr("There are no DLC installed for this title."));
@@ -3290,12 +3270,21 @@ void GMainWindow::OnMenuInstallToNAND() {
         install_progress->setLabelText(
             tr("Installing file \"%1\"...").arg(QFileInfo(file).fileName()));
 
-        QFuture<InstallResult> future;
-        InstallResult result;
+        QFuture<ContentManager::InstallResult> future;
+        ContentManager::InstallResult result;
 
         if (file.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
-
-            future = QtConcurrent::run([this, &file] { return InstallNSP(file); });
+            const auto progress_callback = [this](size_t size, size_t progress) {
+                emit UpdateInstallProgress();
+                if (install_progress->wasCanceled()) {
+                    return true;
+                }
+                return false;
+            };
+            future = QtConcurrent::run([this, &file, progress_callback] {
+                return ContentManager::InstallNSP(system.get(), vfs.get(), file.toStdString(),
+                                                  progress_callback);
+            });
 
             while (!future.isFinished()) {
                 QCoreApplication::processEvents();
@@ -3311,16 +3300,16 @@ void GMainWindow::OnMenuInstallToNAND() {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         switch (result) {
-        case InstallResult::Success:
+        case ContentManager::InstallResult::Success:
             new_files.append(QFileInfo(file).fileName());
             break;
-        case InstallResult::Overwrite:
+        case ContentManager::InstallResult::Overwrite:
             overwritten_files.append(QFileInfo(file).fileName());
             break;
-        case InstallResult::Failure:
+        case ContentManager::InstallResult::Failure:
             failed_files.append(QFileInfo(file).fileName());
             break;
-        case InstallResult::BaseInstallAttempted:
+        case ContentManager::InstallResult::BaseInstallAttempted:
             failed_files.append(QFileInfo(file).fileName());
             detected_base_install = true;
             break;
@@ -3354,96 +3343,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     ui->action_Install_File_NAND->setEnabled(true);
 }
 
-InstallResult GMainWindow::InstallNSP(const QString& filename) {
-    const auto qt_raw_copy = [this](const FileSys::VirtualFile& src,
-                                    const FileSys::VirtualFile& dest, std::size_t block_size) {
-        if (src == nullptr || dest == nullptr) {
-            return false;
-        }
-        if (!dest->Resize(src->GetSize())) {
-            return false;
-        }
-
-        std::vector<u8> buffer(CopyBufferSize);
-
-        for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
-            if (install_progress->wasCanceled()) {
-                dest->Resize(0);
-                return false;
-            }
-
-            emit UpdateInstallProgress();
-
-            const auto read = src->Read(buffer.data(), buffer.size(), i);
-            dest->Write(buffer.data(), read, i);
-        }
-        return true;
-    };
-
-    std::shared_ptr<FileSys::NSP> nsp;
-    if (filename.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
-        nsp = std::make_shared<FileSys::NSP>(
-            vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-        if (nsp->IsExtractedType()) {
-            return InstallResult::Failure;
-        }
-    } else {
-        return InstallResult::Failure;
-    }
-
-    if (nsp->GetStatus() != Loader::ResultStatus::Success) {
-        return InstallResult::Failure;
-    }
-    const auto res = system->GetFileSystemController().GetUserNANDContents()->InstallEntry(
-        *nsp, true, qt_raw_copy);
-    switch (res) {
-    case FileSys::InstallResult::Success:
-        return InstallResult::Success;
-    case FileSys::InstallResult::OverwriteExisting:
-        return InstallResult::Overwrite;
-    case FileSys::InstallResult::ErrorBaseInstall:
-        return InstallResult::BaseInstallAttempted;
-    default:
-        return InstallResult::Failure;
-    }
-}
-
-InstallResult GMainWindow::InstallNCA(const QString& filename) {
-    const auto qt_raw_copy = [this](const FileSys::VirtualFile& src,
-                                    const FileSys::VirtualFile& dest, std::size_t block_size) {
-        if (src == nullptr || dest == nullptr) {
-            return false;
-        }
-        if (!dest->Resize(src->GetSize())) {
-            return false;
-        }
-
-        std::vector<u8> buffer(CopyBufferSize);
-
-        for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
-            if (install_progress->wasCanceled()) {
-                dest->Resize(0);
-                return false;
-            }
-
-            emit UpdateInstallProgress();
-
-            const auto read = src->Read(buffer.data(), buffer.size(), i);
-            dest->Write(buffer.data(), read, i);
-        }
-        return true;
-    };
-
-    const auto nca =
-        std::make_shared<FileSys::NCA>(vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-    const auto id = nca->GetStatus();
-
-    // Game updates necessary are missing base RomFS
-    if (id != Loader::ResultStatus::Success &&
-        id != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
-        return InstallResult::Failure;
-    }
-
+ContentManager::InstallResult GMainWindow::InstallNCA(const QString& filename) {
     const QStringList tt_options{tr("System Application"),
                                  tr("System Archive"),
                                  tr("System Application Update"),
@@ -3464,7 +3364,7 @@ InstallResult GMainWindow::InstallNCA(const QString& filename) {
     if (!ok || index == -1) {
         QMessageBox::warning(this, tr("Failed to Install"),
                              tr("The title type you selected for the NCA is invalid."));
-        return InstallResult::Failure;
+        return ContentManager::InstallResult::Failure;
     }
 
     // If index is equal to or past Game, add the jump in TitleType.
@@ -3478,15 +3378,15 @@ InstallResult GMainWindow::InstallNCA(const QString& filename) {
     auto* registered_cache = is_application ? fs_controller.GetUserNANDContents()
                                             : fs_controller.GetSystemNANDContents();
 
-    const auto res = registered_cache->InstallEntry(*nca, static_cast<FileSys::TitleType>(index),
-                                                    true, qt_raw_copy);
-    if (res == FileSys::InstallResult::Success) {
-        return InstallResult::Success;
-    } else if (res == FileSys::InstallResult::OverwriteExisting) {
-        return InstallResult::Overwrite;
-    } else {
-        return InstallResult::Failure;
-    }
+    const auto progress_callback = [this](size_t size, size_t progress) {
+        emit UpdateInstallProgress();
+        if (install_progress->wasCanceled()) {
+            return true;
+        }
+        return false;
+    };
+    return ContentManager::InstallNCA(vfs.get(), filename.toStdString(), registered_cache,
+                                      static_cast<FileSys::TitleType>(index), progress_callback);
 }
 
 void GMainWindow::OnMenuRecentFile() {

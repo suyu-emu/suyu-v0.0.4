@@ -6,27 +6,32 @@ package org.yuzu.yuzu_emu.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import org.yuzu.yuzu_emu.databinding.ListItemAddonBinding
-import org.yuzu.yuzu_emu.model.Addon
+import org.yuzu.yuzu_emu.model.Patch
+import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
-class AddonAdapter : AbstractDiffAdapter<Addon, AddonAdapter.AddonViewHolder>() {
+class AddonAdapter(val addonViewModel: AddonViewModel) :
+    AbstractDiffAdapter<Patch, AddonAdapter.AddonViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AddonViewHolder {
         ListItemAddonBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             .also { return AddonViewHolder(it) }
     }
 
     inner class AddonViewHolder(val binding: ListItemAddonBinding) :
-        AbstractViewHolder<Addon>(binding) {
-        override fun bind(model: Addon) {
+        AbstractViewHolder<Patch>(binding) {
+        override fun bind(model: Patch) {
             binding.root.setOnClickListener {
-                binding.addonSwitch.isChecked = !binding.addonSwitch.isChecked
+                binding.addonCheckbox.isChecked = !binding.addonCheckbox.isChecked
             }
-            binding.title.text = model.title
+            binding.title.text = model.name
             binding.version.text = model.version
-            binding.addonSwitch.setOnCheckedChangeListener { _, checked ->
+            binding.addonCheckbox.setOnCheckedChangeListener { _, checked ->
                 model.enabled = checked
             }
-            binding.addonSwitch.isChecked = model.enabled
+            binding.addonCheckbox.isChecked = model.enabled
+            binding.buttonDelete.setOnClickListener {
+                addonViewModel.setAddonToDelete(model)
+            }
         }
     }
 }
