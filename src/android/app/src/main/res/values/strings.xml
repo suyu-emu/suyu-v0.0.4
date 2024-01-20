@@ -287,6 +287,7 @@
     <string name="notice">Notice</string>
     <string name="import_complete">Import complete</string>
     <string name="more_options">More options</string>
+    <string name="use_global_setting">Use global setting</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
