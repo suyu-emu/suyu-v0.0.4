@@ -23,10 +23,12 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.TaskViewModel
 
-class IndeterminateProgressDialogFragment : DialogFragment() {
+class ProgressDialogFragment : DialogFragment() {
     private val taskViewModel: TaskViewModel by activityViewModels()
 
     private lateinit var binding: DialogProgressBarBinding
+
+    private val PROGRESS_BAR_RESOLUTION = 1000
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val titleId = requireArguments().getInt(TITLE)
@@ -61,6 +63,7 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.message.isSelected = true
         viewLifecycleOwner.lifecycleScope.apply {
             launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
@@ -97,6 +100,35 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
                     }
                 }
             }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    taskViewModel.progress.collect {
+                        if (it != 0.0) {
+                            binding.progressBar.apply {
+                                isIndeterminate = false
+                                progress = (
+                                    (it / taskViewModel.maxProgress.value) *
+                                        PROGRESS_BAR_RESOLUTION
+                                    ).toInt()
+                                min = 0
+                                max = PROGRESS_BAR_RESOLUTION
+                            }
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    taskViewModel.message.collect {
+                        if (it.isEmpty()) {
+                            binding.message.visibility = View.GONE
+                        } else {
+                            binding.message.visibility = View.VISIBLE
+                            binding.message.text = it
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -108,6 +140,7 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
         val negativeButton = alertDialog.getButton(Dialog.BUTTON_NEGATIVE)
         negativeButton.setOnClickListener {
             alertDialog.setTitle(getString(R.string.cancelling))
+            binding.progressBar.isIndeterminate = true
             taskViewModel.setCancelled(true)
         }
     }
@@ -122,9 +155,12 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
             activity: FragmentActivity,
             titleId: Int,
             cancellable: Boolean = false,
-            task: suspend () -> Any
-        ): IndeterminateProgressDialogFragment {
-            val dialog = IndeterminateProgressDialogFragment()
+            task: suspend (
+                progressCallback: (max: Long, progress: Long) -> Boolean,
+                messageCallback: (message: String) -> Unit
+            ) -> Any
+        ): ProgressDialogFragment {
+            val dialog = ProgressDialogFragment()
             val args = Bundle()
             ViewModelProvider(activity)[TaskViewModel::class.java].task = task
             args.putInt(TITLE, titleId)

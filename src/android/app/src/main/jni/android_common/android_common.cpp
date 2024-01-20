@@ -42,3 +42,19 @@ double GetJDouble(JNIEnv* env, jobject jdouble) {
 jobject ToJDouble(JNIEnv* env, double value) {
     return env->NewObject(IDCache::GetDoubleClass(), IDCache::GetDoubleConstructor(), value);
 }
+
+s32 GetJInteger(JNIEnv* env, jobject jinteger) {
+    return env->GetIntField(jinteger, IDCache::GetIntegerValueField());
+}
+
+jobject ToJInteger(JNIEnv* env, s32 value) {
+    return env->NewObject(IDCache::GetIntegerClass(), IDCache::GetIntegerConstructor(), value);
+}
+
+bool GetJBoolean(JNIEnv* env, jobject jboolean) {
+    return env->GetBooleanField(jboolean, IDCache::GetBooleanValueField());
+}
+
+jobject ToJBoolean(JNIEnv* env, bool value) {
+    return env->NewObject(IDCache::GetBooleanClass(), IDCache::GetBooleanConstructor(), value);
+}

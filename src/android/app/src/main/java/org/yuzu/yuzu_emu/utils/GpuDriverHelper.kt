@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.utils
 
 import android.net.Uri
 import android.os.Build
-import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -123,7 +122,7 @@ object GpuDriverHelper {
         // Unzip the driver.
         try {
             FileUtil.unzipToInternalStorage(
-                BufferedInputStream(copiedFile.inputStream()),
+                copiedFile.path,
                 File(driverInstallationPath!!)
             )
         } catch (e: SecurityException) {
@@ -156,7 +155,7 @@ object GpuDriverHelper {
         // Unzip the driver to the private installation directory
         try {
             FileUtil.unzipToInternalStorage(
-                BufferedInputStream(driver.inputStream()),
+                driver.path,
                 File(driverInstallationPath!!)
             )
         } catch (e: SecurityException) {

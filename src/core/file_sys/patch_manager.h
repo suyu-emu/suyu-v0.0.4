@@ -26,12 +26,22 @@ class ContentProvider;
 class NCA;
 class NACP;
 
+enum class PatchType { Update, DLC, Mod };
+
+struct Patch {
+    bool enabled;
+    std::string name;
+    std::string version;
+    PatchType type;
+    u64 program_id;
+    u64 title_id;
+};
+
 // A centralized class to manage patches to games.
 class PatchManager {
 public:
     using BuildID = std::array<u8, 0x20>;
     using Metadata = std::pair<std::unique_ptr<NACP>, VirtualFile>;
-    using PatchVersionNames = std::map<std::string, std::string, std::less<>>;
 
     explicit PatchManager(u64 title_id_,
                           const Service::FileSystem::FileSystemController& fs_controller_,
@@ -66,9 +76,8 @@ public:
                                          VirtualFile packed_update_raw = nullptr,
                                          bool apply_layeredfs = true) const;
 
-    // Returns a vector of pairs between patch names and patch versions.
-    // i.e. Update 3.2.2 will return {"Update", "3.2.2"}
-    [[nodiscard]] PatchVersionNames GetPatchVersionNames(VirtualFile update_raw = nullptr) const;
+    // Returns a vector of patches
+    [[nodiscard]] std::vector<Patch> GetPatches(VirtualFile update_raw = nullptr) const;
 
     // If the game update exists, returns the u32 version field in its Meta-type NCA. If that fails,
     // it will fallback to the Meta-type NCA of the base game. If that fails, the result will be

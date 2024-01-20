@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TaskViewModel : ViewModel() {
@@ -23,13 +24,28 @@ class TaskViewModel : ViewModel() {
     val cancelled: StateFlow<Boolean> get() = _cancelled
     private val _cancelled = MutableStateFlow(false)
 
-    lateinit var task: suspend () -> Any
+    private val _progress = MutableStateFlow(0.0)
+    val progress = _progress.asStateFlow()
+
+    private val _maxProgress = MutableStateFlow(0.0)
+    val maxProgress = _maxProgress.asStateFlow()
+
+    private val _message = MutableStateFlow("")
+    val message = _message.asStateFlow()
+
+    lateinit var task: suspend (
+        progressCallback: (max: Long, progress: Long) -> Boolean,
+        messageCallback: (message: String) -> Unit
+    ) -> Any
 
     fun clear() {
         _result.value = Any()
         _isComplete.value = false
         _isRunning.value = false
         _cancelled.value = false
+        _progress.value = 0.0
+        _maxProgress.value = 0.0
+        _message.value = ""
     }
 
     fun setCancelled(value: Boolean) {
@@ -43,7 +59,16 @@ class TaskViewModel : ViewModel() {
         _isRunning.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
-            val res = task()
+            val res = task(
+                { max, progress ->
+                    _maxProgress.value = max.toDouble()
+                    _progress.value = progress.toDouble()
+                    return@task cancelled.value
+                },
+                { message ->
+                    _message.value = message
+                }
+            )
             _result.value = res
             _isComplete.value = true
             _isRunning.value = false

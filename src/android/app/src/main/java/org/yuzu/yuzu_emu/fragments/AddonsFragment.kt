@@ -74,7 +74,7 @@ class AddonsFragment : Fragment() {
 
         binding.listAddons.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = AddonAdapter()
+            adapter = AddonAdapter(addonViewModel)
         }
 
         viewLifecycleOwner.lifecycleScope.apply {
@@ -106,6 +106,21 @@ class AddonsFragment : Fragment() {
                                 positiveAction = { addonViewModel.showModInstallPicker(true) }
                             ).show(parentFragmentManager, MessageDialogFragment.TAG)
                             addonViewModel.showModNoticeDialog(false)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    addonViewModel.addonToDelete.collect {
+                        if (it != null) {
+                            MessageDialogFragment.newInstance(
+                                requireActivity(),
+                                titleId = R.string.confirm_uninstall,
+                                descriptionId = R.string.confirm_uninstall_description,
+                                positiveAction = { addonViewModel.onDeleteAddon(it) }
+                            ).show(parentFragmentManager, MessageDialogFragment.TAG)
+                            addonViewModel.setAddonToDelete(null)
                         }
                     }
                 }
@@ -156,22 +171,22 @@ class AddonsFragment : Fragment() {
                 descriptionId = R.string.invalid_directory_description
             )
             if (isValid) {
-                IndeterminateProgressDialogFragment.newInstance(
+                ProgressDialogFragment.newInstance(
                     requireActivity(),
                     R.string.installing_game_content,
                     false
-                ) {
+                ) { progressCallback, _ ->
                     val parentDirectoryName = externalAddonDirectory.name
                     val internalAddonDirectory =
                         File(args.game.addonDir + parentDirectoryName)
                     try {
-                        externalAddonDirectory.copyFilesTo(internalAddonDirectory)
+                        externalAddonDirectory.copyFilesTo(internalAddonDirectory, progressCallback)
                     } catch (_: Exception) {
                         return@newInstance errorMessage
                     }
                     addonViewModel.refreshAddons()
                     return@newInstance getString(R.string.addon_installed_successfully)
-                }.show(parentFragmentManager, IndeterminateProgressDialogFragment.TAG)
+                }.show(parentFragmentManager, ProgressDialogFragment.TAG)
             } else {
                 errorMessage.show(parentFragmentManager, MessageDialogFragment.TAG)
             }

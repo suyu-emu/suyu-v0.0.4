@@ -43,8 +43,25 @@ jfieldID GetOverlayControlDataLandscapePositionField();
 jfieldID GetOverlayControlDataPortraitPositionField();
 jfieldID GetOverlayControlDataFoldablePositionField();
 
+jclass GetPatchClass();
+jmethodID GetPatchConstructor();
+jfieldID GetPatchEnabledField();
+jfieldID GetPatchNameField();
+jfieldID GetPatchVersionField();
+jfieldID GetPatchTypeField();
+jfieldID GetPatchProgramIdField();
+jfieldID GetPatchTitleIdField();
+
 jclass GetDoubleClass();
 jmethodID GetDoubleConstructor();
 jfieldID GetDoubleValueField();
+
+jclass GetIntegerClass();
+jmethodID GetIntegerConstructor();
+jfieldID GetIntegerValueField();
+
+jclass GetBooleanClass();
+jmethodID GetBooleanConstructor();
+jfieldID GetBooleanValueField();
 
 } // namespace IDCache

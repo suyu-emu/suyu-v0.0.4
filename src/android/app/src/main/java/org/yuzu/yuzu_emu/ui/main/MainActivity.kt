@@ -38,12 +38,13 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
-import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
+import org.yuzu.yuzu_emu.fragments.ProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
@@ -369,26 +370,23 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
             }
 
-            val inputZip = contentResolver.openInputStream(result)
-            if (inputZip == null) {
-                Toast.makeText(
-                    applicationContext,
-                    getString(R.string.fatal_error),
-                    Toast.LENGTH_LONG
-                ).show()
-                return@registerForActivityResult
-            }
-
             val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
 
             val firmwarePath =
                 File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
             val cacheFirmwareDir = File("${cacheDir.path}/registered/")
 
-            val task: () -> Any = {
+            ProgressDialogFragment.newInstance(
+                this,
+                R.string.firmware_installing
+            ) { progressCallback, _ ->
                 var messageToShow: Any
                 try {
-                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheFirmwareDir)
+                    FileUtil.unzipToInternalStorage(
+                        result.toString(),
+                        cacheFirmwareDir,
+                        progressCallback
+                    )
                     val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
@@ -404,18 +402,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         getString(R.string.save_file_imported_success)
                     }
                 } catch (e: Exception) {
+                    Log.error("[MainActivity] Firmware install failed - ${e.message}")
                     messageToShow = getString(R.string.fatal_error)
                 } finally {
                     cacheFirmwareDir.deleteRecursively()
                 }
                 messageToShow
-            }
-
-            IndeterminateProgressDialogFragment.newInstance(
-                this,
-                R.string.firmware_installing,
-                task = task
-            ).show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+            }.show(supportFragmentManager, ProgressDialogFragment.TAG)
         }
 
     val getAmiiboKey =
@@ -474,11 +467,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             return@registerForActivityResult
         }
 
-        IndeterminateProgressDialogFragment.newInstance(
+        ProgressDialogFragment.newInstance(
             this@MainActivity,
             R.string.verifying_content,
             false
-        ) {
+        ) { _, _ ->
             var updatesMatchProgram = true
             for (document in documents) {
                 val valid = NativeLibrary.doesUpdateMatchProgram(
@@ -501,44 +494,42 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     positiveAction = { homeViewModel.setContentToInstall(documents) }
                 )
             }
-        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
     }
 
     private fun installContent(documents: List<Uri>) {
-        IndeterminateProgressDialogFragment.newInstance(
+        ProgressDialogFragment.newInstance(
             this@MainActivity,
             R.string.installing_game_content
-        ) {
+        ) { progressCallback, messageCallback ->
             var installSuccess = 0
             var installOverwrite = 0
             var errorBaseGame = 0
-            var errorExtension = 0
-            var errorOther = 0
+            var error = 0
             documents.forEach {
+                messageCallback.invoke(FileUtil.getFilename(it))
                 when (
-                    NativeLibrary.installFileToNand(
-                        it.toString(),
-                        FileUtil.getExtension(it)
+                    InstallResult.from(
+                        NativeLibrary.installFileToNand(
+                            it.toString(),
+                            progressCallback
+                        )
                     )
                 ) {
-                    NativeLibrary.InstallFileToNandResult.Success -> {
+                    InstallResult.Success -> {
                         installSuccess += 1
                     }
 
-                    NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
+                    InstallResult.Overwrite -> {
                         installOverwrite += 1
                     }
 
-                    NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
+                    InstallResult.BaseInstallAttempted -> {
                         errorBaseGame += 1
                     }
 
-                    NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
-                        errorExtension += 1
-                    }
-
-                    else -> {
-                        errorOther += 1
+                    InstallResult.Failure -> {
+                        error += 1
                     }
                 }
             }
@@ -565,7 +556,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 )
                 installResult.append(separator)
             }
-            val errorTotal: Int = errorBaseGame + errorExtension + errorOther
+            val errorTotal: Int = errorBaseGame + error
             if (errorTotal > 0) {
                 installResult.append(separator)
                 installResult.append(
@@ -582,14 +573,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     )
                     installResult.append(separator)
                 }
-                if (errorExtension > 0) {
-                    installResult.append(separator)
-                    installResult.append(
-                        getString(R.string.install_game_content_failure_file_extension)
-                    )
-                    installResult.append(separator)
-                }
-                if (errorOther > 0) {
+                if (error > 0) {
                     installResult.append(
                         getString(R.string.install_game_content_failure_description)
                     )
@@ -608,7 +592,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     descriptionString = installResult.toString().trim()
                 )
             }
-        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
     }
 
     val exportUserData = registerForActivityResult(
@@ -618,16 +602,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             return@registerForActivityResult
         }
 
-        IndeterminateProgressDialogFragment.newInstance(
+        ProgressDialogFragment.newInstance(
             this,
             R.string.exporting_user_data,
             true
-        ) {
+        ) { progressCallback, _ ->
             val zipResult = FileUtil.zipFromInternalStorage(
                 File(DirectoryInitialization.userDirectory!!),
                 DirectoryInitialization.userDirectory!!,
                 BufferedOutputStream(contentResolver.openOutputStream(result)),
-                taskViewModel.cancelled,
+                progressCallback,
                 compression = false
             )
             return@newInstance when (zipResult) {
@@ -635,7 +619,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 TaskState.Failed -> R.string.export_failed
                 TaskState.Cancelled -> R.string.user_data_export_cancelled
             }
-        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
     }
 
     val importUserData =
@@ -644,10 +628,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
             }
 
-            IndeterminateProgressDialogFragment.newInstance(
+            ProgressDialogFragment.newInstance(
                 this,
                 R.string.importing_user_data
-            ) {
+            ) { progressCallback, _ ->
                 val checkStream =
                     ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
                 var isYuzuBackup = false
@@ -676,8 +660,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 // Copy archive to internal storage
                 try {
                     FileUtil.unzipToInternalStorage(
-                        BufferedInputStream(contentResolver.openInputStream(result)),
-                        File(DirectoryInitialization.userDirectory!!)
+                        result.toString(),
+                        File(DirectoryInitialization.userDirectory!!),
+                        progressCallback
                     )
                 } catch (e: Exception) {
                     return@newInstance MessageDialogFragment.newInstance(
@@ -694,6 +679,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 driverViewModel.reloadDriverData()
 
                 return@newInstance getString(R.string.user_data_import_success)
-            }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+            }.show(supportFragmentManager, ProgressDialogFragment.TAG)
         }
 }
