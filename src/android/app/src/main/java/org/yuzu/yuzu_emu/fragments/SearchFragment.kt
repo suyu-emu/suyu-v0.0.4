@@ -136,14 +136,14 @@ class SearchFragment : Fragment() {
                 baseList.filter {
                     val lastPlayedTime = preferences.getLong(it.keyLastPlayedTime, 0L)
                     lastPlayedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
-                }
+                }.sortedByDescending { preferences.getLong(it.keyLastPlayedTime, 0L) }
             }
 
             R.id.chip_recently_added -> {
                 baseList.filter {
                     val addedTime = preferences.getLong(it.keyAddedToLibraryTime, 0L)
                     addedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
-                }
+                }.sortedByDescending { preferences.getLong(it.keyAddedToLibraryTime, 0L) }
             }
 
             R.id.chip_homebrew -> baseList.filter { it.isHomebrew }
