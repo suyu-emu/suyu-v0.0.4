@@ -37,7 +37,7 @@ void OpenFileStream(FileStream& file_stream, const std::filesystem::path& path,
 template <typename FileStream, typename Path>
 void OpenFileStream(FileStream& file_stream, const Path& path, std::ios_base::openmode open_mode) {
     if constexpr (IsChar<typename Path::value_type>) {
-        file_stream.open(ToU8String(path), open_mode);
+        file_stream.open(std::filesystem::path{ToU8String(path)}, open_mode);
     } else {
         file_stream.open(std::filesystem::path{path}, open_mode);
     }
