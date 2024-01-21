@@ -34,6 +34,7 @@
     <string name="empty_gamelist">Es wurden keine Dateien gefunden oder es wurde noch kein Spielverzeichnis ausgewählt.</string>
     <string name="search_and_filter_games">Spiele suchen und filtern</string>
     <string name="select_games_folder">Spieleverzeichnis auswählen</string>
+    <string name="manage_game_folders">Spiele-Ordner verwalten</string>
     <string name="select_games_folder_description">Erlaubt yuzu die Spieleliste zu füllen</string>
     <string name="add_games_warning">Auswahl des Spieleverzeichnisses überspringen?</string>
     <string name="add_games_warning_description">Spiele werden in der Spieleliste nicht angezeigt, wenn kein Ordner ausgewählt ist.</string>
@@ -67,9 +68,11 @@
     <string name="invalid_keys_error">Ungültige Schlüssel</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Die ausgewählte Datei ist falsch oder beschädigt. Bitte kopieren Sie Ihre Schlüssel erneut.</string>
+    <string name="gpu_driver_manager">GPU-Treiber Verwaltung</string>
     <string name="install_gpu_driver">GPU-Treiber installieren</string>
     <string name="install_gpu_driver_description">Alternative Treiber für eventuell bessere Leistung oder Genauigkeit installieren</string>
     <string name="advanced_settings">Erweiterte Einstellungen</string>
+    <string name="advanced_settings_game">Erweiterte Einstellungen: %1$s</string>
     <string name="settings_description">Emulatoreinstellungen konfigurieren</string>
     <string name="search_recently_played">Kürzlich gespielt</string>
     <string name="search_recently_added">Kürzlich hinzugefügt</string>
@@ -83,7 +86,11 @@
     <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Dateimanagers.</string>
     <string name="manage_save_data">Speicherdaten verwalten</string>
     <string name="manage_save_data_description">Speicherdaten gefunden. Bitte wähle unten eine Option aus.</string>
+    <string name="import_save_warning">Speicherdaten importieren</string>
+    <string name="import_save_warning_description">Das überschreibt alle existierenden Speicherdaten für dieses Spiel mit der ausgewählten Datei. Wirklich fortfahren?</string>
     <string name="import_export_saves_description">Speicherdaten importieren oder exportieren</string>
+    <string name="save_files_importing">Importiere Speicherdaten...</string>
+    <string name="save_files_exporting">Exportiere Speicherdaten...</string>
     <string name="save_file_imported_success">Erfolgreich importiert</string>
     <string name="save_file_invalid_zip_structure">Ungültige Speicherverzeichnisstruktur</string>
     <string name="save_file_invalid_zip_structure_description">Der erste Unterordnername muss die Titel-ID des Spiels sein.</string>
@@ -98,8 +105,17 @@
     <string name="share_log_description">Debug-Logs an yuzu zur Untersuchung absenden</string>
     <string name="share_log_missing">Keine Log-Datei gefunden</string>
     <string name="install_game_content">Spiel installieren</string>
-    <string name="install_game_content_description">Spiel Update oder DLC installieren</string>
+    <string name="install_game_content_description">Spiel-Updates oder DLCs installieren</string>
+    <string name="installing_game_content">Installiere...</string>
+    <string name="install_game_content_failed_count">%1$d Installationsfehler</string>
+    <string name="install_game_content_success_install">%1$d erfolgreich installiert</string>
+    <string name="install_game_content_success_overwrite">%1$d erfolgreich überschrieben</string>
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
+    <string name="manage_yuzu_data">yuzu-Daten Verwalten</string>
+    <string name="share_save_file">Speicherdaten teilen</string>
+    <string name="game_folders">Spiele-Ordner</string>
+    <string name="add_game_folder">Spiele-Ordner hinzufügen</string>
+    <string name="applets_error_firmware">Firmware nicht installiert</string>
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia ist nicht real</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
@@ -110,6 +126,10 @@
     <string name="licenses_description">Projekte, die yuzu für Android möglich machen </string>
     <string name="build">Build</string>
     <string name="user_data">Nutzerdaten</string>
+    <string name="importing_user_data">Importiere Nutzerdaten...</string>
+    <string name="import_user_data">Nutzerdaten importieren</string>
+    <string name="user_data_export_success">Nutzerdaten erfolgreich exportiert</string>
+    <string name="user_data_import_success">Nutzerdaten erfolgreich importiert</string>
     <string name="user_data_export_cancelled">Export abgebrochen</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
@@ -137,7 +157,7 @@
     <string name="cpu_accuracy">CPU-Genauigkeit</string>
     <!-- System settings strings -->
     <string name="use_docked_mode">Gedockter Modus</string>
-    <string name="use_docked_mode_description">Der Docked Modus erhöht die Auflösung, verringert die aber die Leistung. Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die Leistung.</string>
+    <string name="use_docked_mode_description">Der Gedockte-Modus erhöht die Auflösung, verringert aber die Leistung. Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die Leistung.</string>
     <string name="emulated_region">Emulierte Region</string>
     <string name="emulated_language">Emulierte Sprache</string>
     <string name="select_rtc_date">RTC-Datum auswählen</string>
@@ -145,10 +165,12 @@
     <string name="use_custom_rtc">Benutzerdefinierte Echtzeituhr</string>
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Genauigkeitsstufe</string>
+    <string name="renderer_resolution">Auflösung (Mobil/Gedockt)</string>
     <string name="renderer_vsync">VSync-Modus</string>
     <string name="renderer_screen_layout">Orientierung</string>
     <string name="renderer_aspect_ratio">Seitenverhältnis</string>
     <string name="renderer_scaling_filter">Fensteranpassungsfilter</string>
+    <string name="renderer_anti_aliasing">Kantenglättung</string>
     <string name="renderer_force_max_clock">Maximale Taktfrequenz erzwingen (nur Adreno)</string>
     <string name="renderer_force_max_clock_description">Erzwingt den Betrieb der GPU mit der maximal möglichen Taktfrequenz (Temperaturbeschränkungen werden weiterhin angewendet).</string>
     <string name="renderer_asynchronous_shaders">Asynchrone Shader nutzen</string>
@@ -168,9 +190,12 @@
     <string name="error_saving">Fehler beim Speichern von %1$s.ini: %2$s</string>
     <string name="unimplemented_menu">Unimplementiertes Menü</string>
     <string name="loading">Lädt...</string>
+    <string name="shutting_down">Beendet...</string>
     <string name="reset_setting_confirmation">Möchtest du diese Einstellung auf den Standardwert zurücksetzen?</string>
     <string name="reset_to_default">Auf Standard zurücksetzen</string>
+    <string name="reset_to_default_description">Setzt alle erweiterten Einstellungen zurück</string>
     <string name="reset_all_settings">Alle Einstellungen zurücksetzen?</string>
+    <string name="reset_all_settings_description">Alle erweiterten Einstellungen werden auf ihren Standardwert zurückgesetzt. Dies kann nicht rückgängig gemacht werden.</string>
     <string name="settings_reset">Einstellungen zurückgesetzt</string>
     <string name="close">Schließen</string>
     <string name="learn_more">Mehr erfahren</string>
@@ -182,14 +207,20 @@
     <string name="export_failed">Export fehlgeschlagen</string>
     <string name="import_failed">Import fehlgeschlagen</string>
     <string name="cancelling">Abbrechen</string>
-
+    <string name="install">Installieren</string>
+    <string name="delete">Löschen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="export_success">Erfolgreich exportiert</string>
+    <string name="start">Start</string>
+    <string name="clear">Löschen</string>
+    <string name="custom">Benutzerdefiniert</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPU-Treiber auswählen</string>
     <string name="select_gpu_driver_title">Möchtest du deinen aktuellen GPU-Treiber ersetzen?</string>
     <string name="select_gpu_driver_install">Installieren</string>
     <string name="select_gpu_driver_default">Standard</string>
     <string name="select_gpu_driver_use_default">Standard GPU-Treiber wird verwendet</string>
-    <string name="select_gpu_driver_error">Ungültiger Treiber ausgewählt, Standard-Treiber wird verwendet!</string>
+    <string name="driver_already_installed">Treiber bereits installiert</string>
     <string name="system_gpu_driver">System GPU-Treiber</string>
     <string name="installing_driver">Treiber wird installiert...</string>
 
@@ -197,11 +228,37 @@
     <string name="preferences_settings">Einstellungen</string>
     <string name="preferences_general">Allgemein</string>
     <string name="preferences_system">System</string>
+    <string name="preferences_system_description">Gedockter Modus, Region, Sprache</string>
     <string name="preferences_graphics">Grafik</string>
+    <string name="preferences_graphics_description">Genauigkeitsstufe, Auflösung, Shader-Cache</string>
     <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Ausgabe-Engine, Lautstärke</string>
     <string name="preferences_theme">Theme und Farbe</string>
     <string name="preferences_debug">Debug</string>
-
+    <!-- Game properties -->
+    <string name="info">Info</string>
+    <string name="info_description">Programm-ID, Entwickler, Version</string>
+    <string name="per_game_settings">Spieleinstellungen</string>
+    <string name="per_game_settings_description">Einstellungen für dieses Spiel ändern</string>
+    <string name="path">Pfad</string>
+    <string name="program_id">Programm-ID</string>
+    <string name="developer">Entwickler</string>
+    <string name="version">Version</string>
+    <string name="copy_details">Details kopieren</string>
+    <string name="add_ons">Add-ons</string>
+    <string name="add_ons_description">Mods, Updates und DLC aktivieren oder deaktivieren</string>
+    <string name="clear_shader_cache">Shader-Cache löschen</string>
+    <string name="clear_shader_cache_description">Löscht alle für dieses Spiel erstellten Shader</string>
+    <string name="cleared_shaders_successfully">Shader erfolgreich gelöscht</string>
+    <string name="addons_game">Add-ons: %1$s</string>
+    <string name="save_data">Speicherdaten</string>
+    <string name="save_data_description">Importiert oder exportiert Speicherdaten für dieses Spiel</string>
+    <string name="delete_save_data">Speicherdaten löschen</string>
+    <string name="delete_save_data_description">Löscht alle Speicherdaten für dieses Spiel</string>
+    <string name="delete_save_data_warning_description">Das löscht unwiederbringlich alle Speicherdaten für dieses Spiel. Wirklich fortfahren?</string>
+    <string name="save_data_deleted_successfully">Speicherdaten erfolgreich gelöscht</string>
+    <string name="invalid_directory">Ungültiges Verzeichnis</string>
+    <string name="addon_installed_successfully">Add-on erfolgreich installiert</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Das ROM ist verschlüsselt</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Bitte stelle sicher dass die <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> Datei installiert ist, damit Spiele entschlüsselt werden können.]]></string>
@@ -220,7 +277,10 @@
     <string name="emulation_control_opacity">Transparenz</string>
     <string name="emulation_touch_overlay_reset">Overlay zurücksetzen</string>
     <string name="emulation_touch_overlay_edit">Overlay bearbeiten</string>
+    <string name="emulation_pause">Emulation pausieren</string>
+    <string name="emulation_unpause">Emulation fortsetzen</string>
     <string name="emulation_input_overlay">Overlay-Optionen</string>
+    <string name="touchscreen">Touchscreen</string>
 
     <string name="load_settings">Lade Einstellungen...</string>
 
@@ -248,6 +308,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
@@ -291,9 +352,10 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
-    <string name="screen_layout_portrait">Portrait</string>
+    <!-- Screen Layouts -->
     <string name="screen_layout_auto">Auto</string>
-
+    <string name="screen_layout_landscape">Horizontal</string>
+    <string name="screen_layout_portrait">Vertikal</string>
     <!-- Aspect Ratios -->
     <string name="ratio_default">Standard (16:9)</string>
     <string name="ratio_force_four_three">4:3 erzwingen</string>
@@ -318,22 +380,27 @@
     <string name="building_shaders">Shader werden erstellt</string>
 
     <!-- Theme options -->
-    <string name="change_app_theme">App-Thema ändern</string>
+    <string name="change_app_theme">Theme</string>
     <string name="theme_default">Standard</string>
     <string name="theme_material_you">Material You</string>
 
     <!-- Theme Modes -->
-    <string name="change_theme_mode">Themen-Modus ändern</string>
+    <string name="change_theme_mode">Design</string>
     <string name="theme_mode_follow_system">System folgen</string>
     <string name="theme_mode_light">Hell</string>
     <string name="theme_mode_dark">Dunkel</string>
 
-    <!-- Audio output engines -->
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Schwarze Hintergründe</string>
-    <string name="use_black_backgrounds_description">Bei Verwendung des dunklen Themes, schwarze Hintergründe verwenden.</string>
+    <string name="use_black_backgrounds_description">Bei Verwendung des dunklen Designs, schwarze Hintergründe verwenden.</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Bild im Bild</string>

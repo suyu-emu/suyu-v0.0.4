@@ -35,6 +35,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="empty_gamelist">Nem található fájl, vagy még nincs kiválasztva könyvtár.</string>
     <string name="search_and_filter_games">Játékok keresése és szűrése</string>
     <string name="select_games_folder">Játékmappa kiválasztása</string>
+    <string name="manage_game_folders">Játékmappák kezelése</string>
     <string name="add_games_warning">Kihagyod a játékok mappa kiválasztását?</string>
     <string name="add_games_warning_description">A játékok nem jelennek meg a Játékok listában, ha egy mappa nincs kijelölve.</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
@@ -68,6 +69,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="invalid_keys_error">Érvénytelen titkosítókulcsok</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">A kiválasztott fájl helytelen, vagy sérült. Állíts össze egy új kulcsot.</string>
+    <string name="gpu_driver_manager">GPU illesztőprogram-kezelő</string>
     <string name="install_gpu_driver">GPU illesztőprogram telepítése</string>
     <string name="install_gpu_driver_description">Alternatív illesztőprogramok telepítése az esetlegesen elérhető teljesítmény és pontosság érdekében</string>
     <string name="advanced_settings">Haladó beállítások</string>
@@ -84,7 +86,11 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="notification_no_directory_link_description">Kérjük, manuálisan keresd meg a felhasználói mappát a fájlkezelő oldalsó paneljével.</string>
     <string name="manage_save_data">Mentésadatok kezelése</string>
     <string name="manage_save_data_description">Mentés található. Kérjük, válassz egyet az alábbi opciók közül.</string>
+    <string name="import_save_warning">Mentési fájlok importálása</string>
+    <string name="import_save_warning_description">Ezzel felülírod a fájlban lévő mentett adatokat. Biztosan szeretnéd folytatni?</string>
     <string name="import_export_saves_description">Mentési fájlok importálás vagy exportálása</string>
+    <string name="save_files_importing">Mentési fájlok importálása...</string>
+    <string name="save_files_exporting">Mentési fájlok exportálása...</string>
     <string name="save_file_imported_success">Sikeresen importálva</string>
     <string name="save_file_invalid_zip_structure">Érvénytelen mentési könyvtárstruktúra</string>
     <string name="save_file_invalid_zip_structure_description">Az első almappa neve a játék azonosítója kell, hogy legyen.</string>
@@ -117,6 +123,38 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="manage_yuzu_data_description">Firmware, kulcsok, felhasználói adatok és egyebek importálása/exportálása</string>
     <string name="share_save_file">Mentési fájl megosztása</string>
     <string name="export_save_failed">A mentés exportálása sikertelen</string>
+    <string name="game_folders">Játékmappák</string>
+    <string name="deep_scan">Mély szkennelés</string>
+    <string name="add_game_folder">Játékmappa hozzáadása</string>
+    <string name="folder_already_added">Ez a mappa már hozzá lett adva!</string>
+    <string name="game_folder_properties">Játékmappa tulajdonságok</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">%dmentés importálása sikertelen</item>
+        <item quantity="other">%dmentés importálása sikertelen</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%dmentés sikeresen importálva</item>
+        <item quantity="other">%dmentés sikeresen importálva</item>
+    </plurals>
+    <string name="no_save_data_found">Nem található mentett adat</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">Applet indító</string>
+    <string name="applets_description">Rendszer appletek indítása a telepített firmware-rel</string>
+    <string name="applets_error_firmware">Firmware nincs telepítve</string>
+    <string name="applets_error_applet">Applet nem elérhető</string>
+    <string name="applets_error_description"><![CDATA[Kérjük, győződj meg róla, hogy a <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl és a <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> telepítve van, majd próbáld újra.]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Képernyőképek megtekintése a rendszer fényképnézegetőjével</string>
+    <string name="mii_edit_applet">Mii szerkesztés</string>
+    <string name="mii_edit_applet_description">Miik megtekintése és szerkesztése a rendszerszerkesztővel</string>
+    <string name="cabinet_applet">Kabinet</string>
+    <string name="cabinet_applet_description">Amiibon tárolt adatok szerkesztése és törlése</string>
+    <string name="cabinet_launcher">Kabinet indító</string>
+    <string name="cabinet_nickname_and_owner">Becenév és tulajdonos beállítások</string>
+    <string name="cabinet_game_data_eraser">Játékadat eltávolító</string>
+    <string name="cabinet_restorer">Helyreállító</string>
+    <string name="cabinet_formatter">Formázó</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia nem valódi</string>
@@ -158,6 +196,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="frame_limit_enable_description">Korlátozza az emuláció sebességét a normál sebesség adott százalékára.</string>
     <string name="frame_limit_slider">Sebességkorlát százaléka</string>
     <string name="frame_limit_slider_description">Az emuláció sebességét határozza meg. 100% a normál sebesség. A magasabb értékek növelik, az alacsonyabbak csökkentik a sebességkorlátot.</string>
+    <string name="cpu_backend">CPU backend</string>
     <string name="cpu_accuracy">CPU pontosság</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -188,7 +227,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
     <string name="use_disk_shader_cache">Lemez árnyékoló gyorsítótár</string>
     <string name="use_disk_shader_cache_description">Csökkenti az akadásokat azáltal, hogy helyileg tárolja és tölti be a generált árnyékolókat.</string>
-
+    <string name="anisotropic_filtering">Anizotropikus szűrés</string>
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="cpu_debug_mode">CPU hibakeresés</string>
@@ -196,9 +235,9 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikai hibakeresés</string>
-    <string name="renderer_debug_description">Lassú hibakeresési módba állítja a grafikus API-t .</string>
+    <string name="renderer_debug_description">Lassú hibakereső módba állítja a grafikus API-t .</string>
     <!-- Audio settings strings -->
-    <string name="audio_output_engine">Kimeneti rendszer</string>
+    <string name="audio_output_engine">Kimeneti motor</string>
     <string name="audio_volume">Hangerő</string>
     <string name="audio_volume_description">Hangkimenet hangerejének megadása</string>
 
@@ -212,6 +251,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="shutting_down">Leállítás...</string>
     <string name="reset_setting_confirmation">Szeretnéd visszaállítani a beállítások az alapértelmezett értékekre?</string>
     <string name="reset_to_default">Alaphelyzetbe állítás</string>
+    <string name="reset_to_default_description">Visszaállítja a haladó beállításokat</string>
     <string name="reset_all_settings">Alaphelyzetbe állítod a beállításokat?</string>
     <string name="reset_all_settings_description">Minden haladó beállítás vissza lesz állítva az alapértelmezett konfigurációra. Ez a művelet nem vonható vissza.</string>
     <string name="settings_reset">Beállítások alaphelyzetbe állítva</string>
@@ -219,12 +259,24 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="learn_more">Tudj meg többet</string>
     <string name="auto">Automatikus</string>
     <string name="submit">Küldés</string>
-    <string name="string_null">Nulla</string>
+    <string name="string_null">Null</string>
     <string name="string_import">Importálás</string>
     <string name="export">Exportálás</string>
     <string name="export_failed">Exportálás sikertelen</string>
     <string name="import_failed">Importálás sikertelen</string>
     <string name="cancelling">Megszakítás</string>
+    <string name="install">Telepítés</string>
+    <string name="delete">Törlés</string>
+    <string name="edit">Szerkesztés</string>
+    <string name="export_success">Sikeresen exportálva</string>
+    <string name="start">Start</string>
+    <string name="clear">Törlés</string>
+    <string name="global">Globális</string>
+    <string name="custom">Egyéni</string>
+    <string name="notice">Értesítés</string>
+    <string name="import_complete">Importálás befejezve</string>
+    <string name="more_options">További opciók</string>
+    <string name="use_global_setting">Globális beállítás használata</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Válassz GPU illesztőprogramot</string>
@@ -232,7 +284,8 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="select_gpu_driver_install">Telepítés</string>
     <string name="select_gpu_driver_default">Alapértelmezett</string>
     <string name="select_gpu_driver_use_default">Alapértelmezett GPU illesztőprogram használata</string>
-    <string name="select_gpu_driver_error">Érvénytelen driver kiválasztva, a rendszer alapértelmezett lesz használva!</string>
+    <string name="select_gpu_driver_error">Érvénytelen illesztőprogram kiválasztva</string>
+    <string name="driver_already_installed">Az illesztőprogram már telepítve van</string>
     <string name="system_gpu_driver">Rendszer GPU illesztőprogram</string>
     <string name="installing_driver">Illesztőprogram telepítése...</string>
 
@@ -240,10 +293,54 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="preferences_settings">Beállítások</string>
     <string name="preferences_general">Általános</string>
     <string name="preferences_system">Rendszer</string>
+    <string name="preferences_system_description">Dokkolt mód, régió, nyelv</string>
     <string name="preferences_graphics">Grafika</string>
+    <string name="preferences_graphics_description">Pontossági szint, felbontás, árnyékoló gyorsítótár</string>
     <string name="preferences_audio">Hang</string>
+    <string name="preferences_audio_description">Kimeneti motor, hangerő</string>
     <string name="preferences_theme">Téma és színek</string>
     <string name="preferences_debug">Hibakeresés</string>
+    <string name="preferences_debug_description">CPU/GPU hibakeresés, grafikus API, fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">Infó</string>
+    <string name="info_description">Program ID, fejlesztő, verzió</string>
+    <string name="per_game_settings">Játékonkénti beállítások</string>
+    <string name="per_game_settings_description">Játékspecifikus beállítások szerkesztése</string>
+    <string name="launch_options">Indítási konfiguráció</string>
+    <string name="path">Útvonal</string>
+    <string name="program_id">Program ID</string>
+    <string name="developer">Fejlesztő</string>
+    <string name="version">Verzió</string>
+    <string name="copy_details">Részletek másolása</string>
+    <string name="add_ons">Kiegészítők</string>
+    <string name="add_ons_description">Modok, frissítések és DLC váltása</string>
+    <string name="clear_shader_cache">Árnyékoló gyorsítótár ürítése</string>
+    <string name="clear_shader_cache_description">Eltávolítja a játék által létrehozott árnyékolókat.</string>
+    <string name="clear_shader_cache_warning_description">Az árnyékoló gyorsítótár regenerálódása során több akadozást fogsz tapasztalni.</string>
+    <string name="cleared_shaders_successfully">Árnyékolók sikeresen ürítve</string>
+    <string name="addons_game">Kiegészítők: %1$s</string>
+    <string name="save_data">Mentett adatok</string>
+    <string name="save_data_description">Játékspecifikus mentett adatok kezelése</string>
+    <string name="delete_save_data">Mentett adatok törlése</string>
+    <string name="delete_save_data_description">Eltávolítja az összes játékhoz tartozó mentett adatot.</string>
+    <string name="delete_save_data_warning_description">Ez helyreállíthatatlanul eltávolítja a játék összes mentett adatát. Biztosan szeretnéd folytatni?</string>
+    <string name="save_data_deleted_successfully">Mentett adatok sikeresen törölve</string>
+    <string name="select_content_type">Tartalom típusa</string>
+    <string name="updates_and_dlc">Frissítések és DLC</string>
+    <string name="mods_and_cheats">Modok és csalások</string>
+    <string name="addon_notice">Fontos kiegészítő értesítés</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">A modok és csalások telepítéséhez olyan mappát válassz, amely tartalmaz cheats/, romfs/ vagy exefs/ könyvtárat. Nem tudjuk garantálni, hogy ezek kompatibilisek lesznek a játékoddal, ezért légy óvatos!</string>
+    <string name="invalid_directory">Érvénytelen könyvtár</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">Kérjük, győződj meg róla, hogy a kiválasztott könyvtár tartalmazza a cheats/, romfs/ vagy exefs/ mappát, majd próbáld újra.</string>
+    <string name="addon_installed_successfully">Kiegészítő sikeresen telepítve</string>
+    <string name="verifying_content">Tartalom ellenőrzése...</string>
+    <string name="content_install_notice">Tartalom telepítési értesítés</string>
+    <string name="content_install_notice_description">A kiválasztott tartalom nem ehhez a játékhoz tartozik.\nÍgy is telepíted?</string>
+    <string name="confirm_uninstall">Eltávolítás megerősítése</string>
+    <string name="confirm_uninstall_description">Biztosan törölni szeretnéd ezt a kiegészítőt?</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM titkosítva</string>
@@ -270,6 +367,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="emulation_pause">Emuláció szünetelése</string>
     <string name="emulation_unpause">Emuláció folytatása</string>
     <string name="emulation_input_overlay">Átfedés beállításai</string>
+    <string name="touchscreen">Érintőképernyő</string>
 
     <string name="load_settings">Beállítások betöltése...</string>
 
@@ -301,6 +399,7 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Bájt</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
@@ -345,9 +444,11 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">Fekvő</string>
-    <string name="screen_layout_portrait">Álló</string>
     <string name="screen_layout_auto">Automatikus</string>
+    <string name="screen_layout_landscape">Fekvő</string>
+    <string name="screen_layout_reverse_landscape">Fekvő (fejjel lefelé)</string>
+    <string name="screen_layout_portrait">Álló</string>
+    <string name="screen_layout_reverse_portrait">Álló (fejjel lefelé)</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">Alapértelmezett (16:9)</string>
@@ -356,6 +457,8 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="ratio_force_sixteen_ten">16:10 kényszerítése</string>
     <string name="ratio_stretch">Ablakhoz nyújtás</string>
 
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dinamikus (lassú)</string>
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Pontos</string>
     <string name="cpu_accuracy_unsafe">Nem biztonságos</string>
@@ -382,7 +485,14 @@ Válaszd ki a(z) &lt;b>Games&lt;/b> mappát az alábbi gombbal.</string>
     <string name="theme_mode_dark">Sötét</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fekete háttér</string>

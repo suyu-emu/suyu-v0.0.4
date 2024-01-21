@@ -4,7 +4,7 @@
     <string name="app_disclaimer">Este software ejecuta juegos para la videoconsola Nintendo Switch. Los videojuegos o claves no vienen incluidos.&lt;br /&gt;&lt;br /&gt;Antes de empezar, por favor, localice el archivo <![CDATA[<b> prod.keys </b>]]>en el almacenamiento de su dispositivo..&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Saber más</a>]]></string>
     <string name="emulation_notification_channel_name">Emulación activa</string>
     <string name="emulation_notification_channel_description">Muestra una notificación persistente cuando la emulación está activa.</string>
-    <string name="emulation_notification_running">yuzu esta ejecutándose</string>
+    <string name="emulation_notification_running">yuzu está ejecutándose</string>
     <string name="notice_notification_channel_name">Avisos y errores</string>
     <string name="notice_notification_channel_description">Mostrar notificaciones cuándo algo vaya mal.</string>
     <string name="notification_permission_not_granted">¡Permisos de notificación no concedidos!</string>
@@ -34,6 +34,7 @@
     <string name="empty_gamelist">No se ha encontrado ningún archivo o aún no se ha seleccionado ningún directorio de juegos.</string>
     <string name="search_and_filter_games">Busca y filtra juegos</string>
     <string name="select_games_folder">Seleccionar carpeta de juegos</string>
+    <string name="manage_game_folders">Gestionar carpetas de juegos</string>
     <string name="select_games_folder_description">Permite que yuzu llene la lista de juegos</string>
     <string name="add_games_warning">¿Omitir la selección de la carpeta de juegos?</string>
     <string name="add_games_warning_description">No se mostrará ningún juego si no se ha seleccionado una carpeta de juegos.</string>
@@ -44,23 +45,23 @@
     <string name="install_prod_keys">Instalar prod.keys</string>
     <string name="install_prod_keys_description">Requerido para descifrar juegos</string>
     <string name="install_prod_keys_warning">¿Omitir agregar claves?</string>
-    <string name="install_prod_keys_warning_description">Se requieren claves válidas para emular juegos.  Solo las aplicaciones homebrew funcionarán si continúas.</string>
+    <string name="install_prod_keys_warning_description">Se requieren claves válidas para emular juegos. Solo las aplicaciones homebrew funcionarán si continúas.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notificaciones</string>
-    <string name="notifications_description">Otorgue el permiso de notificación con el botón de abajo.</string>
+    <string name="notifications_description">Otorga el permiso de notificación con el botón de abajo.</string>
     <string name="give_permission">Conceder permiso</string>
     <string name="notification_warning">¿Omitir conceder el permiso de notificación?</string>
     <string name="notification_warning_description">yuzu no podrá notificarte información importante.</string>
     <string name="permission_denied">Permiso denegado</string>
-    <string name="permission_denied_description">Negó este permiso demasiadas veces y ahora debe otorgarlo manualmente en la configuración del sistema.</string>
+    <string name="permission_denied_description">Se ha denegado este permiso demasiadas veces y ahora debes otorgarlo de forma manual en la configuración del sistema.</string>
     <string name="about">Acerca de</string>
     <string name="about_description">Versión, créditos y más</string>
     <string name="warning_help">Ayuda</string>
     <string name="warning_skip">Siguiente</string>
     <string name="warning_cancel">Cancelar</string>
-    <string name="install_amiibo_keys">Instalar clave de Amiiboo</string>
-    <string name="install_amiibo_keys_description">Necesario para usar Amiibo en el juego</string>
-    <string name="invalid_keys_file">Archivo de claves seleccionado inválido</string>
+    <string name="install_amiibo_keys">Instalar claves de Amiibo</string>
+    <string name="install_amiibo_keys_description">Necesario para usar Amiibos en el juego</string>
+    <string name="invalid_keys_file">Archivo de claves seleccionado no válido</string>
     <string name="install_keys_success">Claves instaladas correctamente</string>
     <string name="reading_keys_failure">Error al leer las claves de cifrado</string>
     <string name="install_prod_keys_failure_extension_description">Compruebe que el archivo de claves tenga una extensión .keys y pruebe otra vez.</string>
@@ -68,6 +69,7 @@
     <string name="invalid_keys_error">Claves de cifrado no válidas</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">El archivo seleccionado es incorrecto o está corrupto. Vuelva a redumpear sus claves.</string>
+    <string name="gpu_driver_manager">Explorador de drivers de GPU</string>
     <string name="install_gpu_driver">Instalar driver de GPU</string>
     <string name="install_gpu_driver_description">Instale drivers alternativos para obtener un rendimiento o una precisión potencialmente mejores</string>
     <string name="advanced_settings">Opciones avanzadas</string>
@@ -85,7 +87,11 @@
     <string name="notification_no_directory_link_description">Por favor, busque la carpeta user con el panel lateral del explorador de archivos de forma manual.</string>
     <string name="manage_save_data">Administrar datos de guardado</string>
     <string name="manage_save_data_description">Guardar los datos encontrados. Por favor, seleccione una opción de abajo.</string>
+    <string name="import_save_warning">Importar datos de guardado</string>
+    <string name="import_save_warning_description">Ésto sobreescribirá todos los datos de guardado existentes con el archivo proporcionado. ¿Está seguro de querer continuar?</string>
     <string name="import_export_saves_description">Importar o exportar archivos de guardado</string>
+    <string name="save_files_importing">Importando archivos de guardado...</string>
+    <string name="save_files_exporting">Exportando archivos de guardado...</string>
     <string name="save_file_imported_success">Importado correctamente</string>
     <string name="save_file_invalid_zip_structure">Estructura del directorio de guardado no válido</string>
     <string name="save_file_invalid_zip_structure_description">El nombre de la primera subcarpeta debe ser el Title ID del juego.</string>
@@ -95,7 +101,7 @@
     <string name="install_firmware_description">El firmware debe estar en un archivo ZIP y es necesario para ejecutar algunos juegos</string>
     <string name="firmware_installing">Instalando firmware</string>
     <string name="firmware_installed_success">Firmware instalado con éxito</string>
-    <string name="firmware_installed_failure">Falló la instalación de firmware</string>
+    <string name="firmware_installed_failure">Error en la instalación de firmware</string>
     <string name="firmware_installed_failure_description">Asegúrese de que los archivos nca del firmware estén en la raíz del zip e inténtelo de nuevo.</string>
     <string name="share_log">Compartir registros de depuración</string>
     <string name="share_log_description">Comparta el archivo de registro de yuzu para depurar problemas</string>
@@ -115,9 +121,43 @@
     <string name="custom_driver_not_supported">Drivers personalizados no soportados</string>
     <string name="custom_driver_not_supported_description">En estos momentos, la carga de drivers personalizados no está disponible para este dispositivo..\n¡Comprueba esta opción en el futuro para ver si ya está añadido el soporte a ese dispositivo!</string>
     <string name="manage_yuzu_data">Administrar datos de yuzu</string>
-    <string name="manage_yuzu_data_description">Importa/exporta el firmware, las keys, los datos de usuario, ¡y más!</string>
+    <string name="manage_yuzu_data_description">Importa/exporta el firmware, las claves, los datos de usuario, ¡y más!</string>
     <string name="share_save_file">Compartir archivo de guardado</string>
-    <string name="export_save_failed">La exportación del guardado falló</string>
+    <string name="export_save_failed">Error al exportar el archivo de guardado</string>
+    <string name="game_folders">Carpetas de juegos</string>
+    <string name="deep_scan">Escaneo recursivo </string>
+    <string name="add_game_folder">Añadir carpeta con juegos</string>
+    <string name="folder_already_added">¡Está carpeta ya se había añadido!</string>
+    <string name="game_folder_properties">Propiedades de la carpeta de juegos</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">No se ha podido importar %d archivo de guardado.</item>
+        <item quantity="many">No se han podido importar %d archivos de guardado.</item>
+        <item quantity="other">No se han podido importar %d archivos de guardado.</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%d archivo de guardado importado con éxito.</item>
+        <item quantity="many">%d archivos de guardado importados con éxito.</item>
+        <item quantity="other">%d archivos de guardado importados con éxito.</item>
+    </plurals>
+    <string name="no_save_data_found">No hay archivos de guardado</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">Ejecutador de applet</string>
+    <string name="applets_description">Ejecutar applets de sistema usando el firmware instalado</string>
+    <string name="applets_error_firmware">Firmware no instalado</string>
+    <string name="applets_error_applet">Applet no disponible</string>
+    <string name="applets_error_description"><![CDATA[Asegúrese de que el archivo<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> y el <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> estén instalados e inténtelo de nuevo.]]></string>
+    <string name="album_applet">Álbum</string>
+    <string name="album_applet_description">Ver las imágenes que están en la carpeta \"screenshots\" del usuario con el visor de fotos del sistema</string>
+    <string name="mii_edit_applet">Editor de Mii</string>
+    <string name="mii_edit_applet_description">Mira y edita Mii con el editor del sistema</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Edita y borra los datos guardado del amiibo</string>
+    <string name="cabinet_launcher">Ejecutador de Cabinet</string>
+    <string name="cabinet_nickname_and_owner">Configuración del apodo y propietario</string>
+    <string name="cabinet_game_data_eraser">Borrador de datos de juego</string>
+    <string name="cabinet_restorer">Restaurador</string>
+    <string name="cabinet_formatter">Formateador</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia no es real</string>
@@ -161,6 +201,7 @@
     <string name="frame_limit_enable_description">Limita la velocidad de emulación a un porcentaje específico de la velocidad normal.</string>
     <string name="frame_limit_slider">Limitar porcentaje de velocidad</string>
     <string name="frame_limit_slider_description">Especifica el porcentaje para limitar la velocidad de emulación. 100% es la velocidad normal. Valores más altos o bajos incrementarán o disminuirán el límite de velocidad.</string>
+    <string name="cpu_backend">Motor de CPU</string>
     <string name="cpu_accuracy">Precisión de CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -186,11 +227,13 @@
     <string name="renderer_force_max_clock">Forzar velocidad al máximo (solo Adreno)</string>
     <string name="renderer_force_max_clock_description">Fuerza a la GPU a ejecutarse a la velocidad máxima de reloj posible (se seguirán aplicando restricciones térmicas).</string>
     <string name="renderer_asynchronous_shaders">Usar shaders asíncronos</string>
-    <string name="renderer_asynchronous_shaders_description">Compila shaders de manera asíncrona, reduciendo los parones, pero puede introducir fallos.</string>
+    <string name="renderer_asynchronous_shaders_description">Compila shaders de manera asíncrona, reduce los parones pero puede introducir fallos.</string>
     <string name="renderer_reactive_flushing">Usar limpieza reactiva</string>
     <string name="renderer_reactive_flushing_description">Mejora la precisión de renderizado en algunos juegos, pero reduce el rendimiento.</string>
     <string name="use_disk_shader_cache">Caché de shaders en disco</string>
     <string name="use_disk_shader_cache_description">Reduce los parones almacenando y cargando shaders generados.</string>
+    <string name="anisotropic_filtering">Filtrado anisotrópico</string>
+    <string name="anisotropic_filtering_description">Mejora la calidad de las texturas al ser observadas desde ángulos oblicuos</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -217,6 +260,7 @@
     <string name="shutting_down">Saliendo...</string>
     <string name="reset_setting_confirmation">¿Desea restablecer esta configuración a su valor predeterminado?</string>
     <string name="reset_to_default">Restablecer a predeterminado</string>
+    <string name="reset_to_default_description">Reinicia todos los ajustes avanzados</string>
     <string name="reset_all_settings">¿Restablecer todas las configuraciones?</string>
     <string name="reset_all_settings_description">Todas las opciones avanzadas se restablecerán a su configuración predeterminada. Esta acción no se puede deshacer.</string>
     <string name="settings_reset">Reiniciar la configuracion</string>
@@ -230,14 +274,24 @@
     <string name="export_failed">La exportación falló</string>
     <string name="import_failed">La importación falló</string>
     <string name="cancelling">Cancelando</string>
-
+    <string name="install">Instalar</string>
+    <string name="delete">Borrar</string>
+    <string name="edit">Editar</string>
+    <string name="export_success">Exportado correctamente</string>
+    <string name="start">Comenzar</string>
+    <string name="clear">Limpiar</string>
+    <string name="global">Global</string>
+    <string name="custom">Perzonalizado</string>
+    <string name="notice">Aviso</string>
+    <string name="import_complete">La importación se completó</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Seleccionar driver GPU</string>
     <string name="select_gpu_driver_title">¿Quiere reemplazar el driver de GPU actual?</string>
     <string name="select_gpu_driver_install">Instalar</string>
     <string name="select_gpu_driver_default">Predeterminado</string>
     <string name="select_gpu_driver_use_default">Usando el driver de GPU por defecto </string>
-    <string name="select_gpu_driver_error">¡Driver no válido, utilizando el predeterminado del sistema!</string>
+    <string name="select_gpu_driver_error">Driver no válido seleccionado</string>
+    <string name="driver_already_installed">Driver ya instalado</string>
     <string name="system_gpu_driver">Driver GPU del sistema</string>
     <string name="installing_driver">Instalando driver...</string>
 
@@ -245,11 +299,52 @@
     <string name="preferences_settings">Ajustes</string>
     <string name="preferences_general">General</string>
     <string name="preferences_system">Sistema</string>
+    <string name="preferences_system_description">Modo en Dock, región, idioma</string>
     <string name="preferences_graphics">Gráficos</string>
+    <string name="preferences_graphics_description">Nivel de precisión, resolución, caché de shaders</string>
     <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Motor de salida, volumen</string>
     <string name="preferences_theme">Tema y color</string>
     <string name="preferences_debug">Depuración</string>
+    <string name="preferences_debug_description">CPU/GPU debug, API gráfica, fastMEM</string>
 
+    <!-- Game properties -->
+    <string name="info">Información</string>
+    <string name="info_description">ID de programa, desarrollador, versión</string>
+    <string name="per_game_settings">Configuración por juego</string>
+    <string name="per_game_settings_description">Editar opciones específicas para este juego</string>
+    <string name="launch_options">Ejecutar configuración</string>
+    <string name="path">Ruta</string>
+    <string name="program_id">ID de programa</string>
+    <string name="developer">Desarrollador</string>
+    <string name="version">Versión</string>
+    <string name="copy_details">Copiar detalles</string>
+    <string name="add_ons">Extras/Add-ons</string>
+    <string name="add_ons_description">Activa/desactiva mods, actualizaciones y DLC</string>
+    <string name="clear_shader_cache">Limpiar la caché de shaders</string>
+    <string name="clear_shader_cache_description">Elimina todos los shaders construidos mientras se jugaba al juego</string>
+    <string name="clear_shader_cache_warning_description">Experimentarás más parones mientras que la caché de shaders se regenera</string>
+    <string name="cleared_shaders_successfully">Shaders limpiados con éxito</string>
+    <string name="addons_game">Addons: %1$s</string>
+    <string name="save_data">Datos de guardado</string>
+    <string name="save_data_description">Controla los datos de guardado de este juego</string>
+    <string name="delete_save_data">Borrar datos de guardado</string>
+    <string name="delete_save_data_description">Elimina todos los datos de guardado de este juego</string>
+    <string name="delete_save_data_warning_description">Ésto elimina de manera permanente todos los datos de guardado de este juego. ¿Seguro que quieres continuar?</string>
+    <string name="save_data_deleted_successfully">Datos de guardado eliminados con éxito</string>
+    <string name="select_content_type">Tipo de contenido</string>
+    <string name="updates_and_dlc">Actualizaciones y DLC</string>
+    <string name="mods_and_cheats">Mods y trucos</string>
+    <string name="addon_notice">Aviso importante de addons</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">Para instalar mods y trucos, debes seleccionar una carpeta que contiene los directorios cheats/, romfs/, o exefs/ . ¡No podemos confirmar si éstos serán compatibles con tu juego, así que ten cuidado!</string>
+    <string name="invalid_directory">Directorio no válido</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">Por favor, asegúrese de que el directorio que ha selecionado incluye las carpetas cheats/, romfs/, o exefs/ e inténtelo de nuevo.</string>
+    <string name="addon_installed_successfully">Addon instalado con éxito</string>
+    <string name="verifying_content">Verificando contenido...</string>
+    <string name="content_install_notice">Aviso importante de contenido</string>
+    <string name="content_install_notice_description">El contenido seleccionado no es de este juego.\n¿Instalar de todas maneras?</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Su ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Por favor, siga las guías para redumpear<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">cartuchos de juegos</a> o <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">títulos instalados</a>.]]></string>
@@ -277,6 +372,7 @@
     <string name="emulation_pause">Pausar emulación</string>
     <string name="emulation_unpause">Despausar emulación</string>
     <string name="emulation_input_overlay">Opciones de overlay</string>
+    <string name="touchscreen">Pantalla táctil</string>
 
     <string name="load_settings">Cargando configuración...</string>
 
@@ -308,6 +404,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
@@ -352,9 +449,13 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">Paisaje</string>
-    <string name="screen_layout_portrait">Retrato</string>
     <string name="screen_layout_auto">Auto</string>
+    <string name="screen_layout_sensor_landscape">Sensor paisaje</string>
+    <string name="screen_layout_landscape">Paisaje</string>
+    <string name="screen_layout_reverse_landscape">Paisaje inverso</string>
+    <string name="screen_layout_sensor_portrait">Sensor retrato</string>
+    <string name="screen_layout_portrait">Retrato</string>
+    <string name="screen_layout_reverse_portrait">Retrato inverso</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">Predeterminado (16:9)</string>
@@ -362,6 +463,10 @@
     <string name="ratio_force_twenty_one_nine">Forzar 21:9</string>
     <string name="ratio_force_sixteen_ten">Forzar 16:10</string>
     <string name="ratio_stretch">Ajustar a la ventana</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">DynARMic (lento)</string>
+    <string name="cpu_backend_nce">Ejecución nativa de código (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Preciso</string>
@@ -391,7 +496,14 @@
     <string name="theme_mode_dark">Oscuro</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">x2</string>
+    <string name="multiplier_four">x4</string>
+    <string name="multiplier_eight">x8</string>
+    <string name="multiplier_sixteen">x16</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Fondos oscuros</string>

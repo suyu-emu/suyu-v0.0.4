@@ -157,7 +157,6 @@
     <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác kết xuất trong một số game nhưng đồng thời giảm hiệu suất.</string>
     <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
     <string name="use_disk_shader_cache_description">Giảm tình trạng giật lag bằng cách lưu trữ và tải các shader được tạo ra nội bộ.</string>
-
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="renderer_api">API</string>
@@ -184,13 +183,17 @@
     <string name="string_null">Null</string>
     <string name="string_import">Nhập</string>
     <string name="export">Xuất</string>
+    <string name="install">Cài đặt</string>
+    <string name="delete">Xoá</string>
+    <string name="start">Bắt đầu</string>
+    <string name="clear">Xóa</string>
+    <string name="custom">Tùy chỉnh</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Chọn driver GPU</string>
     <string name="select_gpu_driver_title">Bạn có muốn thay thế driver GPU hiện tại không?</string>
     <string name="select_gpu_driver_install">Cài đặt</string>
     <string name="select_gpu_driver_default">Mặc định</string>
     <string name="select_gpu_driver_use_default">Dùng driver GPU mặc định</string>
-    <string name="select_gpu_driver_error">Driver không hợp lệ đã được chọn, dùng mặc định hệ thống!</string>
     <string name="system_gpu_driver">Driver GPU hệ thống</string>
     <string name="installing_driver">Đang cài đặt driver...</string>
 
@@ -202,7 +205,12 @@
     <string name="preferences_audio">Âm thanh</string>
     <string name="preferences_theme">Chủ đề và màu sắc</string>
     <string name="preferences_debug">Gỡ lỗi</string>
-
+    <!-- Game properties -->
+    <string name="info">Thông tin</string>
+    <string name="path">Đường dẫn</string>
+    <string name="developer">Nhà phát triển</string>
+    <string name="version">Phiên bản</string>
+    <string name="add_ons">Add-ons</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM của bạn đã bị mã hoá</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vui lòng đảm bảo tệp <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> đã được cài đặt để các game có thể được giải mã.]]></string>
@@ -229,6 +237,7 @@
     <string name="emulation_pause">Tạm đừng giả lập</string>
     <string name="emulation_unpause">Tiếp tục giả lập</string>
     <string name="emulation_input_overlay">Tuỳ chọn lớp phủ</string>
+    <string name="touchscreen">Màn hình cảm ứng</string>
 
     <string name="load_settings">Đang tải cài đặt...</string>
 
@@ -254,6 +263,7 @@
     <string name="region_korea">Hàn Quốc</string>
     <string name="region_taiwan">Đài Loan</string>
 
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -291,8 +301,8 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
     <string name="screen_layout_auto">Tự động</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">Mặc định (16:9)</string>
     <string name="ratio_force_four_three">Dùng 4:3</string>
@@ -326,6 +336,12 @@
     <string name="theme_mode_follow_system">Theo hệ thống</string>
     <string name="theme_mode_light">Sáng</string>
     <string name="theme_mode_dark">Tối</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Nền đen</string>
