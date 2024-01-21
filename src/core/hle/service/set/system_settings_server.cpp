@@ -1038,6 +1038,11 @@ void ISystemSettingsServer::SetBluetoothEnableFlag(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetMiiAuthorId(HLERequestContext& ctx) {
+    if (m_system_settings.mii_author_id.IsInvalid()) {
+        m_system_settings.mii_author_id = Common::UUID::MakeDefault();
+        SetSaveNeeded();
+    }
+
     LOG_INFO(Service_SET, "called, author_id={}",
              m_system_settings.mii_author_id.FormattedString());
 
