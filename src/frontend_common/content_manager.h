@@ -11,10 +11,12 @@
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
+#include "core/loader/nca.h"
 
 namespace ContentManager {
 
@@ -23,6 +25,12 @@ enum class InstallResult {
     Overwrite,
     Failure,
     BaseInstallAttempted,
+};
+
+enum class GameVerificationResult {
+    Success,
+    Failed,
+    NotImplemented,
 };
 
 /**
@@ -121,7 +129,7 @@ inline bool RemoveMod(const Service::FileSystem::FileSystemController& fs_contro
  * \param filename Path to the NSP file
  * \param callback Optional callback to report the progress of the installation. The first size_t
  * parameter is the total size of the virtual file and the second is the current progress. If you
- * return false to the callback, it will cancel the installation as soon as possible.
+ * return true to the callback, it will cancel the installation as soon as possible.
  * \return [InstallResult] representing how the installation finished
  */
 inline InstallResult InstallNSP(
@@ -186,7 +194,7 @@ inline InstallResult InstallNSP(
  * \param title_type Type of NCA package to install
  * \param callback Optional callback to report the progress of the installation. The first size_t
  * parameter is the total size of the virtual file and the second is the current progress. If you
- * return false to the callback, it will cancel the installation as soon as possible.
+ * return true to the callback, it will cancel the installation as soon as possible.
  * \return [InstallResult] representing how the installation finished
  */
 inline InstallResult InstallNCA(
@@ -233,6 +241,131 @@ inline InstallResult InstallNCA(
     } else {
         return InstallResult::Failure;
     }
+}
+
+/**
+ * \brief Verifies the installed contents for a given ManualContentProvider
+ * \param system Raw pointer to the system instance
+ * \param provider Raw pointer to the content provider that's tracking indexed games
+ * \param callback Optional callback to report the progress of the installation. The first size_t
+ * parameter is the total size of the installed contents and the second is the current progress. If
+ * you return true to the callback, it will cancel the installation as soon as possible.
+ * \return A list of entries that failed to install. Returns an empty vector if successful.
+ */
+inline std::vector<std::string> VerifyInstalledContents(
+    Core::System* system, FileSys::ManualContentProvider* provider,
+    const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
+    // Get content registries.
+    auto bis_contents = system->GetFileSystemController().GetSystemNANDContents();
+    auto user_contents = system->GetFileSystemController().GetUserNANDContents();
+
+    std::vector<FileSys::RegisteredCache*> content_providers;
+    if (bis_contents) {
+        content_providers.push_back(bis_contents);
+    }
+    if (user_contents) {
+        content_providers.push_back(user_contents);
+    }
+
+    // Get associated NCA files.
+    std::vector<FileSys::VirtualFile> nca_files;
+
+    // Get all installed IDs.
+    size_t total_size = 0;
+    for (auto nca_provider : content_providers) {
+        const auto entries = nca_provider->ListEntriesFilter();
+
+        for (const auto& entry : entries) {
+            auto nca_file = nca_provider->GetEntryRaw(entry.title_id, entry.type);
+            if (!nca_file) {
+                continue;
+            }
+
+            total_size += nca_file->GetSize();
+            nca_files.push_back(std::move(nca_file));
+        }
+    }
+
+    // Declare a list of file names which failed to verify.
+    std::vector<std::string> failed;
+
+    size_t processed_size = 0;
+    bool cancelled = false;
+    auto nca_callback = [&](size_t nca_processed, size_t nca_total) {
+        cancelled = callback(total_size, processed_size + nca_processed);
+        return !cancelled;
+    };
+
+    // Using the NCA loader, determine if all NCAs are valid.
+    for (auto& nca_file : nca_files) {
+        Loader::AppLoader_NCA nca_loader(nca_file);
+
+        auto status = nca_loader.VerifyIntegrity(nca_callback);
+        if (cancelled) {
+            break;
+        }
+        if (status != Loader::ResultStatus::Success) {
+            FileSys::NCA nca(nca_file);
+            const auto title_id = nca.GetTitleId();
+            std::string title_name = "unknown";
+
+            const auto control = provider->GetEntry(FileSys::GetBaseTitleID(title_id),
+                                                    FileSys::ContentRecordType::Control);
+            if (control && control->GetStatus() == Loader::ResultStatus::Success) {
+                const FileSys::PatchManager pm{title_id, system->GetFileSystemController(),
+                                               *provider};
+                const auto [nacp, logo] = pm.ParseControlNCA(*control);
+                if (nacp) {
+                    title_name = nacp->GetApplicationName();
+                }
+            }
+
+            if (title_id > 0) {
+                failed.push_back(
+                    fmt::format("{} ({:016X}) ({})", nca_file->GetName(), title_id, title_name));
+            } else {
+                failed.push_back(fmt::format("{} (unknown)", nca_file->GetName()));
+            }
+        }
+
+        processed_size += nca_file->GetSize();
+    }
+    return failed;
+}
+
+/**
+ * \brief Verifies the contents of a given game
+ * \param system Raw pointer to the system instance
+ * \param game_path Patch to the game file
+ * \param callback Optional callback to report the progress of the installation. The first size_t
+ * parameter is the total size of the installed contents and the second is the current progress. If
+ * you return true to the callback, it will cancel the installation as soon as possible.
+ * \return GameVerificationResult representing how the verification process finished
+ */
+inline GameVerificationResult VerifyGameContents(
+    Core::System* system, const std::string& game_path,
+    const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
+    const auto loader = Loader::GetLoader(
+        *system, system->GetFilesystem()->OpenFile(game_path, FileSys::Mode::Read));
+    if (loader == nullptr) {
+        return GameVerificationResult::NotImplemented;
+    }
+
+    bool cancelled = false;
+    auto loader_callback = [&](size_t processed, size_t total) {
+        cancelled = callback(total, processed);
+        return !cancelled;
+    };
+
+    const auto status = loader->VerifyIntegrity(loader_callback);
+    if (cancelled || status == Loader::ResultStatus::ErrorIntegrityVerificationNotImplemented) {
+        return GameVerificationResult::NotImplemented;
+    }
+
+    if (status == Loader::ResultStatus::ErrorIntegrityVerificationFailed) {
+        return GameVerificationResult::Failed;
+    }
+    return GameVerificationResult::Success;
 }
 
 } // namespace ContentManager
