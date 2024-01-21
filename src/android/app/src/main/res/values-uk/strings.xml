@@ -143,13 +143,16 @@
     <string name="string_null">Null</string>
     <string name="string_import">Імпорт</string>
     <string name="export">Експорт</string>
+    <string name="install">Встановити</string>
+    <string name="delete">Видалити</string>
+    <string name="start">Start</string>
+    <string name="clear">Очистити</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Вибрати драйвер ГП</string>
     <string name="select_gpu_driver_title">Хочете замінити поточний драйвер ГП?</string>
     <string name="select_gpu_driver_install">Встановити</string>
     <string name="select_gpu_driver_default">За замовчуванням</string>
     <string name="select_gpu_driver_use_default">Використовується стандартний драйвер ГП</string>
-    <string name="select_gpu_driver_error">Обрано неправильний драйвер, використовується стандартний системний!</string>
     <string name="system_gpu_driver">Системний драйвер ГП</string>
     <string name="installing_driver">Встановлення драйвера...</string>
 
@@ -161,7 +164,12 @@
     <string name="preferences_audio">Аудіо</string>
     <string name="preferences_theme">Тема і колір</string>
     <string name="preferences_debug">Налагодження</string>
-
+    <!-- Game properties -->
+    <string name="info">Інформація</string>
+    <string name="path">Шлях</string>
+    <string name="developer">Розробник</string>
+    <string name="version">Версія</string>
+    <string name="add_ons">Доповнення</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
@@ -173,6 +181,8 @@
     <string name="emulation_done">Готово</string>
     <string name="emulation_control_scale">Масштаб</string>
     <string name="emulation_control_opacity">Непрозорість</string>
+    <string name="touchscreen">Сенсорний екран</string>
+
     <!-- Errors and warnings -->
     <string name="abort_button">Перервати</string>
     <string name="continue_button">Продовжити</string>
@@ -192,6 +202,7 @@
     <string name="region_korea">Корея</string>
     <string name="region_taiwan">Тайвань</string>
 
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -229,8 +240,8 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
     <string name="screen_layout_auto">Авто</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">За замовчуванням (16:9)</string>
     <string name="ratio_force_four_three">Змусити 4:3</string>
@@ -254,6 +265,12 @@
     <string name="theme_mode_follow_system">Системна</string>
     <string name="theme_mode_light">Світла</string>
     <string name="theme_mode_dark">Темна</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <string name="use_black_backgrounds_description">У разі використання темної теми застосовуйте чорне тло.</string>
 
