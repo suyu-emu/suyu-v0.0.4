@@ -153,6 +153,8 @@ public:
 
     void UpdateHandheldAbstractState();
 
+    void EnableAppletToGetInput(u64 aruid);
+
 private:
     struct NpadControllerData {
         NpadInternalState* shared_memory = nullptr;
