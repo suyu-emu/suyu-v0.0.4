@@ -34,6 +34,7 @@
     <string name="empty_gamelist">找不到游戏，或者尚未选择游戏文件夹。</string>
     <string name="search_and_filter_games">搜索游戏</string>
     <string name="select_games_folder">选择游戏文件夹</string>
+    <string name="manage_game_folders">管理游戏文件夹</string>
     <string name="select_games_folder_description">允许 yuzu 填充游戏列表</string>
     <string name="add_games_warning">跳过选择游戏文件夹？</string>
     <string name="add_games_warning_description">如果未选择游戏文件夹，游戏将不会显示在游戏列表中。</string>
@@ -68,6 +69,7 @@
     <string name="invalid_keys_error">无效的加密密钥</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">选择的密钥文件不正确或已损坏。请重新转储密钥文件。</string>
+    <string name="gpu_driver_manager">GPU 驱动管理器</string>
     <string name="install_gpu_driver">安装 GPU 驱动</string>
     <string name="install_gpu_driver_description">安装替代的驱动程序以获得更好的性能和精度</string>
     <string name="advanced_settings">高级选项</string>
@@ -85,8 +87,12 @@
     <string name="notification_no_directory_link_description">请使用文件管理器的侧部面板手动定位用户文件夹。</string>
     <string name="manage_save_data">管理存档数据</string>
     <string name="manage_save_data_description">已找到存档数据，请选择下方的选项。</string>
+    <string name="import_save_warning">导入保存数据</string>
+    <string name="import_save_warning_description">这将用您所提供的保存数据覆盖当前所有的保存数据。您确定要继续吗？</string>
     <string name="import_export_saves_description">导入或导出存档</string>
-    <string name="save_file_imported_success">已成功导入存档</string>
+    <string name="save_files_importing">正在导入存档文件...</string>
+    <string name="save_files_exporting">正在导出存档文件...</string>
+    <string name="save_file_imported_success">导入成功</string>
     <string name="save_file_invalid_zip_structure">无效的存档目录</string>
     <string name="save_file_invalid_zip_structure_description">第一个子文件夹名称必须为当前游戏的 ID。</string>
     <string name="import_saves">导入</string>
@@ -118,13 +124,43 @@
     <string name="manage_yuzu_data_description">导入/导出固件、密钥、用户数据及其他。</string>
     <string name="share_save_file">分享存档文件</string>
     <string name="export_save_failed">导出存档文件失败</string>
+    <string name="game_folders">游戏文件夹</string>
+    <string name="deep_scan">深度扫描</string>
+    <string name="add_game_folder">添加游戏文件夹</string>
+    <string name="folder_already_added">这个文件夹先前已被添加！</string>
+    <string name="game_folder_properties">游戏文件夹属性</string>
+    <plurals name="saves_import_failed">
+        <item quantity="other">%d 个存档导入失败</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="other">成功导入 %d 个存档</item>
+    </plurals>
+    <string name="no_save_data_found">未找到存档数据</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">小程序启动器</string>
+    <string name="applets_description">使用已安装的固件启动系统小程序</string>
+    <string name="applets_error_firmware">未安装固件</string>
+    <string name="applets_error_applet">小程序不可用</string>
+    <string name="applets_error_description"><![CDATA[请确保 <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件和<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">固件</a>已安装，然后再试一次。]]></string>
+    <string name="album_applet">相册</string>
+    <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
+    <string name="mii_edit_applet">Mii edit</string>
+    <string name="mii_edit_applet_description">查看和编辑 Mii</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">编辑、删除存储在 amiibo 上的数据</string>
+    <string name="cabinet_launcher">Cabinet 启动器</string>
+    <string name="cabinet_nickname_and_owner">昵称和所有者设置</string>
+    <string name="cabinet_game_data_eraser">游戏数据擦除器</string>
+    <string name="cabinet_restorer">恢复器</string>
+    <string name="cabinet_formatter">格式化程序</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia 不真实</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="about_app_description">一款开放源代码的 Switch 模拟器</string>
     <string name="contributors">贡献者</string>
-    <string name="contributors_description">使用来自 yuzu 团队的 \u2764 制作</string>
+    <string name="contributors_description">yuzu 团队的用 \u2764 制作</string>
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
     <string name="licenses_description">Android 版 yuzu 离不开这些项目的支持</string>
     <string name="build">构建版本</string>
@@ -161,6 +197,7 @@
     <string name="frame_limit_enable_description">将运行速度限制为正常速度的指定百分比。</string>
     <string name="frame_limit_slider">限制速度百分比</string>
     <string name="frame_limit_slider_description">指定限制运行速度的百分比。100% 为正常速度。更高或更低的值将增加或降低速度限制上限。</string>
+    <string name="cpu_backend">CPU 后端</string>
     <string name="cpu_accuracy">CPU 精度</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -191,6 +228,8 @@
     <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
     <string name="use_disk_shader_cache">磁盘着色器缓存</string>
     <string name="use_disk_shader_cache_description">将生成的着色器缓存于磁盘中并进行读取，以减少卡顿。</string>
+    <string name="anisotropic_filtering">各向异性过滤</string>
+    <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -217,6 +256,7 @@
     <string name="shutting_down">正在关闭…</string>
     <string name="reset_setting_confirmation">您要将此设定重设为默认值吗？</string>
     <string name="reset_to_default">恢复默认</string>
+    <string name="reset_to_default_description">重置所有高级选项</string>
     <string name="reset_all_settings">重置所有设置项？</string>
     <string name="reset_all_settings_description">所有高级选项都将被重设，此动作无法还原。</string>
     <string name="settings_reset">重设设置项</string>
@@ -230,6 +270,18 @@
     <string name="export_failed">导出失败</string>
     <string name="import_failed">导入失败</string>
     <string name="cancelling">取消中</string>
+    <string name="install">安装</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="export_success">导出成功</string>
+    <string name="start">开始</string>
+    <string name="clear">清除</string>
+    <string name="global">全局</string>
+    <string name="custom">自定义</string>
+    <string name="notice">提醒</string>
+    <string name="import_complete">导入完成</string>
+    <string name="more_options">更多选项</string>
+    <string name="use_global_setting">使用全局设置</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">选择 GPU 驱动程序</string>
@@ -237,7 +289,8 @@
     <string name="select_gpu_driver_install">安装</string>
     <string name="select_gpu_driver_default">系统默认</string>
     <string name="select_gpu_driver_use_default">使用默认 GPU 驱动程序</string>
-    <string name="select_gpu_driver_error">选择的驱动程序无效，将使用系统默认的驱动程序！</string>
+    <string name="select_gpu_driver_error">选择的驱动无效</string>
+    <string name="driver_already_installed">驱动已安装</string>
     <string name="system_gpu_driver">系统 GPU 驱动程序</string>
     <string name="installing_driver">正在安装驱动程序…</string>
 
@@ -245,10 +298,54 @@
     <string name="preferences_settings">设置</string>
     <string name="preferences_general">通用</string>
     <string name="preferences_system">系统</string>
+    <string name="preferences_system_description">主机运行模式、区域及语言</string>
     <string name="preferences_graphics">图形</string>
+    <string name="preferences_graphics_description">精度等级、分辨率及着色器缓存</string>
     <string name="preferences_audio">声音</string>
+    <string name="preferences_audio_description">输出引擎及音量</string>
     <string name="preferences_theme">主题和色彩</string>
     <string name="preferences_debug">调试</string>
+    <string name="preferences_debug_description">CPU/GPU 调试、图形 API 及 fastmem 内存访问</string>
+
+    <!-- Game properties -->
+    <string name="info">信息</string>
+    <string name="info_description">游戏 ID、开发者及版本信息</string>
+    <string name="per_game_settings">游戏单独设置</string>
+    <string name="per_game_settings_description">编辑此游戏的单独设置项</string>
+    <string name="launch_options">载入配置</string>
+    <string name="path">路径</string>
+    <string name="program_id">游戏 ID</string>
+    <string name="developer">开发商</string>
+    <string name="version">版本</string>
+    <string name="copy_details">复制明细</string>
+    <string name="add_ons">附加项</string>
+    <string name="add_ons_description">管理 mod、游戏更新及 DLC</string>
+    <string name="clear_shader_cache">清除着色器缓存</string>
+    <string name="clear_shader_cache_description">删除此游戏的所有着色器缓存</string>
+    <string name="clear_shader_cache_warning_description">由于着色器缓存的重新生成，您将遭遇更多卡顿</string>
+    <string name="cleared_shaders_successfully">着色器缓存清除成功</string>
+    <string name="addons_game">附加项: %1$s</string>
+    <string name="save_data">保存数据</string>
+    <string name="save_data_description">管理此游戏的保存数据</string>
+    <string name="delete_save_data">删除保存数据</string>
+    <string name="delete_save_data_description">删除此游戏的所有保存数据</string>
+    <string name="delete_save_data_warning_description">这将删除此游戏的所有保存数据且不可撤销。您确定要继续吗？</string>
+    <string name="save_data_deleted_successfully">保存数据删除成功</string>
+    <string name="select_content_type">内容类型</string>
+    <string name="updates_and_dlc">游戏更新和 DLC</string>
+    <string name="mods_and_cheats">Mod 和金手指</string>
+    <string name="addon_notice">附加项重要提醒</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">为了安装 mod 和金手指，您必须选择一个包含 cheats/、romfs/ 或 exefs/ 目录的文件夹。我们无法验证这些内容是否与您的游戏兼容，所以请小心使用！</string>
+    <string name="invalid_directory">无效目录</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">请确保您选择的目录下包含 cheats/、romfs/ 或 exefs/ 文件夹然后重试。</string>
+    <string name="addon_installed_successfully">附加项安装成功</string>
+    <string name="verifying_content">验证安装内容...</string>
+    <string name="content_install_notice">安装提醒</string>
+    <string name="content_install_notice_description">您选择安装的内容与此游戏不匹配。\n继续安装？</string>
+    <string name="confirm_uninstall">卸载确认</string>
+    <string name="confirm_uninstall_description">您确定要卸载此附加项吗？</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
@@ -277,6 +374,7 @@
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
     <string name="emulation_input_overlay">虚拟按键选项</string>
+    <string name="touchscreen">触摸屏</string>
 
     <string name="load_settings">正在载入设定…</string>
 
@@ -308,6 +406,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
@@ -352,9 +451,13 @@
     <string name="anti_aliasing_smaa">子像素形态学抗锯齿</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">横向大屏</string>
-    <string name="screen_layout_portrait">纵向屏幕</string>
     <string name="screen_layout_auto">自动</string>
+    <string name="screen_layout_sensor_landscape">传感器方向横屏</string>
+    <string name="screen_layout_landscape">横屏</string>
+    <string name="screen_layout_reverse_landscape">反向横屏</string>
+    <string name="screen_layout_sensor_portrait">传感器方向竖屏</string>
+    <string name="screen_layout_portrait">竖屏</string>
+    <string name="screen_layout_reverse_portrait">反向竖屏</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">默认 (16:9)</string>
@@ -362,6 +465,10 @@
     <string name="ratio_force_twenty_one_nine">强制 21:9</string>
     <string name="ratio_force_sixteen_ten">强制 16:10</string>
     <string name="ratio_stretch">拉伸窗口</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">动态编译 (慢速)</string>
+    <string name="cpu_backend_nce">本机代码执行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高精度</string>
@@ -391,7 +498,14 @@
     <string name="theme_mode_dark">深色</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">使用黑色背景</string>

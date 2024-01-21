@@ -34,6 +34,7 @@
     <string name="empty_gamelist">Не найдены файлы или еще не выбрана папка с играми.</string>
     <string name="search_and_filter_games">Поиск и фильтрация игр</string>
     <string name="select_games_folder">Выберите папку с играми</string>
+    <string name="manage_game_folders">Управление папками</string>
     <string name="select_games_folder_description">Позволяет yuzu заполнить список игр</string>
     <string name="add_games_warning">Пропустить выбор папки с играми?</string>
     <string name="add_games_warning_description">Игры не будут отображаться в списке Игры, если папка не выбрана.</string>
@@ -68,6 +69,7 @@
     <string name="invalid_keys_error">Неверные ключи шифрования</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Выбранный файл неверен или поврежден. Пожалуйста, пере-дампите ваши ключи.</string>
+    <string name="gpu_driver_manager">Менеджер драйверов ГП</string>
     <string name="install_gpu_driver">Установить драйвер ГП</string>
     <string name="install_gpu_driver_description">Установите альтернативные драйверы для потенциально лучшей производительности и/или точности</string>
     <string name="advanced_settings">Расширенные настройки</string>
@@ -85,7 +87,11 @@
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
     <string name="manage_save_data">Управление данными сохранений</string>
     <string name="manage_save_data_description">Найдено данные сохранений. Пожалуйста, выберите вариант ниже.</string>
+    <string name="import_save_warning">Импортировать сохранения</string>
+    <string name="import_save_warning_description">Это перезапишет все существующие данные сохранения выбранным файлом. Вы уверены, что хотите продолжить?</string>
     <string name="import_export_saves_description">Импорт или экспорт файлов сохранения</string>
+    <string name="save_files_importing">Импорт файлов сохранения…</string>
+    <string name="save_files_exporting">Экспорт файлов сохранения…</string>
     <string name="save_file_imported_success">Успешно импортировано</string>
     <string name="save_file_invalid_zip_structure">Недопустимая структура папки сохранения</string>
     <string name="save_file_invalid_zip_structure_description">Название первой вложенной папки должно быть идентификатором игры.</string>
@@ -119,6 +125,42 @@
     <string name="manage_yuzu_data_description">Импортируйте/экспортируйте прошивку, ключи, пользовательские данные и многое другое!</string>
     <string name="share_save_file">Поделиться файлом сохранения</string>
     <string name="export_save_failed">Не удалось экспортировать сохранение</string>
+    <string name="game_folders">Папки с играми</string>
+    <string name="deep_scan">Глубокий анализ</string>
+    <string name="add_game_folder">Добавить папку с игрой</string>
+    <string name="folder_already_added">Эта папка уже была добавлена!</string>
+    <string name="game_folder_properties">Свойства папки игры</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Не удалось импортировать %d сохранение</item>
+        <item quantity="few">Не удалось импортировать %d сохранения</item>
+        <item quantity="many">Не удалось импортировать %d сохранений</item>
+        <item quantity="other">Не удалось импортировать %d сохранений</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Импортировано %d сохранение</item>
+        <item quantity="few">Импортировано %d сохранения</item>
+        <item quantity="many">Импортировано %d сохранений</item>
+        <item quantity="other">Импортировано %d сохранений</item>
+    </plurals>
+    <string name="no_save_data_found">Не найдены сохраненмия</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">Запуск апплета</string>
+    <string name="applets_description">Запуск системных апплетов на установленной прошивке</string>
+    <string name="applets_error_firmware">Прошивка не установлена</string>
+    <string name="applets_error_applet">Апплет недоступен</string>
+    <string name="applets_error_description"><![CDATA[Пожалуйста, убедитесь, что ваш<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> установлены и попробуйте еще раз.]]></string>
+    <string name="album_applet">Альбом</string>
+    <string name="album_applet_description">Просмотрите изображения, сохраненные в папке скриншотов пользователя, с помощью системного просмотрщика фотографий.</string>
+    <string name="mii_edit_applet">Mii редактор</string>
+    <string name="mii_edit_applet_description">Просмотр и редактирование Mii с помощью системного редактора</string>
+    <string name="cabinet_applet">Шкаф</string>
+    <string name="cabinet_applet_description">Редактирование и удаление данных, хранящихся на amiibo</string>
+    <string name="cabinet_launcher">Запуск шкафа</string>
+    <string name="cabinet_nickname_and_owner">Никнейм и настройки владельца</string>
+    <string name="cabinet_game_data_eraser">Удаление игровых данных</string>
+    <string name="cabinet_restorer">Восстановитель</string>
+    <string name="cabinet_formatter">Форматтер</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia не существует</string>
@@ -162,6 +204,7 @@
     <string name="frame_limit_enable_description">Ограничивает скорость эмуляции указанным процентом от нормальной скорости.</string>
     <string name="frame_limit_slider">Ограничение процента cкорости</string>
     <string name="frame_limit_slider_description">Указывает процент ограничения скорости эмуляции. 100% - это нормальная скорость. Значения больше или меньше увеличивают или уменьшают ограничение скорости.</string>
+    <string name="cpu_backend">Бэкэнд ЦП</string>
     <string name="cpu_accuracy">Точность ЦП</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -192,6 +235,8 @@
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
     <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
+    <string name="anisotropic_filtering">Анизотропная фильтрация</string>
+    <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦП</string>
@@ -203,6 +248,8 @@
     <string name="renderer_debug_description">Переводит графический API в режим медленной отладки.</string>
     <string name="fastmem">Fastmem</string>
 
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Движок вывода</string>
     <string name="audio_volume">Громкость</string>
     <string name="audio_volume_description">Задает громкость аудиовыхода.</string>
 
@@ -216,6 +263,7 @@
     <string name="shutting_down">Выключение…</string>
     <string name="reset_setting_confirmation">Хотите ли вы вернуть этот параметр к значению по умолчанию?</string>
     <string name="reset_to_default">Сброс к настройкам по умолчанию</string>
+    <string name="reset_to_default_description">Сбросить все расширенные настройки</string>
     <string name="reset_all_settings">Сбросить все настройки?</string>
     <string name="reset_all_settings_description">Все дополнительные настройки будут сброшены к настройке по умолчанию. Это невозможно отменить.</string>
     <string name="settings_reset">Настройки сброшены</string>
@@ -229,14 +277,24 @@
     <string name="export_failed">Ошибка экспорта</string>
     <string name="import_failed">Ошибка импортирования</string>
     <string name="cancelling">Отменяю</string>
-
+    <string name="install">Установить</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Редактировать</string>
+    <string name="export_success">Экспорт успешно выполнен</string>
+    <string name="start">Start</string>
+    <string name="clear">Очистить</string>
+    <string name="global">Глобальный</string>
+    <string name="custom">Другое</string>
+    <string name="notice">Уведомление</string>
+    <string name="import_complete">Импорт завершен</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Выбрать драйвер ГП</string>
     <string name="select_gpu_driver_title">Хотите заменить текущий драйвер ГП?</string>
     <string name="select_gpu_driver_install">Установить</string>
     <string name="select_gpu_driver_default">По умолчанию</string>
     <string name="select_gpu_driver_use_default">Используется стандартный драйвер ГП </string>
-    <string name="select_gpu_driver_error">Выбран неверный драйвер, используется стандартный системный!</string>
+    <string name="select_gpu_driver_error">Выбран неподходящий драйвер</string>
+    <string name="driver_already_installed">Драйвер уже установлен</string>
     <string name="system_gpu_driver">Системный драйвер ГП</string>
     <string name="installing_driver">Установка драйвера...</string>
 
@@ -244,11 +302,52 @@
     <string name="preferences_settings">Настройки</string>
     <string name="preferences_general">Общие</string>
     <string name="preferences_system">Система</string>
+    <string name="preferences_system_description">Режим дока, регион, язык</string>
     <string name="preferences_graphics">Графика</string>
+    <string name="preferences_graphics_description">Уровень точности, разрешение, кэш шейдеров</string>
     <string name="preferences_audio">Аудио</string>
+    <string name="preferences_audio_description">Движок вывода, громкость</string>
     <string name="preferences_theme">Тема и цвет</string>
     <string name="preferences_debug">Отладка</string>
+    <string name="preferences_debug_description">Отладка ЦП/ГП, графический API, fastmem</string>
 
+    <!-- Game properties -->
+    <string name="info">Информация</string>
+    <string name="info_description">ID программы, для разработчиков, версия</string>
+    <string name="per_game_settings">Настройки для каждой игры</string>
+    <string name="per_game_settings_description">Изменить настройки этой игры</string>
+    <string name="launch_options">Конфигурация запуска</string>
+    <string name="path">Путь</string>
+    <string name="program_id">ID программы</string>
+    <string name="developer">Разработчик</string>
+    <string name="version">Версия</string>
+    <string name="copy_details">Копировать детали</string>
+    <string name="add_ons">Дополнения</string>
+    <string name="add_ons_description">Включение модов, обновлений и DLC</string>
+    <string name="clear_shader_cache">Очистить кэш шейдеров</string>
+    <string name="clear_shader_cache_description">Удаляет все шейдеры, созданные во время игры.</string>
+    <string name="clear_shader_cache_warning_description">У вас будет больше лагов во время повторной генерации кэша шейдеров</string>
+    <string name="cleared_shaders_successfully">Успешно очищены шейдеры</string>
+    <string name="addons_game">Аддоны: %1$s</string>
+    <string name="save_data">Сохранить данные</string>
+    <string name="save_data_description">Управлять сохранениями этой игры.</string>
+    <string name="delete_save_data">Удалить сохранения</string>
+    <string name="delete_save_data_description">Удалить все сохранения этой игры</string>
+    <string name="delete_save_data_warning_description">Это безвозвратно удаляет все сохраненные данные этой игры. Вы уверены, что хотите продолжить?</string>
+    <string name="save_data_deleted_successfully">Данные успешно удалены</string>
+    <string name="select_content_type">Тип контента</string>
+    <string name="updates_and_dlc">Обновления и DLC</string>
+    <string name="mods_and_cheats">Моды и читы</string>
+    <string name="addon_notice">Важное уведомление о дополнении</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">Для установки модов и читов необходимо выбрать папку, содержащую каталог cheats/, romfs/ или exefs/. Мы не можем гарантировать их совместимость с вашей игрой, поэтому будьте осторожны!</string>
+    <string name="invalid_directory">Неверный каталог</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">Пожалуйста, убедитесь, что выбранная вами директория содержит папку cheats/, romfs/ или exefs/ и попробуйте снова.</string>
+    <string name="addon_installed_successfully">Аддон успешно установлен</string>
+    <string name="verifying_content">Проверка содержимого...</string>
+    <string name="content_install_notice">Уведомление об установке контента</string>
+    <string name="content_install_notice_description">Содержимое, которое вы выбрали, не соответствует этой игре.\nУстановить все равно?</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Следуйте инструкциям, чтобы пере-дампить игровые картриджи <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\"> или <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\"> установленные игры</a>.]]></string>
@@ -276,6 +375,7 @@
     <string name="emulation_pause">Пауза эмуляции</string>
     <string name="emulation_unpause">Возобновить эмуляцию</string>
     <string name="emulation_input_overlay">Настройка оверлея</string>
+    <string name="touchscreen">Сенсорный экран</string>
 
     <string name="load_settings">Загрузка настроек...</string>
 
@@ -307,6 +407,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Байт</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">КБ</string>
     <string name="memory_megabyte">МБ</string>
     <string name="memory_gigabyte">GB</string>
@@ -351,9 +452,13 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">Пейзаж</string>
-    <string name="screen_layout_portrait">Портрет</string>
     <string name="screen_layout_auto">Авто</string>
+    <string name="screen_layout_sensor_landscape">Альбомная (сенсор)</string>
+    <string name="screen_layout_landscape">Пейзаж</string>
+    <string name="screen_layout_reverse_landscape">Обратная альбомная</string>
+    <string name="screen_layout_sensor_portrait">Портретная (сенсор)</string>
+    <string name="screen_layout_portrait">Портрет</string>
+    <string name="screen_layout_reverse_portrait">Обратная портретная</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">Стандартное (16:9)</string>
@@ -361,6 +466,10 @@
     <string name="ratio_force_twenty_one_nine">Заставить 21:9</string>
     <string name="ratio_force_sixteen_ten">Заставить 16:10</string>
     <string name="ratio_stretch">Растянуть до окна</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (Медленно)</string>
+    <string name="cpu_backend_nce">Нативное выполнение (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Точно</string>
@@ -390,7 +499,14 @@
     <string name="theme_mode_dark">Темная</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Чёрный фон</string>

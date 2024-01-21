@@ -34,12 +34,13 @@
     <string name="empty_gamelist">找不到檔案，或者尚未選取遊戲目錄。</string>
     <string name="search_and_filter_games">搜尋並篩選遊戲</string>
     <string name="select_games_folder">選取遊戲資料夾</string>
+    <string name="manage_game_folders">管理遊戲資料夾</string>
     <string name="select_games_folder_description">允許 yuzu 填入遊戲清單</string>
     <string name="add_games_warning">跳過選取遊戲資料夾？</string>
     <string name="add_games_warning_description">如果資料夾未選取，遊戲將不會顯示在遊戲清單。</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">搜尋遊戲</string>
-    <string name="search_settings">搜索设置</string>
+    <string name="search_settings">搜尋設定</string>
     <string name="games_dir_selected">遊戲目錄已選取</string>
     <string name="install_prod_keys">安裝 prod.keys</string>
     <string name="install_prod_keys_description">需要解密零售遊戲</string>
@@ -68,10 +69,11 @@
     <string name="invalid_keys_error">無效的加密金鑰</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">選取的檔案不正確或已損毀，請重新傾印您的金鑰。</string>
+    <string name="gpu_driver_manager">GPU 驅動程式管理員</string>
     <string name="install_gpu_driver">安裝 GPU 驅動程式</string>
     <string name="install_gpu_driver_description">安裝替代驅動程式以取得潛在的更佳效能或準確度</string>
     <string name="advanced_settings">進階設定</string>
-    <string name="advanced_settings_game">高级选项: %1$s</string>
+    <string name="advanced_settings_game">進階設定：%1$s</string>
     <string name="settings_description">進行模擬器設定</string>
     <string name="search_recently_played">最近遊玩</string>
     <string name="search_recently_added">最近新增</string>
@@ -85,7 +87,11 @@
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
     <string name="manage_save_data">管理儲存資料</string>
     <string name="manage_save_data_description">已找到儲存資料，請選取下方的選項。</string>
+    <string name="import_save_warning">匯入儲存資料</string>
+    <string name="import_save_warning_description">這將會以提供的檔案覆寫所有現有的儲存資料，您確定要繼續嗎？</string>
     <string name="import_export_saves_description">匯入或匯出儲存檔案</string>
+    <string name="save_files_importing">正在匯入儲存檔案…</string>
+    <string name="save_files_exporting">正在匯出儲存檔案…</string>
     <string name="save_file_imported_success">已成功匯入</string>
     <string name="save_file_invalid_zip_structure">無效的儲存目錄結構</string>
     <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲標題 ID。</string>
@@ -96,28 +102,58 @@
     <string name="firmware_installing">正在安裝韌體</string>
     <string name="firmware_installed_success">韌體已成功安裝</string>
     <string name="firmware_installed_failure">韌體安裝失敗</string>
-    <string name="firmware_installed_failure_description">请确保固件 nca 文件位于 zip 压缩包的根目录，然后重试。</string>
+    <string name="firmware_installed_failure_description">請確保韌體 nca 檔案位於 zip 壓縮檔的根目錄，然後再試一次。</string>
     <string name="share_log">分享偵錯記錄</string>
     <string name="share_log_description">分享 yuzu 的記錄檔以便對相關問題進行偵錯</string>
     <string name="share_log_missing">找不到記錄檔</string>
     <string name="install_game_content">安裝遊戲內容</string>
     <string name="install_game_content_description">安裝遊戲更新或 DLC</string>
-    <string name="installing_game_content">安装中...</string>
-    <string name="install_game_content_failure">向 NAND 安装文件时失败</string>
-    <string name="install_game_content_failure_description">请确保附加内容的有效性，并且 prod.keys 密钥文件已安装。</string>
-    <string name="install_game_content_failure_base">为避免产生冲突，此功能不能用于安装游戏本体。</string>
-    <string name="install_game_content_failure_file_extension">只有 NSP 或 XCI 格式的附加内容可以安装。请确保您的游戏附加内容是有效的。</string>
-    <string name="install_game_content_failed_count">%1$d 安装出错</string>
-    <string name="install_game_content_success">游戏附加内容已成功安装</string>
-    <string name="install_game_content_success_install">%1$d 安装成功</string>
-    <string name="install_game_content_success_overwrite">%1$d 覆盖安装成功</string>
+    <string name="installing_game_content">正在安裝內容…</string>
+    <string name="install_game_content_failure">安裝檔案至 NAND 時發生錯誤</string>
+    <string name="install_game_content_failure_description">請確保內容有效並且 prod.keys 檔案已安裝。</string>
+    <string name="install_game_content_failure_base">為避免可能的衝突，不允許安裝基礎遊戲。</string>
+    <string name="install_game_content_failure_file_extension">僅支援 NSP 和 XCI 內容，請驗證遊戲內容是否有效。</string>
+    <string name="install_game_content_failed_count">%1$d 安裝錯誤</string>
+    <string name="install_game_content_success">遊戲內容已成功安裝</string>
+    <string name="install_game_content_success_install">%1$d 安裝成功</string>
+    <string name="install_game_content_success_overwrite">%1$d 覆寫成功</string>
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
-    <string name="custom_driver_not_supported">不支持自定义驱动</string>
-    <string name="custom_driver_not_supported_description">此设备不支持自定义驱动。\n请之后再访问此项，查看是否已为此设备添加支持。</string>
-    <string name="manage_yuzu_data">管理 yuzu 数据</string>
-    <string name="manage_yuzu_data_description">导入/导出固件、密钥、用户数据及其他。</string>
-    <string name="share_save_file">分享存档文件</string>
-    <string name="export_save_failed">导出存档文件失败</string>
+    <string name="custom_driver_not_supported">不支援自訂的驅動程式</string>
+    <string name="custom_driver_not_supported_description">此裝置不支援自訂的驅動程式。\n請以後再來查看是否已新增支援！</string>
+    <string name="manage_yuzu_data">管理 yuzu 資料</string>
+    <string name="manage_yuzu_data_description">匯入/匯出韌體、金鑰、使用者資料及其他項目！</string>
+    <string name="share_save_file">分享儲存檔案</string>
+    <string name="export_save_failed">無法匯出儲存檔案</string>
+    <string name="game_folders">遊戲資料夾</string>
+    <string name="deep_scan">深度掃描</string>
+    <string name="add_game_folder">新增遊戲資料夾</string>
+    <string name="folder_already_added">這個資料夾已經新增過了！</string>
+    <string name="game_folder_properties">遊戲資料夾屬性</string>
+    <plurals name="saves_import_failed">
+        <item quantity="other">%d 个存档导入失败</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="other">成功导入 %d 个存档</item>
+    </plurals>
+    <string name="no_save_data_found">未找到存档数据</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">小程式啟動器</string>
+    <string name="applets_description">使用已安裝的韌體啟動系統小程式</string>
+    <string name="applets_error_firmware">未安裝韌體</string>
+    <string name="applets_error_applet">無法使用小程式</string>
+    <string name="applets_error_description"><![CDATA[請確保您的 <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 檔案和<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">韌體</a>已安裝，然後再試一次。]]></string>
+    <string name="album_applet">相簿</string>
+    <string name="album_applet_description">使用系統相片檢視器查看儲存在使用者螢幕截圖資料夾中的影像</string>
+    <string name="mii_edit_applet">Mii 編輯</string>
+    <string name="mii_edit_applet_description">使用系統編輯器來檢視並編輯 Mii</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">編輯、刪除儲存在 amiibo 上的資料</string>
+    <string name="cabinet_launcher">Cabinet 啟動器</string>
+    <string name="cabinet_nickname_and_owner">暱稱和擁有者設定</string>
+    <string name="cabinet_game_data_eraser">遊戲資料橡皮擦</string>
+    <string name="cabinet_restorer">還原程式</string>
+    <string name="cabinet_formatter">格式器</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia 不真實</string>
@@ -128,16 +164,16 @@
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
     <string name="licenses_description">這些專案使 yuzu Android 版成為可能</string>
     <string name="build">組建</string>
-    <string name="user_data">用户数据</string>
-    <string name="user_data_description">导入/导出应用程序所有数据。\n\n导入用户数据时，将删除当前所有的用户数据！</string>
-    <string name="exporting_user_data">正在导出用户数据...</string>
-    <string name="importing_user_data">正在导入用户数据...</string>
-    <string name="import_user_data">导入用户数据</string>
-    <string name="invalid_yuzu_backup">无效的 yuzu 备份</string>
-    <string name="user_data_export_success">导出用户数据成功</string>
-    <string name="user_data_import_success">导入用户数据成功</string>
-    <string name="user_data_export_cancelled">已取消导出数据</string>
-    <string name="user_data_import_failed_description">请确保用户数据文件夹位于 zip 压缩包的根目录，并在 config/config.ini 路径中包含配置文件，然后重试。</string>
+    <string name="user_data">使用者資料</string>
+    <string name="user_data_description">匯入/匯出所有應用程式資料。\n\n匯入使用者資料時，現有的使用者資料將被刪除！</string>
+    <string name="exporting_user_data">正在匯出使用者資料…</string>
+    <string name="importing_user_data">正在匯入使用者資料…</string>
+    <string name="import_user_data">匯入使用者資料</string>
+    <string name="invalid_yuzu_backup">無效的 yuzu 備份</string>
+    <string name="user_data_export_success">使用者資料匯出成功</string>
+    <string name="user_data_import_success">使用者資料匯入成功</string>
+    <string name="user_data_export_cancelled">匯出已取消</string>
+    <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -161,6 +197,7 @@
     <string name="frame_limit_enable_description">將模擬速度限制在標準速度的指定百分比。</string>
     <string name="frame_limit_slider">限制速度百分比</string>
     <string name="frame_limit_slider_description">指定限制模擬速度的百分比。100% 為標準速度，更高或更低的值將會增加或減少速度限制。</string>
+    <string name="cpu_backend">CPU 後端</string>
     <string name="cpu_accuracy">CPU 準確度</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -179,7 +216,7 @@
     <string name="renderer_accuracy">準確度層級</string>
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">VSync 模式</string>
-    <string name="renderer_screen_layout">屏幕方向</string>
+    <string name="renderer_screen_layout">方向</string>
     <string name="renderer_aspect_ratio">長寬比</string>
     <string name="renderer_scaling_filter">視窗適應過濾器</string>
     <string name="renderer_anti_aliasing">消除鋸齒方法</string>
@@ -191,11 +228,13 @@
     <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
     <string name="use_disk_shader_cache">磁碟著色器快取</string>
     <string name="use_disk_shader_cache_description">透過將產生的著色器儲存並載入至磁碟，減少中斷。</string>
+    <string name="anisotropic_filtering">非等向性過濾</string>
+    <string name="anisotropic_filtering_description">改善斜角檢視時的紋理品質</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU 调试</string>
-    <string name="cpu_debug_mode_description">将 CPU 设置为较慢的调试模式。</string>
+    <string name="cpu_debug_mode">CPU 偵錯</string>
+    <string name="cpu_debug_mode_description">將 CPU 設定為慢速偵錯模式。</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">圖形偵錯</string>
@@ -203,7 +242,7 @@
     <string name="fastmem">Fastmem</string>
 
     <!-- Audio settings strings -->
-    <string name="audio_output_engine">输出引擎</string>
+    <string name="audio_output_engine">輸出引擎</string>
     <string name="audio_volume">音量</string>
     <string name="audio_volume_description">指定音訊輸出音量。</string>
 
@@ -212,11 +251,12 @@
     <string name="ini_saved">已儲存設定</string>
     <string name="gameid_saved">已儲存 %1$s 設定</string>
     <string name="error_saving">儲存 %1$s 時發生錯誤 ini: %2$s</string>
-    <string name="unimplemented_menu">未生效菜单</string>
+    <string name="unimplemented_menu">未實作的選單</string>
     <string name="loading">正在載入…</string>
-    <string name="shutting_down">正在关闭…</string>
+    <string name="shutting_down">正在關閉…</string>
     <string name="reset_setting_confirmation">要將此設定重設回預設值嗎？</string>
     <string name="reset_to_default">重設為預設值</string>
+    <string name="reset_to_default_description">重設所有進階設定</string>
     <string name="reset_all_settings">重設所有設定？</string>
     <string name="reset_all_settings_description">所有進階設定將被重設為預設組態，此動作無法復原。</string>
     <string name="settings_reset">設定已重設</string>
@@ -227,9 +267,21 @@
     <string name="string_null">無</string>
     <string name="string_import">匯入</string>
     <string name="export">匯出</string>
-    <string name="export_failed">导出失败</string>
-    <string name="import_failed">导入失败</string>
-    <string name="cancelling">取消中</string>
+    <string name="export_failed">匯出失敗</string>
+    <string name="import_failed">匯入失敗</string>
+    <string name="cancelling">正在取消</string>
+    <string name="install">安裝</string>
+    <string name="delete">刪除</string>
+    <string name="edit">編輯</string>
+    <string name="export_success">已成功匯出</string>
+    <string name="start">開始</string>
+    <string name="clear">清除</string>
+    <string name="global">全域</string>
+    <string name="custom">自定义</string>
+    <string name="notice">通知</string>
+    <string name="import_complete">导入完成</string>
+    <string name="more_options">更多选项</string>
+    <string name="use_global_setting">使用全局设置</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">選取 GPU 驅動程式</string>
@@ -237,7 +289,8 @@
     <string name="select_gpu_driver_install">安裝</string>
     <string name="select_gpu_driver_default">預設</string>
     <string name="select_gpu_driver_use_default">使用預設 GPU 驅動程式</string>
-    <string name="select_gpu_driver_error">選取的驅動程式無效，將使用系統預設驅動程式！</string>
+    <string name="select_gpu_driver_error">選取的驅動程式無效</string>
+    <string name="driver_already_installed">驅動程式已安裝</string>
     <string name="system_gpu_driver">系統 GPU 驅動程式</string>
     <string name="installing_driver">正在安裝驅動程式…</string>
 
@@ -245,14 +298,58 @@
     <string name="preferences_settings">設定</string>
     <string name="preferences_general">一般</string>
     <string name="preferences_system">系統</string>
+    <string name="preferences_system_description">底座模式、區域及語言</string>
     <string name="preferences_graphics">圖形</string>
+    <string name="preferences_graphics_description">準確度層級、解析度及著色器快取</string>
     <string name="preferences_audio">音訊</string>
+    <string name="preferences_audio_description">輸出引擎及音量</string>
     <string name="preferences_theme">主題和色彩</string>
     <string name="preferences_debug">偵錯</string>
+    <string name="preferences_debug_description">CPU/GPU 偵錯、圖形 API 及 fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">資訊</string>
+    <string name="info_description">程式 ID、開發人員及版本資訊</string>
+    <string name="per_game_settings">個別遊戲設定</string>
+    <string name="per_game_settings_description">編輯此遊戲的特定設定</string>
+    <string name="launch_options">啟動組態</string>
+    <string name="path">路徑</string>
+    <string name="program_id">程式 ID</string>
+    <string name="developer">出版商</string>
+    <string name="version">版本</string>
+    <string name="copy_details">複製詳細資料</string>
+    <string name="add_ons">延伸模組</string>
+    <string name="add_ons_description">切換模組、更新及 DLC</string>
+    <string name="clear_shader_cache">清除著色器快取</string>
+    <string name="clear_shader_cache_description">遊玩此遊戲時移除所有著色器組建</string>
+    <string name="clear_shader_cache_warning_description">由於著色器快取的重新產生，您可能會感到不太順暢</string>
+    <string name="cleared_shaders_successfully">著色器快取已成功清除</string>
+    <string name="addons_game">附加元件：%1$s</string>
+    <string name="save_data">儲存資料</string>
+    <string name="save_data_description">管理此遊戲特定的儲存資料</string>
+    <string name="delete_save_data">刪除儲存資料</string>
+    <string name="delete_save_data_description">移除此遊戲特定的所有儲存資料</string>
+    <string name="delete_save_data_warning_description">這將會移除此遊戲的所有儲存資料，且無法復原，您確定要繼續嗎？</string>
+    <string name="save_data_deleted_successfully">儲存資料已成功刪除</string>
+    <string name="select_content_type">內容類型</string>
+    <string name="updates_and_dlc">更新及 DLC</string>
+    <string name="mods_and_cheats">模組及密技</string>
+    <string name="addon_notice">重要的˙附加元件通知</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">若要安裝模組及密技，您必須選取一個包含 cheats/、romfs/ 或 exefs/ 的目錄。我們無法驗證這些內容是否與您的遊戲相容，所以請小心作業！</string>
+    <string name="invalid_directory">無效的目錄</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">請確保您選取的目錄包含 cheats/、romfs/ 或 exefs/ 資料夾，然後再試一次。</string>
+    <string name="addon_installed_successfully">附加元件已成功安裝</string>
+    <string name="verifying_content">正在驗證內容…</string>
+    <string name="content_install_notice">內容安裝通知</string>
+    <string name="content_install_notice_description">您選取的內容與此遊戲不相符。\n仍要繼續安裝嗎？</string>
+    <string name="confirm_uninstall">确认卸载</string>
+    <string name="confirm_uninstall_description">您确定要卸载此附加项吗？</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">游戏卡带</a>或<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">已安装的游戏</a>。]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[請依循指南重新傾印您的<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">遊戲卡匣</a>或<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">已安裝的遊戲</a>。]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[請確保您的 <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 檔案已安裝，讓遊戲可以解密。]]></string>
     <string name="loader_error_video_core">初始化視訊核心時發生錯誤</string>
     <string name="loader_error_video_core_description">這經常由不相容的 GPU 驅動程式造成，安裝自訂 GPU 驅動程式可能會解決此問題。</string>
@@ -277,6 +374,7 @@
     <string name="emulation_pause">暫停模擬</string>
     <string name="emulation_unpause">取消暫停模擬</string>
     <string name="emulation_input_overlay">覆疊選項</string>
+    <string name="touchscreen">觸控螢幕</string>
 
     <string name="load_settings">正在載入設定…</string>
 
@@ -293,9 +391,9 @@
     <string name="fatal_error">嚴重錯誤</string>
     <string name="fatal_error_message">發生嚴重錯誤，檢查記錄以取得詳細資訊。\n繼續模擬可能會造成當機和錯誤。</string>
     <string name="performance_warning">關閉此設定會顯著降低模擬效能！如需最佳體驗，建議您將此設定保持為啟用狀態。</string>
-    <string name="device_memory_inadequate">设备 RAM: %1$s\n推荐 RAM: %2$s</string>
+    <string name="device_memory_inadequate">裝置 RAM: %1$s\n建議 RAM: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>
-    <string name="no_game_present">当前没有可启动的游戏！</string>
+    <string name="no_game_present">目前沒有可啟動的遊戲！</string>
 
     <!-- Region Names -->
     <string name="region_japan">日本</string>
@@ -308,9 +406,10 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
-    <string name="memory_gigabyte">英國</string>
+    <string name="memory_gigabyte">GB</string>
     <string name="memory_terabyte">TB</string>
     <string name="memory_petabyte">PB</string>
     <string name="memory_exabyte">EB</string>
@@ -352,9 +451,13 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">横向大屏</string>
-    <string name="screen_layout_portrait">纵向屏幕</string>
     <string name="screen_layout_auto">自動</string>
+    <string name="screen_layout_sensor_landscape">感應器橫向螢幕</string>
+    <string name="screen_layout_landscape">橫向</string>
+    <string name="screen_layout_reverse_landscape">反轉橫向螢幕</string>
+    <string name="screen_layout_sensor_portrait">感應器直向螢幕</string>
+    <string name="screen_layout_portrait">直向</string>
+    <string name="screen_layout_reverse_portrait">反轉直向螢幕</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">預設 (16:9)</string>
@@ -362,6 +465,10 @@
     <string name="ratio_force_twenty_one_nine">強制 21:9</string>
     <string name="ratio_force_sixteen_ten">強制 16:10</string>
     <string name="ratio_stretch">延展視窗</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">動態 (慢)</string>
+    <string name="cpu_backend_nce">機器碼執行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高精度</string>
@@ -391,17 +498,24 @@
     <string name="theme_mode_dark">深色</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">黑色背景</string>
     <string name="use_black_backgrounds_description">使用深色主題時，套用黑色背景。</string>
 
     <!-- Picture-In-Picture -->
-    <string name="picture_in_picture">画中画</string>
-    <string name="picture_in_picture_description">模拟器位于后台时最小化窗口</string>
-    <string name="pause">暂停</string>
-    <string name="play">开始</string>
+    <string name="picture_in_picture">子母畫面</string>
+    <string name="picture_in_picture_description">位於背景時最小化視窗</string>
+    <string name="pause">暫停</string>
+    <string name="play">開始</string>
     <string name="mute">靜音</string>
     <string name="unmute">取消靜音</string>
 

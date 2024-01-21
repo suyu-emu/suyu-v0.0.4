@@ -17,7 +17,7 @@
     <string name="keys_description">Seleziona il tuo file &lt;b>prod.keys&lt;/b> con il pulsante in basso.</string>
     <string name="select_keys">Seleziona le chiavi</string>
     <string name="games">Giochi</string>
-    <string name="games_description">Seleziona la cartella &lt;b>Games&lt;/b> con il pulsante in basso.</string>
+    <string name="games_description">Seleziona la cartella dei &lt;b>giochi&lt;/b> con il pulsante in basso.</string>
     <string name="done">Fatto</string>
     <string name="done_description">È tutto pronto.\nDivertiti a giocare!</string>
     <string name="text_continue">Continua</string>
@@ -33,7 +33,7 @@
     <string name="home_settings">Impostazioni</string>
     <string name="empty_gamelist">Non sono stati trovati file o non è stata ancora selezionata alcuna directory di gioco.</string>
     <string name="search_and_filter_games">Cerca e filtra i giochi</string>
-    <string name="select_games_folder">Seleziona la cartella di gioco</string>
+    <string name="select_games_folder">Seleziona la cartella dei giochi</string>
     <string name="select_games_folder_description">Consente a yuzu di popolare l\'elenco dei giochi</string>
     <string name="add_games_warning">Saltare la selezione della cartella dei giochi?</string>
     <string name="add_games_warning_description">I giochi non saranno mostrati nella lista dei giochi se una cartella non è selezionata.</string>
@@ -68,6 +68,7 @@
     <string name="invalid_keys_error">Chiavi di crittografia non valide</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Il file selezionato è incorretto o corrotto. Per favore riesegui il dump delle tue chiavi.</string>
+    <string name="gpu_driver_manager">Gestore driver GPU</string>
     <string name="install_gpu_driver">Installa i driver GPU</string>
     <string name="install_gpu_driver_description">Installa driver alternativi per potenziali prestazioni migliori o accuratezza.</string>
     <string name="advanced_settings">Impostazioni avanzate</string>
@@ -118,6 +119,23 @@
     <string name="manage_yuzu_data_description">Importa/Esporta il firmware, le keys, i dati utente, e altro!</string>
     <string name="share_save_file">Condividi i tuoi dati di salvataggio</string>
     <string name="export_save_failed">Errore durante l\'esportazione del salvataggio</string>
+    <!-- Applet launcher strings -->
+    <string name="applets">Avvia applet</string>
+    <string name="applets_description">Avvia applet di sistema usando il firmware installato</string>
+    <string name="applets_error_firmware">Firmware non installato</string>
+    <string name="applets_error_applet">Applet non disponibile</string>
+    <string name="applets_error_description"><![CDATA[Assicurati che il file <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e il <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> siano installati e riprova.]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Visualizza le immagini salvate nella cartella screenshots dell\'utente con il visualizzatore immagini di sistema</string>
+    <string name="mii_edit_applet">Modifica Mii</string>
+    <string name="mii_edit_applet_description">Visualizza e modifica Mii con l\'editor di sistema</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Modifica ed elimina i dati salvati sugli amiibo</string>
+    <string name="cabinet_launcher">Avvia Cabinet</string>
+    <string name="cabinet_nickname_and_owner">Impostazioni nickname e proprietario</string>
+    <string name="cabinet_game_data_eraser">Cancella dati di gioco</string>
+    <string name="cabinet_restorer">Ripristina</string>
+    <string name="cabinet_formatter">Formatta</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia non è reale</string>
@@ -191,7 +209,6 @@
     <string name="renderer_reactive_flushing_description">Migliora l\'accuratezza della grafica in alcuni giochi, al costo delle performance.</string>
     <string name="use_disk_shader_cache">Usa la cache delle shader</string>
     <string name="use_disk_shader_cache_description">Riduce lo stuttering caricando le shader già compilate all\'avvio.</string>
-
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="cpu_debug_mode">Debug della CPU</string>
@@ -230,14 +247,19 @@
     <string name="export_failed">Esportazione Fallita</string>
     <string name="import_failed">Importazione Fallita</string>
     <string name="cancelling">Cancellazione</string>
-
+    <string name="install">Installa</string>
+    <string name="delete">Elimina</string>
+    <string name="start">Start</string>
+    <string name="clear">Cancella</string>
+    <string name="custom">Personalizzato</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Seleziona il driver della GPU</string>
     <string name="select_gpu_driver_title">Vuoi sostituire il driver della tua GPU attuale?</string>
     <string name="select_gpu_driver_install">Installa</string>
     <string name="select_gpu_driver_default">Predefinito</string>
     <string name="select_gpu_driver_use_default">Utilizza il driver predefinito della GPU.</string>
-    <string name="select_gpu_driver_error">Il driver selezionato è invalido, è in utilizzo quello predefinito di sistema!</string>
+    <string name="select_gpu_driver_error">Driver selezionato non valido</string>
+    <string name="driver_already_installed">Driver già installato</string>
     <string name="system_gpu_driver">Driver GPU del sistema</string>
     <string name="installing_driver">Installando i driver...</string>
 
@@ -249,7 +271,12 @@
     <string name="preferences_audio">Audio</string>
     <string name="preferences_theme">Tema e colori</string>
     <string name="preferences_debug">Debug</string>
-
+    <!-- Game properties -->
+    <string name="info">Info</string>
+    <string name="path">Percorso</string>
+    <string name="developer">Sviluppatore</string>
+    <string name="version">Versione</string>
+    <string name="add_ons">Add-on</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">La tua ROM è criptata</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Segui la nostra guida per fare il <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">dump delle tue cartucce di gioco</a>oppure <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">dei titoli già installati</a>.]]></string>
@@ -263,20 +290,21 @@
     <string name="emulation_exit">Arresta emulazione</string>
     <string name="emulation_done">Fatto</string>
     <string name="emulation_fps_counter">Contatore FPS</string>
-    <string name="emulation_toggle_controls">Controlli a interruttore</string>
+    <string name="emulation_toggle_controls">Attiva/disattiva comandi</string>
     <string name="emulation_rel_stick_center">Centro relativo degli Stick</string>
     <string name="emulation_dpad_slide">DPad A Scorrimento</string>
     <string name="emulation_haptics">Feedback Aptico</string>
-    <string name="emulation_show_overlay">Mostra l\'Overlay</string>
+    <string name="emulation_show_overlay">Mostra l\'overlay</string>
     <string name="emulation_toggle_all">Attiva/Disattiva tutto</string>
-    <string name="emulation_control_adjust">Modifica l\'Overlay</string>
+    <string name="emulation_control_adjust">Regola l\'overlay</string>
     <string name="emulation_control_scale">Scala</string>
     <string name="emulation_control_opacity">Opacità</string>
-    <string name="emulation_touch_overlay_reset">Reimposta l\'Overlay</string>
-    <string name="emulation_touch_overlay_edit">Modifica l\'Overlay</string>
+    <string name="emulation_touch_overlay_reset">Reimposta l\'overlay</string>
+    <string name="emulation_touch_overlay_edit">Modifica l\'overlay</string>
     <string name="emulation_pause">Sospendi l\'emulazione</string>
     <string name="emulation_unpause">Riprendi l\'emulazione</string>
     <string name="emulation_input_overlay">Opzioni overlay</string>
+    <string name="touchscreen">Touchscreen</string>
 
     <string name="load_settings">Carico le impostazioni...</string>
 
@@ -308,6 +336,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">Kb</string>
     <string name="memory_megabyte">Mb</string>
     <string name="memory_gigabyte">GB</string>
@@ -352,10 +381,9 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
+    <string name="screen_layout_auto">Automatico</string>
     <string name="screen_layout_landscape">Layout Orizzontale</string>
     <string name="screen_layout_portrait">Layout Verticale</string>
-    <string name="screen_layout_auto">Automatico</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">Predefinito (16:9)</string>
     <string name="ratio_force_four_three">Forza 4:3</string>
@@ -390,8 +418,13 @@
     <string name="theme_mode_light">Chiaro</string>
     <string name="theme_mode_dark">Scuro</string>
 
-    <!-- Audio output engines -->
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Sfondi neri</string>
