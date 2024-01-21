@@ -157,7 +157,6 @@
     <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
     <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
     <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
-
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="renderer_api">API</string>
@@ -184,13 +183,16 @@
     <string name="string_null">Null</string>
     <string name="string_import">Importer</string>
     <string name="export">Eksporter</string>
+    <string name="install">Installer</string>
+    <string name="delete">Slett</string>
+    <string name="start">Start</string>
+    <string name="clear">Fjern</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Velg GPU-driver</string>
     <string name="select_gpu_driver_title">Ønsker du å bytte ut din nåværende GPU-driver?</string>
     <string name="select_gpu_driver_install">Installer</string>
     <string name="select_gpu_driver_default">Standard</string>
     <string name="select_gpu_driver_use_default">Bruk av standard GPU-driver</string>
-    <string name="select_gpu_driver_error">Ugyldig driver valgt, bruker systemstandard!</string>
     <string name="system_gpu_driver">Systemets GPU-driver</string>
     <string name="installing_driver">Installerer driver...</string>
 
@@ -202,7 +204,12 @@
     <string name="preferences_audio">Lyd</string>
     <string name="preferences_theme">Tema og farge</string>
     <string name="preferences_debug">Feilsøk</string>
-
+    <!-- Game properties -->
+    <string name="info">Info</string>
+    <string name="path">Sti</string>
+    <string name="developer">Utvikler</string>
+    <string name="version">Versjon</string>
+    <string name="add_ons">Tilleggsprogrammer</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-en din er kryptert</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
@@ -229,6 +236,7 @@
     <string name="emulation_pause">Pause emulering</string>
     <string name="emulation_unpause">Ta emuleringen ut av pause</string>
     <string name="emulation_input_overlay">Overlay-alternativer</string>
+    <string name="touchscreen">Touch-skjerm</string>
 
     <string name="load_settings">Laster inn innstillinger...</string>
 
@@ -254,6 +262,7 @@
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Taiwan</string>
 
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -291,8 +300,8 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
     <string name="screen_layout_auto">Auto</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">Standard (16:9)</string>
     <string name="ratio_force_four_three">Tving 4:3</string>
@@ -326,6 +335,12 @@
     <string name="theme_mode_follow_system">Følg systemet</string>
     <string name="theme_mode_light">Lys</string>
     <string name="theme_mode_dark">Mørk</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Svart bakgrunn</string>

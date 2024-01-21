@@ -157,7 +157,6 @@
     <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
     <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>
     <string name="use_disk_shader_cache_description">پچڕپچڕی کەمدەکاتەوە بە هەڵگرتن و بارکردنی سێبەری دروستکراو لە ناوخۆدا.</string>
-
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="renderer_api">API گرافیک</string>
@@ -183,13 +182,15 @@
     <string name="submit">پێشکەشکردن</string>
     <string name="string_import">هاوردەکردن</string>
     <string name="export">هەناردەکردن</string>
+    <string name="install">دامەزراندن</string>
+    <string name="delete">سڕینەوە</string>
+    <string name="clear">سڕینەوە</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">هەڵبژاردنی وەگەڕخەری GPU</string>
     <string name="select_gpu_driver_title">حەز دەکەیت وەگەڕخەری GPU ی ئێستات بگۆڕیت؟</string>
     <string name="select_gpu_driver_install">دامەزراندن</string>
     <string name="select_gpu_driver_default">بنەڕەت</string>
     <string name="select_gpu_driver_use_default">بەکارهێنانی وەگەڕخەری GPU ی بنەڕەت</string>
-    <string name="select_gpu_driver_error">وەگەڕخەری نادروست هەڵبژێردرا، بە بەکارهێنانی بنەڕەتی سیستەم!</string>
     <string name="system_gpu_driver">وەگەڕخەری GPU ی سیستەم</string>
     <string name="installing_driver">دامەزراندنی وەگەڕخەر...</string>
 
@@ -201,7 +202,8 @@
     <string name="preferences_audio">دەنگ</string>
     <string name="preferences_theme">ڕەنگ و ڕووکار</string>
     <string name="preferences_debug">چاککردنەوە</string>
-
+    <string name="path">ڕێڕەو</string>
+    <string name="version">وەشان</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ڕۆمەکەت کۆدکراوە</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[تکایە دڵنیابەوە لەدامەزراوی <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> فایلەکەت بۆ ئەوەی بتوانرێت یارییەکان کۆد بکرێنەوە.]]></string>
@@ -228,6 +230,7 @@
     <string name="emulation_pause">وەستاندنی ئیمولەیشن</string>
     <string name="emulation_unpause">لادانی وەستاندنی ئیمولەیشن</string>
     <string name="emulation_input_overlay">هەڵبژاردەکانی داپۆشەر</string>
+    <string name="touchscreen">رووکاری لەمسی</string>
 
     <string name="load_settings">بارکردنی ڕێکخستنەکان...</string>
 
@@ -253,6 +256,7 @@
     <string name="region_korea">کۆریا</string>
     <string name="region_taiwan">تایوان</string>
 
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">ڤوڵکان</string>
@@ -290,8 +294,8 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
     <string name="screen_layout_auto">خودکار</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">بنەڕەت (16:9)</string>
     <string name="ratio_force_four_three">ڕووبەری 4:3</string>
@@ -325,6 +329,12 @@
     <string name="theme_mode_follow_system">پەیڕەوی کردنی سیستەم</string>
     <string name="theme_mode_light">ڕوناکی</string>
     <string name="theme_mode_dark">تاریک</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">پاشبنەمای ڕەش</string>

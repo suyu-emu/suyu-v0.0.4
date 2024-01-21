@@ -39,7 +39,7 @@
     <string name="add_games_warning_description">フォルダを選択しないと、ゲームがリストに表示されません。</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">ゲームを検索</string>
-    <string name="search_settings">検索設定</string>
+    <string name="search_settings">設定を検索</string>
     <string name="games_dir_selected">フォルダを選択しました</string>
     <string name="install_prod_keys">prod.keys</string>
     <string name="install_prod_keys_description">製品版ゲームの復号化に必要です</string>
@@ -68,6 +68,7 @@
     <string name="invalid_keys_error">暗号化キーが無効</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">ファイルが間違っているか破損しています。キーを再ダンプしてください。</string>
+    <string name="gpu_driver_manager">GPUドライバーの管理</string>
     <string name="install_gpu_driver">GPUドライバー</string>
     <string name="install_gpu_driver_description">代替ドライバーをインストールしてパフォーマンスや精度を向上させます</string>
     <string name="advanced_settings">高度な設定</string>
@@ -111,6 +112,9 @@
     <string name="custom_driver_not_supported">カスタムドライバはサポートされていません</string>
     <string name="manage_yuzu_data">yuzu データを管理</string>
     <string name="share_save_file">セーブファイルを共有</string>
+    <string name="applets_error_firmware">ファームウェア未インストール</string>
+    <string name="album_applet">アルバム</string>
+    <string name="cabinet_nickname_and_owner">ニックネームと所有者の設定</string>
     <!-- About screen strings -->
     <string name="gaia_is_not_real">ガイアは実在しない</string>
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
@@ -178,10 +182,9 @@
     <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
     <string name="use_disk_shader_cache">ディスクシェーダーキャッシュ</string>
     <string name="use_disk_shader_cache_description">生成したシェーダーを端末に保存して読み込み、コマ落ちを軽減します。</string>
-
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="cpu_debug_mode">CPU デバッギング</string>
+    <string name="cpu_debug_mode">CPUデバッグ</string>
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">グラフィックデバッグ</string>
@@ -215,14 +218,17 @@
     <string name="export_failed">エクスポート失敗</string>
     <string name="import_failed">インポート失敗</string>
     <string name="cancelling">キャンセル中</string>
-
+    <string name="install">インストール</string>
+    <string name="delete">削除</string>
+    <string name="start">開始</string>
+    <string name="clear">クリア</string>
+    <string name="custom">カスタム</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPUドライバを選択</string>
     <string name="select_gpu_driver_title">現在のGPUドライバを置き換えますか？</string>
     <string name="select_gpu_driver_install">インストール</string>
     <string name="select_gpu_driver_default">デフォルト</string>
     <string name="select_gpu_driver_use_default">デフォルトのドライバを使用します</string>
-    <string name="select_gpu_driver_error">選択されたドライバが無効、システムのデフォルトを使用します!</string>
     <string name="system_gpu_driver">システムのGPUドライバ</string>
     <string name="installing_driver">インストール中…</string>
 
@@ -234,7 +240,12 @@
     <string name="preferences_audio">サウンド</string>
     <string name="preferences_theme">テーマと色</string>
     <string name="preferences_debug">デバッグ</string>
-
+    <!-- Game properties -->
+    <string name="info">情報</string>
+    <string name="path">パス</string>
+    <string name="developer">開発元</string>
+    <string name="version">バージョン</string>
+    <string name="add_ons">アドオン</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROMが暗号化されています</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[ゲームの復号化に必要な <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> ファイルがインストールされていることを確認してください。]]></string>
@@ -261,6 +272,7 @@
     <string name="emulation_pause">一時停止</string>
     <string name="emulation_unpause">再開</string>
     <string name="emulation_input_overlay">表示オプション</string>
+    <string name="touchscreen">タッチスクリーン</string>
 
     <string name="load_settings">設定をロード中…</string>
 
@@ -292,6 +304,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
@@ -336,10 +349,9 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
+    <string name="screen_layout_auto">自動</string>
     <string name="screen_layout_landscape">横長</string>
     <string name="screen_layout_portrait">縦長</string>
-    <string name="screen_layout_auto">自動</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">デフォルト (16:9)</string>
     <string name="ratio_force_four_three">強制 4:3</string>
@@ -374,8 +386,13 @@
     <string name="theme_mode_light">ライト</string>
     <string name="theme_mode_dark">ダーク</string>
 
-    <!-- Audio output engines -->
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">完全な黒を使用</string>

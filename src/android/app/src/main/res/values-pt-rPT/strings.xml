@@ -34,6 +34,7 @@
     <string name="empty_gamelist">Não foram encontrados jogos ou a pasta de Jogos ainda não foi definida. </string>
     <string name="search_and_filter_games">Procura e filtra jogos.</string>
     <string name="select_games_folder">Seleciona a pasta de jogos.</string>
+    <string name="manage_game_folders">Gerencie as pastas de jogos</string>
     <string name="select_games_folder_description">Permite que o Yuzu preencha a lista de jogos</string>
     <string name="add_games_warning">Ignorar a seleção da pasta de jogos?</string>
     <string name="add_games_warning_description">Os jogos não serão exibidos na lista de jogos se uma pasta não estiver selecionada.</string>
@@ -68,6 +69,7 @@
     <string name="invalid_keys_error">Chaves de encriptação inválidas</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">O ficheiro selecionado está corrompido. Por favor recarrega as tuas chaves.</string>
+    <string name="gpu_driver_manager">Gerenciador de driver de GPU</string>
     <string name="install_gpu_driver">Instala driver para GPU</string>
     <string name="install_gpu_driver_description">Instala drivers alternativos para desempenho ou precisão potencialmente melhores</string>
     <string name="advanced_settings">Configurações avançadas</string>
@@ -85,7 +87,11 @@
     <string name="notification_no_directory_link_description">Localiza a pasta de utilizador manualmente com o painel lateral do gestor de ficheiros.</string>
     <string name="manage_save_data">Gerir dados guardados</string>
     <string name="manage_save_data_description">Dados não encontrados. Por favor seleciona uma opção abaixo.</string>
+    <string name="import_save_warning">Importar dados salvos</string>
+    <string name="import_save_warning_description">Isso irá sobrescrever seus dados salvos com o arquivo selecionado. Você tem certeza que quer continuar?</string>
     <string name="import_export_saves_description">Importa ou exporta dados guardados</string>
+    <string name="save_files_importing">Importando dados salvos...</string>
+    <string name="save_files_exporting">Exportando arquivos de dados salvos...</string>
     <string name="save_file_imported_success">Importado com sucesso</string>
     <string name="save_file_invalid_zip_structure">Estrutura de diretório de dados invalida</string>
     <string name="save_file_invalid_zip_structure_description">O nome da primeira sub pasta tem de ser a ID do jogo.</string>
@@ -118,6 +124,40 @@
     <string name="manage_yuzu_data_description">Importa/exporta firmware, chaves, dados do usuário e mais!</string>
     <string name="share_save_file">Partilha ficheiro duardado</string>
     <string name="export_save_failed">Erro ao exportar dados guardados</string>
+    <string name="game_folders">Pastas de jogos</string>
+    <string name="deep_scan">Varredura profunda</string>
+    <string name="add_game_folder">Adicionar pasta de jogo</string>
+    <string name="folder_already_added">Esta pasta já foi adicionada!</string>
+    <string name="game_folder_properties">Propriedades da pasta de jogo</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Falha ao importar dado salvo de %d</item>
+        <item quantity="many">Falha ao importar dados salvos de %d</item>
+        <item quantity="other">Falha ao importar dados salvos de %d</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Dado salvo de %d importado com sucesso</item>
+        <item quantity="many">Dados salvos de %d importados com sucesso</item>
+        <item quantity="other">Dados salvos de %d importados com sucesso</item>
+    </plurals>
+    <string name="no_save_data_found">Dados salvos não encontrados</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">Launcher de miniaplicativos</string>
+    <string name="applets_description">Inicie miniaplicativos do sistema usando o firmware instalado</string>
+    <string name="applets_error_firmware">Firmware não instalado</string>
+    <string name="applets_error_applet">Miniaplicativo não disponível</string>
+    <string name="applets_error_description"><![CDATA[Por favor verifique se o arquivo 1prod.keys1 e o 2firmware2 estão  instalados e tente novamente.]]></string>
+    <string name="album_applet">Álbum</string>
+    <string name="album_applet_description">Visualize imagens armazenadas na pasta de capturas de telas do usuário com o visualizador de imagens do sistema</string>
+    <string name="mii_edit_applet">Editor de Mii</string>
+    <string name="mii_edit_applet_description">Visualize e edite os Miis com o editor do sistema</string>
+    <string name="cabinet_applet">Arquivo</string>
+    <string name="cabinet_applet_description">Edite e delete dados armazenados nos amiibos</string>
+    <string name="cabinet_launcher">Inicializador do Arquivo</string>
+    <string name="cabinet_nickname_and_owner">Apelido e configurações do proprietário</string>
+    <string name="cabinet_game_data_eraser">Apagar dados de jogo</string>
+    <string name="cabinet_restorer">Restaurar</string>
+    <string name="cabinet_formatter">Formatar</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia não é real</string>
@@ -161,6 +201,7 @@
     <string name="frame_limit_enable_description">Limita a velocidade da emulação a uma porcentagem específica da velocidade normal.</string>
     <string name="frame_limit_slider">Percentagem do limite de velocidade</string>
     <string name="frame_limit_slider_description">Especifica a porcentagem para limitar a velocidade de emulação. 100% é o normal. Valores mais altos ou mais baixos irão aumentar ou diminuir o limite de velocidade.</string>
+    <string name="cpu_backend">Backend da CPU</string>
     <string name="cpu_accuracy">Precisão do CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -191,6 +232,8 @@
     <string name="renderer_reactive_flushing_description">Melhora a precisão da renderização em alguns jogos ao custo de desempenho.</string>
     <string name="use_disk_shader_cache">Cache de shaders em disco</string>
     <string name="use_disk_shader_cache_description">Reduz travamentos ao armazenar e carregar localmente os shaders.</string>
+    <string name="anisotropic_filtering">Filtragem anisotrópica</string>
+    <string name="anisotropic_filtering_description">Melhora a qualidade das texturas quando visualizadas de ângulos oblíquos</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -217,6 +260,7 @@
     <string name="shutting_down">A desligar...</string>
     <string name="reset_setting_confirmation">Queres reverter esta definição para os valores padrão?</string>
     <string name="reset_to_default">Reverter para padrão</string>
+    <string name="reset_to_default_description">Reverte todas as configurações avançadas</string>
     <string name="reset_all_settings">Redefinir todas as configurações?</string>
     <string name="reset_all_settings_description">Todas as configurações avançadas retornarão ao padrão. Isto não pode ser desfeito.</string>
     <string name="settings_reset">Redefinir configurações </string>
@@ -230,14 +274,24 @@
     <string name="export_failed">Exportação falhada</string>
     <string name="import_failed">IMportação falhada</string>
     <string name="cancelling">A cancelar</string>
-
+    <string name="install">Instalar</string>
+    <string name="delete">Apagar</string>
+    <string name="edit">Editar</string>
+    <string name="export_success">Exportado com sucesso</string>
+    <string name="start">Começar</string>
+    <string name="clear">Limpar</string>
+    <string name="global">Global</string>
+    <string name="custom">Personalizado</string>
+    <string name="notice">Aviso</string>
+    <string name="import_complete">Importação concluída</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Seleciona a driver para o GPU</string>
     <string name="select_gpu_driver_title">Queres substituir o driver do GPU atual? </string>
     <string name="select_gpu_driver_install">Instalar</string>
     <string name="select_gpu_driver_default">Padrão</string>
     <string name="select_gpu_driver_use_default">Usar o driver padrão do GPU</string>
-    <string name="select_gpu_driver_error">Driver selecionado inválido, a usar o padrão do sistema!</string>
+    <string name="select_gpu_driver_error">Driver selecionado inválido</string>
+    <string name="driver_already_installed">Driver já instalado</string>
     <string name="system_gpu_driver">Driver do GPU padrão</string>
     <string name="installing_driver">A instalar o Driver...</string>
 
@@ -245,11 +299,52 @@
     <string name="preferences_settings">Configurações</string>
     <string name="preferences_general">Geral</string>
     <string name="preferences_system">Sistema</string>
+    <string name="preferences_system_description">Modo ancorado, região, idioma</string>
     <string name="preferences_graphics">Gráficos</string>
+    <string name="preferences_graphics_description">Nível de precisão, resolução, cache de shader</string>
     <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Engine de reprodução, volume</string>
     <string name="preferences_theme">Cor e tema.</string>
     <string name="preferences_debug">Depurar</string>
+    <string name="preferences_debug_description">Depuração de CPU/GPU, API gráfica, fastmem</string>
 
+    <!-- Game properties -->
+    <string name="info">Informação</string>
+    <string name="info_description">ID do programa, desenvolvedor, versão</string>
+    <string name="per_game_settings">Configurações por jogo</string>
+    <string name="per_game_settings_description">Editar configurações específicas para este jogo</string>
+    <string name="launch_options">Iniciar configuração</string>
+    <string name="path">Caminho</string>
+    <string name="program_id">ID do programa</string>
+    <string name="developer">Desenvolvedor</string>
+    <string name="version">Versão</string>
+    <string name="copy_details">Copiar detalhes</string>
+    <string name="add_ons">Add-ons</string>
+    <string name="add_ons_description">Gerencie mods, atualizações e DLC</string>
+    <string name="clear_shader_cache">Limpar cache de shaders</string>
+    <string name="clear_shader_cache_description">Remove todos os shaders compilados enquanto esse jogo era jogado</string>
+    <string name="clear_shader_cache_warning_description">Você terá mais travamentos enquanto o cache de shaders for recompilado</string>
+    <string name="cleared_shaders_successfully">Shaders excluídos com sucesso</string>
+    <string name="addons_game">Adicionais: %1$s</string>
+    <string name="save_data">Salvar dados</string>
+    <string name="save_data_description">Gerenciar dados salvos específicos deste jogo</string>
+    <string name="delete_save_data">Apagar dados salvos</string>
+    <string name="delete_save_data_description">Remover todos os dados salvos específicos deste jogo</string>
+    <string name="delete_save_data_warning_description">Isso removerá permanentemente todos os dados salvos do jogo. Tem certeza de que quer continuar?</string>
+    <string name="save_data_deleted_successfully">Dados salvos removidos com sucesso </string>
+    <string name="select_content_type">Tipo de conteúdo</string>
+    <string name="updates_and_dlc">Atualizações e DLC</string>
+    <string name="mods_and_cheats">Mods e trapaças</string>
+    <string name="addon_notice">Aviso importante sobre os adicionais</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">Para instalar mods e cheats, você deve selecionar uma pasta que contenha um diretório cheats/, romfs/ ou exefs. Não podemos verificar se eles são compatíveis com seu jogo, então tenha cuidado!</string>
+    <string name="invalid_directory">Diretório inválido </string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">Por favor verifique se o diretório selecionado contém uma pasta cheats/, romfs ou exefs e tente novamente.</string>
+    <string name="addon_installed_successfully">Adicional instalado com sucesso</string>
+    <string name="verifying_content">Verificando conteúdo</string>
+    <string name="content_install_notice">Aviso sobre conteúdo adicional</string>
+    <string name="content_install_notice_description">O conteúdo que você selecionou não corresponde a este jogo.\nInstalar mesmo assim?</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">A tua ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Por favor, siga os guias para despejar novamente o seu <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">cartucho de jogo</a> or <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">títulos instalados</a>.]]></string>
@@ -277,6 +372,7 @@
     <string name="emulation_pause">Pausar emulação</string>
     <string name="emulation_unpause">Despausar emulação</string>
     <string name="emulation_input_overlay">Opções de overlay</string>
+    <string name="touchscreen">Ecrã Táctil</string>
 
     <string name="load_settings">Carregando configurações...</string>
 
@@ -308,6 +404,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
@@ -352,9 +449,13 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">Landscape</string>
-    <string name="screen_layout_portrait">Portrait</string>
     <string name="screen_layout_auto">Automático</string>
+    <string name="screen_layout_sensor_landscape">Paisagem pelo sensor</string>
+    <string name="screen_layout_landscape">Landscape</string>
+    <string name="screen_layout_reverse_landscape">Paisagem invertida</string>
+    <string name="screen_layout_sensor_portrait">Retrato pelo sensor</string>
+    <string name="screen_layout_portrait">Portrait</string>
+    <string name="screen_layout_reverse_portrait">Retrato invertido</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">Padrão (16:9)</string>
@@ -362,6 +463,10 @@
     <string name="ratio_force_twenty_one_nine">Forçar 21:9</string>
     <string name="ratio_force_sixteen_ten">Forçar 16:10</string>
     <string name="ratio_stretch">Esticar à janela</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (Lento)</string>
+    <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Preciso</string>
@@ -391,7 +496,14 @@
     <string name="theme_mode_dark">Escuro</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Plano de fundo preto</string>

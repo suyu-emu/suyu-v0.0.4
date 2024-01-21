@@ -157,7 +157,6 @@
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
     <string name="use_disk_shader_cache">Pamięć podręczna shaderów</string>
     <string name="use_disk_shader_cache_description">Zmniejsza przycięcia przez przechowywanie gotowych wygenerowanych plików oświetlenia w pamięci urządzenia.</string>
-
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="renderer_api">Interfejs graficzny</string>
@@ -183,13 +182,17 @@
     <string name="submit">Zatwierdź</string>
     <string name="string_import">Importuj</string>
     <string name="export">Eksportuj</string>
+    <string name="install">Zainstaluj</string>
+    <string name="delete">Usuń</string>
+    <string name="start">Start</string>
+    <string name="clear">Wyczyść</string>
+    <string name="custom">Losowy</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Wybierz sterownik GPU </string>
     <string name="select_gpu_driver_title">Chcesz zastąpić obecny sterownik układu graficznego?</string>
     <string name="select_gpu_driver_install">Zainstaluj</string>
     <string name="select_gpu_driver_default">Domyślne</string>
     <string name="select_gpu_driver_use_default">Aktywny domyślny sterownik GPU</string>
-    <string name="select_gpu_driver_error">Wybrano błędny sterownik, powrót do domyślnego. </string>
     <string name="system_gpu_driver">Systemowy sterownik GPU</string>
     <string name="installing_driver">Instalowanie sterownika...</string>
 
@@ -201,7 +204,12 @@
     <string name="preferences_audio">Dźwięk</string>
     <string name="preferences_theme">Motyw i kolor</string>
     <string name="preferences_debug">Debug</string>
-
+    <!-- Game properties -->
+    <string name="info">Informacje</string>
+    <string name="path">Ścieżka</string>
+    <string name="developer">Deweloper</string>
+    <string name="version">Wersja</string>
+    <string name="add_ons">Dodatki</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Twój ROM jest zakodowany</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Upewnij się że plik kluczy <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> jest zainstalowany aby gry mogły zostać odczytane.]]></string>
@@ -228,6 +236,7 @@
     <string name="emulation_pause">Wstrzymaj emulację</string>
     <string name="emulation_unpause">Wznów emulację</string>
     <string name="emulation_input_overlay">Opcje nakładki</string>
+    <string name="touchscreen">Ekran dotykowy</string>
 
     <string name="load_settings">Wczytuję ustawienia...</string>
 
@@ -253,6 +262,7 @@
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Tajwan</string>
 
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -290,8 +300,8 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
     <string name="screen_layout_auto">Automatyczny</string>
-
     <!-- Aspect Ratios -->
     <string name="ratio_default">Domyślne (16:9)</string>
     <string name="ratio_force_four_three">Wymuś 4:3</string>
@@ -325,6 +335,12 @@
     <string name="theme_mode_follow_system">Podążaj za systemowym</string>
     <string name="theme_mode_light">Jasny</string>
     <string name="theme_mode_dark">Ciemny</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Czarne tła</string>
