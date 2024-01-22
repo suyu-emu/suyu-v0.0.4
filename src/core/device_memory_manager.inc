@@ -31,9 +31,8 @@ public:
         buffer.resize(0);
         size_t index = 0;
         const auto add_value = [&](u32 value) {
-            buffer[index] = value;
-            index++;
-            buffer.resize(index);
+            buffer.resize(index + 1);
+            buffer[index++] = value;
         };
 
         u32 iter_entry = start_entry;
