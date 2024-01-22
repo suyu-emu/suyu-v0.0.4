@@ -23,7 +23,8 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     THEME("theme"),
     THEME_MODE("theme_mode"),
     OVERLAY_SCALE("control_scale"),
-    OVERLAY_OPACITY("control_opacity");
+    OVERLAY_OPACITY("control_opacity"),
+    LOCK_DRAWER("lock_drawer");
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)
 

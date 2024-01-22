@@ -182,11 +182,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
 
             override fun onDrawerOpened(drawerView: View) {
-                // No op
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
             }
 
             override fun onDrawerClosed(drawerView: View) {
-                // No op
+                binding.drawerLayout.setDrawerLockMode(IntSetting.LOCK_DRAWER.getInt())
             }
 
             override fun onDrawerStateChanged(newState: Int) {
@@ -196,6 +196,28 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =
             game.title
+
+        binding.inGameMenu.menu.findItem(R.id.menu_lock_drawer).apply {
+            val lockMode = IntSetting.LOCK_DRAWER.getInt()
+            val titleId = if (lockMode == DrawerLayout.LOCK_MODE_LOCKED_CLOSED) {
+                R.string.unlock_drawer
+            } else {
+                R.string.lock_drawer
+            }
+            val iconId = if (lockMode == DrawerLayout.LOCK_MODE_UNLOCKED) {
+                R.drawable.ic_unlock
+            } else {
+                R.drawable.ic_lock
+            }
+
+            title = getString(titleId)
+            icon = ResourcesCompat.getDrawable(
+                resources,
+                iconId,
+                requireContext().theme
+            )
+        }
+
         binding.inGameMenu.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_pause_emulation -> {
@@ -239,6 +261,32 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_overlay_controls -> {
                     showOverlayOptions()
+                    true
+                }
+
+                R.id.menu_lock_drawer -> {
+                    when (IntSetting.LOCK_DRAWER.getInt()) {
+                        DrawerLayout.LOCK_MODE_UNLOCKED -> {
+                            IntSetting.LOCK_DRAWER.setInt(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                            it.title = resources.getString(R.string.unlock_drawer)
+                            it.icon = ResourcesCompat.getDrawable(
+                                resources,
+                                R.drawable.ic_lock,
+                                requireContext().theme
+                            )
+                        }
+
+                        DrawerLayout.LOCK_MODE_LOCKED_CLOSED -> {
+                            IntSetting.LOCK_DRAWER.setInt(DrawerLayout.LOCK_MODE_UNLOCKED)
+                            it.title = resources.getString(R.string.lock_drawer)
+                            it.icon = ResourcesCompat.getDrawable(
+                                resources,
+                                R.drawable.ic_unlock,
+                                requireContext().theme
+                            )
+                        }
+                    }
+                    NativeConfig.saveGlobalConfig()
                     true
                 }
 
@@ -326,7 +374,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
                     emulationViewModel.emulationStarted.collectLatest {
                         if (it) {
-                            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+                            binding.drawerLayout.setDrawerLockMode(IntSetting.LOCK_DRAWER.getInt())
                             ViewUtils.showView(binding.surfaceInputOverlay)
                             ViewUtils.hideView(binding.loadingIndicator)
 
