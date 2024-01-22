@@ -45,13 +45,22 @@ void EventInterface::FreeEvent(Kernel::KEvent* event) {
 void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     auto module = std::make_shared<Module>(system);
-    server_manager->RegisterNamedService("nvdrv", std::make_shared<NVDRV>(system, module, "nvdrv"));
-    server_manager->RegisterNamedService("nvdrv:a",
-                                         std::make_shared<NVDRV>(system, module, "nvdrv:a"));
-    server_manager->RegisterNamedService("nvdrv:s",
-                                         std::make_shared<NVDRV>(system, module, "nvdrv:s"));
-    server_manager->RegisterNamedService("nvdrv:t",
-                                         std::make_shared<NVDRV>(system, module, "nvdrv:t"));
+    const auto NvdrvInterfaceFactoryForApplication = [&, module] {
+        return std::make_shared<NVDRV>(system, module, "nvdrv");
+    };
+    const auto NvdrvInterfaceFactoryForApplets = [&, module] {
+        return std::make_shared<NVDRV>(system, module, "nvdrv:a");
+    };
+    const auto NvdrvInterfaceFactoryForSysmodules = [&, module] {
+        return std::make_shared<NVDRV>(system, module, "nvdrv:s");
+    };
+    const auto NvdrvInterfaceFactoryForTesting = [&, module] {
+        return std::make_shared<NVDRV>(system, module, "nvdrv:t");
+    };
+    server_manager->RegisterNamedService("nvdrv", NvdrvInterfaceFactoryForApplication);
+    server_manager->RegisterNamedService("nvdrv:a", NvdrvInterfaceFactoryForApplets);
+    server_manager->RegisterNamedService("nvdrv:s", NvdrvInterfaceFactoryForSysmodules);
+    server_manager->RegisterNamedService("nvdrv:t", NvdrvInterfaceFactoryForTesting);
     server_manager->RegisterNamedService("nvmemp", std::make_shared<NVMEMP>(system));
     nvnflinger.SetNVDrvInstance(module);
     ServerManager::RunServer(std::move(server_manager));
@@ -113,7 +122,7 @@ NvResult Module::VerifyFD(DeviceFD fd) const {
     return NvResult::Success;
 }
 
-DeviceFD Module::Open(const std::string& device_name) {
+DeviceFD Module::Open(const std::string& device_name, NvCore::SessionId session_id) {
     auto it = builders.find(device_name);
     if (it == builders.end()) {
         LOG_ERROR(Service_NVDRV, "Trying to open unknown device {}", device_name);
@@ -124,7 +133,7 @@ DeviceFD Module::Open(const std::string& device_name) {
     auto& builder = it->second;
     auto device = builder(fd)->second;
 
-    device->OnOpen(fd);
+    device->OnOpen(session_id, fd);
 
     return fd;
 }

@@ -7,12 +7,12 @@
 #include <string>
 #include <variant>
 
-#include "video_core/renderer_vulkan/vk_rasterizer.h"
-
 #include "common/dynamic_library.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_present_manager.h"
+#include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
@@ -42,7 +42,7 @@ class RendererVulkan final : public VideoCore::RendererBase {
 public:
     explicit RendererVulkan(Core::TelemetrySession& telemtry_session,
                             Core::Frontend::EmuWindow& emu_window,
-                            Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
+                            Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererVulkan() override;
 
@@ -62,7 +62,7 @@ private:
     void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer, bool use_accelerated);
 
     Core::TelemetrySession& telemetry_session;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
     Tegra::GPU& gpu;
 
     std::shared_ptr<Common::DynamicLibrary> library;

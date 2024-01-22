@@ -15,8 +15,8 @@
 #include "common/range_map.h"
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
-#include "core/memory.h"
 #include "video_core/cache_types.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/pte_kind.h"
 
 namespace VideoCore {
@@ -28,10 +28,6 @@ class InvalidationAccumulator;
 }
 
 namespace Core {
-class DeviceMemory;
-namespace Memory {
-class Memory;
-} // namespace Memory
 class System;
 } // namespace Core
 
@@ -41,6 +37,9 @@ class MemoryManager final {
 public:
     explicit MemoryManager(Core::System& system_, u64 address_space_bits_ = 40,
                            u64 big_page_bits_ = 16, u64 page_bits_ = 12);
+    explicit MemoryManager(Core::System& system_, MaxwellDeviceMemoryManager& memory_,
+                           u64 address_space_bits_ = 40, u64 big_page_bits_ = 16,
+                           u64 page_bits_ = 12);
     ~MemoryManager();
 
     size_t GetID() const {
@@ -50,9 +49,9 @@ public:
     /// Binds a renderer to the memory manager.
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
-    [[nodiscard]] std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
+    [[nodiscard]] std::optional<DAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
-    [[nodiscard]] std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr, std::size_t size) const;
+    [[nodiscard]] std::optional<DAddr> GpuToCpuAddress(GPUVAddr addr, std::size_t size) const;
 
     template <typename T>
     [[nodiscard]] T Read(GPUVAddr addr) const;
@@ -69,7 +68,7 @@ public:
         if (!address) {
             return {};
         }
-        return memory.GetPointer(*address);
+        return memory.GetPointer<T>(*address);
     }
 
     template <typename T>
@@ -110,7 +109,7 @@ public:
     [[nodiscard]] bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const;
 
     /**
-     * Checks if a gpu region is mapped by a single range of cpu addresses.
+     * Checks if a gpu region is mapped by a single range of device addresses.
      */
     [[nodiscard]] bool IsContinuousRange(GPUVAddr gpu_addr, std::size_t size) const;
 
@@ -120,14 +119,14 @@ public:
     [[nodiscard]] bool IsFullyMappedRange(GPUVAddr gpu_addr, std::size_t size) const;
 
     /**
-     * Returns a vector with all the subranges of cpu addresses mapped beneath.
+     * Returns a vector with all the subranges of device addresses mapped beneath.
      * if the region is continuous, a single pair will be returned. If it's unmapped, an empty
      * vector will be returned;
      */
     boost::container::small_vector<std::pair<GPUVAddr, std::size_t>, 32> GetSubmappedRange(
         GPUVAddr gpu_addr, std::size_t size) const;
 
-    GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size,
+    GPUVAddr Map(GPUVAddr gpu_addr, DAddr dev_addr, std::size_t size,
                  PTEKind kind = PTEKind::INVALID, bool is_big_pages = true);
     GPUVAddr MapSparse(GPUVAddr gpu_addr, std::size_t size, bool is_big_pages = true);
     void Unmap(GPUVAddr gpu_addr, std::size_t size);
@@ -186,12 +185,11 @@ private:
     void GetSubmappedRangeImpl(
         GPUVAddr gpu_addr, std::size_t size,
         boost::container::small_vector<
-            std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>, 32>&
+            std::pair<std::conditional_t<is_gpu_address, GPUVAddr, DAddr>, std::size_t>, 32>&
             result) const;
 
     Core::System& system;
-    Core::Memory::Memory& memory;
-    Core::DeviceMemory& device_memory;
+    MaxwellDeviceMemoryManager& memory;
 
     const u64 address_space_bits;
     const u64 page_bits;
@@ -218,11 +216,11 @@ private:
     std::vector<u64> big_entries;
 
     template <EntryType entry_type>
-    GPUVAddr PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cpu_addr, size_t size,
+    GPUVAddr PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr dev_addr, size_t size,
                          PTEKind kind);
 
     template <EntryType entry_type>
-    GPUVAddr BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cpu_addr, size_t size,
+    GPUVAddr BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] DAddr dev_addr, size_t size,
                             PTEKind kind);
 
     template <bool is_big_page>
@@ -233,11 +231,11 @@ private:
 
     Common::MultiLevelPageTable<u32> page_table;
     Common::RangeMap<GPUVAddr, PTEKind> kind_map;
-    Common::VirtualBuffer<u32> big_page_table_cpu;
+    Common::VirtualBuffer<u32> big_page_table_dev;
 
     std::vector<u64> big_page_continuous;
-    boost::container::small_vector<std::pair<VAddr, std::size_t>, 32> page_stash{};
-    boost::container::small_vector<std::pair<VAddr, std::size_t>, 32> page_stash2{};
+    boost::container::small_vector<std::pair<DAddr, std::size_t>, 32> page_stash{};
+    boost::container::small_vector<std::pair<DAddr, std::size_t>, 32> page_stash2{};
 
     mutable std::mutex guard;
 

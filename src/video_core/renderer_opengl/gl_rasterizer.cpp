@@ -70,18 +70,18 @@ std::optional<VideoCore::QueryType> MaxwellToVideoCoreQuery(VideoCommon::QueryTy
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
-                                   Core::Memory::Memory& cpu_memory_, const Device& device_,
-                                   ScreenInfo& screen_info_, ProgramManager& program_manager_,
-                                   StateTracker& state_tracker_)
-    : RasterizerAccelerated(cpu_memory_), gpu(gpu_), device(device_), screen_info(screen_info_),
+                                   Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                                   const Device& device_, ScreenInfo& screen_info_,
+                                   ProgramManager& program_manager_, StateTracker& state_tracker_)
+    : gpu(gpu_), device_memory(device_memory_), device(device_), screen_info(screen_info_),
       program_manager(program_manager_), state_tracker(state_tracker_),
       texture_cache_runtime(device, program_manager, state_tracker, staging_buffer_pool),
-      texture_cache(texture_cache_runtime, *this),
+      texture_cache(texture_cache_runtime, device_memory_),
       buffer_cache_runtime(device, staging_buffer_pool),
-      buffer_cache(*this, cpu_memory_, buffer_cache_runtime),
-      shader_cache(*this, emu_window_, device, texture_cache, buffer_cache, program_manager,
-                   state_tracker, gpu.ShaderNotify()),
-      query_cache(*this, cpu_memory_), accelerate_dma(buffer_cache, texture_cache),
+      buffer_cache(device_memory_, buffer_cache_runtime),
+      shader_cache(device_memory_, emu_window_, device, texture_cache, buffer_cache,
+                   program_manager, state_tracker, gpu.ShaderNotify()),
+      query_cache(*this, device_memory_), accelerate_dma(buffer_cache, texture_cache),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache),
       blit_image(program_manager_) {}
 
@@ -475,7 +475,7 @@ void RasterizerOpenGL::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
 
 void RasterizerOpenGL::FlushAll() {}
 
-void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+void RasterizerOpenGL::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
         return;
@@ -493,7 +493,7 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType 
     }
 }
 
-bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+bool RasterizerOpenGL::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
     if ((True(which & VideoCommon::CacheType::BufferCache))) {
         std::scoped_lock lock{buffer_cache.mutex};
         if (buffer_cache.IsRegionGpuModified(addr, size)) {
@@ -510,7 +510,7 @@ bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheT
     return false;
 }
 
-VideoCore::RasterizerDownloadArea RasterizerOpenGL::GetFlushArea(VAddr addr, u64 size) {
+VideoCore::RasterizerDownloadArea RasterizerOpenGL::GetFlushArea(DAddr addr, u64 size) {
     {
         std::scoped_lock lock{texture_cache.mutex};
         auto area = texture_cache.GetFlushArea(addr, size);
@@ -526,14 +526,14 @@ VideoCore::RasterizerDownloadArea RasterizerOpenGL::GetFlushArea(VAddr addr, u64
         }
     }
     VideoCore::RasterizerDownloadArea new_area{
-        .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),
-        .end_address = Common::AlignUp(addr + size, Core::Memory::YUZU_PAGESIZE),
+        .start_address = Common::AlignDown(addr, Core::DEVICE_PAGESIZE),
+        .end_address = Common::AlignUp(addr + size, Core::DEVICE_PAGESIZE),
         .preemtive = true,
     };
     return new_area;
 }
 
-void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+void RasterizerOpenGL::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
         return;
@@ -554,7 +554,7 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size, VideoCommon::Cache
     }
 }
 
-bool RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
+bool RasterizerOpenGL::OnCPUWrite(DAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
         return false;
@@ -576,8 +576,9 @@ bool RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
     return false;
 }
 
-void RasterizerOpenGL::OnCacheInvalidation(VAddr addr, u64 size) {
+void RasterizerOpenGL::OnCacheInvalidation(DAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+
     if (addr == 0 || size == 0) {
         return;
     }
@@ -596,7 +597,7 @@ void RasterizerOpenGL::InvalidateGPUCache() {
     gpu.InvalidateGPUCache();
 }
 
-void RasterizerOpenGL::UnmapMemory(VAddr addr, u64 size) {
+void RasterizerOpenGL::UnmapMemory(DAddr addr, u64 size) {
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.UnmapMemory(addr, size);
@@ -635,7 +636,7 @@ void RasterizerOpenGL::ReleaseFences(bool force) {
     fence_manager.WaitPendingFences(force);
 }
 
-void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size,
+void RasterizerOpenGL::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
     if (Settings::IsGPULevelExtreme()) {
         FlushRegion(addr, size, which);
@@ -739,7 +740,7 @@ void RasterizerOpenGL::AccelerateInlineToMemory(GPUVAddr address, size_t copy_si
 }
 
 bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                         VAddr framebuffer_addr, u32 pixel_stride) {
+                                         DAddr framebuffer_addr, u32 pixel_stride) {
     if (framebuffer_addr == 0) {
         return false;
     }

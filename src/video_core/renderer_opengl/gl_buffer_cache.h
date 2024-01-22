@@ -10,7 +10,6 @@
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
@@ -19,10 +18,9 @@ namespace OpenGL {
 
 class BufferCacheRuntime;
 
-class Buffer : public VideoCommon::BufferBase<VideoCore::RasterizerInterface> {
+class Buffer : public VideoCommon::BufferBase {
 public:
-    explicit Buffer(BufferCacheRuntime&, VideoCore::RasterizerInterface& rasterizer, VAddr cpu_addr,
-                    u64 size_bytes);
+    explicit Buffer(BufferCacheRuntime&, DAddr cpu_addr, u64 size_bytes);
     explicit Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams);
 
     void ImmediateUpload(size_t offset, std::span<const u8> data) noexcept;
@@ -244,7 +242,7 @@ struct BufferCacheParams {
     using Runtime = OpenGL::BufferCacheRuntime;
     using Buffer = OpenGL::Buffer;
     using Async_Buffer = OpenGL::StagingBufferMap;
-    using MemoryTracker = VideoCommon::MemoryTrackerBase<VideoCore::RasterizerInterface>;
+    using MemoryTracker = VideoCommon::MemoryTrackerBase<Tegra::MaxwellDeviceMemoryManager>;
 
     static constexpr bool IS_OPENGL = true;
     static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS = true;

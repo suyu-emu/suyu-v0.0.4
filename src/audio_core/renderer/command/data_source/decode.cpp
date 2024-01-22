@@ -9,6 +9,7 @@
 #include "common/fixed_point.h"
 #include "common/logging/log.h"
 #include "common/scratch_buffer.h"
+#include "core/guest_memory.h"
 #include "core/memory.h"
 
 namespace AudioCore::Renderer {

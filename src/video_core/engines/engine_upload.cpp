@@ -5,8 +5,8 @@
 
 #include "common/algorithm.h"
 #include "common/assert.h"
-#include "core/memory.h"
 #include "video_core/engines/engine_upload.h"
+#include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/decoders.h"
@@ -68,7 +68,8 @@ void State::ProcessData(std::span<const u8> read_buffer) {
             true, bytes_per_pixel, width, regs.dest.height, regs.dest.depth,
             regs.dest.BlockHeight(), regs.dest.BlockDepth());
 
-        Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+        Tegra::Memory::GpuGuestMemoryScoped<u8,
+                                            Tegra::Memory::GuestMemoryFlags::SafeReadCachedWrite>
             tmp(memory_manager, address, dst_size, &tmp_buffer);
 
         Tegra::Texture::SwizzleSubrect(tmp, read_buffer, bytes_per_pixel, width, regs.dest.height,

@@ -13,9 +13,10 @@
 
 #include "common/bit_util.h"
 #include "common/common_types.h"
-#include "core/memory.h"
 #include "video_core/engines/draw_manager.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_cache.h"
+#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
@@ -102,7 +103,7 @@ private:
 using BaseStreamer = VideoCommon::SimpleStreamer<VideoCommon::HostQueryBase>;
 
 struct HostSyncValues {
-    VAddr address;
+    DAddr address;
     size_t size;
     size_t offset;
 
@@ -317,7 +318,7 @@ public:
         pending_sync.clear();
     }
 
-    size_t WriteCounter(VAddr address, bool has_timestamp, u32 value,
+    size_t WriteCounter(DAddr address, bool has_timestamp, u32 value,
                         [[maybe_unused]] std::optional<u32> subreport) override {
         PauseCounter();
         auto index = BuildQuery();
@@ -738,7 +739,7 @@ public:
         pending_sync.clear();
     }
 
-    size_t WriteCounter(VAddr address, bool has_timestamp, u32 value,
+    size_t WriteCounter(DAddr address, bool has_timestamp, u32 value,
                         std::optional<u32> subreport_) override {
         auto index = BuildQuery();
         auto* new_query = GetQuery(index);
@@ -769,9 +770,9 @@ public:
         return index;
     }
 
-    std::optional<std::pair<VAddr, size_t>> GetLastQueryStream(size_t stream) {
+    std::optional<std::pair<DAddr, size_t>> GetLastQueryStream(size_t stream) {
         if (last_queries[stream] != 0) {
-            std::pair<VAddr, size_t> result(last_queries[stream], last_queries_stride[stream]);
+            std::pair<DAddr, size_t> result(last_queries[stream], last_queries_stride[stream]);
             return result;
         }
         return std::nullopt;
@@ -974,7 +975,7 @@ private:
     size_t buffers_count{};
     std::array<VkBuffer, NUM_STREAMS> counter_buffers{};
     std::array<VkDeviceSize, NUM_STREAMS> offsets{};
-    std::array<VAddr, NUM_STREAMS> last_queries;
+    std::array<DAddr, NUM_STREAMS> last_queries;
     std::array<size_t, NUM_STREAMS> last_queries_stride;
     Maxwell3D::Regs::PrimitiveTopology out_topology;
     u64 streams_mask;
@@ -987,7 +988,7 @@ public:
         : VideoCommon::QueryBase(0, VideoCommon::QueryFlagBits::IsHostManaged, 0) {}
 
     // Parameterized constructor
-    PrimitivesQueryBase(bool has_timestamp, VAddr address)
+    PrimitivesQueryBase(bool has_timestamp, DAddr address)
         : VideoCommon::QueryBase(address, VideoCommon::QueryFlagBits::IsHostManaged, 0) {
         if (has_timestamp) {
             flags |= VideoCommon::QueryFlagBits::HasTimestamp;
@@ -995,7 +996,7 @@ public:
     }
 
     u64 stride{};
-    VAddr dependant_address{};
+    DAddr dependant_address{};
     Maxwell3D::Regs::PrimitiveTopology topology{Maxwell3D::Regs::PrimitiveTopology::Points};
     size_t dependant_index{};
     bool dependant_manage{};
@@ -1005,15 +1006,15 @@ class PrimitivesSucceededStreamer : public VideoCommon::SimpleStreamer<Primitive
 public:
     explicit PrimitivesSucceededStreamer(size_t id_, QueryCacheRuntime& runtime_,
                                          TFBCounterStreamer& tfb_streamer_,
-                                         Core::Memory::Memory& cpu_memory_)
+                                         Tegra::MaxwellDeviceMemoryManager& device_memory_)
         : VideoCommon::SimpleStreamer<PrimitivesQueryBase>(id_), runtime{runtime_},
-          tfb_streamer{tfb_streamer_}, cpu_memory{cpu_memory_} {
+          tfb_streamer{tfb_streamer_}, device_memory{device_memory_} {
         MakeDependent(&tfb_streamer);
     }
 
     ~PrimitivesSucceededStreamer() = default;
 
-    size_t WriteCounter(VAddr address, bool has_timestamp, u32 value,
+    size_t WriteCounter(DAddr address, bool has_timestamp, u32 value,
                         std::optional<u32> subreport_) override {
         auto index = BuildQuery();
         auto* new_query = GetQuery(index);
@@ -1063,6 +1064,8 @@ public:
                 }
             });
         }
+        auto* ptr = device_memory.GetPointer<u8>(new_query->dependant_address);
+        ASSERT(ptr != nullptr);
 
         new_query->dependant_manage = must_manage_dependance;
         pending_flush_queries.push_back(index);
@@ -1100,7 +1103,7 @@ public:
                 num_vertices = dependant_query->value / query->stride;
                 tfb_streamer.Free(query->dependant_index);
             } else {
-                u8* pointer = cpu_memory.GetPointer(query->dependant_address);
+                u8* pointer = device_memory.GetPointer<u8>(query->dependant_address);
                 u32 result;
                 std::memcpy(&result, pointer, sizeof(u32));
                 num_vertices = static_cast<u64>(result) / query->stride;
@@ -1137,7 +1140,7 @@ public:
 private:
     QueryCacheRuntime& runtime;
     TFBCounterStreamer& tfb_streamer;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     // syncing queue
     std::vector<size_t> pending_sync;
@@ -1152,12 +1155,13 @@ private:
 
 struct QueryCacheRuntimeImpl {
     QueryCacheRuntimeImpl(QueryCacheRuntime& runtime, VideoCore::RasterizerInterface* rasterizer_,
-                          Core::Memory::Memory& cpu_memory_, Vulkan::BufferCache& buffer_cache_,
-                          const Device& device_, const MemoryAllocator& memory_allocator_,
-                          Scheduler& scheduler_, StagingBufferPool& staging_pool_,
+                          Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                          Vulkan::BufferCache& buffer_cache_, const Device& device_,
+                          const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
+                          StagingBufferPool& staging_pool_,
                           ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                           DescriptorPool& descriptor_pool)
-        : rasterizer{rasterizer_}, cpu_memory{cpu_memory_},
+        : rasterizer{rasterizer_}, device_memory{device_memory_},
           buffer_cache{buffer_cache_}, device{device_},
           memory_allocator{memory_allocator_}, scheduler{scheduler_}, staging_pool{staging_pool_},
           guest_streamer(0, runtime),
@@ -1168,7 +1172,7 @@ struct QueryCacheRuntimeImpl {
                        scheduler, memory_allocator, staging_pool),
           primitives_succeeded_streamer(
               static_cast<size_t>(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer,
-              cpu_memory_),
+              device_memory_),
           primitives_needed_minus_succeeded_streamer(
               static_cast<size_t>(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u),
           hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
@@ -1195,7 +1199,7 @@ struct QueryCacheRuntimeImpl {
     }
 
     VideoCore::RasterizerInterface* rasterizer;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
     Vulkan::BufferCache& buffer_cache;
 
     const Device& device;
@@ -1210,7 +1214,7 @@ struct QueryCacheRuntimeImpl {
     PrimitivesSucceededStreamer primitives_succeeded_streamer;
     VideoCommon::StubStreamer<QueryCacheParams> primitives_needed_minus_succeeded_streamer;
 
-    std::vector<std::pair<VAddr, VAddr>> little_cache;
+    std::vector<std::pair<DAddr, DAddr>> little_cache;
     std::vector<std::pair<VkBuffer, VkDeviceSize>> buffers_to_upload_to;
     std::vector<size_t> redirect_cache;
     std::vector<std::vector<VkBufferCopy>> copies_setup;
@@ -1229,14 +1233,14 @@ struct QueryCacheRuntimeImpl {
 };
 
 QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
-                                     Core::Memory::Memory& cpu_memory_,
+                                     Tegra::MaxwellDeviceMemoryManager& device_memory_,
                                      Vulkan::BufferCache& buffer_cache_, const Device& device_,
                                      const MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_, StagingBufferPool& staging_pool_,
                                      ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                                      DescriptorPool& descriptor_pool) {
     impl = std::make_unique<QueryCacheRuntimeImpl>(
-        *this, rasterizer, cpu_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
+        *this, rasterizer, device_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
         staging_pool_, compute_pass_descriptor_queue, descriptor_pool);
 }
 
@@ -1309,7 +1313,7 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     ResumeHostConditionalRendering();
 }
 
-void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(VAddr address, bool is_equal) {
+void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal) {
     VkBuffer to_resolve;
     u32 to_resolve_offset;
     {
@@ -1350,11 +1354,11 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
         return false;
     }
 
-    const auto check_in_bc = [&](VAddr address) {
+    const auto check_in_bc = [&](DAddr address) {
         return impl->buffer_cache.IsRegionGpuModified(address, 8);
     };
-    const auto check_value = [&](VAddr address) {
-        u8* ptr = impl->cpu_memory.GetPointer(address);
+    const auto check_value = [&](DAddr address) {
+        u8* ptr = impl->device_memory.GetPointer<u8>(address);
         u64 value{};
         std::memcpy(&value, ptr, sizeof(value));
         return value == 0;
@@ -1477,8 +1481,8 @@ void QueryCacheRuntime::SyncValues(std::span<SyncValuesType> values, VkBuffer ba
     for (auto& sync_val : values) {
         total_size += sync_val.size;
         bool found = false;
-        VAddr base = Common::AlignDown(sync_val.address, Core::Memory::YUZU_PAGESIZE);
-        VAddr base_end = base + Core::Memory::YUZU_PAGESIZE;
+        DAddr base = Common::AlignDown(sync_val.address, Core::DEVICE_PAGESIZE);
+        DAddr base_end = base + Core::DEVICE_PAGESIZE;
         for (size_t i = 0; i < impl->little_cache.size(); i++) {
             const auto set_found = [&] {
                 impl->redirect_cache.push_back(i);

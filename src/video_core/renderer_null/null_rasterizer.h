@@ -6,7 +6,6 @@
 #include "common/common_types.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
-#include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Core {
@@ -32,10 +31,10 @@ public:
     }
 };
 
-class RasterizerNull final : public VideoCore::RasterizerAccelerated,
+class RasterizerNull final : public VideoCore::RasterizerInterface,
                              protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
-    explicit RasterizerNull(Core::Memory::Memory& cpu_memory, Tegra::GPU& gpu);
+    explicit RasterizerNull(Tegra::GPU& gpu);
     ~RasterizerNull() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
@@ -48,17 +47,17 @@ public:
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void DisableGraphicsUniformBuffer(size_t stage, u32 index) override;
     void FlushAll() override;
-    void FlushRegion(VAddr addr, u64 size,
+    void FlushRegion(DAddr addr, u64 size,
                      VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    bool MustFlushRegion(VAddr addr, u64 size,
+    bool MustFlushRegion(DAddr addr, u64 size,
                          VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    void InvalidateRegion(VAddr addr, u64 size,
+    void InvalidateRegion(DAddr addr, u64 size,
                           VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    void OnCacheInvalidation(VAddr addr, u64 size) override;
-    bool OnCPUWrite(VAddr addr, u64 size) override;
-    VideoCore::RasterizerDownloadArea GetFlushArea(VAddr addr, u64 size) override;
+    void OnCacheInvalidation(DAddr addr, u64 size) override;
+    bool OnCPUWrite(DAddr addr, u64 size) override;
+    VideoCore::RasterizerDownloadArea GetFlushArea(DAddr addr, u64 size) override;
     void InvalidateGPUCache() override;
-    void UnmapMemory(VAddr addr, u64 size) override;
+    void UnmapMemory(DAddr addr, u64 size) override;
     void ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) override;
     void SignalFence(std::function<void()>&& func) override;
     void SyncOperation(std::function<void()>&& func) override;
@@ -66,7 +65,7 @@ public:
     void SignalReference() override;
     void ReleaseFences(bool force) override;
     void FlushAndInvalidateRegion(
-        VAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+        DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void WaitForIdle() override;
     void FragmentBarrier() override;
     void TiledCacheBarrier() override;
@@ -78,7 +77,7 @@ public:
     Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() override;
     void AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                   std::span<const u8> memory) override;
-    bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
+    bool AccelerateDisplay(const Tegra::FramebufferConfig& config, DAddr framebuffer_addr,
                            u32 pixel_stride) override;
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;

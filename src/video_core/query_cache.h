@@ -18,9 +18,9 @@
 
 #include "common/assert.h"
 #include "common/settings.h"
-#include "core/memory.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/texture_cache/slot_vector.h"
@@ -102,18 +102,19 @@ template <class QueryCache, class CachedQuery, class CounterStream, class HostCo
 class QueryCacheLegacy : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit QueryCacheLegacy(VideoCore::RasterizerInterface& rasterizer_,
-                              Core::Memory::Memory& cpu_memory_)
+                              Tegra::MaxwellDeviceMemoryManager& device_memory_)
         : rasterizer{rasterizer_},
           // Use reinterpret_cast instead of static_cast as workaround for
           // UBSan bug (https://github.com/llvm/llvm-project/issues/59060)
-          cpu_memory{cpu_memory_}, streams{{
-                                       {CounterStream{reinterpret_cast<QueryCache&>(*this),
-                                                      VideoCore::QueryType::SamplesPassed}},
-                                       {CounterStream{reinterpret_cast<QueryCache&>(*this),
-                                                      VideoCore::QueryType::PrimitivesGenerated}},
-                                       {CounterStream{reinterpret_cast<QueryCache&>(*this),
-                                                      VideoCore::QueryType::TfbPrimitivesWritten}},
-                                   }} {
+          device_memory{device_memory_},
+          streams{{
+              {CounterStream{reinterpret_cast<QueryCache&>(*this),
+                             VideoCore::QueryType::SamplesPassed}},
+              {CounterStream{reinterpret_cast<QueryCache&>(*this),
+                             VideoCore::QueryType::PrimitivesGenerated}},
+              {CounterStream{reinterpret_cast<QueryCache&>(*this),
+                             VideoCore::QueryType::TfbPrimitivesWritten}},
+          }} {
         (void)slot_async_jobs.insert(); // Null value
     }
 
@@ -322,13 +323,14 @@ private:
             local_lock.unlock();
             if (timestamp) {
                 u64 timestamp_value = *timestamp;
-                cpu_memory.WriteBlockUnsafe(address + sizeof(u64), &timestamp_value, sizeof(u64));
-                cpu_memory.WriteBlockUnsafe(address, &value, sizeof(u64));
+                device_memory.WriteBlockUnsafe(address + sizeof(u64), &timestamp_value,
+                                               sizeof(u64));
+                device_memory.WriteBlockUnsafe(address, &value, sizeof(u64));
                 rasterizer.InvalidateRegion(address, sizeof(u64) * 2,
                                             VideoCommon::CacheType::NoQueryCache);
             } else {
                 u32 small_value = static_cast<u32>(value);
-                cpu_memory.WriteBlockUnsafe(address, &small_value, sizeof(u32));
+                device_memory.WriteBlockUnsafe(address, &small_value, sizeof(u32));
                 rasterizer.InvalidateRegion(address, sizeof(u32),
                                             VideoCommon::CacheType::NoQueryCache);
             }
@@ -342,7 +344,7 @@ private:
     SlotVector<AsyncJob> slot_async_jobs;
 
     VideoCore::RasterizerInterface& rasterizer;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     mutable std::recursive_mutex mutex;
 

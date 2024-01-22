@@ -76,7 +76,7 @@ NvResult nvhost_ctrl::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> inp
     return NvResult::NotImplemented;
 }
 
-void nvhost_ctrl::OnOpen(DeviceFD fd) {}
+void nvhost_ctrl::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {}
 
 void nvhost_ctrl::OnClose(DeviceFD fd) {}
 

@@ -87,19 +87,20 @@ Result CreateNvMapHandle(u32* out_nv_map_handle, Nvidia::Devices::nvmap& nvmap, 
     R_SUCCEED();
 }
 
-Result FreeNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle) {
+Result FreeNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Nvidia::DeviceFD nvmap_fd) {
     // Free the handle.
     Nvidia::Devices::nvmap::IocFreeParams free_params{
         .handle = handle,
     };
-    R_UNLESS(nvmap.IocFree(free_params) == Nvidia::NvResult::Success, VI::ResultOperationFailed);
+    R_UNLESS(nvmap.IocFree(free_params, nvmap_fd) == Nvidia::NvResult::Success,
+             VI::ResultOperationFailed);
 
     // We succeeded.
     R_SUCCEED();
 }
 
 Result AllocNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Common::ProcessAddress buffer,
-                        u32 size) {
+                        u32 size, Nvidia::DeviceFD nvmap_fd) {
     // Assign the allocated memory to the handle.
     Nvidia::Devices::nvmap::IocAllocParams alloc_params{
         .handle = handle,
@@ -109,16 +110,16 @@ Result AllocNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Common::Proce
         .kind = 0,
         .address = GetInteger(buffer),
     };
-    R_UNLESS(nvmap.IocAlloc(alloc_params) == Nvidia::NvResult::Success, VI::ResultOperationFailed);
+    R_UNLESS(nvmap.IocAlloc(alloc_params, nvmap_fd) == Nvidia::NvResult::Success,
+             VI::ResultOperationFailed);
 
     // We succeeded.
     R_SUCCEED();
 }
 
-Result AllocateHandleForBuffer(u32* out_handle, Nvidia::Module& nvdrv,
+Result AllocateHandleForBuffer(u32* out_handle, Nvidia::Module& nvdrv, Nvidia::DeviceFD nvmap_fd,
                                Common::ProcessAddress buffer, u32 size) {
     // Get the nvmap device.
-    auto nvmap_fd = nvdrv.Open("/dev/nvmap");
     auto nvmap = nvdrv.GetDevice<Nvidia::Devices::nvmap>(nvmap_fd);
     ASSERT(nvmap != nullptr);
 
@@ -127,11 +128,11 @@ Result AllocateHandleForBuffer(u32* out_handle, Nvidia::Module& nvdrv,
 
     // Ensure we maintain a clean state on failure.
     ON_RESULT_FAILURE {
-        ASSERT(R_SUCCEEDED(FreeNvMapHandle(*nvmap, *out_handle)));
+        ASSERT(R_SUCCEEDED(FreeNvMapHandle(*nvmap, *out_handle, nvmap_fd)));
     };
 
     // Assign the allocated memory to the handle.
-    R_RETURN(AllocNvMapHandle(*nvmap, *out_handle, buffer, size));
+    R_RETURN(AllocNvMapHandle(*nvmap, *out_handle, buffer, size, nvmap_fd));
 }
 
 constexpr auto SharedBufferBlockLinearFormat = android::PixelFormat::Rgba8888;
@@ -197,9 +198,13 @@ Result FbShareBufferManager::Initialize(u64* out_buffer_id, u64* out_layer_id, u
                                            std::addressof(m_buffer_page_group), m_system,
                                            SharedBufferSize));
 
+    auto& container = m_nvdrv->GetContainer();
+    m_session_id = container.OpenSession(m_system.ApplicationProcess());
+    m_nvmap_fd = m_nvdrv->Open("/dev/nvmap", m_session_id);
+
     // Create an nvmap handle for the buffer and assign the memory to it.
-    R_TRY(AllocateHandleForBuffer(std::addressof(m_buffer_nvmap_handle), *m_nvdrv, map_address,
-                                  SharedBufferSize));
+    R_TRY(AllocateHandleForBuffer(std::addressof(m_buffer_nvmap_handle), *m_nvdrv, m_nvmap_fd,
+                                  map_address, SharedBufferSize));
 
     // Record the display id.
     m_display_id = display_id;

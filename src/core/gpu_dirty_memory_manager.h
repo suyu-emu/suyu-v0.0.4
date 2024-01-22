@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "core/memory.h"
+#include "core/device_memory_manager.h"
 
 namespace Core {
 
@@ -23,7 +23,7 @@ public:
 
     ~GPUDirtyMemoryManager() = default;
 
-    void Collect(VAddr address, size_t size) {
+    void Collect(PAddr address, size_t size) {
         TransformAddress t = BuildTransform(address, size);
         TransformAddress tmp, original;
         do {
@@ -47,7 +47,7 @@ public:
                                                 std::memory_order_relaxed));
     }
 
-    void Gather(std::function<void(VAddr, size_t)>& callback) {
+    void Gather(std::function<void(PAddr, size_t)>& callback) {
         {
             std::scoped_lock lk(guard);
             TransformAddress t = current.exchange(default_transform, std::memory_order_relaxed);
@@ -65,7 +65,7 @@ public:
                 mask = mask >> empty_bits;
 
                 const size_t continuous_bits = std::countr_one(mask);
-                callback((static_cast<VAddr>(transform.address) << page_bits) + offset,
+                callback((static_cast<PAddr>(transform.address) << page_bits) + offset,
                          continuous_bits << align_bits);
                 mask = continuous_bits < align_size ? (mask >> continuous_bits) : 0;
                 offset += continuous_bits << align_bits;
@@ -80,7 +80,7 @@ private:
         u32 mask;
     };
 
-    constexpr static size_t page_bits = Memory::YUZU_PAGEBITS - 1;
+    constexpr static size_t page_bits = DEVICE_PAGEBITS - 1;
     constexpr static size_t page_size = 1ULL << page_bits;
     constexpr static size_t page_mask = page_size - 1;
 
@@ -89,7 +89,7 @@ private:
     constexpr static size_t align_mask = align_size - 1;
     constexpr static TransformAddress default_transform = {.address = ~0U, .mask = 0U};
 
-    bool IsValid(VAddr address) {
+    bool IsValid(PAddr address) {
         return address < (1ULL << 39);
     }
 
@@ -103,7 +103,7 @@ private:
         return mask;
     }
 
-    TransformAddress BuildTransform(VAddr address, size_t size) {
+    TransformAddress BuildTransform(PAddr address, size_t size) {
         const size_t minor_address = address & page_mask;
         const size_t minor_bit = minor_address >> align_bits;
         const size_t top_bit = (minor_address + size + align_mask) >> align_bits;

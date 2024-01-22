@@ -82,10 +82,10 @@ Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dl
 
 RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window,
-                               Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
+                               Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
     : RendererBase(emu_window, std::move(context_)), telemetry_session(telemetry_session_),
-      cpu_memory(cpu_memory_), gpu(gpu_), library(OpenLibrary(context.get())),
+      device_memory(device_memory_), gpu(gpu_), library(OpenLibrary(context.get())),
       instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
                               Settings::values.renderer_debug.GetValue())),
       debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
@@ -97,9 +97,9 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                 render_window.GetFramebufferLayout().height),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
                       surface),
-      blit_screen(cpu_memory, render_window, device, memory_allocator, swapchain, present_manager,
-                  scheduler, screen_info),
-      rasterizer(render_window, gpu, cpu_memory, screen_info, device, memory_allocator,
+      blit_screen(device_memory, render_window, device, memory_allocator, swapchain,
+                  present_manager, scheduler, screen_info),
+      rasterizer(render_window, gpu, device_memory, screen_info, device, memory_allocator,
                  state_tracker, scheduler) {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
@@ -128,7 +128,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     screen_info.width = framebuffer->width;
     screen_info.height = framebuffer->height;
 
-    const VAddr framebuffer_addr = framebuffer->address + framebuffer->offset;
+    const DAddr framebuffer_addr = framebuffer->address + framebuffer->offset;
     const bool use_accelerated =
         rasterizer.AccelerateDisplay(*framebuffer, framebuffer_addr, framebuffer->stride);
     RenderScreenshot(*framebuffer, use_accelerated);

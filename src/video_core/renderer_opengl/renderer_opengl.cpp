@@ -15,7 +15,6 @@
 #include "common/telemetry.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
-#include "core/memory.h"
 #include "core/telemetry_session.h"
 #include "video_core/host_shaders/ffx_a_h.h"
 #include "video_core/host_shaders/ffx_fsr1_h.h"
@@ -144,12 +143,13 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
 
 RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window_,
-                               Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
+                               Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_)
     : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
-      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, device{emu_window_},
+      emu_window{emu_window_}, device_memory{device_memory_}, gpu{gpu_}, device{emu_window_},
       state_tracker{}, program_manager{device},
-      rasterizer(emu_window, gpu, cpu_memory, device, screen_info, program_manager, state_tracker) {
+      rasterizer(emu_window, gpu, device_memory, device, screen_info, program_manager,
+                 state_tracker) {
     if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -242,7 +242,7 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     const u32 bytes_per_pixel{VideoCore::Surface::BytesPerBlock(pixel_format)};
     const u64 size_in_bytes{Tegra::Texture::CalculateSize(
         true, bytes_per_pixel, framebuffer.stride, framebuffer.height, 1, block_height_log2, 0)};
-    const u8* const host_ptr{cpu_memory.GetPointer(framebuffer_addr)};
+    const u8* const host_ptr{device_memory.GetPointer<u8>(framebuffer_addr)};
     const std::span<const u8> input_data(host_ptr, size_in_bytes);
     Tegra::Texture::UnswizzleTexture(gl_framebuffer_data, input_data, bytes_per_pixel,
                                      framebuffer.width, framebuffer.height, 1, block_height_log2,

@@ -14,6 +14,7 @@
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Tegra {
@@ -25,6 +26,8 @@ class Host1x;
 } // namespace Tegra
 
 namespace Service::Nvidia::NvCore {
+
+class Container;
 /**
  * @brief The nvmap core class holds the global state for nvmap and provides methods to manage
  * handles
@@ -48,7 +51,7 @@ public:
         using Id = u32;
         Id id; //!< A globally unique identifier for this handle
 
-        s32 pins{};
+        s64 pins{};
         u32 pin_virt_address{};
         std::optional<typename std::list<std::shared_ptr<Handle>>::iterator> unmap_queue_entry{};
 
@@ -61,15 +64,18 @@ public:
         } flags{};
         static_assert(sizeof(Flags) == sizeof(u32));
 
-        u64 address{}; //!< The memory location in the guest's AS that this handle corresponds to,
-                       //!< this can also be in the nvdrv tmem
+        VAddr address{}; //!< The memory location in the guest's AS that this handle corresponds to,
+                         //!< this can also be in the nvdrv tmem
         bool is_shared_mem_mapped{}; //!< If this nvmap has been mapped with the MapSharedMem IPC
                                      //!< call
 
         u8 kind{};        //!< Used for memory compression
         bool allocated{}; //!< If the handle has been allocated with `Alloc`
+        bool in_heap{};
+        NvCore::SessionId session_id{};
 
-        u64 dma_map_addr{}; //! remove me after implementing pinning.
+        DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds
+                           //!< to, this can also be in the nvdrv tmem
 
         Handle(u64 size, Id id);
 
@@ -77,7 +83,8 @@ public:
          * @brief Sets up the handle with the given memory config, can allocate memory from the tmem
          * if a 0 address is passed
          */
-        [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress);
+        [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
+                                     NvCore::SessionId pSessionId);
 
         /**
          * @brief Increases the dupe counter of the handle for the given session
@@ -108,7 +115,7 @@ public:
         bool can_unlock;   //!< If the address region is ready to be unlocked
     };
 
-    explicit NvMap(Tegra::Host1x::Host1x& host1x);
+    explicit NvMap(Container& core, Tegra::Host1x::Host1x& host1x);
 
     /**
      * @brief Creates an unallocated handle of the given size
@@ -117,7 +124,7 @@ public:
 
     std::shared_ptr<Handle> GetHandle(Handle::Id handle);
 
-    VAddr GetHandleAddress(Handle::Id handle);
+    DAddr GetHandleAddress(Handle::Id handle);
 
     /**
      * @brief Maps a handle into the SMMU address space
@@ -125,7 +132,7 @@ public:
      * number of calls to `UnpinHandle`
      * @return The SMMU virtual address that the handle has been mapped to
      */
-    u32 PinHandle(Handle::Id handle);
+    DAddr PinHandle(Handle::Id handle, bool low_area_pin);
 
     /**
      * @brief When this has been called an equal number of times to `PinHandle` for the supplied
@@ -172,5 +179,7 @@ private:
      * @return If the handle was removed from the map
      */
     bool TryRemoveHandle(const Handle& handle_description);
+
+    Container& core;
 };
 } // namespace Service::Nvidia::NvCore

@@ -17,19 +17,19 @@
 
 namespace VideoCommon {
 
-template <class RasterizerInterface>
+template <typename DeviceTracker>
 class MemoryTrackerBase {
-    static constexpr size_t MAX_CPU_PAGE_BITS = 39;
+    static constexpr size_t MAX_CPU_PAGE_BITS = 34;
     static constexpr size_t HIGHER_PAGE_BITS = 22;
     static constexpr size_t HIGHER_PAGE_SIZE = 1ULL << HIGHER_PAGE_BITS;
     static constexpr size_t HIGHER_PAGE_MASK = HIGHER_PAGE_SIZE - 1ULL;
     static constexpr size_t NUM_HIGH_PAGES = 1ULL << (MAX_CPU_PAGE_BITS - HIGHER_PAGE_BITS);
     static constexpr size_t MANAGER_POOL_SIZE = 32;
     static constexpr size_t WORDS_STACK_NEEDED = HIGHER_PAGE_SIZE / BYTES_PER_WORD;
-    using Manager = WordManager<RasterizerInterface, WORDS_STACK_NEEDED>;
+    using Manager = WordManager<DeviceTracker, WORDS_STACK_NEEDED>;
 
 public:
-    MemoryTrackerBase(RasterizerInterface& rasterizer_) : rasterizer{&rasterizer_} {}
+    MemoryTrackerBase(DeviceTracker& device_tracker_) : device_tracker{&device_tracker_} {}
     ~MemoryTrackerBase() = default;
 
     /// Returns the inclusive CPU modified range in a begin end pair
@@ -74,7 +74,7 @@ public:
             });
     }
 
-    /// Mark region as CPU modified, notifying the rasterizer about this change
+    /// Mark region as CPU modified, notifying the device_tracker about this change
     void MarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 query_size) {
         IteratePages<true>(dirty_cpu_addr, query_size,
                            [](Manager* manager, u64 offset, size_t size) {
@@ -83,7 +83,7 @@ public:
                            });
     }
 
-    /// Unmark region as CPU modified, notifying the rasterizer about this change
+    /// Unmark region as CPU modified, notifying the device_tracker about this change
     void UnmarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 query_size) {
         IteratePages<true>(dirty_cpu_addr, query_size,
                            [](Manager* manager, u64 offset, size_t size) {
@@ -139,7 +139,7 @@ public:
             });
     }
 
-    /// Flushes cached CPU writes, and notify the rasterizer about the deltas
+    /// Flushes cached CPU writes, and notify the device_tracker about the deltas
     void FlushCachedWrites(VAddr query_cpu_addr, u64 query_size) noexcept {
         IteratePages<false>(query_cpu_addr, query_size,
                             [](Manager* manager, [[maybe_unused]] u64 offset,
@@ -280,7 +280,7 @@ private:
         manager_pool.emplace_back();
         auto& last_pool = manager_pool.back();
         for (size_t i = 0; i < MANAGER_POOL_SIZE; i++) {
-            new (&last_pool[i]) Manager(0, *rasterizer, HIGHER_PAGE_SIZE);
+            new (&last_pool[i]) Manager(0, *device_tracker, HIGHER_PAGE_SIZE);
             free_managers.push_back(&last_pool[i]);
         }
         return on_return();
@@ -293,7 +293,7 @@ private:
 
     std::unordered_set<u32> cached_pages;
 
-    RasterizerInterface* rasterizer = nullptr;
+    DeviceTracker* device_tracker = nullptr;
 };
 
 } // namespace VideoCommon

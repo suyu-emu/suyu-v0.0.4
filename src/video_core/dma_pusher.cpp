@@ -5,10 +5,10 @@
 #include "common/microprofile.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "video_core/dma_pusher.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
+#include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra {
@@ -85,15 +85,15 @@ bool DmaPusher::Step() {
             }
         }
         const auto safe_process = [&] {
-            Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                         Core::Memory::GuestMemoryFlags::SafeRead>
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
+                                          Tegra::Memory::GuestMemoryFlags::SafeRead>
                 headers(memory_manager, dma_state.dma_get, command_list_header.size,
                         &command_headers);
             ProcessCommands(headers);
         };
         const auto unsafe_process = [&] {
-            Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                         Core::Memory::GuestMemoryFlags::UnsafeRead>
+            Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
+                                          Tegra::Memory::GuestMemoryFlags::UnsafeRead>
                 headers(memory_manager, dma_state.dma_get, command_list_header.size,
                         &command_headers);
             ProcessCommands(headers);

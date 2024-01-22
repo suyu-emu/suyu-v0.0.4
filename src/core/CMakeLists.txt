@@ -37,6 +37,8 @@ add_library(core STATIC
     debugger/gdbstub_arch.h
     debugger/gdbstub.cpp
     debugger/gdbstub.h
+    device_memory_manager.h
+    device_memory_manager.inc
     device_memory.cpp
     device_memory.h
     file_sys/fssystem/fs_i_storage.h
@@ -609,6 +611,8 @@ add_library(core STATIC
     hle/service/ns/pdm_qry.h
     hle/service/nvdrv/core/container.cpp
     hle/service/nvdrv/core/container.h
+    hle/service/nvdrv/core/heap_mapper.cpp
+    hle/service/nvdrv/core/heap_mapper.h
     hle/service/nvdrv/core/nvmap.cpp
     hle/service/nvdrv/core/nvmap.h
     hle/service/nvdrv/core/syncpoint_manager.cpp

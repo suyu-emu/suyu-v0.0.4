@@ -79,7 +79,7 @@ vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allo
 } // Anonymous namespace
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params), tracker{4096} {
+    : VideoCommon::BufferBase(null_params), tracker{4096} {
     if (runtime.device.HasNullDescriptor()) {
         return;
     }
@@ -88,11 +88,9 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_p
     is_null = true;
 }
 
-Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
-               VAddr cpu_addr_, u64 size_bytes_)
-    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_),
-      device{&runtime.device}, buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())},
-      tracker{SizeBytes()} {
+Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
+    : VideoCommon::BufferBase(cpu_addr_, size_bytes_), device{&runtime.device},
+      buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())}, tracker{SizeBytes()} {
     if (runtime.device.HasDebuggingToolAttached()) {
         buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
     }

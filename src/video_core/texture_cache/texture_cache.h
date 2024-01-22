@@ -8,10 +8,11 @@
 
 #include "common/alignment.h"
 #include "common/settings.h"
-#include "core/memory.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/kepler_compute.h"
+#include "video_core/guest_memory.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/texture_cache_base.h"
@@ -27,8 +28,8 @@ using VideoCore::Surface::SurfaceType;
 using namespace Common::Literals;
 
 template <class P>
-TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface& rasterizer_)
-    : runtime{runtime_}, rasterizer{rasterizer_} {
+TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManager& device_memory_)
+    : runtime{runtime_}, device_memory{device_memory_} {
     // Configure null sampler
     TSCEntry sampler_descriptor{};
     sampler_descriptor.min_filter.Assign(Tegra::Texture::TextureFilter::Linear);
@@ -49,19 +50,19 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
     void(slot_samplers.insert(runtime, sampler_descriptor));
 
     if constexpr (HAS_DEVICE_MEMORY_INFO) {
-        const s64 device_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
-        const s64 min_spacing_expected = device_memory - 1_GiB;
-        const s64 min_spacing_critical = device_memory - 512_MiB;
-        const s64 mem_threshold = std::min(device_memory, TARGET_THRESHOLD);
+        const s64 device_local_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
+        const s64 min_spacing_expected = device_local_memory - 1_GiB;
+        const s64 min_spacing_critical = device_local_memory - 512_MiB;
+        const s64 mem_threshold = std::min(device_local_memory, TARGET_THRESHOLD);
         const s64 min_vacancy_expected = (6 * mem_threshold) / 10;
         const s64 min_vacancy_critical = (3 * mem_threshold) / 10;
         expected_memory = static_cast<u64>(
-            std::max(std::min(device_memory - min_vacancy_expected, min_spacing_expected),
+            std::max(std::min(device_local_memory - min_vacancy_expected, min_spacing_expected),
                      DEFAULT_EXPECTED_MEMORY));
         critical_memory = static_cast<u64>(
-            std::max(std::min(device_memory - min_vacancy_critical, min_spacing_critical),
+            std::max(std::min(device_local_memory - min_vacancy_critical, min_spacing_critical),
                      DEFAULT_CRITICAL_MEMORY));
-        minimum_memory = static_cast<u64>((device_memory - mem_threshold) / 2);
+        minimum_memory = static_cast<u64>((device_local_memory - mem_threshold) / 2);
     } else {
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
@@ -513,7 +514,7 @@ FramebufferId TextureCache<P>::GetFramebufferId(const RenderTargets& key) {
 }
 
 template <class P>
-void TextureCache<P>::WriteMemory(VAddr cpu_addr, size_t size) {
+void TextureCache<P>::WriteMemory(DAddr cpu_addr, size_t size) {
     ForEachImageInRegion(cpu_addr, size, [this](ImageId image_id, Image& image) {
         if (True(image.flags & ImageFlagBits::CpuModified)) {
             return;
@@ -526,7 +527,7 @@ void TextureCache<P>::WriteMemory(VAddr cpu_addr, size_t size) {
 }
 
 template <class P>
-void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
+void TextureCache<P>::DownloadMemory(DAddr cpu_addr, size_t size) {
     boost::container::small_vector<ImageId, 16> images;
     ForEachImageInRegion(cpu_addr, size, [&images](ImageId image_id, ImageBase& image) {
         if (!image.IsSafeDownload()) {
@@ -553,7 +554,7 @@ void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
 }
 
 template <class P>
-std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(VAddr cpu_addr,
+std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(DAddr cpu_addr,
                                                                                u64 size) {
     std::optional<VideoCore::RasterizerDownloadArea> area{};
     ForEachImageInRegion(cpu_addr, size, [&](ImageId, ImageBase& image) {
@@ -579,7 +580,7 @@ std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(V
 }
 
 template <class P>
-void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
+void TextureCache<P>::UnmapMemory(DAddr cpu_addr, size_t size) {
     boost::container::small_vector<ImageId, 16> deleted_images;
     ForEachImageInRegion(cpu_addr, size, [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
@@ -713,7 +714,7 @@ bool TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
 
 template <class P>
 typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(
-    const Tegra::FramebufferConfig& config, VAddr cpu_addr) {
+    const Tegra::FramebufferConfig& config, DAddr cpu_addr) {
     // TODO: Properly implement this
     const auto it = page_table.find(cpu_addr >> YUZU_PAGEBITS);
     if (it == page_table.end()) {
@@ -940,7 +941,7 @@ bool TextureCache<P>::IsRescaling(const ImageViewBase& image_view) const noexcep
 }
 
 template <class P>
-bool TextureCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
+bool TextureCache<P>::IsRegionGpuModified(DAddr addr, size_t size) {
     bool is_modified = false;
     ForEachImageInRegion(addr, size, [&is_modified](ImageId, ImageBase& image) {
         if (False(image.flags & ImageFlagBits::GpuModified)) {
@@ -1059,7 +1060,7 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
         return;
     }
 
-    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
         *gpu_memory, gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
 
     if (True(image.flags & ImageFlagBits::Converted)) {
@@ -1124,7 +1125,7 @@ ImageId TextureCache<P>::FindOrInsertImage(const ImageInfo& info, GPUVAddr gpu_a
 template <class P>
 ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
                                    RelaxedOptions options) {
-    std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (!cpu_addr) {
         cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr, CalculateGuestSizeInBytes(info));
         if (!cpu_addr) {
@@ -1265,7 +1266,7 @@ void TextureCache<P>::QueueAsyncDecode(Image& image, ImageId image_id) {
 
     static Common::ScratchBuffer<u8> local_unswizzle_data_buffer;
     local_unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
-    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
         *gpu_memory, image.gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
 
     auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data,
@@ -1339,14 +1340,14 @@ bool TextureCache<P>::ScaleDown(Image& image) {
 template <class P>
 ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
                                      RelaxedOptions options) {
-    std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (!cpu_addr) {
         const auto size = CalculateGuestSizeInBytes(info);
         cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr, size);
         if (!cpu_addr) {
-            const VAddr fake_addr = ~(1ULL << 40ULL) + virtual_invalid_space;
+            const DAddr fake_addr = ~(1ULL << 40ULL) + virtual_invalid_space;
             virtual_invalid_space += Common::AlignUp(size, 32);
-            cpu_addr = std::optional<VAddr>(fake_addr);
+            cpu_addr = std::optional<DAddr>(fake_addr);
         }
     }
     ASSERT_MSG(cpu_addr, "Tried to insert an image to an invalid gpu_addr=0x{:x}", gpu_addr);
@@ -1362,7 +1363,7 @@ ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
 }
 
 template <class P>
-ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VAddr cpu_addr) {
+ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DAddr cpu_addr) {
     ImageInfo new_info = info;
     const size_t size_bytes = CalculateGuestSizeInBytes(new_info);
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
@@ -1650,7 +1651,7 @@ std::optional<typename TextureCache<P>::BlitImages> TextureCache<P>::GetBlitImag
 
 template <class P>
 ImageId TextureCache<P>::FindDMAImage(const ImageInfo& info, GPUVAddr gpu_addr) {
-    std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (!cpu_addr) {
         cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr, CalculateGuestSizeInBytes(info));
         if (!cpu_addr) {
@@ -1780,7 +1781,7 @@ ImageViewId TextureCache<P>::FindRenderTargetView(const ImageInfo& info, GPUVAdd
 
 template <class P>
 template <typename Func>
-void TextureCache<P>::ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& func) {
+void TextureCache<P>::ForEachImageInRegion(DAddr cpu_addr, size_t size, Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
     static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 32> images;
@@ -1924,11 +1925,11 @@ void TextureCache<P>::ForEachSparseImageInRegion(GPUVAddr gpu_addr, size_t size,
 template <class P>
 template <typename Func>
 void TextureCache<P>::ForEachSparseSegment(ImageBase& image, Func&& func) {
-    using FuncReturn = typename std::invoke_result<Func, GPUVAddr, VAddr, size_t>::type;
+    using FuncReturn = typename std::invoke_result<Func, GPUVAddr, DAddr, size_t>::type;
     static constexpr bool RETURNS_BOOL = std::is_same_v<FuncReturn, bool>;
     const auto segments = gpu_memory->GetSubmappedRange(image.gpu_addr, image.guest_size_bytes);
     for (const auto& [gpu_addr, size] : segments) {
-        std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+        std::optional<DAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
         ASSERT(cpu_addr);
         if constexpr (RETURNS_BOOL) {
             if (func(gpu_addr, *cpu_addr, size)) {
@@ -1980,7 +1981,7 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
     }
     boost::container::small_vector<ImageViewId, 16> sparse_maps;
     ForEachSparseSegment(
-        image, [this, image_id, &sparse_maps](GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
+        image, [this, image_id, &sparse_maps](GPUVAddr gpu_addr, DAddr cpu_addr, size_t size) {
             auto map_id = slot_map_views.insert(gpu_addr, cpu_addr, size, image_id);
             ForEachCPUPage(cpu_addr, size,
                            [this, map_id](u64 page) { page_table[page].push_back(map_id); });
@@ -2048,7 +2049,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
     auto& sparse_maps = it->second;
     for (auto& map_view_id : sparse_maps) {
         const auto& map_range = slot_map_views[map_view_id];
-        const VAddr cpu_addr = map_range.cpu_addr;
+        const DAddr cpu_addr = map_range.cpu_addr;
         const std::size_t size = map_range.size;
         ForEachCPUPage(cpu_addr, size, [this, image_id](u64 page) {
             const auto page_it = page_table.find(page);
@@ -2080,7 +2081,7 @@ void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
     if (False(image.flags & ImageFlagBits::Sparse)) {
-        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
+        device_memory.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
         return;
     }
     if (True(image.flags & ImageFlagBits::Registered)) {
@@ -2089,15 +2090,15 @@ void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
         auto& sparse_maps = it->second;
         for (auto& map_view_id : sparse_maps) {
             const auto& map = slot_map_views[map_view_id];
-            const VAddr cpu_addr = map.cpu_addr;
+            const DAddr cpu_addr = map.cpu_addr;
             const std::size_t size = map.size;
-            rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
+            device_memory.UpdatePagesCachedCount(cpu_addr, size, 1);
         }
         return;
     }
     ForEachSparseSegment(image,
-                         [this]([[maybe_unused]] GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
-                             rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
+                         [this]([[maybe_unused]] GPUVAddr gpu_addr, DAddr cpu_addr, size_t size) {
+                             device_memory.UpdatePagesCachedCount(cpu_addr, size, 1);
                          });
 }
 
@@ -2106,7 +2107,7 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(True(image.flags & ImageFlagBits::Tracked));
     image.flags &= ~ImageFlagBits::Tracked;
     if (False(image.flags & ImageFlagBits::Sparse)) {
-        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
+        device_memory.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
         return;
     }
     ASSERT(True(image.flags & ImageFlagBits::Registered));
@@ -2115,9 +2116,9 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
     auto& sparse_maps = it->second;
     for (auto& map_view_id : sparse_maps) {
         const auto& map = slot_map_views[map_view_id];
-        const VAddr cpu_addr = map.cpu_addr;
+        const DAddr cpu_addr = map.cpu_addr;
         const std::size_t size = map.size;
-        rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
+        device_memory.UpdatePagesCachedCount(cpu_addr, size, -1);
     }
 }
 

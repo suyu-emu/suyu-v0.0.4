@@ -13,14 +13,10 @@
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
-#include "core/memory.h"
 #include "video_core/control/channel_state_cache.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_base.h"
 #include "video_core/query_cache/types.h"
-
-namespace Core::Memory {
-class Memory;
-}
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -53,7 +49,8 @@ public:
     };
 
     explicit QueryCacheBase(Tegra::GPU& gpu, VideoCore::RasterizerInterface& rasterizer_,
-                            Core::Memory::Memory& cpu_memory_, RuntimeType& runtime_);
+                            Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                            RuntimeType& runtime_);
 
     ~QueryCacheBase();
 
@@ -125,10 +122,10 @@ protected:
         const u64 addr_begin = addr;
         const u64 addr_end = addr_begin + size;
 
-        const u64 page_end = addr_end >> Core::Memory::YUZU_PAGEBITS;
+        const u64 page_end = addr_end >> Core::DEVICE_PAGEBITS;
         std::scoped_lock lock(cache_mutex);
-        for (u64 page = addr_begin >> Core::Memory::YUZU_PAGEBITS; page <= page_end; ++page) {
-            const u64 page_start = page << Core::Memory::YUZU_PAGEBITS;
+        for (u64 page = addr_begin >> Core::DEVICE_PAGEBITS; page <= page_end; ++page) {
+            const u64 page_start = page << Core::DEVICE_PAGEBITS;
             const auto in_range = [page_start, addr_begin, addr_end](const u32 query_location) {
                 const u64 cache_begin = page_start + query_location;
                 const u64 cache_end = cache_begin + sizeof(u32);

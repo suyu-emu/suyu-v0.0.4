@@ -8,6 +8,7 @@
 #include "common/scratch_buffer.h"
 #include "video_core/engines/sw_blitter/blitter.h"
 #include "video_core/engines/sw_blitter/converter.h"
+#include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"
@@ -160,7 +161,7 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
     const auto dst_bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(dst.format));
     const size_t src_size = get_surface_size(src, src_bytes_per_pixel);
 
-    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_buffer(
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::SafeRead> tmp_buffer(
         memory_manager, src.Address(), src_size, &impl->tmp_buffer);
 
     const size_t src_copy_size = src_extent_x * src_extent_y * src_bytes_per_pixel;
@@ -220,7 +221,7 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
     }
 
     const size_t dst_size = get_surface_size(dst, dst_bytes_per_pixel);
-    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadWrite>
+    Tegra::Memory::GpuGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::SafeReadWrite>
         tmp_buffer2(memory_manager, dst.Address(), dst_size, &impl->tmp_buffer);
 
     if (dst.linear == Fermi2D::MemoryLayout::BlockLinear) {
