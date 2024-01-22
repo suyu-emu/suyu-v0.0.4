@@ -1240,11 +1240,16 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
     if (!output_devices[index]) {
         return false;
     }
+
+    last_vibration_value = vibration;
+
+    if (!Settings::values.vibration_enabled) {
+        return false;
+    }
+
     const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
     const f32 strength = static_cast<f32>(player.vibration_strength) / 100.0f;
-
-    last_vibration_value = vibration;
 
     if (!player.vibration_enabled) {
         return false;
