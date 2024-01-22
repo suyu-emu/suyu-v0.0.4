@@ -82,14 +82,20 @@ android {
     }
 
     val keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
-    if (keystoreFile != null) {
-        signingConfigs {
+    signingConfigs {
+        if (keystoreFile != null) {
             create("release") {
                 storeFile = file(keystoreFile)
                 storePassword = System.getenv("ANDROID_KEYSTORE_PASS")
                 keyAlias = System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword = System.getenv("ANDROID_KEYSTORE_PASS")
             }
+        }
+        create("default") {
+            storeFile = file("$projectDir/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 
@@ -101,7 +107,7 @@ android {
             signingConfig = if (keystoreFile != null) {
                 signingConfigs.getByName("release")
             } else {
-                signingConfigs.getByName("debug")
+                signingConfigs.getByName("default")
             }
 
             resValue("string", "app_name_suffixed", "yuzu")
@@ -118,7 +124,7 @@ android {
         register("relWithDebInfo") {
             isDefault = true
             resValue("string", "app_name_suffixed", "yuzu Debug Release")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("default")
             isMinifyEnabled = true
             isDebuggable = true
             proguardFiles(
@@ -133,6 +139,7 @@ android {
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
+            signingConfig = signingConfigs.getByName("default")
             resValue("string", "app_name_suffixed", "yuzu Debug")
             isDebuggable = true
             isJniDebuggable = true
