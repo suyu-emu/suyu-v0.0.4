@@ -21,8 +21,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.transition.MaterialSharedAxis
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentGameInfoBinding
+import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.GameMetadata
 
@@ -100,6 +102,38 @@ class GameInfoFragment : Fragment() {
                     ${getString(R.string.version)} - ${args.game.version}
                 """.trimIndent()
                 copyToClipboard(args.game.title, details)
+            }
+
+            buttonVerifyIntegrity.setOnClickListener {
+                ProgressDialogFragment.newInstance(
+                    requireActivity(),
+                    R.string.verifying,
+                    true
+                ) { progressCallback, _ ->
+                    val result = GameVerificationResult.from(
+                        NativeLibrary.verifyGameContents(
+                            args.game.path,
+                            progressCallback
+                        )
+                    )
+                    return@newInstance when (result) {
+                        GameVerificationResult.Success ->
+                            MessageDialogFragment.newInstance(
+                                titleId = R.string.verify_success,
+                                descriptionId = R.string.operation_completed_successfully
+                            )
+                        GameVerificationResult.Failed ->
+                            MessageDialogFragment.newInstance(
+                                titleId = R.string.verify_failure,
+                                descriptionId = R.string.verify_failure_description
+                            )
+                        GameVerificationResult.NotImplemented ->
+                            MessageDialogFragment.newInstance(
+                                titleId = R.string.verify_no_result,
+                                descriptionId = R.string.verify_no_result_description
+                            )
+                    }
+                }.show(parentFragmentManager, ProgressDialogFragment.TAG)
             }
         }
 

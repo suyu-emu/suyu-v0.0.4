@@ -32,6 +32,7 @@ import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
@@ -137,6 +138,38 @@ class HomeSettingsFragment : Fragment() {
                     {
                         binding.root.findNavController()
                             .navigate(R.id.action_homeSettingsFragment_to_gameFoldersFragment)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.verify_installed_content,
+                    R.string.verify_installed_content_description,
+                    R.drawable.ic_check_circle,
+                    {
+                        ProgressDialogFragment.newInstance(
+                            requireActivity(),
+                            titleId = R.string.verifying,
+                            cancellable = true
+                        ) { progressCallback, _ ->
+                            val result = NativeLibrary.verifyInstalledContents(progressCallback)
+                            return@newInstance if (result.isEmpty()) {
+                                MessageDialogFragment.newInstance(
+                                    titleId = R.string.verify_success,
+                                    descriptionId = R.string.operation_completed_successfully
+                                )
+                            } else {
+                                val failedNames = result.joinToString("\n")
+                                val errorMessage = YuzuApplication.appContext.getString(
+                                    R.string.verification_failed_for,
+                                    failedNames
+                                )
+                                MessageDialogFragment.newInstance(
+                                    titleId = R.string.verify_failure,
+                                    descriptionString = errorMessage
+                                )
+                            }
+                        }.show(parentFragmentManager, ProgressDialogFragment.TAG)
                     }
                 )
             )
