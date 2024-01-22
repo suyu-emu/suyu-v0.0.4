@@ -101,8 +101,10 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                       surface),
       blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler),
       blit_screenshot(device_memory, device, memory_allocator, present_manager, scheduler),
+      blit_application_layer(device_memory, device, memory_allocator, present_manager, scheduler),
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
-                 scheduler) {
+                 scheduler),
+      application_frame() {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });

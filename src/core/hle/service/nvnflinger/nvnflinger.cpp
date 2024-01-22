@@ -157,7 +157,7 @@ bool Nvnflinger::CloseDisplay(u64 display_id) {
     return true;
 }
 
-std::optional<u64> Nvnflinger::CreateLayer(u64 display_id) {
+std::optional<u64> Nvnflinger::CreateLayer(u64 display_id, LayerBlending blending) {
     const auto lock_guard = Lock();
     auto* const display = FindDisplay(display_id);
 
@@ -166,13 +166,14 @@ std::optional<u64> Nvnflinger::CreateLayer(u64 display_id) {
     }
 
     const u64 layer_id = next_layer_id++;
-    CreateLayerAtId(*display, layer_id);
+    CreateLayerAtId(*display, layer_id, blending);
     return layer_id;
 }
 
-void Nvnflinger::CreateLayerAtId(VI::Display& display, u64 layer_id) {
+void Nvnflinger::CreateLayerAtId(VI::Display& display, u64 layer_id, LayerBlending blending) {
     const auto buffer_id = next_buffer_queue_id++;
     display.CreateLayer(layer_id, buffer_id, nvdrv->container);
+    display.FindLayer(layer_id)->SetBlending(blending);
 }
 
 bool Nvnflinger::OpenLayer(u64 layer_id) {

@@ -746,7 +746,13 @@ std::pair<typename P::ImageView*, bool> TextureCache<P>::TryFindFramebufferImage
     }();
 
     const auto GetImageViewForFramebuffer = [&](ImageId image_id) {
-        const ImageViewInfo info{ImageViewType::e2D, view_format};
+        ImageViewInfo info{ImageViewType::e2D, view_format};
+        if (config.blending == Tegra::BlendMode::Opaque) {
+            info.x_source = static_cast<u8>(SwizzleSource::R);
+            info.y_source = static_cast<u8>(SwizzleSource::G);
+            info.z_source = static_cast<u8>(SwizzleSource::B);
+            info.w_source = static_cast<u8>(SwizzleSource::OneFloat);
+        }
         return std::make_pair(&slot_image_views[FindOrEmplaceImageView(image_id, info)],
                               slot_images[image_id].IsRescaled());
     };
