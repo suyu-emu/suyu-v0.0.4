@@ -46,6 +46,7 @@ class BufferQueueProducer;
 namespace Service::Nvnflinger {
 
 class FbShareBufferManager;
+class HardwareComposer;
 class HosBinderDriverServer;
 
 class Nvnflinger final {

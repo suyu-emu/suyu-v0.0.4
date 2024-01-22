@@ -40,7 +40,7 @@ public:
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererOpenGL() override;
 
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
+    void Composite(std::span<const Tegra::FramebufferConfig> framebuffers) override;
 
     VideoCore::RasterizerInterface* ReadRasterizer() override {
         return &rasterizer;
@@ -52,7 +52,7 @@ public:
 
 private:
     void AddTelemetryFields();
-    void RenderScreenshot(const Tegra::FramebufferConfig* framebuffer);
+    void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);
 
     Core::TelemetrySession& telemetry_session;
     Core::Frontend::EmuWindow& emu_window;

@@ -11,12 +11,16 @@ namespace Vulkan {
 
 #define ARRAY_TO_SPAN(a) std::span(a, (sizeof(a) / sizeof(a[0])))
 
+vk::Buffer CreateWrappedBuffer(MemoryAllocator& allocator, VkDeviceSize size, MemoryUsage usage);
+
 vk::Image CreateWrappedImage(MemoryAllocator& allocator, VkExtent2D dimensions, VkFormat format);
 void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayout target_layout,
                            VkImageLayout source_layout = VK_IMAGE_LAYOUT_GENERAL);
 void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& scheduler,
                  vk::Image& image, VkExtent2D dimensions, VkFormat format,
                  std::span<const u8> initial_contents = {});
+void DownloadColorImage(vk::CommandBuffer& cmdbuf, VkImage image, VkBuffer buffer,
+                        VkExtent3D extent);
 void ClearColorImage(vk::CommandBuffer& cmdbuf, VkImage image);
 
 vk::ImageView CreateWrappedImageView(const Device& device, vk::Image& image, VkFormat format);

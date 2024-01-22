@@ -115,7 +115,7 @@ void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
 }
 
 vk::Framebuffer BlitScreen::CreateFramebuffer(const Layout::FramebufferLayout& layout,
-                                              const VkImageView& image_view,
+                                              VkImageView image_view,
                                               VkFormat current_view_format) {
     const bool format_updated =
         std::exchange(swapchain_view_format, current_view_format) != current_view_format;

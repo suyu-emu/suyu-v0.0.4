@@ -8,8 +8,7 @@
 #include "common/common_types.h"
 #include "common/math_util.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
-#include "core/hle/service/nvnflinger/buffer_transform_flags.h"
-#include "core/hle/service/nvnflinger/pixel_format.h"
+#include "core/hle/service/nvnflinger/hwc_layer.h"
 
 namespace Service::Nvidia::NvCore {
 class Container;
@@ -35,11 +34,8 @@ public:
     void OnOpen(NvCore::SessionId session_id, DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
 
-    /// Performs a screen flip, drawing the buffer pointed to by the handle.
-    void flip(u32 buffer_handle, u32 offset, android::PixelFormat format, u32 width, u32 height,
-              u32 stride, android::BufferTransformFlags transform,
-              const Common::Rectangle<int>& crop_rect,
-              std::array<Service::Nvidia::NvFence, 4>& fences, u32 num_fences);
+    /// Performs a screen flip, compositing each buffer.
+    void Composite(std::span<const Nvnflinger::HwcLayer> sorted_layers);
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
