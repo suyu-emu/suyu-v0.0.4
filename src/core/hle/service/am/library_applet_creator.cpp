@@ -87,7 +87,7 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     // Set focus state
     switch (mode) {
     case LibraryAppletMode::AllForeground:
-    case LibraryAppletMode::NoUI:
+    case LibraryAppletMode::NoUi:
         applet->focus_state = FocusState::InFocus;
         applet->hid_registration.EnableAppletToGetInput(true);
         applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
@@ -99,8 +99,8 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
         applet->hid_registration.EnableAppletToGetInput(false);
         applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
         break;
-    case LibraryAppletMode::Background:
-    case LibraryAppletMode::BackgroundIndirectDisplay:
+    case LibraryAppletMode::PartialForeground:
+    case LibraryAppletMode::PartialForegroundIndirectDisplay:
     default:
         applet->focus_state = FocusState::Background;
         applet->hid_registration.EnableAppletToGetInput(true);

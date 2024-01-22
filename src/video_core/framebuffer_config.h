@@ -11,6 +11,12 @@
 
 namespace Tegra {
 
+enum class BlendMode {
+    Opaque,
+    Premultiplied,
+    Coverage,
+};
+
 /**
  * Struct describing framebuffer configuration
  */
@@ -23,6 +29,7 @@ struct FramebufferConfig {
     Service::android::PixelFormat pixel_format{};
     Service::android::BufferTransformFlags transform_flags{};
     Common::Rectangle<int> crop_rect{};
+    BlendMode blending{};
 };
 
 Common::Rectangle<f32> NormalizeCrop(const FramebufferConfig& framebuffer, u32 texture_width,

@@ -14,24 +14,19 @@
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
 #include "core/hle/service/vi/vi_results.h"
+#include "video_core/gpu.h"
 
 namespace Service::Nvnflinger {
 
 namespace {
 
-Result AllocateIoForProcessAddressSpace(Common::ProcessAddress* out_map_address,
-                                        std::unique_ptr<Kernel::KPageGroup>* out_page_group,
-                                        Core::System& system, u32 size) {
+Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_group,
+                                  Core::System& system, u32 size) {
     using Core::Memory::YUZU_PAGESIZE;
 
     // Allocate memory for the system shared buffer.
-    // FIXME: Because the gmmu can only point to cpu addresses, we need
-    //        to map this in the application space to allow it to be used.
-    // FIXME: Add proper smmu emulation.
     // FIXME: This memory belongs to vi's .data section.
     auto& kernel = system.Kernel();
-    auto* process = system.ApplicationProcess();
-    auto& page_table = process->GetPageTable();
 
     // Hold a temporary page group reference while we try to map it.
     auto pg = std::make_unique<Kernel::KPageGroup>(
@@ -42,6 +37,30 @@ Result AllocateIoForProcessAddressSpace(Common::ProcessAddress* out_map_address,
         pg.get(), size / YUZU_PAGESIZE,
         Kernel::KMemoryManager::EncodeOption(Kernel::KMemoryManager::Pool::Secure,
                                              Kernel::KMemoryManager::Direction::FromBack)));
+
+    // Fill the output data with red.
+    for (auto& block : *pg) {
+        u32* start = system.DeviceMemory().GetPointer<u32>(block.GetAddress());
+        u32* end = system.DeviceMemory().GetPointer<u32>(block.GetAddress() + block.GetSize());
+
+        for (; start < end; start++) {
+            *start = 0xFF0000FF;
+        }
+    }
+
+    // Return the mapped page group.
+    *out_page_group = std::move(pg);
+
+    // We succeeded.
+    R_SUCCEED();
+}
+
+Result MapSharedBufferIntoProcessAddressSpace(Common::ProcessAddress* out_map_address,
+                                              std::unique_ptr<Kernel::KPageGroup>& pg,
+                                              Kernel::KProcess* process, Core::System& system) {
+    using Core::Memory::YUZU_PAGESIZE;
+
+    auto& page_table = process->GetPageTable();
 
     // Get bounds of where mapping is possible.
     const VAddr alias_code_begin = GetInteger(page_table.GetAliasCodeRegionStart());
@@ -63,9 +82,6 @@ Result AllocateIoForProcessAddressSpace(Common::ProcessAddress* out_map_address,
 
     // Return failure, if necessary
     R_UNLESS(i < 64, res);
-
-    // Return the mapped page group.
-    *out_page_group = std::move(pg);
 
     // We succeeded.
     R_SUCCEED();
@@ -135,6 +151,13 @@ Result AllocateHandleForBuffer(u32* out_handle, Nvidia::Module& nvdrv, Nvidia::D
     R_RETURN(AllocNvMapHandle(*nvmap, *out_handle, buffer, size, nvmap_fd));
 }
 
+void FreeHandle(u32 handle, Nvidia::Module& nvdrv, Nvidia::DeviceFD nvmap_fd) {
+    auto nvmap = nvdrv.GetDevice<Nvidia::Devices::nvmap>(nvmap_fd);
+    ASSERT(nvmap != nullptr);
+
+    R_ASSERT(FreeNvMapHandle(*nvmap, handle, nvmap_fd));
+}
+
 constexpr auto SharedBufferBlockLinearFormat = android::PixelFormat::Rgba8888;
 constexpr u32 SharedBufferBlockLinearBpp = 4;
 
@@ -186,51 +209,95 @@ FbShareBufferManager::FbShareBufferManager(Core::System& system, Nvnflinger& fli
 
 FbShareBufferManager::~FbShareBufferManager() = default;
 
-Result FbShareBufferManager::Initialize(u64* out_buffer_id, u64* out_layer_id, u64 display_id) {
+Result FbShareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* out_buffer_id,
+                                        u64* out_layer_handle, u64 display_id,
+                                        LayerBlending blending) {
     std::scoped_lock lk{m_guard};
 
-    // Ensure we have not already created a buffer.
-    R_UNLESS(m_buffer_id == 0, VI::ResultOperationFailed);
+    // Ensure we haven't already created.
+    const u64 aruid = owner_process->GetProcessId();
+    R_UNLESS(!m_sessions.contains(aruid), VI::ResultPermissionDenied);
 
-    // Allocate memory and space for the shared buffer.
-    Common::ProcessAddress map_address;
-    R_TRY(AllocateIoForProcessAddressSpace(std::addressof(map_address),
-                                           std::addressof(m_buffer_page_group), m_system,
-                                           SharedBufferSize));
+    // Allocate memory for the shared buffer if needed.
+    if (!m_buffer_page_group) {
+        R_TRY(AllocateSharedBufferMemory(std::addressof(m_buffer_page_group), m_system,
+                                         SharedBufferSize));
+
+        // Record buffer id.
+        m_buffer_id = m_next_buffer_id++;
+
+        // Record display id.
+        m_display_id = display_id;
+    }
+
+    // Map into process.
+    Common::ProcessAddress map_address{};
+    R_TRY(MapSharedBufferIntoProcessAddressSpace(std::addressof(map_address), m_buffer_page_group,
+                                                 owner_process, m_system));
+
+    // Create new session.
+    auto [it, was_emplaced] = m_sessions.emplace(aruid, FbShareSession{});
+    auto& session = it->second;
 
     auto& container = m_nvdrv->GetContainer();
-    m_session_id = container.OpenSession(m_system.ApplicationProcess());
-    m_nvmap_fd = m_nvdrv->Open("/dev/nvmap", m_session_id);
+    session.session_id = container.OpenSession(owner_process);
+    session.nvmap_fd = m_nvdrv->Open("/dev/nvmap", session.session_id);
 
     // Create an nvmap handle for the buffer and assign the memory to it.
-    R_TRY(AllocateHandleForBuffer(std::addressof(m_buffer_nvmap_handle), *m_nvdrv, m_nvmap_fd,
-                                  map_address, SharedBufferSize));
-
-    // Record the display id.
-    m_display_id = display_id;
+    R_TRY(AllocateHandleForBuffer(std::addressof(session.buffer_nvmap_handle), *m_nvdrv,
+                                  session.nvmap_fd, map_address, SharedBufferSize));
 
     // Create and open a layer for the display.
-    m_layer_id = m_flinger.CreateLayer(m_display_id).value();
-    m_flinger.OpenLayer(m_layer_id);
-
-    // Set up the buffer.
-    m_buffer_id = m_next_buffer_id++;
+    session.layer_id = m_flinger.CreateLayer(m_display_id, blending).value();
+    m_flinger.OpenLayer(session.layer_id);
 
     // Get the layer.
-    VI::Layer* layer = m_flinger.FindLayer(m_display_id, m_layer_id);
+    VI::Layer* layer = m_flinger.FindLayer(m_display_id, session.layer_id);
     ASSERT(layer != nullptr);
 
     // Get the producer and set preallocated buffers.
     auto& producer = layer->GetBufferQueue();
-    MakeGraphicBuffer(producer, 0, m_buffer_nvmap_handle);
-    MakeGraphicBuffer(producer, 1, m_buffer_nvmap_handle);
+    MakeGraphicBuffer(producer, 0, session.buffer_nvmap_handle);
+    MakeGraphicBuffer(producer, 1, session.buffer_nvmap_handle);
 
     // Assign outputs.
     *out_buffer_id = m_buffer_id;
-    *out_layer_id = m_layer_id;
+    *out_layer_handle = session.layer_id;
 
     // We succeeded.
     R_SUCCEED();
+}
+
+void FbShareBufferManager::Finalize(Kernel::KProcess* owner_process) {
+    std::scoped_lock lk{m_guard};
+
+    if (m_buffer_id == 0) {
+        return;
+    }
+
+    const u64 aruid = owner_process->GetProcessId();
+    const auto it = m_sessions.find(aruid);
+    if (it == m_sessions.end()) {
+        return;
+    }
+
+    auto& session = it->second;
+
+    // Destroy the layer.
+    m_flinger.DestroyLayer(session.layer_id);
+
+    // Close nvmap handle.
+    FreeHandle(session.buffer_nvmap_handle, *m_nvdrv, session.nvmap_fd);
+
+    // Close nvmap device.
+    m_nvdrv->Close(session.nvmap_fd);
+
+    // Close session.
+    auto& container = m_nvdrv->GetContainer();
+    container.CloseSession(session.session_id);
+
+    // Erase.
+    m_sessions.erase(it);
 }
 
 Result FbShareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
@@ -242,17 +309,18 @@ Result FbShareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
 
     R_UNLESS(m_buffer_id > 0, VI::ResultNotFound);
     R_UNLESS(buffer_id == m_buffer_id, VI::ResultNotFound);
+    R_UNLESS(m_sessions.contains(applet_resource_user_id), VI::ResultNotFound);
 
     *out_pool_layout = SharedBufferPoolLayout;
     *out_buffer_size = SharedBufferSize;
-    *out_nvmap_handle = m_buffer_nvmap_handle;
+    *out_nvmap_handle = m_sessions[applet_resource_user_id].buffer_nvmap_handle;
 
     R_SUCCEED();
 }
 
 Result FbShareBufferManager::GetLayerFromId(VI::Layer** out_layer, u64 layer_id) {
     // Ensure the layer id is valid.
-    R_UNLESS(m_layer_id > 0 && layer_id == m_layer_id, VI::ResultNotFound);
+    R_UNLESS(layer_id > 0, VI::ResultNotFound);
 
     // Get the layer.
     VI::Layer* layer = m_flinger.FindLayer(m_display_id, layer_id);
@@ -309,6 +377,10 @@ Result FbShareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
                  android::Status::NoError,
              VI::ResultOperationFailed);
 
+    ON_RESULT_FAILURE {
+        producer.CancelBuffer(static_cast<s32>(slot), fence);
+    };
+
     // Queue the buffer to the producer.
     android::QueueBufferInput input{};
     android::QueueBufferOutput output{};
@@ -339,6 +411,14 @@ Result FbShareBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadab
     *out_event = std::addressof(producer.GetNativeHandle());
 
     // We succeeded.
+    R_SUCCEED();
+}
+
+Result FbShareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written,
+                                                      s32* out_layer_index) {
+    // TODO
+    *out_was_written = true;
+    *out_layer_index = 1;
     R_SUCCEED();
 }
 

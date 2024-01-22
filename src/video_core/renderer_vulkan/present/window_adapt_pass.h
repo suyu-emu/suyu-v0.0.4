@@ -42,7 +42,7 @@ private:
     void CreatePipelineLayout();
     void CreateVertexShader();
     void CreateRenderPass(VkFormat frame_format);
-    void CreatePipeline();
+    void CreatePipelines();
 
 private:
     const Device& device;
@@ -52,7 +52,9 @@ private:
     vk::ShaderModule vertex_shader;
     vk::ShaderModule fragment_shader;
     vk::RenderPass render_pass;
-    vk::Pipeline pipeline;
+    vk::Pipeline opaque_pipeline;
+    vk::Pipeline premultiplied_pipeline;
+    vk::Pipeline coverage_pipeline;
 };
 
 } // namespace Vulkan

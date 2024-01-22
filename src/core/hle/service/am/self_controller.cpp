@@ -288,7 +288,8 @@ void ISelfController::GetSystemSharedBufferHandle(HLERequestContext& ctx) {
 }
 
 Result ISelfController::EnsureBufferSharingEnabled(Kernel::KProcess* process) {
-    if (applet->system_buffer_manager.Initialize(&nvnflinger, process, applet->applet_id)) {
+    if (applet->system_buffer_manager.Initialize(&nvnflinger, process, applet->applet_id,
+                                                 applet->library_applet_mode)) {
         return ResultSuccess;
     }
 

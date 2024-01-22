@@ -80,8 +80,11 @@ private:
     PresentManager present_manager;
     BlitScreen blit_swapchain;
     BlitScreen blit_screenshot;
+    BlitScreen blit_application_layer;
     RasterizerVulkan rasterizer;
     std::optional<TurboMode> turbo_mode;
+
+    Frame application_frame;
 };
 
 } // namespace Vulkan

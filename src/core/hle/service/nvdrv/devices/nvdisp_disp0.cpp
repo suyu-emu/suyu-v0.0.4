@@ -15,6 +15,22 @@
 
 namespace Service::Nvidia::Devices {
 
+namespace {
+
+Tegra::BlendMode ConvertBlending(Service::Nvnflinger::LayerBlending blending) {
+    switch (blending) {
+    case Service::Nvnflinger::LayerBlending::None:
+    default:
+        return Tegra::BlendMode::Opaque;
+    case Service::Nvnflinger::LayerBlending::Premultiplied:
+        return Tegra::BlendMode::Premultiplied;
+    case Service::Nvnflinger::LayerBlending::Coverage:
+        return Tegra::BlendMode::Coverage;
+    }
+}
+
+} // namespace
+
 nvdisp_disp0::nvdisp_disp0(Core::System& system_, NvCore::Container& core)
     : nvdevice{system_}, container{core}, nvmap{core.GetNvMapFile()} {}
 nvdisp_disp0::~nvdisp_disp0() = default;
@@ -56,6 +72,7 @@ void nvdisp_disp0::Composite(std::span<const Nvnflinger::HwcLayer> sorted_layers
             .pixel_format = layer.format,
             .transform_flags = layer.transform,
             .crop_rect = layer.crop_rect,
+            .blending = ConvertBlending(layer.blending),
         });
 
         for (size_t i = 0; i < layer.acquire_fence.num_fences; i++) {

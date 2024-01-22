@@ -15,6 +15,7 @@
 #include "common/thread.h"
 #include "core/hle/result.h"
 #include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/nvnflinger/hwc_layer.h"
 
 namespace Common {
 class Event;
@@ -72,7 +73,8 @@ public:
     /// Creates a layer on the specified display and returns the layer ID.
     ///
     /// If an invalid display ID is specified, then an empty optional is returned.
-    [[nodiscard]] std::optional<u64> CreateLayer(u64 display_id);
+    [[nodiscard]] std::optional<u64> CreateLayer(u64 display_id,
+                                                 LayerBlending blending = LayerBlending::None);
 
     /// Opens a layer on all displays for the given layer ID.
     bool OpenLayer(u64 layer_id);
@@ -128,7 +130,7 @@ private:
     [[nodiscard]] VI::Layer* FindLayer(u64 display_id, u64 layer_id);
 
     /// Creates a layer with the specified layer ID in the desired display.
-    void CreateLayerAtId(VI::Display& display, u64 layer_id);
+    void CreateLayerAtId(VI::Display& display, u64 layer_id, LayerBlending blending);
 
     void SplitVSync(std::stop_token stop_token);
 

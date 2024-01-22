@@ -22,7 +22,7 @@ WindowAdaptPass::WindowAdaptPass(const Device& device_, VkFormat frame_format,
     CreatePipelineLayout();
     CreateVertexShader();
     CreateRenderPass(frame_format);
-    CreatePipeline();
+    CreatePipelines();
 }
 
 WindowAdaptPass::~WindowAdaptPass() = default;
@@ -34,7 +34,6 @@ void WindowAdaptPass::Draw(RasterizerVulkan& rasterizer, Scheduler& scheduler, s
 
     const VkFramebuffer host_framebuffer{*dst->framebuffer};
     const VkRenderPass renderpass{*render_pass};
-    const VkPipeline graphics_pipeline{*pipeline};
     const VkPipelineLayout graphics_pipeline_layout{*pipeline_layout};
     const VkExtent2D render_area{
         .width = dst->width,
@@ -44,9 +43,23 @@ void WindowAdaptPass::Draw(RasterizerVulkan& rasterizer, Scheduler& scheduler, s
     const size_t layer_count = configs.size();
     std::vector<PresentPushConstants> push_constants(layer_count);
     std::vector<VkDescriptorSet> descriptor_sets(layer_count);
+    std::vector<VkPipeline> graphics_pipelines(layer_count);
 
     auto layer_it = layers.begin();
     for (size_t i = 0; i < layer_count; i++) {
+        switch (configs[i].blending) {
+        case Tegra::BlendMode::Opaque:
+        default:
+            graphics_pipelines[i] = *opaque_pipeline;
+            break;
+        case Tegra::BlendMode::Premultiplied:
+            graphics_pipelines[i] = *premultiplied_pipeline;
+            break;
+        case Tegra::BlendMode::Coverage:
+            graphics_pipelines[i] = *coverage_pipeline;
+            break;
+        }
+
         layer_it->ConfigureDraw(&push_constants[i], &descriptor_sets[i], rasterizer, *sampler,
                                 image_index, configs[i], layout);
         layer_it++;
@@ -77,8 +90,8 @@ void WindowAdaptPass::Draw(RasterizerVulkan& rasterizer, Scheduler& scheduler, s
         BeginRenderPass(cmdbuf, renderpass, host_framebuffer, render_area);
         cmdbuf.ClearAttachments({clear_attachment}, {clear_rect});
 
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
         for (size_t i = 0; i < layer_count; i++) {
+            cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipelines[i]);
             cmdbuf.PushConstants(graphics_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT,
                                  push_constants[i]);
             cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline_layout, 0,
@@ -129,9 +142,13 @@ void WindowAdaptPass::CreateRenderPass(VkFormat frame_format) {
     render_pass = CreateWrappedRenderPass(device, frame_format, VK_IMAGE_LAYOUT_UNDEFINED);
 }
 
-void WindowAdaptPass::CreatePipeline() {
-    pipeline = CreateWrappedPipeline(device, render_pass, pipeline_layout,
-                                     std::tie(vertex_shader, fragment_shader), false);
+void WindowAdaptPass::CreatePipelines() {
+    opaque_pipeline = CreateWrappedPipeline(device, render_pass, pipeline_layout,
+                                            std::tie(vertex_shader, fragment_shader));
+    premultiplied_pipeline = CreateWrappedPremultipliedBlendingPipeline(
+        device, render_pass, pipeline_layout, std::tie(vertex_shader, fragment_shader));
+    coverage_pipeline = CreateWrappedCoverageBlendingPipeline(
+        device, render_pass, pipeline_layout, std::tie(vertex_shader, fragment_shader));
 }
 
 } // namespace Vulkan
