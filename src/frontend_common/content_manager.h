@@ -127,14 +127,14 @@ inline bool RemoveMod(const Service::FileSystem::FileSystemController& fs_contro
  * \param system Raw pointer to the system instance
  * \param vfs Raw pointer to the VfsFilesystem instance in Core::System
  * \param filename Path to the NSP file
- * \param callback Optional callback to report the progress of the installation. The first size_t
+ * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the virtual file and the second is the current progress. If you
  * return true to the callback, it will cancel the installation as soon as possible.
  * \return [InstallResult] representing how the installation finished
  */
-inline InstallResult InstallNSP(
-    Core::System* system, FileSys::VfsFilesystem* vfs, const std::string& filename,
-    const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
+inline InstallResult InstallNSP(Core::System* system, FileSys::VfsFilesystem* vfs,
+                                const std::string& filename,
+                                const std::function<bool(size_t, size_t)>& callback) {
     const auto copy = [callback](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
                                  std::size_t block_size) {
         if (src == nullptr || dest == nullptr) {
@@ -192,15 +192,15 @@ inline InstallResult InstallNSP(
  * \param filename Path to the NCA file
  * \param registered_cache Raw pointer to the registered cache that the NCA will be installed to
  * \param title_type Type of NCA package to install
- * \param callback Optional callback to report the progress of the installation. The first size_t
+ * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the virtual file and the second is the current progress. If you
  * return true to the callback, it will cancel the installation as soon as possible.
  * \return [InstallResult] representing how the installation finished
  */
-inline InstallResult InstallNCA(
-    FileSys::VfsFilesystem* vfs, const std::string& filename,
-    FileSys::RegisteredCache* registered_cache, const FileSys::TitleType title_type,
-    const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
+inline InstallResult InstallNCA(FileSys::VfsFilesystem* vfs, const std::string& filename,
+                                FileSys::RegisteredCache* registered_cache,
+                                const FileSys::TitleType title_type,
+                                const std::function<bool(size_t, size_t)>& callback) {
     const auto copy = [callback](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
                                  std::size_t block_size) {
         if (src == nullptr || dest == nullptr) {
@@ -247,14 +247,14 @@ inline InstallResult InstallNCA(
  * \brief Verifies the installed contents for a given ManualContentProvider
  * \param system Raw pointer to the system instance
  * \param provider Raw pointer to the content provider that's tracking indexed games
- * \param callback Optional callback to report the progress of the installation. The first size_t
+ * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the installed contents and the second is the current progress. If
  * you return true to the callback, it will cancel the installation as soon as possible.
  * \return A list of entries that failed to install. Returns an empty vector if successful.
  */
 inline std::vector<std::string> VerifyInstalledContents(
     Core::System* system, FileSys::ManualContentProvider* provider,
-    const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
+    const std::function<bool(size_t, size_t)>& callback) {
     // Get content registries.
     auto bis_contents = system->GetFileSystemController().GetSystemNANDContents();
     auto user_contents = system->GetFileSystemController().GetUserNANDContents();
@@ -337,14 +337,14 @@ inline std::vector<std::string> VerifyInstalledContents(
  * \brief Verifies the contents of a given game
  * \param system Raw pointer to the system instance
  * \param game_path Patch to the game file
- * \param callback Optional callback to report the progress of the installation. The first size_t
+ * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the installed contents and the second is the current progress. If
  * you return true to the callback, it will cancel the installation as soon as possible.
  * \return GameVerificationResult representing how the verification process finished
  */
 inline GameVerificationResult VerifyGameContents(
     Core::System* system, const std::string& game_path,
-    const std::function<bool(size_t, size_t)>& callback = std::function<bool(size_t, size_t)>()) {
+    const std::function<bool(size_t, size_t)>& callback) {
     const auto loader = Loader::GetLoader(
         *system, system->GetFilesystem()->OpenFile(game_path, FileSys::Mode::Read));
     if (loader == nullptr) {
