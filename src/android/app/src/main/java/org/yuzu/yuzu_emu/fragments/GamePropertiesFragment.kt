@@ -4,6 +4,8 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.annotation.SuppressLint
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -82,6 +84,24 @@ class GamePropertiesFragment : Fragment() {
 
         binding.buttonBack.setOnClickListener {
             view.findNavController().popBackStack()
+        }
+
+        val shortcutManager = requireActivity().getSystemService(ShortcutManager::class.java)
+        binding.buttonShortcut.isEnabled = shortcutManager.isRequestPinShortcutSupported
+        binding.buttonShortcut.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    val shortcut = ShortcutInfo.Builder(requireContext(), args.game.title)
+                        .setShortLabel(args.game.title)
+                        .setIcon(
+                            GameIconUtils.getShortcutIcon(requireActivity(), args.game)
+                                .toIcon(requireContext())
+                        )
+                        .setIntent(args.game.launchIntent)
+                        .build()
+                    shortcutManager.requestPinShortcut(shortcut, null)
+                }
+            }
         }
 
         GameIconUtils.loadGameIcon(args.game, binding.imageGameScreen)

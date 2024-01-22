@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.model
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
 import java.util.HashSet
@@ -11,6 +12,7 @@ import kotlinx.serialization.Serializable
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
 import java.time.LocalDateTime
@@ -60,6 +62,12 @@ class Game(
 
     val addonDir: String
         get() = DirectoryInitialization.userDirectory + "/load/" + programIdHex + "/"
+
+    val launchIntent: Intent
+        get() = Intent(YuzuApplication.appContext, EmulationActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse(path)
+        }
 
     override fun equals(other: Any?): Boolean {
         if (other !is Game) {
