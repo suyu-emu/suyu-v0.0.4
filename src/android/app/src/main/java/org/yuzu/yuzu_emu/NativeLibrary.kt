@@ -23,6 +23,7 @@ import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
 import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
+import org.yuzu.yuzu_emu.model.GameVerificationResult
 
 /**
  * Class which contains methods that interact
@@ -563,6 +564,26 @@ object NativeLibrary {
      * of the mod's directory in a game's load folder.
      */
     external fun removeMod(programId: String, name: String)
+
+    /**
+     * Verifies all installed content
+     * @param callback UI callback for verification progress. Return true in the callback to cancel.
+     * @return Array of content that failed verification. Successful if empty.
+     */
+    external fun verifyInstalledContents(
+        callback: (max: Long, progress: Long) -> Boolean
+    ): Array<String>
+
+    /**
+     * Verifies the contents of a game
+     * @param path String path to a game
+     * @param callback UI callback for verification progress. Return true in the callback to cancel.
+     * @return Int that is meant to be converted to a [GameVerificationResult]
+     */
+    external fun verifyGameContents(
+        path: String,
+        callback: (max: Long, progress: Long) -> Boolean
+    ): Int
 
     /**
      * Gets the save location for a specific game

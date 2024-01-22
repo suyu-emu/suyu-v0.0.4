@@ -142,6 +142,8 @@
         <item quantity="other">Successfully imported %d saves</item>
     </plurals>
     <string name="no_save_data_found">No save data found</string>
+    <string name="verify_installed_content">Verify installed content</string>
+    <string name="verify_installed_content_description">Checks all installed content for corruption</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Applet launcher</string>
@@ -288,6 +290,7 @@
     <string name="import_complete">Import complete</string>
     <string name="more_options">More options</string>
     <string name="use_global_setting">Use global setting</string>
+    <string name="operation_completed_successfully">The operation completed successfully</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
@@ -352,6 +355,14 @@
     <string name="content_install_notice_description">The content that you selected does not match this game.\nInstall anyway?</string>
     <string name="confirm_uninstall">Confirm uninstall</string>
     <string name="confirm_uninstall_description">Are you sure you want to uninstall this addon?</string>
+    <string name="verify_integrity">Verify integrity</string>
+    <string name="verifying">Verifying…</string>
+    <string name="verify_success">Integrity verification succeeded!</string>
+    <string name="verify_failure">Integrity verification failed!</string>
+    <string name="verify_failure_description">File contents may be corrupt</string>
+    <string name="verify_no_result">Integrity verification couldn\'t be performed</string>
+    <string name="verify_no_result_description">File contents were not checked for validity</string>
+    <string name="verification_failed_for">Verification failed for the following files:\n%1$s</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
