@@ -480,6 +480,10 @@ void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
                 continue;
             }
 
+            if (!data->flag.enable_pad_input) {
+                continue;
+            }
+
             RequestPadStateUpdate(aruid, controller.device->GetNpadIdType());
             auto& pad_state = controller.npad_pad_state;
             auto& libnx_state = controller.npad_libnx_state;
@@ -1314,6 +1318,15 @@ NpadGcVibrationDevice* NPad::GetGcVibrationDevice(const Core::HID::VibrationDevi
 void NPad::UpdateHandheldAbstractState() {
     std::scoped_lock lock{mutex};
     abstracted_pads[NpadIdTypeToIndex(Core::HID::NpadIdType::Handheld)].Update();
+}
+
+void NPad::EnableAppletToGetInput(u64 aruid) {
+    std::scoped_lock lock{mutex};
+    std::scoped_lock shared_lock{*applet_resource_holder.shared_mutex};
+
+    for (auto& abstract_pad : abstracted_pads) {
+        abstract_pad.EnableAppletToGetInput(aruid);
+    }
 }
 
 } // namespace Service::HID

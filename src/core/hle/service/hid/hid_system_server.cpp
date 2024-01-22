@@ -533,7 +533,7 @@ void IHidSystemServer::EnableAppletToGetInput(HLERequestContext& ctx) {
              parameters.is_enabled, parameters.applet_resource_user_id);
 
     GetResourceManager()->EnableInput(parameters.applet_resource_user_id, parameters.is_enabled);
-    // GetResourceManager()->GetNpad()->EnableInput(parameters.applet_resource_user_id);
+    GetResourceManager()->GetNpad()->EnableAppletToGetInput(parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -596,7 +596,7 @@ void IHidSystemServer::EnableAppletToGetPadInput(HLERequestContext& ctx) {
              parameters.is_enabled, parameters.applet_resource_user_id);
 
     GetResourceManager()->EnablePadInput(parameters.applet_resource_user_id, parameters.is_enabled);
-    // GetResourceManager()->GetNpad()->EnableInput(parameters.applet_resource_user_id);
+    GetResourceManager()->GetNpad()->EnableAppletToGetInput(parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
