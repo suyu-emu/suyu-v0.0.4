@@ -22,6 +22,11 @@
         android:title="@string/emulation_input_overlay" />
 
     <item
+        android:id="@+id/menu_lock_drawer"
+        android:icon="@drawable/ic_unlock"
+        android:title="@string/emulation_input_overlay" />
+
+    <item
         android:id="@+id/menu_exit"
         android:icon="@drawable/ic_exit"
         android:title="@string/emulation_exit" />
