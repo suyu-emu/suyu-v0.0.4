@@ -63,6 +63,7 @@ struct Values {
     Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
                                                Settings::Category::Overlay};
     Settings::Setting<bool> touchscreen{linkage, true, "touchscreen", Settings::Category::Overlay};
+    Settings::Setting<s32> lock_drawer{linkage, false, "lock_drawer", Settings::Category::Overlay};
 };
 
 extern Values values;
