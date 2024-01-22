@@ -5,7 +5,10 @@ package org.yuzu.yuzu_emu.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.LayerDrawable
 import android.widget.ImageView
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.LifecycleOwner
@@ -84,5 +87,23 @@ object GameIconUtils {
             .build()
         return imageLoader.execute(request)
             .drawable!!.toBitmap(config = Bitmap.Config.ARGB_8888)
+    }
+
+    suspend fun getShortcutIcon(lifecycleOwner: LifecycleOwner, game: Game): IconCompat {
+        val layerDrawable = ResourcesCompat.getDrawable(
+            YuzuApplication.appContext.resources,
+            R.drawable.shortcut,
+            null
+        ) as LayerDrawable
+        layerDrawable.setDrawableByLayerId(
+            R.id.shortcut_foreground,
+            getGameIcon(lifecycleOwner, game).toDrawable(YuzuApplication.appContext.resources)
+        )
+        val inset = YuzuApplication.appContext.resources
+            .getDimensionPixelSize(R.dimen.icon_inset)
+        layerDrawable.setLayerInset(1, inset, inset, inset, inset)
+        return IconCompat.createWithAdaptiveBitmap(
+            layerDrawable.toBitmap(config = Bitmap.Config.ARGB_8888)
+        )
     }
 }
