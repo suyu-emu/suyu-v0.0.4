@@ -17,7 +17,7 @@
 
 namespace Tegra {
 class MemoryManager;
-}
+} // namespace Tegra
 
 namespace OpenGL {
 
@@ -28,10 +28,11 @@ using ShaderWorker = Common::StatefulThreadWorker<ShaderContext::Context>;
 
 class ShaderCache : public VideoCommon::ShaderCache {
 public:
-    explicit ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindow& emu_window_,
-                         const Device& device_, TextureCache& texture_cache_,
-                         BufferCache& buffer_cache_, ProgramManager& program_manager_,
-                         StateTracker& state_tracker_, VideoCore::ShaderNotify& shader_notify_);
+    explicit ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                         Core::Frontend::EmuWindow& emu_window_, const Device& device_,
+                         TextureCache& texture_cache_, BufferCache& buffer_cache_,
+                         ProgramManager& program_manager_, StateTracker& state_tracker_,
+                         VideoCore::ShaderNotify& shader_notify_);
     ~ShaderCache();
 
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,

@@ -15,9 +15,9 @@
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
-#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/memory_manager.h"
 #include "video_core/query_cache/bank_base.h"
 #include "video_core/query_cache/query_base.h"
@@ -113,9 +113,10 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
     using RuntimeType = typename Traits::RuntimeType;
 
     QueryCacheBaseImpl(QueryCacheBase<Traits>* owner_, VideoCore::RasterizerInterface& rasterizer_,
-                       Core::Memory::Memory& cpu_memory_, RuntimeType& runtime_, Tegra::GPU& gpu_)
+                       Tegra::MaxwellDeviceMemoryManager& device_memory_, RuntimeType& runtime_,
+                       Tegra::GPU& gpu_)
         : owner{owner_}, rasterizer{rasterizer_},
-          cpu_memory{cpu_memory_}, runtime{runtime_}, gpu{gpu_} {
+          device_memory{device_memory_}, runtime{runtime_}, gpu{gpu_} {
         streamer_mask = 0;
         for (size_t i = 0; i < static_cast<size_t>(QueryType::MaxQueryTypes); i++) {
             streamers[i] = runtime.GetStreamerInterface(static_cast<QueryType>(i));
@@ -158,7 +159,7 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
 
     QueryCacheBase<Traits>* owner;
     VideoCore::RasterizerInterface& rasterizer;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
     RuntimeType& runtime;
     Tegra::GPU& gpu;
     std::array<StreamerInterface*, static_cast<size_t>(QueryType::MaxQueryTypes)> streamers;
@@ -171,10 +172,11 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
 template <typename Traits>
 QueryCacheBase<Traits>::QueryCacheBase(Tegra::GPU& gpu_,
                                        VideoCore::RasterizerInterface& rasterizer_,
-                                       Core::Memory::Memory& cpu_memory_, RuntimeType& runtime_)
+                                       Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                                       RuntimeType& runtime_)
     : cached_queries{} {
     impl = std::make_unique<QueryCacheBase<Traits>::QueryCacheBaseImpl>(
-        this, rasterizer_, cpu_memory_, runtime_, gpu_);
+        this, rasterizer_, device_memory_, runtime_, gpu_);
 }
 
 template <typename Traits>
@@ -240,7 +242,7 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     if (!cpu_addr_opt) [[unlikely]] {
         return;
     }
-    VAddr cpu_addr = *cpu_addr_opt;
+    DAddr cpu_addr = *cpu_addr_opt;
     const size_t new_query_id = streamer->WriteCounter(cpu_addr, has_timestamp, payload, subreport);
     auto* query = streamer->GetQuery(new_query_id);
     if (is_fence) {
@@ -250,13 +252,12 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     query_location.stream_id.Assign(static_cast<u32>(streamer_id));
     query_location.query_id.Assign(static_cast<u32>(new_query_id));
     const auto gen_caching_indexing = [](VAddr cur_addr) {
-        return std::make_pair<u64, u32>(cur_addr >> Core::Memory::YUZU_PAGEBITS,
-                                        static_cast<u32>(cur_addr & Core::Memory::YUZU_PAGEMASK));
+        return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
+                                        static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
     };
-    u8* pointer = impl->cpu_memory.GetPointer(cpu_addr);
-    u8* pointer_timestamp = impl->cpu_memory.GetPointer(cpu_addr + 8);
+    u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+    u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
     bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
-
     std::function<void()> operation([this, is_synced, streamer, query_base = query, query_location,
                                      pointer, pointer_timestamp] {
         if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
@@ -323,8 +324,8 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
 template <typename Traits>
 void QueryCacheBase<Traits>::UnregisterPending() {
     const auto gen_caching_indexing = [](VAddr cur_addr) {
-        return std::make_pair<u64, u32>(cur_addr >> Core::Memory::YUZU_PAGEBITS,
-                                        static_cast<u32>(cur_addr & Core::Memory::YUZU_PAGEMASK));
+        return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
+                                        static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
     };
     std::scoped_lock lock(cache_mutex);
     for (QueryLocation loc : impl->pending_unregister) {
@@ -388,7 +389,7 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
         }
         VAddr cpu_addr = *cpu_addr_opt;
         std::scoped_lock lock(cache_mutex);
-        auto it1 = cached_queries.find(cpu_addr >> Core::Memory::YUZU_PAGEBITS);
+        auto it1 = cached_queries.find(cpu_addr >> Core::DEVICE_PAGEBITS);
         if (it1 == cached_queries.end()) {
             return VideoCommon::LookupData{
                 .address = cpu_addr,
@@ -396,10 +397,10 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
             };
         }
         auto& sub_container = it1->second;
-        auto it_current = sub_container.find(cpu_addr & Core::Memory::YUZU_PAGEMASK);
+        auto it_current = sub_container.find(cpu_addr & Core::DEVICE_PAGEMASK);
 
         if (it_current == sub_container.end()) {
-            auto it_current_2 = sub_container.find((cpu_addr & Core::Memory::YUZU_PAGEMASK) + 4);
+            auto it_current_2 = sub_container.find((cpu_addr & Core::DEVICE_PAGEMASK) + 4);
             if (it_current_2 == sub_container.end()) {
                 return VideoCommon::LookupData{
                     .address = cpu_addr,
@@ -559,7 +560,7 @@ bool QueryCacheBase<Traits>::SemiFlushQueryDirty(QueryCacheBase<Traits>::QueryLo
     }
     if (True(query_base->flags & QueryFlagBits::IsFinalValueSynced) &&
         False(query_base->flags & QueryFlagBits::IsGuestSynced)) {
-        auto* ptr = impl->cpu_memory.GetPointer(query_base->guest_address);
+        auto* ptr = impl->device_memory.template GetPointer<u8>(query_base->guest_address);
         if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
             std::memcpy(ptr, &query_base->value, sizeof(query_base->value));
             return false;

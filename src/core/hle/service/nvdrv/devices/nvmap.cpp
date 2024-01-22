@@ -36,9 +36,9 @@ NvResult nvmap::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
         case 0x3:
             return WrapFixed(this, &nvmap::IocFromId, input, output);
         case 0x4:
-            return WrapFixed(this, &nvmap::IocAlloc, input, output);
+            return WrapFixed(this, &nvmap::IocAlloc, input, output, fd);
         case 0x5:
-            return WrapFixed(this, &nvmap::IocFree, input, output);
+            return WrapFixed(this, &nvmap::IocFree, input, output, fd);
         case 0x9:
             return WrapFixed(this, &nvmap::IocParam, input, output);
         case 0xe:
@@ -67,8 +67,15 @@ NvResult nvmap::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, st
     return NvResult::NotImplemented;
 }
 
-void nvmap::OnOpen(DeviceFD fd) {}
-void nvmap::OnClose(DeviceFD fd) {}
+void nvmap::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
+    sessions[fd] = session_id;
+}
+void nvmap::OnClose(DeviceFD fd) {
+    auto it = sessions.find(fd);
+    if (it != sessions.end()) {
+        sessions.erase(it);
+    }
+}
 
 NvResult nvmap::IocCreate(IocCreateParams& params) {
     LOG_DEBUG(Service_NVDRV, "called, size=0x{:08X}", params.size);
@@ -87,7 +94,7 @@ NvResult nvmap::IocCreate(IocCreateParams& params) {
     return NvResult::Success;
 }
 
-NvResult nvmap::IocAlloc(IocAllocParams& params) {
+NvResult nvmap::IocAlloc(IocAllocParams& params, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV, "called, addr={:X}", params.address);
 
     if (!params.handle) {
@@ -116,15 +123,15 @@ NvResult nvmap::IocAlloc(IocAllocParams& params) {
         return NvResult::InsufficientMemory;
     }
 
-    const auto result =
-        handle_description->Alloc(params.flags, params.align, params.kind, params.address);
+    const auto result = handle_description->Alloc(params.flags, params.align, params.kind,
+                                                  params.address, sessions[fd]);
     if (result != NvResult::Success) {
         LOG_CRITICAL(Service_NVDRV, "Object failed to allocate, handle={:08X}", params.handle);
         return result;
     }
     bool is_out_io{};
-    ASSERT(system.ApplicationProcess()
-               ->GetPageTable()
+    auto process = container.GetSession(sessions[fd])->process;
+    ASSERT(process->GetPageTable()
                .LockForMapDeviceAddressSpace(&is_out_io, handle_description->address,
                                              handle_description->size,
                                              Kernel::KMemoryPermission::None, true, false)
@@ -224,7 +231,7 @@ NvResult nvmap::IocParam(IocParamParams& params) {
     return NvResult::Success;
 }
 
-NvResult nvmap::IocFree(IocFreeParams& params) {
+NvResult nvmap::IocFree(IocFreeParams& params, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV, "called");
 
     if (!params.handle) {
@@ -233,9 +240,9 @@ NvResult nvmap::IocFree(IocFreeParams& params) {
     }
 
     if (auto freeInfo{file.FreeHandle(params.handle, false)}) {
+        auto process = container.GetSession(sessions[fd])->process;
         if (freeInfo->can_unlock) {
-            ASSERT(system.ApplicationProcess()
-                       ->GetPageTable()
+            ASSERT(process->GetPageTable()
                        .UnlockForDeviceAddressSpace(freeInfo->address, freeInfo->size)
                        .IsSuccess());
         }

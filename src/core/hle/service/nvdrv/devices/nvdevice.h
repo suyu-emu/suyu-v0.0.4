@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Core {
@@ -62,7 +63,7 @@ public:
      * Called once a device is opened
      * @param fd The device fd
      */
-    virtual void OnOpen(DeviceFD fd) = 0;
+    virtual void OnOpen(NvCore::SessionId session_id, DeviceFD fd) = 0;
 
     /**
      * Called once a device is closed

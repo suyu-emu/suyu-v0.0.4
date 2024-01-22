@@ -55,7 +55,7 @@ public:
     NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
                     std::span<u8> inline_output) override;
 
-    void OnOpen(DeviceFD fd) override;
+    void OnOpen(NvCore::SessionId session_id, DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
@@ -159,16 +159,18 @@ private:
     NvCore::NvMap& nvmap;
 
     struct Mapping {
-        VAddr ptr;
+        NvCore::NvMap::Handle::Id handle;
+        DAddr ptr;
         u64 offset;
         u64 size;
         bool fixed;
         bool big_page; // Only valid if fixed == false
         bool sparse_alloc;
 
-        Mapping(VAddr ptr_, u64 offset_, u64 size_, bool fixed_, bool big_page_, bool sparse_alloc_)
-            : ptr(ptr_), offset(offset_), size(size_), fixed(fixed_), big_page(big_page_),
-              sparse_alloc(sparse_alloc_) {}
+        Mapping(NvCore::NvMap::Handle::Id handle_, DAddr ptr_, u64 offset_, u64 size_, bool fixed_,
+                bool big_page_, bool sparse_alloc_)
+            : handle(handle_), ptr(ptr_), offset(offset_), size(size_), fixed(fixed_),
+              big_page(big_page_), sparse_alloc(sparse_alloc_) {}
     };
 
     struct Allocation {
@@ -212,9 +214,6 @@ private:
         bool initialised{};
     } vm;
     std::shared_ptr<Tegra::MemoryManager> gmmu;
-
-    // s32 channel{};
-    // u32 big_page_size{VM::DEFAULT_BIG_PAGE_SIZE};
 };
 
 } // namespace Service::Nvidia::Devices

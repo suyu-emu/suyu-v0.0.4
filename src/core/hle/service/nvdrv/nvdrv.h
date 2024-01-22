@@ -77,7 +77,7 @@ public:
     NvResult VerifyFD(DeviceFD fd) const;
 
     /// Opens a device node and returns a file descriptor to it.
-    DeviceFD Open(const std::string& device_name);
+    DeviceFD Open(const std::string& device_name, NvCore::SessionId session_id);
 
     /// Sends an ioctl command to the specified file descriptor.
     NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output);
@@ -92,6 +92,10 @@ public:
     NvResult Close(DeviceFD fd);
 
     NvResult QueryEvent(DeviceFD fd, u32 event_id, Kernel::KEvent*& event);
+
+    NvCore::Container& GetContainer() {
+        return container;
+    }
 
 private:
     friend class EventInterface;

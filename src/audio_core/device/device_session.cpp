@@ -8,6 +8,7 @@
 #include "audio_core/sink/sink_stream.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/guest_memory.h"
 #include "core/memory.h"
 
 #include "core/hle/kernel/k_process.h"

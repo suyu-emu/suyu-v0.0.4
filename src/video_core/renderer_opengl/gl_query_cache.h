@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
@@ -28,7 +29,8 @@ using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 class QueryCache final
     : public VideoCommon::QueryCacheLegacy<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit QueryCache(RasterizerOpenGL& rasterizer_, Core::Memory::Memory& cpu_memory_);
+    explicit QueryCache(RasterizerOpenGL& rasterizer_,
+                        Tegra::MaxwellDeviceMemoryManager& device_memory_);
     ~QueryCache();
 
     OGLQuery AllocateQuery(VideoCore::QueryType type);

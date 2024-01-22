@@ -8,9 +8,9 @@
 #include "common/polyfill_ranges.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_dma.h"
+#include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
 #include "video_core/textures/decoders.h"
@@ -133,8 +133,8 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
                 read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    Core::Memory::GpuGuestMemoryScoped<
-                        u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+                    Tegra::Memory::GpuGuestMemoryScoped<
+                        u8, Tegra::Memory::GuestMemoryFlags::SafeReadCachedWrite>
                         tmp_write_buffer(memory_manager,
                                          convert_linear_2_blocklinear_addr(regs.offset_in + offset),
                                          16, &read_buffer);
@@ -146,16 +146,16 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
                 read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    Core::Memory::GpuGuestMemoryScoped<
-                        u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+                    Tegra::Memory::GpuGuestMemoryScoped<
+                        u8, Tegra::Memory::GuestMemoryFlags::SafeReadCachedWrite>
                         tmp_write_buffer(memory_manager, regs.offset_in + offset, 16, &read_buffer);
                     tmp_write_buffer.SetAddressAndSize(
                         convert_linear_2_blocklinear_addr(regs.offset_out + offset), 16);
                 }
             } else {
                 if (!accelerate.BufferCopy(regs.offset_in, regs.offset_out, regs.line_length_in)) {
-                    Core::Memory::GpuGuestMemoryScoped<
-                        u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+                    Tegra::Memory::GpuGuestMemoryScoped<
+                        u8, Tegra::Memory::GuestMemoryFlags::SafeReadCachedWrite>
                         tmp_write_buffer(memory_manager, regs.offset_in, regs.line_length_in,
                                          &read_buffer);
                     tmp_write_buffer.SetAddressAndSize(regs.offset_out, regs.line_length_in);
@@ -226,9 +226,9 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 
     const size_t dst_size = dst_operand.pitch * regs.line_count;
 
-    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
         memory_manager, src_operand.address, src_size, &read_buffer);
-    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadCachedWrite>
+    Tegra::Memory::GpuGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::UnsafeReadCachedWrite>
         tmp_write_buffer(memory_manager, dst_operand.address, dst_size, &write_buffer);
 
     UnswizzleSubrect(tmp_write_buffer, tmp_read_buffer, bytes_per_pixel, width, height, depth,
@@ -290,9 +290,9 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
 
     GPUVAddr src_addr = regs.offset_in;
     GPUVAddr dst_addr = regs.offset_out;
-    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
         memory_manager, src_addr, src_size, &read_buffer);
-    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadCachedWrite>
+    Tegra::Memory::GpuGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::UnsafeReadCachedWrite>
         tmp_write_buffer(memory_manager, dst_addr, dst_size, &write_buffer);
 
     //  If the input is linear and the output is tiled, swizzle the input and copy it over.
@@ -344,9 +344,9 @@ void MaxwellDMA::CopyBlockLinearToBlockLinear() {
 
     intermediate_buffer.resize_destructive(mid_buffer_size);
 
-    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
+    Tegra::Memory::GpuGuestMemory<u8, Tegra::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
         memory_manager, regs.offset_in, src_size, &read_buffer);
-    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+    Tegra::Memory::GpuGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::SafeReadCachedWrite>
         tmp_write_buffer(memory_manager, regs.offset_out, dst_size, &write_buffer);
 
     UnswizzleSubrect(intermediate_buffer, tmp_read_buffer, bytes_per_pixel, src_width, src.height,

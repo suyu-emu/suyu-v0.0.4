@@ -14,7 +14,7 @@ VP8::~VP8() = default;
 
 std::span<const u8> VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     VP8PictureInfo info;
-    host1x.MemoryManager().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
+    host1x.GMMU().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
 
     const bool is_key_frame = info.key_frame == 1u;
     const auto bitstream_size = static_cast<size_t>(info.vld_buffer_size);
@@ -45,7 +45,7 @@ std::span<const u8> VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters&
         frame[9] = static_cast<u8>(((info.frame_height >> 8) & 0x3f));
     }
     const u64 bitstream_offset = state.frame_bitstream_offset;
-    host1x.MemoryManager().ReadBlock(bitstream_offset, frame.data() + header_size, bitstream_size);
+    host1x.GMMU().ReadBlock(bitstream_offset, frame.data() + header_size, bitstream_size);
 
     return frame;
 }

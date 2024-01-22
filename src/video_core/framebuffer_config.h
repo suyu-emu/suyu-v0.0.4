@@ -14,7 +14,7 @@ namespace Tegra {
  * Struct describing framebuffer configuration
  */
 struct FramebufferConfig {
-    VAddr address{};
+    DAddr address{};
     u32 offset{};
     u32 width{};
     u32 height{};

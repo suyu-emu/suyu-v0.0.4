@@ -85,7 +85,8 @@ struct GPU::Impl {
     void BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer_) {
         renderer = std::move(renderer_);
         rasterizer = renderer->ReadRasterizer();
-        host1x.MemoryManager().BindRasterizer(rasterizer);
+        host1x.MemoryManager().BindInterface(rasterizer);
+        host1x.GMMU().BindRasterizer(rasterizer);
     }
 
     /// Flush all current written commands into the host GPU for execution.
@@ -95,8 +96,8 @@ struct GPU::Impl {
 
     /// Synchronizes CPU writes with Host GPU memory.
     void InvalidateGPUCache() {
-        std::function<void(VAddr, size_t)> callback_writes(
-            [this](VAddr address, size_t size) { rasterizer->OnCacheInvalidation(address, size); });
+        std::function<void(PAddr, size_t)> callback_writes(
+            [this](PAddr address, size_t size) { rasterizer->OnCacheInvalidation(address, size); });
         system.GatherGPUDirtyMemory(callback_writes);
     }
 
@@ -279,11 +280,11 @@ struct GPU::Impl {
     }
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    void FlushRegion(VAddr addr, u64 size) {
+    void FlushRegion(DAddr addr, u64 size) {
         gpu_thread.FlushRegion(addr, size);
     }
 
-    VideoCore::RasterizerDownloadArea OnCPURead(VAddr addr, u64 size) {
+    VideoCore::RasterizerDownloadArea OnCPURead(DAddr addr, u64 size) {
         auto raster_area = rasterizer->GetFlushArea(addr, size);
         if (raster_area.preemtive) {
             return raster_area;
@@ -299,16 +300,16 @@ struct GPU::Impl {
     }
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    void InvalidateRegion(VAddr addr, u64 size) {
+    void InvalidateRegion(DAddr addr, u64 size) {
         gpu_thread.InvalidateRegion(addr, size);
     }
 
-    bool OnCPUWrite(VAddr addr, u64 size) {
+    bool OnCPUWrite(DAddr addr, u64 size) {
         return rasterizer->OnCPUWrite(addr, size);
     }
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    void FlushAndInvalidateRegion(VAddr addr, u64 size) {
+    void FlushAndInvalidateRegion(DAddr addr, u64 size) {
         gpu_thread.FlushAndInvalidateRegion(addr, size);
     }
 
@@ -437,7 +438,7 @@ void GPU::OnCommandListEnd() {
     impl->OnCommandListEnd();
 }
 
-u64 GPU::RequestFlush(VAddr addr, std::size_t size) {
+u64 GPU::RequestFlush(DAddr addr, std::size_t size) {
     return impl->RequestSyncOperation(
         [this, addr, size]() { impl->rasterizer->FlushRegion(addr, size); });
 }
@@ -557,23 +558,23 @@ void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     impl->SwapBuffers(framebuffer);
 }
 
-VideoCore::RasterizerDownloadArea GPU::OnCPURead(VAddr addr, u64 size) {
+VideoCore::RasterizerDownloadArea GPU::OnCPURead(PAddr addr, u64 size) {
     return impl->OnCPURead(addr, size);
 }
 
-void GPU::FlushRegion(VAddr addr, u64 size) {
+void GPU::FlushRegion(DAddr addr, u64 size) {
     impl->FlushRegion(addr, size);
 }
 
-void GPU::InvalidateRegion(VAddr addr, u64 size) {
+void GPU::InvalidateRegion(DAddr addr, u64 size) {
     impl->InvalidateRegion(addr, size);
 }
 
-bool GPU::OnCPUWrite(VAddr addr, u64 size) {
+bool GPU::OnCPUWrite(DAddr addr, u64 size) {
     return impl->OnCPUWrite(addr, size);
 }
 
-void GPU::FlushAndInvalidateRegion(VAddr addr, u64 size) {
+void GPU::FlushAndInvalidateRegion(DAddr addr, u64 size) {
     impl->FlushAndInvalidateRegion(addr, size);
 }
 

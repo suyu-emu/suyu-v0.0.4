@@ -35,7 +35,7 @@ NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
         case 0x7:
             return WrapFixed(this, &nvhost_nvdec::SetSubmitTimeout, input, output);
         case 0x9:
-            return WrapFixedVariable(this, &nvhost_nvdec::MapBuffer, input, output);
+            return WrapFixedVariable(this, &nvhost_nvdec::MapBuffer, input, output, fd);
         case 0xa:
             return WrapFixedVariable(this, &nvhost_nvdec::UnmapBuffer, input, output);
         default:
@@ -68,9 +68,10 @@ NvResult nvhost_nvdec::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
     return NvResult::NotImplemented;
 }
 
-void nvhost_nvdec::OnOpen(DeviceFD fd) {
+void nvhost_nvdec::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
     LOG_INFO(Service_NVDRV, "NVDEC video stream started");
     system.SetNVDECActive(true);
+    sessions[fd] = session_id;
 }
 
 void nvhost_nvdec::OnClose(DeviceFD fd) {
@@ -81,6 +82,10 @@ void nvhost_nvdec::OnClose(DeviceFD fd) {
         system.GPU().ClearCdmaInstance(iter->second);
     }
     system.SetNVDECActive(false);
+    auto it = sessions.find(fd);
+    if (it != sessions.end()) {
+        sessions.erase(it);
+    }
 }
 
 } // namespace Service::Nvidia::Devices

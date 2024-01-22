@@ -32,7 +32,7 @@ public:
     NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
                     std::span<u8> inline_output) override;
 
-    void OnOpen(DeviceFD fd) override;
+    void OnOpen(NvCore::SessionId session_id, DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
 
     /// Performs a screen flip, drawing the buffer pointed to by the handle.

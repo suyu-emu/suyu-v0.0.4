@@ -27,7 +27,7 @@ struct QueryCacheRuntimeImpl;
 class QueryCacheRuntime {
 public:
     explicit QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
-                               Core::Memory::Memory& cpu_memory_,
+                               Tegra::MaxwellDeviceMemoryManager& device_memory_,
                                Vulkan::BufferCache& buffer_cache_, const Device& device_,
                                const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
                                StagingBufferPool& staging_pool_,
@@ -61,7 +61,7 @@ public:
 
 private:
     void HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object, bool is_equal);
-    void HostConditionalRenderingCompareBCImpl(VAddr address, bool is_equal);
+    void HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal);
     friend struct QueryCacheRuntimeImpl;
     std::unique_ptr<QueryCacheRuntimeImpl> impl;
 };

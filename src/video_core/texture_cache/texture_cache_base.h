@@ -36,9 +36,11 @@
 #include "video_core/texture_cache/types.h"
 #include "video_core/textures/texture.h"
 
-namespace Tegra::Control {
+namespace Tegra {
+namespace Control {
 struct ChannelState;
 }
+} // namespace Tegra
 
 namespace VideoCommon {
 
@@ -126,7 +128,7 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     };
 
 public:
-    explicit TextureCache(Runtime&, VideoCore::RasterizerInterface&);
+    explicit TextureCache(Runtime&, Tegra::MaxwellDeviceMemoryManager&);
 
     /// Notify the cache that a new frame has been queued
     void TickFrame();
@@ -190,15 +192,15 @@ public:
     Framebuffer* GetFramebuffer();
 
     /// Mark images in a range as modified from the CPU
-    void WriteMemory(VAddr cpu_addr, size_t size);
+    void WriteMemory(DAddr cpu_addr, size_t size);
 
     /// Download contents of host images to guest memory in a region
-    void DownloadMemory(VAddr cpu_addr, size_t size);
+    void DownloadMemory(DAddr cpu_addr, size_t size);
 
-    std::optional<VideoCore::RasterizerDownloadArea> GetFlushArea(VAddr cpu_addr, u64 size);
+    std::optional<VideoCore::RasterizerDownloadArea> GetFlushArea(DAddr cpu_addr, u64 size);
 
     /// Remove images in a region
-    void UnmapMemory(VAddr cpu_addr, size_t size);
+    void UnmapMemory(DAddr cpu_addr, size_t size);
 
     /// Remove images in a region
     void UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size);
@@ -210,7 +212,7 @@ public:
 
     /// Try to find a cached image view in the given CPU address
     [[nodiscard]] ImageView* TryFindFramebufferImageView(const Tegra::FramebufferConfig& config,
-                                                         VAddr cpu_addr);
+                                                         DAddr cpu_addr);
 
     /// Return true when there are uncommitted images to be downloaded
     [[nodiscard]] bool HasUncommittedFlushes() const noexcept;
@@ -235,7 +237,7 @@ public:
                                  GPUVAddr address = 0, size_t size = 0);
 
     /// Return true when a CPU region is modified from the GPU
-    [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
+    [[nodiscard]] bool IsRegionGpuModified(DAddr addr, size_t size);
 
     [[nodiscard]] bool IsRescaling() const noexcept;
 
@@ -252,7 +254,7 @@ public:
 private:
     /// Iterate over all page indices in a range
     template <typename Func>
-    static void ForEachCPUPage(VAddr addr, size_t size, Func&& func) {
+    static void ForEachCPUPage(DAddr addr, size_t size, Func&& func) {
         static constexpr bool RETURNS_BOOL = std::is_same_v<std::invoke_result<Func, u64>, bool>;
         const u64 page_end = (addr + size - 1) >> YUZU_PAGEBITS;
         for (u64 page = addr >> YUZU_PAGEBITS; page <= page_end; ++page) {
@@ -326,7 +328,7 @@ private:
 
     /// Create a new image and join perfectly matching existing images
     /// Remove joined images from the cache
-    [[nodiscard]] ImageId JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VAddr cpu_addr);
+    [[nodiscard]] ImageId JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DAddr cpu_addr);
 
     [[nodiscard]] ImageId FindDMAImage(const ImageInfo& info, GPUVAddr gpu_addr);
 
@@ -349,7 +351,7 @@ private:
 
     /// Iterates over all the images in a region calling func
     template <typename Func>
-    void ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& func);
+    void ForEachImageInRegion(DAddr cpu_addr, size_t size, Func&& func);
 
     template <typename Func>
     void ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, size_t size, Func&& func);
@@ -421,7 +423,7 @@ private:
 
     Runtime& runtime;
 
-    VideoCore::RasterizerInterface& rasterizer;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
     std::deque<TextureCacheGPUMap> gpu_page_table_storage;
 
     RenderTargets render_targets;
@@ -432,7 +434,7 @@ private:
     std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>> sparse_page_table;
     std::unordered_map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
-    VAddr virtual_invalid_space{};
+    DAddr virtual_invalid_space{};
 
     bool has_deleted_images = false;
     bool is_rescaling = false;

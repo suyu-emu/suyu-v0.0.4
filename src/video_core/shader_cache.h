@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/polyfill_ranges.h"
 #include "video_core/control/channel_state_cache.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/shader_environment.h"
 
@@ -77,7 +78,7 @@ protected:
         }
     };
 
-    explicit ShaderCache(VideoCore::RasterizerInterface& rasterizer_);
+    explicit ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory);
 
     /// @brief Update the hashes and information of shader stages
     /// @param unique_hashes Shader hashes to store into when a stage is enabled
@@ -145,7 +146,7 @@ private:
     /// @brief Create a new shader entry and register it
     const ShaderInfo* MakeShaderInfo(GenericEnvironment& env, VAddr cpu_addr);
 
-    VideoCore::RasterizerInterface& rasterizer;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     mutable std::mutex lookup_mutex;
     std::mutex invalidation_mutex;

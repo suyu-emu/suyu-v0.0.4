@@ -41,6 +41,8 @@ class KernelCore;
 class KHandleTable;
 class KProcess;
 class KServerSession;
+template <typename T>
+class KScopedAutoObject;
 class KThread;
 } // namespace Kernel
 
@@ -424,6 +426,9 @@ private:
 
     Kernel::KernelCore& kernel;
     Core::Memory::Memory& memory;
+
+    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_a{};
+    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_x{};
 };
 
 } // namespace Service

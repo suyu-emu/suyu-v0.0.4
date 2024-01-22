@@ -4,7 +4,9 @@
 #pragma once
 
 #include <deque>
+#include <unordered_map>
 #include <vector>
+
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
@@ -111,7 +113,7 @@ protected:
     NvResult Submit(IoctlSubmit& params, std::span<u8> input, DeviceFD fd);
     NvResult GetSyncpoint(IoctlGetSyncpoint& params);
     NvResult GetWaitbase(IoctlGetWaitbase& params);
-    NvResult MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries);
+    NvResult MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries, DeviceFD fd);
     NvResult UnmapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries);
     NvResult SetSubmitTimeout(u32 timeout);
 
@@ -125,6 +127,7 @@ protected:
     NvCore::NvMap& nvmap;
     NvCore::ChannelType channel_type;
     std::array<u32, MaxSyncPoints> device_syncpoints{};
+    std::unordered_map<DeviceFD, NvCore::SessionId> sessions;
 };
 }; // namespace Devices
 } // namespace Service::Nvidia

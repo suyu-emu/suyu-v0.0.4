@@ -86,35 +86,35 @@ public:
     virtual void FlushAll() = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    virtual void FlushRegion(VAddr addr, u64 size,
+    virtual void FlushRegion(DAddr addr, u64 size,
                              VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
     /// Check if the the specified memory area requires flushing to CPU Memory.
-    virtual bool MustFlushRegion(VAddr addr, u64 size,
+    virtual bool MustFlushRegion(DAddr addr, u64 size,
                                  VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
-    virtual RasterizerDownloadArea GetFlushArea(VAddr addr, u64 size) = 0;
+    virtual RasterizerDownloadArea GetFlushArea(DAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    virtual void InvalidateRegion(VAddr addr, u64 size,
+    virtual void InvalidateRegion(DAddr addr, u64 size,
                                   VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
-    virtual void InnerInvalidation(std::span<const std::pair<VAddr, std::size_t>> sequences) {
+    virtual void InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) {
         for (const auto& [cpu_addr, size] : sequences) {
             InvalidateRegion(cpu_addr, size);
         }
     }
 
     /// Notify rasterizer that any caches of the specified region are desync with guest
-    virtual void OnCacheInvalidation(VAddr addr, u64 size) = 0;
+    virtual void OnCacheInvalidation(PAddr addr, u64 size) = 0;
 
-    virtual bool OnCPUWrite(VAddr addr, u64 size) = 0;
+    virtual bool OnCPUWrite(PAddr addr, u64 size) = 0;
 
     /// Sync memory between guest and host.
     virtual void InvalidateGPUCache() = 0;
 
     /// Unmap memory range
-    virtual void UnmapMemory(VAddr addr, u64 size) = 0;
+    virtual void UnmapMemory(DAddr addr, u64 size) = 0;
 
     /// Remap GPU memory range. This means underneath backing memory changed
     virtual void ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) = 0;
@@ -122,7 +122,7 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     /// and invalidated
     virtual void FlushAndInvalidateRegion(
-        VAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
+        DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
     /// Notify the host renderer to wait for previous primitive and compute operations.
     virtual void WaitForIdle() = 0;
@@ -157,12 +157,9 @@ public:
 
     /// Attempt to use a faster method to display the framebuffer to screen
     [[nodiscard]] virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                                 VAddr framebuffer_addr, u32 pixel_stride) {
+                                                 DAddr framebuffer_addr, u32 pixel_stride) {
         return false;
     }
-
-    /// Increase/decrease the number of object in pages touching the specified region
-    virtual void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {}
 
     /// Initialize disk cached resources for the game being emulated
     virtual void LoadDiskResources(u64 title_id, std::stop_token stop_loading,

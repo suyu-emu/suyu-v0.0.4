@@ -4,6 +4,8 @@
 #pragma once
 
 #include "common/math_util.h"
+#include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/ui/fence.h"
 
@@ -53,7 +55,8 @@ private:
     u64 m_layer_id = 0;
     u32 m_buffer_nvmap_handle = 0;
     SharedMemoryPoolLayout m_pool_layout = {};
-
+    Nvidia::DeviceFD m_nvmap_fd = {};
+    Nvidia::NvCore::SessionId m_session_id = {};
     std::unique_ptr<Kernel::KPageGroup> m_buffer_page_group;
 
     std::mutex m_guard;

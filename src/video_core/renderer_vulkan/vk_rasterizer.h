@@ -7,14 +7,13 @@
 
 #include <boost/container/static_vector.hpp>
 
-#include "video_core/renderer_vulkan/vk_buffer_cache.h"
-
 #include "common/common_types.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
-#include "video_core/rasterizer_accelerated.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/blit_image.h"
+#include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_fence_manager.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
@@ -34,9 +33,13 @@ namespace Core::Frontend {
 class EmuWindow;
 }
 
-namespace Tegra::Engines {
+namespace Tegra {
+
+namespace Engines {
 class Maxwell3D;
 }
+
+} // namespace Tegra
 
 namespace Vulkan {
 
@@ -70,13 +73,14 @@ private:
     Scheduler& scheduler;
 };
 
-class RasterizerVulkan final : public VideoCore::RasterizerAccelerated,
+class RasterizerVulkan final : public VideoCore::RasterizerInterface,
                                protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
-                              Core::Memory::Memory& cpu_memory_, ScreenInfo& screen_info_,
-                              const Device& device_, MemoryAllocator& memory_allocator_,
-                              StateTracker& state_tracker_, Scheduler& scheduler_);
+                              Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                              ScreenInfo& screen_info_, const Device& device_,
+                              MemoryAllocator& memory_allocator_, StateTracker& state_tracker_,
+                              Scheduler& scheduler_);
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
@@ -90,18 +94,18 @@ public:
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void DisableGraphicsUniformBuffer(size_t stage, u32 index) override;
     void FlushAll() override;
-    void FlushRegion(VAddr addr, u64 size,
+    void FlushRegion(DAddr addr, u64 size,
                      VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    bool MustFlushRegion(VAddr addr, u64 size,
+    bool MustFlushRegion(DAddr addr, u64 size,
                          VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    VideoCore::RasterizerDownloadArea GetFlushArea(VAddr addr, u64 size) override;
-    void InvalidateRegion(VAddr addr, u64 size,
+    VideoCore::RasterizerDownloadArea GetFlushArea(DAddr addr, u64 size) override;
+    void InvalidateRegion(DAddr addr, u64 size,
                           VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    void InnerInvalidation(std::span<const std::pair<VAddr, std::size_t>> sequences) override;
-    void OnCacheInvalidation(VAddr addr, u64 size) override;
-    bool OnCPUWrite(VAddr addr, u64 size) override;
+    void InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) override;
+    void OnCacheInvalidation(DAddr addr, u64 size) override;
+    bool OnCPUWrite(DAddr addr, u64 size) override;
     void InvalidateGPUCache() override;
-    void UnmapMemory(VAddr addr, u64 size) override;
+    void UnmapMemory(DAddr addr, u64 size) override;
     void ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) override;
     void SignalFence(std::function<void()>&& func) override;
     void SyncOperation(std::function<void()>&& func) override;
@@ -109,7 +113,7 @@ public:
     void SignalReference() override;
     void ReleaseFences(bool force = true) override;
     void FlushAndInvalidateRegion(
-        VAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+        DAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void WaitForIdle() override;
     void FragmentBarrier() override;
     void TiledCacheBarrier() override;
@@ -122,7 +126,7 @@ public:
     Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() override;
     void AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                   std::span<const u8> memory) override;
-    bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
+    bool AccelerateDisplay(const Tegra::FramebufferConfig& config, DAddr framebuffer_addr,
                            u32 pixel_stride) override;
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
@@ -176,6 +180,7 @@ private:
     void UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs);
 
     Tegra::GPU& gpu;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     ScreenInfo& screen_info;
     const Device& device;

@@ -23,11 +23,10 @@ struct HostVertexBinding;
 
 class BufferCacheRuntime;
 
-class Buffer : public VideoCommon::BufferBase<VideoCore::RasterizerInterface> {
+class Buffer : public VideoCommon::BufferBase {
 public:
     explicit Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params);
-    explicit Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
-                    VAddr cpu_addr_, u64 size_bytes_);
+    explicit Buffer(BufferCacheRuntime& runtime, VAddr cpu_addr_, u64 size_bytes_);
 
     [[nodiscard]] VkBufferView View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format);
 
@@ -173,7 +172,7 @@ struct BufferCacheParams {
     using Runtime = Vulkan::BufferCacheRuntime;
     using Buffer = Vulkan::Buffer;
     using Async_Buffer = Vulkan::StagingBufferRef;
-    using MemoryTracker = VideoCommon::MemoryTrackerBase<VideoCore::RasterizerInterface>;
+    using MemoryTracker = VideoCommon::MemoryTrackerBase<Tegra::MaxwellDeviceMemoryManager>;
 
     static constexpr bool IS_OPENGL = false;
     static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS = false;

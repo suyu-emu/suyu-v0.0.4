@@ -168,11 +168,12 @@ void SetXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& regs
 }
 } // Anonymous namespace
 
-ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindow& emu_window_,
-                         const Device& device_, TextureCache& texture_cache_,
-                         BufferCache& buffer_cache_, ProgramManager& program_manager_,
-                         StateTracker& state_tracker_, VideoCore::ShaderNotify& shader_notify_)
-    : VideoCommon::ShaderCache{rasterizer_}, emu_window{emu_window_}, device{device_},
+ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                         Core::Frontend::EmuWindow& emu_window_, const Device& device_,
+                         TextureCache& texture_cache_, BufferCache& buffer_cache_,
+                         ProgramManager& program_manager_, StateTracker& state_tracker_,
+                         VideoCore::ShaderNotify& shader_notify_)
+    : VideoCommon::ShaderCache{device_memory_}, emu_window{emu_window_}, device{device_},
       texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, program_manager{program_manager_},
       state_tracker{state_tracker_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{device.UseAsynchronousShaders()},

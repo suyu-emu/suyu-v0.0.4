@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nvdrv/nvdata.h"
@@ -37,7 +39,7 @@ void NVDRV::Open(HLERequestContext& ctx) {
         return;
     }
 
-    DeviceFD fd = nvdrv->Open(device_name);
+    DeviceFD fd = nvdrv->Open(device_name, session_id);
 
     rb.Push<DeviceFD>(fd);
     rb.PushEnum(fd != INVALID_NVDRV_FD ? NvResult::Success : NvResult::FileOperationFailed);
@@ -150,12 +152,29 @@ void NVDRV::Close(HLERequestContext& ctx) {
 
 void NVDRV::Initialize(HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    IPC::ResponseBuilder rb{ctx, 3};
+    SCOPE_EXIT({
+        rb.Push(ResultSuccess);
+        rb.PushEnum(NvResult::Success);
+    });
+
+    if (is_initialized) {
+        // No need to initialize again
+        return;
+    }
+
+    IPC::RequestParser rp{ctx};
+    const auto process_handle{ctx.GetCopyHandle(0)};
+    // The transfer memory is lent to nvdrv as a work buffer since nvdrv is
+    // unable to allocate as much memory on its own. For HLE it's unnecessary to handle it
+    [[maybe_unused]] const auto transfer_memory_handle{ctx.GetCopyHandle(1)};
+    [[maybe_unused]] const auto transfer_memory_size = rp.Pop<u32>();
+
+    auto& container = nvdrv->GetContainer();
+    auto process = ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle);
+    session_id = container.OpenSession(process.GetPointerUnsafe());
 
     is_initialized = true;
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(NvResult::Success);
 }
 
 void NVDRV::QueryEvent(HLERequestContext& ctx) {
@@ -242,6 +261,9 @@ NVDRV::NVDRV(Core::System& system_, std::shared_ptr<Module> nvdrv_, const char* 
     RegisterHandlers(functions);
 }
 
-NVDRV::~NVDRV() = default;
+NVDRV::~NVDRV() {
+    auto& container = nvdrv->GetContainer();
+    container.CloseSession(session_id);
+}
 
 } // namespace Service::Nvidia

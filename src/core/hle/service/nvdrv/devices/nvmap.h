@@ -33,7 +33,7 @@ public:
     NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
                     std::span<u8> inline_output) override;
 
-    void OnOpen(DeviceFD fd) override;
+    void OnOpen(NvCore::SessionId session_id, DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
 
     enum class HandleParameterType : u32_le {
@@ -100,11 +100,11 @@ public:
     static_assert(sizeof(IocGetIdParams) == 8, "IocGetIdParams has wrong size");
 
     NvResult IocCreate(IocCreateParams& params);
-    NvResult IocAlloc(IocAllocParams& params);
+    NvResult IocAlloc(IocAllocParams& params, DeviceFD fd);
     NvResult IocGetId(IocGetIdParams& params);
     NvResult IocFromId(IocFromIdParams& params);
     NvResult IocParam(IocParamParams& params);
-    NvResult IocFree(IocFreeParams& params);
+    NvResult IocFree(IocFreeParams& params, DeviceFD fd);
 
 private:
     /// Id to use for the next handle that is created.
@@ -115,6 +115,7 @@ private:
 
     NvCore::Container& container;
     NvCore::NvMap& file;
+    std::unordered_map<DeviceFD, NvCore::SessionId> sessions;
 };
 
 } // namespace Service::Nvidia::Devices

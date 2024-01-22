@@ -7,10 +7,9 @@
 
 namespace Null {
 
-RendererNull::RendererNull(Core::Frontend::EmuWindow& emu_window, Core::Memory::Memory& cpu_memory,
-                           Tegra::GPU& gpu,
+RendererNull::RendererNull(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
                            std::unique_ptr<Core::Frontend::GraphicsContext> context_)
-    : RendererBase(emu_window, std::move(context_)), m_gpu(gpu), m_rasterizer(cpu_memory, gpu) {}
+    : RendererBase(emu_window, std::move(context_)), m_gpu(gpu), m_rasterizer(gpu) {}
 
 RendererNull::~RendererNull() = default;
 

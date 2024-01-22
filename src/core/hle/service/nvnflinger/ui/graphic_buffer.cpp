@@ -22,11 +22,13 @@ GraphicBuffer::GraphicBuffer(Service::Nvidia::NvCore::NvMap& nvmap,
     : NvGraphicBuffer(GetBuffer(buffer)), m_nvmap(std::addressof(nvmap)) {
     if (this->BufferId() > 0) {
         m_nvmap->DuplicateHandle(this->BufferId(), true);
+        m_nvmap->PinHandle(this->BufferId(), false);
     }
 }
 
 GraphicBuffer::~GraphicBuffer() {
     if (m_nvmap != nullptr && this->BufferId() > 0) {
+        m_nvmap->UnpinHandle(this->BufferId());
         m_nvmap->FreeHandle(this->BufferId(), true);
     }
 }

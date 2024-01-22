@@ -9,7 +9,6 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/memory.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/maxwell_3d.h"

@@ -23,7 +23,7 @@ DECLARE_ENUM_FLAG_OPERATORS(QueryFlagBits)
 
 class QueryBase {
 public:
-    VAddr guest_address{};
+    DAddr guest_address{};
     QueryFlagBits flags{};
     u64 value{};
 
@@ -32,7 +32,7 @@ protected:
     QueryBase() = default;
 
     // Parameterized constructor
-    QueryBase(VAddr address, QueryFlagBits flags_, u64 value_)
+    QueryBase(DAddr address, QueryFlagBits flags_, u64 value_)
         : guest_address(address), flags(flags_), value{value_} {}
 };
 

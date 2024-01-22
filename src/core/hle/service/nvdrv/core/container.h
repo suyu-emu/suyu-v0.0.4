@@ -8,7 +8,12 @@
 #include <memory>
 #include <unordered_map>
 
+#include "core/device_memory_manager.h"
 #include "core/hle/service/nvdrv/nvdata.h"
+
+namespace Kernel {
+class KProcess;
+}
 
 namespace Tegra::Host1x {
 class Host1x;
@@ -16,15 +21,42 @@ class Host1x;
 
 namespace Service::Nvidia::NvCore {
 
+class HeapMapper;
 class NvMap;
 class SyncpointManager;
 
 struct ContainerImpl;
 
+struct SessionId {
+    size_t id;
+};
+
+struct Session {
+    Session(SessionId id_, Kernel::KProcess* process_, Core::Asid asid_);
+    ~Session();
+
+    Session(const Session&) = delete;
+    Session& operator=(const Session&) = delete;
+    Session(Session&&) = default;
+    Session& operator=(Session&&) = default;
+
+    SessionId id;
+    Kernel::KProcess* process;
+    Core::Asid asid;
+    bool has_preallocated_area{};
+    std::unique_ptr<HeapMapper> mapper{};
+    bool is_active{};
+};
+
 class Container {
 public:
     explicit Container(Tegra::Host1x::Host1x& host1x);
     ~Container();
+
+    SessionId OpenSession(Kernel::KProcess* process);
+    void CloseSession(SessionId id);
+
+    Session* GetSession(SessionId id);
 
     NvMap& GetNvMapFile();
 

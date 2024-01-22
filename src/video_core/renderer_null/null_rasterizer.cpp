@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
-#include "core/memory.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
@@ -19,8 +18,7 @@ bool AccelerateDMA::BufferClear(GPUVAddr src_address, u64 amount, u32 value) {
     return true;
 }
 
-RasterizerNull::RasterizerNull(Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu)
-    : RasterizerAccelerated(cpu_memory_), m_gpu{gpu} {}
+RasterizerNull::RasterizerNull(Tegra::GPU& gpu) : m_gpu{gpu} {}
 RasterizerNull::~RasterizerNull() = default;
 
 void RasterizerNull::Draw(bool is_indexed, u32 instance_count) {}
@@ -45,25 +43,25 @@ void RasterizerNull::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr
                                                u32 size) {}
 void RasterizerNull::DisableGraphicsUniformBuffer(size_t stage, u32 index) {}
 void RasterizerNull::FlushAll() {}
-void RasterizerNull::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType) {}
-bool RasterizerNull::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheType) {
+void RasterizerNull::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType) {}
+bool RasterizerNull::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
     return false;
 }
-void RasterizerNull::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType) {}
-bool RasterizerNull::OnCPUWrite(VAddr addr, u64 size) {
+void RasterizerNull::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType) {}
+bool RasterizerNull::OnCPUWrite(PAddr addr, u64 size) {
     return false;
 }
-void RasterizerNull::OnCacheInvalidation(VAddr addr, u64 size) {}
-VideoCore::RasterizerDownloadArea RasterizerNull::GetFlushArea(VAddr addr, u64 size) {
+void RasterizerNull::OnCacheInvalidation(PAddr addr, u64 size) {}
+VideoCore::RasterizerDownloadArea RasterizerNull::GetFlushArea(PAddr addr, u64 size) {
     VideoCore::RasterizerDownloadArea new_area{
-        .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),
-        .end_address = Common::AlignUp(addr + size, Core::Memory::YUZU_PAGESIZE),
+        .start_address = Common::AlignDown(addr, Core::DEVICE_PAGESIZE),
+        .end_address = Common::AlignUp(addr + size, Core::DEVICE_PAGESIZE),
         .preemtive = true,
     };
     return new_area;
 }
 void RasterizerNull::InvalidateGPUCache() {}
-void RasterizerNull::UnmapMemory(VAddr addr, u64 size) {}
+void RasterizerNull::UnmapMemory(DAddr addr, u64 size) {}
 void RasterizerNull::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {}
 void RasterizerNull::SignalFence(std::function<void()>&& func) {
     func();
@@ -78,7 +76,7 @@ void RasterizerNull::SignalSyncPoint(u32 value) {
 }
 void RasterizerNull::SignalReference() {}
 void RasterizerNull::ReleaseFences(bool) {}
-void RasterizerNull::FlushAndInvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType) {}
+void RasterizerNull::FlushAndInvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType) {}
 void RasterizerNull::WaitForIdle() {}
 void RasterizerNull::FragmentBarrier() {}
 void RasterizerNull::TiledCacheBarrier() {}
@@ -95,7 +93,7 @@ bool RasterizerNull::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surfac
 void RasterizerNull::AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                               std::span<const u8> memory) {}
 bool RasterizerNull::AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                       VAddr framebuffer_addr, u32 pixel_stride) {
+                                       DAddr framebuffer_addr, u32 pixel_stride) {
     return true;
 }
 void RasterizerNull::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
