@@ -69,7 +69,7 @@ class MessageDialogFragment : DialogFragment() {
         private const val HELP_LINK = "Link"
 
         fun newInstance(
-            activity: FragmentActivity,
+            activity: FragmentActivity? = null,
             titleId: Int = 0,
             titleString: String = "",
             descriptionId: Int = 0,
@@ -86,9 +86,11 @@ class MessageDialogFragment : DialogFragment() {
                 putString(DESCRIPTION_STRING, descriptionString)
                 putInt(HELP_LINK, helpLinkId)
             }
-            ViewModelProvider(activity)[MessageDialogViewModel::class.java].apply {
-                clear()
-                this.positiveAction = positiveAction
+            if (activity != null) {
+                ViewModelProvider(activity)[MessageDialogViewModel::class.java].apply {
+                    clear()
+                    this.positiveAction = positiveAction
+                }
             }
             dialog.arguments = bundle
             return dialog
