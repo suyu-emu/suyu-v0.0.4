@@ -195,8 +195,9 @@ private:
     void GetSharedBufferMemoryHandleId(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 buffer_id = rp.PopRaw<u64>();
+        const u64 aruid = ctx.GetPID();
 
-        LOG_INFO(Service_VI, "called. buffer_id={:#x}", buffer_id);
+        LOG_INFO(Service_VI, "called. buffer_id={:#x}, aruid={:#x}", buffer_id, aruid);
 
         struct OutputParameters {
             s32 nvmap_handle;
@@ -206,7 +207,7 @@ private:
         OutputParameters out{};
         Nvnflinger::SharedMemoryPoolLayout layout{};
         const auto result = nvnflinger.GetSystemBufferManager().GetSharedBufferMemoryHandleId(
-            &out.size, &out.nvmap_handle, &layout, buffer_id, 0);
+            &out.size, &out.nvmap_handle, &layout, buffer_id, aruid);
 
         ctx.WriteBuffer(&layout, sizeof(layout));
 

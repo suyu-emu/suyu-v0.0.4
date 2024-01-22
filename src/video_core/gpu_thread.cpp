@@ -40,8 +40,6 @@ static void RunThread(std::stop_token stop_token, Core::System& system,
         }
         if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
             scheduler.Push(submit_list->channel, std::move(submit_list->entries));
-        } else if (const auto* data = std::get_if<SwapBuffersCommand>(&next.data)) {
-            renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
         } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
             system.GPU().TickWork();
         } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
@@ -76,10 +74,6 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
 
 void ThreadManager::SubmitList(s32 channel, Tegra::CommandList&& entries) {
     PushCommand(SubmitListCommand(channel, std::move(entries)));
-}
-
-void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    PushCommand(SwapBuffersCommand(framebuffer ? std::make_optional(*framebuffer) : std::nullopt));
 }
 
 void ThreadManager::FlushRegion(DAddr addr, u64 size) {

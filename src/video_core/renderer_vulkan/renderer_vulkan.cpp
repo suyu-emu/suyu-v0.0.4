@@ -20,12 +20,14 @@
 #include "core/frontend/graphics_context.h"
 #include "core/telemetry_session.h"
 #include "video_core/gpu.h"
+#include "video_core/renderer_vulkan/present/util.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/textures/decoders.h"
 #include "video_core/vulkan_common/vulkan_debug_callback.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
@@ -116,18 +118,20 @@ RendererVulkan::~RendererVulkan() {
     void(device.GetLogical().WaitIdle());
 }
 
-void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    if (!framebuffer) {
+void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (framebuffers.empty()) {
         return;
     }
+
     SCOPE_EXIT({ render_window.OnFrameDisplayed(); });
+
     if (!render_window.IsShown()) {
         return;
     }
 
-    RenderScreenshot(framebuffer);
+    RenderScreenshot(framebuffers);
     Frame* frame = present_manager.GetRenderFrame();
-    blit_swapchain.DrawToFrame(rasterizer, frame, std::span(framebuffer, 1),
+    blit_swapchain.DrawToFrame(rasterizer, frame, framebuffers,
                                render_window.GetFramebufferLayout(), swapchain.GetImageCount(),
                                swapchain.GetImageViewFormat());
     scheduler.Flush(*frame->render_ready);
@@ -163,156 +167,37 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
-void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig* framebuffer) {
+void Vulkan::RendererVulkan::RenderScreenshot(
+    std::span<const Tegra::FramebufferConfig> framebuffers) {
     if (!renderer_settings.screenshot_requested) {
         return;
     }
-    const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
-    auto frame = [&]() {
-        vk::Image staging_image = memory_allocator.CreateImage(VkImageCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
-            .imageType = VK_IMAGE_TYPE_2D,
-            .format = VK_FORMAT_B8G8R8A8_UNORM,
-            .extent =
-                {
-                    .width = layout.width,
-                    .height = layout.height,
-                    .depth = 1,
-                },
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        });
 
-        vk::ImageView dst_view = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = *staging_image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = VK_FORMAT_B8G8R8A8_UNORM,
-            .components{
-                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-            },
-            .subresourceRange{
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        });
-        vk::Framebuffer screenshot_fb =
-            blit_screenshot.CreateFramebuffer(layout, *dst_view, VK_FORMAT_B8G8R8A8_UNORM);
-        return Frame{
-            .width = layout.width,
-            .height = layout.height,
-            .image = std::move(staging_image),
-            .image_view = std::move(dst_view),
-            .framebuffer = std::move(screenshot_fb),
-            .cmdbuf{},
-            .render_ready{},
-            .present_done{},
-        };
+    constexpr VkFormat ScreenshotFormat{VK_FORMAT_B8G8R8A8_UNORM};
+    const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
+
+    auto frame = [&]() {
+        Frame f{};
+        f.image = CreateWrappedImage(memory_allocator, VkExtent2D{layout.width, layout.height},
+                                     ScreenshotFormat);
+        f.image_view = CreateWrappedImageView(device, f.image, ScreenshotFormat);
+        f.framebuffer = blit_screenshot.CreateFramebuffer(layout, *f.image_view, ScreenshotFormat);
+        return f;
     }();
 
-    blit_screenshot.DrawToFrame(rasterizer, &frame, std::span(framebuffer, 1), layout, 1,
+    blit_screenshot.DrawToFrame(rasterizer, &frame, framebuffers, layout, 1,
                                 VK_FORMAT_B8G8R8A8_UNORM);
 
-    const auto buffer_size = static_cast<VkDeviceSize>(layout.width * layout.height * 4);
-    const VkBufferCreateInfo dst_buffer_info{
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .size = buffer_size,
-        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-    };
-    const vk::Buffer dst_buffer =
-        memory_allocator.CreateBuffer(dst_buffer_info, MemoryUsage::Download);
+    const auto dst_buffer = CreateWrappedBuffer(
+        memory_allocator, static_cast<VkDeviceSize>(layout.width * layout.height * 4),
+        MemoryUsage::Download);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-        const VkImageMemoryBarrier read_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = *frame.image,
-            .subresourceRange{
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
-        const VkImageMemoryBarrier image_write_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = *frame.image,
-            .subresourceRange{
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
-        static constexpr VkMemoryBarrier memory_write_barrier{
-            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-        };
-        const VkBufferImageCopy copy{
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource{
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
-            .imageOffset{.x = 0, .y = 0, .z = 0},
-            .imageExtent{
-                .width = layout.width,
-                .height = layout.height,
-                .depth = 1,
-            },
-        };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               0, read_barrier);
-        cmdbuf.CopyImageToBuffer(*frame.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, *dst_buffer,
-                                 copy);
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                               0, memory_write_barrier, nullptr, image_write_barrier);
+        DownloadColorImage(cmdbuf, *frame.image, *dst_buffer,
+                           VkExtent3D{layout.width, layout.height, 1});
     });
+
     // Ensure the copy is fully completed before saving the screenshot
     scheduler.Finish();
 

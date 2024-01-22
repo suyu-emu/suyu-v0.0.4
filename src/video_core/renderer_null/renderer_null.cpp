@@ -13,8 +13,8 @@ RendererNull::RendererNull(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gp
 
 RendererNull::~RendererNull() = default;
 
-void RendererNull::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    if (!framebuffer) {
+void RendererNull::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (framebuffers.empty()) {
         return;
     }
 

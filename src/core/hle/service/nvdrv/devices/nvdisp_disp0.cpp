@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <boost/container/small_vector.hpp>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -38,19 +40,30 @@ NvResult nvdisp_disp0::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
 void nvdisp_disp0::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {}
 void nvdisp_disp0::OnClose(DeviceFD fd) {}
 
-void nvdisp_disp0::flip(u32 buffer_handle, u32 offset, android::PixelFormat format, u32 width,
-                        u32 height, u32 stride, android::BufferTransformFlags transform,
-                        const Common::Rectangle<int>& crop_rect,
-                        std::array<Service::Nvidia::NvFence, 4>& fences, u32 num_fences) {
-    const DAddr addr = nvmap.GetHandleAddress(buffer_handle);
-    LOG_TRACE(Service,
-              "Drawing from address {:X} offset {:08X} Width {} Height {} Stride {} Format {}",
-              addr, offset, width, height, stride, format);
+void nvdisp_disp0::Composite(std::span<const Nvnflinger::HwcLayer> sorted_layers) {
+    std::vector<Tegra::FramebufferConfig> output_layers;
+    std::vector<Service::Nvidia::NvFence> output_fences;
+    output_layers.reserve(sorted_layers.size());
+    output_fences.reserve(sorted_layers.size());
 
-    const Tegra::FramebufferConfig framebuffer{addr,   offset, width,     height,
-                                               stride, format, transform, crop_rect};
+    for (auto& layer : sorted_layers) {
+        output_layers.emplace_back(Tegra::FramebufferConfig{
+            .address = nvmap.GetHandleAddress(layer.buffer_handle),
+            .offset = layer.offset,
+            .width = layer.width,
+            .height = layer.height,
+            .stride = layer.stride,
+            .pixel_format = layer.format,
+            .transform_flags = layer.transform,
+            .crop_rect = layer.crop_rect,
+        });
 
-    system.GPU().RequestSwapBuffers(&framebuffer, fences, num_fences);
+        for (size_t i = 0; i < layer.acquire_fence.num_fences; i++) {
+            output_fences.push_back(layer.acquire_fence.fences[i]);
+        }
+    }
+
+    system.GPU().RequestComposite(std::move(output_layers), std::move(output_fences));
     system.SpeedLimiter().DoSpeedLimiting(system.CoreTiming().GetGlobalTimeUs());
     system.GetPerfStats().EndSystemFrame();
     system.GetPerfStats().BeginSystemFrame();

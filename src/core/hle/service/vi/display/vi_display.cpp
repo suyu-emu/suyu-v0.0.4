@@ -16,6 +16,7 @@
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
+#include "core/hle/service/nvnflinger/hardware_composer.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/vi/display/vi_display.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
@@ -43,6 +44,7 @@ Display::Display(u64 id, std::string name_,
                  KernelHelpers::ServiceContext& service_context_, Core::System& system_)
     : display_id{id}, name{std::move(name_)}, hos_binder_driver_server{hos_binder_driver_server_},
       service_context{service_context_} {
+    hardware_composer = std::make_unique<Nvnflinger::HardwareComposer>();
     vsync_event = service_context.CreateEvent(fmt::format("Display VSync Event {}", id));
 }
 
@@ -81,8 +83,6 @@ void Display::SignalVSyncEvent() {
 
 void Display::CreateLayer(u64 layer_id, u32 binder_id,
                           Service::Nvidia::NvCore::Container& nv_core) {
-    ASSERT_MSG(layers.empty(), "Only one layer is supported per display at the moment");
-
     auto [core, producer, consumer] = CreateBufferQueue(service_context, nv_core.GetNvMapFile());
 
     auto buffer_item_consumer = std::make_shared<android::BufferItemConsumer>(std::move(consumer));

@@ -1,0 +1,190 @@
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include <boost/container/small_vector.hpp>
+
+#include "common/microprofile.h"
+#include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
+#include "core/hle/service/nvnflinger/buffer_item.h"
+#include "core/hle/service/nvnflinger/buffer_item_consumer.h"
+#include "core/hle/service/nvnflinger/buffer_queue_producer.h"
+#include "core/hle/service/nvnflinger/hardware_composer.h"
+#include "core/hle/service/nvnflinger/hwc_layer.h"
+#include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
+#include "core/hle/service/vi/display/vi_display.h"
+#include "core/hle/service/vi/layer/vi_layer.h"
+
+namespace Service::Nvnflinger {
+
+HardwareComposer::HardwareComposer() = default;
+HardwareComposer::~HardwareComposer() = default;
+
+u32 HardwareComposer::ComposeLocked(VI::Display& display, Nvidia::Devices::nvdisp_disp0& nvdisp,
+                                    u32 frame_advance) {
+    boost::container::small_vector<HwcLayer, 2> composition_stack;
+
+    m_frame_number += frame_advance;
+
+    // Release any necessary framebuffers.
+    for (auto& [layer_id, framebuffer] : m_framebuffers) {
+        if (framebuffer.release_frame_number > m_frame_number) {
+            // Not yet ready to release this framebuffer.
+            continue;
+        }
+
+        if (!framebuffer.is_acquired) {
+            // Already released.
+            continue;
+        }
+
+        if (auto* layer = display.FindLayer(layer_id); layer != nullptr) {
+            // TODO: support release fence
+            // This is needed to prevent screen tearing
+            layer->GetConsumer().ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
+            framebuffer.is_acquired = false;
+        }
+    }
+
+    // Determine the number of vsync periods to wait before composing again.
+    std::optional<u32> swap_interval{};
+    bool has_acquired_buffer{};
+
+    // Acquire all necessary framebuffers.
+    for (size_t i = 0; i < display.GetNumLayers(); i++) {
+        auto& layer = display.GetLayer(i);
+        auto layer_id = layer.GetLayerId();
+
+        // Try to fetch the framebuffer (either new or stale).
+        const auto result = this->CacheFramebufferLocked(layer, layer_id);
+
+        // If we failed, skip this layer.
+        if (result == CacheStatus::NoBufferAvailable) {
+            continue;
+        }
+
+        // If we acquired a new buffer, we need to present.
+        if (result == CacheStatus::BufferAcquired) {
+            has_acquired_buffer = true;
+        }
+
+        const auto& buffer = m_framebuffers[layer_id];
+        const auto& item = buffer.item;
+        const auto& igbp_buffer = *item.graphic_buffer;
+
+        // TODO: get proper Z-index from layer
+        composition_stack.emplace_back(HwcLayer{
+            .buffer_handle = igbp_buffer.BufferId(),
+            .offset = igbp_buffer.Offset(),
+            .format = igbp_buffer.ExternalFormat(),
+            .width = igbp_buffer.Width(),
+            .height = igbp_buffer.Height(),
+            .stride = igbp_buffer.Stride(),
+            .z_index = 0,
+            .transform = static_cast<android::BufferTransformFlags>(item.transform),
+            .crop_rect = item.crop,
+            .acquire_fence = item.fence,
+        });
+
+        // We need to compose again either before this frame is supposed to
+        // be released, or exactly on the vsync period it should be released.
+        //
+        // TODO: handle cases where swap intervals are relatively prime. So far,
+        // only swap intervals of 0, 1 and 2 have been observed, but if 3 were
+        // to be introduced, this would cause an issue.
+        if (swap_interval) {
+            swap_interval = std::min(*swap_interval, item.swap_interval);
+        } else {
+            swap_interval = item.swap_interval;
+        }
+    }
+
+    // If any new buffers were acquired, we can present.
+    if (has_acquired_buffer) {
+        // Sort by Z-index.
+        std::stable_sort(composition_stack.begin(), composition_stack.end(),
+                         [&](auto& l, auto& r) { return l.z_index < r.z_index; });
+
+        // Composite.
+        nvdisp.Composite(composition_stack);
+    }
+
+    // Render MicroProfile.
+    MicroProfileFlip();
+
+    // If we advanced, then advance by at least 1 frame.
+    if (swap_interval) {
+        return std::max(*swap_interval, 1U);
+    }
+
+    // Otherwise, advance by exactly one frame.
+    return 1U;
+}
+
+void HardwareComposer::RemoveLayerLocked(VI::Display& display, LayerId layer_id) {
+    // Check if we are tracking a slot with this layer_id.
+    const auto it = m_framebuffers.find(layer_id);
+    if (it == m_framebuffers.end()) {
+        return;
+    }
+
+    // Try to release the buffer item.
+    auto* const layer = display.FindLayer(layer_id);
+    if (layer && it->second.is_acquired) {
+        layer->GetConsumer().ReleaseBuffer(it->second.item, android::Fence::NoFence());
+    }
+
+    // Erase the slot.
+    m_framebuffers.erase(it);
+}
+
+bool HardwareComposer::TryAcquireFramebufferLocked(VI::Layer& layer, Framebuffer& framebuffer) {
+    // Attempt the update.
+    const auto status = layer.GetConsumer().AcquireBuffer(&framebuffer.item, {}, false);
+    if (status != android::Status::NoError) {
+        return false;
+    }
+
+    // We succeeded, so set the new release frame info.
+    framebuffer.release_frame_number =
+        m_frame_number + std::max(1U, framebuffer.item.swap_interval);
+    framebuffer.is_acquired = true;
+
+    return true;
+}
+
+HardwareComposer::CacheStatus HardwareComposer::CacheFramebufferLocked(VI::Layer& layer,
+                                                                       LayerId layer_id) {
+    // Check if this framebuffer is already present.
+    const auto it = m_framebuffers.find(layer_id);
+    if (it != m_framebuffers.end()) {
+        // If it's currently still acquired, we are done.
+        if (it->second.is_acquired) {
+            return CacheStatus::CachedBufferReused;
+        }
+
+        // Try to acquire a new item.
+        if (this->TryAcquireFramebufferLocked(layer, it->second)) {
+            // We got a new item.
+            return CacheStatus::BufferAcquired;
+        } else {
+            // We didn't acquire a new item, but we can reuse the slot.
+            return CacheStatus::CachedBufferReused;
+        }
+    }
+
+    // Framebuffer is not present, so try to create it.
+    Framebuffer framebuffer{};
+
+    if (this->TryAcquireFramebufferLocked(layer, framebuffer)) {
+        // Move the buffer item into a new slot.
+        m_framebuffers.emplace(layer_id, std::move(framebuffer));
+
+        // We succeeded.
+        return CacheStatus::BufferAcquired;
+    }
+
+    // We couldn't acquire the buffer item, so don't create a slot.
+    return CacheStatus::NoBufferAvailable;
+}
+
+} // namespace Service::Nvnflinger

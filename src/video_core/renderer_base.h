@@ -38,7 +38,7 @@ public:
     virtual ~RendererBase();
 
     /// Finalize rendering the guest frame and draw into the presentation texture
-    virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
+    virtual void Composite(std::span<const Tegra::FramebufferConfig> layers) = 0;
 
     [[nodiscard]] virtual RasterizerInterface* ReadRasterizer() = 0;
 

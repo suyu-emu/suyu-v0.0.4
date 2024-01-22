@@ -46,7 +46,7 @@ public:
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererVulkan() override;
 
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
+    void Composite(std::span<const Tegra::FramebufferConfig> framebuffers) override;
 
     VideoCore::RasterizerInterface* ReadRasterizer() override {
         return &rasterizer;
@@ -59,7 +59,7 @@ public:
 private:
     void Report() const;
 
-    void RenderScreenshot(const Tegra::FramebufferConfig* framebuffer);
+    void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);
 
     Core::TelemetrySession& telemetry_session;
     Tegra::MaxwellDeviceMemoryManager& device_memory;

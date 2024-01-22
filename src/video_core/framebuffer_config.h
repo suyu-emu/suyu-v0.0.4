@@ -7,6 +7,7 @@
 #include "common/math_util.h"
 #include "core/hle/service/nvnflinger/buffer_transform_flags.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
+#include "core/hle/service/nvnflinger/ui/fence.h"
 
 namespace Tegra {
 
@@ -21,7 +22,7 @@ struct FramebufferConfig {
     u32 stride{};
     Service::android::PixelFormat pixel_format{};
     Service::android::BufferTransformFlags transform_flags{};
-    Common::Rectangle<int> crop_rect;
+    Common::Rectangle<int> crop_rect{};
 };
 
 Common::Rectangle<f32> NormalizeCrop(const FramebufferConfig& framebuffer, u32 texture_width,
