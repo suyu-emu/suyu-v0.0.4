@@ -829,6 +829,43 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeMod(JNIEnv* env, jobject jobj, 
                               program_id, GetJString(env, jname));
 }
 
+jobject Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyInstalledContents(JNIEnv* env, jobject jobj,
+                                                                      jobject jcallback) {
+    auto jlambdaClass = env->GetObjectClass(jcallback);
+    auto jlambdaInvokeMethod = env->GetMethodID(
+        jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
+        auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
+                                                   ToJDouble(env, max), ToJDouble(env, progress));
+        return GetJBoolean(env, jwasCancelled);
+    };
+
+    auto& session = EmulationSession::GetInstance();
+    std::vector<std::string> result = ContentManager::VerifyInstalledContents(
+        &session.System(), session.GetContentProvider(), callback);
+    jobjectArray jresult =
+        env->NewObjectArray(result.size(), IDCache::GetStringClass(), ToJString(env, ""));
+    for (size_t i = 0; i < result.size(); ++i) {
+        env->SetObjectArrayElement(jresult, i, ToJString(env, result[i]));
+    }
+    return jresult;
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyGameContents(JNIEnv* env, jobject jobj,
+                                                              jstring jpath, jobject jcallback) {
+    auto jlambdaClass = env->GetObjectClass(jcallback);
+    auto jlambdaInvokeMethod = env->GetMethodID(
+        jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
+        auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
+                                                   ToJDouble(env, max), ToJDouble(env, progress));
+        return GetJBoolean(env, jwasCancelled);
+    };
+    auto& session = EmulationSession::GetInstance();
+    return static_cast<jint>(
+        ContentManager::VerifyGameContents(&session.System(), GetJString(env, jpath), callback));
+}
+
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject jobj,
                                                           jstring jprogramId) {
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
