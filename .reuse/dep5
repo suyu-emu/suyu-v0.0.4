@@ -155,3 +155,7 @@ License: MIT
 Files: externals/gamemode/*
 Copyright: Copyright 2017-2019 Feral Interactive
 License: BSD-3-Clause
+
+Files: src/android/app/debug.keystore
+Copyright: 2023 yuzu Emulator Project
+License: GPL-3.0-or-later
