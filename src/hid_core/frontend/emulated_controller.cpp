@@ -1245,7 +1245,12 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
         return false;
     }
 
-    last_vibration_value = vibration;
+    // Skip duplicated vibrations
+    if (last_vibration_value[index] == vibration) {
+        return Settings::values.vibration_enabled.GetValue();
+    }
+
+    last_vibration_value[index] = vibration;
 
     if (!Settings::values.vibration_enabled) {
         return false;
@@ -1276,7 +1281,10 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
 }
 
 VibrationValue EmulatedController::GetActualVibrationValue(DeviceIndex device_index) const {
-    return last_vibration_value;
+    if (device_index >= DeviceIndex::MaxDeviceIndex) {
+        return Core::HID::DEFAULT_VIBRATION_VALUE;
+    }
+    return last_vibration_value[static_cast<std::size_t>(device_index)];
 }
 
 bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {

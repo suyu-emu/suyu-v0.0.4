@@ -581,7 +581,8 @@ private:
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};
     std::size_t nfc_handles{0};
-    VibrationValue last_vibration_value{DEFAULT_VIBRATION_VALUE};
+    std::array<VibrationValue, 2> last_vibration_value{DEFAULT_VIBRATION_VALUE,
+                                                       DEFAULT_VIBRATION_VALUE};
 
     // Temporary values to avoid doing changes while the controller is in configuring mode
     NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};

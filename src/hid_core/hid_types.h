@@ -639,6 +639,15 @@ struct VibrationValue {
     f32 low_frequency{};
     f32 high_amplitude{};
     f32 high_frequency{};
+    bool operator==(const VibrationValue& b) {
+        if (low_amplitude != b.low_amplitude || high_amplitude != b.high_amplitude) {
+            return false;
+        }
+        if (low_frequency != b.low_amplitude || high_frequency != b.high_frequency) {
+            return false;
+        }
+        return true;
+    }
 };
 static_assert(sizeof(VibrationValue) == 0x10, "VibrationValue has incorrect size.");
 
