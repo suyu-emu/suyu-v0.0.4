@@ -710,12 +710,12 @@ void ISystemSettingsServer::GetSettingsItemValueSize(HLERequestContext& ctx) {
     // The category of the setting. This corresponds to the top-level keys of
     // system_settings.ini.
     const auto setting_category_buf{ctx.ReadBuffer(0)};
-    const std::string setting_category{setting_category_buf.begin(), setting_category_buf.end()};
+    const std::string setting_category{Common::StringFromBuffer(setting_category_buf)};
 
     // The name of the setting. This corresponds to the second-level keys of
     // system_settings.ini.
     const auto setting_name_buf{ctx.ReadBuffer(1)};
-    const std::string setting_name{setting_name_buf.begin(), setting_name_buf.end()};
+    const std::string setting_name{Common::StringFromBuffer(setting_name_buf)};
 
     auto settings{GetSettings()};
     u64 response_size{0};
@@ -733,12 +733,12 @@ void ISystemSettingsServer::GetSettingsItemValue(HLERequestContext& ctx) {
     // The category of the setting. This corresponds to the top-level keys of
     // system_settings.ini.
     const auto setting_category_buf{ctx.ReadBuffer(0)};
-    const std::string setting_category{setting_category_buf.begin(), setting_category_buf.end()};
+    const std::string setting_category{Common::StringFromBuffer(setting_category_buf)};
 
     // The name of the setting. This corresponds to the second-level keys of
     // system_settings.ini.
     const auto setting_name_buf{ctx.ReadBuffer(1)};
-    const std::string setting_name{setting_name_buf.begin(), setting_name_buf.end()};
+    const std::string setting_name{Common::StringFromBuffer(setting_name_buf)};
 
     std::vector<u8> value;
     auto response = GetSettingsItemValue(value, setting_category, setting_name);

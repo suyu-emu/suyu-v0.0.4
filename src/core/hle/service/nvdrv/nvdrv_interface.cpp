@@ -4,6 +4,7 @@
 
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_process.h"
@@ -29,7 +30,7 @@ void NVDRV::Open(HLERequestContext& ctx) {
     }
 
     const auto& buffer = ctx.ReadBuffer();
-    const std::string device_name(buffer.begin(), buffer.end());
+    const std::string device_name(Common::StringFromBuffer(buffer));
 
     if (device_name == "/dev/nvhost-prof-gpu") {
         rb.Push<DeviceFD>(0);
