@@ -291,7 +291,8 @@ void Nvnflinger::Compose() {
         auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>(disp_fd);
         ASSERT(nvdisp);
 
-        swap_interval = display.GetComposer().ComposeLocked(display, *nvdisp, swap_interval);
+        swap_interval = display.GetComposer().ComposeLocked(&compose_speed_scale, display, *nvdisp,
+                                                            swap_interval);
     }
 }
 
@@ -308,15 +309,16 @@ s64 Nvnflinger::GetNextTicks() const {
             speed_scale = 0.01f;
         }
     }
+
+    // Adjust by speed limit determined during composition.
+    speed_scale /= compose_speed_scale;
+
     if (system.GetNVDECActive() && settings.use_video_framerate.GetValue()) {
         // Run at intended presentation rate during video playback.
         speed_scale = 1.f;
     }
 
-    // As an extension, treat nonpositive swap interval as framerate multiplier.
-    const f32 effective_fps = swap_interval <= 0 ? 120.f * static_cast<f32>(1 - swap_interval)
-                                                 : 60.f / static_cast<f32>(swap_interval);
-
+    const f32 effective_fps = 60.f / static_cast<f32>(swap_interval);
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
 }
 

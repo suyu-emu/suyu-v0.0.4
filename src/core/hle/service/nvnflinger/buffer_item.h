@@ -40,7 +40,7 @@ public:
     bool is_droppable{};
     bool acquire_called{};
     bool transform_to_display_inverse{};
-    u32 swap_interval{};
+    s32 swap_interval{};
 };
 
 } // namespace Service::android

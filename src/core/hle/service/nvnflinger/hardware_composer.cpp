@@ -16,11 +16,37 @@
 
 namespace Service::Nvnflinger {
 
+namespace {
+
+s32 NormalizeSwapInterval(f32* out_speed_scale, s32 swap_interval) {
+    if (swap_interval <= 0) {
+        // As an extension, treat nonpositive swap interval as speed multiplier.
+        if (out_speed_scale) {
+            *out_speed_scale = 2.f * static_cast<f32>(1 - swap_interval);
+        }
+
+        swap_interval = 1;
+    }
+
+    if (swap_interval >= 5) {
+        // As an extension, treat high swap interval as precise speed control.
+        if (out_speed_scale) {
+            *out_speed_scale = static_cast<f32>(swap_interval) / 100.f;
+        }
+
+        swap_interval = 1;
+    }
+
+    return swap_interval;
+}
+
+} // namespace
+
 HardwareComposer::HardwareComposer() = default;
 HardwareComposer::~HardwareComposer() = default;
 
-u32 HardwareComposer::ComposeLocked(VI::Display& display, Nvidia::Devices::nvdisp_disp0& nvdisp,
-                                    u32 frame_advance) {
+u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
+                                    Nvidia::Devices::nvdisp_disp0& nvdisp, u32 frame_advance) {
     boost::container::small_vector<HwcLayer, 2> composition_stack;
 
     m_frame_number += frame_advance;
@@ -45,8 +71,11 @@ u32 HardwareComposer::ComposeLocked(VI::Display& display, Nvidia::Devices::nvdis
         }
     }
 
+    // Set default speed limit to 100%.
+    *out_speed_scale = 1.0f;
+
     // Determine the number of vsync periods to wait before composing again.
-    std::optional<u32> swap_interval{};
+    std::optional<s32> swap_interval{};
     bool has_acquired_buffer{};
 
     // Acquire all necessary framebuffers.
@@ -87,14 +116,15 @@ u32 HardwareComposer::ComposeLocked(VI::Display& display, Nvidia::Devices::nvdis
 
         // We need to compose again either before this frame is supposed to
         // be released, or exactly on the vsync period it should be released.
-        //
+        const s32 item_swap_interval = NormalizeSwapInterval(out_speed_scale, item.swap_interval);
+
         // TODO: handle cases where swap intervals are relatively prime. So far,
         // only swap intervals of 0, 1 and 2 have been observed, but if 3 were
         // to be introduced, this would cause an issue.
         if (swap_interval) {
-            swap_interval = std::min(*swap_interval, item.swap_interval);
+            swap_interval = std::min(*swap_interval, item_swap_interval);
         } else {
-            swap_interval = item.swap_interval;
+            swap_interval = item_swap_interval;
         }
     }
 
@@ -111,13 +141,8 @@ u32 HardwareComposer::ComposeLocked(VI::Display& display, Nvidia::Devices::nvdis
     // Render MicroProfile.
     MicroProfileFlip();
 
-    // If we advanced, then advance by at least 1 frame.
-    if (swap_interval) {
-        return std::max(*swap_interval, 1U);
-    }
-
-    // Otherwise, advance by exactly one frame.
-    return 1U;
+    // Advance by at least one frame.
+    return swap_interval.value_or(1);
 }
 
 void HardwareComposer::RemoveLayerLocked(VI::Display& display, LayerId layer_id) {
@@ -146,7 +171,7 @@ bool HardwareComposer::TryAcquireFramebufferLocked(VI::Layer& layer, Framebuffer
 
     // We succeeded, so set the new release frame info.
     framebuffer.release_frame_number =
-        m_frame_number + std::max(1U, framebuffer.item.swap_interval);
+        NormalizeSwapInterval(nullptr, framebuffer.item.swap_interval);
     framebuffer.is_acquired = true;
 
     return true;
