@@ -50,6 +50,7 @@ SystemSettings DefaultSystemSettings() {
     settings.primary_album_storage = PrimaryAlbumStorage::SdCard;
     settings.battery_percentage_flag = true;
     settings.chinese_traditional_input_method = ChineseTraditionalInputMethod::Unknown0;
+    settings.vibration_master_volume = 1.0f;
 
     return settings;
 }

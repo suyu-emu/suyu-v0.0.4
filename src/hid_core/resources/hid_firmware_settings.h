@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/hle/service/set/settings_types.h"
 
 namespace Core {
 class System;
@@ -39,6 +40,7 @@ public:
 
     FirmwareSetting GetFirmwareUpdateFailure();
     FeaturesPerId FeaturesDisabledPerId();
+    Set::PlatformConfig GetPlatformConfig();
 
 private:
     bool is_initialized{};
@@ -57,6 +59,7 @@ private:
     bool is_touch_firmware_auto_update_disabled{};
     FirmwareSetting is_firmware_update_failure{};
     FeaturesPerId features_per_id_disabled{};
+    Set::PlatformConfig platform_config{};
 
     std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 };

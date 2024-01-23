@@ -323,6 +323,15 @@ struct NotificationFlag {
 };
 static_assert(sizeof(NotificationFlag) == 4, "NotificationFlag is an invalid size");
 
+struct PlatformConfig {
+    union {
+        u32 raw{};
+        BitField<0, 1, u32> has_rail_interface;
+        BitField<1, 1, u32> has_sio_mcu;
+    };
+};
+static_assert(sizeof(PlatformConfig) == 0x4, "PlatformConfig is an invalid size");
+
 /// This is nn::settings::system::TvFlag
 struct TvFlag {
     union {

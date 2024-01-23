@@ -16,13 +16,16 @@ class KEvent;
 
 namespace Service::HID {
 class ResourceManager;
+class HidFirmwareSettings;
 
 class IHidSystemServer final : public ServiceFramework<IHidSystemServer> {
 public:
-    explicit IHidSystemServer(Core::System& system_, std::shared_ptr<ResourceManager> resource);
+    explicit IHidSystemServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                              std::shared_ptr<HidFirmwareSettings> settings);
     ~IHidSystemServer() override;
 
 private:
+    void GetPlatformConfig(HLERequestContext& ctx);
     void ApplyNpadSystemCommonPolicy(HLERequestContext& ctx);
     void EnableAssigningSingleOnSlSrPress(HLERequestContext& ctx);
     void DisableAssigningSingleOnSlSrPress(HLERequestContext& ctx);
@@ -50,6 +53,7 @@ private:
     void GetVibrationMasterVolume(HLERequestContext& ctx);
     void BeginPermitVibrationSession(HLERequestContext& ctx);
     void EndPermitVibrationSession(HLERequestContext& ctx);
+    void IsJoyConRailEnabled(HLERequestContext& ctx);
     void IsJoyConAttachedOnAllRail(HLERequestContext& ctx);
     void AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx);
     void AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx);
@@ -58,12 +62,14 @@ private:
     void GetUniquePadIds(HLERequestContext& ctx);
     void AcquireJoyDetachOnBluetoothOffEventHandle(HLERequestContext& ctx);
     void IsUsbFullKeyControllerEnabled(HLERequestContext& ctx);
+    void EnableUsbFullKeyController(HLERequestContext& ctx);
     void IsHandheldButtonPressedOnConsoleMode(HLERequestContext& ctx);
     void InitializeFirmwareUpdate(HLERequestContext& ctx);
     void CheckFirmwareUpdateRequired(HLERequestContext& ctx);
     void SetFirmwareHotfixUpdateSkipEnabled(HLERequestContext& ctx);
     void InitializeUsbFirmwareUpdate(HLERequestContext& ctx);
     void FinalizeUsbFirmwareUpdate(HLERequestContext& ctx);
+    void CheckUsbFirmwareUpdateRequired(HLERequestContext& ctx);
     void InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx);
     void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
     void SetForceHandheldStyleVibration(HLERequestContext& ctx);
@@ -77,6 +83,7 @@ private:
     Kernel::KEvent* unique_pad_connection_event;
     KernelHelpers::ServiceContext service_context;
     std::shared_ptr<ResourceManager> resource_manager;
+    std::shared_ptr<HidFirmwareSettings> firmware_settings;
 };
 
 } // namespace Service::HID

@@ -1419,8 +1419,8 @@ void IHidServer::EnableUnintendedHomeButtonInputProtection(HLERequestContext& ct
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    LOG_INFO(Service_HID, "called, is_enabled={}, npad_id={}, applet_resource_user_id={}",
-             parameters.is_enabled, parameters.npad_id, parameters.applet_resource_user_id);
+    LOG_DEBUG(Service_HID, "called, is_enabled={}, npad_id={}, applet_resource_user_id={}",
+              parameters.is_enabled, parameters.npad_id, parameters.applet_resource_user_id);
 
     if (!IsNpadIdValid(parameters.npad_id)) {
         IPC::ResponseBuilder rb{ctx, 3};

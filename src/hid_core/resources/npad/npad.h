@@ -34,6 +34,10 @@ namespace Service::KernelHelpers {
 class ServiceContext;
 } // namespace Service::KernelHelpers
 
+namespace Service::Set {
+class ISystemSettingsServer;
+}
+
 union Result;
 
 namespace Service::HID {
@@ -128,7 +132,8 @@ public:
     void UnregisterAppletResourceUserId(u64 aruid);
     void SetNpadExternals(std::shared_ptr<AppletResource> resource,
                           std::recursive_mutex* shared_mutex,
-                          std::shared_ptr<HandheldConfig> handheld_config);
+                          std::shared_ptr<HandheldConfig> handheld_config,
+                          std::shared_ptr<Service::Set::ISystemSettingsServer> settings);
 
     AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
 
