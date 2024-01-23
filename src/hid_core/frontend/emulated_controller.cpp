@@ -110,7 +110,11 @@ void EmulatedController::ReloadFromSettings() {
         original_npad_type = npad_type;
     }
 
-    SetPollingMode(EmulatedDeviceIndex::RightIndex, Common::Input::PollingMode::Active);
+    // Disable special features before disconnecting
+    if (controller.right_polling_mode != Common::Input::PollingMode::Active) {
+        SetPollingMode(EmulatedDeviceIndex::RightIndex, Common::Input::PollingMode::Active);
+    }
+
     Disconnect();
     if (player.connected) {
         Connect();
