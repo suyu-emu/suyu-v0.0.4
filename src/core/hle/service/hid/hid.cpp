@@ -33,7 +33,7 @@ void LoopProcess(Core::System& system) {
     server_manager->RegisterNamedService(
         "hid:dbg", std::make_shared<IHidDebugServer>(system, resource_manager));
     server_manager->RegisterNamedService(
-        "hid:sys", std::make_shared<IHidSystemServer>(system, resource_manager));
+        "hid:sys", std::make_shared<IHidSystemServer>(system, resource_manager, firmware_settings));
 
     server_manager->RegisterNamedService("hidbus", std::make_shared<HidBus>(system));
 

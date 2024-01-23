@@ -123,8 +123,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {30, &ISystemSettingsServer::SetNotificationSettings, "SetNotificationSettings"},
         {31, &ISystemSettingsServer::GetAccountNotificationSettings, "GetAccountNotificationSettings"},
         {32, &ISystemSettingsServer::SetAccountNotificationSettings, "SetAccountNotificationSettings"},
-        {35, nullptr, "GetVibrationMasterVolume"},
-        {36, nullptr, "SetVibrationMasterVolume"},
+        {35, &ISystemSettingsServer::GetVibrationMasterVolume, "GetVibrationMasterVolume"},
+        {36, &ISystemSettingsServer::SetVibrationMasterVolume, "SetVibrationMasterVolume"},
         {37, &ISystemSettingsServer::GetSettingsItemValueSize, "GetSettingsItemValueSize"},
         {38, &ISystemSettingsServer::GetSettingsItemValue, "GetSettingsItemValue"},
         {39, &ISystemSettingsServer::GetTvSettings, "GetTvSettings"},
@@ -133,10 +133,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {42, nullptr, "SetEdid"},
         {43, nullptr, "GetAudioOutputMode"},
         {44, nullptr, "SetAudioOutputMode"},
-        {45, nullptr, "IsForceMuteOnHeadphoneRemoved"},
-        {46, nullptr, "SetForceMuteOnHeadphoneRemoved"},
+        {45, &ISystemSettingsServer::IsForceMuteOnHeadphoneRemoved, "IsForceMuteOnHeadphoneRemoved"},
+        {46, &ISystemSettingsServer::SetForceMuteOnHeadphoneRemoved, "SetForceMuteOnHeadphoneRemoved"},
         {47, &ISystemSettingsServer::GetQuestFlag, "GetQuestFlag"},
-        {48, nullptr, "SetQuestFlag"},
+        {48, &ISystemSettingsServer::SetQuestFlag, "SetQuestFlag"},
         {49, nullptr, "GetDataDeletionSettings"},
         {50, nullptr, "SetDataDeletionSettings"},
         {51, nullptr, "GetInitialSystemAppletProgramId"},
@@ -152,7 +152,7 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {61, &ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled, "SetUserSystemClockAutomaticCorrectionEnabled"},
         {62, &ISystemSettingsServer::GetDebugModeFlag, "GetDebugModeFlag"},
         {63, &ISystemSettingsServer::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
-        {64, nullptr, "SetPrimaryAlbumStorage"},
+        {64, &ISystemSettingsServer::SetPrimaryAlbumStorage, "SetPrimaryAlbumStorage"},
         {65, nullptr, "GetUsb30EnableFlag"},
         {66, nullptr, "SetUsb30EnableFlag"},
         {67, nullptr, "GetBatteryLot"},
@@ -467,7 +467,7 @@ void ISystemSettingsServer::GetExternalSteadyClockSourceId(HLERequestContext& ct
     LOG_INFO(Service_SET, "called");
 
     Common::UUID id{};
-    auto res = GetExternalSteadyClockSourceId(id);
+    const auto res = GetExternalSteadyClockSourceId(id);
 
     IPC::ResponseBuilder rb{ctx, 2 + sizeof(Common::UUID) / sizeof(u32)};
     rb.Push(res);
@@ -478,9 +478,9 @@ void ISystemSettingsServer::SetExternalSteadyClockSourceId(HLERequestContext& ct
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
-    auto id{rp.PopRaw<Common::UUID>()};
+    const auto id{rp.PopRaw<Common::UUID>()};
 
-    auto res = SetExternalSteadyClockSourceId(id);
+    const auto res = SetExternalSteadyClockSourceId(id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -490,7 +490,7 @@ void ISystemSettingsServer::GetUserSystemClockContext(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     Service::PSC::Time::SystemClockContext context{};
-    auto res = GetUserSystemClockContext(context);
+    const auto res = GetUserSystemClockContext(context);
 
     IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::PSC::Time::SystemClockContext) / sizeof(u32)};
     rb.Push(res);
@@ -501,9 +501,9 @@ void ISystemSettingsServer::SetUserSystemClockContext(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
-    auto context{rp.PopRaw<Service::PSC::Time::SystemClockContext>()};
+    const auto context{rp.PopRaw<Service::PSC::Time::SystemClockContext>()};
 
-    auto res = SetUserSystemClockContext(context);
+    const auto res = SetUserSystemClockContext(context);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -652,6 +652,29 @@ void ISystemSettingsServer::SetAccountNotificationSettings(HLERequestContext& ct
     rb.Push(ResultSuccess);
 }
 
+void ISystemSettingsServer::GetVibrationMasterVolume(HLERequestContext& ctx) {
+    f32 vibration_master_volume = {};
+    const auto result = GetVibrationMasterVolume(vibration_master_volume);
+
+    LOG_INFO(Service_SET, "called, master_volume={}", vibration_master_volume);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(result);
+    rb.Push(vibration_master_volume);
+}
+
+void ISystemSettingsServer::SetVibrationMasterVolume(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto vibration_master_volume = rp.PopRaw<f32>();
+
+    LOG_INFO(Service_SET, "called, elements={}", m_system_settings.vibration_master_volume);
+
+    const auto result = SetVibrationMasterVolume(vibration_master_volume);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
 // FIXME: implement support for the real system_settings.ini
 
 template <typename T>
@@ -683,6 +706,8 @@ static Settings GetSettings() {
     ret["time"]["standard_user_clock_initial_year"] = ToBytes(s32{2023});
 
     // HID
+    ret["hid"]["has_rail_interface"] = ToBytes(bool{true});
+    ret["hid"]["has_sio_mcu"] = ToBytes(bool{true});
     ret["hid_debug"]["enables_debugpad"] = ToBytes(bool{true});
     ret["hid_debug"]["manages_devices"] = ToBytes(bool{true});
     ret["hid_debug"]["manages_touch_ic_i2c"] = ToBytes(bool{true});
@@ -699,6 +724,9 @@ static Settings GetSettings() {
 
     // Settings
     ret["settings_debug"]["is_debug_mode_enabled"] = ToBytes(bool{false});
+
+    // Error
+    ret["err"]["applet_auto_close"] = ToBytes(bool{false});
 
     return ret;
 }
@@ -786,15 +814,25 @@ void ISystemSettingsServer::SetTvSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void ISystemSettingsServer::GetDebugModeFlag(HLERequestContext& ctx) {
-    bool is_debug_mode_enabled = false;
-    GetSettingsItemValue<bool>(is_debug_mode_enabled, "settings_debug", "is_debug_mode_enabled");
-
-    LOG_DEBUG(Service_SET, "called, is_debug_mode_enabled={}", is_debug_mode_enabled);
+void ISystemSettingsServer::IsForceMuteOnHeadphoneRemoved(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, force_mute_on_headphone_removed={}",
+             m_system_settings.force_mute_on_headphone_removed);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(is_debug_mode_enabled);
+    rb.PushRaw(m_system_settings.force_mute_on_headphone_removed);
+}
+
+void ISystemSettingsServer::SetForceMuteOnHeadphoneRemoved(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.force_mute_on_headphone_removed = rp.PopRaw<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, force_mute_on_headphone_removed={}",
+             m_system_settings.force_mute_on_headphone_removed);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ISystemSettingsServer::GetQuestFlag(HLERequestContext& ctx) {
@@ -805,11 +843,22 @@ void ISystemSettingsServer::GetQuestFlag(HLERequestContext& ctx) {
     rb.PushEnum(m_system_settings.quest_flag);
 }
 
+void ISystemSettingsServer::SetQuestFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.quest_flag = rp.PopEnum<QuestFlag>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, quest_flag={}", m_system_settings.quest_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void ISystemSettingsServer::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     Service::PSC::Time::LocationName name{};
-    auto res = GetDeviceTimeZoneLocationName(name);
+    const auto res = GetDeviceTimeZoneLocationName(name);
 
     IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::PSC::Time::LocationName) / sizeof(u32)};
     rb.Push(res);
@@ -822,7 +871,7 @@ void ISystemSettingsServer::SetDeviceTimeZoneLocationName(HLERequestContext& ctx
     IPC::RequestParser rp{ctx};
     auto name{rp.PopRaw<Service::PSC::Time::LocationName>()};
 
-    auto res = SetDeviceTimeZoneLocationName(name);
+    const auto res = SetDeviceTimeZoneLocationName(name);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -843,7 +892,7 @@ void ISystemSettingsServer::GetNetworkSystemClockContext(HLERequestContext& ctx)
     LOG_INFO(Service_SET, "called");
 
     Service::PSC::Time::SystemClockContext context{};
-    auto res = GetNetworkSystemClockContext(context);
+    const auto res = GetNetworkSystemClockContext(context);
 
     IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::PSC::Time::SystemClockContext) / sizeof(u32)};
     rb.Push(res);
@@ -854,9 +903,9 @@ void ISystemSettingsServer::SetNetworkSystemClockContext(HLERequestContext& ctx)
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
-    auto context{rp.PopRaw<Service::PSC::Time::SystemClockContext>()};
+    const auto context{rp.PopRaw<Service::PSC::Time::SystemClockContext>()};
 
-    auto res = SetNetworkSystemClockContext(context);
+    const auto res = SetNetworkSystemClockContext(context);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -866,7 +915,7 @@ void ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(HLEReque
     LOG_INFO(Service_SET, "called");
 
     bool enabled{};
-    auto res = IsUserSystemClockAutomaticCorrectionEnabled(enabled);
+    const auto res = IsUserSystemClockAutomaticCorrectionEnabled(enabled);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(res);
@@ -879,10 +928,21 @@ void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(HLERequ
     IPC::RequestParser rp{ctx};
     auto enabled{rp.Pop<bool>()};
 
-    auto res = SetUserSystemClockAutomaticCorrectionEnabled(enabled);
+    const auto res = SetUserSystemClockAutomaticCorrectionEnabled(enabled);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
+}
+
+void ISystemSettingsServer::GetDebugModeFlag(HLERequestContext& ctx) {
+    bool is_debug_mode_enabled = false;
+    GetSettingsItemValue<bool>(is_debug_mode_enabled, "settings_debug", "is_debug_mode_enabled");
+
+    LOG_DEBUG(Service_SET, "called, is_debug_mode_enabled={}", is_debug_mode_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(is_debug_mode_enabled);
 }
 
 void ISystemSettingsServer::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
@@ -892,6 +952,18 @@ void ISystemSettingsServer::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.PushEnum(m_system_settings.primary_album_storage);
+}
+
+void ISystemSettingsServer::SetPrimaryAlbumStorage(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.primary_album_storage = rp.PopEnum<PrimaryAlbumStorage>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, primary_album_storage={}",
+             m_system_settings.primary_album_storage);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ISystemSettingsServer::GetNfcEnableFlag(HLERequestContext& ctx) {
@@ -1072,7 +1144,7 @@ void ISystemSettingsServer::SetExternalSteadyClockInternalOffset(HLERequestConte
     IPC::RequestParser rp{ctx};
     auto offset{rp.Pop<s64>()};
 
-    auto res = SetExternalSteadyClockInternalOffset(offset);
+    const auto res = SetExternalSteadyClockInternalOffset(offset);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -1082,7 +1154,7 @@ void ISystemSettingsServer::GetExternalSteadyClockInternalOffset(HLERequestConte
     LOG_DEBUG(Service_SET, "called.");
 
     s64 offset{};
-    auto res = GetExternalSteadyClockInternalOffset(offset);
+    const auto res = GetExternalSteadyClockInternalOffset(offset);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(res);
@@ -1140,7 +1212,7 @@ void ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(HLERequestConte
     LOG_INFO(Service_SET, "called");
 
     Service::PSC::Time::SteadyClockTimePoint time_point{};
-    auto res = GetDeviceTimeZoneLocationUpdatedTime(time_point);
+    const auto res = GetDeviceTimeZoneLocationUpdatedTime(time_point);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(res);
@@ -1153,7 +1225,7 @@ void ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(HLERequestConte
     IPC::RequestParser rp{ctx};
     auto time_point{rp.PopRaw<Service::PSC::Time::SteadyClockTimePoint>()};
 
-    auto res = SetDeviceTimeZoneLocationUpdatedTime(time_point);
+    const auto res = SetDeviceTimeZoneLocationUpdatedTime(time_point);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -1164,7 +1236,7 @@ void ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
     LOG_INFO(Service_SET, "called");
 
     Service::PSC::Time::SteadyClockTimePoint time_point{};
-    auto res = GetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+    const auto res = GetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(res);
@@ -1176,9 +1248,9 @@ void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
-    auto time_point{rp.PopRaw<Service::PSC::Time::SteadyClockTimePoint>()};
+    const auto time_point{rp.PopRaw<Service::PSC::Time::SteadyClockTimePoint>()};
 
-    auto res = SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+    const auto res = SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -1304,57 +1376,68 @@ Result ISystemSettingsServer::GetSettingsItemValue(std::vector<u8>& out_value,
     R_SUCCEED();
 }
 
-Result ISystemSettingsServer::GetExternalSteadyClockSourceId(Common::UUID& out_id) {
+Result ISystemSettingsServer::GetVibrationMasterVolume(f32& out_volume) const {
+    out_volume = m_system_settings.vibration_master_volume;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetVibrationMasterVolume(f32 volume) {
+    m_system_settings.vibration_master_volume = volume;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetExternalSteadyClockSourceId(Common::UUID& out_id) const {
     out_id = m_private_settings.external_clock_source_id;
     R_SUCCEED();
 }
 
-Result ISystemSettingsServer::SetExternalSteadyClockSourceId(Common::UUID id) {
+Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID& id) {
     m_private_settings.external_clock_source_id = id;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetUserSystemClockContext(
-    Service::PSC::Time::SystemClockContext& out_context) {
+    Service::PSC::Time::SystemClockContext& out_context) const {
     out_context = m_system_settings.user_system_clock_context;
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::SetUserSystemClockContext(
-    Service::PSC::Time::SystemClockContext& context) {
+    const Service::PSC::Time::SystemClockContext& context) {
     m_system_settings.user_system_clock_context = context;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
-    Service::PSC::Time::LocationName& out_name) {
+    Service::PSC::Time::LocationName& out_name) const {
     out_name = m_system_settings.device_time_zone_location_name;
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::SetDeviceTimeZoneLocationName(
-    Service::PSC::Time::LocationName& name) {
+    const Service::PSC::Time::LocationName& name) {
     m_system_settings.device_time_zone_location_name = name;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetNetworkSystemClockContext(
-    Service::PSC::Time::SystemClockContext& out_context) {
+    Service::PSC::Time::SystemClockContext& out_context) const {
     out_context = m_system_settings.network_system_clock_context;
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::SetNetworkSystemClockContext(
-    Service::PSC::Time::SystemClockContext& context) {
+    const Service::PSC::Time::SystemClockContext& context) {
     m_system_settings.network_system_clock_context = context;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) {
+Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) const {
     out_enabled = m_system_settings.user_system_clock_automatic_correction_enabled;
     R_SUCCEED();
 }
@@ -1371,32 +1454,32 @@ Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
     R_SUCCEED();
 }
 
-Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(s64& out_offset) {
+Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(s64& out_offset) const {
     out_offset = m_private_settings.external_steady_clock_internal_offset;
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
-    Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
+    Service::PSC::Time::SteadyClockTimePoint& out_time_point) const {
     out_time_point = m_system_settings.device_time_zone_location_updated_time;
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
-    Service::PSC::Time::SteadyClockTimePoint& time_point) {
+    const Service::PSC::Time::SteadyClockTimePoint& time_point) {
     m_system_settings.device_time_zone_location_updated_time = time_point;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
-    Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
+    Service::PSC::Time::SteadyClockTimePoint& out_time_point) const {
     out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
-    Service::PSC::Time::SteadyClockTimePoint out_time_point) {
+    const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
     m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
     SetSaveNeeded();
     R_SUCCEED();
