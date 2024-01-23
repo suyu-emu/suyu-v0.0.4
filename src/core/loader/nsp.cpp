@@ -10,6 +10,7 @@
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/submission_package.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -107,6 +108,13 @@ AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::KProcess& process, Core::S
     const auto result = secondary_loader->Load(process, system);
     if (result.first != ResultStatus::Success) {
         return result;
+    }
+
+    if (nsp->IsExtractedType()) {
+        system.GetFileSystemController().RegisterProcess(
+            process.GetProcessId(), {},
+            std::make_shared<FileSys::RomFSFactory>(*this, system.GetContentProvider(),
+                                                    system.GetFileSystemController()));
     }
 
     FileSys::VirtualFile update_raw;
