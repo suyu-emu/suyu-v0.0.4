@@ -15,6 +15,7 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/settings.h"
+#include "common/string_util.h"
 #include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_readable_event.h"
@@ -694,9 +695,7 @@ private:
     void OpenLayer(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto name_buf = rp.PopRaw<std::array<u8, 0x40>>();
-        const auto end = std::find(name_buf.begin(), name_buf.end(), '\0');
-
-        const std::string display_name(name_buf.begin(), end);
+        const std::string display_name(Common::StringFromBuffer(name_buf));
 
         const u64 layer_id = rp.Pop<u64>();
         const u64 aruid = rp.Pop<u64>();
