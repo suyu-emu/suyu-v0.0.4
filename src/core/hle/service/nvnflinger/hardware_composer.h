@@ -26,8 +26,8 @@ public:
     explicit HardwareComposer();
     ~HardwareComposer();
 
-    u32 ComposeLocked(VI::Display& display, Nvidia::Devices::nvdisp_disp0& nvdisp,
-                      u32 frame_advance);
+    u32 ComposeLocked(f32* out_speed_scale, VI::Display& display,
+                      Nvidia::Devices::nvdisp_disp0& nvdisp, u32 frame_advance);
     void RemoveLayerLocked(VI::Display& display, LayerId layer_id);
 
 private:

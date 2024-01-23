@@ -144,6 +144,7 @@ private:
     u32 next_buffer_queue_id = 1;
 
     s32 swap_interval = 1;
+    f32 compose_speed_scale = 1.0f;
 
     bool is_abandoned = false;
 
