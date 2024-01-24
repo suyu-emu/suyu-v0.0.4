@@ -2499,7 +2499,7 @@ void GMainWindow::RemoveUpdateContent(u64 program_id, InstalledEntryType type) {
 }
 
 void GMainWindow::RemoveAddOnContent(u64 program_id, InstalledEntryType type) {
-    const size_t count = ContentManager::RemoveAllDLC(system.get(), program_id);
+    const size_t count = ContentManager::RemoveAllDLC(*system, program_id);
     if (count == 0) {
         QMessageBox::warning(this, GetGameListErrorRemoving(type),
                              tr("There are no DLC installed for this title."));
@@ -2796,8 +2796,7 @@ void GMainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
         return progress.wasCanceled();
     };
 
-    const auto result =
-        ContentManager::VerifyGameContents(system.get(), game_path, QtProgressCallback);
+    const auto result = ContentManager::VerifyGameContents(*system, game_path, QtProgressCallback);
     progress.close();
     switch (result) {
     case ContentManager::GameVerificationResult::Success:
@@ -3266,7 +3265,7 @@ void GMainWindow::OnMenuInstallToNAND() {
                 return false;
             };
             future = QtConcurrent::run([this, &file, progress_callback] {
-                return ContentManager::InstallNSP(system.get(), vfs.get(), file.toStdString(),
+                return ContentManager::InstallNSP(*system, *vfs, file.toStdString(),
                                                   progress_callback);
             });
 
@@ -3369,7 +3368,7 @@ ContentManager::InstallResult GMainWindow::InstallNCA(const QString& filename) {
         }
         return false;
     };
-    return ContentManager::InstallNCA(vfs.get(), filename.toStdString(), registered_cache,
+    return ContentManager::InstallNCA(*vfs, filename.toStdString(), *registered_cache,
                                       static_cast<FileSys::TitleType>(index), progress_callback);
 }
 
@@ -4119,7 +4118,7 @@ void GMainWindow::OnVerifyInstalledContents() {
     };
 
     const std::vector<std::string> result =
-        ContentManager::VerifyInstalledContents(system.get(), provider.get(), QtProgressCallback);
+        ContentManager::VerifyInstalledContents(*system, *provider, QtProgressCallback);
     progress.close();
 
     if (result.empty()) {
