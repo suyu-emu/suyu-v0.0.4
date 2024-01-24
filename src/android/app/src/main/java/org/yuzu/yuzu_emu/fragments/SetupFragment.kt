@@ -31,6 +31,7 @@ import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.transition.MaterialFadeThrough
 import kotlinx.coroutines.launch
+import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.File
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -162,7 +163,7 @@ class SetupFragment : Fragment() {
                     R.string.install_prod_keys_warning_help,
                     {
                         val file = File(DirectoryInitialization.userDirectory + "/keys/prod.keys")
-                        if (file.exists()) {
+                        if (file.exists() && NativeLibrary.areKeysPresent()) {
                             StepState.COMPLETE
                         } else {
                             StepState.INCOMPLETE
@@ -347,7 +348,8 @@ class SetupFragment : Fragment() {
     val getProdKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
             if (result != null) {
-                if (mainActivity.processKey(result)) {
+                mainActivity.processKey(result)
+                if (NativeLibrary.areKeysPresent()) {
                     keyCallback.onStepCompleted()
                 }
             }
