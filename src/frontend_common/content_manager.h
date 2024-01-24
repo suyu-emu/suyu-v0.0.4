@@ -368,4 +368,11 @@ inline GameVerificationResult VerifyGameContents(
     return GameVerificationResult::Success;
 }
 
+/**
+ * Checks if the keys required for decrypting firmware and games are available
+ */
+inline bool AreKeysPresent() {
+    return !Core::Crypto::KeyManager::Instance().BaseDeriveNecessary();
+}
+
 } // namespace ContentManager
