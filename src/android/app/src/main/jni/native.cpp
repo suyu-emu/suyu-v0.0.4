@@ -913,4 +913,10 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_clearFilesystemProvider(JNIEnv* env, 
     EmulationSession::GetInstance().GetContentProvider()->ClearAllEntries();
 }
 
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, jobject jobj) {
+    auto& system = EmulationSession::GetInstance().System();
+    system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
+    return ContentManager::AreKeysPresent();
+}
+
 } // extern "C"

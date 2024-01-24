@@ -64,6 +64,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     override var themeId: Int = 0
 
+    private val CHECKED_DECRYPTION = "CheckedDecryption"
+    private var checkedDecryption = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { !DirectoryInitialization.areDirectoriesReady }
@@ -74,6 +77,18 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if (savedInstanceState != null) {
+            checkedDecryption = savedInstanceState.getBoolean(CHECKED_DECRYPTION)
+        }
+        if (!checkedDecryption) {
+            val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
+            if (!firstTimeSetup) {
+                checkKeys()
+            }
+            checkedDecryption = true
+        }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
@@ -150,12 +165,37 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     }
                 }
             }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    homeViewModel.checkKeys.collect {
+                        if (it) {
+                            checkKeys()
+                            homeViewModel.setCheckKeys(false)
+                        }
+                    }
+                }
+            }
         }
 
         // Dismiss previous notifications (should not happen unless a crash occurred)
         EmulationActivity.stopForegroundService(this)
 
         setInsets()
+    }
+
+    private fun checkKeys() {
+        if (!NativeLibrary.areKeysPresent()) {
+            MessageDialogFragment.newInstance(
+                titleId = R.string.keys_missing,
+                descriptionId = R.string.keys_missing_description,
+                helpLinkId = R.string.keys_missing_help
+            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(CHECKED_DECRYPTION, checkedDecryption)
     }
 
     fun finishSetup(navController: NavController) {
@@ -349,6 +389,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     R.string.install_keys_success,
                     Toast.LENGTH_SHORT
                 ).show()
+                homeViewModel.setCheckKeys(true)
                 gamesViewModel.reloadGames(true)
                 return true
             } else {
@@ -399,6 +440,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         firmwarePath.deleteRecursively()
                         cacheFirmwareDir.copyRecursively(firmwarePath, true)
                         NativeLibrary.initializeSystem(true)
+                        homeViewModel.setCheckKeys(true)
                         getString(R.string.save_file_imported_success)
                     }
                 } catch (e: Exception) {
