@@ -26,8 +26,14 @@ class MessageDialogFragment : DialogFragment() {
         val descriptionId = requireArguments().getInt(DESCRIPTION_ID)
         val descriptionString = requireArguments().getString(DESCRIPTION_STRING)!!
         val helpLinkId = requireArguments().getInt(HELP_LINK)
+        val dismissible = requireArguments().getBoolean(DISMISSIBLE)
+        val clearPositiveAction = requireArguments().getBoolean(CLEAR_POSITIVE_ACTION)
 
         val builder = MaterialAlertDialogBuilder(requireContext())
+
+        if (clearPositiveAction) {
+            messageDialogViewModel.positiveAction = null
+        }
 
         if (messageDialogViewModel.positiveAction == null) {
             builder.setPositiveButton(R.string.close, null)
@@ -51,6 +57,8 @@ class MessageDialogFragment : DialogFragment() {
             }
         }
 
+        isCancelable = dismissible
+
         return builder.show()
     }
 
@@ -67,6 +75,8 @@ class MessageDialogFragment : DialogFragment() {
         private const val DESCRIPTION_ID = "DescriptionId"
         private const val DESCRIPTION_STRING = "DescriptionString"
         private const val HELP_LINK = "Link"
+        private const val DISMISSIBLE = "Dismissible"
+        private const val CLEAR_POSITIVE_ACTION = "ClearPositiveAction"
 
         fun newInstance(
             activity: FragmentActivity? = null,
@@ -75,22 +85,28 @@ class MessageDialogFragment : DialogFragment() {
             descriptionId: Int = 0,
             descriptionString: String = "",
             helpLinkId: Int = 0,
+            dismissible: Boolean = true,
             positiveAction: (() -> Unit)? = null
         ): MessageDialogFragment {
-            val dialog = MessageDialogFragment()
-            val bundle = Bundle()
-            bundle.apply {
-                putInt(TITLE_ID, titleId)
-                putString(TITLE_STRING, titleString)
-                putInt(DESCRIPTION_ID, descriptionId)
-                putString(DESCRIPTION_STRING, descriptionString)
-                putInt(HELP_LINK, helpLinkId)
-            }
+            var clearPositiveAction = false
             if (activity != null) {
                 ViewModelProvider(activity)[MessageDialogViewModel::class.java].apply {
                     clear()
                     this.positiveAction = positiveAction
                 }
+            } else {
+                clearPositiveAction = true
+            }
+
+            val dialog = MessageDialogFragment()
+            val bundle = Bundle().apply {
+                putInt(TITLE_ID, titleId)
+                putString(TITLE_STRING, titleString)
+                putInt(DESCRIPTION_ID, descriptionId)
+                putString(DESCRIPTION_STRING, descriptionString)
+                putInt(HELP_LINK, helpLinkId)
+                putBoolean(DISMISSIBLE, dismissible)
+                putBoolean(CLEAR_POSITIVE_ACTION, clearPositiveAction)
             }
             dialog.arguments = bundle
             return dialog
