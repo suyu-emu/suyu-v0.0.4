@@ -224,11 +224,6 @@
     <string>&amp;Stop</string>
    </property>
   </action>
-  <action name="action_Rederive">
-   <property name="text">
-    <string>&amp;Reinitialize keys...</string>
-   </property>
-  </action>
   <action name="action_Verify_installed_contents">
    <property name="text">
     <string>&amp;Verify Installed Contents</string>

@@ -125,11 +125,6 @@ enum class EmulatedDirectoryTarget {
     SDMC,
 };
 
-enum class ReinitializeKeyBehavior {
-    NoWarning,
-    Warning,
-};
-
 namespace VkDeviceInfo {
 class Record;
 }
@@ -400,7 +395,7 @@ private slots:
     void OnMiiEdit();
     void OnOpenControllerMenu();
     void OnCaptureScreenshot();
-    void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
+    void OnCheckFirmwareDecryption();
     void OnLanguageChanged(const QString& locale);
     void OnMouseActivity();
     bool OnShutdownBegin();
@@ -441,7 +436,6 @@ private:
     void LoadTranslation();
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
     bool CheckDarkMode();
-    bool CheckSystemArchiveDecryption();
     bool CheckFirmwarePresence();
     void SetFirmwareVersion();
     void ConfigureFilesystemProvider(const std::string& filepath);
