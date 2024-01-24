@@ -674,6 +674,11 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuBackend(JNIEnv* env, jclass 
     return ToJString(env, "JIT");
 }
 
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuDriver(JNIEnv* env, jobject jobj) {
+    return ToJString(env,
+                     EmulationSession::GetInstance().System().GPU().Renderer().GetDeviceVendor());
+}
+
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_applySettings(JNIEnv* env, jobject jobj) {
     EmulationSession::GetInstance().System().ApplySettings();
 }

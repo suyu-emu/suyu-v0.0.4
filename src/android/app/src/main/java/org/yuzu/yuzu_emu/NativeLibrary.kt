@@ -303,6 +303,11 @@ object NativeLibrary {
      */
     external fun getCpuBackend(): String
 
+    /**
+     * Returns the current GPU Driver.
+     */
+    external fun getGpuDriver(): String
+
     external fun applySettings()
 
     external fun logSettings()
