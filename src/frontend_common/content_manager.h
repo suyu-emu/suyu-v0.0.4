@@ -47,14 +47,14 @@ inline bool RemoveDLC(const Service::FileSystem::FileSystemController& fs_contro
 
 /**
  * \brief Removes all DLC for a game
- * \param system Raw pointer to the system instance
+ * \param system Reference to the system instance
  * \param program_id Program ID for the game that will have all of its DLC removed
  * \return Number of DLC removed
  */
-inline size_t RemoveAllDLC(Core::System* system, const u64 program_id) {
+inline size_t RemoveAllDLC(Core::System& system, const u64 program_id) {
     size_t count{};
-    const auto& fs_controller = system->GetFileSystemController();
-    const auto dlc_entries = system->GetContentProvider().ListEntriesFilter(
+    const auto& fs_controller = system.GetFileSystemController();
+    const auto dlc_entries = system.GetContentProvider().ListEntriesFilter(
         FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
     std::vector<u64> program_dlc_entries;
 
@@ -124,15 +124,15 @@ inline bool RemoveMod(const Service::FileSystem::FileSystemController& fs_contro
 
 /**
  * \brief Installs an NSP
- * \param system Raw pointer to the system instance
- * \param vfs Raw pointer to the VfsFilesystem instance in Core::System
+ * \param system Reference to the system instance
+ * \param vfs Reference to the VfsFilesystem instance in Core::System
  * \param filename Path to the NSP file
  * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the virtual file and the second is the current progress. If you
  * return true to the callback, it will cancel the installation as soon as possible.
  * \return [InstallResult] representing how the installation finished
  */
-inline InstallResult InstallNSP(Core::System* system, FileSys::VfsFilesystem* vfs,
+inline InstallResult InstallNSP(Core::System& system, FileSys::VfsFilesystem& vfs,
                                 const std::string& filename,
                                 const std::function<bool(size_t, size_t)>& callback) {
     const auto copy = [callback](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
@@ -159,7 +159,7 @@ inline InstallResult InstallNSP(Core::System* system, FileSys::VfsFilesystem* vf
     };
 
     std::shared_ptr<FileSys::NSP> nsp;
-    FileSys::VirtualFile file = vfs->OpenFile(filename, FileSys::Mode::Read);
+    FileSys::VirtualFile file = vfs.OpenFile(filename, FileSys::Mode::Read);
     if (boost::to_lower_copy(file->GetName()).ends_with(std::string("nsp"))) {
         nsp = std::make_shared<FileSys::NSP>(file);
         if (nsp->IsExtractedType()) {
@@ -173,7 +173,7 @@ inline InstallResult InstallNSP(Core::System* system, FileSys::VfsFilesystem* vf
         return InstallResult::Failure;
     }
     const auto res =
-        system->GetFileSystemController().GetUserNANDContents()->InstallEntry(*nsp, true, copy);
+        system.GetFileSystemController().GetUserNANDContents()->InstallEntry(*nsp, true, copy);
     switch (res) {
     case FileSys::InstallResult::Success:
         return InstallResult::Success;
@@ -188,17 +188,17 @@ inline InstallResult InstallNSP(Core::System* system, FileSys::VfsFilesystem* vf
 
 /**
  * \brief Installs an NCA
- * \param vfs Raw pointer to the VfsFilesystem instance in Core::System
+ * \param vfs Reference to the VfsFilesystem instance in Core::System
  * \param filename Path to the NCA file
- * \param registered_cache Raw pointer to the registered cache that the NCA will be installed to
+ * \param registered_cache Reference to the registered cache that the NCA will be installed to
  * \param title_type Type of NCA package to install
  * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the virtual file and the second is the current progress. If you
  * return true to the callback, it will cancel the installation as soon as possible.
  * \return [InstallResult] representing how the installation finished
  */
-inline InstallResult InstallNCA(FileSys::VfsFilesystem* vfs, const std::string& filename,
-                                FileSys::RegisteredCache* registered_cache,
+inline InstallResult InstallNCA(FileSys::VfsFilesystem& vfs, const std::string& filename,
+                                FileSys::RegisteredCache& registered_cache,
                                 const FileSys::TitleType title_type,
                                 const std::function<bool(size_t, size_t)>& callback) {
     const auto copy = [callback](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
@@ -224,7 +224,7 @@ inline InstallResult InstallNCA(FileSys::VfsFilesystem* vfs, const std::string& 
         return true;
     };
 
-    const auto nca = std::make_shared<FileSys::NCA>(vfs->OpenFile(filename, FileSys::Mode::Read));
+    const auto nca = std::make_shared<FileSys::NCA>(vfs.OpenFile(filename, FileSys::Mode::Read));
     const auto id = nca->GetStatus();
 
     // Game updates necessary are missing base RomFS
@@ -233,7 +233,7 @@ inline InstallResult InstallNCA(FileSys::VfsFilesystem* vfs, const std::string& 
         return InstallResult::Failure;
     }
 
-    const auto res = registered_cache->InstallEntry(*nca, title_type, true, copy);
+    const auto res = registered_cache.InstallEntry(*nca, title_type, true, copy);
     if (res == FileSys::InstallResult::Success) {
         return InstallResult::Success;
     } else if (res == FileSys::InstallResult::OverwriteExisting) {
@@ -245,19 +245,19 @@ inline InstallResult InstallNCA(FileSys::VfsFilesystem* vfs, const std::string& 
 
 /**
  * \brief Verifies the installed contents for a given ManualContentProvider
- * \param system Raw pointer to the system instance
- * \param provider Raw pointer to the content provider that's tracking indexed games
+ * \param system Reference to the system instance
+ * \param provider Reference to the content provider that's tracking indexed games
  * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the installed contents and the second is the current progress. If
  * you return true to the callback, it will cancel the installation as soon as possible.
  * \return A list of entries that failed to install. Returns an empty vector if successful.
  */
 inline std::vector<std::string> VerifyInstalledContents(
-    Core::System* system, FileSys::ManualContentProvider* provider,
+    Core::System& system, FileSys::ManualContentProvider& provider,
     const std::function<bool(size_t, size_t)>& callback) {
     // Get content registries.
-    auto bis_contents = system->GetFileSystemController().GetSystemNANDContents();
-    auto user_contents = system->GetFileSystemController().GetUserNANDContents();
+    auto bis_contents = system.GetFileSystemController().GetSystemNANDContents();
+    auto user_contents = system.GetFileSystemController().GetUserNANDContents();
 
     std::vector<FileSys::RegisteredCache*> content_providers;
     if (bis_contents) {
@@ -309,11 +309,11 @@ inline std::vector<std::string> VerifyInstalledContents(
             const auto title_id = nca.GetTitleId();
             std::string title_name = "unknown";
 
-            const auto control = provider->GetEntry(FileSys::GetBaseTitleID(title_id),
-                                                    FileSys::ContentRecordType::Control);
+            const auto control = provider.GetEntry(FileSys::GetBaseTitleID(title_id),
+                                                   FileSys::ContentRecordType::Control);
             if (control && control->GetStatus() == Loader::ResultStatus::Success) {
-                const FileSys::PatchManager pm{title_id, system->GetFileSystemController(),
-                                               *provider};
+                const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                               provider};
                 const auto [nacp, logo] = pm.ParseControlNCA(*control);
                 if (nacp) {
                     title_name = nacp->GetApplicationName();
@@ -335,7 +335,7 @@ inline std::vector<std::string> VerifyInstalledContents(
 
 /**
  * \brief Verifies the contents of a given game
- * \param system Raw pointer to the system instance
+ * \param system Reference to the system instance
  * \param game_path Patch to the game file
  * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the installed contents and the second is the current progress. If
@@ -343,10 +343,10 @@ inline std::vector<std::string> VerifyInstalledContents(
  * \return GameVerificationResult representing how the verification process finished
  */
 inline GameVerificationResult VerifyGameContents(
-    Core::System* system, const std::string& game_path,
+    Core::System& system, const std::string& game_path,
     const std::function<bool(size_t, size_t)>& callback) {
-    const auto loader = Loader::GetLoader(
-        *system, system->GetFilesystem()->OpenFile(game_path, FileSys::Mode::Read));
+    const auto loader =
+        Loader::GetLoader(system, system.GetFilesystem()->OpenFile(game_path, FileSys::Mode::Read));
     if (loader == nullptr) {
         return GameVerificationResult::NotImplemented;
     }

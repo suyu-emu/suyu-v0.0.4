@@ -463,8 +463,8 @@ int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject
     };
 
     return static_cast<int>(
-        ContentManager::InstallNSP(&EmulationSession::GetInstance().System(),
-                                   EmulationSession::GetInstance().System().GetFilesystem().get(),
+        ContentManager::InstallNSP(EmulationSession::GetInstance().System(),
+                                   *EmulationSession::GetInstance().System().GetFilesystem(),
                                    GetJString(env, j_file), callback));
 }
 
@@ -819,7 +819,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeUpdate(JNIEnv* env, jobject job
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeDLC(JNIEnv* env, jobject jobj,
                                                      jstring jprogramId) {
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
-    ContentManager::RemoveAllDLC(&EmulationSession::GetInstance().System(), program_id);
+    ContentManager::RemoveAllDLC(EmulationSession::GetInstance().System(), program_id);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeMod(JNIEnv* env, jobject jobj, jstring jprogramId,
@@ -829,8 +829,9 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_removeMod(JNIEnv* env, jobject jobj, 
                               program_id, GetJString(env, jname));
 }
 
-jobject Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyInstalledContents(JNIEnv* env, jobject jobj,
-                                                                      jobject jcallback) {
+jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyInstalledContents(JNIEnv* env,
+                                                                           jobject jobj,
+                                                                           jobject jcallback) {
     auto jlambdaClass = env->GetObjectClass(jcallback);
     auto jlambdaInvokeMethod = env->GetMethodID(
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
@@ -842,7 +843,7 @@ jobject Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyInstalledContents(JNIEnv* en
 
     auto& session = EmulationSession::GetInstance();
     std::vector<std::string> result = ContentManager::VerifyInstalledContents(
-        &session.System(), session.GetContentProvider(), callback);
+        session.System(), *session.GetContentProvider(), callback);
     jobjectArray jresult =
         env->NewObjectArray(result.size(), IDCache::GetStringClass(), ToJString(env, ""));
     for (size_t i = 0; i < result.size(); ++i) {
@@ -863,7 +864,7 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyGameContents(JNIEnv* env, jobje
     };
     auto& session = EmulationSession::GetInstance();
     return static_cast<jint>(
-        ContentManager::VerifyGameContents(&session.System(), GetJString(env, jpath), callback));
+        ContentManager::VerifyGameContents(session.System(), GetJString(env, jpath), callback));
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject jobj,
