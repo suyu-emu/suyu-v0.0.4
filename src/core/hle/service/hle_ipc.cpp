@@ -501,6 +501,22 @@ bool HLERequestContext::CanWriteBuffer(std::size_t buffer_index) const {
     }
 }
 
+void HLERequestContext::AddMoveInterface(SessionRequestHandlerPtr s) {
+    ASSERT(Kernel::GetCurrentProcess(kernel).GetResourceLimit()->Reserve(
+        Kernel::LimitableResource::SessionCountMax, 1));
+
+    auto* session = Kernel::KSession::Create(kernel);
+    session->Initialize(nullptr, 0);
+    Kernel::KSession::Register(kernel, session);
+
+    auto& server = manager.lock()->GetServerManager();
+    auto next_manager = std::make_shared<Service::SessionRequestManager>(kernel, server);
+    next_manager->SetSessionHandler(std::move(s));
+    server.RegisterSession(&session->GetServerSession(), next_manager);
+
+    AddMoveObject(&session->GetClientSession());
+}
+
 std::string HLERequestContext::Description() const {
     if (!command_header) {
         return "No command header available";

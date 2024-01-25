@@ -6,13 +6,13 @@
 #include "common/scope_exit.h"
 #include "core/hle/kernel/k_process.h"
 
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ro/ro.h"
 #include "core/hle/service/ro/ro_nro_utils.h"
 #include "core/hle/service/ro/ro_results.h"
 #include "core/hle/service/ro/ro_types.h"
 #include "core/hle/service/server_manager.h"
-#include "core/hle/service/service.h"
 
 namespace Service::RO {
 
@@ -500,46 +500,65 @@ private:
     }
 };
 
-class RoInterface {
+class RoInterface : public ServiceFramework<RoInterface> {
 public:
-    explicit RoInterface(std::shared_ptr<RoContext> ro, NrrKind nrr_kind)
-        : m_ro(ro), m_context_id(InvalidContextId), m_nrr_kind(nrr_kind) {}
+    explicit RoInterface(Core::System& system_, const char* name_, std::shared_ptr<RoContext> ro,
+                         NrrKind nrr_kind)
+        : ServiceFramework{system_, name_}, m_ro(ro), m_context_id(InvalidContextId),
+          m_nrr_kind(nrr_kind) {
+
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0,  C<&RoInterface::MapManualLoadModuleMemory>, "MapManualLoadModuleMemory"},
+            {1,  C<&RoInterface::UnmapManualLoadModuleMemory>, "UnmapManualLoadModuleMemory"},
+            {2,  C<&RoInterface::RegisterModuleInfo>, "RegisterModuleInfo"},
+            {3,  C<&RoInterface::UnregisterModuleInfo>, "UnregisterModuleInfo"},
+            {4,  C<&RoInterface::RegisterProcessHandle>, "RegisterProcessHandle"},
+            {10, C<&RoInterface::RegisterProcessModuleInfo>, "RegisterProcessModuleInfo"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
     ~RoInterface() {
         m_ro->UnregisterProcess(m_context_id);
     }
 
-    Result MapManualLoadModuleMemory(u64* out_load_address, u64 client_pid, u64 nro_address,
-                                     u64 nro_size, u64 bss_address, u64 bss_size) {
-        R_TRY(m_ro->ValidateProcess(m_context_id, client_pid));
-        R_RETURN(m_ro->MapManualLoadModuleMemory(out_load_address, m_context_id, nro_address,
+    Result MapManualLoadModuleMemory(Out<u64> out_load_address, ClientProcessId client_pid,
+                                     u64 nro_address, u64 nro_size, u64 bss_address, u64 bss_size) {
+        R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
+        R_RETURN(m_ro->MapManualLoadModuleMemory(out_load_address.Get(), m_context_id, nro_address,
                                                  nro_size, bss_address, bss_size));
     }
 
-    Result UnmapManualLoadModuleMemory(u64 client_pid, u64 nro_address) {
-        R_TRY(m_ro->ValidateProcess(m_context_id, client_pid));
+    Result UnmapManualLoadModuleMemory(ClientProcessId client_pid, u64 nro_address) {
+        R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
         R_RETURN(m_ro->UnmapManualLoadModuleMemory(m_context_id, nro_address));
     }
 
-    Result RegisterModuleInfo(u64 client_pid, u64 nrr_address, u64 nrr_size) {
-        R_TRY(m_ro->ValidateProcess(m_context_id, client_pid));
+    Result RegisterModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size) {
+        R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
         R_RETURN(
             m_ro->RegisterModuleInfo(m_context_id, nrr_address, nrr_size, NrrKind::User, true));
     }
 
-    Result UnregisterModuleInfo(u64 client_pid, u64 nrr_address) {
-        R_TRY(m_ro->ValidateProcess(m_context_id, client_pid));
+    Result UnregisterModuleInfo(ClientProcessId client_pid, u64 nrr_address) {
+        R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
         R_RETURN(m_ro->UnregisterModuleInfo(m_context_id, nrr_address));
     }
 
-    Result RegisterProcessHandle(u64 client_pid, Kernel::KProcess* process) {
+    Result RegisterProcessHandle(ClientProcessId client_pid,
+                                 InCopyHandle<Kernel::KProcess>& process) {
         // Register the process.
-        R_RETURN(m_ro->RegisterProcess(std::addressof(m_context_id), process, client_pid));
+        R_RETURN(m_ro->RegisterProcess(std::addressof(m_context_id), process.GetPointerUnsafe(),
+                                       *client_pid));
     }
 
-    Result RegisterProcessModuleInfo(u64 client_pid, u64 nrr_address, u64 nrr_size,
-                                     Kernel::KProcess* process) {
+    Result RegisterProcessModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size,
+                                     InCopyHandle<Kernel::KProcess>& process) {
         // Validate the process.
-        R_TRY(m_ro->ValidateProcess(m_context_id, client_pid));
+        R_TRY(m_ro->ValidateProcess(m_context_id, *client_pid));
 
         // Register the module.
         R_RETURN(m_ro->RegisterModuleInfo(m_context_id, nrr_address, nrr_size, m_nrr_kind,
@@ -552,137 +571,6 @@ private:
     NrrKind m_nrr_kind{};
 };
 
-class IRoInterface : public ServiceFramework<IRoInterface> {
-public:
-    explicit IRoInterface(Core::System& system_, const char* name_, std::shared_ptr<RoContext> ro,
-                          NrrKind nrr_kind)
-        : ServiceFramework{system_, name_}, interface {
-        ro, nrr_kind
-    } {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IRoInterface::MapManualLoadModuleMemory, "MapManualLoadModuleMemory"},
-            {1, &IRoInterface::UnmapManualLoadModuleMemory, "UnmapManualLoadModuleMemory"},
-            {2, &IRoInterface::RegisterModuleInfo, "RegisterModuleInfo"},
-            {3, &IRoInterface::UnregisterModuleInfo, "UnregisterModuleInfo"},
-            {4, &IRoInterface::RegisterProcessHandle, "RegisterProcessHandle"},
-            {10, &IRoInterface::RegisterProcessModuleInfo, "RegisterProcessModuleInfo"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void MapManualLoadModuleMemory(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDR, "(called)");
-
-        struct InputParameters {
-            u64 client_pid;
-            u64 nro_address;
-            u64 nro_size;
-            u64 bss_address;
-            u64 bss_size;
-        };
-
-        IPC::RequestParser rp{ctx};
-        auto params = rp.PopRaw<InputParameters>();
-
-        u64 load_address = 0;
-        auto result = interface.MapManualLoadModuleMemory(&load_address, ctx.GetPID(),
-                                                          params.nro_address, params.nro_size,
-                                                          params.bss_address, params.bss_size);
-
-        IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(result);
-        rb.Push(load_address);
-    }
-
-    void UnmapManualLoadModuleMemory(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDR, "(called)");
-
-        struct InputParameters {
-            u64 client_pid;
-            u64 nro_address;
-        };
-
-        IPC::RequestParser rp{ctx};
-        auto params = rp.PopRaw<InputParameters>();
-        auto result = interface.UnmapManualLoadModuleMemory(ctx.GetPID(), params.nro_address);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-
-    void RegisterModuleInfo(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDR, "(called)");
-
-        struct InputParameters {
-            u64 client_pid;
-            u64 nrr_address;
-            u64 nrr_size;
-        };
-
-        IPC::RequestParser rp{ctx};
-        auto params = rp.PopRaw<InputParameters>();
-        auto result =
-            interface.RegisterModuleInfo(ctx.GetPID(), params.nrr_address, params.nrr_size);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-
-    void UnregisterModuleInfo(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDR, "(called)");
-
-        struct InputParameters {
-            u64 client_pid;
-            u64 nrr_address;
-        };
-
-        IPC::RequestParser rp{ctx};
-        auto params = rp.PopRaw<InputParameters>();
-        auto result = interface.UnregisterModuleInfo(ctx.GetPID(), params.nrr_address);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-
-    void RegisterProcessHandle(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDR, "(called)");
-
-        auto process = ctx.GetObjectFromHandle<Kernel::KProcess>(ctx.GetCopyHandle(0));
-        auto client_pid = ctx.GetPID();
-        auto result = interface.RegisterProcessHandle(client_pid, process.GetPointerUnsafe());
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-
-    void RegisterProcessModuleInfo(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDR, "(called)");
-
-        struct InputParameters {
-            u64 client_pid;
-            u64 nrr_address;
-            u64 nrr_size;
-        };
-
-        IPC::RequestParser rp{ctx};
-        auto params = rp.PopRaw<InputParameters>();
-        auto process = ctx.GetObjectFromHandle<Kernel::KProcess>(ctx.GetCopyHandle(0));
-
-        auto client_pid = ctx.GetPID();
-        auto result = interface.RegisterProcessModuleInfo(
-            client_pid, params.nrr_address, params.nrr_size, process.GetPointerUnsafe());
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-
-    RoInterface interface;
-};
-
 } // namespace
 
 void LoopProcess(Core::System& system) {
@@ -691,11 +579,11 @@ void LoopProcess(Core::System& system) {
     auto ro = std::make_shared<RoContext>();
 
     const auto RoInterfaceFactoryForUser = [&, ro] {
-        return std::make_shared<IRoInterface>(system, "ldr:ro", ro, NrrKind::User);
+        return std::make_shared<RoInterface>(system, "ldr:ro", ro, NrrKind::User);
     };
 
     const auto RoInterfaceFactoryForJitPlugin = [&, ro] {
-        return std::make_shared<IRoInterface>(system, "ro:1", ro, NrrKind::JitPlugin);
+        return std::make_shared<RoInterface>(system, "ro:1", ro, NrrKind::JitPlugin);
     };
 
     server_manager->RegisterNamedService("ldr:ro", std::move(RoInterfaceFactoryForUser));

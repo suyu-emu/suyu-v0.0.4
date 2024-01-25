@@ -339,6 +339,8 @@ public:
         outgoing_move_objects.emplace_back(object);
     }
 
+    void AddMoveInterface(SessionRequestHandlerPtr s);
+
     void AddCopyObject(Kernel::KAutoObject* object) {
         outgoing_copy_objects.emplace_back(object);
     }
