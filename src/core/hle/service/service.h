@@ -206,6 +206,22 @@ protected:
         RegisterHandlersBaseTipc(functions, n);
     }
 
+protected:
+    template <bool Domain, auto F>
+    void CmifReplyWrap(HLERequestContext& ctx);
+
+    /**
+     * Wraps the template pointer-to-member function for use in a domain session.
+     */
+    template <auto F>
+    static constexpr HandlerFnP<Self> D = &Self::template CmifReplyWrap<true, F>;
+
+    /**
+     * Wraps the template pointer-to-member function for use in a non-domain session.
+     */
+    template <auto F>
+    static constexpr HandlerFnP<Self> C = &Self::template CmifReplyWrap<false, F>;
+
 private:
     /**
      * This function is used to allow invocation of pointers to handlers stored in the base class

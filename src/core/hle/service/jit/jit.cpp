@@ -6,12 +6,12 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/result.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/jit/jit.h"
 #include "core/hle/service/jit/jit_code_memory.h"
 #include "core/hle/service/jit/jit_context.h"
 #include "core/hle/service/server_manager.h"
-#include "core/hle/service/service.h"
 #include "core/memory.h"
 
 namespace Service::JIT {
@@ -21,6 +21,9 @@ struct CodeRange {
     u64 size;
 };
 
+using Struct32 = std::array<u64, 4>;
+static_assert(sizeof(Struct32) == 32, "Struct32 has wrong size");
+
 class IJitEnvironment final : public ServiceFramework<IJitEnvironment> {
 public:
     explicit IJitEnvironment(Core::System& system_,
@@ -29,12 +32,13 @@ public:
         : ServiceFramework{system_, "IJitEnvironment"}, process{std::move(process_)},
           user_rx{std::move(user_rx_)}, user_ro{std::move(user_ro_)},
           context{system_.ApplicationMemory()} {
+
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IJitEnvironment::GenerateCode, "GenerateCode"},
-            {1, &IJitEnvironment::Control, "Control"},
-            {1000, &IJitEnvironment::LoadPlugin, "LoadPlugin"},
-            {1001, &IJitEnvironment::GetCodeAddress, "GetCodeAddress"},
+            {0, C<&IJitEnvironment::GenerateCode>, "GenerateCode"},
+            {1, C<&IJitEnvironment::Control>, "Control"},
+            {1000, C<&IJitEnvironment::LoadPlugin>, "LoadPlugin"},
+            {1001, C<&IJitEnvironment::GetCodeAddress>, "GetCodeAddress"},
         };
         // clang-format on
 
@@ -50,28 +54,10 @@ public:
         configuration.sys_ro_memory = configuration.user_ro_memory;
     }
 
-    void GenerateCode(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_JIT, "called");
-
-        struct InputParameters {
-            u32 data_size;
-            u64 command;
-            std::array<CodeRange, 2> ranges;
-            Struct32 data;
-        };
-
-        struct OutputParameters {
-            s32 return_value;
-            std::array<CodeRange, 2> ranges;
-        };
-
-        IPC::RequestParser rp{ctx};
-        const auto parameters{rp.PopRaw<InputParameters>()};
-
-        // Optional input/output buffers
-        const auto input_buffer{ctx.CanReadBuffer() ? ctx.ReadBuffer() : std::span<const u8>()};
-        std::vector<u8> output_buffer(ctx.CanWriteBuffer() ? ctx.GetWriteBufferSize() : 0);
-
+    Result GenerateCode(Out<s32> out_return_value, Out<CodeRange> out_range0,
+                        Out<CodeRange> out_range1, OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                        u32 data_size, u64 command, CodeRange range0, CodeRange range1,
+                        Struct32 data, InBuffer<BufferAttr_HipcMapAlias> buffer) {
         // Function call prototype:
         // void GenerateCode(s32* ret, CodeRange* c0_out, CodeRange* c1_out, JITConfiguration* cfg,
         //                   u64 cmd, u8* input_buf, size_t input_size, CodeRange* c0_in,
@@ -83,66 +69,36 @@ public:
         // other arguments are used to transfer state between the game and the plugin.
 
         const VAddr ret_ptr{context.AddHeap(0u)};
-        const VAddr c0_in_ptr{context.AddHeap(parameters.ranges[0])};
-        const VAddr c1_in_ptr{context.AddHeap(parameters.ranges[1])};
-        const VAddr c0_out_ptr{context.AddHeap(ClearSize(parameters.ranges[0]))};
-        const VAddr c1_out_ptr{context.AddHeap(ClearSize(parameters.ranges[1]))};
+        const VAddr c0_in_ptr{context.AddHeap(range0)};
+        const VAddr c1_in_ptr{context.AddHeap(range1)};
+        const VAddr c0_out_ptr{context.AddHeap(ClearSize(range0))};
+        const VAddr c1_out_ptr{context.AddHeap(ClearSize(range1))};
 
-        const VAddr input_ptr{context.AddHeap(input_buffer.data(), input_buffer.size())};
-        const VAddr output_ptr{context.AddHeap(output_buffer.data(), output_buffer.size())};
-        const VAddr data_ptr{context.AddHeap(parameters.data)};
+        const VAddr input_ptr{context.AddHeap(buffer.data(), buffer.size())};
+        const VAddr output_ptr{context.AddHeap(out_buffer.data(), out_buffer.size())};
+        const VAddr data_ptr{context.AddHeap(data)};
         const VAddr configuration_ptr{context.AddHeap(configuration)};
 
         // The callback does not directly return a value, it only writes to the output pointer
         context.CallFunction(callbacks.GenerateCode, ret_ptr, c0_out_ptr, c1_out_ptr,
-                             configuration_ptr, parameters.command, input_ptr, input_buffer.size(),
-                             c0_in_ptr, c1_in_ptr, data_ptr, parameters.data_size, output_ptr,
-                             output_buffer.size());
+                             configuration_ptr, command, input_ptr, buffer.size(), c0_in_ptr,
+                             c1_in_ptr, data_ptr, data_size, output_ptr, out_buffer.size());
 
-        const s32 return_value{context.GetHeap<s32>(ret_ptr)};
+        *out_return_value = context.GetHeap<s32>(ret_ptr);
+        *out_range0 = context.GetHeap<CodeRange>(c0_out_ptr);
+        *out_range1 = context.GetHeap<CodeRange>(c1_out_ptr);
+        context.GetHeap(output_ptr, out_buffer.data(), out_buffer.size());
 
-        if (return_value == 0) {
-            // The callback has written to the output executable code range,
-            // requiring an instruction cache invalidation
-            Core::InvalidateInstructionCacheRange(process.GetPointerUnsafe(),
-                                                  configuration.user_rx_memory.offset,
-                                                  configuration.user_rx_memory.size);
-
-            // Write back to the IPC output buffer, if provided
-            if (ctx.CanWriteBuffer()) {
-                context.GetHeap(output_ptr, output_buffer.data(), output_buffer.size());
-                ctx.WriteBuffer(output_buffer.data(), output_buffer.size());
-            }
-
-            const OutputParameters out{
-                .return_value = return_value,
-                .ranges =
-                    {
-                        context.GetHeap<CodeRange>(c0_out_ptr),
-                        context.GetHeap<CodeRange>(c1_out_ptr),
-                    },
-            };
-
-            IPC::ResponseBuilder rb{ctx, 8};
-            rb.Push(ResultSuccess);
-            rb.PushRaw(out);
-        } else {
+        if (*out_return_value != 0) {
             LOG_WARNING(Service_JIT, "plugin GenerateCode callback failed");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
+            R_THROW(ResultUnknown);
         }
-    };
 
-    void Control(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_JIT, "called");
+        R_SUCCEED();
+    }
 
-        IPC::RequestParser rp{ctx};
-        const auto command{rp.PopRaw<u64>()};
-
-        // Optional input/output buffers
-        const auto input_buffer{ctx.CanReadBuffer() ? ctx.ReadBuffer() : std::span<const u8>()};
-        std::vector<u8> output_buffer(ctx.CanWriteBuffer() ? ctx.GetWriteBufferSize() : 0);
-
+    Result Control(Out<s32> out_return_value, InBuffer<BufferAttr_HipcMapAlias> in_data,
+                   OutBuffer<BufferAttr_HipcMapAlias> out_data, u64 command) {
         // Function call prototype:
         // u64 Control(s32* ret, JITConfiguration* cfg, u64 cmd, u8* input_buf, size_t input_size,
         //             u8* output_buf, size_t output_size);
@@ -152,53 +108,30 @@ public:
 
         const VAddr ret_ptr{context.AddHeap(0u)};
         const VAddr configuration_ptr{context.AddHeap(configuration)};
-        const VAddr input_ptr{context.AddHeap(input_buffer.data(), input_buffer.size())};
-        const VAddr output_ptr{context.AddHeap(output_buffer.data(), output_buffer.size())};
+        const VAddr input_ptr{context.AddHeap(in_data.data(), in_data.size())};
+        const VAddr output_ptr{context.AddHeap(out_data.data(), out_data.size())};
 
         const u64 wrapper_value{context.CallFunction(callbacks.Control, ret_ptr, configuration_ptr,
-                                                     command, input_ptr, input_buffer.size(),
-                                                     output_ptr, output_buffer.size())};
+                                                     command, input_ptr, in_data.size(), output_ptr,
+                                                     out_data.size())};
 
-        const s32 return_value{context.GetHeap<s32>(ret_ptr)};
+        *out_return_value = context.GetHeap<s32>(ret_ptr);
+        context.GetHeap(output_ptr, out_data.data(), out_data.size());
 
-        if (wrapper_value == 0 && return_value == 0) {
-            // Write back to the IPC output buffer, if provided
-            if (ctx.CanWriteBuffer()) {
-                context.GetHeap(output_ptr, output_buffer.data(), output_buffer.size());
-                ctx.WriteBuffer(output_buffer.data(), output_buffer.size());
-            }
-
-            IPC::ResponseBuilder rb{ctx, 3};
-            rb.Push(ResultSuccess);
-            rb.Push(return_value);
-        } else {
-            LOG_WARNING(Service_JIT, "plugin Control callback failed");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
+        if (wrapper_value == 0 && *out_return_value == 0) {
+            R_SUCCEED();
         }
+
+        LOG_WARNING(Service_JIT, "plugin Control callback failed");
+        R_THROW(ResultUnknown);
     }
 
-    void LoadPlugin(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_JIT, "called");
-
-        IPC::RequestParser rp{ctx};
-        const auto tmem_size{rp.PopRaw<u64>()};
-        const auto tmem_handle{ctx.GetCopyHandle(0)};
-        const auto nro_plugin{ctx.ReadBuffer(1)};
-
-        if (tmem_size == 0) {
-            LOG_ERROR(Service_JIT, "attempted to load plugin with empty transfer memory");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
-        }
-
-        auto tmem{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(tmem_handle)};
+    Result LoadPlugin(u64 tmem_size, InCopyHandle<Kernel::KTransferMemory>& tmem,
+                      InBuffer<BufferAttr_HipcMapAlias> nrr,
+                      InBuffer<BufferAttr_HipcMapAlias> nro) {
         if (tmem.IsNull()) {
-            LOG_ERROR(Service_JIT, "attempted to load plugin with invalid transfer memory handle");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+            LOG_ERROR(Service_JIT, "Invalid transfer memory handle!");
+            R_THROW(ResultUnknown);
         }
 
         // Set up the configuration with the required TransferMemory address
@@ -206,7 +139,7 @@ public:
         configuration.transfer_memory.size = tmem_size;
 
         // Gather up all the callbacks from the loaded plugin
-        auto symbols{Core::Symbols::GetSymbols(nro_plugin, true)};
+        auto symbols{Core::Symbols::GetSymbols(nro, true)};
         const auto GetSymbol{[&](const std::string& name) { return symbols[name].first; }};
 
         callbacks.rtld_fini = GetSymbol("_fini");
@@ -223,16 +156,12 @@ public:
         if (callbacks.GetVersion == 0 || callbacks.Configure == 0 || callbacks.GenerateCode == 0 ||
             callbacks.OnPrepared == 0) {
             LOG_ERROR(Service_JIT, "plugin does not implement all necessary functionality");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+            R_THROW(ResultUnknown);
         }
 
-        if (!context.LoadNRO(nro_plugin)) {
+        if (!context.LoadNRO(nro)) {
             LOG_ERROR(Service_JIT, "failed to load plugin");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+            R_THROW(ResultUnknown);
         }
 
         context.MapProcessMemory(configuration.sys_ro_memory.offset,
@@ -252,9 +181,7 @@ public:
         const auto version{context.CallFunction(callbacks.GetVersion)};
         if (version != 1) {
             LOG_ERROR(Service_JIT, "unknown plugin version {}", version);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+            R_THROW(ResultUnknown);
         }
 
         // Function prototype:
@@ -280,22 +207,19 @@ public:
         const auto configuration_ptr{context.AddHeap(configuration)};
         context.CallFunction(callbacks.OnPrepared, configuration_ptr);
 
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
+        R_SUCCEED();
     }
 
-    void GetCodeAddress(HLERequestContext& ctx) {
+    Result GetCodeAddress(Out<u64> rx_offset, Out<u64> ro_offset) {
         LOG_DEBUG(Service_JIT, "called");
 
-        IPC::ResponseBuilder rb{ctx, 6};
-        rb.Push(ResultSuccess);
-        rb.Push(configuration.user_rx_memory.offset);
-        rb.Push(configuration.user_ro_memory.offset);
+        *rx_offset = configuration.user_rx_memory.offset;
+        *ro_offset = configuration.user_ro_memory.offset;
+
+        R_SUCCEED();
     }
 
 private:
-    using Struct32 = std::array<u8, 32>;
-
     struct GuestCallbacks {
         VAddr rtld_fini;
         VAddr rtld_init;
@@ -335,7 +259,7 @@ public:
     explicit JITU(Core::System& system_) : ServiceFramework{system_, "jit:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &JITU::CreateJitEnvironment, "CreateJitEnvironment"},
+            {0, C<&JITU::CreateJitEnvironment>, "CreateJitEnvironment"},
         };
         // clang-format on
 
@@ -343,76 +267,33 @@ public:
     }
 
 private:
-    void CreateJitEnvironment(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_JIT, "called");
-
-        struct Parameters {
-            u64 rx_size;
-            u64 ro_size;
-        };
-
-        IPC::RequestParser rp{ctx};
-        const auto parameters{rp.PopRaw<Parameters>()};
-        const auto process_handle{ctx.GetCopyHandle(0)};
-        const auto rx_mem_handle{ctx.GetCopyHandle(1)};
-        const auto ro_mem_handle{ctx.GetCopyHandle(2)};
-
-        if (parameters.rx_size == 0 || parameters.ro_size == 0) {
-            LOG_ERROR(Service_JIT, "attempted to init with empty code regions");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
-        }
-
-        auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle)};
+    Result CreateJitEnvironment(Out<SharedPointer<IJitEnvironment>> out_jit_environment,
+                                u64 rx_size, u64 ro_size, InCopyHandle<Kernel::KProcess>& process,
+                                InCopyHandle<Kernel::KCodeMemory>& rx_mem,
+                                InCopyHandle<Kernel::KCodeMemory>& ro_mem) {
         if (process.IsNull()) {
-            LOG_ERROR(Service_JIT, "process is null for handle=0x{:08X}", process_handle);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+            LOG_ERROR(Service_JIT, "process is null");
+            R_THROW(ResultUnknown);
         }
-
-        auto rx_mem{ctx.GetObjectFromHandle<Kernel::KCodeMemory>(rx_mem_handle)};
         if (rx_mem.IsNull()) {
-            LOG_ERROR(Service_JIT, "rx_mem is null for handle=0x{:08X}", rx_mem_handle);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+            LOG_ERROR(Service_JIT, "rx_mem is null");
+            R_THROW(ResultUnknown);
         }
-
-        auto ro_mem{ctx.GetObjectFromHandle<Kernel::KCodeMemory>(ro_mem_handle)};
-        if (ro_mem.IsNull()) {
-            LOG_ERROR(Service_JIT, "ro_mem is null for handle=0x{:08X}", ro_mem_handle);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultUnknown);
-            return;
+        if (rx_mem.IsNull()) {
+            LOG_ERROR(Service_JIT, "ro_mem is null");
+            R_THROW(ResultUnknown);
         }
 
         CodeMemory rx, ro;
-        Result res;
 
-        res = rx.Initialize(*process, *rx_mem, parameters.rx_size,
-                            Kernel::Svc::MemoryPermission::ReadExecute, generate_random);
-        if (R_FAILED(res)) {
-            LOG_ERROR(Service_JIT, "rx_mem could not be mapped for handle=0x{:08X}", rx_mem_handle);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(res);
-            return;
-        }
+        R_TRY(rx.Initialize(*process, *rx_mem, rx_size, Kernel::Svc::MemoryPermission::ReadExecute,
+                            generate_random));
+        R_TRY(ro.Initialize(*process, *ro_mem, ro_size, Kernel::Svc::MemoryPermission::Read,
+                            generate_random));
 
-        res = ro.Initialize(*process, *ro_mem, parameters.ro_size,
-                            Kernel::Svc::MemoryPermission::Read, generate_random);
-        if (R_FAILED(res)) {
-            LOG_ERROR(Service_JIT, "ro_mem could not be mapped for handle=0x{:08X}", ro_mem_handle);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(res);
-            return;
-        }
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IJitEnvironment>(system, std::move(process), std::move(rx),
-                                             std::move(ro));
+        *out_jit_environment = std::make_shared<IJitEnvironment>(system, std::move(process),
+                                                                 std::move(rx), std::move(ro));
+        R_SUCCEED();
     }
 
 private:
