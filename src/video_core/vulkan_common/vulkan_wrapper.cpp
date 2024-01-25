@@ -39,6 +39,10 @@ void SortPhysicalDevicesPerVendor(std::vector<VkPhysicalDevice>& devices,
     }
 }
 
+bool IsMicrosoftDozen(const char* device_name) {
+    return std::strstr(device_name, "Microsoft") != nullptr;
+}
+
 void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld) {
     // Sort by name, this will set a base and make GPUs with higher numbers appear first
     // (e.g. GTX 1650 will intentionally be listed before a GTX 1080).
@@ -52,6 +56,12 @@ void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceD
     });
     // Prefer Nvidia over AMD, AMD over Intel, Intel over the rest.
     SortPhysicalDevicesPerVendor(devices, dld, {0x10DE, 0x1002, 0x8086});
+    // Demote Microsoft's Dozen devices to the bottom.
+    SortPhysicalDevices(
+        devices, dld,
+        [](const VkPhysicalDeviceProperties& lhs, const VkPhysicalDeviceProperties& rhs) {
+            return IsMicrosoftDozen(rhs.deviceName) && !IsMicrosoftDozen(lhs.deviceName);
+        });
 }
 
 template <typename T>
