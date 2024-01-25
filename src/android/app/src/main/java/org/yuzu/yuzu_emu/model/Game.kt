@@ -70,11 +70,19 @@ class Game(
         }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is Game) {
-            return false
-        }
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-        return hashCode() == other.hashCode()
+        other as Game
+
+        if (title != other.title) return false
+        if (path != other.path) return false
+        if (programId != other.programId) return false
+        if (developer != other.developer) return false
+        if (version != other.version) return false
+        if (isHomebrew != other.isHomebrew) return false
+
+        return true
     }
 
     override fun hashCode(): Int {

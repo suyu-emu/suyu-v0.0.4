@@ -14,15 +14,20 @@ import androidx.recyclerview.widget.RecyclerView
  * Generic adapter that implements an [AsyncDifferConfig] and covers some of the basic boilerplate
  * code used in every [RecyclerView].
  * Type assigned to [Model] must inherit from [Object] in order to be compared properly.
+ * @param exact Decides whether each item will be compared by reference or by their contents
  */
-abstract class AbstractDiffAdapter<Model : Any, Holder : AbstractViewHolder<Model>> :
-    ListAdapter<Model, Holder>(AsyncDifferConfig.Builder(DiffCallback<Model>()).build()) {
+abstract class AbstractDiffAdapter<Model : Any, Holder : AbstractViewHolder<Model>>(
+    exact: Boolean = true
+) : ListAdapter<Model, Holder>(AsyncDifferConfig.Builder(DiffCallback<Model>(exact)).build()) {
     override fun onBindViewHolder(holder: Holder, position: Int) =
         holder.bind(currentList[position])
 
-    private class DiffCallback<Model> : DiffUtil.ItemCallback<Model>() {
+    private class DiffCallback<Model>(val exact: Boolean) : DiffUtil.ItemCallback<Model>() {
         override fun areItemsTheSame(oldItem: Model & Any, newItem: Model & Any): Boolean {
-            return oldItem === newItem
+            if (exact) {
+                return oldItem === newItem
+            }
+            return oldItem == newItem
         }
 
         @SuppressLint("DiffUtilEquals")
