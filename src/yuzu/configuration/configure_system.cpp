@@ -12,9 +12,10 @@
 #include <QGraphicsItem>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QSpinBox>
+
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/hle/service/time/time_manager.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_system.h"
@@ -49,6 +50,11 @@ ConfigureSystem::ConfigureSystem(Core::System& system_,
     : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_} {
     ui->setupUi(this);
 
+    const auto posix_time = std::chrono::system_clock::now().time_since_epoch();
+    const auto current_time_s =
+        std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
+    previous_time = current_time_s + Settings::values.custom_rtc_offset.GetValue();
+
     Setup(builder);
 
     const auto locale_check = [this]() {
@@ -64,13 +70,28 @@ ConfigureSystem::ConfigureSystem(Core::System& system_,
         }
     };
 
+    const auto update_date_offset = [this]() {
+        if (!checkbox_rtc->isChecked()) {
+            return;
+        }
+        auto offset = date_rtc_offset->value();
+        offset += date_rtc->dateTime().toSecsSinceEpoch() - previous_time;
+        previous_time = date_rtc->dateTime().toSecsSinceEpoch();
+        date_rtc_offset->setValue(offset);
+    };
+    const auto update_rtc_date = [this]() { UpdateRtcTime(); };
+
     connect(combo_language, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
     connect(combo_region, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
+    connect(checkbox_rtc, qOverload<int>(&QCheckBox::stateChanged), this, update_rtc_date);
+    connect(date_rtc_offset, qOverload<int>(&QSpinBox::valueChanged), this, update_rtc_date);
+    connect(date_rtc, &QDateTimeEdit::dateTimeChanged, this, update_date_offset);
 
     ui->label_warn_invalid_locale->setVisible(false);
     locale_check();
 
     SetConfiguration();
+    UpdateRtcTime();
 }
 
 ConfigureSystem::~ConfigureSystem() = default;
@@ -120,12 +141,26 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
 
+        // Keep track of the region_index (and language_index) combobox to validate the selected
+        // settings
         if (setting->Id() == Settings::values.region_index.Id()) {
-            // Keep track of the region_index (and language_index) combobox to validate the selected
-            // settings
             combo_region = widget->combobox;
-        } else if (setting->Id() == Settings::values.language_index.Id()) {
+        }
+
+        if (setting->Id() == Settings::values.language_index.Id()) {
             combo_language = widget->combobox;
+        }
+
+        if (setting->Id() == Settings::values.custom_rtc.Id()) {
+            checkbox_rtc = widget->checkbox;
+        }
+
+        if (setting->Id() == Settings::values.custom_rtc.Id()) {
+            date_rtc = widget->date_time_edit;
+        }
+
+        if (setting->Id() == Settings::values.custom_rtc_offset.Id()) {
+            date_rtc_offset = widget->spinbox;
         }
 
         switch (setting->GetCategory()) {
@@ -147,6 +182,19 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
     }
 }
 
+void ConfigureSystem::UpdateRtcTime() {
+    const auto posix_time = std::chrono::system_clock::now().time_since_epoch();
+    previous_time = std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
+    date_rtc_offset->setEnabled(checkbox_rtc->isChecked());
+
+    if (checkbox_rtc->isChecked()) {
+        previous_time += date_rtc_offset->value();
+    }
+
+    const auto date = QDateTime::fromSecsSinceEpoch(previous_time);
+    date_rtc->setDateTime(date);
+}
+
 void ConfigureSystem::SetConfiguration() {}
 
 void ConfigureSystem::ApplyConfiguration() {
@@ -154,4 +202,5 @@ void ConfigureSystem::ApplyConfiguration() {
     for (const auto& func : apply_funcs) {
         func(powered_on);
     }
+    UpdateRtcTime();
 }

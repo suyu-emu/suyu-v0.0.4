@@ -66,7 +66,6 @@
 #include "core/hle/service/sockets/sockets.h"
 #include "core/hle/service/spl/spl_module.h"
 #include "core/hle/service/ssl/ssl.h"
-#include "core/hle/service/time/time.h"
 #include "core/hle/service/usb/usb.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/reporter.h"
@@ -246,6 +245,9 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnGuestCoreProcess("fatal",      [&] { Fatal::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("fgm",        [&] { FGM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("friends",    [&] { Friend::LoopProcess(system); });
+    // glue depends on settings and psc, so they must come first
+    kernel.RunOnGuestCoreProcess("settings",   [&] { Set::LoopProcess(system); });
+    kernel.RunOnGuestCoreProcess("psc",        [&] { PSC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("glue",       [&] { Glue::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("grc",        [&] { GRC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("hid",        [&] { HID::LoopProcess(system); });
@@ -269,13 +271,10 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnGuestCoreProcess("pcv",        [&] { PCV::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("prepo",      [&] { PlayReport::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ProcessManager", [&] { PM::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("psc",        [&] { PSC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ptm",        [&] { PTM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ro",         [&] { RO::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("settings",   [&] { Set::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("spl",        [&] { SPL::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ssl",        [&] { SSL::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("time",       [&] { Time::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("usb",        [&] { USB::LoopProcess(system); });
     // clang-format on
 }

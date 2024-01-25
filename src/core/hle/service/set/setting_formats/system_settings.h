@@ -12,7 +12,6 @@
 #include "common/vector_math.h"
 #include "core/hle/service/set/setting_formats/private_settings.h"
 #include "core/hle/service/set/settings_types.h"
-#include "core/hle/service/time/clock_types.h"
 
 namespace Service::Set {
 
@@ -197,12 +196,14 @@ struct SystemSettings {
     std::array<u8, 0x2C> backlight_settings_mixed_up;
     INSERT_PADDING_BYTES(0x64); // Reserved
 
-    Service::Time::Clock::SystemClockContext user_system_clock_context;
-    Service::Time::Clock::SystemClockContext network_system_clock_context;
+    // nn::time::SystemClockContext
+    Service::PSC::Time::SystemClockContext user_system_clock_context;
+    Service::PSC::Time::SystemClockContext network_system_clock_context;
     bool user_system_clock_automatic_correction_enabled;
     INSERT_PADDING_BYTES(0x3);
     INSERT_PADDING_BYTES(0x4); // Reserved
-    Service::Time::Clock::SteadyClockTimePoint
+    // nn::time::SteadyClockTimePoint
+    Service::PSC::Time::SteadyClockTimePoint
         user_system_clock_automatic_correction_updated_time_point;
     INSERT_PADDING_BYTES(0x10); // Reserved
 
@@ -280,9 +281,12 @@ struct SystemSettings {
     bool requires_run_repair_time_reviser;
     INSERT_PADDING_BYTES(0x6B); // Reserved
 
-    Service::Time::TimeZone::LocationName device_time_zone_location_name;
+    // nn::time::LocationName
+    Service::PSC::Time::LocationName device_time_zone_location_name;
     INSERT_PADDING_BYTES(0x4); // Reserved
-    Service::Time::Clock::SteadyClockTimePoint device_time_zone_location_updated_time;
+    // nn::time::SteadyClockTimePoint
+    Service::PSC::Time::SteadyClockTimePoint device_time_zone_location_updated_time;
+
     INSERT_PADDING_BYTES(0xC0); // Reserved
 
     // nn::settings::system::PrimaryAlbumStorage

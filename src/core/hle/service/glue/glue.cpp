@@ -8,6 +8,9 @@
 #include "core/hle/service/glue/ectx.h"
 #include "core/hle/service/glue/glue.h"
 #include "core/hle/service/glue/notif.h"
+#include "core/hle/service/glue/time/manager.h"
+#include "core/hle/service/glue/time/static.h"
+#include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/server_manager.h"
 
 namespace Service::Glue {
@@ -30,6 +33,22 @@ void LoopProcess(Core::System& system) {
 
     // Notification Services for application
     server_manager->RegisterNamedService("notif:a", std::make_shared<NOTIF_A>(system));
+
+    // Time
+    auto time = std::make_shared<Time::TimeManager>(system);
+
+    server_manager->RegisterNamedService(
+        "time:u",
+        std::make_shared<Time::StaticService>(
+            system, Service::PSC::Time::StaticServiceSetupInfo{0, 0, 0, 0, 0, 0}, time, "time:u"));
+    server_manager->RegisterNamedService(
+        "time:a",
+        std::make_shared<Time::StaticService>(
+            system, Service::PSC::Time::StaticServiceSetupInfo{1, 1, 0, 1, 0, 0}, time, "time:a"));
+    server_manager->RegisterNamedService(
+        "time:r",
+        std::make_shared<Time::StaticService>(
+            system, Service::PSC::Time::StaticServiceSetupInfo{0, 0, 0, 0, 1, 0}, time, "time:r"));
 
     ServerManager::RunServer(std::move(server_manager));
 }

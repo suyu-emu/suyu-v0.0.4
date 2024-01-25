@@ -17,17 +17,15 @@ public:
 
     std::chrono::milliseconds GetTimeMS() const override;
 
-    u64 GetCNTPCT() const override;
+    s64 GetCNTPCT() const override;
 
-    u64 GetGPUTick() const override;
+    s64 GetGPUTick() const override;
 
-    u64 GetHostTicksNow() const override;
-
-    u64 GetHostTicksElapsed() const override;
+    s64 GetUptime() const override;
 
     bool IsNative() const override;
 
-    static u64 GetHostCNTFRQ();
+    static s64 GetHostCNTFRQ();
 
 public:
     using FactorType = unsigned __int128;

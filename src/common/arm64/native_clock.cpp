@@ -30,27 +30,27 @@ NativeClock::NativeClock() {
 }
 
 std::chrono::nanoseconds NativeClock::GetTimeNS() const {
-    return std::chrono::nanoseconds{MultiplyHigh(GetHostTicksElapsed(), ns_cntfrq_factor)};
+    return std::chrono::nanoseconds{MultiplyHigh(GetUptime(), ns_cntfrq_factor)};
 }
 
 std::chrono::microseconds NativeClock::GetTimeUS() const {
-    return std::chrono::microseconds{MultiplyHigh(GetHostTicksElapsed(), us_cntfrq_factor)};
+    return std::chrono::microseconds{MultiplyHigh(GetUptime(), us_cntfrq_factor)};
 }
 
 std::chrono::milliseconds NativeClock::GetTimeMS() const {
-    return std::chrono::milliseconds{MultiplyHigh(GetHostTicksElapsed(), ms_cntfrq_factor)};
+    return std::chrono::milliseconds{MultiplyHigh(GetUptime(), ms_cntfrq_factor)};
 }
 
-u64 NativeClock::GetCNTPCT() const {
-    return MultiplyHigh(GetHostTicksElapsed(), guest_cntfrq_factor);
+s64 NativeClock::GetCNTPCT() const {
+    return MultiplyHigh(GetUptime(), guest_cntfrq_factor);
 }
 
-u64 NativeClock::GetGPUTick() const {
-    return MultiplyHigh(GetHostTicksElapsed(), gputick_cntfrq_factor);
+s64 NativeClock::GetGPUTick() const {
+    return MultiplyHigh(GetUptime(), gputick_cntfrq_factor);
 }
 
-u64 NativeClock::GetHostTicksNow() const {
-    u64 cntvct_el0 = 0;
+s64 NativeClock::GetUptime() const {
+    s64 cntvct_el0 = 0;
     asm volatile("dsb ish\n\t"
                  "mrs %[cntvct_el0], cntvct_el0\n\t"
                  "dsb ish\n\t"
@@ -58,15 +58,11 @@ u64 NativeClock::GetHostTicksNow() const {
     return cntvct_el0;
 }
 
-u64 NativeClock::GetHostTicksElapsed() const {
-    return GetHostTicksNow();
-}
-
 bool NativeClock::IsNative() const {
     return true;
 }
 
-u64 NativeClock::GetHostCNTFRQ() {
+s64 NativeClock::GetHostCNTFRQ() {
     u64 cntfrq_el0 = 0;
     std::string_view board{""};
 #ifdef ANDROID
