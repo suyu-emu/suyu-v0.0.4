@@ -620,6 +620,11 @@ object NativeLibrary {
     external fun clearFilesystemProvider()
 
     /**
+     * Checks if all necessary keys are present for decryption
+     */
+    external fun areKeysPresent(): Boolean
+
+    /**
      * Button type for use in onTouchEvent
      */
     object ButtonType {
