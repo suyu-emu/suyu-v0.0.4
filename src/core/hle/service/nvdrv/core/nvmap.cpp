@@ -326,4 +326,17 @@ std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool interna
     return freeInfo;
 }
 
+void NvMap::UnmapAllHandles(NvCore::SessionId session_id) {
+    auto handles_copy = [&] {
+        std::scoped_lock lk{handles_lock};
+        return handles;
+    }();
+
+    for (auto& [id, handle] : handles_copy) {
+        if (handle->session_id.id == session_id.id) {
+            FreeHandle(id, false);
+        }
+    }
+}
+
 } // namespace Service::Nvidia::NvCore
