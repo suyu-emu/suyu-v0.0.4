@@ -144,6 +144,9 @@
     <string name="no_save_data_found">No save data found</string>
     <string name="verify_installed_content">Verify installed content</string>
     <string name="verify_installed_content_description">Checks all installed content for corruption</string>
+    <string name="keys_missing">Encryption keys are missing</string>
+    <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Applet launcher</string>

@@ -31,6 +31,9 @@ class HomeViewModel : ViewModel() {
     private val _reloadPropertiesList = MutableStateFlow(false)
     val reloadPropertiesList get() = _reloadPropertiesList.asStateFlow()
 
+    private val _checkKeys = MutableStateFlow(false)
+    val checkKeys = _checkKeys.asStateFlow()
+
     var navigatedToSetup = false
 
     fun setNavigationVisibility(visible: Boolean, animated: Boolean) {
@@ -65,5 +68,9 @@ class HomeViewModel : ViewModel() {
 
     fun reloadPropertiesList(reload: Boolean) {
         _reloadPropertiesList.value = reload
+    }
+
+    fun setCheckKeys(value: Boolean) {
+        _checkKeys.value = value
     }
 }
