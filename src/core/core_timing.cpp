@@ -157,7 +157,7 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
             }
         }
 
-        for (auto h : to_remove) {
+        for (auto& h : to_remove) {
             event_queue.erase(h);
         }
 

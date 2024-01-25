@@ -178,6 +178,9 @@ if (NOT TARGET stb::headers)
     add_library(stb::headers ALIAS stb)
 endif()
 
+add_library(tz tz/tz/tz.cpp)
+target_include_directories(tz PUBLIC ./tz)
+
 add_library(bc_decoder bc_decoder/bc_decoder.cpp)
 target_include_directories(bc_decoder PUBLIC ./bc_decoder)
 

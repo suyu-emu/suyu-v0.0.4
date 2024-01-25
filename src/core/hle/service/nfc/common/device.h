@@ -11,7 +11,6 @@
 #include "core/hle/service/nfc/nfc_types.h"
 #include "core/hle/service/nfp/nfp_types.h"
 #include "core/hle/service/service.h"
-#include "core/hle/service/time/clock_types.h"
 
 namespace Kernel {
 class KEvent;
@@ -49,8 +48,8 @@ public:
 
     Result WriteMifare(std::span<const MifareWriteBlockParameter> parameters);
 
-    Result SendCommandByPassThrough(const Time::Clock::TimeSpanType& timeout,
-                                    std::span<const u8> command_data, std::span<u8> out_data);
+    Result SendCommandByPassThrough(const s64& timeout, std::span<const u8> command_data,
+                                    std::span<u8> out_data);
 
     Result Mount(NFP::ModelType model_type, NFP::MountTarget mount_target);
     Result Unmount();
@@ -108,7 +107,7 @@ private:
     NFP::AmiiboName GetAmiiboName(const NFP::AmiiboSettings& settings) const;
     void SetAmiiboName(NFP::AmiiboSettings& settings, const NFP::AmiiboName& amiibo_name) const;
     NFP::AmiiboDate GetAmiiboDate(s64 posix_time) const;
-    u64 GetCurrentPosixTime() const;
+    s64 GetCurrentPosixTime() const;
     u64 RemoveVersionByte(u64 application_id) const;
     void UpdateSettingsCrc();
     void UpdateRegisterInfoCrc();

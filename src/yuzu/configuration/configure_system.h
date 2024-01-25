@@ -43,6 +43,8 @@ private:
 
     void Setup(const ConfigurationShared::Builder& builder);
 
+    void UpdateRtcTime();
+
     std::vector<std::function<void(bool)>> apply_funcs{};
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
@@ -52,4 +54,8 @@ private:
 
     QComboBox* combo_region;
     QComboBox* combo_language;
+    QCheckBox* checkbox_rtc;
+    QDateTimeEdit* date_rtc;
+    QSpinBox* date_rtc_offset;
+    u64 previous_time;
 };

@@ -143,8 +143,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, rng_seed, tr("RNG Seed"), QStringLiteral());
     INSERT(Settings, rng_seed_enabled, QStringLiteral(), QStringLiteral());
     INSERT(Settings, device_name, tr("Device Name"), QStringLiteral());
-    INSERT(Settings, custom_rtc, tr("Custom RTC"), QStringLiteral());
+    INSERT(Settings, custom_rtc, tr("Custom RTC Date:"), QStringLiteral());
     INSERT(Settings, custom_rtc_enabled, QStringLiteral(), QStringLiteral());
+    INSERT(Settings, custom_rtc_offset, QStringLiteral(" "),
+           QStringLiteral("The number of seconds from the current unix time"));
     INSERT(Settings, language_index, tr("Language:"),
            tr("Note: this can be overridden when region setting is auto-select"));
     INSERT(Settings, region_index, tr("Region:"), QStringLiteral());

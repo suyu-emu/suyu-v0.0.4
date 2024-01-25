@@ -88,7 +88,17 @@ std::string FindSystemTimeZone() {
             LOG_ERROR(Common, "Time zone {} not handled, defaulting to hour offset.", tz_index);
         }
     }
-    return fmt::format("Etc/GMT{:s}{:d}", hours > 0 ? "-" : "+", std::abs(hours));
+
+    // For some reason the Etc/GMT times are reversed. GMT+6 contains -21600 as its offset,
+    // -6 hours instead of +6 hours, so these signs are purposefully reversed to fix it.
+    std::string postfix{""};
+    if (hours > 0) {
+        postfix = fmt::format("-{:d}", std::abs(hours));
+    } else if (hours < 0) {
+        postfix = fmt::format("+{:d}", std::abs(hours));
+    }
+
+    return fmt::format("Etc/GMT{:s}", postfix);
 }
 
 } // namespace Common::TimeZone

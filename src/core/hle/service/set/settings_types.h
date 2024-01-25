@@ -9,7 +9,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/uuid.h"
-#include "core/hle/service/time/clock_types.h"
+#include "core/hle/service/psc/time/common.h"
 
 namespace Service::Set {
 
@@ -365,7 +365,7 @@ struct EulaVersion {
     EulaVersionClockType clock_type;
     INSERT_PADDING_BYTES(0x4);
     s64 posix_time;
-    Time::Clock::SteadyClockTimePoint timestamp;
+    Service::PSC::Time::SteadyClockTimePoint timestamp;
 };
 static_assert(sizeof(EulaVersion) == 0x30, "EulaVersion is incorrect size");
 
@@ -398,14 +398,14 @@ static_assert(sizeof(HomeMenuScheme) == 0x14, "HomeMenuScheme is incorrect size"
 struct InitialLaunchSettings {
     InitialLaunchFlag flags;
     INSERT_PADDING_BYTES(0x4);
-    Service::Time::Clock::SteadyClockTimePoint timestamp;
+    Service::PSC::Time::SteadyClockTimePoint timestamp;
 };
 static_assert(sizeof(InitialLaunchSettings) == 0x20, "InitialLaunchSettings is incorrect size");
 
 #pragma pack(push, 4)
 struct InitialLaunchSettingsPacked {
     InitialLaunchFlag flags;
-    Service::Time::Clock::SteadyClockTimePoint timestamp;
+    Service::PSC::Time::SteadyClockTimePoint timestamp;
 };
 #pragma pack(pop)
 static_assert(sizeof(InitialLaunchSettingsPacked) == 0x1C,
