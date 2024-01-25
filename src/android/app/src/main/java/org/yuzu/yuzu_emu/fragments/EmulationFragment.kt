@@ -38,7 +38,6 @@ import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
@@ -141,7 +140,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
-        emulationState = EmulationState(game.path)
+        emulationState = EmulationState(game.path) {
+            return@EmulationState driverViewModel.isInteractionAllowed.value
+        }
     }
 
     /**
@@ -371,6 +372,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
             }
             launch {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    driverViewModel.isInteractionAllowed.collect {
+                        if (it) {
+                            startEmulation()
+                        }
+                    }
+                }
+            }
+            launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
                     emulationViewModel.emulationStarted.collectLatest {
                         if (it) {
@@ -398,19 +408,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
                 }
             }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.isInteractionAllowed.collect {
-                        if (it) {
-                            onEmulationStart()
-                        }
-                    }
-                }
-            }
         }
     }
 
-    private fun onEmulationStart() {
+    private fun startEmulation() {
         if (!NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
             if (!DirectoryInitialization.areDirectoriesReady) {
                 DirectoryInitialization.start()
@@ -810,7 +811,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
-    private class EmulationState(private val gamePath: String) {
+    private class EmulationState(
+        private val gamePath: String,
+        private val emulationCanStart: () -> Boolean
+    ) {
         private var state: State
         private var surface: Surface? = null
 
@@ -904,6 +908,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     State.PAUSED -> Log.warning(
                         "[EmulationFragment] Surface cleared while emulation paused."
                     )
+
                     else -> Log.warning(
                         "[EmulationFragment] Surface cleared while emulation stopped."
                     )
@@ -913,6 +918,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         private fun runWithValidSurface() {
             NativeLibrary.surfaceChanged(surface)
+            if (!emulationCanStart.invoke()) {
+                return
+            }
+
             when (state) {
                 State.STOPPED -> {
                     val emulationThread = Thread({

@@ -247,6 +247,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     m_system.GetCpuManager().OnGpuReady();
     m_system.RegisterExitCallback([&] { HaltEmulation(); });
 
+    OnEmulationStarted();
     return Core::SystemResultStatus::Success;
 }
 
