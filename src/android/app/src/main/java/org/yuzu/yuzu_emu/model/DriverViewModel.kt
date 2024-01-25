@@ -144,6 +144,7 @@ class DriverViewModel : ViewModel() {
         val selectedDriverFile = File(StringSetting.DRIVER_PATH.getString())
         val selectedDriverMetadata = GpuDriverHelper.customDriverSettingData
         if (GpuDriverHelper.installedCustomDriverData == selectedDriverMetadata) {
+            setDriverReady()
             return
         }
 
