@@ -30,7 +30,7 @@ import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GameAdapter(private val activity: AppCompatActivity) :
-    AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>() {
+    AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         CardGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             .also { return GameViewHolder(it) }
