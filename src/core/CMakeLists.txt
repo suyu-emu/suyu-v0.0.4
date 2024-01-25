@@ -472,6 +472,8 @@ add_library(core STATIC
     hle/service/caps/caps_types.h
     hle/service/caps/caps_u.cpp
     hle/service/caps/caps_u.h
+    hle/service/cmif_serialization.h
+    hle/service/cmif_types.h
     hle/service/erpt/erpt.cpp
     hle/service/erpt/erpt.h
     hle/service/es/es.cpp
