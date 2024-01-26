@@ -20,6 +20,10 @@
 #define stat _stat64
 #endif
 
+#ifdef ANDROID
+#include "common/fs/fs_android.h"
+#endif
+
 namespace FileSys {
 
 namespace FS = Common::FS;
@@ -274,6 +278,11 @@ RealVfsFile::~RealVfsFile() {
 }
 
 std::string RealVfsFile::GetName() const {
+#ifdef ANDROID
+    if (path[0] != '/') {
+        return FS::Android::GetFilename(path);
+    }
+#endif
     return path_components.empty() ? "" : std::string(path_components.back());
 }
 
