@@ -10,12 +10,14 @@
         android:id="@+id/appbar_applets"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+        android:touchscreenBlocksFocus="false">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_applets"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:touchscreenBlocksFocus="false"
             app:navigationIcon="@drawable/ic_back"
             app:title="@string/applets" />
 
