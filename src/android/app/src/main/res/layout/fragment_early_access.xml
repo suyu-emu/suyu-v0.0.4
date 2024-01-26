@@ -32,6 +32,7 @@
         android:paddingBottom="20dp"
         android:scrollbars="vertical"
         android:fadeScrollbars="false"
+        android:defaultFocusHighlightEnabled="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
