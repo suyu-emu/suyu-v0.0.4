@@ -283,7 +283,7 @@ public:
             {17, &IBtmSystemCore::GetConnectedAudioDevices, "GetConnectedAudioDevices"},
             {18, nullptr, "DisconnectAudioDevice"},
             {19, nullptr, "AcquirePairedAudioDeviceInfoChangedEvent"},
-            {20, nullptr, "GetPairedAudioDevices"},
+            {20, &IBtmSystemCore::GetPairedAudioDevices, "GetPairedAudioDevices"},
             {21, nullptr, "RemoveAudioDevicePairing"},
             {22, &IBtmSystemCore::RequestAudioDeviceConnectionRejection, "RequestAudioDeviceConnectionRejection"},
             {23, &IBtmSystemCore::CancelAudioDeviceConnectionRejection, "CancelAudioDeviceConnectionRejection"}
@@ -321,6 +321,13 @@ private:
     }
 
     void GetConnectedAudioDevices(HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(0);
+    }
+
+    void GetPairedAudioDevices(HLERequestContext& ctx) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
