@@ -14,6 +14,7 @@
         android:clipToPadding="false"
         android:fadeScrollbars="false"
         android:scrollbars="vertical"
+        android:defaultFocusHighlightEnabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/icon_layout"
         app:layout_constraintTop_toTopOf="parent">
