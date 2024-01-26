@@ -11,12 +11,14 @@
         android:id="@+id/appbar_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:touchscreenBlocksFocus="false"
         android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_info"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:touchscreenBlocksFocus="false"
             app:navigationIcon="@drawable/ic_back" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -25,6 +27,7 @@
         android:id="@+id/scroll_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:defaultFocusHighlightEnabled="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout

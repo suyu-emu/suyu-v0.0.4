@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:keepScreenOn="true"
+    android:defaultFocusHighlightEnabled="false"
     tools:context="org.yuzu.yuzu_emu.fragments.EmulationFragment"
     tools:openDrawer="start">
 
@@ -24,7 +25,8 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:focusable="false"
-                android:focusableInTouchMode="false" />
+                android:focusableInTouchMode="false"
+                android:defaultFocusHighlightEnabled="false" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/loading_indicator"
@@ -32,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:focusable="false"
+                android:defaultFocusHighlightEnabled="false"
                 android:clickable="false">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -118,6 +120,7 @@
                 android:layout_gravity="center"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
+                android:defaultFocusHighlightEnabled="false"
                 android:visibility="invisible" />
 
             <Button
@@ -160,6 +163,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:focusedByDefault="true"
         app:headerLayout="@layout/header_in_game"
         app:menu="@menu/menu_in_game"
         tools:visibility="gone" />

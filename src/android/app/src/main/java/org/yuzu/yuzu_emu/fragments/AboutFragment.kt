@@ -77,7 +77,7 @@ class AboutFragment : Fragment() {
         }
 
         binding.textVersionName.text = BuildConfig.VERSION_NAME
-        binding.textVersionName.setOnClickListener {
+        binding.buttonVersionName.setOnClickListener {
             val clipBoard =
                 requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText(getString(R.string.build), BuildConfig.GIT_HASH)

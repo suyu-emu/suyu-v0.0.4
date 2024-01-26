@@ -12,7 +12,8 @@
         android:layout_height="match_parent"
         android:scrollbars="vertical"
         android:fadeScrollbars="false"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:defaultFocusHighlightEnabled="false">
 
         <LinearLayout
             android:id="@+id/layout_all"
@@ -86,7 +87,7 @@
                 android:id="@+id/list_properties"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                tools:listitem="@layout/card_simple_outlined" />
+                android:defaultFocusHighlightEnabled="false" />
 
         </LinearLayout>
 

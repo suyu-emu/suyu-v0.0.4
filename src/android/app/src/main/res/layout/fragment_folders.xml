@@ -15,12 +15,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
+            android:touchscreenBlocksFocus="false"
             app:liftOnScrollTargetViewId="@id/list_folders">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar_folders"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:touchscreenBlocksFocus="false"
                 app:navigationIcon="@drawable/ic_back"
                 app:title="@string/game_folders" />
 
@@ -31,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
+            android:defaultFocusHighlightEnabled="false"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
