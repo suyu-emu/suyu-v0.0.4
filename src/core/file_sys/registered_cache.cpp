@@ -17,7 +17,7 @@
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
-#include "core/file_sys/vfs_concat.h"
+#include "core/file_sys/vfs/vfs_concat.h"
 #include "core/loader/loader.h"
 
 namespace FileSys {

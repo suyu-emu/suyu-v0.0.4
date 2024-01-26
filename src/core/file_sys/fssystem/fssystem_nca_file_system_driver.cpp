@@ -14,8 +14,8 @@
 #include "core/file_sys/fssystem/fssystem_nca_file_system_driver.h"
 #include "core/file_sys/fssystem/fssystem_sparse_storage.h"
 #include "core/file_sys/fssystem/fssystem_switch_storage.h"
-#include "core/file_sys/vfs_offset.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 
 namespace FileSys {
 

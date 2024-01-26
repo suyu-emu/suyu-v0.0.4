@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/file_sys/vfs_cached.h"
-#include "core/file_sys/vfs_types.h"
+#include "core/file_sys/vfs/vfs_cached.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace FileSys {
 

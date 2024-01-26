@@ -5,7 +5,7 @@
 #include <set>
 #include <unordered_set>
 #include <utility>
-#include "core/file_sys/vfs_layered.h"
+#include "core/file_sys/vfs/vfs_layered.h"
 
 namespace FileSys {
 

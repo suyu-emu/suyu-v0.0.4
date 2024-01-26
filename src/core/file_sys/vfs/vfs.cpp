@@ -5,8 +5,7 @@
 #include <numeric>
 #include <string>
 #include "common/fs/path_util.h"
-#include "core/file_sys/mode.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
 
@@ -36,12 +35,12 @@ VfsEntryType VfsFilesystem::GetEntryType(std::string_view path_) const {
     return VfsEntryType::None;
 }
 
-VirtualFile VfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
+VirtualFile VfsFilesystem::OpenFile(std::string_view path_, OpenMode perms) {
     const auto path = Common::FS::SanitizePath(path_);
     return root->GetFileRelative(path);
 }
 
-VirtualFile VfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
+VirtualFile VfsFilesystem::CreateFile(std::string_view path_, OpenMode perms) {
     const auto path = Common::FS::SanitizePath(path_);
     return root->CreateFileRelative(path);
 }
@@ -54,17 +53,17 @@ VirtualFile VfsFilesystem::CopyFile(std::string_view old_path_, std::string_view
     if (Common::FS::GetParentPath(old_path) == Common::FS::GetParentPath(new_path)) {
         if (!root->Copy(Common::FS::GetFilename(old_path), Common::FS::GetFilename(new_path)))
             return nullptr;
-        return OpenFile(new_path, Mode::ReadWrite);
+        return OpenFile(new_path, OpenMode::ReadWrite);
     }
 
     // Do it using RawCopy. Non-default impls are encouraged to optimize this.
-    const auto old_file = OpenFile(old_path, Mode::Read);
+    const auto old_file = OpenFile(old_path, OpenMode::Read);
     if (old_file == nullptr)
         return nullptr;
-    auto new_file = OpenFile(new_path, Mode::Read);
+    auto new_file = OpenFile(new_path, OpenMode::Read);
     if (new_file != nullptr)
         return nullptr;
-    new_file = CreateFile(new_path, Mode::Write);
+    new_file = CreateFile(new_path, OpenMode::Write);
     if (new_file == nullptr)
         return nullptr;
     if (!VfsRawCopy(old_file, new_file))
@@ -87,18 +86,18 @@ VirtualFile VfsFilesystem::MoveFile(std::string_view old_path, std::string_view 
 
 bool VfsFilesystem::DeleteFile(std::string_view path_) {
     const auto path = Common::FS::SanitizePath(path_);
-    auto parent = OpenDirectory(Common::FS::GetParentPath(path), Mode::Write);
+    auto parent = OpenDirectory(Common::FS::GetParentPath(path), OpenMode::Write);
     if (parent == nullptr)
         return false;
     return parent->DeleteFile(Common::FS::GetFilename(path));
 }
 
-VirtualDir VfsFilesystem::OpenDirectory(std::string_view path_, Mode perms) {
+VirtualDir VfsFilesystem::OpenDirectory(std::string_view path_, OpenMode perms) {
     const auto path = Common::FS::SanitizePath(path_);
     return root->GetDirectoryRelative(path);
 }
 
-VirtualDir VfsFilesystem::CreateDirectory(std::string_view path_, Mode perms) {
+VirtualDir VfsFilesystem::CreateDirectory(std::string_view path_, OpenMode perms) {
     const auto path = Common::FS::SanitizePath(path_);
     return root->CreateDirectoryRelative(path);
 }
@@ -108,13 +107,13 @@ VirtualDir VfsFilesystem::CopyDirectory(std::string_view old_path_, std::string_
     const auto new_path = Common::FS::SanitizePath(new_path_);
 
     // Non-default impls are highly encouraged to provide a more optimized version of this.
-    auto old_dir = OpenDirectory(old_path, Mode::Read);
+    auto old_dir = OpenDirectory(old_path, OpenMode::Read);
     if (old_dir == nullptr)
         return nullptr;
-    auto new_dir = OpenDirectory(new_path, Mode::Read);
+    auto new_dir = OpenDirectory(new_path, OpenMode::Read);
     if (new_dir != nullptr)
         return nullptr;
-    new_dir = CreateDirectory(new_path, Mode::Write);
+    new_dir = CreateDirectory(new_path, OpenMode::Write);
     if (new_dir == nullptr)
         return nullptr;
 
@@ -149,7 +148,7 @@ VirtualDir VfsFilesystem::MoveDirectory(std::string_view old_path, std::string_v
 
 bool VfsFilesystem::DeleteDirectory(std::string_view path_) {
     const auto path = Common::FS::SanitizePath(path_);
-    auto parent = OpenDirectory(Common::FS::GetParentPath(path), Mode::Write);
+    auto parent = OpenDirectory(Common::FS::GetParentPath(path), OpenMode::Write);
     if (parent == nullptr)
         return false;
     return parent->DeleteSubdirectoryRecursive(Common::FS::GetFilename(path));

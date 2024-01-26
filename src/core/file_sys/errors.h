@@ -7,18 +7,13 @@
 
 namespace FileSys {
 
-constexpr Result ERROR_PATH_NOT_FOUND{ErrorModule::FS, 1};
-constexpr Result ERROR_PATH_ALREADY_EXISTS{ErrorModule::FS, 2};
-constexpr Result ERROR_ENTITY_NOT_FOUND{ErrorModule::FS, 1002};
-constexpr Result ERROR_SD_CARD_NOT_FOUND{ErrorModule::FS, 2001};
-constexpr Result ERROR_OUT_OF_BOUNDS{ErrorModule::FS, 3005};
-constexpr Result ERROR_FAILED_MOUNT_ARCHIVE{ErrorModule::FS, 3223};
-constexpr Result ERROR_INVALID_ARGUMENT{ErrorModule::FS, 6001};
-constexpr Result ERROR_INVALID_OFFSET{ErrorModule::FS, 6061};
-constexpr Result ERROR_INVALID_SIZE{ErrorModule::FS, 6062};
-
+constexpr Result ResultPathNotFound{ErrorModule::FS, 1};
+constexpr Result ResultPathAlreadyExists{ErrorModule::FS, 2};
 constexpr Result ResultUnsupportedSdkVersion{ErrorModule::FS, 50};
 constexpr Result ResultPartitionNotFound{ErrorModule::FS, 1001};
+constexpr Result ResultTargetNotFound{ErrorModule::FS, 1002};
+constexpr Result ResultPortSdCardNoDevice{ErrorModule::FS, 2001};
+constexpr Result ResultNotImplemented{ErrorModule::FS, 3001};
 constexpr Result ResultUnsupportedVersion{ErrorModule::FS, 3002};
 constexpr Result ResultOutOfRange{ErrorModule::FS, 3005};
 constexpr Result ResultAllocationMemoryFailedInFileSystemBuddyHeapA{ErrorModule::FS, 3294};
@@ -78,10 +73,21 @@ constexpr Result ResultUnexpectedInCompressedStorageA{ErrorModule::FS, 5324};
 constexpr Result ResultUnexpectedInCompressedStorageB{ErrorModule::FS, 5325};
 constexpr Result ResultUnexpectedInCompressedStorageC{ErrorModule::FS, 5326};
 constexpr Result ResultUnexpectedInCompressedStorageD{ErrorModule::FS, 5327};
+constexpr Result ResultUnexpectedInPathA{ErrorModule::FS, 5328};
 constexpr Result ResultInvalidArgument{ErrorModule::FS, 6001};
+constexpr Result ResultInvalidPath{ErrorModule::FS, 6002};
+constexpr Result ResultTooLongPath{ErrorModule::FS, 6003};
+constexpr Result ResultInvalidCharacter{ErrorModule::FS, 6004};
+constexpr Result ResultInvalidPathFormat{ErrorModule::FS, 6005};
+constexpr Result ResultDirectoryUnobtainable{ErrorModule::FS, 6006};
+constexpr Result ResultNotNormalized{ErrorModule::FS, 6007};
 constexpr Result ResultInvalidOffset{ErrorModule::FS, 6061};
 constexpr Result ResultInvalidSize{ErrorModule::FS, 6062};
 constexpr Result ResultNullptrArgument{ErrorModule::FS, 6063};
+constexpr Result ResultInvalidOpenMode{ErrorModule::FS, 6072};
+constexpr Result ResultFileExtensionWithoutOpenModeAllowAppend{ErrorModule::FS, 6201};
+constexpr Result ResultReadNotPermitted{ErrorModule::FS, 6202};
+constexpr Result ResultWriteNotPermitted{ErrorModule::FS, 6203};
 constexpr Result ResultUnsupportedSetSizeForIndirectStorage{ErrorModule::FS, 6325};
 constexpr Result ResultUnsupportedWriteForCompressedStorage{ErrorModule::FS, 6387};
 constexpr Result ResultUnsupportedOperateRangeForCompressedStorage{ErrorModule::FS, 6388};

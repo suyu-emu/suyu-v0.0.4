@@ -5,8 +5,8 @@
 #include <utility>
 
 #include "common/assert.h"
-#include "core/file_sys/vfs_concat.h"
-#include "core/file_sys/vfs_static.h"
+#include "core/file_sys/vfs/vfs_concat.h"
+#include "core/file_sys/vfs/vfs_static.h"
 
 namespace FileSys {
 

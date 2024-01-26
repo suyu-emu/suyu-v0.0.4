@@ -17,7 +17,7 @@
 #include "core/crypto/key_manager.h"
 #include "core/crypto/xts_encryption_layer.h"
 #include "core/file_sys/content_archive.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
 

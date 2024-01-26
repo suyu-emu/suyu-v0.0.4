@@ -8,7 +8,7 @@
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace Core::Crypto {
 class KeyManager;

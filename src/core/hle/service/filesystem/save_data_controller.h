@@ -5,7 +5,7 @@
 
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/savedata_factory.h"
-#include "core/file_sys/vfs_types.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace Service::FileSystem {
 

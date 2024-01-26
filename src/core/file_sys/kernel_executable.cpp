@@ -5,7 +5,7 @@
 
 #include "common/string_util.h"
 #include "core/file_sys/kernel_executable.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 #include "core/loader/loader.h"
 
 namespace FileSys {

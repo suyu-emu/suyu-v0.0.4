@@ -13,11 +13,10 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/file_sys/vfs_types.h"
+#include "core/file_sys/fs_filesystem.h"
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace FileSys {
-
-enum class Mode : u32;
 
 // An enumeration representing what can be at the end of a path in a VfsFilesystem
 enum class VfsEntryType {
@@ -49,9 +48,9 @@ public:
     virtual VfsEntryType GetEntryType(std::string_view path) const;
 
     // Opens the file with path relative to root. If it doesn't exist, returns nullptr.
-    virtual VirtualFile OpenFile(std::string_view path, Mode perms);
+    virtual VirtualFile OpenFile(std::string_view path, OpenMode perms);
     // Creates a new, empty file at path
-    virtual VirtualFile CreateFile(std::string_view path, Mode perms);
+    virtual VirtualFile CreateFile(std::string_view path, OpenMode perms);
     // Copies the file from old_path to new_path, returning the new file on success and nullptr on
     // failure.
     virtual VirtualFile CopyFile(std::string_view old_path, std::string_view new_path);
@@ -62,9 +61,9 @@ public:
     virtual bool DeleteFile(std::string_view path);
 
     // Opens the directory with path relative to root. If it doesn't exist, returns nullptr.
-    virtual VirtualDir OpenDirectory(std::string_view path, Mode perms);
+    virtual VirtualDir OpenDirectory(std::string_view path, OpenMode perms);
     // Creates a new, empty directory at path
-    virtual VirtualDir CreateDirectory(std::string_view path, Mode perms);
+    virtual VirtualDir CreateDirectory(std::string_view path, OpenMode perms);
     // Copies the directory from old_path to new_path, returning the new directory on success and
     // nullptr on failure.
     virtual VirtualDir CopyDirectory(std::string_view old_path, std::string_view new_path);

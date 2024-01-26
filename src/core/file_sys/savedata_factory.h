@@ -7,7 +7,7 @@
 #include <string>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 #include "core/hle/result.h"
 
 namespace Core {

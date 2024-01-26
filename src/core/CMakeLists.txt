@@ -20,28 +20,49 @@ add_library(core STATIC
     cpu_manager.h
     crypto/aes_util.cpp
     crypto/aes_util.h
+    crypto/ctr_encryption_layer.cpp
+    crypto/ctr_encryption_layer.h
     crypto/encryption_layer.cpp
     crypto/encryption_layer.h
     crypto/key_manager.cpp
     crypto/key_manager.h
     crypto/partition_data_manager.cpp
     crypto/partition_data_manager.h
-    crypto/ctr_encryption_layer.cpp
-    crypto/ctr_encryption_layer.h
     crypto/xts_encryption_layer.cpp
     crypto/xts_encryption_layer.h
-    debugger/debugger_interface.h
     debugger/debugger.cpp
     debugger/debugger.h
-    debugger/gdbstub_arch.cpp
-    debugger/gdbstub_arch.h
+    debugger/debugger_interface.h
     debugger/gdbstub.cpp
     debugger/gdbstub.h
+    debugger/gdbstub_arch.cpp
+    debugger/gdbstub_arch.h
     device_memory_manager.h
     device_memory_manager.inc
     device_memory.cpp
     device_memory.h
+    file_sys/bis_factory.cpp
+    file_sys/bis_factory.h
+    file_sys/card_image.cpp
+    file_sys/card_image.h
+    file_sys/common_funcs.h
+    file_sys/content_archive.cpp
+    file_sys/content_archive.h
+    file_sys/control_metadata.cpp
+    file_sys/control_metadata.h
+    file_sys/errors.h
+    file_sys/fs_directory.h
+    file_sys/fs_file.h
+    file_sys/fs_filesystem.h
+    file_sys/fs_memory_management.h
+    file_sys/fs_operate_range.h
+    file_sys/fs_path.h
+    file_sys/fs_path_utility.h
+    file_sys/fs_string_util.h
+    file_sys/fsmitm_romfsbuild.cpp
+    file_sys/fsmitm_romfsbuild.h
     file_sys/fssystem/fs_i_storage.h
+    file_sys/fssystem/fs_types.h
     file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.cpp
     file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.h
     file_sys/fssystem/fssystem_aes_ctr_storage.cpp
@@ -83,25 +104,10 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_switch_storage.h
     file_sys/fssystem/fssystem_utility.cpp
     file_sys/fssystem/fssystem_utility.h
-    file_sys/fssystem/fs_types.h
-    file_sys/bis_factory.cpp
-    file_sys/bis_factory.h
-    file_sys/card_image.cpp
-    file_sys/card_image.h
-    file_sys/common_funcs.h
-    file_sys/content_archive.cpp
-    file_sys/content_archive.h
-    file_sys/control_metadata.cpp
-    file_sys/control_metadata.h
-    file_sys/directory.h
-    file_sys/errors.h
-    file_sys/fsmitm_romfsbuild.cpp
-    file_sys/fsmitm_romfsbuild.h
     file_sys/ips_layer.cpp
     file_sys/ips_layer.h
     file_sys/kernel_executable.cpp
     file_sys/kernel_executable.h
-    file_sys/mode.h
     file_sys/nca_metadata.cpp
     file_sys/nca_metadata.h
     file_sys/partition_filesystem.cpp
@@ -146,22 +152,22 @@ add_library(core STATIC
     file_sys/system_archive/system_version.h
     file_sys/system_archive/time_zone_binary.cpp
     file_sys/system_archive/time_zone_binary.h
-    file_sys/vfs.cpp
-    file_sys/vfs.h
-    file_sys/vfs_cached.cpp
-    file_sys/vfs_cached.h
-    file_sys/vfs_concat.cpp
-    file_sys/vfs_concat.h
-    file_sys/vfs_layered.cpp
-    file_sys/vfs_layered.h
-    file_sys/vfs_offset.cpp
-    file_sys/vfs_offset.h
-    file_sys/vfs_real.cpp
-    file_sys/vfs_real.h
-    file_sys/vfs_static.h
-    file_sys/vfs_types.h
-    file_sys/vfs_vector.cpp
-    file_sys/vfs_vector.h
+    file_sys/vfs/vfs.cpp
+    file_sys/vfs/vfs.h
+    file_sys/vfs/vfs_cached.cpp
+    file_sys/vfs/vfs_cached.h
+    file_sys/vfs/vfs_concat.cpp
+    file_sys/vfs/vfs_concat.h
+    file_sys/vfs/vfs_layered.cpp
+    file_sys/vfs/vfs_layered.h
+    file_sys/vfs/vfs_offset.cpp
+    file_sys/vfs/vfs_offset.h
+    file_sys/vfs/vfs_real.cpp
+    file_sys/vfs/vfs_real.h
+    file_sys/vfs/vfs_static.h
+    file_sys/vfs/vfs_types.h
+    file_sys/vfs/vfs_vector.cpp
+    file_sys/vfs/vfs_vector.h
     file_sys/xts_archive.cpp
     file_sys/xts_archive.h
     frontend/applets/cabinet.cpp
@@ -194,7 +200,6 @@ add_library(core STATIC
     hle/kernel/board/nintendo/nx/secure_monitor.h
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
-    hle/kernel/svc_results.h
     hle/kernel/global_scheduler_context.cpp
     hle/kernel/global_scheduler_context.h
     hle/kernel/init/init_slab_setup.cpp
@@ -204,11 +209,11 @@ add_library(core STATIC
     hle/kernel/k_address_arbiter.h
     hle/kernel/k_address_space_info.cpp
     hle/kernel/k_address_space_info.h
+    hle/kernel/k_affinity_mask.h
     hle/kernel/k_auto_object.cpp
     hle/kernel/k_auto_object.h
     hle/kernel/k_auto_object_container.cpp
     hle/kernel/k_auto_object_container.h
-    hle/kernel/k_affinity_mask.h
     hle/kernel/k_capabilities.cpp
     hle/kernel/k_capabilities.h
     hle/kernel/k_class_token.cpp
@@ -232,9 +237,9 @@ add_library(core STATIC
     hle/kernel/k_event_info.h
     hle/kernel/k_handle_table.cpp
     hle/kernel/k_handle_table.h
-    hle/kernel/k_hardware_timer_base.h
     hle/kernel/k_hardware_timer.cpp
     hle/kernel/k_hardware_timer.h
+    hle/kernel/k_hardware_timer_base.h
     hle/kernel/k_interrupt_manager.cpp
     hle/kernel/k_interrupt_manager.h
     hle/kernel/k_light_client_session.cpp
@@ -261,10 +266,10 @@ add_library(core STATIC
     hle/kernel/k_page_bitmap.h
     hle/kernel/k_page_buffer.cpp
     hle/kernel/k_page_buffer.h
-    hle/kernel/k_page_heap.cpp
-    hle/kernel/k_page_heap.h
     hle/kernel/k_page_group.cpp
     hle/kernel/k_page_group.h
+    hle/kernel/k_page_heap.cpp
+    hle/kernel/k_page_heap.h
     hle/kernel/k_page_table.h
     hle/kernel/k_page_table_base.cpp
     hle/kernel/k_page_table_base.h
@@ -329,8 +334,6 @@ add_library(core STATIC
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
-    hle/kernel/svc_common.h
-    hle/kernel/svc_types.h
     hle/kernel/svc/svc_activity.cpp
     hle/kernel/svc/svc_address_arbiter.cpp
     hle/kernel/svc/svc_address_translation.cpp
@@ -368,6 +371,9 @@ add_library(core STATIC
     hle/kernel/svc/svc_thread_profiler.cpp
     hle/kernel/svc/svc_tick.cpp
     hle/kernel/svc/svc_transfer_memory.cpp
+    hle/kernel/svc_common.h
+    hle/kernel/svc_results.h
+    hle/kernel/svc_types.h
     hle/result.h
     hle/service/acc/acc.cpp
     hle/service/acc/acc.h
@@ -486,14 +492,25 @@ add_library(core STATIC
     hle/service/fatal/fatal_p.h
     hle/service/fatal/fatal_u.cpp
     hle/service/fatal/fatal_u.h
+    hle/service/fgm/fgm.cpp
+    hle/service/fgm/fgm.h
     hle/service/filesystem/filesystem.cpp
     hle/service/filesystem/filesystem.h
-    hle/service/filesystem/fsp_ldr.cpp
-    hle/service/filesystem/fsp_ldr.h
-    hle/service/filesystem/fsp_pr.cpp
-    hle/service/filesystem/fsp_pr.h
-    hle/service/filesystem/fsp_srv.cpp
-    hle/service/filesystem/fsp_srv.h
+    hle/service/filesystem/fsp/fs_i_directory.cpp
+    hle/service/filesystem/fsp/fs_i_directory.h
+    hle/service/filesystem/fsp/fs_i_file.cpp
+    hle/service/filesystem/fsp/fs_i_file.h
+    hle/service/filesystem/fsp/fs_i_filesystem.cpp
+    hle/service/filesystem/fsp/fs_i_filesystem.h
+    hle/service/filesystem/fsp/fs_i_storage.cpp
+    hle/service/filesystem/fsp/fs_i_storage.h
+    hle/service/filesystem/fsp/fsp_ldr.cpp
+    hle/service/filesystem/fsp/fsp_ldr.h
+    hle/service/filesystem/fsp/fsp_pr.cpp
+    hle/service/filesystem/fsp/fsp_pr.h
+    hle/service/filesystem/fsp/fsp_srv.cpp
+    hle/service/filesystem/fsp/fsp_srv.h
+    hle/service/filesystem/fsp/fsp_util.h
     hle/service/filesystem/romfs_controller.cpp
     hle/service/filesystem/romfs_controller.h
     hle/service/filesystem/save_data_controller.cpp
@@ -551,13 +568,18 @@ add_library(core STATIC
     hle/service/hid/irs.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
+    hle/service/hle_ipc.cpp
+    hle/service/hle_ipc.h
+    hle/service/ipc_helpers.h
+    hle/service/kernel_helpers.cpp
+    hle/service/kernel_helpers.h
     hle/service/lbl/lbl.cpp
     hle/service/lbl/lbl.h
     hle/service/ldn/lan_discovery.cpp
     hle/service/ldn/lan_discovery.h
-    hle/service/ldn/ldn_results.h
     hle/service/ldn/ldn.cpp
     hle/service/ldn/ldn.h
+    hle/service/ldn/ldn_results.h
     hle/service/ldn/ldn_types.h
     hle/service/ldr/ldr.cpp
     hle/service/ldr/ldr.h
@@ -565,16 +587,6 @@ add_library(core STATIC
     hle/service/lm/lm.h
     hle/service/mig/mig.cpp
     hle/service/mig/mig.h
-    hle/service/mii/types/char_info.cpp
-    hle/service/mii/types/char_info.h
-    hle/service/mii/types/core_data.cpp
-    hle/service/mii/types/core_data.h
-    hle/service/mii/types/raw_data.cpp
-    hle/service/mii/types/raw_data.h
-    hle/service/mii/types/store_data.cpp
-    hle/service/mii/types/store_data.h
-    hle/service/mii/types/ver3_store_data.cpp
-    hle/service/mii/types/ver3_store_data.h
     hle/service/mii/mii.cpp
     hle/service/mii/mii.h
     hle/service/mii/mii_database.cpp
@@ -586,10 +598,22 @@ add_library(core STATIC
     hle/service/mii/mii_result.h
     hle/service/mii/mii_types.h
     hle/service/mii/mii_util.h
+    hle/service/mii/types/char_info.cpp
+    hle/service/mii/types/char_info.h
+    hle/service/mii/types/core_data.cpp
+    hle/service/mii/types/core_data.h
+    hle/service/mii/types/raw_data.cpp
+    hle/service/mii/types/raw_data.h
+    hle/service/mii/types/store_data.cpp
+    hle/service/mii/types/store_data.h
+    hle/service/mii/types/ver3_store_data.cpp
+    hle/service/mii/types/ver3_store_data.h
     hle/service/mm/mm_u.cpp
     hle/service/mm/mm_u.h
     hle/service/mnpp/mnpp_app.cpp
     hle/service/mnpp/mnpp_app.h
+    hle/service/mutex.cpp
+    hle/service/mutex.h
     hle/service/ncm/ncm.cpp
     hle/service/ncm/ncm.h
     hle/service/nfc/common/amiibo_crypto.cpp
@@ -759,19 +783,12 @@ add_library(core STATIC
     hle/service/ptm/ptm.h
     hle/service/ptm/ts.cpp
     hle/service/ptm/ts.h
-    hle/service/hle_ipc.cpp
-    hle/service/hle_ipc.h
-    hle/service/ipc_helpers.h
-    hle/service/kernel_helpers.cpp
-    hle/service/kernel_helpers.h
-    hle/service/mutex.cpp
-    hle/service/mutex.h
+    hle/service/ro/ro.cpp
+    hle/service/ro/ro.h
     hle/service/ro/ro_nro_utils.cpp
     hle/service/ro/ro_nro_utils.h
     hle/service/ro/ro_results.h
     hle/service/ro/ro_types.h
-    hle/service/ro/ro.cpp
-    hle/service/ro/ro.h
     hle/service/server_manager.cpp
     hle/service/server_manager.h
     hle/service/service.cpp
@@ -838,9 +855,9 @@ add_library(core STATIC
     internal_network/network.h
     internal_network/network_interface.cpp
     internal_network/network_interface.h
-    internal_network/sockets.h
     internal_network/socket_proxy.cpp
     internal_network/socket_proxy.h
+    internal_network/sockets.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/kip.cpp
@@ -859,13 +876,13 @@ add_library(core STATIC
     loader/nsp.h
     loader/xci.cpp
     loader/xci.h
+    memory.cpp
+    memory.h
     memory/cheat_engine.cpp
     memory/cheat_engine.h
     memory/dmnt_cheat_types.h
     memory/dmnt_cheat_vm.cpp
     memory/dmnt_cheat_vm.h
-    memory.cpp
-    memory.h
     perf_stats.cpp
     perf_stats.h
     precompiled_headers.h

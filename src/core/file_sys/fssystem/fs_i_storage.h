@@ -5,7 +5,7 @@
 
 #include "common/overflow.h"
 #include "core/file_sys/errors.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
 

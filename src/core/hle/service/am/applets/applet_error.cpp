@@ -27,8 +27,8 @@ struct ErrorCode {
 
     static constexpr ErrorCode FromResult(Result result) {
         return {
-            .error_category{2000 + static_cast<u32>(result.module.Value())},
-            .error_number{result.description.Value()},
+            .error_category{2000 + static_cast<u32>(result.GetModule())},
+            .error_number{result.GetDescription()},
         };
     }
 
