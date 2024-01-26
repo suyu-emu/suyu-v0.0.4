@@ -38,6 +38,7 @@ import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
@@ -184,10 +185,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             override fun onDrawerOpened(drawerView: View) {
                 binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+                binding.inGameMenu.requestFocus()
+                emulationViewModel.setDrawerOpen(true)
             }
 
             override fun onDrawerClosed(drawerView: View) {
                 binding.drawerLayout.setDrawerLockMode(IntSetting.LOCK_DRAWER.getInt())
+                emulationViewModel.setDrawerOpen(false)
             }
 
             override fun onDrawerStateChanged(newState: Int) {
@@ -239,6 +243,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             requireContext().theme
                         )
                     }
+                    binding.inGameMenu.requestFocus()
                     true
                 }
 
@@ -247,6 +252,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         null,
                         Settings.MenuTag.SECTION_ROOT
                     )
+                    binding.inGameMenu.requestFocus()
                     binding.root.findNavController().navigate(action)
                     true
                 }
@@ -256,6 +262,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         args.game,
                         Settings.MenuTag.SECTION_ROOT
                     )
+                    binding.inGameMenu.requestFocus()
                     binding.root.findNavController().navigate(action)
                     true
                 }
@@ -287,6 +294,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             )
                         }
                     }
+                    binding.inGameMenu.requestFocus()
                     NativeConfig.saveGlobalConfig()
                     true
                 }
@@ -295,7 +303,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     emulationState.stop()
                     emulationViewModel.setIsEmulationStopping(true)
                     binding.drawerLayout.close()
-                    binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                    binding.inGameMenu.requestFocus()
                     true
                 }
 
@@ -312,12 +320,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     if (!NativeLibrary.isRunning()) {
                         return
                     }
-
-                    if (binding.drawerLayout.isOpen) {
-                        binding.drawerLayout.close()
-                    } else {
-                        binding.drawerLayout.open()
-                    }
+                    emulationViewModel.setDrawerOpen(!binding.drawerLayout.isOpen)
                 }
             }
         )
@@ -404,6 +407,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             ViewUtils.showView(binding.loadingIndicator)
                             ViewUtils.hideView(binding.inputContainer)
                             ViewUtils.hideView(binding.showFpsText)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.drawerOpen.collect {
+                        if (it) {
+                            binding.drawerLayout.open()
+                            binding.inGameMenu.requestFocus()
+                        } else {
+                            binding.drawerLayout.close()
                         }
                     }
                 }
