@@ -3,8 +3,10 @@
 
 #include "core/hle/service/hid/hid_system_server.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/set/settings_types.h"
 #include "hid_core/hid_result.h"
 #include "hid_core/resource_manager.h"
+#include "hid_core/resources/hid_firmware_settings.h"
 #include "hid_core/resources/npad/npad.h"
 #include "hid_core/resources/npad/npad_types.h"
 #include "hid_core/resources/npad/npad_vibration.h"
@@ -13,9 +15,10 @@
 
 namespace Service::HID {
 
-IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<ResourceManager> resource)
+IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                                   std::shared_ptr<HidFirmwareSettings> settings)
     : ServiceFramework{system_, "hid:sys"}, service_context{system_, service_name},
-      resource_manager{resource} {
+      resource_manager{resource}, firmware_settings{settings} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {31, nullptr, "SendKeyboardLockKeyEvent"},
@@ -25,7 +28,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {131, nullptr, "ActivateSleepButton"},
         {141, nullptr, "AcquireCaptureButtonEventHandle"},
         {151, nullptr, "ActivateCaptureButton"},
-        {161, nullptr, "GetPlatformConfig"},
+        {161, &IHidSystemServer::GetPlatformConfig, "GetPlatformConfig"},
         {210, nullptr, "AcquireNfcDeviceUpdateEventHandle"},
         {211, nullptr, "GetNpadsWithNfc"},
         {212, nullptr, "AcquireNfcActivateEventHandle"},
@@ -80,7 +83,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {520, nullptr, "EnableHandheldHids"},
         {521, nullptr, "DisableHandheldHids"},
         {522, nullptr, "SetJoyConRailEnabled"},
-        {523, nullptr, "IsJoyConRailEnabled"},
+        {523, &IHidSystemServer::IsJoyConRailEnabled, "IsJoyConRailEnabled"},
         {524, nullptr, "IsHandheldHidsEnabled"},
         {525, &IHidSystemServer::IsJoyConAttachedOnAllRail, "IsJoyConAttachedOnAllRail"},
         {540, nullptr, "AcquirePlayReportControllerUsageUpdateEvent"},
@@ -123,7 +126,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {831, nullptr, "SetNotificationLedPatternWithTimeout"},
         {832, nullptr, "PrepareHidsForNotificationWake"},
         {850, &IHidSystemServer::IsUsbFullKeyControllerEnabled, "IsUsbFullKeyControllerEnabled"},
-        {851, nullptr, "EnableUsbFullKeyController"},
+        {851, &IHidSystemServer::EnableUsbFullKeyController, "EnableUsbFullKeyController"},
         {852, nullptr, "IsUsbConnected"},
         {870, &IHidSystemServer::IsHandheldButtonPressedOnConsoleMode, "IsHandheldButtonPressedOnConsoleMode"},
         {900, nullptr, "ActivateInputDetector"},
@@ -148,7 +151,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1120, &IHidSystemServer::SetFirmwareHotfixUpdateSkipEnabled, "SetFirmwareHotfixUpdateSkipEnabled"},
         {1130, &IHidSystemServer::InitializeUsbFirmwareUpdate, "InitializeUsbFirmwareUpdate"},
         {1131, &IHidSystemServer::FinalizeUsbFirmwareUpdate, "FinalizeUsbFirmwareUpdate"},
-        {1132, nullptr, "CheckUsbFirmwareUpdateRequired"},
+        {1132, &IHidSystemServer::CheckUsbFirmwareUpdateRequired, "CheckUsbFirmwareUpdateRequired"},
         {1133, nullptr, "StartUsbFirmwareUpdate"},
         {1134, nullptr, "GetUsbFirmwareUpdateState"},
         {1135, &IHidSystemServer::InitializeUsbFirmwareUpdateWithoutMemory, "InitializeUsbFirmwareUpdateWithoutMemory"},
@@ -238,6 +241,16 @@ IHidSystemServer::~IHidSystemServer() {
     service_context.CloseEvent(acquire_connection_trigger_timeout_event);
     service_context.CloseEvent(unique_pad_connection_event);
 };
+
+void IHidSystemServer::GetPlatformConfig(HLERequestContext& ctx) {
+    const auto platform_config = firmware_settings->GetPlatformConfig();
+
+    LOG_INFO(Service_HID, "called, platform_config={}", platform_config.raw);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(platform_config);
+}
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
@@ -674,6 +687,16 @@ void IHidSystemServer::EndPermitVibrationSession(HLERequestContext& ctx) {
     rb.Push(result);
 }
 
+void IHidSystemServer::IsJoyConRailEnabled(HLERequestContext& ctx) {
+    const bool is_attached = true;
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, is_attached={}", is_attached);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(is_attached);
+}
+
 void IHidSystemServer::IsJoyConAttachedOnAllRail(HLERequestContext& ctx) {
     const bool is_attached = true;
 
@@ -727,7 +750,7 @@ void IHidSystemServer::AcquireUniquePadConnectionEventHandle(HLERequestContext& 
 }
 
 void IHidSystemServer::GetUniquePadIds(HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    LOG_DEBUG(Service_HID, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -750,6 +773,16 @@ void IHidSystemServer::IsUsbFullKeyControllerEnabled(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(is_enabled);
+}
+
+void IHidSystemServer::EnableUsbFullKeyController(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto is_enabled{rp.Pop<bool>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, is_enabled={}", is_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void IHidSystemServer::IsHandheldButtonPressedOnConsoleMode(HLERequestContext& ctx) {
@@ -792,6 +825,13 @@ void IHidSystemServer::InitializeUsbFirmwareUpdate(HLERequestContext& ctx) {
 }
 
 void IHidSystemServer::FinalizeUsbFirmwareUpdate(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::CheckUsbFirmwareUpdateRequired(HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};

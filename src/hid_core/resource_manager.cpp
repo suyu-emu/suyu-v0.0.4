@@ -6,6 +6,8 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/set/system_settings_server.h"
+#include "core/hle/service/sm/sm.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_util.h"
 #include "hid_core/resource_manager.h"
@@ -180,7 +182,11 @@ void ResourceManager::InitializeHidCommonSampler() {
     debug_pad->SetAppletResource(applet_resource, &shared_mutex);
     digitizer->SetAppletResource(applet_resource, &shared_mutex);
     keyboard->SetAppletResource(applet_resource, &shared_mutex);
-    npad->SetNpadExternals(applet_resource, &shared_mutex, handheld_config);
+
+    const auto settings =
+        system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys");
+    npad->SetNpadExternals(applet_resource, &shared_mutex, handheld_config, settings);
+
     six_axis->SetAppletResource(applet_resource, &shared_mutex);
     mouse->SetAppletResource(applet_resource, &shared_mutex);
     debug_mouse->SetAppletResource(applet_resource, &shared_mutex);

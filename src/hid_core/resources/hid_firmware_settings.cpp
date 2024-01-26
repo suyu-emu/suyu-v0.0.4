@@ -40,6 +40,13 @@ void HidFirmwareSettings::LoadSettings(bool reload_config) {
     m_set_sys->GetSettingsItemValue<bool>(is_touch_firmware_auto_update_disabled, "hid_debug",
                                           "touch_firmware_auto_update_disabled");
 
+    bool has_rail_interface{};
+    bool has_sio_mcu{};
+    m_set_sys->GetSettingsItemValue<bool>(has_rail_interface, "hid", "has_rail_interface");
+    m_set_sys->GetSettingsItemValue<bool>(has_sio_mcu, "hid", "has_sio_mcu");
+    platform_config.has_rail_interface.Assign(has_rail_interface);
+    platform_config.has_sio_mcu.Assign(has_sio_mcu);
+
     is_initialized = true;
 }
 
@@ -101,6 +108,11 @@ HidFirmwareSettings::FirmwareSetting HidFirmwareSettings::GetFirmwareUpdateFailu
 HidFirmwareSettings::FeaturesPerId HidFirmwareSettings::FeaturesDisabledPerId() {
     LoadSettings(false);
     return features_per_id_disabled;
+}
+
+Set::PlatformConfig HidFirmwareSettings::GetPlatformConfig() {
+    LoadSettings(false);
+    return platform_config;
 }
 
 } // namespace Service::HID

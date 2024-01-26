@@ -48,26 +48,28 @@ public:
         return result;
     }
 
-    Result GetExternalSteadyClockSourceId(Common::UUID& out_id);
-    Result SetExternalSteadyClockSourceId(Common::UUID id);
-    Result GetUserSystemClockContext(Service::PSC::Time::SystemClockContext& out_context);
-    Result SetUserSystemClockContext(Service::PSC::Time::SystemClockContext& context);
-    Result GetDeviceTimeZoneLocationName(Service::PSC::Time::LocationName& out_name);
-    Result SetDeviceTimeZoneLocationName(Service::PSC::Time::LocationName& name);
-    Result GetNetworkSystemClockContext(Service::PSC::Time::SystemClockContext& out_context);
-    Result SetNetworkSystemClockContext(Service::PSC::Time::SystemClockContext& context);
-    Result IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled);
+    Result GetVibrationMasterVolume(f32& out_volume) const;
+    Result SetVibrationMasterVolume(f32 volume);
+    Result GetExternalSteadyClockSourceId(Common::UUID& out_id) const;
+    Result SetExternalSteadyClockSourceId(const Common::UUID& id);
+    Result GetUserSystemClockContext(Service::PSC::Time::SystemClockContext& out_context) const;
+    Result SetUserSystemClockContext(const Service::PSC::Time::SystemClockContext& context);
+    Result GetDeviceTimeZoneLocationName(Service::PSC::Time::LocationName& out_name) const;
+    Result SetDeviceTimeZoneLocationName(const Service::PSC::Time::LocationName& name);
+    Result GetNetworkSystemClockContext(Service::PSC::Time::SystemClockContext& out_context) const;
+    Result SetNetworkSystemClockContext(const Service::PSC::Time::SystemClockContext& context);
+    Result IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) const;
     Result SetUserSystemClockAutomaticCorrectionEnabled(bool enabled);
     Result SetExternalSteadyClockInternalOffset(s64 offset);
-    Result GetExternalSteadyClockInternalOffset(s64& out_offset);
+    Result GetExternalSteadyClockInternalOffset(s64& out_offset) const;
     Result GetDeviceTimeZoneLocationUpdatedTime(
-        Service::PSC::Time::SteadyClockTimePoint& out_time_point);
+        Service::PSC::Time::SteadyClockTimePoint& out_time_point) const;
     Result SetDeviceTimeZoneLocationUpdatedTime(
-        Service::PSC::Time::SteadyClockTimePoint& time_point);
+        const Service::PSC::Time::SteadyClockTimePoint& time_point);
     Result GetUserSystemClockAutomaticCorrectionUpdatedTime(
-        Service::PSC::Time::SteadyClockTimePoint& out_time_point);
+        Service::PSC::Time::SteadyClockTimePoint& out_time_point) const;
     Result SetUserSystemClockAutomaticCorrectionUpdatedTime(
-        Service::PSC::Time::SteadyClockTimePoint time_point);
+        const Service::PSC::Time::SteadyClockTimePoint& time_point);
 
 private:
     void SetLanguageCode(HLERequestContext& ctx);
@@ -89,12 +91,17 @@ private:
     void SetNotificationSettings(HLERequestContext& ctx);
     void GetAccountNotificationSettings(HLERequestContext& ctx);
     void SetAccountNotificationSettings(HLERequestContext& ctx);
+    void GetVibrationMasterVolume(HLERequestContext& ctx);
+    void SetVibrationMasterVolume(HLERequestContext& ctx);
     void GetSettingsItemValueSize(HLERequestContext& ctx);
     void GetSettingsItemValue(HLERequestContext& ctx);
     void GetTvSettings(HLERequestContext& ctx);
     void SetTvSettings(HLERequestContext& ctx);
+    void IsForceMuteOnHeadphoneRemoved(HLERequestContext& ctx);
+    void SetForceMuteOnHeadphoneRemoved(HLERequestContext& ctx);
     void GetDebugModeFlag(HLERequestContext& ctx);
     void GetQuestFlag(HLERequestContext& ctx);
+    void SetQuestFlag(HLERequestContext& ctx);
     void GetDeviceTimeZoneLocationName(HLERequestContext& ctx);
     void SetDeviceTimeZoneLocationName(HLERequestContext& ctx);
     void SetRegionCode(HLERequestContext& ctx);
@@ -103,6 +110,7 @@ private:
     void IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void GetPrimaryAlbumStorage(HLERequestContext& ctx);
+    void SetPrimaryAlbumStorage(HLERequestContext& ctx);
     void GetNfcEnableFlag(HLERequestContext& ctx);
     void SetNfcEnableFlag(HLERequestContext& ctx);
     void GetSleepSettings(HLERequestContext& ctx);
