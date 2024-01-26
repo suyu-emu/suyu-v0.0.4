@@ -4,7 +4,7 @@
 #include "core/file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.h"
 #include "core/file_sys/fssystem/fssystem_aes_ctr_storage.h"
 #include "core/file_sys/fssystem/fssystem_nca_header.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 
 namespace FileSys {
 

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 
 namespace FileSys {
 

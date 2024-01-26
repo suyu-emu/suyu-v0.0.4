@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 
 namespace FileSys {
 

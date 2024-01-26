@@ -13,7 +13,7 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/partition_filesystem.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 #include "core/loader/loader.h"
 
 #include "core/file_sys/fssystem/fssystem_compression_configuration.h"

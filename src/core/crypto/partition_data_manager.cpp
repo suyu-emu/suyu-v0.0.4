@@ -21,9 +21,9 @@
 #include "core/crypto/partition_data_manager.h"
 #include "core/crypto/xts_encryption_layer.h"
 #include "core/file_sys/kernel_executable.h"
-#include "core/file_sys/vfs.h"
-#include "core/file_sys/vfs_offset.h"
-#include "core/file_sys/vfs_vector.h"
+#include "core/file_sys/vfs/vfs.h"
+#include "core/file_sys/vfs/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_vector.h"
 #include "core/loader/loader.h"
 
 using Common::AsArray;

@@ -8,7 +8,7 @@
 #include "core/file_sys/fssystem/fs_types.h"
 #include "core/file_sys/fssystem/fssystem_alignment_matching_storage.h"
 #include "core/file_sys/fssystem/fssystem_integrity_verification_storage.h"
-#include "core/file_sys/vfs_offset.h"
+#include "core/file_sys/vfs/vfs_offset.h"
 
 namespace FileSys {
 

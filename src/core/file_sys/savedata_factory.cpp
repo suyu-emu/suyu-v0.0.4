@@ -8,7 +8,7 @@
 #include "common/uuid.h"
 #include "core/core.h"
 #include "core/file_sys/savedata_factory.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
 

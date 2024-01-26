@@ -139,7 +139,8 @@ private:
                 ctx.WriteBufferC(performance_buffer.data(), performance_buffer.size(), 1);
             }
         } else {
-            LOG_ERROR(Service_Audio, "RequestUpdate failed error 0x{:02X}!", result.description);
+            LOG_ERROR(Service_Audio, "RequestUpdate failed error 0x{:02X}!",
+                      result.GetDescription());
         }
 
         IPC::ResponseBuilder rb{ctx, 2};

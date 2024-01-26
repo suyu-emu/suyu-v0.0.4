@@ -8,7 +8,7 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/crypto/key_manager.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace Loader {
 enum class ResultStatus : u16;

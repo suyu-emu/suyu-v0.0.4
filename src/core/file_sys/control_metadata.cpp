@@ -5,7 +5,7 @@
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "core/file_sys/control_metadata.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs/vfs.h"
 
 namespace FileSys {
 

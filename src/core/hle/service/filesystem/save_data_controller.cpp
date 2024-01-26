@@ -44,7 +44,7 @@ Result SaveDataController::CreateSaveData(FileSys::VirtualDir* out_save_data,
 
     auto save_data = factory->Create(space, attribute);
     if (save_data == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
+        return FileSys::ResultTargetNotFound;
     }
 
     *out_save_data = save_data;
@@ -56,7 +56,7 @@ Result SaveDataController::OpenSaveData(FileSys::VirtualDir* out_save_data,
                                         const FileSys::SaveDataAttribute& attribute) {
     auto save_data = factory->Open(space, attribute);
     if (save_data == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
+        return FileSys::ResultTargetNotFound;
     }
 
     *out_save_data = save_data;
@@ -67,7 +67,7 @@ Result SaveDataController::OpenSaveDataSpace(FileSys::VirtualDir* out_save_data_
                                              FileSys::SaveDataSpaceId space) {
     auto save_data_space = factory->GetSaveDataSpaceDirectory(space);
     if (save_data_space == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
+        return FileSys::ResultTargetNotFound;
     }
 
     *out_save_data_space = save_data_space;

@@ -301,7 +301,7 @@ Result NfcInterface::TranslateResultToServiceError(Result result) const {
         return result;
     }
 
-    if (result.module != ErrorModule::NFC) {
+    if (result.GetModule() != ErrorModule::NFC) {
         return result;
     }
 
