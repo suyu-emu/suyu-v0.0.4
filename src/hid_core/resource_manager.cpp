@@ -373,6 +373,10 @@ Result ResourceManager::SendVibrationValue(u64 aruid,
         device = GetNSVibrationDevice(handle);
     }
     if (device != nullptr) {
+        // Prevent sending vibrations to an inactive vibration handle
+        if (!device->IsActive()) {
+            return ResultSuccess;
+        }
         result = device->SendVibrationValue(value);
     }
     return result;
