@@ -21,6 +21,7 @@ public:
     virtual Result Activate();
     virtual Result Deactivate();
 
+    bool IsActive() const;
     bool IsVibrationMounted() const;
 
 protected:
