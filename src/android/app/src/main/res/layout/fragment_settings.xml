@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
+        android:touchscreenBlocksFocus="false"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
@@ -24,6 +25,7 @@
                 android:id="@+id/toolbar_settings"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:touchscreenBlocksFocus="false"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_back" />
 

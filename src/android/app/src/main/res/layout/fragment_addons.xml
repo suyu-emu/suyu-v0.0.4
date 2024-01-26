@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
+        android:touchscreenBlocksFocus="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -19,6 +20,7 @@
             android:id="@+id/toolbar_addons"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:touchscreenBlocksFocus="false"
             app:navigationIcon="@drawable/ic_back" />
 
     </com.google.android.material.appbar.AppBarLayout>
