@@ -6,6 +6,7 @@ package org.yuzu.yuzu_emu.model
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class EmulationViewModel : ViewModel() {
     val emulationStarted: StateFlow<Boolean> get() = _emulationStarted
@@ -22,6 +23,9 @@ class EmulationViewModel : ViewModel() {
 
     val shaderMessage: StateFlow<String> get() = _shaderMessage
     private val _shaderMessage = MutableStateFlow("")
+
+    private val _drawerOpen = MutableStateFlow(false)
+    val drawerOpen = _drawerOpen.asStateFlow()
 
     fun setEmulationStarted(started: Boolean) {
         _emulationStarted.value = started
@@ -47,6 +51,10 @@ class EmulationViewModel : ViewModel() {
         setShaderMessage(msg)
         setShaderProgress(progress)
         setTotalShaders(max)
+    }
+
+    fun setDrawerOpen(value: Boolean) {
+        _drawerOpen.value = value
     }
 
     fun clear() {

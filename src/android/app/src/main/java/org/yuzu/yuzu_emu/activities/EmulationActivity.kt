@@ -193,6 +193,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return super.dispatchKeyEvent(event)
         }
 
+        if (emulationViewModel.drawerOpen.value) {
+            return super.dispatchKeyEvent(event)
+        }
+
         return InputHandler.dispatchKeyEvent(event)
     }
 
@@ -200,6 +204,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
             event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
         ) {
+            return super.dispatchGenericMotionEvent(event)
+        }
+
+        if (emulationViewModel.drawerOpen.value) {
             return super.dispatchGenericMotionEvent(event)
         }
 
