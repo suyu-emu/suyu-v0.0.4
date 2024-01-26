@@ -375,8 +375,6 @@ elseif(WIN32)
     endif()
 endif()
 
-create_target_directory_groups(yuzu)
-
 target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core)
 target_link_libraries(yuzu PRIVATE Boost::headers glad Qt${QT_MAJOR_VERSION}::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
@@ -472,3 +470,5 @@ endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu PRIVATE precompiled_headers.h)
 endif()
+
+create_target_directory_groups(yuzu)

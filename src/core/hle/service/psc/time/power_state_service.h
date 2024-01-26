@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/psc/time/power_state_request_manager.h"
 #include "core/hle/service/server_manager.h"
@@ -21,10 +22,10 @@ public:
 
     ~IPowerStateRequestHandler() override = default;
 
-private:
-    void GetPowerStateRequestEventReadableHandle(HLERequestContext& ctx);
-    void GetAndClearPowerStateRequest(HLERequestContext& ctx);
+    Result GetPowerStateRequestEventReadableHandle(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetAndClearPowerStateRequest(Out<bool> out_cleared, Out<u32> out_priority);
 
+private:
     Core::System& m_system;
     PowerStateRequestManager& m_power_state_request_manager;
 };

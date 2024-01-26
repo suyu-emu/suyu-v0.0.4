@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/psc/time/manager.h"
@@ -22,19 +23,13 @@ public:
 
     ~SystemClock() override = default;
 
-    Result GetCurrentTime(s64& out_time);
+    Result GetCurrentTime(Out<s64> out_time);
     Result SetCurrentTime(s64 time);
-    Result GetSystemClockContext(SystemClockContext& out_context);
+    Result GetSystemClockContext(Out<SystemClockContext> out_context);
     Result SetSystemClockContext(SystemClockContext& context);
-    Result GetOperationEventReadableHandle(Kernel::KEvent** out_event);
+    Result GetOperationEventReadableHandle(OutCopyHandle<Kernel::KReadableEvent> out_event);
 
 private:
-    void Handle_GetCurrentTime(HLERequestContext& ctx);
-    void Handle_SetCurrentTime(HLERequestContext& ctx);
-    void Handle_GetSystemClockContext(HLERequestContext& ctx);
-    void Handle_SetSystemClockContext(HLERequestContext& ctx);
-    void Handle_GetOperationEventReadableHandle(HLERequestContext& ctx);
-
     Core::System& m_system;
 
     SystemClockCore& m_clock_core;

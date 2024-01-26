@@ -7,8 +7,6 @@ add_executable(yuzu-room
     yuzu_room.rc
 )
 
-create_target_directory_groups(yuzu-room)
-
 target_link_libraries(yuzu-room PRIVATE common network)
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(yuzu-room PRIVATE -DENABLE_WEB_SERVICE)
@@ -28,3 +26,5 @@ endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu-room PRIVATE precompiled_headers.h)
 endif()
+
+create_target_directory_groups(yuzu-room)

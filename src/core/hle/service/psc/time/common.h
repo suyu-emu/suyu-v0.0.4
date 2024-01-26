@@ -5,6 +5,7 @@
 
 #include <array>
 #include <chrono>
+#include <fmt/format.h>
 
 #include "common/common_types.h"
 #include "common/intrusive_list.h"
@@ -21,8 +22,14 @@ class System;
 namespace Service::PSC::Time {
 using ClockSourceId = Common::UUID;
 
+enum class TimeType : u8 {
+    UserSystemClock = 0,
+    NetworkSystemClock = 1,
+    LocalSystemClock = 2,
+};
+
 struct SteadyClockTimePoint {
-    constexpr bool IdMatches(SteadyClockTimePoint& other) {
+    constexpr bool IdMatches(const SteadyClockTimePoint& other) const {
         return clock_source_id == other.clock_source_id;
     }
     bool operator==(const SteadyClockTimePoint& other) const = default;
@@ -41,12 +48,6 @@ struct SystemClockContext {
 };
 static_assert(sizeof(SystemClockContext) == 0x20, "SystemClockContext has the wrong size!");
 static_assert(std::is_trivial_v<SystemClockContext>);
-
-enum class TimeType : u8 {
-    UserSystemClock,
-    NetworkSystemClock,
-    LocalSystemClock,
-};
 
 struct CalendarTime {
     s16 year;
@@ -67,14 +68,10 @@ struct CalendarAdditionalInfo {
 };
 static_assert(sizeof(CalendarAdditionalInfo) == 0x18, "CalendarAdditionalInfo has the wrong size!");
 
-struct LocationName {
-    std::array<char, 36> name;
-};
+using LocationName = std::array<char, 0x24>;
 static_assert(sizeof(LocationName) == 0x24, "LocationName has the wrong size!");
 
-struct RuleVersion {
-    std::array<char, 16> version;
-};
+using RuleVersion = std::array<char, 0x10>;
 static_assert(sizeof(RuleVersion) == 0x10, "RuleVersion has the wrong size!");
 
 struct ClockSnapshot {
@@ -152,8 +149,8 @@ constexpr inline std::chrono::nanoseconds ConvertToTimeSpan(s64 ticks) {
     return std::chrono::nanoseconds(a + b);
 }
 
-constexpr inline Result GetSpanBetweenTimePoints(s64* out_seconds, SteadyClockTimePoint& a,
-                                                 SteadyClockTimePoint& b) {
+constexpr inline Result GetSpanBetweenTimePoints(s64* out_seconds, const SteadyClockTimePoint& a,
+                                                 const SteadyClockTimePoint& b) {
     R_UNLESS(out_seconds, ResultInvalidArgument);
     R_UNLESS(a.IdMatches(b), ResultInvalidArgument);
     R_UNLESS(a.time_point >= 0 || b.time_point <= a.time_point + std::numeric_limits<s64>::max(),
@@ -166,3 +163,111 @@ constexpr inline Result GetSpanBetweenTimePoints(s64* out_seconds, SteadyClockTi
 }
 
 } // namespace Service::PSC::Time
+
+template <>
+struct fmt::formatter<Service::PSC::Time::TimeType> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(Service::PSC::Time::TimeType type, FormatContext& ctx) {
+        const string_view name = [type] {
+            using Service::PSC::Time::TimeType;
+            switch (type) {
+            case TimeType::UserSystemClock:
+                return "UserSystemClock";
+            case TimeType::NetworkSystemClock:
+                return "NetworkSystemClock";
+            case TimeType::LocalSystemClock:
+                return "LocalSystemClock";
+            }
+            return "Invalid";
+        }();
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::SteadyClockTimePoint> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::SteadyClockTimePoint& time_point,
+                FormatContext& ctx) const {
+        return fmt::format_to(ctx.out(), "time_point={}", time_point.time_point);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::SystemClockContext> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::SystemClockContext& context, FormatContext& ctx) const {
+        return fmt::format_to(ctx.out(), "offset={} steady_time_point={}", context.offset,
+                              context.steady_time_point.time_point);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::CalendarTime> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::CalendarTime& calendar, FormatContext& ctx) const {
+        return fmt::format_to(ctx.out(), "{}/{}/{} {}:{}:{}", calendar.day, calendar.month,
+                              calendar.year, calendar.hour, calendar.minute, calendar.second);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::CalendarAdditionalInfo>
+    : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::CalendarAdditionalInfo& additional,
+                FormatContext& ctx) const {
+        return fmt::format_to(ctx.out(), "weekday={} yearday={} name={} is_dst={} ut_offset={}",
+                              additional.day_of_week, additional.day_of_year,
+                              additional.name.data(), additional.is_dst, additional.ut_offset);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::LocationName> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::LocationName& name, FormatContext& ctx) const {
+        std::string_view n{name.data(), name.size()};
+        return formatter<string_view>::format(n, ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::RuleVersion> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::RuleVersion& version, FormatContext& ctx) const {
+        std::string_view v{version.data(), version.size()};
+        return formatter<string_view>::format(v, ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::ClockSnapshot> : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::ClockSnapshot& snapshot, FormatContext& ctx) const {
+        return fmt::format_to(
+            ctx.out(),
+            "user_context={} network_context={} user_time={} network_time={} user_calendar_time={} "
+            "network_calendar_time={} user_calendar_additional_time={} "
+            "network_calendar_additional_time={} steady_clock_time_point={} location={} "
+            "is_automatic_correction_enabled={} type={}",
+            snapshot.user_context, snapshot.network_context, snapshot.user_time,
+            snapshot.network_time, snapshot.user_calendar_time, snapshot.network_calendar_time,
+            snapshot.user_calendar_additional_time, snapshot.network_calendar_additional_time,
+            snapshot.steady_clock_time_point, snapshot.location_name,
+            snapshot.is_automatic_correction_enabled, snapshot.type);
+    }
+};
+
+template <>
+struct fmt::formatter<Service::PSC::Time::ContinuousAdjustmentTimePoint>
+    : fmt::formatter<fmt::string_view> {
+    template <typename FormatContext>
+    auto format(const Service::PSC::Time::ContinuousAdjustmentTimePoint& time_point,
+                FormatContext& ctx) const {
+        return fmt::format_to(ctx.out(),
+                              "rtc_offset={} diff_scale={} shift_amount={} lower={} upper={}",
+                              time_point.rtc_offset, time_point.diff_scale, time_point.shift_amount,
+                              time_point.lower, time_point.upper);
+    }
+};
