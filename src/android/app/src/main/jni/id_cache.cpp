@@ -19,6 +19,7 @@ static jmethodID s_exit_emulation_activity;
 static jmethodID s_disk_cache_load_progress;
 static jmethodID s_on_emulation_started;
 static jmethodID s_on_emulation_stopped;
+static jmethodID s_on_program_changed;
 
 static jclass s_game_class;
 static jmethodID s_game_constructor;
@@ -121,6 +122,10 @@ jmethodID GetOnEmulationStarted() {
 
 jmethodID GetOnEmulationStopped() {
     return s_on_emulation_stopped;
+}
+
+jmethodID GetOnProgramChanged() {
+    return s_on_program_changed;
 }
 
 jclass GetGameClass() {
@@ -306,6 +311,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         env->GetStaticMethodID(s_native_library_class, "onEmulationStarted", "()V");
     s_on_emulation_stopped =
         env->GetStaticMethodID(s_native_library_class, "onEmulationStopped", "(I)V");
+    s_on_program_changed =
+        env->GetStaticMethodID(s_native_library_class, "onProgramChanged", "(I)V");
 
     const jclass game_class = env->FindClass("org/yuzu/yuzu_emu/model/Game");
     s_game_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_class));
