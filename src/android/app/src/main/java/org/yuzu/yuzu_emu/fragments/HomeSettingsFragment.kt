@@ -153,7 +153,13 @@ class HomeSettingsFragment : Fragment() {
                             cancellable = true
                         ) { progressCallback, _ ->
                             val result = NativeLibrary.verifyInstalledContents(progressCallback)
-                            return@newInstance if (result.isEmpty()) {
+                            return@newInstance if (progressCallback.invoke(100, 100)) {
+                                // Invoke the progress callback to check if the process was cancelled
+                                MessageDialogFragment.newInstance(
+                                    titleId = R.string.verify_no_result,
+                                    descriptionId = R.string.verify_no_result_description
+                                )
+                            } else if (result.isEmpty()) {
                                 MessageDialogFragment.newInstance(
                                     titleId = R.string.verify_success,
                                     descriptionId = R.string.operation_completed_successfully
