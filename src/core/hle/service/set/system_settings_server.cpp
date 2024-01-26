@@ -697,6 +697,9 @@ static Settings GetSettings() {
     ret["hid_debug"]["disabled_features_per_id"] = std::vector<u8>(0xa8);
     ret["hid_debug"]["touch_firmware_auto_update_disabled"] = ToBytes(bool{false});
 
+    // Mii
+    ret["mii"]["is_db_test_mode_enabled"] = ToBytes(bool{false});
+
     // Settings
     ret["settings_debug"]["is_debug_mode_enabled"] = ToBytes(bool{false});
 
