@@ -110,7 +110,11 @@ void EmulatedController::ReloadFromSettings() {
         original_npad_type = npad_type;
     }
 
-    SetPollingMode(EmulatedDeviceIndex::RightIndex, Common::Input::PollingMode::Active);
+    // Disable special features before disconnecting
+    if (controller.right_polling_mode != Common::Input::PollingMode::Active) {
+        SetPollingMode(EmulatedDeviceIndex::RightIndex, Common::Input::PollingMode::Active);
+    }
+
     Disconnect();
     if (player.connected) {
         Connect();
@@ -1241,7 +1245,12 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
         return false;
     }
 
-    last_vibration_value = vibration;
+    // Skip duplicated vibrations
+    if (last_vibration_value[index] == vibration) {
+        return Settings::values.vibration_enabled.GetValue();
+    }
+
+    last_vibration_value[index] = vibration;
 
     if (!Settings::values.vibration_enabled) {
         return false;
@@ -1272,7 +1281,10 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
 }
 
 VibrationValue EmulatedController::GetActualVibrationValue(DeviceIndex device_index) const {
-    return last_vibration_value;
+    if (device_index >= DeviceIndex::MaxDeviceIndex) {
+        return Core::HID::DEFAULT_VIBRATION_VALUE;
+    }
+    return last_vibration_value[static_cast<std::size_t>(device_index)];
 }
 
 bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
