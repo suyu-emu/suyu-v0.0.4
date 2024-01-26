@@ -27,7 +27,7 @@ static_assert(sizeof(Struct32) == 32, "Struct32 has wrong size");
 class IJitEnvironment final : public ServiceFramework<IJitEnvironment> {
 public:
     explicit IJitEnvironment(Core::System& system_,
-                             Kernel::KScopedAutoObject<Kernel::KProcess>&& process_,
+                             Kernel::KScopedAutoObject<Kernel::KProcess> process_,
                              CodeMemory&& user_rx_, CodeMemory&& user_ro_)
         : ServiceFramework{system_, "IJitEnvironment"}, process{std::move(process_)},
           user_rx{std::move(user_rx_)}, user_ro{std::move(user_ro_)},
@@ -129,7 +129,7 @@ public:
     Result LoadPlugin(u64 tmem_size, InCopyHandle<Kernel::KTransferMemory>& tmem,
                       InBuffer<BufferAttr_HipcMapAlias> nrr,
                       InBuffer<BufferAttr_HipcMapAlias> nro) {
-        if (tmem.IsNull()) {
+        if (!tmem) {
             LOG_ERROR(Service_JIT, "Invalid transfer memory handle!");
             R_THROW(ResultUnknown);
         }
@@ -271,15 +271,15 @@ private:
                                 u64 rx_size, u64 ro_size, InCopyHandle<Kernel::KProcess>& process,
                                 InCopyHandle<Kernel::KCodeMemory>& rx_mem,
                                 InCopyHandle<Kernel::KCodeMemory>& ro_mem) {
-        if (process.IsNull()) {
+        if (!process) {
             LOG_ERROR(Service_JIT, "process is null");
             R_THROW(ResultUnknown);
         }
-        if (rx_mem.IsNull()) {
+        if (!rx_mem) {
             LOG_ERROR(Service_JIT, "rx_mem is null");
             R_THROW(ResultUnknown);
         }
-        if (rx_mem.IsNull()) {
+        if (!ro_mem) {
             LOG_ERROR(Service_JIT, "ro_mem is null");
             R_THROW(ResultUnknown);
         }
@@ -291,8 +291,8 @@ private:
         R_TRY(ro.Initialize(*process, *ro_mem, ro_size, Kernel::Svc::MemoryPermission::Read,
                             generate_random));
 
-        *out_jit_environment = std::make_shared<IJitEnvironment>(system, std::move(process),
-                                                                 std::move(rx), std::move(ro));
+        *out_jit_environment =
+            std::make_shared<IJitEnvironment>(system, process.Get(), std::move(rx), std::move(ro));
         R_SUCCEED();
     }
 
