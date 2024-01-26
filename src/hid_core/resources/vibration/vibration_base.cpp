@@ -23,6 +23,10 @@ Result NpadVibrationBase::Deactivate() {
     return ResultSuccess;
 }
 
+bool NpadVibrationBase::IsActive() const {
+    return ref_counter > 0;
+}
+
 bool NpadVibrationBase::IsVibrationMounted() const {
     return is_mounted;
 }
