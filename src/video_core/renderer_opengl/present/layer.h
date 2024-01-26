@@ -51,7 +51,7 @@ public:
                          std::array<ScreenRectVertex, 4>& out_vertices,
                          ProgramManager& program_manager,
                          const Tegra::FramebufferConfig& framebuffer,
-                         const Layout::FramebufferLayout& layout);
+                         const Layout::FramebufferLayout& layout, bool invert_y);
 
 private:
     /// Loads framebuffer from emulated memory into the active OpenGL texture.

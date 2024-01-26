@@ -51,7 +51,7 @@ public:
 
     /// Draws the emulated screens to the emulator window.
     void DrawScreen(std::span<const Tegra::FramebufferConfig> framebuffers,
-                    const Layout::FramebufferLayout& layout);
+                    const Layout::FramebufferLayout& layout, bool invert_y);
 
 private:
     void CreateWindowAdapt();

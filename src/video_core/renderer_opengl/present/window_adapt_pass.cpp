@@ -37,7 +37,7 @@ WindowAdaptPass::~WindowAdaptPass() = default;
 
 void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::list<Layer>& layers,
                                         std::span<const Tegra::FramebufferConfig> framebuffers,
-                                        const Layout::FramebufferLayout& layout) {
+                                        const Layout::FramebufferLayout& layout, bool invert_y) {
     GLint old_read_fb;
     GLint old_draw_fb;
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
@@ -51,7 +51,7 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
     auto layer_it = layers.begin();
     for (size_t i = 0; i < layer_count; i++) {
         textures[i] = layer_it->ConfigureDraw(matrices[i], vertices[i], program_manager,
-                                              framebuffers[i], layout);
+                                              framebuffers[i], layout, invert_y);
         layer_it++;
     }
 
