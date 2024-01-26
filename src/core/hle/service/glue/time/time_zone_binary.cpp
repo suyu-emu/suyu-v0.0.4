@@ -103,7 +103,7 @@ void GetTimeZoneZonePath(std::string& out_path, Service::PSC::Time::LocationName
         return;
     }
     // out_path = fmt::format("{}:/zoneinfo/{}", "TimeZoneBinary", name);
-    out_path = fmt::format("/zoneinfo/{}", name.name.data());
+    out_path = fmt::format("/zoneinfo/{}", name.data());
 }
 
 bool IsTimeZoneBinaryValid(Service::PSC::Time::LocationName& name) {
@@ -169,7 +169,7 @@ Result GetTimeZoneRule(std::span<const u8>& out_rule, size_t& out_rule_size,
 }
 
 Result GetTimeZoneLocationList(u32& out_count,
-                               std::vector<Service::PSC::Time::LocationName>& out_names,
+                               std::span<Service::PSC::Time::LocationName> out_names,
                                size_t max_names, u32 index) {
     std::string path{};
     GetTimeZoneBinaryListPath(path);
@@ -193,7 +193,7 @@ Result GetTimeZoneLocationList(u32& out_count,
 
         if (chr == '\n') {
             if (name_count >= index) {
-                out_names.push_back(current_name);
+                out_names[out_count] = current_name;
                 out_count++;
                 if (out_count >= max_names) {
                     break;
@@ -209,10 +209,9 @@ Result GetTimeZoneLocationList(u32& out_count,
             break;
         }
 
-        R_UNLESS(current_name_len <= current_name.name.size() - 2,
-                 Service::PSC::Time::ResultFailed);
+        R_UNLESS(current_name_len <= current_name.size() - 2, Service::PSC::Time::ResultFailed);
 
-        current_name.name[current_name_len++] = chr;
+        current_name[current_name_len++] = chr;
     }
 
     R_SUCCEED();

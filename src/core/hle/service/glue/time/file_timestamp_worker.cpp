@@ -13,8 +13,8 @@ void FileTimestampWorker::SetFilesystemPosixTime() {
     Service::PSC::Time::CalendarTime calendar_time{};
     Service::PSC::Time::CalendarAdditionalInfo additional_info{};
 
-    if (m_initialized && m_system_clock->GetCurrentTime(time) == ResultSuccess &&
-        m_time_zone->ToCalendarTimeWithMyRule(calendar_time, additional_info, time) ==
+    if (m_initialized && m_system_clock->GetCurrentTime(&time) == ResultSuccess &&
+        m_time_zone->ToCalendarTimeWithMyRule(&calendar_time, &additional_info, time) ==
             ResultSuccess) {
         // TODO IFileSystemProxy::SetCurrentPosixTime
     }

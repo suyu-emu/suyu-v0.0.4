@@ -28,8 +28,6 @@ add_executable(yuzu-cmd
     yuzu.rc
 )
 
-create_target_directory_groups(yuzu-cmd)
-
 target_link_libraries(yuzu-cmd PRIVATE common core input_common frontend_common)
 target_link_libraries(yuzu-cmd PRIVATE glad)
 if (MSVC)
@@ -63,3 +61,5 @@ endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu-cmd PRIVATE precompiled_headers.h)
 endif()
+
+create_target_directory_groups(yuzu-cmd)

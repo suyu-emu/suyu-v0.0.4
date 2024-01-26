@@ -244,8 +244,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   )
 endif()
 
-create_target_directory_groups(common)
-
 target_link_libraries(common PUBLIC Boost::context Boost::headers fmt::fmt microprofile stb::headers Threads::Threads)
 target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd LLVM::Demangle)
 
@@ -257,3 +255,5 @@ endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
+
+create_target_directory_groups(common)

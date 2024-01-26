@@ -13,19 +13,28 @@ namespace Service {
 
 // clang-format off
 template <typename T>
+struct AutoOut {
+    T raw;
+};
+
+template <typename T>
 class Out {
 public:
     using Type = T;
 
-    /* implicit */ Out(Type& t) : raw(&t) {}
-    ~Out() = default;
+    /* implicit */ Out(AutoOut<Type>& t) : raw(&t.raw) {}
+    /* implicit */ Out(Type* t) : raw(t) {}
 
     Type* Get() const {
         return raw;
     }
 
-    Type& operator*() {
+    Type& operator*() const {
         return *raw;
+    }
+
+    Type* operator->() const {
+        return raw;
     }
 
 private:
@@ -34,6 +43,9 @@ private:
 
 template <typename T>
 using SharedPointer = std::shared_ptr<T>;
+
+template <typename T>
+using OutInterface = Out<SharedPointer<T>>;
 
 struct ClientProcessId {
     explicit operator bool() const {
@@ -101,15 +113,19 @@ class OutCopyHandle {
 public:
     using Type = T*;
 
-    /* implicit */ OutCopyHandle(Type& t) : raw(&t) {}
-    ~OutCopyHandle() = default;
+    /* implicit */ OutCopyHandle(AutoOut<Type>& t) : raw(&t.raw) {}
+    /* implicit */ OutCopyHandle(Type* t) : raw(t) {}
 
     Type* Get() const {
         return raw;
     }
 
-    Type& operator*() {
+    Type& operator*() const {
         return *raw;
+    }
+
+    Type* operator->() const {
+        return raw;
     }
 
 private:
@@ -121,15 +137,19 @@ class OutMoveHandle {
 public:
     using Type = T*;
 
-    /* implicit */ OutMoveHandle(Type& t) : raw(&t) {}
-    ~OutMoveHandle() = default;
+    /* implicit */ OutMoveHandle(AutoOut<Type>& t) : raw(&t.raw) {}
+    /* implicit */ OutMoveHandle(Type* t) : raw(t) {}
 
     Type* Get() const {
         return raw;
     }
 
-    Type& operator*() {
+    Type& operator*() const {
         return *raw;
+    }
+
+    Type* operator->() const {
+        return raw;
     }
 
 private:
@@ -137,14 +157,14 @@ private:
 };
 
 enum BufferAttr : int {
-    BufferAttr_In = (1U << 0),
-    BufferAttr_Out = (1U << 1),
-    BufferAttr_HipcMapAlias = (1U << 2),
-    BufferAttr_HipcPointer = (1U << 3),
-    BufferAttr_FixedSize = (1U << 4),
-    BufferAttr_HipcAutoSelect = (1U << 5),
-    BufferAttr_HipcMapTransferAllowsNonSecure = (1U << 6),
-    BufferAttr_HipcMapTransferAllowsNonDevice = (1U << 7),
+    /* 0x01 */ BufferAttr_In = (1U << 0),
+    /* 0x02 */ BufferAttr_Out = (1U << 1),
+    /* 0x04 */ BufferAttr_HipcMapAlias = (1U << 2),
+    /* 0x08 */ BufferAttr_HipcPointer = (1U << 3),
+    /* 0x10 */ BufferAttr_FixedSize = (1U << 4),
+    /* 0x20 */ BufferAttr_HipcAutoSelect = (1U << 5),
+    /* 0x40 */ BufferAttr_HipcMapTransferAllowsNonSecure = (1U << 6),
+    /* 0x80 */ BufferAttr_HipcMapTransferAllowsNonDevice = (1U << 7),
 };
 
 template <typename T, int A>
@@ -172,122 +192,79 @@ struct Buffer : public std::span<T> {
     }
 };
 
-template <BufferAttr A>
+template <int A>
 using InBuffer = Buffer<const u8, BufferAttr_In | A>;
 
-template <typename T, BufferAttr A>
+template <typename T, int A>
 using InArray = Buffer<T, BufferAttr_In | A>;
 
-template <BufferAttr A>
+template <int A>
 using OutBuffer = Buffer<u8, BufferAttr_Out | A>;
 
-template <typename T, BufferAttr A>
+template <typename T, int A>
 using OutArray = Buffer<T, BufferAttr_Out | A>;
 
 template <typename T, int A>
-struct LargeData : public T {
+class InLargeData {
+public:
     static_assert(std::is_trivially_copyable_v<T>, "LargeData type must be trivially copyable");
-    static_assert((A & BufferAttr_FixedSize) != 0, "LargeData attr must contain FixedSize");
-    static_assert(((A & BufferAttr_In) == 0) ^ ((A & BufferAttr_Out) == 0), "LargeData attr must be In or Out");
-    static constexpr BufferAttr Attr = static_cast<BufferAttr>(A);
+    static_assert((A & BufferAttr_Out) == 0, "InLargeData attr must not be Out");
+    static constexpr BufferAttr Attr = static_cast<BufferAttr>(A | BufferAttr_In | BufferAttr_FixedSize);
+    using Type = const T;
+
+    /* implicit */ InLargeData(Type& t) : raw(&t) {}
+    ~InLargeData() = default;
+
+    InLargeData& operator=(Type* rhs) {
+        raw = rhs;
+        return *this;
+    }
+
+    Type* Get() const {
+        return raw;
+    }
+
+    Type& operator*() const {
+        return *raw;
+    }
+
+    Type* operator->() const {
+        return raw;
+    }
+
+    explicit operator bool() const {
+        return raw != nullptr;
+    }
+
+private:
+    Type* raw;
+};
+
+template <typename T, int A>
+class OutLargeData {
+public:
+    static_assert(std::is_trivially_copyable_v<T>, "LargeData type must be trivially copyable");
+    static_assert((A & BufferAttr_In) == 0, "OutLargeData attr must not be In");
+    static constexpr BufferAttr Attr = static_cast<BufferAttr>(A | BufferAttr_In | BufferAttr_FixedSize);
     using Type = T;
 
-    /* implicit */ LargeData(const T& rhs) : T(rhs) {}
-    /* implicit */ LargeData() = default;
-};
+    /* implicit */ OutLargeData(Type* t) : raw(t) {}
+    /* implicit */ OutLargeData(AutoOut<T>& t) : raw(&t.raw) {}
 
-template <typename T, BufferAttr A>
-using InLargeData = LargeData<T, BufferAttr_FixedSize | BufferAttr_In | A>;
+    Type* Get() const {
+        return raw;
+    }
 
-template <typename T, BufferAttr A>
-using OutLargeData = LargeData<T, BufferAttr_FixedSize | BufferAttr_Out | A>;
+    Type& operator*() const {
+        return *raw;
+    }
 
-template <typename T>
-struct RemoveOut {
-    using Type = std::remove_reference_t<T>;
-};
+    Type* operator->() const {
+        return raw;
+    }
 
-template <typename T>
-struct RemoveOut<Out<T>> {
-    using Type = typename Out<T>::Type;
-};
-
-template <typename T>
-struct RemoveOut<OutCopyHandle<T>> {
-    using Type = typename OutCopyHandle<T>::Type;
-};
-
-template <typename T>
-struct RemoveOut<OutMoveHandle<T>> {
-    using Type = typename OutMoveHandle<T>::Type;
-};
-
-enum class ArgumentType {
-    InProcessId,
-    InData,
-    InInterface,
-    InCopyHandle,
-    OutData,
-    OutInterface,
-    OutCopyHandle,
-    OutMoveHandle,
-    InBuffer,
-    InLargeData,
-    OutBuffer,
-    OutLargeData,
-};
-
-template <typename T>
-struct ArgumentTraits;
-
-template <>
-struct ArgumentTraits<ClientProcessId> {
-    static constexpr ArgumentType Type = ArgumentType::InProcessId;
-};
-
-template <typename T>
-struct ArgumentTraits<SharedPointer<T>> {
-    static constexpr ArgumentType Type = ArgumentType::InInterface;
-};
-
-template <typename T>
-struct ArgumentTraits<InCopyHandle<T>> {
-    static constexpr ArgumentType Type = ArgumentType::InCopyHandle;
-};
-
-template <typename T>
-struct ArgumentTraits<Out<SharedPointer<T>>> {
-    static constexpr ArgumentType Type = ArgumentType::OutInterface;
-};
-
-template <typename T>
-struct ArgumentTraits<Out<T>> {
-    static constexpr ArgumentType Type = ArgumentType::OutData;
-};
-
-template <typename T>
-struct ArgumentTraits<OutCopyHandle<T>> {
-    static constexpr ArgumentType Type = ArgumentType::OutCopyHandle;
-};
-
-template <typename T>
-struct ArgumentTraits<OutMoveHandle<T>> {
-    static constexpr ArgumentType Type = ArgumentType::OutMoveHandle;
-};
-
-template <typename T, int A>
-struct ArgumentTraits<Buffer<T, A>> {
-    static constexpr ArgumentType Type = (A & BufferAttr_In) == 0 ? ArgumentType::OutBuffer : ArgumentType::InBuffer;
-};
-
-template <typename T, int A>
-struct ArgumentTraits<LargeData<T, A>> {
-    static constexpr ArgumentType Type = (A & BufferAttr_In) == 0 ? ArgumentType::OutLargeData : ArgumentType::InLargeData;
-};
-
-template <typename T>
-struct ArgumentTraits {
-    static constexpr ArgumentType Type = ArgumentType::InData;
+private:
+    Type* raw;
 };
 // clang-format on
 

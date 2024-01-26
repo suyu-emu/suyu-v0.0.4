@@ -91,10 +91,10 @@ Result DeviceManager::ListDevices(std::vector<u64>& nfp_devices, std::size_t max
                                                                                        true);
 
             std::shared_ptr<Service::PSC::Time::SteadyClock> steady_clock{};
-            static_service->GetStandardSteadyClock(steady_clock);
+            static_service->GetStandardSteadyClock(&steady_clock);
 
             Service::PSC::Time::SteadyClockTimePoint time_point{};
-            R_ASSERT(steady_clock->GetCurrentTimePoint(time_point));
+            R_ASSERT(steady_clock->GetCurrentTimePoint(&time_point));
 
             const s64 elapsed_time = time_point.time_point - time_since_last_error;
             if (time_since_last_error != 0 && elapsed_time < MinimumRecoveryTime) {
@@ -754,10 +754,10 @@ Result DeviceManager::VerifyDeviceResult(std::shared_ptr<NfcDevice> device,
             system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
 
         std::shared_ptr<Service::PSC::Time::SteadyClock> steady_clock{};
-        static_service->GetStandardSteadyClock(steady_clock);
+        static_service->GetStandardSteadyClock(&steady_clock);
 
         Service::PSC::Time::SteadyClockTimePoint time_point{};
-        R_ASSERT(steady_clock->GetCurrentTimePoint(time_point));
+        R_ASSERT(steady_clock->GetCurrentTimePoint(&time_point));
 
         time_since_last_error = time_point.time_point;
     }

@@ -49,10 +49,10 @@ private:
     std::shared_ptr<Service::PSC::Time::SystemClock> m_ephemeral_clock;
     StandardSteadyClockResource& m_steady_clock_resource;
     FileTimestampWorker& m_file_timestamp_worker;
-    Kernel::KEvent* m_local_clock_event{};
-    Kernel::KEvent* m_network_clock_event{};
-    Kernel::KEvent* m_ephemeral_clock_event{};
-    Kernel::KEvent* m_standard_user_auto_correct_clock_event{};
+    Kernel::KReadableEvent* m_local_clock_event{};
+    Kernel::KReadableEvent* m_network_clock_event{};
+    Kernel::KReadableEvent* m_ephemeral_clock_event{};
+    Kernel::KReadableEvent* m_standard_user_auto_correct_clock_event{};
     Kernel::KEvent* m_timer_steady_clock{};
     std::shared_ptr<Core::Timing::EventType> m_timer_steady_clock_timing_event;
     Kernel::KEvent* m_timer_file_system{};

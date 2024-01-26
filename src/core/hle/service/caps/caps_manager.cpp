@@ -246,10 +246,10 @@ Result AlbumManager::SaveScreenShot(ApplicationAlbumEntry& out_entry,
         system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
 
     std::shared_ptr<Service::PSC::Time::SystemClock> user_clock{};
-    static_service->GetStandardUserSystemClock(user_clock);
+    static_service->GetStandardUserSystemClock(&user_clock);
 
     s64 posix_time{};
-    auto result = user_clock->GetCurrentTime(posix_time);
+    auto result = user_clock->GetCurrentTime(&posix_time);
 
     if (result.IsError()) {
         return result;
@@ -268,10 +268,10 @@ Result AlbumManager::SaveEditedScreenShot(ApplicationAlbumEntry& out_entry,
         system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
 
     std::shared_ptr<Service::PSC::Time::SystemClock> user_clock{};
-    static_service->GetStandardUserSystemClock(user_clock);
+    static_service->GetStandardUserSystemClock(&user_clock);
 
     s64 posix_time{};
-    auto result = user_clock->GetCurrentTime(posix_time);
+    auto result = user_clock->GetCurrentTime(&posix_time);
 
     if (result.IsError()) {
         return result;
@@ -470,11 +470,11 @@ AlbumFileDateTime AlbumManager::ConvertToAlbumDateTime(u64 posix_time) const {
         system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
 
     std::shared_ptr<Service::Glue::Time::TimeZoneService> timezone_service{};
-    static_service->GetTimeZoneService(timezone_service);
+    static_service->GetTimeZoneService(&timezone_service);
 
     Service::PSC::Time::CalendarTime calendar_time{};
     Service::PSC::Time::CalendarAdditionalInfo additional_info{};
-    timezone_service->ToCalendarTimeWithMyRule(calendar_time, additional_info, posix_time);
+    timezone_service->ToCalendarTimeWithMyRule(&calendar_time, &additional_info, posix_time);
 
     return {
         .year = calendar_time.year,

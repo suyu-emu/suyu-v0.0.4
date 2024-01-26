@@ -79,18 +79,18 @@ Service::PSC::Time::LocationName GetTimeZoneString(Service::PSC::Time::LocationN
     auto configured_zone = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
 
     Service::PSC::Time::LocationName configured_name{};
-    std::memcpy(configured_name.name.data(), configured_zone.data(),
-                std::min(configured_name.name.size(), configured_zone.size()));
+    std::memcpy(configured_name.data(), configured_zone.data(),
+                std::min(configured_name.size(), configured_zone.size()));
 
     if (!IsTimeZoneBinaryValid(configured_name)) {
         configured_zone = Common::TimeZone::FindSystemTimeZone();
         configured_name = {};
-        std::memcpy(configured_name.name.data(), configured_zone.data(),
-                    std::min(configured_name.name.size(), configured_zone.size()));
+        std::memcpy(configured_name.data(), configured_zone.data(),
+                    std::min(configured_name.size(), configured_zone.size()));
     }
 
     ASSERT_MSG(IsTimeZoneBinaryValid(configured_name), "Invalid time zone {}!",
-               configured_name.name.data());
+               configured_name.data());
 
     return configured_name;
 }
@@ -103,7 +103,7 @@ TimeManager::TimeManager(Core::System& system)
     m_time_m =
         system.ServiceManager().GetService<Service::PSC::Time::ServiceManager>("time:m", true);
 
-    auto res = m_time_m->GetStaticServiceAsServiceManager(m_time_sm);
+    auto res = m_time_m->GetStaticServiceAsServiceManager(&m_time_sm);
     ASSERT(res == ResultSuccess);
 
     m_set_sys =
@@ -114,10 +114,10 @@ TimeManager::TimeManager(Core::System& system)
 
     m_worker.Initialize(m_time_sm, m_set_sys);
 
-    res = m_time_sm->GetStandardUserSystemClock(m_file_timestamp_worker.m_system_clock);
+    res = m_time_sm->GetStandardUserSystemClock(&m_file_timestamp_worker.m_system_clock);
     ASSERT(res == ResultSuccess);
 
-    res = m_time_sm->GetTimeZoneService(m_file_timestamp_worker.m_time_zone);
+    res = m_time_sm->GetTimeZoneService(&m_file_timestamp_worker.m_time_zone);
     ASSERT(res == ResultSuccess);
 
     res = SetupStandardSteadyClockCore();
@@ -161,8 +161,8 @@ TimeManager::TimeManager(Core::System& system)
         automatic_correction_time_point);
     ASSERT(res == ResultSuccess);
 
-    res = m_time_m->SetupStandardUserSystemClockCore(automatic_correction_time_point,
-                                                     is_automatic_correction_enabled);
+    res = m_time_m->SetupStandardUserSystemClockCore(is_automatic_correction_enabled,
+                                                     automatic_correction_time_point);
     ASSERT(res == ResultSuccess);
 
     res = m_time_m->SetupEphemeralNetworkSystemClockCore();
@@ -184,12 +184,12 @@ TimeManager::TimeManager(Core::System& system)
     m_file_timestamp_worker.m_initialized = true;
 
     s64 system_clock_time{};
-    if (m_file_timestamp_worker.m_system_clock->GetCurrentTime(system_clock_time) ==
+    if (m_file_timestamp_worker.m_system_clock->GetCurrentTime(&system_clock_time) ==
         ResultSuccess) {
         Service::PSC::Time::CalendarTime calendar_time{};
         Service::PSC::Time::CalendarAdditionalInfo calendar_additional{};
         if (m_file_timestamp_worker.m_time_zone->ToCalendarTimeWithMyRule(
-                calendar_time, calendar_additional, system_clock_time) == ResultSuccess) {
+                &calendar_time, &calendar_additional, system_clock_time) == ResultSuccess) {
             // TODO IFileSystemProxy::SetCurrentPosixTime(system_clock_time,
             // calendar_additional.ut_offset)
         }
@@ -228,10 +228,9 @@ Result TimeManager::SetupStandardSteadyClockCore() {
         m_set_sys->SetExternalSteadyClockSourceId(clock_source_id);
     }
 
-    res = m_time_m->SetupStandardSteadyClockCore(clock_source_id, m_steady_clock_resource.GetTime(),
-                                                 external_steady_clock_internal_offset_ns,
-                                                 standard_steady_clock_test_offset_ns,
-                                                 reset_detected);
+    res = m_time_m->SetupStandardSteadyClockCore(
+        reset_detected, clock_source_id, m_steady_clock_resource.GetTime(),
+        external_steady_clock_internal_offset_ns, standard_steady_clock_test_offset_ns);
     ASSERT(res == ResultSuccess);
     R_SUCCEED();
 }
@@ -243,14 +242,15 @@ Result TimeManager::SetupTimeZoneServiceCore() {
 
     auto configured_zone = GetTimeZoneString(name);
 
-    if (configured_zone.name != name.name) {
+    if (configured_zone != name) {
         m_set_sys->SetDeviceTimeZoneLocationName(configured_zone);
         name = configured_zone;
 
         std::shared_ptr<Service::PSC::Time::SystemClock> local_clock;
-        m_time_sm->GetStandardLocalSystemClock(local_clock);
+        m_time_sm->GetStandardLocalSystemClock(&local_clock);
+
         Service::PSC::Time::SystemClockContext context{};
-        local_clock->GetSystemClockContext(context);
+        local_clock->GetSystemClockContext(&context);
         m_set_sys->SetDeviceTimeZoneLocationUpdatedTime(context.steady_time_point);
     }
 
@@ -267,7 +267,7 @@ Result TimeManager::SetupTimeZoneServiceCore() {
     res = GetTimeZoneRule(rule_buffer, rule_size, name);
     ASSERT(res == ResultSuccess);
 
-    res = m_time_m->SetupTimeZoneServiceCore(name, time_point, rule_version, location_count,
+    res = m_time_m->SetupTimeZoneServiceCore(name, rule_version, location_count, time_point,
                                              rule_buffer);
     ASSERT(res == ResultSuccess);
 
