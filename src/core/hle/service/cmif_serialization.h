@@ -150,7 +150,7 @@ void ReadInArgument(CallArguments& args, const u8* raw_data, HLERequestContext& 
 
             return ReadInArgument<Domain, MethodArguments, CallArguments, ArgAlign, ArgEnd, HandleIndex, InBufferIndex, OutBufferIndex, true, ArgIndex + 1>(args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InCopyHandle) {
-            std::get<ArgIndex>(args) = std::move(ctx.GetObjectFromHandle<typename ArgType::Type>(ctx.GetCopyHandle(HandleIndex)));
+            std::get<ArgIndex>(args) = ctx.GetObjectFromHandle<typename ArgType::Type>(ctx.GetCopyHandle(HandleIndex)).GetPointerUnsafe();
 
             return ReadInArgument<Domain, MethodArguments, CallArguments, PrevAlign, DataOffset, HandleIndex + 1, InBufferIndex, OutBufferIndex, RawDataFinished, ArgIndex + 1>(args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InLargeData) {
@@ -253,11 +253,11 @@ void WriteOutArgument(CallArguments& args, u8* raw_data, HLERequestContext& ctx,
 
             return WriteOutArgument<Domain, MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, true, ArgIndex + 1>(args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutCopyHandle) {
-            ctx.AddCopyObject(std::get<ArgIndex>(args).GetPointerUnsafe());
+            ctx.AddCopyObject(std::get<ArgIndex>(args));
 
             return WriteOutArgument<Domain, MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, RawDataFinished, ArgIndex + 1>(args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutMoveHandle) {
-            ctx.AddMoveObject(std::get<ArgIndex>(args).GetPointerUnsafe());
+            ctx.AddMoveObject(std::get<ArgIndex>(args));
 
             return WriteOutArgument<Domain, MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, RawDataFinished, ArgIndex + 1>(args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutLargeData) {
