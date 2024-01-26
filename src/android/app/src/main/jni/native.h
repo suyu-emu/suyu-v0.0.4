@@ -45,7 +45,8 @@ public:
     const Core::PerfStatsResults& PerfStats();
     void ConfigureFilesystemProvider(const std::string& filepath);
     void InitializeSystem(bool reload);
-    Core::SystemResultStatus InitializeEmulation(const std::string& filepath);
+    Core::SystemResultStatus InitializeEmulation(const std::string& filepath,
+                                                 const std::size_t program_index = 0);
 
     bool IsHandheldOnly();
     void SetDeviceType([[maybe_unused]] int index, int type);
@@ -60,6 +61,7 @@ public:
 private:
     static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max);
     static void OnEmulationStopped(Core::SystemResultStatus result);
+    static void ChangeProgram(std::size_t program_index);
 
 private:
     // Window management
@@ -84,4 +86,7 @@ private:
     // Synchronization
     std::condition_variable_any m_cv;
     mutable std::mutex m_mutex;
+
+    // Program index for next boot
+    std::atomic<s32> m_next_program_index = -1;
 };

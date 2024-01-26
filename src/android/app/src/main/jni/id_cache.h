@@ -19,6 +19,7 @@ jmethodID GetExitEmulationActivity();
 jmethodID GetDiskCacheLoadProgress();
 jmethodID GetOnEmulationStarted();
 jmethodID GetOnEmulationStopped();
+jmethodID GetOnProgramChanged();
 
 jclass GetGameClass();
 jmethodID GetGameConstructor();
