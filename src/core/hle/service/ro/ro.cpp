@@ -551,8 +551,7 @@ public:
     Result RegisterProcessHandle(ClientProcessId client_pid,
                                  InCopyHandle<Kernel::KProcess>& process) {
         // Register the process.
-        R_RETURN(m_ro->RegisterProcess(std::addressof(m_context_id), process.GetPointerUnsafe(),
-                                       *client_pid));
+        R_RETURN(m_ro->RegisterProcess(std::addressof(m_context_id), process.Get(), *client_pid));
     }
 
     Result RegisterProcessModuleInfo(ClientProcessId client_pid, u64 nrr_address, u64 nrr_size,
