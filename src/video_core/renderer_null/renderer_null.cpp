@@ -3,6 +3,7 @@
 
 #include "core/frontend/emu_window.h"
 #include "core/frontend/graphics_context.h"
+#include "video_core/capture.h"
 #include "video_core/renderer_null/renderer_null.h"
 
 namespace Null {
@@ -20,6 +21,10 @@ void RendererNull::Composite(std::span<const Tegra::FramebufferConfig> framebuff
 
     m_gpu.RendererFrameEndNotify();
     render_window.OnFrameDisplayed();
+}
+
+std::vector<u8> RendererNull::GetAppletCaptureBuffer() {
+    return std::vector<u8>(VideoCore::Capture::TiledSize);
 }
 
 } // namespace Null

@@ -48,6 +48,8 @@ public:
 
     void Composite(std::span<const Tegra::FramebufferConfig> framebuffers) override;
 
+    std::vector<u8> GetAppletCaptureBuffer() override;
+
     VideoCore::RasterizerInterface* ReadRasterizer() override {
         return &rasterizer;
     }
@@ -59,7 +61,11 @@ public:
 private:
     void Report() const;
 
+    vk::Buffer RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
+                              const Layout::FramebufferLayout& layout, VkFormat format,
+                              VkDeviceSize buffer_size);
     void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);
+    void RenderAppletCaptureLayer(std::span<const Tegra::FramebufferConfig> framebuffers);
 
     Core::TelemetrySession& telemetry_session;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
@@ -79,12 +85,12 @@ private:
     Swapchain swapchain;
     PresentManager present_manager;
     BlitScreen blit_swapchain;
-    BlitScreen blit_screenshot;
-    BlitScreen blit_application_layer;
+    BlitScreen blit_capture;
+    BlitScreen blit_applet;
     RasterizerVulkan rasterizer;
     std::optional<TurboMode> turbo_mode;
 
-    Frame application_frame;
+    Frame applet_frame;
 };
 
 } // namespace Vulkan

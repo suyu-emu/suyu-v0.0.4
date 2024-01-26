@@ -68,8 +68,12 @@ void SystemBufferManager::SetWindowVisibility(bool visible) {
 
 Result SystemBufferManager::WriteAppletCaptureBuffer(bool* out_was_written,
                                                      s32* out_fbshare_layer_index) {
-    // TODO
-    R_SUCCEED();
+    if (!m_buffer_sharing_enabled) {
+        return VI::ResultPermissionDenied;
+    }
+
+    return m_nvnflinger->GetSystemBufferManager().WriteAppletCaptureBuffer(out_was_written,
+                                                                           out_fbshare_layer_index);
 }
 
 } // namespace Service::AM

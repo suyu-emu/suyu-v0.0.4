@@ -15,6 +15,7 @@
 #include "core/hle/service/vi/layer/vi_layer.h"
 #include "core/hle/service/vi/vi_results.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 
 namespace Service::Nvnflinger {
 
@@ -414,9 +415,30 @@ Result FbShareBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadab
     R_SUCCEED();
 }
 
-Result FbShareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written,
-                                                      s32* out_layer_index) {
-    // TODO
+Result FbShareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32* out_layer_index) {
+    std::vector<u8> capture_buffer(m_system.GPU().GetAppletCaptureBuffer());
+    Common::ScratchBuffer<u32> scratch;
+
+    // TODO: this could be optimized
+    s64 e = -1280 * 768 * 4;
+    for (auto& block : *m_buffer_page_group) {
+        u8* start = m_system.DeviceMemory().GetPointer<u8>(block.GetAddress());
+        u8* end = m_system.DeviceMemory().GetPointer<u8>(block.GetAddress() + block.GetSize());
+
+        for (; start < end; start++) {
+            *start = 0;
+
+            if (e >= 0 && e < static_cast<s64>(capture_buffer.size())) {
+                *start = capture_buffer[e];
+            }
+            e++;
+        }
+
+        m_system.GPU().Host1x().MemoryManager().ApplyOpOnPointer(start, scratch, [&](DAddr addr) {
+            m_system.GPU().InvalidateRegion(addr, end - start);
+        });
+    }
+
     *out_was_written = true;
     *out_layer_index = 1;
     R_SUCCEED();

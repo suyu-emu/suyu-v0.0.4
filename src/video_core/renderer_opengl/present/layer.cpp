@@ -34,7 +34,7 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
                             std::array<ScreenRectVertex, 4>& out_vertices,
                             ProgramManager& program_manager,
                             const Tegra::FramebufferConfig& framebuffer,
-                            const Layout::FramebufferLayout& layout) {
+                            const Layout::FramebufferLayout& layout, bool invert_y) {
     FramebufferTextureInfo info = PrepareRenderTarget(framebuffer);
     auto crop = Tegra::NormalizeCrop(framebuffer, info.width, info.height);
     GLuint texture = info.display_texture;
@@ -83,10 +83,15 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
     const auto w = screen.GetWidth();
     const auto h = screen.GetHeight();
 
-    out_vertices[0] = ScreenRectVertex(x, y, crop.left, crop.top);
-    out_vertices[1] = ScreenRectVertex(x + w, y, crop.right, crop.top);
-    out_vertices[2] = ScreenRectVertex(x, y + h, crop.left, crop.bottom);
-    out_vertices[3] = ScreenRectVertex(x + w, y + h, crop.right, crop.bottom);
+    const auto left = crop.left;
+    const auto right = crop.right;
+    const auto top = invert_y ? crop.bottom : crop.top;
+    const auto bottom = invert_y ? crop.top : crop.bottom;
+
+    out_vertices[0] = ScreenRectVertex(x, y, left, top);
+    out_vertices[1] = ScreenRectVertex(x + w, y, right, top);
+    out_vertices[2] = ScreenRectVertex(x, y + h, left, bottom);
+    out_vertices[3] = ScreenRectVertex(x + w, y + h, right, bottom);
 
     return texture;
 }

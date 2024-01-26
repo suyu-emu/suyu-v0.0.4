@@ -20,7 +20,7 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
 BlitScreen::~BlitScreen() = default;
 
 void BlitScreen::DrawScreen(std::span<const Tegra::FramebufferConfig> framebuffers,
-                            const Layout::FramebufferLayout& layout) {
+                            const Layout::FramebufferLayout& layout, bool invert_y) {
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyScreenDrawVertexArray();
     state_tracker.NotifyPolygonModes();
@@ -60,7 +60,7 @@ void BlitScreen::DrawScreen(std::span<const Tegra::FramebufferConfig> framebuffe
     }
 
     CreateWindowAdapt();
-    window_adapt->DrawToFramebuffer(program_manager, layers, framebuffers, layout);
+    window_adapt->DrawToFramebuffer(program_manager, layers, framebuffers, layout, invert_y);
 
     // TODO
     // program_manager.RestoreGuestPipeline();
