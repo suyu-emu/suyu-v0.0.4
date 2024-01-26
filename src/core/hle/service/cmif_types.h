@@ -15,19 +15,21 @@ namespace Service {
 template <typename T>
 class Out {
 public:
-    /* implicit */ Out(T& t) : raw(&t) {}
+    using Type = T;
+
+    /* implicit */ Out(Type& t) : raw(&t) {}
     ~Out() = default;
 
-    T* Get() const {
+    Type* Get() const {
         return raw;
     }
 
-    T& operator*() {
+    Type& operator*() {
         return *raw;
     }
 
 private:
-    T* raw;
+    Type* raw;
 };
 
 template <typename T>
@@ -45,51 +47,93 @@ struct ClientProcessId {
     u64 pid;
 };
 
+struct ProcessId {
+    explicit operator bool() const {
+        return pid != 0;
+    }
+
+    const u64& operator*() const {
+        return pid;
+    }
+
+    u64 pid;
+};
+
 using ClientAppletResourceUserId = ClientProcessId;
+using AppletResourceUserId = ProcessId;
 
 template <typename T>
-class InCopyHandle : public Kernel::KScopedAutoObject<T> {
+class InCopyHandle {
 public:
     using Type = T;
 
-    template <typename... Args>
-    /* implicit */ InCopyHandle(Args&&... args) : Kernel::KScopedAutoObject<T>(std::forward<Args...>(args)...) {}
+    /* implicit */ InCopyHandle(Type* t) : raw(t) {}
+    /* implicit */ InCopyHandle() : raw() {}
     ~InCopyHandle() = default;
 
-    InCopyHandle& operator=(InCopyHandle&& rhs) {
-        Kernel::KScopedAutoObject<T>::operator=(std::move(rhs));
+    InCopyHandle& operator=(Type* rhs) {
+        raw = rhs;
         return *this;
     }
+
+    Type* Get() const {
+        return raw;
+    }
+
+    Type& operator*() const {
+        return *raw;
+    }
+
+    Type* operator->() const {
+        return raw;
+    }
+
+    explicit operator bool() const {
+        return raw != nullptr;
+    }
+
+private:
+    Type* raw;
 };
 
 template <typename T>
-class OutCopyHandle : public Kernel::KScopedAutoObject<T> {
+class OutCopyHandle {
 public:
-    using Type = T;
+    using Type = T*;
 
-    template <typename... Args>
-    /* implicit */ OutCopyHandle(Args&&... args) : Kernel::KScopedAutoObject<T>(std::forward<Args...>(args)...) {}
+    /* implicit */ OutCopyHandle(Type& t) : raw(&t) {}
     ~OutCopyHandle() = default;
 
-    OutCopyHandle& operator=(OutCopyHandle&& rhs) {
-        Kernel::KScopedAutoObject<T>::operator=(std::move(rhs));
-        return *this;
+    Type* Get() const {
+        return raw;
     }
+
+    Type& operator*() {
+        return *raw;
+    }
+
+private:
+    Type* raw;
 };
 
 template <typename T>
-class OutMoveHandle : public Kernel::KScopedAutoObject<T> {
+class OutMoveHandle {
 public:
-    using Type = T;
+    using Type = T*;
 
-    template <typename... Args>
-    /* implicit */ OutMoveHandle(Args&&... args) : Kernel::KScopedAutoObject<T>(std::forward<Args...>(args)...) {}
+    /* implicit */ OutMoveHandle(Type& t) : raw(&t) {}
     ~OutMoveHandle() = default;
 
-    OutMoveHandle& operator=(OutMoveHandle&& rhs) {
-        Kernel::KScopedAutoObject<T>::operator=(std::move(rhs));
-        return *this;
+    Type* Get() const {
+        return raw;
     }
+
+    Type& operator*() {
+        return *raw;
+    }
+
+private:
+    Type* raw;
 };
 
 enum BufferAttr : int {
@@ -105,11 +149,14 @@ enum BufferAttr : int {
 
 template <typename T, int A>
 struct Buffer : public std::span<T> {
-    static_assert(std::is_trivial_v<T>, "Buffer type must be trivial");
+    static_assert(std::is_trivially_copyable_v<T>, "Buffer type must be trivially copyable");
     static_assert((A & BufferAttr_FixedSize) == 0, "Buffer attr must not contain FixedSize");
     static_assert(((A & BufferAttr_In) == 0) ^ ((A & BufferAttr_Out) == 0), "Buffer attr must be In or Out");
     static constexpr BufferAttr Attr = static_cast<BufferAttr>(A);
     using Type = T;
+
+    /* implicit */ Buffer(const std::span<T>& rhs) : std::span<T>(rhs) {}
+    /* implicit */ Buffer() = default;
 
     Buffer& operator=(const std::span<T>& rhs) {
         std::span<T>::operator=(rhs);
@@ -139,11 +186,14 @@ using OutArray = Buffer<T, BufferAttr_Out | A>;
 
 template <typename T, int A>
 struct LargeData : public T {
-    static_assert(std::is_trivial_v<T>, "LargeData type must be trivial");
+    static_assert(std::is_trivially_copyable_v<T>, "LargeData type must be trivially copyable");
     static_assert((A & BufferAttr_FixedSize) != 0, "LargeData attr must contain FixedSize");
     static_assert(((A & BufferAttr_In) == 0) ^ ((A & BufferAttr_Out) == 0), "LargeData attr must be In or Out");
     static constexpr BufferAttr Attr = static_cast<BufferAttr>(A);
     using Type = T;
+
+    /* implicit */ LargeData(const T& rhs) : T(rhs) {}
+    /* implicit */ LargeData() = default;
 };
 
 template <typename T, BufferAttr A>
@@ -159,7 +209,17 @@ struct RemoveOut {
 
 template <typename T>
 struct RemoveOut<Out<T>> {
-    using Type = T;
+    using Type = typename Out<T>::Type;
+};
+
+template <typename T>
+struct RemoveOut<OutCopyHandle<T>> {
+    using Type = typename OutCopyHandle<T>::Type;
+};
+
+template <typename T>
+struct RemoveOut<OutMoveHandle<T>> {
+    using Type = typename OutMoveHandle<T>::Type;
 };
 
 enum class ArgumentType {
