@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "core/hle/service/service.h"
+#include "core/hle/service/cmif_types.h"
 
 namespace Core {
 class System;
@@ -11,19 +11,20 @@ class System;
 
 namespace Service::Mii {
 class MiiManager;
+class IDatabaseService;
 
-class MiiDBModule final : public ServiceFramework<MiiDBModule> {
+class IStaticService final : public ServiceFramework<IStaticService> {
 public:
-    explicit MiiDBModule(Core::System& system_, const char* name_,
-                         std::shared_ptr<MiiManager> mii_manager, bool is_system_);
-    ~MiiDBModule() override;
+    explicit IStaticService(Core::System& system_, const char* name_,
+                            std::shared_ptr<MiiManager> mii_manager, bool is_system_);
+    ~IStaticService() override;
 
     std::shared_ptr<MiiManager> GetMiiManager();
 
 private:
-    void GetDatabaseService(HLERequestContext& ctx);
+    Result GetDatabaseService(Out<SharedPointer<IDatabaseService>> out_database_service);
 
-    std::shared_ptr<MiiManager> manager = nullptr;
+    std::shared_ptr<MiiManager> manager{nullptr};
     bool is_system{};
 };
 
