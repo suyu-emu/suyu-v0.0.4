@@ -26,6 +26,23 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // A setting can be ignored by giving it a blank name
 
+    // Applets
+    INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QStringLiteral());
+    INSERT(Settings, controller_applet_mode, tr("Controller configuration"), QStringLiteral());
+    INSERT(Settings, data_erase_applet_mode, tr("Data erase"), QStringLiteral());
+    INSERT(Settings, error_applet_mode, tr("Error"), QStringLiteral());
+    INSERT(Settings, net_connect_applet_mode, tr("Net connect"), QStringLiteral());
+    INSERT(Settings, player_select_applet_mode, tr("Player select"), QStringLiteral());
+    INSERT(Settings, swkbd_applet_mode, tr("Software keyboard"), QStringLiteral());
+    INSERT(Settings, mii_edit_applet_mode, tr("Mii Edit"), QStringLiteral());
+    INSERT(Settings, web_applet_mode, tr("Online web"), QStringLiteral());
+    INSERT(Settings, shop_applet_mode, tr("Shop"), QStringLiteral());
+    INSERT(Settings, photo_viewer_applet_mode, tr("Photo viewer"), QStringLiteral());
+    INSERT(Settings, offline_web_applet_mode, tr("Offline web"), QStringLiteral());
+    INSERT(Settings, login_share_applet_mode, tr("Login share"), QStringLiteral());
+    INSERT(Settings, wifi_web_auth_applet_mode, tr("Wifi web auth"), QStringLiteral());
+    INSERT(Settings, my_page_applet_mode, tr("My page"), QStringLiteral());
+
     // Audio
     INSERT(Settings, sink_id, tr("Output Engine:"), QStringLiteral());
     INSERT(Settings, audio_output_device_id, tr("Output Device:"), QStringLiteral());
@@ -203,6 +220,11 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
 #define PAIR(ENUM, VALUE, TRANSLATION) {static_cast<u32>(Settings::ENUM::VALUE), (TRANSLATION)}
 
     // Intentionally skipping VSyncMode to let the UI fill that one out
+    translations->insert({Settings::EnumMetadata<Settings::AppletMode>::Index(),
+                          {
+                              PAIR(AppletMode, HLE, tr("Custom frontend")),
+                              PAIR(AppletMode, LLE, tr("Real applet")),
+                          }});
 
     translations->insert({Settings::EnumMetadata<Settings::AstcDecodeMode>::Index(),
                           {
