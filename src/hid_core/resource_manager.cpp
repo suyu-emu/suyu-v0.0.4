@@ -184,7 +184,7 @@ void ResourceManager::InitializeHidCommonSampler() {
     keyboard->SetAppletResource(applet_resource, &shared_mutex);
 
     const auto settings =
-        system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys");
+        system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
     npad->SetNpadExternals(applet_resource, &shared_mutex, handheld_config, settings);
 
     six_axis->SetAppletResource(applet_resource, &shared_mutex);

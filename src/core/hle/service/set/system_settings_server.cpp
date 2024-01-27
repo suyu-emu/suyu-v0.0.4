@@ -131,10 +131,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {40, &ISystemSettingsServer::SetTvSettings, "SetTvSettings"},
         {41, nullptr, "GetEdid"},
         {42, nullptr, "SetEdid"},
-        {43, nullptr, "GetAudioOutputMode"},
-        {44, nullptr, "SetAudioOutputMode"},
-        {45, &ISystemSettingsServer::IsForceMuteOnHeadphoneRemoved, "IsForceMuteOnHeadphoneRemoved"},
-        {46, &ISystemSettingsServer::SetForceMuteOnHeadphoneRemoved, "SetForceMuteOnHeadphoneRemoved"},
+        {43, &ISystemSettingsServer::GetAudioOutputMode, "GetAudioOutputMode"},
+        {44, &ISystemSettingsServer::SetAudioOutputMode, "SetAudioOutputMode"},
+        {45, &ISystemSettingsServer::GetSpeakerAutoMuteFlag , "GetSpeakerAutoMuteFlag"},
+        {46, &ISystemSettingsServer::SetSpeakerAutoMuteFlag , "SetSpeakerAutoMuteFlag"},
         {47, &ISystemSettingsServer::GetQuestFlag, "GetQuestFlag"},
         {48, &ISystemSettingsServer::SetQuestFlag, "SetQuestFlag"},
         {49, nullptr, "GetDataDeletionSettings"},
@@ -155,8 +155,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {64, &ISystemSettingsServer::SetPrimaryAlbumStorage, "SetPrimaryAlbumStorage"},
         {65, nullptr, "GetUsb30EnableFlag"},
         {66, nullptr, "SetUsb30EnableFlag"},
-        {67, nullptr, "GetBatteryLot"},
-        {68, nullptr, "GetSerialNumber"},
+        {67, &ISystemSettingsServer::GetBatteryLot, "GetBatteryLot"},
+        {68, &ISystemSettingsServer::GetSerialNumber, "GetSerialNumber"},
         {69, &ISystemSettingsServer::GetNfcEnableFlag, "GetNfcEnableFlag"},
         {70, &ISystemSettingsServer::SetNfcEnableFlag, "SetNfcEnableFlag"},
         {71, &ISystemSettingsServer::GetSleepSettings, "GetSleepSettings"},
@@ -184,11 +184,11 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {93, nullptr, "AcquireFatalDirtyFlagEventHandle"},
         {94, nullptr, "GetFatalDirtyFlags"},
         {95, &ISystemSettingsServer::GetAutoUpdateEnableFlag, "GetAutoUpdateEnableFlag"},
-        {96, nullptr, "SetAutoUpdateEnableFlag"},
+        {96,  &ISystemSettingsServer::SetAutoUpdateEnableFlag, "SetAutoUpdateEnableFlag"},
         {97, nullptr, "GetNxControllerSettings"},
         {98, nullptr, "SetNxControllerSettings"},
         {99, &ISystemSettingsServer::GetBatteryPercentageFlag, "GetBatteryPercentageFlag"},
-        {100, nullptr, "SetBatteryPercentageFlag"},
+        {100, &ISystemSettingsServer::SetBatteryPercentageFlag, "SetBatteryPercentageFlag"},
         {101, nullptr, "GetExternalRtcResetFlag"},
         {102, nullptr, "SetExternalRtcResetFlag"},
         {103, nullptr, "GetUsbFullKeyEnableFlag"},
@@ -208,12 +208,12 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {117, nullptr, "GetHeadphoneVolumeUpdateFlag"},
         {118, nullptr, "SetHeadphoneVolumeUpdateFlag"},
         {119, nullptr, "NeedsToUpdateHeadphoneVolume"},
-        {120, nullptr, "GetPushNotificationActivityModeOnSleep"},
-        {121, nullptr, "SetPushNotificationActivityModeOnSleep"},
+        {120, &ISystemSettingsServer::GetPushNotificationActivityModeOnSleep, "GetPushNotificationActivityModeOnSleep"},
+        {121, &ISystemSettingsServer::SetPushNotificationActivityModeOnSleep, "SetPushNotificationActivityModeOnSleep"},
         {122, nullptr, "GetServiceDiscoveryControlSettings"},
         {123, nullptr, "SetServiceDiscoveryControlSettings"},
         {124, &ISystemSettingsServer::GetErrorReportSharePermission, "GetErrorReportSharePermission"},
-        {125, nullptr, "SetErrorReportSharePermission"},
+        {125, &ISystemSettingsServer::SetErrorReportSharePermission, "SetErrorReportSharePermission"},
         {126, &ISystemSettingsServer::GetAppletLaunchFlags, "GetAppletLaunchFlags"},
         {127, &ISystemSettingsServer::SetAppletLaunchFlags, "SetAppletLaunchFlags"},
         {128, nullptr, "GetConsoleSixAxisSensorAccelerationBias"},
@@ -225,7 +225,7 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {134, nullptr, "GetConsoleSixAxisSensorAngularVelocityGain"},
         {135, nullptr, "SetConsoleSixAxisSensorAngularVelocityGain"},
         {136, &ISystemSettingsServer::GetKeyboardLayout, "GetKeyboardLayout"},
-        {137, nullptr, "SetKeyboardLayout"},
+        {137, &ISystemSettingsServer::SetKeyboardLayout, "SetKeyboardLayout"},
         {138, nullptr, "GetWebInspectorFlag"},
         {139, nullptr, "GetAllowedSslHosts"},
         {140, nullptr, "GetHostFsMountPoint"},
@@ -291,8 +291,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {200, nullptr, "SetButtonConfigRegisteredSettings"},
         {201, &ISystemSettingsServer::GetFieldTestingFlag, "GetFieldTestingFlag"},
         {202, nullptr, "SetFieldTestingFlag"},
-        {203, nullptr, "GetPanelCrcMode"},
-        {204, nullptr, "SetPanelCrcMode"},
+        {203, &ISystemSettingsServer::GetPanelCrcMode, "GetPanelCrcMode"},
+        {204, &ISystemSettingsServer::SetPanelCrcMode, "SetPanelCrcMode"},
         {205, nullptr, "GetNxControllerSettingsEx"},
         {206, nullptr, "SetNxControllerSettingsEx"},
         {207, nullptr, "GetHearingProtectionSafeguardFlag"},
@@ -390,7 +390,7 @@ bool ISystemSettingsServer::StoreSettingsFile(std::filesystem::path& path, auto&
     }
 
     auto settings_base = path / "settings";
-    auto settings_tmp_file = settings_base;
+    std::filesystem::path settings_tmp_file = settings_base;
     settings_tmp_file = settings_tmp_file.replace_extension("tmp");
     std::ofstream file(settings_tmp_file, std::ios::binary | std::ios::out);
     if (!file.is_open()) {
@@ -814,7 +814,34 @@ void ISystemSettingsServer::SetTvSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void ISystemSettingsServer::IsForceMuteOnHeadphoneRemoved(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetAudioOutputMode(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto target{rp.PopEnum<AudioOutputModeTarget>()};
+
+    AudioOutputMode output_mode{};
+    const auto result = GetAudioOutputMode(output_mode, target);
+
+    LOG_INFO(Service_SET, "called, target={}, output_mode={}", target, output_mode);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(result);
+    rb.PushEnum(output_mode);
+}
+
+void ISystemSettingsServer::SetAudioOutputMode(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto target{rp.PopEnum<AudioOutputModeTarget>()};
+    const auto output_mode{rp.PopEnum<AudioOutputMode>()};
+
+    const auto result = SetAudioOutputMode(target, output_mode);
+
+    LOG_INFO(Service_SET, "called, target={}, output_mode={}", target, output_mode);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void ISystemSettingsServer::GetSpeakerAutoMuteFlag(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called, force_mute_on_headphone_removed={}",
              m_system_settings.force_mute_on_headphone_removed);
 
@@ -823,7 +850,7 @@ void ISystemSettingsServer::IsForceMuteOnHeadphoneRemoved(HLERequestContext& ctx
     rb.PushRaw(m_system_settings.force_mute_on_headphone_removed);
 }
 
-void ISystemSettingsServer::SetForceMuteOnHeadphoneRemoved(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetSpeakerAutoMuteFlag(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.force_mute_on_headphone_removed = rp.PopRaw<bool>();
     SetSaveNeeded();
@@ -964,6 +991,26 @@ void ISystemSettingsServer::SetPrimaryAlbumStorage(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void ISystemSettingsServer::GetBatteryLot(HLERequestContext& ctx) {
+    BatteryLot battery_lot = {"YUZUEMULATOR123456789"};
+
+    LOG_INFO(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 8};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(battery_lot);
+}
+
+void ISystemSettingsServer::GetSerialNumber(HLERequestContext& ctx) {
+    SerialNumber console_serial = {"YUZ10012345678"};
+
+    LOG_INFO(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 8};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(console_serial);
 }
 
 void ISystemSettingsServer::GetNfcEnableFlag(HLERequestContext& ctx) {
@@ -1129,6 +1176,17 @@ void ISystemSettingsServer::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
     rb.Push(m_system_settings.auto_update_enable_flag);
 }
 
+void ISystemSettingsServer::SetAutoUpdateEnableFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.auto_update_enable_flag = rp.Pop<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, auto_update_flag={}", m_system_settings.auto_update_enable_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void ISystemSettingsServer::GetBatteryPercentageFlag(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called, battery_percentage_flag={}",
               m_system_settings.battery_percentage_flag);
@@ -1136,6 +1194,18 @@ void ISystemSettingsServer::GetBatteryPercentageFlag(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(m_system_settings.battery_percentage_flag);
+}
+
+void ISystemSettingsServer::SetBatteryPercentageFlag(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.battery_percentage_flag = rp.Pop<bool>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, battery_percentage_flag={}",
+             m_system_settings.battery_percentage_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ISystemSettingsServer::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
@@ -1161,6 +1231,27 @@ void ISystemSettingsServer::GetExternalSteadyClockInternalOffset(HLERequestConte
     rb.Push(offset);
 }
 
+void ISystemSettingsServer::GetPushNotificationActivityModeOnSleep(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, push_notification_activity_mode_on_sleep={}",
+             m_system_settings.push_notification_activity_mode_on_sleep);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(m_system_settings.push_notification_activity_mode_on_sleep);
+}
+
+void ISystemSettingsServer::SetPushNotificationActivityModeOnSleep(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.push_notification_activity_mode_on_sleep = rp.Pop<s32>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, push_notification_activity_mode_on_sleep={}",
+             m_system_settings.push_notification_activity_mode_on_sleep);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void ISystemSettingsServer::GetErrorReportSharePermission(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called, error_report_share_permission={}",
              m_system_settings.error_report_share_permission);
@@ -1168,6 +1259,18 @@ void ISystemSettingsServer::GetErrorReportSharePermission(HLERequestContext& ctx
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.PushEnum(m_system_settings.error_report_share_permission);
+}
+
+void ISystemSettingsServer::SetErrorReportSharePermission(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.error_report_share_permission = rp.PopEnum<ErrorReportSharePermission>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, error_report_share_permission={}",
+             m_system_settings.error_report_share_permission);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ISystemSettingsServer::GetAppletLaunchFlags(HLERequestContext& ctx) {
@@ -1190,22 +1293,22 @@ void ISystemSettingsServer::SetAppletLaunchFlags(HLERequestContext& ctx) {
 }
 
 void ISystemSettingsServer::GetKeyboardLayout(HLERequestContext& ctx) {
-    const auto language_code =
-        available_language_codes[static_cast<s32>(::Settings::values.language_index.GetValue())];
-    const auto key_code =
-        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
-                     [=](const auto& element) { return element.first == language_code; });
-
-    KeyboardLayout selected_keyboard_layout = KeyboardLayout::EnglishUs;
-    if (key_code != language_to_layout.end()) {
-        selected_keyboard_layout = key_code->second;
-    }
-
-    LOG_INFO(Service_SET, "called, selected_keyboard_layout={}", selected_keyboard_layout);
+    LOG_INFO(Service_SET, "called, keyboard_layout={}", m_system_settings.keyboard_layout);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<u32>(selected_keyboard_layout));
+    rb.Push(static_cast<u32>(m_system_settings.keyboard_layout));
+}
+
+void ISystemSettingsServer::SetKeyboardLayout(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.keyboard_layout = rp.PopRaw<KeyboardLayout>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, keyboard_layout={}", m_system_settings.keyboard_layout);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
@@ -1297,6 +1400,25 @@ void ISystemSettingsServer::GetFieldTestingFlag(HLERequestContext& ctx) {
     rb.Push(m_system_settings.field_testing_flag);
 }
 
+void ISystemSettingsServer::GetPanelCrcMode(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, panel_crc_mode={}", m_system_settings.panel_crc_mode);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(m_system_settings.panel_crc_mode);
+}
+
+void ISystemSettingsServer::SetPanelCrcMode(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    m_system_settings.panel_crc_mode = rp.PopRaw<s32>();
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, panel_crc_mode={}", m_system_settings.panel_crc_mode);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void ISystemSettingsServer::SetupSettings() {
     auto system_dir =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000050";
@@ -1383,6 +1505,66 @@ Result ISystemSettingsServer::GetVibrationMasterVolume(f32& out_volume) const {
 
 Result ISystemSettingsServer::SetVibrationMasterVolume(f32 volume) {
     m_system_settings.vibration_master_volume = volume;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetAudioOutputMode(AudioOutputMode& out_output_mode,
+                                                 AudioOutputModeTarget target) const {
+    switch (target) {
+    case AudioOutputModeTarget::Hdmi:
+        out_output_mode = m_system_settings.audio_output_mode_hdmi;
+        break;
+    case AudioOutputModeTarget::Speaker:
+        out_output_mode = m_system_settings.audio_output_mode_speaker;
+        break;
+    case AudioOutputModeTarget::Headphone:
+        out_output_mode = m_system_settings.audio_output_mode_headphone;
+        break;
+    case AudioOutputModeTarget::Type3:
+        out_output_mode = m_system_settings.audio_output_mode_type3;
+        break;
+    case AudioOutputModeTarget::Type4:
+        out_output_mode = m_system_settings.audio_output_mode_type4;
+        break;
+    default:
+        LOG_ERROR(Service_SET, "Invalid audio output mode target {}", target);
+    }
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetAudioOutputMode(AudioOutputModeTarget target,
+                                                 AudioOutputMode output_mode) {
+    switch (target) {
+    case AudioOutputModeTarget::Hdmi:
+        m_system_settings.audio_output_mode_hdmi = output_mode;
+        break;
+    case AudioOutputModeTarget::Speaker:
+        m_system_settings.audio_output_mode_speaker = output_mode;
+        break;
+    case AudioOutputModeTarget::Headphone:
+        m_system_settings.audio_output_mode_headphone = output_mode;
+        break;
+    case AudioOutputModeTarget::Type3:
+        m_system_settings.audio_output_mode_type3 = output_mode;
+        break;
+    case AudioOutputModeTarget::Type4:
+        m_system_settings.audio_output_mode_type4 = output_mode;
+        break;
+    default:
+        LOG_ERROR(Service_SET, "Invalid audio output mode target {}", target);
+    }
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetSpeakerAutoMuteFlag(bool& is_auto_mute) const {
+    is_auto_mute = m_system_settings.force_mute_on_headphone_removed;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetSpeakerAutoMuteFlag(bool is_auto_mute) {
+    m_system_settings.force_mute_on_headphone_removed = is_auto_mute;
     SetSaveNeeded();
     R_SUCCEED();
 }
