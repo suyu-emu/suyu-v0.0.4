@@ -25,7 +25,7 @@
 namespace Service::Set {
 
 namespace {
-constexpr u32 SETTINGS_VERSION{1u};
+constexpr u32 SETTINGS_VERSION{2u};
 constexpr auto SETTINGS_MAGIC = Common::MakeMagic('y', 'u', 'z', 'u', '_', 's', 'e', 't');
 struct SettingsHeader {
     u64 magic;
@@ -349,7 +349,7 @@ bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&&
         }
         SettingsHeader hdr{};
         file.read(reinterpret_cast<char*>(&hdr), sizeof(hdr));
-        return hdr.magic == SETTINGS_MAGIC && hdr.version == SETTINGS_VERSION;
+        return hdr.magic == SETTINGS_MAGIC && hdr.version >= SETTINGS_VERSION;
     };
 
     if (!exists || !file_size_ok) {
