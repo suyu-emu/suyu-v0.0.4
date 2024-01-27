@@ -301,6 +301,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_exit -> {
                     emulationState.stop()
+                    NativeConfig.reloadGlobalConfig()
                     emulationViewModel.setIsEmulationStopping(true)
                     binding.drawerLayout.close()
                     binding.inGameMenu.requestFocus()
