@@ -41,6 +41,9 @@ add_executable(yuzu
     configuration/configuration_shared.cpp
     configuration/configuration_shared.h
     configuration/configure.ui
+    configuration/configure_applets.cpp
+    configuration/configure_applets.h
+    configuration/configure_applets.ui
     configuration/configure_audio.cpp
     configuration/configure_audio.h
     configuration/configure_audio.ui

@@ -8,6 +8,7 @@
 #include "core/core.h"
 #include "ui_configure.h"
 #include "vk_device_info.h"
+#include "yuzu/configuration/configure_applets.h"
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/configuration/configure_cpu.h"
 #include "yuzu/configuration/configure_debug_tab.h"
@@ -34,6 +35,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
     : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
       registry(registry_), system{system_}, builder{std::make_unique<ConfigurationShared::Builder>(
                                                 this, !system_.IsPoweredOn())},
+      applets_tab{std::make_unique<ConfigureApplets>(system_, nullptr, *builder, this)},
       audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, *builder, this)},
       cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, *builder, this)},
       debug_tab_tab{std::make_unique<ConfigureDebugTab>(system_, this)},
@@ -58,6 +60,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
 
     ui->setupUi(this);
 
+    ui->tabWidget->addTab(applets_tab.get(), tr("Applets"));
     ui->tabWidget->addTab(audio_tab.get(), tr("Audio"));
     ui->tabWidget->addTab(cpu_tab.get(), tr("CPU"));
     ui->tabWidget->addTab(debug_tab_tab.get(), tr("Debug"));
@@ -124,6 +127,7 @@ void ConfigureDialog::ApplyConfiguration() {
     debug_tab_tab->ApplyConfiguration();
     web_tab->ApplyConfiguration();
     network_tab->ApplyConfiguration();
+    applets_tab->ApplyConfiguration();
     system.ApplySettings();
     Settings::LogSettings();
 }
@@ -161,7 +165,8 @@ void ConfigureDialog::PopulateSelectionList() {
         {{tr("General"),
           {general_tab.get(), hotkeys_tab.get(), ui_tab.get(), web_tab.get(), debug_tab_tab.get()}},
          {tr("System"),
-          {system_tab.get(), profile_tab.get(), network_tab.get(), filesystem_tab.get()}},
+          {system_tab.get(), profile_tab.get(), network_tab.get(), filesystem_tab.get(),
+           applets_tab.get()}},
          {tr("CPU"), {cpu_tab.get()}},
          {tr("Graphics"), {graphics_tab.get(), graphics_advanced_tab.get()}},
          {tr("Audio"), {audio_tab.get()}},

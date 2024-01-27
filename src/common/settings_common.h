@@ -44,6 +44,7 @@ enum class Category : u32 {
     Services,
     Paths,
     Linux,
+    LibraryApplet,
     MaxEnum,
 };
 

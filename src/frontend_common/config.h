@@ -88,6 +88,7 @@ protected:
     void ReadSystemValues();
     void ReadWebServiceValues();
     void ReadNetworkValues();
+    void ReadLibraryAppletValues();
 
     // Read platform specific sections
     virtual void ReadHidbusValues() = 0;
@@ -121,6 +122,7 @@ protected:
     void SaveScreenshotValues();
     void SaveSystemValues();
     void SaveWebServiceValues();
+    void SaveLibraryAppletValues();
 
     // Save platform specific sections
     virtual void SaveHidbusValues() = 0;
