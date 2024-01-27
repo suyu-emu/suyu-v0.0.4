@@ -20,28 +20,29 @@ template <typename T>
 template <typename T>
 [[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected, T& actual);
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u8>(u8* pointer, u8 value, u8 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u8>(u8* pointer, u8 value, u8 expected) {
     const u8 result =
         _InterlockedCompareExchange8(reinterpret_cast<volatile char*>(pointer), value, expected);
     return result == expected;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u16>(u16* pointer, u16 value,
-                                                             u16 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u16>(u16* pointer, u16 value, u16 expected) {
     const u16 result =
         _InterlockedCompareExchange16(reinterpret_cast<volatile short*>(pointer), value, expected);
     return result == expected;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u32>(u32* pointer, u32 value,
-                                                             u32 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u32>(u32* pointer, u32 value, u32 expected) {
     const u32 result =
         _InterlockedCompareExchange(reinterpret_cast<volatile long*>(pointer), value, expected);
     return result == expected;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 value,
-                                                             u64 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 value, u64 expected) {
     const u64 result = _InterlockedCompareExchange64(reinterpret_cast<volatile __int64*>(pointer),
                                                      value, expected);
     return result == expected;
@@ -53,29 +54,32 @@ template [[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 v
                                           reinterpret_cast<__int64*>(expected.data())) != 0;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u8>(u8* pointer, u8 value, u8 expected,
-                                                            u8& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u8>(u8* pointer, u8 value, u8 expected, u8& actual) {
     actual =
         _InterlockedCompareExchange8(reinterpret_cast<volatile char*>(pointer), value, expected);
     return actual == expected;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u16>(u16* pointer, u16 value, u16 expected,
-                                                             u16& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u16>(u16* pointer, u16 value, u16 expected,
+                                                    u16& actual) {
     actual =
         _InterlockedCompareExchange16(reinterpret_cast<volatile short*>(pointer), value, expected);
     return actual == expected;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u32>(u32* pointer, u32 value, u32 expected,
-                                                             u32& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u32>(u32* pointer, u32 value, u32 expected,
+                                                    u32& actual) {
     actual =
         _InterlockedCompareExchange(reinterpret_cast<volatile long*>(pointer), value, expected);
     return actual == expected;
 }
 
-template [[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 value, u64 expected,
-                                                             u64& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 value, u64 expected,
+                                                    u64& actual) {
     actual = _InterlockedCompareExchange64(reinterpret_cast<volatile __int64*>(pointer), value,
                                            expected);
     return actual == expected;
