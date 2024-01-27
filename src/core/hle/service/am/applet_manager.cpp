@@ -221,6 +221,7 @@ void AppletManager::InsertApplet(std::shared_ptr<Applet> applet) {
 
 void AppletManager::TerminateAndRemoveApplet(AppletResourceUserId aruid) {
     std::shared_ptr<Applet> applet;
+    bool should_stop = false;
     {
         std::scoped_lock lk{m_lock};
 
@@ -231,10 +232,17 @@ void AppletManager::TerminateAndRemoveApplet(AppletResourceUserId aruid) {
 
         applet = it->second;
         m_applets.erase(it);
+
+        should_stop = m_applets.empty();
     }
 
     // Terminate process.
     applet->process->Terminate();
+
+    // If there were no applets left, stop emulation.
+    if (should_stop) {
+        m_system.Exit();
+    }
 }
 
 void AppletManager::CreateAndInsertByFrontendAppletParameters(
