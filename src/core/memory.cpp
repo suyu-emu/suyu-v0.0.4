@@ -781,8 +781,7 @@ struct Memory::Impl {
             },
             [&]() { HandleRasterizerWrite(GetInteger(vaddr), sizeof(T)); });
         if (ptr) {
-            const auto volatile_pointer = reinterpret_cast<volatile T*>(ptr);
-            return Common::AtomicCompareAndSwap(volatile_pointer, data, expected);
+            return Common::AtomicCompareAndSwap(reinterpret_cast<T*>(ptr), data, expected);
         }
         return true;
     }
@@ -796,8 +795,7 @@ struct Memory::Impl {
             },
             [&]() { HandleRasterizerWrite(GetInteger(vaddr), sizeof(u128)); });
         if (ptr) {
-            const auto volatile_pointer = reinterpret_cast<volatile u64*>(ptr);
-            return Common::AtomicCompareAndSwap(volatile_pointer, data, expected);
+            return Common::AtomicCompareAndSwap(reinterpret_cast<u64*>(ptr), data, expected);
         }
         return true;
     }
