@@ -137,7 +137,7 @@ void NpadAbstractPropertiesHandler::UpdateAllDeviceProperties() {
     const auto npad_index = NpadIdTypeToIndex(npad_id_type);
     for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; aruid_index++) {
         auto* data = applet_resource_holder->applet_resource->GetAruidData(aruid_index);
-        if (!data->flag.is_assigned) {
+        if (data == nullptr || !data->flag.is_assigned) {
             continue;
         }
         auto& npad_entry = data->shared_memory_format->npad.npad_entry[npad_index];
