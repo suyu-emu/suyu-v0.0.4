@@ -8,7 +8,8 @@
 namespace Service::HID {
 
 HidFirmwareSettings::HidFirmwareSettings(Core::System& system) {
-    m_set_sys = system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys");
+    m_set_sys =
+        system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
     LoadSettings(true);
 }
 

@@ -213,10 +213,9 @@ struct SystemSettings {
     // nn::settings::system::AudioVolume
     std::array<u8, 0x8> audio_volume_type0;
     std::array<u8, 0x8> audio_volume_type1;
-    // nn::settings::system::AudioOutputMode
-    s32 audio_output_mode_type0;
-    s32 audio_output_mode_type1;
-    s32 audio_output_mode_type2;
+    AudioOutputMode audio_output_mode_hdmi;
+    AudioOutputMode audio_output_mode_speaker;
+    AudioOutputMode audio_output_mode_headphone;
     bool force_mute_on_headphone_removed;
     INSERT_PADDING_BYTES(0x3);
     s32 headphone_volume_warning_count;
@@ -224,9 +223,8 @@ struct SystemSettings {
     INSERT_PADDING_BYTES(0x3);
     // nn::settings::system::AudioVolume
     std::array<u8, 0x8> audio_volume_type2;
-    // nn::settings::system::AudioOutputMode
-    s32 audio_output_mode_type3;
-    s32 audio_output_mode_type4;
+    AudioOutputMode audio_output_mode_type3;
+    AudioOutputMode audio_output_mode_type4;
     bool hearing_protection_safeguard_flag;
     INSERT_PADDING_BYTES(0x3);
     INSERT_PADDING_BYTES(0x4); // Reserved
