@@ -11,6 +11,10 @@ execute_process(
     WORKING_DIRECTORY ${ZONE_PATH}
     OUTPUT_VARIABLE FILE_LIST)
 
+if (NOT FILE_LIST)
+    message(FATAL_ERROR "No timezone files found in directory ${ZONE_PATH}, did the download fail?")
+endif()
+
 set(DIRECTORY_NAME ${HEADER_NAME})
 
 set(FILE_DATA "")
