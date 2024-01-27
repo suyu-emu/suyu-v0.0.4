@@ -47,6 +47,8 @@ struct FramebufferTextureInfo {
     VkImageView image_view{};
     u32 width{};
     u32 height{};
+    u32 scaled_width{};
+    u32 scaled_height{};
 };
 
 class BlitScreen {

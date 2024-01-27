@@ -788,18 +788,22 @@ std::optional<FramebufferTextureInfo> RasterizerVulkan::AccelerateDisplay(
         return {};
     }
     std::scoped_lock lock{texture_cache.mutex};
-    ImageView* const image_view =
+    const auto [image_view, scaled] =
         texture_cache.TryFindFramebufferImageView(config, framebuffer_addr);
     if (!image_view) {
         return {};
     }
     query_cache.NotifySegment(false);
 
+    const auto& resolution = Settings::values.resolution_info;
+
     FramebufferTextureInfo info{};
     info.image = image_view->ImageHandle();
     info.image_view = image_view->Handle(Shader::TextureType::Color2D);
     info.width = image_view->size.width;
     info.height = image_view->size.height;
+    info.scaled_width = scaled ? resolution.ScaleUp(info.width) : info.width;
+    info.scaled_height = scaled ? resolution.ScaleUp(info.height) : info.height;
     return info;
 }
 

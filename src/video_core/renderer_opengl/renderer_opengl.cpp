@@ -229,6 +229,8 @@ FramebufferTextureInfo RendererOpenGL::LoadFBToScreenInfo(
     info.display_texture = framebuffer_texture.resource.handle;
     info.width = framebuffer.width;
     info.height = framebuffer.height;
+    info.scaled_width = framebuffer.width;
+    info.scaled_height = framebuffer.height;
 
     // TODO(Rodrigo): Read this from HLE
     constexpr u32 block_height_log2 = 4;
@@ -476,25 +478,13 @@ void RendererOpenGL::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
 
     if (anti_aliasing != Settings::AntiAliasing::None) {
         glEnablei(GL_SCISSOR_TEST, 0);
-        auto viewport_width = info.width;
-        auto scissor_width = static_cast<u32>(crop.GetWidth());
-        if (scissor_width <= 0) {
-            scissor_width = viewport_width;
-        }
-        auto viewport_height = info.height;
-        auto scissor_height = static_cast<u32>(crop.GetHeight());
-        if (scissor_height <= 0) {
-            scissor_height = viewport_height;
-        }
-
-        viewport_width = Settings::values.resolution_info.ScaleUp(viewport_width);
-        scissor_width = Settings::values.resolution_info.ScaleUp(scissor_width);
-        viewport_height = Settings::values.resolution_info.ScaleUp(viewport_height);
-        scissor_height = Settings::values.resolution_info.ScaleUp(scissor_height);
+        auto scissor_width = Settings::values.resolution_info.ScaleUp(framebuffer_texture.width);
+        auto viewport_width = static_cast<GLfloat>(scissor_width);
+        auto scissor_height = Settings::values.resolution_info.ScaleUp(framebuffer_texture.height);
+        auto viewport_height = static_cast<GLfloat>(scissor_height);
 
         glScissorIndexed(0, 0, 0, scissor_width, scissor_height);
-        glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(viewport_width),
-                           static_cast<GLfloat>(viewport_height));
+        glViewportIndexedf(0, 0.0f, 0.0f, viewport_width, viewport_height);
 
         glBindSampler(0, present_sampler.handle);
         GLint old_read_fb;
@@ -557,10 +547,8 @@ void RendererOpenGL::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
             fsr->InitBuffers();
         }
 
-        const auto fsr_input_width = Settings::values.resolution_info.ScaleUp(info.width);
-        const auto fsr_input_height = Settings::values.resolution_info.ScaleUp(info.height);
         glBindSampler(0, present_sampler.handle);
-        fsr->Draw(program_manager, layout.screen, fsr_input_width, fsr_input_height, crop);
+        fsr->Draw(program_manager, layout.screen, info.scaled_width, info.scaled_height, crop);
     } else {
         if (fsr->AreBuffersInitialized()) {
             fsr->ReleaseBuffers();
