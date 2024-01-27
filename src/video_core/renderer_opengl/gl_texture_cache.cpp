@@ -1051,6 +1051,10 @@ void Image::Scale(bool up_scale) {
     state_tracker.NotifyScissor0();
 }
 
+bool Image::IsRescaled() const {
+    return True(flags & ImageFlagBits::Rescaled);
+}
+
 bool Image::ScaleUp(bool ignore) {
     const auto& resolution = runtime->resolution;
     if (!resolution.active) {

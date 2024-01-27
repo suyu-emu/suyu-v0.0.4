@@ -54,6 +54,8 @@ struct FramebufferTextureInfo {
     GLuint display_texture{};
     u32 width;
     u32 height;
+    u32 scaled_width;
+    u32 scaled_height;
 };
 
 class RendererOpenGL final : public VideoCore::RendererBase {

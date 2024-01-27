@@ -152,6 +152,8 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
         framebuffer, framebuffer.address + framebuffer.offset, framebuffer.stride);
     const u32 texture_width = texture_info ? texture_info->width : framebuffer.width;
     const u32 texture_height = texture_info ? texture_info->height : framebuffer.height;
+    const u32 scaled_width = texture_info ? texture_info->scaled_width : texture_width;
+    const u32 scaled_height = texture_info ? texture_info->scaled_height : texture_height;
     const bool use_accelerated = texture_info.has_value();
 
     RefreshResources(framebuffer);
@@ -363,8 +365,8 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
     if (fsr) {
         const auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
         const VkExtent2D fsr_input_size{
-            .width = Settings::values.resolution_info.ScaleUp(texture_width),
-            .height = Settings::values.resolution_info.ScaleUp(texture_height),
+            .width = scaled_width,
+            .height = scaled_height,
         };
         VkImageView fsr_image_view =
             fsr->Draw(scheduler, image_index, source_image_view, fsr_input_size, crop_rect);

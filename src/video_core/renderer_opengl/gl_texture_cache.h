@@ -217,6 +217,8 @@ public:
         return gl_type;
     }
 
+    bool IsRescaled() const;
+
     bool ScaleUp(bool ignore = false);
 
     bool ScaleDown(bool ignore = false);

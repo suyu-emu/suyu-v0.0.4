@@ -747,16 +747,20 @@ std::optional<FramebufferTextureInfo> RasterizerOpenGL::AccelerateDisplay(
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
     std::scoped_lock lock{texture_cache.mutex};
-    ImageView* const image_view{
-        texture_cache.TryFindFramebufferImageView(config, framebuffer_addr)};
+    const auto [image_view, scaled] =
+        texture_cache.TryFindFramebufferImageView(config, framebuffer_addr);
     if (!image_view) {
         return {};
     }
+
+    const auto& resolution = Settings::values.resolution_info;
 
     FramebufferTextureInfo info{};
     info.display_texture = image_view->Handle(Shader::TextureType::Color2D);
     info.width = image_view->size.width;
     info.height = image_view->size.height;
+    info.scaled_width = scaled ? resolution.ScaleUp(info.width) : info.width;
+    info.scaled_height = scaled ? resolution.ScaleUp(info.height) : info.height;
     return info;
 }
 
