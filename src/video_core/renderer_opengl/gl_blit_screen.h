@@ -15,6 +15,8 @@ namespace Layout {
 struct FramebufferLayout;
 }
 
+struct PresentFilters;
+
 namespace Tegra {
 struct FramebufferConfig;
 }
@@ -46,7 +48,7 @@ public:
     explicit BlitScreen(RasterizerOpenGL& rasterizer,
                         Tegra::MaxwellDeviceMemoryManager& device_memory,
                         StateTracker& state_tracker, ProgramManager& program_manager,
-                        Device& device);
+                        Device& device, const PresentFilters& filters);
     ~BlitScreen();
 
     /// Draws the emulated screens to the emulator window.
@@ -61,6 +63,7 @@ private:
     StateTracker& state_tracker;
     ProgramManager& program_manager;
     Device& device;
+    const PresentFilters& filters;
 
     Settings::ScalingFilter current_window_adapt{};
     std::unique_ptr<WindowAdaptPass> window_adapt;

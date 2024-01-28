@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
+#include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/present/filters.h"
@@ -13,9 +14,9 @@ namespace OpenGL {
 BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
                        Tegra::MaxwellDeviceMemoryManager& device_memory_,
                        StateTracker& state_tracker_, ProgramManager& program_manager_,
-                       Device& device_)
+                       Device& device_, const PresentFilters& filters_)
     : rasterizer(rasterizer_), device_memory(device_memory_), state_tracker(state_tracker_),
-      program_manager(program_manager_), device(device_) {}
+      program_manager(program_manager_), device(device_), filters(filters_) {}
 
 BlitScreen::~BlitScreen() = default;
 
@@ -56,7 +57,7 @@ void BlitScreen::DrawScreen(std::span<const Tegra::FramebufferConfig> framebuffe
     glDepthRangeIndexed(0, 0.0, 0.0);
 
     while (layers.size() < framebuffers.size()) {
-        layers.emplace_back(rasterizer, device_memory);
+        layers.emplace_back(rasterizer, device_memory, filters);
     }
 
     CreateWindowAdapt();
@@ -67,11 +68,11 @@ void BlitScreen::DrawScreen(std::span<const Tegra::FramebufferConfig> framebuffe
 }
 
 void BlitScreen::CreateWindowAdapt() {
-    if (window_adapt && Settings::values.scaling_filter.GetValue() == current_window_adapt) {
+    if (window_adapt && filters.get_scaling_filter() == current_window_adapt) {
         return;
     }
 
-    current_window_adapt = Settings::values.scaling_filter.GetValue();
+    current_window_adapt = filters.get_scaling_filter();
     switch (current_window_adapt) {
     case Settings::ScalingFilter::NearestNeighbor:
         window_adapt = MakeNearestNeighbor(device);

@@ -16,6 +16,8 @@ namespace Core {
 class System;
 }
 
+struct PresentFilters;
+
 namespace Tegra {
 struct FramebufferConfig;
 }
@@ -47,7 +49,7 @@ class BlitScreen {
 public:
     explicit BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory, const Device& device,
                         MemoryAllocator& memory_allocator, PresentManager& present_manager,
-                        Scheduler& scheduler);
+                        Scheduler& scheduler, const PresentFilters& filters);
     ~BlitScreen();
 
     void DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
@@ -70,6 +72,7 @@ private:
     MemoryAllocator& memory_allocator;
     PresentManager& present_manager;
     Scheduler& scheduler;
+    const PresentFilters& filters;
     std::size_t image_count{};
     std::size_t image_index{};
     VkFormat swapchain_view_format{};
