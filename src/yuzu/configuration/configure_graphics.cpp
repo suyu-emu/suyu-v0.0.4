@@ -224,6 +224,11 @@ void ConfigureGraphics::PopulateVSyncModeSelection(bool use_setting) {
 }
 
 void ConfigureGraphics::UpdateVsyncSetting() const {
+    const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
+    if (backend == Settings::RendererBackend::Null) {
+        return;
+    }
+
     const auto mode = vsync_mode_combobox_enum_map[vsync_mode_combobox->currentIndex()];
     const auto vsync_mode = PresentModeToSetting(mode);
     Settings::values.vsync_mode.SetValue(vsync_mode);
