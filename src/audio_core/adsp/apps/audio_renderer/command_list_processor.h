@@ -16,6 +16,10 @@ class Memory;
 class System;
 } // namespace Core
 
+namespace Kernel {
+class KProcess;
+}
+
 namespace AudioCore {
 namespace Sink {
 class SinkStream;
@@ -40,7 +44,8 @@ public:
      * @param size   - The size of the buffer.
      * @param stream - The stream to be used for sending the samples.
      */
-    void Initialize(Core::System& system, CpuAddr buffer, u64 size, Sink::SinkStream* stream);
+    void Initialize(Core::System& system, Kernel::KProcess& process, CpuAddr buffer, u64 size,
+                    Sink::SinkStream* stream);
 
     /**
      * Set the maximum processing time for this command list.

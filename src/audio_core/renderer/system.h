@@ -29,6 +29,7 @@ class System;
 
 namespace Kernel {
 class KEvent;
+class KProcess;
 class KTransferMemory;
 } // namespace Kernel
 
@@ -80,7 +81,8 @@ public:
      */
     Result Initialize(const AudioRendererParameterInternal& params,
                       Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size,
-                      u32 process_handle, u64 applet_resource_user_id, s32 session_id);
+                      u32 process_handle, Kernel::KProcess& process, u64 applet_resource_user_id,
+                      s32 session_id);
 
     /**
      * Finalize the system.
@@ -275,6 +277,8 @@ private:
     Common::Event terminate_event{};
     /// Does what locks do
     std::mutex lock{};
+    /// Process this audio render is operating within, used for memory reads/writes.
+    Kernel::KProcess* process{};
     /// Handle for the process for this system, unused
     u32 process_handle{};
     /// Applet resource id for this system, unused

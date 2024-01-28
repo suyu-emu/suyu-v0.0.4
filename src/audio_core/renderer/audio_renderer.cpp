@@ -6,6 +6,7 @@
 #include "audio_core/renderer/audio_renderer.h"
 #include "audio_core/renderer/system_manager.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/service/audio/errors.h"
 
@@ -17,7 +18,8 @@ Renderer::Renderer(Core::System& system_, Manager& manager_, Kernel::KEvent* ren
 Result Renderer::Initialize(const AudioRendererParameterInternal& params,
                             Kernel::KTransferMemory* transfer_memory,
                             const u64 transfer_memory_size, const u32 process_handle,
-                            const u64 applet_resource_user_id, const s32 session_id) {
+                            Kernel::KProcess& process, const u64 applet_resource_user_id,
+                            const s32 session_id) {
     if (params.execution_mode == ExecutionMode::Auto) {
         if (!manager.AddSystem(system)) {
             LOG_ERROR(Service_Audio,
@@ -28,7 +30,7 @@ Result Renderer::Initialize(const AudioRendererParameterInternal& params,
     }
 
     initialized = true;
-    system.Initialize(params, transfer_memory, transfer_memory_size, process_handle,
+    system.Initialize(params, transfer_memory, transfer_memory_size, process_handle, process,
                       applet_resource_user_id, session_id);
 
     return ResultSuccess;
