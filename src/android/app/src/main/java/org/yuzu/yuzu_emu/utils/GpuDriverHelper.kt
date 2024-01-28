@@ -3,8 +3,10 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import android.graphics.SurfaceTexture
 import android.net.Uri
 import android.os.Build
+import android.view.Surface
 import java.io.File
 import java.io.IOException
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -194,6 +196,11 @@ object GpuDriverHelper {
     }
 
     external fun supportsCustomDriverLoading(): Boolean
+
+    external fun getSystemDriverInfo(
+        surface: Surface = Surface(SurfaceTexture(true)),
+        hookLibPath: String = GpuDriverHelper.hookLibPath!!
+    ): Array<String>?
 
     // Parse the custom driver metadata to retrieve the name.
     val installedCustomDriverData: GpuDriverMetadata
