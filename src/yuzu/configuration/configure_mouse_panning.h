@@ -16,6 +16,7 @@ class ConfigureMousePanning;
 
 class ConfigureMousePanning : public QDialog {
     Q_OBJECT
+
 public:
     explicit ConfigureMousePanning(QWidget* parent, InputCommon::InputSubsystem* input_subsystem_,
                                    float right_stick_deadzone, float right_stick_range);

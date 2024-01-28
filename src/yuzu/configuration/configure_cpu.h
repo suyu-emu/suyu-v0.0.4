@@ -24,6 +24,8 @@ class Builder;
 }
 
 class ConfigureCpu : public ConfigurationShared::Tab {
+    Q_OBJECT
+
 public:
     explicit ConfigureCpu(const Core::System& system_,
                           std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
