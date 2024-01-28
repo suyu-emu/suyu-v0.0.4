@@ -25,6 +25,8 @@ class Builder;
 }
 
 class ConfigureGeneral : public ConfigurationShared::Tab {
+    Q_OBJECT
+
 public:
     explicit ConfigureGeneral(const Core::System& system_,
                               std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,

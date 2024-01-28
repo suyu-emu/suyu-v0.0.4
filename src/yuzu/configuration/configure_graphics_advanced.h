@@ -21,6 +21,8 @@ class Builder;
 }
 
 class ConfigureGraphicsAdvanced : public ConfigurationShared::Tab {
+    Q_OBJECT
+
 public:
     explicit ConfigureGraphicsAdvanced(
         const Core::System& system_, std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,

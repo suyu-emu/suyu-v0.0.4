@@ -24,6 +24,8 @@ class Builder;
 }
 
 class ConfigureAudio : public ConfigurationShared::Tab {
+    Q_OBJECT
+
 public:
     explicit ConfigureAudio(const Core::System& system_,
                             std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
