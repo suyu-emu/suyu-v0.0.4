@@ -89,11 +89,13 @@ u32 AudioRenderer::Receive(Direction dir) {
 }
 
 void AudioRenderer::SetCommandBuffer(s32 session_id, CpuAddr buffer, u64 size, u64 time_limit,
-                                     u64 applet_resource_user_id, bool reset) noexcept {
+                                     u64 applet_resource_user_id, Kernel::KProcess* process,
+                                     bool reset) noexcept {
     command_buffers[session_id].buffer = buffer;
     command_buffers[session_id].size = size;
     command_buffers[session_id].time_limit = time_limit;
     command_buffers[session_id].applet_resource_user_id = applet_resource_user_id;
+    command_buffers[session_id].process = process;
     command_buffers[session_id].reset_buffer = reset;
 }
 
@@ -173,7 +175,8 @@ void AudioRenderer::Main(std::stop_token stop_token) {
                     // If there are no remaining commands (from the previous list),
                     // this is a new command list, initialize it.
                     if (command_buffer.remaining_command_count == 0) {
-                        command_list_processor.Initialize(system, command_buffer.buffer,
+                        command_list_processor.Initialize(system, *command_buffer.process,
+                                                          command_buffer.buffer,
                                                           command_buffer.size, streams[index]);
                     }
 

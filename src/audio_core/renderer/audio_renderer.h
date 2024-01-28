@@ -14,7 +14,8 @@ class System;
 
 namespace Kernel {
 class KTransferMemory;
-}
+class KProcess;
+} // namespace Kernel
 
 namespace AudioCore {
 struct AudioRendererParameterInternal;
@@ -44,7 +45,8 @@ public:
      */
     Result Initialize(const AudioRendererParameterInternal& params,
                       Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size,
-                      u32 process_handle, u64 applet_resource_user_id, s32 session_id);
+                      u32 process_handle, Kernel::KProcess& process, u64 applet_resource_user_id,
+                      s32 session_id);
 
     /**
      * Finalize the renderer for shutdown.

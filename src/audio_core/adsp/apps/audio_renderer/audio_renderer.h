@@ -19,6 +19,10 @@ namespace Core {
 class System;
 } // namespace Core
 
+namespace Kernel {
+class KProcess;
+}
+
 namespace AudioCore {
 namespace Sink {
 class Sink;
@@ -69,7 +73,8 @@ public:
     u32 Receive(Direction dir);
 
     void SetCommandBuffer(s32 session_id, CpuAddr buffer, u64 size, u64 time_limit,
-                          u64 applet_resource_user_id, bool reset) noexcept;
+                          u64 applet_resource_user_id, Kernel::KProcess* process,
+                          bool reset) noexcept;
     u32 GetRemainCommandCount(s32 session_id) const noexcept;
     void ClearRemainCommandCount(s32 session_id) noexcept;
     u64 GetRenderingStartTick(s32 session_id) const noexcept;
