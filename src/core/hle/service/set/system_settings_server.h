@@ -50,6 +50,10 @@ public:
 
     Result GetVibrationMasterVolume(f32& out_volume) const;
     Result SetVibrationMasterVolume(f32 volume);
+    Result GetAudioOutputMode(AudioOutputMode& out_output_mode, AudioOutputModeTarget target) const;
+    Result SetAudioOutputMode(AudioOutputModeTarget target, AudioOutputMode output_mode);
+    Result GetSpeakerAutoMuteFlag(bool& is_auto_mute) const;
+    Result SetSpeakerAutoMuteFlag(bool auto_mute);
     Result GetExternalSteadyClockSourceId(Common::UUID& out_id) const;
     Result SetExternalSteadyClockSourceId(const Common::UUID& id);
     Result GetUserSystemClockContext(Service::PSC::Time::SystemClockContext& out_context) const;
@@ -97,8 +101,10 @@ private:
     void GetSettingsItemValue(HLERequestContext& ctx);
     void GetTvSettings(HLERequestContext& ctx);
     void SetTvSettings(HLERequestContext& ctx);
-    void IsForceMuteOnHeadphoneRemoved(HLERequestContext& ctx);
-    void SetForceMuteOnHeadphoneRemoved(HLERequestContext& ctx);
+    void GetAudioOutputMode(HLERequestContext& ctx);
+    void SetAudioOutputMode(HLERequestContext& ctx);
+    void GetSpeakerAutoMuteFlag(HLERequestContext& ctx);
+    void SetSpeakerAutoMuteFlag(HLERequestContext& ctx);
     void GetDebugModeFlag(HLERequestContext& ctx);
     void GetQuestFlag(HLERequestContext& ctx);
     void SetQuestFlag(HLERequestContext& ctx);
@@ -111,6 +117,8 @@ private:
     void SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void GetPrimaryAlbumStorage(HLERequestContext& ctx);
     void SetPrimaryAlbumStorage(HLERequestContext& ctx);
+    void GetBatteryLot(HLERequestContext& ctx);
+    void GetSerialNumber(HLERequestContext& ctx);
     void GetNfcEnableFlag(HLERequestContext& ctx);
     void SetNfcEnableFlag(HLERequestContext& ctx);
     void GetSleepSettings(HLERequestContext& ctx);
@@ -126,13 +134,19 @@ private:
     void SetBluetoothEnableFlag(HLERequestContext& ctx);
     void GetMiiAuthorId(HLERequestContext& ctx);
     void GetAutoUpdateEnableFlag(HLERequestContext& ctx);
+    void SetAutoUpdateEnableFlag(HLERequestContext& ctx);
     void GetBatteryPercentageFlag(HLERequestContext& ctx);
+    void SetBatteryPercentageFlag(HLERequestContext& ctx);
     void SetExternalSteadyClockInternalOffset(HLERequestContext& ctx);
     void GetExternalSteadyClockInternalOffset(HLERequestContext& ctx);
+    void GetPushNotificationActivityModeOnSleep(HLERequestContext& ctx);
+    void SetPushNotificationActivityModeOnSleep(HLERequestContext& ctx);
     void GetErrorReportSharePermission(HLERequestContext& ctx);
+    void SetErrorReportSharePermission(HLERequestContext& ctx);
     void GetAppletLaunchFlags(HLERequestContext& ctx);
     void SetAppletLaunchFlags(HLERequestContext& ctx);
     void GetKeyboardLayout(HLERequestContext& ctx);
+    void SetKeyboardLayout(HLERequestContext& ctx);
     void GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx);
     void SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx);
     void GetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx);
@@ -141,6 +155,8 @@ private:
     void GetHomeMenuScheme(HLERequestContext& ctx);
     void GetHomeMenuSchemeModel(HLERequestContext& ctx);
     void GetFieldTestingFlag(HLERequestContext& ctx);
+    void GetPanelCrcMode(HLERequestContext& ctx);
+    void SetPanelCrcMode(HLERequestContext& ctx);
 
     bool LoadSettingsFile(std::filesystem::path& path, auto&& default_func);
     bool StoreSettingsFile(std::filesystem::path& path, auto& settings);

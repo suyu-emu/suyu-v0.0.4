@@ -23,9 +23,12 @@ enum class AudioOutputMode : u32 {
 
 /// This is nn::settings::system::AudioOutputModeTarget
 enum class AudioOutputModeTarget : u32 {
+    None,
     Hdmi,
     Speaker,
     Headphone,
+    Type3,
+    Type4,
 };
 
 /// This is nn::settings::system::AudioVolumeTarget
@@ -367,6 +370,12 @@ struct AccountNotificationSettings {
 static_assert(sizeof(AccountNotificationSettings) == 0x18,
               "AccountNotificationSettings is an invalid size");
 
+/// This is nn::settings::factory::BatteryLot
+struct BatteryLot {
+    std::array<char, 0x18> lot_number;
+};
+static_assert(sizeof(BatteryLot) == 0x18, "BatteryLot is an invalid size");
+
 /// This is nn::settings::system::EulaVersion
 struct EulaVersion {
     u32 version;
@@ -435,6 +444,12 @@ struct NotificationSettings {
     NotificationTime stop_time;
 };
 static_assert(sizeof(NotificationSettings) == 0x18, "NotificationSettings is an invalid size");
+
+/// This is nn::settings::factory::SerialNumber
+struct SerialNumber {
+    std::array<char, 0x18> serial_number;
+};
+static_assert(sizeof(SerialNumber) == 0x18, "SerialNumber is an invalid size");
 
 /// This is nn::settings::system::SleepSettings
 struct SleepSettings {

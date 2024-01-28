@@ -9,6 +9,10 @@ namespace Core {
 class System;
 }
 
+namespace Service::Set {
+class ISystemSettingsServer;
+}
+
 namespace Service::Audio {
 
 class AudCtl final : public ServiceFramework<AudCtl> {
@@ -17,14 +21,6 @@ public:
     ~AudCtl() override;
 
 private:
-    enum class AudioOutputMode {
-        Invalid,
-        Pcm1ch,
-        Pcm2ch,
-        Pcm6ch,
-        PcmAuto,
-    };
-
     enum class ForceMutePolicy {
         Disable,
         SpeakerMuteOnHeadphoneUnplugged,
@@ -37,10 +33,18 @@ private:
 
     void GetTargetVolumeMin(HLERequestContext& ctx);
     void GetTargetVolumeMax(HLERequestContext& ctx);
+    void GetAudioOutputMode(HLERequestContext& ctx);
+    void SetAudioOutputMode(HLERequestContext& ctx);
     void GetForceMutePolicy(HLERequestContext& ctx);
     void GetOutputModeSetting(HLERequestContext& ctx);
+    void SetOutputModeSetting(HLERequestContext& ctx);
+    void SetHeadphoneOutputLevelMode(HLERequestContext& ctx);
     void GetHeadphoneOutputLevelMode(HLERequestContext& ctx);
+    void SetSpeakerAutoMuteEnabled(HLERequestContext& ctx);
     void IsSpeakerAutoMuteEnabled(HLERequestContext& ctx);
+    void AcquireTargetNotification(HLERequestContext& ctx);
+
+    std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 };
 
 } // namespace Service::Audio
