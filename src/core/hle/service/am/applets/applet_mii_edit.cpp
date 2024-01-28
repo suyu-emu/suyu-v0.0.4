@@ -59,7 +59,7 @@ void MiiEdit::Initialize() {
         break;
     }
 
-    manager = system.ServiceManager().GetService<Mii::MiiDBModule>("mii:e")->GetMiiManager();
+    manager = system.ServiceManager().GetService<Mii::IStaticService>("mii:e")->GetMiiManager();
     if (manager == nullptr) {
         manager = std::make_shared<Mii::MiiManager>();
     }
