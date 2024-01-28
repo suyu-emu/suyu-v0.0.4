@@ -60,6 +60,9 @@
 #include "jni/id_cache.h"
 #include "jni/native.h"
 #include "video_core/renderer_base.h"
+#include "video_core/renderer_vulkan/renderer_vulkan.h"
+#include "video_core/vulkan_common/vulkan_instance.h"
+#include "video_core/vulkan_common/vulkan_surface.h"
 
 #define jconst [[maybe_unused]] const auto
 #define jauto [[maybe_unused]] auto
@@ -519,6 +522,37 @@ jboolean JNICALL Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_supportsCustomDri
 #else
     return false;
 #endif
+}
+
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
+    JNIEnv* env, jobject j_obj, jobject j_surf, jstring j_hook_lib_dir) {
+    const char* file_redirect_dir_{};
+    int featureFlags{};
+    std::string hook_lib_dir = GetJString(env, j_hook_lib_dir);
+    auto handle = adrenotools_open_libvulkan(RTLD_NOW, featureFlags, nullptr, hook_lib_dir.c_str(),
+                                             nullptr, nullptr, file_redirect_dir_, nullptr);
+    auto driver_library = std::make_shared<Common::DynamicLibrary>(handle);
+    InputCommon::InputSubsystem input_subsystem;
+    auto m_window = std::make_unique<EmuWindow_Android>(
+        &input_subsystem, ANativeWindow_fromSurface(env, j_surf), driver_library);
+
+    Vulkan::vk::InstanceDispatch dld;
+    Vulkan::vk::Instance vk_instance = Vulkan::CreateInstance(
+        *driver_library, dld, VK_API_VERSION_1_1, Core::Frontend::WindowSystemType::Android);
+
+    auto surface = Vulkan::CreateSurface(vk_instance, m_window->GetWindowInfo());
+
+    auto device = Vulkan::CreateDevice(vk_instance, dld, *surface);
+
+    auto driver_version = device.GetDriverVersion();
+    auto version_string =
+        fmt::format("{}.{}.{}", VK_API_VERSION_MAJOR(driver_version),
+                    VK_API_VERSION_MINOR(driver_version), VK_API_VERSION_PATCH(driver_version));
+
+    jobjectArray j_driver_info =
+        env->NewObjectArray(2, IDCache::GetStringClass(), ToJString(env, version_string));
+    env->SetObjectArrayElement(j_driver_info, 1, ToJString(env, device.GetDriverName()));
+    return j_driver_info;
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclass clazz) {
