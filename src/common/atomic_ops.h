@@ -15,25 +15,34 @@ namespace Common {
 
 #if _MSC_VER
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u8* pointer, u8 value, u8 expected) {
+template <typename T>
+[[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected);
+template <typename T>
+[[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected, T& actual);
+
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u8>(u8* pointer, u8 value, u8 expected) {
     const u8 result =
         _InterlockedCompareExchange8(reinterpret_cast<volatile char*>(pointer), value, expected);
     return result == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u16* pointer, u16 value, u16 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u16>(u16* pointer, u16 value, u16 expected) {
     const u16 result =
         _InterlockedCompareExchange16(reinterpret_cast<volatile short*>(pointer), value, expected);
     return result == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u32* pointer, u32 value, u32 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u32>(u32* pointer, u32 value, u32 expected) {
     const u32 result =
         _InterlockedCompareExchange(reinterpret_cast<volatile long*>(pointer), value, expected);
     return result == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u64* pointer, u64 value, u64 expected) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 value, u64 expected) {
     const u64 result = _InterlockedCompareExchange64(reinterpret_cast<volatile __int64*>(pointer),
                                                      value, expected);
     return result == expected;
@@ -45,29 +54,32 @@ namespace Common {
                                           reinterpret_cast<__int64*>(expected.data())) != 0;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u8* pointer, u8 value, u8 expected,
-                                               u8& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u8>(u8* pointer, u8 value, u8 expected, u8& actual) {
     actual =
         _InterlockedCompareExchange8(reinterpret_cast<volatile char*>(pointer), value, expected);
     return actual == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u16* pointer, u16 value, u16 expected,
-                                               u16& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u16>(u16* pointer, u16 value, u16 expected,
+                                                    u16& actual) {
     actual =
         _InterlockedCompareExchange16(reinterpret_cast<volatile short*>(pointer), value, expected);
     return actual == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u32* pointer, u32 value, u32 expected,
-                                               u32& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u32>(u32* pointer, u32 value, u32 expected,
+                                                    u32& actual) {
     actual =
         _InterlockedCompareExchange(reinterpret_cast<volatile long*>(pointer), value, expected);
     return actual == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u64* pointer, u64 value, u64 expected,
-                                               u64& actual) {
+template <>
+[[nodiscard]] inline bool AtomicCompareAndSwap<u64>(u64* pointer, u64 value, u64 expected,
+                                                    u64& actual) {
     actual = _InterlockedCompareExchange64(reinterpret_cast<volatile __int64*>(pointer), value,
                                            expected);
     return actual == expected;
@@ -91,23 +103,12 @@ namespace Common {
 
 #else
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u8* pointer, u8 value, u8 expected) {
+template <typename T>
+[[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected) {
     return __sync_bool_compare_and_swap(pointer, expected, value);
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u16* pointer, u16 value, u16 expected) {
-    return __sync_bool_compare_and_swap(pointer, expected, value);
-}
-
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u32* pointer, u32 value, u32 expected) {
-    return __sync_bool_compare_and_swap(pointer, expected, value);
-}
-
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u64* pointer, u64 value, u64 expected) {
-    return __sync_bool_compare_and_swap(pointer, expected, value);
-}
-
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u64* pointer, u128 value, u128 expected) {
+[[nodiscard]] inline bool AtomicCompareAndSwap(u64* pointer, u128 value, u128 expected) {
     unsigned __int128 value_a;
     unsigned __int128 expected_a;
     std::memcpy(&value_a, value.data(), sizeof(u128));
@@ -115,31 +116,13 @@ namespace Common {
     return __sync_bool_compare_and_swap((unsigned __int128*)pointer, expected_a, value_a);
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u8* pointer, u8 value, u8 expected,
-                                               u8& actual) {
+template <typename T>
+[[nodiscard]] inline bool AtomicCompareAndSwap(T* pointer, T value, T expected, T& actual) {
     actual = __sync_val_compare_and_swap(pointer, expected, value);
     return actual == expected;
 }
 
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u16* pointer, u16 value, u16 expected,
-                                               u16& actual) {
-    actual = __sync_val_compare_and_swap(pointer, expected, value);
-    return actual == expected;
-}
-
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u32* pointer, u32 value, u32 expected,
-                                               u32& actual) {
-    actual = __sync_val_compare_and_swap(pointer, expected, value);
-    return actual == expected;
-}
-
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u64* pointer, u64 value, u64 expected,
-                                               u64& actual) {
-    actual = __sync_val_compare_and_swap(pointer, expected, value);
-    return actual == expected;
-}
-
-[[nodiscard]] inline bool AtomicCompareAndSwap(volatile u64* pointer, u128 value, u128 expected,
+[[nodiscard]] inline bool AtomicCompareAndSwap(u64* pointer, u128 value, u128 expected,
                                                u128& actual) {
     unsigned __int128 value_a;
     unsigned __int128 expected_a;
@@ -151,7 +134,7 @@ namespace Common {
     return actual_a == expected_a;
 }
 
-[[nodiscard]] inline u128 AtomicLoad128(volatile u64* pointer) {
+[[nodiscard]] inline u128 AtomicLoad128(u64* pointer) {
     unsigned __int128 zeros_a = 0;
     unsigned __int128 result_a =
         __sync_val_compare_and_swap((unsigned __int128*)pointer, zeros_a, zeros_a);
