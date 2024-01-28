@@ -543,7 +543,8 @@ void KThread::Unpin() {
     ASSERT(m_parent != nullptr);
 
     // Resume any threads that began waiting on us while we were pinned.
-    for (auto it = m_pinned_waiter_list.begin(); it != m_pinned_waiter_list.end(); ++it) {
+    for (auto it = m_pinned_waiter_list.begin(); it != m_pinned_waiter_list.end();
+         it = m_pinned_waiter_list.erase(it)) {
         it->EndWait(ResultSuccess);
     }
 }
