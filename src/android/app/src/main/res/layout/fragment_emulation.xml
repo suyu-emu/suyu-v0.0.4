@@ -34,8 +34,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:focusable="false"
                 android:defaultFocusHighlightEnabled="false"
-                android:clickable="false">
+                android:clickable="false"
+                app:rippleColor="@android:color/transparent">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/loading_layout"
