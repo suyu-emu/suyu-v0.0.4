@@ -9,14 +9,15 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
 
 namespace AudioCore::ADSP::AudioRenderer {
 
-void CommandListProcessor::Initialize(Core::System& system_, CpuAddr buffer, u64 size,
-                                      Sink::SinkStream* stream_) {
+void CommandListProcessor::Initialize(Core::System& system_, Kernel::KProcess& process,
+                                      CpuAddr buffer, u64 size, Sink::SinkStream* stream_) {
     system = &system_;
-    memory = &system->ApplicationMemory();
+    memory = &process.GetMemory();
     stream = stream_;
     header = reinterpret_cast<Renderer::CommandListHeader*>(buffer);
     commands = reinterpret_cast<u8*>(buffer + sizeof(Renderer::CommandListHeader));

@@ -35,10 +35,11 @@ public:
     explicit IAudioRenderer(Core::System& system_, Manager& manager_,
                             AudioCore::AudioRendererParameterInternal& params,
                             Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size,
-                            u32 process_handle, u64 applet_resource_user_id, s32 session_id)
+                            u32 process_handle, Kernel::KProcess& process_,
+                            u64 applet_resource_user_id, s32 session_id)
         : ServiceFramework{system_, "IAudioRenderer"}, service_context{system_, "IAudioRenderer"},
           rendered_event{service_context.CreateEvent("IAudioRendererEvent")}, manager{manager_},
-          impl{std::make_unique<Renderer>(system_, manager, rendered_event)} {
+          impl{std::make_unique<Renderer>(system_, manager, rendered_event)}, process{process_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IAudioRenderer::GetSampleRate, "GetSampleRate"},
@@ -59,13 +60,15 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        impl->Initialize(params, transfer_memory, transfer_memory_size, process_handle,
+        process.Open();
+        impl->Initialize(params, transfer_memory, transfer_memory_size, process_handle, process,
                          applet_resource_user_id, session_id);
     }
 
     ~IAudioRenderer() override {
         impl->Finalize();
         service_context.CloseEvent(rendered_event);
+        process.Close();
     }
 
 private:
@@ -235,6 +238,7 @@ private:
     Kernel::KEvent* rendered_event;
     Manager& manager;
     std::unique_ptr<Renderer> impl;
+    Kernel::KProcess& process;
     Common::ScratchBuffer<u8> output_buffer;
     Common::ScratchBuffer<u8> performance_buffer;
 };
@@ -455,7 +459,7 @@ void AudRenU::OpenAudioRenderer(HLERequestContext& ctx) {
         return;
     }
 
-    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle)};
+    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle).GetPointerUnsafe()};
     auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     const auto session_id{impl->GetSessionId()};
@@ -472,7 +476,7 @@ void AudRenU::OpenAudioRenderer(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<IAudioRenderer>(system, *impl, params, transfer_memory.GetPointerUnsafe(),
-                                        transfer_memory_size, process_handle,
+                                        transfer_memory_size, process_handle, *process,
                                         applet_resource_user_id, session_id);
 }
 
@@ -522,7 +526,7 @@ void AudRenU::GetAudioDeviceService(HLERequestContext& ctx) {
 }
 
 void AudRenU::OpenAudioRendererForManualExecution(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Audio, "called");
+    LOG_ERROR(Service_Audio, "called. Implement me!");
 }
 
 void AudRenU::GetAudioDeviceServiceWithRevisionInfo(HLERequestContext& ctx) {
