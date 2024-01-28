@@ -102,6 +102,7 @@ add_library(video_core STATIC
     memory_manager.cpp
     memory_manager.h
     precompiled_headers.h
+    present.h
     pte_kind.h
     query_cache/bank_base.h
     query_cache/query_base.h

@@ -21,6 +21,7 @@
 #include "core/telemetry_session.h"
 #include "video_core/capture.h"
 #include "video_core/gpu.h"
+#include "video_core/present.h"
 #include "video_core/renderer_vulkan/present/util.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
@@ -114,9 +115,12 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                 render_window.GetFramebufferLayout().height),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
                       surface),
-      blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler),
-      blit_capture(device_memory, device, memory_allocator, present_manager, scheduler),
-      blit_applet(device_memory, device, memory_allocator, present_manager, scheduler),
+      blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler,
+                     PresentFiltersForDisplay),
+      blit_capture(device_memory, device, memory_allocator, present_manager, scheduler,
+                   PresentFiltersForDisplay),
+      blit_applet(device_memory, device, memory_allocator, present_manager, scheduler,
+                  PresentFiltersForAppletCapture),
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
                  scheduler),
       applet_frame() {

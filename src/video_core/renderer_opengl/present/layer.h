@@ -13,6 +13,8 @@ namespace Layout {
 struct FramebufferLayout;
 }
 
+struct PresentFilters;
+
 namespace Service::android {
 enum class PixelFormat : u32;
 };
@@ -44,7 +46,8 @@ struct ScreenRectVertex;
 
 class Layer {
 public:
-    explicit Layer(RasterizerOpenGL& rasterizer, Tegra::MaxwellDeviceMemoryManager& device_memory);
+    explicit Layer(RasterizerOpenGL& rasterizer, Tegra::MaxwellDeviceMemoryManager& device_memory,
+                   const PresentFilters& filters);
     ~Layer();
 
     GLuint ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
@@ -65,6 +68,7 @@ private:
 private:
     RasterizerOpenGL& rasterizer;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
+    const PresentFilters& filters;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;

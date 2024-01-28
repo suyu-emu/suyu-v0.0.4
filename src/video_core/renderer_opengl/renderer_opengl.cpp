@@ -17,6 +17,7 @@
 #include "core/frontend/emu_window.h"
 #include "core/telemetry_session.h"
 #include "video_core/capture.h"
+#include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
@@ -121,9 +122,10 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
         glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
     }
     blit_screen = std::make_unique<BlitScreen>(rasterizer, device_memory, state_tracker,
-                                               program_manager, device);
-    blit_applet = std::make_unique<BlitScreen>(rasterizer, device_memory, state_tracker,
-                                               program_manager, device);
+                                               program_manager, device, PresentFiltersForDisplay);
+    blit_applet =
+        std::make_unique<BlitScreen>(rasterizer, device_memory, state_tracker, program_manager,
+                                     device, PresentFiltersForAppletCapture);
     capture_framebuffer.Create();
     capture_renderbuffer.Create();
     glBindRenderbuffer(GL_RENDERBUFFER, capture_renderbuffer.handle);
