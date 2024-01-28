@@ -76,7 +76,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         stopForegroundService(this)
-        emulationViewModel.clear()
         super.onDestroy()
     }
 
@@ -446,9 +445,14 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun onEmulationStopped(status: Int) {
-        if (status == 0) {
+        if (status == 0 && emulationViewModel.programChanged.value == -1) {
             finish()
         }
+        emulationViewModel.setEmulationStopped(true)
+    }
+
+    fun onProgramChanged(programIndex: Int) {
+        emulationViewModel.setProgramChanged(programIndex)
     }
 
     private fun startMotionSensorListener() {

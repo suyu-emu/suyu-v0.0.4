@@ -15,6 +15,12 @@ class EmulationViewModel : ViewModel() {
     val isEmulationStopping: StateFlow<Boolean> get() = _isEmulationStopping
     private val _isEmulationStopping = MutableStateFlow(false)
 
+    private val _emulationStopped = MutableStateFlow(false)
+    val emulationStopped = _emulationStopped.asStateFlow()
+
+    private val _programChanged = MutableStateFlow(-1)
+    val programChanged = _programChanged.asStateFlow()
+
     val shaderProgress: StateFlow<Int> get() = _shaderProgress
     private val _shaderProgress = MutableStateFlow(0)
 
@@ -33,6 +39,17 @@ class EmulationViewModel : ViewModel() {
 
     fun setIsEmulationStopping(value: Boolean) {
         _isEmulationStopping.value = value
+    }
+
+    fun setEmulationStopped(value: Boolean) {
+        if (value) {
+            _emulationStarted.value = false
+        }
+        _emulationStopped.value = value
+    }
+
+    fun setProgramChanged(programIndex: Int) {
+        _programChanged.value = programIndex
     }
 
     fun setShaderProgress(progress: Int) {
@@ -55,21 +72,5 @@ class EmulationViewModel : ViewModel() {
 
     fun setDrawerOpen(value: Boolean) {
         _drawerOpen.value = value
-    }
-
-    fun clear() {
-        setEmulationStarted(false)
-        setIsEmulationStopping(false)
-        setShaderProgress(0)
-        setTotalShaders(0)
-        setShaderMessage("")
-    }
-
-    companion object {
-        const val KEY_EMULATION_STARTED = "EmulationStarted"
-        const val KEY_IS_EMULATION_STOPPING = "IsEmulationStarting"
-        const val KEY_SHADER_PROGRESS = "ShaderProgress"
-        const val KEY_TOTAL_SHADERS = "TotalShaders"
-        const val KEY_SHADER_MESSAGE = "ShaderMessage"
     }
 }
