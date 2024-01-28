@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/settings.h"
 #include "core/hle/service/set/setting_formats/system_settings.h"
 
 namespace Service::Set {
@@ -51,6 +52,17 @@ SystemSettings DefaultSystemSettings() {
     settings.battery_percentage_flag = true;
     settings.chinese_traditional_input_method = ChineseTraditionalInputMethod::Unknown0;
     settings.vibration_master_volume = 1.0f;
+
+    const auto language_code =
+        available_language_codes[static_cast<s32>(::Settings::values.language_index.GetValue())];
+    const auto key_code =
+        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
+                     [=](const auto& element) { return element.first == language_code; });
+
+    settings.keyboard_layout = KeyboardLayout::EnglishUs;
+    if (key_code != language_to_layout.end()) {
+        settings.keyboard_layout = key_code->second;
+    }
 
     return settings;
 }
