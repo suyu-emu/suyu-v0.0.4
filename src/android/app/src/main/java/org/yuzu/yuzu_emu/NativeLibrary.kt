@@ -261,7 +261,7 @@ object NativeLibrary {
     /**
      * Begins emulation.
      */
-    external fun run(path: String?)
+    external fun run(path: String?, programIndex: Int = 0)
 
     // Surface Handling
     external fun surfaceChanged(surf: Surface?)
@@ -487,6 +487,12 @@ object NativeLibrary {
     @JvmStatic
     fun onEmulationStopped(status: Int) {
         sEmulationActivity.get()!!.onEmulationStopped(status)
+    }
+
+    @Keep
+    @JvmStatic
+    fun onProgramChanged(programIndex: Int) {
+        sEmulationActivity.get()!!.onProgramChanged(programIndex)
     }
 
     /**

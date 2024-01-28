@@ -424,10 +424,38 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
                 }
             }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.programChanged.collect {
+                        if (it != 0) {
+                            emulationViewModel.setEmulationStarted(false)
+                            binding.drawerLayout.close()
+                            binding.drawerLayout
+                                .setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                            ViewUtils.hideView(binding.surfaceInputOverlay)
+                            ViewUtils.showView(binding.loadingIndicator)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.emulationStopped.collect {
+                        if (it && emulationViewModel.programChanged.value != -1) {
+                            if (perfStatsUpdater != null) {
+                                perfStatsUpdateHandler.removeCallbacks(perfStatsUpdater!!)
+                            }
+                            emulationState.changeProgram(emulationViewModel.programChanged.value)
+                            emulationViewModel.setProgramChanged(-1)
+                            emulationViewModel.setEmulationStopped(false)
+                        }
+                    }
+                }
+            }
         }
     }
 
-    private fun startEmulation() {
+    private fun startEmulation(programIndex: Int = 0) {
         if (!NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
             if (!DirectoryInitialization.areDirectoriesReady) {
                 DirectoryInitialization.start()
@@ -435,7 +463,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             updateScreenLayout()
 
-            emulationState.run(emulationActivity!!.isActivityRecreated)
+            emulationState.run(emulationActivity!!.isActivityRecreated, programIndex)
         }
     }
 
@@ -833,6 +861,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     ) {
         private var state: State
         private var surface: Surface? = null
+        lateinit var emulationThread: Thread
 
         init {
             // Starting state is stopped.
@@ -878,7 +907,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         @Synchronized
-        fun run(isActivityRecreated: Boolean) {
+        fun run(isActivityRecreated: Boolean, programIndex: Int = 0) {
             if (isActivityRecreated) {
                 if (NativeLibrary.isRunning()) {
                     state = State.PAUSED
@@ -889,8 +918,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             // If the surface is set, run now. Otherwise, wait for it to get set.
             if (surface != null) {
-                runWithValidSurface()
+                runWithValidSurface(programIndex)
             }
+        }
+
+        @Synchronized
+        fun changeProgram(programIndex: Int) {
+            emulationThread.join()
+            emulationThread = Thread({
+                Log.debug("[EmulationFragment] Starting emulation thread.")
+                NativeLibrary.run(gamePath, programIndex)
+            }, "NativeEmulation")
+            emulationThread.start()
         }
 
         // Surface callbacks
@@ -932,7 +971,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         }
 
-        private fun runWithValidSurface() {
+        private fun runWithValidSurface(programIndex: Int = 0) {
             NativeLibrary.surfaceChanged(surface)
             if (!emulationCanStart.invoke()) {
                 return
@@ -940,9 +979,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             when (state) {
                 State.STOPPED -> {
-                    val emulationThread = Thread({
+                    emulationThread = Thread({
                         Log.debug("[EmulationFragment] Starting emulation thread.")
-                        NativeLibrary.run(gamePath)
+                        NativeLibrary.run(gamePath, programIndex)
                     }, "NativeEmulation")
                     emulationThread.start()
                 }
