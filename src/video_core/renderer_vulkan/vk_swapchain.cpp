@@ -12,6 +12,7 @@
 #include "core/core.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/vulkan_common/vk_enum_string_helper.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "vulkan/vulkan_core.h"
@@ -151,7 +152,7 @@ bool Swapchain::AcquireNextImage() {
         vk::Check(result);
         break;
     default:
-        LOG_ERROR(Render_Vulkan, "vkAcquireNextImageKHR returned {}", vk::ToString(result));
+        LOG_ERROR(Render_Vulkan, "vkAcquireNextImageKHR returned {}", string_VkResult(result));
         break;
     }
 
@@ -187,7 +188,7 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
         vk::Check(result);
         break;
     default:
-        LOG_CRITICAL(Render_Vulkan, "Failed to present with error {}", vk::ToString(result));
+        LOG_CRITICAL(Render_Vulkan, "Failed to present with error {}", string_VkResult(result));
         break;
     }
     ++frame_index;

@@ -125,9 +125,6 @@ private:
     VkResult result;
 };
 
-/// Converts a VkResult enum into a rodata string
-const char* ToString(VkResult) noexcept;
-
 /// Throws a Vulkan exception if result is not success.
 inline void Check(VkResult result) {
     if (result != VK_SUCCESS) {
