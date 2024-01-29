@@ -3,10 +3,9 @@
 
 #include "common/logging/log.h"
 #include "core/hle/service/caps/caps_manager.h"
-#include "core/hle/service/caps/caps_types.h"
-#include "core/hle/service/ipc_helpers.h"
-
 #include "core/hle/service/caps/caps_ss.h"
+#include "core/hle/service/cmif_serialization.h"
+#include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Capture {
 
@@ -17,9 +16,9 @@ IScreenShotService::IScreenShotService(Core::System& system_,
     static const FunctionInfo functions[] = {
         {201, nullptr, "SaveScreenShot"},
         {202, nullptr, "SaveEditedScreenShot"},
-        {203, &IScreenShotService::SaveScreenShotEx0, "SaveScreenShotEx0"},
+        {203, C<&IScreenShotService::SaveScreenShotEx0>, "SaveScreenShotEx0"},
         {204, nullptr, "SaveEditedScreenShotEx0"},
-        {206, &IScreenShotService::SaveEditedScreenShotEx1, "SaveEditedScreenShotEx1"},
+        {206, C<&IScreenShotService::SaveEditedScreenShotEx1>, "SaveEditedScreenShotEx1"},
         {208, nullptr, "SaveScreenShotOfMovieEx1"},
         {1000, nullptr, "Unknown1000"},
     };
@@ -30,69 +29,38 @@ IScreenShotService::IScreenShotService(Core::System& system_,
 
 IScreenShotService::~IScreenShotService() = default;
 
-void IScreenShotService::SaveScreenShotEx0(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        ScreenShotAttribute attribute{};
-        AlbumReportOption report_option{};
-        INSERT_PADDING_BYTES(0x4);
-        u64 applet_resource_user_id{};
-    };
-    static_assert(sizeof(Parameters) == 0x50, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-    const auto image_data_buffer = ctx.ReadBuffer();
-
+Result IScreenShotService::SaveScreenShotEx0(
+    Out<ApplicationAlbumEntry> out_entry, const ScreenShotAttribute& attribute,
+    AlbumReportOption report_option, ClientAppletResourceUserId aruid,
+    InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+        image_data_buffer) {
     LOG_INFO(Service_Capture,
              "called, report_option={}, image_data_buffer_size={}, applet_resource_user_id={}",
-             parameters.report_option, image_data_buffer.size(),
-             parameters.applet_resource_user_id);
+             report_option, image_data_buffer.size(), aruid.pid);
 
-    ApplicationAlbumEntry entry{};
     manager->FlipVerticallyOnWrite(false);
-    const auto result =
-        manager->SaveScreenShot(entry, parameters.attribute, parameters.report_option,
-                                image_data_buffer, parameters.applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 10};
-    rb.Push(result);
-    rb.PushRaw(entry);
+    R_RETURN(manager->SaveScreenShot(*out_entry, attribute, report_option, image_data_buffer,
+                                     aruid.pid));
 }
 
-void IScreenShotService::SaveEditedScreenShotEx1(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        ScreenShotAttribute attribute;
-        u64 width;
-        u64 height;
-        u64 thumbnail_width;
-        u64 thumbnail_height;
-        AlbumFileId file_id;
-    };
-    static_assert(sizeof(Parameters) == 0x78, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-    const auto application_data_buffer = ctx.ReadBuffer(0);
-    const auto image_data_buffer = ctx.ReadBuffer(1);
-    const auto thumbnail_image_data_buffer = ctx.ReadBuffer(2);
-
+Result IScreenShotService::SaveEditedScreenShotEx1(
+    Out<ApplicationAlbumEntry> out_entry, const ScreenShotAttribute& attribute, u64 width,
+    u64 height, u64 thumbnail_width, u64 thumbnail_height, const AlbumFileId& file_id,
+    const InLargeData<std::array<u8, 0x400>, BufferAttr_HipcMapAlias> application_data_buffer,
+    const InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+        image_data_buffer,
+    const InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+        thumbnail_image_data_buffer) {
     LOG_INFO(Service_Capture,
              "called, width={}, height={}, thumbnail_width={}, thumbnail_height={}, "
-             "application_id={:016x},  storage={},  type={}, app_data_buffer_size={}, "
+             "application_id={:016x},  storage={},  type={}, "
              "image_data_buffer_size={}, thumbnail_image_buffer_size={}",
-             parameters.width, parameters.height, parameters.thumbnail_width,
-             parameters.thumbnail_height, parameters.file_id.application_id,
-             parameters.file_id.storage, parameters.file_id.type, application_data_buffer.size(),
-             image_data_buffer.size(), thumbnail_image_data_buffer.size());
+             width, height, thumbnail_width, thumbnail_height, file_id.application_id,
+             file_id.storage, file_id.type, image_data_buffer.size(),
+             thumbnail_image_data_buffer.size());
 
-    ApplicationAlbumEntry entry{};
     manager->FlipVerticallyOnWrite(false);
-    const auto result = manager->SaveEditedScreenShot(entry, parameters.attribute,
-                                                      parameters.file_id, image_data_buffer);
-
-    IPC::ResponseBuilder rb{ctx, 10};
-    rb.Push(result);
-    rb.PushRaw(entry);
+    R_RETURN(manager->SaveEditedScreenShot(*out_entry, attribute, file_id, image_data_buffer));
 }
 
 } // namespace Service::Capture

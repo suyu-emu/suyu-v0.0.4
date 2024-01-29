@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "core/hle/service/caps/caps_types.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -26,9 +28,19 @@ private:
     static constexpr std::size_t screenshot_height = 720;
     static constexpr std::size_t bytes_per_pixel = 4;
 
-    void SetShimLibraryVersion(HLERequestContext& ctx);
-    void SaveScreenShotEx0(HLERequestContext& ctx);
-    void SaveScreenShotEx1(HLERequestContext& ctx);
+    Result SetShimLibraryVersion(ShimLibraryVersion library_version,
+                                 ClientAppletResourceUserId aruid);
+    Result SaveScreenShotEx0(
+        Out<ApplicationAlbumEntry> out_entry, const ScreenShotAttribute& attribute,
+        AlbumReportOption report_option, ClientAppletResourceUserId aruid,
+        InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+            image_data_buffer);
+    Result SaveScreenShotEx1(
+        Out<ApplicationAlbumEntry> out_entry, const ScreenShotAttribute& attribute,
+        AlbumReportOption report_option, ClientAppletResourceUserId aruid,
+        const InLargeData<ApplicationData, BufferAttr_HipcMapAlias> app_data_buffer,
+        const InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+            image_data_buffer);
 
     std::array<u8, screenshot_width * screenshot_height * bytes_per_pixel> image_data;
 
