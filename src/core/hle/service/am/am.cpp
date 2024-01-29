@@ -931,8 +931,8 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
     sleep_lock_event = service_context.CreateEvent("ICommonStateGetter::SleepLockEvent");
 
     // Configure applets to be in foreground state
-    msg_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
     msg_queue->PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+    msg_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
 }
 
 ICommonStateGetter::~ICommonStateGetter() {
