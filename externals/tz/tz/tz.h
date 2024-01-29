@@ -75,7 +75,7 @@ static_assert(sizeof(CalendarTimeInternal) == 0x3C, "CalendarTimeInternal has th
 
 s32 ParseTimeZoneBinary(Rule& out_rule, std::span<const u8> binary);
 
-bool localtime_rz(CalendarTimeInternal* tmp, Rule* sp, time_t* timep);
-u32 mktime_tzname(time_t* out_time, Rule* sp, CalendarTimeInternal* tmp);
+bool localtime_rz(CalendarTimeInternal* tmp, Rule const* sp, time_t* timep);
+u32 mktime_tzname(time_t* out_time, Rule const* sp, CalendarTimeInternal* tmp);
 
 } // namespace Tz

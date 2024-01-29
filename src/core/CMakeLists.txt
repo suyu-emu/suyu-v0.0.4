@@ -915,8 +915,6 @@ else()
     )
 endif()
 
-create_target_directory_groups(core)
-
 target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
 target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
 if (MINGW)
@@ -994,3 +992,5 @@ endif()
 if (YUZU_ENABLE_LTO)
   set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
+
+create_target_directory_groups(core)

@@ -210,8 +210,6 @@ add_library(audio_core STATIC
     sink/sink_stream.h
 )
 
-create_target_directory_groups(audio_core)
-
 if (MSVC)
     target_compile_options(audio_core PRIVATE
         /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
@@ -267,3 +265,5 @@ endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(audio_core PRIVATE precompiled_headers.h)
 endif()
+
+create_target_directory_groups(audio_core)

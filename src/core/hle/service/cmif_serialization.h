@@ -12,6 +12,109 @@
 namespace Service {
 
 // clang-format off
+template <typename T>
+struct UnwrapArg {
+    using Type = std::remove_cvref_t<T>;
+};
+
+template <typename T, int A>
+struct UnwrapArg<InLargeData<T, A>> {
+    using Type = std::remove_cv_t<typename InLargeData<T, A>::Type>;
+};
+
+template <typename T>
+struct UnwrapArg<Out<T>> {
+    using Type = AutoOut<typename Out<T>::Type>;
+};
+
+template <typename T>
+struct UnwrapArg<OutCopyHandle<T>> {
+    using Type = AutoOut<typename OutCopyHandle<T>::Type>;
+};
+
+template <typename T>
+struct UnwrapArg<OutMoveHandle<T>> {
+    using Type = AutoOut<typename OutMoveHandle<T>::Type>;
+};
+
+template <typename T, int A>
+struct UnwrapArg<OutLargeData<T, A>> {
+    using Type = AutoOut<typename OutLargeData<T, A>::Type>;
+};
+
+enum class ArgumentType {
+    InProcessId,
+    InData,
+    InInterface,
+    InCopyHandle,
+    OutData,
+    OutInterface,
+    OutCopyHandle,
+    OutMoveHandle,
+    InBuffer,
+    InLargeData,
+    OutBuffer,
+    OutLargeData,
+};
+
+template <typename T>
+struct ArgumentTraits;
+
+template <>
+struct ArgumentTraits<ClientProcessId> {
+    static constexpr ArgumentType Type = ArgumentType::InProcessId;
+};
+
+template <typename T>
+struct ArgumentTraits<SharedPointer<T>> {
+    static constexpr ArgumentType Type = ArgumentType::InInterface;
+};
+
+template <typename T>
+struct ArgumentTraits<InCopyHandle<T>> {
+    static constexpr ArgumentType Type = ArgumentType::InCopyHandle;
+};
+
+template <typename T>
+struct ArgumentTraits<Out<SharedPointer<T>>> {
+    static constexpr ArgumentType Type = ArgumentType::OutInterface;
+};
+
+template <typename T>
+struct ArgumentTraits<Out<T>> {
+    static constexpr ArgumentType Type = ArgumentType::OutData;
+};
+
+template <typename T>
+struct ArgumentTraits<OutCopyHandle<T>> {
+    static constexpr ArgumentType Type = ArgumentType::OutCopyHandle;
+};
+
+template <typename T>
+struct ArgumentTraits<OutMoveHandle<T>> {
+    static constexpr ArgumentType Type = ArgumentType::OutMoveHandle;
+};
+
+template <typename T, int A>
+struct ArgumentTraits<Buffer<T, A>> {
+    static constexpr ArgumentType Type = (A & BufferAttr_In) == 0 ? ArgumentType::OutBuffer : ArgumentType::InBuffer;
+};
+
+template <typename T, int A>
+struct ArgumentTraits<InLargeData<T, A>> {
+    static constexpr ArgumentType Type = ArgumentType::InLargeData;
+};
+
+template <typename T, int A>
+struct ArgumentTraits<OutLargeData<T, A>> {
+    static constexpr ArgumentType Type = ArgumentType::OutLargeData;
+};
+
+template <typename T>
+struct ArgumentTraits {
+    static constexpr ArgumentType Type = ArgumentType::InData;
+};
+
 struct RequestLayout {
     u32 copy_handle_count;
     u32 move_handle_count;
@@ -122,6 +225,8 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
 
             static_assert(PrevAlign <= ArgAlign, "Input argument is not ordered by alignment");
             static_assert(!RawDataFinished, "All input interface arguments must appear after raw data");
+            static_assert(!std::is_pointer_v<ArgType>, "Input raw data must not be a pointer");
+            static_assert(std::is_trivially_copyable_v<ArgType>, "Input raw data must be trivially copyable");
 
             constexpr size_t ArgOffset = Common::AlignUp(DataOffset, ArgAlign);
             constexpr size_t ArgEnd = ArgOffset + ArgSize;
@@ -198,7 +303,7 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
             constexpr size_t BufferSize = sizeof(ArgType);
 
             // Clear the existing data.
-            std::memset(&std::get<ArgIndex>(args), 0, BufferSize);
+            std::memset(&std::get<ArgIndex>(args).raw, 0, BufferSize);
 
             return ReadInArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, HandleIndex, InBufferIndex, OutBufferIndex + 1, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutBuffer) {
@@ -237,27 +342,29 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
 
             static_assert(PrevAlign <= ArgAlign, "Output argument is not ordered by alignment");
             static_assert(!RawDataFinished, "All output interface arguments must appear after raw data");
+            static_assert(!std::is_pointer_v<ArgType>, "Output raw data must not be a pointer");
+            static_assert(std::is_trivially_copyable_v<decltype(std::get<ArgIndex>(args).raw)>, "Output raw data must be trivially copyable");
 
             constexpr size_t ArgOffset = Common::AlignUp(DataOffset, ArgAlign);
             constexpr size_t ArgEnd = ArgOffset + ArgSize;
 
-            std::memcpy(raw_data + ArgOffset, &std::get<ArgIndex>(args), ArgSize);
+            std::memcpy(raw_data + ArgOffset, &std::get<ArgIndex>(args).raw, ArgSize);
 
             return WriteOutArgument<MethodArguments, CallArguments, ArgAlign, ArgEnd, OutBufferIndex, false, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutInterface) {
             if (is_domain) {
-                ctx.AddDomainObject(std::get<ArgIndex>(args));
+                ctx.AddDomainObject(std::get<ArgIndex>(args).raw);
             } else {
-                ctx.AddMoveInterface(std::get<ArgIndex>(args));
+                ctx.AddMoveInterface(std::get<ArgIndex>(args).raw);
             }
 
             return WriteOutArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, true, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutCopyHandle) {
-            ctx.AddCopyObject(std::get<ArgIndex>(args));
+            ctx.AddCopyObject(std::get<ArgIndex>(args).raw);
 
             return WriteOutArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutMoveHandle) {
-            ctx.AddMoveObject(std::get<ArgIndex>(args));
+            ctx.AddMoveObject(std::get<ArgIndex>(args).raw);
 
             return WriteOutArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutLargeData) {
@@ -302,10 +409,10 @@ void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
     }
     const bool is_domain = Domain ? ctx.GetManager()->IsDomain() : false;
 
-    using MethodArguments = std::tuple<std::remove_reference_t<A>...>;
+    using MethodArguments = std::tuple<std::remove_cvref_t<A>...>;
 
     OutTemporaryBuffers buffers{};
-    auto call_arguments = std::tuple<typename RemoveOut<A>::Type...>();
+    auto call_arguments = std::tuple<typename UnwrapArg<A>::Type...>();
 
     // Read inputs.
     const size_t offset_plus_command_id = ctx.GetDataPayloadOffset() + 2;

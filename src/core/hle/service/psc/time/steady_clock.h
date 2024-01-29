@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/psc/time/manager.h"
@@ -22,23 +23,15 @@ public:
 
     ~SteadyClock() override = default;
 
-    Result GetCurrentTimePoint(SteadyClockTimePoint& out_time_point);
-    Result GetTestOffset(s64& out_test_offset);
+    Result GetCurrentTimePoint(Out<SteadyClockTimePoint> out_time_point);
+    Result GetTestOffset(Out<s64> out_test_offset);
     Result SetTestOffset(s64 test_offset);
-    Result GetRtcValue(s64& out_rtc_value);
-    Result IsRtcResetDetected(bool& out_is_detected);
-    Result GetSetupResultValue(Result& out_result);
-    Result GetInternalOffset(s64& out_internal_offset);
+    Result GetRtcValue(Out<s64> out_rtc_value);
+    Result IsRtcResetDetected(Out<bool> out_is_detected);
+    Result GetSetupResultValue(Out<Result> out_result);
+    Result GetInternalOffset(Out<s64> out_internal_offset);
 
 private:
-    void Handle_GetCurrentTimePoint(HLERequestContext& ctx);
-    void Handle_GetTestOffset(HLERequestContext& ctx);
-    void Handle_SetTestOffset(HLERequestContext& ctx);
-    void Handle_GetRtcValue(HLERequestContext& ctx);
-    void Handle_IsRtcResetDetected(HLERequestContext& ctx);
-    void Handle_GetSetupResultValue(HLERequestContext& ctx);
-    void Handle_GetInternalOffset(HLERequestContext& ctx);
-
     Core::System& m_system;
 
     StandardSteadyClockCore& m_clock_core;

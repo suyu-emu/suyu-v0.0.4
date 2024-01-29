@@ -26,7 +26,7 @@ public:
 
     void Initialize(std::shared_ptr<Service::PSC::Time::ServiceManager> time_m);
 
-    Kernel::KEvent& GetEvent() {
+    Kernel::KReadableEvent& GetEvent() {
         return *m_event;
     }
 
@@ -44,7 +44,7 @@ private:
     KernelHelpers::ServiceContext m_ctx;
     std::shared_ptr<Service::PSC::Time::ServiceManager> m_time_m;
 
-    Kernel::KEvent* m_event{};
+    Kernel::KReadableEvent* m_event{};
     Kernel::KEvent* m_timer_event{};
     std::shared_ptr<Core::Timing::EventType> m_timer_timing_event;
     StandardSteadyClockResource& m_steady_clock_resource;

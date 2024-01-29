@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/psc/time/manager.h"
@@ -29,54 +30,37 @@ public:
                             ServerManager* server_manager);
     ~ServiceManager() override = default;
 
-    Result GetStaticServiceAsUser(std::shared_ptr<StaticService>& out_service);
-    Result GetStaticServiceAsAdmin(std::shared_ptr<StaticService>& out_service);
-    Result GetStaticServiceAsRepair(std::shared_ptr<StaticService>& out_service);
-    Result GetStaticServiceAsServiceManager(std::shared_ptr<StaticService>& out_service);
-    Result SetupStandardSteadyClockCore(Common::UUID& clock_source_id, s64 rtc_offset,
-                                        s64 internal_offset, s64 test_offset,
-                                        bool is_rtc_reset_detected);
+    Result GetStaticServiceAsUser(OutInterface<StaticService> out_service);
+    Result GetStaticServiceAsAdmin(OutInterface<StaticService> out_service);
+    Result GetStaticServiceAsRepair(OutInterface<StaticService> out_service);
+    Result GetStaticServiceAsServiceManager(OutInterface<StaticService> out_service);
+    Result SetupStandardSteadyClockCore(bool is_rtc_reset_detected, Common::UUID& clock_source_id,
+                                        s64 rtc_offset, s64 internal_offset, s64 test_offset);
     Result SetupStandardLocalSystemClockCore(SystemClockContext& context, s64 time);
     Result SetupStandardNetworkSystemClockCore(SystemClockContext& context, s64 accuracy);
-    Result SetupStandardUserSystemClockCore(SteadyClockTimePoint& time_point,
-                                            bool automatic_correction);
-    Result SetupTimeZoneServiceCore(LocationName& name, SteadyClockTimePoint& time_point,
-                                    RuleVersion& rule_version, u32 location_count,
-                                    std::span<const u8> rule_buffer);
+    Result SetupStandardUserSystemClockCore(bool automatic_correction,
+                                            SteadyClockTimePoint& time_point);
+    Result SetupTimeZoneServiceCore(LocationName& name, RuleVersion& rule_version,
+                                    u32 location_count, SteadyClockTimePoint& time_point,
+                                    InBuffer<BufferAttr_HipcAutoSelect> rule_buffer);
     Result SetupEphemeralNetworkSystemClockCore();
-    Result GetStandardLocalClockOperationEvent(Kernel::KEvent** out_event);
-    Result GetStandardNetworkClockOperationEventForServiceManager(Kernel::KEvent** out_event);
-    Result GetEphemeralNetworkClockOperationEventForServiceManager(Kernel::KEvent** out_event);
-    Result GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent(Kernel::KEvent** out_event);
+    Result GetStandardLocalClockOperationEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetStandardNetworkClockOperationEventForServiceManager(
+        OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetEphemeralNetworkClockOperationEventForServiceManager(
+        OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent(
+        OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result SetStandardSteadyClockBaseTime(s64 base_time);
-    Result GetClosestAlarmUpdatedEvent(Kernel::KEvent** out_event);
+    Result GetClosestAlarmUpdatedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result CheckAndSignalAlarms();
-    Result GetClosestAlarmInfo(bool& out_is_valid, AlarmInfo& out_info, s64& out_time);
+    Result GetClosestAlarmInfo(Out<bool> out_is_valid, Out<AlarmInfo> out_info, Out<s64> out_time);
 
 private:
     void CheckAndSetupServicesSAndP();
     void SetupSAndP();
-    Result GetStaticService(std::shared_ptr<StaticService>& out_service,
+    Result GetStaticService(OutInterface<StaticService> out_service,
                             StaticServiceSetupInfo setup_info, const char* name);
-
-    void Handle_GetStaticServiceAsUser(HLERequestContext& ctx);
-    void Handle_GetStaticServiceAsAdmin(HLERequestContext& ctx);
-    void Handle_GetStaticServiceAsRepair(HLERequestContext& ctx);
-    void Handle_GetStaticServiceAsServiceManager(HLERequestContext& ctx);
-    void Handle_SetupStandardSteadyClockCore(HLERequestContext& ctx);
-    void Handle_SetupStandardLocalSystemClockCore(HLERequestContext& ctx);
-    void Handle_SetupStandardNetworkSystemClockCore(HLERequestContext& ctx);
-    void Handle_SetupStandardUserSystemClockCore(HLERequestContext& ctx);
-    void Handle_SetupTimeZoneServiceCore(HLERequestContext& ctx);
-    void Handle_SetupEphemeralNetworkSystemClockCore(HLERequestContext& ctx);
-    void Handle_GetStandardLocalClockOperationEvent(HLERequestContext& ctx);
-    void Handle_GetStandardNetworkClockOperationEventForServiceManager(HLERequestContext& ctx);
-    void Handle_GetEphemeralNetworkClockOperationEventForServiceManager(HLERequestContext& ctx);
-    void Handle_GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent(HLERequestContext& ctx);
-    void Handle_SetStandardSteadyClockBaseTime(HLERequestContext& ctx);
-    void Handle_GetClosestAlarmUpdatedEvent(HLERequestContext& ctx);
-    void Handle_CheckAndSignalAlarms(HLERequestContext& ctx);
-    void Handle_GetClosestAlarmInfo(HLERequestContext& ctx);
 
     Core::System& m_system;
     std::shared_ptr<TimeManager> m_time;
