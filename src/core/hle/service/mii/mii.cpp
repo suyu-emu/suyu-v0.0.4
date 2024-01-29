@@ -111,7 +111,8 @@ private:
         R_RETURN(result);
     }
 
-    Result UpdateLatest(Out<CharInfo> out_char_info, CharInfo& char_info, SourceFlag source_flag) {
+    Result UpdateLatest(Out<CharInfo> out_char_info, const CharInfo& char_info,
+                        SourceFlag source_flag) {
         LOG_INFO(Service_Mii, "called with source_flag={}", source_flag);
 
         R_RETURN(manager->UpdateLatest(metadata, *out_char_info, char_info, source_flag));
@@ -159,7 +160,7 @@ private:
         R_RETURN(result);
     }
 
-    Result UpdateLatest1(Out<StoreData> out_store_data, StoreData& store_data,
+    Result UpdateLatest1(Out<StoreData> out_store_data, const StoreData& store_data,
                          SourceFlag source_flag) {
         LOG_INFO(Service_Mii, "called with source_flag={}", source_flag);
         R_UNLESS(is_system, ResultPermissionDenied);
@@ -243,7 +244,7 @@ private:
         R_SUCCEED();
     }
 
-    Result GetIndex(Out<s32> out_index, CharInfo& char_info) {
+    Result GetIndex(Out<s32> out_index, const CharInfo& char_info) {
         LOG_DEBUG(Service_Mii, "called");
 
         R_RETURN(manager->GetIndex(metadata, char_info, *out_index));
@@ -257,25 +258,25 @@ private:
         R_SUCCEED();
     }
 
-    Result Convert(Out<CharInfo> out_char_info, Ver3StoreData& mii_v3) {
+    Result Convert(Out<CharInfo> out_char_info, const Ver3StoreData& mii_v3) {
         LOG_INFO(Service_Mii, "called");
 
         R_RETURN(manager->ConvertV3ToCharInfo(*out_char_info, mii_v3));
     }
 
-    Result ConvertCoreDataToCharInfo(Out<CharInfo> out_char_info, CoreData& core_data) {
+    Result ConvertCoreDataToCharInfo(Out<CharInfo> out_char_info, const CoreData& core_data) {
         LOG_INFO(Service_Mii, "called");
 
         R_RETURN(manager->ConvertCoreDataToCharInfo(*out_char_info, core_data));
     }
 
-    Result ConvertCharInfoToCoreData(Out<CoreData> out_core_data, CharInfo& char_info) {
+    Result ConvertCharInfoToCoreData(Out<CoreData> out_core_data, const CharInfo& char_info) {
         LOG_INFO(Service_Mii, "called");
 
         R_RETURN(manager->ConvertCharInfoToCoreData(*out_core_data, char_info));
     }
 
-    Result Append(CharInfo& char_info) {
+    Result Append(const CharInfo& char_info) {
         LOG_INFO(Service_Mii, "called");
 
         R_RETURN(manager->Append(metadata, char_info));
