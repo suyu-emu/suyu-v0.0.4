@@ -28,7 +28,7 @@ void UniquePad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         return;
     }
 
-    auto& header = data->shared_memory_format->capture_button.header;
+    auto& header = data->shared_memory_format->unique_pad.header;
     header.timestamp = core_timing.GetGlobalTimeNs().count();
     header.total_entry_count = 17;
     header.entry_count = 0;

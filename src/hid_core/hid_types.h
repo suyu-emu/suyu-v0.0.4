@@ -437,6 +437,16 @@ struct LedPattern {
     };
 };
 
+struct SleepButtonState {
+    union {
+        u64 raw{};
+
+        // Buttons
+        BitField<0, 1, u64> sleep;
+    };
+};
+static_assert(sizeof(SleepButtonState) == 0x8, "SleepButtonState has incorrect size.");
+
 struct HomeButtonState {
     union {
         u64 raw{};

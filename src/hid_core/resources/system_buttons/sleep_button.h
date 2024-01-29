@@ -4,6 +4,7 @@
 #pragma once
 
 #include "hid_core/resources/controller_base.h"
+#include "hid_core/resources/system_buttons/system_button_types.h"
 
 namespace Service::HID {
 
@@ -22,6 +23,6 @@ public:
     void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
 private:
-    bool smart_update{};
+    SleepButtonState next_state{};
 };
 } // namespace Service::HID
