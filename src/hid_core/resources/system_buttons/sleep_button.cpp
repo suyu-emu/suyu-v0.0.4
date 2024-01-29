@@ -17,10 +17,6 @@ void SleepButton::OnInit() {}
 void SleepButton::OnRelease() {}
 
 void SleepButton::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
-    if (!smart_update) {
-        return;
-    }
-
     std::scoped_lock shared_lock{*shared_mutex};
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
@@ -29,11 +25,20 @@ void SleepButton::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         return;
     }
 
-    auto& header = data->shared_memory_format->capture_button.header;
-    header.timestamp = core_timing.GetGlobalTimeNs().count();
-    header.total_entry_count = 17;
-    header.entry_count = 0;
-    header.last_entry_index = 0;
+    auto& shared_memory = data->shared_memory_format->sleep_button;
+
+    if (!IsControllerActivated()) {
+        shared_memory.sleep_lifo.buffer_count = 0;
+        shared_memory.sleep_lifo.buffer_tail = 0;
+        return;
+    }
+
+    const auto& last_entry = shared_memory.sleep_lifo.ReadCurrentEntry().state;
+    next_state.sampling_number = last_entry.sampling_number + 1;
+
+    next_state.buttons.raw = 0;
+
+    shared_memory.sleep_lifo.WriteNextEntry(next_state);
 }
 
 } // namespace Service::HID
