@@ -200,22 +200,22 @@ struct System::Impl {
             system.ServiceManager().GetService<Service::PSC::Time::StaticService>("time:s", true);
 
         std::shared_ptr<Service::PSC::Time::SystemClock> user_clock;
-        static_service_a->GetStandardUserSystemClock(user_clock);
+        static_service_a->GetStandardUserSystemClock(&user_clock);
 
         std::shared_ptr<Service::PSC::Time::SystemClock> local_clock;
-        static_service_a->GetStandardLocalSystemClock(local_clock);
+        static_service_a->GetStandardLocalSystemClock(&local_clock);
 
         std::shared_ptr<Service::PSC::Time::SystemClock> network_clock;
-        static_service_s->GetStandardNetworkSystemClock(network_clock);
+        static_service_s->GetStandardNetworkSystemClock(&network_clock);
 
         std::shared_ptr<Service::Glue::Time::TimeZoneService> timezone_service;
-        static_service_a->GetTimeZoneService(timezone_service);
+        static_service_a->GetTimeZoneService(&timezone_service);
 
         Service::PSC::Time::LocationName name{};
         auto new_name = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
-        std::memcpy(name.name.data(), new_name.data(), std::min(name.name.size(), new_name.size()));
+        std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.size()));
 
-        timezone_service->SetDeviceLocation(name);
+        timezone_service->SetDeviceLocationName(name);
 
         u64 time_offset = 0;
         if (Settings::values.custom_rtc_enabled) {
@@ -233,7 +233,7 @@ struct System::Impl {
 
         local_clock->SetCurrentTime(new_time);
 
-        network_clock->GetSystemClockContext(context);
+        network_clock->GetSystemClockContext(&context);
         settings_service->SetNetworkSystemClockContext(context);
         network_clock->SetCurrentTime(new_time);
     }

@@ -3,6 +3,7 @@
 
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/psc/time/power_state_service.h"
 #include "core/hle/service/psc/time/service_manager.h"
 #include "core/hle/service/psc/time/static.h"
@@ -25,24 +26,24 @@ ServiceManager::ServiceManager(Core::System& system_, std::shared_ptr<TimeManage
       m_local_operation{m_system}, m_network_operation{m_system}, m_ephemeral_operation{m_system} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0,   &ServiceManager::Handle_GetStaticServiceAsUser, "GetStaticServiceAsUser"},
-        {5,   &ServiceManager::Handle_GetStaticServiceAsAdmin, "GetStaticServiceAsAdmin"},
-        {6,   &ServiceManager::Handle_GetStaticServiceAsRepair, "GetStaticServiceAsRepair"},
-        {9,   &ServiceManager::Handle_GetStaticServiceAsServiceManager, "GetStaticServiceAsServiceManager"},
-        {10,  &ServiceManager::Handle_SetupStandardSteadyClockCore, "SetupStandardSteadyClockCore"},
-        {11,  &ServiceManager::Handle_SetupStandardLocalSystemClockCore, "SetupStandardLocalSystemClockCore"},
-        {12,  &ServiceManager::Handle_SetupStandardNetworkSystemClockCore, "SetupStandardNetworkSystemClockCore"},
-        {13,  &ServiceManager::Handle_SetupStandardUserSystemClockCore, "SetupStandardUserSystemClockCore"},
-        {14,  &ServiceManager::Handle_SetupTimeZoneServiceCore, "SetupTimeZoneServiceCore"},
-        {15,  &ServiceManager::Handle_SetupEphemeralNetworkSystemClockCore, "SetupEphemeralNetworkSystemClockCore"},
-        {50,  &ServiceManager::Handle_GetStandardLocalClockOperationEvent, "GetStandardLocalClockOperationEvent"},
-        {51,  &ServiceManager::Handle_GetStandardNetworkClockOperationEventForServiceManager, "GetStandardNetworkClockOperationEventForServiceManager"},
-        {52,  &ServiceManager::Handle_GetEphemeralNetworkClockOperationEventForServiceManager, "GetEphemeralNetworkClockOperationEventForServiceManager"},
-        {60,  &ServiceManager::Handle_GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent, "GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent"},
-        {100, &ServiceManager::Handle_SetStandardSteadyClockBaseTime, "SetStandardSteadyClockBaseTime"},
-        {200, &ServiceManager::Handle_GetClosestAlarmUpdatedEvent, "GetClosestAlarmUpdatedEvent"},
-        {201, &ServiceManager::Handle_CheckAndSignalAlarms, "CheckAndSignalAlarms"},
-        {202, &ServiceManager::Handle_GetClosestAlarmInfo, "GetClosestAlarmInfo "},
+        {0,   D<&ServiceManager::GetStaticServiceAsUser>, "GetStaticServiceAsUser"},
+        {5,   D<&ServiceManager::GetStaticServiceAsAdmin>, "GetStaticServiceAsAdmin"},
+        {6,   D<&ServiceManager::GetStaticServiceAsRepair>, "GetStaticServiceAsRepair"},
+        {9,   D<&ServiceManager::GetStaticServiceAsServiceManager>, "GetStaticServiceAsServiceManager"},
+        {10,  D<&ServiceManager::SetupStandardSteadyClockCore>, "SetupStandardSteadyClockCore"},
+        {11,  D<&ServiceManager::SetupStandardLocalSystemClockCore>, "SetupStandardLocalSystemClockCore"},
+        {12,  D<&ServiceManager::SetupStandardNetworkSystemClockCore>, "SetupStandardNetworkSystemClockCore"},
+        {13,  D<&ServiceManager::SetupStandardUserSystemClockCore>, "SetupStandardUserSystemClockCore"},
+        {14,  D<&ServiceManager::SetupTimeZoneServiceCore>, "SetupTimeZoneServiceCore"},
+        {15,  D<&ServiceManager::SetupEphemeralNetworkSystemClockCore>, "SetupEphemeralNetworkSystemClockCore"},
+        {50,  D<&ServiceManager::GetStandardLocalClockOperationEvent>, "GetStandardLocalClockOperationEvent"},
+        {51,  D<&ServiceManager::GetStandardNetworkClockOperationEventForServiceManager>, "GetStandardNetworkClockOperationEventForServiceManager"},
+        {52,  D<&ServiceManager::GetEphemeralNetworkClockOperationEventForServiceManager>, "GetEphemeralNetworkClockOperationEventForServiceManager"},
+        {60,  D<&ServiceManager::GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent>, "GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent"},
+        {100, D<&ServiceManager::SetStandardSteadyClockBaseTime>, "SetStandardSteadyClockBaseTime"},
+        {200, D<&ServiceManager::GetClosestAlarmUpdatedEvent>, "GetClosestAlarmUpdatedEvent"},
+        {201, D<&ServiceManager::CheckAndSignalAlarms>, "CheckAndSignalAlarms"},
+        {202, D<&ServiceManager::GetClosestAlarmInfo>, "GetClosestAlarmInfo "},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -52,302 +53,39 @@ ServiceManager::ServiceManager(Core::System& system_, std::shared_ptr<TimeManage
     m_ephemeral_system_context_writer.Link(m_ephemeral_operation);
 }
 
-void ServiceManager::SetupSAndP() {
-    if (!m_is_s_and_p_setup) {
-        m_is_s_and_p_setup = true;
-        m_server_manager.RegisterNamedService(
-            "time:s", std::make_shared<StaticService>(
-                          m_system, StaticServiceSetupInfo{0, 0, 1, 0, 0, 0}, m_time, "time:s"));
-        m_server_manager.RegisterNamedService("time:p",
-                                              std::make_shared<IPowerStateRequestHandler>(
-                                                  m_system, m_time->m_power_state_request_manager));
-    }
-}
-
-void ServiceManager::CheckAndSetupServicesSAndP() {
-    if (m_local_system_clock.IsInitialized() && m_user_system_clock.IsInitialized() &&
-        m_network_system_clock.IsInitialized() && m_steady_clock.IsInitialized() &&
-        m_time_zone.IsInitialized() && m_ephemeral_network_clock.IsInitialized()) {
-        SetupSAndP();
-    }
-}
-
-void ServiceManager::Handle_GetStaticServiceAsUser(HLERequestContext& ctx) {
+Result ServiceManager::GetStaticServiceAsUser(OutInterface<StaticService> out_service) {
     LOG_DEBUG(Service_Time, "called.");
 
-    std::shared_ptr<StaticService> service{};
-    auto res = GetStaticServiceAsUser(service);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(res);
-    rb.PushIpcInterface<StaticService>(std::move(service));
-}
-
-void ServiceManager::Handle_GetStaticServiceAsAdmin(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    std::shared_ptr<StaticService> service{};
-    auto res = GetStaticServiceAsAdmin(service);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(res);
-    rb.PushIpcInterface<StaticService>(std::move(service));
-}
-
-void ServiceManager::Handle_GetStaticServiceAsRepair(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    std::shared_ptr<StaticService> service{};
-    auto res = GetStaticServiceAsRepair(service);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(res);
-    rb.PushIpcInterface<StaticService>(std::move(service));
-}
-
-void ServiceManager::Handle_GetStaticServiceAsServiceManager(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    std::shared_ptr<StaticService> service{};
-    auto res = GetStaticServiceAsServiceManager(service);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(res);
-    rb.PushIpcInterface<StaticService>(std::move(service));
-}
-
-void ServiceManager::Handle_SetupStandardSteadyClockCore(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    struct Parameters {
-        bool reset_detected;
-        Common::UUID clock_source_id;
-        s64 rtc_offset;
-        s64 internal_offset;
-        s64 test_offset;
-    };
-    static_assert(sizeof(Parameters) == 0x30);
-
-    IPC::RequestParser rp{ctx};
-    auto params{rp.PopRaw<Parameters>()};
-
-    auto res = SetupStandardSteadyClockCore(params.clock_source_id, params.rtc_offset,
-                                            params.internal_offset, params.test_offset,
-                                            params.reset_detected);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_SetupStandardLocalSystemClockCore(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    IPC::RequestParser rp{ctx};
-    auto context{rp.PopRaw<SystemClockContext>()};
-    auto time{rp.Pop<s64>()};
-
-    auto res = SetupStandardLocalSystemClockCore(context, time);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_SetupStandardNetworkSystemClockCore(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    IPC::RequestParser rp{ctx};
-    auto context{rp.PopRaw<SystemClockContext>()};
-    auto accuracy{rp.Pop<s64>()};
-
-    auto res = SetupStandardNetworkSystemClockCore(context, accuracy);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_SetupStandardUserSystemClockCore(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    struct Parameters {
-        bool automatic_correction;
-        SteadyClockTimePoint time_point;
-    };
-    static_assert(sizeof(Parameters) == 0x20);
-
-    IPC::RequestParser rp{ctx};
-    auto params{rp.PopRaw<Parameters>()};
-
-    auto res = SetupStandardUserSystemClockCore(params.time_point, params.automatic_correction);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_SetupTimeZoneServiceCore(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    struct Parameters {
-        u32 location_count;
-        LocationName name;
-        SteadyClockTimePoint time_point;
-        RuleVersion rule_version;
-    };
-    static_assert(sizeof(Parameters) == 0x50);
-
-    IPC::RequestParser rp{ctx};
-    auto params{rp.PopRaw<Parameters>()};
-
-    auto rule_buffer{ctx.ReadBuffer()};
-
-    auto res = SetupTimeZoneServiceCore(params.name, params.time_point, params.rule_version,
-                                        params.location_count, rule_buffer);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_SetupEphemeralNetworkSystemClockCore(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    auto res = SetupEphemeralNetworkSystemClockCore();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_GetStandardLocalClockOperationEvent(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    Kernel::KEvent* event{};
-    auto res = GetStandardLocalClockOperationEvent(&event);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(res);
-    rb.PushCopyObjects(event->GetReadableEvent());
-}
-
-void ServiceManager::Handle_GetStandardNetworkClockOperationEventForServiceManager(
-    HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    Kernel::KEvent* event{};
-    auto res = GetStandardNetworkClockOperationEventForServiceManager(&event);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(res);
-    rb.PushCopyObjects(event);
-}
-
-void ServiceManager::Handle_GetEphemeralNetworkClockOperationEventForServiceManager(
-    HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    Kernel::KEvent* event{};
-    auto res = GetEphemeralNetworkClockOperationEventForServiceManager(&event);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(res);
-    rb.PushCopyObjects(event);
-}
-
-void ServiceManager::Handle_GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent(
-    HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    Kernel::KEvent* event{};
-    auto res = GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent(&event);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(res);
-    rb.PushCopyObjects(event);
-}
-
-void ServiceManager::Handle_SetStandardSteadyClockBaseTime(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    IPC::RequestParser rp{ctx};
-    auto base_time{rp.Pop<s64>()};
-
-    auto res = SetStandardSteadyClockBaseTime(base_time);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_GetClosestAlarmUpdatedEvent(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    Kernel::KEvent* event{};
-    auto res = GetClosestAlarmUpdatedEvent(&event);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(res);
-    rb.PushCopyObjects(event->GetReadableEvent());
-}
-
-void ServiceManager::Handle_CheckAndSignalAlarms(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    auto res = CheckAndSignalAlarms();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ServiceManager::Handle_GetClosestAlarmInfo(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called.");
-
-    AlarmInfo alarm_info{};
-    bool is_valid{};
-    s64 time{};
-    auto res = GetClosestAlarmInfo(is_valid, alarm_info, time);
-
-    struct OutParameters {
-        bool is_valid;
-        AlarmInfo alarm_info;
-        s64 time;
-    };
-    static_assert(sizeof(OutParameters) == 0x20);
-
-    OutParameters out_params{
-        .is_valid = is_valid,
-        .alarm_info = alarm_info,
-        .time = time,
-    };
-
-    IPC::ResponseBuilder rb{ctx, 2 + sizeof(OutParameters) / sizeof(u32)};
-    rb.Push(res);
-    rb.PushRaw<OutParameters>(out_params);
-}
-
-// =============================== Implementations ===========================
-
-Result ServiceManager::GetStaticService(std::shared_ptr<StaticService>& out_service,
-                                        StaticServiceSetupInfo setup_info, const char* name) {
-    out_service = std::make_shared<StaticService>(m_system, setup_info, m_time, name);
-    R_SUCCEED();
-}
-
-Result ServiceManager::GetStaticServiceAsUser(std::shared_ptr<StaticService>& out_service) {
     R_RETURN(GetStaticService(out_service, StaticServiceSetupInfo{0, 0, 0, 0, 0, 0}, "time:u"));
 }
 
-Result ServiceManager::GetStaticServiceAsAdmin(std::shared_ptr<StaticService>& out_service) {
+Result ServiceManager::GetStaticServiceAsAdmin(OutInterface<StaticService> out_service) {
+    LOG_DEBUG(Service_Time, "called.");
+
     R_RETURN(GetStaticService(out_service, StaticServiceSetupInfo{1, 1, 0, 1, 0, 0}, "time:a"));
 }
 
-Result ServiceManager::GetStaticServiceAsRepair(std::shared_ptr<StaticService>& out_service) {
+Result ServiceManager::GetStaticServiceAsRepair(OutInterface<StaticService> out_service) {
+    LOG_DEBUG(Service_Time, "called.");
+
     R_RETURN(GetStaticService(out_service, StaticServiceSetupInfo{0, 0, 0, 0, 1, 0}, "time:r"));
 }
 
-Result ServiceManager::GetStaticServiceAsServiceManager(
-    std::shared_ptr<StaticService>& out_service) {
+Result ServiceManager::GetStaticServiceAsServiceManager(OutInterface<StaticService> out_service) {
+    LOG_DEBUG(Service_Time, "called.");
+
     R_RETURN(GetStaticService(out_service, StaticServiceSetupInfo{1, 1, 1, 1, 1, 0}, "time:sm"));
 }
 
-Result ServiceManager::SetupStandardSteadyClockCore(Common::UUID& clock_source_id, s64 rtc_offset,
-                                                    s64 internal_offset, s64 test_offset,
-                                                    bool is_rtc_reset_detected) {
+Result ServiceManager::SetupStandardSteadyClockCore(bool is_rtc_reset_detected,
+                                                    Common::UUID& clock_source_id, s64 rtc_offset,
+                                                    s64 internal_offset, s64 test_offset) {
+    LOG_DEBUG(Service_Time,
+              "called. is_rtc_reset_detected={} clock_source_id={} rtc_offset={} "
+              "internal_offset={} test_offset={}",
+              is_rtc_reset_detected, clock_source_id.RawString(), rtc_offset, internal_offset,
+              test_offset);
+
     m_steady_clock.Initialize(clock_source_id, rtc_offset, internal_offset, test_offset,
                               is_rtc_reset_detected);
     auto time = m_steady_clock.GetRawTime();
@@ -365,6 +103,10 @@ Result ServiceManager::SetupStandardSteadyClockCore(Common::UUID& clock_source_i
 }
 
 Result ServiceManager::SetupStandardLocalSystemClockCore(SystemClockContext& context, s64 time) {
+    LOG_DEBUG(Service_Time,
+              "called. context={} context.steady_time_point.clock_source_id={} time={}", context,
+              context.steady_time_point.clock_source_id.RawString(), time);
+
     m_local_system_clock.SetContextWriter(m_local_system_context_writer);
     m_local_system_clock.Initialize(context, time);
 
@@ -374,6 +116,9 @@ Result ServiceManager::SetupStandardLocalSystemClockCore(SystemClockContext& con
 
 Result ServiceManager::SetupStandardNetworkSystemClockCore(SystemClockContext& context,
                                                            s64 accuracy) {
+    LOG_DEBUG(Service_Time, "called. context={} steady_time_point.clock_source_id={} accuracy={}",
+              context, context.steady_time_point.clock_source_id.RawString(), accuracy);
+
     // TODO this is a hack! The network clock should be updated independently, from the ntc service
     // and maybe elsewhere. We do not do that, so fix the clock to the local clock on first boot
     // to avoid it being stuck at 0.
@@ -388,8 +133,11 @@ Result ServiceManager::SetupStandardNetworkSystemClockCore(SystemClockContext& c
     R_SUCCEED();
 }
 
-Result ServiceManager::SetupStandardUserSystemClockCore(SteadyClockTimePoint& time_point,
-                                                        bool automatic_correction) {
+Result ServiceManager::SetupStandardUserSystemClockCore(bool automatic_correction,
+                                                        SteadyClockTimePoint& time_point) {
+    LOG_DEBUG(Service_Time, "called. automatic_correction={} time_point={} clock_source_id={}",
+              automatic_correction, time_point, time_point.clock_source_id.RawString());
+
     // TODO this is a hack! The user clock should be updated independently, from the ntc service
     // and maybe elsewhere. We do not do that, so fix the clock to the local clock on first boot
     // to avoid it being stuck at 0.
@@ -406,10 +154,16 @@ Result ServiceManager::SetupStandardUserSystemClockCore(SteadyClockTimePoint& ti
     R_SUCCEED();
 }
 
-Result ServiceManager::SetupTimeZoneServiceCore(LocationName& name,
+Result ServiceManager::SetupTimeZoneServiceCore(LocationName& name, RuleVersion& rule_version,
+                                                u32 location_count,
                                                 SteadyClockTimePoint& time_point,
-                                                RuleVersion& rule_version, u32 location_count,
-                                                std::span<const u8> rule_buffer) {
+                                                InBuffer<BufferAttr_HipcAutoSelect> rule_buffer) {
+    LOG_DEBUG(Service_Time,
+              "called. name={} rule_version={} location_count={} time_point={} "
+              "clock_source_id={}",
+              name, rule_version, location_count, time_point,
+              time_point.clock_source_id.RawString());
+
     if (m_time_zone.ParseBinary(name, rule_buffer) != ResultSuccess) {
         LOG_ERROR(Service_Time, "Failed to parse time zone binary!");
     }
@@ -424,6 +178,8 @@ Result ServiceManager::SetupTimeZoneServiceCore(LocationName& name,
 }
 
 Result ServiceManager::SetupEphemeralNetworkSystemClockCore() {
+    LOG_DEBUG(Service_Time, "called.");
+
     m_ephemeral_network_clock.SetContextWriter(m_ephemeral_system_context_writer);
     m_ephemeral_network_clock.SetInitialized();
 
@@ -431,30 +187,41 @@ Result ServiceManager::SetupEphemeralNetworkSystemClockCore() {
     R_SUCCEED();
 }
 
-Result ServiceManager::GetStandardLocalClockOperationEvent(Kernel::KEvent** out_event) {
-    *out_event = m_local_operation.m_event;
+Result ServiceManager::GetStandardLocalClockOperationEvent(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_Time, "called.");
+
+    *out_event = &m_local_operation.m_event->GetReadableEvent();
     R_SUCCEED();
 }
 
 Result ServiceManager::GetStandardNetworkClockOperationEventForServiceManager(
-    Kernel::KEvent** out_event) {
-    *out_event = m_network_operation.m_event;
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_Time, "called.");
+
+    *out_event = &m_network_operation.m_event->GetReadableEvent();
     R_SUCCEED();
 }
 
 Result ServiceManager::GetEphemeralNetworkClockOperationEventForServiceManager(
-    Kernel::KEvent** out_event) {
-    *out_event = m_ephemeral_operation.m_event;
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_Time, "called.");
+
+    *out_event = &m_ephemeral_operation.m_event->GetReadableEvent();
     R_SUCCEED();
 }
 
 Result ServiceManager::GetStandardUserSystemClockAutomaticCorrectionUpdatedEvent(
-    Kernel::KEvent** out_event) {
-    *out_event = &m_user_system_clock.GetEvent();
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_Time, "called.");
+
+    *out_event = &m_user_system_clock.GetEvent().GetReadableEvent();
     R_SUCCEED();
 }
 
 Result ServiceManager::SetStandardSteadyClockBaseTime(s64 base_time) {
+    LOG_DEBUG(Service_Time, "called. base_time={}", base_time);
+
     m_steady_clock.SetRtcOffset(base_time);
     auto time = m_steady_clock.GetRawTime();
     auto ticks = m_system.CoreTiming().GetClockTicks();
@@ -468,26 +235,63 @@ Result ServiceManager::SetStandardSteadyClockBaseTime(s64 base_time) {
     R_SUCCEED();
 }
 
-Result ServiceManager::GetClosestAlarmUpdatedEvent(Kernel::KEvent** out_event) {
-    *out_event = &m_alarms.GetEvent();
+Result ServiceManager::GetClosestAlarmUpdatedEvent(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_Time, "called.");
+
+    *out_event = &m_alarms.GetEvent().GetReadableEvent();
     R_SUCCEED();
 }
 
 Result ServiceManager::CheckAndSignalAlarms() {
+    LOG_DEBUG(Service_Time, "called.");
+
     m_alarms.CheckAndSignal();
     R_SUCCEED();
 }
 
-Result ServiceManager::GetClosestAlarmInfo(bool& out_is_valid, AlarmInfo& out_info, s64& out_time) {
+Result ServiceManager::GetClosestAlarmInfo(Out<bool> out_is_valid, Out<AlarmInfo> out_info,
+                                           Out<s64> out_time) {
     Alarm* alarm{nullptr};
-    out_is_valid = m_alarms.GetClosestAlarm(&alarm);
-    if (out_is_valid) {
-        out_info = {
+    *out_is_valid = m_alarms.GetClosestAlarm(&alarm);
+    if (*out_is_valid) {
+        *out_info = {
             .alert_time = alarm->GetAlertTime(),
             .priority = alarm->GetPriority(),
         };
-        out_time = m_alarms.GetRawTime();
+        *out_time = m_alarms.GetRawTime();
     }
+
+    LOG_DEBUG(Service_Time,
+              "called. out_is_valid={} out_info.alert_time={} out_info.priority={}, out_time={}",
+              *out_is_valid, out_info->alert_time, out_info->priority, *out_time);
+
+    R_SUCCEED();
+}
+
+void ServiceManager::CheckAndSetupServicesSAndP() {
+    if (m_local_system_clock.IsInitialized() && m_user_system_clock.IsInitialized() &&
+        m_network_system_clock.IsInitialized() && m_steady_clock.IsInitialized() &&
+        m_time_zone.IsInitialized() && m_ephemeral_network_clock.IsInitialized()) {
+        SetupSAndP();
+    }
+}
+
+void ServiceManager::SetupSAndP() {
+    if (!m_is_s_and_p_setup) {
+        m_is_s_and_p_setup = true;
+        m_server_manager.RegisterNamedService(
+            "time:s", std::make_shared<StaticService>(
+                          m_system, StaticServiceSetupInfo{0, 0, 1, 0, 0, 0}, m_time, "time:s"));
+        m_server_manager.RegisterNamedService("time:p",
+                                              std::make_shared<IPowerStateRequestHandler>(
+                                                  m_system, m_time->m_power_state_request_manager));
+    }
+}
+
+Result ServiceManager::GetStaticService(OutInterface<StaticService> out_service,
+                                        StaticServiceSetupInfo setup_info, const char* name) {
+    *out_service = std::make_shared<StaticService>(m_system, setup_info, m_time, name);
     R_SUCCEED();
 }
 

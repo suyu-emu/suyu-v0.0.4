@@ -289,8 +289,6 @@ add_library(video_core STATIC
     vulkan_common/vulkan.h
 )
 
-create_target_directory_groups(video_core)
-
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PUBLIC glad shader_recompiler stb bc_decoder)
 
@@ -365,3 +363,5 @@ endif()
 if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
 endif()
+
+create_target_directory_groups(video_core)

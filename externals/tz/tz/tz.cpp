@@ -1625,11 +1625,11 @@ s32 ParseTimeZoneBinary(Rule& out_rule, std::span<const u8> binary) {
     return 0;
 }
 
-bool localtime_rz(CalendarTimeInternal* tmp, Rule* sp, time_t* timep) {
+bool localtime_rz(CalendarTimeInternal* tmp, Rule const* sp, time_t* timep) {
     return localsub(sp, timep, 0, tmp) == nullptr;
 }
 
-u32 mktime_tzname(time_t* out_time, Rule* sp, CalendarTimeInternal* tmp) {
+u32 mktime_tzname(time_t* out_time, Rule const* sp, CalendarTimeInternal* tmp) {
     return time1(out_time, tmp, localsub, sp, 0);
 }
 

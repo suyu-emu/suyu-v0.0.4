@@ -41,7 +41,7 @@ bool AlarmWorker::GetClosestAlarmInfo(Service::PSC::Time::AlarmInfo& out_alarm_i
     Service::PSC::Time::AlarmInfo alarm_info{};
     s64 closest_time{};
 
-    auto res = m_time_m->GetClosestAlarmInfo(is_valid, alarm_info, closest_time);
+    auto res = m_time_m->GetClosestAlarmInfo(&is_valid, &alarm_info, &closest_time);
     ASSERT(res == ResultSuccess);
 
     if (is_valid) {
@@ -76,6 +76,7 @@ void AlarmWorker::OnPowerStateChanged() {
 
 Result AlarmWorker::AttachToClosestAlarmEvent() {
     m_time_m->GetClosestAlarmUpdatedEvent(&m_event);
+
     R_SUCCEED();
 }
 

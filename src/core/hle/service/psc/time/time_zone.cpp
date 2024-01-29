@@ -5,7 +5,7 @@
 
 namespace Service::PSC::Time {
 namespace {
-constexpr Result ValidateRule(Tz::Rule& rule) {
+constexpr Result ValidateRule(const Tz::Rule& rule) {
     if (rule.typecnt > static_cast<s32>(Tz::TZ_MAX_TYPES) ||
         rule.timecnt > static_cast<s32>(Tz::TZ_MAX_TIMES) ||
         rule.charcnt > static_cast<s32>(Tz::TZ_MAX_CHARS)) {
@@ -26,7 +26,7 @@ constexpr Result ValidateRule(Tz::Rule& rule) {
     R_SUCCEED();
 }
 
-constexpr bool GetTimeZoneTime(s64& out_time, Tz::Rule& rule, s64 time, s32 index,
+constexpr bool GetTimeZoneTime(s64& out_time, const Tz::Rule& rule, s64 time, s32 index,
                                s32 index_offset) {
     s32 found_idx{};
     s32 expected_index{index + index_offset};
@@ -107,7 +107,7 @@ Result TimeZone::GetTimePoint(SteadyClockTimePoint& out_time_point) {
 
 Result TimeZone::ToCalendarTime(CalendarTime& out_calendar_time,
                                 CalendarAdditionalInfo& out_additional_info, s64 time,
-                                Tz::Rule& rule) {
+                                const Tz::Rule& rule) {
     std::scoped_lock l{m_mutex};
     R_RETURN(ToCalendarTimeImpl(out_calendar_time, out_additional_info, time, rule));
 }
@@ -140,8 +140,8 @@ Result TimeZone::ParseBinaryInto(Tz::Rule& out_rule, std::span<const u8> binary)
     R_RETURN(ParseBinaryImpl(out_rule, binary));
 }
 
-Result TimeZone::ToPosixTime(u32& out_count, std::span<s64, 2> out_times, u32 out_times_count,
-                             CalendarTime& calendar, Tz::Rule& rule) {
+Result TimeZone::ToPosixTime(u32& out_count, std::span<s64> out_times, u32 out_times_count,
+                             CalendarTime& calendar, const Tz::Rule& rule) {
     std::scoped_lock l{m_mutex};
 
     auto res = ToPosixTimeImpl(out_count, out_times, out_times_count, calendar, rule, -1);
@@ -157,7 +157,7 @@ Result TimeZone::ToPosixTime(u32& out_count, std::span<s64, 2> out_times, u32 ou
     R_RETURN(res);
 }
 
-Result TimeZone::ToPosixTimeWithMyRule(u32& out_count, std::span<s64, 2> out_times,
+Result TimeZone::ToPosixTimeWithMyRule(u32& out_count, std::span<s64> out_times,
                                        u32 out_times_count, CalendarTime& calendar) {
     std::scoped_lock l{m_mutex};
 
@@ -183,7 +183,7 @@ Result TimeZone::ParseBinaryImpl(Tz::Rule& out_rule, std::span<const u8> binary)
 
 Result TimeZone::ToCalendarTimeImpl(CalendarTime& out_calendar_time,
                                     CalendarAdditionalInfo& out_additional_info, s64 time,
-                                    Tz::Rule& rule) {
+                                    const Tz::Rule& rule) {
     R_TRY(ValidateRule(rule));
 
     Tz::CalendarTimeInternal calendar_internal{};
@@ -212,8 +212,8 @@ Result TimeZone::ToCalendarTimeImpl(CalendarTime& out_calendar_time,
     R_SUCCEED();
 }
 
-Result TimeZone::ToPosixTimeImpl(u32& out_count, std::span<s64, 2> out_times, u32 out_times_count,
-                                 CalendarTime& calendar, Tz::Rule& rule, s32 is_dst) {
+Result TimeZone::ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, u32 out_times_count,
+                                 CalendarTime& calendar, const Tz::Rule& rule, s32 is_dst) {
     R_TRY(ValidateRule(rule));
 
     calendar.month -= 1;

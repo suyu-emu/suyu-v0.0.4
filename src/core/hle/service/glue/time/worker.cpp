@@ -38,11 +38,12 @@ T GetSettingsItemValue(std::shared_ptr<Service::Set::ISystemSettingsServer>& set
 
 TimeWorker::TimeWorker(Core::System& system, StandardSteadyClockResource& steady_clock_resource,
                        FileTimestampWorker& file_timestamp_worker)
-    : m_system{system}, m_ctx{m_system, "Glue:58"}, m_event{m_ctx.CreateEvent("Glue:58:Event")},
+    : m_system{system}, m_ctx{m_system, "Glue:TimeWorker"}, m_event{m_ctx.CreateEvent(
+                                                                "Glue:TimeWorker:Event")},
       m_steady_clock_resource{steady_clock_resource},
       m_file_timestamp_worker{file_timestamp_worker}, m_timer_steady_clock{m_ctx.CreateEvent(
-                                                          "Glue:58:SteadyClockTimerEvent")},
-      m_timer_file_system{m_ctx.CreateEvent("Glue:58:FileTimeTimerEvent")},
+                                                          "Glue:TimeWorker:SteadyClockTimerEvent")},
+      m_timer_file_system{m_ctx.CreateEvent("Glue:TimeWorker:FileTimeTimerEvent")},
       m_alarm_worker{m_system, m_steady_clock_resource}, m_pm_state_change_handler{m_alarm_worker} {
     g_ig_report_network_clock_context_set = false;
     g_report_network_clock_context = {};
@@ -113,17 +114,17 @@ void TimeWorker::Initialize(std::shared_ptr<Service::PSC::Time::StaticService> t
                                                std::chrono::nanoseconds(fs_notify_time_ns),
                                                m_timer_file_system_timing_event);
 
-    auto res = m_time_sm->GetStandardLocalSystemClock(m_local_clock);
+    auto res = m_time_sm->GetStandardLocalSystemClock(&m_local_clock);
     ASSERT(res == ResultSuccess);
     res = m_time_m->GetStandardLocalClockOperationEvent(&m_local_clock_event);
     ASSERT(res == ResultSuccess);
 
-    res = m_time_sm->GetStandardNetworkSystemClock(m_network_clock);
+    res = m_time_sm->GetStandardNetworkSystemClock(&m_network_clock);
     ASSERT(res == ResultSuccess);
     res = m_time_m->GetStandardNetworkClockOperationEventForServiceManager(&m_network_clock_event);
     ASSERT(res == ResultSuccess);
 
-    res = m_time_sm->GetEphemeralNetworkSystemClock(m_ephemeral_clock);
+    res = m_time_sm->GetEphemeralNetworkSystemClock(&m_ephemeral_clock);
     ASSERT(res == ResultSuccess);
     res =
         m_time_m->GetEphemeralNetworkClockOperationEventForServiceManager(&m_ephemeral_clock_event);
@@ -183,22 +184,19 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             AddWaiter(&m_event->GetReadableEvent(), EventType::Exit);
             // TODO
             // AddWaiter(gIPmModuleService::GetEvent(), 1);
-            AddWaiter(&m_alarm_worker.GetEvent().GetReadableEvent(), EventType::PowerStateChange);
+            AddWaiter(&m_alarm_worker.GetEvent(), EventType::PowerStateChange);
         } else {
             AddWaiter(&m_event->GetReadableEvent(), EventType::Exit);
             // TODO
             // AddWaiter(gIPmModuleService::GetEvent(), 1);
-            AddWaiter(&m_alarm_worker.GetEvent().GetReadableEvent(), EventType::PowerStateChange);
+            AddWaiter(&m_alarm_worker.GetEvent(), EventType::PowerStateChange);
             AddWaiter(&m_alarm_worker.GetTimerEvent().GetReadableEvent(), EventType::SignalAlarms);
-            AddWaiter(&m_local_clock_event->GetReadableEvent(), EventType::UpdateLocalSystemClock);
-            AddWaiter(&m_network_clock_event->GetReadableEvent(),
-                      EventType::UpdateNetworkSystemClock);
-            AddWaiter(&m_ephemeral_clock_event->GetReadableEvent(),
-                      EventType::UpdateEphemeralSystemClock);
+            AddWaiter(m_local_clock_event, EventType::UpdateLocalSystemClock);
+            AddWaiter(m_network_clock_event, EventType::UpdateNetworkSystemClock);
+            AddWaiter(m_ephemeral_clock_event, EventType::UpdateEphemeralSystemClock);
             AddWaiter(&m_timer_steady_clock->GetReadableEvent(), EventType::UpdateSteadyClock);
             AddWaiter(&m_timer_file_system->GetReadableEvent(), EventType::UpdateFileTimestamp);
-            AddWaiter(&m_standard_user_auto_correct_clock_event->GetReadableEvent(),
-                      EventType::AutoCorrect);
+            AddWaiter(m_standard_user_auto_correct_clock_event, EventType::AutoCorrect);
         }
 
         s32 out_index{-1};
@@ -237,7 +235,7 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             m_local_clock_event->Clear();
 
             Service::PSC::Time::SystemClockContext context{};
-            auto res = m_local_clock->GetSystemClockContext(context);
+            auto res = m_local_clock->GetSystemClockContext(&context);
             ASSERT(res == ResultSuccess);
 
             m_set_sys->SetUserSystemClockContext(context);
@@ -248,12 +246,12 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
         case EventType::UpdateNetworkSystemClock: {
             m_network_clock_event->Clear();
             Service::PSC::Time::SystemClockContext context{};
-            auto res = m_network_clock->GetSystemClockContext(context);
+            auto res = m_network_clock->GetSystemClockContext(&context);
             ASSERT(res == ResultSuccess);
             m_set_sys->SetNetworkSystemClockContext(context);
 
             s64 time{};
-            if (m_network_clock->GetCurrentTime(time) != ResultSuccess) {
+            if (m_network_clock->GetCurrentTime(&time) != ResultSuccess) {
                 break;
             }
 
@@ -275,13 +273,13 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             m_ephemeral_clock_event->Clear();
 
             Service::PSC::Time::SystemClockContext context{};
-            auto res = m_ephemeral_clock->GetSystemClockContext(context);
+            auto res = m_ephemeral_clock->GetSystemClockContext(&context);
             if (res != ResultSuccess) {
                 break;
             }
 
             s64 time{};
-            res = m_ephemeral_clock->GetCurrentTime(time);
+            res = m_ephemeral_clock->GetCurrentTime(&time);
             if (res != ResultSuccess) {
                 break;
             }
@@ -317,11 +315,11 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
 
             bool automatic_correction{};
             auto res = m_time_sm->IsStandardUserSystemClockAutomaticCorrectionEnabled(
-                automatic_correction);
+                &automatic_correction);
             ASSERT(res == ResultSuccess);
 
             Service::PSC::Time::SteadyClockTimePoint time_point{};
-            res = m_time_sm->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+            res = m_time_sm->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(&time_point);
             ASSERT(res == ResultSuccess);
 
             m_set_sys->SetUserSystemClockAutomaticCorrectionEnabled(automatic_correction);

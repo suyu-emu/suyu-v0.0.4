@@ -32,23 +32,24 @@ public:
     Result GetTimePoint(SteadyClockTimePoint& out_time_point);
 
     Result ToCalendarTime(CalendarTime& out_calendar_time,
-                          CalendarAdditionalInfo& out_additional_info, s64 time, Tz::Rule& rule);
+                          CalendarAdditionalInfo& out_additional_info, s64 time,
+                          const Tz::Rule& rule);
     Result ToCalendarTimeWithMyRule(CalendarTime& calendar_time,
                                     CalendarAdditionalInfo& calendar_additional, s64 time);
     Result ParseBinary(LocationName& name, std::span<const u8> binary);
     Result ParseBinaryInto(Tz::Rule& out_rule, std::span<const u8> binary);
-    Result ToPosixTime(u32& out_count, std::span<s64, 2> out_times, u32 out_times_count,
-                       CalendarTime& calendar, Tz::Rule& rule);
-    Result ToPosixTimeWithMyRule(u32& out_count, std::span<s64, 2> out_times, u32 out_times_count,
+    Result ToPosixTime(u32& out_count, std::span<s64> out_times, u32 out_times_count,
+                       CalendarTime& calendar, const Tz::Rule& rule);
+    Result ToPosixTimeWithMyRule(u32& out_count, std::span<s64> out_times, u32 out_times_count,
                                  CalendarTime& calendar);
 
 private:
     Result ParseBinaryImpl(Tz::Rule& out_rule, std::span<const u8> binary);
     Result ToCalendarTimeImpl(CalendarTime& out_calendar_time,
                               CalendarAdditionalInfo& out_additional_info, s64 time,
-                              Tz::Rule& rule);
-    Result ToPosixTimeImpl(u32& out_count, std::span<s64, 2> out_times, u32 out_times_count,
-                           CalendarTime& calendar, Tz::Rule& rule, s32 is_dst);
+                              const Tz::Rule& rule);
+    Result ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, u32 out_times_count,
+                           CalendarTime& calendar, const Tz::Rule& rule, s32 is_dst);
 
     bool m_initialized{};
     std::recursive_mutex m_mutex;

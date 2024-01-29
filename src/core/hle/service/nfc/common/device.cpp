@@ -1405,7 +1405,7 @@ NFP::AmiiboDate NfcDevice::GetAmiiboDate(s64 posix_time) const {
         system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
 
     std::shared_ptr<Service::Glue::Time::TimeZoneService> timezone_service{};
-    static_service->GetTimeZoneService(timezone_service);
+    static_service->GetTimeZoneService(&timezone_service);
 
     Service::PSC::Time::CalendarTime calendar_time{};
     Service::PSC::Time::CalendarAdditionalInfo additional_info{};
@@ -1416,7 +1416,7 @@ NFP::AmiiboDate NfcDevice::GetAmiiboDate(s64 posix_time) const {
     amiibo_date.SetMonth(1);
     amiibo_date.SetDay(1);
 
-    if (timezone_service->ToCalendarTimeWithMyRule(calendar_time, additional_info, posix_time) ==
+    if (timezone_service->ToCalendarTimeWithMyRule(&calendar_time, &additional_info, posix_time) ==
         ResultSuccess) {
         amiibo_date.SetYear(calendar_time.year);
         amiibo_date.SetMonth(calendar_time.month);
@@ -1431,10 +1431,10 @@ s64 NfcDevice::GetCurrentPosixTime() const {
         system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
 
     std::shared_ptr<Service::PSC::Time::SteadyClock> steady_clock{};
-    static_service->GetStandardSteadyClock(steady_clock);
+    static_service->GetStandardSteadyClock(&steady_clock);
 
     Service::PSC::Time::SteadyClockTimePoint time_point{};
-    R_ASSERT(steady_clock->GetCurrentTimePoint(time_point));
+    R_ASSERT(steady_clock->GetCurrentTimePoint(&time_point));
     return time_point.time_point;
 }
 

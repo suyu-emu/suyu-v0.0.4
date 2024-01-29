@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/server_manager.h"
@@ -29,57 +30,43 @@ class EphemeralNetworkSystemClockCore;
 class SharedMemory;
 
 class StaticService final : public ServiceFramework<StaticService> {
+    using InClockSnapshot = InLargeData<ClockSnapshot, BufferAttr_HipcPointer>;
+    using OutClockSnapshot = OutLargeData<ClockSnapshot, BufferAttr_HipcPointer>;
+
 public:
     explicit StaticService(Core::System& system, StaticServiceSetupInfo setup_info,
                            std::shared_ptr<TimeManager> time, const char* name);
 
     ~StaticService() override = default;
 
-    Result GetStandardUserSystemClock(std::shared_ptr<SystemClock>& out_service);
-    Result GetStandardNetworkSystemClock(std::shared_ptr<SystemClock>& out_service);
-    Result GetStandardSteadyClock(std::shared_ptr<SteadyClock>& out_service);
-    Result GetTimeZoneService(std::shared_ptr<TimeZoneService>& out_service);
-    Result GetStandardLocalSystemClock(std::shared_ptr<SystemClock>& out_service);
-    Result GetEphemeralNetworkSystemClock(std::shared_ptr<SystemClock>& out_service);
-    Result GetSharedMemoryNativeHandle(Kernel::KSharedMemory** out_shared_memory);
-    Result IsStandardUserSystemClockAutomaticCorrectionEnabled(bool& out_is_enabled);
+    Result GetStandardUserSystemClock(OutInterface<SystemClock> out_service);
+    Result GetStandardNetworkSystemClock(OutInterface<SystemClock> out_service);
+    Result GetStandardSteadyClock(OutInterface<SteadyClock> out_service);
+    Result GetTimeZoneService(OutInterface<TimeZoneService> out_service);
+    Result GetStandardLocalSystemClock(OutInterface<SystemClock> out_service);
+    Result GetEphemeralNetworkSystemClock(OutInterface<SystemClock> out_service);
+    Result GetSharedMemoryNativeHandle(OutCopyHandle<Kernel::KSharedMemory> out_shared_memory);
+    Result SetStandardSteadyClockInternalOffset(s64 offset_ns);
+    Result GetStandardSteadyClockRtcValue(Out<s64> out_rtc_value);
+    Result IsStandardUserSystemClockAutomaticCorrectionEnabled(Out<bool> out_is_enabled);
     Result SetStandardUserSystemClockAutomaticCorrectionEnabled(bool automatic_correction);
-    Result IsStandardNetworkSystemClockAccuracySufficient(bool& out_is_sufficient);
+    Result GetStandardUserSystemClockInitialYear(Out<s32> out_year);
+    Result IsStandardNetworkSystemClockAccuracySufficient(Out<bool> out_is_sufficient);
     Result GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
-        SteadyClockTimePoint& out_time_point);
-    Result CalculateMonotonicSystemClockBaseTimePoint(s64& out_time, SystemClockContext& context);
-    Result GetClockSnapshot(ClockSnapshot& out_snapshot, TimeType type);
-    Result GetClockSnapshotFromSystemClockContext(ClockSnapshot& out_snapshot,
+        Out<SteadyClockTimePoint> out_time_point);
+    Result CalculateMonotonicSystemClockBaseTimePoint(Out<s64> out_time,
+                                                      SystemClockContext& context);
+    Result GetClockSnapshot(OutClockSnapshot out_snapshot, TimeType type);
+    Result GetClockSnapshotFromSystemClockContext(TimeType type, OutClockSnapshot out_snapshot,
                                                   SystemClockContext& user_context,
-                                                  SystemClockContext& network_context,
-                                                  TimeType type);
-    Result CalculateStandardUserSystemClockDifferenceByUser(s64& out_time, ClockSnapshot& a,
-                                                            ClockSnapshot& b);
-    Result CalculateSpanBetween(s64& out_time, ClockSnapshot& a, ClockSnapshot& b);
+                                                  SystemClockContext& network_context);
+    Result CalculateStandardUserSystemClockDifferenceByUser(Out<s64> out_difference,
+                                                            InClockSnapshot a, InClockSnapshot b);
+    Result CalculateSpanBetween(Out<s64> out_time, InClockSnapshot a, InClockSnapshot b);
 
 private:
-    Result GetClockSnapshotImpl(ClockSnapshot& out_snapshot, SystemClockContext& user_context,
+    Result GetClockSnapshotImpl(OutClockSnapshot out_snapshot, SystemClockContext& user_context,
                                 SystemClockContext& network_context, TimeType type);
-
-    void Handle_GetStandardUserSystemClock(HLERequestContext& ctx);
-    void Handle_GetStandardNetworkSystemClock(HLERequestContext& ctx);
-    void Handle_GetStandardSteadyClock(HLERequestContext& ctx);
-    void Handle_GetTimeZoneService(HLERequestContext& ctx);
-    void Handle_GetStandardLocalSystemClock(HLERequestContext& ctx);
-    void Handle_GetEphemeralNetworkSystemClock(HLERequestContext& ctx);
-    void Handle_GetSharedMemoryNativeHandle(HLERequestContext& ctx);
-    void Handle_SetStandardSteadyClockInternalOffset(HLERequestContext& ctx);
-    void Handle_GetStandardSteadyClockRtcValue(HLERequestContext& ctx);
-    void Handle_IsStandardUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
-    void Handle_SetStandardUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
-    void Handle_GetStandardUserSystemClockInitialYear(HLERequestContext& ctx);
-    void Handle_IsStandardNetworkSystemClockAccuracySufficient(HLERequestContext& ctx);
-    void Handle_GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx);
-    void Handle_CalculateMonotonicSystemClockBaseTimePoint(HLERequestContext& ctx);
-    void Handle_GetClockSnapshot(HLERequestContext& ctx);
-    void Handle_GetClockSnapshotFromSystemClockContext(HLERequestContext& ctx);
-    void Handle_CalculateStandardUserSystemClockDifferenceByUser(HLERequestContext& ctx);
-    void Handle_CalculateSpanBetween(HLERequestContext& ctx);
 
     Core::System& m_system;
     StaticServiceSetupInfo m_setup_info;
