@@ -72,6 +72,12 @@ void NPadResource::UnregisterAppletResourceUserId(u64 aruid) {
         state[aruid_index] = {};
         registration_list.flag[aruid_index] = RegistrationStatus::PendingDelete;
     }
+
+    for (std::size_t i = 0; i < AruidIndexMax; i++) {
+        if (registration_list.flag[i] == RegistrationStatus::Initialized) {
+            active_data_aruid = registration_list.aruid[i];
+        }
+    }
 }
 
 void NPadResource::DestroyStyleSetUpdateEvents(u64 aruid) {
