@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardDriverOptionBinding
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.model.Driver
@@ -57,13 +58,9 @@ class DriverAdapter(private val driverViewModel: DriverViewModel) :
                 title.text = model.title
                 version.text = model.version
                 description.text = model.description
-                if (model.description.isNotEmpty()) {
-                    version.visibility = View.VISIBLE
-                    description.visibility = View.VISIBLE
+                if (model.title != binding.root.context.getString(R.string.system_gpu_driver)) {
                     buttonDelete.visibility = View.VISIBLE
                 } else {
-                    version.visibility = View.GONE
-                    description.visibility = View.GONE
                     buttonDelete.visibility = View.GONE
                 }
             }
