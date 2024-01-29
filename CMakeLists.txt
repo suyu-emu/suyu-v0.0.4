@@ -36,6 +36,8 @@ option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
 option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 
+option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
+
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
@@ -306,6 +308,10 @@ find_package(zstd 1.5 REQUIRED)
 
 if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
     find_package(Vulkan 1.3.274 REQUIRED)
+endif()
+
+if (NOT YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
+    find_package(VulkanUtilityLibraries REQUIRED)
 endif()
 
 if (ENABLE_LIBUSB)
