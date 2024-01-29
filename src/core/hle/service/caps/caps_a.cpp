@@ -5,7 +5,7 @@
 #include "core/hle/service/caps/caps_a.h"
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_result.h"
-#include "core/hle/service/caps/caps_types.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Capture {
@@ -18,9 +18,9 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
         {0, nullptr, "GetAlbumFileCount"},
         {1, nullptr, "GetAlbumFileList"},
         {2, nullptr, "LoadAlbumFile"},
-        {3, &IAlbumAccessorService::DeleteAlbumFile, "DeleteAlbumFile"},
+        {3, C<&IAlbumAccessorService::DeleteAlbumFile>, "DeleteAlbumFile"},
         {4, nullptr, "StorageCopyAlbumFile"},
-        {5, &IAlbumAccessorService::IsAlbumMounted, "IsAlbumMounted"},
+        {5, C<&IAlbumAccessorService::IsAlbumMounted>, "IsAlbumMounted"},
         {6, nullptr, "GetAlbumUsage"},
         {7, nullptr, "GetAlbumFileSize"},
         {8, nullptr, "LoadAlbumFileThumbnail"},
@@ -33,18 +33,18 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
         {15, nullptr, "GetAlbumUsage3"},
         {16, nullptr, "GetAlbumMountResult"},
         {17, nullptr, "GetAlbumUsage16"},
-        {18, &IAlbumAccessorService::Unknown18, "Unknown18"},
+        {18, C<&IAlbumAccessorService::Unknown18>, "Unknown18"},
         {19, nullptr, "Unknown19"},
         {100, nullptr, "GetAlbumFileCountEx0"},
-        {101, &IAlbumAccessorService::GetAlbumFileListEx0, "GetAlbumFileListEx0"},
+        {101, C<&IAlbumAccessorService::GetAlbumFileListEx0>, "GetAlbumFileListEx0"},
         {202, nullptr, "SaveEditedScreenShot"},
         {301, nullptr, "GetLastThumbnail"},
         {302, nullptr, "GetLastOverlayMovieThumbnail"},
-        {401,  &IAlbumAccessorService::GetAutoSavingStorage, "GetAutoSavingStorage"},
+        {401,  C<&IAlbumAccessorService::GetAutoSavingStorage>, "GetAutoSavingStorage"},
         {501, nullptr, "GetRequiredStorageSpaceSizeToCopyAll"},
         {1001, nullptr, "LoadAlbumScreenShotThumbnailImageEx0"},
-        {1002, &IAlbumAccessorService::LoadAlbumScreenShotImageEx1, "LoadAlbumScreenShotImageEx1"},
-        {1003, &IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1, "LoadAlbumScreenShotThumbnailImageEx1"},
+        {1002, C<&IAlbumAccessorService::LoadAlbumScreenShotImageEx1>, "LoadAlbumScreenShotImageEx1"},
+        {1003, C<&IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1>, "LoadAlbumScreenShotThumbnailImageEx1"},
         {8001, nullptr, "ForceAlbumUnmounted"},
         {8002, nullptr, "ResetAlbumMountStatus"},
         {8011, nullptr, "RefreshAlbumCache"},
@@ -62,138 +62,70 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
 
 IAlbumAccessorService::~IAlbumAccessorService() = default;
 
-void IAlbumAccessorService::DeleteAlbumFile(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto file_id{rp.PopRaw<AlbumFileId>()};
-
+Result IAlbumAccessorService::DeleteAlbumFile(AlbumFileId file_id) {
     LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}",
              file_id.application_id, file_id.storage, file_id.type);
 
-    Result result = manager->DeleteAlbumFile(file_id);
-    result = TranslateResult(result);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    const Result result = manager->DeleteAlbumFile(file_id);
+    R_RETURN(TranslateResult(result));
 }
 
-void IAlbumAccessorService::IsAlbumMounted(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto storage{rp.PopEnum<AlbumStorage>()};
-
+Result IAlbumAccessorService::IsAlbumMounted(Out<bool> out_is_mounted, AlbumStorage storage) {
     LOG_INFO(Service_Capture, "called, storage={}", storage);
 
-    Result result = manager->IsAlbumMounted(storage);
-    const bool is_mounted = result.IsSuccess();
-    result = TranslateResult(result);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(result);
-    rb.Push<u8>(is_mounted);
+    const Result result = manager->IsAlbumMounted(storage);
+    *out_is_mounted = result.IsSuccess();
+    R_RETURN(TranslateResult(result));
 }
 
-void IAlbumAccessorService::Unknown18(HLERequestContext& ctx) {
-    struct UnknownBuffer {
-        INSERT_PADDING_BYTES(0x10);
-    };
-    static_assert(sizeof(UnknownBuffer) == 0x10, "UnknownBuffer is an invalid size");
-
+Result IAlbumAccessorService::Unknown18(
+    Out<u32> out_buffer_size,
+    OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_buffer) {
     LOG_WARNING(Service_Capture, "(STUBBED) called");
-
-    std::vector<UnknownBuffer> buffer{};
-
-    if (!buffer.empty()) {
-        ctx.WriteBuffer(buffer);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(static_cast<u32>(buffer.size()));
+    *out_buffer_size = 0;
+    R_SUCCEED();
 }
 
-void IAlbumAccessorService::GetAlbumFileListEx0(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto storage{rp.PopEnum<AlbumStorage>()};
-    const auto flags{rp.Pop<u8>()};
-    const auto album_entry_size{ctx.GetWriteBufferNumElements<AlbumEntry>()};
-
+Result IAlbumAccessorService::GetAlbumFileListEx0(
+    Out<u64> out_entries_size, AlbumStorage storage, u8 flags,
+    OutArray<AlbumEntry, BufferAttr_HipcMapAlias> out_entries) {
     LOG_INFO(Service_Capture, "called, storage={}, flags={}", storage, flags);
 
-    std::vector<AlbumEntry> entries;
-    Result result = manager->GetAlbumFileList(entries, storage, flags);
-    result = TranslateResult(result);
-
-    entries.resize(std::min(album_entry_size, entries.size()));
-
-    if (!entries.empty()) {
-        ctx.WriteBuffer(entries);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(result);
-    rb.Push<u64>(entries.size());
+    const Result result = manager->GetAlbumFileList(out_entries, *out_entries_size, storage, flags);
+    R_RETURN(TranslateResult(result));
 }
 
-void IAlbumAccessorService::GetAutoSavingStorage(HLERequestContext& ctx) {
+Result IAlbumAccessorService::GetAutoSavingStorage(Out<bool> out_is_autosaving) {
     LOG_WARNING(Service_Capture, "(STUBBED) called");
 
-    bool is_autosaving{};
-    Result result = manager->GetAutoSavingStorage(is_autosaving);
-    result = TranslateResult(result);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(result);
-    rb.Push<u8>(is_autosaving);
+    const Result result = manager->GetAutoSavingStorage(*out_is_autosaving);
+    R_RETURN(TranslateResult(result));
 }
 
-void IAlbumAccessorService::LoadAlbumScreenShotImageEx1(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto file_id{rp.PopRaw<AlbumFileId>()};
-    const auto decoder_options{rp.PopRaw<ScreenShotDecodeOption>()};
-    const auto image_buffer_size{ctx.GetWriteBufferSize(1)};
-
+Result IAlbumAccessorService::LoadAlbumScreenShotImageEx1(
+    const AlbumFileId& file_id, const ScreenShotDecodeOption& decoder_options,
+    OutLargeData<LoadAlbumScreenShotImageOutput, BufferAttr_HipcMapAlias> out_image_output,
+    OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
+    OutArray<u8, BufferAttr_HipcMapAlias> out_buffer) {
     LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}, flags={}",
              file_id.application_id, file_id.storage, file_id.type, decoder_options.flags);
 
-    std::vector<u8> image;
-    LoadAlbumScreenShotImageOutput image_output;
-    Result result =
-        manager->LoadAlbumScreenShotImage(image_output, image, file_id, decoder_options);
-    result = TranslateResult(result);
-
-    if (image.size() > image_buffer_size) {
-        result = ResultWorkMemoryError;
-    }
-
-    if (result.IsSuccess()) {
-        ctx.WriteBuffer(image_output, 0);
-        ctx.WriteBuffer(image, 1);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    const Result result =
+        manager->LoadAlbumScreenShotImage(*out_image_output, out_image, file_id, decoder_options);
+    R_RETURN(TranslateResult(result));
 }
 
-void IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto file_id{rp.PopRaw<AlbumFileId>()};
-    const auto decoder_options{rp.PopRaw<ScreenShotDecodeOption>()};
-
+Result IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1(
+    const AlbumFileId& file_id, const ScreenShotDecodeOption& decoder_options,
+    OutLargeData<LoadAlbumScreenShotImageOutput, BufferAttr_HipcMapAlias> out_image_output,
+    OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
+    OutArray<u8, BufferAttr_HipcMapAlias> out_buffer) {
     LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}, flags={}",
              file_id.application_id, file_id.storage, file_id.type, decoder_options.flags);
 
-    std::vector<u8> image(ctx.GetWriteBufferSize(1));
-    LoadAlbumScreenShotImageOutput image_output;
-    Result result =
-        manager->LoadAlbumScreenShotThumbnail(image_output, image, file_id, decoder_options);
-    result = TranslateResult(result);
-
-    if (result.IsSuccess()) {
-        ctx.WriteBuffer(image_output, 0);
-        ctx.WriteBuffer(image, 1);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    const Result result = manager->LoadAlbumScreenShotThumbnail(*out_image_output, out_image,
+                                                                file_id, decoder_options);
+    R_RETURN(TranslateResult(result));
 }
 
 Result IAlbumAccessorService::TranslateResult(Result in_result) {

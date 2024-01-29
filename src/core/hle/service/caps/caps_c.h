@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -11,6 +12,7 @@ class System;
 
 namespace Service::Capture {
 class AlbumManager;
+enum class ShimLibraryVersion : u64;
 
 class IAlbumControlService final : public ServiceFramework<IAlbumControlService> {
 public:
@@ -19,7 +21,8 @@ public:
     ~IAlbumControlService() override;
 
 private:
-    void SetShimLibraryVersion(HLERequestContext& ctx);
+    Result SetShimLibraryVersion(ShimLibraryVersion library_version,
+                                 ClientAppletResourceUserId aruid);
 
     std::shared_ptr<AlbumManager> manager = nullptr;
 };
