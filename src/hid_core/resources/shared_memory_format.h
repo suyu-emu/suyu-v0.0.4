@@ -12,6 +12,7 @@
 #include "hid_core/resources/mouse/mouse_types.h"
 #include "hid_core/resources/npad/npad_types.h"
 #include "hid_core/resources/ring_lifo.h"
+#include "hid_core/resources/system_buttons/system_button_types.h"
 #include "hid_core/resources/touch_screen/touch_types.h"
 
 namespace Service::HID {
@@ -75,24 +76,24 @@ static_assert(sizeof(DigitizerSharedMemoryFormat) == 0x1000,
 
 // This is nn::hid::detail::HomeButtonSharedMemoryFormat
 struct HomeButtonSharedMemoryFormat {
-    CommonHeader header;
-    INSERT_PADDING_BYTES(0x1E0);
+    Lifo<HomeButtonState, HidEntryCount> home_lifo{};
+    INSERT_PADDING_BYTES(0x48);
 };
 static_assert(sizeof(HomeButtonSharedMemoryFormat) == 0x200,
               "HomeButtonSharedMemoryFormat is an invalid size");
 
 // This is nn::hid::detail::SleepButtonSharedMemoryFormat
 struct SleepButtonSharedMemoryFormat {
-    CommonHeader header;
-    INSERT_PADDING_BYTES(0x1E0);
+    Lifo<SleepButtonState, HidEntryCount> sleep_lifo{};
+    INSERT_PADDING_BYTES(0x48);
 };
 static_assert(sizeof(SleepButtonSharedMemoryFormat) == 0x200,
               "SleepButtonSharedMemoryFormat is an invalid size");
 
 // This is nn::hid::detail::CaptureButtonSharedMemoryFormat
 struct CaptureButtonSharedMemoryFormat {
-    CommonHeader header;
-    INSERT_PADDING_BYTES(0x1E0);
+    Lifo<CaptureButtonState, HidEntryCount> capture_lifo{};
+    INSERT_PADDING_BYTES(0x48);
 };
 static_assert(sizeof(CaptureButtonSharedMemoryFormat) == 0x200,
               "CaptureButtonSharedMemoryFormat is an invalid size");

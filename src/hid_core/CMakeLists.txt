@@ -96,6 +96,7 @@ add_library(hid_core STATIC
     resources/system_buttons/home_button.h
     resources/system_buttons/sleep_button.cpp
     resources/system_buttons/sleep_button.h
+    resources/system_buttons/system_button_types.h
     resources/touch_screen/gesture.cpp
     resources/touch_screen/gesture.h
     resources/touch_screen/gesture_types.h
