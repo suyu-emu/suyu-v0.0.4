@@ -15,6 +15,8 @@ Errno Translate(Network::Errno value) {
     switch (value) {
     case Network::Errno::SUCCESS:
         return Errno::SUCCESS;
+    case Network::Errno::CONNREFUSED:
+        return Errno::CONNREFUSED;
     case Network::Errno::BADF:
         return Errno::BADF;
     case Network::Errno::AGAIN:
