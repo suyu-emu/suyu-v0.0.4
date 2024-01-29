@@ -49,6 +49,7 @@ SessionId Container::OpenSession(Kernel::KProcess* process) {
             continue;
         }
         if (session.process == process) {
+            session.ref_count++;
             return session.id;
         }
     }
@@ -66,6 +67,7 @@ SessionId Container::OpenSession(Kernel::KProcess* process) {
     }
     auto& session = impl->sessions[new_id];
     session.is_active = true;
+    session.ref_count = 1;
     // Optimization
     if (process->IsApplication()) {
         auto& page_table = process->GetPageTable().GetBasePageTable();
@@ -114,8 +116,11 @@ SessionId Container::OpenSession(Kernel::KProcess* process) {
 
 void Container::CloseSession(SessionId session_id) {
     std::scoped_lock lk(impl->session_guard);
-    impl->file.UnmapAllHandles(session_id);
     auto& session = impl->sessions[session_id.id];
+    if (--session.ref_count > 0) {
+        return;
+    }
+    impl->file.UnmapAllHandles(session_id);
     auto& smmu = impl->host1x.MemoryManager();
     if (session.has_preallocated_area) {
         const DAddr region_start = session.mapper->GetRegionStart();
