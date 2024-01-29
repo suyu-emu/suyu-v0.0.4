@@ -31,8 +31,11 @@ void LoopProcess(Core::System& system) {
     // Error Context
     server_manager->RegisterNamedService("ectx:aw", std::make_shared<ECTX_AW>(system));
 
-    // Notification Services for application
-    server_manager->RegisterNamedService("notif:a", std::make_shared<NOTIF_A>(system));
+    // Notification Services
+    server_manager->RegisterNamedService(
+        "notif:a", std::make_shared<INotificationServicesForApplication>(system));
+    server_manager->RegisterNamedService("notif:s",
+                                         std::make_shared<INotificationServices>(system));
 
     // Time
     auto time = std::make_shared<Time::TimeManager>(system);
