@@ -1350,6 +1350,13 @@ void GMainWindow::InitializeHotkeys() {
     LinkActionShortcut(ui->action_TAS_Start, QStringLiteral("TAS Start/Stop"), true);
     LinkActionShortcut(ui->action_TAS_Record, QStringLiteral("TAS Record"), true);
     LinkActionShortcut(ui->action_TAS_Reset, QStringLiteral("TAS Reset"), true);
+    LinkActionShortcut(ui->action_View_Lobby,
+                       QStringLiteral("Multiplayer Browse Public Game Lobby"));
+    LinkActionShortcut(ui->action_Start_Room, QStringLiteral("Multiplayer Create Room"));
+    LinkActionShortcut(ui->action_Connect_To_Room,
+                       QStringLiteral("Multiplayer Direct Connect to Room"));
+    LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Multiplayer Show Current Room"));
+    LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Multiplayer Leave Room"));
 
     static const QString main_window = QStringLiteral("Main Window");
     const auto connect_shortcut = [&]<typename Fn>(const QString& action_name, const Fn& function) {
