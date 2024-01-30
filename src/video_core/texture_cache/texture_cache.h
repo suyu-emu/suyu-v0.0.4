@@ -1431,7 +1431,8 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
             }
         }
     };
-    ForEachSparseImageInRegion(gpu_addr, size_bytes, region_check_gpu);
+    ForEachSparseImageInRegion(channel_state->gpu_memory.GetID(), gpu_addr, size_bytes,
+                               region_check_gpu);
 
     bool can_rescale = info.rescaleable;
     bool any_rescaled = false;
@@ -1842,7 +1843,7 @@ void TextureCache<P>::ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, s
     if (!storage_id) {
         return;
     }
-    auto& gpu_page_table = gpu_page_table_storage[*storage_id];
+    auto& gpu_page_table = gpu_page_table_storage[*storage_id * 2];
     ForEachGPUPage(gpu_addr, size,
                    [this, &gpu_page_table, &images, gpu_addr, size, func](u64 page) {
                        const auto it = gpu_page_table.find(page);
@@ -1882,41 +1883,48 @@ void TextureCache<P>::ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, s
 
 template <class P>
 template <typename Func>
-void TextureCache<P>::ForEachSparseImageInRegion(GPUVAddr gpu_addr, size_t size, Func&& func) {
+void TextureCache<P>::ForEachSparseImageInRegion(size_t as_id, GPUVAddr gpu_addr, size_t size,
+                                                 Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
     static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 8> images;
-    ForEachGPUPage(gpu_addr, size, [this, &images, gpu_addr, size, func](u64 page) {
-        const auto it = sparse_page_table.find(page);
-        if (it == sparse_page_table.end()) {
-            if constexpr (BOOL_BREAK) {
-                return false;
-            } else {
-                return;
-            }
-        }
-        for (const ImageId image_id : it->second) {
-            Image& image = slot_images[image_id];
-            if (True(image.flags & ImageFlagBits::Picked)) {
-                continue;
-            }
-            if (!image.OverlapsGPU(gpu_addr, size)) {
-                continue;
-            }
-            image.flags |= ImageFlagBits::Picked;
-            images.push_back(image_id);
-            if constexpr (BOOL_BREAK) {
-                if (func(image_id, image)) {
-                    return true;
-                }
-            } else {
-                func(image_id, image);
-            }
-        }
-        if constexpr (BOOL_BREAK) {
-            return false;
-        }
-    });
+    auto storage_id = getStorageID(as_id);
+    if (!storage_id) {
+        return;
+    }
+    auto& sparse_page_table = gpu_page_table_storage[*storage_id * 2 + 1];
+    ForEachGPUPage(gpu_addr, size,
+                   [this, &sparse_page_table, &images, gpu_addr, size, func](u64 page) {
+                       const auto it = sparse_page_table.find(page);
+                       if (it == sparse_page_table.end()) {
+                           if constexpr (BOOL_BREAK) {
+                               return false;
+                           } else {
+                               return;
+                           }
+                       }
+                       for (const ImageId image_id : it->second) {
+                           Image& image = slot_images[image_id];
+                           if (True(image.flags & ImageFlagBits::Picked)) {
+                               continue;
+                           }
+                           if (!image.OverlapsGPU(gpu_addr, size)) {
+                               continue;
+                           }
+                           image.flags |= ImageFlagBits::Picked;
+                           images.push_back(image_id);
+                           if constexpr (BOOL_BREAK) {
+                               if (func(image_id, image)) {
+                                   return true;
+                               }
+                           } else {
+                               func(image_id, image);
+                           }
+                       }
+                       if constexpr (BOOL_BREAK) {
+                           return false;
+                       }
+                   });
     for (const ImageId image_id : images) {
         slot_images[image_id].flags &= ~ImageFlagBits::Picked;
     }
@@ -1988,8 +1996,9 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
             sparse_maps.push_back(map_id);
         });
     sparse_views.emplace(image_id, std::move(sparse_maps));
-    ForEachGPUPage(image.gpu_addr, image.guest_size_bytes,
-                   [this, image_id](u64 page) { sparse_page_table[page].push_back(image_id); });
+    ForEachGPUPage(image.gpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
+        (*channel_state->sparse_page_table)[page].push_back(image_id);
+    });
 }
 
 template <class P>
@@ -2042,7 +2051,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         return;
     }
     ForEachGPUPage(image.gpu_addr, image.guest_size_bytes, [this, &clear_page_table](u64 page) {
-        clear_page_table(page, sparse_page_table);
+        clear_page_table(page, (*channel_state->sparse_page_table));
     });
     auto it = sparse_views.find(image_id);
     ASSERT(it != sparse_views.end());
@@ -2496,12 +2505,14 @@ void TextureCache<P>::CreateChannel(struct Tegra::Control::ChannelState& channel
     const auto it = channel_map.find(channel.bind_id);
     auto* this_state = &channel_storage[it->second];
     const auto& this_as_ref = address_spaces[channel.memory_manager->GetID()];
-    this_state->gpu_page_table = &gpu_page_table_storage[this_as_ref.storage_id];
+    this_state->gpu_page_table = &gpu_page_table_storage[this_as_ref.storage_id * 2];
+    this_state->sparse_page_table = &gpu_page_table_storage[this_as_ref.storage_id * 2 + 1];
 }
 
 /// Bind a channel for execution.
 template <class P>
 void TextureCache<P>::OnGPUASRegister([[maybe_unused]] size_t map_id) {
+    gpu_page_table_storage.emplace_back();
     gpu_page_table_storage.emplace_back();
 }
 
