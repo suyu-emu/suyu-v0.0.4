@@ -213,8 +213,8 @@ void DeviceMemoryManager<Traits>::Free(DAddr start, size_t size) {
 }
 
 template <typename Traits>
-void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size_t size,
-                                      Asid asid, bool track) {
+void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size_t size, Asid asid,
+                                      bool track) {
     Core::Memory::Memory* process_memory = registered_processes[asid.id];
     size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
     size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
@@ -522,10 +522,10 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     size_t vpage = base_vaddress >> Memory::YUZU_PAGEBITS;
     auto* memory_device_inter = registered_processes[asid.id];
     for (; page != page_end; ++page) {
-        std::atomic_uint8_t& count = cached_pages->at(page >> 3).Count(page);
+        CounterAtomicType& count = cached_pages->at(page >> subentries_shift).Count(page);
 
         if (delta > 0) {
-            ASSERT_MSG(count.load(std::memory_order::relaxed) < std::numeric_limits<u8>::max(),
+            ASSERT_MSG(count.load(std::memory_order::relaxed) < std::numeric_limits<CounterType>::max(),
                        "Count may overflow!");
         } else if (delta < 0) {
             ASSERT_MSG(count.load(std::memory_order::relaxed) > 0, "Count may underflow!");
@@ -534,7 +534,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
         }
 
         // Adds or subtracts 1, as count is a unsigned 8-bit value
-        count.fetch_add(static_cast<u8>(delta), std::memory_order_release);
+        count.fetch_add(static_cast<CounterType>(delta), std::memory_order_release);
 
         // Assume delta is either -1 or 1
         if (count.load(std::memory_order::relaxed) == 0) {
@@ -553,15 +553,15 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             }
             cache_bytes += Memory::YUZU_PAGESIZE;
         } else if (cache_bytes > 0) {
-            MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
-                              true);
+            MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS,
+                              cache_bytes, true);
             cache_bytes = 0;
         }
         vpage++;
     }
     if (uncache_bytes > 0) {
-        MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS, uncache_bytes,
-                          false);
+        MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
+                          uncache_bytes, false);
     }
     if (cache_bytes > 0) {
         MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
