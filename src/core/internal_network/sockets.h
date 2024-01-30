@@ -166,6 +166,9 @@ public:
     bool IsOpened() const override;
 
     void HandleProxyPacket(const ProxyPacket& packet) override;
+
+private:
+    bool is_non_blocking = false;
 };
 
 std::pair<s32, Errno> Poll(std::vector<PollFD>& poll_fds, s32 timeout);
