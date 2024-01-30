@@ -41,8 +41,8 @@ public:
     }
 
     virtual Result GetContext(SystemClockContext& out_context) const;
-    virtual Result SetContext(SystemClockContext& context);
-    Result SetContextAndWrite(SystemClockContext& context);
+    virtual Result SetContext(const SystemClockContext& context);
+    Result SetContextAndWrite(const SystemClockContext& context);
 
     void LinkOperationEvent(OperationEvent& operation_event);
 

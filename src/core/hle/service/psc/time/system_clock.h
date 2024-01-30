@@ -26,7 +26,7 @@ public:
     Result GetCurrentTime(Out<s64> out_time);
     Result SetCurrentTime(s64 time);
     Result GetSystemClockContext(Out<SystemClockContext> out_context);
-    Result SetSystemClockContext(SystemClockContext& context);
+    Result SetSystemClockContext(const SystemClockContext& context);
     Result GetOperationEventReadableHandle(OutCopyHandle<Kernel::KReadableEvent> out_event);
 
 private:

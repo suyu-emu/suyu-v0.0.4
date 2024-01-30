@@ -53,7 +53,7 @@ Result SystemClock::GetSystemClockContext(Out<SystemClockContext> out_context) {
     R_RETURN(m_clock_core.GetContext(*out_context));
 }
 
-Result SystemClock::SetSystemClockContext(SystemClockContext& context) {
+Result SystemClock::SetSystemClockContext(const SystemClockContext& context) {
     LOG_DEBUG(Service_Time, "called. context={}", context);
 
     R_UNLESS(m_can_write_clock, ResultPermissionDenied);

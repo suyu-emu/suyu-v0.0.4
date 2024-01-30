@@ -198,8 +198,8 @@ Result StaticService::GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
     R_SUCCEED();
 }
 
-Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(Out<s64> out_time,
-                                                                 SystemClockContext& context) {
+Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(
+    Out<s64> out_time, const SystemClockContext& context) {
     SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. context={} out_time={}", context, *out_time); });
 
     R_UNLESS(m_time->m_standard_steady_clock.IsInitialized(), ResultClockUninitialized);
@@ -231,10 +231,9 @@ Result StaticService::GetClockSnapshot(OutClockSnapshot out_snapshot, TimeType t
     R_RETURN(GetClockSnapshotImpl(out_snapshot, user_context, network_context, type));
 }
 
-Result StaticService::GetClockSnapshotFromSystemClockContext(TimeType type,
-                                                             OutClockSnapshot out_snapshot,
-                                                             SystemClockContext& user_context,
-                                                             SystemClockContext& network_context) {
+Result StaticService::GetClockSnapshotFromSystemClockContext(
+    TimeType type, OutClockSnapshot out_snapshot, const SystemClockContext& user_context,
+    const SystemClockContext& network_context) {
     SCOPE_EXIT({
         LOG_DEBUG(Service_Time,
                   "called. type={} user_context={} network_context={} out_snapshot={}", type,
@@ -294,8 +293,9 @@ Result StaticService::CalculateSpanBetween(Out<s64> out_time, InClockSnapshot a,
 }
 
 Result StaticService::GetClockSnapshotImpl(OutClockSnapshot out_snapshot,
-                                           SystemClockContext& user_context,
-                                           SystemClockContext& network_context, TimeType type) {
+                                           const SystemClockContext& user_context,
+                                           const SystemClockContext& network_context,
+                                           TimeType type) {
     out_snapshot->user_context = user_context;
     out_snapshot->network_context = network_context;
 

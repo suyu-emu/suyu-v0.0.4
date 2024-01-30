@@ -58,12 +58,12 @@ public:
     Result GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
         Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point);
     Result CalculateMonotonicSystemClockBaseTimePoint(
-        Out<s64> out_time, Service::PSC::Time::SystemClockContext& context);
+        Out<s64> out_time, const Service::PSC::Time::SystemClockContext& context);
     Result GetClockSnapshot(OutClockSnapshot out_snapshot, Service::PSC::Time::TimeType type);
     Result GetClockSnapshotFromSystemClockContext(
         Service::PSC::Time::TimeType type, OutClockSnapshot out_snapshot,
-        Service::PSC::Time::SystemClockContext& user_context,
-        Service::PSC::Time::SystemClockContext& network_context);
+        const Service::PSC::Time::SystemClockContext& user_context,
+        const Service::PSC::Time::SystemClockContext& network_context);
     Result CalculateStandardUserSystemClockDifferenceByUser(Out<s64> out_difference,
                                                             InClockSnapshot a, InClockSnapshot b);
     Result CalculateSpanBetween(Out<s64> out_time, InClockSnapshot a, InClockSnapshot b);
