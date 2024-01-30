@@ -4,10 +4,9 @@
 #pragma once
 
 #include <memory>
+#include <span>
 
-#include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/hle/service/hle_ipc.h"
 
 namespace Service {
 
@@ -22,8 +21,10 @@ class Out {
 public:
     using Type = T;
 
+    /* implicit */ Out(const Out& t) : raw(t.raw) {}
     /* implicit */ Out(AutoOut<Type>& t) : raw(&t.raw) {}
     /* implicit */ Out(Type* t) : raw(t) {}
+    Out& operator=(const Out&) = delete;
 
     Type* Get() const {
         return raw;
@@ -34,6 +35,10 @@ public:
     }
 
     Type* operator->() const {
+        return raw;
+    }
+
+    operator Type*() const {
         return raw;
     }
 
@@ -113,8 +118,10 @@ class OutCopyHandle {
 public:
     using Type = T*;
 
+    /* implicit */ OutCopyHandle(const OutCopyHandle& t) : raw(t.raw) {}
     /* implicit */ OutCopyHandle(AutoOut<Type>& t) : raw(&t.raw) {}
     /* implicit */ OutCopyHandle(Type* t) : raw(t) {}
+    OutCopyHandle& operator=(const OutCopyHandle&) = delete;
 
     Type* Get() const {
         return raw;
@@ -125,6 +132,10 @@ public:
     }
 
     Type* operator->() const {
+        return raw;
+    }
+
+    operator Type*() const {
         return raw;
     }
 
@@ -137,8 +148,10 @@ class OutMoveHandle {
 public:
     using Type = T*;
 
+    /* implicit */ OutMoveHandle(const OutMoveHandle& t) : raw(t.raw) {}
     /* implicit */ OutMoveHandle(AutoOut<Type>& t) : raw(&t.raw) {}
     /* implicit */ OutMoveHandle(Type* t) : raw(t) {}
+    OutMoveHandle& operator=(const OutMoveHandle&) = delete;
 
     Type* Get() const {
         return raw;
@@ -149,6 +162,10 @@ public:
     }
 
     Type* operator->() const {
+        return raw;
+    }
+
+    operator Type*() const {
         return raw;
     }
 
@@ -248,8 +265,10 @@ public:
     static constexpr BufferAttr Attr = static_cast<BufferAttr>(A | BufferAttr_In | BufferAttr_FixedSize);
     using Type = T;
 
+    /* implicit */ OutLargeData(const OutLargeData& t) : raw(t.raw) {}
     /* implicit */ OutLargeData(Type* t) : raw(t) {}
     /* implicit */ OutLargeData(AutoOut<T>& t) : raw(&t.raw) {}
+    OutLargeData& operator=(const OutLargeData&) = delete;
 
     Type* Get() const {
         return raw;
@@ -260,6 +279,10 @@ public:
     }
 
     Type* operator->() const {
+        return raw;
+    }
+
+    operator Type*() const {
         return raw;
     }
 
