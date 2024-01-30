@@ -189,7 +189,7 @@ struct fmt::formatter<Service::PSC::Time::SteadyClockTimePoint> : fmt::formatter
     template <typename FormatContext>
     auto format(const Service::PSC::Time::SteadyClockTimePoint& time_point,
                 FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "time_point={}", time_point.time_point);
+        return fmt::format_to(ctx.out(), "[time_point={}]", time_point.time_point);
     }
 };
 
@@ -197,7 +197,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::SystemClockContext> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::SystemClockContext& context, FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "offset={} steady_time_point={}", context.offset,
+        return fmt::format_to(ctx.out(), "[offset={} steady_time_point={}]", context.offset,
                               context.steady_time_point.time_point);
     }
 };
@@ -206,8 +206,9 @@ template <>
 struct fmt::formatter<Service::PSC::Time::CalendarTime> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::CalendarTime& calendar, FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "{}/{}/{} {}:{}:{}", calendar.day, calendar.month,
-                              calendar.year, calendar.hour, calendar.minute, calendar.second);
+        return fmt::format_to(ctx.out(), "[{:02}/{:02}/{:04} {:02}:{:02}:{:02}]", calendar.day,
+                              calendar.month, calendar.year, calendar.hour, calendar.minute,
+                              calendar.second);
     }
 };
 
@@ -217,7 +218,7 @@ struct fmt::formatter<Service::PSC::Time::CalendarAdditionalInfo>
     template <typename FormatContext>
     auto format(const Service::PSC::Time::CalendarAdditionalInfo& additional,
                 FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "weekday={} yearday={} name={} is_dst={} ut_offset={}",
+        return fmt::format_to(ctx.out(), "[weekday={} yearday={} name={} is_dst={} ut_offset={}]",
                               additional.day_of_week, additional.day_of_year,
                               additional.name.data(), additional.is_dst, additional.ut_offset);
     }
@@ -227,8 +228,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::LocationName> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::LocationName& name, FormatContext& ctx) const {
-        std::string_view n{name.data(), name.size()};
-        return formatter<string_view>::format(n, ctx);
+        return formatter<string_view>::format(name.data(), ctx);
     }
 };
 
@@ -236,8 +236,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::RuleVersion> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::RuleVersion& version, FormatContext& ctx) const {
-        std::string_view v{version.data(), version.size()};
-        return formatter<string_view>::format(v, ctx);
+        return formatter<string_view>::format(version.data(), ctx);
     }
 };
 
@@ -247,10 +246,11 @@ struct fmt::formatter<Service::PSC::Time::ClockSnapshot> : fmt::formatter<fmt::s
     auto format(const Service::PSC::Time::ClockSnapshot& snapshot, FormatContext& ctx) const {
         return fmt::format_to(
             ctx.out(),
-            "user_context={} network_context={} user_time={} network_time={} user_calendar_time={} "
+            "[user_context={} network_context={} user_time={} network_time={} "
+            "user_calendar_time={} "
             "network_calendar_time={} user_calendar_additional_time={} "
             "network_calendar_additional_time={} steady_clock_time_point={} location={} "
-            "is_automatic_correction_enabled={} type={}",
+            "is_automatic_correction_enabled={} type={}]",
             snapshot.user_context, snapshot.network_context, snapshot.user_time,
             snapshot.network_time, snapshot.user_calendar_time, snapshot.network_calendar_time,
             snapshot.user_calendar_additional_time, snapshot.network_calendar_additional_time,
@@ -266,7 +266,7 @@ struct fmt::formatter<Service::PSC::Time::ContinuousAdjustmentTimePoint>
     auto format(const Service::PSC::Time::ContinuousAdjustmentTimePoint& time_point,
                 FormatContext& ctx) const {
         return fmt::format_to(ctx.out(),
-                              "rtc_offset={} diff_scale={} shift_amount={} lower={} upper={}",
+                              "[rtc_offset={} diff_scale={} shift_amount={} lower={} upper={}]",
                               time_point.rtc_offset, time_point.diff_scale, time_point.shift_amount,
                               time_point.lower, time_point.upper);
     }

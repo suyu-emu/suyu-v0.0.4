@@ -50,10 +50,10 @@ public:
     Result ToCalendarTimeWithMyRule(Out<CalendarTime> out_calendar_time,
                                     Out<CalendarAdditionalInfo> out_additional_info, s64 time);
     Result ToPosixTime(Out<u32> out_count, OutArray<s64, BufferAttr_HipcPointer> out_times,
-                       Out<u32> out_times_count, CalendarTime& calendar_time, InRule rule);
+                       const CalendarTime& calendar_time, InRule rule);
     Result ToPosixTimeWithMyRule(Out<u32> out_count,
                                  OutArray<s64, BufferAttr_HipcPointer> out_times,
-                                 Out<u32> out_times_count, CalendarTime& calendar_time);
+                                 const CalendarTime& calendar_time);
 
 private:
     Core::System& m_system;
