@@ -120,11 +120,8 @@ Result ServiceManager::SetupStandardNetworkSystemClockCore(SystemClockContext& c
               context, context.steady_time_point.clock_source_id.RawString(), accuracy);
 
     // TODO this is a hack! The network clock should be updated independently, from the ntc service
-    // and maybe elsewhere. We do not do that, so fix the clock to the local clock on first boot
-    // to avoid it being stuck at 0.
-    if (context == Service::PSC::Time::SystemClockContext{}) {
-        m_local_system_clock.GetContext(context);
-    }
+    // and maybe elsewhere. We do not do that, so fix the clock to the local clock.
+    m_local_system_clock.GetContext(context);
 
     m_network_system_clock.SetContextWriter(m_network_system_context_writer);
     m_network_system_clock.Initialize(context, accuracy);
@@ -137,13 +134,6 @@ Result ServiceManager::SetupStandardUserSystemClockCore(bool automatic_correctio
                                                         SteadyClockTimePoint& time_point) {
     LOG_DEBUG(Service_Time, "called. automatic_correction={} time_point={} clock_source_id={}",
               automatic_correction, time_point, time_point.clock_source_id.RawString());
-
-    // TODO this is a hack! The user clock should be updated independently, from the ntc service
-    // and maybe elsewhere. We do not do that, so fix the clock to the local clock on first boot
-    // to avoid it being stuck at 0.
-    if (time_point == Service::PSC::Time::SteadyClockTimePoint{}) {
-        m_local_system_clock.GetCurrentTimePoint(time_point);
-    }
 
     m_user_system_clock.SetAutomaticCorrection(automatic_correction);
     m_user_system_clock.SetTimePointAndSignal(time_point);

@@ -138,32 +138,28 @@ Result TimeZoneService::ToCalendarTimeWithMyRule(Out<CalendarTime> out_calendar_
 
 Result TimeZoneService::ToPosixTime(Out<u32> out_count,
                                     OutArray<s64, BufferAttr_HipcPointer> out_times,
-                                    Out<u32> out_times_count, CalendarTime& calendar_time,
-                                    InRule rule) {
+                                    const CalendarTime& calendar_time, InRule rule) {
     SCOPE_EXIT({
         LOG_DEBUG(Service_Time,
-                  "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} "
-                  "out_times_count={}",
-                  calendar_time, *out_count, out_times[0], out_times[1], *out_times_count);
+                  "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} ",
+                  calendar_time, *out_count, out_times[0], out_times[1]);
     });
 
     R_RETURN(
-        m_time_zone.ToPosixTime(*out_count, out_times, *out_times_count, calendar_time, *rule));
+        m_time_zone.ToPosixTime(*out_count, out_times, out_times.size(), calendar_time, *rule));
 }
 
 Result TimeZoneService::ToPosixTimeWithMyRule(Out<u32> out_count,
                                               OutArray<s64, BufferAttr_HipcPointer> out_times,
-                                              Out<u32> out_times_count,
-                                              CalendarTime& calendar_time) {
+                                              const CalendarTime& calendar_time) {
     SCOPE_EXIT({
         LOG_DEBUG(Service_Time,
-                  "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} "
-                  "out_times_count={}",
-                  calendar_time, *out_count, out_times[0], out_times[1], *out_times_count);
+                  "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} ",
+                  calendar_time, *out_count, out_times[0], out_times[1]);
     });
 
     R_RETURN(
-        m_time_zone.ToPosixTimeWithMyRule(*out_count, out_times, *out_times_count, calendar_time));
+        m_time_zone.ToPosixTimeWithMyRule(*out_count, out_times, out_times.size(), calendar_time));
 }
 
 } // namespace Service::PSC::Time
