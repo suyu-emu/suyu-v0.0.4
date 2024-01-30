@@ -19,12 +19,12 @@ enum class Errno : u32 {
     INVAL = 22,
     MFILE = 24,
     PIPE = 32,
-    CONNREFUSED = 111,
     MSGSIZE = 90,
     CONNABORTED = 103,
     CONNRESET = 104,
     NOTCONN = 107,
     TIMEDOUT = 110,
+    CONNREFUSED = 111,
     INPROGRESS = 115,
 };
 
