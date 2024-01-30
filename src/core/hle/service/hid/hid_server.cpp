@@ -8,6 +8,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/hid/hid_server.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
@@ -153,7 +154,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {104, &IHidServer::DeactivateNpad, "DeactivateNpad"},
         {106, &IHidServer::AcquireNpadStyleSetUpdateEventHandle, "AcquireNpadStyleSetUpdateEventHandle"},
         {107, &IHidServer::DisconnectNpad, "DisconnectNpad"},
-        {108, &IHidServer::GetPlayerLedPattern, "GetPlayerLedPattern"},
+        {108, C<&IHidServer::GetPlayerLedPattern>, "GetPlayerLedPattern"},
         {109, &IHidServer::ActivateNpadWithRevision, "ActivateNpadWithRevision"},
         {120, &IHidServer::SetNpadJoyHoldType, "SetNpadJoyHoldType"},
         {121, &IHidServer::GetNpadJoyHoldType, "GetNpadJoyHoldType"},
@@ -1136,19 +1137,39 @@ void IHidServer::DisconnectNpad(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void IHidServer::GetPlayerLedPattern(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto npad_id{rp.PopEnum<Core::HID::NpadIdType>()};
-
-    Core::HID::LedPattern pattern{0, 0, 0, 0};
-    auto controller = GetResourceManager()->GetNpad();
-    const auto result = controller->GetLedPattern(npad_id, pattern);
-
+Result IHidServer::GetPlayerLedPattern(Out<Core::HID::LedPattern> out_led_pattern,
+                                       Core::HID::NpadIdType npad_id) {
     LOG_DEBUG(Service_HID, "called, npad_id={}", npad_id);
 
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(result);
-    rb.Push(pattern.raw);
+    switch (npad_id) {
+    case Core::HID::NpadIdType::Player1:
+        *out_led_pattern = Core::HID::LedPattern{1, 0, 0, 0};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player2:
+        *out_led_pattern = Core::HID::LedPattern{1, 1, 0, 0};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player3:
+        *out_led_pattern = Core::HID::LedPattern{1, 1, 1, 0};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player4:
+        *out_led_pattern = Core::HID::LedPattern{1, 1, 1, 1};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player5:
+        *out_led_pattern = Core::HID::LedPattern{1, 0, 0, 1};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player6:
+        *out_led_pattern = Core::HID::LedPattern{1, 0, 1, 0};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player7:
+        *out_led_pattern = Core::HID::LedPattern{1, 0, 1, 1};
+        R_SUCCEED();
+    case Core::HID::NpadIdType::Player8:
+        *out_led_pattern = Core::HID::LedPattern{0, 1, 1, 0};
+        R_SUCCEED();
+    default:
+        *out_led_pattern = Core::HID::LedPattern{0, 0, 0, 0};
+        R_SUCCEED();
+    }
 }
 
 void IHidServer::ActivateNpadWithRevision(HLERequestContext& ctx) {
