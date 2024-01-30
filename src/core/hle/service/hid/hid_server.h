@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
+#include "hid_core/hid_types.h"
 
 namespace Core {
 class System;
@@ -66,7 +68,8 @@ private:
     void DeactivateNpad(HLERequestContext& ctx);
     void AcquireNpadStyleSetUpdateEventHandle(HLERequestContext& ctx);
     void DisconnectNpad(HLERequestContext& ctx);
-    void GetPlayerLedPattern(HLERequestContext& ctx);
+    Result GetPlayerLedPattern(Out<Core::HID::LedPattern> out_led_pattern,
+                               Core::HID::NpadIdType npad_id);
     void ActivateNpadWithRevision(HLERequestContext& ctx);
     void SetNpadJoyHoldType(HLERequestContext& ctx);
     void GetNpadJoyHoldType(HLERequestContext& ctx);

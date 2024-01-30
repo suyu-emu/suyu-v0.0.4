@@ -97,8 +97,6 @@ public:
     Result ResetIsSixAxisSensorDeviceNewlyAssigned(
         u64 aruid, const Core::HID::SixAxisSensorHandle& sixaxis_handle);
 
-    Result GetLedPattern(Core::HID::NpadIdType npad_id, Core::HID::LedPattern& pattern) const;
-
     Result IsUnintendedHomeButtonInputProtectionEnabled(bool& out_is_enabled, u64 aruid,
                                                         Core::HID::NpadIdType npad_id) const;
     Result EnableUnintendedHomeButtonInputProtection(u64 aruid, Core::HID::NpadIdType npad_id,
