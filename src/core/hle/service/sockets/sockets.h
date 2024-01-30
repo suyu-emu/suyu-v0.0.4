@@ -24,6 +24,7 @@ enum class Errno : u32 {
     CONNRESET = 104,
     NOTCONN = 107,
     TIMEDOUT = 110,
+    CONNREFUSED = 111,
     INPROGRESS = 115,
 };
 
