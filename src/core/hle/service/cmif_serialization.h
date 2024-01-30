@@ -283,7 +283,7 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
 
             return ReadInArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, HandleIndex + 1, InBufferIndex, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InLargeData) {
-            constexpr size_t BufferSize = sizeof(ArgType);
+            constexpr size_t BufferSize = sizeof(typename ArgType::Type);
 
             // Clear the existing data.
             std::memset(&std::get<ArgIndex>(args), 0, BufferSize);
@@ -324,7 +324,7 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
 
             return ReadInArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, HandleIndex, InBufferIndex + 1, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutLargeData) {
-            constexpr size_t BufferSize = sizeof(ArgType);
+            constexpr size_t BufferSize = sizeof(typename ArgType::Type);
 
             // Clear the existing data.
             std::memset(&std::get<ArgIndex>(args).raw, 0, BufferSize);
@@ -394,7 +394,7 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
 
             return WriteOutArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutLargeData) {
-            constexpr size_t BufferSize = sizeof(ArgType);
+            constexpr size_t BufferSize = sizeof(typename ArgType::Type);
 
             ASSERT(ctx.CanWriteBuffer(OutBufferIndex));
             if constexpr (ArgType::Attr & BufferAttr_HipcAutoSelect) {
