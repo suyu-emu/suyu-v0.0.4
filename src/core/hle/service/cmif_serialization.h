@@ -122,14 +122,14 @@ struct RequestLayout {
     u32 domain_interface_count;
 };
 
-template <ArgumentType Type1, ArgumentType Type2, typename MethodArguments, size_t PrevAlign = 1, size_t DataOffset = 0, size_t ArgIndex = 0>
-constexpr u32 GetArgumentRawDataSize() {
+template <typename MethodArguments, size_t PrevAlign = 1, size_t DataOffset = 0, size_t ArgIndex = 0>
+constexpr u32 GetInRawDataSize() {
     if constexpr (ArgIndex >= std::tuple_size_v<MethodArguments>) {
         return static_cast<u32>(DataOffset);
     } else {
         using ArgType = std::tuple_element_t<ArgIndex, MethodArguments>;
 
-        if constexpr (ArgumentTraits<ArgType>::Type == Type1 || ArgumentTraits<ArgType>::Type == Type2) {
+        if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InData || ArgumentTraits<ArgType>::Type == ArgumentType::InProcessId) {
             constexpr size_t ArgAlign = alignof(ArgType);
             constexpr size_t ArgSize = sizeof(ArgType);
 
@@ -138,9 +138,33 @@ constexpr u32 GetArgumentRawDataSize() {
             constexpr size_t ArgOffset = Common::AlignUp(DataOffset, ArgAlign);
             constexpr size_t ArgEnd = ArgOffset + ArgSize;
 
-            return GetArgumentRawDataSize<Type1, Type2, MethodArguments, ArgAlign, ArgEnd, ArgIndex + 1>();
+            return GetInRawDataSize<MethodArguments, ArgAlign, ArgEnd, ArgIndex + 1>();
         } else {
-            return GetArgumentRawDataSize<Type1, Type2, MethodArguments, PrevAlign, DataOffset, ArgIndex + 1>();
+            return GetInRawDataSize<MethodArguments, PrevAlign, DataOffset, ArgIndex + 1>();
+        }
+    }
+}
+
+template <typename MethodArguments, size_t PrevAlign = 1, size_t DataOffset = 0, size_t ArgIndex = 0>
+constexpr u32 GetOutRawDataSize() {
+    if constexpr (ArgIndex >= std::tuple_size_v<MethodArguments>) {
+        return static_cast<u32>(DataOffset);
+    } else {
+        using ArgType = std::tuple_element_t<ArgIndex, MethodArguments>;
+
+        if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutData) {
+            using RawArgType = typename ArgType::Type;
+            constexpr size_t ArgAlign = alignof(RawArgType);
+            constexpr size_t ArgSize = sizeof(RawArgType);
+
+            static_assert(PrevAlign <= ArgAlign, "Output argument is not ordered by alignment");
+
+            constexpr size_t ArgOffset = Common::AlignUp(DataOffset, ArgAlign);
+            constexpr size_t ArgEnd = ArgOffset + ArgSize;
+
+            return GetOutRawDataSize<MethodArguments, ArgAlign, ArgEnd, ArgIndex + 1>();
+        } else {
+            return GetOutRawDataSize<MethodArguments, PrevAlign, DataOffset, ArgIndex + 1>();
         }
     }
 }
@@ -165,7 +189,7 @@ constexpr RequestLayout GetNonDomainReplyInLayout() {
     return RequestLayout{
         .copy_handle_count = GetArgumentTypeCount<ArgumentType::InCopyHandle, MethodArguments>(),
         .move_handle_count = 0,
-        .cmif_raw_data_size = GetArgumentRawDataSize<ArgumentType::InData, ArgumentType::InProcessId, MethodArguments>(),
+        .cmif_raw_data_size = GetInRawDataSize<MethodArguments>(),
         .domain_interface_count = 0,
     };
 }
@@ -175,7 +199,7 @@ constexpr RequestLayout GetDomainReplyInLayout() {
     return RequestLayout{
         .copy_handle_count = GetArgumentTypeCount<ArgumentType::InCopyHandle, MethodArguments>(),
         .move_handle_count = 0,
-        .cmif_raw_data_size = GetArgumentRawDataSize<ArgumentType::InData, ArgumentType::InProcessId, MethodArguments>(),
+        .cmif_raw_data_size = GetInRawDataSize<MethodArguments>(),
         .domain_interface_count = GetArgumentTypeCount<ArgumentType::InInterface, MethodArguments>(),
     };
 }
@@ -185,7 +209,7 @@ constexpr RequestLayout GetNonDomainReplyOutLayout() {
     return RequestLayout{
         .copy_handle_count = GetArgumentTypeCount<ArgumentType::OutCopyHandle, MethodArguments>(),
         .move_handle_count = GetArgumentTypeCount<ArgumentType::OutMoveHandle, MethodArguments>() + GetArgumentTypeCount<ArgumentType::OutInterface, MethodArguments>(),
-        .cmif_raw_data_size = GetArgumentRawDataSize<ArgumentType::OutData, ArgumentType::OutData, MethodArguments>(),
+        .cmif_raw_data_size = GetOutRawDataSize<MethodArguments>(),
         .domain_interface_count = 0,
     };
 }
@@ -195,7 +219,7 @@ constexpr RequestLayout GetDomainReplyOutLayout() {
     return RequestLayout{
         .copy_handle_count = GetArgumentTypeCount<ArgumentType::OutCopyHandle, MethodArguments>(),
         .move_handle_count = GetArgumentTypeCount<ArgumentType::OutMoveHandle, MethodArguments>(),
-        .cmif_raw_data_size = GetArgumentRawDataSize<ArgumentType::OutData, ArgumentType::OutData, MethodArguments>(),
+        .cmif_raw_data_size = GetOutRawDataSize<MethodArguments>(),
         .domain_interface_count = GetArgumentTypeCount<ArgumentType::OutInterface, MethodArguments>(),
     };
 }
@@ -337,13 +361,15 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
         using ArgType = std::tuple_element_t<ArgIndex, MethodArguments>;
 
         if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::OutData) {
-            constexpr size_t ArgAlign = alignof(ArgType);
-            constexpr size_t ArgSize = sizeof(ArgType);
+            using RawArgType = decltype(std::get<ArgIndex>(args).raw);
+            constexpr size_t ArgAlign = alignof(RawArgType);
+            constexpr size_t ArgSize = sizeof(RawArgType);
 
             static_assert(PrevAlign <= ArgAlign, "Output argument is not ordered by alignment");
             static_assert(!RawDataFinished, "All output interface arguments must appear after raw data");
             static_assert(!std::is_pointer_v<ArgType>, "Output raw data must not be a pointer");
-            static_assert(std::is_trivially_copyable_v<decltype(std::get<ArgIndex>(args).raw)>, "Output raw data must be trivially copyable");
+            static_assert(!std::is_pointer_v<RawArgType>, "Output raw data must not be a pointer");
+            static_assert(std::is_trivially_copyable_v<RawArgType>, "Output raw data must be trivially copyable");
 
             constexpr size_t ArgOffset = Common::AlignUp(DataOffset, ArgAlign);
             constexpr size_t ArgEnd = ArgOffset + ArgSize;
