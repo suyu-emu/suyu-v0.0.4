@@ -14,16 +14,17 @@ set(BUILD_SHARED_LIBS OFF)
 # Skip install rules for all externals
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
-# xbyak
+# Xbyak (also used by Dynarmic, so needs to be added first)
 if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
     add_subdirectory(xbyak)
 endif()
 
-# Dynarmic
+# Oaknut (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_arm64 AND NOT TARGET merry::oaknut)
     add_subdirectory(oaknut)
 endif()
 
+# Dynarmic
 if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmic)
     set(DYNARMIC_IGNORE_ASSERTS ON)
     add_subdirectory(dynarmic)

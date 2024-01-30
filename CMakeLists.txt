@@ -322,6 +322,10 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     find_package(xbyak 6 CONFIG)
 endif()
 
+if (ARCHITECTURE_arm64)
+    find_package(oaknut 2.0.1 CONFIG)
+endif()
+
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     find_package(dynarmic 6.4.0 CONFIG)
 endif()
