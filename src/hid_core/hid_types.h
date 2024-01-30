@@ -422,7 +422,10 @@ struct NpadPowerInfo {
 static_assert(sizeof(NpadPowerInfo) == 0xC, "NpadPowerInfo is an invalid size");
 
 struct LedPattern {
-    explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
+    LedPattern() {
+        raw = 0;
+    }
+    LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
         position1.Assign(light1);
         position2.Assign(light2);
         position3.Assign(light3);

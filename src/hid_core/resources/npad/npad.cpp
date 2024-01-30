@@ -956,17 +956,6 @@ Result NPad::SwapNpadAssignment(u64 aruid, Core::HID::NpadIdType npad_id_1,
     return ResultSuccess;
 }
 
-Result NPad::GetLedPattern(Core::HID::NpadIdType npad_id, Core::HID::LedPattern& pattern) const {
-    if (!IsNpadIdValid(npad_id)) {
-        LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id:{}", npad_id);
-        return ResultInvalidNpadId;
-    }
-    const auto aruid = applet_resource_holder.applet_resource->GetActiveAruid();
-    const auto& controller = GetControllerFromNpadIdType(aruid, npad_id).device;
-    pattern = controller->GetLedPattern();
-    return ResultSuccess;
-}
-
 Result NPad::IsUnintendedHomeButtonInputProtectionEnabled(bool& out_is_enabled, u64 aruid,
                                                           Core::HID::NpadIdType npad_id) const {
     std::scoped_lock lock{mutex};
