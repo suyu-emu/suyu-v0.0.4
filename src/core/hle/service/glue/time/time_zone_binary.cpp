@@ -98,7 +98,7 @@ void GetTimeZoneBinaryVersionPath(std::string& out_path) {
     out_path = "/version.txt";
 }
 
-void GetTimeZoneZonePath(std::string& out_path, Service::PSC::Time::LocationName& name) {
+void GetTimeZoneZonePath(std::string& out_path, const Service::PSC::Time::LocationName& name) {
     if (g_time_zone_binary_mount_result != ResultSuccess) {
         return;
     }
@@ -106,7 +106,7 @@ void GetTimeZoneZonePath(std::string& out_path, Service::PSC::Time::LocationName
     out_path = fmt::format("/zoneinfo/{}", name.data());
 }
 
-bool IsTimeZoneBinaryValid(Service::PSC::Time::LocationName& name) {
+bool IsTimeZoneBinaryValid(const Service::PSC::Time::LocationName& name) {
     std::string path{};
     GetTimeZoneZonePath(path, name);
 
@@ -155,7 +155,7 @@ Result GetTimeZoneVersion(Service::PSC::Time::RuleVersion& out_rule_version) {
 }
 
 Result GetTimeZoneRule(std::span<const u8>& out_rule, size_t& out_rule_size,
-                       Service::PSC::Time::LocationName& name) {
+                       const Service::PSC::Time::LocationName& name) {
     std::string path{};
     GetTimeZoneZonePath(path, name);
 

@@ -22,7 +22,7 @@ LocalSystemClockContextWriter::LocalSystemClockContextWriter(Core::System& syste
                                                              SharedMemory& shared_memory)
     : m_system{system}, m_shared_memory{shared_memory} {}
 
-Result LocalSystemClockContextWriter::Write(SystemClockContext& context) {
+Result LocalSystemClockContextWriter::Write(const SystemClockContext& context) {
     if (m_in_use) {
         R_SUCCEED_IF(context == m_context);
         m_context = context;
@@ -43,7 +43,7 @@ NetworkSystemClockContextWriter::NetworkSystemClockContextWriter(Core::System& s
                                                                  SystemClockCore& system_clock)
     : m_system{system}, m_shared_memory{shared_memory}, m_system_clock{system_clock} {}
 
-Result NetworkSystemClockContextWriter::Write(SystemClockContext& context) {
+Result NetworkSystemClockContextWriter::Write(const SystemClockContext& context) {
     s64 time{};
     [[maybe_unused]] auto res = m_system_clock.GetCurrentTime(&time);
 
@@ -66,7 +66,7 @@ EphemeralNetworkSystemClockContextWriter::EphemeralNetworkSystemClockContextWrit
     Core::System& system)
     : m_system{system} {}
 
-Result EphemeralNetworkSystemClockContextWriter::Write(SystemClockContext& context) {
+Result EphemeralNetworkSystemClockContextWriter::Write(const SystemClockContext& context) {
     if (m_in_use) {
         R_SUCCEED_IF(context == m_context);
         m_context = context;

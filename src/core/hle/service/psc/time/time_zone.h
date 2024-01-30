@@ -23,9 +23,9 @@ public:
         m_initialized = true;
     }
 
-    void SetTimePoint(SteadyClockTimePoint& time_point);
+    void SetTimePoint(const SteadyClockTimePoint& time_point);
     void SetTotalLocationNameCount(u32 count);
-    void SetRuleVersion(RuleVersion& rule_version);
+    void SetRuleVersion(const RuleVersion& rule_version);
     Result GetLocationName(LocationName& out_name);
     Result GetTotalLocationCount(u32& out_count);
     Result GetRuleVersion(RuleVersion& out_rule_version);
@@ -36,7 +36,7 @@ public:
                           const Tz::Rule& rule);
     Result ToCalendarTimeWithMyRule(CalendarTime& calendar_time,
                                     CalendarAdditionalInfo& calendar_additional, s64 time);
-    Result ParseBinary(LocationName& name, std::span<const u8> binary);
+    Result ParseBinary(const LocationName& name, std::span<const u8> binary);
     Result ParseBinaryInto(Tz::Rule& out_rule, std::span<const u8> binary);
     Result ToPosixTime(u32& out_count, std::span<s64> out_times, size_t out_times_max_count,
                        const CalendarTime& calendar, const Tz::Rule& rule);

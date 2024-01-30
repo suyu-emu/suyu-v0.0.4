@@ -55,7 +55,7 @@ constexpr bool GetTimeZoneTime(s64& out_time, const Tz::Rule& rule, s64 time, s3
 }
 } // namespace
 
-void TimeZone::SetTimePoint(SteadyClockTimePoint& time_point) {
+void TimeZone::SetTimePoint(const SteadyClockTimePoint& time_point) {
     std::scoped_lock l{m_mutex};
     m_steady_clock_time_point = time_point;
 }
@@ -65,7 +65,7 @@ void TimeZone::SetTotalLocationNameCount(u32 count) {
     m_total_location_name_count = count;
 }
 
-void TimeZone::SetRuleVersion(RuleVersion& rule_version) {
+void TimeZone::SetRuleVersion(const RuleVersion& rule_version) {
     std::scoped_lock l{m_mutex};
     m_rule_version = rule_version;
 }
@@ -123,7 +123,7 @@ Result TimeZone::ToCalendarTimeWithMyRule(CalendarTime& calendar_time,
     R_RETURN(ToCalendarTimeImpl(calendar_time, calendar_additional, time, m_my_rule));
 }
 
-Result TimeZone::ParseBinary(LocationName& name, std::span<const u8> binary) {
+Result TimeZone::ParseBinary(const LocationName& name, std::span<const u8> binary) {
     std::scoped_lock l{m_mutex};
 
     Tz::Rule tmp_rule{};

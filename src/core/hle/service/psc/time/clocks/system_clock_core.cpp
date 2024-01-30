@@ -51,12 +51,12 @@ Result SystemClockCore::GetContext(SystemClockContext& out_context) const {
     R_SUCCEED();
 }
 
-Result SystemClockCore::SetContext(SystemClockContext& context) {
+Result SystemClockCore::SetContext(const SystemClockContext& context) {
     m_context = context;
     R_SUCCEED();
 }
 
-Result SystemClockCore::SetContextAndWrite(SystemClockContext& context) {
+Result SystemClockCore::SetContextAndWrite(const SystemClockContext& context) {
     R_TRY(SetContext(context));
 
     if (m_context_writer) {

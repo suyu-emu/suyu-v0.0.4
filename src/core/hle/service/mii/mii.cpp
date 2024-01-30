@@ -189,7 +189,7 @@ private:
         R_RETURN(manager->Move(metadata, new_index, create_id));
     }
 
-    Result AddOrReplace(StoreData& store_data) {
+    Result AddOrReplace(const StoreData& store_data) {
         LOG_INFO(Service_Mii, "called");
         R_UNLESS(is_system, ResultPermissionDenied);
 

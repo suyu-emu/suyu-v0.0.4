@@ -34,14 +34,15 @@ public:
     Result GetStaticServiceAsAdmin(OutInterface<StaticService> out_service);
     Result GetStaticServiceAsRepair(OutInterface<StaticService> out_service);
     Result GetStaticServiceAsServiceManager(OutInterface<StaticService> out_service);
-    Result SetupStandardSteadyClockCore(bool is_rtc_reset_detected, Common::UUID& clock_source_id,
-                                        s64 rtc_offset, s64 internal_offset, s64 test_offset);
-    Result SetupStandardLocalSystemClockCore(SystemClockContext& context, s64 time);
-    Result SetupStandardNetworkSystemClockCore(SystemClockContext& context, s64 accuracy);
+    Result SetupStandardSteadyClockCore(bool is_rtc_reset_detected,
+                                        const Common::UUID& clock_source_id, s64 rtc_offset,
+                                        s64 internal_offset, s64 test_offset);
+    Result SetupStandardLocalSystemClockCore(const SystemClockContext& context, s64 time);
+    Result SetupStandardNetworkSystemClockCore(SystemClockContext context, s64 accuracy);
     Result SetupStandardUserSystemClockCore(bool automatic_correction,
-                                            SteadyClockTimePoint& time_point);
-    Result SetupTimeZoneServiceCore(LocationName& name, RuleVersion& rule_version,
-                                    u32 location_count, SteadyClockTimePoint& time_point,
+                                            SteadyClockTimePoint time_point);
+    Result SetupTimeZoneServiceCore(const LocationName& name, const RuleVersion& rule_version,
+                                    u32 location_count, const SteadyClockTimePoint& time_point,
                                     InBuffer<BufferAttr_HipcAutoSelect> rule_buffer);
     Result SetupEphemeralNetworkSystemClockCore();
     Result GetStandardLocalClockOperationEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);

@@ -46,7 +46,7 @@ Result StandardUserSystemClockCore::GetContext(SystemClockContext& out_context) 
     R_RETURN(m_local_system_clock.GetContext(out_context));
 }
 
-Result StandardUserSystemClockCore::SetContext(SystemClockContext& context) {
+Result StandardUserSystemClockCore::SetContext(const SystemClockContext& context) {
     R_RETURN(ResultNotImplemented);
 }
 
