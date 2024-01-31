@@ -111,6 +111,20 @@ void Bilinear(std::span<const f32> input, std::span<f32> output, size_t src_widt
     }
 }
 
+template <bool unpack>
+void ProcessPitchLinear(std::span<const u8> input, std::span<u8> output, size_t extent_x,
+                        size_t extent_y, u32 pitch, u32 x0, u32 y0, size_t bpp) {
+    const size_t base_offset = x0 * bpp;
+    const size_t copy_size = extent_x * bpp;
+    for (size_t y = 0; y < extent_y; y++) {
+        const size_t first_offset = (y + y0) * pitch + base_offset;
+        const size_t second_offset = y * extent_x * bpp;
+        u8* write_to = unpack ? &output[first_offset] : &output[second_offset];
+        const u8* read_from = unpack ? &input[second_offset] : &input[first_offset];
+        std::memcpy(write_to, read_from, copy_size);
+    }
+}
+
 } // namespace
 
 struct SoftwareBlitEngine::BlitEngineImpl {
@@ -137,19 +151,6 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
                                  surface.depth, surface.block_height, surface.block_depth);
         }
         return static_cast<size_t>(surface.pitch * surface.height);
-    };
-    const auto process_pitch_linear = [](bool unpack, std::span<const u8> input,
-                                         std::span<u8> output, u32 extent_x, u32 extent_y,
-                                         u32 pitch, u32 x0, u32 y0, size_t bpp) {
-        const size_t base_offset = x0 * bpp;
-        const size_t copy_size = extent_x * bpp;
-        for (u32 y = y0; y < extent_y; y++) {
-            const size_t first_offset = y * pitch + base_offset;
-            const size_t second_offset = y * extent_x * bpp;
-            u8* write_to = unpack ? &output[first_offset] : &output[second_offset];
-            const u8* read_from = unpack ? &input[second_offset] : &input[first_offset];
-            std::memcpy(write_to, read_from, copy_size);
-        }
     };
 
     const u32 src_extent_x = config.src_x1 - config.src_x0;
@@ -205,8 +206,8 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
                          src.depth, config.src_x0, config.src_y0, src_extent_x, src_extent_y,
                          src.block_height, src.block_depth, src_extent_x * src_bytes_per_pixel);
     } else {
-        process_pitch_linear(false, tmp_buffer, impl->src_buffer, src_extent_x, src_extent_y,
-                             src.pitch, config.src_x0, config.src_y0, src_bytes_per_pixel);
+        ProcessPitchLinear<false>(tmp_buffer, impl->src_buffer, src_extent_x, src_extent_y,
+                                  src.pitch, config.src_x0, config.src_y0, src_bytes_per_pixel);
     }
 
     // Conversion Phase
@@ -229,9 +230,9 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
                        dst.depth, config.dst_x0, config.dst_y0, dst_extent_x, dst_extent_y,
                        dst.block_height, dst.block_depth, dst_extent_x * dst_bytes_per_pixel);
     } else {
-        process_pitch_linear(true, impl->dst_buffer, tmp_buffer2, dst_extent_x, dst_extent_y,
-                             dst.pitch, config.dst_x0, config.dst_y0,
-                             static_cast<size_t>(dst_bytes_per_pixel));
+        ProcessPitchLinear<true>(impl->dst_buffer, tmp_buffer2, dst_extent_x, dst_extent_y,
+                                 dst.pitch, config.dst_x0, config.dst_y0,
+                                 static_cast<size_t>(dst_bytes_per_pixel));
     }
     return true;
 }
