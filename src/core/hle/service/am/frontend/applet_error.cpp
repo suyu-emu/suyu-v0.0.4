@@ -207,7 +207,7 @@ void Error::Execute() {
 
 void Error::DisplayCompleted() {
     complete = true;
-    PushOutData(std::make_shared<IStorage>(system, std::vector<u8>()));
+    PushOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
     Exit();
 }
 
