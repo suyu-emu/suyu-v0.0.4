@@ -82,7 +82,7 @@ AndroidKeyboard::ResultData AndroidKeyboard::ResultData::CreateFromFrontend(jobj
     const jstring string = reinterpret_cast<jstring>(env->GetObjectField(
         object, env->GetFieldID(s_keyboard_data_class, "text", "Ljava/lang/String;")));
     return ResultData{GetJString(env, string),
-                      static_cast<Service::AM::Applets::SwkbdResult>(env->GetIntField(
+                      static_cast<Service::AM::Frontend::SwkbdResult>(env->GetIntField(
                           object, env->GetFieldID(s_keyboard_data_class, "result", "I")))};
 }
 
@@ -149,7 +149,7 @@ void AndroidKeyboard::ShowNormalKeyboard() const {
 }
 
 void AndroidKeyboard::ShowTextCheckDialog(
-    Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
     std::u16string text_check_message) const {
     LOG_WARNING(Frontend, "(STUBBED) called, backend requested to show the text check dialog.");
 }
@@ -204,7 +204,7 @@ void AndroidKeyboard::InlineTextChanged(
              "\ncursor_position={}",
              Common::UTF16ToUTF8(text_parameters.input_text), text_parameters.cursor_position);
 
-    submit_inline_callback(Service::AM::Applets::SwkbdReplyType::ChangedString,
+    submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString,
                            text_parameters.input_text, text_parameters.cursor_position);
 }
 
@@ -219,7 +219,7 @@ void AndroidKeyboard::SubmitInlineKeyboardText(std::u16string submitted_text) {
 
     m_current_text += submitted_text;
 
-    submit_inline_callback(Service::AM::Applets::SwkbdReplyType::ChangedString, m_current_text,
+    submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString, m_current_text,
                            m_current_text.size());
 }
 
@@ -236,12 +236,12 @@ void AndroidKeyboard::SubmitInlineKeyboardInput(int key_code) {
     case KEYCODE_BACK:
     case KEYCODE_ENTER:
         m_is_inline_active = false;
-        submit_inline_callback(Service::AM::Applets::SwkbdReplyType::DecidedEnter, m_current_text,
+        submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::DecidedEnter, m_current_text,
                                static_cast<s32>(m_current_text.size()));
         break;
     case KEYCODE_DEL:
         m_current_text.pop_back();
-        submit_inline_callback(Service::AM::Applets::SwkbdReplyType::ChangedString, m_current_text,
+        submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString, m_current_text,
                                m_current_text.size());
         break;
     }

@@ -64,11 +64,6 @@ enum class StartGameType {
     Global, // Only uses global configuration
 };
 
-enum class AmLaunchType {
-    UserInitiated,
-    ApplicationInitiated,
-};
-
 namespace Core {
 enum class SystemResultStatus : u32;
 class System;
@@ -101,12 +96,17 @@ namespace InputCommon {
 class InputSubsystem;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM {
+struct FrontendAppletParameters;
+enum class AppletId : u32;
+} // namespace Service::AM
+
+namespace Service::AM::Frontend {
 enum class SwkbdResult : u32;
 enum class SwkbdTextCheckResult : u32;
 enum class SwkbdReplyType : u32;
 enum class WebExitReason : u32;
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend
 
 namespace Service::NFC {
 class NfcDevice;
@@ -204,13 +204,13 @@ signals:
 
     void ProfileSelectorFinishedSelection(std::optional<Common::UUID> uuid);
 
-    void SoftwareKeyboardSubmitNormalText(Service::AM::Applets::SwkbdResult result,
+    void SoftwareKeyboardSubmitNormalText(Service::AM::Frontend::SwkbdResult result,
                                           std::u16string submitted_text, bool confirmed);
-    void SoftwareKeyboardSubmitInlineText(Service::AM::Applets::SwkbdReplyType reply_type,
+    void SoftwareKeyboardSubmitInlineText(Service::AM::Frontend::SwkbdReplyType reply_type,
                                           std::u16string submitted_text, s32 cursor_position);
 
     void WebBrowserExtractOfflineRomFS();
-    void WebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason, std::string last_url);
+    void WebBrowserClosed(Service::AM::Frontend::WebExitReason exit_reason, std::string last_url);
 
     void SigInterrupt();
 
@@ -228,8 +228,9 @@ public slots:
     void SoftwareKeyboardInitialize(
         bool is_inline, Core::Frontend::KeyboardInitializeParameters initialize_parameters);
     void SoftwareKeyboardShowNormal();
-    void SoftwareKeyboardShowTextCheck(Service::AM::Applets::SwkbdTextCheckResult text_check_result,
-                                       std::u16string text_check_message);
+    void SoftwareKeyboardShowTextCheck(
+        Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
+        std::u16string text_check_message);
     void SoftwareKeyboardShowInline(Core::Frontend::InlineAppearParameters appear_parameters);
     void SoftwareKeyboardHideInline();
     void SoftwareKeyboardInlineTextChanged(Core::Frontend::InlineTextParameters text_parameters);
@@ -267,11 +268,10 @@ private:
     void PreventOSSleep();
     void AllowOSSleep();
 
-    bool LoadROM(const QString& filename, u64 program_id, std::size_t program_index,
-                 AmLaunchType launch_type);
-    void BootGame(const QString& filename, u64 program_id = 0, std::size_t program_index = 0,
-                  StartGameType with_config = StartGameType::Normal,
-                  AmLaunchType launch_type = AmLaunchType::UserInitiated);
+    bool LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params);
+    void BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
+                  StartGameType with_config = StartGameType::Normal);
+    void BootGameFromList(const QString& filename, StartGameType with_config);
     void ShutdownGame();
 
     void ShowTelemetryCallout();
@@ -323,6 +323,10 @@ private:
     void OnSigInterruptNotifierActivated();
     void SetGamemodeEnabled(bool state);
 #endif
+
+    Service::AM::FrontendAppletParameters ApplicationAppletParameters();
+    Service::AM::FrontendAppletParameters LibraryAppletParameters(u64 program_id,
+                                                                  Service::AM::AppletId applet_id);
 
 private slots:
     void OnStartGame();

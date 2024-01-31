@@ -162,7 +162,7 @@ void QtProfileSelectionDialog::SelectUser(const QModelIndex& index) {
 
 void QtProfileSelectionDialog::SetWindowTitle(
     const Core::Frontend::ProfileSelectParameters& parameters) {
-    using Service::AM::Applets::UiMode;
+    using Service::AM::Frontend::UiMode;
     switch (parameters.mode) {
     case UiMode::UserCreator:
     case UiMode::UserCreatorForStarter:
@@ -193,7 +193,7 @@ void QtProfileSelectionDialog::SetWindowTitle(
 
 void QtProfileSelectionDialog::SetDialogPurpose(
     const Core::Frontend::ProfileSelectParameters& parameters) {
-    using Service::AM::Applets::UserSelectionPurpose;
+    using Service::AM::Frontend::UserSelectionPurpose;
 
     switch (parameters.purpose) {
     case UserSelectionPurpose::GameCardRegistration:

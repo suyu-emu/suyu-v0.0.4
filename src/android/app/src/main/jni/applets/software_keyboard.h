@@ -24,7 +24,7 @@ public:
 
     void ShowNormalKeyboard() const override;
 
-    void ShowTextCheckDialog(Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    void ShowTextCheckDialog(Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
                              std::u16string text_check_message) const override;
 
     void ShowInlineKeyboard(
@@ -45,7 +45,7 @@ private:
         static ResultData CreateFromFrontend(jobject object);
 
         std::string text;
-        Service::AM::Applets::SwkbdResult result{};
+        Service::AM::Frontend::SwkbdResult result{};
     };
 
     void SubmitNormalText(const ResultData& result) const;

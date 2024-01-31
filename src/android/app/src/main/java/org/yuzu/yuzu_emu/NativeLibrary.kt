@@ -261,7 +261,7 @@ object NativeLibrary {
     /**
      * Begins emulation.
      */
-    external fun run(path: String?, programIndex: Int = 0)
+    external fun run(path: String?, programIndex: Int, frontendInitiated: Boolean)
 
     // Surface Handling
     external fun surfaceChanged(surf: Surface?)

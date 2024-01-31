@@ -15,11 +15,13 @@
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/file_sys/content_archive.h"
 #include "core/file_sys/errors.h"
 #include "core/file_sys/fs_directory.h"
 #include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
+#include "core/file_sys/romfs.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/system_archive/system_archive.h"
@@ -33,18 +35,20 @@
 #include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/loader/loader.h"
 #include "core/reporter.h"
 
 namespace Service::FileSystem {
-enum class FileSystemType : u8 {
-    Invalid0 = 0,
-    Invalid1 = 1,
+enum class FileSystemProxyType : u8 {
+    Code = 0,
+    Rom = 1,
     Logo = 2,
-    ContentControl = 3,
-    ContentManual = 4,
-    ContentMeta = 5,
-    ContentData = 6,
-    ApplicationPackage = 7,
+    Control = 3,
+    Manual = 4,
+    Meta = 5,
+    Data = 6,
+    Package = 7,
+    RegisteredUpdate = 8,
 };
 
 class ISaveDataInfoReader final : public ServiceFramework<ISaveDataInfoReader> {
@@ -357,12 +361,30 @@ void FSP_SRV::SetCurrentProcess(HLERequestContext& ctx) {
 void FSP_SRV::OpenFileSystemWithPatch(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    const auto type = rp.PopRaw<FileSystemType>();
-    const auto title_id = rp.PopRaw<u64>();
-    LOG_WARNING(Service_FS, "(STUBBED) called with type={}, title_id={:016X}", type, title_id);
+    struct InputParameters {
+        FileSystemProxyType type;
+        u64 program_id;
+    };
+    static_assert(sizeof(InputParameters) == 0x10, "InputParameters has wrong size");
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 0};
-    rb.Push(ResultUnknown);
+    const auto params = rp.PopRaw<InputParameters>();
+    LOG_ERROR(Service_FS, "(STUBBED) called with type={}, program_id={:016X}", params.type,
+              params.program_id);
+
+    // FIXME: many issues with this
+    ASSERT(params.type == FileSystemProxyType::Manual);
+    const auto manual_romfs = romfs_controller->OpenPatchedRomFS(
+        params.program_id, FileSys::ContentRecordType::HtmlDocument);
+
+    ASSERT(manual_romfs != nullptr);
+
+    const auto extracted_romfs = FileSys::ExtractRomFS(manual_romfs);
+    ASSERT(extracted_romfs != nullptr);
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IFileSystem>(system, extracted_romfs,
+                                     SizeGetter::FromStorageId(fsc, FileSys::StorageId::NandUser));
 }
 
 void FSP_SRV::OpenSdCardFileSystem(HLERequestContext& ctx) {

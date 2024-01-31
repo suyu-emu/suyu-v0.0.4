@@ -3,6 +3,7 @@
 
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "core/arm/debug.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -544,8 +545,8 @@ IDocumentInterface::IDocumentInterface(Core::System& system_)
     // clang-format off
     static const FunctionInfo functions[] = {
         {21, nullptr, "GetApplicationContentPath"},
-        {23, nullptr, "ResolveApplicationContentPath"},
-        {93, nullptr, "GetRunningApplicationProgramId"},
+        {23, &IDocumentInterface::ResolveApplicationContentPath, "ResolveApplicationContentPath"},
+        {92, &IDocumentInterface::GetRunningApplicationProgramId, "GetRunningApplicationProgramId"},
     };
     // clang-format on
 
@@ -553,6 +554,32 @@ IDocumentInterface::IDocumentInterface(Core::System& system_)
 }
 
 IDocumentInterface::~IDocumentInterface() = default;
+
+void IDocumentInterface::ResolveApplicationContentPath(HLERequestContext& ctx) {
+    struct ContentPath {
+        u8 file_system_proxy_type;
+        u64 program_id;
+    };
+    static_assert(sizeof(ContentPath) == 0x10, "ContentPath has wrong size");
+
+    IPC::RequestParser rp{ctx};
+    auto content_path = rp.PopRaw<ContentPath>();
+    LOG_WARNING(Service_NS, "(STUBBED) called, file_system_proxy_type={}, program_id={:016X}",
+                content_path.file_system_proxy_type, content_path.program_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IDocumentInterface::GetRunningApplicationProgramId(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto caller_program_id = rp.PopRaw<u64>();
+    LOG_WARNING(Service_NS, "(STUBBED) called, caller_program_id={:016X}", caller_program_id);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(system.GetApplicationProcessProgramID());
+}
 
 IDownloadTaskInterface::IDownloadTaskInterface(Core::System& system_)
     : ServiceFramework{system_, "IDownloadTaskInterface"} {
@@ -613,6 +640,40 @@ IFactoryResetInterface::IFactoryResetInterface(Core::System& system_)
 
 IFactoryResetInterface::~IFactoryResetInterface() = default;
 
+IReadOnlyApplicationRecordInterface::IReadOnlyApplicationRecordInterface(Core::System& system_)
+    : ServiceFramework{system_, "IReadOnlyApplicationRecordInterface"} {
+    static const FunctionInfo functions[] = {
+        {0, &IReadOnlyApplicationRecordInterface::HasApplicationRecord, "HasApplicationRecord"},
+        {1, nullptr, "NotifyApplicationFailure"},
+        {2, &IReadOnlyApplicationRecordInterface::IsDataCorruptedResult, "IsDataCorruptedResult"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
+IReadOnlyApplicationRecordInterface::~IReadOnlyApplicationRecordInterface() = default;
+
+void IReadOnlyApplicationRecordInterface::HasApplicationRecord(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const u64 program_id = rp.PopRaw<u64>();
+    LOG_WARNING(Service_NS, "(STUBBED) called, program_id={:X}", program_id);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(1);
+}
+
+void IReadOnlyApplicationRecordInterface::IsDataCorruptedResult(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto result = rp.PopRaw<Result>();
+    LOG_WARNING(Service_NS, "(STUBBED) called, result={:#x}", result.GetInnerValue());
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(0);
+}
+
 IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterface(
     Core::System& system_)
     : ServiceFramework{system_, "IReadOnlyApplicationControlDataInterface"} {
@@ -663,7 +724,7 @@ NS::NS(const char* name, Core::System& system_) : ServiceFramework{system_, name
     static const FunctionInfo functions[] = {
         {7988, nullptr, "GetDynamicRightsInterface"},
         {7989, &NS::PushInterface<IReadOnlyApplicationControlDataInterface>, "GetReadOnlyApplicationControlDataInterface"},
-        {7991, nullptr, "GetReadOnlyApplicationRecordInterface"},
+        {7991, &NS::PushInterface<IReadOnlyApplicationRecordInterface>, "GetReadOnlyApplicationRecordInterface"},
         {7992, &NS::PushInterface<IECommerceInterface>, "GetECommerceInterface"},
         {7993, &NS::PushInterface<IApplicationVersionInterface>, "GetApplicationVersionInterface"},
         {7994, &NS::PushInterface<IFactoryResetInterface>, "GetFactoryResetInterface"},

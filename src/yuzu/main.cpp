@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include "core/hle/service/am/applet_manager.h"
 #include "core/loader/nca.h"
 #include "core/tools/renderdoc.h"
 
@@ -39,13 +40,14 @@
 #include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
-#include "core/frontend/applets/general_frontend.h"
+#include "core/frontend/applets/general.h"
 #include "core/frontend/applets/mii_edit.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/set/system_settings_server.h"
 #include "frontend_common/content_manager.h"
 #include "hid_core/frontend/emulated_controller.h"
@@ -568,7 +570,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     }
 
     if (!game_path.isEmpty()) {
-        BootGame(game_path);
+        BootGame(game_path, ApplicationAppletParameters());
     }
 }
 
@@ -630,13 +632,14 @@ void GMainWindow::RegisterMetaTypes() {
     qRegisterMetaType<Core::Frontend::InlineAppearParameters>(
         "Core::Frontend::InlineAppearParameters");
     qRegisterMetaType<Core::Frontend::InlineTextParameters>("Core::Frontend::InlineTextParameters");
-    qRegisterMetaType<Service::AM::Applets::SwkbdResult>("Service::AM::Applets::SwkbdResult");
-    qRegisterMetaType<Service::AM::Applets::SwkbdTextCheckResult>(
-        "Service::AM::Applets::SwkbdTextCheckResult");
-    qRegisterMetaType<Service::AM::Applets::SwkbdReplyType>("Service::AM::Applets::SwkbdReplyType");
+    qRegisterMetaType<Service::AM::Frontend::SwkbdResult>("Service::AM::Frontend::SwkbdResult");
+    qRegisterMetaType<Service::AM::Frontend::SwkbdTextCheckResult>(
+        "Service::AM::Frontend::SwkbdTextCheckResult");
+    qRegisterMetaType<Service::AM::Frontend::SwkbdReplyType>(
+        "Service::AM::Frontend::SwkbdReplyType");
 
     // Web Browser Applet
-    qRegisterMetaType<Service::AM::Applets::WebExitReason>("Service::AM::Applets::WebExitReason");
+    qRegisterMetaType<Service::AM::Frontend::WebExitReason>("Service::AM::Frontend::WebExitReason");
 
     // Register loader types
     qRegisterMetaType<Core::SystemResultStatus>("Core::SystemResultStatus");
@@ -746,7 +749,7 @@ void GMainWindow::SoftwareKeyboardInitialize(
     if (is_inline) {
         connect(
             software_keyboard, &QtSoftwareKeyboardDialog::SubmitInlineText, this,
-            [this](Service::AM::Applets::SwkbdReplyType reply_type, std::u16string submitted_text,
+            [this](Service::AM::Frontend::SwkbdReplyType reply_type, std::u16string submitted_text,
                    s32 cursor_position) {
                 emit SoftwareKeyboardSubmitInlineText(reply_type, submitted_text, cursor_position);
             },
@@ -754,7 +757,7 @@ void GMainWindow::SoftwareKeyboardInitialize(
     } else {
         connect(
             software_keyboard, &QtSoftwareKeyboardDialog::SubmitNormalText, this,
-            [this](Service::AM::Applets::SwkbdResult result, std::u16string submitted_text,
+            [this](Service::AM::Frontend::SwkbdResult result, std::u16string submitted_text,
                    bool confirmed) {
                 emit SoftwareKeyboardSubmitNormalText(result, submitted_text, confirmed);
             },
@@ -781,7 +784,7 @@ void GMainWindow::SoftwareKeyboardShowNormal() {
 }
 
 void GMainWindow::SoftwareKeyboardShowTextCheck(
-    Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
     std::u16string text_check_message) {
     if (!software_keyboard) {
         LOG_ERROR(Frontend, "The software keyboard is not initialized!");
@@ -852,7 +855,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
 
     // Raw input breaks with the web applet, Disable web applets if enabled
     if (UISettings::values.disable_web_applet || Settings::values.enable_raw_input) {
-        emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed,
+        emit WebBrowserClosed(Service::AM::Frontend::WebExitReason::WindowClosed,
                               "http://localhost/");
         return;
     }
@@ -940,7 +943,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
                     if (variant.toBool()) {
                         web_applet->SetFinished(true);
                         web_applet->SetExitReason(
-                            Service::AM::Applets::WebExitReason::EndButtonPressed);
+                            Service::AM::Frontend::WebExitReason::EndButtonPressed);
                     }
                 });
 
@@ -950,7 +953,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
         if (web_applet->GetCurrentURL().contains(QStringLiteral("localhost"))) {
             if (!web_applet->IsFinished()) {
                 web_applet->SetFinished(true);
-                web_applet->SetExitReason(Service::AM::Applets::WebExitReason::CallbackURL);
+                web_applet->SetExitReason(Service::AM::Frontend::WebExitReason::CallbackURL);
             }
 
             web_applet->SetLastURL(web_applet->GetCurrentURL().toStdString());
@@ -983,7 +986,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
 #else
 
     // Utilize the same fallback as the default web browser applet.
-    emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost/");
+    emit WebBrowserClosed(Service::AM::Frontend::WebExitReason::WindowClosed, "http://localhost/");
 
 #endif
 }
@@ -991,7 +994,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
 void GMainWindow::WebBrowserRequestExit() {
 #ifdef YUZU_USE_QT_WEB_ENGINE
     if (web_applet) {
-        web_applet->SetExitReason(Service::AM::Applets::WebExitReason::ExitRequested);
+        web_applet->SetExitReason(Service::AM::Frontend::WebExitReason::ExitRequested);
         web_applet->SetFinished(true);
     }
 #endif
@@ -1472,7 +1475,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
 }
 
 void GMainWindow::ConnectWidgetEvents() {
-    connect(game_list, &GameList::BootGame, this, &GMainWindow::BootGame);
+    connect(game_list, &GameList::BootGame, this, &GMainWindow::BootGameFromList);
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenDirectory, this, &GMainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
@@ -1760,8 +1763,7 @@ void GMainWindow::AllowOSSleep() {
 #endif
 }
 
-bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t program_index,
-                          AmLaunchType launch_type) {
+bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
     // Shutdown previous session if the emu thread is still active...
     if (emu_thread != nullptr) {
         ShutdownGame();
@@ -1773,11 +1775,11 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
 
     system->SetFilesystem(vfs);
 
-    if (launch_type == AmLaunchType::UserInitiated) {
+    if (params.launch_type == Service::AM::LaunchType::FrontendInitiated) {
         system->GetUserChannel().clear();
     }
 
-    system->SetAppletFrontendSet({
+    system->SetFrontendAppletSet({
         std::make_unique<QtAmiiboSettings>(*this), // Amiibo Settings
         (UISettings::values.controller_applet_disabled.GetValue() == true)
             ? nullptr
@@ -1792,7 +1794,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     });
 
     const Core::SystemResultStatus result{
-        system->Load(*render_window, filename.toStdString(), program_id, program_index)};
+        system->Load(*render_window, filename.toStdString(), params)};
 
     const auto drd_callout = (UISettings::values.callout_flags.GetValue() &
                               static_cast<u32>(CalloutFlag::DRDDeprecation)) == 0;
@@ -1915,12 +1917,12 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
     }
 }
 
-void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t program_index,
-                           StartGameType type, AmLaunchType launch_type) {
+void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
+                           StartGameType type) {
     LOG_INFO(Frontend, "yuzu starting...");
 
-    if (program_id == 0 ||
-        program_id > static_cast<u64>(Service::AM::Applets::AppletProgramId::MaxProgramId)) {
+    if (params.program_id == 0 ||
+        params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
         StoreRecentFile(filename); // Put the filename on top of the list
     }
 
@@ -1935,7 +1937,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     ConfigureFilesystemProvider(filename.toStdString());
     const auto v_file = Core::GetGameFileFromPath(vfs, filename.toUtf8().constData());
-    const auto loader = Loader::GetLoader(*system, v_file, program_id, program_index);
+    const auto loader = Loader::GetLoader(*system, v_file, params.program_id, params.program_index);
 
     if (loader != nullptr && loader->ReadProgramId(title_id) == Loader::ResultStatus::Success &&
         type == StartGameType::Normal) {
@@ -1954,10 +1956,10 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     if (UISettings::values.select_user_on_boot && !user_flag_cmd_line) {
         const Core::Frontend::ProfileSelectParameters parameters{
-            .mode = Service::AM::Applets::UiMode::UserSelector,
+            .mode = Service::AM::Frontend::UiMode::UserSelector,
             .invalid_uid_list = {},
             .display_options = {},
-            .purpose = Service::AM::Applets::UserSelectionPurpose::General,
+            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
         };
         if (SelectAndSetCurrentUser(parameters) == false) {
             return;
@@ -1969,7 +1971,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     // behavior of asking.
     user_flag_cmd_line = false;
 
-    if (!LoadROM(filename, program_id, program_index, launch_type)) {
+    if (!LoadROM(filename, params)) {
         return;
     }
 
@@ -2057,6 +2059,10 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         ShowFullscreen();
     }
     OnStartGame();
+}
+
+void GMainWindow::BootGameFromList(const QString& filename, StartGameType with_config) {
+    BootGame(filename, ApplicationAppletParameters(), with_config);
 }
 
 bool GMainWindow::OnShutdownBegin() {
@@ -2160,7 +2166,7 @@ void GMainWindow::OnEmulationStopped() {
     OnTasStateChanged();
     render_window->FinalizeCamera();
 
-    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::None);
+    system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::None);
 
     // Enable all controllers
     system->HIDCore().SetSupportedStyleTag({Core::HID::NpadStyleSet::All});
@@ -2239,7 +2245,10 @@ void GMainWindow::UpdateRecentFiles() {
 }
 
 void GMainWindow::OnGameListLoadFile(QString game_path, u64 program_id) {
-    BootGame(game_path, program_id);
+    auto params = ApplicationAppletParameters();
+    params.program_id = program_id;
+
+    BootGame(game_path, params);
 }
 
 void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
@@ -2280,10 +2289,10 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             // User save data
             const auto select_profile = [this] {
                 const Core::Frontend::ProfileSelectParameters parameters{
-                    .mode = Service::AM::Applets::UiMode::UserSelector,
+                    .mode = Service::AM::Frontend::UiMode::UserSelector,
                     .invalid_uid_list = {},
                     .display_options = {},
-                    .purpose = Service::AM::Applets::UserSelectionPurpose::General,
+                    .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
                 };
                 QtProfileSelectionDialog dialog(*system, this, parameters);
                 dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
@@ -3171,7 +3180,7 @@ void GMainWindow::OnMenuLoadFile() {
     }
 
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename);
+    BootGame(filename, ApplicationAppletParameters());
 }
 
 void GMainWindow::OnMenuLoadFolder() {
@@ -3185,7 +3194,7 @@ void GMainWindow::OnMenuLoadFolder() {
     const QDir dir{dir_path};
     const QStringList matching_main = dir.entryList({QStringLiteral("main")}, QDir::Files);
     if (matching_main.size() == 1) {
-        BootGame(dir.path() + QDir::separator() + matching_main[0]);
+        BootGame(dir.path() + QDir::separator() + matching_main[0], ApplicationAppletParameters());
     } else {
         QMessageBox::warning(this, tr("Invalid Directory Selected"),
                              tr("The directory you have selected does not contain a 'main' file."));
@@ -3379,7 +3388,7 @@ void GMainWindow::OnMenuRecentFile() {
 
     const QString filename = action->data().toString();
     if (QFileInfo::exists(filename)) {
-        BootGame(filename);
+        BootGame(filename, ApplicationAppletParameters());
     } else {
         // Display an error message and remove the file from the list.
         QMessageBox::information(this, tr("File not found"),
@@ -3417,7 +3426,7 @@ void GMainWindow::OnRestartGame() {
         // Make a copy since ShutdownGame edits game_path
         const auto current_game = QString(current_game_path);
         ShutdownGame();
-        BootGame(current_game);
+        BootGame(current_game, ApplicationAppletParameters());
     }
 }
 
@@ -3485,8 +3494,11 @@ void GMainWindow::OnLoadComplete() {
 
 void GMainWindow::OnExecuteProgram(std::size_t program_index) {
     ShutdownGame();
-    BootGame(last_filename_booted, 0, program_index, StartGameType::Normal,
-             AmLaunchType::ApplicationInitiated);
+
+    auto params = ApplicationAppletParameters();
+    params.program_index = static_cast<s32>(program_index);
+    params.launch_type = Service::AM::LaunchType::ApplicationInitiated;
+    BootGame(last_filename_booted, params);
 }
 
 void GMainWindow::OnExit() {
@@ -4153,7 +4165,7 @@ void GMainWindow::OnToggleStatusBar() {
 }
 
 void GMainWindow::OnAlbum() {
-    constexpr u64 AlbumId = static_cast<u64>(Service::AM::Applets::AppletProgramId::PhotoViewer);
+    constexpr u64 AlbumId = static_cast<u64>(Service::AM::AppletProgramId::PhotoViewer);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
@@ -4168,15 +4180,15 @@ void GMainWindow::OnAlbum() {
         return;
     }
 
-    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::PhotoViewer);
+    system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::PhotoViewer);
 
     const auto filename = QString::fromStdString(album_nca->GetFullPath());
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, AlbumId);
+    BootGame(filename, LibraryAppletParameters(AlbumId, Service::AM::AppletId::PhotoViewer));
 }
 
 void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
-    constexpr u64 CabinetId = static_cast<u64>(Service::AM::Applets::AppletProgramId::Cabinet);
+    constexpr u64 CabinetId = static_cast<u64>(Service::AM::AppletProgramId::Cabinet);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
@@ -4191,16 +4203,16 @@ void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
         return;
     }
 
-    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::Cabinet);
-    system->GetAppletManager().SetCabinetMode(mode);
+    system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::Cabinet);
+    system->GetFrontendAppletHolder().SetCabinetMode(mode);
 
     const auto filename = QString::fromStdString(cabinet_nca->GetFullPath());
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, CabinetId);
+    BootGame(filename, LibraryAppletParameters(CabinetId, Service::AM::AppletId::Cabinet));
 }
 
 void GMainWindow::OnMiiEdit() {
-    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::Applets::AppletProgramId::MiiEdit);
+    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::AppletProgramId::MiiEdit);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
@@ -4215,16 +4227,15 @@ void GMainWindow::OnMiiEdit() {
         return;
     }
 
-    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::MiiEdit);
+    system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::MiiEdit);
 
     const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, MiiEditId);
+    BootGame(filename, LibraryAppletParameters(MiiEditId, Service::AM::AppletId::MiiEdit));
 }
 
 void GMainWindow::OnOpenControllerMenu() {
-    constexpr u64 ControllerAppletId =
-        static_cast<u64>(Service::AM::Applets::AppletProgramId::Controller);
+    constexpr u64 ControllerAppletId = static_cast<u64>(Service::AM::AppletProgramId::Controller);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
@@ -4240,11 +4251,12 @@ void GMainWindow::OnOpenControllerMenu() {
         return;
     }
 
-    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::Controller);
+    system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::Controller);
 
     const auto filename = QString::fromStdString((controller_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, ControllerAppletId);
+    BootGame(filename,
+             LibraryAppletParameters(ControllerAppletId, Service::AM::AppletId::Controller));
 }
 
 void GMainWindow::OnCaptureScreenshot() {
@@ -4564,7 +4576,7 @@ void GMainWindow::OnCheckFirmwareDecryption() {
 }
 
 bool GMainWindow::CheckFirmwarePresence() {
-    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::Applets::AppletProgramId::MiiEdit);
+    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::AppletProgramId::MiiEdit);
 
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
@@ -4727,7 +4739,7 @@ bool GMainWindow::DropAction(QDropEvent* event) {
     } else {
         // Game
         if (ConfirmChangeGame()) {
-            BootGame(filename);
+            BootGame(filename, ApplicationAppletParameters());
         }
     }
     return true;
@@ -4771,36 +4783,12 @@ void GMainWindow::RequestGameExit() {
         return;
     }
 
-    auto& sm{system->ServiceManager()};
-    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
-    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
-    bool has_signalled = false;
-
     system->SetExitRequested(true);
-
-    if (applet_oe != nullptr) {
-        applet_oe->GetMessageQueue()->RequestExit();
-        has_signalled = true;
-    }
-
-    if (applet_ae != nullptr && !has_signalled) {
-        applet_ae->GetMessageQueue()->RequestExit();
-    }
+    system->GetAppletManager().RequestExit();
 }
 
 void GMainWindow::RequestGameResume() {
-    auto& sm{system->ServiceManager()};
-    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
-    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
-
-    if (applet_oe != nullptr) {
-        applet_oe->GetMessageQueue()->RequestResume();
-        return;
-    }
-
-    if (applet_ae != nullptr) {
-        applet_ae->GetMessageQueue()->RequestResume();
-    }
+    system->GetAppletManager().RequestResume();
 }
 
 void GMainWindow::filterBarSetChecked(bool state) {
@@ -4940,6 +4928,22 @@ void GMainWindow::changeEvent(QEvent* event) {
     }
 #endif // __unix__
     QWidget::changeEvent(event);
+}
+
+Service::AM::FrontendAppletParameters GMainWindow::ApplicationAppletParameters() {
+    return Service::AM::FrontendAppletParameters{
+        .applet_id = Service::AM::AppletId::Application,
+        .applet_type = Service::AM::AppletType::Application,
+    };
+}
+
+Service::AM::FrontendAppletParameters GMainWindow::LibraryAppletParameters(
+    u64 program_id, Service::AM::AppletId applet_id) {
+    return Service::AM::FrontendAppletParameters{
+        .program_id = program_id,
+        .applet_id = applet_id,
+        .applet_type = Service::AM::AppletType::LibraryApplet,
+    };
 }
 
 void VolumeButton::wheelEvent(QWheelEvent* event) {

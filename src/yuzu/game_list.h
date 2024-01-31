@@ -106,8 +106,7 @@ public:
     static const QStringList supported_file_extensions;
 
 signals:
-    void BootGame(const QString& game_path, u64 program_id, std::size_t program_index,
-                  StartGameType type, AmLaunchType launch_type);
+    void BootGame(const QString& game_path, StartGameType type);
     void GameChosen(const QString& game_path, const u64 title_id = 0);
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
                              const std::string& game_path);

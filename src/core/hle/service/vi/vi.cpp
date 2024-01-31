@@ -535,6 +535,12 @@ public:
         RegisterHandlers(functions);
     }
 
+    ~IApplicationDisplayService() {
+        for (const auto layer_id : stray_layer_ids) {
+            nvnflinger.DestroyLayer(layer_id);
+        }
+    }
+
 private:
     enum class ConvertedScaleMode : u64 {
         Freeze = 0,
@@ -770,6 +776,7 @@ private:
             return;
         }
 
+        stray_layer_ids.push_back(*layer_id);
         const auto buffer_queue_id = nvnflinger.FindBufferQueueId(display_id, *layer_id);
         if (!buffer_queue_id) {
             LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", display_id);
@@ -916,6 +923,7 @@ private:
 
     Nvnflinger::Nvnflinger& nvnflinger;
     Nvnflinger::HosBinderDriverServer& hos_binder_driver_server;
+    std::vector<u64> stray_layer_ids;
     bool vsync_event_fetched{false};
 };
 

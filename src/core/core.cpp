@@ -36,7 +36,8 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/applet_manager.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/glue_manager.h"
@@ -135,8 +136,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, room_network{},
-          cpu_manager{system}, reporter{system}, applet_manager{system}, profile_manager{} {}
+        : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
+          reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -157,7 +158,7 @@ struct System::Impl {
         }
 
         // Create default implementations of applets if one is not provided.
-        applet_manager.SetDefaultAppletsIfMissing();
+        frontend_applets.SetDefaultAppletsIfMissing();
 
         is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
 
@@ -330,15 +331,26 @@ struct System::Impl {
     }
 
     SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
-                            const std::string& filepath, u64 program_id,
-                            std::size_t program_index) {
+                            const std::string& filepath,
+                            Service::AM::FrontendAppletParameters& params) {
         app_loader = Loader::GetLoader(system, GetGameFileFromPath(virtual_filesystem, filepath),
-                                       program_id, program_index);
+                                       params.program_id, params.program_index);
 
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return SystemResultStatus::ErrorGetLoader;
         }
+
+        if (app_loader->ReadProgramId(params.program_id) != Loader::ResultStatus::Success) {
+            LOG_ERROR(Core, "Failed to find title id for ROM!");
+        }
+
+        std::string name = "Unknown program";
+        if (app_loader->ReadTitle(name) != Loader::ResultStatus::Success) {
+            LOG_ERROR(Core, "Failed to read title for ROM!");
+        }
+
+        LOG_INFO(Core, "Loading {} ({})", name, params.program_id);
 
         InitializeKernel(system);
 
@@ -373,9 +385,14 @@ struct System::Impl {
             cheat_engine->Initialize();
         }
 
+        // Register with applet manager.
+        applet_manager.CreateAndInsertByFrontendAppletParameters(main_process->GetProcessId(),
+                                                                 params);
+
         // All threads are started, begin main process execution, now that we're in the clear.
         main_process->Run(load_parameters->main_thread_priority,
                           load_parameters->main_thread_stack_size);
+        main_process->Close();
 
         if (Settings::values.gamecard_inserted) {
             if (Settings::values.gamecard_current_game) {
@@ -386,21 +403,13 @@ struct System::Impl {
             }
         }
 
-        if (app_loader->ReadProgramId(program_id) != Loader::ResultStatus::Success) {
-            LOG_ERROR(Core, "Failed to find title id for ROM (Error {})", load_result);
-        }
-        perf_stats = std::make_unique<PerfStats>(program_id);
+        perf_stats = std::make_unique<PerfStats>(params.program_id);
         // Reset counters and set time origin to current frame
         GetAndResetPerfStats();
         perf_stats->BeginSystemFrame();
 
-        std::string name = "Unknown Game";
-        if (app_loader->ReadTitle(name) != Loader::ResultStatus::Success) {
-            LOG_ERROR(Core, "Failed to read title for ROM (Error {})", load_result);
-        }
-
         std::string title_version;
-        const FileSys::PatchManager pm(program_id, system.GetFileSystemController(),
+        const FileSys::PatchManager pm(params.program_id, system.GetFileSystemController(),
                                        system.GetContentProvider());
         const auto metadata = pm.GetControlMetadata();
         if (metadata.first != nullptr) {
@@ -409,14 +418,15 @@ struct System::Impl {
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
-            game_info.id = program_id;
+            game_info.id = params.program_id;
             game_info.version = title_version;
             room_member->SendGameInfo(game_info);
         }
 
         // Workarounds:
         // Activate this in Super Smash Brothers Ultimate, it only affects AMD cards using AMDVLK
-        Settings::values.renderer_amdvlk_depth_bias_workaround = program_id == 0x1006A800016E000ULL;
+        Settings::values.renderer_amdvlk_depth_bias_workaround =
+            params.program_id == 0x1006A800016E000ULL;
 
         status = SystemResultStatus::Success;
         return status;
@@ -455,6 +465,7 @@ struct System::Impl {
         }
         kernel.CloseServices();
         kernel.ShutdownCores();
+        applet_manager.Reset();
         services.reset();
         service_manager.reset();
         fs_controller.Reset();
@@ -566,8 +577,9 @@ struct System::Impl {
 
     std::unique_ptr<Tools::RenderdocAPI> renderdoc_api;
 
-    /// Frontend applets
-    Service::AM::Applets::AppletManager applet_manager;
+    /// Applets
+    Service::AM::AppletManager applet_manager;
+    Service::AM::Frontend::FrontendAppletHolder frontend_applets;
 
     /// APM (Performance) services
     Service::APM::Controller apm_controller{core_timing};
@@ -680,8 +692,8 @@ void System::InitializeDebugger() {
 }
 
 SystemResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath,
-                                u64 program_id, std::size_t program_index) {
-    return impl->Load(*this, emu_window, filepath, program_id, program_index);
+                                Service::AM::FrontendAppletParameters& params) {
+    return impl->Load(*this, emu_window, filepath, params);
 }
 
 bool System::IsPoweredOn() const {
@@ -871,19 +883,19 @@ void System::RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
     impl->cheat_engine->SetMainMemoryParameters(main_region_begin, main_region_size);
 }
 
-void System::SetAppletFrontendSet(Service::AM::Applets::AppletFrontendSet&& set) {
-    impl->applet_manager.SetAppletFrontendSet(std::move(set));
+void System::SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set) {
+    impl->frontend_applets.SetFrontendAppletSet(std::move(set));
 }
 
-void System::SetDefaultAppletFrontendSet() {
-    impl->applet_manager.SetDefaultAppletFrontendSet();
+Service::AM::Frontend::FrontendAppletHolder& System::GetFrontendAppletHolder() {
+    return impl->frontend_applets;
 }
 
-Service::AM::Applets::AppletManager& System::GetAppletManager() {
-    return impl->applet_manager;
+const Service::AM::Frontend::FrontendAppletHolder& System::GetFrontendAppletHolder() const {
+    return impl->frontend_applets;
 }
 
-const Service::AM::Applets::AppletManager& System::GetAppletManager() const {
+Service::AM::AppletManager& System::GetAppletManager() {
     return impl->applet_manager;
 }
 

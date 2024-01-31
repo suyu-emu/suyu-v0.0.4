@@ -176,8 +176,8 @@ add_library(core STATIC
     frontend/applets/controller.h
     frontend/applets/error.cpp
     frontend/applets/error.h
-    frontend/applets/general_frontend.cpp
-    frontend/applets/general_frontend.h
+    frontend/applets/general.cpp
+    frontend/applets/general.h
     frontend/applets/mii_edit.cpp
     frontend/applets/mii_edit.h
     frontend/applets/profile_select.cpp
@@ -390,39 +390,101 @@ add_library(core STATIC
     hle/service/acc/errors.h
     hle/service/acc/profile_manager.cpp
     hle/service/acc/profile_manager.h
+    hle/service/am/frontend/applet_cabinet.cpp
+    hle/service/am/frontend/applet_cabinet.h
+    hle/service/am/frontend/applet_controller.cpp
+    hle/service/am/frontend/applet_controller.h
+    hle/service/am/frontend/applet_error.cpp
+    hle/service/am/frontend/applet_error.h
+    hle/service/am/frontend/applet_general.cpp
+    hle/service/am/frontend/applet_general.h
+    hle/service/am/frontend/applet_mii_edit.cpp
+    hle/service/am/frontend/applet_mii_edit.h
+    hle/service/am/frontend/applet_mii_edit_types.h
+    hle/service/am/frontend/applet_profile_select.cpp
+    hle/service/am/frontend/applet_profile_select.h
+    hle/service/am/frontend/applet_software_keyboard.cpp
+    hle/service/am/frontend/applet_software_keyboard.h
+    hle/service/am/frontend/applet_software_keyboard_types.h
+    hle/service/am/frontend/applet_web_browser.cpp
+    hle/service/am/frontend/applet_web_browser.h
+    hle/service/am/frontend/applet_web_browser_types.h
+    hle/service/am/frontend/applets.cpp
+    hle/service/am/frontend/applets.h
     hle/service/am/am.cpp
     hle/service/am/am.h
+    hle/service/am/am_results.h
+    hle/service/am/am_types.h
+    hle/service/am/applet.cpp
+    hle/service/am/applet.h
     hle/service/am/applet_ae.cpp
     hle/service/am/applet_ae.h
+    hle/service/am/applet_manager.cpp
+    hle/service/am/applet_data_broker.cpp
+    hle/service/am/applet_data_broker.h
+    hle/service/am/applet_manager.h
     hle/service/am/applet_oe.cpp
     hle/service/am/applet_oe.h
-    hle/service/am/applets/applet_cabinet.cpp
-    hle/service/am/applets/applet_cabinet.h
-    hle/service/am/applets/applet_controller.cpp
-    hle/service/am/applets/applet_controller.h
-    hle/service/am/applets/applet_error.cpp
-    hle/service/am/applets/applet_error.h
-    hle/service/am/applets/applet_general_backend.cpp
-    hle/service/am/applets/applet_general_backend.h
-    hle/service/am/applets/applet_mii_edit.cpp
-    hle/service/am/applets/applet_mii_edit.h
-    hle/service/am/applets/applet_mii_edit_types.h
-    hle/service/am/applets/applet_profile_select.cpp
-    hle/service/am/applets/applet_profile_select.h
-    hle/service/am/applets/applet_software_keyboard.cpp
-    hle/service/am/applets/applet_software_keyboard.h
-    hle/service/am/applets/applet_software_keyboard_types.h
-    hle/service/am/applets/applet_web_browser.cpp
-    hle/service/am/applets/applet_web_browser.h
-    hle/service/am/applets/applet_web_browser_types.h
-    hle/service/am/applets/applets.cpp
-    hle/service/am/applets/applets.h
+    hle/service/am/applet_common_functions.cpp
+    hle/service/am/applet_common_functions.h
+    hle/service/am/applet_message_queue.cpp
+    hle/service/am/applet_message_queue.h
+    hle/service/am/application_creator.cpp
+    hle/service/am/application_creator.h
+    hle/service/am/application_functions.cpp
+    hle/service/am/application_functions.h
+    hle/service/am/application_proxy.cpp
+    hle/service/am/application_proxy.h
+    hle/service/am/audio_controller.cpp
+    hle/service/am/audio_controller.h
+    hle/service/am/common_state_getter.cpp
+    hle/service/am/common_state_getter.h
+    hle/service/am/debug_functions.cpp
+    hle/service/am/debug_functions.h
+    hle/service/am/display_controller.cpp
+    hle/service/am/display_controller.h
+    hle/service/am/global_state_controller.cpp
+    hle/service/am/global_state_controller.h
+    hle/service/am/hid_registration.cpp
+    hle/service/am/hid_registration.h
+    hle/service/am/home_menu_functions.cpp
+    hle/service/am/home_menu_functions.h
     hle/service/am/idle.cpp
     hle/service/am/idle.h
+    hle/service/am/library_applet_accessor.cpp
+    hle/service/am/library_applet_accessor.h
+    hle/service/am/library_applet_creator.cpp
+    hle/service/am/library_applet_creator.h
+    hle/service/am/library_applet_proxy.cpp
+    hle/service/am/library_applet_proxy.h
+    hle/service/am/library_applet_self_accessor.cpp
+    hle/service/am/library_applet_self_accessor.h
+    hle/service/am/library_applet_storage.cpp
+    hle/service/am/library_applet_storage.h
+    hle/service/am/lock_accessor.cpp
+    hle/service/am/lock_accessor.h
+    hle/service/am/managed_layer_holder.cpp
+    hle/service/am/managed_layer_holder.h
     hle/service/am/omm.cpp
     hle/service/am/omm.h
+    hle/service/am/process_winding_controller.cpp
+    hle/service/am/process_winding_controller.h
+    hle/service/am/process.cpp
+    hle/service/am/process.h
+    hle/service/am/self_controller.cpp
+    hle/service/am/self_controller.h
+    hle/service/am/system_applet_proxy.cpp
+    hle/service/am/system_applet_proxy.h
+    hle/service/am/system_buffer_manager.cpp
+    hle/service/am/system_buffer_manager.h
     hle/service/am/spsm.cpp
     hle/service/am/spsm.h
+    hle/service/am/storage_accessor.cpp
+    hle/service/am/storage_accessor.h
+    hle/service/am/storage.cpp
+    hle/service/am/storage.h
+    hle/service/am/window_controller.cpp
+    hle/service/am/window_controller.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp
@@ -486,6 +548,8 @@ add_library(core STATIC
     hle/service/es/es.h
     hle/service/eupld/eupld.cpp
     hle/service/eupld/eupld.h
+    hle/service/event.cpp
+    hle/service/event.h
     hle/service/fatal/fatal.cpp
     hle/service/fatal/fatal.h
     hle/service/fatal/fatal_p.cpp
