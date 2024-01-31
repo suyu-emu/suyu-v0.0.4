@@ -6,7 +6,7 @@
 #include <functional>
 
 #include "core/frontend/applets/applet.h"
-#include "core/hle/service/am/applets/applet_web_browser_types.h"
+#include "core/hle/service/am/frontend/applet_web_browser_types.h"
 
 namespace Core::Frontend {
 
@@ -14,7 +14,7 @@ class WebBrowserApplet : public Applet {
 public:
     using ExtractROMFSCallback = std::function<void()>;
     using OpenWebPageCallback =
-        std::function<void(Service::AM::Applets::WebExitReason, std::string)>;
+        std::function<void(Service::AM::Frontend::WebExitReason, std::string)>;
 
     virtual ~WebBrowserApplet();
 

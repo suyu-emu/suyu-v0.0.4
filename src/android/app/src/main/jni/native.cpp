@@ -42,14 +42,15 @@
 #include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/error.h"
-#include "core/frontend/applets/general_frontend.h"
+#include "core/frontend/applets/general.h"
 #include "core/frontend/applets/mii_edit.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/applet_oe.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
@@ -211,8 +212,15 @@ void EmulationSession::InitializeSystem(bool reload) {
     m_system.GetFileSystemController().CreateFactories(*m_vfs);
 }
 
+void EmulationSession::SetAppletId(int applet_id) {
+    m_applet_id = applet_id;
+    m_system.GetFrontendAppletHolder().SetCurrentAppletId(
+        static_cast<Service::AM::AppletId>(m_applet_id));
+}
+
 Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string& filepath,
-                                                               const std::size_t program_index) {
+                                                               const std::size_t program_index,
+                                                               const bool frontend_initiated) {
     std::scoped_lock lock(m_mutex);
 
     // Create the render window.
@@ -226,7 +234,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     m_system.ApplySettings();
     Settings::LogSettings();
     m_system.HIDCore().ReloadInputDevices();
-    m_system.SetAppletFrontendSet({
+    m_system.SetFrontendAppletSet({
         nullptr,                     // Amiibo Settings
         nullptr,                     // Controller Selector
         nullptr,                     // Error Display
@@ -242,8 +250,13 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     ConfigureFilesystemProvider(filepath);
 
     // Load the ROM.
-    m_load_result =
-        m_system.Load(EmulationSession::GetInstance().Window(), filepath, 0, program_index);
+    Service::AM::FrontendAppletParameters params{
+        .applet_id = static_cast<Service::AM::AppletId>(m_applet_id),
+        .launch_type = frontend_initiated ? Service::AM::LaunchType::FrontendInitiated
+                                          : Service::AM::LaunchType::ApplicationInitiated,
+        .program_index = static_cast<s32>(program_index),
+    };
+    m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath, params);
     if (m_load_result != Core::SystemResultStatus::Success) {
         return m_load_result;
     }
@@ -339,6 +352,9 @@ void EmulationSession::RunEmulation() {
             }
         }
     }
+
+    // Reset current applet ID.
+    m_applet_id = static_cast<int>(Service::AM::AppletId::Application);
 }
 
 bool EmulationSession::IsHandheldOnly() {
@@ -434,7 +450,8 @@ u64 EmulationSession::GetProgramId(JNIEnv* env, jstring jprogramId) {
 }
 
 static Core::SystemResultStatus RunEmulation(const std::string& filepath,
-                                             const size_t program_index = 0) {
+                                             const size_t program_index,
+                                             const bool frontend_initiated) {
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
@@ -447,7 +464,8 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath,
 
     SCOPE_EXIT({ EmulationSession::GetInstance().ShutdownEmulation(); });
 
-    jconst result = EmulationSession::GetInstance().InitializeEmulation(filepath, program_index);
+    jconst result = EmulationSession::GetInstance().InitializeEmulation(filepath, program_index,
+                                                                        frontend_initiated);
     if (result != Core::SystemResultStatus::Success) {
         return result;
     }
@@ -744,10 +762,12 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_logSettings(JNIEnv* env, jobject jobj
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run(JNIEnv* env, jobject jobj, jstring j_path,
-                                               jint j_program_index) {
+                                               jint j_program_index,
+                                               jboolean j_frontend_initiated) {
     const std::string path = GetJString(env, j_path);
 
-    const Core::SystemResultStatus result{RunEmulation(path, j_program_index)};
+    const Core::SystemResultStatus result{
+        RunEmulation(path, j_program_index, j_frontend_initiated)};
     if (result != Core::SystemResultStatus::Success) {
         env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
                                   IDCache::GetExitEmulationActivity(), static_cast<int>(result));
@@ -809,13 +829,12 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletLaunchPath(JNIEnv* env, j
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCurrentAppletId(JNIEnv* env, jclass clazz,
                                                               jint jappletId) {
-    EmulationSession::GetInstance().System().GetAppletManager().SetCurrentAppletId(
-        static_cast<Service::AM::Applets::AppletId>(jappletId));
+    EmulationSession::GetInstance().SetAppletId(jappletId);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass clazz,
                                                           jint jcabinetMode) {
-    EmulationSession::GetInstance().System().GetAppletManager().SetCabinetMode(
+    EmulationSession::GetInstance().System().GetFrontendAppletHolder().SetCabinetMode(
         static_cast<Service::NFP::CabinetMode>(jcabinetMode));
 }
 

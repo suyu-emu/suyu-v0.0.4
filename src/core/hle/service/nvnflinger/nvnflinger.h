@@ -79,6 +79,9 @@ public:
     /// Closes a layer on all displays for the given layer ID.
     bool CloseLayer(u64 layer_id);
 
+    /// Makes a layer visible on all displays for the given layer ID.
+    void SetLayerVisibility(u64 layer_id, bool visible);
+
     /// Destroys the given layer ID.
     void DestroyLayer(u64 layer_id);
 

@@ -18,23 +18,21 @@ class Nvnflinger;
 
 namespace AM {
 
-class AppletMessageQueue;
+struct Applet;
 
 class AppletAE final : public ServiceFramework<AppletAE> {
 public:
-    explicit AppletAE(Nvnflinger::Nvnflinger& nvnflinger_,
-                      std::shared_ptr<AppletMessageQueue> msg_queue_, Core::System& system_);
+    explicit AppletAE(Nvnflinger::Nvnflinger& nvnflinger_, Core::System& system_);
     ~AppletAE() override;
-
-    const std::shared_ptr<AppletMessageQueue>& GetMessageQueue() const;
 
 private:
     void OpenSystemAppletProxy(HLERequestContext& ctx);
     void OpenLibraryAppletProxy(HLERequestContext& ctx);
     void OpenLibraryAppletProxyOld(HLERequestContext& ctx);
 
+    std::shared_ptr<Applet> GetAppletFromContext(HLERequestContext& ctx);
+
     Nvnflinger::Nvnflinger& nvnflinger;
-    std::shared_ptr<AppletMessageQueue> msg_queue;
 };
 
 } // namespace AM

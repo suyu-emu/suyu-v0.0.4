@@ -9,7 +9,7 @@ Layer::Layer(u64 layer_id_, u32 binder_id_, android::BufferQueueCore& core_,
              android::BufferQueueProducer& binder_,
              std::shared_ptr<android::BufferItemConsumer>&& consumer_)
     : layer_id{layer_id_}, binder_id{binder_id_}, core{core_}, binder{binder_},
-      consumer{std::move(consumer_)}, open{false} {}
+      consumer{std::move(consumer_)}, open{false}, visible{true} {}
 
 Layer::~Layer() = default;
 

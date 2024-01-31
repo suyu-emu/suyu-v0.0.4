@@ -185,7 +185,7 @@ public:
             {3, &IRequest::Cancel, "Cancel"},
             {4, &IRequest::Submit, "Submit"},
             {5, nullptr, "SetRequirement"},
-            {6, nullptr, "SetRequirementPreset"},
+            {6, &IRequest::SetRequirementPreset, "SetRequirementPreset"},
             {8, nullptr, "SetPriority"},
             {9, nullptr, "SetNetworkProfileId"},
             {10, nullptr, "SetRejectable"},
@@ -235,6 +235,16 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
         rb.PushEnum(state);
+    }
+
+    void SetRequirementPreset(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto param_1 = rp.Pop<u32>();
+
+        LOG_WARNING(Service_NIFM, "(STUBBED) called, param_1={}", param_1);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
     }
 
     void GetResult(HLERequestContext& ctx) {

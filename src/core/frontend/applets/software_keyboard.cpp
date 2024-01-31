@@ -69,7 +69,7 @@ void DefaultSoftwareKeyboardApplet::ShowNormalKeyboard() const {
 }
 
 void DefaultSoftwareKeyboardApplet::ShowTextCheckDialog(
-    Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
     std::u16string text_check_message) const {
     LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to show the text check dialog.");
 }
@@ -118,7 +118,7 @@ void DefaultSoftwareKeyboardApplet::InlineTextChanged(InlineTextParameters text_
              "\ncursor_position={}",
              Common::UTF16ToUTF8(text_parameters.input_text), text_parameters.cursor_position);
 
-    submit_inline_callback(Service::AM::Applets::SwkbdReplyType::ChangedString,
+    submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString,
                            text_parameters.input_text, text_parameters.cursor_position);
 }
 
@@ -127,22 +127,22 @@ void DefaultSoftwareKeyboardApplet::ExitKeyboard() const {
 }
 
 void DefaultSoftwareKeyboardApplet::SubmitNormalText(std::u16string text) const {
-    submit_normal_callback(Service::AM::Applets::SwkbdResult::Ok, text, true);
+    submit_normal_callback(Service::AM::Frontend::SwkbdResult::Ok, text, true);
 }
 
 void DefaultSoftwareKeyboardApplet::SubmitInlineText(std::u16string_view text) const {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     for (std::size_t index = 0; index < text.size(); ++index) {
-        submit_inline_callback(Service::AM::Applets::SwkbdReplyType::ChangedString,
+        submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString,
                                std::u16string(text.data(), text.data() + index + 1),
                                static_cast<s32>(index) + 1);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 
-    submit_inline_callback(Service::AM::Applets::SwkbdReplyType::DecidedEnter, std::u16string(text),
-                           static_cast<s32>(text.size()));
+    submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::DecidedEnter,
+                           std::u16string(text), static_cast<s32>(text.size()));
 }
 
 } // namespace Core::Frontend

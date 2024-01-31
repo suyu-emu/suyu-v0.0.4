@@ -198,6 +198,16 @@ bool Nvnflinger::CloseLayer(u64 layer_id) {
     return false;
 }
 
+void Nvnflinger::SetLayerVisibility(u64 layer_id, bool visible) {
+    const auto lock_guard = Lock();
+
+    for (auto& display : displays) {
+        if (auto* layer = display.FindLayer(layer_id); layer) {
+            layer->SetVisibility(visible);
+        }
+    }
+}
+
 void Nvnflinger::DestroyLayer(u64 layer_id) {
     const auto lock_guard = Lock();
 

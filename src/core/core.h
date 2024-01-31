@@ -50,10 +50,15 @@ namespace Account {
 class ProfileManager;
 } // namespace Account
 
-namespace AM::Applets {
-struct AppletFrontendSet;
+namespace AM {
+struct FrontendAppletParameters;
 class AppletManager;
-} // namespace AM::Applets
+} // namespace AM
+
+namespace AM::Frontend {
+struct FrontendAppletSet;
+class FrontendAppletHolder;
+} // namespace AM::Frontend
 
 namespace APM {
 class Controller;
@@ -203,8 +208,8 @@ public:
      * @returns SystemResultStatus code, indicating if the operation succeeded.
      */
     [[nodiscard]] SystemResultStatus Load(Frontend::EmuWindow& emu_window,
-                                          const std::string& filepath, u64 program_id = 0,
-                                          std::size_t program_index = 0);
+                                          const std::string& filepath,
+                                          Service::AM::FrontendAppletParameters& params);
 
     /**
      * Indicates if the emulated system is powered on (all subsystems initialized and able to run an
@@ -344,11 +349,13 @@ public:
                            const std::array<u8, 0x20>& build_id, u64 main_region_begin,
                            u64 main_region_size);
 
-    void SetAppletFrontendSet(Service::AM::Applets::AppletFrontendSet&& set);
-    void SetDefaultAppletFrontendSet();
+    void SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set);
 
-    [[nodiscard]] Service::AM::Applets::AppletManager& GetAppletManager();
-    [[nodiscard]] const Service::AM::Applets::AppletManager& GetAppletManager() const;
+    [[nodiscard]] Service::AM::Frontend::FrontendAppletHolder& GetFrontendAppletHolder();
+    [[nodiscard]] const Service::AM::Frontend::FrontendAppletHolder& GetFrontendAppletHolder()
+        const;
+
+    [[nodiscard]] Service::AM::AppletManager& GetAppletManager();
 
     void SetContentProvider(std::unique_ptr<FileSys::ContentProviderUnion> provider);
 

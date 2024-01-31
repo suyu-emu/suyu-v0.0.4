@@ -39,7 +39,7 @@ public:
 
     void ShowNormalKeyboard(QPoint pos, QSize size);
 
-    void ShowTextCheckDialog(Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    void ShowTextCheckDialog(Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
                              std::u16string text_check_message);
 
     void ShowInlineKeyboard(Core::Frontend::InlineAppearParameters appear_parameters, QPoint pos,
@@ -52,10 +52,10 @@ public:
     void ExitKeyboard();
 
 signals:
-    void SubmitNormalText(Service::AM::Applets::SwkbdResult result, std::u16string submitted_text,
+    void SubmitNormalText(Service::AM::Frontend::SwkbdResult result, std::u16string submitted_text,
                           bool confirmed = false) const;
 
-    void SubmitInlineText(Service::AM::Applets::SwkbdReplyType reply_type,
+    void SubmitInlineText(Service::AM::Frontend::SwkbdReplyType reply_type,
                           std::u16string submitted_text, s32 cursor_position) const;
 
 public slots:
@@ -244,7 +244,7 @@ public:
 
     void ShowNormalKeyboard() const override;
 
-    void ShowTextCheckDialog(Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    void ShowTextCheckDialog(Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
                              std::u16string text_check_message) const override;
 
     void ShowInlineKeyboard(
@@ -262,8 +262,9 @@ signals:
 
     void MainWindowShowNormalKeyboard() const;
 
-    void MainWindowShowTextCheckDialog(Service::AM::Applets::SwkbdTextCheckResult text_check_result,
-                                       std::u16string text_check_message) const;
+    void MainWindowShowTextCheckDialog(
+        Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
+        std::u16string text_check_message) const;
 
     void MainWindowShowInlineKeyboard(
         Core::Frontend::InlineAppearParameters appear_parameters) const;
@@ -275,10 +276,10 @@ signals:
     void MainWindowExitKeyboard() const;
 
 private:
-    void SubmitNormalText(Service::AM::Applets::SwkbdResult result, std::u16string submitted_text,
+    void SubmitNormalText(Service::AM::Frontend::SwkbdResult result, std::u16string submitted_text,
                           bool confirmed) const;
 
-    void SubmitInlineText(Service::AM::Applets::SwkbdReplyType reply_type,
+    void SubmitInlineText(Service::AM::Frontend::SwkbdReplyType reply_type,
                           std::u16string submitted_text, s32 cursor_position) const;
 
     mutable SubmitNormalCallback submit_normal_callback;
