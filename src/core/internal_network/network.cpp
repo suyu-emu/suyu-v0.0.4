@@ -693,20 +693,23 @@ std::pair<SocketBase::AcceptResult, Errno> Socket::Accept() {
     sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
 
-    std::vector<WSAPOLLFD> host_pollfds{
-        WSAPOLLFD{fd, POLLIN, 0},
-        WSAPOLLFD{GetInterruptSocket(), POLLIN, 0},
-    };
+    const bool wait_for_accept = !is_non_blocking;
+    if (wait_for_accept) {
+        std::vector<WSAPOLLFD> host_pollfds{
+            WSAPOLLFD{fd, POLLIN, 0},
+            WSAPOLLFD{GetInterruptSocket(), POLLIN, 0},
+        };
 
-    while (true) {
-        const int pollres =
-            WSAPoll(host_pollfds.data(), static_cast<ULONG>(host_pollfds.size()), -1);
-        if (host_pollfds[1].revents != 0) {
-            // Interrupt signaled before a client could be accepted, break
-            return {AcceptResult{}, Errno::AGAIN};
-        }
-        if (pollres > 0) {
-            break;
+        while (true) {
+            const int pollres =
+                WSAPoll(host_pollfds.data(), static_cast<ULONG>(host_pollfds.size()), -1);
+            if (host_pollfds[1].revents != 0) {
+                // Interrupt signaled before a client could be accepted, break
+                return {AcceptResult{}, Errno::AGAIN};
+            }
+            if (pollres > 0) {
+                break;
+            }
         }
     }
 
@@ -913,6 +916,7 @@ Errno Socket::SetRcvTimeo(u32 value) {
 
 Errno Socket::SetNonBlock(bool enable) {
     if (EnableNonBlock(fd, enable)) {
+        is_non_blocking = enable;
         return Errno::SUCCESS;
     }
     return GetAndLogLastError();
