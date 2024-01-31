@@ -68,12 +68,10 @@ public:
         Out<Service::PSC::Time::CalendarTime> out_calendar_time,
         Out<Service::PSC::Time::CalendarAdditionalInfo> out_additional_info, s64 time);
     Result ToPosixTime(Out<u32> out_count, OutArray<s64, BufferAttr_HipcPointer> out_times,
-                       Out<u32> out_times_count, Service::PSC::Time::CalendarTime& calendar_time,
-                       InRule rule);
+                       const Service::PSC::Time::CalendarTime& calendar_time, InRule rule);
     Result ToPosixTimeWithMyRule(Out<u32> out_count,
                                  OutArray<s64, BufferAttr_HipcPointer> out_times,
-                                 Out<u32> out_times_count,
-                                 Service::PSC::Time::CalendarTime& calendar_time);
+                                 const Service::PSC::Time::CalendarTime& calendar_time);
 
 private:
     Core::System& m_system;
