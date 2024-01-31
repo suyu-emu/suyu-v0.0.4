@@ -45,7 +45,8 @@ private:
     void UpdateAudioDevices(int sink_index);
 
     void SetOutputSinkFromSinkID();
-    void SetAudioDevicesFromDeviceID();
+    void SetOutputDevicesFromDeviceID();
+    void SetInputDevicesFromDeviceID();
 
     void Setup(const ConfigurationShared::Builder& builder);
 
@@ -55,7 +56,11 @@ private:
 
     std::vector<std::function<void(bool)>> apply_funcs{};
 
+    bool updating_devices = false;
     QComboBox* sink_combo_box;
+    QPushButton* restore_sink_button;
     QComboBox* output_device_combo_box;
+    QPushButton* restore_output_device_button;
     QComboBox* input_device_combo_box;
+    QPushButton* restore_input_device_button;
 };

@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <QComboBox>
+#include <QPushButton>
 
 #include "audio_core/sink/sink.h"
 #include "audio_core/sink/sink_details.h"
@@ -67,19 +68,99 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
 
         hold.emplace(std::pair{setting->Id(), widget});
 
+        auto global_sink_match = [this] {
+            return static_cast<Settings::AudioEngine>(sink_combo_box->currentIndex()) ==
+                   Settings::values.sink_id.GetValue(true);
+        };
         if (setting->Id() == Settings::values.sink_id.Id()) {
             // TODO (lat9nq): Let the system manage sink_id
             sink_combo_box = widget->combobox;
             InitializeAudioSinkComboBox();
 
-            connect(sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
-                    &ConfigureAudio::UpdateAudioDevices);
+            if (Settings::IsConfiguringGlobal()) {
+                connect(sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
+                        &ConfigureAudio::UpdateAudioDevices);
+            } else {
+                restore_sink_button = ConfigurationShared::Widget::CreateRestoreGlobalButton(
+                    Settings::values.sink_id.UsingGlobal(), widget);
+                widget->layout()->addWidget(restore_sink_button);
+                connect(restore_sink_button, &QAbstractButton::clicked, [this](bool) {
+                    Settings::values.sink_id.SetGlobal(true);
+                    const int sink_index = static_cast<int>(Settings::values.sink_id.GetValue());
+                    sink_combo_box->setCurrentIndex(sink_index);
+                    ConfigureAudio::UpdateAudioDevices(sink_index);
+                    Settings::values.audio_output_device_id.SetGlobal(true);
+                    Settings::values.audio_input_device_id.SetGlobal(true);
+                    restore_sink_button->setVisible(false);
+                });
+                connect(sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged),
+                        [this, global_sink_match](const int slot) {
+                            Settings::values.sink_id.SetGlobal(false);
+                            Settings::values.audio_output_device_id.SetGlobal(false);
+                            Settings::values.audio_input_device_id.SetGlobal(false);
+
+                            restore_sink_button->setVisible(true);
+                            restore_sink_button->setEnabled(true);
+                            output_device_combo_box->setCurrentIndex(0);
+                            restore_output_device_button->setVisible(true);
+                            restore_output_device_button->setEnabled(global_sink_match());
+                            input_device_combo_box->setCurrentIndex(0);
+                            restore_input_device_button->setVisible(true);
+                            restore_input_device_button->setEnabled(global_sink_match());
+                            ConfigureAudio::UpdateAudioDevices(slot);
+                        });
+            }
         } else if (setting->Id() == Settings::values.audio_output_device_id.Id()) {
             // Keep track of output (and input) device comboboxes to populate them with system
             // devices, which are determined at run time
             output_device_combo_box = widget->combobox;
+
+            if (!Settings::IsConfiguringGlobal()) {
+                restore_output_device_button =
+                    ConfigurationShared::Widget::CreateRestoreGlobalButton(
+                        Settings::values.audio_output_device_id.UsingGlobal(), widget);
+                restore_output_device_button->setEnabled(global_sink_match());
+                restore_output_device_button->setVisible(
+                    !Settings::values.audio_output_device_id.UsingGlobal());
+                widget->layout()->addWidget(restore_output_device_button);
+                connect(restore_output_device_button, &QAbstractButton::clicked, [this](bool) {
+                    Settings::values.audio_output_device_id.SetGlobal(true);
+                    SetOutputDevicesFromDeviceID();
+                    restore_output_device_button->setVisible(false);
+                });
+                connect(output_device_combo_box, qOverload<int>(&QComboBox::currentIndexChanged),
+                        [this, global_sink_match](int) {
+                            if (updating_devices) {
+                                return;
+                            }
+                            Settings::values.audio_output_device_id.SetGlobal(false);
+                            restore_output_device_button->setVisible(true);
+                            restore_output_device_button->setEnabled(global_sink_match());
+                        });
+            }
         } else if (setting->Id() == Settings::values.audio_input_device_id.Id()) {
             input_device_combo_box = widget->combobox;
+
+            if (!Settings::IsConfiguringGlobal()) {
+                restore_input_device_button =
+                    ConfigurationShared::Widget::CreateRestoreGlobalButton(
+                        Settings::values.audio_input_device_id.UsingGlobal(), widget);
+                widget->layout()->addWidget(restore_input_device_button);
+                connect(restore_input_device_button, &QAbstractButton::clicked, [this](bool) {
+                    Settings::values.audio_input_device_id.SetGlobal(true);
+                    SetInputDevicesFromDeviceID();
+                    restore_input_device_button->setVisible(false);
+                });
+                connect(input_device_combo_box, qOverload<int>(&QComboBox::currentIndexChanged),
+                        [this, global_sink_match](int) {
+                            if (updating_devices) {
+                                return;
+                            }
+                            Settings::values.audio_input_device_id.SetGlobal(false);
+                            restore_input_device_button->setVisible(true);
+                            restore_input_device_button->setEnabled(global_sink_match());
+                        });
+            }
         }
     }
 
@@ -89,16 +170,13 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
 }
 
 void ConfigureAudio::SetConfiguration() {
-    if (!Settings::IsConfiguringGlobal()) {
-        return;
-    }
-
     SetOutputSinkFromSinkID();
 
     // The device list cannot be pre-populated (nor listed) until the output sink is known.
     UpdateAudioDevices(sink_combo_box->currentIndex());
 
-    SetAudioDevicesFromDeviceID();
+    SetOutputDevicesFromDeviceID();
+    SetInputDevicesFromDeviceID();
 }
 
 void ConfigureAudio::SetOutputSinkFromSinkID() {
@@ -116,8 +194,8 @@ void ConfigureAudio::SetOutputSinkFromSinkID() {
     sink_combo_box->setCurrentIndex(new_sink_index);
 }
 
-void ConfigureAudio::SetAudioDevicesFromDeviceID() {
-    int new_device_index = -1;
+void ConfigureAudio::SetOutputDevicesFromDeviceID() {
+    int new_device_index = 0;
 
     const QString output_device_id =
         QString::fromStdString(Settings::values.audio_output_device_id.GetValue());
@@ -129,8 +207,10 @@ void ConfigureAudio::SetAudioDevicesFromDeviceID() {
     }
 
     output_device_combo_box->setCurrentIndex(new_device_index);
+}
 
-    new_device_index = -1;
+void ConfigureAudio::SetInputDevicesFromDeviceID() {
+    int new_device_index = 0;
     const QString input_device_id =
         QString::fromStdString(Settings::values.audio_input_device_id.GetValue());
     for (int index = 0; index < input_device_combo_box->count(); index++) {
@@ -149,15 +229,12 @@ void ConfigureAudio::ApplyConfiguration() {
         apply_func(is_powered_on);
     }
 
-    if (Settings::IsConfiguringGlobal()) {
-        Settings::values.sink_id.LoadString(
-            sink_combo_box->itemText(sink_combo_box->currentIndex()).toStdString());
-        Settings::values.audio_output_device_id.SetValue(
-            output_device_combo_box->itemText(output_device_combo_box->currentIndex())
-                .toStdString());
-        Settings::values.audio_input_device_id.SetValue(
-            input_device_combo_box->itemText(input_device_combo_box->currentIndex()).toStdString());
-    }
+    Settings::values.sink_id.LoadString(
+        sink_combo_box->itemText(sink_combo_box->currentIndex()).toStdString());
+    Settings::values.audio_output_device_id.SetValue(
+        output_device_combo_box->itemText(output_device_combo_box->currentIndex()).toStdString());
+    Settings::values.audio_input_device_id.SetValue(
+        input_device_combo_box->itemText(input_device_combo_box->currentIndex()).toStdString());
 }
 
 void ConfigureAudio::changeEvent(QEvent* event) {
@@ -169,6 +246,7 @@ void ConfigureAudio::changeEvent(QEvent* event) {
 }
 
 void ConfigureAudio::UpdateAudioDevices(int sink_index) {
+    updating_devices = true;
     output_device_combo_box->clear();
     output_device_combo_box->addItem(QString::fromUtf8(AudioCore::Sink::auto_device_name));
 
@@ -183,6 +261,7 @@ void ConfigureAudio::UpdateAudioDevices(int sink_index) {
     for (const auto& device : AudioCore::Sink::GetDeviceListForSink(sink_id, true)) {
         input_device_combo_box->addItem(QString::fromStdString(device));
     }
+    updating_devices = false;
 }
 
 void ConfigureAudio::InitializeAudioSinkComboBox() {
