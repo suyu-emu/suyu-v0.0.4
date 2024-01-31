@@ -83,7 +83,9 @@ SessionId Container::OpenSession(Kernel::KProcess* process) {
 
             // Check if this memory block is heap.
             if (svc_mem_info.state == Kernel::Svc::MemoryState::Normal) {
-                if (svc_mem_info.size > region_size) {
+                if (region_start + region_size == svc_mem_info.base_address) {
+                    region_size += svc_mem_info.size;
+                } else if (svc_mem_info.size > region_size) {
                     region_size = svc_mem_info.size;
                     region_start = svc_mem_info.base_address;
                 }

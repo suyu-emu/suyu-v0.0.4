@@ -86,6 +86,7 @@ public:
     std::unordered_map<TSCEntry, SamplerId> samplers;
 
     TextureCacheGPUMap* gpu_page_table;
+    TextureCacheGPUMap* sparse_page_table;
 };
 
 template <class P>
@@ -357,7 +358,7 @@ private:
     void ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, size_t size, Func&& func);
 
     template <typename Func>
-    void ForEachSparseImageInRegion(GPUVAddr gpu_addr, size_t size, Func&& func);
+    void ForEachSparseImageInRegion(size_t as_id, GPUVAddr gpu_addr, size_t size, Func&& func);
 
     /// Iterates over all the images in a region calling func
     template <typename Func>
@@ -431,7 +432,6 @@ private:
     std::unordered_map<RenderTargets, FramebufferId> framebuffers;
 
     std::unordered_map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
-    std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>> sparse_page_table;
     std::unordered_map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
     DAddr virtual_invalid_space{};
