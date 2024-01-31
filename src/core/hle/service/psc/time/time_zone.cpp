@@ -140,11 +140,11 @@ Result TimeZone::ParseBinaryInto(Tz::Rule& out_rule, std::span<const u8> binary)
     R_RETURN(ParseBinaryImpl(out_rule, binary));
 }
 
-Result TimeZone::ToPosixTime(u32& out_count, std::span<s64> out_times, u32 out_times_count,
-                             CalendarTime& calendar, const Tz::Rule& rule) {
+Result TimeZone::ToPosixTime(u32& out_count, std::span<s64> out_times, size_t out_times_max_count,
+                             const CalendarTime& calendar, const Tz::Rule& rule) {
     std::scoped_lock l{m_mutex};
 
-    auto res = ToPosixTimeImpl(out_count, out_times, out_times_count, calendar, rule, -1);
+    auto res = ToPosixTimeImpl(out_count, out_times, out_times_max_count, calendar, rule, -1);
 
     if (res != ResultSuccess) {
         if (res == ResultTimeZoneNotFound) {
@@ -158,10 +158,10 @@ Result TimeZone::ToPosixTime(u32& out_count, std::span<s64> out_times, u32 out_t
 }
 
 Result TimeZone::ToPosixTimeWithMyRule(u32& out_count, std::span<s64> out_times,
-                                       u32 out_times_count, CalendarTime& calendar) {
+                                       size_t out_times_max_count, const CalendarTime& calendar) {
     std::scoped_lock l{m_mutex};
 
-    auto res = ToPosixTimeImpl(out_count, out_times, out_times_count, calendar, m_my_rule, -1);
+    auto res = ToPosixTimeImpl(out_count, out_times, out_times_max_count, calendar, m_my_rule, -1);
 
     if (res != ResultSuccess) {
         if (res == ResultTimeZoneNotFound) {
@@ -212,20 +212,23 @@ Result TimeZone::ToCalendarTimeImpl(CalendarTime& out_calendar_time,
     R_SUCCEED();
 }
 
-Result TimeZone::ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, u32 out_times_count,
-                                 CalendarTime& calendar, const Tz::Rule& rule, s32 is_dst) {
+Result TimeZone::ToPosixTimeImpl(u32& out_count, std::span<s64> out_times,
+                                 size_t out_times_max_count, const CalendarTime& calendar,
+                                 const Tz::Rule& rule, s32 is_dst) {
     R_TRY(ValidateRule(rule));
 
-    calendar.month -= 1;
-    calendar.year -= 1900;
+    CalendarTime local_calendar{calendar};
+
+    local_calendar.month -= 1;
+    local_calendar.year -= 1900;
 
     Tz::CalendarTimeInternal internal{
-        .tm_sec = calendar.second,
-        .tm_min = calendar.minute,
-        .tm_hour = calendar.hour,
-        .tm_mday = calendar.day,
-        .tm_mon = calendar.month,
-        .tm_year = calendar.year,
+        .tm_sec = local_calendar.second,
+        .tm_min = local_calendar.minute,
+        .tm_hour = local_calendar.hour,
+        .tm_mday = local_calendar.day,
+        .tm_mon = local_calendar.month,
+        .tm_year = local_calendar.year,
         .tm_wday = 0,
         .tm_yday = 0,
         .tm_isdst = is_dst,
@@ -243,9 +246,9 @@ Result TimeZone::ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, u32 o
         R_RETURN(ResultTimeZoneNotFound);
     }
 
-    if (internal.tm_sec != calendar.second || internal.tm_min != calendar.minute ||
-        internal.tm_hour != calendar.hour || internal.tm_mday != calendar.day ||
-        internal.tm_mon != calendar.month || internal.tm_year != calendar.year) {
+    if (internal.tm_sec != local_calendar.second || internal.tm_min != local_calendar.minute ||
+        internal.tm_hour != local_calendar.hour || internal.tm_mday != local_calendar.day ||
+        internal.tm_mon != local_calendar.month || internal.tm_year != local_calendar.year) {
         R_RETURN(ResultTimeZoneNotFound);
     }
 
@@ -254,7 +257,7 @@ Result TimeZone::ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, u32 o
     }
 
     out_times[0] = time;
-    if (out_times_count < 2) {
+    if (out_times_max_count < 2) {
         out_count = 1;
         R_SUCCEED();
     }

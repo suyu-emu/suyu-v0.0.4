@@ -38,18 +38,18 @@ public:
                                     CalendarAdditionalInfo& calendar_additional, s64 time);
     Result ParseBinary(LocationName& name, std::span<const u8> binary);
     Result ParseBinaryInto(Tz::Rule& out_rule, std::span<const u8> binary);
-    Result ToPosixTime(u32& out_count, std::span<s64> out_times, u32 out_times_count,
-                       CalendarTime& calendar, const Tz::Rule& rule);
-    Result ToPosixTimeWithMyRule(u32& out_count, std::span<s64> out_times, u32 out_times_count,
-                                 CalendarTime& calendar);
+    Result ToPosixTime(u32& out_count, std::span<s64> out_times, size_t out_times_max_count,
+                       const CalendarTime& calendar, const Tz::Rule& rule);
+    Result ToPosixTimeWithMyRule(u32& out_count, std::span<s64> out_times,
+                                 size_t out_times_max_count, const CalendarTime& calendar);
 
 private:
     Result ParseBinaryImpl(Tz::Rule& out_rule, std::span<const u8> binary);
     Result ToCalendarTimeImpl(CalendarTime& out_calendar_time,
                               CalendarAdditionalInfo& out_additional_info, s64 time,
                               const Tz::Rule& rule);
-    Result ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, u32 out_times_count,
-                           CalendarTime& calendar, const Tz::Rule& rule, s32 is_dst);
+    Result ToPosixTimeImpl(u32& out_count, std::span<s64> out_times, size_t out_times_max_count,
+                           const CalendarTime& calendar, const Tz::Rule& rule, s32 is_dst);
 
     bool m_initialized{};
     std::recursive_mutex m_mutex;
