@@ -519,18 +519,32 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     const size_t page_end = Common::DivCeil(addr + size, Memory::YUZU_PAGESIZE);
     size_t page = addr >> Memory::YUZU_PAGEBITS;
     auto [asid, base_vaddress] = ExtractCPUBacking(page);
-    size_t vpage = base_vaddress >> Memory::YUZU_PAGEBITS;
     auto* memory_device_inter = registered_processes[asid.id];
+    const auto release_pending = [&] {
+        if (uncache_bytes > 0) {
+            MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
+                              uncache_bytes, false);
+            uncache_bytes = 0;
+        }
+        if (cache_bytes > 0) {
+            MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS,
+                              cache_bytes, true);
+            cache_bytes = 0;
+        }
+    };
     for (; page != page_end; ++page) {
         CounterAtomicType& count = cached_pages->at(page >> subentries_shift).Count(page);
+        auto [asid_2, vpage] = ExtractCPUBacking(page);
+        vpage >>= Memory::YUZU_PAGEBITS;
 
-        if (delta > 0) {
-            ASSERT_MSG(count.load(std::memory_order::relaxed) < std::numeric_limits<CounterType>::max(),
-                       "Count may overflow!");
-        } else if (delta < 0) {
-            ASSERT_MSG(count.load(std::memory_order::relaxed) > 0, "Count may underflow!");
-        } else {
-            ASSERT_MSG(false, "Delta must be non-zero!");
+        if (vpage == 0) [[unlikely]] {
+            release_pending();
+            continue;
+        }
+
+        if (asid.id != asid_2.id) [[unlikely]] {
+            release_pending();
+            memory_device_inter = registered_processes[asid_2.id];
         }
 
         // Adds or subtracts 1, as count is a unsigned 8-bit value
@@ -557,16 +571,8 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
                               cache_bytes, true);
             cache_bytes = 0;
         }
-        vpage++;
     }
-    if (uncache_bytes > 0) {
-        MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
-                          uncache_bytes, false);
-    }
-    if (cache_bytes > 0) {
-        MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
-                          true);
-    }
+    release_pending();
 }
 
 } // namespace Core
