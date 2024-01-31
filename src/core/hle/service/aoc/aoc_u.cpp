@@ -202,7 +202,7 @@ void AOC_U::ListAddOnContent(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AOC, "called with offset={}, count={}, process_id={}", offset, count,
               process_id);
 
-    const auto current = system.GetApplicationProcessProgramID();
+    const auto current = FileSys::GetBaseTitleID(system.GetApplicationProcessProgramID());
 
     std::vector<u32> out;
     const auto& disabled = Settings::values.disabled_addons[current];
