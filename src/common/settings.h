@@ -134,12 +134,12 @@ struct Values {
     Linkage linkage{};
 
     // Audio
-    Setting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine", Category::Audio,
-                                 Specialization::RuntimeList};
-    Setting<std::string> audio_output_device_id{linkage, "auto", "output_device", Category::Audio,
-                                                Specialization::RuntimeList};
-    Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio,
-                                               Specialization::RuntimeList};
+    SwitchableSetting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine",
+                                           Category::Audio, Specialization::RuntimeList};
+    SwitchableSetting<std::string> audio_output_device_id{
+        linkage, "auto", "output_device", Category::Audio, Specialization::RuntimeList};
+    SwitchableSetting<std::string> audio_input_device_id{
+        linkage, "auto", "input_device", Category::Audio, Specialization::RuntimeList};
     SwitchableSetting<AudioMode, true> sound_index{
         linkage,       AudioMode::Stereo,     AudioMode::Mono,         AudioMode::Surround,
         "sound_index", Category::SystemAudio, Specialization::Default, true,
