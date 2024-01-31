@@ -5,11 +5,13 @@
 
 #include <array>
 #include <atomic>
+#include <bit>
 #include <deque>
 #include <memory>
 #include <mutex>
 
 #include "common/common_types.h"
+#include "common/range_mutex.h"
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
 
@@ -180,31 +182,35 @@ private:
     }
 
     Common::VirtualBuffer<VAddr> cpu_backing_address;
-    static constexpr size_t subentries = 8 / sizeof(u8);
+    using CounterType = u8;
+    using CounterAtomicType = std::atomic_uint8_t;
+    static constexpr size_t subentries = 8 / sizeof(CounterType);
     static constexpr size_t subentries_mask = subentries - 1;
+    static constexpr size_t subentries_shift =
+        std::countr_zero(sizeof(u64)) - std::countr_zero(sizeof(CounterType));
     class CounterEntry final {
     public:
         CounterEntry() = default;
 
-        std::atomic_uint8_t& Count(std::size_t page) {
+        CounterAtomicType& Count(std::size_t page) {
             return values[page & subentries_mask];
         }
 
-        const std::atomic_uint8_t& Count(std::size_t page) const {
+        const CounterAtomicType& Count(std::size_t page) const {
             return values[page & subentries_mask];
         }
 
     private:
-        std::array<std::atomic_uint8_t, subentries> values{};
+        std::array<CounterAtomicType, subentries> values{};
     };
-    static_assert(sizeof(CounterEntry) == subentries * sizeof(u8),
+    static_assert(sizeof(CounterEntry) == subentries * sizeof(CounterType),
                   "CounterEntry should be 8 bytes!");
 
     static constexpr size_t num_counter_entries =
         (1ULL << (device_virtual_bits - page_bits)) / subentries;
     using CachedPages = std::array<CounterEntry, num_counter_entries>;
     std::unique_ptr<CachedPages> cached_pages;
-    std::mutex counter_guard;
+    Common::RangeMutex counter_guard;
     std::mutex mapping_guard;
 };
 

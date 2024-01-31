@@ -106,6 +106,7 @@ add_library(common STATIC
     precompiled_headers.h
     quaternion.h
     range_map.h
+    range_mutex.h
     reader_writer_queue.h
     ring_buffer.h
     ${CMAKE_CURRENT_BINARY_DIR}/scm_rev.cpp
