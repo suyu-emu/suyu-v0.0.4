@@ -6,6 +6,7 @@
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_su.h"
 #include "core/hle/service/caps/caps_types.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "video_core/renderer_base.h"
 
@@ -16,10 +17,10 @@ IScreenShotApplicationService::IScreenShotApplicationService(
     : ServiceFramework{system_, "caps:su"}, manager{album_manager} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {32, &IScreenShotApplicationService::SetShimLibraryVersion, "SetShimLibraryVersion"},
+        {32, C<&IScreenShotApplicationService::SetShimLibraryVersion>, "SetShimLibraryVersion"},
         {201, nullptr, "SaveScreenShot"},
-        {203, &IScreenShotApplicationService::SaveScreenShotEx0, "SaveScreenShotEx0"},
-        {205, &IScreenShotApplicationService::SaveScreenShotEx1, "SaveScreenShotEx1"},
+        {203, C<&IScreenShotApplicationService::SaveScreenShotEx0>, "SaveScreenShotEx0"},
+        {205, C<&IScreenShotApplicationService::SaveScreenShotEx1>, "SaveScreenShotEx1"},
         {210, nullptr, "SaveScreenShotEx2"},
     };
     // clang-format on
@@ -29,77 +30,40 @@ IScreenShotApplicationService::IScreenShotApplicationService(
 
 IScreenShotApplicationService::~IScreenShotApplicationService() = default;
 
-void IScreenShotApplicationService::SetShimLibraryVersion(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto library_version{rp.Pop<u64>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
+Result IScreenShotApplicationService::SetShimLibraryVersion(ShimLibraryVersion library_version,
+                                                            ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_Capture, "(STUBBED) called. library_version={}, applet_resource_user_id={}",
-                library_version, applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+                library_version, aruid.pid);
+    R_SUCCEED();
 }
 
-void IScreenShotApplicationService::SaveScreenShotEx0(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        ScreenShotAttribute attribute{};
-        AlbumReportOption report_option{};
-        INSERT_PADDING_BYTES(0x4);
-        u64 applet_resource_user_id{};
-    };
-    static_assert(sizeof(Parameters) == 0x50, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-    const auto image_data_buffer = ctx.ReadBuffer();
-
+Result IScreenShotApplicationService::SaveScreenShotEx0(
+    Out<ApplicationAlbumEntry> out_entry, const ScreenShotAttribute& attribute,
+    AlbumReportOption report_option, ClientAppletResourceUserId aruid,
+    InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+        image_data_buffer) {
     LOG_INFO(Service_Capture,
              "called, report_option={}, image_data_buffer_size={}, applet_resource_user_id={}",
-             parameters.report_option, image_data_buffer.size(),
-             parameters.applet_resource_user_id);
+             report_option, image_data_buffer.size(), aruid.pid);
 
-    ApplicationAlbumEntry entry{};
     manager->FlipVerticallyOnWrite(false);
-    const auto result =
-        manager->SaveScreenShot(entry, parameters.attribute, parameters.report_option,
-                                image_data_buffer, parameters.applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 10};
-    rb.Push(result);
-    rb.PushRaw(entry);
+    R_RETURN(manager->SaveScreenShot(*out_entry, attribute, report_option, image_data_buffer,
+                                     aruid.pid));
 }
 
-void IScreenShotApplicationService::SaveScreenShotEx1(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        ScreenShotAttribute attribute{};
-        AlbumReportOption report_option{};
-        INSERT_PADDING_BYTES(0x4);
-        u64 applet_resource_user_id{};
-    };
-    static_assert(sizeof(Parameters) == 0x50, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-    const auto app_data_buffer = ctx.ReadBuffer(0);
-    const auto image_data_buffer = ctx.ReadBuffer(1);
-
+Result IScreenShotApplicationService::SaveScreenShotEx1(
+    Out<ApplicationAlbumEntry> out_entry, const ScreenShotAttribute& attribute,
+    AlbumReportOption report_option, ClientAppletResourceUserId aruid,
+    const InLargeData<ApplicationData, BufferAttr_HipcMapAlias> app_data_buffer,
+    const InBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias>
+        image_data_buffer) {
     LOG_INFO(Service_Capture,
              "called, report_option={}, image_data_buffer_size={}, applet_resource_user_id={}",
-             parameters.report_option, image_data_buffer.size(),
-             parameters.applet_resource_user_id);
+             report_option, image_data_buffer.size(), aruid.pid);
 
-    ApplicationAlbumEntry entry{};
-    ApplicationData app_data{};
-    std::memcpy(&app_data, app_data_buffer.data(), sizeof(ApplicationData));
     manager->FlipVerticallyOnWrite(false);
-    const auto result =
-        manager->SaveScreenShot(entry, parameters.attribute, parameters.report_option, app_data,
-                                image_data_buffer, parameters.applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 10};
-    rb.Push(result);
-    rb.PushRaw(entry);
+    R_RETURN(manager->SaveScreenShot(*out_entry, attribute, report_option, *app_data_buffer,
+                                     image_data_buffer, aruid.pid));
 }
 
 void IScreenShotApplicationService::CaptureAndSaveScreenshot(AlbumReportOption report_option) {
@@ -112,6 +76,7 @@ void IScreenShotApplicationService::CaptureAndSaveScreenshot(AlbumReportOption r
         .orientation = Capture::AlbumImageOrientation::None,
         .unknown_1{},
         .unknown_2{},
+        .pad163{},
     };
 
     renderer.RequestScreenshot(

@@ -58,8 +58,8 @@ Result AlbumManager::IsAlbumMounted(AlbumStorage storage) {
     return is_mounted ? ResultSuccess : ResultIsNotMounted;
 }
 
-Result AlbumManager::GetAlbumFileList(std::vector<AlbumEntry>& out_entries, AlbumStorage storage,
-                                      u8 flags) const {
+Result AlbumManager::GetAlbumFileList(std::span<AlbumEntry> out_entries, u64& out_entries_count,
+                                      AlbumStorage storage, u8 flags) const {
     if (storage > AlbumStorage::Sd) {
         return ResultInvalidStorage;
     }
@@ -72,51 +72,55 @@ Result AlbumManager::GetAlbumFileList(std::vector<AlbumEntry>& out_entries, Albu
         if (file_id.storage != storage) {
             continue;
         }
-        if (out_entries.size() >= SdAlbumFileLimit) {
+        if (out_entries_count >= SdAlbumFileLimit) {
+            break;
+        }
+        if (out_entries_count >= out_entries.size()) {
             break;
         }
 
         const auto entry_size = Common::FS::GetSize(path);
-        out_entries.push_back({
+        out_entries[out_entries_count++] = {
             .entry_size = entry_size,
             .file_id = file_id,
-        });
+        };
     }
 
     return ResultSuccess;
 }
 
-Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& out_entries,
-                                      ContentType content_type, s64 start_posix_time,
-                                      s64 end_posix_time, u64 aruid) const {
+Result AlbumManager::GetAlbumFileList(std::span<ApplicationAlbumFileEntry> out_entries,
+                                      u64& out_entries_count, ContentType content_type,
+                                      s64 start_posix_time, s64 end_posix_time, u64 aruid) const {
     if (!is_mounted) {
         return ResultIsNotMounted;
     }
 
-    std::vector<ApplicationAlbumEntry> album_entries;
+    std::vector<ApplicationAlbumEntry> album_entries(out_entries.size());
     const auto start_date = ConvertToAlbumDateTime(start_posix_time);
     const auto end_date = ConvertToAlbumDateTime(end_posix_time);
-    const auto result = GetAlbumFileList(album_entries, content_type, start_date, end_date, aruid);
+    const auto result = GetAlbumFileList(album_entries, out_entries_count, content_type, start_date,
+                                         end_date, aruid);
 
     if (result.IsError()) {
         return result;
     }
 
-    for (const auto& album_entry : album_entries) {
-        ApplicationAlbumFileEntry entry{
-            .entry = album_entry,
-            .datetime = album_entry.datetime,
+    for (std::size_t i = 0; i < out_entries_count; i++) {
+        out_entries[i] = {
+            .entry = album_entries[i],
+            .datetime = album_entries[i].datetime,
             .unknown = {},
         };
-        out_entries.push_back(entry);
     }
 
     return ResultSuccess;
 }
 
-Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_entries,
-                                      ContentType content_type, AlbumFileDateTime start_date,
-                                      AlbumFileDateTime end_date, u64 aruid) const {
+Result AlbumManager::GetAlbumFileList(std::span<ApplicationAlbumEntry> out_entries,
+                                      u64& out_entries_count, ContentType content_type,
+                                      AlbumFileDateTime start_date, AlbumFileDateTime end_date,
+                                      u64 aruid) const {
     if (!is_mounted) {
         return ResultIsNotMounted;
     }
@@ -131,12 +135,15 @@ Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_en
         if (file_id.date < end_date) {
             continue;
         }
-        if (out_entries.size() >= SdAlbumFileLimit) {
+        if (out_entries_count >= SdAlbumFileLimit) {
+            break;
+        }
+        if (out_entries_count >= out_entries.size()) {
             break;
         }
 
         const auto entry_size = Common::FS::GetSize(path);
-        ApplicationAlbumEntry entry{
+        out_entries[out_entries_count++] = {
             .size = entry_size,
             .hash{},
             .datetime = file_id.date,
@@ -144,7 +151,6 @@ Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_en
             .content = content_type,
             .unknown = 1,
         };
-        out_entries.push_back(entry);
     }
 
     return ResultSuccess;
@@ -156,8 +162,7 @@ Result AlbumManager::GetAutoSavingStorage(bool& out_is_autosaving) const {
 }
 
 Result AlbumManager::LoadAlbumScreenShotImage(LoadAlbumScreenShotImageOutput& out_image_output,
-                                              std::vector<u8>& out_image,
-                                              const AlbumFileId& file_id,
+                                              std::span<u8> out_image, const AlbumFileId& file_id,
                                               const ScreenShotDecodeOption& decoder_options) const {
     if (file_id.storage > AlbumStorage::Sd) {
         return ResultInvalidStorage;
@@ -176,7 +181,9 @@ Result AlbumManager::LoadAlbumScreenShotImage(LoadAlbumScreenShotImageOutput& ou
                 .orientation = AlbumImageOrientation::None,
                 .unknown_1{},
                 .unknown_2{},
+                .pad163{},
             },
+        .pad179{},
     };
 
     std::filesystem::path path;
@@ -186,14 +193,12 @@ Result AlbumManager::LoadAlbumScreenShotImage(LoadAlbumScreenShotImageOutput& ou
         return result;
     }
 
-    out_image.resize(out_image_output.height * out_image_output.width * STBI_rgb_alpha);
-
     return LoadImage(out_image, path, static_cast<int>(out_image_output.width),
                      +static_cast<int>(out_image_output.height), decoder_options.flags);
 }
 
 Result AlbumManager::LoadAlbumScreenShotThumbnail(
-    LoadAlbumScreenShotImageOutput& out_image_output, std::vector<u8>& out_image,
+    LoadAlbumScreenShotImageOutput& out_image_output, std::span<u8> out_image,
     const AlbumFileId& file_id, const ScreenShotDecodeOption& decoder_options) const {
     if (file_id.storage > AlbumStorage::Sd) {
         return ResultInvalidStorage;
@@ -212,7 +217,9 @@ Result AlbumManager::LoadAlbumScreenShotThumbnail(
                 .orientation = AlbumImageOrientation::None,
                 .unknown_1{},
                 .unknown_2{},
+                .pad163{},
             },
+        .pad179{},
     };
 
     std::filesystem::path path;
@@ -221,8 +228,6 @@ Result AlbumManager::LoadAlbumScreenShotThumbnail(
     if (result.IsError()) {
         return result;
     }
-
-    out_image.resize(out_image_output.height * out_image_output.width * STBI_rgb_alpha);
 
     return LoadImage(out_image, path, static_cast<int>(out_image_output.width),
                      +static_cast<int>(out_image_output.height), decoder_options.flags);
