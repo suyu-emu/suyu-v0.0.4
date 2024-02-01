@@ -123,6 +123,8 @@ NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
         vm.va_range_end = params.va_range_end;
     }
 
+    const u64 max_big_page_bits = Common::Log2Ceil64(vm.va_range_end);
+
     const auto start_pages{static_cast<u32>(vm.va_range_start >> VM::PAGE_SIZE_BITS)};
     const auto end_pages{static_cast<u32>(vm.va_range_split >> VM::PAGE_SIZE_BITS)};
     vm.small_page_allocator = std::make_shared<VM::Allocator>(start_pages, end_pages);
@@ -132,8 +134,8 @@ NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
         static_cast<u32>((vm.va_range_end - vm.va_range_split) >> vm.big_page_size_bits)};
     vm.big_page_allocator = std::make_unique<VM::Allocator>(start_big_pages, end_big_pages);
 
-    gmmu = std::make_shared<Tegra::MemoryManager>(system, 40, vm.big_page_size_bits,
-                                                  VM::PAGE_SIZE_BITS);
+    gmmu = std::make_shared<Tegra::MemoryManager>(system, max_big_page_bits, vm.va_range_split,
+                                                  vm.big_page_size_bits, VM::PAGE_SIZE_BITS);
     system.GPU().InitAddressSpace(*gmmu);
     vm.initialised = true;
 
