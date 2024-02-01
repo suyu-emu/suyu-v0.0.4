@@ -17,10 +17,6 @@ void Digitizer::OnInit() {}
 void Digitizer::OnRelease() {}
 
 void Digitizer::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
-    if (!smart_update) {
-        return;
-    }
-
     std::scoped_lock shared_lock{*shared_mutex};
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
