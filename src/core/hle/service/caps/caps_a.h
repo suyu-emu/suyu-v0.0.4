@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "core/hle/service/caps/caps_types.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -19,13 +21,31 @@ public:
     ~IAlbumAccessorService() override;
 
 private:
-    void DeleteAlbumFile(HLERequestContext& ctx);
-    void IsAlbumMounted(HLERequestContext& ctx);
-    void Unknown18(HLERequestContext& ctx);
-    void GetAlbumFileListEx0(HLERequestContext& ctx);
-    void GetAutoSavingStorage(HLERequestContext& ctx);
-    void LoadAlbumScreenShotImageEx1(HLERequestContext& ctx);
-    void LoadAlbumScreenShotThumbnailImageEx1(HLERequestContext& ctx);
+    Result DeleteAlbumFile(AlbumFileId file_id);
+
+    Result IsAlbumMounted(Out<bool> out_is_mounted, AlbumStorage storage);
+
+    Result Unknown18(
+        Out<u32> out_buffer_size,
+        OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure>
+            out_buffer);
+
+    Result GetAlbumFileListEx0(Out<u64> out_entries_size, AlbumStorage storage, u8 flags,
+                               OutArray<AlbumEntry, BufferAttr_HipcMapAlias> out_entries);
+
+    Result GetAutoSavingStorage(Out<bool> out_is_autosaving);
+
+    Result LoadAlbumScreenShotImageEx1(
+        const AlbumFileId& file_id, const ScreenShotDecodeOption& decoder_options,
+        OutLargeData<LoadAlbumScreenShotImageOutput, BufferAttr_HipcMapAlias> out_image_output,
+        OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
+        OutArray<u8, BufferAttr_HipcMapAlias> out_buffer);
+
+    Result LoadAlbumScreenShotThumbnailImageEx1(
+        const AlbumFileId& file_id, const ScreenShotDecodeOption& decoder_options,
+        OutLargeData<LoadAlbumScreenShotImageOutput, BufferAttr_HipcMapAlias> out_image_output,
+        OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
+        OutArray<u8, BufferAttr_HipcMapAlias> out_buffer);
 
     Result TranslateResult(Result in_result);
 

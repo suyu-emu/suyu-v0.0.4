@@ -6,6 +6,7 @@
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_result.h"
 #include "core/hle/service/caps/caps_types.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Capture {
@@ -17,7 +18,7 @@ IAlbumControlService::IAlbumControlService(Core::System& system_,
     static const FunctionInfo functions[] = {
         {1, nullptr, "CaptureRawImage"},
         {2, nullptr, "CaptureRawImageWithTimeout"},
-        {33, &IAlbumControlService::SetShimLibraryVersion, "SetShimLibraryVersion"},
+        {33, C<&IAlbumControlService::SetShimLibraryVersion>, "SetShimLibraryVersion"},
         {1001, nullptr, "RequestTakingScreenShot"},
         {1002, nullptr, "RequestTakingScreenShotWithTimeout"},
         {1011, nullptr, "NotifyTakingScreenShotRefused"},
@@ -42,16 +43,11 @@ IAlbumControlService::IAlbumControlService(Core::System& system_,
 
 IAlbumControlService::~IAlbumControlService() = default;
 
-void IAlbumControlService::SetShimLibraryVersion(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto library_version{rp.Pop<u64>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
+Result IAlbumControlService::SetShimLibraryVersion(ShimLibraryVersion library_version,
+                                                   ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_Capture, "(STUBBED) called. library_version={}, applet_resource_user_id={}",
-                library_version, applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+                library_version, aruid.pid);
+    R_SUCCEED();
 }
 
 } // namespace Service::Capture

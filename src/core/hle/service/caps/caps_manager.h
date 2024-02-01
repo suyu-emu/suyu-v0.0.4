@@ -42,20 +42,20 @@ public:
 
     Result DeleteAlbumFile(const AlbumFileId& file_id);
     Result IsAlbumMounted(AlbumStorage storage);
-    Result GetAlbumFileList(std::vector<AlbumEntry>& out_entries, AlbumStorage storage,
-                            u8 flags) const;
-    Result GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& out_entries,
-                            ContentType content_type, s64 start_posix_time, s64 end_posix_time,
-                            u64 aruid) const;
-    Result GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_entries,
+    Result GetAlbumFileList(std::span<AlbumEntry> out_entries, u64& out_entries_count,
+                            AlbumStorage storage, u8 flags) const;
+    Result GetAlbumFileList(std::span<ApplicationAlbumFileEntry> out_entries,
+                            u64& out_entries_count, ContentType content_type, s64 start_posix_time,
+                            s64 end_posix_time, u64 aruid) const;
+    Result GetAlbumFileList(std::span<ApplicationAlbumEntry> out_entries, u64& out_entries_count,
                             ContentType content_type, AlbumFileDateTime start_date,
                             AlbumFileDateTime end_date, u64 aruid) const;
     Result GetAutoSavingStorage(bool& out_is_autosaving) const;
     Result LoadAlbumScreenShotImage(LoadAlbumScreenShotImageOutput& out_image_output,
-                                    std::vector<u8>& out_image, const AlbumFileId& file_id,
+                                    std::span<u8> out_image, const AlbumFileId& file_id,
                                     const ScreenShotDecodeOption& decoder_options) const;
     Result LoadAlbumScreenShotThumbnail(LoadAlbumScreenShotImageOutput& out_image_output,
-                                        std::vector<u8>& out_image, const AlbumFileId& file_id,
+                                        std::span<u8> out_image, const AlbumFileId& file_id,
                                         const ScreenShotDecodeOption& decoder_options) const;
 
     Result SaveScreenShot(ApplicationAlbumEntry& out_entry, const ScreenShotAttribute& attribute,

@@ -41,6 +41,10 @@ enum class ScreenShotDecoderFlag : u64 {
     EnableBlockSmoothing = 1 << 1,
 };
 
+enum class ShimLibraryVersion : u64 {
+    Version1 = 1,
+};
+
 // This is nn::capsrv::AlbumFileDateTime
 struct AlbumFileDateTime {
     s16 year{};
@@ -144,19 +148,23 @@ static_assert(sizeof(ApplicationAlbumFileEntry) == 0x30,
               "ApplicationAlbumFileEntry has incorrect size.");
 
 struct ApplicationData {
-    std::array<u8, 0x400> data{};
-    u32 data_size{};
+    std::array<u8, 0x400> data;
+    u32 data_size;
 };
 static_assert(sizeof(ApplicationData) == 0x404, "ApplicationData is an invalid size");
+static_assert(std::is_trivial_v<ApplicationData>,
+              "ApplicationData type must be trivially copyable.");
 
 struct ScreenShotAttribute {
-    u32 unknown_0{};
-    AlbumImageOrientation orientation{};
-    u32 unknown_1{};
-    u32 unknown_2{};
-    INSERT_PADDING_BYTES(0x30);
+    u32 unknown_0;
+    AlbumImageOrientation orientation;
+    u32 unknown_1;
+    u32 unknown_2;
+    INSERT_PADDING_BYTES_NOINIT(0x30);
 };
 static_assert(sizeof(ScreenShotAttribute) == 0x40, "ScreenShotAttribute is an invalid size");
+static_assert(std::is_trivial_v<ScreenShotAttribute>,
+              "ScreenShotAttribute type must be trivially copyable.");
 
 struct ScreenShotDecodeOption {
     ScreenShotDecoderFlag flags{};
@@ -165,13 +173,15 @@ struct ScreenShotDecodeOption {
 static_assert(sizeof(ScreenShotDecodeOption) == 0x20, "ScreenShotDecodeOption is an invalid size");
 
 struct LoadAlbumScreenShotImageOutput {
-    s64 width{};
-    s64 height{};
-    ScreenShotAttribute attribute{};
-    INSERT_PADDING_BYTES(0x400);
+    s64 width;
+    s64 height;
+    ScreenShotAttribute attribute;
+    INSERT_PADDING_BYTES_NOINIT(0x400);
 };
 static_assert(sizeof(LoadAlbumScreenShotImageOutput) == 0x450,
               "LoadAlbumScreenShotImageOutput is an invalid size");
+static_assert(std::is_trivial_v<LoadAlbumScreenShotImageOutput>,
+              "LoadAlbumScreenShotImageOutput type must be trivially copyable.");
 
 struct LoadAlbumScreenShotImageOutputForApplication {
     s64 width{};
