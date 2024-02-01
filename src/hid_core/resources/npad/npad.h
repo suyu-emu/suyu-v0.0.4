@@ -164,6 +164,7 @@ private:
         NpadInternalState* shared_memory = nullptr;
         Core::HID::EmulatedController* device = nullptr;
 
+        bool is_active{};
         bool is_connected{};
 
         // Dual joycons can have only one side connected

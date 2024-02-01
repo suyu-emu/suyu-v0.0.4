@@ -20,8 +20,5 @@ public:
 
     // When the controller is requesting an update for the shared memory
     void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
-
-private:
-    bool smart_update{};
 };
 } // namespace Service::HID

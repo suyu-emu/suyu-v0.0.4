@@ -17,10 +17,6 @@ void UniquePad::OnInit() {}
 void UniquePad::OnRelease() {}
 
 void UniquePad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
-    if (!smart_update) {
-        return;
-    }
-
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
 
