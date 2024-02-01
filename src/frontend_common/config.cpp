@@ -190,9 +190,9 @@ void Config::ReadTouchscreenValues() {
     Settings::values.touchscreen.rotation_angle =
         static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_angle"), 0));
     Settings::values.touchscreen.diameter_x =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 15));
+        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_x"), 90));
     Settings::values.touchscreen.diameter_y =
-        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 15));
+        static_cast<u32>(ReadIntegerSetting(std::string("touchscreen_diameter_y"), 90));
 }
 
 void Config::ReadAudioValues() {
@@ -478,9 +478,9 @@ void Config::SaveTouchscreenValues() {
     WriteIntegerSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
                         std::make_optional(static_cast<u32>(0)));
     WriteIntegerSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
-                        std::make_optional(static_cast<u32>(15)));
+                        std::make_optional(static_cast<u32>(90)));
     WriteIntegerSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
-                        std::make_optional(static_cast<u32>(15)));
+                        std::make_optional(static_cast<u32>(90)));
 }
 
 void Config::SaveMotionTouchValues() {

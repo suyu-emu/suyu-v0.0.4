@@ -71,6 +71,9 @@ private:
     void FinalizeUsbFirmwareUpdate(HLERequestContext& ctx);
     void CheckUsbFirmwareUpdateRequired(HLERequestContext& ctx);
     void InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx);
+    void SetTouchScreenMagnification(HLERequestContext& ctx);
+    void GetTouchScreenFirmwareVersion(HLERequestContext& ctx);
+    void SetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
     void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
     void SetForceHandheldStyleVibration(HLERequestContext& ctx);
     void IsUsingCustomButtonConfig(HLERequestContext& ctx);
