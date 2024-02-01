@@ -131,6 +131,7 @@ public:
     void SetNpadExternals(std::shared_ptr<AppletResource> resource,
                           std::recursive_mutex* shared_mutex,
                           std::shared_ptr<HandheldConfig> handheld_config,
+                          Kernel::KEvent* input_event, std::mutex* input_mutex,
                           std::shared_ptr<Service::Set::ISystemSettingsServer> settings);
 
     AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
@@ -203,9 +204,6 @@ private:
     AppletResourceHolder applet_resource_holder{};
     std::array<AbstractPad, MaxSupportedNpadIdTypes> abstracted_pads;
     NpadVibration vibration_handler{};
-
-    Kernel::KEvent* input_event{nullptr};
-    std::mutex* input_mutex{nullptr};
 
     std::atomic<u64> press_state{};
     std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax>

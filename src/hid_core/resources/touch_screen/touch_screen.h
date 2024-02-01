@@ -1,43 +1,64 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
-#include <array>
+#include <mutex>
 
-#include "hid_core/hid_types.h"
-#include "hid_core/resources/controller_base.h"
-#include "hid_core/resources/touch_screen/touch_types.h"
+#include "common/common_types.h"
+#include "core/hle/result.h"
 
 namespace Core::HID {
-class EmulatedConsole;
-} // namespace Core::HID
+struct TouchScreenConfigurationForNx;
+}
+
+namespace Core::Timing {
+struct EventType;
+}
 
 namespace Service::HID {
-struct TouchScreenSharedMemoryFormat;
+class TouchResource;
+struct AutoPilotState;
 
-class TouchScreen final : public ControllerBase {
+/// Handles touch request from HID interfaces
+class TouchScreen {
 public:
-    explicit TouchScreen(Core::HID::HIDCore& hid_core_);
-    ~TouchScreen() override;
+    TouchScreen(std::shared_ptr<TouchResource> resource);
+    ~TouchScreen();
 
-    // Called when the controller is initialized
-    void OnInit() override;
+    Result Activate();
+    Result Activate(u64 aruid);
 
-    // When the controller is released
-    void OnRelease() override;
+    Result Deactivate();
 
-    // When the controller is requesting an update for the shared memory
-    void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
+    Result IsActive(bool& out_is_active) const;
 
-    void SetTouchscreenDimensions(u32 width, u32 height);
+    Result SetTouchScreenAutoPilotState(const AutoPilotState& auto_pilot_state);
+    Result UnsetTouchScreenAutoPilotState();
+
+    Result RequestNextTouchInput();
+    Result RequestNextDummyInput();
+
+    Result ProcessTouchScreenAutoTune();
+
+    Result SetTouchScreenMagnification(f32 point1_x, f32 point1_y, f32 point2_x, f32 point2_y);
+    Result SetTouchScreenResolution(u32 width, u32 height, u64 aruid);
+
+    Result SetTouchScreenConfiguration(const Core::HID::TouchScreenConfigurationForNx& mode,
+                                       u64 aruid);
+    Result GetTouchScreenConfiguration(Core::HID::TouchScreenConfigurationForNx& out_mode,
+                                       u64 aruid) const;
+
+    Result SetTouchScreenDefaultConfiguration(const Core::HID::TouchScreenConfigurationForNx& mode);
+    Result GetTouchScreenDefaultConfiguration(
+        Core::HID::TouchScreenConfigurationForNx& out_mode) const;
+
+    void OnTouchUpdate(u64 timestamp);
 
 private:
-    TouchScreenState next_state{};
-    Core::HID::EmulatedConsole* console = nullptr;
-
-    std::array<Core::HID::TouchFinger, MAX_FINGERS> fingers{};
-    u32 touchscreen_width;
-    u32 touchscreen_height;
+    mutable std::mutex mutex;
+    std::shared_ptr<TouchResource> touch_resource;
+    std::shared_ptr<Core::Timing::EventType> touch_update_event;
 };
+
 } // namespace Service::HID

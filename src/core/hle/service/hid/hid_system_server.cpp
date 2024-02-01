@@ -155,9 +155,9 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1133, nullptr, "StartUsbFirmwareUpdate"},
         {1134, nullptr, "GetUsbFirmwareUpdateState"},
         {1135, &IHidSystemServer::InitializeUsbFirmwareUpdateWithoutMemory, "InitializeUsbFirmwareUpdateWithoutMemory"},
-        {1150, nullptr, "SetTouchScreenMagnification"},
-        {1151, nullptr, "GetTouchScreenFirmwareVersion"},
-        {1152, nullptr, "SetTouchScreenDefaultConfiguration"},
+        {1150, &IHidSystemServer::SetTouchScreenMagnification, "SetTouchScreenMagnification"},
+        {1151, &IHidSystemServer::GetTouchScreenFirmwareVersion, "GetTouchScreenFirmwareVersion"},
+        {1152, &IHidSystemServer::SetTouchScreenDefaultConfiguration, "SetTouchScreenDefaultConfiguration"},
         {1153, &IHidSystemServer::GetTouchScreenDefaultConfiguration, "GetTouchScreenDefaultConfiguration"},
         {1154, nullptr, "IsFirmwareAvailableForNotification"},
         {1155, &IHidSystemServer::SetForceHandheldStyleVibration, "SetForceHandheldStyleVibration"},
@@ -845,12 +845,60 @@ void IHidSystemServer::InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContex
     rb.Push(ResultSuccess);
 }
 
-void IHidSystemServer::GetTouchScreenDefaultConfiguration(HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+void IHidSystemServer::SetTouchScreenMagnification(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto point1x{rp.Pop<f32>()};
+    const auto point1y{rp.Pop<f32>()};
+    const auto point2x{rp.Pop<f32>()};
+    const auto point2y{rp.Pop<f32>()};
 
-    Core::HID::TouchScreenConfigurationForNx touchscreen_config{
-        .mode = Core::HID::TouchScreenModeForNx::Finger,
-    };
+    LOG_INFO(Service_HID, "called, point1=-({},{}), point2=({},{})", point1x, point1y, point2x,
+             point2y);
+
+    const Result result = GetResourceManager()->GetTouchScreen()->SetTouchScreenMagnification(
+        point1x, point1y, point2x, point2y);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidSystemServer::GetTouchScreenFirmwareVersion(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    Core::HID::FirmwareVersion firmware{};
+    const auto result = GetResourceManager()->GetTouchScreenFirmwareVersion(firmware);
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(result);
+    rb.PushRaw(firmware);
+}
+
+void IHidSystemServer::SetTouchScreenDefaultConfiguration(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    auto touchscreen_config{rp.PopRaw<Core::HID::TouchScreenConfigurationForNx>()};
+
+    LOG_INFO(Service_HID, "called, touchscreen_config={}", touchscreen_config.mode);
+
+    if (touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Heat2 &&
+        touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Finger) {
+        touchscreen_config.mode = Core::HID::TouchScreenModeForNx::UseSystemSetting;
+    }
+
+    const Result result =
+        GetResourceManager()->GetTouchScreen()->SetTouchScreenDefaultConfiguration(
+            touchscreen_config);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidSystemServer::GetTouchScreenDefaultConfiguration(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    Core::HID::TouchScreenConfigurationForNx touchscreen_config{};
+    const Result result =
+        GetResourceManager()->GetTouchScreen()->GetTouchScreenDefaultConfiguration(
+            touchscreen_config);
 
     if (touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Heat2 &&
         touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Finger) {
@@ -858,7 +906,7 @@ void IHidSystemServer::GetTouchScreenDefaultConfiguration(HLERequestContext& ctx
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
     rb.PushRaw(touchscreen_config);
 }
 

@@ -8,6 +8,10 @@
 namespace Service::HID {
 
 constexpr Result PalmaResultSuccess{ErrorModule::HID, 0};
+
+constexpr Result ResultTouchNotInitialized{ErrorModule::HID, 41};
+constexpr Result ResultTouchOverflow{ErrorModule::HID, 42};
+
 constexpr Result NpadInvalidHandle{ErrorModule::HID, 100};
 constexpr Result NpadDeviceIndexOutOfRange{ErrorModule::HID, 107};
 
@@ -23,6 +27,10 @@ constexpr Result InvalidSixAxisFusionRange{ErrorModule::HID, 423};
 constexpr Result ResultNfcIsNotReady{ErrorModule::HID, 461};
 constexpr Result ResultNfcXcdHandleIsNotInitialized{ErrorModule::HID, 464};
 constexpr Result ResultIrSensorIsNotReady{ErrorModule::HID, 501};
+
+constexpr Result ResultGestureOverflow{ErrorModule::HID, 522};
+constexpr Result ResultGestureNotInitialized{ErrorModule::HID, 523};
+
 constexpr Result ResultMcuIsNotReady{ErrorModule::HID, 541};
 
 constexpr Result NpadIsDualJoycon{ErrorModule::HID, 601};

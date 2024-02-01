@@ -11,6 +11,7 @@ class System;
 }
 
 namespace Core::HID {
+struct FirmwareVersion;
 struct VibrationDeviceHandle;
 struct VibrationValue;
 struct VibrationDeviceInfo;
@@ -21,8 +22,9 @@ struct EventType;
 }
 
 namespace Kernel {
+class KEvent;
 class KSharedMemory;
-}
+} // namespace Kernel
 
 namespace Service::HID {
 class AppletResource;
@@ -33,6 +35,7 @@ class DebugMouse;
 class DebugPad;
 class Digitizer;
 class Gesture;
+class HidFirmwareSettings;
 class HomeButton;
 class Keyboard;
 class Mouse;
@@ -42,6 +45,8 @@ class SevenSixAxis;
 class SixAxis;
 class SleepButton;
 class TouchScreen;
+class TouchDriver;
+class TouchResource;
 class UniquePad;
 class NpadVibrationBase;
 class NpadN64VibrationDevice;
@@ -52,7 +57,7 @@ struct HandheldConfig;
 class ResourceManager {
 
 public:
-    explicit ResourceManager(Core::System& system_);
+    explicit ResourceManager(Core::System& system_, std::shared_ptr<HidFirmwareSettings> settings);
     ~ResourceManager();
 
     void Initialize();
@@ -102,6 +107,8 @@ public:
     Result SendVibrationValue(u64 aruid, const Core::HID::VibrationDeviceHandle& handle,
                               const Core::HID::VibrationValue& value);
 
+    Result GetTouchScreenFirmwareVersion(Core::HID::FirmwareVersion& firmware) const;
+
     void UpdateControllers(std::chrono::nanoseconds ns_late);
     void UpdateNpad(std::chrono::nanoseconds ns_late);
     void UpdateMouseKeyboard(std::chrono::nanoseconds ns_late);
@@ -109,6 +116,7 @@ public:
 
 private:
     Result CreateAppletResourceImpl(u64 aruid);
+    void InitializeHandheldConfig();
     void InitializeHidCommonSampler();
     void InitializeTouchScreenSampler();
     void InitializeConsoleSixAxisSampler();
@@ -117,37 +125,46 @@ private:
     bool is_initialized{false};
 
     mutable std::recursive_mutex shared_mutex;
-    std::shared_ptr<AppletResource> applet_resource = nullptr;
+    std::shared_ptr<AppletResource> applet_resource{nullptr};
 
-    std::shared_ptr<CaptureButton> capture_button = nullptr;
-    std::shared_ptr<ConsoleSixAxis> console_six_axis = nullptr;
-    std::shared_ptr<DebugMouse> debug_mouse = nullptr;
-    std::shared_ptr<DebugPad> debug_pad = nullptr;
-    std::shared_ptr<Digitizer> digitizer = nullptr;
-    std::shared_ptr<Gesture> gesture = nullptr;
-    std::shared_ptr<HomeButton> home_button = nullptr;
-    std::shared_ptr<Keyboard> keyboard = nullptr;
-    std::shared_ptr<Mouse> mouse = nullptr;
-    std::shared_ptr<NPad> npad = nullptr;
-    std::shared_ptr<Palma> palma = nullptr;
-    std::shared_ptr<SevenSixAxis> seven_six_axis = nullptr;
-    std::shared_ptr<SixAxis> six_axis = nullptr;
-    std::shared_ptr<SleepButton> sleep_button = nullptr;
-    std::shared_ptr<TouchScreen> touch_screen = nullptr;
-    std::shared_ptr<UniquePad> unique_pad = nullptr;
+    mutable std::mutex input_mutex;
+    Kernel::KEvent* input_event{nullptr};
 
-    std::shared_ptr<HandheldConfig> handheld_config = nullptr;
+    std::shared_ptr<HandheldConfig> handheld_config{nullptr};
+    std::shared_ptr<HidFirmwareSettings> firmware_settings{nullptr};
+
+    std::shared_ptr<CaptureButton> capture_button{nullptr};
+    std::shared_ptr<ConsoleSixAxis> console_six_axis{nullptr};
+    std::shared_ptr<DebugMouse> debug_mouse{nullptr};
+    std::shared_ptr<DebugPad> debug_pad{nullptr};
+    std::shared_ptr<Digitizer> digitizer{nullptr};
+    std::shared_ptr<HomeButton> home_button{nullptr};
+    std::shared_ptr<Keyboard> keyboard{nullptr};
+    std::shared_ptr<Mouse> mouse{nullptr};
+    std::shared_ptr<NPad> npad{nullptr};
+    std::shared_ptr<Palma> palma{nullptr};
+    std::shared_ptr<SevenSixAxis> seven_six_axis{nullptr};
+    std::shared_ptr<SixAxis> six_axis{nullptr};
+    std::shared_ptr<SleepButton> sleep_button{nullptr};
+    std::shared_ptr<UniquePad> unique_pad{nullptr};
 
     // TODO: Create these resources
-    // std::shared_ptr<AudioControl> audio_control = nullptr;
-    // std::shared_ptr<ButtonConfig> button_config = nullptr;
-    // std::shared_ptr<Config> config = nullptr;
-    // std::shared_ptr<Connection> connection = nullptr;
-    // std::shared_ptr<CustomConfig> custom_config = nullptr;
-    // std::shared_ptr<Digitizer> digitizer = nullptr;
-    // std::shared_ptr<Hdls> hdls = nullptr;
-    // std::shared_ptr<PlayReport> play_report = nullptr;
-    // std::shared_ptr<Rail> rail = nullptr;
+    // std::shared_ptr<AudioControl> audio_control{nullptr};
+    // std::shared_ptr<ButtonConfig> button_config{nullptr};
+    // std::shared_ptr<Config> config{nullptr};
+    // std::shared_ptr<Connection> connection{nullptr};
+    // std::shared_ptr<CustomConfig> custom_config{nullptr};
+    // std::shared_ptr<Digitizer> digitizer{nullptr};
+    // std::shared_ptr<Hdls> hdls{nullptr};
+    // std::shared_ptr<PlayReport> play_report{nullptr};
+    // std::shared_ptr<Rail> rail{nullptr};
+
+    // Touch Resources
+    std::shared_ptr<Gesture> gesture{nullptr};
+    std::shared_ptr<TouchScreen> touch_screen{nullptr};
+    std::shared_ptr<TouchResource> touch_resource{nullptr};
+    std::shared_ptr<TouchDriver> touch_driver{nullptr};
+    std::shared_ptr<Core::Timing::EventType> touch_update_event{nullptr};
 
     Core::System& system;
     KernelHelpers::ServiceContext service_context;
@@ -162,12 +179,12 @@ public:
 private:
     void GetSharedMemoryHandle(HLERequestContext& ctx);
 
-    std::shared_ptr<Core::Timing::EventType> npad_update_event;
-    std::shared_ptr<Core::Timing::EventType> default_update_event;
-    std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event;
-    std::shared_ptr<Core::Timing::EventType> motion_update_event;
+    std::shared_ptr<Core::Timing::EventType> npad_update_event{nullptr};
+    std::shared_ptr<Core::Timing::EventType> default_update_event{nullptr};
+    std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event{nullptr};
+    std::shared_ptr<Core::Timing::EventType> motion_update_event{nullptr};
 
-    u64 aruid;
+    u64 aruid{};
     std::shared_ptr<ResourceManager> resource_manager;
 };
 

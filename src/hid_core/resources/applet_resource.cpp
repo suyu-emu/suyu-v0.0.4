@@ -118,6 +118,12 @@ void AppletResource::UnregisterAppletResourceUserId(u64 aruid) {
     data[index].aruid = 0;
 
     registration_list.flag[index] = RegistrationStatus::PendingDelete;
+
+    for (std::size_t i = 0; i < AruidIndexMax; i++) {
+        if (registration_list.flag[i] == RegistrationStatus::Initialized) {
+            active_aruid = registration_list.aruid[i];
+        }
+    }
 }
 
 void AppletResource::FreeAppletResourceId(u64 aruid) {

@@ -1070,11 +1070,14 @@ void NPad::UnregisterAppletResourceUserId(u64 aruid) {
 void NPad::SetNpadExternals(std::shared_ptr<AppletResource> resource,
                             std::recursive_mutex* shared_mutex,
                             std::shared_ptr<HandheldConfig> handheld_config,
+                            Kernel::KEvent* input_event, std::mutex* input_mutex,
                             std::shared_ptr<Service::Set::ISystemSettingsServer> settings) {
     applet_resource_holder.applet_resource = resource;
     applet_resource_holder.shared_mutex = shared_mutex;
     applet_resource_holder.shared_npad_resource = &npad_resource;
     applet_resource_holder.handheld_config = handheld_config;
+    applet_resource_holder.input_event = input_event;
+    applet_resource_holder.input_mutex = input_mutex;
 
     vibration_handler.SetSettingsService(settings);
 
