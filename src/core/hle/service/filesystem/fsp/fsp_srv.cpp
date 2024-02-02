@@ -115,6 +115,11 @@ private:
             if (type->GetName() == "save") {
                 for (const auto& save_id : type->GetSubdirectories()) {
                     for (const auto& user_id : save_id->GetSubdirectories()) {
+                        // Skip non user id subdirectories
+                        if (user_id->GetName().size() != 0x20) {
+                            continue;
+                        }
+
                         const auto save_id_numeric = stoull_be(save_id->GetName());
                         auto user_id_numeric = Common::HexStringToArray<0x10>(user_id->GetName());
                         std::reverse(user_id_numeric.begin(), user_id_numeric.end());
@@ -160,6 +165,10 @@ private:
             } else if (space == FileSys::SaveDataSpaceId::TemporaryStorage) {
                 // Temporary Storage
                 for (const auto& user_id : type->GetSubdirectories()) {
+                    // Skip non user id subdirectories
+                    if (user_id->GetName().size() != 0x20) {
+                        continue;
+                    }
                     for (const auto& title_id : user_id->GetSubdirectories()) {
                         if (!title_id->GetFiles().empty() ||
                             !title_id->GetSubdirectories().empty()) {

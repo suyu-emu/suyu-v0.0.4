@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <fmt/format.h>
+#include "common/assert.h"
 #include "common/common_types.h"
 
 namespace Common {
@@ -29,6 +30,8 @@ namespace Common {
 
 template <std::size_t Size, bool le = false>
 [[nodiscard]] constexpr std::array<u8, Size> HexStringToArray(std::string_view str) {
+    ASSERT_MSG(Size * 2 <= str.size(), "Invalid string size");
+
     std::array<u8, Size> out{};
     if constexpr (le) {
         for (std::size_t i = 2 * Size - 2; i <= 2 * Size; i -= 2) {
