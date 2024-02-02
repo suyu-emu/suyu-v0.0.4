@@ -78,8 +78,9 @@ Result ServiceManager::GetStaticServiceAsServiceManager(OutInterface<StaticServi
 }
 
 Result ServiceManager::SetupStandardSteadyClockCore(bool is_rtc_reset_detected,
-                                                    Common::UUID& clock_source_id, s64 rtc_offset,
-                                                    s64 internal_offset, s64 test_offset) {
+                                                    const Common::UUID& clock_source_id,
+                                                    s64 rtc_offset, s64 internal_offset,
+                                                    s64 test_offset) {
     LOG_DEBUG(Service_Time,
               "called. is_rtc_reset_detected={} clock_source_id={} rtc_offset={} "
               "internal_offset={} test_offset={}",
@@ -102,7 +103,8 @@ Result ServiceManager::SetupStandardSteadyClockCore(bool is_rtc_reset_detected,
     R_SUCCEED();
 }
 
-Result ServiceManager::SetupStandardLocalSystemClockCore(SystemClockContext& context, s64 time) {
+Result ServiceManager::SetupStandardLocalSystemClockCore(const SystemClockContext& context,
+                                                         s64 time) {
     LOG_DEBUG(Service_Time,
               "called. context={} context.steady_time_point.clock_source_id={} time={}", context,
               context.steady_time_point.clock_source_id.RawString(), time);
@@ -114,7 +116,7 @@ Result ServiceManager::SetupStandardLocalSystemClockCore(SystemClockContext& con
     R_SUCCEED();
 }
 
-Result ServiceManager::SetupStandardNetworkSystemClockCore(SystemClockContext& context,
+Result ServiceManager::SetupStandardNetworkSystemClockCore(SystemClockContext context,
                                                            s64 accuracy) {
     LOG_DEBUG(Service_Time, "called. context={} steady_time_point.clock_source_id={} accuracy={}",
               context, context.steady_time_point.clock_source_id.RawString(), accuracy);
@@ -131,7 +133,7 @@ Result ServiceManager::SetupStandardNetworkSystemClockCore(SystemClockContext& c
 }
 
 Result ServiceManager::SetupStandardUserSystemClockCore(bool automatic_correction,
-                                                        SteadyClockTimePoint& time_point) {
+                                                        SteadyClockTimePoint time_point) {
     LOG_DEBUG(Service_Time, "called. automatic_correction={} time_point={} clock_source_id={}",
               automatic_correction, time_point, time_point.clock_source_id.RawString());
 
@@ -144,9 +146,9 @@ Result ServiceManager::SetupStandardUserSystemClockCore(bool automatic_correctio
     R_SUCCEED();
 }
 
-Result ServiceManager::SetupTimeZoneServiceCore(LocationName& name, RuleVersion& rule_version,
-                                                u32 location_count,
-                                                SteadyClockTimePoint& time_point,
+Result ServiceManager::SetupTimeZoneServiceCore(const LocationName& name,
+                                                const RuleVersion& rule_version, u32 location_count,
+                                                const SteadyClockTimePoint& time_point,
                                                 InBuffer<BufferAttr_HipcAutoSelect> rule_buffer) {
     LOG_DEBUG(Service_Time,
               "called. name={} rule_version={} location_count={} time_point={} "

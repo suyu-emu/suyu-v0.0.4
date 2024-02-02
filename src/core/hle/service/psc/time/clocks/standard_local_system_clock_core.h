@@ -17,7 +17,7 @@ public:
         : SystemClockCore{steady_clock} {}
     ~StandardLocalSystemClockCore() override = default;
 
-    void Initialize(SystemClockContext& context, s64 time);
+    void Initialize(const SystemClockContext& context, s64 time);
 };
 
 } // namespace Service::PSC::Time

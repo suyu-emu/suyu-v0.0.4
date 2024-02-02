@@ -31,16 +31,16 @@ public:
     ~TimeZoneService() override = default;
 
     Result GetDeviceLocationName(Out<LocationName> out_location_name);
-    Result SetDeviceLocationName(LocationName& location_name);
+    Result SetDeviceLocationName(const LocationName& location_name);
     Result GetTotalLocationNameCount(Out<u32> out_count);
     Result LoadLocationNameList(Out<u32> out_count,
                                 OutArray<LocationName, BufferAttr_HipcMapAlias> out_names,
                                 u32 index);
-    Result LoadTimeZoneRule(OutRule out_rule, LocationName& location_name);
+    Result LoadTimeZoneRule(OutRule out_rule, const LocationName& location_name);
     Result GetTimeZoneRuleVersion(Out<RuleVersion> out_rule_version);
     Result GetDeviceLocationNameAndUpdatedTime(Out<LocationName> location_name,
                                                Out<SteadyClockTimePoint> out_time_point);
-    Result SetDeviceLocationNameWithTimeZoneRule(LocationName& location_name,
+    Result SetDeviceLocationNameWithTimeZoneRule(const LocationName& location_name,
                                                  InBuffer<BufferAttr_HipcAutoSelect> binary);
     Result ParseTimeZoneBinary(OutRule out_rule, InBuffer<BufferAttr_HipcAutoSelect> binary);
     Result GetDeviceLocationNameOperationEventReadableHandle(

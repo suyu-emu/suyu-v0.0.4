@@ -24,7 +24,7 @@ private:
 public:
     virtual ~ContextWriter() = default;
 
-    virtual Result Write(SystemClockContext& context) = 0;
+    virtual Result Write(const SystemClockContext& context) = 0;
     void SignalAllNodes();
     void Link(OperationEvent& operation_event);
 
@@ -37,7 +37,7 @@ class LocalSystemClockContextWriter : public ContextWriter {
 public:
     explicit LocalSystemClockContextWriter(Core::System& system, SharedMemory& shared_memory);
 
-    Result Write(SystemClockContext& context) override;
+    Result Write(const SystemClockContext& context) override;
 
 private:
     Core::System& m_system;
@@ -52,7 +52,7 @@ public:
     explicit NetworkSystemClockContextWriter(Core::System& system, SharedMemory& shared_memory,
                                              SystemClockCore& system_clock);
 
-    Result Write(SystemClockContext& context) override;
+    Result Write(const SystemClockContext& context) override;
 
 private:
     Core::System& m_system;
@@ -67,7 +67,7 @@ class EphemeralNetworkSystemClockContextWriter : public ContextWriter {
 public:
     EphemeralNetworkSystemClockContextWriter(Core::System& system);
 
-    Result Write(SystemClockContext& context) override;
+    Result Write(const SystemClockContext& context) override;
 
 private:
     Core::System& m_system;

@@ -126,7 +126,7 @@ public:
         R_THROW(ResultUnknown);
     }
 
-    Result LoadPlugin(u64 tmem_size, InCopyHandle<Kernel::KTransferMemory>& tmem,
+    Result LoadPlugin(u64 tmem_size, InCopyHandle<Kernel::KTransferMemory> tmem,
                       InBuffer<BufferAttr_HipcMapAlias> nrr,
                       InBuffer<BufferAttr_HipcMapAlias> nro) {
         if (!tmem) {
@@ -268,9 +268,9 @@ public:
 
 private:
     Result CreateJitEnvironment(Out<SharedPointer<IJitEnvironment>> out_jit_environment,
-                                u64 rx_size, u64 ro_size, InCopyHandle<Kernel::KProcess>& process,
-                                InCopyHandle<Kernel::KCodeMemory>& rx_mem,
-                                InCopyHandle<Kernel::KCodeMemory>& ro_mem) {
+                                u64 rx_size, u64 ro_size, InCopyHandle<Kernel::KProcess> process,
+                                InCopyHandle<Kernel::KCodeMemory> rx_mem,
+                                InCopyHandle<Kernel::KCodeMemory> ro_mem) {
         if (!process) {
             LOG_ERROR(Service_JIT, "process is null");
             R_THROW(ResultUnknown);

@@ -54,10 +54,10 @@ public:
         return m_k_shared_memory;
     }
 
-    void SetLocalSystemContext(SystemClockContext& context);
-    void SetNetworkSystemContext(SystemClockContext& context);
+    void SetLocalSystemContext(const SystemClockContext& context);
+    void SetNetworkSystemContext(const SystemClockContext& context);
     void SetSteadyClockTimePoint(ClockSourceId clock_source_id, s64 time_diff);
-    void SetContinuousAdjustment(ContinuousAdjustmentTimePoint& time_point);
+    void SetContinuousAdjustment(const ContinuousAdjustmentTimePoint& time_point);
     void SetAutomaticCorrection(bool automatic_correction);
     void UpdateBaseTime(s64 time);
 

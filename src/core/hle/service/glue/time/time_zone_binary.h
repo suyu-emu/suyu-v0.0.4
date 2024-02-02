@@ -19,12 +19,12 @@ void ResetTimeZoneBinary();
 Result MountTimeZoneBinary(Core::System& system);
 void GetTimeZoneBinaryListPath(std::string& out_path);
 void GetTimeZoneBinaryVersionPath(std::string& out_path);
-void GetTimeZoneZonePath(std::string& out_path, Service::PSC::Time::LocationName& name);
-bool IsTimeZoneBinaryValid(Service::PSC::Time::LocationName& name);
+void GetTimeZoneZonePath(std::string& out_path, const Service::PSC::Time::LocationName& name);
+bool IsTimeZoneBinaryValid(const Service::PSC::Time::LocationName& name);
 u32 GetTimeZoneCount();
 Result GetTimeZoneVersion(Service::PSC::Time::RuleVersion& out_rule_version);
 Result GetTimeZoneRule(std::span<const u8>& out_rule, size_t& out_rule_size,
-                       Service::PSC::Time::LocationName& name);
+                       const Service::PSC::Time::LocationName& name);
 Result GetTimeZoneLocationList(u32& out_count,
                                std::span<Service::PSC::Time::LocationName> out_names,
                                size_t max_names, u32 index);

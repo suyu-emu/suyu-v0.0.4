@@ -200,7 +200,7 @@ Result StaticService::GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
 }
 
 Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(
-    Out<s64> out_time, Service::PSC::Time::SystemClockContext& context) {
+    Out<s64> out_time, const Service::PSC::Time::SystemClockContext& context) {
     SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. context={} out_time={}", context, *out_time); });
 
     R_RETURN(m_wrapped_service->CalculateMonotonicSystemClockBaseTimePoint(out_time, context));
@@ -216,8 +216,8 @@ Result StaticService::GetClockSnapshot(OutClockSnapshot out_snapshot,
 
 Result StaticService::GetClockSnapshotFromSystemClockContext(
     Service::PSC::Time::TimeType type, OutClockSnapshot out_snapshot,
-    Service::PSC::Time::SystemClockContext& user_context,
-    Service::PSC::Time::SystemClockContext& network_context) {
+    const Service::PSC::Time::SystemClockContext& user_context,
+    const Service::PSC::Time::SystemClockContext& network_context) {
     SCOPE_EXIT({
         LOG_DEBUG(Service_Time,
                   "called. type={} out_snapshot={} user_context={} network_context={}", type,
