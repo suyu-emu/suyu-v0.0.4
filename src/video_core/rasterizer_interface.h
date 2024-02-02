@@ -155,12 +155,6 @@ public:
     virtual void AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                           std::span<const u8> memory) = 0;
 
-    /// Attempt to use a faster method to display the framebuffer to screen
-    [[nodiscard]] virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                                 DAddr framebuffer_addr, u32 pixel_stride) {
-        return false;
-    }
-
     /// Initialize disk cached resources for the game being emulated
     virtual void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                                    const DiskResourceLoadCallback& callback) {}

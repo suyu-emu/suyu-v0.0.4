@@ -34,7 +34,6 @@ layout( push_constant ) uniform constants {
 };
 
 layout(set=0,binding=0) uniform sampler2D InputTexture;
-layout(set=0,binding=1,rgba16f) uniform image2D OutputTexture;
 
 #define A_GPU 1
 #define A_GLSL 1
@@ -72,44 +71,40 @@ layout(set=0,binding=1,rgba16f) uniform image2D OutputTexture;
 
 #include "ffx_fsr1.h"
 
-void CurrFilter(AU2 pos) {
-#if USE_BILINEAR
-    AF2 pp = (AF2(pos) * AF2_AU2(Const0.xy) + AF2_AU2(Const0.zw)) * AF2_AU2(Const1.xy) + AF2(0.5, -0.5) * AF2_AU2(Const1.zw);
-    imageStore(OutputTexture, ASU2(pos), textureLod(InputTexture, pp, 0.0));
+#if USE_RCAS
+    layout(location = 0) in vec2 frag_texcoord;
 #endif
+layout (location = 0) out vec4 frag_color;
+
+void CurrFilter(AU2 pos) {
 #if USE_EASU
     #ifndef YUZU_USE_FP16
         AF3 c;
         FsrEasuF(c, pos, Const0, Const1, Const2, Const3);
-        imageStore(OutputTexture, ASU2(pos), AF4(c, 1));
+        frag_color = AF4(c, 1.0);
     #else
         AH3 c;
         FsrEasuH(c, pos, Const0, Const1, Const2, Const3);
-        imageStore(OutputTexture, ASU2(pos), AH4(c, 1));
+        frag_color = AH4(c, 1.0);
     #endif
 #endif
 #if USE_RCAS
     #ifndef YUZU_USE_FP16
         AF3 c;
         FsrRcasF(c.r, c.g, c.b, pos, Const0);
-        imageStore(OutputTexture, ASU2(pos), AF4(c, 1));
+        frag_color = AF4(c, 1.0);
     #else
         AH3 c;
         FsrRcasH(c.r, c.g, c.b, pos, Const0);
-        imageStore(OutputTexture, ASU2(pos), AH4(c, 1));
+        frag_color = AH4(c, 1.0);
     #endif
 #endif
 }
 
-layout(local_size_x=64) in;
 void main() {
-    // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
-    AU2 gxy = ARmp8x8(gl_LocalInvocationID.x) + AU2(gl_WorkGroupID.x << 4u, gl_WorkGroupID.y << 4u);
-    CurrFilter(gxy);
-    gxy.x += 8u;
-    CurrFilter(gxy);
-    gxy.y += 8u;
-    CurrFilter(gxy);
-    gxy.x -= 8u;
-    CurrFilter(gxy);
+#if USE_RCAS
+    CurrFilter(AU2(frag_texcoord * vec2(textureSize(InputTexture, 0))));
+#else
+    CurrFilter(AU2(gl_FragCoord.xy));
+#endif
 }

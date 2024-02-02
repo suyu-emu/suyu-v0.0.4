@@ -1,29 +1,25 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-#include <list>
 
 #include "common/assert.h"
 #include "common/polyfill_ranges.h"
-
-#include "video_core/renderer_vulkan/vk_scheduler.h"
-#include "video_core/renderer_vulkan/vk_shader_util.h"
-#include "video_core/renderer_vulkan/vk_smaa.h"
-#include "video_core/smaa_area_tex.h"
-#include "video_core/smaa_search_tex.h"
-#include "video_core/vulkan_common/vulkan_device.h"
-
-#include "video_core/host_shaders/smaa_blending_weight_calculation_frag_spv.h"
-#include "video_core/host_shaders/smaa_blending_weight_calculation_vert_spv.h"
-#include "video_core/host_shaders/smaa_edge_detection_frag_spv.h"
-#include "video_core/host_shaders/smaa_edge_detection_vert_spv.h"
-#include "video_core/host_shaders/smaa_neighborhood_blending_frag_spv.h"
-#include "video_core/host_shaders/smaa_neighborhood_blending_vert_spv.h"
+#include "video_core/renderer_vulkan/present/util.h"
 
 namespace Vulkan {
-namespace {
 
-#define ARRAY_TO_SPAN(a) std::span(a, (sizeof(a) / sizeof(a[0])))
+vk::Buffer CreateWrappedBuffer(MemoryAllocator& allocator, VkDeviceSize size, MemoryUsage usage) {
+    const VkBufferCreateInfo dst_buffer_info{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = size,
+        .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    };
+    return allocator.CreateBuffer(dst_buffer_info, usage);
+}
 
 vk::Image CreateWrappedImage(MemoryAllocator& allocator, VkExtent2D dimensions, VkFormat format) {
     const VkImageCreateInfo image_ci{
@@ -48,7 +44,7 @@ vk::Image CreateWrappedImage(MemoryAllocator& allocator, VkExtent2D dimensions, 
 }
 
 void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayout target_layout,
-                           VkImageLayout source_layout = VK_IMAGE_LAYOUT_GENERAL) {
+                           VkImageLayout source_layout) {
     constexpr VkFlags flags{VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
                             VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT};
     const VkImageMemoryBarrier barrier{
@@ -75,7 +71,7 @@ void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayo
 
 void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& scheduler,
                  vk::Image& image, VkExtent2D dimensions, VkFormat format,
-                 std::span<const u8> initial_contents = {}) {
+                 std::span<const u8> initial_contents) {
     const VkBufferCreateInfo upload_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
@@ -114,6 +110,70 @@ void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& sc
     scheduler.Finish();
 }
 
+void DownloadColorImage(vk::CommandBuffer& cmdbuf, VkImage image, VkBuffer buffer,
+                        VkExtent3D extent) {
+    const VkImageMemoryBarrier read_barrier{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+        .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = VK_REMAINING_MIP_LEVELS,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        },
+    };
+    const VkImageMemoryBarrier image_write_barrier{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = 0,
+        .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = VK_REMAINING_MIP_LEVELS,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        },
+    };
+    static constexpr VkMemoryBarrier memory_write_barrier{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+        .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+    };
+    const VkBufferImageCopy copy{
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        },
+        .imageOffset{.x = 0, .y = 0, .z = 0},
+        .imageExtent{extent},
+    };
+    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+                           read_barrier);
+    cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, copy);
+    cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0,
+                           memory_write_barrier, nullptr, image_write_barrier);
+}
+
 vk::ImageView CreateWrappedImageView(const Device& device, vk::Image& image, VkFormat format) {
     return device.GetLogical().CreateImageView(VkImageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -131,16 +191,18 @@ vk::ImageView CreateWrappedImageView(const Device& device, vk::Image& image, VkF
     });
 }
 
-vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format) {
+vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format,
+                                       VkImageLayout initial_layout) {
     const VkAttachmentDescription attachment{
         .flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT,
         .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .loadOp = initial_layout == VK_IMAGE_LAYOUT_UNDEFINED ? VK_ATTACHMENT_LOAD_OP_DONT_CARE
+                                                              : VK_ATTACHMENT_LOAD_OP_LOAD,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .initialLayout = initial_layout,
         .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
 
@@ -200,13 +262,13 @@ vk::Framebuffer CreateWrappedFramebuffer(const Device& device, vk::RenderPass& r
     });
 }
 
-vk::Sampler CreateWrappedSampler(const Device& device) {
+vk::Sampler CreateWrappedSampler(const Device& device, VkFilter filter) {
     return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
+        .magFilter = filter,
+        .minFilter = filter,
         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
         .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
@@ -233,30 +295,34 @@ vk::ShaderModule CreateWrappedShaderModule(const Device& device, std::span<const
     });
 }
 
-vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, u32 max_descriptors,
-                                               u32 max_sets) {
-    const VkDescriptorPoolSize pool_size{
-        .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .descriptorCount = static_cast<u32>(max_descriptors),
-    };
+vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, size_t max_descriptors,
+                                               size_t max_sets,
+                                               std::initializer_list<VkDescriptorType> types) {
+    std::vector<VkDescriptorPoolSize> pool_sizes(types.size());
+    for (u32 i = 0; i < types.size(); i++) {
+        pool_sizes[i] = VkDescriptorPoolSize{
+            .type = std::data(types)[i],
+            .descriptorCount = static_cast<u32>(max_descriptors),
+        };
+    }
 
     return device.GetLogical().CreateDescriptorPool(VkDescriptorPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .maxSets = max_sets,
-        .poolSizeCount = 1,
-        .pPoolSizes = &pool_size,
+        .maxSets = static_cast<u32>(max_sets),
+        .poolSizeCount = static_cast<u32>(pool_sizes.size()),
+        .pPoolSizes = pool_sizes.data(),
     });
 }
 
-vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(const Device& device,
-                                                         u32 max_sampler_bindings) {
-    std::vector<VkDescriptorSetLayoutBinding> bindings(max_sampler_bindings);
-    for (u32 i = 0; i < max_sampler_bindings; i++) {
+vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
+    const Device& device, std::initializer_list<VkDescriptorType> types) {
+    std::vector<VkDescriptorSetLayoutBinding> bindings(types.size());
+    for (size_t i = 0; i < types.size(); i++) {
         bindings[i] = {
-            .binding = i,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .binding = static_cast<u32>(i),
+            .descriptorType = std::data(types)[i],
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             .pImmutableSamplers = nullptr,
@@ -298,7 +364,8 @@ vk::PipelineLayout CreateWrappedPipelineLayout(const Device& device,
 
 vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderpass,
                                    vk::PipelineLayout& layout,
-                                   std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders) {
+                                   std::tuple<vk::ShaderModule&, vk::ShaderModule&> shaders,
+                                   bool enable_blending) {
     const std::array<VkPipelineShaderStageCreateInfo, 2> shader_stages{{
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -376,12 +443,24 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .alphaToOneEnable = VK_FALSE,
     };
 
-    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment{
+    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment_disabled{
         .blendEnable = VK_FALSE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
         .colorBlendOp = VK_BLEND_OP_ADD,
         .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment_enabled{
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
         .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
         .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -395,7 +474,8 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_COPY,
         .attachmentCount = 1,
-        .pAttachments = &color_blend_attachment,
+        .pAttachments =
+            enable_blending ? &color_blend_attachment_enabled : &color_blend_attachment_disabled,
         .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
     };
 
@@ -459,6 +539,56 @@ VkWriteDescriptorSet CreateWriteDescriptorSet(std::vector<VkDescriptorImageInfo>
     };
 }
 
+vk::Sampler CreateBilinearSampler(const Device& device) {
+    const VkSamplerCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .magFilter = VK_FILTER_LINEAR,
+        .minFilter = VK_FILTER_LINEAR,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .mipLodBias = 0.0f,
+        .anisotropyEnable = VK_FALSE,
+        .maxAnisotropy = 0.0f,
+        .compareEnable = VK_FALSE,
+        .compareOp = VK_COMPARE_OP_NEVER,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
+
+    return device.GetLogical().CreateSampler(ci);
+}
+
+vk::Sampler CreateNearestNeighborSampler(const Device& device) {
+    const VkSamplerCreateInfo ci_nn{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .magFilter = VK_FILTER_NEAREST,
+        .minFilter = VK_FILTER_NEAREST,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .mipLodBias = 0.0f,
+        .anisotropyEnable = VK_FALSE,
+        .maxAnisotropy = 0.0f,
+        .compareEnable = VK_FALSE,
+        .compareOp = VK_COMPARE_OP_NEVER,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
+
+    return device.GetLogical().CreateSampler(ci_nn);
+}
+
 void ClearColorImage(vk::CommandBuffer& cmdbuf, VkImage image) {
     static constexpr std::array<VkImageSubresourceRange, 1> subresources{{{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -471,12 +601,12 @@ void ClearColorImage(vk::CommandBuffer& cmdbuf, VkImage image) {
     cmdbuf.ClearColorImage(image, VK_IMAGE_LAYOUT_GENERAL, {}, subresources);
 }
 
-void BeginRenderPass(vk::CommandBuffer& cmdbuf, vk::RenderPass& render_pass,
-                     VkFramebuffer framebuffer, VkExtent2D extent) {
+void BeginRenderPass(vk::CommandBuffer& cmdbuf, VkRenderPass render_pass, VkFramebuffer framebuffer,
+                     VkExtent2D extent) {
     const VkRenderPassBeginInfo renderpass_bi{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
-        .renderPass = *render_pass,
+        .renderPass = render_pass,
         .framebuffer = framebuffer,
         .renderArea{
             .offset{},
@@ -501,250 +631,6 @@ void BeginRenderPass(vk::CommandBuffer& cmdbuf, vk::RenderPass& render_pass,
     };
     cmdbuf.SetViewport(0, viewport);
     cmdbuf.SetScissor(0, scissor);
-}
-
-} // Anonymous namespace
-
-SMAA::SMAA(const Device& device, MemoryAllocator& allocator, size_t image_count, VkExtent2D extent)
-    : m_device(device), m_allocator(allocator), m_extent(extent),
-      m_image_count(static_cast<u32>(image_count)) {
-    CreateImages();
-    CreateRenderPasses();
-    CreateSampler();
-    CreateShaders();
-    CreateDescriptorPool();
-    CreateDescriptorSetLayouts();
-    CreateDescriptorSets();
-    CreatePipelineLayouts();
-    CreatePipelines();
-}
-
-void SMAA::CreateImages() {
-    static constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
-    static constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
-
-    m_static_images[Area] = CreateWrappedImage(m_allocator, area_extent, VK_FORMAT_R8G8_UNORM);
-    m_static_images[Search] = CreateWrappedImage(m_allocator, search_extent, VK_FORMAT_R8_UNORM);
-
-    m_static_image_views[Area] =
-        CreateWrappedImageView(m_device, m_static_images[Area], VK_FORMAT_R8G8_UNORM);
-    m_static_image_views[Search] =
-        CreateWrappedImageView(m_device, m_static_images[Search], VK_FORMAT_R8_UNORM);
-
-    for (u32 i = 0; i < m_image_count; i++) {
-        Images& images = m_dynamic_images.emplace_back();
-
-        images.images[Blend] =
-            CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.images[Edges] = CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16_SFLOAT);
-        images.images[Output] =
-            CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-
-        images.image_views[Blend] =
-            CreateWrappedImageView(m_device, images.images[Blend], VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_views[Edges] =
-            CreateWrappedImageView(m_device, images.images[Edges], VK_FORMAT_R16G16_SFLOAT);
-        images.image_views[Output] =
-            CreateWrappedImageView(m_device, images.images[Output], VK_FORMAT_R16G16B16A16_SFLOAT);
-    }
-}
-
-void SMAA::CreateRenderPasses() {
-    m_renderpasses[EdgeDetection] = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16_SFLOAT);
-    m_renderpasses[BlendingWeightCalculation] =
-        CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
-    m_renderpasses[NeighborhoodBlending] =
-        CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
-
-    for (auto& images : m_dynamic_images) {
-        images.framebuffers[EdgeDetection] = CreateWrappedFramebuffer(
-            m_device, m_renderpasses[EdgeDetection], images.image_views[Edges], m_extent);
-
-        images.framebuffers[BlendingWeightCalculation] =
-            CreateWrappedFramebuffer(m_device, m_renderpasses[BlendingWeightCalculation],
-                                     images.image_views[Blend], m_extent);
-
-        images.framebuffers[NeighborhoodBlending] = CreateWrappedFramebuffer(
-            m_device, m_renderpasses[NeighborhoodBlending], images.image_views[Output], m_extent);
-    }
-}
-
-void SMAA::CreateSampler() {
-    m_sampler = CreateWrappedSampler(m_device);
-}
-
-void SMAA::CreateShaders() {
-    // These match the order of the SMAAStage enum
-    static constexpr std::array vert_shader_sources{
-        ARRAY_TO_SPAN(SMAA_EDGE_DETECTION_VERT_SPV),
-        ARRAY_TO_SPAN(SMAA_BLENDING_WEIGHT_CALCULATION_VERT_SPV),
-        ARRAY_TO_SPAN(SMAA_NEIGHBORHOOD_BLENDING_VERT_SPV),
-    };
-    static constexpr std::array frag_shader_sources{
-        ARRAY_TO_SPAN(SMAA_EDGE_DETECTION_FRAG_SPV),
-        ARRAY_TO_SPAN(SMAA_BLENDING_WEIGHT_CALCULATION_FRAG_SPV),
-        ARRAY_TO_SPAN(SMAA_NEIGHBORHOOD_BLENDING_FRAG_SPV),
-    };
-
-    for (size_t i = 0; i < MaxSMAAStage; i++) {
-        m_vertex_shaders[i] = CreateWrappedShaderModule(m_device, vert_shader_sources[i]);
-        m_fragment_shaders[i] = CreateWrappedShaderModule(m_device, frag_shader_sources[i]);
-    }
-}
-
-void SMAA::CreateDescriptorPool() {
-    // Edge detection: 1 descriptor
-    // Blending weight calculation: 3 descriptors
-    // Neighborhood blending: 2 descriptors
-
-    // 6 descriptors, 3 descriptor sets per image
-    m_descriptor_pool = CreateWrappedDescriptorPool(m_device, 6 * m_image_count, 3 * m_image_count);
-}
-
-void SMAA::CreateDescriptorSetLayouts() {
-    m_descriptor_set_layouts[EdgeDetection] = CreateWrappedDescriptorSetLayout(m_device, 1);
-    m_descriptor_set_layouts[BlendingWeightCalculation] =
-        CreateWrappedDescriptorSetLayout(m_device, 3);
-    m_descriptor_set_layouts[NeighborhoodBlending] = CreateWrappedDescriptorSetLayout(m_device, 2);
-}
-
-void SMAA::CreateDescriptorSets() {
-    std::vector<VkDescriptorSetLayout> layouts(m_descriptor_set_layouts.size());
-    std::ranges::transform(m_descriptor_set_layouts, layouts.begin(),
-                           [](auto& layout) { return *layout; });
-
-    for (auto& images : m_dynamic_images) {
-        images.descriptor_sets = CreateWrappedDescriptorSets(m_descriptor_pool, layouts);
-    }
-}
-
-void SMAA::CreatePipelineLayouts() {
-    for (size_t i = 0; i < MaxSMAAStage; i++) {
-        m_pipeline_layouts[i] = CreateWrappedPipelineLayout(m_device, m_descriptor_set_layouts[i]);
-    }
-}
-
-void SMAA::CreatePipelines() {
-    for (size_t i = 0; i < MaxSMAAStage; i++) {
-        m_pipelines[i] =
-            CreateWrappedPipeline(m_device, m_renderpasses[i], m_pipeline_layouts[i],
-                                  std::tie(m_vertex_shaders[i], m_fragment_shaders[i]));
-    }
-}
-
-void SMAA::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
-    Images& images = m_dynamic_images[image_index];
-    std::vector<VkDescriptorImageInfo> image_infos;
-    std::vector<VkWriteDescriptorSet> updates;
-    image_infos.reserve(6);
-
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view,
-                                               images.descriptor_sets[EdgeDetection], 0));
-
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[Edges],
-                                               images.descriptor_sets[BlendingWeightCalculation],
-                                               0));
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, *m_static_image_views[Area],
-                                               images.descriptor_sets[BlendingWeightCalculation],
-                                               1));
-    updates.push_back(
-        CreateWriteDescriptorSet(image_infos, *m_sampler, *m_static_image_views[Search],
-                                 images.descriptor_sets[BlendingWeightCalculation], 2));
-
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view,
-                                               images.descriptor_sets[NeighborhoodBlending], 0));
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[Blend],
-                                               images.descriptor_sets[NeighborhoodBlending], 1));
-
-    m_device.GetLogical().UpdateDescriptorSets(updates, {});
-}
-
-void SMAA::UploadImages(Scheduler& scheduler) {
-    if (m_images_ready) {
-        return;
-    }
-
-    static constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
-    static constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
-
-    UploadImage(m_device, m_allocator, scheduler, m_static_images[Area], area_extent,
-                VK_FORMAT_R8G8_UNORM, ARRAY_TO_SPAN(areaTexBytes));
-    UploadImage(m_device, m_allocator, scheduler, m_static_images[Search], search_extent,
-                VK_FORMAT_R8_UNORM, ARRAY_TO_SPAN(searchTexBytes));
-
-    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-        for (auto& images : m_dynamic_images) {
-            for (size_t i = 0; i < MaxDynamicImage; i++) {
-                ClearColorImage(cmdbuf, *images.images[i]);
-            }
-        }
-    });
-    scheduler.Finish();
-
-    m_images_ready = true;
-}
-
-VkImageView SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                       VkImageView source_image_view) {
-    Images& images = m_dynamic_images[image_index];
-
-    VkImage output_image = *images.images[Output];
-    VkImage edges_image = *images.images[Edges];
-    VkImage blend_image = *images.images[Blend];
-
-    VkDescriptorSet edge_detection_descriptor_set = images.descriptor_sets[EdgeDetection];
-    VkDescriptorSet blending_weight_calculation_descriptor_set =
-        images.descriptor_sets[BlendingWeightCalculation];
-    VkDescriptorSet neighborhood_blending_descriptor_set =
-        images.descriptor_sets[NeighborhoodBlending];
-
-    VkFramebuffer edge_detection_framebuffer = *images.framebuffers[EdgeDetection];
-    VkFramebuffer blending_weight_calculation_framebuffer =
-        *images.framebuffers[BlendingWeightCalculation];
-    VkFramebuffer neighborhood_blending_framebuffer = *images.framebuffers[NeighborhoodBlending];
-
-    UploadImages(scheduler);
-    UpdateDescriptorSets(source_image_view, image_index);
-
-    scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {
-        TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
-        TransitionImageLayout(cmdbuf, edges_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, m_renderpasses[EdgeDetection], edge_detection_framebuffer,
-                        m_extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_pipelines[EdgeDetection]);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                  *m_pipeline_layouts[EdgeDetection], 0,
-                                  edge_detection_descriptor_set, {});
-        cmdbuf.Draw(3, 1, 0, 0);
-        cmdbuf.EndRenderPass();
-
-        TransitionImageLayout(cmdbuf, edges_image, VK_IMAGE_LAYOUT_GENERAL);
-        TransitionImageLayout(cmdbuf, blend_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, m_renderpasses[BlendingWeightCalculation],
-                        blending_weight_calculation_framebuffer, m_extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            *m_pipelines[BlendingWeightCalculation]);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                  *m_pipeline_layouts[BlendingWeightCalculation], 0,
-                                  blending_weight_calculation_descriptor_set, {});
-        cmdbuf.Draw(3, 1, 0, 0);
-        cmdbuf.EndRenderPass();
-
-        TransitionImageLayout(cmdbuf, blend_image, VK_IMAGE_LAYOUT_GENERAL);
-        TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, m_renderpasses[NeighborhoodBlending],
-                        neighborhood_blending_framebuffer, m_extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_pipelines[NeighborhoodBlending]);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                  *m_pipeline_layouts[NeighborhoodBlending], 0,
-                                  neighborhood_blending_descriptor_set, {});
-        cmdbuf.Draw(3, 1, 0, 0);
-        cmdbuf.EndRenderPass();
-        TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
-    });
-
-    return *images.image_views[Output];
 }
 
 } // namespace Vulkan

@@ -7,21 +7,11 @@
 
 #version 460 core
 
-#ifdef VULKAN
-
-#define BINDING_COLOR_TEXTURE 1
-
-#else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
-
-#define BINDING_COLOR_TEXTURE 0
-
-#endif
-
 layout(location = 0) in vec2 frag_tex_coord;
 
 layout(location = 0) out vec4 color;
 
-layout(binding = BINDING_COLOR_TEXTURE) uniform sampler2D color_texture;
+layout(binding = 0) uniform sampler2D color_texture;
 
 const float offset[3] = float[](0.0, 1.3846153846, 3.2307692308);
 const float weight[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);

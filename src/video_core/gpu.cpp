@@ -274,11 +274,6 @@ struct GPU::Impl {
         }
     }
 
-    /// Swap buffers (render frame)
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-        gpu_thread.SwapBuffers(framebuffer);
-    }
-
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     void FlushRegion(DAddr addr, u64 size) {
         gpu_thread.FlushRegion(addr, size);
@@ -313,8 +308,9 @@ struct GPU::Impl {
         gpu_thread.FlushAndInvalidateRegion(addr, size);
     }
 
-    void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
-                            std::array<Service::Nvidia::NvFence, 4>& fences, size_t num_fences) {
+    void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
+                          std::vector<Service::Nvidia::NvFence>&& fences) {
+        size_t num_fences{fences.size()};
         size_t current_request_counter{};
         {
             std::unique_lock<std::mutex> lk(request_swap_mutex);
@@ -328,13 +324,12 @@ struct GPU::Impl {
             }
         }
         const auto wait_fence =
-            RequestSyncOperation([this, current_request_counter, framebuffer, fences, num_fences] {
+            RequestSyncOperation([this, current_request_counter, &layers, &fences, num_fences] {
                 auto& syncpoint_manager = host1x.GetSyncpointManager();
                 if (num_fences == 0) {
-                    renderer->SwapBuffers(framebuffer);
+                    renderer->Composite(layers);
                 }
-                const auto executer = [this, current_request_counter,
-                                       framebuffer_copy = *framebuffer]() {
+                const auto executer = [this, current_request_counter, layers_copy = layers]() {
                     {
                         std::unique_lock<std::mutex> lk(request_swap_mutex);
                         if (--request_swap_counters[current_request_counter] != 0) {
@@ -342,7 +337,7 @@ struct GPU::Impl {
                         }
                         free_swap_counters.push_back(current_request_counter);
                     }
-                    renderer->SwapBuffers(&framebuffer_copy);
+                    renderer->Composite(layers_copy);
                 };
                 for (size_t i = 0; i < num_fences; i++) {
                     syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
@@ -505,9 +500,9 @@ const VideoCore::ShaderNotify& GPU::ShaderNotify() const {
     return impl->ShaderNotify();
 }
 
-void GPU::RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
-                             std::array<Service::Nvidia::NvFence, 4>& fences, size_t num_fences) {
-    impl->RequestSwapBuffers(framebuffer, fences, num_fences);
+void GPU::RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
+                           std::vector<Service::Nvidia::NvFence>&& fences) {
+    impl->RequestComposite(std::move(layers), std::move(fences));
 }
 
 u64 GPU::GetTicks() const {
@@ -552,10 +547,6 @@ void GPU::PushCommandBuffer(u32 id, Tegra::ChCommandHeaderList& entries) {
 
 void GPU::ClearCdmaInstance(u32 id) {
     impl->ClearCdmaInstance(id);
-}
-
-void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    impl->SwapBuffers(framebuffer);
 }
 
 VideoCore::RasterizerDownloadArea GPU::OnCPURead(PAddr addr, u64 size) {

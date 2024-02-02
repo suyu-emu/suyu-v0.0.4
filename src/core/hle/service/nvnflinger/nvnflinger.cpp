@@ -18,6 +18,7 @@
 #include "core/hle/service/nvnflinger/buffer_item_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
+#include "core/hle/service/nvnflinger/hardware_composer.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
@@ -279,45 +280,19 @@ void Nvnflinger::Compose() {
         SCOPE_EXIT({ display.SignalVSyncEvent(); });
 
         // Don't do anything for displays without layers.
-        if (!display.HasLayers())
-            continue;
-
-        // TODO(Subv): Support more than 1 layer.
-        VI::Layer& layer = display.GetLayer(0);
-
-        android::BufferItem buffer{};
-        const auto status = layer.GetConsumer().AcquireBuffer(&buffer, {}, false);
-
-        if (status != android::Status::NoError) {
+        if (!display.HasLayers()) {
             continue;
         }
-
-        const auto& igbp_buffer = *buffer.graphic_buffer;
 
         if (!system.IsPoweredOn()) {
             return; // We are likely shutting down
         }
 
-        // Now send the buffer to the GPU for drawing.
-        // TODO(Subv): Support more than just disp0. The display device selection is probably based
-        // on which display we're drawing (Default, Internal, External, etc)
         auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>(disp_fd);
         ASSERT(nvdisp);
 
-        Common::Rectangle<int> crop_rect{
-            static_cast<int>(buffer.crop.Left()), static_cast<int>(buffer.crop.Top()),
-            static_cast<int>(buffer.crop.Right()), static_cast<int>(buffer.crop.Bottom())};
-
-        nvdisp->flip(igbp_buffer.BufferId(), igbp_buffer.Offset(), igbp_buffer.ExternalFormat(),
-                     igbp_buffer.Width(), igbp_buffer.Height(), igbp_buffer.Stride(),
-                     static_cast<android::BufferTransformFlags>(buffer.transform), crop_rect,
-                     buffer.fence.fences, buffer.fence.num_fences);
-
-        MicroProfileFlip();
-
-        swap_interval = buffer.swap_interval;
-
-        layer.GetConsumer().ReleaseBuffer(buffer, android::Fence::NoFence());
+        swap_interval = display.GetComposer().ComposeLocked(&compose_speed_scale, display, *nvdisp,
+                                                            swap_interval);
     }
 }
 
@@ -334,15 +309,16 @@ s64 Nvnflinger::GetNextTicks() const {
             speed_scale = 0.01f;
         }
     }
+
+    // Adjust by speed limit determined during composition.
+    speed_scale /= compose_speed_scale;
+
     if (system.GetNVDECActive() && settings.use_video_framerate.GetValue()) {
         // Run at intended presentation rate during video playback.
         speed_scale = 1.f;
     }
 
-    // As an extension, treat nonpositive swap interval as framerate multiplier.
-    const f32 effective_fps = swap_interval <= 0 ? 120.f * static_cast<f32>(1 - swap_interval)
-                                                 : 60.f / static_cast<f32>(swap_interval);
-
+    const f32 effective_fps = 60.f / static_cast<f32>(swap_interval);
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
 }
 

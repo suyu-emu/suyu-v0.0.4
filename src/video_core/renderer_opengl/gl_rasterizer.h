@@ -16,6 +16,7 @@
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/blit_image.h"
+#include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_fence_manager.h"
@@ -37,7 +38,7 @@ class MemoryManager;
 
 namespace OpenGL {
 
-struct ScreenInfo;
+struct FramebufferTextureInfo;
 struct ShaderEntries;
 
 struct BindlessSSBO {
@@ -76,8 +77,8 @@ class RasterizerOpenGL : public VideoCore::RasterizerInterface,
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                              const Device& device_, ScreenInfo& screen_info_,
-                              ProgramManager& program_manager_, StateTracker& state_tracker_);
+                              const Device& device_, ProgramManager& program_manager_,
+                              StateTracker& state_tracker_);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
@@ -122,8 +123,6 @@ public:
     Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() override;
     void AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                   std::span<const u8> memory) override;
-    bool AccelerateDisplay(const Tegra::FramebufferConfig& config, DAddr framebuffer_addr,
-                           u32 pixel_stride) override;
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
 
@@ -143,6 +142,10 @@ public:
     bool HasDrawTransformFeedback() override {
         return true;
     }
+
+    std::optional<FramebufferTextureInfo> AccelerateDisplay(const Tegra::FramebufferConfig& config,
+                                                            VAddr framebuffer_addr,
+                                                            u32 pixel_stride);
 
 private:
     static constexpr size_t MAX_TEXTURES = 192;
@@ -237,7 +240,6 @@ private:
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     const Device& device;
-    ScreenInfo& screen_info;
     ProgramManager& program_manager;
     StateTracker& state_tracker;
 
