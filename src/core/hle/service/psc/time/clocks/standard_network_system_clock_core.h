@@ -19,7 +19,7 @@ public:
         : SystemClockCore{steady_clock} {}
     ~StandardNetworkSystemClockCore() override = default;
 
-    void Initialize(SystemClockContext& context, s64 accuracy);
+    void Initialize(const SystemClockContext& context, s64 accuracy);
     bool IsAccuracySufficient();
 
 private:

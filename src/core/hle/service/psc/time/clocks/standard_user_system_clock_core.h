@@ -36,7 +36,7 @@ public:
     Result SetAutomaticCorrection(bool automatic_correction);
 
     Result GetContext(SystemClockContext& out_context) const override;
-    Result SetContext(SystemClockContext& context) override;
+    Result SetContext(const SystemClockContext& context) override;
 
     Result GetTimePoint(SteadyClockTimePoint& out_time_point);
     void SetTimePointAndSignal(SteadyClockTimePoint& time_point);

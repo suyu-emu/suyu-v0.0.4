@@ -5,7 +5,7 @@
 
 namespace Service::PSC::Time {
 
-void StandardNetworkSystemClockCore::Initialize(SystemClockContext& context, s64 accuracy) {
+void StandardNetworkSystemClockCore::Initialize(const SystemClockContext& context, s64 accuracy) {
     if (SetContextAndWrite(context) != ResultSuccess) {
         LOG_ERROR(Service_Time, "Failed to SetContext");
     }

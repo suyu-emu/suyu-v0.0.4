@@ -55,18 +55,19 @@ public:
     Result GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
         Out<SteadyClockTimePoint> out_time_point);
     Result CalculateMonotonicSystemClockBaseTimePoint(Out<s64> out_time,
-                                                      SystemClockContext& context);
+                                                      const SystemClockContext& context);
     Result GetClockSnapshot(OutClockSnapshot out_snapshot, TimeType type);
     Result GetClockSnapshotFromSystemClockContext(TimeType type, OutClockSnapshot out_snapshot,
-                                                  SystemClockContext& user_context,
-                                                  SystemClockContext& network_context);
+                                                  const SystemClockContext& user_context,
+                                                  const SystemClockContext& network_context);
     Result CalculateStandardUserSystemClockDifferenceByUser(Out<s64> out_difference,
                                                             InClockSnapshot a, InClockSnapshot b);
     Result CalculateSpanBetween(Out<s64> out_time, InClockSnapshot a, InClockSnapshot b);
 
 private:
-    Result GetClockSnapshotImpl(OutClockSnapshot out_snapshot, SystemClockContext& user_context,
-                                SystemClockContext& network_context, TimeType type);
+    Result GetClockSnapshotImpl(OutClockSnapshot out_snapshot,
+                                const SystemClockContext& user_context,
+                                const SystemClockContext& network_context, TimeType type);
 
     Core::System& m_system;
     StaticServiceSetupInfo m_setup_info;

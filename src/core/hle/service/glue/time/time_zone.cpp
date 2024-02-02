@@ -62,7 +62,8 @@ Result TimeZoneService::GetDeviceLocationName(
     R_RETURN(m_wrapped_service->GetDeviceLocationName(out_location_name));
 }
 
-Result TimeZoneService::SetDeviceLocationName(Service::PSC::Time::LocationName& location_name) {
+Result TimeZoneService::SetDeviceLocationName(
+    const Service::PSC::Time::LocationName& location_name) {
     LOG_DEBUG(Service_Time, "called. location_name={}", location_name);
 
     R_UNLESS(m_can_write_timezone_device_location, Service::PSC::Time::ResultPermissionDenied);
@@ -110,7 +111,8 @@ Result TimeZoneService::LoadLocationNameList(
     R_RETURN(GetTimeZoneLocationList(*out_count, out_names, out_names.size(), index));
 }
 
-Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule, Service::PSC::Time::LocationName& name) {
+Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule,
+                                         const Service::PSC::Time::LocationName& name) {
     LOG_DEBUG(Service_Time, "called. name={}", name);
 
     std::scoped_lock l{m_mutex};
@@ -139,7 +141,8 @@ Result TimeZoneService::GetDeviceLocationNameAndUpdatedTime(
 }
 
 Result TimeZoneService::SetDeviceLocationNameWithTimeZoneRule(
-    Service::PSC::Time::LocationName& location_name, InBuffer<BufferAttr_HipcAutoSelect> binary) {
+    const Service::PSC::Time::LocationName& location_name,
+    InBuffer<BufferAttr_HipcAutoSelect> binary) {
     LOG_DEBUG(Service_Time, "called. location_name={}", location_name);
 
     R_UNLESS(m_can_write_timezone_device_location, Service::PSC::Time::ResultPermissionDenied);

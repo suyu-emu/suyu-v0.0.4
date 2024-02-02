@@ -51,11 +51,11 @@ SharedMemory::SharedMemory(Core::System& system)
     std::memset(m_shared_memory_ptr, 0, sizeof(*m_shared_memory_ptr));
 }
 
-void SharedMemory::SetLocalSystemContext(SystemClockContext& context) {
+void SharedMemory::SetLocalSystemContext(const SystemClockContext& context) {
     WriteToLockFreeAtomicType(&m_shared_memory_ptr->local_system_clock_contexts, context);
 }
 
-void SharedMemory::SetNetworkSystemContext(SystemClockContext& context) {
+void SharedMemory::SetNetworkSystemContext(const SystemClockContext& context) {
     WriteToLockFreeAtomicType(&m_shared_memory_ptr->network_system_clock_contexts, context);
 }
 
@@ -64,7 +64,7 @@ void SharedMemory::SetSteadyClockTimePoint(ClockSourceId clock_source_id, s64 ti
                               {time_point, clock_source_id});
 }
 
-void SharedMemory::SetContinuousAdjustment(ContinuousAdjustmentTimePoint& time_point) {
+void SharedMemory::SetContinuousAdjustment(const ContinuousAdjustmentTimePoint& time_point) {
     WriteToLockFreeAtomicType(&m_shared_memory_ptr->continuous_adjustment_time_points, time_point);
 }
 

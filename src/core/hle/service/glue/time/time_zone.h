@@ -46,18 +46,20 @@ public:
     ~TimeZoneService() override;
 
     Result GetDeviceLocationName(Out<Service::PSC::Time::LocationName> out_location_name);
-    Result SetDeviceLocationName(Service::PSC::Time::LocationName& location_name);
+    Result SetDeviceLocationName(const Service::PSC::Time::LocationName& location_name);
     Result GetTotalLocationNameCount(Out<u32> out_count);
     Result LoadLocationNameList(
         Out<u32> out_count,
         OutArray<Service::PSC::Time::LocationName, BufferAttr_HipcMapAlias> out_names, u32 index);
-    Result LoadTimeZoneRule(OutRule out_rule, Service::PSC::Time::LocationName& location_name);
+    Result LoadTimeZoneRule(OutRule out_rule,
+                            const Service::PSC::Time::LocationName& location_name);
     Result GetTimeZoneRuleVersion(Out<Service::PSC::Time::RuleVersion> out_rule_version);
     Result GetDeviceLocationNameAndUpdatedTime(
         Out<Service::PSC::Time::LocationName> location_name,
         Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point);
-    Result SetDeviceLocationNameWithTimeZoneRule(Service::PSC::Time::LocationName& location_name,
-                                                 InBuffer<BufferAttr_HipcAutoSelect> binary);
+    Result SetDeviceLocationNameWithTimeZoneRule(
+        const Service::PSC::Time::LocationName& location_name,
+        InBuffer<BufferAttr_HipcAutoSelect> binary);
     Result ParseTimeZoneBinary(OutRule out_rule, InBuffer<BufferAttr_HipcAutoSelect> binary);
     Result GetDeviceLocationNameOperationEventReadableHandle(
         OutCopyHandle<Kernel::KReadableEvent> out_event);

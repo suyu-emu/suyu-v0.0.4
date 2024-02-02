@@ -42,7 +42,7 @@ Result TimeZoneService::GetDeviceLocationName(Out<LocationName> out_location_nam
     R_RETURN(m_time_zone.GetLocationName(*out_location_name));
 }
 
-Result TimeZoneService::SetDeviceLocationName(LocationName& location_name) {
+Result TimeZoneService::SetDeviceLocationName(const LocationName& location_name) {
     LOG_DEBUG(Service_Time, "called. This function is not implemented!");
 
     R_UNLESS(m_can_write_timezone_device_location, ResultPermissionDenied);
@@ -62,7 +62,7 @@ Result TimeZoneService::LoadLocationNameList(
     R_RETURN(ResultNotImplemented);
 }
 
-Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule, LocationName& location_name) {
+Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule, const LocationName& location_name) {
     LOG_DEBUG(Service_Time, "called. This function is not implemented!");
 
     R_RETURN(ResultNotImplemented);
@@ -86,7 +86,7 @@ Result TimeZoneService::GetDeviceLocationNameAndUpdatedTime(
 }
 
 Result TimeZoneService::SetDeviceLocationNameWithTimeZoneRule(
-    LocationName& location_name, InBuffer<BufferAttr_HipcAutoSelect> binary) {
+    const LocationName& location_name, InBuffer<BufferAttr_HipcAutoSelect> binary) {
     LOG_DEBUG(Service_Time, "called. location_name={}", location_name);
 
     R_UNLESS(m_can_write_timezone_device_location, ResultPermissionDenied);
