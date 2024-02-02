@@ -868,6 +868,8 @@ std::string Device::GetDriverName() const {
         return "Qualcomm";
     case VK_DRIVER_ID_ARM_PROPRIETARY:
         return "Mali";
+    case VK_DRIVER_ID_SAMSUNG_PROPRIETARY:
+        return "Xclipse";
     case VK_DRIVER_ID_GOOGLE_SWIFTSHADER:
         return "SwiftShader";
     case VK_DRIVER_ID_BROADCOM_PROPRIETARY:
