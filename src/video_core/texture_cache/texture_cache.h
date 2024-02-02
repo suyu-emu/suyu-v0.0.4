@@ -713,12 +713,12 @@ bool TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
 }
 
 template <class P>
-typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(
+std::pair<typename P::ImageView*, bool> TextureCache<P>::TryFindFramebufferImageView(
     const Tegra::FramebufferConfig& config, DAddr cpu_addr) {
     // TODO: Properly implement this
     const auto it = page_table.find(cpu_addr >> YUZU_PAGEBITS);
     if (it == page_table.end()) {
-        return nullptr;
+        return {};
     }
     const auto& image_map_ids = it->second;
     boost::container::small_vector<ImageId, 4> valid_image_ids;
@@ -747,7 +747,8 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(
 
     const auto GetImageViewForFramebuffer = [&](ImageId image_id) {
         const ImageViewInfo info{ImageViewType::e2D, view_format};
-        return &slot_image_views[FindOrEmplaceImageView(image_id, info)];
+        return std::make_pair(&slot_image_views[FindOrEmplaceImageView(image_id, info)],
+                              slot_images[image_id].IsRescaled());
     };
 
     if (valid_image_ids.size() == 1) [[likely]] {
@@ -761,7 +762,7 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(
         return GetImageViewForFramebuffer(*most_recent);
     }
 
-    return nullptr;
+    return {};
 }
 
 template <class P>

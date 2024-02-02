@@ -212,8 +212,8 @@ public:
 
     void RendererFrameEndNotify();
 
-    void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
-                            std::array<Service::Nvidia::NvFence, 4>& fences, size_t num_fences);
+    void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
+                          std::vector<Service::Nvidia::NvFence>&& fences);
 
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary

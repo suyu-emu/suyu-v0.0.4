@@ -6,4 +6,4 @@
 
 #define USE_EASU 1
 
-#include "fidelityfx_fsr.comp"
+#include "fidelityfx_fsr.frag"

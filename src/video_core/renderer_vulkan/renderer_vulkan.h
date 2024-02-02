@@ -46,7 +46,7 @@ public:
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererVulkan() override;
 
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
+    void Composite(std::span<const Tegra::FramebufferConfig> framebuffers) override;
 
     VideoCore::RasterizerInterface* ReadRasterizer() override {
         return &rasterizer;
@@ -59,7 +59,7 @@ public:
 private:
     void Report() const;
 
-    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer, bool use_accelerated);
+    void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);
 
     Core::TelemetrySession& telemetry_session;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
@@ -72,15 +72,14 @@ private:
     vk::DebugUtilsMessenger debug_messenger;
     vk::SurfaceKHR surface;
 
-    ScreenInfo screen_info;
-
     Device device;
     MemoryAllocator memory_allocator;
     StateTracker state_tracker;
     Scheduler scheduler;
     Swapchain swapchain;
     PresentManager present_manager;
-    BlitScreen blit_screen;
+    BlitScreen blit_swapchain;
+    BlitScreen blit_screenshot;
     RasterizerVulkan rasterizer;
     std::optional<TurboMode> turbo_mode;
 };

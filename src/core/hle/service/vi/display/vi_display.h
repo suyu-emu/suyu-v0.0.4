@@ -11,9 +11,14 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class KEvent;
-}
+class KReadableEvent;
+} // namespace Kernel
 
 namespace Service::android {
 class BufferQueueProducer;
@@ -24,8 +29,9 @@ class ServiceContext;
 }
 
 namespace Service::Nvnflinger {
+class HardwareComposer;
 class HosBinderDriverServer;
-}
+} // namespace Service::Nvnflinger
 
 namespace Service::Nvidia::NvCore {
 class Container;
@@ -118,6 +124,10 @@ public:
     ///
     const Layer* FindLayer(u64 layer_id) const;
 
+    Nvnflinger::HardwareComposer& GetComposer() const {
+        return *hardware_composer;
+    }
+
 private:
     u64 display_id;
     std::string name;
@@ -125,6 +135,7 @@ private:
     KernelHelpers::ServiceContext& service_context;
 
     std::vector<std::unique_ptr<Layer>> layers;
+    std::unique_ptr<Nvnflinger::HardwareComposer> hardware_composer;
     Kernel::KEvent* vsync_event{};
     bool is_abandoned{};
 };

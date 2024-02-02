@@ -17,7 +17,7 @@ public:
                           std::unique_ptr<Core::Frontend::GraphicsContext> context);
     ~RendererNull() override;
 
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
+    void Composite(std::span<const Tegra::FramebufferConfig> framebuffer) override;
 
     VideoCore::RasterizerInterface* ReadRasterizer() override {
         return &m_rasterizer;

@@ -7,8 +7,8 @@ out gl_PerVertex {
     vec4 gl_Position;
 };
 
-const vec2 vertices[4] =
-    vec2[4](vec2(-1.0, 1.0), vec2(1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0));
+const vec2 vertices[3] =
+    vec2[3](vec2(-1,-1), vec2(3,-1), vec2(-1, 3));
 
 layout (location = 0) out vec4 posPos;
 

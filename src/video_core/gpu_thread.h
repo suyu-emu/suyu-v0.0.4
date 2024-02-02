@@ -44,14 +44,6 @@ struct SubmitListCommand final {
     Tegra::CommandList entries;
 };
 
-/// Command to signal to the GPU thread that a swap buffers is pending
-struct SwapBuffersCommand final {
-    explicit SwapBuffersCommand(std::optional<const Tegra::FramebufferConfig> framebuffer_)
-        : framebuffer{std::move(framebuffer_)} {}
-
-    std::optional<Tegra::FramebufferConfig> framebuffer;
-};
-
 /// Command to signal to the GPU thread to flush a region
 struct FlushRegionCommand final {
     explicit constexpr FlushRegionCommand(DAddr addr_, u64 size_) : addr{addr_}, size{size_} {}
@@ -81,8 +73,8 @@ struct FlushAndInvalidateRegionCommand final {
 struct GPUTickCommand final {};
 
 using CommandData =
-    std::variant<std::monostate, SubmitListCommand, SwapBuffersCommand, FlushRegionCommand,
-                 InvalidateRegionCommand, FlushAndInvalidateRegionCommand, GPUTickCommand>;
+    std::variant<std::monostate, SubmitListCommand, FlushRegionCommand, InvalidateRegionCommand,
+                 FlushAndInvalidateRegionCommand, GPUTickCommand>;
 
 struct CommandDataContainer {
     CommandDataContainer() = default;
@@ -117,9 +109,6 @@ public:
 
     /// Push GPU command entries to be processed
     void SubmitList(s32 channel, Tegra::CommandList&& entries);
-
-    /// Swap buffers (render frame)
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     void FlushRegion(DAddr addr, u64 size);

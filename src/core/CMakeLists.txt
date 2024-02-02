@@ -775,6 +775,9 @@ add_library(core STATIC
     hle/service/nvnflinger/graphic_buffer_producer.h
     hle/service/nvnflinger/hos_binder_driver_server.cpp
     hle/service/nvnflinger/hos_binder_driver_server.h
+    hle/service/nvnflinger/hardware_composer.cpp
+    hle/service/nvnflinger/hardware_composer.h
+    hle/service/nvnflinger/hwc_layer.h
     hle/service/nvnflinger/nvnflinger.cpp
     hle/service/nvnflinger/nvnflinger.h
     hle/service/nvnflinger/parcel.h
