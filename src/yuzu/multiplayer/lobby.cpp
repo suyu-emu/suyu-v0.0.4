@@ -77,16 +77,23 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
 
     // UI Buttons
     connect(ui->refresh_list, &QPushButton::clicked, this, &Lobby::RefreshLobby);
+    connect(ui->search, &QLineEdit::textChanged, proxy, &LobbyFilterProxyModel::SetFilterSearch);
     connect(ui->games_owned, &QCheckBox::toggled, proxy, &LobbyFilterProxyModel::SetFilterOwned);
     connect(ui->hide_empty, &QCheckBox::toggled, proxy, &LobbyFilterProxyModel::SetFilterEmpty);
     connect(ui->hide_full, &QCheckBox::toggled, proxy, &LobbyFilterProxyModel::SetFilterFull);
-    connect(ui->search, &QLineEdit::textChanged, proxy, &LobbyFilterProxyModel::SetFilterSearch);
     connect(ui->room_list, &QTreeView::doubleClicked, this, &Lobby::OnJoinRoom);
     connect(ui->room_list, &QTreeView::clicked, this, &Lobby::OnExpandRoom);
 
     // Actions
     connect(&room_list_watcher, &QFutureWatcher<AnnounceMultiplayerRoom::RoomList>::finished, this,
             &Lobby::OnRefreshLobby);
+
+    // Load persistent filters after events are connected to make sure they apply
+    ui->search->setText(
+        QString::fromStdString(UISettings::values.multiplayer_filter_text.GetValue()));
+    ui->games_owned->setChecked(UISettings::values.multiplayer_filter_games_owned.GetValue());
+    ui->hide_empty->setChecked(UISettings::values.multiplayer_filter_hide_empty.GetValue());
+    ui->hide_full->setChecked(UISettings::values.multiplayer_filter_hide_full.GetValue());
 }
 
 Lobby::~Lobby() = default;
@@ -204,6 +211,10 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
 
     // Save settings
     UISettings::values.multiplayer_nickname = ui->nickname->text().toStdString();
+    UISettings::values.multiplayer_filter_text = ui->search->text().toStdString();
+    UISettings::values.multiplayer_filter_games_owned = ui->games_owned->isChecked();
+    UISettings::values.multiplayer_filter_hide_empty = ui->hide_empty->isChecked();
+    UISettings::values.multiplayer_filter_hide_full = ui->hide_full->isChecked();
     UISettings::values.multiplayer_ip =
         proxy->data(connection_index, LobbyItemHost::HostIPRole).value<QString>().toStdString();
     UISettings::values.multiplayer_port =

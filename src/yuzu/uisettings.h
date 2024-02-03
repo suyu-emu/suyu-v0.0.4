@@ -169,6 +169,13 @@ struct Values {
 
     // multiplayer settings
     Setting<std::string> multiplayer_nickname{linkage, {}, "nickname", Category::Multiplayer};
+    Setting<std::string> multiplayer_filter_text{linkage, {}, "filter_text", Category::Multiplayer};
+    Setting<bool> multiplayer_filter_games_owned{linkage, false, "filter_games_owned",
+                                                 Category::Multiplayer};
+    Setting<bool> multiplayer_filter_hide_empty{linkage, false, "filter_games_hide_empty",
+                                                Category::Multiplayer};
+    Setting<bool> multiplayer_filter_hide_full{linkage, false, "filter_games_hide_full",
+                                               Category::Multiplayer};
     Setting<std::string> multiplayer_ip{linkage, {}, "ip", Category::Multiplayer};
     Setting<u16, true> multiplayer_port{linkage,    24872,  0,
                                         UINT16_MAX, "port", Category::Multiplayer};
