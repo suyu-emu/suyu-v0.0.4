@@ -60,10 +60,11 @@ public:
         Add(spv::ImageOperandsMask::ConstOffsets, offsets);
     }
 
-    explicit ImageOperands(Id lod, Id ms) {
+    explicit ImageOperands(EmitContext& ctx, const IR::Value& offset, Id lod, Id ms) {
         if (Sirit::ValidId(lod)) {
             Add(spv::ImageOperandsMask::Lod, lod);
         }
+        AddOffset(ctx, offset, ImageFetchOffsetAllowed);
         if (Sirit::ValidId(ms)) {
             Add(spv::ImageOperandsMask::Sample, ms);
         }
@@ -311,37 +312,6 @@ Id ImageGatherSubpixelOffset(EmitContext& ctx, const IR::TextureInstInfo& info, 
         return coords;
     }
 }
-
-void AddOffsetToCoordinates(EmitContext& ctx, const IR::TextureInstInfo& info, Id& coords,
-                            Id offset) {
-    if (!Sirit::ValidId(offset)) {
-        return;
-    }
-
-    Id result_type{};
-    switch (info.type) {
-    case TextureType::Buffer:
-    case TextureType::Color1D:
-    case TextureType::ColorArray1D: {
-        result_type = ctx.U32[1];
-        break;
-    }
-    case TextureType::Color2D:
-    case TextureType::Color2DRect:
-    case TextureType::ColorArray2D: {
-        result_type = ctx.U32[2];
-        break;
-    }
-    case TextureType::Color3D: {
-        result_type = ctx.U32[3];
-        break;
-    }
-    case TextureType::ColorCube:
-    case TextureType::ColorArrayCube:
-        return;
-    }
-    coords = ctx.OpIAdd(result_type, coords, offset);
-}
 } // Anonymous namespace
 
 Id EmitBindlessImageSampleImplicitLod(EmitContext&) {
@@ -524,10 +494,9 @@ Id EmitImageGatherDref(EmitContext& ctx, IR::Inst* inst, const IR::Value& index,
                 operands.Span());
 }
 
-Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id offset,
-                  Id lod, Id ms) {
+Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
+                  const IR::Value& offset, Id lod, Id ms) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
-    AddOffsetToCoordinates(ctx, info, coords, offset);
     if (info.type == TextureType::Buffer) {
         lod = Id{};
     }
@@ -535,7 +504,7 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         // This image is multisampled, lod must be implicit
         lod = Id{};
     }
-    const ImageOperands operands(lod, ms);
+    const ImageOperands operands(ctx, offset, lod, ms);
     return Emit(&EmitContext::OpImageSparseFetch, &EmitContext::OpImageFetch, ctx, inst, ctx.F32[4],
                 TextureImage(ctx, info, index), coords, operands.MaskOptional(), operands.Span());
 }
