@@ -65,6 +65,7 @@ Result MountTimeZoneBinary(Core::System& system) {
         // Validate that the romfs is readable, using invalid firmware keys can cause this to get
         // set but the files to be garbage. In that case, we want to hit the next path and
         // synthesise them instead.
+        g_time_zone_binary_mount_result = ResultSuccess;
         Service::PSC::Time::LocationName name{"Etc/GMT"};
         if (!IsTimeZoneBinaryValid(name)) {
             ResetTimeZoneBinary();
