@@ -52,9 +52,42 @@ ResourceManager::ResourceManager(Core::System& system_,
                                  std::shared_ptr<HidFirmwareSettings> settings)
     : firmware_settings{settings}, system{system_}, service_context{system_, "hid"} {
     applet_resource = std::make_shared<AppletResource>(system);
+
+    // Register update callbacks
+    npad_update_event = Core::Timing::CreateEvent("HID::UpdatePadCallback",
+                                                  [this](s64 time, std::chrono::nanoseconds ns_late)
+                                                      -> std::optional<std::chrono::nanoseconds> {
+                                                      UpdateNpad(ns_late);
+                                                      return std::nullopt;
+                                                  });
+    default_update_event = Core::Timing::CreateEvent(
+        "HID::UpdateDefaultCallback",
+        [this](s64 time,
+               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+            UpdateControllers(ns_late);
+            return std::nullopt;
+        });
+    mouse_keyboard_update_event = Core::Timing::CreateEvent(
+        "HID::UpdateMouseKeyboardCallback",
+        [this](s64 time,
+               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+            UpdateMouseKeyboard(ns_late);
+            return std::nullopt;
+        });
+    motion_update_event = Core::Timing::CreateEvent(
+        "HID::UpdateMotionCallback",
+        [this](s64 time,
+               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+            UpdateMotion(ns_late);
+            return std::nullopt;
+        });
 }
 
 ResourceManager::~ResourceManager() {
+    system.CoreTiming().UnscheduleEvent(npad_update_event);
+    system.CoreTiming().UnscheduleEvent(default_update_event);
+    system.CoreTiming().UnscheduleEvent(mouse_keyboard_update_event);
+    system.CoreTiming().UnscheduleEvent(motion_update_event);
     system.CoreTiming().UnscheduleEvent(touch_update_event);
     input_event->Finalize();
 };
@@ -201,6 +234,7 @@ void ResourceManager::InitializeHidCommonSampler() {
 
     debug_pad->SetAppletResource(applet_resource, &shared_mutex);
     digitizer->SetAppletResource(applet_resource, &shared_mutex);
+    unique_pad->SetAppletResource(applet_resource, &shared_mutex);
     keyboard->SetAppletResource(applet_resource, &shared_mutex);
 
     const auto settings =
@@ -214,6 +248,14 @@ void ResourceManager::InitializeHidCommonSampler() {
     home_button->SetAppletResource(applet_resource, &shared_mutex);
     sleep_button->SetAppletResource(applet_resource, &shared_mutex);
     capture_button->SetAppletResource(applet_resource, &shared_mutex);
+
+    system.CoreTiming().ScheduleLoopingEvent(npad_update_ns, npad_update_ns, npad_update_event);
+    system.CoreTiming().ScheduleLoopingEvent(default_update_ns, default_update_ns,
+                                             default_update_event);
+    system.CoreTiming().ScheduleLoopingEvent(mouse_keyboard_update_ns, mouse_keyboard_update_ns,
+                                             mouse_keyboard_update_event);
+    system.CoreTiming().ScheduleLoopingEvent(motion_update_ns, motion_update_ns,
+                                             motion_update_event);
 }
 
 void ResourceManager::InitializeTouchScreenSampler() {
@@ -465,55 +507,9 @@ IAppletResource::IAppletResource(Core::System& system_, std::shared_ptr<Resource
         {0, &IAppletResource::GetSharedMemoryHandle, "GetSharedMemoryHandle"},
     };
     RegisterHandlers(functions);
-
-    // Register update callbacks
-    npad_update_event = Core::Timing::CreateEvent(
-        "HID::UpdatePadCallback",
-        [this, resource](
-            s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            const auto guard = LockService();
-            resource->UpdateNpad(ns_late);
-            return std::nullopt;
-        });
-    default_update_event = Core::Timing::CreateEvent(
-        "HID::UpdateDefaultCallback",
-        [this, resource](
-            s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            const auto guard = LockService();
-            resource->UpdateControllers(ns_late);
-            return std::nullopt;
-        });
-    mouse_keyboard_update_event = Core::Timing::CreateEvent(
-        "HID::UpdateMouseKeyboardCallback",
-        [this, resource](
-            s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            const auto guard = LockService();
-            resource->UpdateMouseKeyboard(ns_late);
-            return std::nullopt;
-        });
-    motion_update_event = Core::Timing::CreateEvent(
-        "HID::UpdateMotionCallback",
-        [this, resource](
-            s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            const auto guard = LockService();
-            resource->UpdateMotion(ns_late);
-            return std::nullopt;
-        });
-
-    system.CoreTiming().ScheduleLoopingEvent(npad_update_ns, npad_update_ns, npad_update_event);
-    system.CoreTiming().ScheduleLoopingEvent(default_update_ns, default_update_ns,
-                                             default_update_event);
-    system.CoreTiming().ScheduleLoopingEvent(mouse_keyboard_update_ns, mouse_keyboard_update_ns,
-                                             mouse_keyboard_update_event);
-    system.CoreTiming().ScheduleLoopingEvent(motion_update_ns, motion_update_ns,
-                                             motion_update_event);
 }
 
 IAppletResource::~IAppletResource() {
-    system.CoreTiming().UnscheduleEvent(npad_update_event);
-    system.CoreTiming().UnscheduleEvent(default_update_event);
-    system.CoreTiming().UnscheduleEvent(mouse_keyboard_update_event);
-    system.CoreTiming().UnscheduleEvent(motion_update_event);
     resource_manager->FreeAppletResourceId(aruid);
 }
 
