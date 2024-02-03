@@ -102,6 +102,8 @@ Result NPad::Activate(u64 aruid) {
         for (std::size_t i = 0; i < 19; ++i) {
             WriteEmptyEntry(npad);
         }
+
+        controller.is_active = true;
     }
 
     return ResultSuccess;
@@ -467,6 +469,13 @@ void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
             continue;
         }
 
+        bool is_set{};
+        npad_resource.IsSupportedNpadStyleSet(is_set, aruid);
+        // Wait until style is defined
+        if (!is_set) {
+            continue;
+        }
+
         for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
             auto& controller = controller_data[aruid_index][i];
             controller.shared_memory =
@@ -481,6 +490,10 @@ void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
             }
 
             if (!data->flag.enable_pad_input) {
+                continue;
+            }
+
+            if (!controller.is_active) {
                 continue;
             }
 
@@ -592,7 +605,9 @@ void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
             libnx_state.npad_buttons.raw = pad_state.npad_buttons.raw;
             libnx_state.l_stick = pad_state.l_stick;
             libnx_state.r_stick = pad_state.r_stick;
-            npad->system_ext_lifo.WriteNextEntry(pad_state);
+            libnx_state.sampling_number =
+                npad->system_ext_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            npad->system_ext_lifo.WriteNextEntry(libnx_state);
 
             press_state |= static_cast<u64>(pad_state.npad_buttons.raw);
         }
@@ -1060,6 +1075,7 @@ void NPad::UnregisterAppletResourceUserId(u64 aruid) {
     // TODO: Remove this once abstract pad is emulated properly
     const auto aruid_index = npad_resource.GetIndexFromAruid(aruid);
     for (auto& controller : controller_data[aruid_index]) {
+        controller.is_active = false;
         controller.is_connected = false;
         controller.shared_memory = nullptr;
     }

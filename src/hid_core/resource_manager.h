@@ -147,6 +147,10 @@ private:
     std::shared_ptr<SixAxis> six_axis{nullptr};
     std::shared_ptr<SleepButton> sleep_button{nullptr};
     std::shared_ptr<UniquePad> unique_pad{nullptr};
+    std::shared_ptr<Core::Timing::EventType> npad_update_event;
+    std::shared_ptr<Core::Timing::EventType> default_update_event;
+    std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event;
+    std::shared_ptr<Core::Timing::EventType> motion_update_event;
 
     // TODO: Create these resources
     // std::shared_ptr<AudioControl> audio_control{nullptr};
@@ -178,11 +182,6 @@ public:
 
 private:
     void GetSharedMemoryHandle(HLERequestContext& ctx);
-
-    std::shared_ptr<Core::Timing::EventType> npad_update_event{nullptr};
-    std::shared_ptr<Core::Timing::EventType> default_update_event{nullptr};
-    std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event{nullptr};
-    std::shared_ptr<Core::Timing::EventType> motion_update_event{nullptr};
 
     u64 aruid{};
     std::shared_ptr<ResourceManager> resource_manager;
