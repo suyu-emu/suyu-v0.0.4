@@ -121,6 +121,7 @@ add_library(common STATIC
     settings_input.cpp
     settings_input.h
     settings_setting.h
+    slot_vector.h
     socket_types.h
     spin_lock.cpp
     spin_lock.h
