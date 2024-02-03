@@ -5,21 +5,21 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "video_core/texture_cache/slot_vector.h"
+#include "common/slot_vector.h"
 
 namespace VideoCommon {
 
 constexpr size_t NUM_RT = 8;
 constexpr size_t MAX_MIP_LEVELS = 14;
 
-constexpr SlotId CORRUPT_ID{0xfffffffe};
+constexpr Common::SlotId CORRUPT_ID{0xfffffffe};
 
-using ImageId = SlotId;
-using ImageMapId = SlotId;
-using ImageViewId = SlotId;
-using ImageAllocId = SlotId;
-using SamplerId = SlotId;
-using FramebufferId = SlotId;
+using ImageId = Common::SlotId;
+using ImageMapId = Common::SlotId;
+using ImageViewId = Common::SlotId;
+using ImageAllocId = Common::SlotId;
+using SamplerId = Common::SlotId;
+using FramebufferId = Common::SlotId;
 
 /// Fake image ID for null image views
 constexpr ImageId NULL_IMAGE_ID{0};

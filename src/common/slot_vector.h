@@ -14,7 +14,7 @@
 #include "common/common_types.h"
 #include "common/polyfill_ranges.h"
 
-namespace VideoCommon {
+namespace Common {
 
 struct SlotId {
     static constexpr u32 INVALID_INDEX = std::numeric_limits<u32>::max();
@@ -217,11 +217,11 @@ private:
     std::vector<u32> free_list;
 };
 
-} // namespace VideoCommon
+} // namespace Common
 
 template <>
-struct std::hash<VideoCommon::SlotId> {
-    size_t operator()(const VideoCommon::SlotId& id) const noexcept {
+struct std::hash<Common::SlotId> {
+    size_t operator()(const Common::SlotId& id) const noexcept {
         return std::hash<u32>{}(id.index);
     }
 };

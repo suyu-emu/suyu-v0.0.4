@@ -81,7 +81,7 @@ public:
                                 ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                                 DescriptorPool& descriptor_pool);
 
-    void TickFrame(VideoCommon::SlotVector<Buffer>& slot_buffers) noexcept;
+    void TickFrame(Common::SlotVector<Buffer>& slot_buffers) noexcept;
 
     void Finish();
 

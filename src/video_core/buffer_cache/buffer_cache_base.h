@@ -41,7 +41,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
 #include "video_core/surface.h"
-#include "video_core/texture_cache/slot_vector.h"
+#include "common/slot_vector.h"
 #include "video_core/texture_cache/types.h"
 
 namespace boost {
@@ -55,7 +55,7 @@ MICROPROFILE_DECLARE(GPU_PrepareBuffers);
 MICROPROFILE_DECLARE(GPU_BindUploadBuffers);
 MICROPROFILE_DECLARE(GPU_DownloadMemory);
 
-using BufferId = SlotId;
+using BufferId = Common::SlotId;
 
 using VideoCore::Surface::PixelFormat;
 using namespace Common::Literals;
@@ -559,7 +559,7 @@ private:
 
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
-    SlotVector<Buffer> slot_buffers;
+    Common::SlotVector<Buffer> slot_buffers;
     DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
 
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};

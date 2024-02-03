@@ -18,12 +18,12 @@
 
 #include "common/assert.h"
 #include "common/settings.h"
+#include "common/slot_vector.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/texture_cache/slot_vector.h"
 
 namespace VideoCore {
 enum class QueryType {
@@ -37,7 +37,7 @@ constexpr std::size_t NumQueryTypes = static_cast<size_t>(QueryType::Count);
 
 namespace VideoCommon {
 
-using AsyncJobId = SlotId;
+using AsyncJobId = Common::SlotId;
 
 static constexpr AsyncJobId NULL_ASYNC_JOB_ID{0};
 
@@ -341,7 +341,7 @@ private:
     static constexpr std::uintptr_t YUZU_PAGESIZE = 4096;
     static constexpr unsigned YUZU_PAGEBITS = 12;
 
-    SlotVector<AsyncJob> slot_async_jobs;
+    Common::SlotVector<AsyncJob> slot_async_jobs;
 
     VideoCore::RasterizerInterface& rasterizer;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
