@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <QStyleFactory>
 #include <thread>
 
 #include "core/hle/service/am/applet_manager.h"
@@ -297,12 +296,11 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     statusBar()->hide();
 
     startup_icon_theme = QIcon::themeName();
-    // fallback can only be set once, colorful theme icons are okay on both light/dark
-    QIcon::setFallbackThemeName(QStringLiteral("colorful"));
+    // fallback can only be set once, default theme icons are okay on both light/dark
+    QIcon::setFallbackThemeName(QStringLiteral("default"));
     QIcon::setFallbackSearchPaths(QStringList(QStringLiteral(":/icons")));
 
     default_theme_paths = QIcon::themeSearchPaths();
-    UpdateUITheme();
 
     SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     discord_rpc->Update();
@@ -3612,8 +3610,6 @@ void GMainWindow::OnConfigure() {
         multiplayer_state->UpdateCredentials();
     }
 
-    emit UpdateThemedIcons();
-
     const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
     if (reload || Settings::values.language_index.GetValue() != old_language_index) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -5030,9 +5026,9 @@ bool GMainWindow::CheckDarkMode() {
     // Using the freedesktop specifications for checking dark mode
     LOG_INFO(Frontend, "Retrieving theme from freedesktop color-scheme...");
     gdbus_arguments << QStringLiteral("--dest=org.freedesktop.portal.Desktop")
-                   << QStringLiteral("--object-path /org/freedesktop/portal/desktop")
-                   << QStringLiteral("--method org.freedesktop.portal.Settings.Read "
-                                        "org.freedesktop.appearance color-scheme");
+                    << QStringLiteral("--object-path /org/freedesktop/portal/desktop")
+                    << QStringLiteral("--method org.freedesktop.portal.Settings.Read")
+                    << QStringLiteral("org.freedesktop.appearance color-scheme");
     process.start(QStringLiteral("gdbus call --session"), gdbus_arguments);
     process.waitForFinished(1000);
     QByteArray dbus_output = process.readAllStandardOutput();
@@ -5096,7 +5092,8 @@ void GMainWindow::changeEvent(QEvent* event) {
 
             UpdateUITheme();
         }
-    } else QWidget::changeEvent(event);
+    }
+    QWidget::changeEvent(event);
 }
 
 void GMainWindow::LoadTranslation() {
