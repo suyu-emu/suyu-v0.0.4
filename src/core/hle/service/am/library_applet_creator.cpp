@@ -118,23 +118,17 @@ std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
     switch (mode) {
     case LibraryAppletMode::AllForeground:
     case LibraryAppletMode::NoUi:
-        applet->focus_state = FocusState::InFocus;
-        applet->hid_registration.EnableAppletToGetInput(true);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
-        break;
-    case LibraryAppletMode::AllForegroundInitiallyHidden:
-        applet->system_buffer_manager.SetWindowVisibility(false);
-        applet->focus_state = FocusState::NotInFocus;
-        applet->hid_registration.EnableAppletToGetInput(false);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
-        break;
     case LibraryAppletMode::PartialForeground:
     case LibraryAppletMode::PartialForegroundIndirectDisplay:
-    default:
-        applet->focus_state = FocusState::Background;
         applet->hid_registration.EnableAppletToGetInput(true);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+        applet->focus_state = FocusState::InFocus;
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+        break;
+    case LibraryAppletMode::AllForegroundInitiallyHidden:
+        applet->hid_registration.EnableAppletToGetInput(false);
+        applet->focus_state = FocusState::NotInFocus;
+        applet->system_buffer_manager.SetWindowVisibility(false);
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoBackground);
         break;
     }
 

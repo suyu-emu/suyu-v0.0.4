@@ -62,12 +62,12 @@ void IWindowController::SetAppletWindowVisibility(HLERequestContext& ctx) {
     applet->hid_registration.EnableAppletToGetInput(visible);
 
     if (visible) {
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
         applet->focus_state = FocusState::InFocus;
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
     } else {
         applet->focus_state = FocusState::NotInFocus;
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoBackground);
     }
-    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

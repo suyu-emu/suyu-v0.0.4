@@ -38,7 +38,8 @@ bool SystemBufferManager::Initialize(Nvnflinger::Nvnflinger* nvnflinger, Kernel:
     }
 
     Nvnflinger::LayerBlending blending = Nvnflinger::LayerBlending::None;
-    if (mode == LibraryAppletMode::PartialForeground) {
+    if (mode == LibraryAppletMode::PartialForeground ||
+        mode == LibraryAppletMode::PartialForegroundIndirectDisplay) {
         blending = Nvnflinger::LayerBlending::Coverage;
     }
 
