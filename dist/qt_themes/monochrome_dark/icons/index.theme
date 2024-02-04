@@ -1,8 +1,9 @@
 [Icon Theme]
-Name=default
-Comment=Colorful theme
+Name=monochrome_dark
+Comment=Monochrome dark icons
+Inherits=default_dark
 Directories=16x16,48x48,256x256
- 
+
 [16x16]
 Size=16
 

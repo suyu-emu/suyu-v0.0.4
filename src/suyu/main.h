@@ -167,7 +167,6 @@ class GMainWindow : public QMainWindow {
 public:
     void filterBarSetChecked(bool state);
     static bool CheckDarkMode();
-    void UpdateUITheme();
     explicit GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulkan);
     ~GMainWindow() override;
 

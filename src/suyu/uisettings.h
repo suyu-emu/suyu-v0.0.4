@@ -48,7 +48,7 @@ struct Shortcut {
     ContextualShortcut shortcut;
 };
 
-static constexpr std::string_view default_theme{"colorful"};
+static constexpr std::string_view default_theme{":/default"};
 
 using Themes = std::array<std::pair<const char*, const char*>, 6>;
 extern const Themes included_themes;

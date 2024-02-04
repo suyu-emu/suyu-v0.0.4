@@ -22,7 +22,7 @@ QPushButton#TogglableStatusBarButton {
 }
 
 QPushButton#TogglableStatusBarButton:checked {
-    color: #000000;
+    color: palette(text);
 }
 
 QPushButton#TogglableStatusBarButton:hover {
@@ -49,6 +49,10 @@ QPushButton#RendererStatusBarButton:!checked {
     color: #0066ff;
 }
 
+QPushButton#RendererStatusBarButton:!checked[dark=true] {
+    color: #00ccdd;
+}
+
 QPushButton#GPUStatusBarButton {
     color: #656565;
     border: 1px solid transparent;
@@ -65,13 +69,21 @@ QPushButton#GPUStatusBarButton:checked {
     color: #b06020;
 }
 
+QPushButton#GPUStatusBarButton:checked[dark=true] {
+    color: #ff8040;
+}
+
 QPushButton#GPUStatusBarButton:!checked {
     color: #109010;
 }
 
+QPushButton#GPUStatusBarButton:!checked[dark=true] {
+    color: #40dd40;
+}
+
 QPushButton#DockingStatusBarButton {
     min-width: 0px;
-    color: #000000;
+    color: palette(text);
     border: 1px solid transparent;
     background-color: transparent;
     padding: 0px 3px 0px 3px;
@@ -128,10 +140,6 @@ QWidget#middleControllerApplet QComboBox {
 }
 
 QWidget#connectedControllers {
-    background: transparent;
-}
-
-QWidget#closeButtons {
     background: transparent;
 }
 
@@ -383,7 +391,7 @@ QStackedWidget#stackedDialog QTextBrowser QScrollBar::vertical {
     border-radius: 4px;
 }
 
-QStackedWidget#stackedDialog QTextBrowser QScrollBar::horizoncal {
+QStackedWidget#stackedDialog QTextBrowser QScrollBar::horizontal {
     background: #cdcdcd;
     height: 15px;
     margin: 3px 15px 3px 15px;
@@ -592,42 +600,6 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_num:pressed {
     border-radius: 6px;
 }
 
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_shift,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_num {
-    image: url(:/overlay/osk_button_B.png);
-    image-position: right;
-    qproperty-icon: url(:/overlay/osk_button_backspace.png);
-    qproperty-iconSize: 36px;
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_space,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_space_shift {
-    image: url(:/overlay/osk_button_Y.png);
-    image-position: right;
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_shift,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_num {
-    image: url(:/overlay/osk_button_plus.png);
-    image-position: right;
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_shift {
-    image: url(:/overlay/osk_button_shift_lock_off.png);
-    image-position: left;
-    qproperty-icon: url(:/overlay/osk_button_shift.png);
-    qproperty-iconSize: 36px;
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_shift_shift {
-    image: url(:/overlay/osk_button_shift_lock_off.png);
-    image-position: left;
-    qproperty-icon: url(:/overlay/osk_button_shift_on.png);
-    qproperty-iconSize: 36px;
-}
-
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_left_bracket,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_right_bracket,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_left_parenthesis,
@@ -638,47 +610,6 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_right_parenthesis {
 QDialog#QtSoftwareKeyboardDialog QWidget#titleOSK QLabel {
     background: transparent;
     color: #ccc;
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#button_L,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_L_shift,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_L_num {
-    image: url(:/overlay/button_L.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#arrow_left,
-QDialog#QtSoftwareKeyboardDialog QWidget#arrow_left_shift,
-QDialog#QtSoftwareKeyboardDialog QWidget#arrow_left_num {
-    image: url(:/overlay/arrow_left.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#button_R,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_R_shift,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_R_num {
-    image: url(:/overlay/button_R.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#arrow_right,
-QDialog#QtSoftwareKeyboardDialog QWidget#arrow_right_shift,
-QDialog#QtSoftwareKeyboardDialog QWidget#arrow_right_num {
-    image: url(:/overlay/arrow_right.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#button_press_stick,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_press_stick_shift {
-    image: url(:/overlay/button_press_stick.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#button_X,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_X_shift,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_X_num {
-    image: url(:/overlay/button_X.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QWidget#button_A,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_A_shift,
-QDialog#QtSoftwareKeyboardDialog QWidget#button_A_num {
-    image: url(:/overlay/button_A.png);
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok:disabled,
@@ -710,21 +641,4 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_9:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_0:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_return:disabled {
     color: palette(midlight);
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok:disabled,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_shift:disabled,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_num:disabled {
-    image: url(:/overlay/osk_button_plus_disabled.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace:disabled,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_shift:disabled,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_num:disabled {
-    image: url(:/overlay/osk_button_B_disabled.png);
-}
-
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_space:disabled,
-QDialog#QtSoftwareKeyboardDialog QPushButton#button_space_shift:disabled {
-    image: url(:/overlay/osk_button_Y_disabled.png);
 }
