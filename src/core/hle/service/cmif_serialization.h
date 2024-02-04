@@ -115,6 +115,11 @@ struct ArgumentTraits {
     static constexpr ArgumentType Type = ArgumentType::InData;
 };
 
+template <typename... Ts>
+consteval bool ConstIfReference() {
+    return ((!std::is_reference_v<Ts> || std::is_const_v<std::remove_reference_t<Ts>>) && ... && true);
+}
+
 struct RequestLayout {
     u32 copy_handle_count;
     u32 move_handle_count;
@@ -435,6 +440,7 @@ void CmifReplyWrapImpl(HLERequestContext& ctx, T& t, Result (T::*f)(A...)) {
     }
     const bool is_domain = Domain ? ctx.GetManager()->IsDomain() : false;
 
+    static_assert(ConstIfReference<A...>(), "Arguments taken by reference must be const");
     using MethodArguments = std::tuple<std::remove_cvref_t<A>...>;
 
     OutTemporaryBuffers buffers{};
