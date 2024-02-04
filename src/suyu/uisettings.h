@@ -35,12 +35,6 @@ extern template class Setting<unsigned long long>;
 
 namespace UISettings {
 
-/**
- * Check if the theme is dark
- * @returns true if the current theme contains the string "dark" in its name
- */
-bool IsDarkTheme();
-
 struct ContextualShortcut {
     std::string keyseq;
     std::string controller_keyseq;
@@ -54,13 +48,7 @@ struct Shortcut {
     ContextualShortcut shortcut;
 };
 
-static constexpr std::string_view default_theme{
-#ifdef _WIN32
-    "colorful_dark"
-#else
-    "colorful"
-#endif
-};
+static constexpr std::string_view default_theme{"colorful"};
 
 using Themes = std::array<std::pair<const char*, const char*>, 6>;
 extern const Themes included_themes;

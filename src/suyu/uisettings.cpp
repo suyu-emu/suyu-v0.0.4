@@ -31,11 +31,6 @@ const Themes included_themes{{
     {"Midnight Blue Colorful", ":/colorful_midnight_blue/"},
 }};
 
-bool IsDarkTheme() {
-    return UISettings::values.theme.contains(QStringLiteral("dark")) ||
-           UISettings::values.theme.contains(QStringLiteral("midnight"));
-}
-
 Values values = {};
 
 u32 CalculateWidth(u32 height, Settings::AspectRatio ratio) {
