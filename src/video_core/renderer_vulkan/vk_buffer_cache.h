@@ -181,7 +181,6 @@ struct BufferCacheParams {
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = false;
     static constexpr bool USE_MEMORY_MAPS = true;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = false;
-    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = true;
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = true;
 };
 

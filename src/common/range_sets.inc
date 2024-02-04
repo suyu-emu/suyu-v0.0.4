@@ -6,9 +6,6 @@
 #include <limits>
 #include <utility>
 
-#define BOOST_NO_MT
-#include <boost/pool/detail/mutex.hpp>
-#undef BOOST_NO_MT
 #include <boost/icl/interval.hpp>
 #include <boost/icl/interval_base_set.hpp>
 #include <boost/icl/interval_map.hpp>
@@ -20,18 +17,16 @@
 
 #include "common/range_sets.h"
 
-namespace boost {
-template <typename T>
-class fast_pool_allocator<T, default_user_allocator_new_delete, details::pool::null_mutex, 4096, 0>;
-}
-
 namespace Common {
 
 template <typename AddressType>
 struct RangeSet<AddressType>::RangeSetImpl {
+    template <class T>
+    using MyAllocator = boost::fast_pool_allocator<T, boost::default_user_allocator_new_delete,
+                                                   boost::details::pool::default_mutex, 1024, 2048>;
     using IntervalSet = boost::icl::interval_set<
         AddressType, std::less, ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, AddressType, std::less),
-        boost::fast_pool_allocator>;
+        MyAllocator>;
     using IntervalType = typename IntervalSet::interval_type;
 
     RangeSetImpl() = default;
@@ -49,18 +44,58 @@ struct RangeSet<AddressType>::RangeSetImpl {
         m_ranges_set.subtract(interval);
     }
 
+    template <typename Func>
+    void ForEach(Func&& func) const {
+        if (m_ranges_set.empty()) {
+            return;
+        }
+        auto it = m_ranges_set.begin();
+        auto end_it = m_ranges_set.end();
+        for (; it != end_it; it++) {
+            const AddressType inter_addr_end = it->upper();
+            const AddressType inter_addr = it->lower();
+            func(inter_addr, inter_addr_end);
+        }
+    }
+
+    template <typename Func>
+    void ForEachInRange(AddressType base_addr, size_t size, Func&& func) const {
+        if (m_ranges_set.empty()) {
+            return;
+        }
+        const AddressType start_address = base_addr;
+        const AddressType end_address = start_address + size;
+        const RangeSetImpl::IntervalType search_interval{start_address, end_address};
+        auto it = m_ranges_set.lower_bound(search_interval);
+        if (it == m_ranges_set.end()) {
+            return;
+        }
+        auto end_it = m_ranges_set.upper_bound(search_interval);
+        for (; it != end_it; it++) {
+            AddressType inter_addr_end = it->upper();
+            AddressType inter_addr = it->lower();
+            if (inter_addr_end > end_address) {
+                inter_addr_end = end_address;
+            }
+            if (inter_addr < start_address) {
+                inter_addr = start_address;
+            }
+            func(inter_addr, inter_addr_end);
+        }
+    }
+
     IntervalSet m_ranges_set;
 };
 
 template <typename AddressType>
 struct SplitRangeSet<AddressType>::SplitRangeSetImpl {
-
-    using IntervalSet =
-        boost::icl::split_interval_map<AddressType, s32, boost::icl::partial_enricher, std::less,
-                                       boost::icl::inplace_plus, boost::icl::inter_section,
-                                       ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, AddressType,
-                                                             std::less),
-                                       boost::fast_pool_allocator>;
+    template <class T>
+    using MyAllocator = boost::fast_pool_allocator<T, boost::default_user_allocator_new_delete,
+                                                   boost::details::pool::default_mutex, 1024, 2048>;
+    using IntervalSet = boost::icl::split_interval_map<
+        AddressType, s32, boost::icl::partial_enricher, std::less, boost::icl::inplace_plus,
+        boost::icl::inter_section,
+        ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, AddressType, std::less), MyAllocator>;
     using IntervalType = typename IntervalSet::interval_type;
 
     SplitRangeSetImpl() = default;
@@ -75,6 +110,9 @@ struct SplitRangeSet<AddressType>::SplitRangeSetImpl {
     template <bool has_on_delete, typename Func>
     void Subtract(AddressType base_address, size_t size, s32 amount,
                   [[maybe_unused]] Func&& on_delete) {
+        if (m_split_ranges_set.empty()) {
+            return;
+        }
         AddressType end_address = base_address + static_cast<AddressType>(size);
         IntervalType interval{base_address, end_address};
         bool any_removals = false;
@@ -99,6 +137,47 @@ struct SplitRangeSet<AddressType>::SplitRangeSetImpl {
                 }
             }
         } while (any_removals);
+    }
+
+    template <typename Func>
+    void ForEach(Func&& func) const {
+        if (m_split_ranges_set.empty()) {
+            return;
+        }
+        auto it = m_split_ranges_set.begin();
+        auto end_it = m_split_ranges_set.end();
+        for (; it != end_it; it++) {
+            const AddressType inter_addr_end = it->first.upper();
+            const AddressType inter_addr = it->first.lower();
+            func(inter_addr, inter_addr_end, it->second);
+        }
+    }
+
+    template <typename Func>
+    void ForEachInRange(AddressType base_address, size_t size, Func&& func) const {
+        if (m_split_ranges_set.empty()) {
+            return;
+        }
+        const AddressType start_address = base_address;
+        const AddressType end_address = start_address + size;
+        const SplitRangeSetImpl::IntervalType search_interval{start_address, end_address};
+        auto it = m_split_ranges_set.lower_bound(search_interval);
+        if (it == m_split_ranges_set.end()) {
+            return;
+        }
+        auto end_it = m_split_ranges_set.upper_bound(search_interval);
+        for (; it != end_it; it++) {
+            auto& inter = it->first;
+            AddressType inter_addr_end = inter.upper();
+            AddressType inter_addr = inter.lower();
+            if (inter_addr_end > end_address) {
+                inter_addr_end = end_address;
+            }
+            if (inter_addr < start_address) {
+                inter_addr = start_address;
+            }
+            func(inter_addr, inter_addr_end, it->second);
+        }
     }
 
     IntervalSet m_split_ranges_set;
@@ -146,41 +225,13 @@ bool RangeSet<AddressType>::Empty() const {
 template <typename AddressType>
 template <typename Func>
 void RangeSet<AddressType>::ForEach(Func&& func) const {
-    if (m_impl->m_ranges_set.empty()) {
-        return;
-    }
-    auto it = m_impl->m_ranges_set.begin();
-    auto end_it = m_impl->m_ranges_set.end();
-    for (; it != end_it; it++) {
-        const AddressType inter_addr_end = it->upper();
-        const AddressType inter_addr = it->lower();
-        func(inter_addr, inter_addr_end);
-    }
+    m_impl->ForEach(std::move(func));
 }
 
 template <typename AddressType>
 template <typename Func>
-void RangeSet<AddressType>::ForEachInRange(AddressType base_addr, size_t size, Func&& func) const {
-    auto& range_set = m_impl->m_ranges_set;
-    const AddressType start_address = base_addr;
-    const AddressType end_address = start_address + size;
-    const RangeSetImpl::IntervalType search_interval{start_address, end_address};
-    auto it = range_set.lower_bound(search_interval);
-    if (it == range_set.end()) {
-        return;
-    }
-    auto end_it = range_set.upper_bound(search_interval);
-    for (; it != end_it; it++) {
-        AddressType inter_addr_end = it->upper();
-        AddressType inter_addr = it->lower();
-        if (inter_addr_end > end_address) {
-            inter_addr_end = end_address;
-        }
-        if (inter_addr < start_address) {
-            inter_addr = start_address;
-        }
-        func(inter_addr, inter_addr_end);
-    }
+void RangeSet<AddressType>::ForEachInRange(AddressType base_address, size_t size, Func&& func) const {
+    m_impl->ForEachInRange(base_address, size, std::move(func));
 }
 
 template <typename AddressType>
@@ -209,18 +260,18 @@ void SplitRangeSet<AddressType>::Add(AddressType base_address, size_t size) {
 
 template <typename AddressType>
 void SplitRangeSet<AddressType>::Subtract(AddressType base_address, size_t size) {
-    m_impl->Subtract<false>(base_address, size, 1, [](AddressType, AddressType) {});
+    m_impl->template Subtract<false>(base_address, size, 1, [](AddressType, AddressType) {});
 }
 
 template <typename AddressType>
 template <typename Func>
 void SplitRangeSet<AddressType>::Subtract(AddressType base_address, size_t size, Func&& on_delete) {
-    m_impl->Subtract<true>(base_address, size, 1, on_delete);
+    m_impl->template Subtract<true, Func>(base_address, size, 1, std::move(on_delete));
 }
 
 template <typename AddressType>
 void SplitRangeSet<AddressType>::DeleteAll(AddressType base_address, size_t size) {
-    m_impl->Subtract<false>(base_address, size, std::numeric_limits<s32>::max(),
+    m_impl->template Subtract<false>(base_address, size, std::numeric_limits<s32>::max(),
                             [](AddressType, AddressType) {});
 }
 
@@ -237,43 +288,14 @@ bool SplitRangeSet<AddressType>::Empty() const {
 template <typename AddressType>
 template <typename Func>
 void SplitRangeSet<AddressType>::ForEach(Func&& func) const {
-    if (m_impl->m_split_ranges_set.empty()) {
-        return;
-    }
-    auto it = m_impl->m_split_ranges_set.begin();
-    auto end_it = m_impl->m_split_ranges_set.end();
-    for (; it != end_it; it++) {
-        const AddressType inter_addr_end = it->first.upper();
-        const AddressType inter_addr = it->first.lower();
-        func(inter_addr, inter_addr_end, it->second);
-    }
+    m_impl->ForEach(func);
 }
 
 template <typename AddressType>
 template <typename Func>
 void SplitRangeSet<AddressType>::ForEachInRange(AddressType base_address, size_t size,
                                                 Func&& func) const {
-    auto& range_set = m_impl->m_split_ranges_set;
-    const AddressType start_address = base_address;
-    const AddressType end_address = start_address + size;
-    const SplitRangeSetImpl::IntervalType search_interval{start_address, end_address};
-    auto it = range_set.lower_bound(search_interval);
-    if (it == range_set.end()) {
-        return;
-    }
-    auto end_it = range_set.upper_bound(search_interval);
-    for (; it != end_it; it++) {
-        auto& inter = it->first;
-        AddressType inter_addr_end = inter.upper();
-        AddressType inter_addr = inter.lower();
-        if (inter_addr_end > end_address) {
-            inter_addr_end = end_address;
-        }
-        if (inter_addr < start_address) {
-            inter_addr = start_address;
-        }
-        func(inter_addr, inter_addr_end, it->second);
-    }
+    m_impl->ForEachInRange(base_address, size, std::move(func));
 }
 
 } // namespace Common

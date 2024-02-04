@@ -7,6 +7,7 @@
 #include <memory>
 #include <numeric>
 
+#include "common/range_sets.inc"
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/guest_memory.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
@@ -20,7 +21,7 @@ BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, R
     : runtime{runtime_}, device_memory{device_memory_}, memory_tracker{device_memory} {
     // Ensure the first slot is used for the null buffer
     void(slot_buffers.insert(runtime, NullBufferParams{}));
-    common_ranges.clear();
+    gpu_modified_ranges.Clear();
     inline_buffer_id = NULL_BUFFER_ID;
 
     if (!runtime.CanReportMemoryUsage()) {
@@ -42,6 +43,9 @@ BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, R
         std::max(std::min(device_local_memory - min_vacancy_critical, min_spacing_critical),
                  DEFAULT_CRITICAL_MEMORY));
 }
+
+template <class P>
+BufferCache<P>::~BufferCache() = default;
 
 template <class P>
 void BufferCache<P>::RunGarbageCollector() {
@@ -96,20 +100,17 @@ void BufferCache<P>::TickFrame() {
     ++frame_tick;
     delayed_destruction_ring.Tick();
 
-    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-        for (auto& buffer : async_buffers_death_ring) {
-            runtime.FreeDeferredStagingBuffer(buffer);
-        }
-        async_buffers_death_ring.clear();
+    for (auto& buffer : async_buffers_death_ring) {
+        runtime.FreeDeferredStagingBuffer(buffer);
     }
+    async_buffers_death_ring.clear();
 }
 
 template <class P>
 void BufferCache<P>::WriteMemory(DAddr device_addr, u64 size) {
     if (memory_tracker.IsRegionGpuModified(device_addr, size)) {
-        const IntervalType subtract_interval{device_addr, device_addr + size};
-        ClearDownload(subtract_interval);
-        common_ranges.subtract(subtract_interval);
+        ClearDownload(device_addr, size);
+        gpu_modified_ranges.Subtract(device_addr, size);
     }
     memory_tracker.MarkRegionAsCpuModified(device_addr, size);
 }
@@ -174,11 +175,11 @@ void BufferCache<P>::DownloadMemory(DAddr device_addr, u64 size) {
 }
 
 template <class P>
-void BufferCache<P>::ClearDownload(IntervalType subtract_interval) {
-    RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1024);
-    uncommitted_ranges.subtract(subtract_interval);
-    for (auto& interval_set : committed_ranges) {
-        interval_set.subtract(subtract_interval);
+void BufferCache<P>::ClearDownload(DAddr device_addr, u64 size) {
+    async_downloads.DeleteAll(device_addr, size);
+    uncommitted_gpu_modified_ranges.Subtract(device_addr, size);
+    for (auto& interval_set : committed_gpu_modified_ranges) {
+        interval_set.Subtract(device_addr, size);
     }
 }
 
@@ -195,8 +196,7 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         return false;
     }
 
-    const IntervalType subtract_interval{*cpu_dest_address, *cpu_dest_address + amount};
-    ClearDownload(subtract_interval);
+    ClearDownload(*cpu_dest_address, amount);
 
     BufferId buffer_a;
     BufferId buffer_b;
@@ -215,21 +215,20 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         .size = amount,
     }};
 
-    boost::container::small_vector<IntervalType, 4> tmp_intervals;
+    boost::container::small_vector<std::pair<DAddr, size_t>, 4> tmp_intervals;
     auto mirror = [&](DAddr base_address, DAddr base_address_end) {
         const u64 size = base_address_end - base_address;
         const DAddr diff = base_address - *cpu_src_address;
         const DAddr new_base_address = *cpu_dest_address + diff;
-        const IntervalType add_interval{new_base_address, new_base_address + size};
-        tmp_intervals.push_back(add_interval);
-        uncommitted_ranges.add(add_interval);
+        tmp_intervals.push_back({new_base_address, size});
+        uncommitted_gpu_modified_ranges.Add(new_base_address, size);
     };
-    ForEachInRangeSet(common_ranges, *cpu_src_address, amount, mirror);
+    gpu_modified_ranges.ForEachInRange(*cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
-    common_ranges.subtract(subtract_interval);
+    gpu_modified_ranges.Subtract(*cpu_dest_address, amount);
     const bool has_new_downloads = tmp_intervals.size() != 0;
-    for (const IntervalType& add_interval : tmp_intervals) {
-        common_ranges.add(add_interval);
+    for (const auto& pair : tmp_intervals) {
+        gpu_modified_ranges.Add(pair.first, pair.second);
     }
     const auto& copy = copies[0];
     src_buffer.MarkUsage(copy.src_offset, copy.size);
@@ -257,9 +256,8 @@ bool BufferCache<P>::DMAClear(GPUVAddr dst_address, u64 amount, u32 value) {
     }
 
     const size_t size = amount * sizeof(u32);
-    const IntervalType subtract_interval{*cpu_dst_address, *cpu_dst_address + size};
-    ClearDownload(subtract_interval);
-    common_ranges.subtract(subtract_interval);
+    ClearDownload(*cpu_dst_address, size);
+    gpu_modified_ranges.Subtract(*cpu_dst_address, size);
 
     const BufferId buffer = FindBuffer(*cpu_dst_address, static_cast<u32>(size));
     Buffer& dest_buffer = slot_buffers[buffer];
@@ -300,11 +298,11 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(
         MarkWrittenBuffer(buffer_id, device_addr, size);
         break;
     case ObtainBufferOperation::DiscardWrite: {
-        DAddr device_addr_start = Common::AlignDown(device_addr, 64);
-        DAddr device_addr_end = Common::AlignUp(device_addr + size, 64);
-        IntervalType interval{device_addr_start, device_addr_end};
-        ClearDownload(interval);
-        common_ranges.subtract(interval);
+        const DAddr device_addr_start = Common::AlignDown(device_addr, 64);
+        const DAddr device_addr_end = Common::AlignUp(device_addr + size, 64);
+        const size_t new_size = device_addr_end - device_addr_start;
+        ClearDownload(device_addr_start, new_size);
+        gpu_modified_ranges.Subtract(device_addr_start, new_size);
         break;
     }
     default:
@@ -504,46 +502,40 @@ void BufferCache<P>::FlushCachedWrites() {
 
 template <class P>
 bool BufferCache<P>::HasUncommittedFlushes() const noexcept {
-    return !uncommitted_ranges.empty() || !committed_ranges.empty();
+    return !uncommitted_gpu_modified_ranges.Empty() || !committed_gpu_modified_ranges.empty();
 }
 
 template <class P>
 void BufferCache<P>::AccumulateFlushes() {
-    if (uncommitted_ranges.empty()) {
+    if (uncommitted_gpu_modified_ranges.Empty()) {
         return;
     }
-    committed_ranges.emplace_back(std::move(uncommitted_ranges));
+    committed_gpu_modified_ranges.emplace_back(std::move(uncommitted_gpu_modified_ranges));
 }
 
 template <class P>
 bool BufferCache<P>::ShouldWaitAsyncFlushes() const noexcept {
-    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-        return (!async_buffers.empty() && async_buffers.front().has_value());
-    } else {
-        return false;
-    }
+    return (!async_buffers.empty() && async_buffers.front().has_value());
 }
 
 template <class P>
 void BufferCache<P>::CommitAsyncFlushesHigh() {
     AccumulateFlushes();
 
-    if (committed_ranges.empty()) {
-        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-            async_buffers.emplace_back(std::optional<Async_Buffer>{});
-        }
+    if (committed_gpu_modified_ranges.empty()) {
+        async_buffers.emplace_back(std::optional<Async_Buffer>{});
         return;
     }
     MICROPROFILE_SCOPE(GPU_DownloadMemory);
 
-    auto it = committed_ranges.begin();
-    while (it != committed_ranges.end()) {
+    auto it = committed_gpu_modified_ranges.begin();
+    while (it != committed_gpu_modified_ranges.end()) {
         auto& current_intervals = *it;
         auto next_it = std::next(it);
-        while (next_it != committed_ranges.end()) {
-            for (auto& interval : *next_it) {
-                current_intervals.subtract(interval);
-            }
+        while (next_it != committed_gpu_modified_ranges.end()) {
+            next_it->ForEach([&current_intervals](DAddr start, DAddr end) {
+                current_intervals.Subtract(start, end - start);
+            });
             next_it++;
         }
         it++;
@@ -552,10 +544,10 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     boost::container::small_vector<std::pair<BufferCopy, BufferId>, 16> downloads;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
-    for (const IntervalSet& intervals : committed_ranges) {
-        for (auto& interval : intervals) {
-            const std::size_t size = interval.upper() - interval.lower();
-            const DAddr device_addr = interval.lower();
+    for (const Common::RangeSet<DAddr>& range_set : committed_gpu_modified_ranges) {
+        range_set.ForEach([&](DAddr interval_lower, DAddr interval_upper) {
+            const std::size_t size = interval_upper - interval_lower;
+            const DAddr device_addr = interval_lower;
             ForEachBufferInRange(device_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
                 const DAddr buffer_start = buffer.CpuAddr();
                 const DAddr buffer_end = buffer_start + buffer.SizeBytes();
@@ -583,77 +575,35 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                             largest_copy = std::max(largest_copy, new_size);
                         };
 
-                        ForEachInRangeSet(common_ranges, device_addr_out, range_size, add_download);
+                        gpu_modified_ranges.ForEachInRange(device_addr_out, range_size,
+                                                           add_download);
                     });
             });
-        }
+        });
     }
-    committed_ranges.clear();
+    committed_gpu_modified_ranges.clear();
     if (downloads.empty()) {
-        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-            async_buffers.emplace_back(std::optional<Async_Buffer>{});
-        }
+        async_buffers.emplace_back(std::optional<Async_Buffer>{});
         return;
     }
-    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-        auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes, true);
-        boost::container::small_vector<BufferCopy, 4> normalized_copies;
-        IntervalSet new_async_range{};
-        runtime.PreCopyBarrier();
-        for (auto& [copy, buffer_id] : downloads) {
-            copy.dst_offset += download_staging.offset;
-            const std::array copies{copy};
-            BufferCopy second_copy{copy};
-            Buffer& buffer = slot_buffers[buffer_id];
-            second_copy.src_offset = static_cast<size_t>(buffer.CpuAddr()) + copy.src_offset;
-            DAddr orig_device_addr = static_cast<DAddr>(second_copy.src_offset);
-            const IntervalType base_interval{orig_device_addr, orig_device_addr + copy.size};
-            async_downloads += std::make_pair(base_interval, 1);
-            buffer.MarkUsage(copy.src_offset, copy.size);
-            runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
-            normalized_copies.push_back(second_copy);
-        }
-        runtime.PostCopyBarrier();
-        pending_downloads.emplace_back(std::move(normalized_copies));
-        async_buffers.emplace_back(download_staging);
-    } else {
-        if (!Settings::IsGPULevelHigh()) {
-            committed_ranges.clear();
-            uncommitted_ranges.clear();
-        } else {
-            if constexpr (USE_MEMORY_MAPS) {
-                auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
-                runtime.PreCopyBarrier();
-                for (auto& [copy, buffer_id] : downloads) {
-                    // Have in mind the staging buffer offset for the copy
-                    copy.dst_offset += download_staging.offset;
-                    const std::array copies{copy};
-                    Buffer& buffer = slot_buffers[buffer_id];
-                    buffer.MarkUsage(copy.src_offset, copy.size);
-                    runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
-                }
-                runtime.PostCopyBarrier();
-                runtime.Finish();
-                for (const auto& [copy, buffer_id] : downloads) {
-                    const Buffer& buffer = slot_buffers[buffer_id];
-                    const DAddr device_addr = buffer.CpuAddr() + copy.src_offset;
-                    // Undo the modified offset
-                    const u64 dst_offset = copy.dst_offset - download_staging.offset;
-                    const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
-                    device_memory.WriteBlockUnsafe(device_addr, read_mapped_memory, copy.size);
-                }
-            } else {
-                const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
-                for (const auto& [copy, buffer_id] : downloads) {
-                    Buffer& buffer = slot_buffers[buffer_id];
-                    buffer.ImmediateDownload(copy.src_offset,
-                                             immediate_buffer.subspan(0, copy.size));
-                    const DAddr device_addr = buffer.CpuAddr() + copy.src_offset;
-                    device_memory.WriteBlockUnsafe(device_addr, immediate_buffer.data(), copy.size);
-                }
-            }
-        }
+    auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes, true);
+    boost::container::small_vector<BufferCopy, 4> normalized_copies;
+    runtime.PreCopyBarrier();
+    for (auto& [copy, buffer_id] : downloads) {
+        copy.dst_offset += download_staging.offset;
+        const std::array copies{copy};
+        BufferCopy second_copy{copy};
+        Buffer& buffer = slot_buffers[buffer_id];
+        second_copy.src_offset = static_cast<size_t>(buffer.CpuAddr()) + copy.src_offset;
+        const DAddr orig_device_addr = static_cast<DAddr>(second_copy.src_offset);
+        async_downloads.Add(orig_device_addr, copy.size);
+        buffer.MarkUsage(copy.src_offset, copy.size);
+        runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
+        normalized_copies.push_back(second_copy);
     }
+    runtime.PostCopyBarrier();
+    pending_downloads.emplace_back(std::move(normalized_copies));
+    async_buffers.emplace_back(download_staging);
 }
 
 template <class P>
@@ -676,37 +626,31 @@ void BufferCache<P>::PopAsyncBuffers() {
         async_buffers.pop_front();
         return;
     }
-    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-        auto& downloads = pending_downloads.front();
-        auto& async_buffer = async_buffers.front();
-        u8* base = async_buffer->mapped_span.data();
-        const size_t base_offset = async_buffer->offset;
-        for (const auto& copy : downloads) {
-            const DAddr device_addr = static_cast<DAddr>(copy.src_offset);
-            const u64 dst_offset = copy.dst_offset - base_offset;
-            const u8* read_mapped_memory = base + dst_offset;
-            ForEachInOverlapCounter(
-                async_downloads, device_addr, copy.size, [&](DAddr start, DAddr end, int count) {
-                    device_memory.WriteBlockUnsafe(start, &read_mapped_memory[start - device_addr],
-                                                   end - start);
-                    if (count == 1) {
-                        const IntervalType base_interval{start, end};
-                        common_ranges.subtract(base_interval);
-                    }
-                });
-            const IntervalType subtract_interval{device_addr, device_addr + copy.size};
-            RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1);
-        }
-        async_buffers_death_ring.emplace_back(*async_buffer);
-        async_buffers.pop_front();
-        pending_downloads.pop_front();
+    auto& downloads = pending_downloads.front();
+    auto& async_buffer = async_buffers.front();
+    u8* base = async_buffer->mapped_span.data();
+    const size_t base_offset = async_buffer->offset;
+    for (const auto& copy : downloads) {
+        const DAddr device_addr = static_cast<DAddr>(copy.src_offset);
+        const u64 dst_offset = copy.dst_offset - base_offset;
+        const u8* read_mapped_memory = base + dst_offset;
+        async_downloads.ForEachInRange(device_addr, copy.size, [&](DAddr start, DAddr end, s32) {
+            device_memory.WriteBlockUnsafe(start, &read_mapped_memory[start - device_addr],
+                                           end - start);
+        });
+        async_downloads.Subtract(device_addr, copy.size, [&](DAddr start, DAddr end) {
+            gpu_modified_ranges.Subtract(start, end - start);
+        });
     }
+    async_buffers_death_ring.emplace_back(*async_buffer);
+    async_buffers.pop_front();
+    pending_downloads.pop_front();
 }
 
 template <class P>
 bool BufferCache<P>::IsRegionGpuModified(DAddr addr, size_t size) {
     bool is_dirty = false;
-    ForEachInRangeSet(common_ranges, addr, size, [&](DAddr, DAddr) { is_dirty = true; });
+    gpu_modified_ranges.ForEachInRange(addr, size, [&](DAddr, DAddr) { is_dirty = true; });
     return is_dirty;
 }
 
@@ -1320,10 +1264,8 @@ void BufferCache<P>::UpdateComputeTextureBuffers() {
 template <class P>
 void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, DAddr device_addr, u32 size) {
     memory_tracker.MarkRegionAsGpuModified(device_addr, size);
-
-    const IntervalType base_interval{device_addr, device_addr + size};
-    common_ranges.add(base_interval);
-    uncommitted_ranges.add(base_interval);
+    gpu_modified_ranges.Add(device_addr, size);
+    uncommitted_gpu_modified_ranges.Add(device_addr, size);
 }
 
 template <class P>
@@ -1600,9 +1542,8 @@ bool BufferCache<P>::InlineMemory(DAddr dest_address, size_t copy_size,
 template <class P>
 void BufferCache<P>::InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
                                                 std::span<const u8> inlined_buffer) {
-    const IntervalType subtract_interval{dest_address, dest_address + copy_size};
-    ClearDownload(subtract_interval);
-    common_ranges.subtract(subtract_interval);
+    ClearDownload(dest_address, copy_size);
+    gpu_modified_ranges.Subtract(dest_address, copy_size);
 
     BufferId buffer_id = FindBuffer(dest_address, static_cast<u32>(copy_size));
     auto& buffer = slot_buffers[buffer_id];
@@ -1652,12 +1593,9 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, DAddr device_addr, u64
                 largest_copy = std::max(largest_copy, new_size);
             };
 
-            const DAddr start_address = device_addr_out;
-            const DAddr end_address = start_address + range_size;
-            ForEachInRangeSet(common_ranges, start_address, range_size, add_download);
-            const IntervalType subtract_interval{start_address, end_address};
-            ClearDownload(subtract_interval);
-            common_ranges.subtract(subtract_interval);
+            gpu_modified_ranges.ForEachInRange(device_addr_out, range_size, add_download);
+            ClearDownload(device_addr_out, range_size);
+            gpu_modified_ranges.Subtract(device_addr_out, range_size);
         });
     if (total_size_bytes == 0) {
         return;
