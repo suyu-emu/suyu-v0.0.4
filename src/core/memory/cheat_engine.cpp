@@ -9,6 +9,7 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
+#include "core/hle/kernel/k_process_page_table.h"
 #include "core/hle/service/hid/hid_server.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/memory.h"
@@ -85,8 +86,12 @@ VAddr StandardVmCallbacks::SanitizeAddress(VAddr in) const {
     if ((in < metadata.main_nso_extents.base ||
          in >= metadata.main_nso_extents.base + metadata.main_nso_extents.size) &&
         (in < metadata.heap_extents.base ||
-         in >= metadata.heap_extents.base + metadata.heap_extents.size)) {
-        LOG_ERROR(CheatEngine,
+         in >= metadata.heap_extents.base + metadata.heap_extents.size) &&
+        (in < metadata.alias_extents.base ||
+         in >= metadata.heap_extents.base + metadata.alias_extents.size) &&
+        (in < metadata.aslr_extents.base ||
+         in >= metadata.heap_extents.base + metadata.aslr_extents.size)) {
+        LOG_DEBUG(CheatEngine,
                   "Cheat attempting to access memory at invalid address={:016X}, if this "
                   "persists, "
                   "the cheat may be incorrect. However, this may be normal early in execution if "
@@ -211,15 +216,13 @@ void CheatEngine::Initialize() {
         .base = GetInteger(page_table.GetHeapRegionStart()),
         .size = page_table.GetHeapRegionSize(),
     };
-
-    metadata.address_space_extents = {
-        .base = GetInteger(page_table.GetAddressSpaceStart()),
-        .size = page_table.GetAddressSpaceSize(),
-    };
-
-    metadata.alias_extents = {
+    metadata.aslr_extents = {
         .base = GetInteger(page_table.GetAliasCodeRegionStart()),
         .size = page_table.GetAliasCodeRegionSize(),
+    };
+    metadata.alias_extents = {
+        .base = GetInteger(page_table.GetAliasRegionStart()),
+        .size = page_table.GetAliasRegionSize(),
     };
 
     is_pending_reload.exchange(true);
