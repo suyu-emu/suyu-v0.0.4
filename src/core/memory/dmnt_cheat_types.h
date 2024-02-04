@@ -18,7 +18,7 @@ struct CheatProcessMetadata {
     MemoryRegionExtents main_nso_extents{};
     MemoryRegionExtents heap_extents{};
     MemoryRegionExtents alias_extents{};
-    MemoryRegionExtents address_space_extents{};
+    MemoryRegionExtents aslr_extents{};
     std::array<u8, 0x20> main_nso_build_id{};
 };
 

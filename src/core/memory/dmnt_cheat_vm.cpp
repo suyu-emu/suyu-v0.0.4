@@ -322,8 +322,9 @@ bool DmntCheatVm::DecodeNextOpcode(CheatVmOpcode& out) {
     } break;
     case CheatVmOpcodeType::EndConditionalBlock: {
         // 20000000
-        // There's actually nothing left to process here!
-        opcode.opcode = EndConditionalOpcode{};
+        opcode.opcode = EndConditionalOpcode{
+            .is_else = ((first_dword >> 24) & 0xf) == 1,
+        };
     } break;
     case CheatVmOpcodeType::ControlLoop: {
         // 300R0000 VVVVVVVV
@@ -555,6 +556,18 @@ bool DmntCheatVm::DecodeNextOpcode(CheatVmOpcode& out) {
             .idx = first_dword & 0xF,
         };
     } break;
+    case CheatVmOpcodeType::PauseProcess: {
+        /* FF0????? */
+        /* FF0 = opcode 0xFF0 */
+        /* Pauses the current process. */
+        opcode.opcode = PauseProcessOpcode{};
+    } break;
+    case CheatVmOpcodeType::ResumeProcess: {
+        /* FF0????? */
+        /* FF0 = opcode 0xFF0 */
+        /* Pauses the current process. */
+        opcode.opcode = ResumeProcessOpcode{};
+    } break;
     case CheatVmOpcodeType::DebugLog: {
         // FFFTIX##
         // FFFTI0Ma aaaaaaaa
@@ -621,7 +634,7 @@ bool DmntCheatVm::DecodeNextOpcode(CheatVmOpcode& out) {
     return valid;
 }
 
-void DmntCheatVm::SkipConditionalBlock() {
+void DmntCheatVm::SkipConditionalBlock(bool is_if) {
     if (condition_depth > 0) {
         // We want to continue until we're out of the current block.
         const std::size_t desired_depth = condition_depth - 1;
@@ -637,8 +650,12 @@ void DmntCheatVm::SkipConditionalBlock() {
             // We also support nesting of conditional blocks, and Gateway does not.
             if (skip_opcode.begin_conditional_block) {
                 condition_depth++;
-            } else if (std::holds_alternative<EndConditionalOpcode>(skip_opcode.opcode)) {
-                condition_depth--;
+            } else if (auto end_cond = std::get_if<EndConditionalOpcode>(&skip_opcode.opcode)) {
+                if (!end_cond->is_else) {
+                    condition_depth--;
+                } else if (is_if && condition_depth - 1 == desired_depth) {
+                    break;
+                }
             }
         }
     } else {
@@ -675,6 +692,10 @@ u64 DmntCheatVm::GetCheatProcessAddress(const CheatProcessMetadata& metadata,
         return metadata.main_nso_extents.base + rel_address;
     case MemoryAccessType::Heap:
         return metadata.heap_extents.base + rel_address;
+    case MemoryAccessType::Alias:
+        return metadata.alias_extents.base + rel_address;
+    case MemoryAccessType::Aslr:
+        return metadata.aslr_extents.base + rel_address;
     }
 }
 
@@ -682,7 +703,6 @@ void DmntCheatVm::ResetState() {
     registers.fill(0);
     saved_values.fill(0);
     loop_tops.fill(0);
-    static_registers.fill(0);
     instruction_ptr = 0;
     condition_depth = 0;
     decode_success = true;
@@ -794,13 +814,18 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             }
             // Skip conditional block if condition not met.
             if (!cond_met) {
-                SkipConditionalBlock();
+                SkipConditionalBlock(true);
             }
-        } else if (std::holds_alternative<EndConditionalOpcode>(cur_opcode.opcode)) {
-            // Decrement the condition depth.
-            // We will assume, graciously, that mismatched conditional block ends are a nop.
-            if (condition_depth > 0) {
-                condition_depth--;
+        } else if (auto end_cond = std::get_if<EndConditionalOpcode>(&cur_opcode.opcode)) {
+            if (end_cond->is_else) {
+                /* Skip to the end of the conditional block. */
+                this->SkipConditionalBlock(false);
+            } else {
+                /* Decrement the condition depth. */
+                /* We will assume, graciously, that mismatched conditional block ends are a nop. */
+                if (condition_depth > 0) {
+                    condition_depth--;
+                }
             }
         } else if (auto ctrl_loop = std::get_if<ControlLoopOpcode>(&cur_opcode.opcode)) {
             if (ctrl_loop->start_loop) {
@@ -908,7 +933,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             // Check for keypress.
             if ((begin_keypress_cond->key_mask & kDown) != begin_keypress_cond->key_mask) {
                 // Keys not pressed. Skip conditional block.
-                SkipConditionalBlock();
+                SkipConditionalBlock(true);
             }
         } else if (auto perform_math_reg =
                        std::get_if<PerformArithmeticRegisterOpcode>(&cur_opcode.opcode)) {
@@ -1116,7 +1141,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
 
             // Skip conditional block if condition not met.
             if (!cond_met) {
-                SkipConditionalBlock();
+                SkipConditionalBlock(true);
             }
         } else if (auto save_restore_reg =
                        std::get_if<SaveRestoreRegisterOpcode>(&cur_opcode.opcode)) {
@@ -1178,6 +1203,10 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
                 // Store a register to a static register.
                 static_registers[rw_static_reg->static_idx] = registers[rw_static_reg->idx];
             }
+        } else if (std::holds_alternative<PauseProcessOpcode>(cur_opcode.opcode)) {
+            // TODO: Pause cheat process
+        } else if (std::holds_alternative<ResumeProcessOpcode>(cur_opcode.opcode)) {
+            // TODO: Resume cheat process
         } else if (auto debug_log = std::get_if<DebugLogOpcode>(&cur_opcode.opcode)) {
             // Read value from memory.
             u64 log_value = 0;

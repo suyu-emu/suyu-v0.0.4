@@ -37,7 +37,7 @@ private:
     VAddr SanitizeAddress(VAddr address) const;
 
     const CheatProcessMetadata& metadata;
-    System& system;
+    Core::System& system;
 };
 
 // Intermediary class that parses a text file or other disk format for storing cheats into a
