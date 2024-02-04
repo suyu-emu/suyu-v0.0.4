@@ -823,7 +823,9 @@ void QtSoftwareKeyboardDialog::SetControllerImage() {
         handheld->IsConnected() ? handheld->GetNpadStyleIndex() : player_1->GetNpadStyleIndex();
 
     const QString theme = [] {
-        if (QIcon::themeName().contains(QStringLiteral("dark")) ||
+        // Use dark icons if current OS mode is dark, or the theme contains "dark", or "midnight" in
+        // its name
+        if (GMainWindow::CheckDarkMode() || QIcon::themeName().contains(QStringLiteral("dark")) ||
             QIcon::themeName().contains(QStringLiteral("midnight"))) {
             return QStringLiteral("_dark");
         } else {

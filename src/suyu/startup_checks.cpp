@@ -5,6 +5,8 @@
 
 #ifdef _WIN32
 #include <cstring>
+#include <QByteArray>
+#include <QtGlobal>
 #include <processthreadsapi.h>
 #include <windows.h>
 #elif defined(SUYU_UNIX)
@@ -36,6 +38,9 @@ void CheckVulkan() {
 
 bool CheckEnvVars(bool* is_child) {
 #ifdef _WIN32
+    // Force adapting theme to follow Windows dark mode
+    qputenv("QT_QPA_PLATFORM", QByteArray("windows:darkmode=2"));
+
     // Check environment variable to see if we are the child
     char variable_contents[8];
     const DWORD startup_check_var =
