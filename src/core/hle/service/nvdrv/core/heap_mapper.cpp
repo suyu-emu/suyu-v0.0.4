@@ -15,7 +15,7 @@ struct HeapMapper::HeapMapperInternal {
     ~HeapMapperInternal() = default;
 
     Common::RangeSet<VAddr> m_temporary_set;
-    Common::SplitRangeSet<VAddr> m_mapped_ranges;
+    Common::OverlapRangeSet<VAddr> m_mapped_ranges;
     Tegra::MaxwellDeviceMemoryManager& m_device_memory;
     std::mutex m_guard;
 };

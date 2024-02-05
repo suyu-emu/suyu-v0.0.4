@@ -19,14 +19,18 @@
 
 namespace Common {
 
+namespace {
+template <class T>
+using RangeSetsAllocator =
+    boost::fast_pool_allocator<T, boost::default_user_allocator_new_delete,
+                               boost::details::pool::default_mutex, 1024, 2048>;
+}
+
 template <typename AddressType>
 struct RangeSet<AddressType>::RangeSetImpl {
-    template <class T>
-    using MyAllocator = boost::fast_pool_allocator<T, boost::default_user_allocator_new_delete,
-                                                   boost::details::pool::default_mutex, 1024, 2048>;
     using IntervalSet = boost::icl::interval_set<
         AddressType, std::less, ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, AddressType, std::less),
-        MyAllocator>;
+        RangeSetsAllocator>;
     using IntervalType = typename IntervalSet::interval_type;
 
     RangeSetImpl() = default;
@@ -88,18 +92,15 @@ struct RangeSet<AddressType>::RangeSetImpl {
 };
 
 template <typename AddressType>
-struct SplitRangeSet<AddressType>::SplitRangeSetImpl {
-    template <class T>
-    using MyAllocator = boost::fast_pool_allocator<T, boost::default_user_allocator_new_delete,
-                                                   boost::details::pool::default_mutex, 1024, 2048>;
+struct OverlapRangeSet<AddressType>::OverlapRangeSetImpl {
     using IntervalSet = boost::icl::split_interval_map<
         AddressType, s32, boost::icl::partial_enricher, std::less, boost::icl::inplace_plus,
         boost::icl::inter_section,
-        ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, AddressType, std::less), MyAllocator>;
+        ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, AddressType, std::less), RangeSetsAllocator>;
     using IntervalType = typename IntervalSet::interval_type;
 
-    SplitRangeSetImpl() = default;
-    ~SplitRangeSetImpl() = default;
+    OverlapRangeSetImpl() = default;
+    ~OverlapRangeSetImpl() = default;
 
     void Add(AddressType base_address, size_t size) {
         AddressType end_address = base_address + static_cast<AddressType>(size);
@@ -160,7 +161,7 @@ struct SplitRangeSet<AddressType>::SplitRangeSetImpl {
         }
         const AddressType start_address = base_address;
         const AddressType end_address = start_address + size;
-        const SplitRangeSetImpl::IntervalType search_interval{start_address, end_address};
+        const OverlapRangeSetImpl::IntervalType search_interval{start_address, end_address};
         auto it = m_split_ranges_set.lower_bound(search_interval);
         if (it == m_split_ranges_set.end()) {
             return;
@@ -230,71 +231,73 @@ void RangeSet<AddressType>::ForEach(Func&& func) const {
 
 template <typename AddressType>
 template <typename Func>
-void RangeSet<AddressType>::ForEachInRange(AddressType base_address, size_t size, Func&& func) const {
+void RangeSet<AddressType>::ForEachInRange(AddressType base_address, size_t size,
+                                           Func&& func) const {
     m_impl->ForEachInRange(base_address, size, std::move(func));
 }
 
 template <typename AddressType>
-SplitRangeSet<AddressType>::SplitRangeSet() {
-    m_impl = std::make_unique<SplitRangeSet<AddressType>::SplitRangeSetImpl>();
+OverlapRangeSet<AddressType>::OverlapRangeSet() {
+    m_impl = std::make_unique<OverlapRangeSet<AddressType>::OverlapRangeSetImpl>();
 }
 
 template <typename AddressType>
-SplitRangeSet<AddressType>::~SplitRangeSet() = default;
+OverlapRangeSet<AddressType>::~OverlapRangeSet() = default;
 
 template <typename AddressType>
-SplitRangeSet<AddressType>::SplitRangeSet(SplitRangeSet&& other) {
-    m_impl = std::make_unique<SplitRangeSet<AddressType>::SplitRangeSetImpl>();
+OverlapRangeSet<AddressType>::OverlapRangeSet(OverlapRangeSet&& other) {
+    m_impl = std::make_unique<OverlapRangeSet<AddressType>::OverlapRangeSetImpl>();
     m_impl->m_split_ranges_set = std::move(other.m_impl->m_split_ranges_set);
 }
 
 template <typename AddressType>
-SplitRangeSet<AddressType>& SplitRangeSet<AddressType>::operator=(SplitRangeSet&& other) {
+OverlapRangeSet<AddressType>& OverlapRangeSet<AddressType>::operator=(OverlapRangeSet&& other) {
     m_impl->m_split_ranges_set = std::move(other.m_impl->m_split_ranges_set);
 }
 
 template <typename AddressType>
-void SplitRangeSet<AddressType>::Add(AddressType base_address, size_t size) {
+void OverlapRangeSet<AddressType>::Add(AddressType base_address, size_t size) {
     m_impl->Add(base_address, size);
 }
 
 template <typename AddressType>
-void SplitRangeSet<AddressType>::Subtract(AddressType base_address, size_t size) {
+void OverlapRangeSet<AddressType>::Subtract(AddressType base_address, size_t size) {
     m_impl->template Subtract<false>(base_address, size, 1, [](AddressType, AddressType) {});
 }
 
 template <typename AddressType>
 template <typename Func>
-void SplitRangeSet<AddressType>::Subtract(AddressType base_address, size_t size, Func&& on_delete) {
+void OverlapRangeSet<AddressType>::Subtract(AddressType base_address, size_t size,
+                                            Func&& on_delete) {
     m_impl->template Subtract<true, Func>(base_address, size, 1, std::move(on_delete));
 }
 
 template <typename AddressType>
-void SplitRangeSet<AddressType>::DeleteAll(AddressType base_address, size_t size) {
+void OverlapRangeSet<AddressType>::DeleteAll(AddressType base_address, size_t size) {
     m_impl->template Subtract<false>(base_address, size, std::numeric_limits<s32>::max(),
-                            [](AddressType, AddressType) {});
+                                     [](AddressType, AddressType) {});
 }
 
 template <typename AddressType>
-void SplitRangeSet<AddressType>::Clear() {
+void OverlapRangeSet<AddressType>::Clear() {
     m_impl->m_split_ranges_set.clear();
 }
 
 template <typename AddressType>
-bool SplitRangeSet<AddressType>::Empty() const {
+bool OverlapRangeSet<AddressType>::Empty() const {
     return m_impl->m_split_ranges_set.empty();
 }
 
 template <typename AddressType>
 template <typename Func>
-void SplitRangeSet<AddressType>::ForEach(Func&& func) const {
+void OverlapRangeSet<AddressType>::ForEach(Func&& func) const {
     m_impl->ForEach(func);
 }
 
 template <typename AddressType>
 template <typename Func>
-void SplitRangeSet<AddressType>::ForEachInRange(AddressType base_address, size_t size,
-                                                Func&& func) const {
+void OverlapRangeSet<AddressType>::ForEachInRange(AddressType base_address, size_t size,
+                                                  Func&& func) const {
     m_impl->ForEachInRange(base_address, size, std::move(func));
 }
 
