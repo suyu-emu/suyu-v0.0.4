@@ -38,16 +38,16 @@ private:
 };
 
 template <typename AddressType>
-class SplitRangeSet {
+class OverlapRangeSet {
 public:
-    SplitRangeSet();
-    ~SplitRangeSet();
+    OverlapRangeSet();
+    ~OverlapRangeSet();
 
-    SplitRangeSet(SplitRangeSet const&) = delete;
-    SplitRangeSet& operator=(SplitRangeSet const&) = delete;
+    OverlapRangeSet(OverlapRangeSet const&) = delete;
+    OverlapRangeSet& operator=(OverlapRangeSet const&) = delete;
 
-    SplitRangeSet(SplitRangeSet&& other);
-    SplitRangeSet& operator=(SplitRangeSet&& other);
+    OverlapRangeSet(OverlapRangeSet&& other);
+    OverlapRangeSet& operator=(OverlapRangeSet&& other);
 
     void Add(AddressType base_address, size_t size);
     void Subtract(AddressType base_address, size_t size);
@@ -66,8 +66,8 @@ public:
     void ForEachInRange(AddressType device_addr, size_t size, Func&& func) const;
 
 private:
-    struct SplitRangeSetImpl;
-    std::unique_ptr<SplitRangeSetImpl> m_impl;
+    struct OverlapRangeSetImpl;
+    std::unique_ptr<OverlapRangeSetImpl> m_impl;
 };
 
 } // namespace Common
