@@ -27,17 +27,17 @@ public:
     StandardVmCallbacks(System& system_, const CheatProcessMetadata& metadata_);
     ~StandardVmCallbacks() override;
 
-    void MemoryRead(VAddr address, void* data, u64 size) override;
-    void MemoryWrite(VAddr address, const void* data, u64 size) override;
+    void MemoryReadUnsafe(VAddr address, void* data, u64 size) override;
+    void MemoryWriteUnsafe(VAddr address, const void* data, u64 size) override;
     u64 HidKeysDown() override;
     void DebugLog(u8 id, u64 value) override;
     void CommandLog(std::string_view data) override;
 
 private:
-    VAddr SanitizeAddress(VAddr address) const;
+    bool IsAddressInRange(VAddr address) const;
 
     const CheatProcessMetadata& metadata;
-    System& system;
+    Core::System& system;
 };
 
 // Intermediary class that parses a text file or other disk format for storing cheats into a
