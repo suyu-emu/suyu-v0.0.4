@@ -291,8 +291,7 @@ void Nvnflinger::Compose() {
         auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>(disp_fd);
         ASSERT(nvdisp);
 
-        swap_interval = display.GetComposer().ComposeLocked(&compose_speed_scale, display, *nvdisp,
-                                                            swap_interval);
+        swap_interval = display.GetComposer().ComposeLocked(&compose_speed_scale, display, *nvdisp);
     }
 }
 
