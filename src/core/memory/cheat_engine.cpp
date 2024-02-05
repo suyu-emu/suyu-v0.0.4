@@ -47,12 +47,23 @@ StandardVmCallbacks::StandardVmCallbacks(System& system_, const CheatProcessMeta
 
 StandardVmCallbacks::~StandardVmCallbacks() = default;
 
-void StandardVmCallbacks::MemoryRead(VAddr address, void* data, u64 size) {
-    system.ApplicationMemory().ReadBlock(SanitizeAddress(address), data, size);
+void StandardVmCallbacks::MemoryReadUnsafe(VAddr address, void* data, u64 size) {
+    // Return zero on invalid address
+    if (!IsAddressInRange(address) || !system.ApplicationMemory().IsValidVirtualAddress(address)) {
+        std::memset(data, 0, size);
+        return;
+    }
+
+    system.ApplicationMemory().ReadBlock(address, data, size);
 }
 
-void StandardVmCallbacks::MemoryWrite(VAddr address, const void* data, u64 size) {
-    system.ApplicationMemory().WriteBlock(SanitizeAddress(address), data, size);
+void StandardVmCallbacks::MemoryWriteUnsafe(VAddr address, const void* data, u64 size) {
+    // Skip invalid memory write address
+    if (!IsAddressInRange(address) || !system.ApplicationMemory().IsValidVirtualAddress(address)) {
+        return;
+    }
+
+    system.ApplicationMemory().WriteBlock(address, data, size);
 }
 
 u64 StandardVmCallbacks::HidKeysDown() {
@@ -82,7 +93,7 @@ void StandardVmCallbacks::CommandLog(std::string_view data) {
               data.back() == '\n' ? data.substr(0, data.size() - 1) : data);
 }
 
-VAddr StandardVmCallbacks::SanitizeAddress(VAddr in) const {
+bool StandardVmCallbacks::IsAddressInRange(VAddr in) const {
     if ((in < metadata.main_nso_extents.base ||
          in >= metadata.main_nso_extents.base + metadata.main_nso_extents.size) &&
         (in < metadata.heap_extents.base ||
@@ -97,10 +108,10 @@ VAddr StandardVmCallbacks::SanitizeAddress(VAddr in) const {
                   "the cheat may be incorrect. However, this may be normal early in execution if "
                   "the game has not properly set up yet.",
                   in);
-        return 0; ///< Invalid addresses will hard crash
+        return false; ///< Invalid addresses will hard crash
     }
 
-    return in;
+    return true;
 }
 
 CheatParser::~CheatParser() = default;

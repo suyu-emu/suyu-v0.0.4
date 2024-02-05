@@ -773,7 +773,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             case 2:
             case 4:
             case 8:
-                callbacks->MemoryWrite(dst_address, &dst_value, store_static->bit_width);
+                callbacks->MemoryWriteUnsafe(dst_address, &dst_value, store_static->bit_width);
                 break;
             }
         } else if (auto begin_cond = std::get_if<BeginConditionalOpcode>(&cur_opcode.opcode)) {
@@ -786,7 +786,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             case 2:
             case 4:
             case 8:
-                callbacks->MemoryRead(src_address, &src_value, begin_cond->bit_width);
+                callbacks->MemoryReadUnsafe(src_address, &src_value, begin_cond->bit_width);
                 break;
             }
             // Check against condition.
@@ -857,8 +857,8 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             case 2:
             case 4:
             case 8:
-                callbacks->MemoryRead(src_address, &registers[ldr_memory->reg_index],
-                                      ldr_memory->bit_width);
+                callbacks->MemoryReadUnsafe(src_address, &registers[ldr_memory->reg_index],
+                                            ldr_memory->bit_width);
                 break;
             }
         } else if (auto str_static = std::get_if<StoreStaticToAddressOpcode>(&cur_opcode.opcode)) {
@@ -874,7 +874,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             case 2:
             case 4:
             case 8:
-                callbacks->MemoryWrite(dst_address, &dst_value, str_static->bit_width);
+                callbacks->MemoryWriteUnsafe(dst_address, &dst_value, str_static->bit_width);
                 break;
             }
             // Increment register if relevant.
@@ -1032,7 +1032,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             case 2:
             case 4:
             case 8:
-                callbacks->MemoryWrite(dst_address, &dst_value, str_register->bit_width);
+                callbacks->MemoryWriteUnsafe(dst_address, &dst_value, str_register->bit_width);
                 break;
             }
 
@@ -1111,7 +1111,8 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
                 case 2:
                 case 4:
                 case 8:
-                    callbacks->MemoryRead(cond_address, &cond_value, begin_reg_cond->bit_width);
+                    callbacks->MemoryReadUnsafe(cond_address, &cond_value,
+                                                begin_reg_cond->bit_width);
                     break;
                 }
             }
@@ -1253,7 +1254,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
                 case 2:
                 case 4:
                 case 8:
-                    callbacks->MemoryRead(val_address, &log_value, debug_log->bit_width);
+                    callbacks->MemoryReadUnsafe(val_address, &log_value, debug_log->bit_width);
                     break;
                 }
             }
