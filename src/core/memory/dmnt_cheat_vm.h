@@ -42,12 +42,16 @@ enum class CheatVmOpcodeType : u32 {
     DoubleExtendedWidth = 0xF0,
 
     // Double-extended width opcodes.
+    PauseProcess = 0xFF0,
+    ResumeProcess = 0xFF1,
     DebugLog = 0xFFF,
 };
 
 enum class MemoryAccessType : u32 {
     MainNso = 0,
     Heap = 1,
+    Alias = 2,
+    Aslr = 3,
 };
 
 enum class ConditionalComparisonType : u32 {
@@ -131,7 +135,9 @@ struct BeginConditionalOpcode {
     VmInt value{};
 };
 
-struct EndConditionalOpcode {};
+struct EndConditionalOpcode {
+    bool is_else;
+};
 
 struct ControlLoopOpcode {
     bool start_loop{};
@@ -222,6 +228,10 @@ struct ReadWriteStaticRegisterOpcode {
     u32 idx{};
 };
 
+struct PauseProcessOpcode {};
+
+struct ResumeProcessOpcode {};
+
 struct DebugLogOpcode {
     u32 bit_width{};
     u32 log_id{};
@@ -244,8 +254,8 @@ struct CheatVmOpcode {
                  PerformArithmeticStaticOpcode, BeginKeypressConditionalOpcode,
                  PerformArithmeticRegisterOpcode, StoreRegisterToAddressOpcode,
                  BeginRegisterConditionalOpcode, SaveRestoreRegisterOpcode,
-                 SaveRestoreRegisterMaskOpcode, ReadWriteStaticRegisterOpcode, DebugLogOpcode,
-                 UnrecognizedInstruction>
+                 SaveRestoreRegisterMaskOpcode, ReadWriteStaticRegisterOpcode, PauseProcessOpcode,
+                 ResumeProcessOpcode, DebugLogOpcode, UnrecognizedInstruction>
         opcode{};
 };
 
@@ -256,8 +266,8 @@ public:
     public:
         virtual ~Callbacks();
 
-        virtual void MemoryRead(VAddr address, void* data, u64 size) = 0;
-        virtual void MemoryWrite(VAddr address, const void* data, u64 size) = 0;
+        virtual void MemoryReadUnsafe(VAddr address, void* data, u64 size) = 0;
+        virtual void MemoryWriteUnsafe(VAddr address, const void* data, u64 size) = 0;
 
         virtual u64 HidKeysDown() = 0;
 
@@ -296,7 +306,7 @@ private:
     std::array<std::size_t, NumRegisters> loop_tops{};
 
     bool DecodeNextOpcode(CheatVmOpcode& out);
-    void SkipConditionalBlock();
+    void SkipConditionalBlock(bool is_if);
     void ResetState();
 
     // For implementing the DebugLog opcode.
