@@ -1,63 +1,38 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/android/android_common.h"
+#include "common/android/id_cache.h"
+#include "common/assert.h"
 #include "common/fs/fs_android.h"
 #include "common/string_util.h"
 
 namespace Common::FS::Android {
 
-JNIEnv* GetEnvForThread() {
-    thread_local static struct OwnedEnv {
-        OwnedEnv() {
-            status = g_jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
-            if (status == JNI_EDETACHED)
-                g_jvm->AttachCurrentThread(&env, nullptr);
-        }
-
-        ~OwnedEnv() {
-            if (status == JNI_EDETACHED)
-                g_jvm->DetachCurrentThread();
-        }
-
-        int status;
-        JNIEnv* env = nullptr;
-    } owned;
-    return owned.env;
-}
-
 void RegisterCallbacks(JNIEnv* env, jclass clazz) {
     env->GetJavaVM(&g_jvm);
     native_library = clazz;
 
-#define FH(FunctionName, JMethodID, Caller, JMethodName, Signature)                                \
-    F(JMethodID, JMethodName, Signature)
-#define FR(FunctionName, ReturnValue, JMethodID, Caller, JMethodName, Signature)                   \
-    F(JMethodID, JMethodName, Signature)
-#define FS(FunctionName, ReturnValue, Parameters, JMethodID, JMethodName, Signature)               \
-    F(JMethodID, JMethodName, Signature)
-#define F(JMethodID, JMethodName, Signature)                                                       \
-    JMethodID = env->GetStaticMethodID(native_library, JMethodName, Signature);
-    ANDROID_SINGLE_PATH_HELPER_FUNCTIONS(FH)
-    ANDROID_SINGLE_PATH_DETERMINE_FUNCTIONS(FR)
-    ANDROID_STORAGE_FUNCTIONS(FS)
-#undef F
-#undef FS
-#undef FR
-#undef FH
+    s_get_parent_directory = env->GetStaticMethodID(native_library, "getParentDirectory",
+                                                    "(Ljava/lang/String;)Ljava/lang/String;");
+    s_get_filename = env->GetStaticMethodID(native_library, "getFilename",
+                                            "(Ljava/lang/String;)Ljava/lang/String;");
+    s_get_size = env->GetStaticMethodID(native_library, "getSize", "(Ljava/lang/String;)J");
+    s_is_directory = env->GetStaticMethodID(native_library, "isDirectory", "(Ljava/lang/String;)Z");
+    s_file_exists = env->GetStaticMethodID(native_library, "exists", "(Ljava/lang/String;)Z");
+    s_open_content_uri = env->GetStaticMethodID(native_library, "openContentUri",
+                                                "(Ljava/lang/String;Ljava/lang/String;)I");
 }
 
 void UnRegisterCallbacks() {
-#define FH(FunctionName, JMethodID, Caller, JMethodName, Signature) F(JMethodID)
-#define FR(FunctionName, ReturnValue, JMethodID, Caller, JMethodName, Signature) F(JMethodID)
-#define FS(FunctionName, ReturnValue, Parameters, JMethodID, JMethodName, Signature) F(JMethodID)
-#define F(JMethodID) JMethodID = nullptr;
-    ANDROID_SINGLE_PATH_HELPER_FUNCTIONS(FH)
-    ANDROID_SINGLE_PATH_DETERMINE_FUNCTIONS(FR)
-    ANDROID_STORAGE_FUNCTIONS(FS)
-#undef F
-#undef FS
-#undef FR
-#undef FH
+    s_get_parent_directory = nullptr;
+    s_get_filename = nullptr;
+
+    s_get_size = nullptr;
+    s_is_directory = nullptr;
+    s_file_exists = nullptr;
+
+    s_open_content_uri = nullptr;
 }
 
 bool IsContentUri(const std::string& path) {
@@ -69,8 +44,8 @@ bool IsContentUri(const std::string& path) {
     return path.find(prefix) == 0;
 }
 
-int OpenContentUri(const std::string& filepath, OpenMode openmode) {
-    if (open_content_uri == nullptr)
+s32 OpenContentUri(const std::string& filepath, OpenMode openmode) {
+    if (s_open_content_uri == nullptr)
         return -1;
 
     const char* mode = "";
@@ -82,50 +57,66 @@ int OpenContentUri(const std::string& filepath, OpenMode openmode) {
         UNIMPLEMENTED();
         return -1;
     }
-    auto env = GetEnvForThread();
-    jstring j_filepath = env->NewStringUTF(filepath.c_str());
-    jstring j_mode = env->NewStringUTF(mode);
-    return env->CallStaticIntMethod(native_library, open_content_uri, j_filepath, j_mode);
+    auto env = Common::Android::GetEnvForThread();
+    jstring j_filepath = Common::Android::ToJString(env, filepath);
+    jstring j_mode = Common::Android::ToJString(env, mode);
+    return env->CallStaticIntMethod(native_library, s_open_content_uri, j_filepath, j_mode);
 }
 
-#define FR(FunctionName, ReturnValue, JMethodID, Caller, JMethodName, Signature)                   \
-    F(FunctionName, ReturnValue, JMethodID, Caller)
-#define F(FunctionName, ReturnValue, JMethodID, Caller)                                            \
-    ReturnValue FunctionName(const std::string& filepath) {                                        \
-        if (JMethodID == nullptr) {                                                                \
-            return 0;                                                                              \
-        }                                                                                          \
-        auto env = GetEnvForThread();                                                              \
-        jstring j_filepath = env->NewStringUTF(filepath.c_str());                                  \
-        return env->Caller(native_library, JMethodID, j_filepath);                                 \
+u64 GetSize(const std::string& filepath) {
+    if (s_get_size == nullptr) {
+        return 0;
     }
-ANDROID_SINGLE_PATH_DETERMINE_FUNCTIONS(FR)
-#undef F
-#undef FR
+    auto env = Common::Android::GetEnvForThread();
+    return static_cast<u64>(env->CallStaticLongMethod(
+        native_library, s_get_size,
+        Common::Android::ToJString(Common::Android::GetEnvForThread(), filepath)));
+}
 
-#define FH(FunctionName, JMethodID, Caller, JMethodName, Signature)                                \
-    F(FunctionName, JMethodID, Caller)
-#define F(FunctionName, JMethodID, Caller)                                                         \
-    std::string FunctionName(const std::string& filepath) {                                        \
-        if (JMethodID == nullptr) {                                                                \
-            return 0;                                                                              \
-        }                                                                                          \
-        auto env = GetEnvForThread();                                                              \
-        jstring j_filepath = env->NewStringUTF(filepath.c_str());                                  \
-        jstring j_return =                                                                         \
-            static_cast<jstring>(env->Caller(native_library, JMethodID, j_filepath));              \
-        if (!j_return) {                                                                           \
-            return {};                                                                             \
-        }                                                                                          \
-        const jchar* jchars = env->GetStringChars(j_return, nullptr);                              \
-        const jsize length = env->GetStringLength(j_return);                                       \
-        const std::u16string_view string_view(reinterpret_cast<const char16_t*>(jchars), length);  \
-        const std::string converted_string = Common::UTF16ToUTF8(string_view);                     \
-        env->ReleaseStringChars(j_return, jchars);                                                 \
-        return converted_string;                                                                   \
+bool IsDirectory(const std::string& filepath) {
+    if (s_is_directory == nullptr) {
+        return 0;
     }
-ANDROID_SINGLE_PATH_HELPER_FUNCTIONS(FH)
-#undef F
-#undef FH
+    auto env = Common::Android::GetEnvForThread();
+    return env->CallStaticBooleanMethod(
+        native_library, s_is_directory,
+        Common::Android::ToJString(Common::Android::GetEnvForThread(), filepath));
+}
+
+bool Exists(const std::string& filepath) {
+    if (s_file_exists == nullptr) {
+        return 0;
+    }
+    auto env = Common::Android::GetEnvForThread();
+    return env->CallStaticBooleanMethod(
+        native_library, s_file_exists,
+        Common::Android::ToJString(Common::Android::GetEnvForThread(), filepath));
+}
+
+std::string GetParentDirectory(const std::string& filepath) {
+    if (s_get_parent_directory == nullptr) {
+        return 0;
+    }
+    auto env = Common::Android::GetEnvForThread();
+    jstring j_return = static_cast<jstring>(env->CallStaticObjectMethod(
+        native_library, s_get_parent_directory, Common::Android::ToJString(env, filepath)));
+    if (!j_return) {
+        return {};
+    }
+    return Common::Android::GetJString(env, j_return);
+}
+
+std::string GetFilename(const std::string& filepath) {
+    if (s_get_filename == nullptr) {
+        return 0;
+    }
+    auto env = Common::Android::GetEnvForThread();
+    jstring j_return = static_cast<jstring>(env->CallStaticObjectMethod(
+        native_library, s_get_filename, Common::Android::ToJString(env, filepath)));
+    if (!j_return) {
+        return {};
+    }
+    return Common::Android::GetJString(env, j_return);
+}
 
 } // namespace Common::FS::Android
