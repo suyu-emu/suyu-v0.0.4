@@ -266,8 +266,8 @@ public:
     public:
         virtual ~Callbacks();
 
-        virtual void MemoryRead(VAddr address, void* data, u64 size) = 0;
-        virtual void MemoryWrite(VAddr address, const void* data, u64 size) = 0;
+        virtual void MemoryReadUnsafe(VAddr address, void* data, u64 size) = 0;
+        virtual void MemoryWriteUnsafe(VAddr address, const void* data, u64 size) = 0;
 
         virtual u64 HidKeysDown() = 0;
 
