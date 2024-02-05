@@ -186,68 +186,68 @@ static_assert(std::is_trivially_destructible_v<PhysicalAddress>);
 static_assert(std::is_trivially_destructible_v<VirtualAddress>);
 static_assert(std::is_trivially_destructible_v<ProcessAddress>);
 
-static_assert(Null<uint64_t> == 0);
+static_assert(Null<uint64_t> == 0U);
 static_assert(Null<PhysicalAddress> == Null<uint64_t>);
 static_assert(Null<VirtualAddress> == Null<uint64_t>);
 static_assert(Null<ProcessAddress> == Null<uint64_t>);
 
 // Constructor/assignment validations.
 static_assert([] {
-    const PhysicalAddress a(5);
+    const PhysicalAddress a(5U);
     PhysicalAddress b(a);
     return b;
-}() == PhysicalAddress(5));
+}() == PhysicalAddress(5U));
 static_assert([] {
-    const PhysicalAddress a(5);
-    PhysicalAddress b(10);
+    const PhysicalAddress a(5U);
+    PhysicalAddress b(10U);
     b = a;
     return b;
-}() == PhysicalAddress(5));
+}() == PhysicalAddress(5U));
 
 // Arithmetic validations.
-static_assert(PhysicalAddress(10) + 5 == PhysicalAddress(15));
-static_assert(PhysicalAddress(10) - 5 == PhysicalAddress(5));
+static_assert(PhysicalAddress(10U) + 5U == PhysicalAddress(15U));
+static_assert(PhysicalAddress(10U) - 5U == PhysicalAddress(5U));
 static_assert([] {
-    PhysicalAddress v(10);
-    v += 5;
+    PhysicalAddress v(10U);
+    v += 5U;
     return v;
-}() == PhysicalAddress(15));
+}() == PhysicalAddress(15U));
 static_assert([] {
-    PhysicalAddress v(10);
-    v -= 5;
+    PhysicalAddress v(10U);
+    v -= 5U;
     return v;
-}() == PhysicalAddress(5));
-static_assert(PhysicalAddress(10)++ == PhysicalAddress(10));
-static_assert(++PhysicalAddress(10) == PhysicalAddress(11));
-static_assert(PhysicalAddress(10)-- == PhysicalAddress(10));
-static_assert(--PhysicalAddress(10) == PhysicalAddress(9));
+}() == PhysicalAddress(5U));
+static_assert(PhysicalAddress(10U)++ == PhysicalAddress(10U));
+static_assert(++PhysicalAddress(10U) == PhysicalAddress(11U));
+static_assert(PhysicalAddress(10U)-- == PhysicalAddress(10U));
+static_assert(--PhysicalAddress(10U) == PhysicalAddress(9U));
 
 // Logical validations.
-static_assert((PhysicalAddress(0b11111111) >> 1) == 0b01111111);
-static_assert((PhysicalAddress(0b10101010) >> 1) == 0b01010101);
-static_assert((PhysicalAddress(0b11111111) << 1) == 0b111111110);
-static_assert((PhysicalAddress(0b01010101) << 1) == 0b10101010);
-static_assert((PhysicalAddress(0b11111111) & 0b01010101) == 0b01010101);
-static_assert((PhysicalAddress(0b11111111) & 0b10101010) == 0b10101010);
-static_assert((PhysicalAddress(0b01010101) & 0b10101010) == 0b00000000);
-static_assert((PhysicalAddress(0b00000000) | 0b01010101) == 0b01010101);
-static_assert((PhysicalAddress(0b11111111) | 0b01010101) == 0b11111111);
-static_assert((PhysicalAddress(0b10101010) | 0b01010101) == 0b11111111);
+static_assert((PhysicalAddress(0b11111111U) >> 1) == 0b01111111U);
+static_assert((PhysicalAddress(0b10101010U) >> 1) == 0b01010101U);
+static_assert((PhysicalAddress(0b11111111U) << 1) == 0b111111110U);
+static_assert((PhysicalAddress(0b01010101U) << 1) == 0b10101010U);
+static_assert((PhysicalAddress(0b11111111U) & 0b01010101U) == 0b01010101U);
+static_assert((PhysicalAddress(0b11111111U) & 0b10101010U) == 0b10101010U);
+static_assert((PhysicalAddress(0b01010101U) & 0b10101010U) == 0b00000000U);
+static_assert((PhysicalAddress(0b00000000U) | 0b01010101U) == 0b01010101U);
+static_assert((PhysicalAddress(0b11111111U) | 0b01010101U) == 0b11111111U);
+static_assert((PhysicalAddress(0b10101010U) | 0b01010101U) == 0b11111111U);
 
 // Comparisons.
-static_assert(PhysicalAddress(0) == PhysicalAddress(0));
-static_assert(PhysicalAddress(0) != PhysicalAddress(1));
-static_assert(PhysicalAddress(0) < PhysicalAddress(1));
-static_assert(PhysicalAddress(0) <= PhysicalAddress(1));
-static_assert(PhysicalAddress(1) > PhysicalAddress(0));
-static_assert(PhysicalAddress(1) >= PhysicalAddress(0));
+static_assert(PhysicalAddress(0U) == PhysicalAddress(0U));
+static_assert(PhysicalAddress(0U) != PhysicalAddress(1U));
+static_assert(PhysicalAddress(0U) < PhysicalAddress(1U));
+static_assert(PhysicalAddress(0U) <= PhysicalAddress(1U));
+static_assert(PhysicalAddress(1U) > PhysicalAddress(0U));
+static_assert(PhysicalAddress(1U) >= PhysicalAddress(0U));
 
-static_assert(!(PhysicalAddress(0) == PhysicalAddress(1)));
-static_assert(!(PhysicalAddress(0) != PhysicalAddress(0)));
-static_assert(!(PhysicalAddress(1) < PhysicalAddress(0)));
-static_assert(!(PhysicalAddress(1) <= PhysicalAddress(0)));
-static_assert(!(PhysicalAddress(0) > PhysicalAddress(1)));
-static_assert(!(PhysicalAddress(0) >= PhysicalAddress(1)));
+static_assert(!(PhysicalAddress(0U) == PhysicalAddress(1U)));
+static_assert(!(PhysicalAddress(0U) != PhysicalAddress(0U)));
+static_assert(!(PhysicalAddress(1U) < PhysicalAddress(0U)));
+static_assert(!(PhysicalAddress(1U) <= PhysicalAddress(0U)));
+static_assert(!(PhysicalAddress(0U) > PhysicalAddress(1U)));
+static_assert(!(PhysicalAddress(0U) >= PhysicalAddress(1U)));
 
 } // namespace Common
 
