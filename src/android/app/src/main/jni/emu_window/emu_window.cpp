@@ -3,6 +3,7 @@
 
 #include <android/native_window_jni.h>
 
+#include "common/android/id_cache.h"
 #include "common/logging/log.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/drivers/virtual_amiibo.h"
@@ -60,7 +61,8 @@ void EmuWindow_Android::OnRemoveNfcTag() {
 
 void EmuWindow_Android::OnFrameDisplayed() {
     if (!m_first_frame) {
-        EmulationSession::GetInstance().OnEmulationStarted();
+        Common::Android::RunJNIOnFiber<void>(
+            [&](JNIEnv* env) { EmulationSession::GetInstance().OnEmulationStarted(); });
         m_first_frame = true;
     }
 }
