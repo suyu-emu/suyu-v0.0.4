@@ -7,7 +7,6 @@
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_item_consumer.h"
-#include "core/hle/service/nvnflinger/buffer_queue_producer.h"
 #include "core/hle/service/nvnflinger/hardware_composer.h"
 #include "core/hle/service/nvnflinger/hwc_layer.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
@@ -46,30 +45,8 @@ HardwareComposer::HardwareComposer() = default;
 HardwareComposer::~HardwareComposer() = default;
 
 u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
-                                    Nvidia::Devices::nvdisp_disp0& nvdisp, u32 frame_advance) {
+                                    Nvidia::Devices::nvdisp_disp0& nvdisp) {
     boost::container::small_vector<HwcLayer, 2> composition_stack;
-
-    m_frame_number += frame_advance;
-
-    // Release any necessary framebuffers.
-    for (auto& [layer_id, framebuffer] : m_framebuffers) {
-        if (framebuffer.release_frame_number > m_frame_number) {
-            // Not yet ready to release this framebuffer.
-            continue;
-        }
-
-        if (!framebuffer.is_acquired) {
-            // Already released.
-            continue;
-        }
-
-        if (auto* layer = display.FindLayer(layer_id); layer != nullptr) {
-            // TODO: support release fence
-            // This is needed to prevent screen tearing
-            layer->GetConsumer().ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
-            framebuffer.is_acquired = false;
-        }
-    }
 
     // Set default speed limit to 100%.
     *out_speed_scale = 1.0f;
@@ -142,7 +119,30 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
     MicroProfileFlip();
 
     // Advance by at least one frame.
-    return swap_interval.value_or(1);
+    const u32 frame_advance = swap_interval.value_or(1);
+    m_frame_number += frame_advance;
+
+    // Release any necessary framebuffers.
+    for (auto& [layer_id, framebuffer] : m_framebuffers) {
+        if (framebuffer.release_frame_number > m_frame_number) {
+            // Not yet ready to release this framebuffer.
+            continue;
+        }
+
+        if (!framebuffer.is_acquired) {
+            // Already released.
+            continue;
+        }
+
+        if (auto* layer = display.FindLayer(layer_id); layer != nullptr) {
+            // TODO: support release fence
+            // This is needed to prevent screen tearing
+            layer->GetConsumer().ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
+            framebuffer.is_acquired = false;
+        }
+    }
+
+    return frame_advance;
 }
 
 void HardwareComposer::RemoveLayerLocked(VI::Display& display, LayerId layer_id) {
