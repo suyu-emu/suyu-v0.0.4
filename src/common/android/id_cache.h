@@ -3,20 +3,40 @@
 
 #pragma once
 
+#include <future>
 #include <jni.h>
 
 #include "video_core/rasterizer_interface.h"
 
-namespace IDCache {
+namespace Common::Android {
 
 JNIEnv* GetEnvForThread();
+
+/**
+ * Starts a new thread to run JNI. Intended to be used when you must run JNI from a fiber.
+ * @tparam T Typename of the return value for the work param
+ * @param work Lambda that runs JNI code. This function will take care of attaching this thread to
+ * the JVM
+ * @return The result from the work lambda param
+ */
+template <typename T = void>
+T RunJNIOnFiber(const std::function<T(JNIEnv*)>& work) {
+    std::future<T> j_result = std::async(std::launch::async, [&] {
+        auto env = GetEnvForThread();
+        return work(env);
+    });
+    return j_result.get();
+}
+
 jclass GetNativeLibraryClass();
+
 jclass GetDiskCacheProgressClass();
 jclass GetDiskCacheLoadCallbackStageClass();
 jclass GetGameDirClass();
 jmethodID GetGameDirConstructor();
-jmethodID GetExitEmulationActivity();
 jmethodID GetDiskCacheLoadProgress();
+
+jmethodID GetExitEmulationActivity();
 jmethodID GetOnEmulationStarted();
 jmethodID GetOnEmulationStopped();
 jmethodID GetOnProgramChanged();
@@ -65,4 +85,4 @@ jclass GetBooleanClass();
 jmethodID GetBooleanConstructor();
 jfieldID GetBooleanValueField();
 
-} // namespace IDCache
+} // namespace Common::Android

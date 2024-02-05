@@ -3,10 +3,10 @@
 
 #include <jni.h>
 
+#include "applets/software_keyboard.h"
+#include "common/android/id_cache.h"
 #include "common/assert.h"
 #include "common/fs/fs_android.h"
-#include "jni/applets/software_keyboard.h"
-#include "jni/id_cache.h"
 #include "video_core/rasterizer_interface.h"
 
 static JavaVM* s_java_vm;
@@ -67,7 +67,7 @@ static jfieldID s_boolean_value_field;
 
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
-namespace IDCache {
+namespace Common::Android {
 
 JNIEnv* GetEnvForThread() {
     thread_local static struct OwnedEnv {
@@ -276,8 +276,6 @@ jfieldID GetBooleanValueField() {
     return s_boolean_value_field;
 }
 
-} // namespace IDCache
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -393,7 +391,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
 
     // Initialize applets
-    SoftwareKeyboard::InitJNI(env);
+    Common::Android::SoftwareKeyboard::InitJNI(env);
 
     return JNI_VERSION;
 }
@@ -426,3 +424,5 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
 #ifdef __cplusplus
 }
 #endif
+
+} // namespace Common::Android

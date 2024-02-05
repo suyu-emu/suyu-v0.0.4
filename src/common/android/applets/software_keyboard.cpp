@@ -6,12 +6,12 @@
 
 #include <jni.h>
 
+#include "common/android/android_common.h"
+#include "common/android/applets/software_keyboard.h"
+#include "common/android/id_cache.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
-#include "jni/android_common/android_common.h"
-#include "jni/applets/software_keyboard.h"
-#include "jni/id_cache.h"
 
 static jclass s_software_keyboard_class;
 static jclass s_keyboard_config_class;
@@ -19,10 +19,10 @@ static jclass s_keyboard_data_class;
 static jmethodID s_swkbd_execute_normal;
 static jmethodID s_swkbd_execute_inline;
 
-namespace SoftwareKeyboard {
+namespace Common::Android::SoftwareKeyboard {
 
 static jobject ToJKeyboardParams(const Core::Frontend::KeyboardInitializeParameters& config) {
-    JNIEnv* env = IDCache::GetEnvForThread();
+    JNIEnv* env = GetEnvForThread();
     jobject object = env->AllocObject(s_keyboard_config_class);
 
     env->SetObjectField(object,
@@ -78,7 +78,7 @@ static jobject ToJKeyboardParams(const Core::Frontend::KeyboardInitializeParamet
 }
 
 AndroidKeyboard::ResultData AndroidKeyboard::ResultData::CreateFromFrontend(jobject object) {
-    JNIEnv* env = IDCache::GetEnvForThread();
+    JNIEnv* env = GetEnvForThread();
     const jstring string = reinterpret_cast<jstring>(env->GetObjectField(
         object, env->GetFieldID(s_keyboard_data_class, "text", "Ljava/lang/String;")));
     return ResultData{GetJString(env, string),
@@ -141,7 +141,7 @@ void AndroidKeyboard::ShowNormalKeyboard() const {
 
     // Pivot to a new thread, as we cannot call GetEnvForThread() from a Fiber.
     std::thread([&] {
-        data = ResultData::CreateFromFrontend(IDCache::GetEnvForThread()->CallStaticObjectMethod(
+        data = ResultData::CreateFromFrontend(GetEnvForThread()->CallStaticObjectMethod(
             s_software_keyboard_class, s_swkbd_execute_normal, ToJKeyboardParams(parameters)));
     }).join();
 
@@ -183,8 +183,8 @@ void AndroidKeyboard::ShowInlineKeyboard(
     // Pivot to a new thread, as we cannot call GetEnvForThread() from a Fiber.
     m_is_inline_active = true;
     std::thread([&] {
-        IDCache::GetEnvForThread()->CallStaticVoidMethod(
-            s_software_keyboard_class, s_swkbd_execute_inline, ToJKeyboardParams(parameters));
+        GetEnvForThread()->CallStaticVoidMethod(s_software_keyboard_class, s_swkbd_execute_inline,
+                                                ToJKeyboardParams(parameters));
     }).join();
 }
 
@@ -220,7 +220,7 @@ void AndroidKeyboard::SubmitInlineKeyboardText(std::u16string submitted_text) {
     m_current_text += submitted_text;
 
     submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString, m_current_text,
-                           m_current_text.size());
+                           static_cast<int>(m_current_text.size()));
 }
 
 void AndroidKeyboard::SubmitInlineKeyboardInput(int key_code) {
@@ -242,7 +242,7 @@ void AndroidKeyboard::SubmitInlineKeyboardInput(int key_code) {
     case KEYCODE_DEL:
         m_current_text.pop_back();
         submit_inline_callback(Service::AM::Frontend::SwkbdReplyType::ChangedString, m_current_text,
-                               m_current_text.size());
+                               static_cast<int>(m_current_text.size()));
         break;
     }
 }
@@ -274,4 +274,4 @@ void CleanupJNI(JNIEnv* env) {
     env->DeleteGlobalRef(s_keyboard_data_class);
 }
 
-} // namespace SoftwareKeyboard
+} // namespace Common::Android::SoftwareKeyboard

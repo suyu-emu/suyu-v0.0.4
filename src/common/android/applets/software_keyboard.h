@@ -7,7 +7,7 @@
 
 #include "core/frontend/applets/software_keyboard.h"
 
-namespace SoftwareKeyboard {
+namespace Common::Android::SoftwareKeyboard {
 
 class AndroidKeyboard final : public Core::Frontend::SoftwareKeyboardApplet {
 public:
@@ -66,7 +66,7 @@ void InitJNI(JNIEnv* env);
 // Should be called in JNI_Unload
 void CleanupJNI(JNIEnv* env);
 
-} // namespace SoftwareKeyboard
+} // namespace Common::Android::SoftwareKeyboard
 
 // Native function calls
 extern "C" {

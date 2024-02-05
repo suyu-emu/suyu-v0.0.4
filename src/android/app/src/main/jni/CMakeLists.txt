@@ -2,14 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 add_library(yuzu-android SHARED
-    android_common/android_common.cpp
-    android_common/android_common.h
-    applets/software_keyboard.cpp
-    applets/software_keyboard.h
     emu_window/emu_window.cpp
     emu_window/emu_window.h
-    id_cache.cpp
-    id_cache.h
     native.cpp
     native.h
     native_config.cpp
