@@ -383,7 +383,7 @@ std::string GDBStubA32::RegRead(const Kernel::KThread* thread, size_t id) const 
     } else if (id == CPSR_REGISTER) {
         return ValueToHex(context.pstate);
     } else if (id >= D0_REGISTER && id < Q0_REGISTER) {
-        return ValueToHex(fprs[id - D0_REGISTER][0]);
+        return ValueToHex(fprs[(id - D0_REGISTER) / 2][(id - D0_REGISTER) % 2]);
     } else if (id >= Q0_REGISTER && id < FPSCR_REGISTER) {
         return ValueToHex(fprs[id - Q0_REGISTER]);
     } else if (id == FPSCR_REGISTER) {
@@ -406,7 +406,7 @@ void GDBStubA32::RegWrite(Kernel::KThread* thread, size_t id, std::string_view v
     } else if (id == CPSR_REGISTER) {
         context.pstate = HexToValue<u32>(value);
     } else if (id >= D0_REGISTER && id < Q0_REGISTER) {
-        fprs[id - D0_REGISTER] = {HexToValue<u64>(value), 0};
+        fprs[(id - D0_REGISTER) / 2][(id - D0_REGISTER) % 2] = HexToValue<u64>(value);
     } else if (id >= Q0_REGISTER && id < FPSCR_REGISTER) {
         fprs[id - Q0_REGISTER] = HexToValue<u128>(value);
     } else if (id == FPSCR_REGISTER) {
