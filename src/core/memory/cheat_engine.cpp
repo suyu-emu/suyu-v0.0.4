@@ -10,6 +10,7 @@
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_process_page_table.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/hle/service/hid/hid_server.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/memory.h"
@@ -82,6 +83,20 @@ u64 StandardVmCallbacks::HidKeysDown() {
 
     const auto press_state = applet_resource->GetNpad()->GetAndResetPressState();
     return static_cast<u64>(press_state & HID::NpadButton::All);
+}
+
+void StandardVmCallbacks::PauseProcess() {
+    if (system.ApplicationProcess()->IsSuspended()) {
+        return;
+    }
+    system.ApplicationProcess()->SetActivity(Kernel::Svc::ProcessActivity::Paused);
+}
+
+void StandardVmCallbacks::ResumeProcess() {
+    if (!system.ApplicationProcess()->IsSuspended()) {
+        return;
+    }
+    system.ApplicationProcess()->SetActivity(Kernel::Svc::ProcessActivity::Runnable);
 }
 
 void StandardVmCallbacks::DebugLog(u8 id, u64 value) {
