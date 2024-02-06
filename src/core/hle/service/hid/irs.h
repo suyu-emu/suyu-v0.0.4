@@ -4,6 +4,7 @@
 #pragma once
 
 #include "core/core.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/irsensor/irs_types.h"
@@ -35,26 +36,73 @@ private:
     };
     static_assert(sizeof(StatusManager) == 0x8000, "StatusManager is an invalid size");
 
-    void ActivateIrsensor(HLERequestContext& ctx);
-    void DeactivateIrsensor(HLERequestContext& ctx);
-    void GetIrsensorSharedMemoryHandle(HLERequestContext& ctx);
-    void StopImageProcessor(HLERequestContext& ctx);
-    void RunMomentProcessor(HLERequestContext& ctx);
-    void RunClusteringProcessor(HLERequestContext& ctx);
-    void RunImageTransferProcessor(HLERequestContext& ctx);
-    void GetImageTransferProcessorState(HLERequestContext& ctx);
-    void RunTeraPluginProcessor(HLERequestContext& ctx);
-    void GetNpadIrCameraHandle(HLERequestContext& ctx);
-    void RunPointingProcessor(HLERequestContext& ctx);
-    void SuspendImageProcessor(HLERequestContext& ctx);
-    void CheckFirmwareVersion(HLERequestContext& ctx);
-    void SetFunctionLevel(HLERequestContext& ctx);
-    void RunImageTransferExProcessor(HLERequestContext& ctx);
-    void RunIrLedProcessor(HLERequestContext& ctx);
-    void StopImageProcessorAsync(HLERequestContext& ctx);
-    void ActivateIrsensorWithFunctionLevel(HLERequestContext& ctx);
+    Result ActivateIrsensor(ClientAppletResourceUserId aruid);
+
+    Result DeactivateIrsensor(ClientAppletResourceUserId aruid);
+
+    Result GetIrsensorSharedMemoryHandle(OutCopyHandle<Kernel::KSharedMemory> out_shared_memory,
+                                         ClientAppletResourceUserId aruid);
+    Result StopImageProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                              ClientAppletResourceUserId aruid);
+
+    Result RunMomentProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                              ClientAppletResourceUserId aruid,
+                              const Core::IrSensor::PackedMomentProcessorConfig& processor_config);
+
+    Result RunClusteringProcessor(
+        Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+        const Core::IrSensor::PackedClusteringProcessorConfig& processor_config);
+
+    Result RunImageTransferProcessor(
+        Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+        const Core::IrSensor::PackedImageTransferProcessorConfig& processor_config,
+        u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> t_mem);
+
+    Result GetImageTransferProcessorState(
+        Out<Core::IrSensor::ImageTransferProcessorState> out_state,
+        Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer_data);
+
+    Result RunTeraPluginProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                                  Core::IrSensor::PackedTeraPluginProcessorConfig processor_config,
+                                  ClientAppletResourceUserId aruid);
+
+    Result GetNpadIrCameraHandle(Out<Core::IrSensor::IrCameraHandle> out_camera_handle,
+                                 Core::HID::NpadIdType npad_id);
+
+    Result RunPointingProcessor(
+        Core::IrSensor::IrCameraHandle camera_handle,
+        const Core::IrSensor::PackedPointingProcessorConfig& processor_config,
+        ClientAppletResourceUserId aruid);
+
+    Result SuspendImageProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                                 ClientAppletResourceUserId aruid);
+
+    Result CheckFirmwareVersion(Core::IrSensor::IrCameraHandle camera_handle,
+                                Core::IrSensor::PackedMcuVersion mcu_version,
+                                ClientAppletResourceUserId aruid);
+
+    Result SetFunctionLevel(Core::IrSensor::IrCameraHandle camera_handle,
+                            Core::IrSensor::PackedFunctionLevel function_level,
+                            ClientAppletResourceUserId aruid);
+
+    Result RunImageTransferExProcessor(
+        Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+        const Core::IrSensor::PackedImageTransferProcessorExConfig& processor_config,
+        u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> t_mem);
+
+    Result RunIrLedProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                             Core::IrSensor::PackedIrLedProcessorConfig processor_config,
+                             ClientAppletResourceUserId aruid);
+
+    Result StopImageProcessorAsync(Core::IrSensor::IrCameraHandle camera_handle,
+                                   ClientAppletResourceUserId aruid);
+
+    Result ActivateIrsensorWithFunctionLevel(Core::IrSensor::PackedFunctionLevel function_level,
+                                             ClientAppletResourceUserId aruid);
 
     Result IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const;
+
     Core::IrSensor::DeviceFormat& GetIrCameraSharedMemoryDeviceEntry(
         const Core::IrSensor::IrCameraHandle& camera_handle);
 
