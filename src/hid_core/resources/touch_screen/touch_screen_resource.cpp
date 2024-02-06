@@ -63,7 +63,7 @@ Result TouchResource::ActivateTouch(u64 aruid) {
         auto* applet_data = applet_resource->GetAruidDataByIndex(aruid_index);
         TouchAruidData& touch_data = aruid_data[aruid_index];
 
-        if (!applet_data->flag.is_assigned) {
+        if (applet_data == nullptr || !applet_data->flag.is_assigned) {
             touch_data = {};
             continue;
         }
@@ -124,7 +124,7 @@ Result TouchResource::ActivateGesture(u64 aruid, u32 basic_gesture_id) {
         auto* applet_data = applet_resource->GetAruidDataByIndex(aruid_index);
         TouchAruidData& touch_data = aruid_data[aruid_index];
 
-        if (!applet_data->flag.is_assigned) {
+        if (applet_data == nullptr || !applet_data->flag.is_assigned) {
             touch_data = {};
             continue;
         }
@@ -324,7 +324,7 @@ Result TouchResource::SetTouchScreenConfiguration(
         const auto* applet_data = applet_resource->GetAruidDataByIndex(aruid_index);
         TouchAruidData& data = aruid_data[aruid_index];
 
-        if (!applet_data->flag.is_assigned) {
+        if (applet_data == nullptr || !applet_data->flag.is_assigned) {
             continue;
         }
         if (aruid != data.aruid) {
@@ -344,7 +344,7 @@ Result TouchResource::GetTouchScreenConfiguration(
         const auto* applet_data = applet_resource->GetAruidDataByIndex(aruid_index);
         const TouchAruidData& data = aruid_data[aruid_index];
 
-        if (!applet_data->flag.is_assigned) {
+        if (applet_data == nullptr || !applet_data->flag.is_assigned) {
             continue;
         }
         if (aruid != data.aruid) {

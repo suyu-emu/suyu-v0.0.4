@@ -28,142 +28,148 @@ void SixAxis::OnRelease() {}
 
 void SixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     std::scoped_lock shared_lock{*shared_mutex};
-    const u64 aruid = applet_resource->GetActiveAruid();
-    auto* data = applet_resource->GetAruidData(aruid);
 
-    if (data == nullptr || !data->flag.is_assigned) {
-        return;
-    }
+    for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; ++aruid_index) {
+        const auto* data = applet_resource->GetAruidDataByIndex(aruid_index);
 
-    if (!IsControllerActivated()) {
-        return;
-    }
-
-    for (std::size_t i = 0; i < controller_data.size(); ++i) {
-        NpadSharedMemoryEntry& shared_memory = data->shared_memory_format->npad.npad_entry[i];
-        auto& controller = controller_data[i];
-        const auto& controller_type = controller.device->GetNpadStyleIndex();
-
-        if (controller_type == Core::HID::NpadStyleIndex::None ||
-            !controller.device->IsConnected()) {
+        if (data == nullptr || !data->flag.is_assigned) {
             continue;
         }
 
-        const auto& motion_state = controller.device->GetMotions();
-        auto& sixaxis_fullkey_state = controller.sixaxis_fullkey_state;
-        auto& sixaxis_handheld_state = controller.sixaxis_handheld_state;
-        auto& sixaxis_dual_left_state = controller.sixaxis_dual_left_state;
-        auto& sixaxis_dual_right_state = controller.sixaxis_dual_right_state;
-        auto& sixaxis_left_lifo_state = controller.sixaxis_left_lifo_state;
-        auto& sixaxis_right_lifo_state = controller.sixaxis_right_lifo_state;
-
-        auto& sixaxis_fullkey_lifo = shared_memory.internal_state.sixaxis_fullkey_lifo;
-        auto& sixaxis_handheld_lifo = shared_memory.internal_state.sixaxis_handheld_lifo;
-        auto& sixaxis_dual_left_lifo = shared_memory.internal_state.sixaxis_dual_left_lifo;
-        auto& sixaxis_dual_right_lifo = shared_memory.internal_state.sixaxis_dual_right_lifo;
-        auto& sixaxis_left_lifo = shared_memory.internal_state.sixaxis_left_lifo;
-        auto& sixaxis_right_lifo = shared_memory.internal_state.sixaxis_right_lifo;
-
-        // Clear previous state
-        sixaxis_fullkey_state = {};
-        sixaxis_handheld_state = {};
-        sixaxis_dual_left_state = {};
-        sixaxis_dual_right_state = {};
-        sixaxis_left_lifo_state = {};
-        sixaxis_right_lifo_state = {};
-
-        if (controller.sixaxis_sensor_enabled && Settings::values.motion_enabled.GetValue()) {
-            controller.sixaxis_at_rest = true;
-            for (std::size_t e = 0; e < motion_state.size(); ++e) {
-                controller.sixaxis_at_rest =
-                    controller.sixaxis_at_rest && motion_state[e].is_at_rest;
-            }
+        if (!IsControllerActivated()) {
+            return;
         }
 
-        const auto set_motion_state = [&](Core::HID::SixAxisSensorState& state,
-                                          const Core::HID::ControllerMotion& hid_state) {
-            using namespace std::literals::chrono_literals;
-            static constexpr Core::HID::SixAxisSensorState default_motion_state = {
-                .delta_time = std::chrono::nanoseconds(5ms).count(),
-                .accel = {0, 0, -1.0f},
-                .orientation =
-                    {
-                        Common::Vec3f{1.0f, 0, 0},
-                        Common::Vec3f{0, 1.0f, 0},
-                        Common::Vec3f{0, 0, 1.0f},
-                    },
-                .attribute = {1},
+        for (std::size_t i = 0; i < controller_data.size(); ++i) {
+            NpadSharedMemoryEntry& shared_memory = data->shared_memory_format->npad.npad_entry[i];
+            auto& controller = controller_data[i];
+            const auto& controller_type = controller.device->GetNpadStyleIndex();
+
+            if (!data->flag.enable_six_axis_sensor) {
+                continue;
+            }
+
+            if (controller_type == Core::HID::NpadStyleIndex::None ||
+                !controller.device->IsConnected()) {
+                continue;
+            }
+
+            const auto& motion_state = controller.device->GetMotions();
+            auto& sixaxis_fullkey_state = controller.sixaxis_fullkey_state;
+            auto& sixaxis_handheld_state = controller.sixaxis_handheld_state;
+            auto& sixaxis_dual_left_state = controller.sixaxis_dual_left_state;
+            auto& sixaxis_dual_right_state = controller.sixaxis_dual_right_state;
+            auto& sixaxis_left_lifo_state = controller.sixaxis_left_lifo_state;
+            auto& sixaxis_right_lifo_state = controller.sixaxis_right_lifo_state;
+
+            auto& sixaxis_fullkey_lifo = shared_memory.internal_state.sixaxis_fullkey_lifo;
+            auto& sixaxis_handheld_lifo = shared_memory.internal_state.sixaxis_handheld_lifo;
+            auto& sixaxis_dual_left_lifo = shared_memory.internal_state.sixaxis_dual_left_lifo;
+            auto& sixaxis_dual_right_lifo = shared_memory.internal_state.sixaxis_dual_right_lifo;
+            auto& sixaxis_left_lifo = shared_memory.internal_state.sixaxis_left_lifo;
+            auto& sixaxis_right_lifo = shared_memory.internal_state.sixaxis_right_lifo;
+
+            // Clear previous state
+            sixaxis_fullkey_state = {};
+            sixaxis_handheld_state = {};
+            sixaxis_dual_left_state = {};
+            sixaxis_dual_right_state = {};
+            sixaxis_left_lifo_state = {};
+            sixaxis_right_lifo_state = {};
+
+            if (controller.sixaxis_sensor_enabled && Settings::values.motion_enabled.GetValue()) {
+                controller.sixaxis_at_rest = true;
+                for (std::size_t e = 0; e < motion_state.size(); ++e) {
+                    controller.sixaxis_at_rest =
+                        controller.sixaxis_at_rest && motion_state[e].is_at_rest;
+                }
+            }
+
+            const auto set_motion_state = [&](Core::HID::SixAxisSensorState& state,
+                                              const Core::HID::ControllerMotion& hid_state) {
+                using namespace std::literals::chrono_literals;
+                static constexpr Core::HID::SixAxisSensorState default_motion_state = {
+                    .delta_time = std::chrono::nanoseconds(5ms).count(),
+                    .accel = {0, 0, -1.0f},
+                    .orientation =
+                        {
+                            Common::Vec3f{1.0f, 0, 0},
+                            Common::Vec3f{0, 1.0f, 0},
+                            Common::Vec3f{0, 0, 1.0f},
+                        },
+                    .attribute = {1},
+                };
+                if (!controller.sixaxis_sensor_enabled) {
+                    state = default_motion_state;
+                    return;
+                }
+                if (!Settings::values.motion_enabled.GetValue()) {
+                    state = default_motion_state;
+                    return;
+                }
+                state.attribute.is_connected.Assign(1);
+                state.delta_time = std::chrono::nanoseconds(5ms).count();
+                state.accel = hid_state.accel;
+                state.gyro = hid_state.gyro;
+                state.rotation = hid_state.rotation;
+                state.orientation = hid_state.orientation;
             };
-            if (!controller.sixaxis_sensor_enabled) {
-                state = default_motion_state;
-                return;
+
+            switch (controller_type) {
+            case Core::HID::NpadStyleIndex::None:
+                ASSERT(false);
+                break;
+            case Core::HID::NpadStyleIndex::Fullkey:
+                set_motion_state(sixaxis_fullkey_state, motion_state[0]);
+                break;
+            case Core::HID::NpadStyleIndex::Handheld:
+                set_motion_state(sixaxis_handheld_state, motion_state[0]);
+                break;
+            case Core::HID::NpadStyleIndex::JoyconDual:
+                set_motion_state(sixaxis_dual_left_state, motion_state[0]);
+                set_motion_state(sixaxis_dual_right_state, motion_state[1]);
+                break;
+            case Core::HID::NpadStyleIndex::JoyconLeft:
+                set_motion_state(sixaxis_left_lifo_state, motion_state[0]);
+                break;
+            case Core::HID::NpadStyleIndex::JoyconRight:
+                set_motion_state(sixaxis_right_lifo_state, motion_state[1]);
+                break;
+            case Core::HID::NpadStyleIndex::Pokeball:
+                using namespace std::literals::chrono_literals;
+                set_motion_state(sixaxis_fullkey_state, motion_state[0]);
+                sixaxis_fullkey_state.delta_time = std::chrono::nanoseconds(15ms).count();
+                break;
+            default:
+                break;
             }
-            if (!Settings::values.motion_enabled.GetValue()) {
-                state = default_motion_state;
-                return;
+
+            sixaxis_fullkey_state.sampling_number =
+                sixaxis_fullkey_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_handheld_state.sampling_number =
+                sixaxis_handheld_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_dual_left_state.sampling_number =
+                sixaxis_dual_left_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_dual_right_state.sampling_number =
+                sixaxis_dual_right_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_left_lifo_state.sampling_number =
+                sixaxis_left_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_right_lifo_state.sampling_number =
+                sixaxis_right_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
+
+            if (IndexToNpadIdType(i) == Core::HID::NpadIdType::Handheld) {
+                // This buffer only is updated on handheld on HW
+                sixaxis_handheld_lifo.lifo.WriteNextEntry(sixaxis_handheld_state);
+            } else {
+                // Handheld doesn't update this buffer on HW
+                sixaxis_fullkey_lifo.lifo.WriteNextEntry(sixaxis_fullkey_state);
             }
-            state.attribute.is_connected.Assign(1);
-            state.delta_time = std::chrono::nanoseconds(5ms).count();
-            state.accel = hid_state.accel;
-            state.gyro = hid_state.gyro;
-            state.rotation = hid_state.rotation;
-            state.orientation = hid_state.orientation;
-        };
 
-        switch (controller_type) {
-        case Core::HID::NpadStyleIndex::None:
-            ASSERT(false);
-            break;
-        case Core::HID::NpadStyleIndex::Fullkey:
-            set_motion_state(sixaxis_fullkey_state, motion_state[0]);
-            break;
-        case Core::HID::NpadStyleIndex::Handheld:
-            set_motion_state(sixaxis_handheld_state, motion_state[0]);
-            break;
-        case Core::HID::NpadStyleIndex::JoyconDual:
-            set_motion_state(sixaxis_dual_left_state, motion_state[0]);
-            set_motion_state(sixaxis_dual_right_state, motion_state[1]);
-            break;
-        case Core::HID::NpadStyleIndex::JoyconLeft:
-            set_motion_state(sixaxis_left_lifo_state, motion_state[0]);
-            break;
-        case Core::HID::NpadStyleIndex::JoyconRight:
-            set_motion_state(sixaxis_right_lifo_state, motion_state[1]);
-            break;
-        case Core::HID::NpadStyleIndex::Pokeball:
-            using namespace std::literals::chrono_literals;
-            set_motion_state(sixaxis_fullkey_state, motion_state[0]);
-            sixaxis_fullkey_state.delta_time = std::chrono::nanoseconds(15ms).count();
-            break;
-        default:
-            break;
+            sixaxis_dual_left_lifo.lifo.WriteNextEntry(sixaxis_dual_left_state);
+            sixaxis_dual_right_lifo.lifo.WriteNextEntry(sixaxis_dual_right_state);
+            sixaxis_left_lifo.lifo.WriteNextEntry(sixaxis_left_lifo_state);
+            sixaxis_right_lifo.lifo.WriteNextEntry(sixaxis_right_lifo_state);
         }
-
-        sixaxis_fullkey_state.sampling_number =
-            sixaxis_fullkey_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
-        sixaxis_handheld_state.sampling_number =
-            sixaxis_handheld_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
-        sixaxis_dual_left_state.sampling_number =
-            sixaxis_dual_left_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
-        sixaxis_dual_right_state.sampling_number =
-            sixaxis_dual_right_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
-        sixaxis_left_lifo_state.sampling_number =
-            sixaxis_left_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
-        sixaxis_right_lifo_state.sampling_number =
-            sixaxis_right_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
-
-        if (IndexToNpadIdType(i) == Core::HID::NpadIdType::Handheld) {
-            // This buffer only is updated on handheld on HW
-            sixaxis_handheld_lifo.lifo.WriteNextEntry(sixaxis_handheld_state);
-        } else {
-            // Handheld doesn't update this buffer on HW
-            sixaxis_fullkey_lifo.lifo.WriteNextEntry(sixaxis_fullkey_state);
-        }
-
-        sixaxis_dual_left_lifo.lifo.WriteNextEntry(sixaxis_dual_left_state);
-        sixaxis_dual_right_lifo.lifo.WriteNextEntry(sixaxis_dual_right_state);
-        sixaxis_left_lifo.lifo.WriteNextEntry(sixaxis_left_lifo_state);
-        sixaxis_right_lifo.lifo.WriteNextEntry(sixaxis_right_lifo_state);
     }
 }
 
