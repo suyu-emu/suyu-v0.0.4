@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
+#include "hid_core/resources/touch_screen/touch_types.h"
 
 namespace Core {
 class System;
@@ -20,15 +22,19 @@ public:
     ~IHidDebugServer() override;
 
 private:
-    void DeactivateTouchScreen(HLERequestContext& ctx);
-    void SetTouchScreenAutoPilotState(HLERequestContext& ctx);
-    void UnsetTouchScreenAutoPilotState(HLERequestContext& ctx);
-    void GetTouchScreenConfiguration(HLERequestContext& ctx);
-    void ProcessTouchScreenAutoTune(HLERequestContext& ctx);
-    void ForceStopTouchScreenManagement(HLERequestContext& ctx);
-    void ForceRestartTouchScreenManagement(HLERequestContext& ctx);
-    void IsTouchScreenManaged(HLERequestContext& ctx);
-    void DeactivateGesture(HLERequestContext& ctx);
+    Result DeactivateTouchScreen();
+    Result SetTouchScreenAutoPilotState(
+        InArray<TouchState, BufferAttr_HipcMapAlias> auto_pilot_buffer);
+    Result UnsetTouchScreenAutoPilotState();
+    Result GetTouchScreenConfiguration(
+        Out<Core::HID::TouchScreenConfigurationForNx> out_touchscreen_config,
+        ClientAppletResourceUserId aruid);
+    Result ProcessTouchScreenAutoTune();
+    Result ForceStopTouchScreenManagement();
+    Result ForceRestartTouchScreenManagement(u32 basic_gesture_id,
+                                             ClientAppletResourceUserId aruid);
+    Result IsTouchScreenManaged(Out<bool> out_is_managed);
+    Result DeactivateGesture();
 
     std::shared_ptr<ResourceManager> GetResourceManager();
 
