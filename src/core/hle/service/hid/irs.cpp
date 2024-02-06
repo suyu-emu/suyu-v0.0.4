@@ -9,6 +9,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/hid/irs.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
@@ -28,24 +29,24 @@ namespace Service::IRS {
 IRS::IRS(Core::System& system_) : ServiceFramework{system_, "irs"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {302, &IRS::ActivateIrsensor, "ActivateIrsensor"},
-        {303, &IRS::DeactivateIrsensor, "DeactivateIrsensor"},
-        {304, &IRS::GetIrsensorSharedMemoryHandle, "GetIrsensorSharedMemoryHandle"},
-        {305, &IRS::StopImageProcessor, "StopImageProcessor"},
-        {306, &IRS::RunMomentProcessor, "RunMomentProcessor"},
-        {307, &IRS::RunClusteringProcessor, "RunClusteringProcessor"},
-        {308, &IRS::RunImageTransferProcessor, "RunImageTransferProcessor"},
-        {309, &IRS::GetImageTransferProcessorState, "GetImageTransferProcessorState"},
-        {310, &IRS::RunTeraPluginProcessor, "RunTeraPluginProcessor"},
-        {311, &IRS::GetNpadIrCameraHandle, "GetNpadIrCameraHandle"},
-        {312, &IRS::RunPointingProcessor, "RunPointingProcessor"},
-        {313, &IRS::SuspendImageProcessor, "SuspendImageProcessor"},
-        {314, &IRS::CheckFirmwareVersion, "CheckFirmwareVersion"},
-        {315, &IRS::SetFunctionLevel, "SetFunctionLevel"},
-        {316, &IRS::RunImageTransferExProcessor, "RunImageTransferExProcessor"},
-        {317, &IRS::RunIrLedProcessor, "RunIrLedProcessor"},
-        {318, &IRS::StopImageProcessorAsync, "StopImageProcessorAsync"},
-        {319, &IRS::ActivateIrsensorWithFunctionLevel, "ActivateIrsensorWithFunctionLevel"},
+        {302, C<&IRS::ActivateIrsensor>, "ActivateIrsensor"},
+        {303, C<&IRS::DeactivateIrsensor>, "DeactivateIrsensor"},
+        {304, C<&IRS::GetIrsensorSharedMemoryHandle>, "GetIrsensorSharedMemoryHandle"},
+        {305, C<&IRS::StopImageProcessor>, "StopImageProcessor"},
+        {306, C<&IRS::RunMomentProcessor>, "RunMomentProcessor"},
+        {307, C<&IRS::RunClusteringProcessor>, "RunClusteringProcessor"},
+        {308, C<&IRS::RunImageTransferProcessor>, "RunImageTransferProcessor"},
+        {309, C<&IRS::GetImageTransferProcessorState>, "GetImageTransferProcessorState"},
+        {310, C<&IRS::RunTeraPluginProcessor>, "RunTeraPluginProcessor"},
+        {311, C<&IRS::GetNpadIrCameraHandle>, "GetNpadIrCameraHandle"},
+        {312, C<&IRS::RunPointingProcessor>, "RunPointingProcessor"},
+        {313, C<&IRS::SuspendImageProcessor>, "SuspendImageProcessor"},
+        {314, C<&IRS::CheckFirmwareVersion>, "CheckFirmwareVersion"},
+        {315, C<&IRS::SetFunctionLevel>, "SetFunctionLevel"},
+        {316, C<&IRS::RunImageTransferExProcessor>, "RunImageTransferExProcessor"},
+        {317, C<&IRS::RunIrLedProcessor>, "RunIrLedProcessor"},
+        {318, C<&IRS::StopImageProcessorAsync>, "StopImageProcessorAsync"},
+        {319, C<&IRS::ActivateIrsensorWithFunctionLevel>, "ActivateIrsensorWithFunctionLevel"},
     };
     // clang-format on
 
@@ -57,489 +58,292 @@ IRS::IRS(Core::System& system_) : ServiceFramework{system_, "irs"} {
 }
 IRS::~IRS() = default;
 
-void IRS::ActivateIrsensor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
-    LOG_WARNING(Service_IRS, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result IRS::ActivateIrsensor(ClientAppletResourceUserId aruid) {
+    LOG_WARNING(Service_IRS, "(STUBBED) called, applet_resource_user_id={}", aruid.pid);
+    R_SUCCEED();
 }
 
-void IRS::DeactivateIrsensor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
-    LOG_WARNING(Service_IRS, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result IRS::DeactivateIrsensor(ClientAppletResourceUserId aruid) {
+    LOG_WARNING(Service_IRS, "(STUBBED) called, applet_resource_user_id={}", aruid.pid);
+    R_SUCCEED();
 }
 
-void IRS::GetIrsensorSharedMemoryHandle(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
+Result IRS::GetIrsensorSharedMemoryHandle(OutCopyHandle<Kernel::KSharedMemory> out_shared_memory,
+                                          ClientAppletResourceUserId aruid) {
+    LOG_DEBUG(Service_IRS, "called, applet_resource_user_id={}", aruid.pid);
 
-    LOG_DEBUG(Service_IRS, "called, applet_resource_user_id={}", applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(&system.Kernel().GetIrsSharedMem());
+    *out_shared_memory = &system.Kernel().GetIrsSharedMem();
+    R_SUCCEED();
 }
 
-void IRS::StopImageProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::StopImageProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                               ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_IRS,
                 "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}",
-                parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-                parameters.applet_resource_user_id);
+                camera_handle.npad_type, camera_handle.npad_id, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(parameters.camera_handle);
-    if (result.IsSuccess()) {
-        // TODO: Stop Image processor
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::Active);
-        result = ResultSuccess;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    // TODO: Stop Image processor
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::Active);
+    R_SUCCEED();
 }
 
-void IRS::RunMomentProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-        Core::IrSensor::PackedMomentProcessorConfig processor_config;
-    };
-    static_assert(sizeof(Parameters) == 0x30, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::RunMomentProcessor(
+    Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+    const Core::IrSensor::PackedMomentProcessorConfig& processor_config) {
     LOG_WARNING(Service_IRS,
                 "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}",
-                parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-                parameters.applet_resource_user_id);
+                camera_handle.npad_type, camera_handle.npad_id, aruid.pid);
 
-    const auto result = IsIrCameraHandleValid(parameters.camera_handle);
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessorWithCoreContext<MomentProcessor>(parameters.camera_handle, device);
-        auto& image_transfer_processor = GetProcessor<MomentProcessor>(parameters.camera_handle);
-        image_transfer_processor.SetConfig(parameters.processor_config);
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessorWithCoreContext<MomentProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<MomentProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::RunClusteringProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-        Core::IrSensor::PackedClusteringProcessorConfig processor_config;
-    };
-    static_assert(sizeof(Parameters) == 0x38, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::RunClusteringProcessor(
+    Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+    const Core::IrSensor::PackedClusteringProcessorConfig& processor_config) {
     LOG_WARNING(Service_IRS,
                 "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}",
-                parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-                parameters.applet_resource_user_id);
+                camera_handle.npad_type, camera_handle.npad_id, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(parameters.camera_handle);
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessorWithCoreContext<ClusteringProcessor>(parameters.camera_handle, device);
-        auto& image_transfer_processor =
-            GetProcessor<ClusteringProcessor>(parameters.camera_handle);
-        image_transfer_processor.SetConfig(parameters.processor_config);
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessorWithCoreContext<ClusteringProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<ClusteringProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::RunImageTransferProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-        Core::IrSensor::PackedImageTransferProcessorConfig processor_config;
-        u32 transfer_memory_size;
-    };
-    static_assert(sizeof(Parameters) == 0x30, "Parameters has incorrect size.");
+Result IRS::RunImageTransferProcessor(
+    Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+    const Core::IrSensor::PackedImageTransferProcessorConfig& processor_config,
+    u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> t_mem) {
 
-    const auto parameters{rp.PopRaw<Parameters>()};
-    const auto t_mem_handle{ctx.GetCopyHandle(0)};
-
-    auto t_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(t_mem_handle);
-
-    if (t_mem.IsNull()) {
-        LOG_ERROR(Service_IRS, "t_mem is a nullptr for handle=0x{:08X}", t_mem_handle);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
-    }
-
-    ASSERT_MSG(t_mem->GetSize() == parameters.transfer_memory_size, "t_mem has incorrect size");
+    ASSERT_MSG(t_mem->GetSize() == transfer_memory_size, "t_mem has incorrect size");
 
     LOG_INFO(Service_IRS,
              "called, npad_type={}, npad_id={}, transfer_memory_size={}, transfer_memory_size={}, "
              "applet_resource_user_id={}",
-             parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-             parameters.transfer_memory_size, t_mem->GetSize(), parameters.applet_resource_user_id);
+             camera_handle.npad_type, camera_handle.npad_id, transfer_memory_size, t_mem->GetSize(),
+             aruid.pid);
 
-    const auto result = IsIrCameraHandleValid(parameters.camera_handle);
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessorWithCoreContext<ImageTransferProcessor>(parameters.camera_handle, device);
-        auto& image_transfer_processor =
-            GetProcessor<ImageTransferProcessor>(parameters.camera_handle);
-        image_transfer_processor.SetConfig(parameters.processor_config);
-        image_transfer_processor.SetTransferMemoryAddress(t_mem->GetSourceAddress());
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessorWithCoreContext<ImageTransferProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<ImageTransferProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    image_transfer_processor.SetTransferMemoryAddress(t_mem->GetSourceAddress());
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::GetImageTransferProcessorState(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::GetImageTransferProcessorState(
+    Out<Core::IrSensor::ImageTransferProcessorState> out_state,
+    Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer_data) {
     LOG_DEBUG(Service_IRS, "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}",
-              parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-              parameters.applet_resource_user_id);
+              camera_handle.npad_type, camera_handle.npad_id, aruid.pid);
 
-    const auto result = IsIrCameraHandleValid(parameters.camera_handle);
-    if (result.IsError()) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-        return;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    const auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
+    const auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
 
-    if (device.mode != Core::IrSensor::IrSensorMode::ImageTransferProcessor) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(InvalidProcessorState);
-        return;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
+    R_UNLESS(device.mode == Core::IrSensor::IrSensorMode::ImageTransferProcessor,
+             InvalidProcessorState);
 
-    std::vector<u8> data{};
-    const auto& image_transfer_processor =
-        GetProcessor<ImageTransferProcessor>(parameters.camera_handle);
-    const auto& state = image_transfer_processor.GetState(data);
+    *out_state = GetProcessor<ImageTransferProcessor>(camera_handle).GetState(out_buffer_data);
 
-    ctx.WriteBuffer(data);
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(state);
+    R_SUCCEED();
 }
 
-void IRS::RunTeraPluginProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        Core::IrSensor::PackedTeraPluginProcessorConfig processor_config;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
+Result IRS::RunTeraPluginProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                                   Core::IrSensor::PackedTeraPluginProcessorConfig processor_config,
+                                   ClientAppletResourceUserId aruid) {
+    LOG_WARNING(Service_IRS,
+                "(STUBBED) called, npad_type={}, npad_id={}, mode={}, mcu_version={}.{}, "
+                "applet_resource_user_id={}",
+                camera_handle.npad_type, camera_handle.npad_id, processor_config.mode,
+                processor_config.required_mcu_version.major,
+                processor_config.required_mcu_version.minor, aruid.pid);
 
-    const auto parameters{rp.PopRaw<Parameters>()};
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    LOG_WARNING(
-        Service_IRS,
-        "(STUBBED) called, npad_type={}, npad_id={}, mode={}, mcu_version={}.{}, "
-        "applet_resource_user_id={}",
-        parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-        parameters.processor_config.mode, parameters.processor_config.required_mcu_version.major,
-        parameters.processor_config.required_mcu_version.minor, parameters.applet_resource_user_id);
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessor<TeraPluginProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<TeraPluginProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    const auto result = IsIrCameraHandleValid(parameters.camera_handle);
-
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessor<TeraPluginProcessor>(parameters.camera_handle, device);
-        auto& image_transfer_processor =
-            GetProcessor<TeraPluginProcessor>(parameters.camera_handle);
-        image_transfer_processor.SetConfig(parameters.processor_config);
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::GetNpadIrCameraHandle(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto npad_id{rp.PopEnum<Core::HID::NpadIdType>()};
+Result IRS::GetNpadIrCameraHandle(Out<Core::IrSensor::IrCameraHandle> out_camera_handle,
+                                  Core::HID::NpadIdType npad_id) {
+    R_UNLESS(HID::IsNpadIdValid(npad_id), HID::ResultInvalidNpadId);
 
-    if (npad_id > Core::HID::NpadIdType::Player8 && npad_id != Core::HID::NpadIdType::Invalid &&
-        npad_id != Core::HID::NpadIdType::Handheld) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Service::HID::ResultInvalidNpadId);
-        return;
-    }
-
-    Core::IrSensor::IrCameraHandle camera_handle{
+    *out_camera_handle = {
         .npad_id = static_cast<u8>(HID::NpadIdTypeToIndex(npad_id)),
         .npad_type = Core::HID::NpadStyleIndex::None,
     };
 
     LOG_INFO(Service_IRS, "called, npad_id={}, camera_npad_id={}, camera_npad_type={}", npad_id,
-             camera_handle.npad_id, camera_handle.npad_type);
+             out_camera_handle->npad_id, out_camera_handle->npad_type);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(camera_handle);
+    R_SUCCEED();
 }
 
-void IRS::RunPointingProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto camera_handle{rp.PopRaw<Core::IrSensor::IrCameraHandle>()};
-    const auto processor_config{rp.PopRaw<Core::IrSensor::PackedPointingProcessorConfig>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
+Result IRS::RunPointingProcessor(
+    Core::IrSensor::IrCameraHandle camera_handle,
+    const Core::IrSensor::PackedPointingProcessorConfig& processor_config,
+    ClientAppletResourceUserId aruid) {
     LOG_WARNING(
         Service_IRS,
         "(STUBBED) called, npad_type={}, npad_id={}, mcu_version={}.{}, applet_resource_user_id={}",
         camera_handle.npad_type, camera_handle.npad_id, processor_config.required_mcu_version.major,
-        processor_config.required_mcu_version.minor, applet_resource_user_id);
+        processor_config.required_mcu_version.minor, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(camera_handle);
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
-        MakeProcessor<PointingProcessor>(camera_handle, device);
-        auto& image_transfer_processor = GetProcessor<PointingProcessor>(camera_handle);
-        image_transfer_processor.SetConfig(processor_config);
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessor<PointingProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<PointingProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::SuspendImageProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::SuspendImageProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                                  ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_IRS,
                 "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}",
-                parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-                parameters.applet_resource_user_id);
+                camera_handle.npad_type, camera_handle.npad_id, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(parameters.camera_handle);
-    if (result.IsSuccess()) {
-        // TODO: Suspend image processor
-        result = ResultSuccess;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    // TODO: Suspend image processor
+
+    R_SUCCEED();
 }
 
-void IRS::CheckFirmwareVersion(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto camera_handle{rp.PopRaw<Core::IrSensor::IrCameraHandle>()};
-    const auto mcu_version{rp.PopRaw<Core::IrSensor::PackedMcuVersion>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
+Result IRS::CheckFirmwareVersion(Core::IrSensor::IrCameraHandle camera_handle,
+                                 Core::IrSensor::PackedMcuVersion mcu_version,
+                                 ClientAppletResourceUserId aruid) {
     LOG_WARNING(
         Service_IRS,
         "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}, mcu_version={}.{}",
-        camera_handle.npad_type, camera_handle.npad_id, applet_resource_user_id, mcu_version.major,
+        camera_handle.npad_type, camera_handle.npad_id, aruid.pid, mcu_version.major,
         mcu_version.minor);
 
-    auto result = IsIrCameraHandleValid(camera_handle);
-    if (result.IsSuccess()) {
-        // TODO: Check firmware version
-        result = ResultSuccess;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    // TODO: Check firmware version
+
+    R_SUCCEED();
 }
 
-void IRS::SetFunctionLevel(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto camera_handle{rp.PopRaw<Core::IrSensor::IrCameraHandle>()};
-    const auto function_level{rp.PopRaw<Core::IrSensor::PackedFunctionLevel>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
+Result IRS::SetFunctionLevel(Core::IrSensor::IrCameraHandle camera_handle,
+                             Core::IrSensor::PackedFunctionLevel function_level,
+                             ClientAppletResourceUserId aruid) {
     LOG_WARNING(
         Service_IRS,
         "(STUBBED) called, npad_type={}, npad_id={}, function_level={}, applet_resource_user_id={}",
-        camera_handle.npad_type, camera_handle.npad_id, function_level.function_level,
-        applet_resource_user_id);
+        camera_handle.npad_type, camera_handle.npad_id, function_level.function_level, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(camera_handle);
-    if (result.IsSuccess()) {
-        // TODO: Set Function level
-        result = ResultSuccess;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    // TODO: Set Function level
+
+    R_SUCCEED();
 }
 
-void IRS::RunImageTransferExProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-        Core::IrSensor::PackedImageTransferProcessorExConfig processor_config;
-        u64 transfer_memory_size;
-    };
-    static_assert(sizeof(Parameters) == 0x38, "Parameters has incorrect size.");
+Result IRS::RunImageTransferExProcessor(
+    Core::IrSensor::IrCameraHandle camera_handle, ClientAppletResourceUserId aruid,
+    const Core::IrSensor::PackedImageTransferProcessorExConfig& processor_config,
+    u64 transfer_memory_size, InCopyHandle<Kernel::KTransferMemory> t_mem) {
 
-    const auto parameters{rp.PopRaw<Parameters>()};
-    const auto t_mem_handle{ctx.GetCopyHandle(0)};
-
-    auto t_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(t_mem_handle);
+    ASSERT_MSG(t_mem->GetSize() == transfer_memory_size, "t_mem has incorrect size");
 
     LOG_INFO(Service_IRS,
              "called, npad_type={}, npad_id={}, transfer_memory_size={}, "
              "applet_resource_user_id={}",
-             parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-             parameters.transfer_memory_size, parameters.applet_resource_user_id);
+             camera_handle.npad_type, camera_handle.npad_id, transfer_memory_size, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(parameters.camera_handle);
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessorWithCoreContext<ImageTransferProcessor>(parameters.camera_handle, device);
-        auto& image_transfer_processor =
-            GetProcessor<ImageTransferProcessor>(parameters.camera_handle);
-        image_transfer_processor.SetConfig(parameters.processor_config);
-        image_transfer_processor.SetTransferMemoryAddress(t_mem->GetSourceAddress());
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessorWithCoreContext<ImageTransferProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<ImageTransferProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    image_transfer_processor.SetTransferMemoryAddress(t_mem->GetSourceAddress());
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::RunIrLedProcessor(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto camera_handle{rp.PopRaw<Core::IrSensor::IrCameraHandle>()};
-    const auto processor_config{rp.PopRaw<Core::IrSensor::PackedIrLedProcessorConfig>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
-
+Result IRS::RunIrLedProcessor(Core::IrSensor::IrCameraHandle camera_handle,
+                              Core::IrSensor::PackedIrLedProcessorConfig processor_config,
+                              ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_IRS,
                 "(STUBBED) called, npad_type={}, npad_id={}, light_target={}, mcu_version={}.{} "
                 "applet_resource_user_id={}",
                 camera_handle.npad_type, camera_handle.npad_id, processor_config.light_target,
                 processor_config.required_mcu_version.major,
-                processor_config.required_mcu_version.minor, applet_resource_user_id);
+                processor_config.required_mcu_version.minor, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(camera_handle);
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    if (result.IsSuccess()) {
-        auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
-        MakeProcessor<IrLedProcessor>(camera_handle, device);
-        auto& image_transfer_processor = GetProcessor<IrLedProcessor>(camera_handle);
-        image_transfer_processor.SetConfig(processor_config);
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::IR);
-    }
+    auto& device = GetIrCameraSharedMemoryDeviceEntry(camera_handle);
+    MakeProcessor<IrLedProcessor>(camera_handle, device);
+    auto& image_transfer_processor = GetProcessor<IrLedProcessor>(camera_handle);
+    image_transfer_processor.SetConfig(processor_config);
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::IR);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_SUCCEED();
 }
 
-void IRS::StopImageProcessorAsync(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::IrCameraHandle camera_handle;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::StopImageProcessorAsync(Core::IrSensor::IrCameraHandle camera_handle,
+                                    ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_IRS,
                 "(STUBBED) called, npad_type={}, npad_id={}, applet_resource_user_id={}",
-                parameters.camera_handle.npad_type, parameters.camera_handle.npad_id,
-                parameters.applet_resource_user_id);
+                camera_handle.npad_type, camera_handle.npad_id, aruid.pid);
 
-    auto result = IsIrCameraHandleValid(parameters.camera_handle);
-    if (result.IsSuccess()) {
-        // TODO: Stop image processor async
-        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::Active);
-        result = ResultSuccess;
-    }
+    R_TRY(IsIrCameraHandleValid(camera_handle));
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    // TODO: Stop image processor async
+    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                Common::Input::PollingMode::Active);
+
+    R_SUCCEED();
 }
 
-void IRS::ActivateIrsensorWithFunctionLevel(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    struct Parameters {
-        Core::IrSensor::PackedFunctionLevel function_level;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
-
-    const auto parameters{rp.PopRaw<Parameters>()};
-
+Result IRS::ActivateIrsensorWithFunctionLevel(Core::IrSensor::PackedFunctionLevel function_level,
+                                              ClientAppletResourceUserId aruid) {
     LOG_WARNING(Service_IRS, "(STUBBED) called, function_level={}, applet_resource_user_id={}",
-                parameters.function_level.function_level, parameters.applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+                function_level.function_level, aruid.pid);
+    R_SUCCEED();
 }
 
 Result IRS::IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const {
