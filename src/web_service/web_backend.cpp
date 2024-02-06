@@ -52,7 +52,7 @@ struct Client::Impl {
 
         if (jwt.empty() && !allow_anonymous) {
             LOG_ERROR(WebService, "Credentials must be provided for authenticated requests");
-            return WebResult{WebResult::Code::CredentialsMissing, "Credentials needed"};
+            return WebResult{WebResult::Code::CredentialsMissing, "Credentials needed", ""};
         }
 
         auto result = GenericRequest(method, path, data, accept, jwt);
@@ -83,7 +83,7 @@ struct Client::Impl {
         }
         if (!cli->is_valid()) {
             LOG_ERROR(WebService, "Invalid URL {}", host + path);
-            return WebResult{WebResult::Code::InvalidURL, "Invalid URL"};
+            return WebResult{WebResult::Code::InvalidURL, "Invalid URL", ""};
         }
 
         httplib::Headers params;
@@ -114,7 +114,7 @@ struct Client::Impl {
 
         if (!result) {
             LOG_ERROR(WebService, "{} to {} returned null", method, host + path);
-            return WebResult{WebResult::Code::LibError, "Null response"};
+            return WebResult{WebResult::Code::LibError, "Null response", ""};
         }
 
         httplib::Response response = result.value();
@@ -122,20 +122,20 @@ struct Client::Impl {
         if (response.status >= 400) {
             LOG_ERROR(WebService, "{} to {} returned error status code: {}", method, host + path,
                       response.status);
-            return WebResult{WebResult::Code::HttpError, std::to_string(response.status)};
+            return WebResult{WebResult::Code::HttpError, std::to_string(response.status), ""};
         }
 
         auto content_type = response.headers.find("content-type");
 
         if (content_type == response.headers.end()) {
             LOG_ERROR(WebService, "{} to {} returned no content", method, host + path);
-            return WebResult{WebResult::Code::WrongContent, ""};
+            return WebResult{WebResult::Code::WrongContent, "", ""};
         }
 
         if (content_type->second.find(accept) == std::string::npos) {
             LOG_ERROR(WebService, "{} to {} returned wrong content: {}", method, host + path,
                       content_type->second);
-            return WebResult{WebResult::Code::WrongContent, "Wrong content"};
+            return WebResult{WebResult::Code::WrongContent, "Wrong content", ""};
         }
         return WebResult{WebResult::Code::Success, "", response.body};
     }
