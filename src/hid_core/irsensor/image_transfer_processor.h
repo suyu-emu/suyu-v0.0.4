@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <span>
+
 #include "common/typed_address.h"
 #include "hid_core/irsensor/irs_types.h"
 #include "hid_core/irsensor/processor_base.h"
@@ -39,7 +41,7 @@ public:
     // Transfer memory where the image data will be stored
     void SetTransferMemoryAddress(Common::ProcessAddress t_mem);
 
-    Core::IrSensor::ImageTransferProcessorState GetState(std::vector<u8>& data) const;
+    Core::IrSensor::ImageTransferProcessorState GetState(std::span<u8> data) const;
 
 private:
     // This is nn::irsensor::ImageTransferProcessorConfig
