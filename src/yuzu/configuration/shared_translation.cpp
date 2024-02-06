@@ -45,21 +45,19 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
         Settings, memory_layout_mode, tr("Memory Layout"),
         tr("Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the "
            "developer kit's 8/6GB.\nIt’s doesn’t improve stability or performance and is intended "
-           "to let big texture mods fit in the “console's” RAM.\nEnabling it will increase RAM "
+           "to let big texture mods fit in emulated RAM.\nEnabling it will increase memory "
            "use. It is not recommended to enable unless a specific game with a texture mod needs "
-           "it.\n"
-           "8GB is known to break Pokémon Scarlet/Violet."));
+           "it."));
     INSERT(Settings, use_speed_limit, QStringLiteral(), QStringLiteral());
-    INSERT(
-        Settings, speed_limit, tr("Limit Speed Percent"),
-        tr("Controls the game's running speed, but it’s up to each game if they will run faster or "
-           "not.\n200% for a 30 FPS game is 60 FPS, and for a "
-           "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
-           "maximum your PC can reach."));
+    INSERT(Settings, speed_limit, tr("Limit Speed Percent"),
+           tr("Controls the game's maximum rendering speed, but it’s up to each game if it runs "
+              "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
+              "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
+              "maximum your PC can reach."));
 
     // Cpu
     INSERT(Settings, cpu_accuracy, tr("Accuracy:"),
-           tr("This setting controls the accuracy of the emulated CPU.\nDon't change this, unless "
+           tr("This setting controls the accuracy of the emulated CPU.\nDon't change this unless "
               "you know what you are doing."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QStringLiteral());
 
@@ -103,7 +101,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
               "performance and the best in rendering accuracy.\n"
               "GLASM is a deprecated NVIDIA-only backend that offers much better shader building "
               "performance at the cost of FPS and rendering accuracy.\n"
-              "SPIR-V is experimental, and no GPU driver makes a good implementation of it yet."));
+              "SPIR-V compiles the fastest, but yields poor results on most GPU drivers."));
     INSERT(Settings, resolution_setup, tr("Resolution:"),
            tr("Forces the game to render at a different resolution.\nHigher resolutions require "
               "much more VRAM and bandwidth.\n"
@@ -141,12 +139,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
               "GPU: Use the GPU's compute shaders to decode ASTC textures, recommended for most "
               "games and users.\n"
               "CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely "
-              "eliminates ASTC decoding stuttering at the cost of rendering issues, while the "
+              "eliminates ASTC decoding\nstuttering at the cost of rendering issues while the "
               "texture is being decoded."));
     INSERT(
         Settings, astc_recompression, tr("ASTC Recompression Method:"),
         tr("Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing "
-           "the emulator to recompress to an intermediate format any card supports, RGBA8.\n"
+           "the emulator to decompress to an intermediate format any card supports, RGBA8.\n"
            "This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but "
            "negatively affecting image quality."));
     INSERT(
@@ -243,14 +241,19 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     // Ui
 
     // Ui General
-    INSERT(UISettings, select_user_on_boot, tr("Prompt for user on game boot"), QStringLiteral());
+    INSERT(UISettings, select_user_on_boot, tr("Prompt for user on game boot"),
+           tr("Ask to select a user profile on each boot, useful if multiple people use yuzu on "
+              "the same PC."));
     INSERT(UISettings, pause_when_in_background, tr("Pause emulation when in background"),
-           QStringLiteral());
+           tr("This setting pauses yuzu when focusing other windows."));
     INSERT(UISettings, confirm_before_stopping, tr("Confirm before stopping emulation"),
-           QStringLiteral());
-    INSERT(UISettings, hide_mouse, tr("Hide mouse on inactivity"), QStringLiteral());
+           tr("This setting overrides game prompts asking to confirm stopping the game.\nEnabling "
+              "it bypasses such prompts and directly exits the emulation."));
+    INSERT(UISettings, hide_mouse, tr("Hide mouse on inactivity"),
+           tr("This setting hides the mouse after 2.5s of inactivity."));
     INSERT(UISettings, controller_applet_disabled, tr("Disable controller applet"),
-           QStringLiteral());
+           tr("Forcibly disables the use of the controller applet by guests.\nWhen a guest "
+              "attempts to open the controller applet, it is immediately closed."));
 
     // Linux
     INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QStringLiteral());
