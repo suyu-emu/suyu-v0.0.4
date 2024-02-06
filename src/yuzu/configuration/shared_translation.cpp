@@ -115,21 +115,22 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            tr("The anti-aliasing method to use.\nSMAA offers the best quality.\nFXAA has a "
               "lower performance impact and can produce a better and more stable picture under "
               "very low resolutions."));
-    INSERT(
-        Settings, fullscreen_mode, tr("Fullscreen Mode:"),
-        tr("The method used to render the window in fullscreen.\nBorderless offers the best "
-           "compatibility with the on-screen keyboard that some games request for input.\nExclusive "
-           "fullscreen may offer better performance and better Freesync/Gsync support."));
+    INSERT(Settings, fullscreen_mode, tr("Fullscreen Mode:"),
+           tr("The method used to render the window in fullscreen.\nBorderless offers the best "
+              "compatibility with the on-screen keyboard that some games request for "
+              "input.\nExclusive "
+              "fullscreen may offer better performance and better Freesync/Gsync support."));
     INSERT(Settings, aspect_ratio, tr("Aspect Ratio:"),
            tr("Stretches the game to fit the specified aspect ratio.\nSwitch games only support "
               "16:9, so custom game mods are required to get other ratios.\nAlso controls the "
               "aspect ratio of captured screenshots."));
+    INSERT(Settings, use_disk_shader_cache, tr("Use disk pipeline cache"),
+           tr("Allows saving shaders to storage for faster loading on following game "
+              "boots.\nDisabling "
+              "it is only intended for debugging."));
     INSERT(
-        Settings, use_disk_shader_cache, tr("Use disk pipeline cache"),
-        tr("Allows saving shaders to storage for faster loading on following game boots.\nDisabling "
-           "it is only intended for debugging."));
-    INSERT(Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
-           tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
+        Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
+        tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
     INSERT(Settings, nvdec_emulation, tr("NVDEC emulation:"),
            tr("Specifies how videos should be decoded.\nIt can either use the CPU or the GPU for "
               "decoding, or perform no decoding at all (black screen on videos).\n"
@@ -161,22 +162,29 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Renderer (Advanced Graphics)
     INSERT(Settings, async_presentation, tr("Enable asynchronous presentation (Vulkan only)"),
-           QStringLiteral());
+           tr("Slightly improves performance by moving presentation to a separate CPU thread."));
     INSERT(
         Settings, renderer_force_max_clock, tr("Force maximum clocks (Vulkan only)"),
         tr("Runs work in the background while waiting for graphics commands to keep the GPU from "
            "lowering its clock speed."));
-    INSERT(Settings, max_anisotropy, tr("Anisotropic Filtering:"), QStringLiteral());
-    INSERT(Settings, gpu_accuracy, tr("Accuracy Level:"), QStringLiteral());
-    INSERT(
-        Settings, use_asynchronous_shaders, tr("Use asynchronous shader building (Hack)"),
-        tr("Enables asynchronous shader compilation, which may reduce shader stutter. This feature "
-           "is experimental."));
+    INSERT(Settings, max_anisotropy, tr("Anisotropic Filtering:"),
+           tr("Controls the quality of texture rendering at oblique angles.\nIt’s a light setting "
+              "and safe to set at 16x on most GPUs."));
+    INSERT(Settings, gpu_accuracy, tr("Accuracy Level:"),
+           tr("GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
+              "required for some.\nParticles tend to only render correctly with High "
+              "accuracy.\nExtreme should only be used for debugging.\nThis option can "
+              "be changed while playing.\nSome games may require booting on high to render "
+              "properly."));
+    INSERT(Settings, use_asynchronous_shaders, tr("Use asynchronous shader building (Hack)"),
+           tr("Enables asynchronous shader compilation, which may reduce shader stutter.\nThis "
+              "feature "
+              "is experimental."));
     INSERT(Settings, use_fast_gpu_time, tr("Use Fast GPU Time (Hack)"),
            tr("Enables Fast GPU Time. This option will force most games to run at their highest "
               "native resolution."));
     INSERT(Settings, use_vulkan_driver_pipeline_cache, tr("Use Vulkan pipeline cache"),
-           tr("Enables GPU vendor-specific pipeline cache. This option can improve shader loading "
+           tr("Enables GPU vendor-specific pipeline cache.\nThis option can improve shader loading "
               "time significantly in cases where the Vulkan driver does not store pipeline cache "
               "files internally."));
     INSERT(
@@ -197,19 +205,27 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     // Renderer (Debug)
 
     // System
-    INSERT(Settings, rng_seed, tr("RNG Seed"), QStringLiteral());
+    INSERT(Settings, rng_seed, tr("RNG Seed"),
+           tr("Controls the seed of the random number generator.\nMainly used for speedrunning "
+              "purposes."));
     INSERT(Settings, rng_seed_enabled, QStringLiteral(), QStringLiteral());
-    INSERT(Settings, device_name, tr("Device Name"), QStringLiteral());
-    INSERT(Settings, custom_rtc, tr("Custom RTC Date:"), QStringLiteral());
+    INSERT(Settings, device_name, tr("Device Name"), tr("The name of the emulated Switch."));
+    INSERT(Settings, custom_rtc, tr("Custom RTC Date:"),
+           tr("This option allows to change the emulated clock of the Switch.\n"
+              "Can be used to manipulate time in games."));
     INSERT(Settings, custom_rtc_enabled, QStringLiteral(), QStringLiteral());
     INSERT(Settings, custom_rtc_offset, QStringLiteral(" "),
            QStringLiteral("The number of seconds from the current unix time"));
     INSERT(Settings, language_index, tr("Language:"),
            tr("Note: this can be overridden when region setting is auto-select"));
-    INSERT(Settings, region_index, tr("Region:"), QStringLiteral());
-    INSERT(Settings, time_zone_index, tr("Time Zone:"), QStringLiteral());
+    INSERT(Settings, region_index, tr("Region:"), tr("The region of the emulated Switch."));
+    INSERT(Settings, time_zone_index, tr("Time Zone:"),
+           tr("The time zone of the emulated Switch."));
     INSERT(Settings, sound_index, tr("Sound Output Mode:"), QStringLiteral());
-    INSERT(Settings, use_docked_mode, tr("Console Mode:"), QStringLiteral());
+    INSERT(Settings, use_docked_mode, tr("Console Mode:"),
+           tr("Selects if the console is emulated in Docked or Handheld mode.\nGames will change "
+              "their resolution, details and supported controllers and depending on this setting.\n"
+              "Setting to Handheld can help improve performance for low end systems."));
     INSERT(Settings, current_user, QStringLiteral(), QStringLiteral());
 
     // Controls
