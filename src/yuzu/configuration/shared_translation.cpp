@@ -37,13 +37,30 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            QStringLiteral());
 
     // Core
-    INSERT(Settings, use_multi_core, tr("Multicore CPU Emulation"), QStringLiteral());
-    INSERT(Settings, memory_layout_mode, tr("Memory Layout"), QStringLiteral());
+    INSERT(
+        Settings, use_multi_core, tr("Multicore CPU Emulation"),
+        tr("This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.\n"
+           "This is mainly a debug option and shouldn’t be disabled."));
+    INSERT(
+        Settings, memory_layout_mode, tr("Memory Layout"),
+        tr("Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the "
+           "developer kit's 8/6GB.\nIt’s doesn’t improve stability or performance and is intended "
+           "to let big texture mods fit in the “console's” RAM.\nEnabling it will increase RAM "
+           "use. It is not recommended to enable unless a specific game with a texture mod needs "
+           "it.\n"
+           "8GB is known to break Pokémon Scarlet/Violet."));
     INSERT(Settings, use_speed_limit, QStringLiteral(), QStringLiteral());
-    INSERT(Settings, speed_limit, tr("Limit Speed Percent"), QStringLiteral());
+    INSERT(
+        Settings, speed_limit, tr("Limit Speed Percent"),
+        tr("Controls the game's running speed, but it’s up to each game if they will run faster or "
+           "not.\n200% for a 30 FPS game is 60 FPS, and for a "
+           "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
+           "maximum your PC can reach."));
 
     // Cpu
-    INSERT(Settings, cpu_accuracy, tr("Accuracy:"), QStringLiteral());
+    INSERT(Settings, cpu_accuracy, tr("Accuracy:"),
+           tr("This setting controls the accuracy of the emulated CPU.\nDon't change this, unless "
+              "you know what you are doing."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QStringLiteral());
 
     // Cpu Debug
@@ -63,34 +80,74 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            tr("This option improves the speed of 32 bits ASIMD floating-point functions by running "
               "with incorrect rounding modes."));
     INSERT(Settings, cpuopt_unsafe_inaccurate_nan, tr("Inaccurate NaN handling"),
-           tr("This option improves speed by removing NaN checking. Please note this also reduces "
+           tr("This option improves speed by removing NaN checking.\nPlease note this also reduces "
               "accuracy of certain floating-point instructions."));
     INSERT(Settings, cpuopt_unsafe_fastmem_check, tr("Disable address space checks"),
            tr("This option improves speed by eliminating a safety check before every memory "
-              "read/write "
-              "in guest. Disabling it may allow a game to read/write the emulator's memory."));
+              "read/write in guest.\nDisabling it may allow a game to read/write the emulator's "
+              "memory."));
     INSERT(
         Settings, cpuopt_unsafe_ignore_global_monitor, tr("Ignore global monitor"),
         tr("This option improves speed by relying only on the semantics of cmpxchg to ensure "
-           "safety of exclusive access instructions. Please note this may result in deadlocks and "
+           "safety of exclusive access instructions.\nPlease note this may result in deadlocks and "
            "other race conditions."));
 
     // Renderer
-    INSERT(Settings, renderer_backend, tr("API:"), QStringLiteral());
-    INSERT(Settings, vulkan_device, tr("Device:"), QStringLiteral());
-    INSERT(Settings, shader_backend, tr("Shader Backend:"), QStringLiteral());
-    INSERT(Settings, resolution_setup, tr("Resolution:"), QStringLiteral());
+    INSERT(
+        Settings, renderer_backend, tr("API:"),
+        tr("Switches between the available graphics APIs.\nVulkan is recommended in most cases."));
+    INSERT(Settings, vulkan_device, tr("Device:"),
+           tr("This setting selects the GPU to use with the Vulkan backend."));
+    INSERT(Settings, shader_backend, tr("Shader Backend:"),
+           tr("The shader backend to use for the OpenGL renderer.\nGLSL is the fastest in "
+              "performance and the best in rendering accuracy.\n"
+              "GLASM is a deprecated NVIDIA-only backend that offers much better shader building "
+              "performance at the cost of FPS and rendering accuracy.\n"
+              "SPIR-V is experimental, and no GPU driver makes a good implementation of it yet."));
+    INSERT(Settings, resolution_setup, tr("Resolution:"),
+           tr("Forces the game to render at a different resolution.\nHigher resolutions require "
+              "much more VRAM and bandwidth.\n"
+              "Options lower than 1X can cause rendering issues."));
     INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QStringLiteral());
-    INSERT(Settings, fsr_sharpening_slider, tr("FSR Sharpness:"), QStringLiteral());
-    INSERT(Settings, anti_aliasing, tr("Anti-Aliasing Method:"), QStringLiteral());
-    INSERT(Settings, fullscreen_mode, tr("Fullscreen Mode:"), QStringLiteral());
-    INSERT(Settings, aspect_ratio, tr("Aspect Ratio:"), QStringLiteral());
-    INSERT(Settings, use_disk_shader_cache, tr("Use disk pipeline cache"), QStringLiteral());
+    INSERT(Settings, fsr_sharpening_slider, tr("FSR Sharpness:"),
+           tr("Determines how sharpened the image will look while using FSR’s dynamic contrast."));
+    INSERT(Settings, anti_aliasing, tr("Anti-Aliasing Method:"),
+           tr("The anti-aliasing method to use.\nSMAA offers the best quality.\nFXAA has a "
+              "lower performance impact and can produce a better and more stable picture under "
+              "very low resolutions."));
+    INSERT(
+        Settings, fullscreen_mode, tr("Fullscreen Mode:"),
+        tr("The method used to render the window in fullscreen.\nBorderless offers the best "
+           "compatibility with the on-screen keyboard that some games request for input.\nExclusive "
+           "fullscreen may offer better performance and better Freesync/Gsync support."));
+    INSERT(Settings, aspect_ratio, tr("Aspect Ratio:"),
+           tr("Stretches the game to fit the specified aspect ratio.\nSwitch games only support "
+              "16:9, so custom game mods are required to get other ratios.\nAlso controls the "
+              "aspect ratio of captured screenshots."));
+    INSERT(
+        Settings, use_disk_shader_cache, tr("Use disk pipeline cache"),
+        tr("Allows saving shaders to storage for faster loading on following game boots.\nDisabling "
+           "it is only intended for debugging."));
     INSERT(Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
-           QStringLiteral());
-    INSERT(Settings, nvdec_emulation, tr("NVDEC emulation:"), QStringLiteral());
-    INSERT(Settings, accelerate_astc, tr("ASTC Decoding Method:"), QStringLiteral());
-    INSERT(Settings, astc_recompression, tr("ASTC Recompression Method:"), QStringLiteral());
+           tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
+    INSERT(Settings, nvdec_emulation, tr("NVDEC emulation:"),
+           tr("Specifies how videos should be decoded.\nIt can either use the CPU or the GPU for "
+              "decoding, or perform no decoding at all (black screen on videos).\n"
+              "In most cases, GPU decoding provides the best performance."));
+    INSERT(Settings, accelerate_astc, tr("ASTC Decoding Method:"),
+           tr("This option controls how ASTC textures should be decoded.\n"
+              "CPU: Use the CPU for decoding, slowest but safest method.\n"
+              "GPU: Use the GPU's compute shaders to decode ASTC textures, recommended for most "
+              "games and users.\n"
+              "CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely "
+              "eliminates ASTC decoding stuttering at the cost of rendering issues, while the "
+              "texture is being decoded."));
+    INSERT(
+        Settings, astc_recompression, tr("ASTC Recompression Method:"),
+        tr("Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing "
+           "the emulator to recompress to an intermediate format any card supports, RGBA8.\n"
+           "This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but "
+           "negatively affecting image quality."));
     INSERT(
         Settings, vsync_mode, tr("VSync Mode:"),
         tr("FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "
