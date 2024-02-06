@@ -131,7 +131,7 @@ void NPad::ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t c
 
         auto* data = applet_resource_holder.applet_resource->GetAruidDataByIndex(aruid_index);
 
-        if (!data->flag.is_assigned) {
+        if (data == nullptr || !data->flag.is_assigned) {
             continue;
         }
 
@@ -463,13 +463,13 @@ void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     std::scoped_lock lock{*applet_resource_holder.shared_mutex};
     for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; ++aruid_index) {
         const auto* data = applet_resource_holder.applet_resource->GetAruidDataByIndex(aruid_index);
-        const auto aruid = data->aruid;
 
-        if (!data->flag.is_assigned) {
+        if (data == nullptr || !data->flag.is_assigned) {
             continue;
         }
 
         bool is_set{};
+        const auto aruid = data->aruid;
         npad_resource.IsSupportedNpadStyleSet(is_set, aruid);
         // Wait until style is defined
         if (!is_set) {
