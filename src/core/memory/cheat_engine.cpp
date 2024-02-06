@@ -5,6 +5,7 @@
 #include "common/hex_util.h"
 #include "common/microprofile.h"
 #include "common/swap.h"
+#include "core/arm/debug.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_page_table.h"
@@ -63,7 +64,9 @@ void StandardVmCallbacks::MemoryWriteUnsafe(VAddr address, const void* data, u64
         return;
     }
 
-    system.ApplicationMemory().WriteBlock(address, data, size);
+    if (system.ApplicationMemory().WriteBlock(address, data, size)) {
+        Core::InvalidateInstructionCacheRange(system.ApplicationProcess(), address, size);
+    }
 }
 
 u64 StandardVmCallbacks::HidKeysDown() {
