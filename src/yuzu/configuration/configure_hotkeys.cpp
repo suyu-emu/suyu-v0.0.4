@@ -45,15 +45,23 @@ ConfigureHotkeys::ConfigureHotkeys(Core::HID::HIDCore& hid_core, QWidget* parent
 
     controller = hid_core.GetEmulatedController(Core::HID::NpadIdType::Player1);
 
-    connect(timeout_timer.get(), &QTimer::timeout, [this] { SetPollingResult({}, true); });
+    connect(timeout_timer.get(), &QTimer::timeout, [this] {
+        const bool is_button_pressed = pressed_buttons != Core::HID::NpadButton::None ||
+                                       pressed_home_button || pressed_capture_button;
+        SetPollingResult(!is_button_pressed);
+    });
 
     connect(poll_timer.get(), &QTimer::timeout, [this] {
-        const auto buttons = controller->GetNpadButtons();
-        const auto home_pressed = controller->GetHomeButtons().home != 0;
-        const auto capture_pressed = controller->GetCaptureButtons().capture != 0;
-        if (home_pressed || capture_pressed) {
-            SetPollingResult(buttons.raw, false);
-            return;
+        pressed_buttons |= controller->GetNpadButtons().raw;
+        pressed_home_button |= this->controller->GetHomeButtons().home != 0;
+        pressed_capture_button |= this->controller->GetCaptureButtons().capture != 0;
+        if (pressed_buttons != Core::HID::NpadButton::None || pressed_home_button ||
+            pressed_capture_button) {
+            const QString button_name =
+                GetButtonCombinationName(pressed_buttons, pressed_home_button,
+                                         pressed_capture_button) +
+                QStringLiteral("...");
+            model->setData(button_model_index, button_name);
         }
     });
     RetranslateUI();
@@ -154,16 +162,14 @@ void ConfigureHotkeys::ConfigureController(QModelIndex index) {
 
     const auto previous_key = model->data(index);
 
-    input_setter = [this, index, previous_key](const Core::HID::NpadButton button,
-                                               const bool cancel) {
+    input_setter = [this, index, previous_key](const bool cancel) {
         if (cancel) {
             model->setData(index, previous_key);
             return;
         }
-        const auto home_pressed = this->controller->GetHomeButtons().home != 0;
-        const auto capture_pressed = this->controller->GetCaptureButtons().capture != 0;
+
         const QString button_string =
-            GetButtonCombinationName(button, home_pressed, capture_pressed);
+            GetButtonCombinationName(pressed_buttons, pressed_home_button, pressed_capture_button);
 
         const auto [key_sequence_used, used_action] = IsUsedControllerKey(button_string);
 
@@ -177,17 +183,22 @@ void ConfigureHotkeys::ConfigureController(QModelIndex index) {
         }
     };
 
+    button_model_index = index;
+    pressed_buttons = Core::HID::NpadButton::None;
+    pressed_home_button = false;
+    pressed_capture_button = false;
+
     model->setData(index, tr("[waiting]"));
     timeout_timer->start(2500); // Cancel after 2.5 seconds
-    poll_timer->start(200);     // Check for new inputs every 200ms
+    poll_timer->start(100);     // Check for new inputs every 100ms
     // We need to disable configuration to be able to read npad buttons
     controller->DisableConfiguration();
 }
 
-void ConfigureHotkeys::SetPollingResult(Core::HID::NpadButton button, const bool cancel) {
+void ConfigureHotkeys::SetPollingResult(const bool cancel) {
     timeout_timer->stop();
     poll_timer->stop();
-    (*input_setter)(button, cancel);
+    (*input_setter)(cancel);
     // Re-Enable configuration
     controller->EnableConfiguration();
 

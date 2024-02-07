@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <QStandardItemModel>
 #include <QWidget>
 
 namespace Common {
@@ -54,14 +55,20 @@ private:
     void RestoreControllerHotkey(QModelIndex index);
     void RestoreHotkey(QModelIndex index);
 
+    void SetPollingResult(bool cancel);
+    QString GetButtonCombinationName(Core::HID::NpadButton button, bool home, bool capture) const;
+
     std::unique_ptr<Ui::ConfigureHotkeys> ui;
 
     QStandardItemModel* model;
 
-    void SetPollingResult(Core::HID::NpadButton button, bool cancel);
-    QString GetButtonCombinationName(Core::HID::NpadButton button, bool home, bool capture) const;
+    bool pressed_home_button;
+    bool pressed_capture_button;
+    QModelIndex button_model_index;
+    Core::HID::NpadButton pressed_buttons;
+
     Core::HID::EmulatedController* controller;
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;
-    std::optional<std::function<void(Core::HID::NpadButton, bool)>> input_setter;
+    std::optional<std::function<void(bool)>> input_setter;
 };
