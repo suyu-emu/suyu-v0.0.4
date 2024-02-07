@@ -38,7 +38,7 @@ u8 HidbusStubbed::GetDeviceId() const {
     return DEVICE_ID;
 }
 
-std::vector<u8> HidbusStubbed::GetReply() const {
+u64 HidbusStubbed::GetReply(std::span<u8> out_data) const {
     return {};
 }
 

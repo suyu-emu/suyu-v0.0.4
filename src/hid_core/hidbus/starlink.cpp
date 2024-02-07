@@ -38,7 +38,7 @@ u8 Starlink::GetDeviceId() const {
     return DEVICE_ID;
 }
 
-std::vector<u8> Starlink::GetReply() const {
+u64 Starlink::GetReply(std::span<u8> out_data) const {
     return {};
 }
 
