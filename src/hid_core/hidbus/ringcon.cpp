@@ -90,32 +90,32 @@ u8 RingController::GetDeviceId() const {
     return device_id;
 }
 
-std::vector<u8> RingController::GetReply() const {
+u64 RingController::GetReply(std::span<u8> out_data) const {
     const RingConCommands current_command = command;
 
     switch (current_command) {
     case RingConCommands::GetFirmwareVersion:
-        return GetFirmwareVersionReply();
+        return GetFirmwareVersionReply(out_data);
     case RingConCommands::ReadId:
-        return GetReadIdReply();
+        return GetReadIdReply(out_data);
     case RingConCommands::c20105:
-        return GetC020105Reply();
+        return GetC020105Reply(out_data);
     case RingConCommands::ReadUnkCal:
-        return GetReadUnkCalReply();
+        return GetReadUnkCalReply(out_data);
     case RingConCommands::ReadFactoryCal:
-        return GetReadFactoryCalReply();
+        return GetReadFactoryCalReply(out_data);
     case RingConCommands::ReadUserCal:
-        return GetReadUserCalReply();
+        return GetReadUserCalReply(out_data);
     case RingConCommands::ReadRepCount:
-        return GetReadRepCountReply();
+        return GetReadRepCountReply(out_data);
     case RingConCommands::ReadTotalPushCount:
-        return GetReadTotalPushCountReply();
+        return GetReadTotalPushCountReply(out_data);
     case RingConCommands::ResetRepCount:
-        return GetResetRepCountReply();
+        return GetResetRepCountReply(out_data);
     case RingConCommands::SaveCalData:
-        return GetSaveDataReply();
+        return GetSaveDataReply(out_data);
     default:
-        return GetErrorReply();
+        return GetErrorReply(out_data);
     }
 }
 
@@ -163,16 +163,16 @@ bool RingController::SetCommand(std::span<const u8> data) {
     }
 }
 
-std::vector<u8> RingController::GetFirmwareVersionReply() const {
+u64 RingController::GetFirmwareVersionReply(std::span<u8> out_data) const {
     const FirmwareVersionReply reply{
         .status = DataValid::Valid,
         .firmware = version,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetReadIdReply() const {
+u64 RingController::GetReadIdReply(std::span<u8> out_data) const {
     // The values are hardcoded from a real joycon
     const ReadIdReply reply{
         .status = DataValid::Valid,
@@ -184,83 +184,83 @@ std::vector<u8> RingController::GetReadIdReply() const {
         .id_h_x4 = 8245,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetC020105Reply() const {
+u64 RingController::GetC020105Reply(std::span<u8> out_data) const {
     const Cmd020105Reply reply{
         .status = DataValid::Valid,
         .data = 1,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetReadUnkCalReply() const {
+u64 RingController::GetReadUnkCalReply(std::span<u8> out_data) const {
     const ReadUnkCalReply reply{
         .status = DataValid::Valid,
         .data = 0,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetReadFactoryCalReply() const {
+u64 RingController::GetReadFactoryCalReply(std::span<u8> out_data) const {
     const ReadFactoryCalReply reply{
         .status = DataValid::Valid,
         .calibration = factory_calibration,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetReadUserCalReply() const {
+u64 RingController::GetReadUserCalReply(std::span<u8> out_data) const {
     const ReadUserCalReply reply{
         .status = DataValid::Valid,
         .calibration = user_calibration,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetReadRepCountReply() const {
+u64 RingController::GetReadRepCountReply(std::span<u8> out_data) const {
     const GetThreeByteReply reply{
         .status = DataValid::Valid,
         .data = {total_rep_count, 0, 0},
         .crc = GetCrcValue({total_rep_count, 0, 0, 0}),
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetReadTotalPushCountReply() const {
+u64 RingController::GetReadTotalPushCountReply(std::span<u8> out_data) const {
     const GetThreeByteReply reply{
         .status = DataValid::Valid,
         .data = {total_push_count, 0, 0},
         .crc = GetCrcValue({total_push_count, 0, 0, 0}),
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetResetRepCountReply() const {
-    return GetReadRepCountReply();
+u64 RingController::GetResetRepCountReply(std::span<u8> out_data) const {
+    return GetReadRepCountReply(out_data);
 }
 
-std::vector<u8> RingController::GetSaveDataReply() const {
+u64 RingController::GetSaveDataReply(std::span<u8> out_data) const {
     const StatusReply reply{
         .status = DataValid::Valid,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
-std::vector<u8> RingController::GetErrorReply() const {
+u64 RingController::GetErrorReply(std::span<u8> out_data) const {
     const ErrorReply reply{
         .status = DataValid::BadCRC,
     };
 
-    return GetDataVector(reply);
+    return GetData(reply, out_data);
 }
 
 u8 RingController::GetCrcValue(const std::vector<u8>& data) const {
@@ -281,12 +281,11 @@ u8 RingController::GetCrcValue(const std::vector<u8>& data) const {
 }
 
 template <typename T>
-std::vector<u8> RingController::GetDataVector(const T& reply) const {
+u64 RingController::GetData(const T& reply, std::span<u8> out_data) const {
     static_assert(std::is_trivially_copyable_v<T>);
-    std::vector<u8> data;
-    data.resize(sizeof(reply));
-    std::memcpy(data.data(), &reply, sizeof(reply));
-    return data;
+    const auto data_size = static_cast<u64>(std::min(sizeof(reply), out_data.size()));
+    std::memcpy(out_data.data(), &reply, data_size);
+    return data_size;
 }
 
 } // namespace Service::HID
