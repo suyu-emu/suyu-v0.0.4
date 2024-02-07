@@ -32,8 +32,13 @@ struct Client::Impl {
     Impl(std::string host_, std::string username_, std::string token_)
         : host{std::move(host_)}, username{std::move(username_)}, token{std::move(token_)} {
         std::scoped_lock lock{jwt_cache.mutex};
-        if (username == jwt_cache.username && token == jwt_cache.token) {
+        if (this->username == jwt_cache.username && this->token == jwt_cache.token) {
             jwt = jwt_cache.jwt;
+        }
+
+        // Normalize host expression
+        if (!this->host.empty() && this->host.back() == '/') {
+            static_cast<void>(this->host.pop_back());
         }
     }
 
@@ -71,17 +76,15 @@ struct Client::Impl {
                              const std::string& jwt_ = "", const std::string& username_ = "",
                              const std::string& token_ = "") {
         if (cli == nullptr) {
-            cli = std::make_unique<httplib::Client>(host);
+            cli = std::make_unique<httplib::Client>(host.c_str());
+            cli->set_connection_timeout(TIMEOUT_SECONDS);
+            cli->set_read_timeout(TIMEOUT_SECONDS);
+            cli->set_write_timeout(TIMEOUT_SECONDS);
         }
-
         if (!cli->is_valid()) {
-            LOG_ERROR(WebService, "Client is invalid, skipping request!");
-            return {};
+            LOG_ERROR(WebService, "Invalid URL {}", host + path);
+            return WebResult{WebResult::Code::InvalidURL, "Invalid URL", ""};
         }
-
-        cli->set_connection_timeout(TIMEOUT_SECONDS);
-        cli->set_read_timeout(TIMEOUT_SECONDS);
-        cli->set_write_timeout(TIMEOUT_SECONDS);
 
         httplib::Headers params;
         if (!jwt_.empty()) {
@@ -107,14 +110,14 @@ struct Client::Impl {
         request.headers = params;
         request.body = data;
 
-        httplib::Response response;
-        httplib::Error error;
+        httplib::Result result = cli->send(request);
 
-        if (!cli->send(request, response, error)) {
-            LOG_ERROR(WebService, "{} to {} returned null (httplib Error: {})", method, host + path,
-                      httplib::to_string(error));
+        if (!result) {
+            LOG_ERROR(WebService, "{} to {} returned null", method, host + path);
             return WebResult{WebResult::Code::LibError, "Null response", ""};
         }
+
+        httplib::Response response = result.value();
 
         if (response.status >= 400) {
             LOG_ERROR(WebService, "{} to {} returned error status code: {}", method, host + path,
