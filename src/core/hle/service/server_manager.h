@@ -14,7 +14,7 @@
 #include "common/thread.h"
 #include "core/hle/result.h"
 #include "core/hle/service/hle_ipc.h"
-#include "core/hle/service/mutex.h"
+#include "core/hle/service/os/mutex.h"
 
 namespace Core {
 class System;

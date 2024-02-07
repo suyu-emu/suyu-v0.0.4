@@ -7,8 +7,8 @@
 #include <memory>
 #include <mutex>
 
-#include "core/hle/service/event.h"
 #include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/os/event.h"
 
 union Result;
 

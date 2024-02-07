@@ -9,8 +9,8 @@
 #include "common/math_util.h"
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/caps/caps_types.h"
-#include "core/hle/service/event.h"
 #include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/os/event.h"
 #include "core/hle/service/service.h"
 
 #include "core/hle/service/am/am_types.h"

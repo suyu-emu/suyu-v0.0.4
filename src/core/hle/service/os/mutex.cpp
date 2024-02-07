@@ -4,7 +4,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_synchronization_object.h"
-#include "core/hle/service/mutex.h"
+#include "core/hle/service/os/mutex.h"
 
 namespace Service {
 
