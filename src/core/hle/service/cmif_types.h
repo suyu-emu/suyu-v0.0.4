@@ -65,6 +65,14 @@ struct ClientProcessId {
 };
 
 struct ProcessId {
+    explicit ProcessId() : pid() {}
+    explicit ProcessId(u64 p) : pid(p) {}
+    /* implicit */ ProcessId(const ClientProcessId& c) : pid(c.pid) {}
+
+    bool operator==(const ProcessId& rhs) const {
+        return pid == rhs.pid;
+    }
+
     explicit operator bool() const {
         return pid != 0;
     }
