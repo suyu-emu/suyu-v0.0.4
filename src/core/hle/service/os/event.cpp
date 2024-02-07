@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/kernel/k_event.h"
-#include "core/hle/service/event.h"
 #include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/os/event.h"
 
 namespace Service {
 
