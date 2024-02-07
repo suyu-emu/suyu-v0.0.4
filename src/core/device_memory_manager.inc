@@ -532,6 +532,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             cache_bytes = 0;
         }
     };
+    size_t old_vpage = (base_vaddress >> Memory::YUZU_PAGEBITS) - 1;
     for (; page != page_end; ++page) {
         CounterAtomicType& count = cached_pages->at(page >> subentries_shift).Count(page);
         auto [asid_2, vpage] = ExtractCPUBacking(page);
@@ -546,6 +547,12 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             release_pending();
             memory_device_inter = registered_processes[asid_2.id];
         }
+
+        if (vpage != old_vpage + 1) [[unlikely]] {
+            release_pending();
+        }
+
+        old_vpage = vpage;
 
         // Adds or subtracts 1, as count is a unsigned 8-bit value
         count.fetch_add(static_cast<CounterType>(delta), std::memory_order_release);
