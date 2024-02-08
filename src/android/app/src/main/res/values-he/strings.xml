@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">התוכנה תריץ משחקים לקונסולת ה Nintendo Switch. אף משחק או קבצים בעלי זכויות יוצרים נכללים.&lt;br /&gt;&lt;br /&gt; לפני שאת/ה מתחיל בבקשה מצא את קובץ <![CDATA[<b>prod.keys</b>]]> על המכשיר.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">קרא עוד</a>]]></string>
-    <string name="emulation_notification_channel_name">אמולציה פעילה</string>
-    <string name="emulation_notification_channel_description">מציג התראה מתמשכת כאשר האמולציה פועלת.</string>
-    <string name="emulation_notification_running">yuzu רץ</string>
     <string name="notice_notification_channel_name">התראות ותקלות</string>
     <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>

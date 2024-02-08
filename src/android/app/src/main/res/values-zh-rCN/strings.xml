@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">此软件可以运行 Nintendo Switch 游戏，但不包含任何游戏和密钥文件。&lt;br /&gt;&lt;br /&gt;在开始前，请找到放置于设备存储中的 <![CDATA[<b> prod.keys </b>]]> 文件。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">了解更多</a>]]></string>
-    <string name="emulation_notification_channel_name">正在进行模拟</string>
-    <string name="emulation_notification_channel_description">在模拟运行时显示持久通知。</string>
-    <string name="emulation_notification_running">yuzu 正在运行</string>
     <string name="notice_notification_channel_name">通知及错误提醒</string>
     <string name="notice_notification_channel_description">当发生错误时显示通知。</string>
     <string name="notification_permission_not_granted">未授予通知权限！</string>

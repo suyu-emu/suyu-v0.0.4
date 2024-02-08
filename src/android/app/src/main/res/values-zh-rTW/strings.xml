@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">此軟體可以執行 Nintendo Switch 主機遊戲，但不包含任何遊戲和金鑰。&lt;br /&gt;&lt;br /&gt;在您開始前，請找到放置於您的裝置儲存空間的 <![CDATA[<b> prod.keys </b>]]> 檔案。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">深入瞭解</a>]]></string>
-    <string name="emulation_notification_channel_name">模擬進行中</string>
-    <string name="emulation_notification_channel_description">在模擬執行時顯示持續通知。</string>
-    <string name="emulation_notification_running">yuzu 正在執行</string>
     <string name="notice_notification_channel_name">通知和錯誤</string>
     <string name="notice_notification_channel_description">發生錯誤時顯示通知。</string>
     <string name="notification_permission_not_granted">未授予通知權限！</string>
