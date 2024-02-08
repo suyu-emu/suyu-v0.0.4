@@ -21,6 +21,7 @@
 #include "common/lru_cache.h"
 #include "common/polyfill_ranges.h"
 #include "common/scratch_buffer.h"
+#include "common/slot_vector.h"
 #include "common/thread_worker.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/control/channel_state_cache.h"
@@ -32,7 +33,6 @@
 #include "video_core/texture_cache/image_info.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/render_targets.h"
-#include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/textures/texture.h"
 
@@ -451,16 +451,16 @@ private:
     struct PendingDownload {
         bool is_swizzle;
         size_t async_buffer_id;
-        SlotId object_id;
+        Common::SlotId object_id;
     };
 
-    SlotVector<Image> slot_images;
-    SlotVector<ImageMapView> slot_map_views;
-    SlotVector<ImageView> slot_image_views;
-    SlotVector<ImageAlloc> slot_image_allocs;
-    SlotVector<Sampler> slot_samplers;
-    SlotVector<Framebuffer> slot_framebuffers;
-    SlotVector<BufferDownload> slot_buffer_downloads;
+    Common::SlotVector<Image> slot_images;
+    Common::SlotVector<ImageMapView> slot_map_views;
+    Common::SlotVector<ImageView> slot_image_views;
+    Common::SlotVector<ImageAlloc> slot_image_allocs;
+    Common::SlotVector<Sampler> slot_samplers;
+    Common::SlotVector<Framebuffer> slot_framebuffers;
+    Common::SlotVector<BufferDownload> slot_buffer_downloads;
 
     // TODO: This data structure is not optimal and it should be reworked
 

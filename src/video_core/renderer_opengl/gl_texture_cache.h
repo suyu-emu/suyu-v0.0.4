@@ -30,13 +30,13 @@ class Image;
 class ImageView;
 class Sampler;
 
+using Common::SlotVector;
 using VideoCommon::ImageId;
 using VideoCommon::ImageViewId;
 using VideoCommon::ImageViewType;
 using VideoCommon::NUM_RT;
 using VideoCommon::Region2D;
 using VideoCommon::RenderTargets;
-using VideoCommon::SlotVector;
 
 struct FormatProperties {
     GLenum compatibility_class;

@@ -20,11 +20,11 @@ struct ResolutionScalingInfo;
 
 namespace Vulkan {
 
+using Common::SlotVector;
 using VideoCommon::ImageId;
 using VideoCommon::NUM_RT;
 using VideoCommon::Region2D;
 using VideoCommon::RenderTargets;
-using VideoCommon::SlotVector;
 using VideoCore::Surface::PixelFormat;
 
 class BlitImageHelper;
