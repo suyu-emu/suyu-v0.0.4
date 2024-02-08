@@ -1,24 +1,26 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/bcat/backend/backend.h"
 #include "core/hle/service/bcat/bcat.h"
+#include "core/hle/service/bcat/bcat_interface.h"
+#include "core/hle/service/server_manager.h"
 
 namespace Service::BCAT {
 
-BCAT::BCAT(Core::System& system_, std::shared_ptr<Module> module_,
-           FileSystem::FileSystemController& fsc_, const char* name_)
-    : Interface(system_, std::move(module_), fsc_, name_) {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {0, &BCAT::CreateBcatService, "CreateBcatService"},
-        {1, &BCAT::CreateDeliveryCacheStorageService, "CreateDeliveryCacheStorageService"},
-        {2, &BCAT::CreateDeliveryCacheStorageServiceWithApplicationId, "CreateDeliveryCacheStorageServiceWithApplicationId"},
-        {3, nullptr, "CreateDeliveryCacheProgressService"},
-        {4, nullptr, "CreateDeliveryCacheProgressServiceWithApplicationId"},
-    };
-    // clang-format on
-    RegisterHandlers(functions);
+void LoopProcess(Core::System& system) {
+    auto server_manager = std::make_unique<ServerManager>(system);
+
+    server_manager->RegisterNamedService("bcat:a",
+                                         std::make_shared<BcatInterface>(system, "bcat:a"));
+    server_manager->RegisterNamedService("bcat:m",
+                                         std::make_shared<BcatInterface>(system, "bcat:m"));
+    server_manager->RegisterNamedService("bcat:u",
+                                         std::make_shared<BcatInterface>(system, "bcat:u"));
+    server_manager->RegisterNamedService("bcat:s",
+                                         std::make_shared<BcatInterface>(system, "bcat:s"));
+
+    ServerManager::RunServer(std::move(server_manager));
 }
 
-BCAT::~BCAT() = default;
 } // namespace Service::BCAT

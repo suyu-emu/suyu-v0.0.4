@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "core/hle/service/bcat/bcat_module.h"
+#include "core/hle/service/service.h"
 
 namespace Core {
 class System;
@@ -11,11 +11,6 @@ class System;
 
 namespace Service::BCAT {
 
-class BCAT final : public Module::Interface {
-public:
-    explicit BCAT(Core::System& system_, std::shared_ptr<Module> module_,
-                  FileSystem::FileSystemController& fsc_, const char* name_);
-    ~BCAT() override;
-};
+void LoopProcess(Core::System& system);
 
 } // namespace Service::BCAT

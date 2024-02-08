@@ -514,8 +514,21 @@ add_library(core STATIC
     hle/service/bcat/backend/backend.h
     hle/service/bcat/bcat.cpp
     hle/service/bcat/bcat.h
-    hle/service/bcat/bcat_module.cpp
-    hle/service/bcat/bcat_module.h
+    hle/service/bcat/bcat_interface.cpp
+    hle/service/bcat/bcat_interface.h
+    hle/service/bcat/bcat_result.h
+    hle/service/bcat/bcat_service.cpp
+    hle/service/bcat/bcat_service.h
+    hle/service/bcat/bcat_types.h
+    hle/service/bcat/bcat_util.h
+    hle/service/bcat/delivery_cache_directory_service.cpp
+    hle/service/bcat/delivery_cache_directory_service.h
+    hle/service/bcat/delivery_cache_file_service.cpp
+    hle/service/bcat/delivery_cache_file_service.h
+    hle/service/bcat/delivery_cache_progress_service.cpp
+    hle/service/bcat/delivery_cache_progress_service.h
+    hle/service/bcat/delivery_cache_storage_service.cpp
+    hle/service/bcat/delivery_cache_storage_service.h
     hle/service/bpc/bpc.cpp
     hle/service/bpc/bpc.h
     hle/service/btdrv/btdrv.cpp
