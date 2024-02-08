@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="emulation_notification_channel_name">المحاكي نشط</string>
-    <string name="emulation_notification_channel_description">اظهار اشعار دائم عندما يكون المحاكي نشطاً</string>
-    <string name="emulation_notification_running">يوزو قيد التشغيل</string>
     <string name="notice_notification_channel_name">الإشعارات والأخطاء</string>
     <string name="notice_notification_channel_description">اظهار اشعار عند حصول اي مشكلة.</string>
     <string name="notification_permission_not_granted">لم يتم منح إذن الإشعار</string>

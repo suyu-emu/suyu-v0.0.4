@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">ئەم نەرمەکاڵایە یارییەکانی کۆنسۆلی نینتێندۆ سویچ کارپێدەکات. هیچ ناونیشانێکی یاری و کلیلی تێدا نییە..&lt;br /&gt;&lt;br /&gt;پێش ئەوەی دەست پێ بکەیت، تکایە شوێنی فایلی <![CDATA[<b> prod.keys </b>]]> دیاریبکە لە نێو کۆگای ئامێرەکەت.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">زیاتر فێربە</a>]]></string>
-    <string name="emulation_notification_channel_name">ئیمولەیشن کارایە</string>
-    <string name="emulation_notification_channel_description">ئاگادارکردنەوەیەکی بەردەوام نیشان دەدات کاتێک ئیمولەیشن کاردەکات.</string>
-    <string name="emulation_notification_running">یوزو کاردەکات</string>
     <string name="notice_notification_channel_name">ئاگاداری و هەڵەکان</string>
     <string name="notice_notification_channel_description">ئاگادارکردنەوەکان پیشان دەدات کاتێک شتێک بە هەڵەدا دەچێت.</string>
     <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>

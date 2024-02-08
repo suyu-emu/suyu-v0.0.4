@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Este software corre jogos para a consola Nintendo Switch. Não estão incluídas nem jogos ou chaves. &lt;br /&gt;&lt;br /&gt;Antes de começares, por favor localiza o ficheiro <![CDATA[1 prod.keys 1]]> no armazenamento do teu dispositivo.&lt;br /&gt;&lt;br /&gt;<![CDATA[2Learn more2]]></string>
-    <string name="emulation_notification_channel_name">Emulação está Ativa</string>
-    <string name="emulation_notification_channel_description">Mostra uma notificação permanente enquanto a emulação está a correr.</string>
-    <string name="emulation_notification_running">Yuzu está em execução </string>
     <string name="notice_notification_channel_name">Notificações e erros</string>
     <string name="notice_notification_channel_description">Mostra notificações quendo algo corre mal.</string>
     <string name="notification_permission_not_granted">Permissões de notificação não permitidas </string>

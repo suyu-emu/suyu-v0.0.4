@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Це програмне забезпечення дозволяє запускати ігри для ігрової консолі Nintendo Switch. Ми не надаємо самі ігри або ключі.&lt;br /&gt;&lt;br /&gt;Перед початком роботи знайдіть ваш файл <![CDATA[<b> prod.keys </b>]]> у сховищі пристрою.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Дізнатися більше</a>]]></string>
-    <string name="emulation_notification_channel_name">Емуляція активна</string>
-    <string name="emulation_notification_channel_description">Показує постійне сповіщення, коли запущено емуляцію.</string>
-    <string name="emulation_notification_running">yuzu запущено</string>
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
     <string name="notice_notification_channel_description">Показувати сповіщення, коли щось пішло не так</string>
     <string name="notification_permission_not_granted">Ви не надали дозвіл сповіщень!</string>
