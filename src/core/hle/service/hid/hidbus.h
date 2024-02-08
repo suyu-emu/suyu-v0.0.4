@@ -5,8 +5,10 @@
 
 #include <functional>
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
+#include "hid_core/hid_types.h"
 #include "hid_core/hidbus/hidbus_base.h"
 
 namespace Core::Timing {
@@ -19,10 +21,10 @@ class System;
 
 namespace Service::HID {
 
-class HidBus final : public ServiceFramework<HidBus> {
+class Hidbus final : public ServiceFramework<Hidbus> {
 public:
-    explicit HidBus(Core::System& system_);
-    ~HidBus() override;
+    explicit Hidbus(Core::System& system_);
+    ~Hidbus() override;
 
 private:
     static const std::size_t max_number_of_handles = 0x13;
@@ -41,7 +43,7 @@ private:
     };
 
     // This is nn::hidbus::BusType
-    enum class BusType : u32 {
+    enum class BusType : u64 {
         LeftJoyRail,
         RightJoyRail,
         InternalBus, // Lark microphone
@@ -51,11 +53,15 @@ private:
 
     // This is nn::hidbus::BusHandle
     struct BusHandle {
-        u32 abstracted_pad_id;
-        u8 internal_index;
-        u8 player_number;
-        u8 bus_type_id;
-        bool is_valid;
+        union {
+            u64 raw{};
+
+            BitField<0, 32, u64> abstracted_pad_id;
+            BitField<32, 8, u64> internal_index;
+            BitField<40, 8, u64> player_number;
+            BitField<48, 8, u64> bus_type_id;
+            BitField<56, 1, u64> is_valid;
+        };
     };
     static_assert(sizeof(BusHandle) == 0x8, "BusHandle is an invalid size");
 
@@ -94,19 +100,38 @@ private:
         std::unique_ptr<HidbusBase> device{nullptr};
     };
 
-    void GetBusHandle(HLERequestContext& ctx);
-    void IsExternalDeviceConnected(HLERequestContext& ctx);
-    void Initialize(HLERequestContext& ctx);
-    void Finalize(HLERequestContext& ctx);
-    void EnableExternalDevice(HLERequestContext& ctx);
-    void GetExternalDeviceId(HLERequestContext& ctx);
-    void SendCommandAsync(HLERequestContext& ctx);
-    void GetSendCommandAsynceResult(HLERequestContext& ctx);
-    void SetEventForSendCommandAsycResult(HLERequestContext& ctx);
-    void GetSharedMemoryHandle(HLERequestContext& ctx);
-    void EnableJoyPollingReceiveMode(HLERequestContext& ctx);
-    void DisableJoyPollingReceiveMode(HLERequestContext& ctx);
-    void SetStatusManagerType(HLERequestContext& ctx);
+    Result GetBusHandle(Out<bool> out_is_valid, Out<BusHandle> out_bus_handle,
+                        Core::HID::NpadIdType npad_id, BusType bus_type,
+                        AppletResourceUserId aruid);
+
+    Result IsExternalDeviceConnected(Out<bool> out_is_connected, BusHandle bus_handle);
+
+    Result Initialize(BusHandle bus_handle, AppletResourceUserId aruid);
+
+    Result Finalize(BusHandle bus_handle, AppletResourceUserId aruid);
+
+    Result EnableExternalDevice(bool is_enabled, BusHandle bus_handle, u64 inval,
+                                AppletResourceUserId aruid);
+
+    Result GetExternalDeviceId(Out<u32> out_device_id, BusHandle bus_handle);
+
+    Result SendCommandAsync(BusHandle bus_handle, InBuffer<BufferAttr_HipcAutoSelect> buffer_data);
+
+    Result GetSendCommandAsynceResult(Out<u64> out_data_size, BusHandle bus_handle,
+                                      OutBuffer<BufferAttr_HipcAutoSelect> out_buffer_data);
+
+    Result SetEventForSendCommandAsycResult(OutCopyHandle<Kernel::KReadableEvent> out_event,
+                                            BusHandle bus_handle);
+
+    Result GetSharedMemoryHandle(OutCopyHandle<Kernel::KSharedMemory> out_shared_memory);
+
+    Result EnableJoyPollingReceiveMode(u32 t_mem_size, JoyPollingMode polling_mode,
+                                       BusHandle bus_handle,
+                                       InCopyHandle<Kernel::KTransferMemory> t_mem);
+
+    Result DisableJoyPollingReceiveMode(BusHandle bus_handle);
+
+    Result SetStatusManagerType(StatusManagerType manager_type);
 
     void UpdateHidbus(std::chrono::nanoseconds ns_late);
     std::optional<std::size_t> GetDeviceIndexFromHandle(BusHandle handle) const;

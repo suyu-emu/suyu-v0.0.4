@@ -31,7 +31,7 @@ public:
     bool SetCommand(std::span<const u8> data) override;
 
     // Returns a reply from a command
-    std::vector<u8> GetReply() const override;
+    u64 GetReply(std::span<u8> out_data) const override;
 };
 
 } // namespace Service::HID
