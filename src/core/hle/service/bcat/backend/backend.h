@@ -10,6 +10,7 @@
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/result.h"
+#include "core/hle/service/bcat/bcat_types.h"
 #include "core/hle/service/kernel_helpers.h"
 
 namespace Core {
@@ -23,44 +24,6 @@ class KReadableEvent;
 } // namespace Kernel
 
 namespace Service::BCAT {
-
-struct DeliveryCacheProgressImpl;
-
-using DirectoryGetter = std::function<FileSys::VirtualDir(u64)>;
-using Passphrase = std::array<u8, 0x20>;
-
-struct TitleIDVersion {
-    u64 title_id;
-    u64 build_id;
-};
-
-using DirectoryName = std::array<char, 0x20>;
-using FileName = std::array<char, 0x20>;
-
-struct DeliveryCacheProgressImpl {
-    enum class Status : s32 {
-        None = 0x0,
-        Queued = 0x1,
-        Connecting = 0x2,
-        ProcessingDataList = 0x3,
-        Downloading = 0x4,
-        Committing = 0x5,
-        Done = 0x9,
-    };
-
-    Status status;
-    Result result = ResultSuccess;
-    DirectoryName current_directory;
-    FileName current_file;
-    s64 current_downloaded_bytes; ///< Bytes downloaded on current file.
-    s64 current_total_bytes;      ///< Bytes total on current file.
-    s64 total_downloaded_bytes;   ///< Bytes downloaded on overall download.
-    s64 total_bytes;              ///< Bytes total on overall download.
-    INSERT_PADDING_BYTES(
-        0x198); ///< Appears to be unused in official code, possibly reserved for future use.
-};
-static_assert(sizeof(DeliveryCacheProgressImpl) == 0x200,
-              "DeliveryCacheProgressImpl has incorrect size.");
 
 // A class to manage the signalling to the game about BCAT download progress.
 // Some of this class is implemented in module.cpp to avoid exposing the implementation structure.
@@ -107,10 +70,10 @@ private:
 };
 
 // A class representing an abstract backend for BCAT functionality.
-class Backend {
+class BcatBackend {
 public:
-    explicit Backend(DirectoryGetter getter);
-    virtual ~Backend();
+    explicit BcatBackend(DirectoryGetter getter);
+    virtual ~BcatBackend();
 
     // Called when the backend is needed to synchronize the data for the game with title ID and
     // version in title. A ProgressServiceBackend object is provided to alert the application of
@@ -135,10 +98,10 @@ protected:
 };
 
 // A backend of BCAT that provides no operation.
-class NullBackend : public Backend {
+class NullBcatBackend : public BcatBackend {
 public:
-    explicit NullBackend(DirectoryGetter getter);
-    ~NullBackend() override;
+    explicit NullBcatBackend(DirectoryGetter getter);
+    ~NullBcatBackend() override;
 
     bool Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) override;
     bool SynchronizeDirectory(TitleIDVersion title, std::string name,
@@ -151,6 +114,7 @@ public:
     std::optional<std::vector<u8>> GetLaunchParameter(TitleIDVersion title) override;
 };
 
-std::unique_ptr<Backend> CreateBackendFromSettings(Core::System& system, DirectoryGetter getter);
+std::unique_ptr<BcatBackend> CreateBackendFromSettings(Core::System& system,
+                                                       DirectoryGetter getter);
 
 } // namespace Service::BCAT
