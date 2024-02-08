@@ -34,7 +34,7 @@ public:
     bool SetCommand(std::span<const u8> data) override;
 
     // Returns a reply from a command
-    std::vector<u8> GetReply() const override;
+    u64 GetReply(std::span<u8> data) const override;
 
 private:
     // These values are obtained from a real ring controller
@@ -184,44 +184,44 @@ private:
     RingConData GetSensorValue() const;
 
     // Returns 8 byte reply with firmware version
-    std::vector<u8> GetFirmwareVersionReply() const;
+    u64 GetFirmwareVersionReply(std::span<u8> out_data) const;
 
     // Returns 16 byte reply with ID values
-    std::vector<u8> GetReadIdReply() const;
+    u64 GetReadIdReply(std::span<u8> out_data) const;
 
     // (STUBBED) Returns 8 byte reply
-    std::vector<u8> GetC020105Reply() const;
+    u64 GetC020105Reply(std::span<u8> out_data) const;
 
     // (STUBBED) Returns 8 byte empty reply
-    std::vector<u8> GetReadUnkCalReply() const;
+    u64 GetReadUnkCalReply(std::span<u8> out_data) const;
 
     // Returns 20 byte reply with factory calibration values
-    std::vector<u8> GetReadFactoryCalReply() const;
+    u64 GetReadFactoryCalReply(std::span<u8> out_data) const;
 
     // Returns 20 byte reply with user calibration values
-    std::vector<u8> GetReadUserCalReply() const;
+    u64 GetReadUserCalReply(std::span<u8> out_data) const;
 
     // Returns 8 byte reply
-    std::vector<u8> GetReadRepCountReply() const;
+    u64 GetReadRepCountReply(std::span<u8> out_data) const;
 
     // Returns 8 byte reply
-    std::vector<u8> GetReadTotalPushCountReply() const;
+    u64 GetReadTotalPushCountReply(std::span<u8> out_data) const;
 
     // Returns 8 byte reply
-    std::vector<u8> GetResetRepCountReply() const;
+    u64 GetResetRepCountReply(std::span<u8> out_data) const;
 
     // Returns 4 byte save data reply
-    std::vector<u8> GetSaveDataReply() const;
+    u64 GetSaveDataReply(std::span<u8> out_data) const;
 
     // Returns 8 byte error reply
-    std::vector<u8> GetErrorReply() const;
+    u64 GetErrorReply(std::span<u8> out_data) const;
 
     // Returns 8 bit redundancy check from provided data
     u8 GetCrcValue(const std::vector<u8>& data) const;
 
     // Converts structs to an u8 vector equivalent
     template <typename T>
-    std::vector<u8> GetDataVector(const T& reply) const;
+    u64 GetData(const T& reply, std::span<u8> out_data) const;
 
     RingConCommands command{RingConCommands::Error};
 

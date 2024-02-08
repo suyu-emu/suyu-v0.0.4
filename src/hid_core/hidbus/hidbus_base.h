@@ -160,7 +160,7 @@ public:
     }
 
     // Returns a reply from a command
-    virtual std::vector<u8> GetReply() const {
+    virtual u64 GetReply(std::span<u8> out_data) const {
         return {};
     }
 
