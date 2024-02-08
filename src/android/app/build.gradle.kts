@@ -259,13 +259,20 @@ fun runGitCommand(command: List<String>): String {
 }
 
 fun getGitVersion(): String {
-    val gitVersion = runGitCommand(listOf("git", "describe", "--always", "--long"))
+    val gitVersion = runGitCommand(
+        listOf(
+            "git",
+            "describe",
+            "--always",
+            "--long"
+        )
+    ).replace(Regex("(-0)?-[^-]+$"), "")
     val versionName = if (System.getenv("GITHUB_ACTIONS") != null) {
         System.getenv("GIT_TAG_NAME") ?: gitVersion
     } else {
         gitVersion
     }
-    return versionName.replace(Regex("(-0)?-[^-]+$"), "").ifEmpty { "0.0" }
+    return versionName.ifEmpty { "0.0" }
 }
 
 fun getGitHash(): String =
