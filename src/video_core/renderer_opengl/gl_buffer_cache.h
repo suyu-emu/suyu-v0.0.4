@@ -90,7 +90,7 @@ public:
     void PostCopyBarrier();
     void Finish();
 
-    void TickFrame(VideoCommon::SlotVector<Buffer>&) noexcept {}
+    void TickFrame(Common::SlotVector<Buffer>&) noexcept {}
 
     void ClearBuffer(Buffer& dest_buffer, u32 offset, size_t size, u32 value);
 
@@ -251,7 +251,6 @@ struct BufferCacheParams {
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = true;
     static constexpr bool USE_MEMORY_MAPS = true;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = true;
-    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = true;
 
     // TODO: Investigate why OpenGL seems to perform worse with persistently mapped buffer uploads
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = false;

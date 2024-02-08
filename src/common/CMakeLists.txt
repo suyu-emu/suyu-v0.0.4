@@ -107,6 +107,8 @@ add_library(common STATIC
     quaternion.h
     range_map.h
     range_mutex.h
+    range_sets.h
+    range_sets.inc
     reader_writer_queue.h
     ring_buffer.h
     ${CMAKE_CURRENT_BINARY_DIR}/scm_rev.cpp
@@ -121,6 +123,7 @@ add_library(common STATIC
     settings_input.cpp
     settings_input.h
     settings_setting.h
+    slot_vector.h
     socket_types.h
     spin_lock.cpp
     spin_lock.h

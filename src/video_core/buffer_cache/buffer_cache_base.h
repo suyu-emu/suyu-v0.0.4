@@ -13,25 +13,15 @@
 #include <unordered_map>
 #include <vector>
 
-#include <boost/container/small_vector.hpp>
-#define BOOST_NO_MT
-#include <boost/pool/detail/mutex.hpp>
-#undef BOOST_NO_MT
-#include <boost/icl/interval.hpp>
-#include <boost/icl/interval_base_set.hpp>
-#include <boost/icl/interval_set.hpp>
-#include <boost/icl/split_interval_map.hpp>
-#include <boost/pool/pool.hpp>
-#include <boost/pool/pool_alloc.hpp>
-#include <boost/pool/poolfwd.hpp>
-
 #include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "common/literals.h"
 #include "common/lru_cache.h"
 #include "common/microprofile.h"
+#include "common/range_sets.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
+#include "common/slot_vector.h"
 #include "video_core/buffer_cache/buffer_base.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/delayed_destruction_ring.h"
@@ -41,13 +31,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
 #include "video_core/surface.h"
-#include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
-
-namespace boost {
-template <typename T>
-class fast_pool_allocator<T, default_user_allocator_new_delete, details::pool::null_mutex, 4096, 0>;
-}
 
 namespace VideoCommon {
 
@@ -55,7 +39,7 @@ MICROPROFILE_DECLARE(GPU_PrepareBuffers);
 MICROPROFILE_DECLARE(GPU_BindUploadBuffers);
 MICROPROFILE_DECLARE(GPU_DownloadMemory);
 
-using BufferId = SlotId;
+using BufferId = Common::SlotId;
 
 using VideoCore::Surface::PixelFormat;
 using namespace Common::Literals;
@@ -184,7 +168,6 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = P::NEEDS_BIND_STORAGE_INDEX;
     static constexpr bool USE_MEMORY_MAPS = P::USE_MEMORY_MAPS;
     static constexpr bool SEPARATE_IMAGE_BUFFERS_BINDINGS = P::SEPARATE_IMAGE_BUFFER_BINDINGS;
-    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = P::IMPLEMENTS_ASYNC_DOWNLOADS;
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = P::USE_MEMORY_MAPS_FOR_UPLOADS;
 
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
@@ -202,34 +185,6 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     using Async_Buffer = typename P::Async_Buffer;
     using MemoryTracker = typename P::MemoryTracker;
 
-    using IntervalCompare = std::less<DAddr>;
-    using IntervalInstance = boost::icl::interval_type_default<DAddr, std::less>;
-    using IntervalAllocator = boost::fast_pool_allocator<DAddr>;
-    using IntervalSet = boost::icl::interval_set<DAddr>;
-    using IntervalType = typename IntervalSet::interval_type;
-
-    template <typename Type>
-    struct counter_add_functor : public boost::icl::identity_based_inplace_combine<Type> {
-        // types
-        typedef counter_add_functor<Type> type;
-        typedef boost::icl::identity_based_inplace_combine<Type> base_type;
-
-        // public member functions
-        void operator()(Type& current, const Type& added) const {
-            current += added;
-            if (current < base_type::identity_element()) {
-                current = base_type::identity_element();
-            }
-        }
-
-        // public static functions
-        static void version(Type&){};
-    };
-
-    using OverlapCombine = counter_add_functor<int>;
-    using OverlapSection = boost::icl::inter_section<int>;
-    using OverlapCounter = boost::icl::split_interval_map<DAddr, int>;
-
     struct OverlapResult {
         boost::container::small_vector<BufferId, 16> ids;
         DAddr begin;
@@ -239,6 +194,8 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
 
 public:
     explicit BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, Runtime& runtime_);
+
+    ~BufferCache();
 
     void TickFrame();
 
@@ -379,75 +336,6 @@ private:
         }
     }
 
-    template <typename Func>
-    void ForEachInRangeSet(IntervalSet& current_range, DAddr device_addr, u64 size, Func&& func) {
-        const DAddr start_address = device_addr;
-        const DAddr end_address = start_address + size;
-        const IntervalType search_interval{start_address, end_address};
-        auto it = current_range.lower_bound(search_interval);
-        if (it == current_range.end()) {
-            return;
-        }
-        auto end_it = current_range.upper_bound(search_interval);
-        for (; it != end_it; it++) {
-            DAddr inter_addr_end = it->upper();
-            DAddr inter_addr = it->lower();
-            if (inter_addr_end > end_address) {
-                inter_addr_end = end_address;
-            }
-            if (inter_addr < start_address) {
-                inter_addr = start_address;
-            }
-            func(inter_addr, inter_addr_end);
-        }
-    }
-
-    template <typename Func>
-    void ForEachInOverlapCounter(OverlapCounter& current_range, DAddr device_addr, u64 size,
-                                 Func&& func) {
-        const DAddr start_address = device_addr;
-        const DAddr end_address = start_address + size;
-        const IntervalType search_interval{start_address, end_address};
-        auto it = current_range.lower_bound(search_interval);
-        if (it == current_range.end()) {
-            return;
-        }
-        auto end_it = current_range.upper_bound(search_interval);
-        for (; it != end_it; it++) {
-            auto& inter = it->first;
-            DAddr inter_addr_end = inter.upper();
-            DAddr inter_addr = inter.lower();
-            if (inter_addr_end > end_address) {
-                inter_addr_end = end_address;
-            }
-            if (inter_addr < start_address) {
-                inter_addr = start_address;
-            }
-            func(inter_addr, inter_addr_end, it->second);
-        }
-    }
-
-    void RemoveEachInOverlapCounter(OverlapCounter& current_range,
-                                    const IntervalType search_interval, int subtract_value) {
-        bool any_removals = false;
-        current_range.add(std::make_pair(search_interval, subtract_value));
-        do {
-            any_removals = false;
-            auto it = current_range.lower_bound(search_interval);
-            if (it == current_range.end()) {
-                return;
-            }
-            auto end_it = current_range.upper_bound(search_interval);
-            for (; it != end_it; it++) {
-                if (it->second <= 0) {
-                    any_removals = true;
-                    current_range.erase(it);
-                    break;
-                }
-            }
-        } while (any_removals);
-    }
-
     static bool IsRangeGranular(DAddr device_addr, size_t size) {
         return (device_addr & ~Core::DEVICE_PAGEMASK) ==
                ((device_addr + size) & ~Core::DEVICE_PAGEMASK);
@@ -552,14 +440,14 @@ private:
 
     [[nodiscard]] bool HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept;
 
-    void ClearDownload(IntervalType subtract_interval);
+    void ClearDownload(DAddr base_addr, u64 size);
 
     void InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
                                     std::span<const u8> inlined_buffer);
 
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
-    SlotVector<Buffer> slot_buffers;
+    Common::SlotVector<Buffer> slot_buffers;
     DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
 
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
@@ -567,13 +455,12 @@ private:
     u32 last_index_count = 0;
 
     MemoryTracker memory_tracker;
-    IntervalSet uncommitted_ranges;
-    IntervalSet common_ranges;
-    IntervalSet cached_ranges;
-    std::deque<IntervalSet> committed_ranges;
+    Common::RangeSet<DAddr> uncommitted_gpu_modified_ranges;
+    Common::RangeSet<DAddr> gpu_modified_ranges;
+    std::deque<Common::RangeSet<DAddr>> committed_gpu_modified_ranges;
 
     // Async Buffers
-    OverlapCounter async_downloads;
+    Common::OverlapRangeSet<DAddr> async_downloads;
     std::deque<std::optional<Async_Buffer>> async_buffers;
     std::deque<boost::container::small_vector<BufferCopy, 4>> pending_downloads;
     std::optional<Async_Buffer> current_buffer;
