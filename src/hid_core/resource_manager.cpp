@@ -314,6 +314,7 @@ void ResourceManager::UnregisterAppletResourceUserId(u64 aruid) {
     std::scoped_lock lock{shared_mutex};
     applet_resource->UnregisterAppletResourceUserId(aruid);
     npad->UnregisterAppletResourceUserId(aruid);
+    // palma->UnregisterAppletResourceUserId(aruid);
 }
 
 Result ResourceManager::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid) {
@@ -324,6 +325,7 @@ Result ResourceManager::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle
 void ResourceManager::FreeAppletResourceId(u64 aruid) {
     std::scoped_lock lock{shared_mutex};
     applet_resource->FreeAppletResourceId(aruid);
+    npad->FreeAppletResourceId(aruid);
 }
 
 void ResourceManager::EnableInput(u64 aruid, bool is_enabled) {

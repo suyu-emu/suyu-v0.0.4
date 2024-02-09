@@ -58,6 +58,8 @@ public:
     Result ActivateNpadResource();
     Result ActivateNpadResource(u64 aruid);
 
+    void FreeAppletResourceId(u64 aruid);
+
     // When the controller is requesting an update for the shared memory
     void OnUpdate(const Core::Timing::CoreTiming& core_timing);
 
