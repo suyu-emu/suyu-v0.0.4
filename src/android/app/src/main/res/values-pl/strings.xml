@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">To oprogramowanie umożliwia uruchomienie gier z konsoli Nintendo Switch. Nie zawiera gier ani wymaganych kluczy.&lt;br /&gt;&lt;br /&gt;Zanim zaczniesz, wybierz plik kluczy <![CDATA[<b> prod.keys </b>]]> z katalogu w pamięci masowej.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Dowiedz się więcej</a>]]></string>
-    <string name="emulation_notification_channel_name">Emulacja jest uruchomiona</string>
-    <string name="emulation_notification_channel_description">Pokaż trwałe powiadomienie gdy emulacja jest uruchomiona.</string>
-    <string name="emulation_notification_running">yuzu jest uruchomiony</string>
     <string name="notice_notification_channel_name">Powiadomienia błędy</string>
     <string name="notice_notification_channel_description">Pokaż powiadomienie gdy coś pójdzie źle</string>
     <string name="notification_permission_not_granted">Nie zezwolono na powiadomienia!</string>

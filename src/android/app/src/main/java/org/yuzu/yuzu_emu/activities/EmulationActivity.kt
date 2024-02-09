@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.activities
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -45,7 +44,6 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
-import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.MemoryUtil
@@ -73,11 +71,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private val actionUnmute = "ACTION_EMULATOR_UNMUTE"
 
     private val emulationViewModel: EmulationViewModel by viewModels()
-
-    override fun onDestroy() {
-        stopForegroundService(this)
-        super.onDestroy()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.gameLaunched = true
@@ -125,10 +118,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                     .apply()
             }
         }
-
-        // Start a foreground service to prevent the app from getting killed in the background
-        val startIntent = Intent(this, ForegroundService::class.java)
-        startForegroundService(startIntent)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -479,12 +468,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             val launcher = Intent(activity, EmulationActivity::class.java)
             launcher.putExtra(EXTRA_SELECTED_GAME, game)
             activity.startActivity(launcher)
-        }
-
-        fun stopForegroundService(activity: Activity) {
-            val startIntent = Intent(activity, ForegroundService::class.java)
-            startIntent.action = ForegroundService.ACTION_STOP
-            activity.startForegroundService(startIntent)
         }
 
         private fun areCoordinatesOutside(view: View?, x: Float, y: Float): Boolean {

@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Este software ejecuta juegos para la videoconsola Nintendo Switch. Los videojuegos o claves no vienen incluidos.&lt;br /&gt;&lt;br /&gt;Antes de empezar, por favor, localice el archivo <![CDATA[<b> prod.keys </b>]]>en el almacenamiento de su dispositivo..&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Saber más</a>]]></string>
-    <string name="emulation_notification_channel_name">Emulación activa</string>
-    <string name="emulation_notification_channel_description">Muestra una notificación persistente cuando la emulación está activa.</string>
-    <string name="emulation_notification_running">yuzu está ejecutándose</string>
     <string name="notice_notification_channel_name">Avisos y errores</string>
     <string name="notice_notification_channel_description">Mostrar notificaciones cuándo algo vaya mal.</string>
     <string name="notification_permission_not_granted">¡Permisos de notificación no concedidos!</string>
