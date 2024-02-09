@@ -4,6 +4,7 @@
 #include "core/hle/service/bcat/backend/backend.h"
 #include "core/hle/service/bcat/bcat.h"
 #include "core/hle/service/bcat/bcat_interface.h"
+#include "core/hle/service/bcat/news/news_interface.h"
 #include "core/hle/service/server_manager.h"
 
 namespace Service::BCAT {
@@ -19,6 +20,17 @@ void LoopProcess(Core::System& system) {
                                          std::make_shared<BcatInterface>(system, "bcat:u"));
     server_manager->RegisterNamedService("bcat:s",
                                          std::make_shared<BcatInterface>(system, "bcat:s"));
+
+    server_manager->RegisterNamedService(
+        "news:a", std::make_shared<NewsInterface>(system, 0xffffffff, "news:a"));
+    server_manager->RegisterNamedService("news:p",
+                                         std::make_shared<NewsInterface>(system, 0x1, "news:p"));
+    server_manager->RegisterNamedService("news:c",
+                                         std::make_shared<NewsInterface>(system, 0x2, "news:c"));
+    server_manager->RegisterNamedService("news:v",
+                                         std::make_shared<NewsInterface>(system, 0x4, "news:v"));
+    server_manager->RegisterNamedService("news:m",
+                                         std::make_shared<NewsInterface>(system, 0xd, "news:m"));
 
     ServerManager::RunServer(std::move(server_manager));
 }

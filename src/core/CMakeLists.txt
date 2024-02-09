@@ -512,6 +512,18 @@ add_library(core STATIC
     hle/service/audio/hwopus.h
     hle/service/bcat/backend/backend.cpp
     hle/service/bcat/backend/backend.h
+    hle/service/bcat/news/newly_arrived_event_holder.cpp
+    hle/service/bcat/news/newly_arrived_event_holder.h
+    hle/service/bcat/news/news_data_service.cpp
+    hle/service/bcat/news/news_data_service.h
+    hle/service/bcat/news/news_database_service.cpp
+    hle/service/bcat/news/news_database_service.h
+    hle/service/bcat/news/news_interface.cpp
+    hle/service/bcat/news/news_interface.h
+    hle/service/bcat/news/news_service.cpp
+    hle/service/bcat/news/news_service.h
+    hle/service/bcat/news/overwrite_event_holder.cpp
+    hle/service/bcat/news/overwrite_event_holder.h
     hle/service/bcat/bcat.cpp
     hle/service/bcat/bcat.h
     hle/service/bcat/bcat_interface.cpp
