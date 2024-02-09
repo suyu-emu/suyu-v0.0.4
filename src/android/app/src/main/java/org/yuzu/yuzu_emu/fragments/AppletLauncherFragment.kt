@@ -21,6 +21,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentAppletLauncherBinding
 import org.yuzu.yuzu_emu.model.Applet
 import org.yuzu.yuzu_emu.model.AppletInfo
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class AppletLauncherFragment : Fragment() {
     private var _binding: FragmentAppletLauncherBinding? = null
@@ -95,16 +96,8 @@ class AppletLauncherFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpAppBar = binding.toolbarApplets.layoutParams as ViewGroup.MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.toolbarApplets.layoutParams = mlpAppBar
-
-            val mlpListApplets =
-                binding.listApplets.layoutParams as ViewGroup.MarginLayoutParams
-            mlpListApplets.leftMargin = leftInsets
-            mlpListApplets.rightMargin = rightInsets
-            binding.listApplets.layoutParams = mlpListApplets
+            binding.toolbarApplets.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listApplets.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.listApplets.updatePadding(bottom = barInsets.bottom)
 

@@ -12,7 +12,6 @@ import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -44,6 +43,7 @@ import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.Log
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class HomeSettingsFragment : Fragment() {
     private var _binding: FragmentHomeSettingsBinding? = null
@@ -408,10 +408,7 @@ class HomeSettingsFragment : Fragment() {
                 bottom = barInsets.bottom
             )
 
-            val mlpScrollSettings = binding.scrollViewSettings.layoutParams as MarginLayoutParams
-            mlpScrollSettings.leftMargin = leftInsets
-            mlpScrollSettings.rightMargin = rightInsets
-            binding.scrollViewSettings.layoutParams = mlpScrollSettings
+            binding.scrollViewSettings.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.linearLayoutSettings.updatePadding(bottom = spacingNavigation)
 

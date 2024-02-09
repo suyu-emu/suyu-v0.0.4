@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -27,6 +26,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
 import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -169,15 +169,16 @@ class GamesFragment : Fragment() {
 
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
-            val mlpSwipe = binding.swipeRefresh.layoutParams as MarginLayoutParams
+            val left: Int
+            val right: Int
             if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                mlpSwipe.leftMargin = leftInsets + spacingNavigationRail
-                mlpSwipe.rightMargin = rightInsets
+                left = leftInsets + spacingNavigationRail
+                right = rightInsets
             } else {
-                mlpSwipe.leftMargin = leftInsets
-                mlpSwipe.rightMargin = rightInsets + spacingNavigationRail
+                left = leftInsets
+                right = rightInsets + spacingNavigationRail
             }
-            binding.swipeRefresh.layoutParams = mlpSwipe
+            binding.swipeRefresh.updateMargins(left = left, right = right)
 
             binding.noticeText.updatePadding(bottom = spacingNavigation)
 

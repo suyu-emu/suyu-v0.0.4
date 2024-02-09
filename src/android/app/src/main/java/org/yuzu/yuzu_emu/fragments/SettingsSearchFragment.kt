@@ -29,6 +29,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 import org.yuzu.yuzu_emu.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class SettingsSearchFragment : Fragment() {
     private var _binding: FragmentSettingsSearchBinding? = null
@@ -174,15 +175,14 @@ class SettingsSearchFragment : Fragment() {
                 bottom = barInsets.bottom
             )
 
-            val mlpSettingsList = binding.settingsList.layoutParams as ViewGroup.MarginLayoutParams
-            mlpSettingsList.leftMargin = leftInsets + sideMargin
-            mlpSettingsList.rightMargin = rightInsets + sideMargin
-            binding.settingsList.layoutParams = mlpSettingsList
-
-            val mlpDivider = binding.divider.layoutParams as ViewGroup.MarginLayoutParams
-            mlpDivider.leftMargin = leftInsets + sideMargin
-            mlpDivider.rightMargin = rightInsets + sideMargin
-            binding.divider.layoutParams = mlpDivider
+            binding.settingsList.updateMargins(
+                left = leftInsets + sideMargin,
+                right = rightInsets + sideMargin
+            )
+            binding.divider.updateMargins(
+                left = leftInsets + sideMargin,
+                right = rightInsets + sideMargin
+            )
 
             windowInsets
         }

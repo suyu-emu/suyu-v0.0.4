@@ -34,6 +34,7 @@ import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.BufferedOutputStream
 import java.io.File
 import java.math.BigInteger
@@ -172,16 +173,8 @@ class InstallableFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpAppBar = binding.toolbarInstallables.layoutParams as ViewGroup.MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.toolbarInstallables.layoutParams = mlpAppBar
-
-            val mlpScrollAbout =
-                binding.listInstallables.layoutParams as ViewGroup.MarginLayoutParams
-            mlpScrollAbout.leftMargin = leftInsets
-            mlpScrollAbout.rightMargin = rightInsets
-            binding.listInstallables.layoutParams = mlpScrollAbout
+            binding.toolbarInstallables.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listInstallables.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.listInstallables.updatePadding(bottom = barInsets.bottom)
 
