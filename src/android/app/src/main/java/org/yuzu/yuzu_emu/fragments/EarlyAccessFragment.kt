@@ -19,6 +19,7 @@ import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentEarlyAccessBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class EarlyAccessFragment : Fragment() {
     private var _binding: FragmentEarlyAccessBinding? = null
@@ -73,10 +74,7 @@ class EarlyAccessFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpAppBar = binding.appbarEa.layoutParams as ViewGroup.MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.appbarEa.layoutParams = mlpAppBar
+            binding.appbarEa.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.scrollEa.updatePadding(
                 left = leftInsets,

@@ -25,7 +25,8 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     HAPTIC_FEEDBACK("haptic_feedback"),
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
-    TOUCHSCREEN("touchscreen");
+    TOUCHSCREEN("touchscreen"),
+    SHOW_THERMAL_OVERLAY("show_thermal_overlay");
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)
