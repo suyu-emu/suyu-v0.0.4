@@ -172,6 +172,10 @@ u32 NCA::GetSDKVersion() const {
     return reader->GetSdkAddonVersion();
 }
 
+u8 NCA::GetKeyGeneration() const {
+    return reader->GetKeyGeneration();
+}
+
 bool NCA::IsUpdate() const {
     return is_update;
 }

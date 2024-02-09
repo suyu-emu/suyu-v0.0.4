@@ -77,6 +77,7 @@ public:
     u64 GetTitleId() const;
     RightsId GetRightsId() const;
     u32 GetSDKVersion() const;
+    u8 GetKeyGeneration() const;
     bool IsUpdate() const;
 
     VirtualFile GetRomFS() const;
