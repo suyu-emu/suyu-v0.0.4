@@ -4,7 +4,7 @@
 #include "core/hle/service/bcat/news/overwrite_event_holder.h"
 #include "core/hle/service/cmif_serialization.h"
 
-namespace Service::BCAT {
+namespace Service::News {
 
 IOverwriteEventHolder::IOverwriteEventHolder(Core::System& system_)
     : ServiceFramework{system_, "IOverwriteEventHolder"}, service_context{system_,
@@ -19,7 +19,9 @@ IOverwriteEventHolder::IOverwriteEventHolder(Core::System& system_)
     overwrite_event = service_context.CreateEvent("IOverwriteEventHolder::OverwriteEvent");
 }
 
-IOverwriteEventHolder::~IOverwriteEventHolder() = default;
+IOverwriteEventHolder::~IOverwriteEventHolder() {
+    service_context.CloseEvent(overwrite_event);
+}
 
 Result IOverwriteEventHolder::Get(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_INFO(Service_BCAT, "called");
@@ -28,4 +30,4 @@ Result IOverwriteEventHolder::Get(OutCopyHandle<Kernel::KReadableEvent> out_even
     R_SUCCEED();
 }
 
-} // namespace Service::BCAT
+} // namespace Service::News

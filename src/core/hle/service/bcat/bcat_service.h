@@ -26,13 +26,13 @@ private:
     Result RequestSyncDeliveryCache(OutInterface<IDeliveryCacheProgressService> out_interface);
 
     Result RequestSyncDeliveryCacheWithDirectoryName(
-        DirectoryName name, OutInterface<IDeliveryCacheProgressService> out_interface);
+        const DirectoryName& name, OutInterface<IDeliveryCacheProgressService> out_interface);
 
-    Result SetPassphrase(u64 title_id, InBuffer<BufferAttr_HipcPointer> passphrase_buffer);
+    Result SetPassphrase(u64 application_id, InBuffer<BufferAttr_HipcPointer> passphrase_buffer);
 
     Result RegisterSystemApplicationDeliveryTasks();
 
-    Result ClearDeliveryCacheStorage(u64 title_id);
+    Result ClearDeliveryCacheStorage(u64 application_id);
 
 private:
     ProgressServiceBackend& GetProgressBackend(SyncType type);

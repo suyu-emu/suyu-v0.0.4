@@ -4,60 +4,61 @@
 #include "core/hle/service/bcat/news/newly_arrived_event_holder.h"
 #include "core/hle/service/bcat/news/news_data_service.h"
 #include "core/hle/service/bcat/news/news_database_service.h"
-#include "core/hle/service/bcat/news/news_interface.h"
 #include "core/hle/service/bcat/news/news_service.h"
 #include "core/hle/service/bcat/news/overwrite_event_holder.h"
+#include "core/hle/service/bcat/news/service_creator.h"
 #include "core/hle/service/cmif_serialization.h"
 
-namespace Service::BCAT {
+namespace Service::News {
 
-NewsInterface::NewsInterface(Core::System& system_, u32 permissions_, const char* name_)
+IServiceCreator::IServiceCreator(Core::System& system_, u32 permissions_, const char* name_)
     : ServiceFramework{system_, name_}, permissions{permissions_} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&NewsInterface::CreateNewsService>, "CreateNewsService"},
-        {1, C<&NewsInterface::CreateNewlyArrivedEventHolder>, "CreateNewlyArrivedEventHolder"},
-        {2, C<&NewsInterface::CreateNewsDataService>, "CreateNewsDataService"},
-        {3, C<&NewsInterface::CreateNewsDatabaseService>, "CreateNewsDatabaseService"},
-        {4, C<&NewsInterface::CreateOverwriteEventHolder>, "CreateOverwriteEventHolder"},
+        {0, C<&IServiceCreator::CreateNewsService>, "CreateNewsService"},
+        {1, C<&IServiceCreator::CreateNewlyArrivedEventHolder>, "CreateNewlyArrivedEventHolder"},
+        {2, C<&IServiceCreator::CreateNewsDataService>, "CreateNewsDataService"},
+        {3, C<&IServiceCreator::CreateNewsDatabaseService>, "CreateNewsDatabaseService"},
+        {4, C<&IServiceCreator::CreateOverwriteEventHolder>, "CreateOverwriteEventHolder"},
     };
     // clang-format on
 
     RegisterHandlers(functions);
 }
 
-NewsInterface::~NewsInterface() = default;
+IServiceCreator::~IServiceCreator() = default;
 
-Result NewsInterface::CreateNewsService(OutInterface<INewsService> out_interface) {
+Result IServiceCreator::CreateNewsService(OutInterface<INewsService> out_interface) {
     LOG_INFO(Service_BCAT, "called");
     *out_interface = std::make_shared<INewsService>(system);
     R_SUCCEED();
 }
 
-Result NewsInterface::CreateNewlyArrivedEventHolder(
+Result IServiceCreator::CreateNewlyArrivedEventHolder(
     OutInterface<INewlyArrivedEventHolder> out_interface) {
     LOG_INFO(Service_BCAT, "called");
     *out_interface = std::make_shared<INewlyArrivedEventHolder>(system);
     R_SUCCEED();
 }
 
-Result NewsInterface::CreateNewsDataService(OutInterface<INewsDataService> out_interface) {
+Result IServiceCreator::CreateNewsDataService(OutInterface<INewsDataService> out_interface) {
     LOG_INFO(Service_BCAT, "called");
     *out_interface = std::make_shared<INewsDataService>(system);
     R_SUCCEED();
 }
 
-Result NewsInterface::CreateNewsDatabaseService(OutInterface<INewsDatabaseService> out_interface) {
+Result IServiceCreator::CreateNewsDatabaseService(
+    OutInterface<INewsDatabaseService> out_interface) {
     LOG_INFO(Service_BCAT, "called");
     *out_interface = std::make_shared<INewsDatabaseService>(system);
     R_SUCCEED();
 }
 
-Result NewsInterface::CreateOverwriteEventHolder(
+Result IServiceCreator::CreateOverwriteEventHolder(
     OutInterface<IOverwriteEventHolder> out_interface) {
     LOG_INFO(Service_BCAT, "called");
     *out_interface = std::make_shared<IOverwriteEventHolder>(system);
     R_SUCCEED();
 }
 
-} // namespace Service::BCAT
+} // namespace Service::News

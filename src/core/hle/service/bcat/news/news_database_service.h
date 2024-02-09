@@ -10,7 +10,7 @@ namespace Core {
 class System;
 }
 
-namespace Service::BCAT {
+namespace Service::News {
 
 class INewsDatabaseService final : public ServiceFramework<INewsDatabaseService> {
 public:
@@ -18,7 +18,7 @@ public:
     ~INewsDatabaseService() override;
 
 private:
-    Result Count(Out<u32> out_count, InBuffer<BufferAttr_HipcPointer> buffer_data);
+    Result Count(Out<s32> out_count, InBuffer<BufferAttr_HipcPointer> buffer_data);
 };
 
-} // namespace Service::BCAT
+} // namespace Service::News

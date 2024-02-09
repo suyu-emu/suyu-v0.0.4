@@ -13,8 +13,8 @@ IDeliveryCacheProgressService::IDeliveryCacheProgressService(Core::System& syste
     : ServiceFramework{system_, "IDeliveryCacheProgressService"}, event{event_}, impl{impl_} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IDeliveryCacheProgressService::GetEvent>, "Get"},
-        {0, C<&IDeliveryCacheProgressService::GetImpl>, "Get"},
+        {0, D<&IDeliveryCacheProgressService::GetEvent>, "Get"},
+        {1, D<&IDeliveryCacheProgressService::GetImpl>, "Get"},
     };
     // clang-format on
 

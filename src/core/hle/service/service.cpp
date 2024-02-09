@@ -15,7 +15,7 @@
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/audio/audio.h"
-#include "core/hle/service/bcat/bcat_module.h"
+#include "core/hle/service/bcat/bcat.h"
 #include "core/hle/service/bpc/bpc.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/btm/btm.h"

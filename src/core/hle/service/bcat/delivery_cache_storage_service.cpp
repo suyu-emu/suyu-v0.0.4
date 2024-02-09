@@ -14,9 +14,9 @@ IDeliveryCacheStorageService::IDeliveryCacheStorageService(Core::System& system_
     : ServiceFramework{system_, "IDeliveryCacheStorageService"}, root(std::move(root_)) {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IDeliveryCacheStorageService::CreateFileService>, "CreateFileService"},
-        {1, C<&IDeliveryCacheStorageService::CreateDirectoryService>, "CreateDirectoryService"},
-        {2, C<&IDeliveryCacheStorageService::EnumerateDeliveryCacheDirectory>, "EnumerateDeliveryCacheDirectory"},
+        {0, D<&IDeliveryCacheStorageService::CreateFileService>, "CreateFileService"},
+        {1, D<&IDeliveryCacheStorageService::CreateDirectoryService>, "CreateDirectoryService"},
+        {10, D<&IDeliveryCacheStorageService::EnumerateDeliveryCacheDirectory>, "EnumerateDeliveryCacheDirectory"},
     };
     // clang-format on
 
@@ -42,15 +42,15 @@ Result IDeliveryCacheStorageService::CreateDirectoryService(
 }
 
 Result IDeliveryCacheStorageService::EnumerateDeliveryCacheDirectory(
-    Out<u32> out_directories_size,
+    Out<s32> out_directory_count,
     OutArray<DirectoryName, BufferAttr_HipcMapAlias> out_directories) {
     LOG_DEBUG(Service_BCAT, "called, size={:016X}", out_directories.size());
 
-    *out_directories_size =
-        static_cast<u32>(std::min(out_directories.size(), entries.size() - next_read_index));
+    *out_directory_count =
+        static_cast<s32>(std::min(out_directories.size(), entries.size() - next_read_index));
     memcpy(out_directories.data(), entries.data() + next_read_index,
-           *out_directories_size * sizeof(DirectoryName));
-    next_read_index += *out_directories_size;
+           *out_directory_count * sizeof(DirectoryName));
+    next_read_index += *out_directory_count;
     R_SUCCEED();
 }
 

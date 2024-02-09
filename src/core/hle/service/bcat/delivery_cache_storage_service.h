@@ -25,12 +25,12 @@ private:
     Result CreateFileService(OutInterface<IDeliveryCacheFileService> out_interface);
     Result CreateDirectoryService(OutInterface<IDeliveryCacheDirectoryService> out_interface);
     Result EnumerateDeliveryCacheDirectory(
-        Out<u32> out_directories_size,
+        Out<s32> out_directory_count,
         OutArray<DirectoryName, BufferAttr_HipcMapAlias> out_directories);
 
     FileSys::VirtualDir root;
     std::vector<DirectoryName> entries;
-    u64 next_read_index = 0;
+    std::size_t next_read_index = 0;
 };
 
 } // namespace Service::BCAT

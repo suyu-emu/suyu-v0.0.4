@@ -20,7 +20,7 @@ public:
     ~IDeliveryCacheFileService() override;
 
 private:
-    Result Open(DirectoryName dir_name_raw, FileName file_name_raw);
+    Result Open(const DirectoryName& dir_name_raw, const FileName& file_name_raw);
     Result Read(Out<u64> out_buffer_size, u64 offset,
                 OutBuffer<BufferAttr_HipcMapAlias> out_buffer);
     Result GetSize(Out<u64> out_size);

@@ -3,7 +3,7 @@
 
 #include "core/hle/service/bcat/news/news_data_service.h"
 
-namespace Service::BCAT {
+namespace Service::News {
 
 INewsDataService::INewsDataService(Core::System& system_)
     : ServiceFramework{system_, "INewsDataService"} {
@@ -22,4 +22,4 @@ INewsDataService::INewsDataService(Core::System& system_)
 
 INewsDataService::~INewsDataService() = default;
 
-} // namespace Service::BCAT
+} // namespace Service::News
