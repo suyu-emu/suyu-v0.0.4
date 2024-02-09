@@ -280,7 +280,7 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
 
             u32 value{};
             std::memcpy(&value, raw_data + ArgOffset, ArgSize);
-            std::get<ArgIndex>(args) = ctx.GetDomainHandler<ArgType::Type>(value - 1);
+            std::get<ArgIndex>(args) = ctx.GetDomainHandler<typename ArgType::element_type>(value - 1);
 
             return ReadInArgument<MethodArguments, CallArguments, ArgAlign, ArgEnd, HandleIndex, InBufferIndex, OutBufferIndex, true, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InCopyHandle) {
