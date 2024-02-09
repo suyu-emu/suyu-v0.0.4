@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Questo software permette di giocare ai giochi della console Nintendo Switch. Nessun gioco o chiave è inclusa.&lt;br /&gt;&lt;br /&gt;Prima di iniziare, perfavore individua il file <![CDATA[<b>prod.keys </b>]]> nella memoria del tuo dispositivo.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Scopri di più</a>]]></string>
-    <string name="emulation_notification_channel_name">L\'emulatore è attivo</string>
-    <string name="emulation_notification_channel_description">Mostra una notifica persistente quando l\'emulatore è in esecuzione.</string>
-    <string name="emulation_notification_running">yuzu è in esecuzione</string>
     <string name="notice_notification_channel_name">Avvisi ed errori</string>
     <string name="notice_notification_channel_description">Mostra le notifiche quando qualcosa va storto.</string>
     <string name="notification_permission_not_granted">Autorizzazione di notifica non concessa!</string>

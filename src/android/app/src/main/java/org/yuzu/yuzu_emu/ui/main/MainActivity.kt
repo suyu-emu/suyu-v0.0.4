@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
@@ -177,9 +176,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
         }
 
-        // Dismiss previous notifications (should not happen unless a crash occurred)
-        EmulationActivity.stopForegroundService(this)
-
         setInsets()
     }
 
@@ -296,11 +292,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     override fun onResume() {
         ThemeHelper.setCorrectTheme(this)
         super.onResume()
-    }
-
-    override fun onDestroy() {
-        EmulationActivity.stopForegroundService(this)
-        super.onDestroy()
     }
 
     private fun setInsets() =

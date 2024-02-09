@@ -2,9 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">이 소프트웨어는 Nintendo Switch 게임을 실행합니다. 게임 타이틀이나 키는 포함되어 있지 않습니다.&lt;br /&gt;&lt;br /&gt;시작하기 전에 장치 저장소에서 <![CDATA[<b> prod.keys </b>]]> 파일을 찾아주세요.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">자세히 알아보기</a>]]></string>
-    <string name="emulation_notification_channel_name">에뮬레이션이 활성화됨</string>
-    <string name="emulation_notification_channel_description">에뮬레이션이 실행 중일 때 지속적으로 알림을 표시합니다.</string>
-    <string name="emulation_notification_running">yuzu가 실행 중입니다.</string>
     <string name="notice_notification_channel_name">알림 및 오류</string>
     <string name="notice_notification_channel_description">문제가 발생하면 알림을 표시합니다.</string>
     <string name="notification_permission_not_granted">알림 권한이 부여되지 않았습니다!</string>
