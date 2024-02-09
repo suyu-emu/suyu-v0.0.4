@@ -1205,9 +1205,9 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
                 static_registers[rw_static_reg->static_idx] = registers[rw_static_reg->idx];
             }
         } else if (std::holds_alternative<PauseProcessOpcode>(cur_opcode.opcode)) {
-            // TODO: Pause cheat process
+            callbacks->PauseProcess();
         } else if (std::holds_alternative<ResumeProcessOpcode>(cur_opcode.opcode)) {
-            // TODO: Resume cheat process
+            callbacks->ResumeProcess();
         } else if (auto debug_log = std::get_if<DebugLogOpcode>(&cur_opcode.opcode)) {
             // Read value from memory.
             u64 log_value = 0;

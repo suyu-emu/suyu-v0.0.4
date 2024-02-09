@@ -271,6 +271,9 @@ public:
 
         virtual u64 HidKeysDown() = 0;
 
+        virtual void PauseProcess() = 0;
+        virtual void ResumeProcess() = 0;
+
         virtual void DebugLog(u8 id, u64 value) = 0;
         virtual void CommandLog(std::string_view data) = 0;
     };
