@@ -262,7 +262,7 @@ class OutLargeData {
 public:
     static_assert(std::is_trivially_copyable_v<T>, "LargeData type must be trivially copyable");
     static_assert((A & BufferAttr_In) == 0, "OutLargeData attr must not be In");
-    static constexpr BufferAttr Attr = static_cast<BufferAttr>(A | BufferAttr_In | BufferAttr_FixedSize);
+    static constexpr BufferAttr Attr = static_cast<BufferAttr>(A | BufferAttr_Out | BufferAttr_FixedSize);
     using Type = T;
 
     /* implicit */ OutLargeData(const OutLargeData& t) : raw(t.raw) {}
