@@ -117,6 +117,10 @@ Result NPad::ActivateNpadResource(u64 aruid) {
     return npad_resource.Activate(aruid);
 }
 
+void NPad::FreeAppletResourceId(u64 aruid) {
+    return npad_resource.FreeAppletResourceId(aruid);
+}
+
 void NPad::ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t controller_idx) {
     if (type == Core::HID::ControllerTriggerType::All) {
         ControllerUpdate(Core::HID::ControllerTriggerType::Connected, controller_idx);
