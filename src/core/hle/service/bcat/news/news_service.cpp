@@ -4,7 +4,7 @@
 #include "core/hle/service/bcat/news/news_service.h"
 #include "core/hle/service/cmif_serialization.h"
 
-namespace Service::BCAT {
+namespace Service::News {
 
 INewsService::INewsService(Core::System& system_) : ServiceFramework{system_, "INewsService"} {
     // clang-format off
@@ -43,4 +43,4 @@ Result INewsService::GetSubscriptionStatus(Out<u32> out_status,
     R_SUCCEED();
 }
 
-} // namespace Service::BCAT
+} // namespace Service::News

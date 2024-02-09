@@ -16,7 +16,7 @@ class KEvent;
 class KReadableEvent;
 } // namespace Kernel
 
-namespace Service::BCAT {
+namespace Service::News {
 
 class INewlyArrivedEventHolder final : public ServiceFramework<INewlyArrivedEventHolder> {
 public:
@@ -30,4 +30,4 @@ private:
     KernelHelpers::ServiceContext service_context;
 };
 
-} // namespace Service::BCAT
+} // namespace Service::News

@@ -21,10 +21,10 @@ public:
     ~IDeliveryCacheDirectoryService() override;
 
 private:
-    Result Open(DirectoryName dir_name_raw);
-    Result Read(Out<u32> out_buffer_size,
+    Result Open(const DirectoryName& dir_name_raw);
+    Result Read(Out<s32> out_count,
                 OutArray<DeliveryCacheDirectoryEntry, BufferAttr_HipcMapAlias> out_buffer);
-    Result GetCount(Out<u32> out_count);
+    Result GetCount(Out<s32> out_count);
 
     FileSys::VirtualDir root;
     FileSys::VirtualDir current_dir;

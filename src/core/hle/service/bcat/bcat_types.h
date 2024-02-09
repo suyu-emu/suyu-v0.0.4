@@ -3,9 +3,13 @@
 
 #pragma once
 
+#include <array>
+#include <functional>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
+#include "core/hle/result.h"
 
 namespace Service::BCAT {
 
@@ -44,17 +48,19 @@ struct TitleIDVersion {
 
 struct DeliveryCacheProgressImpl {
     DeliveryCacheProgressStatus status;
-    Result result = ResultSuccess;
+    Result result;
     DirectoryName current_directory;
     FileName current_file;
     s64 current_downloaded_bytes; ///< Bytes downloaded on current file.
     s64 current_total_bytes;      ///< Bytes total on current file.
     s64 total_downloaded_bytes;   ///< Bytes downloaded on overall download.
     s64 total_bytes;              ///< Bytes total on overall download.
-    INSERT_PADDING_BYTES(
+    INSERT_PADDING_BYTES_NOINIT(
         0x198); ///< Appears to be unused in official code, possibly reserved for future use.
 };
 static_assert(sizeof(DeliveryCacheProgressImpl) == 0x200,
               "DeliveryCacheProgressImpl has incorrect size.");
+static_assert(std::is_trivial_v<DeliveryCacheProgressImpl>,
+              "DeliveryCacheProgressImpl type must be trivially copyable.");
 
 } // namespace Service::BCAT

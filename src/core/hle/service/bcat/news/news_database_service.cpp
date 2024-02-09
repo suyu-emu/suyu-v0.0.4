@@ -4,7 +4,7 @@
 #include "core/hle/service/bcat/news/news_database_service.h"
 #include "core/hle/service/cmif_serialization.h"
 
-namespace Service::BCAT {
+namespace Service::News {
 
 INewsDatabaseService::INewsDatabaseService(Core::System& system_)
     : ServiceFramework{system_, "INewsDatabaseService"} {
@@ -25,11 +25,11 @@ INewsDatabaseService::INewsDatabaseService(Core::System& system_)
 
 INewsDatabaseService::~INewsDatabaseService() = default;
 
-Result INewsDatabaseService::Count(Out<u32> out_count,
+Result INewsDatabaseService::Count(Out<s32> out_count,
                                    InBuffer<BufferAttr_HipcPointer> buffer_data) {
     LOG_WARNING(Service_BCAT, "(STUBBED) called, buffer_size={}", buffer_data.size());
     *out_count = 0;
     R_SUCCEED();
 }
 
-} // namespace Service::BCAT
+} // namespace Service::News

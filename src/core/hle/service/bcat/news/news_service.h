@@ -10,7 +10,7 @@ namespace Core {
 class System;
 }
 
-namespace Service::BCAT {
+namespace Service::News {
 
 class INewsService final : public ServiceFramework<INewsService> {
 public:
@@ -21,4 +21,4 @@ private:
     Result GetSubscriptionStatus(Out<u32> out_status, InBuffer<BufferAttr_HipcPointer> buffer_data);
 };
 
-} // namespace Service::BCAT
+} // namespace Service::News

@@ -10,17 +10,17 @@ namespace Core {
 class System;
 }
 
-namespace Service::BCAT {
+namespace Service::News {
 class INewsService;
 class INewlyArrivedEventHolder;
 class INewsDataService;
 class INewsDatabaseService;
 class IOverwriteEventHolder;
 
-class NewsInterface final : public ServiceFramework<NewsInterface> {
+class IServiceCreator final : public ServiceFramework<IServiceCreator> {
 public:
-    explicit NewsInterface(Core::System& system_, u32 permissions_, const char* name_);
-    ~NewsInterface() override;
+    explicit IServiceCreator(Core::System& system_, u32 permissions_, const char* name_);
+    ~IServiceCreator() override;
 
 private:
     Result CreateNewsService(OutInterface<INewsService> out_interface);
@@ -32,4 +32,4 @@ private:
     u32 permissions;
 };
 
-} // namespace Service::BCAT
+} // namespace Service::News

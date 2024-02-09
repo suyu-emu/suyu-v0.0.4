@@ -19,19 +19,19 @@ class BcatBackend;
 class IBcatService;
 class IDeliveryCacheStorageService;
 
-class BcatInterface final : public ServiceFramework<BcatInterface> {
+class IServiceCreator final : public ServiceFramework<IServiceCreator> {
 public:
-    explicit BcatInterface(Core::System& system_, const char* name_);
-    ~BcatInterface() override;
+    explicit IServiceCreator(Core::System& system_, const char* name_);
+    ~IServiceCreator() override;
 
 private:
-    Result CreateBcatService(OutInterface<IBcatService> out_interface);
+    Result CreateBcatService(ClientProcessId process_id, OutInterface<IBcatService> out_interface);
 
     Result CreateDeliveryCacheStorageService(
-        OutInterface<IDeliveryCacheStorageService> out_interface);
+        ClientProcessId process_id, OutInterface<IDeliveryCacheStorageService> out_interface);
 
     Result CreateDeliveryCacheStorageServiceWithApplicationId(
-        u64 title_id, OutInterface<IDeliveryCacheStorageService> out_interface);
+        u64 application_id, OutInterface<IDeliveryCacheStorageService> out_interface);
 
     std::unique_ptr<BcatBackend> backend;
     Service::FileSystem::FileSystemController& fsc;

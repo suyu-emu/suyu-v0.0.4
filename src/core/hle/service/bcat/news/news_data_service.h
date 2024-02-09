@@ -9,7 +9,7 @@ namespace Core {
 class System;
 }
 
-namespace Service::BCAT {
+namespace Service::News {
 
 class INewsDataService final : public ServiceFramework<INewsDataService> {
 public:
@@ -17,4 +17,4 @@ public:
     ~INewsDataService() override;
 };
 
-} // namespace Service::BCAT
+} // namespace Service::News
