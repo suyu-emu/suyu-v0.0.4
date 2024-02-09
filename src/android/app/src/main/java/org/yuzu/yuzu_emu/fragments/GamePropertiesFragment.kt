@@ -46,6 +46,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.MemoryUtil
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.BufferedOutputStream
 import java.io.File
 
@@ -320,46 +321,25 @@ class GamePropertiesFragment : Fragment() {
 
             val smallLayout = resources.getBoolean(R.bool.small_layout)
             if (smallLayout) {
-                val mlpListAll =
-                    binding.listAll.layoutParams as ViewGroup.MarginLayoutParams
-                mlpListAll.leftMargin = leftInsets
-                mlpListAll.rightMargin = rightInsets
-                binding.listAll.layoutParams = mlpListAll
+                binding.listAll.updateMargins(left = leftInsets, right = rightInsets)
             } else {
                 if (ViewCompat.getLayoutDirection(binding.root) ==
                     ViewCompat.LAYOUT_DIRECTION_LTR
                 ) {
-                    val mlpListAll =
-                        binding.listAll.layoutParams as ViewGroup.MarginLayoutParams
-                    mlpListAll.rightMargin = rightInsets
-                    binding.listAll.layoutParams = mlpListAll
-
-                    val mlpIconLayout =
-                        binding.iconLayout!!.layoutParams as ViewGroup.MarginLayoutParams
-                    mlpIconLayout.topMargin = barInsets.top
-                    mlpIconLayout.leftMargin = leftInsets
-                    binding.iconLayout!!.layoutParams = mlpIconLayout
+                    binding.listAll.updateMargins(right = rightInsets)
+                    binding.iconLayout!!.updateMargins(top = barInsets.top, left = leftInsets)
                 } else {
-                    val mlpListAll =
-                        binding.listAll.layoutParams as ViewGroup.MarginLayoutParams
-                    mlpListAll.leftMargin = leftInsets
-                    binding.listAll.layoutParams = mlpListAll
-
-                    val mlpIconLayout =
-                        binding.iconLayout!!.layoutParams as ViewGroup.MarginLayoutParams
-                    mlpIconLayout.topMargin = barInsets.top
-                    mlpIconLayout.rightMargin = rightInsets
-                    binding.iconLayout!!.layoutParams = mlpIconLayout
+                    binding.listAll.updateMargins(left = leftInsets)
+                    binding.iconLayout!!.updateMargins(top = barInsets.top, right = rightInsets)
                 }
             }
 
             val fabSpacing = resources.getDimensionPixelSize(R.dimen.spacing_fab)
-            val mlpFab =
-                binding.buttonStart.layoutParams as ViewGroup.MarginLayoutParams
-            mlpFab.leftMargin = leftInsets + fabSpacing
-            mlpFab.rightMargin = rightInsets + fabSpacing
-            mlpFab.bottomMargin = barInsets.bottom + fabSpacing
-            binding.buttonStart.layoutParams = mlpFab
+            binding.buttonStart.updateMargins(
+                left = leftInsets + fabSpacing,
+                right = rightInsets + fabSpacing,
+                bottom = barInsets.bottom + fabSpacing
+            )
 
             binding.layoutAll.updatePadding(
                 top = barInsets.top,

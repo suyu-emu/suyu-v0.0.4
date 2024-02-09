@@ -31,6 +31,7 @@ import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.AddonUtil
 import org.yuzu.yuzu_emu.utils.FileUtil.copyFilesTo
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.File
 
 class AddonsFragment : Fragment() {
@@ -202,27 +203,19 @@ class AddonsFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpToolbar = binding.toolbarAddons.layoutParams as ViewGroup.MarginLayoutParams
-            mlpToolbar.leftMargin = leftInsets
-            mlpToolbar.rightMargin = rightInsets
-            binding.toolbarAddons.layoutParams = mlpToolbar
-
-            val mlpAddonsList = binding.listAddons.layoutParams as ViewGroup.MarginLayoutParams
-            mlpAddonsList.leftMargin = leftInsets
-            mlpAddonsList.rightMargin = rightInsets
-            binding.listAddons.layoutParams = mlpAddonsList
+            binding.toolbarAddons.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listAddons.updateMargins(left = leftInsets, right = rightInsets)
             binding.listAddons.updatePadding(
                 bottom = barInsets.bottom +
                     resources.getDimensionPixelSize(R.dimen.spacing_bottom_list_fab)
             )
 
             val fabSpacing = resources.getDimensionPixelSize(R.dimen.spacing_fab)
-            val mlpFab =
-                binding.buttonInstall.layoutParams as ViewGroup.MarginLayoutParams
-            mlpFab.leftMargin = leftInsets + fabSpacing
-            mlpFab.rightMargin = rightInsets + fabSpacing
-            mlpFab.bottomMargin = barInsets.bottom + fabSpacing
-            binding.buttonInstall.layoutParams = mlpFab
+            binding.buttonInstall.updateMargins(
+                left = leftInsets + fabSpacing,
+                right = rightInsets + fabSpacing,
+                bottom = barInsets.bottom + fabSpacing
+            )
 
             windowInsets
         }

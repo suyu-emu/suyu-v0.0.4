@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,6 +25,7 @@ import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentAboutBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class AboutFragment : Fragment() {
     private var _binding: FragmentAboutBinding? = null
@@ -114,15 +114,8 @@ class AboutFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpToolbar = binding.toolbarAbout.layoutParams as MarginLayoutParams
-            mlpToolbar.leftMargin = leftInsets
-            mlpToolbar.rightMargin = rightInsets
-            binding.toolbarAbout.layoutParams = mlpToolbar
-
-            val mlpScrollAbout = binding.scrollAbout.layoutParams as MarginLayoutParams
-            mlpScrollAbout.leftMargin = leftInsets
-            mlpScrollAbout.rightMargin = rightInsets
-            binding.scrollAbout.layoutParams = mlpScrollAbout
+            binding.toolbarAbout.updateMargins(left = leftInsets, right = rightInsets)
+            binding.scrollAbout.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.contentAbout.updatePadding(bottom = barInsets.bottom)
 

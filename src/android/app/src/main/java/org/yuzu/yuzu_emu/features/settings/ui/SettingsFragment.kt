@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -27,6 +26,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.SettingsViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class SettingsFragment : Fragment() {
     private lateinit var presenter: SettingsFragmentPresenter
@@ -125,18 +125,10 @@ class SettingsFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpSettingsList = binding.listSettings.layoutParams as MarginLayoutParams
-            mlpSettingsList.leftMargin = leftInsets
-            mlpSettingsList.rightMargin = rightInsets
-            binding.listSettings.layoutParams = mlpSettingsList
-            binding.listSettings.updatePadding(
-                bottom = barInsets.bottom
-            )
+            binding.listSettings.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listSettings.updatePadding(bottom = barInsets.bottom)
 
-            val mlpAppBar = binding.appbarSettings.layoutParams as MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.appbarSettings.layoutParams = mlpAppBar
+            binding.appbarSettings.updateMargins(left = leftInsets, right = rightInsets)
             windowInsets
         }
     }

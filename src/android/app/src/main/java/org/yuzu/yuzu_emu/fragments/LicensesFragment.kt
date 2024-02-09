@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,6 +21,7 @@ import org.yuzu.yuzu_emu.adapters.LicenseAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentLicensesBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.License
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class LicensesFragment : Fragment() {
     private var _binding: FragmentLicensesBinding? = null
@@ -122,15 +122,8 @@ class LicensesFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpAppBar = binding.appbarLicenses.layoutParams as MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.appbarLicenses.layoutParams = mlpAppBar
-
-            val mlpScrollAbout = binding.listLicenses.layoutParams as MarginLayoutParams
-            mlpScrollAbout.leftMargin = leftInsets
-            mlpScrollAbout.rightMargin = rightInsets
-            binding.listLicenses.layoutParams = mlpScrollAbout
+            binding.appbarLicenses.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listLicenses.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.listLicenses.updatePadding(bottom = barInsets.bottom)
 
