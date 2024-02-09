@@ -27,6 +27,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentGameInfoBinding
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.GameMetadata
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class GameInfoFragment : Fragment() {
     private var _binding: FragmentGameInfoBinding? = null
@@ -122,11 +123,13 @@ class GameInfoFragment : Fragment() {
                                 titleId = R.string.verify_success,
                                 descriptionId = R.string.operation_completed_successfully
                             )
+
                         GameVerificationResult.Failed ->
                             MessageDialogFragment.newInstance(
                                 titleId = R.string.verify_failure,
                                 descriptionId = R.string.verify_failure_description
                             )
+
                         GameVerificationResult.NotImplemented ->
                             MessageDialogFragment.newInstance(
                                 titleId = R.string.verify_no_result,
@@ -165,15 +168,8 @@ class GameInfoFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpToolbar = binding.toolbarInfo.layoutParams as ViewGroup.MarginLayoutParams
-            mlpToolbar.leftMargin = leftInsets
-            mlpToolbar.rightMargin = rightInsets
-            binding.toolbarInfo.layoutParams = mlpToolbar
-
-            val mlpScrollAbout = binding.scrollInfo.layoutParams as ViewGroup.MarginLayoutParams
-            mlpScrollAbout.leftMargin = leftInsets
-            mlpScrollAbout.rightMargin = rightInsets
-            binding.scrollInfo.layoutParams = mlpScrollAbout
+            binding.toolbarInfo.updateMargins(left = leftInsets, right = rightInsets)
+            binding.scrollInfo.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.contentInfo.updatePadding(bottom = barInsets.bottom)
 

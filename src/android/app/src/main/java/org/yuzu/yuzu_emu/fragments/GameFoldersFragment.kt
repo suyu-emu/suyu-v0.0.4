@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentFoldersBinding
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class GameFoldersFragment : Fragment() {
     private var _binding: FragmentFoldersBinding? = null
@@ -100,23 +101,16 @@ class GameFoldersFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpToolbar = binding.toolbarFolders.layoutParams as ViewGroup.MarginLayoutParams
-            mlpToolbar.leftMargin = leftInsets
-            mlpToolbar.rightMargin = rightInsets
-            binding.toolbarFolders.layoutParams = mlpToolbar
+            binding.toolbarFolders.updateMargins(left = leftInsets, right = rightInsets)
 
             val fabSpacing = resources.getDimensionPixelSize(R.dimen.spacing_fab)
-            val mlpFab =
-                binding.buttonAdd.layoutParams as ViewGroup.MarginLayoutParams
-            mlpFab.leftMargin = leftInsets + fabSpacing
-            mlpFab.rightMargin = rightInsets + fabSpacing
-            mlpFab.bottomMargin = barInsets.bottom + fabSpacing
-            binding.buttonAdd.layoutParams = mlpFab
+            binding.buttonAdd.updateMargins(
+                left = leftInsets + fabSpacing,
+                right = rightInsets + fabSpacing,
+                bottom = barInsets.bottom + fabSpacing
+            )
 
-            val mlpListFolders = binding.listFolders.layoutParams as ViewGroup.MarginLayoutParams
-            mlpListFolders.leftMargin = leftInsets
-            mlpListFolders.rightMargin = rightInsets
-            binding.listFolders.layoutParams = mlpListFolders
+            binding.listFolders.updateMargins(left = leftInsets, right = rightInsets)
 
             binding.listFolders.updatePadding(
                 bottom = barInsets.bottom +

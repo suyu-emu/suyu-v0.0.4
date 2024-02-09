@@ -34,6 +34,7 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.File
 import java.io.IOException
 
@@ -141,23 +142,15 @@ class DriverManagerFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpAppBar = binding.toolbarDrivers.layoutParams as ViewGroup.MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.toolbarDrivers.layoutParams = mlpAppBar
-
-            val mlplistDrivers = binding.listDrivers.layoutParams as ViewGroup.MarginLayoutParams
-            mlplistDrivers.leftMargin = leftInsets
-            mlplistDrivers.rightMargin = rightInsets
-            binding.listDrivers.layoutParams = mlplistDrivers
+            binding.toolbarDrivers.updateMargins(left = leftInsets, right = rightInsets)
+            binding.listDrivers.updateMargins(left = leftInsets, right = rightInsets)
 
             val fabSpacing = resources.getDimensionPixelSize(R.dimen.spacing_fab)
-            val mlpFab =
-                binding.buttonInstall.layoutParams as ViewGroup.MarginLayoutParams
-            mlpFab.leftMargin = leftInsets + fabSpacing
-            mlpFab.rightMargin = rightInsets + fabSpacing
-            mlpFab.bottomMargin = barInsets.bottom + fabSpacing
-            binding.buttonInstall.layoutParams = mlpFab
+            binding.buttonInstall.updateMargins(
+                left = leftInsets + fabSpacing,
+                right = rightInsets + fabSpacing,
+                bottom = barInsets.bottom + fabSpacing
+            )
 
             binding.listDrivers.updatePadding(
                 bottom = barInsets.bottom +
