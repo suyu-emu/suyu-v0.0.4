@@ -7,6 +7,11 @@
         android:checkable="true" />
 
     <item
+        android:id="@+id/thermal_indicator"
+        android:title="@string/emulation_thermal_indicator"
+        android:checkable="true" />
+
+    <item
         android:id="@+id/menu_edit_overlay"
         android:title="@string/emulation_touch_overlay_edit" />
 

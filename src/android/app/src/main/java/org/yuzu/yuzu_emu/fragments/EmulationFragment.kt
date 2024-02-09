@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import android.view.*
 import android.widget.TextView
@@ -23,6 +24,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
@@ -38,7 +40,6 @@ import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
@@ -64,6 +65,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var emulationState: EmulationState
     private var emulationActivity: EmulationActivity? = null
     private var perfStatsUpdater: (() -> Unit)? = null
+    private var thermalStatsUpdater: (() -> Unit)? = null
 
     private var _binding: FragmentEmulationBinding? = null
     private val binding get() = _binding!!
@@ -76,6 +78,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private val driverViewModel: DriverViewModel by activityViewModels()
 
     private var isInFoldableLayout = false
+
+    private lateinit var powerManager: PowerManager
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -101,6 +105,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         updateOrientation()
+
+        powerManager = requireContext().getSystemService(Context.POWER_SERVICE) as PowerManager
 
         val intentUri: Uri? = requireActivity().intent.data
         var intentGame: Game? = null
@@ -394,8 +400,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                             emulationState.updateSurface()
 
-                            // Setup overlay
+                            // Setup overlays
                             updateShowFpsOverlay()
+                            updateThermalOverlay()
                         }
                     }
                 }
@@ -553,6 +560,38 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    private fun updateThermalOverlay() {
+        if (BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean()) {
+            thermalStatsUpdater = {
+                if (emulationViewModel.emulationStarted.value &&
+                    !emulationViewModel.isEmulationStopping.value
+                ) {
+                    val thermalStatus = when (powerManager.currentThermalStatus) {
+                        PowerManager.THERMAL_STATUS_LIGHT -> "😥"
+                        PowerManager.THERMAL_STATUS_MODERATE -> "🥵"
+                        PowerManager.THERMAL_STATUS_SEVERE -> "🔥"
+                        PowerManager.THERMAL_STATUS_CRITICAL,
+                        PowerManager.THERMAL_STATUS_EMERGENCY,
+                        PowerManager.THERMAL_STATUS_SHUTDOWN -> "☢️"
+
+                        else -> "🙂"
+                    }
+                    if (_binding != null) {
+                        binding.showThermalsText.text = thermalStatus
+                    }
+                    thermalStatsUpdateHandler.postDelayed(thermalStatsUpdater!!, 1000)
+                }
+            }
+            thermalStatsUpdateHandler.post(thermalStatsUpdater!!)
+            binding.showThermalsText.visibility = View.VISIBLE
+        } else {
+            if (thermalStatsUpdater != null) {
+                thermalStatsUpdateHandler.removeCallbacks(thermalStatsUpdater!!)
+            }
+            binding.showThermalsText.visibility = View.GONE
+        }
+    }
+
     @SuppressLint("SourceLockedOrientationActivity")
     private fun updateOrientation() {
         emulationActivity?.let {
@@ -641,6 +680,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         popup.menu.apply {
             findItem(R.id.menu_toggle_fps).isChecked =
                 BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
+            findItem(R.id.thermal_indicator).isChecked =
+                BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean()
             findItem(R.id.menu_rel_stick_center).isChecked =
                 BooleanSetting.JOYSTICK_REL_CENTER.getBoolean()
             findItem(R.id.menu_dpad_slide).isChecked = BooleanSetting.DPAD_SLIDE.getBoolean()
@@ -657,6 +698,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     it.isChecked = !it.isChecked
                     BooleanSetting.SHOW_PERFORMANCE_OVERLAY.setBoolean(it.isChecked)
                     updateShowFpsOverlay()
+                    true
+                }
+
+                R.id.thermal_indicator -> {
+                    it.isChecked = !it.isChecked
+                    BooleanSetting.SHOW_THERMAL_OVERLAY.setBoolean(it.isChecked)
+                    updateThermalOverlay()
                     true
                 }
 
@@ -850,7 +898,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 right = cutInsets.right
             }
 
-            v.setPadding(left, cutInsets.top, right, 0)
+            v.updatePadding(left = left, top = cutInsets.top, right = right)
             windowInsets
         }
     }
@@ -1003,5 +1051,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     companion object {
         private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
+        private val thermalStatsUpdateHandler = Handler(Looper.myLooper()!!)
     }
 }
