@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <android/native_window_jni.h>
+#include "common/android/applets/software_keyboard.h"
 #include "common/detached_tasks.h"
 #include "core/core.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/perf_stats.h"
 #include "frontend_common/content_manager.h"
-#include "jni/applets/software_keyboard.h"
 #include "jni/emu_window/emu_window.h"
 #include "video_core/rasterizer_interface.h"
 
@@ -54,7 +54,7 @@ public:
     void SetDeviceType([[maybe_unused]] int index, int type);
     void OnGamepadConnectEvent([[maybe_unused]] int index);
     void OnGamepadDisconnectEvent([[maybe_unused]] int index);
-    SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
+    Common::Android::SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
 
     static void OnEmulationStarted();
 
@@ -79,7 +79,7 @@ private:
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     std::atomic<bool> m_is_running = false;
     std::atomic<bool> m_is_paused = false;
-    SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
+    Common::Android::SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;
     int m_applet_id{1};
 
