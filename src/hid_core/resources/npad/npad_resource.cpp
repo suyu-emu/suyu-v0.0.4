@@ -67,7 +67,7 @@ Result NPadResource::RegisterAppletResourceUserId(u64 aruid) {
 void NPadResource::UnregisterAppletResourceUserId(u64 aruid) {
     const u64 aruid_index = GetIndexFromAruid(aruid);
 
-    DestroyStyleSetUpdateEvents(aruid);
+    FreeAppletResourceId(aruid);
     if (aruid_index < AruidIndexMax) {
         state[aruid_index] = {};
         registration_list.flag[aruid_index] = RegistrationStatus::PendingDelete;
@@ -80,14 +80,18 @@ void NPadResource::UnregisterAppletResourceUserId(u64 aruid) {
     }
 }
 
-void NPadResource::DestroyStyleSetUpdateEvents(u64 aruid) {
+void NPadResource::FreeAppletResourceId(u64 aruid) {
     const u64 aruid_index = GetIndexFromAruid(aruid);
 
     if (aruid_index >= AruidIndexMax) {
         return;
     }
 
-    for (auto& controller_state : state[aruid_index].controller_state) {
+    auto& aruid_data = state[aruid_index];
+
+    aruid_data.flag.is_assigned.Assign(false);
+
+    for (auto& controller_state : aruid_data.controller_state) {
         if (!controller_state.is_styleset_update_event_initialized) {
             continue;
         }

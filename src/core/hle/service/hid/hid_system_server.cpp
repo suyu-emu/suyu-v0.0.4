@@ -508,13 +508,8 @@ void IHidSystemServer::RegisterAppletResourceUserId(HLERequestContext& ctx) {
     Result result = GetResourceManager()->RegisterAppletResourceUserId(
         parameters.applet_resource_user_id, parameters.enable_input);
 
-    if (result.IsSuccess()) {
-        // result = GetResourceManager()->GetNpad()->RegisterAppletResourceUserId(
-        //     parameters.applet_resource_user_id);
-    }
-
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidSystemServer::UnregisterAppletResourceUserId(HLERequestContext& ctx) {
@@ -524,8 +519,6 @@ void IHidSystemServer::UnregisterAppletResourceUserId(HLERequestContext& ctx) {
     LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     GetResourceManager()->UnregisterAppletResourceUserId(applet_resource_user_id);
-    // GetResourceManager()->GetNpad()->UnregisterAppletResourceUserId(applet_resource_user_id);
-    // GetResourceManager()->GetPalma()->UnregisterAppletResourceUserId(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

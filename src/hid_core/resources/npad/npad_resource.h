@@ -55,7 +55,7 @@ public:
     Result RegisterAppletResourceUserId(u64 aruid);
     void UnregisterAppletResourceUserId(u64 aruid);
 
-    void DestroyStyleSetUpdateEvents(u64 aruid);
+    void FreeAppletResourceId(u64 aruid);
 
     Result Activate(u64 aruid);
     Result Activate();
