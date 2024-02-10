@@ -91,6 +91,7 @@ constexpr Result ResultWriteNotPermitted{ErrorModule::FS, 6203};
 constexpr Result ResultUnsupportedSetSizeForIndirectStorage{ErrorModule::FS, 6325};
 constexpr Result ResultUnsupportedWriteForCompressedStorage{ErrorModule::FS, 6387};
 constexpr Result ResultUnsupportedOperateRangeForCompressedStorage{ErrorModule::FS, 6388};
+constexpr Result ResultPermissionDenied{ErrorModule::FS, 6400};
 constexpr Result ResultBufferAllocationFailed{ErrorModule::FS, 6705};
 
 } // namespace FileSys
