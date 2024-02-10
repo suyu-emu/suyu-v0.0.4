@@ -5,6 +5,7 @@
 
 #include "core/file_sys/fsa/fs_i_directory.h"
 #include "core/file_sys/vfs/vfs.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/service.h"
 
@@ -22,8 +23,9 @@ public:
 private:
     std::unique_ptr<FileSys::Fsa::IDirectory> backend;
 
-    void Read(HLERequestContext& ctx);
-    void GetEntryCount(HLERequestContext& ctx);
+    Result Read(Out<s64> out_count,
+                const OutArray<FileSys::DirectoryEntry, BufferAttr_HipcMapAlias> out_entries);
+    Result GetEntryCount(Out<s64> out_count);
 };
 
 } // namespace Service::FileSystem
