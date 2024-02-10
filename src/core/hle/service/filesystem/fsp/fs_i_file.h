@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/file_sys/fsa/fs_i_file.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/service.h"
 
@@ -10,10 +11,10 @@ namespace Service::FileSystem {
 
 class IFile final : public ServiceFramework<IFile> {
 public:
-    explicit IFile(Core::System& system_, FileSys::VirtualFile backend_);
+    explicit IFile(Core::System& system_, FileSys::VirtualFile file_);
 
 private:
-    FileSys::VirtualFile backend;
+    std::unique_ptr<FileSys::Fsa::IFile> backend;
 
     void Read(HLERequestContext& ctx);
     void Write(HLERequestContext& ctx);

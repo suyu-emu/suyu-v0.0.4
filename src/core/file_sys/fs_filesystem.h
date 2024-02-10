@@ -23,6 +23,8 @@ enum class OpenDirectoryMode : u64 {
     File = (1 << 1),
 
     All = (Directory | File),
+
+    NotRequireFileSize = (1 << 31),
 };
 DECLARE_ENUM_FLAG_OPERATORS(OpenDirectoryMode)
 

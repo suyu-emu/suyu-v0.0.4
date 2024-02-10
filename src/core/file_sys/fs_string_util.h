@@ -20,6 +20,11 @@ constexpr int Strlen(const T* str) {
 }
 
 template <typename T>
+constexpr int Strnlen(const T* str, std::size_t count) {
+    return Strnlen(str, static_cast<int>(count));
+}
+
+template <typename T>
 constexpr int Strnlen(const T* str, int count) {
     ASSERT(str != nullptr);
     ASSERT(count >= 0);
@@ -30,6 +35,11 @@ constexpr int Strnlen(const T* str, int count) {
     }
 
     return length;
+}
+
+template <typename T>
+constexpr int Strncmp(const T* lhs, const T* rhs, std::size_t count) {
+    return Strncmp(lhs, rhs, static_cast<int>(count));
 }
 
 template <typename T>
@@ -49,6 +59,11 @@ constexpr int Strncmp(const T* lhs, const T* rhs, int count) {
     } while (l && (l == r) && (--count));
 
     return l - r;
+}
+
+template <typename T>
+static constexpr int Strlcpy(T* dst, const T* src, std::size_t count) {
+    return Strlcpy<T>(dst, src, static_cast<int>(count));
 }
 
 template <typename T>
