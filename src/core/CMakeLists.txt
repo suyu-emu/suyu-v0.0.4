@@ -548,8 +548,6 @@ add_library(core STATIC
     hle/service/es/es.h
     hle/service/eupld/eupld.cpp
     hle/service/eupld/eupld.h
-    hle/service/event.cpp
-    hle/service/event.h
     hle/service/fatal/fatal.cpp
     hle/service/fatal/fatal.h
     hle/service/fatal/fatal_p.cpp
@@ -676,8 +674,6 @@ add_library(core STATIC
     hle/service/mm/mm_u.h
     hle/service/mnpp/mnpp_app.cpp
     hle/service/mnpp/mnpp_app.h
-    hle/service/mutex.cpp
-    hle/service/mutex.h
     hle/service/ncm/ncm.cpp
     hle/service/ncm/ncm.h
     hle/service/nfc/common/amiibo_crypto.cpp
@@ -790,6 +786,15 @@ add_library(core STATIC
     hle/service/nvnflinger/window.h
     hle/service/olsc/olsc.cpp
     hle/service/olsc/olsc.h
+    hle/service/os/event.cpp
+    hle/service/os/event.h
+    hle/service/os/multi_wait_holder.cpp
+    hle/service/os/multi_wait_holder.h
+    hle/service/os/multi_wait_utils.h
+    hle/service/os/multi_wait.cpp
+    hle/service/os/multi_wait.h
+    hle/service/os/mutex.cpp
+    hle/service/os/mutex.h
     hle/service/pcie/pcie.cpp
     hle/service/pcie/pcie.h
     hle/service/pctl/pctl.cpp

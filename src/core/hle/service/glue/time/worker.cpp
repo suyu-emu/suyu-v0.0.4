@@ -7,6 +7,7 @@
 #include "core/hle/service/glue/time/file_timestamp_worker.h"
 #include "core/hle/service/glue/time/standard_steady_clock_resource.h"
 #include "core/hle/service/glue/time/worker.h"
+#include "core/hle/service/os/multi_wait_utils.h"
 #include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/psc/time/service_manager.h"
 #include "core/hle/service/psc/time/static.h"
@@ -143,81 +144,45 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
     Common::SetCurrentThreadName("TimeWorker");
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Low);
 
-    enum class EventType {
-        Exit = 0,
-        IpmModuleService_GetEvent = 1,
-        PowerStateChange = 2,
-        SignalAlarms = 3,
-        UpdateLocalSystemClock = 4,
-        UpdateNetworkSystemClock = 5,
-        UpdateEphemeralSystemClock = 6,
-        UpdateSteadyClock = 7,
-        UpdateFileTimestamp = 8,
-        AutoCorrect = 9,
-        Max = 10,
-    };
-
-    s32 num_objs{};
-    std::array<Kernel::KSynchronizationObject*, static_cast<u32>(EventType::Max)> wait_objs{};
-    std::array<EventType, static_cast<u32>(EventType::Max)> wait_indices{};
-
-    const auto AddWaiter{
-        [&](Kernel::KSynchronizationObject* synchronization_object, EventType type) {
-            // Open a new reference to the object.
-            synchronization_object->Open();
-
-            // Insert into the list.
-            wait_indices[num_objs] = type;
-            wait_objs[num_objs++] = synchronization_object;
-        }};
-
     while (!stop_token.stop_requested()) {
-        SCOPE_EXIT({
-            for (s32 i = 0; i < num_objs; i++) {
-                wait_objs[i]->Close();
-            }
-        });
+        enum class EventType : s32 {
+            Exit = 0,
+            PowerStateChange = 1,
+            SignalAlarms = 2,
+            UpdateLocalSystemClock = 3,
+            UpdateNetworkSystemClock = 4,
+            UpdateEphemeralSystemClock = 5,
+            UpdateSteadyClock = 6,
+            UpdateFileTimestamp = 7,
+            AutoCorrect = 8,
+        };
 
-        num_objs = {};
-        wait_objs = {};
+        s32 index{};
+
         if (m_pm_state_change_handler.m_priority != 0) {
-            AddWaiter(&m_event->GetReadableEvent(), EventType::Exit);
-            // TODO
-            // AddWaiter(gIPmModuleService::GetEvent(), 1);
-            AddWaiter(&m_alarm_worker.GetEvent(), EventType::PowerStateChange);
+            // TODO: gIPmModuleService::GetEvent() 1
+            index = WaitAny(m_system.Kernel(),
+                            &m_event->GetReadableEvent(), // 0
+                            &m_alarm_worker.GetEvent()    // 1
+            );
         } else {
-            AddWaiter(&m_event->GetReadableEvent(), EventType::Exit);
-            // TODO
-            // AddWaiter(gIPmModuleService::GetEvent(), 1);
-            AddWaiter(&m_alarm_worker.GetEvent(), EventType::PowerStateChange);
-            AddWaiter(&m_alarm_worker.GetTimerEvent().GetReadableEvent(), EventType::SignalAlarms);
-            AddWaiter(m_local_clock_event, EventType::UpdateLocalSystemClock);
-            AddWaiter(m_network_clock_event, EventType::UpdateNetworkSystemClock);
-            AddWaiter(m_ephemeral_clock_event, EventType::UpdateEphemeralSystemClock);
-            AddWaiter(&m_timer_steady_clock->GetReadableEvent(), EventType::UpdateSteadyClock);
-            AddWaiter(&m_timer_file_system->GetReadableEvent(), EventType::UpdateFileTimestamp);
-            AddWaiter(m_standard_user_auto_correct_clock_event, EventType::AutoCorrect);
+            // TODO: gIPmModuleService::GetEvent() 1
+            index = WaitAny(m_system.Kernel(),
+                            &m_event->GetReadableEvent(),                       // 0
+                            &m_alarm_worker.GetEvent(),                         // 1
+                            &m_alarm_worker.GetTimerEvent().GetReadableEvent(), // 2
+                            m_local_clock_event,                                // 3
+                            m_network_clock_event,                              // 4
+                            m_ephemeral_clock_event,                            // 5
+                            &m_timer_steady_clock->GetReadableEvent(),          // 6
+                            &m_timer_file_system->GetReadableEvent(),           // 7
+                            m_standard_user_auto_correct_clock_event            // 8
+            );
         }
 
-        s32 out_index{-1};
-        Kernel::KSynchronizationObject::Wait(m_system.Kernel(), &out_index, wait_objs.data(),
-                                             num_objs, -1);
-        ASSERT(out_index >= 0 && out_index < num_objs);
-
-        if (stop_token.stop_requested()) {
-            return;
-        }
-
-        switch (wait_indices[out_index]) {
+        switch (static_cast<EventType>(index)) {
         case EventType::Exit:
             return;
-
-        case EventType::IpmModuleService_GetEvent:
-            // TODO
-            // IPmModuleService::GetEvent()
-            // clear the event
-            // Handle power state change event
-            break;
 
         case EventType::PowerStateChange:
             m_alarm_worker.GetEvent().Clear();
@@ -235,19 +200,19 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             m_local_clock_event->Clear();
 
             Service::PSC::Time::SystemClockContext context{};
-            auto res = m_local_clock->GetSystemClockContext(&context);
-            ASSERT(res == ResultSuccess);
+            R_ASSERT(m_local_clock->GetSystemClockContext(&context));
 
             m_set_sys->SetUserSystemClockContext(context);
-
             m_file_timestamp_worker.SetFilesystemPosixTime();
-        } break;
+            break;
+        }
 
         case EventType::UpdateNetworkSystemClock: {
             m_network_clock_event->Clear();
+
             Service::PSC::Time::SystemClockContext context{};
-            auto res = m_network_clock->GetSystemClockContext(&context);
-            ASSERT(res == ResultSuccess);
+            R_ASSERT(m_network_clock->GetSystemClockContext(&context));
+
             m_set_sys->SetNetworkSystemClockContext(context);
 
             s64 time{};
@@ -267,7 +232,8 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             }
 
             m_file_timestamp_worker.SetFilesystemPosixTime();
-        } break;
+            break;
+        }
 
         case EventType::UpdateEphemeralSystemClock: {
             m_ephemeral_clock_event->Clear();
@@ -295,7 +261,8 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             if (!g_ig_report_ephemeral_clock_context_set) {
                 g_ig_report_ephemeral_clock_context_set = true;
             }
-        } break;
+            break;
+        }
 
         case EventType::UpdateSteadyClock:
             m_timer_steady_clock->Clear();
@@ -314,21 +281,20 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             m_standard_user_auto_correct_clock_event->Clear();
 
             bool automatic_correction{};
-            auto res = m_time_sm->IsStandardUserSystemClockAutomaticCorrectionEnabled(
-                &automatic_correction);
-            ASSERT(res == ResultSuccess);
+            R_ASSERT(m_time_sm->IsStandardUserSystemClockAutomaticCorrectionEnabled(
+                &automatic_correction));
 
             Service::PSC::Time::SteadyClockTimePoint time_point{};
-            res = m_time_sm->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(&time_point);
-            ASSERT(res == ResultSuccess);
+            R_ASSERT(
+                m_time_sm->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(&time_point));
 
             m_set_sys->SetUserSystemClockAutomaticCorrectionEnabled(automatic_correction);
             m_set_sys->SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
-        } break;
+            break;
+        }
 
         default:
             UNREACHABLE();
-            break;
         }
     }
 }

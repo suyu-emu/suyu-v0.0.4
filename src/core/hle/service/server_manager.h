@@ -3,18 +3,17 @@
 
 #pragma once
 
-#include <functional>
 #include <list>
-#include <map>
 #include <mutex>
-#include <string_view>
+#include <optional>
 #include <vector>
 
 #include "common/polyfill_thread.h"
 #include "common/thread.h"
 #include "core/hle/result.h"
 #include "core/hle/service/hle_ipc.h"
-#include "core/hle/service/mutex.h"
+#include "core/hle/service/os/multi_wait.h"
+#include "core/hle/service/os/mutex.h"
 
 namespace Core {
 class System;
@@ -24,10 +23,12 @@ namespace Kernel {
 class KEvent;
 class KServerPort;
 class KServerSession;
-class KSynchronizationObject;
 } // namespace Kernel
 
 namespace Service {
+
+class Port;
+class Session;
 
 class ServerManager {
 public:
@@ -52,34 +53,40 @@ public:
     static void RunServer(std::unique_ptr<ServerManager>&& server);
 
 private:
-    struct RequestState;
-
+    void LinkToDeferredList(MultiWaitHolder* holder);
+    void LinkDeferred();
+    MultiWaitHolder* WaitSignaled();
+    Result Process(MultiWaitHolder* holder);
+    bool WaitAndProcessImpl();
     Result LoopProcessImpl();
-    Result WaitAndProcessImpl();
-    Result OnPortEvent(Kernel::KServerPort* port, SessionRequestHandlerFactory&& handler_factory);
-    Result OnSessionEvent(Kernel::KServerSession* session,
-                          std::shared_ptr<SessionRequestManager>&& manager);
-    Result OnDeferralEvent(std::list<RequestState>&& deferrals);
-    Result CompleteSyncRequest(RequestState&& state);
+
+    Result OnPortEvent(Port* port);
+    Result OnSessionEvent(Session* session);
+    Result OnDeferralEvent();
+    Result CompleteSyncRequest(Session* session);
+
+private:
+    void DestroySession(Session* session);
 
 private:
     Core::System& m_system;
-    Mutex m_serve_mutex;
-    std::mutex m_list_mutex;
+    Mutex m_selection_mutex;
 
-    // Guest state tracking
-    std::map<Kernel::KServerPort*, SessionRequestHandlerFactory> m_ports{};
-    std::map<Kernel::KServerSession*, std::shared_ptr<SessionRequestManager>> m_sessions{};
-    Kernel::KEvent* m_event{};
+    // Events
+    Kernel::KEvent* m_wakeup_event{};
     Kernel::KEvent* m_deferral_event{};
 
-    // Deferral tracking
-    struct RequestState {
-        Kernel::KServerSession* session;
-        std::shared_ptr<HLERequestContext> context;
-        std::shared_ptr<SessionRequestManager> manager;
-    };
-    std::list<RequestState> m_deferrals{};
+    // Deferred wait list
+    std::mutex m_deferred_list_mutex{};
+    MultiWait m_deferred_list{};
+
+    // Guest state tracking
+    MultiWait m_multi_wait{};
+    Common::IntrusiveListBaseTraits<Port>::ListType m_servers{};
+    Common::IntrusiveListBaseTraits<Session>::ListType m_sessions{};
+    std::list<Session*> m_deferred_sessions{};
+    std::optional<MultiWaitHolder> m_wakeup_holder{};
+    std::optional<MultiWaitHolder> m_deferral_holder{};
 
     // Host state tracking
     Common::Event m_stopped{};
