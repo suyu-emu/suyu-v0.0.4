@@ -600,17 +600,17 @@ void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t siz
                             [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
         Image& image = slot_images[id];
-        if (True(image.flags & ImageFlagBits::CpuModified)) {
-            continue;
+        if (False(image.flags & ImageFlagBits::CpuModified)) {
+            image.flags |= ImageFlagBits::CpuModified;
+            if (True(image.flags & ImageFlagBits::Tracked)) {
+                UntrackImage(image, id);
+            }
         }
-        image.flags |= ImageFlagBits::CpuModified;
+
         if (True(image.flags & ImageFlagBits::Remapped)) {
             continue;
         }
         image.flags |= ImageFlagBits::Remapped;
-        if (True(image.flags & ImageFlagBits::Tracked)) {
-            UntrackImage(image, id);
-        }
     }
 }
 
@@ -1463,7 +1463,8 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
     const ImageId new_image_id = slot_images.insert(runtime, new_info, gpu_addr, cpu_addr);
     Image& new_image = slot_images[new_image_id];
 
-    if (!gpu_memory->IsContinuousRange(new_image.gpu_addr, new_image.guest_size_bytes)) {
+    if (!gpu_memory->IsContinuousRange(new_image.gpu_addr, new_image.guest_size_bytes) &&
+        new_info.is_sparse) {
         new_image.flags |= ImageFlagBits::Sparse;
     }
 
