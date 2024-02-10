@@ -9,9 +9,9 @@
 
 namespace Service::FileSystem {
 
-IFileSystem::IFileSystem(Core::System& system_, FileSys::VirtualDir backend_, SizeGetter size_)
-    : ServiceFramework{system_, "IFileSystem"}, backend{std::move(backend_)}, size{std::move(
-                                                                                  size_)} {
+IFileSystem::IFileSystem(Core::System& system_, FileSys::VirtualDir dir_, SizeGetter size_)
+    : ServiceFramework{system_, "IFileSystem"},
+      backend{std::make_unique<FileSys::Fsa::IFileSystem>(dir_)}, size{std::move(size_)} {
     static const FunctionInfo functions[] = {
         {0, &IFileSystem::CreateFile, "CreateFile"},
         {1, &IFileSystem::DeleteFile, "DeleteFile"},
@@ -39,6 +39,7 @@ void IFileSystem::CreateFile(HLERequestContext& ctx) {
 
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     const u64 file_mode = rp.Pop<u64>();
     const u32 file_size = rp.Pop<u32>();
@@ -47,67 +48,75 @@ void IFileSystem::CreateFile(HLERequestContext& ctx) {
               file_size);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.CreateFile(name, file_size));
+    rb.Push(backend->CreateFile(path, file_size));
 }
 
 void IFileSystem::DeleteFile(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_DEBUG(Service_FS, "called. file={}", name);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.DeleteFile(name));
+    rb.Push(backend->DeleteFile(path));
 }
 
 void IFileSystem::CreateDirectory(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_DEBUG(Service_FS, "called. directory={}", name);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.CreateDirectory(name));
+    rb.Push(backend->CreateDirectory(path));
 }
 
 void IFileSystem::DeleteDirectory(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_DEBUG(Service_FS, "called. directory={}", name);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.DeleteDirectory(name));
+    rb.Push(backend->DeleteDirectory(path));
 }
 
 void IFileSystem::DeleteDirectoryRecursively(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_DEBUG(Service_FS, "called. directory={}", name);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.DeleteDirectoryRecursively(name));
+    rb.Push(backend->DeleteDirectoryRecursively(path));
 }
 
 void IFileSystem::CleanDirectoryRecursively(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_DEBUG(Service_FS, "called. Directory: {}", name);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.CleanDirectoryRecursively(name));
+    rb.Push(backend->CleanDirectoryRecursively(path));
 }
 
 void IFileSystem::RenameFile(HLERequestContext& ctx) {
     const std::string src_name = Common::StringFromBuffer(ctx.ReadBuffer(0));
     const std::string dst_name = Common::StringFromBuffer(ctx.ReadBuffer(1));
 
+    const auto src_path = FileSys::Path(src_name.c_str());
+    const auto dst_path = FileSys::Path(dst_name.c_str());
+
     LOG_DEBUG(Service_FS, "called. file '{}' to file '{}'", src_name, dst_name);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(backend.RenameFile(src_name, dst_name));
+    rb.Push(backend->RenameFile(src_path, dst_path));
 }
 
 void IFileSystem::OpenFile(HLERequestContext& ctx) {
@@ -115,13 +124,14 @@ void IFileSystem::OpenFile(HLERequestContext& ctx) {
 
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     const auto mode = static_cast<FileSys::OpenMode>(rp.Pop<u32>());
 
     LOG_DEBUG(Service_FS, "called. file={}, mode={}", name, mode);
 
     FileSys::VirtualFile vfs_file{};
-    auto result = backend.OpenFile(&vfs_file, name, mode);
+    auto result = backend->OpenFile(&vfs_file, path, mode);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
@@ -140,12 +150,13 @@ void IFileSystem::OpenDirectory(HLERequestContext& ctx) {
 
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
     const auto mode = rp.PopRaw<FileSys::OpenDirectoryMode>();
 
     LOG_DEBUG(Service_FS, "called. directory={}, mode={}", name, mode);
 
     FileSys::VirtualDir vfs_dir{};
-    auto result = backend.OpenDirectory(&vfs_dir, name);
+    auto result = backend->OpenDirectory(&vfs_dir, path, mode);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
@@ -162,11 +173,12 @@ void IFileSystem::OpenDirectory(HLERequestContext& ctx) {
 void IFileSystem::GetEntryType(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_DEBUG(Service_FS, "called. file={}", name);
 
     FileSys::DirectoryEntryType vfs_entry_type{};
-    auto result = backend.GetEntryType(&vfs_entry_type, name);
+    auto result = backend->GetEntryType(&vfs_entry_type, path);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
@@ -204,11 +216,12 @@ void IFileSystem::GetTotalSpaceSize(HLERequestContext& ctx) {
 void IFileSystem::GetFileTimeStampRaw(HLERequestContext& ctx) {
     const auto file_buffer = ctx.ReadBuffer();
     const std::string name = Common::StringFromBuffer(file_buffer);
+    const auto path = FileSys::Path(name.c_str());
 
     LOG_WARNING(Service_FS, "(Partial Implementation) called. file={}", name);
 
     FileSys::FileTimeStampRaw vfs_timestamp{};
-    auto result = backend.GetFileTimeStampRaw(&vfs_timestamp, name);
+    auto result = backend->GetFileTimeStampRaw(&vfs_timestamp, path);
     if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);

@@ -7,8 +7,8 @@
 
 namespace Service::FileSystem {
 
-IFile::IFile(Core::System& system_, FileSys::VirtualFile backend_)
-    : ServiceFramework{system_, "IFile"}, backend(std::move(backend_)) {
+IFile::IFile(Core::System& system_, FileSys::VirtualFile file_)
+    : ServiceFramework{system_, "IFile"}, backend{std::make_unique<FileSys::Fsa::IFile>(file_)} {
     static const FunctionInfo functions[] = {
         {0, &IFile::Read, "Read"},
         {1, &IFile::Write, "Write"},
@@ -29,79 +29,40 @@ void IFile::Read(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_FS, "called, option={}, offset=0x{:X}, length={}", option, offset, length);
 
-    // Error checking
-    if (length < 0) {
-        LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(FileSys::ResultInvalidSize);
-        return;
-    }
-    if (offset < 0) {
-        LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(FileSys::ResultInvalidOffset);
-        return;
-    }
-
     // Read the data from the Storage backend
-    std::vector<u8> output = backend->ReadBytes(length, offset);
+    std::vector<u8> output(length);
+    std::size_t bytes_read;
+    const auto result = backend->Read(&bytes_read, offset, output.data(), length);
 
     // Write the data to memory
     ctx.WriteBuffer(output);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(static_cast<u64>(output.size()));
+    rb.Push(result);
+    rb.Push(static_cast<u64>(bytes_read));
 }
 
 void IFile::Write(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const u64 option = rp.Pop<u64>();
+    const auto option = rp.PopRaw<FileSys::WriteOption>();
+    [[maybe_unused]] const u32 unused = rp.Pop<u32>();
     const s64 offset = rp.Pop<s64>();
     const s64 length = rp.Pop<s64>();
 
-    LOG_DEBUG(Service_FS, "called, option={}, offset=0x{:X}, length={}", option, offset, length);
-
-    // Error checking
-    if (length < 0) {
-        LOG_ERROR(Service_FS, "Length is less than 0, length={}", length);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(FileSys::ResultInvalidSize);
-        return;
-    }
-    if (offset < 0) {
-        LOG_ERROR(Service_FS, "Offset is less than 0, offset={}", offset);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(FileSys::ResultInvalidOffset);
-        return;
-    }
+    LOG_DEBUG(Service_FS, "called, option={}, offset=0x{:X}, length={}", option.value, offset,
+              length);
 
     const auto data = ctx.ReadBuffer();
 
-    ASSERT_MSG(static_cast<s64>(data.size()) <= length,
-               "Attempting to write more data than requested (requested={:016X}, actual={:016X}).",
-               length, data.size());
-
-    // Write the data to the Storage backend
-    const auto write_size =
-        static_cast<std::size_t>(std::distance(data.begin(), data.begin() + length));
-    const std::size_t written = backend->Write(data.data(), write_size, offset);
-
-    ASSERT_MSG(static_cast<s64>(written) == length,
-               "Could not write all bytes to file (requested={:016X}, actual={:016X}).", length,
-               written);
-
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(backend->Write(offset, data.data(), length, option));
 }
 
 void IFile::Flush(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    // Exists for SDK compatibiltity -- No need to flush file.
-
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(backend->Flush());
 }
 
 void IFile::SetSize(HLERequestContext& ctx) {
@@ -109,18 +70,17 @@ void IFile::SetSize(HLERequestContext& ctx) {
     const u64 size = rp.Pop<u64>();
     LOG_DEBUG(Service_FS, "called, size={}", size);
 
-    backend->Resize(size);
-
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(backend->SetSize(size));
 }
 
 void IFile::GetSize(HLERequestContext& ctx) {
-    const u64 size = backend->GetSize();
+    s64 size;
+    const auto result = backend->GetSize(&size);
     LOG_DEBUG(Service_FS, "called, size={}", size);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
     rb.Push<u64>(size);
 }
 

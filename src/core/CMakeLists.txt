@@ -59,8 +59,12 @@ add_library(core STATIC
     file_sys/fs_path.h
     file_sys/fs_path_utility.h
     file_sys/fs_string_util.h
+    file_sys/fsa/fs_i_directory.h
+    file_sys/fsa/fs_i_file.h
+    file_sys/fsa/fs_i_filesystem.h
     file_sys/fsmitm_romfsbuild.cpp
     file_sys/fsmitm_romfsbuild.h
+    file_sys/fssrv/fssrv_sf_path.h
     file_sys/fssystem/fs_i_storage.h
     file_sys/fssystem/fs_types.h
     file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.cpp

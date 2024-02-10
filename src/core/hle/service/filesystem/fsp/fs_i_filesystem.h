@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/file_sys/fsa/fs_i_filesystem.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp/fsp_util.h"
@@ -12,7 +13,7 @@ namespace Service::FileSystem {
 
 class IFileSystem final : public ServiceFramework<IFileSystem> {
 public:
-    explicit IFileSystem(Core::System& system_, FileSys::VirtualDir backend_, SizeGetter size_);
+    explicit IFileSystem(Core::System& system_, FileSys::VirtualDir dir_, SizeGetter size_);
 
     void CreateFile(HLERequestContext& ctx);
     void DeleteFile(HLERequestContext& ctx);
@@ -31,7 +32,7 @@ public:
     void GetFileSystemAttribute(HLERequestContext& ctx);
 
 private:
-    VfsDirectoryServiceWrapper backend;
+    std::unique_ptr<FileSys::Fsa::IFileSystem> backend;
     SizeGetter size;
 };
 
