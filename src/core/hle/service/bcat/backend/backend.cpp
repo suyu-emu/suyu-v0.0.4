@@ -33,18 +33,18 @@ void ProgressServiceBackend::SetTotalSize(u64 size) {
 }
 
 void ProgressServiceBackend::StartConnecting() {
-    impl.status = DeliveryCacheProgressImpl::Status::Connecting;
+    impl.status = DeliveryCacheProgressStatus::Connecting;
     SignalUpdate();
 }
 
 void ProgressServiceBackend::StartProcessingDataList() {
-    impl.status = DeliveryCacheProgressImpl::Status::ProcessingDataList;
+    impl.status = DeliveryCacheProgressStatus::ProcessingDataList;
     SignalUpdate();
 }
 
 void ProgressServiceBackend::StartDownloadingFile(std::string_view dir_name,
                                                   std::string_view file_name, u64 file_size) {
-    impl.status = DeliveryCacheProgressImpl::Status::Downloading;
+    impl.status = DeliveryCacheProgressStatus::Downloading;
     impl.current_downloaded_bytes = 0;
     impl.current_total_bytes = file_size;
     std::memcpy(impl.current_directory.data(), dir_name.data(),
@@ -65,7 +65,7 @@ void ProgressServiceBackend::FinishDownloadingFile() {
 }
 
 void ProgressServiceBackend::CommitDirectory(std::string_view dir_name) {
-    impl.status = DeliveryCacheProgressImpl::Status::Committing;
+    impl.status = DeliveryCacheProgressStatus::Committing;
     impl.current_file.fill(0);
     impl.current_downloaded_bytes = 0;
     impl.current_total_bytes = 0;
@@ -76,7 +76,7 @@ void ProgressServiceBackend::CommitDirectory(std::string_view dir_name) {
 
 void ProgressServiceBackend::FinishDownload(Result result) {
     impl.total_downloaded_bytes = impl.total_bytes;
-    impl.status = DeliveryCacheProgressImpl::Status::Done;
+    impl.status = DeliveryCacheProgressStatus::Done;
     impl.result = result;
     SignalUpdate();
 }
@@ -85,15 +85,15 @@ void ProgressServiceBackend::SignalUpdate() {
     update_event->Signal();
 }
 
-Backend::Backend(DirectoryGetter getter) : dir_getter(std::move(getter)) {}
+BcatBackend::BcatBackend(DirectoryGetter getter) : dir_getter(std::move(getter)) {}
 
-Backend::~Backend() = default;
+BcatBackend::~BcatBackend() = default;
 
-NullBackend::NullBackend(DirectoryGetter getter) : Backend(std::move(getter)) {}
+NullBcatBackend::NullBcatBackend(DirectoryGetter getter) : BcatBackend(std::move(getter)) {}
 
-NullBackend::~NullBackend() = default;
+NullBcatBackend::~NullBcatBackend() = default;
 
-bool NullBackend::Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) {
+bool NullBcatBackend::Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, build_id={:016X}", title.title_id,
               title.build_id);
 
@@ -101,8 +101,8 @@ bool NullBackend::Synchronize(TitleIDVersion title, ProgressServiceBackend& prog
     return true;
 }
 
-bool NullBackend::SynchronizeDirectory(TitleIDVersion title, std::string name,
-                                       ProgressServiceBackend& progress) {
+bool NullBcatBackend::SynchronizeDirectory(TitleIDVersion title, std::string name,
+                                           ProgressServiceBackend& progress) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, build_id={:016X}, name={}", title.title_id,
               title.build_id, name);
 
@@ -110,18 +110,18 @@ bool NullBackend::SynchronizeDirectory(TitleIDVersion title, std::string name,
     return true;
 }
 
-bool NullBackend::Clear(u64 title_id) {
+bool NullBcatBackend::Clear(u64 title_id) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}", title_id);
 
     return true;
 }
 
-void NullBackend::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
+void NullBcatBackend::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase={}", title_id,
               Common::HexToString(passphrase));
 }
 
-std::optional<std::vector<u8>> NullBackend::GetLaunchParameter(TitleIDVersion title) {
+std::optional<std::vector<u8>> NullBcatBackend::GetLaunchParameter(TitleIDVersion title) {
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, build_id={:016X}", title.title_id,
               title.build_id);
     return std::nullopt;

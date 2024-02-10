@@ -512,10 +512,35 @@ add_library(core STATIC
     hle/service/audio/hwopus.h
     hle/service/bcat/backend/backend.cpp
     hle/service/bcat/backend/backend.h
+    hle/service/bcat/news/newly_arrived_event_holder.cpp
+    hle/service/bcat/news/newly_arrived_event_holder.h
+    hle/service/bcat/news/news_data_service.cpp
+    hle/service/bcat/news/news_data_service.h
+    hle/service/bcat/news/news_database_service.cpp
+    hle/service/bcat/news/news_database_service.h
+    hle/service/bcat/news/news_service.cpp
+    hle/service/bcat/news/news_service.h
+    hle/service/bcat/news/overwrite_event_holder.cpp
+    hle/service/bcat/news/overwrite_event_holder.h
+    hle/service/bcat/news/service_creator.cpp
+    hle/service/bcat/news/service_creator.h
     hle/service/bcat/bcat.cpp
     hle/service/bcat/bcat.h
-    hle/service/bcat/bcat_module.cpp
-    hle/service/bcat/bcat_module.h
+    hle/service/bcat/bcat_result.h
+    hle/service/bcat/bcat_service.cpp
+    hle/service/bcat/bcat_service.h
+    hle/service/bcat/bcat_types.h
+    hle/service/bcat/bcat_util.h
+    hle/service/bcat/delivery_cache_directory_service.cpp
+    hle/service/bcat/delivery_cache_directory_service.h
+    hle/service/bcat/delivery_cache_file_service.cpp
+    hle/service/bcat/delivery_cache_file_service.h
+    hle/service/bcat/delivery_cache_progress_service.cpp
+    hle/service/bcat/delivery_cache_progress_service.h
+    hle/service/bcat/delivery_cache_storage_service.cpp
+    hle/service/bcat/delivery_cache_storage_service.h
+    hle/service/bcat/service_creator.cpp
+    hle/service/bcat/service_creator.h
     hle/service/bpc/bpc.cpp
     hle/service/bpc/bpc.h
     hle/service/btdrv/btdrv.cpp
