@@ -3,8 +3,8 @@
 
 #include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/savedata_factory.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/fsp/fs_i_directory.h"
-#include "core/hle/service/ipc_helpers.h"
 
 namespace Service::FileSystem {
 
@@ -13,38 +13,24 @@ IDirectory::IDirectory(Core::System& system_, FileSys::VirtualDir directory_,
     : ServiceFramework{system_, "IDirectory"},
       backend(std::make_unique<FileSys::Fsa::IDirectory>(directory_, mode)) {
     static const FunctionInfo functions[] = {
-        {0, &IDirectory::Read, "Read"},
-        {1, &IDirectory::GetEntryCount, "GetEntryCount"},
+        {0, D<&IDirectory::Read>, "Read"},
+        {1, D<&IDirectory::GetEntryCount>, "GetEntryCount"},
     };
     RegisterHandlers(functions);
 }
 
-void IDirectory::Read(HLERequestContext& ctx) {
+Result IDirectory::Read(
+    Out<s64> out_count,
+    const OutArray<FileSys::DirectoryEntry, BufferAttr_HipcMapAlias> out_entries) {
     LOG_DEBUG(Service_FS, "called.");
 
-    // Calculate how many entries we can fit in the output buffer
-    const u64 count_entries = ctx.GetWriteBufferNumElements<FileSys::DirectoryEntry>();
-
-    s64 out_count{};
-    FileSys::DirectoryEntry* out_entries = nullptr;
-    const auto result = backend->Read(&out_count, out_entries, count_entries);
-
-    // Write the data to memory
-    ctx.WriteBuffer(out_entries, out_count);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(result);
-    rb.Push(out_count);
+    R_RETURN(backend->Read(out_count, out_entries.data(), out_entries.size()));
 }
 
-void IDirectory::GetEntryCount(HLERequestContext& ctx) {
+Result IDirectory::GetEntryCount(Out<s64> out_count) {
     LOG_DEBUG(Service_FS, "called");
 
-    s64 out_count{};
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(backend->GetEntryCount(&out_count));
-    rb.Push(out_count);
+    R_RETURN(backend->GetEntryCount(out_count));
 }
 
 } // namespace Service::FileSystem
