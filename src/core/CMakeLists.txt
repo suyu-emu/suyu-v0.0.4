@@ -668,6 +668,18 @@ add_library(core STATIC
     hle/service/ldn/ldn.h
     hle/service/ldn/ldn_results.h
     hle/service/ldn/ldn_types.h
+    hle/service/ldn/monitor_service.cpp
+    hle/service/ldn/monitor_service.h
+    hle/service/ldn/sf_monitor_service.cpp
+    hle/service/ldn/sf_monitor_service.h
+    hle/service/ldn/sf_service.cpp
+    hle/service/ldn/sf_service.h
+    hle/service/ldn/sf_service_monitor.cpp
+    hle/service/ldn/sf_service_monitor.h
+    hle/service/ldn/system_local_communication_service.cpp
+    hle/service/ldn/system_local_communication_service.h
+    hle/service/ldn/user_local_communication_service.cpp
+    hle/service/ldn/user_local_communication_service.h
     hle/service/ldr/ldr.cpp
     hle/service/ldr/ldr.h
     hle/service/lm/lm.cpp

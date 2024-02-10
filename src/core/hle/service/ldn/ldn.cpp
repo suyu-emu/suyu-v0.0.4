@@ -1,36 +1,24 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <memory>
-
 #include "core/core.h"
-#include "core/hle/service/ldn/lan_discovery.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ldn/ldn.h"
-#include "core/hle/service/ldn/ldn_results.h"
-#include "core/hle/service/ldn/ldn_types.h"
-#include "core/hle/service/server_manager.h"
-#include "core/internal_network/network.h"
-#include "core/internal_network/network_interface.h"
-#include "network/network.h"
-
-// This is defined by synchapi.h and conflicts with ServiceContext::CreateEvent
-#undef CreateEvent
+#include "core/hle/service/ldn/monitor_service.h"
+#include "core/hle/service/ldn/sf_monitor_service.h"
+#include "core/hle/service/ldn/sf_service.h"
+#include "core/hle/service/ldn/sf_service_monitor.h"
+#include "core/hle/service/ldn/system_local_communication_service.h"
+#include "core/hle/service/ldn/user_local_communication_service.h"
 
 namespace Service::LDN {
 
-class IMonitorService final : public ServiceFramework<IMonitorService> {
+class IMonitorServiceCreator final : public ServiceFramework<IMonitorServiceCreator> {
 public:
-    explicit IMonitorService(Core::System& system_) : ServiceFramework{system_, "IMonitorService"} {
+    explicit IMonitorServiceCreator(Core::System& system_) : ServiceFramework{system_, "ldn:m"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IMonitorService::GetStateForMonitor, "GetStateForMonitor"},
-            {1, nullptr, "GetNetworkInfoForMonitor"},
-            {2, nullptr, "GetIpv4AddressForMonitor"},
-            {3, nullptr, "GetDisconnectReasonForMonitor"},
-            {4, nullptr, "GetSecurityParameterForMonitor"},
-            {5, nullptr, "GetNetworkConfigForMonitor"},
-            {100, &IMonitorService::InitializeMonitor, "InitializeMonitor"},
-            {101, nullptr, "FinalizeMonitor"},
+            {0, C<&IMonitorServiceCreator::CreateMonitorService>, "CreateMonitorService"}
         };
         // clang-format on
 
@@ -38,84 +26,20 @@ public:
     }
 
 private:
-    void GetStateForMonitor(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.PushEnum(state);
-    }
-
-    void InitializeMonitor(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        state = State::Initialized;
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    State state{State::None};
-};
-
-class LDNM final : public ServiceFramework<LDNM> {
-public:
-    explicit LDNM(Core::System& system_) : ServiceFramework{system_, "ldn:m"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &LDNM::CreateMonitorService, "CreateMonitorService"}
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-    void CreateMonitorService(HLERequestContext& ctx) {
+    Result CreateMonitorService(OutInterface<IMonitorService> out_interface) {
         LOG_DEBUG(Service_LDN, "called");
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IMonitorService>(system);
+        *out_interface = std::make_shared<IMonitorService>(system);
+        R_SUCCEED();
     }
 };
 
-class ISystemLocalCommunicationService final
-    : public ServiceFramework<ISystemLocalCommunicationService> {
+class ISystemServiceCreator final : public ServiceFramework<ISystemServiceCreator> {
 public:
-    explicit ISystemLocalCommunicationService(Core::System& system_)
-        : ServiceFramework{system_, "ISystemLocalCommunicationService"} {
+    explicit ISystemServiceCreator(Core::System& system_) : ServiceFramework{system_, "ldn:s"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetState"},
-            {1, nullptr, "GetNetworkInfo"},
-            {2, nullptr, "GetIpv4Address"},
-            {3, nullptr, "GetDisconnectReason"},
-            {4, nullptr, "GetSecurityParameter"},
-            {5, nullptr, "GetNetworkConfig"},
-            {100, nullptr, "AttachStateChangeEvent"},
-            {101, nullptr, "GetNetworkInfoLatestUpdate"},
-            {102, nullptr, "Scan"},
-            {103, nullptr, "ScanPrivate"},
-            {104, nullptr, "SetWirelessControllerRestriction"},
-            {200, nullptr, "OpenAccessPoint"},
-            {201, nullptr, "CloseAccessPoint"},
-            {202, nullptr, "CreateNetwork"},
-            {203, nullptr, "CreateNetworkPrivate"},
-            {204, nullptr, "DestroyNetwork"},
-            {205, nullptr, "Reject"},
-            {206, nullptr, "SetAdvertiseData"},
-            {207, nullptr, "SetStationAcceptPolicy"},
-            {208, nullptr, "AddAcceptFilterEntry"},
-            {209, nullptr, "ClearAcceptFilter"},
-            {300, nullptr, "OpenStation"},
-            {301, nullptr, "CloseStation"},
-            {302, nullptr, "Connect"},
-            {303, nullptr, "ConnectPrivate"},
-            {304, nullptr, "Disconnect"},
-            {400, nullptr, "InitializeSystem"},
-            {401, nullptr, "FinalizeSystem"},
-            {402, nullptr, "SetOperationMode"},
-            {403, &ISystemLocalCommunicationService::InitializeSystem2, "InitializeSystem2"},
+            {0, C<&ISystemServiceCreator::CreateSystemLocalCommunicationService>, "CreateSystemLocalCommunicationService"},
         };
         // clang-format on
 
@@ -123,651 +47,78 @@ public:
     }
 
 private:
-    void InitializeSystem2(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-};
-
-class IUserLocalCommunicationService final
-    : public ServiceFramework<IUserLocalCommunicationService> {
-public:
-    explicit IUserLocalCommunicationService(Core::System& system_)
-        : ServiceFramework{system_, "IUserLocalCommunicationService"},
-          service_context{system, "IUserLocalCommunicationService"},
-          room_network{system_.GetRoomNetwork()}, lan_discovery{room_network} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IUserLocalCommunicationService::GetState, "GetState"},
-            {1, &IUserLocalCommunicationService::GetNetworkInfo, "GetNetworkInfo"},
-            {2, &IUserLocalCommunicationService::GetIpv4Address, "GetIpv4Address"},
-            {3, &IUserLocalCommunicationService::GetDisconnectReason, "GetDisconnectReason"},
-            {4, &IUserLocalCommunicationService::GetSecurityParameter, "GetSecurityParameter"},
-            {5, &IUserLocalCommunicationService::GetNetworkConfig, "GetNetworkConfig"},
-            {100, &IUserLocalCommunicationService::AttachStateChangeEvent, "AttachStateChangeEvent"},
-            {101, &IUserLocalCommunicationService::GetNetworkInfoLatestUpdate, "GetNetworkInfoLatestUpdate"},
-            {102, &IUserLocalCommunicationService::Scan, "Scan"},
-            {103, &IUserLocalCommunicationService::ScanPrivate, "ScanPrivate"},
-            {104, &IUserLocalCommunicationService::SetWirelessControllerRestriction, "SetWirelessControllerRestriction"},
-            {200, &IUserLocalCommunicationService::OpenAccessPoint, "OpenAccessPoint"},
-            {201, &IUserLocalCommunicationService::CloseAccessPoint, "CloseAccessPoint"},
-            {202, &IUserLocalCommunicationService::CreateNetwork, "CreateNetwork"},
-            {203, &IUserLocalCommunicationService::CreateNetworkPrivate, "CreateNetworkPrivate"},
-            {204, &IUserLocalCommunicationService::DestroyNetwork, "DestroyNetwork"},
-            {205, nullptr, "Reject"},
-            {206, &IUserLocalCommunicationService::SetAdvertiseData, "SetAdvertiseData"},
-            {207, &IUserLocalCommunicationService::SetStationAcceptPolicy, "SetStationAcceptPolicy"},
-            {208, &IUserLocalCommunicationService::AddAcceptFilterEntry, "AddAcceptFilterEntry"},
-            {209, nullptr, "ClearAcceptFilter"},
-            {300, &IUserLocalCommunicationService::OpenStation, "OpenStation"},
-            {301, &IUserLocalCommunicationService::CloseStation, "CloseStation"},
-            {302, &IUserLocalCommunicationService::Connect, "Connect"},
-            {303, nullptr, "ConnectPrivate"},
-            {304, &IUserLocalCommunicationService::Disconnect, "Disconnect"},
-            {400, &IUserLocalCommunicationService::Initialize, "Initialize"},
-            {401, &IUserLocalCommunicationService::Finalize, "Finalize"},
-            {402, &IUserLocalCommunicationService::Initialize2, "Initialize2"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-
-        state_change_event =
-            service_context.CreateEvent("IUserLocalCommunicationService:StateChangeEvent");
-    }
-
-    ~IUserLocalCommunicationService() {
-        if (is_initialized) {
-            if (auto room_member = room_network.GetRoomMember().lock()) {
-                room_member->Unbind(ldn_packet_received);
-            }
-        }
-
-        service_context.CloseEvent(state_change_event);
-    }
-
-    /// Callback to parse and handle a received LDN packet.
-    void OnLDNPacketReceived(const Network::LDNPacket& packet) {
-        lan_discovery.ReceivePacket(packet);
-    }
-
-    void OnEventFired() {
-        state_change_event->Signal();
-    }
-
-    void GetState(HLERequestContext& ctx) {
-        State state = State::Error;
-
-        if (is_initialized) {
-            state = lan_discovery.GetState();
-        }
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.PushEnum(state);
-    }
-
-    void GetNetworkInfo(HLERequestContext& ctx) {
-        const auto write_buffer_size = ctx.GetWriteBufferSize();
-
-        if (write_buffer_size != sizeof(NetworkInfo)) {
-            LOG_ERROR(Service_LDN, "Invalid buffer size {}", write_buffer_size);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultBadInput);
-            return;
-        }
-
-        NetworkInfo network_info{};
-        const auto rc = lan_discovery.GetNetworkInfo(network_info);
-        if (rc.IsError()) {
-            LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(rc);
-            return;
-        }
-
-        ctx.WriteBuffer<NetworkInfo>(network_info);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void GetIpv4Address(HLERequestContext& ctx) {
-        const auto network_interface = Network::GetSelectedNetworkInterface();
-
-        if (!network_interface) {
-            LOG_ERROR(Service_LDN, "No network interface available");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultNoIpAddress);
-            return;
-        }
-
-        Ipv4Address current_address{Network::TranslateIPv4(network_interface->ip_address)};
-        Ipv4Address subnet_mask{Network::TranslateIPv4(network_interface->subnet_mask)};
-
-        // When we're connected to a room, spoof the hosts IP address
-        if (auto room_member = room_network.GetRoomMember().lock()) {
-            if (room_member->IsConnected()) {
-                current_address = room_member->GetFakeIpAddress();
-            }
-        }
-
-        std::reverse(std::begin(current_address), std::end(current_address)); // ntohl
-        std::reverse(std::begin(subnet_mask), std::end(subnet_mask));         // ntohl
-
-        IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(ResultSuccess);
-        rb.PushRaw(current_address);
-        rb.PushRaw(subnet_mask);
-    }
-
-    void GetDisconnectReason(HLERequestContext& ctx) {
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.PushEnum(lan_discovery.GetDisconnectReason());
-    }
-
-    void GetSecurityParameter(HLERequestContext& ctx) {
-        SecurityParameter security_parameter{};
-        NetworkInfo info{};
-        const Result rc = lan_discovery.GetNetworkInfo(info);
-
-        if (rc.IsError()) {
-            LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(rc);
-            return;
-        }
-
-        security_parameter.session_id = info.network_id.session_id;
-        std::memcpy(security_parameter.data.data(), info.ldn.security_parameter.data(),
-                    sizeof(SecurityParameter::data));
-
-        IPC::ResponseBuilder rb{ctx, 10};
-        rb.Push(rc);
-        rb.PushRaw<SecurityParameter>(security_parameter);
-    }
-
-    void GetNetworkConfig(HLERequestContext& ctx) {
-        NetworkConfig config{};
-        NetworkInfo info{};
-        const Result rc = lan_discovery.GetNetworkInfo(info);
-
-        if (rc.IsError()) {
-            LOG_ERROR(Service_LDN, "NetworkConfig is not valid {}", rc.raw);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(rc);
-            return;
-        }
-
-        config.intent_id = info.network_id.intent_id;
-        config.channel = info.common.channel;
-        config.node_count_max = info.ldn.node_count_max;
-        config.local_communication_version = info.ldn.nodes[0].local_communication_version;
-
-        IPC::ResponseBuilder rb{ctx, 10};
-        rb.Push(rc);
-        rb.PushRaw<NetworkConfig>(config);
-    }
-
-    void AttachStateChangeEvent(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(ResultSuccess);
-        rb.PushCopyObjects(state_change_event->GetReadableEvent());
-    }
-
-    void GetNetworkInfoLatestUpdate(HLERequestContext& ctx) {
-        const std::size_t network_buffer_size = ctx.GetWriteBufferSize(0);
-        const std::size_t node_buffer_count = ctx.GetWriteBufferNumElements<NodeLatestUpdate>(1);
-
-        if (node_buffer_count == 0 || network_buffer_size != sizeof(NetworkInfo)) {
-            LOG_ERROR(Service_LDN, "Invalid buffer, size = {}, count = {}", network_buffer_size,
-                      node_buffer_count);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultBadInput);
-            return;
-        }
-
-        NetworkInfo info{};
-        std::vector<NodeLatestUpdate> latest_update(node_buffer_count);
-
-        const auto rc = lan_discovery.GetNetworkInfo(info, latest_update, latest_update.size());
-        if (rc.IsError()) {
-            LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(rc);
-            return;
-        }
-
-        ctx.WriteBuffer(info, 0);
-        ctx.WriteBuffer(latest_update, 1);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void Scan(HLERequestContext& ctx) {
-        ScanImpl(ctx);
-    }
-
-    void ScanPrivate(HLERequestContext& ctx) {
-        ScanImpl(ctx, true);
-    }
-
-    void ScanImpl(HLERequestContext& ctx, bool is_private = false) {
-        IPC::RequestParser rp{ctx};
-        const auto channel{rp.PopEnum<WifiChannel>()};
-        const auto scan_filter{rp.PopRaw<ScanFilter>()};
-
-        const std::size_t network_info_size = ctx.GetWriteBufferNumElements<NetworkInfo>();
-
-        if (network_info_size == 0) {
-            LOG_ERROR(Service_LDN, "Invalid buffer size {}", network_info_size);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultBadInput);
-            return;
-        }
-
-        u16 count = 0;
-        std::vector<NetworkInfo> network_infos(network_info_size);
-        Result rc = lan_discovery.Scan(network_infos, count, scan_filter);
-
-        LOG_INFO(Service_LDN,
-                 "called, channel={}, filter_scan_flag={}, filter_network_type={}, is_private={}",
-                 channel, scan_filter.flag, scan_filter.network_type, is_private);
-
-        ctx.WriteBuffer(network_infos);
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(rc);
-        rb.Push<u32>(count);
-    }
-
-    void SetWirelessControllerRestriction(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void OpenAccessPoint(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.OpenAccessPoint());
-    }
-
-    void CloseAccessPoint(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.CloseAccessPoint());
-    }
-
-    void CreateNetwork(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        CreateNetworkImpl(ctx);
-    }
-
-    void CreateNetworkPrivate(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        CreateNetworkImpl(ctx, true);
-    }
-
-    void CreateNetworkImpl(HLERequestContext& ctx, bool is_private = false) {
-        IPC::RequestParser rp{ctx};
-
-        const auto security_config{rp.PopRaw<SecurityConfig>()};
-        [[maybe_unused]] const auto security_parameter{is_private ? rp.PopRaw<SecurityParameter>()
-                                                                  : SecurityParameter{}};
-        const auto user_config{rp.PopRaw<UserConfig>()};
-        rp.Pop<u32>(); // Padding
-        const auto network_Config{rp.PopRaw<NetworkConfig>()};
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.CreateNetwork(security_config, user_config, network_Config));
-    }
-
-    void DestroyNetwork(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.DestroyNetwork());
-    }
-
-    void SetAdvertiseData(HLERequestContext& ctx) {
-        const auto read_buffer = ctx.ReadBuffer();
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.SetAdvertiseData(read_buffer));
-    }
-
-    void SetStationAcceptPolicy(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void AddAcceptFilterEntry(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void OpenStation(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.OpenStation());
-    }
-
-    void CloseStation(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.CloseStation());
-    }
-
-    void Connect(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        struct Parameters {
-            SecurityConfig security_config;
-            UserConfig user_config;
-            u32 local_communication_version;
-            u32 option;
-        };
-        static_assert(sizeof(Parameters) == 0x7C, "Parameters has incorrect size.");
-
-        const auto parameters{rp.PopRaw<Parameters>()};
-
-        LOG_INFO(Service_LDN,
-                 "called, passphrase_size={}, security_mode={}, "
-                 "local_communication_version={}",
-                 parameters.security_config.passphrase_size,
-                 parameters.security_config.security_mode, parameters.local_communication_version);
-
-        const auto read_buffer = ctx.ReadBuffer();
-        if (read_buffer.size() != sizeof(NetworkInfo)) {
-            LOG_ERROR(Frontend, "NetworkInfo doesn't match read_buffer size!");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultBadInput);
-            return;
-        }
-
-        NetworkInfo network_info{};
-        std::memcpy(&network_info, read_buffer.data(), read_buffer.size());
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.Connect(network_info, parameters.user_config,
-                                      static_cast<u16>(parameters.local_communication_version)));
-    }
-
-    void Disconnect(HLERequestContext& ctx) {
-        LOG_INFO(Service_LDN, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.Disconnect());
-    }
-
-    void Initialize(HLERequestContext& ctx) {
-        const auto rc = InitializeImpl(ctx);
-        if (rc.IsError()) {
-            LOG_ERROR(Service_LDN, "Network isn't initialized, rc={}", rc.raw);
-        }
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(rc);
-    }
-
-    void Finalize(HLERequestContext& ctx) {
-        if (auto room_member = room_network.GetRoomMember().lock()) {
-            room_member->Unbind(ldn_packet_received);
-        }
-
-        is_initialized = false;
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(lan_discovery.Finalize());
-    }
-
-    void Initialize2(HLERequestContext& ctx) {
-        const auto rc = InitializeImpl(ctx);
-        if (rc.IsError()) {
-            LOG_ERROR(Service_LDN, "Network isn't initialized, rc={}", rc.raw);
-        }
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(rc);
-    }
-
-    Result InitializeImpl(HLERequestContext& ctx) {
-        const auto network_interface = Network::GetSelectedNetworkInterface();
-        if (!network_interface) {
-            LOG_ERROR(Service_LDN, "No network interface is set");
-            return ResultAirplaneModeEnabled;
-        }
-
-        if (auto room_member = room_network.GetRoomMember().lock()) {
-            ldn_packet_received = room_member->BindOnLdnPacketReceived(
-                [this](const Network::LDNPacket& packet) { OnLDNPacketReceived(packet); });
-        } else {
-            LOG_ERROR(Service_LDN, "Couldn't bind callback!");
-            return ResultAirplaneModeEnabled;
-        }
-
-        lan_discovery.Initialize([&]() { OnEventFired(); });
-        is_initialized = true;
-        return ResultSuccess;
-    }
-
-    KernelHelpers::ServiceContext service_context;
-    Kernel::KEvent* state_change_event;
-    Network::RoomNetwork& room_network;
-    LANDiscovery lan_discovery;
-
-    // Callback identifier for the OnLDNPacketReceived event.
-    Network::RoomMember::CallbackHandle<Network::LDNPacket> ldn_packet_received;
-
-    bool is_initialized{};
-};
-
-class LDNS final : public ServiceFramework<LDNS> {
-public:
-    explicit LDNS(Core::System& system_) : ServiceFramework{system_, "ldn:s"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &LDNS::CreateSystemLocalCommunicationService, "CreateSystemLocalCommunicationService"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-    void CreateSystemLocalCommunicationService(HLERequestContext& ctx) {
+    Result CreateSystemLocalCommunicationService(
+        OutInterface<ISystemLocalCommunicationService> out_interface) {
         LOG_DEBUG(Service_LDN, "called");
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISystemLocalCommunicationService>(system);
+        *out_interface = std::make_shared<ISystemLocalCommunicationService>(system);
+        R_SUCCEED();
     }
 };
 
-class LDNU final : public ServiceFramework<LDNU> {
+class IUserServiceCreator final : public ServiceFramework<IUserServiceCreator> {
 public:
-    explicit LDNU(Core::System& system_) : ServiceFramework{system_, "ldn:u"} {
+    explicit IUserServiceCreator(Core::System& system_) : ServiceFramework{system_, "ldn:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &LDNU::CreateUserLocalCommunicationService, "CreateUserLocalCommunicationService"},
+            {0, C<&IUserServiceCreator::CreateUserLocalCommunicationService>, "CreateUserLocalCommunicationService"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
 
-    void CreateUserLocalCommunicationService(HLERequestContext& ctx) {
+private:
+    Result CreateUserLocalCommunicationService(
+        OutInterface<IUserLocalCommunicationService> out_interface) {
         LOG_DEBUG(Service_LDN, "called");
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IUserLocalCommunicationService>(system);
+        *out_interface = std::make_shared<IUserLocalCommunicationService>(system);
+        R_SUCCEED();
     }
 };
 
-class INetworkService final : public ServiceFramework<INetworkService> {
+class ISfServiceCreator final : public ServiceFramework<ISfServiceCreator> {
 public:
-    explicit INetworkService(Core::System& system_) : ServiceFramework{system_, "INetworkService"} {
+    explicit ISfServiceCreator(Core::System& system_, bool is_system_, const char* name_)
+        : ServiceFramework{system_, name_}, is_system{is_system_} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Initialize"},
-            {256, nullptr, "AttachNetworkInterfaceStateChangeEvent"},
-            {264, nullptr, "GetNetworkInterfaceLastError"},
-            {272, nullptr, "GetRole"},
-            {280, nullptr, "GetAdvertiseData"},
-            {288, nullptr, "GetGroupInfo"},
-            {296, nullptr, "GetGroupInfo2"},
-            {304, nullptr, "GetGroupOwner"},
-            {312, nullptr, "GetIpConfig"},
-            {320, nullptr, "GetLinkLevel"},
-            {512, nullptr, "Scan"},
-            {768, nullptr, "CreateGroup"},
-            {776, nullptr, "DestroyGroup"},
-            {784, nullptr, "SetAdvertiseData"},
-            {1536, nullptr, "SendToOtherGroup"},
-            {1544, nullptr, "RecvFromOtherGroup"},
-            {1552, nullptr, "AddAcceptableGroupId"},
-            {1560, nullptr, "ClearAcceptableGroupId"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-};
-
-class INetworkServiceMonitor final : public ServiceFramework<INetworkServiceMonitor> {
-public:
-    explicit INetworkServiceMonitor(Core::System& system_)
-        : ServiceFramework{system_, "INetworkServiceMonitor"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &INetworkServiceMonitor::Initialize, "Initialize"},
-            {256, nullptr, "AttachNetworkInterfaceStateChangeEvent"},
-            {264, nullptr, "GetNetworkInterfaceLastError"},
-            {272, nullptr, "GetRole"},
-            {280, nullptr, "GetAdvertiseData"},
-            {281, nullptr, "GetAdvertiseData2"},
-            {288, nullptr, "GetGroupInfo"},
-            {296, nullptr, "GetGroupInfo2"},
-            {304, nullptr, "GetGroupOwner"},
-            {312, nullptr, "GetIpConfig"},
-            {320, nullptr, "GetLinkLevel"},
-            {328, nullptr, "AttachJoinEvent"},
-            {336, nullptr, "GetMembers"},
+            {0, C<&ISfServiceCreator::CreateNetworkService>, "CreateNetworkService"},
+            {8, C<&ISfServiceCreator::CreateNetworkServiceMonitor>, "CreateNetworkServiceMonitor"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
 
-    void Initialize(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultDisabled);
-    }
-};
-
-class LP2PAPP final : public ServiceFramework<LP2PAPP> {
-public:
-    explicit LP2PAPP(Core::System& system_) : ServiceFramework{system_, "lp2p:app"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &LP2PAPP::CreateMonitorService, "CreateNetworkService"},
-            {8, &LP2PAPP::CreateMonitorService, "CreateNetworkServiceMonitor"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-    void CreateNetworkervice(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 reserved_input = rp.Pop<u64>();
-        const u32 input = rp.Pop<u32>();
-
+private:
+    Result CreateNetworkService(OutInterface<ISfService> out_interface, u32 input,
+                                u64 reserved_input) {
         LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={} input={}", reserved_input,
                     input);
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<INetworkService>(system);
+        *out_interface = std::make_shared<ISfService>(system);
+        R_SUCCEED();
     }
 
-    void CreateMonitorService(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 reserved_input = rp.Pop<u64>();
-
+    Result CreateNetworkServiceMonitor(OutInterface<ISfServiceMonitor> out_interface,
+                                       u64 reserved_input) {
         LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={}", reserved_input);
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<INetworkServiceMonitor>(system);
+        *out_interface = std::make_shared<ISfServiceMonitor>(system);
+        R_SUCCEED();
     }
+
+    bool is_system{};
 };
 
-class LP2PSYS final : public ServiceFramework<LP2PSYS> {
+class ISfMonitorServiceCreator final : public ServiceFramework<ISfMonitorServiceCreator> {
 public:
-    explicit LP2PSYS(Core::System& system_) : ServiceFramework{system_, "lp2p:sys"} {
+    explicit ISfMonitorServiceCreator(Core::System& system_) : ServiceFramework{system_, "lp2p:m"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &LP2PSYS::CreateMonitorService, "CreateNetworkService"},
-            {8, &LP2PSYS::CreateMonitorService, "CreateNetworkServiceMonitor"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-    void CreateNetworkervice(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 reserved_input = rp.Pop<u64>();
-        const u32 input = rp.Pop<u32>();
-
-        LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={} input={}", reserved_input,
-                    input);
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<INetworkService>(system);
-    }
-
-    void CreateMonitorService(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 reserved_input = rp.Pop<u64>();
-
-        LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={}", reserved_input);
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<INetworkServiceMonitor>(system);
-    }
-};
-
-class ISfMonitorService final : public ServiceFramework<ISfMonitorService> {
-public:
-    explicit ISfMonitorService(Core::System& system_)
-        : ServiceFramework{system_, "ISfMonitorService"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &ISfMonitorService::Initialize, "Initialize"},
-            {288, &ISfMonitorService::GetGroupInfo, "GetGroupInfo"},
-            {320, nullptr, "GetLinkLevel"},
+            {0, C<&ISfMonitorServiceCreator::CreateMonitorService>, "CreateMonitorService"},
         };
         // clang-format on
 
@@ -775,64 +126,27 @@ public:
     }
 
 private:
-    void Initialize(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push(0);
-    }
-
-    void GetGroupInfo(HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-        struct GroupInfo {
-            std::array<u8, 0x200> info;
-        };
-
-        GroupInfo group_info{};
-
-        ctx.WriteBuffer(group_info);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-};
-
-class LP2PM final : public ServiceFramework<LP2PM> {
-public:
-    explicit LP2PM(Core::System& system_) : ServiceFramework{system_, "lp2p:m"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &LP2PM::CreateMonitorService, "CreateMonitorService"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void CreateMonitorService(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 reserved_input = rp.Pop<u64>();
-
+    Result CreateMonitorService(OutInterface<ISfMonitorService> out_interface, u64 reserved_input) {
         LOG_INFO(Service_LDN, "called, reserved_input={}", reserved_input);
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISfMonitorService>(system);
+        *out_interface = std::make_shared<ISfMonitorService>(system);
+        R_SUCCEED();
     }
 };
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("ldn:m", std::make_shared<LDNM>(system));
-    server_manager->RegisterNamedService("ldn:s", std::make_shared<LDNS>(system));
-    server_manager->RegisterNamedService("ldn:u", std::make_shared<LDNU>(system));
+    server_manager->RegisterNamedService("ldn:m", std::make_shared<IMonitorServiceCreator>(system));
+    server_manager->RegisterNamedService("ldn:s", std::make_shared<ISystemServiceCreator>(system));
+    server_manager->RegisterNamedService("ldn:u", std::make_shared<IUserServiceCreator>(system));
 
-    server_manager->RegisterNamedService("lp2p:app", std::make_shared<LP2PAPP>(system));
-    server_manager->RegisterNamedService("lp2p:sys", std::make_shared<LP2PSYS>(system));
-    server_manager->RegisterNamedService("lp2p:m", std::make_shared<LP2PM>(system));
+    server_manager->RegisterNamedService(
+        "lp2p:app", std::make_shared<ISfServiceCreator>(system, false, "lp2p:app"));
+    server_manager->RegisterNamedService(
+        "lp2p:sys", std::make_shared<ISfServiceCreator>(system, true, "lp2p:sys"));
+    server_manager->RegisterNamedService("lp2p:m",
+                                         std::make_shared<ISfMonitorServiceCreator>(system));
 
     ServerManager::RunServer(std::move(server_manager));
 }
