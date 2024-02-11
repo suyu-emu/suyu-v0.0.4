@@ -19,15 +19,13 @@ layout (push_constant) uniform PushConstants {
 //   Any member of a push constant block that is declared as an
 //   array must only be accessed with dynamically uniform indices.
 ScreenRectVertex GetVertex(int index) {
-    switch (index) {
-    case 0:
-    default:
+    if (index < 1) {
         return vertices[0];
-    case 1:
+    } else if (index < 2) {
         return vertices[1];
-    case 2:
+    } else if (index < 3) {
         return vertices[2];
-    case 3:
+    } else {
         return vertices[3];
     }
 }
