@@ -16,7 +16,7 @@ namespace FileSys::Fsa {
 
 class IFile {
 public:
-    IFile(VirtualFile backend_) : backend(std::move(backend_)) {}
+    explicit IFile(VirtualFile backend_) : backend(std::move(backend_)) {}
     virtual ~IFile() {}
 
     Result Read(size_t* out, s64 offset, void* buffer, size_t size, const ReadOption& option) {
@@ -126,8 +126,10 @@ protected:
 private:
     Result DoRead(size_t* out, s64 offset, void* buffer, size_t size, const ReadOption& option) {
         std::vector<u8> output = backend->ReadBytes(size, offset);
+
         *out = output.size();
-        buffer = output.data();
+        std::memcpy(buffer, output.data(), size);
+
         R_SUCCEED();
     }
 

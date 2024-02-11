@@ -91,8 +91,12 @@ public:
     }
 
 #define DECLARE_PATH_FLAG_HANDLER(__WHICH__)                                                       \
-    constexpr bool Is##__WHICH__##Allowed() const { return (m_value & __WHICH__##Flag) != 0; }     \
-    constexpr void Allow##__WHICH__() { m_value |= __WHICH__##Flag; }
+    constexpr bool Is##__WHICH__##Allowed() const {                                                \
+        return (m_value & __WHICH__##Flag) != 0;                                                   \
+    }                                                                                              \
+    constexpr void Allow##__WHICH__() {                                                            \
+        m_value |= __WHICH__##Flag;                                                                \
+    }
 
     DECLARE_PATH_FLAG_HANDLER(WindowsPath)
     DECLARE_PATH_FLAG_HANDLER(RelativePath)
@@ -426,9 +430,10 @@ public:
         R_SUCCEED();
     }
 
-    static Result Normalize(char* dst, size_t* out_len, const char* path, size_t max_out_size,
-                            bool is_windows_path, bool is_drive_relative_path,
-                            bool allow_all_characters = false) {
+    static constexpr Result Normalize(char* dst, size_t* out_len, const char* path,
+                                      size_t max_out_size, bool is_windows_path,
+                                      bool is_drive_relative_path,
+                                      bool allow_all_characters = false) {
         // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 

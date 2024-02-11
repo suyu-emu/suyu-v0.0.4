@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "common/common_funcs.h"
 #include "core/file_sys/fsa/fs_i_filesystem.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/cmif_types.h"
@@ -48,8 +49,8 @@ public:
     };
     static_assert(sizeof(FileSystemAttribute) == 0xC0, "FileSystemAttribute has incorrect size");
 
-    Result CreateFile(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path,
-                      s32 option, s64 size);
+    Result CreateFile(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path, s32 option,
+                      s64 size);
     Result DeleteFile(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path);
     Result CreateDirectory(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path);
     Result DeleteDirectory(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path);

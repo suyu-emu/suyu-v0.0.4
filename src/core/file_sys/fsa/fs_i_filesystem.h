@@ -15,7 +15,7 @@ namespace FileSys::Fsa {
 class IFile;
 class IDirectory;
 
-enum class QueryId {
+enum class QueryId : u32 {
     SetConcatenationFileAttribute = 0,
     UpdateMac = 1,
     IsSignedSystemPartitionOnSdCardValid = 2,
@@ -24,7 +24,7 @@ enum class QueryId {
 
 class IFileSystem {
 public:
-    IFileSystem(VirtualDir backend_) : backend{std::move(backend_)} {}
+    explicit IFileSystem(VirtualDir backend_) : backend{std::move(backend_)} {}
     virtual ~IFileSystem() {}
 
     Result CreateFile(const Path& path, s64 size, CreateOption option) {
@@ -158,8 +158,7 @@ private:
         R_RETURN(backend.OpenFile(out_file, path.GetString(), mode));
     }
 
-    Result DoOpenDirectory(VirtualDir* out_directory, const Path& path,
-                           OpenDirectoryMode mode) {
+    Result DoOpenDirectory(VirtualDir* out_directory, const Path& path, OpenDirectoryMode mode) {
         R_RETURN(backend.OpenDirectory(out_directory, path.GetString()));
     }
 
