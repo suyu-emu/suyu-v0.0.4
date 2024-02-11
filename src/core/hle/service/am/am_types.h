@@ -169,6 +169,12 @@ struct AppletIdentityInfo {
 };
 static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
 
+struct AppletAttribute {
+    u8 flag;
+    INSERT_PADDING_BYTES_NOINIT(0x7F);
+};
+static_assert(sizeof(AppletAttribute) == 0x80, "AppletAttribute has incorrect size.");
+
 using AppletResourceUserId = u64;
 using ProgramId = u64;
 
