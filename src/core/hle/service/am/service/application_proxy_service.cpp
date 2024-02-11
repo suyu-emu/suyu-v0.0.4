@@ -4,7 +4,7 @@
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_manager.h"
-#include "core/hle/service/am/application_proxy.h"
+#include "core/hle/service/am/service/application_proxy.h"
 #include "core/hle/service/am/service/application_proxy_service.h"
 #include "core/hle/service/cmif_serialization.h"
 
@@ -27,7 +27,8 @@ Result IApplicationProxyService::OpenApplicationProxy(
     LOG_DEBUG(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid)) {
-        *out_application_proxy = std::make_shared<IApplicationProxy>(m_nvnflinger, applet, system);
+        *out_application_proxy =
+            std::make_shared<IApplicationProxy>(system, applet, process_handle.Get(), m_nvnflinger);
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();

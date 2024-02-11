@@ -429,8 +429,6 @@ add_library(core STATIC
     hle/service/am/application_creator.h
     hle/service/am/application_functions.cpp
     hle/service/am/application_functions.h
-    hle/service/am/application_proxy.cpp
-    hle/service/am/application_proxy.h
     hle/service/am/audio_controller.cpp
     hle/service/am/audio_controller.h
     hle/service/am/common_state_getter.cpp
@@ -473,6 +471,8 @@ add_library(core STATIC
     hle/service/am/service/all_system_applet_proxies_service.h
     hle/service/am/service/application_proxy_service.cpp
     hle/service/am/service/application_proxy_service.h
+    hle/service/am/service/application_proxy.cpp
+    hle/service/am/service/application_proxy.h
     hle/service/am/system_applet_proxy.cpp
     hle/service/am/system_applet_proxy.h
     hle/service/am/system_buffer_manager.cpp
