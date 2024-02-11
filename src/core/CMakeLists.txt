@@ -417,14 +417,10 @@ add_library(core STATIC
     hle/service/am/am_types.h
     hle/service/am/applet.cpp
     hle/service/am/applet.h
-    hle/service/am/applet_ae.cpp
-    hle/service/am/applet_ae.h
     hle/service/am/applet_manager.cpp
     hle/service/am/applet_data_broker.cpp
     hle/service/am/applet_data_broker.h
     hle/service/am/applet_manager.h
-    hle/service/am/applet_oe.cpp
-    hle/service/am/applet_oe.h
     hle/service/am/applet_common_functions.cpp
     hle/service/am/applet_common_functions.h
     hle/service/am/applet_message_queue.cpp
@@ -473,6 +469,10 @@ add_library(core STATIC
     hle/service/am/process.h
     hle/service/am/self_controller.cpp
     hle/service/am/self_controller.h
+    hle/service/am/service/all_system_applet_proxies_service.cpp
+    hle/service/am/service/all_system_applet_proxies_service.h
+    hle/service/am/service/application_proxy_service.cpp
+    hle/service/am/service/application_proxy_service.h
     hle/service/am/system_applet_proxy.cpp
     hle/service/am/system_applet_proxy.h
     hle/service/am/system_buffer_manager.cpp
