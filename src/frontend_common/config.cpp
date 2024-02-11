@@ -867,15 +867,9 @@ void Config::Reload() {
 }
 
 void Config::ClearControlPlayerValues() const {
-    // If key is an empty string, all keys in the current group() are removed.
+    // Removes the entire [Controls] section
     const char* section = Settings::TranslateCategory(Settings::Category::Controls);
-    CSimpleIniA::TNamesDepend keys;
-    config->GetAllKeys(section, keys);
-    for (const auto& key : keys) {
-        if (std::string(config->GetValue(section, key.pItem)).empty()) {
-            config->Delete(section, key.pItem);
-        }
-    }
+    config->Delete(section, nullptr, true);
 }
 
 const std::string& Config::GetConfigFilePath() const {
