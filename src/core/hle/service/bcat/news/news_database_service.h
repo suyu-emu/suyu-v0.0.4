@@ -19,6 +19,14 @@ public:
 
 private:
     Result Count(Out<s32> out_count, InBuffer<BufferAttr_HipcPointer> buffer_data);
+
+    Result UpdateIntegerValueWithAddition(u32 value, InBuffer<BufferAttr_HipcPointer> buffer_data_1,
+                                          InBuffer<BufferAttr_HipcPointer> buffer_data_2);
+
+    Result GetList(Out<s32> out_count, u32 value,
+                   OutBuffer<BufferAttr_HipcMapAlias> out_buffer_data,
+                   InBuffer<BufferAttr_HipcPointer> buffer_data_1,
+                   InBuffer<BufferAttr_HipcPointer> buffer_data_2);
 };
 
 } // namespace Service::News

@@ -12,7 +12,7 @@ INewlyArrivedEventHolder::INewlyArrivedEventHolder(Core::System& system_)
                                                                  "INewlyArrivedEventHolder"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&INewlyArrivedEventHolder::Get>, "Get"},
+        {0, D<&INewlyArrivedEventHolder::Get>, "Get"},
     };
     // clang-format on
 

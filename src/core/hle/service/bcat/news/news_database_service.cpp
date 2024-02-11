@@ -11,12 +11,12 @@ INewsDatabaseService::INewsDatabaseService(Core::System& system_)
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetListV1"},
-        {1, C<&INewsDatabaseService::Count>, "Count"},
+        {1, D<&INewsDatabaseService::Count>, "Count"},
         {2, nullptr, "CountWithKey"},
         {3, nullptr, "UpdateIntegerValue"},
-        {4, nullptr, "UpdateIntegerValueWithAddition"},
+        {4, D<&INewsDatabaseService::UpdateIntegerValueWithAddition>, "UpdateIntegerValueWithAddition"},
         {5, nullptr, "UpdateStringValue"},
-        {1000, nullptr, "GetList"},
+        {1000, D<&INewsDatabaseService::GetList>, "GetList"},
     };
     // clang-format on
 
@@ -28,6 +28,24 @@ INewsDatabaseService::~INewsDatabaseService() = default;
 Result INewsDatabaseService::Count(Out<s32> out_count,
                                    InBuffer<BufferAttr_HipcPointer> buffer_data) {
     LOG_WARNING(Service_BCAT, "(STUBBED) called, buffer_size={}", buffer_data.size());
+    *out_count = 0;
+    R_SUCCEED();
+}
+
+Result INewsDatabaseService::UpdateIntegerValueWithAddition(
+    u32 value, InBuffer<BufferAttr_HipcPointer> buffer_data_1,
+    InBuffer<BufferAttr_HipcPointer> buffer_data_2) {
+    LOG_WARNING(Service_BCAT, "(STUBBED) called, value={}, buffer_size_1={}, buffer_data_2={}",
+                value, buffer_data_1.size(), buffer_data_2.size());
+    R_SUCCEED();
+}
+
+Result INewsDatabaseService::GetList(Out<s32> out_count, u32 value,
+                                     OutBuffer<BufferAttr_HipcMapAlias> out_buffer_data,
+                                     InBuffer<BufferAttr_HipcPointer> buffer_data_1,
+                                     InBuffer<BufferAttr_HipcPointer> buffer_data_2) {
+    LOG_WARNING(Service_BCAT, "(STUBBED) called, value={}, buffer_size_1={}, buffer_data_2={}",
+                value, buffer_data_1.size(), buffer_data_2.size());
     *out_count = 0;
     R_SUCCEED();
 }
