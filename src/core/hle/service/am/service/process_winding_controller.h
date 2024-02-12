@@ -3,11 +3,14 @@
 
 #pragma once
 
+#include "core/hle/service/am/am_types.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
 
 struct Applet;
+class ILibraryAppletAccessor;
 
 class IProcessWindingController final : public ServiceFramework<IProcessWindingController> {
 public:
@@ -15,10 +18,11 @@ public:
     ~IProcessWindingController() override;
 
 private:
-    void GetLaunchReason(HLERequestContext& ctx);
-    void OpenCallingLibraryApplet(HLERequestContext& ctx);
+    Result GetLaunchReason(Out<AppletProcessLaunchReason> out_launch_reason);
+    Result OpenCallingLibraryApplet(
+        Out<SharedPointer<ILibraryAppletAccessor>> out_calling_library_applet);
 
-    const std::shared_ptr<Applet> applet;
+    const std::shared_ptr<Applet> m_applet;
 };
 
 } // namespace Service::AM
