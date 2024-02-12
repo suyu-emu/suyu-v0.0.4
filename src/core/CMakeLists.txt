@@ -449,8 +449,6 @@ add_library(core STATIC
     hle/service/am/library_applet_accessor.h
     hle/service/am/library_applet_creator.cpp
     hle/service/am/library_applet_creator.h
-    hle/service/am/library_applet_proxy.cpp
-    hle/service/am/library_applet_proxy.h
     hle/service/am/library_applet_self_accessor.cpp
     hle/service/am/library_applet_self_accessor.h
     hle/service/am/library_applet_storage.cpp
@@ -473,6 +471,8 @@ add_library(core STATIC
     hle/service/am/service/application_proxy_service.h
     hle/service/am/service/application_proxy.cpp
     hle/service/am/service/application_proxy.h
+    hle/service/am/service/library_applet_proxy.cpp
+    hle/service/am/service/library_applet_proxy.h
     hle/service/am/system_applet_proxy.cpp
     hle/service/am/system_applet_proxy.h
     hle/service/am/system_buffer_manager.cpp

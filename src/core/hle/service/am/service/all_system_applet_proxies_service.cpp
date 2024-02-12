@@ -3,8 +3,8 @@
 
 #include "core/core.h"
 #include "core/hle/service/am/applet_manager.h"
-#include "core/hle/service/am/library_applet_proxy.h"
 #include "core/hle/service/am/service/all_system_applet_proxies_service.h"
+#include "core/hle/service/am/service/library_applet_proxy.h"
 #include "core/hle/service/am/system_applet_proxy.h"
 #include "core/hle/service/cmif_serialization.h"
 
@@ -53,8 +53,8 @@ Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
     LOG_DEBUG(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_library_applet_proxy =
-            std::make_shared<ILibraryAppletProxy>(m_nvnflinger, applet, system);
+        *out_library_applet_proxy = std::make_shared<ILibraryAppletProxy>(
+            system, applet, process_handle.Get(), m_nvnflinger);
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();
