@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/am/self_controller.h"
 #include "core/hle/service/am/service/applet_common_functions.h"
 #include "core/hle/service/am/service/audio_controller.h"
 #include "core/hle/service/am/service/common_state_getter.h"
@@ -13,6 +12,7 @@
 #include "core/hle/service/am/service/library_applet_proxy.h"
 #include "core/hle/service/am/service/library_applet_self_accessor.h"
 #include "core/hle/service/am/service/process_winding_controller.h"
+#include "core/hle/service/am/service/self_controller.h"
 #include "core/hle/service/am/window_controller.h"
 #include "core/hle/service/cmif_serialization.h"
 
@@ -83,7 +83,8 @@ Result ILibraryAppletProxy::GetWindowController(
 Result ILibraryAppletProxy::GetSelfController(
     Out<SharedPointer<ISelfController>> out_self_controller) {
     LOG_DEBUG(Service_AM, "called");
-    *out_self_controller = std::make_shared<ISelfController>(system, m_applet, m_nvnflinger);
+    *out_self_controller =
+        std::make_shared<ISelfController>(system, m_applet, m_process, m_nvnflinger);
     R_SUCCEED();
 }
 
