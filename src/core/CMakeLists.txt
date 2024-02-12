@@ -427,8 +427,6 @@ add_library(core STATIC
     hle/service/am/application_creator.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
-    hle/service/am/home_menu_functions.cpp
-    hle/service/am/home_menu_functions.h
     hle/service/am/idle.cpp
     hle/service/am/idle.h
     hle/service/am/library_applet_accessor.cpp
@@ -473,6 +471,8 @@ add_library(core STATIC
     hle/service/am/service/display_controller.h
     hle/service/am/service/global_state_controller.cpp
     hle/service/am/service/global_state_controller.h
+    hle/service/am/service/home_menu_functions.cpp
+    hle/service/am/service/home_menu_functions.h
     hle/service/am/service/library_applet_proxy.cpp
     hle/service/am/service/library_applet_proxy.h
     hle/service/am/service/system_applet_proxy.cpp
