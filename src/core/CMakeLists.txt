@@ -439,8 +439,6 @@ add_library(core STATIC
     hle/service/am/omm.h
     hle/service/am/process.cpp
     hle/service/am/process.h
-    hle/service/am/self_controller.cpp
-    hle/service/am/self_controller.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
     hle/service/am/service/all_system_applet_proxies_service.h
     hle/service/am/service/applet_common_functions.cpp
@@ -475,6 +473,8 @@ add_library(core STATIC
     hle/service/am/service/library_applet_self_accessor.h
     hle/service/am/service/process_winding_controller.cpp
     hle/service/am/service/process_winding_controller.h
+    hle/service/am/service/self_controller.cpp
+    hle/service/am/service/self_controller.h
     hle/service/am/service/system_applet_proxy.cpp
     hle/service/am/service/system_applet_proxy.h
     hle/service/am/system_buffer_manager.cpp
