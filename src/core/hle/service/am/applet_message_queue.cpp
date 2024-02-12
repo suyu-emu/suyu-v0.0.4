@@ -33,7 +33,7 @@ void AppletMessageQueue::PushMessage(AppletMessage msg) {
     on_new_message->Signal();
 }
 
-AppletMessageQueue::AppletMessage AppletMessageQueue::PopMessage() {
+AppletMessage AppletMessageQueue::PopMessage() {
     std::scoped_lock lk{lock};
     if (messages.empty()) {
         on_new_message->Clear();
