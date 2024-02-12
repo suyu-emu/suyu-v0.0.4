@@ -42,6 +42,8 @@ public:
 
     void Composite(std::span<const Tegra::FramebufferConfig> framebuffers) override;
 
+    std::vector<u8> GetAppletCaptureBuffer() override;
+
     VideoCore::RasterizerInterface* ReadRasterizer() override {
         return &rasterizer;
     }
@@ -52,7 +54,11 @@ public:
 
 private:
     void AddTelemetryFields();
+
+    void RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
+                        const Layout::FramebufferLayout& layout, void* dst);
     void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);
+    void RenderAppletCaptureLayer(std::span<const Tegra::FramebufferConfig> framebuffers);
 
     Core::TelemetrySession& telemetry_session;
     Core::Frontend::EmuWindow& emu_window;
@@ -64,8 +70,11 @@ private:
     ProgramManager program_manager;
     RasterizerOpenGL rasterizer;
     OGLFramebuffer screenshot_framebuffer;
+    OGLFramebuffer capture_framebuffer;
+    OGLRenderbuffer capture_renderbuffer;
 
     std::unique_ptr<BlitScreen> blit_screen;
+    std::unique_ptr<BlitScreen> blit_applet;
 };
 
 } // namespace OpenGL

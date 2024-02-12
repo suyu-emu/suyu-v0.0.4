@@ -333,9 +333,13 @@ void NvMap::UnmapAllHandles(NvCore::SessionId session_id) {
     }();
 
     for (auto& [id, handle] : handles_copy) {
-        if (handle->session_id.id == session_id.id) {
-            FreeHandle(id, false);
+        {
+            std::scoped_lock lk{handle->mutex};
+            if (handle->session_id.id != session_id.id || handle->dupes <= 0) {
+                continue;
+            }
         }
+        FreeHandle(id, false);
     }
 }
 

@@ -30,6 +30,7 @@ namespace Settings {
 #define SETTING(TYPE, RANGED) template class Setting<TYPE, RANGED>
 #define SWITCHABLE(TYPE, RANGED) template class SwitchableSetting<TYPE, RANGED>
 
+SETTING(AppletMode, false);
 SETTING(AudioEngine, false);
 SETTING(bool, false);
 SETTING(int, false);
@@ -215,6 +216,8 @@ const char* TranslateCategory(Category category) {
         return "Debugging";
     case Category::GpuDriver:
         return "GpuDriver";
+    case Category::LibraryApplet:
+        return "LibraryApplet";
     case Category::Miscellaneous:
         return "Miscellaneous";
     case Category::Network:

@@ -15,6 +15,7 @@ namespace Core {
 class System;
 }
 
+class ConfigureApplets;
 class ConfigureAudio;
 class ConfigureCpu;
 class ConfigureDebugTab;
@@ -75,6 +76,7 @@ private:
     std::unique_ptr<ConfigurationShared::Builder> builder;
     std::vector<ConfigurationShared::Tab*> tab_group;
 
+    std::unique_ptr<ConfigureApplets> applets_tab;
     std::unique_ptr<ConfigureAudio> audio_tab;
     std::unique_ptr<ConfigureCpu> cpu_tab;
     std::unique_ptr<ConfigureDebugTab> debug_tab_tab;

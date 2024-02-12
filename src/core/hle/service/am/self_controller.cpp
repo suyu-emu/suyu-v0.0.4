@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging/log.h"
+#include "core/hle/result.h"
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/self_controller.h"
 #include "core/hle/service/caps/caps_su.h"
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
@@ -47,7 +50,7 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {50, &ISelfController::SetHandlesRequestToDisplay, "SetHandlesRequestToDisplay"},
         {51, &ISelfController::ApproveToDisplay, "ApproveToDisplay"},
         {60, nullptr, "OverrideAutoSleepTimeAndDimmingTime"},
-        {61, nullptr, "SetMediaPlaybackState"},
+        {61, &ISelfController::SetMediaPlaybackState, "SetMediaPlaybackState"},
         {62, &ISelfController::SetIdleTimeDetectionExtension, "SetIdleTimeDetectionExtension"},
         {63, &ISelfController::GetIdleTimeDetectionExtension, "GetIdleTimeDetectionExtension"},
         {64, nullptr, "SetInputDetectionSourceSet"},
@@ -288,7 +291,8 @@ void ISelfController::GetSystemSharedBufferHandle(HLERequestContext& ctx) {
 }
 
 Result ISelfController::EnsureBufferSharingEnabled(Kernel::KProcess* process) {
-    if (applet->system_buffer_manager.Initialize(&nvnflinger, process, applet->applet_id)) {
+    if (applet->system_buffer_manager.Initialize(&nvnflinger, process, applet->applet_id,
+                                                 applet->library_applet_mode)) {
         return ResultSuccess;
     }
 
@@ -318,6 +322,16 @@ void ISelfController::SetHandlesRequestToDisplay(HLERequestContext& ctx) {
 
 void ISelfController::ApproveToDisplay(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ISelfController::SetMediaPlaybackState(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const u8 state = rp.Pop<u8>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called, state={}", state);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

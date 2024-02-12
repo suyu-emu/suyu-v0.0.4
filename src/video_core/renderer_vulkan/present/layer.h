@@ -11,6 +11,8 @@ namespace Layout {
 struct FramebufferLayout;
 }
 
+struct PresentFilters;
+
 namespace Tegra {
 struct FramebufferConfig;
 }
@@ -37,7 +39,8 @@ class Layer final {
 public:
     explicit Layer(const Device& device, MemoryAllocator& memory_allocator, Scheduler& scheduler,
                    Tegra::MaxwellDeviceMemoryManager& device_memory, size_t image_count,
-                   VkExtent2D output_size, VkDescriptorSetLayout layout);
+                   VkExtent2D output_size, VkDescriptorSetLayout layout,
+                   const PresentFilters& filters);
     ~Layer();
 
     void ConfigureDraw(PresentPushConstants* out_push_constants,
@@ -71,6 +74,7 @@ private:
     MemoryAllocator& memory_allocator;
     Scheduler& scheduler;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
+    const PresentFilters& filters;
     const size_t image_count{};
     vk::DescriptorPool descriptor_pool{};
     vk::DescriptorSets descriptor_sets{};

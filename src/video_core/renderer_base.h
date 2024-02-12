@@ -40,6 +40,9 @@ public:
     /// Finalize rendering the guest frame and draw into the presentation texture
     virtual void Composite(std::span<const Tegra::FramebufferConfig> layers) = 0;
 
+    /// Get the tiled applet layer capture buffer
+    virtual std::vector<u8> GetAppletCaptureBuffer() = 0;
+
     [[nodiscard]] virtual RasterizerInterface* ReadRasterizer() = 0;
 
     [[nodiscard]] virtual std::string GetDeviceVendor() const = 0;

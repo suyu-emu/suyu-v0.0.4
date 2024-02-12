@@ -27,7 +27,8 @@ public:
     SystemBufferManager();
     ~SystemBufferManager();
 
-    bool Initialize(Nvnflinger::Nvnflinger* flinger, Kernel::KProcess* process, AppletId applet_id);
+    bool Initialize(Nvnflinger::Nvnflinger* flinger, Kernel::KProcess* process, AppletId applet_id,
+                    LibraryAppletMode mode);
 
     void GetSystemSharedLayerHandle(u64* out_system_shared_buffer_id,
                                     u64* out_system_shared_layer_id) {

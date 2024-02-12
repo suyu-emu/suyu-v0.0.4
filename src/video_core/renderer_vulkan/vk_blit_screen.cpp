@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "video_core/framebuffer_config.h"
+#include "video_core/present.h"
 #include "video_core/renderer_vulkan/present/filters.h"
 #include "video_core/renderer_vulkan/present/layer.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
@@ -12,9 +13,9 @@ namespace Vulkan {
 
 BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_,
                        MemoryAllocator& memory_allocator_, PresentManager& present_manager_,
-                       Scheduler& scheduler_)
+                       Scheduler& scheduler_, const PresentFilters& filters_)
     : device_memory{device_memory_}, device{device_}, memory_allocator{memory_allocator_},
-      present_manager{present_manager_}, scheduler{scheduler_}, image_count{1},
+      present_manager{present_manager_}, scheduler{scheduler_}, filters{filters_}, image_count{1},
       swapchain_view_format{VK_FORMAT_B8G8R8A8_UNORM} {}
 
 BlitScreen::~BlitScreen() = default;
@@ -27,7 +28,7 @@ void BlitScreen::WaitIdle() {
 
 void BlitScreen::SetWindowAdaptPass() {
     layers.clear();
-    scaling_filter = Settings::values.scaling_filter.GetValue();
+    scaling_filter = filters.get_scaling_filter();
 
     switch (scaling_filter) {
     case Settings::ScalingFilter::NearestNeighbor:
@@ -59,7 +60,7 @@ void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
     bool presentation_recreate_required = false;
 
     // Recreate dynamic resources if the adapting filter changed
-    if (!window_adapt || scaling_filter != Settings::values.scaling_filter.GetValue()) {
+    if (!window_adapt || scaling_filter != filters.get_scaling_filter()) {
         resource_update_required = true;
     }
 
@@ -102,7 +103,7 @@ void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
 
     while (layers.size() < framebuffers.size()) {
         layers.emplace_back(device, memory_allocator, scheduler, device_memory, image_count,
-                            window_size, window_adapt->GetDescriptorSetLayout());
+                            window_size, window_adapt->GetDescriptorSetLayout(), filters);
     }
 
     // Perform the draw
@@ -119,8 +120,7 @@ vk::Framebuffer BlitScreen::CreateFramebuffer(const Layout::FramebufferLayout& l
                                               VkFormat current_view_format) {
     const bool format_updated =
         std::exchange(swapchain_view_format, current_view_format) != current_view_format;
-    if (!window_adapt || scaling_filter != Settings::values.scaling_filter.GetValue() ||
-        format_updated) {
+    if (!window_adapt || scaling_filter != filters.get_scaling_filter() || format_updated) {
         WaitIdle();
         SetWindowAdaptPass();
     }

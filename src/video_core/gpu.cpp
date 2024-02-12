@@ -347,6 +347,17 @@ struct GPU::Impl {
         WaitForSyncOperation(wait_fence);
     }
 
+    std::vector<u8> GetAppletCaptureBuffer() {
+        std::vector<u8> out;
+
+        const auto wait_fence =
+            RequestSyncOperation([&] { out = renderer->GetAppletCaptureBuffer(); });
+        gpu_thread.TickGPU();
+        WaitForSyncOperation(wait_fence);
+
+        return out;
+    }
+
     GPU& gpu;
     Core::System& system;
     Host1x::Host1x& host1x;
@@ -503,6 +514,10 @@ const VideoCore::ShaderNotify& GPU::ShaderNotify() const {
 void GPU::RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
                            std::vector<Service::Nvidia::NvFence>&& fences) {
     impl->RequestComposite(std::move(layers), std::move(fences));
+}
+
+std::vector<u8> GPU::GetAppletCaptureBuffer() {
+    return impl->GetAppletCaptureBuffer();
 }
 
 u64 GPU::GetTicks() const {

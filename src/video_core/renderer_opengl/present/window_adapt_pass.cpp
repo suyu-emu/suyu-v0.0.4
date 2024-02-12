@@ -37,7 +37,7 @@ WindowAdaptPass::~WindowAdaptPass() = default;
 
 void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::list<Layer>& layers,
                                         std::span<const Tegra::FramebufferConfig> framebuffers,
-                                        const Layout::FramebufferLayout& layout) {
+                                        const Layout::FramebufferLayout& layout, bool invert_y) {
     GLint old_read_fb;
     GLint old_draw_fb;
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
@@ -51,7 +51,7 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
     auto layer_it = layers.begin();
     for (size_t i = 0; i < layer_count; i++) {
         textures[i] = layer_it->ConfigureDraw(matrices[i], vertices[i], program_manager,
-                                              framebuffers[i], layout);
+                                              framebuffers[i], layout, invert_y);
         layer_it++;
     }
 
@@ -92,6 +92,21 @@ void WindowAdaptPass::DrawToFramebuffer(ProgramManager& program_manager, std::li
     glClear(GL_COLOR_BUFFER_BIT);
 
     for (size_t i = 0; i < layer_count; i++) {
+        switch (framebuffers[i].blending) {
+        case Tegra::BlendMode::Opaque:
+        default:
+            glDisablei(GL_BLEND, 0);
+            break;
+        case Tegra::BlendMode::Premultiplied:
+            glEnablei(GL_BLEND, 0);
+            glBlendFuncSeparatei(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+            break;
+        case Tegra::BlendMode::Coverage:
+            glEnablei(GL_BLEND, 0);
+            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+            break;
+        }
+
         glBindTextureUnit(0, textures[i]);
         glProgramUniformMatrix3x2fv(vert.handle, ModelViewMatrixLocation, 1, GL_FALSE,
                                     matrices[i].data());

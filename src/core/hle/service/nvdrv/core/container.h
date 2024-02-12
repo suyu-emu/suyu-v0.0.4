@@ -46,6 +46,7 @@ struct Session {
     bool has_preallocated_area{};
     std::unique_ptr<HeapMapper> mapper{};
     bool is_active{};
+    s32 ref_count{};
 };
 
 class Container {

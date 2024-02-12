@@ -5,5 +5,6 @@
 #extension GL_GOOGLE_include_directive : enable
 
 #define USE_RCAS 1
+#define VERSION 1
 
 #include "fidelityfx_fsr.frag"

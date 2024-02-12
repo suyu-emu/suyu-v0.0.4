@@ -19,7 +19,9 @@
 #include "core/core_timing.h"
 #include "core/frontend/graphics_context.h"
 #include "core/telemetry_session.h"
+#include "video_core/capture.h"
 #include "video_core/gpu.h"
+#include "video_core/present.h"
 #include "video_core/renderer_vulkan/present/util.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
@@ -38,6 +40,20 @@
 
 namespace Vulkan {
 namespace {
+
+constexpr VkExtent2D CaptureImageSize{
+    .width = VideoCore::Capture::LinearWidth,
+    .height = VideoCore::Capture::LinearHeight,
+};
+
+constexpr VkExtent3D CaptureImageExtent{
+    .width = VideoCore::Capture::LinearWidth,
+    .height = VideoCore::Capture::LinearHeight,
+    .depth = VideoCore::Capture::LinearDepth,
+};
+
+constexpr VkFormat CaptureFormat = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+
 std::string GetReadableVersion(u32 version) {
     return fmt::format("{}.{}.{}", VK_VERSION_MAJOR(version), VK_VERSION_MINOR(version),
                        VK_VERSION_PATCH(version));
@@ -99,10 +115,15 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                 render_window.GetFramebufferLayout().height),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
                       surface),
-      blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler),
-      blit_screenshot(device_memory, device, memory_allocator, present_manager, scheduler),
+      blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler,
+                     PresentFiltersForDisplay),
+      blit_capture(device_memory, device, memory_allocator, present_manager, scheduler,
+                   PresentFiltersForDisplay),
+      blit_applet(device_memory, device, memory_allocator, present_manager, scheduler,
+                  PresentFiltersForAppletCapture),
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
-                 scheduler) {
+                 scheduler),
+      applet_frame() {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
@@ -124,6 +145,8 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     }
 
     SCOPE_EXIT({ render_window.OnFrameDisplayed(); });
+
+    RenderAppletCaptureLayer(framebuffers);
 
     if (!render_window.IsShown()) {
         return;
@@ -167,30 +190,20 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
-void Vulkan::RendererVulkan::RenderScreenshot(
-    std::span<const Tegra::FramebufferConfig> framebuffers) {
-    if (!renderer_settings.screenshot_requested) {
-        return;
-    }
-
-    constexpr VkFormat ScreenshotFormat{VK_FORMAT_B8G8R8A8_UNORM};
-    const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
-
+vk::Buffer RendererVulkan::RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
+                                          const Layout::FramebufferLayout& layout, VkFormat format,
+                                          VkDeviceSize buffer_size) {
     auto frame = [&]() {
         Frame f{};
-        f.image = CreateWrappedImage(memory_allocator, VkExtent2D{layout.width, layout.height},
-                                     ScreenshotFormat);
-        f.image_view = CreateWrappedImageView(device, f.image, ScreenshotFormat);
-        f.framebuffer = blit_screenshot.CreateFramebuffer(layout, *f.image_view, ScreenshotFormat);
+        f.image =
+            CreateWrappedImage(memory_allocator, VkExtent2D{layout.width, layout.height}, format);
+        f.image_view = CreateWrappedImageView(device, f.image, format);
+        f.framebuffer = blit_capture.CreateFramebuffer(layout, *f.image_view, format);
         return f;
     }();
 
-    blit_screenshot.DrawToFrame(rasterizer, &frame, framebuffers, layout, 1,
-                                VK_FORMAT_B8G8R8A8_UNORM);
-
-    const auto dst_buffer = CreateWrappedBuffer(
-        memory_allocator, static_cast<VkDeviceSize>(layout.width * layout.height * 4),
-        MemoryUsage::Download);
+    auto dst_buffer = CreateWrappedBuffer(memory_allocator, buffer_size, MemoryUsage::Download);
+    blit_capture.DrawToFrame(rasterizer, &frame, framebuffers, layout, 1, format);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([&](vk::CommandBuffer cmdbuf) {
@@ -198,15 +211,68 @@ void Vulkan::RendererVulkan::RenderScreenshot(
                            VkExtent3D{layout.width, layout.height, 1});
     });
 
-    // Ensure the copy is fully completed before saving the screenshot
+    // Ensure the copy is fully completed before saving the capture
     scheduler.Finish();
 
-    // Copy backing image data to the QImage screenshot buffer
+    // Copy backing image data to the capture buffer
     dst_buffer.Invalidate();
+    return dst_buffer;
+}
+
+void RendererVulkan::RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (!renderer_settings.screenshot_requested) {
+        return;
+    }
+
+    const auto& layout{renderer_settings.screenshot_framebuffer_layout};
+    const auto dst_buffer = RenderToBuffer(framebuffers, layout, VK_FORMAT_B8G8R8A8_UNORM,
+                                           layout.width * layout.height * 4);
+
     std::memcpy(renderer_settings.screenshot_bits, dst_buffer.Mapped().data(),
                 dst_buffer.Mapped().size());
     renderer_settings.screenshot_complete_callback(false);
     renderer_settings.screenshot_requested = false;
+}
+
+std::vector<u8> RendererVulkan::GetAppletCaptureBuffer() {
+    using namespace VideoCore::Capture;
+
+    std::vector<u8> out(VideoCore::Capture::TiledSize);
+
+    if (!applet_frame.image) {
+        return out;
+    }
+
+    const auto dst_buffer =
+        CreateWrappedBuffer(memory_allocator, VideoCore::Capture::TiledSize, MemoryUsage::Download);
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
+        DownloadColorImage(cmdbuf, *applet_frame.image, *dst_buffer, CaptureImageExtent);
+    });
+
+    // Ensure the copy is fully completed before writing the capture
+    scheduler.Finish();
+
+    // Swizzle image data to the capture buffer
+    dst_buffer.Invalidate();
+    Tegra::Texture::SwizzleTexture(out, dst_buffer.Mapped(), BytesPerPixel, LinearWidth,
+                                   LinearHeight, LinearDepth, BlockHeight, BlockDepth);
+
+    return out;
+}
+
+void RendererVulkan::RenderAppletCaptureLayer(
+    std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (!applet_frame.image) {
+        applet_frame.image = CreateWrappedImage(memory_allocator, CaptureImageSize, CaptureFormat);
+        applet_frame.image_view = CreateWrappedImageView(device, applet_frame.image, CaptureFormat);
+        applet_frame.framebuffer = blit_applet.CreateFramebuffer(
+            VideoCore::Capture::Layout, *applet_frame.image_view, CaptureFormat);
+    }
+
+    blit_applet.DrawToFrame(rasterizer, &applet_frame, framebuffers, VideoCore::Capture::Layout, 1,
+                            CaptureFormat);
 }
 
 } // namespace Vulkan

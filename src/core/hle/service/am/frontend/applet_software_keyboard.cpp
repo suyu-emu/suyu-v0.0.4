@@ -68,9 +68,9 @@ void SoftwareKeyboard::Initialize() {
     case LibraryAppletMode::AllForeground:
         InitializeForeground();
         break;
-    case LibraryAppletMode::Background:
-    case LibraryAppletMode::BackgroundIndirectDisplay:
-        InitializeBackground(applet_mode);
+    case LibraryAppletMode::PartialForeground:
+    case LibraryAppletMode::PartialForegroundIndirectDisplay:
+        InitializePartialForeground(applet_mode);
         break;
     default:
         ASSERT_MSG(false, "Invalid LibraryAppletMode={}", applet_mode);
@@ -243,7 +243,7 @@ void SoftwareKeyboard::InitializeForeground() {
     InitializeFrontendNormalKeyboard();
 }
 
-void SoftwareKeyboard::InitializeBackground(LibraryAppletMode library_applet_mode) {
+void SoftwareKeyboard::InitializePartialForeground(LibraryAppletMode library_applet_mode) {
     LOG_INFO(Service_AM, "Initializing Inline Software Keyboard Applet.");
 
     is_background = true;
@@ -258,9 +258,9 @@ void SoftwareKeyboard::InitializeBackground(LibraryAppletMode library_applet_mod
                 swkbd_inline_initialize_arg.size());
 
     if (swkbd_initialize_arg.library_applet_mode_flag) {
-        ASSERT(library_applet_mode == LibraryAppletMode::Background);
+        ASSERT(library_applet_mode == LibraryAppletMode::PartialForeground);
     } else {
-        ASSERT(library_applet_mode == LibraryAppletMode::BackgroundIndirectDisplay);
+        ASSERT(library_applet_mode == LibraryAppletMode::PartialForegroundIndirectDisplay);
     }
 }
 
