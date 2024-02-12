@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/am/application_creator.h"
-#include "core/hle/service/am/library_applet_self_accessor.h"
 #include "core/hle/service/am/process_winding_controller.h"
 #include "core/hle/service/am/self_controller.h"
 #include "core/hle/service/am/service/applet_common_functions.h"
