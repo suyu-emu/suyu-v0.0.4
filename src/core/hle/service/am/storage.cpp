@@ -3,8 +3,8 @@
 
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/library_applet_storage.h"
+#include "core/hle/service/am/service/storage_accessor.h"
 #include "core/hle/service/am/storage.h"
-#include "core/hle/service/am/storage_accessor.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::AM {
