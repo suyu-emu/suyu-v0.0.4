@@ -423,8 +423,6 @@ add_library(core STATIC
     hle/service/am/applet_manager.h
     hle/service/am/applet_message_queue.cpp
     hle/service/am/applet_message_queue.h
-    hle/service/am/application_creator.cpp
-    hle/service/am/application_creator.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
     hle/service/am/idle.cpp
@@ -443,6 +441,8 @@ add_library(core STATIC
     hle/service/am/service/applet_common_functions.h
     hle/service/am/service/application_accessor.cpp
     hle/service/am/service/application_accessor.h
+    hle/service/am/service/application_creator.cpp
+    hle/service/am/service/application_creator.h
     hle/service/am/service/application_functions.cpp
     hle/service/am/service/application_functions.h
     hle/service/am/service/application_proxy_service.cpp

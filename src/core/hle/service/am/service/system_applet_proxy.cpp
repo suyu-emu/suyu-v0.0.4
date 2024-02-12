@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/am/application_creator.h"
 #include "core/hle/service/am/service/applet_common_functions.h"
+#include "core/hle/service/am/service/application_creator.h"
 #include "core/hle/service/am/service/audio_controller.h"
 #include "core/hle/service/am/service/common_state_getter.h"
 #include "core/hle/service/am/service/debug_functions.h"
@@ -104,8 +104,9 @@ Result ISystemAppletProxy::GetLibraryAppletCreator(
 
 Result ISystemAppletProxy::GetApplicationCreator(
     Out<SharedPointer<IApplicationCreator>> out_application_creator) {
-    LOG_ERROR(Service_AM, "called");
-    R_THROW(ResultUnknown);
+    LOG_DEBUG(Service_AM, "called");
+    *out_application_creator = std::make_shared<IApplicationCreator>(system);
+    R_SUCCEED();
 }
 
 Result ISystemAppletProxy::GetAppletCommonFunctions(
