@@ -11,7 +11,7 @@ IOverwriteEventHolder::IOverwriteEventHolder(Core::System& system_)
                                                                           "IOverwriteEventHolder"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IOverwriteEventHolder::Get>, "Get"},
+        {0, D<&IOverwriteEventHolder::Get>, "Get"},
     };
     // clang-format on
 
