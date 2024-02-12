@@ -481,12 +481,12 @@ add_library(core STATIC
     hle/service/am/service/storage.h
     hle/service/am/service/system_applet_proxy.cpp
     hle/service/am/service/system_applet_proxy.h
+    hle/service/am/service/window_controller.cpp
+    hle/service/am/service/window_controller.h
     hle/service/am/system_buffer_manager.cpp
     hle/service/am/system_buffer_manager.h
     hle/service/am/spsm.cpp
     hle/service/am/spsm.h
-    hle/service/am/window_controller.cpp
-    hle/service/am/window_controller.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp

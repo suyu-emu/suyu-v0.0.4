@@ -13,7 +13,7 @@
 #include "core/hle/service/am/service/process_winding_controller.h"
 #include "core/hle/service/am/service/self_controller.h"
 #include "core/hle/service/am/service/system_applet_proxy.h"
-#include "core/hle/service/am/window_controller.h"
+#include "core/hle/service/am/service/window_controller.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
