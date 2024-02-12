@@ -18,6 +18,7 @@
 
 using Settings::Category;
 using Settings::ConfirmStop;
+using Settings::DarkModeState;
 using Settings::Setting;
 using Settings::SwitchableSetting;
 
@@ -144,6 +145,7 @@ struct Values {
     Setting<std::string> language{linkage, {}, "language", Category::Paths};
 
     QString theme;
+    DarkModeState dark_mode_state;
 
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;
@@ -261,3 +263,4 @@ Q_DECLARE_METATYPE(Settings::RendererBackend);
 Q_DECLARE_METATYPE(Settings::ShaderBackend);
 Q_DECLARE_METATYPE(Settings::AstcRecompression);
 Q_DECLARE_METATYPE(Settings::AstcDecodeMode);
+Q_DECLARE_METATYPE(Settings::DarkModeState);

@@ -260,8 +260,10 @@ void QtConfig::ReadShortcutValues() {
 void QtConfig::ReadUIValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Ui));
 
-    UISettings::values.theme = QString::fromStdString(
-        ReadStringSetting(std::string("theme"), std::string(UISettings::default_theme)));
+    UISettings::values.theme =
+        QString::fromStdString(ReadStringSetting("theme", std::string(UISettings::default_theme)));
+    UISettings::values.dark_mode_state = static_cast<DarkModeState>(
+        ReadIntegerSetting("dark_mode_state", static_cast<int>(DarkModeState::Auto)));
 
     ReadUIGamelistValues();
     ReadUILayoutValues();
@@ -467,8 +469,10 @@ void QtConfig::SaveUIValues() {
     WriteCategory(Settings::Category::Ui);
     WriteCategory(Settings::Category::UiGeneral);
 
-    WriteStringSetting(std::string("theme"), UISettings::values.theme.toStdString(),
+    WriteStringSetting("theme", UISettings::values.theme.toStdString(),
                        std::make_optional(std::string(UISettings::default_theme)));
+    WriteIntegerSetting("dark_mode_state", static_cast<int>(UISettings::values.dark_mode_state),
+                        std::make_optional(static_cast<int>(DarkModeState::Auto)));
 
     SaveUIGamelistValues();
     SaveUILayoutValues();

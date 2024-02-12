@@ -90,6 +90,7 @@ SWITCHABLE(u8, true);
 // Used in UISettings
 // TODO see if we can move this to uisettings.h
 SWITCHABLE(ConfirmStop, true);
+SWITCHABLE(DarkModeState, true);
 
 #undef SETTING
 #undef SWITCHABLE
