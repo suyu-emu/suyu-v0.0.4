@@ -18,7 +18,7 @@ enum class AppletType {
     SystemApplet,
 };
 
-enum class GameplayRecordingState : u32 {
+enum class GamePlayRecordingState : u32 {
     Disabled,
     Enabled,
 };
@@ -136,6 +136,11 @@ enum class LibraryAppletMode : u32 {
     AllForegroundInitiallyHidden = 4,
 };
 
+enum class LaunchParameterKind : u32 {
+    UserChannel = 1,
+    AccountPreselectedUser = 2,
+};
+
 enum class CommonArgumentVersion : u32 {
     Version0,
     Version1,
@@ -150,6 +155,22 @@ enum class CommonArgumentSize : u32 {
 enum class ThemeColor : u32 {
     BasicWhite = 0,
     BasicBlack = 3,
+};
+
+enum class InputDetectionPolicy : u32 {
+    Unknown0 = 0,
+    Unknown1 = 1,
+};
+
+enum class WindowOriginMode : u32 {
+    LowerLeft = 0,
+    UpperLeft = 1,
+};
+
+enum class ProgramSpecifyKind : u32 {
+    ExecuteProgram = 0,
+    JumpToSubApplicationProgramForDevelopment = 1,
+    RestartProgram = 2,
 };
 
 struct CommonArguments {
@@ -174,6 +195,21 @@ struct AppletAttribute {
     INSERT_PADDING_BYTES_NOINIT(0x7F);
 };
 static_assert(sizeof(AppletAttribute) == 0x80, "AppletAttribute has incorrect size.");
+
+// This is nn::oe::DisplayVersion
+struct DisplayVersion {
+    std::array<char, 0x10> string;
+};
+static_assert(sizeof(DisplayVersion) == 0x10, "DisplayVersion has incorrect size.");
+
+// This is nn::pdm::ApplicationPlayStatistics
+struct ApplicationPlayStatistics {
+    u64 application_id;
+    u64 play_time_ns;
+    u64 launch_count;
+};
+static_assert(sizeof(ApplicationPlayStatistics) == 0x18,
+              "ApplicationPlayStatistics has incorrect size.");
 
 using AppletResourceUserId = u64;
 using ProgramId = u64;
