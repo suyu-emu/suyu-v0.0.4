@@ -431,8 +431,6 @@ add_library(core STATIC
     hle/service/am/idle.h
     hle/service/am/library_applet_storage.cpp
     hle/service/am/library_applet_storage.h
-    hle/service/am/lock_accessor.cpp
-    hle/service/am/lock_accessor.h
     hle/service/am/managed_layer_holder.cpp
     hle/service/am/managed_layer_holder.h
     hle/service/am/omm.cpp
@@ -471,6 +469,8 @@ add_library(core STATIC
     hle/service/am/service/library_applet_proxy.h
     hle/service/am/service/library_applet_self_accessor.cpp
     hle/service/am/service/library_applet_self_accessor.h
+    hle/service/am/service/lock_accessor.cpp
+    hle/service/am/service/lock_accessor.h
     hle/service/am/service/process_winding_controller.cpp
     hle/service/am/service/process_winding_controller.h
     hle/service/am/service/self_controller.cpp
