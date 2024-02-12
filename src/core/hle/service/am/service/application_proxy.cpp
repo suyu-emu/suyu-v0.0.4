@@ -11,7 +11,7 @@
 #include "core/hle/service/am/service/library_applet_creator.h"
 #include "core/hle/service/am/service/process_winding_controller.h"
 #include "core/hle/service/am/service/self_controller.h"
-#include "core/hle/service/am/window_controller.h"
+#include "core/hle/service/am/service/window_controller.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
