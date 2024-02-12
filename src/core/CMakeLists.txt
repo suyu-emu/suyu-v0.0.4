@@ -425,14 +425,10 @@ add_library(core STATIC
     hle/service/am/applet_message_queue.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
-    hle/service/am/idle.cpp
-    hle/service/am/idle.h
     hle/service/am/library_applet_storage.cpp
     hle/service/am/library_applet_storage.h
     hle/service/am/managed_layer_holder.cpp
     hle/service/am/managed_layer_holder.h
-    hle/service/am/omm.cpp
-    hle/service/am/omm.h
     hle/service/am/process.cpp
     hle/service/am/process.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
@@ -487,8 +483,6 @@ add_library(core STATIC
     hle/service/am/service/window_controller.h
     hle/service/am/system_buffer_manager.cpp
     hle/service/am/system_buffer_manager.h
-    hle/service/am/spsm.cpp
-    hle/service/am/spsm.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp
@@ -815,6 +809,14 @@ add_library(core STATIC
     hle/service/nvnflinger/window.h
     hle/service/olsc/olsc.cpp
     hle/service/olsc/olsc.h
+    hle/service/omm/omm.cpp
+    hle/service/omm/omm.h
+    hle/service/omm/operation_mode_manager.cpp
+    hle/service/omm/operation_mode_manager.h
+    hle/service/omm/policy_manager_system.cpp
+    hle/service/omm/policy_manager_system.h
+    hle/service/omm/power_state_interface.cpp
+    hle/service/omm/power_state_interface.h
     hle/service/os/event.cpp
     hle/service/os/event.h
     hle/service/os/multi_wait_holder.cpp
