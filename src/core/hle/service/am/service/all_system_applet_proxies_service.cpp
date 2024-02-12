@@ -5,7 +5,7 @@
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/service/all_system_applet_proxies_service.h"
 #include "core/hle/service/am/service/library_applet_proxy.h"
-#include "core/hle/service/am/system_applet_proxy.h"
+#include "core/hle/service/am/service/system_applet_proxy.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
@@ -37,8 +37,8 @@ Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
     LOG_DEBUG(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_system_applet_proxy =
-            std::make_shared<ISystemAppletProxy>(m_nvnflinger, applet, system);
+        *out_system_applet_proxy = std::make_shared<ISystemAppletProxy>(
+            system, applet, process_handle.Get(), m_nvnflinger);
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();
