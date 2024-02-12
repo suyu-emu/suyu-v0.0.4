@@ -6,11 +6,11 @@
 #include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
-#include "core/hle/service/am/library_applet_creator.h"
 #include "core/hle/service/am/library_applet_storage.h"
 #include "core/hle/service/am/service/library_applet_accessor.h"
+#include "core/hle/service/am/service/library_applet_creator.h"
 #include "core/hle/service/am/storage.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::AM {
@@ -172,139 +172,97 @@ std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& syste
 
 } // namespace
 
-ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet_)
-    : ServiceFramework{system_, "ILibraryAppletCreator"}, applet{std::move(applet_)} {
+ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet)
+    : ServiceFramework{system_, "ILibraryAppletCreator"}, m_applet{std::move(applet)} {
     static const FunctionInfo functions[] = {
-        {0, &ILibraryAppletCreator::CreateLibraryApplet, "CreateLibraryApplet"},
+        {0, D<&ILibraryAppletCreator::CreateLibraryApplet>, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},
         {2, nullptr, "AreAnyLibraryAppletsLeft"},
-        {10, &ILibraryAppletCreator::CreateStorage, "CreateStorage"},
-        {11, &ILibraryAppletCreator::CreateTransferMemoryStorage, "CreateTransferMemoryStorage"},
-        {12, &ILibraryAppletCreator::CreateHandleStorage, "CreateHandleStorage"},
+        {10, D<&ILibraryAppletCreator::CreateStorage>, "CreateStorage"},
+        {11, D<&ILibraryAppletCreator::CreateTransferMemoryStorage>, "CreateTransferMemoryStorage"},
+        {12, D<&ILibraryAppletCreator::CreateHandleStorage>, "CreateHandleStorage"},
     };
     RegisterHandlers(functions);
 }
 
 ILibraryAppletCreator::~ILibraryAppletCreator() = default;
 
-void ILibraryAppletCreator::CreateLibraryApplet(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    const auto applet_id = rp.PopRaw<AppletId>();
-    const auto applet_mode = rp.PopRaw<LibraryAppletMode>();
-
-    LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
-              applet_mode);
+Result ILibraryAppletCreator::CreateLibraryApplet(
+    Out<SharedPointer<ILibraryAppletAccessor>> out_library_applet_accessor, AppletId applet_id,
+    LibraryAppletMode library_applet_mode) {
+    LOG_DEBUG(Service_AM, "called with applet_id={} applet_mode={}", applet_id,
+              library_applet_mode);
 
     std::shared_ptr<ILibraryAppletAccessor> library_applet;
     if (ShouldCreateGuestApplet(applet_id)) {
-        library_applet = CreateGuestApplet(system, applet, applet_id, applet_mode);
+        library_applet = CreateGuestApplet(system, m_applet, applet_id, library_applet_mode);
     }
     if (!library_applet) {
-        library_applet = CreateFrontendApplet(system, applet, applet_id, applet_mode);
+        library_applet = CreateFrontendApplet(system, m_applet, applet_id, library_applet_mode);
     }
     if (!library_applet) {
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
+        R_THROW(ResultUnknown);
     }
 
     // Applet is created, can now be launched.
-    applet->library_applet_launchable_event.Signal();
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ILibraryAppletAccessor>(library_applet);
+    m_applet->library_applet_launchable_event.Signal();
+    *out_library_applet_accessor = library_applet;
+    R_SUCCEED();
 }
 
-void ILibraryAppletCreator::CreateStorage(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    const s64 size{rp.Pop<s64>()};
-
+Result ILibraryAppletCreator::CreateStorage(Out<SharedPointer<IStorage>> out_storage, s64 size) {
     LOG_DEBUG(Service_AM, "called, size={}", size);
 
     if (size <= 0) {
         LOG_ERROR(Service_AM, "size is less than or equal to 0");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
+        R_THROW(ResultUnknown);
     }
 
-    std::vector<u8> data(size);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(system, AM::CreateStorage(std::move(data)));
+    *out_storage = std::make_shared<IStorage>(system, AM::CreateStorage(std::vector<u8>(size)));
+    R_SUCCEED();
 }
 
-void ILibraryAppletCreator::CreateTransferMemoryStorage(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    struct Parameters {
-        bool is_writable;
-        s64 size;
-    };
-
-    const auto params{rp.PopRaw<Parameters>()};
-    const auto handle{ctx.GetCopyHandle(0)};
-
-    LOG_DEBUG(Service_AM, "called, is_writable={}, size={}, handle={:08X}", params.is_writable,
-              params.size, handle);
-
-    if (params.size <= 0) {
-        LOG_ERROR(Service_AM, "size is less than or equal to 0");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
-    }
-
-    auto transfer_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(handle);
-
-    if (transfer_mem.IsNull()) {
-        LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(
-        system, AM::CreateTransferMemoryStorage(ctx.GetMemory(), transfer_mem.GetPointerUnsafe(),
-                                                params.is_writable, params.size));
-}
-
-void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    const s64 size{rp.Pop<s64>()};
-    const auto handle{ctx.GetCopyHandle(0)};
-
-    LOG_DEBUG(Service_AM, "called, size={}, handle={:08X}", size, handle);
+Result ILibraryAppletCreator::CreateTransferMemoryStorage(
+    Out<SharedPointer<IStorage>> out_storage, bool is_writable, s64 size,
+    InCopyHandle<Kernel::KTransferMemory> transfer_memory_handle) {
+    LOG_DEBUG(Service_AM, "called, is_writable={} size={}", is_writable, size);
 
     if (size <= 0) {
         LOG_ERROR(Service_AM, "size is less than or equal to 0");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
+        R_THROW(ResultUnknown);
     }
 
-    auto transfer_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(handle);
-
-    if (transfer_mem.IsNull()) {
-        LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
+    if (!transfer_memory_handle) {
+        LOG_ERROR(Service_AM, "transfer_memory_handle is null");
+        R_THROW(ResultUnknown);
     }
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(
-        system, AM::CreateHandleStorage(ctx.GetMemory(), transfer_mem.GetPointerUnsafe(), size));
+    *out_storage = std::make_shared<IStorage>(
+        system, AM::CreateTransferMemoryStorage(transfer_memory_handle->GetOwner()->GetMemory(),
+                                                transfer_memory_handle.Get(), is_writable, size));
+    R_SUCCEED();
+}
+
+Result ILibraryAppletCreator::CreateHandleStorage(
+    Out<SharedPointer<IStorage>> out_storage, s64 size,
+    InCopyHandle<Kernel::KTransferMemory> transfer_memory_handle) {
+    LOG_DEBUG(Service_AM, "called, size={}", size);
+
+    if (size <= 0) {
+        LOG_ERROR(Service_AM, "size is less than or equal to 0");
+        R_THROW(ResultUnknown);
+    }
+
+    if (!transfer_memory_handle) {
+        LOG_ERROR(Service_AM, "transfer_memory_handle is null");
+        R_THROW(ResultUnknown);
+    }
+
+    *out_storage = std::make_shared<IStorage>(
+        system, AM::CreateHandleStorage(transfer_memory_handle->GetOwner()->GetMemory(),
+                                        transfer_memory_handle.Get(), size));
+    R_SUCCEED();
 }
 
 } // namespace Service::AM

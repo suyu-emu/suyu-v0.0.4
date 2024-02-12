@@ -429,8 +429,6 @@ add_library(core STATIC
     hle/service/am/hid_registration.h
     hle/service/am/idle.cpp
     hle/service/am/idle.h
-    hle/service/am/library_applet_creator.cpp
-    hle/service/am/library_applet_creator.h
     hle/service/am/library_applet_self_accessor.cpp
     hle/service/am/library_applet_self_accessor.h
     hle/service/am/library_applet_storage.cpp
@@ -473,6 +471,8 @@ add_library(core STATIC
     hle/service/am/service/home_menu_functions.h
     hle/service/am/service/library_applet_accessor.cpp
     hle/service/am/service/library_applet_accessor.h
+    hle/service/am/service/library_applet_creator.cpp
+    hle/service/am/service/library_applet_creator.h
     hle/service/am/service/library_applet_proxy.cpp
     hle/service/am/service/library_applet_proxy.h
     hle/service/am/service/system_applet_proxy.cpp
