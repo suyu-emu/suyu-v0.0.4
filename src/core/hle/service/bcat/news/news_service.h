@@ -19,6 +19,10 @@ public:
 
 private:
     Result GetSubscriptionStatus(Out<u32> out_status, InBuffer<BufferAttr_HipcPointer> buffer_data);
+
+    Result IsSystemUpdateRequired(Out<bool> out_is_system_update_required);
+
+    Result RequestAutoSubscription(u64 value);
 };
 
 } // namespace Service::News

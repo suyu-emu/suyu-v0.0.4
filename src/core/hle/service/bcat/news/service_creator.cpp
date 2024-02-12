@@ -15,11 +15,11 @@ IServiceCreator::IServiceCreator(Core::System& system_, u32 permissions_, const 
     : ServiceFramework{system_, name_}, permissions{permissions_} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IServiceCreator::CreateNewsService>, "CreateNewsService"},
-        {1, C<&IServiceCreator::CreateNewlyArrivedEventHolder>, "CreateNewlyArrivedEventHolder"},
-        {2, C<&IServiceCreator::CreateNewsDataService>, "CreateNewsDataService"},
-        {3, C<&IServiceCreator::CreateNewsDatabaseService>, "CreateNewsDatabaseService"},
-        {4, C<&IServiceCreator::CreateOverwriteEventHolder>, "CreateOverwriteEventHolder"},
+        {0, D<&IServiceCreator::CreateNewsService>, "CreateNewsService"},
+        {1, D<&IServiceCreator::CreateNewlyArrivedEventHolder>, "CreateNewlyArrivedEventHolder"},
+        {2, D<&IServiceCreator::CreateNewsDataService>, "CreateNewsDataService"},
+        {3, D<&IServiceCreator::CreateNewsDatabaseService>, "CreateNewsDatabaseService"},
+        {4, D<&IServiceCreator::CreateOverwriteEventHolder>, "CreateOverwriteEventHolder"},
     };
     // clang-format on
 
