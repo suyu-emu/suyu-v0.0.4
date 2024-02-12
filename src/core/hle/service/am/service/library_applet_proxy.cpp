@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/am/common_state_getter.h"
 #include "core/hle/service/am/debug_functions.h"
 #include "core/hle/service/am/display_controller.h"
 #include "core/hle/service/am/global_state_controller.h"
@@ -12,6 +11,7 @@
 #include "core/hle/service/am/self_controller.h"
 #include "core/hle/service/am/service/applet_common_functions.h"
 #include "core/hle/service/am/service/audio_controller.h"
+#include "core/hle/service/am/service/common_state_getter.h"
 #include "core/hle/service/am/service/library_applet_proxy.h"
 #include "core/hle/service/am/window_controller.h"
 #include "core/hle/service/cmif_serialization.h"

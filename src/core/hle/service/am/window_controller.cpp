@@ -63,10 +63,10 @@ void IWindowController::SetAppletWindowVisibility(HLERequestContext& ctx) {
 
     if (visible) {
         applet->focus_state = FocusState::InFocus;
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+        applet->message_queue.PushMessage(AppletMessage::ChangeIntoForeground);
     } else {
         applet->focus_state = FocusState::NotInFocus;
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoBackground);
+        applet->message_queue.PushMessage(AppletMessage::ChangeIntoBackground);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};

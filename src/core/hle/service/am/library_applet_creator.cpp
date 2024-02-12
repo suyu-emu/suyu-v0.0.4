@@ -130,13 +130,13 @@ std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
     case LibraryAppletMode::PartialForegroundIndirectDisplay:
         applet->hid_registration.EnableAppletToGetInput(true);
         applet->focus_state = FocusState::InFocus;
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+        applet->message_queue.PushMessage(AppletMessage::ChangeIntoForeground);
         break;
     case LibraryAppletMode::AllForegroundInitiallyHidden:
         applet->hid_registration.EnableAppletToGetInput(false);
         applet->focus_state = FocusState::NotInFocus;
         applet->system_buffer_manager.SetWindowVisibility(false);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoBackground);
+        applet->message_queue.PushMessage(AppletMessage::ChangeIntoBackground);
         break;
     }
 
