@@ -76,8 +76,8 @@ struct Applet {
     u32 application_core_usage_mode{};
 
     // Application functions
-    bool gameplay_recording_supported{};
-    GameplayRecordingState gameplay_recording_state{GameplayRecordingState::Disabled};
+    bool game_play_recording_supported{};
+    GamePlayRecordingState game_play_recording_state{GamePlayRecordingState::Disabled};
     bool jit_service_launched{};
     bool is_running{};
     bool application_crash_report_enabled{};
