@@ -9,7 +9,7 @@
 #include "core/hle/service/am/library_applet_storage.h"
 #include "core/hle/service/am/service/library_applet_accessor.h"
 #include "core/hle/service/am/service/library_applet_creator.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/sm/sm.h"
 

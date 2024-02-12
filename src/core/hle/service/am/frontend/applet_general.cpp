@@ -10,7 +10,7 @@
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/frontend/applet_general.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/reporter.h"
 
 namespace Service::AM::Frontend {
