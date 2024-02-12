@@ -473,8 +473,8 @@ add_library(core STATIC
     hle/service/am/service/application_proxy.h
     hle/service/am/service/library_applet_proxy.cpp
     hle/service/am/service/library_applet_proxy.h
-    hle/service/am/system_applet_proxy.cpp
-    hle/service/am/system_applet_proxy.h
+    hle/service/am/service/system_applet_proxy.cpp
+    hle/service/am/service/system_applet_proxy.h
     hle/service/am/system_buffer_manager.cpp
     hle/service/am/system_buffer_manager.h
     hle/service/am/spsm.cpp
