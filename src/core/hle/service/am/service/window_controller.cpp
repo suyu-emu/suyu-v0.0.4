@@ -63,7 +63,7 @@ Result IWindowController::RejectToChangeIntoBackground() {
 }
 
 Result IWindowController::SetAppletWindowVisibility(bool visible) {
-    m_applet->system_buffer_manager.SetWindowVisibility(visible);
+    m_applet->display_layer_manager.SetWindowVisibility(visible);
     m_applet->hid_registration.EnableAppletToGetInput(visible);
 
     if (visible) {

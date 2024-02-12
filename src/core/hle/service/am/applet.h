@@ -14,10 +14,9 @@
 
 #include "core/hle/service/am/am_types.h"
 #include "core/hle/service/am/applet_message_queue.h"
+#include "core/hle/service/am/display_layer_manager.h"
 #include "core/hle/service/am/hid_registration.h"
-#include "core/hle/service/am/managed_layer_holder.h"
 #include "core/hle/service/am/process.h"
-#include "core/hle/service/am/system_buffer_manager.h"
 
 namespace Service::AM {
 
@@ -54,8 +53,7 @@ struct Applet {
     HidRegistration hid_registration;
 
     // vi state
-    SystemBufferManager system_buffer_manager{};
-    ManagedLayerHolder managed_layer_holder{};
+    DisplayLayerManager display_layer_manager{};
 
     // Applet common functions
     Result terminate_result{};
