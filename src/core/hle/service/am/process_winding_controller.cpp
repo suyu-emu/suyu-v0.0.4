@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/am/frontend/applets.h"
-#include "core/hle/service/am/library_applet_accessor.h"
 #include "core/hle/service/am/process_winding_controller.h"
+#include "core/hle/service/am/service/library_applet_accessor.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::AM {
