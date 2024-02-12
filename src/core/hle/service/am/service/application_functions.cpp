@@ -11,7 +11,7 @@
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/service/application_functions.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/save_data_controller.h"

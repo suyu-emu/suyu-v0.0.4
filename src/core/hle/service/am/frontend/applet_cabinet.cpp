@@ -9,7 +9,7 @@
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/frontend/applet_cabinet.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/nfc/common/device.h"
 #include "hid_core/hid_core.h"

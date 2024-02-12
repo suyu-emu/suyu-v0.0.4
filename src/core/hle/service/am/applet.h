@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <list>
 #include <mutex>
 
 #include "common/math_util.h"
@@ -18,7 +17,6 @@
 #include "core/hle/service/am/hid_registration.h"
 #include "core/hle/service/am/managed_layer_holder.h"
 #include "core/hle/service/am/process.h"
-#include "core/hle/service/am/storage.h"
 #include "core/hle/service/am/system_buffer_manager.h"
 
 namespace Service::AM {

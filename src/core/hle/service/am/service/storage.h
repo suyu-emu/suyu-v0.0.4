@@ -3,29 +3,33 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
 
 class LibraryAppletStorage;
+class IStorageAccessor;
+class ITransferStorageAccessor;
 
 class IStorage final : public ServiceFramework<IStorage> {
 public:
-    explicit IStorage(Core::System& system_, std::shared_ptr<LibraryAppletStorage> impl_);
+    explicit IStorage(Core::System& system_, std::shared_ptr<LibraryAppletStorage> impl);
     explicit IStorage(Core::System& system_, std::vector<u8>&& buffer);
     ~IStorage() override;
 
     std::shared_ptr<LibraryAppletStorage> GetImpl() const {
-        return impl;
+        return m_impl;
     }
 
     std::vector<u8> GetData() const;
 
 private:
-    void Open(HLERequestContext& ctx);
-    void OpenTransferStorage(HLERequestContext& ctx);
+    Result Open(Out<SharedPointer<IStorageAccessor>> out_storage_accessor);
+    Result OpenTransferStorage(
+        Out<SharedPointer<ITransferStorageAccessor>> out_transfer_storage_accessor);
 
-    const std::shared_ptr<LibraryAppletStorage> impl;
+    const std::shared_ptr<LibraryAppletStorage> m_impl;
 };
 
 } // namespace Service::AM
