@@ -425,8 +425,6 @@ add_library(core STATIC
     hle/service/am/applet_message_queue.h
     hle/service/am/application_creator.cpp
     hle/service/am/application_creator.h
-    hle/service/am/debug_functions.cpp
-    hle/service/am/debug_functions.h
     hle/service/am/display_controller.cpp
     hle/service/am/display_controller.h
     hle/service/am/global_state_controller.cpp
@@ -471,6 +469,8 @@ add_library(core STATIC
     hle/service/am/service/audio_controller.h
     hle/service/am/service/common_state_getter.cpp
     hle/service/am/service/common_state_getter.h
+    hle/service/am/service/debug_functions.cpp
+    hle/service/am/service/debug_functions.h
     hle/service/am/service/library_applet_proxy.cpp
     hle/service/am/service/library_applet_proxy.h
     hle/service/am/service/system_applet_proxy.cpp
