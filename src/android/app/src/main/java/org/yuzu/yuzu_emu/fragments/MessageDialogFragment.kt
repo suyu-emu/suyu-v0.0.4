@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -16,18 +15,52 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.model.MessageDialogViewModel
+import org.yuzu.yuzu_emu.utils.Log
 
 class MessageDialogFragment : DialogFragment() {
     private val messageDialogViewModel: MessageDialogViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val titleId = requireArguments().getInt(TITLE_ID)
-        val titleString = requireArguments().getString(TITLE_STRING)!!
+        val title = if (titleId != 0) {
+            getString(titleId)
+        } else {
+            requireArguments().getString(TITLE_STRING)!!
+        }
+
         val descriptionId = requireArguments().getInt(DESCRIPTION_ID)
-        val descriptionString = requireArguments().getString(DESCRIPTION_STRING)!!
+        val description = if (descriptionId != 0) {
+            getString(descriptionId)
+        } else {
+            requireArguments().getString(DESCRIPTION_STRING)!!
+        }
+
+        val positiveButtonId = requireArguments().getInt(POSITIVE_BUTTON_TITLE_ID)
+        val positiveButtonString = requireArguments().getString(POSITIVE_BUTTON_TITLE_STRING)!!
+        val positiveButton = if (positiveButtonId != 0) {
+            getString(positiveButtonId)
+        } else if (positiveButtonString.isNotEmpty()) {
+            positiveButtonString
+        } else if (messageDialogViewModel.positiveAction != null) {
+            getString(R.string.close)
+        } else {
+            getString(android.R.string.ok)
+        }
+
+        val negativeButtonId = requireArguments().getInt(NEGATIVE_BUTTON_TITLE_ID)
+        val negativeButtonString = requireArguments().getString(NEGATIVE_BUTTON_TITLE_STRING)!!
+        val negativeButton = if (negativeButtonId != 0) {
+            getString(negativeButtonId)
+        } else if (negativeButtonString.isNotEmpty()) {
+            negativeButtonString
+        } else {
+            getString(android.R.string.cancel)
+        }
+
         val helpLinkId = requireArguments().getInt(HELP_LINK)
         val dismissible = requireArguments().getBoolean(DISMISSIBLE)
-        val clearPositiveAction = requireArguments().getBoolean(CLEAR_POSITIVE_ACTION)
+        val clearPositiveAction = requireArguments().getBoolean(CLEAR_ACTIONS)
+        val showNegativeButton = requireArguments().getBoolean(SHOW_NEGATIVE_BUTTON)
 
         val builder = MaterialAlertDialogBuilder(requireContext())
 
@@ -35,21 +68,19 @@ class MessageDialogFragment : DialogFragment() {
             messageDialogViewModel.positiveAction = null
         }
 
-        if (messageDialogViewModel.positiveAction == null) {
-            builder.setPositiveButton(R.string.close, null)
-        } else {
-            builder.setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
-                messageDialogViewModel.positiveAction?.invoke()
-            }.setNegativeButton(android.R.string.cancel, null)
+        builder.setPositiveButton(positiveButton) { _, _ ->
+            messageDialogViewModel.positiveAction?.invoke()
+        }
+        if (messageDialogViewModel.negativeAction != null || showNegativeButton) {
+            builder.setNegativeButton(negativeButton) { _, _ ->
+                messageDialogViewModel.negativeAction?.invoke()
+            }
         }
 
-        if (titleId != 0) builder.setTitle(titleId)
-        if (titleString.isNotEmpty()) builder.setTitle(titleString)
-
-        if (descriptionId != 0) {
-            builder.setMessage(Html.fromHtml(getString(descriptionId), Html.FROM_HTML_MODE_LEGACY))
+        if (title.isNotEmpty()) builder.setTitle(title)
+        if (description.isNotEmpty()) {
+            builder.setMessage(Html.fromHtml(description, Html.FROM_HTML_MODE_LEGACY))
         }
-        if (descriptionString.isNotEmpty()) builder.setMessage(descriptionString)
 
         if (helpLinkId != 0) {
             builder.setNeutralButton(R.string.learn_more) { _, _ ->
@@ -76,8 +107,41 @@ class MessageDialogFragment : DialogFragment() {
         private const val DESCRIPTION_STRING = "DescriptionString"
         private const val HELP_LINK = "Link"
         private const val DISMISSIBLE = "Dismissible"
-        private const val CLEAR_POSITIVE_ACTION = "ClearPositiveAction"
+        private const val CLEAR_ACTIONS = "ClearActions"
+        private const val POSITIVE_BUTTON_TITLE_ID = "PositiveButtonTitleId"
+        private const val POSITIVE_BUTTON_TITLE_STRING = "PositiveButtonTitleString"
+        private const val SHOW_NEGATIVE_BUTTON = "ShowNegativeButton"
+        private const val NEGATIVE_BUTTON_TITLE_ID = "NegativeButtonTitleId"
+        private const val NEGATIVE_BUTTON_TITLE_STRING = "NegativeButtonTitleString"
 
+        /**
+         * Creates a new [MessageDialogFragment] instance.
+         * @param activity Activity that will hold a [MessageDialogViewModel] instance if using
+         * [positiveAction] or [negativeAction].
+         * @param titleId String resource ID that will be used for the title. [titleString] used if 0.
+         * @param titleString String that will be used for the title. No title is set if empty.
+         * @param descriptionId String resource ID that will be used for the description.
+         * [descriptionString] used if 0.
+         * @param descriptionString String that will be used for the description.
+         * No description is set if empty.
+         * @param helpLinkId String resource ID that contains a help link. Will be added as a neutral
+         * button with the title R.string.help.
+         * @param dismissible Whether the dialog is dismissible or not. Typically used to ensure that
+         * the user clicks on one of the dialog buttons before closing.
+         * @param positiveButtonTitleId String resource ID that will be used for the positive button.
+         * [positiveButtonTitleString] used if 0.
+         * @param positiveButtonTitleString String that will be used for the positive button.
+         * android.R.string.ok used if empty. android.R.string.close will be used if [positiveAction]
+         * is not null.
+         * @param positiveAction Lambda to run when the positive button is clicked.
+         * @param showNegativeButton Normally the negative button isn't shown if there is no
+         * [negativeAction] set. This can override that behavior to always show a button.
+         * @param negativeButtonTitleId String resource ID that will be used for the negative button.
+         * [negativeButtonTitleString] used if 0.
+         * @param negativeButtonTitleString String that will be used for the negative button.
+         * android.R.string.cancel used if empty.
+         * @param negativeAction Lambda to run when the negative button is clicked
+         */
         fun newInstance(
             activity: FragmentActivity? = null,
             titleId: Int = 0,
@@ -86,16 +150,27 @@ class MessageDialogFragment : DialogFragment() {
             descriptionString: String = "",
             helpLinkId: Int = 0,
             dismissible: Boolean = true,
-            positiveAction: (() -> Unit)? = null
+            positiveButtonTitleId: Int = 0,
+            positiveButtonTitleString: String = "",
+            positiveAction: (() -> Unit)? = null,
+            showNegativeButton: Boolean = false,
+            negativeButtonTitleId: Int = 0,
+            negativeButtonTitleString: String = "",
+            negativeAction: (() -> Unit)? = null
         ): MessageDialogFragment {
-            var clearPositiveAction = false
+            var clearActions = false
             if (activity != null) {
                 ViewModelProvider(activity)[MessageDialogViewModel::class.java].apply {
                     clear()
                     this.positiveAction = positiveAction
+                    this.negativeAction = negativeAction
                 }
             } else {
-                clearPositiveAction = true
+                clearActions = true
+            }
+
+            if (activity == null && (positiveAction == null || negativeAction == null)) {
+                Log.warning("[$TAG] Tried to set action with no activity!")
             }
 
             val dialog = MessageDialogFragment()
@@ -106,7 +181,12 @@ class MessageDialogFragment : DialogFragment() {
                 putString(DESCRIPTION_STRING, descriptionString)
                 putInt(HELP_LINK, helpLinkId)
                 putBoolean(DISMISSIBLE, dismissible)
-                putBoolean(CLEAR_POSITIVE_ACTION, clearPositiveAction)
+                putBoolean(CLEAR_ACTIONS, clearActions)
+                putInt(POSITIVE_BUTTON_TITLE_ID, positiveButtonTitleId)
+                putString(POSITIVE_BUTTON_TITLE_STRING, positiveButtonTitleString)
+                putBoolean(SHOW_NEGATIVE_BUTTON, showNegativeButton)
+                putInt(NEGATIVE_BUTTON_TITLE_ID, negativeButtonTitleId)
+                putString(NEGATIVE_BUTTON_TITLE_STRING, negativeButtonTitleString)
             }
             dialog.arguments = bundle
             return dialog
