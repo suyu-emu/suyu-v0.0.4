@@ -441,6 +441,8 @@ add_library(core STATIC
     hle/service/am/service/all_system_applet_proxies_service.h
     hle/service/am/service/applet_common_functions.cpp
     hle/service/am/service/applet_common_functions.h
+    hle/service/am/service/application_accessor.cpp
+    hle/service/am/service/application_accessor.h
     hle/service/am/service/application_functions.cpp
     hle/service/am/service/application_functions.h
     hle/service/am/service/application_proxy_service.cpp
