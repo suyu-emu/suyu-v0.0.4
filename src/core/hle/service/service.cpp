@@ -52,6 +52,7 @@
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/olsc/olsc.h"
+#include "core/hle/service/omm/omm.h"
 #include "core/hle/service/pcie/pcie.h"
 #include "core/hle/service/pctl/pctl_module.h"
 #include "core/hle/service/pcv/pcv.h"
@@ -266,6 +267,7 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnGuestCoreProcess("npns",       [&] { NPNS::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ns",         [&] { NS::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("olsc",       [&] { OLSC::LoopProcess(system); });
+    kernel.RunOnGuestCoreProcess("omm",        [&] { OMM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("pcie",       [&] { PCIe::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("pctl",       [&] { PCTL::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("pcv",        [&] { PCV::LoopProcess(system); });

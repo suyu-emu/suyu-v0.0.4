@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/am/spsm.h"
+#include "core/hle/service/omm/power_state_interface.h"
 
-namespace Service::AM {
+namespace Service::OMM {
 
-SPSM::SPSM(Core::System& system_) : ServiceFramework{system_, "spsm"} {
+IPowerStateInterface::IPowerStateInterface(Core::System& system_)
+    : ServiceFramework{system_, "spsm"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetState"},
@@ -26,6 +27,6 @@ SPSM::SPSM(Core::System& system_) : ServiceFramework{system_, "spsm"} {
     RegisterHandlers(functions);
 }
 
-SPSM::~SPSM() = default;
+IPowerStateInterface::~IPowerStateInterface() = default;
 
-} // namespace Service::AM
+} // namespace Service::OMM
