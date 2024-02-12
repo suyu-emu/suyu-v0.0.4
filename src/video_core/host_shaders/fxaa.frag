@@ -71,5 +71,5 @@ vec3 FxaaPixelShader(vec4 posPos, sampler2D tex) {
 }
 
 void main() {
-  frag_color = vec4(FxaaPixelShader(posPos, input_texture), 1.0);
+  frag_color = vec4(FxaaPixelShader(posPos, input_texture), texture(input_texture, posPos.xy).a);
 }

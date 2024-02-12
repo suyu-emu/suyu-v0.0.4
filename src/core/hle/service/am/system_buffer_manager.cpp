@@ -17,11 +17,12 @@ SystemBufferManager::~SystemBufferManager() {
 
     // Clean up shared layers.
     if (m_buffer_sharing_enabled) {
+        m_nvnflinger->GetSystemBufferManager().Finalize(m_process);
     }
 }
 
 bool SystemBufferManager::Initialize(Nvnflinger::Nvnflinger* nvnflinger, Kernel::KProcess* process,
-                                     AppletId applet_id) {
+                                     AppletId applet_id, LibraryAppletMode mode) {
     if (m_nvnflinger) {
         return m_buffer_sharing_enabled;
     }
@@ -36,9 +37,15 @@ bool SystemBufferManager::Initialize(Nvnflinger::Nvnflinger* nvnflinger, Kernel:
         return false;
     }
 
+    Nvnflinger::LayerBlending blending = Nvnflinger::LayerBlending::None;
+    if (mode == LibraryAppletMode::PartialForeground ||
+        mode == LibraryAppletMode::PartialForegroundIndirectDisplay) {
+        blending = Nvnflinger::LayerBlending::Coverage;
+    }
+
     const auto display_id = m_nvnflinger->OpenDisplay("Default").value();
     const auto res = m_nvnflinger->GetSystemBufferManager().Initialize(
-        &m_system_shared_buffer_id, &m_system_shared_layer_id, display_id);
+        m_process, &m_system_shared_buffer_id, &m_system_shared_layer_id, display_id, blending);
 
     if (res.IsSuccess()) {
         m_buffer_sharing_enabled = true;
@@ -62,8 +69,12 @@ void SystemBufferManager::SetWindowVisibility(bool visible) {
 
 Result SystemBufferManager::WriteAppletCaptureBuffer(bool* out_was_written,
                                                      s32* out_fbshare_layer_index) {
-    // TODO
-    R_SUCCEED();
+    if (!m_buffer_sharing_enabled) {
+        return VI::ResultPermissionDenied;
+    }
+
+    return m_nvnflinger->GetSystemBufferManager().WriteAppletCaptureBuffer(out_was_written,
+                                                                           out_fbshare_layer_index);
 }
 
 } // namespace Service::AM

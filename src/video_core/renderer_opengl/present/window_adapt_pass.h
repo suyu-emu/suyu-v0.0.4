@@ -31,7 +31,7 @@ public:
 
     void DrawToFramebuffer(ProgramManager& program_manager, std::list<Layer>& layers,
                            std::span<const Tegra::FramebufferConfig> framebuffers,
-                           const Layout::FramebufferLayout& layout);
+                           const Layout::FramebufferLayout& layout, bool invert_y);
 
 private:
     const Device& device;

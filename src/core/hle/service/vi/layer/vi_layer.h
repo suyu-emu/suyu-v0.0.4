@@ -14,6 +14,10 @@ class BufferQueueCore;
 class BufferQueueProducer;
 } // namespace Service::android
 
+namespace Service::Nvnflinger {
+enum class LayerBlending : u32;
+}
+
 namespace Service::VI {
 
 /// Represents a single display layer.
@@ -92,12 +96,21 @@ public:
         return !std::exchange(open, true);
     }
 
+    Nvnflinger::LayerBlending GetBlending() {
+        return blending;
+    }
+
+    void SetBlending(Nvnflinger::LayerBlending b) {
+        blending = b;
+    }
+
 private:
     const u64 layer_id;
     const u32 binder_id;
     android::BufferQueueCore& core;
     android::BufferQueueProducer& binder;
     std::shared_ptr<android::BufferItemConsumer> consumer;
+    Service::Nvnflinger::LayerBlending blending;
     bool open;
     bool visible;
 };

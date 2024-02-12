@@ -401,6 +401,14 @@ void Config::ReadNetworkValues() {
     EndGroup();
 }
 
+void Config::ReadLibraryAppletValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::LibraryApplet));
+
+    ReadCategory(Settings::Category::LibraryApplet);
+
+    EndGroup();
+}
+
 void Config::ReadValues() {
     if (global) {
         ReadDataStorageValues();
@@ -410,6 +418,7 @@ void Config::ReadValues() {
         ReadServiceValues();
         ReadWebServiceValues();
         ReadMiscellaneousValues();
+        ReadLibraryAppletValues();
     }
     ReadControlValues();
     ReadCoreValues();
@@ -511,6 +520,7 @@ void Config::SaveValues() {
         SaveNetworkValues();
         SaveWebServiceValues();
         SaveMiscellaneousValues();
+        SaveLibraryAppletValues();
     } else {
         LOG_DEBUG(Config, "Saving only generic configuration values");
     }
@@ -687,6 +697,14 @@ void Config::SaveWebServiceValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::WebService));
 
     WriteCategory(Settings::Category::WebService);
+
+    EndGroup();
+}
+
+void Config::SaveLibraryAppletValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::LibraryApplet));
+
+    WriteCategory(Settings::Category::LibraryApplet);
 
     EndGroup();
 }

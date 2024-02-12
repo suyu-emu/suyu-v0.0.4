@@ -37,6 +37,7 @@ layout(set=0,binding=0) uniform sampler2D InputTexture;
 
 #define A_GPU 1
 #define A_GLSL 1
+#define FSR_RCAS_PASSTHROUGH_ALPHA 1
 
 #ifndef YUZU_USE_FP16
     #include "ffx_a.h"
@@ -71,9 +72,7 @@ layout(set=0,binding=0) uniform sampler2D InputTexture;
 
 #include "ffx_fsr1.h"
 
-#if USE_RCAS
-    layout(location = 0) in vec2 frag_texcoord;
-#endif
+layout (location = 0) in vec2 frag_texcoord;
 layout (location = 0) out vec4 frag_color;
 
 void CurrFilter(AU2 pos) {
@@ -81,22 +80,22 @@ void CurrFilter(AU2 pos) {
     #ifndef YUZU_USE_FP16
         AF3 c;
         FsrEasuF(c, pos, Const0, Const1, Const2, Const3);
-        frag_color = AF4(c, 1.0);
+        frag_color = AF4(c, texture(InputTexture, frag_texcoord).a);
     #else
         AH3 c;
         FsrEasuH(c, pos, Const0, Const1, Const2, Const3);
-        frag_color = AH4(c, 1.0);
+        frag_color = AH4(c, texture(InputTexture, frag_texcoord).a);
     #endif
 #endif
 #if USE_RCAS
     #ifndef YUZU_USE_FP16
-        AF3 c;
-        FsrRcasF(c.r, c.g, c.b, pos, Const0);
-        frag_color = AF4(c, 1.0);
+        AF4 c;
+        FsrRcasF(c.r, c.g, c.b, c.a, pos, Const0);
+        frag_color = c;
     #else
-        AH3 c;
-        FsrRcasH(c.r, c.g, c.b, pos, Const0);
-        frag_color = AH4(c, 1.0);
+        AH4 c;
+        FsrRcasH(c.r, c.g, c.b, c.a, pos, Const0);
+        frag_color = c;
     #endif
 #endif
 }

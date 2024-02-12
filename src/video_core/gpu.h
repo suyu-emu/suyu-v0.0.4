@@ -215,6 +215,8 @@ public:
     void RequestComposite(std::vector<Tegra::FramebufferConfig>&& layers,
                           std::vector<Service::Nvidia::NvFence>&& fences);
 
+    std::vector<u8> GetAppletCaptureBuffer();
+
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary
     /// core timing events.

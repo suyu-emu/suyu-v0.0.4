@@ -4,8 +4,9 @@
 #include <random>
 #include "common/scope_exit.h"
 #include "common/settings.h"
+#include "core/arm/dynarmic/arm_dynarmic.h"
+#include "core/arm/dynarmic/dynarmic_exclusive_monitor.h"
 #include "core/core.h"
-#include "core/gpu_dirty_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -1258,6 +1259,10 @@ void KProcess::InitializeInterfaces() {
 
 #ifdef HAS_NCE
     if (this->IsApplication() && Settings::IsNceEnabled()) {
+        // Register the scoped JIT handler before creating any NCE instances
+        // so that its signal handler will appear first in the signal chain.
+        Core::ScopedJitExecution::RegisterHandler();
+
         for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] = std::make_unique<Core::ArmNce>(m_kernel.System(), true, i);
         }

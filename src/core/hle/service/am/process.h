@@ -21,7 +21,7 @@ public:
     explicit Process(Core::System& system);
     ~Process();
 
-    bool Initialize(u64 program_id);
+    bool Initialize(u64 program_id, u8 minimum_key_generation, u8 maximum_key_generation);
     void Finalize();
 
     bool Run();

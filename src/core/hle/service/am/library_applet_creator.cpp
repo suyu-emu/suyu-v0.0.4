@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/settings.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
@@ -15,6 +16,34 @@
 namespace Service::AM {
 
 namespace {
+
+bool ShouldCreateGuestApplet(AppletId applet_id) {
+#define X(Name, name)                                                                              \
+    if (applet_id == AppletId::Name &&                                                             \
+        Settings::values.name##_applet_mode.GetValue() != Settings::AppletMode::LLE) {             \
+        return false;                                                                              \
+    }
+
+    X(Cabinet, cabinet)
+    X(Controller, controller)
+    X(DataErase, data_erase)
+    X(Error, error)
+    X(NetConnect, net_connect)
+    X(ProfileSelect, player_select)
+    X(SoftwareKeyboard, swkbd)
+    X(MiiEdit, mii_edit)
+    X(Web, web)
+    X(Shop, shop)
+    X(PhotoViewer, photo_viewer)
+    X(OfflineWeb, offline_web)
+    X(LoginShare, login_share)
+    X(WebAuth, wifi_web_auth)
+    X(MyPage, my_page)
+
+#undef X
+
+    return true;
+}
 
 AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     switch (applet_id) {
@@ -63,17 +92,26 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     }
 }
 
-[[maybe_unused]] std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(
-    Core::System& system, std::shared_ptr<Applet> caller_applet, AppletId applet_id,
-    LibraryAppletMode mode) {
+std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
+                                                          std::shared_ptr<Applet> caller_applet,
+                                                          AppletId applet_id,
+                                                          LibraryAppletMode mode) {
     const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
     if (program_id == 0) {
         // Unknown applet
         return {};
     }
 
+    // TODO: enable other versions of applets
+    enum : u8 {
+        Firmware1400 = 14,
+        Firmware1500 = 15,
+        Firmware1600 = 16,
+        Firmware1700 = 17,
+    };
+
     auto process = std::make_unique<Process>(system);
-    if (!process->Initialize(program_id)) {
+    if (!process->Initialize(program_id, Firmware1400, Firmware1700)) {
         // Couldn't initialize the guest process
         return {};
     }
@@ -87,24 +125,18 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     // Set focus state
     switch (mode) {
     case LibraryAppletMode::AllForeground:
-    case LibraryAppletMode::NoUI:
-        applet->focus_state = FocusState::InFocus;
+    case LibraryAppletMode::NoUi:
+    case LibraryAppletMode::PartialForeground:
+    case LibraryAppletMode::PartialForegroundIndirectDisplay:
         applet->hid_registration.EnableAppletToGetInput(true);
+        applet->focus_state = FocusState::InFocus;
         applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
         break;
     case LibraryAppletMode::AllForegroundInitiallyHidden:
-        applet->system_buffer_manager.SetWindowVisibility(false);
-        applet->focus_state = FocusState::NotInFocus;
         applet->hid_registration.EnableAppletToGetInput(false);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
-        break;
-    case LibraryAppletMode::Background:
-    case LibraryAppletMode::BackgroundIndirectDisplay:
-    default:
-        applet->focus_state = FocusState::Background;
-        applet->hid_registration.EnableAppletToGetInput(true);
-        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+        applet->focus_state = FocusState::NotInFocus;
+        applet->system_buffer_manager.SetWindowVisibility(false);
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoBackground);
         break;
     }
 
@@ -117,9 +149,10 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     return std::make_shared<ILibraryAppletAccessor>(system, broker, applet);
 }
 
-[[maybe_unused]] std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(
-    Core::System& system, std::shared_ptr<Applet> caller_applet, AppletId applet_id,
-    LibraryAppletMode mode) {
+std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& system,
+                                                             std::shared_ptr<Applet> caller_applet,
+                                                             AppletId applet_id,
+                                                             LibraryAppletMode mode) {
     const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
 
     auto process = std::make_unique<Process>(system);
@@ -163,7 +196,13 @@ void ILibraryAppletCreator::CreateLibraryApplet(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
               applet_mode);
 
-    auto library_applet = CreateFrontendApplet(system, applet, applet_id, applet_mode);
+    std::shared_ptr<ILibraryAppletAccessor> library_applet;
+    if (ShouldCreateGuestApplet(applet_id)) {
+        library_applet = CreateGuestApplet(system, applet, applet_id, applet_mode);
+    }
+    if (!library_applet) {
+        library_applet = CreateFrontendApplet(system, applet, applet_id, applet_mode);
+    }
     if (!library_applet) {
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
 

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "video_core/present.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 
 #include "common/settings.h"
@@ -48,12 +49,12 @@ VkFormat GetFormat(const Tegra::FramebufferConfig& framebuffer) {
 
 Layer::Layer(const Device& device_, MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
              Tegra::MaxwellDeviceMemoryManager& device_memory_, size_t image_count_,
-             VkExtent2D output_size, VkDescriptorSetLayout layout)
+             VkExtent2D output_size, VkDescriptorSetLayout layout, const PresentFilters& filters_)
     : device(device_), memory_allocator(memory_allocator_), scheduler(scheduler_),
-      device_memory(device_memory_), image_count(image_count_) {
+      device_memory(device_memory_), filters(filters_), image_count(image_count_) {
     CreateDescriptorPool();
     CreateDescriptorSets(layout);
-    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
+    if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
         CreateFSR(output_size);
     }
 }
@@ -171,11 +172,11 @@ void Layer::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
 }
 
 void Layer::SetAntiAliasPass() {
-    if (anti_alias && anti_alias_setting == Settings::values.anti_aliasing.GetValue()) {
+    if (anti_alias && anti_alias_setting == filters.get_anti_aliasing()) {
         return;
     }
 
-    anti_alias_setting = Settings::values.anti_aliasing.GetValue();
+    anti_alias_setting = filters.get_anti_aliasing();
 
     const VkExtent2D render_area{
         .width = Settings::values.resolution_info.ScaleUp(raw_width),
@@ -270,9 +271,11 @@ void Layer::UpdateRawImage(const Tegra::FramebufferConfig& framebuffer, size_t i
     const u64 linear_size{GetSizeInBytes(framebuffer)};
     const u64 tiled_size{Tegra::Texture::CalculateSize(
         true, bytes_per_pixel, framebuffer.stride, framebuffer.height, 1, block_height_log2, 0)};
-    Tegra::Texture::UnswizzleTexture(
-        mapped_span.subspan(image_offset, linear_size), std::span(host_ptr, tiled_size),
-        bytes_per_pixel, framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
+    if (host_ptr) {
+        Tegra::Texture::UnswizzleTexture(
+            mapped_span.subspan(image_offset, linear_size), std::span(host_ptr, tiled_size),
+            bytes_per_pixel, framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
+    }
 
     const VkBufferImageCopy copy{
         .bufferOffset = image_offset,

@@ -46,14 +46,14 @@ vec4 blurDiagonal(sampler2D textureSampler, vec2 coord, vec2 norm) {
 }
 
 void main() {
-    vec3 base = texture(color_texture, vec2(frag_tex_coord)).rgb * weight[0];
+    vec4 base = texture(color_texture, vec2(frag_tex_coord)) * weight[0];
     vec2 tex_offset = 1.0f / textureSize(color_texture, 0);
 
     // TODO(Blinkhawk): This code can be optimized through shader group instructions.
-    vec3 horizontal = blurHorizontal(color_texture, frag_tex_coord, tex_offset).rgb;
-    vec3 vertical = blurVertical(color_texture, frag_tex_coord, tex_offset).rgb;
-    vec3 diagonalA = blurDiagonal(color_texture, frag_tex_coord, tex_offset).rgb;
-    vec3 diagonalB = blurDiagonal(color_texture, frag_tex_coord, tex_offset * vec2(1.0, -1.0)).rgb;
-    vec3 combination = mix(mix(horizontal, vertical, 0.5f), mix(diagonalA, diagonalB, 0.5f), 0.5f);
-    color = vec4(combination + base, 1.0f);
+    vec4 horizontal = blurHorizontal(color_texture, frag_tex_coord, tex_offset);
+    vec4 vertical = blurVertical(color_texture, frag_tex_coord, tex_offset);
+    vec4 diagonalA = blurDiagonal(color_texture, frag_tex_coord, tex_offset);
+    vec4 diagonalB = blurDiagonal(color_texture, frag_tex_coord, tex_offset * vec2(1.0, -1.0));
+    vec4 combination = mix(mix(horizontal, vertical, 0.5f), mix(diagonalA, diagonalB, 0.5f), 0.5f);
+    color = combination + base;
 }

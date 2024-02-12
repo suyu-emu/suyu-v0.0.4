@@ -16,6 +16,8 @@
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
 #include "core/telemetry_session.h"
+#include "video_core/capture.h"
+#include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
@@ -120,7 +122,15 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
         glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
     }
     blit_screen = std::make_unique<BlitScreen>(rasterizer, device_memory, state_tracker,
-                                               program_manager, device);
+                                               program_manager, device, PresentFiltersForDisplay);
+    blit_applet =
+        std::make_unique<BlitScreen>(rasterizer, device_memory, state_tracker, program_manager,
+                                     device, PresentFiltersForAppletCapture);
+    capture_framebuffer.Create();
+    capture_renderbuffer.Create();
+    glBindRenderbuffer(GL_RENDERBUFFER, capture_renderbuffer.handle);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_SRGB8, VideoCore::Capture::LinearWidth,
+                          VideoCore::Capture::LinearHeight);
 }
 
 RendererOpenGL::~RendererOpenGL() = default;
@@ -130,10 +140,11 @@ void RendererOpenGL::Composite(std::span<const Tegra::FramebufferConfig> framebu
         return;
     }
 
+    RenderAppletCaptureLayer(framebuffers);
     RenderScreenshot(framebuffers);
 
     state_tracker.BindFramebuffer(0);
-    blit_screen->DrawScreen(framebuffers, emu_window.GetFramebufferLayout());
+    blit_screen->DrawScreen(framebuffers, emu_window.GetFramebufferLayout(), false);
 
     ++m_current_frame;
 
@@ -159,11 +170,8 @@ void RendererOpenGL::AddTelemetryFields() {
     telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
 }
 
-void RendererOpenGL::RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers) {
-    if (!renderer_settings.screenshot_requested) {
-        return;
-    }
-
+void RendererOpenGL::RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
+                                    const Layout::FramebufferLayout& layout, void* dst) {
     GLint old_read_fb;
     GLint old_draw_fb;
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
@@ -173,29 +181,86 @@ void RendererOpenGL::RenderScreenshot(std::span<const Tegra::FramebufferConfig> 
     screenshot_framebuffer.Create();
     glBindFramebuffer(GL_FRAMEBUFFER, screenshot_framebuffer.handle);
 
-    const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
-
     GLuint renderbuffer;
     glGenRenderbuffers(1, &renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_SRGB8, layout.width, layout.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
-    blit_screen->DrawScreen(framebuffers, layout);
+    blit_screen->DrawScreen(framebuffers, layout, false);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-    glReadPixels(0, 0, layout.width, layout.height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
-                 renderer_settings.screenshot_bits);
+    glReadPixels(0, 0, layout.width, layout.height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, dst);
 
     screenshot_framebuffer.Release();
     glDeleteRenderbuffers(1, &renderbuffer);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
+}
+
+void RendererOpenGL::RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (!renderer_settings.screenshot_requested) {
+        return;
+    }
+
+    RenderToBuffer(framebuffers, renderer_settings.screenshot_framebuffer_layout,
+                   renderer_settings.screenshot_bits);
 
     renderer_settings.screenshot_complete_callback(true);
     renderer_settings.screenshot_requested = false;
+}
+
+void RendererOpenGL::RenderAppletCaptureLayer(
+    std::span<const Tegra::FramebufferConfig> framebuffers) {
+    GLint old_read_fb;
+    GLint old_draw_fb;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, capture_framebuffer.handle);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
+                              capture_renderbuffer.handle);
+
+    blit_applet->DrawScreen(framebuffers, VideoCore::Capture::Layout, true);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
+}
+
+std::vector<u8> RendererOpenGL::GetAppletCaptureBuffer() {
+    using namespace VideoCore::Capture;
+
+    std::vector<u8> linear(TiledSize);
+    std::vector<u8> out(TiledSize);
+
+    GLint old_read_fb;
+    GLint old_draw_fb;
+    GLint old_pixel_pack_buffer;
+    GLint old_pack_row_length;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+    glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &old_pixel_pack_buffer);
+    glGetIntegerv(GL_PACK_ROW_LENGTH, &old_pack_row_length);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, capture_framebuffer.handle);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
+                              capture_renderbuffer.handle);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+    glReadPixels(0, 0, LinearWidth, LinearHeight, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV,
+                 linear.data());
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, old_pixel_pack_buffer);
+    glPixelStorei(GL_PACK_ROW_LENGTH, old_pack_row_length);
+
+    Tegra::Texture::SwizzleTexture(out, linear, BytesPerPixel, LinearWidth, LinearHeight,
+                                   LinearDepth, BlockHeight, BlockDepth);
+
+    return out;
 }
 
 } // namespace OpenGL

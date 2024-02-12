@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
 
@@ -38,6 +39,7 @@ private:
     void CreateManagedDisplaySeparableLayer(HLERequestContext& ctx);
     void SetHandlesRequestToDisplay(HLERequestContext& ctx);
     void ApproveToDisplay(HLERequestContext& ctx);
+    void SetMediaPlaybackState(HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(HLERequestContext& ctx);
     void ReportUserIsActive(HLERequestContext& ctx);

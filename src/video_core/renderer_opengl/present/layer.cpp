@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "video_core/framebuffer_config.h"
+#include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/present/fsr.h"
@@ -14,8 +15,9 @@
 
 namespace OpenGL {
 
-Layer::Layer(RasterizerOpenGL& rasterizer_, Tegra::MaxwellDeviceMemoryManager& device_memory_)
-    : rasterizer(rasterizer_), device_memory(device_memory_) {
+Layer::Layer(RasterizerOpenGL& rasterizer_, Tegra::MaxwellDeviceMemoryManager& device_memory_,
+             const PresentFilters& filters_)
+    : rasterizer(rasterizer_), device_memory(device_memory_), filters(filters_) {
     // Allocate textures for the screen
     framebuffer_texture.resource.Create(GL_TEXTURE_2D);
 
@@ -34,12 +36,12 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
                             std::array<ScreenRectVertex, 4>& out_vertices,
                             ProgramManager& program_manager,
                             const Tegra::FramebufferConfig& framebuffer,
-                            const Layout::FramebufferLayout& layout) {
+                            const Layout::FramebufferLayout& layout, bool invert_y) {
     FramebufferTextureInfo info = PrepareRenderTarget(framebuffer);
     auto crop = Tegra::NormalizeCrop(framebuffer, info.width, info.height);
     GLuint texture = info.display_texture;
 
-    auto anti_aliasing = Settings::values.anti_aliasing.GetValue();
+    auto anti_aliasing = filters.get_anti_aliasing();
     if (anti_aliasing != Settings::AntiAliasing::None) {
         glEnablei(GL_SCISSOR_TEST, 0);
         auto viewport_width = Settings::values.resolution_info.ScaleUp(framebuffer_texture.width);
@@ -64,7 +66,7 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
 
     glDisablei(GL_SCISSOR_TEST, 0);
 
-    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
+    if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
         if (!fsr || fsr->NeedsRecreation(layout.screen)) {
             fsr = std::make_unique<FSR>(layout.screen.GetWidth(), layout.screen.GetHeight());
         }
@@ -83,10 +85,15 @@ GLuint Layer::ConfigureDraw(std::array<GLfloat, 3 * 2>& out_matrix,
     const auto w = screen.GetWidth();
     const auto h = screen.GetHeight();
 
-    out_vertices[0] = ScreenRectVertex(x, y, crop.left, crop.top);
-    out_vertices[1] = ScreenRectVertex(x + w, y, crop.right, crop.top);
-    out_vertices[2] = ScreenRectVertex(x, y + h, crop.left, crop.bottom);
-    out_vertices[3] = ScreenRectVertex(x + w, y + h, crop.right, crop.bottom);
+    const auto left = crop.left;
+    const auto right = crop.right;
+    const auto top = invert_y ? crop.bottom : crop.top;
+    const auto bottom = invert_y ? crop.top : crop.bottom;
+
+    out_vertices[0] = ScreenRectVertex(x, y, left, top);
+    out_vertices[1] = ScreenRectVertex(x + w, y, right, top);
+    out_vertices[2] = ScreenRectVertex(x, y + h, left, bottom);
+    out_vertices[3] = ScreenRectVertex(x + w, y + h, right, bottom);
 
     return texture;
 }
@@ -131,10 +138,12 @@ FramebufferTextureInfo Layer::LoadFBToScreenInfo(const Tegra::FramebufferConfig&
     const u64 size_in_bytes{Tegra::Texture::CalculateSize(
         true, bytes_per_pixel, framebuffer.stride, framebuffer.height, 1, block_height_log2, 0)};
     const u8* const host_ptr{device_memory.GetPointer<u8>(framebuffer_addr)};
-    const std::span<const u8> input_data(host_ptr, size_in_bytes);
-    Tegra::Texture::UnswizzleTexture(gl_framebuffer_data, input_data, bytes_per_pixel,
-                                     framebuffer.width, framebuffer.height, 1, block_height_log2,
-                                     0);
+    if (host_ptr) {
+        const std::span<const u8> input_data(host_ptr, size_in_bytes);
+        Tegra::Texture::UnswizzleTexture(gl_framebuffer_data, input_data, bytes_per_pixel,
+                                         framebuffer.width, framebuffer.height, 1,
+                                         block_height_log2, 0);
+    }
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(framebuffer.stride));

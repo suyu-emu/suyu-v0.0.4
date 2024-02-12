@@ -6,5 +6,6 @@
 
 #define YUZU_USE_FP16
 #define USE_RCAS 1
+#define VERSION 1
 
 #include "fidelityfx_fsr.frag"

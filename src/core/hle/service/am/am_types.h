@@ -130,9 +130,9 @@ enum class AppletProgramId : u64 {
 
 enum class LibraryAppletMode : u32 {
     AllForeground = 0,
-    Background = 1,
-    NoUI = 2,
-    BackgroundIndirectDisplay = 3,
+    PartialForeground = 1,
+    NoUi = 2,
+    PartialForegroundIndirectDisplay = 3,
     AllForegroundInitiallyHidden = 4,
 };
 

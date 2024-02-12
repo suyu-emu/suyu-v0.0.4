@@ -18,6 +18,7 @@ add_library(video_core STATIC
     buffer_cache/usage_tracker.h
     buffer_cache/word_manager.h
     cache_types.h
+    capture.h
     cdma_pusher.cpp
     cdma_pusher.h
     compatible_formats.cpp
@@ -101,6 +102,7 @@ add_library(video_core STATIC
     memory_manager.cpp
     memory_manager.h
     precompiled_headers.h
+    present.h
     pte_kind.h
     query_cache/bank_base.h
     query_cache/query_base.h
