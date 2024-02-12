@@ -18,6 +18,7 @@
 #include <QString>
 #include <QToolButton>
 #include <QVariant>
+#include <QtGlobal>
 
 #include "common/common_types.h"
 #include "common/fs/path_util.h"
@@ -28,6 +29,8 @@
 #include "core/frontend/framebuffer_layout.h"
 #include "suyu/uisettings.h"
 #include "ui_configure_ui.h"
+
+using Settings::DarkModeState;
 
 namespace {
 constexpr std::array default_game_icon_sizes{
@@ -153,6 +156,9 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
             &ConfigureUi::RequestGameListUpdate);
     connect(ui->row_2_text_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &ConfigureUi::RequestGameListUpdate);
+    // Update available dark mode options depending on selected style
+    connect(ui->theme_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &ConfigureUi::UpdateDarkModeOptions);
 
     // Update text ComboBoxes after user interaction.
     connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::activated),
@@ -185,6 +191,8 @@ ConfigureUi::~ConfigureUi() = default;
 void ConfigureUi::ApplyConfiguration() {
     UISettings::values.theme =
         ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
+    UISettings::values.dark_mode_state =
+        static_cast<DarkModeState>(ui->dark_mode_combobox->currentData().toUInt());
     UISettings::values.show_add_ons = ui->show_add_ons->isChecked();
     UISettings::values.show_compat = ui->show_compat->isChecked();
     UISettings::values.show_size = ui->show_size->isChecked();
@@ -206,12 +214,71 @@ void ConfigureUi::ApplyConfiguration() {
     system.ApplySettings();
 }
 
+void ConfigureUi::UpdateDarkModeOptions() {
+    ui->dark_mode_combobox->clear();
+
+    QString selected_theme = ui->theme_combobox->currentData().toString();
+
+    /* Dark mode option are added according to the modes the current style supports */
+    bool has_common_style = QFile::exists(selected_theme + QStringLiteral("/style.qss"));
+    bool has_light_style = QFile::exists(selected_theme + QStringLiteral("/light.qss"));
+    bool has_dark_style = QFile::exists(selected_theme + QStringLiteral("/dark.qss"));
+#ifdef _WIN32
+    // Indicate which option needs a restart to be applied, depending on current environment
+    // variable
+    QByteArray current_qt_qpa = qgetenv("QT_QPA_PLATFORM");
+    if (current_qt_qpa.contains("darkmode=2")) {
+        if (has_common_style || (has_dark_style && has_light_style)) {
+            ui->dark_mode_combobox->addItem(tr("Auto"), QVariant::fromValue(DarkModeState::Auto));
+        }
+        if (has_common_style || has_dark_style) {
+            ui->dark_mode_combobox->addItem(tr("Always On") +
+                                                QStringLiteral(" (%1)").arg(tr("Needs restart")),
+                                            QVariant::fromValue(DarkModeState::On));
+        }
+        if (has_common_style || has_light_style) {
+            ui->dark_mode_combobox->addItem(tr("Always Off") +
+                                                QStringLiteral(" (%1)").arg(tr("Needs restart")),
+                                            QVariant::fromValue(DarkModeState::Off));
+        }
+    } else {
+        if (has_common_style || (has_dark_style && has_light_style)) {
+            ui->dark_mode_combobox->addItem(tr("Auto") +
+                                                QStringLiteral(" (%1)").arg(tr("Needs restart")),
+                                            QVariant::fromValue(DarkModeState::Auto));
+        }
+        if (has_common_style || has_dark_style) {
+            ui->dark_mode_combobox->addItem(tr("Always On"),
+                                            QVariant::fromValue(DarkModeState::On));
+        }
+        if (has_common_style || has_light_style) {
+            ui->dark_mode_combobox->addItem(tr("Always Off"),
+                                            QVariant::fromValue(DarkModeState::Off));
+        }
+    }
+#else
+    if (has_common_style || (has_dark_style && has_light_style)) {
+        ui->dark_mode_combobox->addItem(tr("Auto"), QVariant::fromValue(DarkModeState::Auto));
+    }
+    if (has_common_style || has_dark_style) {
+        ui->dark_mode_combobox->addItem(tr("Always On"), QVariant::fromValue(DarkModeState::On));
+    }
+    if (has_common_style || has_light_style) {
+        ui->dark_mode_combobox->addItem(tr("Always Off"), QVariant::fromValue(DarkModeState::Off));
+    }
+#endif
+}
+
 void ConfigureUi::RequestGameListUpdate() {
     UISettings::values.is_game_list_reload_pending.exchange(true);
 }
 
 void ConfigureUi::SetConfiguration() {
     ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
+    // Dark mode options are populated after the theme is selected, to get the current configuration
+    UpdateDarkModeOptions();
+    ui->dark_mode_combobox->setCurrentIndex(
+        ui->dark_mode_combobox->findData(QVariant::fromValue(UISettings::values.dark_mode_state)));
     ui->language_combobox->setCurrentIndex(ui->language_combobox->findData(
         QString::fromStdString(UISettings::values.language.GetValue())));
     ui->show_add_ons->setChecked(UISettings::values.show_add_ons.GetValue());
