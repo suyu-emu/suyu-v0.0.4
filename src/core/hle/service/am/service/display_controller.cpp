@@ -69,7 +69,7 @@ Result IDisplayController::ClearCaptureBuffer(bool unknown0, s32 fbshare_layer_i
 Result IDisplayController::AcquireLastForegroundCaptureSharedBuffer(
     Out<bool> out_was_written, Out<s32> out_fbshare_layer_index) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
-    R_RETURN(applet->system_buffer_manager.WriteAppletCaptureBuffer(out_was_written,
+    R_RETURN(applet->display_layer_manager.WriteAppletCaptureBuffer(out_was_written,
                                                                     out_fbshare_layer_index));
 }
 
@@ -81,7 +81,7 @@ Result IDisplayController::ReleaseLastForegroundCaptureSharedBuffer() {
 Result IDisplayController::AcquireCallerAppletCaptureSharedBuffer(
     Out<bool> out_was_written, Out<s32> out_fbshare_layer_index) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
-    R_RETURN(applet->system_buffer_manager.WriteAppletCaptureBuffer(out_was_written,
+    R_RETURN(applet->display_layer_manager.WriteAppletCaptureBuffer(out_was_written,
                                                                     out_fbshare_layer_index));
 }
 
@@ -93,7 +93,7 @@ Result IDisplayController::ReleaseCallerAppletCaptureSharedBuffer() {
 Result IDisplayController::AcquireLastApplicationCaptureSharedBuffer(
     Out<bool> out_was_written, Out<s32> out_fbshare_layer_index) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
-    R_RETURN(applet->system_buffer_manager.WriteAppletCaptureBuffer(out_was_written,
+    R_RETURN(applet->display_layer_manager.WriteAppletCaptureBuffer(out_was_written,
                                                                     out_fbshare_layer_index));
 }
 

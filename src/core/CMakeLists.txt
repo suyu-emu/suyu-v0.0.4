@@ -423,12 +423,12 @@ add_library(core STATIC
     hle/service/am/applet_manager.h
     hle/service/am/applet_message_queue.cpp
     hle/service/am/applet_message_queue.h
+    hle/service/am/display_layer_manager.cpp
+    hle/service/am/display_layer_manager.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
     hle/service/am/library_applet_storage.cpp
     hle/service/am/library_applet_storage.h
-    hle/service/am/managed_layer_holder.cpp
-    hle/service/am/managed_layer_holder.h
     hle/service/am/process.cpp
     hle/service/am/process.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
@@ -481,8 +481,6 @@ add_library(core STATIC
     hle/service/am/service/system_applet_proxy.h
     hle/service/am/service/window_controller.cpp
     hle/service/am/service/window_controller.h
-    hle/service/am/system_buffer_manager.cpp
-    hle/service/am/system_buffer_manager.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp

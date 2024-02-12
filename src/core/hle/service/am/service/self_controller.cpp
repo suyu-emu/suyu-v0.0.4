@@ -16,8 +16,8 @@ namespace Service::AM {
 
 ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> applet,
                                  Kernel::KProcess* process, Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "ISelfController"},
-      m_nvnflinger{nvnflinger}, m_process{process}, m_applet{std::move(applet)} {
+    : ServiceFramework{system_, "ISelfController"}, m_nvnflinger{nvnflinger}, m_process{process},
+      m_applet{std::move(applet)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&ISelfController::Exit>, "Exit"},
@@ -72,9 +72,16 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
     // clang-format on
 
     RegisterHandlers(functions);
+
+    std::scoped_lock lk{m_applet->lock};
+    m_applet->display_layer_manager.Initialize(&m_nvnflinger, m_process, m_applet->applet_id,
+                                               m_applet->library_applet_mode);
 }
 
-ISelfController::~ISelfController() = default;
+ISelfController::~ISelfController() {
+    std::scoped_lock lk{m_applet->lock};
+    m_applet->display_layer_manager.Finalize();
+}
 
 Result ISelfController::Exit() {
     LOG_DEBUG(Service_AM, "called");
@@ -212,48 +219,42 @@ Result ISelfController::SetAlbumImageOrientation(
 
 Result ISelfController::IsSystemBufferSharingEnabled() {
     LOG_INFO(Service_AM, "called");
-    R_SUCCEED_IF(m_applet->system_buffer_manager.Initialize(
-        &m_nvnflinger, m_process, m_applet->applet_id, m_applet->library_applet_mode));
-    R_THROW(VI::ResultOperationFailed);
+
+    std::scoped_lock lk{m_applet->lock};
+    R_RETURN(m_applet->display_layer_manager.IsSystemBufferSharingEnabled());
 }
 
 Result ISelfController::GetSystemSharedBufferHandle(Out<u64> out_buffer_id) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    R_TRY(this->IsSystemBufferSharingEnabled());
+    LOG_INFO(Service_AM, "called");
 
     u64 layer_id;
-    m_applet->system_buffer_manager.GetSystemSharedLayerHandle(out_buffer_id, &layer_id);
-    R_SUCCEED();
+
+    std::scoped_lock lk{m_applet->lock};
+    R_RETURN(m_applet->display_layer_manager.GetSystemSharedLayerHandle(out_buffer_id, &layer_id));
 }
 
 Result ISelfController::GetSystemSharedLayerHandle(Out<u64> out_buffer_id, Out<u64> out_layer_id) {
-    LOG_INFO(Service_AM, "(STUBBED) called");
+    LOG_INFO(Service_AM, "called");
 
-    R_TRY(this->IsSystemBufferSharingEnabled());
-
-    m_applet->system_buffer_manager.GetSystemSharedLayerHandle(out_buffer_id, out_layer_id);
-    R_SUCCEED();
+    std::scoped_lock lk{m_applet->lock};
+    R_RETURN(
+        m_applet->display_layer_manager.GetSystemSharedLayerHandle(out_buffer_id, out_layer_id));
 }
 
 Result ISelfController::CreateManagedDisplayLayer(Out<u64> out_layer_id) {
     LOG_INFO(Service_AM, "called");
 
-    m_applet->managed_layer_holder.Initialize(&m_nvnflinger);
-    m_applet->managed_layer_holder.CreateManagedDisplayLayer(out_layer_id);
-
-    R_SUCCEED();
+    std::scoped_lock lk{m_applet->lock};
+    R_RETURN(m_applet->display_layer_manager.CreateManagedDisplayLayer(out_layer_id));
 }
 
 Result ISelfController::CreateManagedDisplaySeparableLayer(Out<u64> out_layer_id,
                                                            Out<u64> out_recording_layer_id) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    m_applet->managed_layer_holder.Initialize(&m_nvnflinger);
-    m_applet->managed_layer_holder.CreateManagedDisplaySeparableLayer(out_layer_id,
-                                                                      out_recording_layer_id);
-
-    R_SUCCEED();
+    std::scoped_lock lk{m_applet->lock};
+    R_RETURN(m_applet->display_layer_manager.CreateManagedDisplaySeparableLayer(
+        out_layer_id, out_recording_layer_id));
 }
 
 Result ISelfController::SetHandlesRequestToDisplay(bool enable) {
