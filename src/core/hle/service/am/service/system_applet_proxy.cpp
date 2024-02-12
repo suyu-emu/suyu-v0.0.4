@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/am/application_creator.h"
-#include "core/hle/service/am/display_controller.h"
 #include "core/hle/service/am/global_state_controller.h"
 #include "core/hle/service/am/home_menu_functions.h"
 #include "core/hle/service/am/library_applet_creator.h"
@@ -13,6 +12,7 @@
 #include "core/hle/service/am/service/audio_controller.h"
 #include "core/hle/service/am/service/common_state_getter.h"
 #include "core/hle/service/am/service/debug_functions.h"
+#include "core/hle/service/am/service/display_controller.h"
 #include "core/hle/service/am/service/system_applet_proxy.h"
 #include "core/hle/service/am/window_controller.h"
 #include "core/hle/service/cmif_serialization.h"
