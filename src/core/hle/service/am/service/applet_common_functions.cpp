@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/am/applet.h"
-#include "core/hle/service/am/applet_common_functions.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/am/service/applet_common_functions.h"
+#include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
 
@@ -20,18 +20,18 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {40, nullptr, "GetDisplayLogicalResolution"},
         {42, nullptr, "SetDisplayMagnification"},
         {50, nullptr, "SetHomeButtonDoubleClickEnabled"},
-        {51, nullptr, "GetHomeButtonDoubleClickEnabled"},
+        {51, D<&IAppletCommonFunctions::GetHomeButtonDoubleClickEnabled>, "GetHomeButtonDoubleClickEnabled"},
         {52, nullptr, "IsHomeButtonShortPressedBlocked"},
         {60, nullptr, "IsVrModeCurtainRequired"},
         {61, nullptr, "IsSleepRequiredByHighTemperature"},
         {62, nullptr, "IsSleepRequiredByLowBattery"},
-        {70, &IAppletCommonFunctions::SetCpuBoostRequestPriority, "SetCpuBoostRequestPriority"},
+        {70, D<&IAppletCommonFunctions::SetCpuBoostRequestPriority>, "SetCpuBoostRequestPriority"},
         {80, nullptr, "SetHandlingCaptureButtonShortPressedMessageEnabledForApplet"},
         {81, nullptr, "SetHandlingCaptureButtonLongPressedMessageEnabledForApplet"},
         {90, nullptr, "OpenNamedChannelAsParent"},
         {91, nullptr, "OpenNamedChannelAsChild"},
         {100, nullptr, "SetApplicationCoreUsageMode"},
-        {300, &IAppletCommonFunctions::GetCurrentApplicationId, "GetCurrentApplicationId"},
+        {300, D<&IAppletCommonFunctions::GetCurrentApplicationId>, "GetCurrentApplicationId"},
     };
     // clang-format on
 
@@ -40,24 +40,24 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
 
 IAppletCommonFunctions::~IAppletCommonFunctions() = default;
 
-void IAppletCommonFunctions::SetCpuBoostRequestPriority(HLERequestContext& ctx) {
+Result IAppletCommonFunctions::GetHomeButtonDoubleClickEnabled(
+    Out<bool> out_home_button_double_click_enabled) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    IPC::RequestParser rp{ctx};
-
-    std::scoped_lock lk{applet->lock};
-    applet->cpu_boost_request_priority = rp.Pop<s32>();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    *out_home_button_double_click_enabled = false;
+    R_SUCCEED();
 }
 
-void IAppletCommonFunctions::GetCurrentApplicationId(HLERequestContext& ctx) {
+Result IAppletCommonFunctions::SetCpuBoostRequestPriority(s32 priority) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+    std::scoped_lock lk{applet->lock};
+    applet->cpu_boost_request_priority = priority;
+    R_SUCCEED();
+}
 
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(system.GetApplicationProcessProgramID() & ~0xFFFULL);
+Result IAppletCommonFunctions::GetCurrentApplicationId(Out<u64> out_application_id) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    *out_application_id = system.GetApplicationProcessProgramID() & ~0xFFFULL;
+    R_SUCCEED();
 }
 
 } // namespace Service::AM
