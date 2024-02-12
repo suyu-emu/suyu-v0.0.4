@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/am/home_menu_functions.h"
 #include "core/hle/service/am/library_applet_creator.h"
 #include "core/hle/service/am/library_applet_self_accessor.h"
 #include "core/hle/service/am/process_winding_controller.h"
@@ -12,6 +11,7 @@
 #include "core/hle/service/am/service/debug_functions.h"
 #include "core/hle/service/am/service/display_controller.h"
 #include "core/hle/service/am/service/global_state_controller.h"
+#include "core/hle/service/am/service/home_menu_functions.h"
 #include "core/hle/service/am/service/library_applet_proxy.h"
 #include "core/hle/service/am/window_controller.h"
 #include "core/hle/service/cmif_serialization.h"
@@ -119,7 +119,7 @@ Result ILibraryAppletProxy::GetAppletCommonFunctions(
 Result ILibraryAppletProxy::GetHomeMenuFunctions(
     Out<SharedPointer<IHomeMenuFunctions>> out_home_menu_functions) {
     LOG_DEBUG(Service_AM, "called");
-    *out_home_menu_functions = std::make_shared<IHomeMenuFunctions>(system);
+    *out_home_menu_functions = std::make_shared<IHomeMenuFunctions>(system, m_applet);
     R_SUCCEED();
 }
 
