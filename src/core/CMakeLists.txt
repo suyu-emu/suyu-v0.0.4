@@ -902,6 +902,7 @@ add_library(core STATIC
     hle/service/set/factory_settings_server.h
     hle/service/set/firmware_debug_settings_server.cpp
     hle/service/set/firmware_debug_settings_server.h
+    hle/service/set/key_code_map.h
     hle/service/set/settings.cpp
     hle/service/set/settings.h
     hle/service/set/settings_server.cpp
