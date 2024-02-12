@@ -421,8 +421,6 @@ add_library(core STATIC
     hle/service/am/applet_data_broker.cpp
     hle/service/am/applet_data_broker.h
     hle/service/am/applet_manager.h
-    hle/service/am/applet_common_functions.cpp
-    hle/service/am/applet_common_functions.h
     hle/service/am/applet_message_queue.cpp
     hle/service/am/applet_message_queue.h
     hle/service/am/application_creator.cpp
@@ -465,6 +463,8 @@ add_library(core STATIC
     hle/service/am/self_controller.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
     hle/service/am/service/all_system_applet_proxies_service.h
+    hle/service/am/service/applet_common_functions.cpp
+    hle/service/am/service/applet_common_functions.h
     hle/service/am/service/application_proxy_service.cpp
     hle/service/am/service/application_proxy_service.h
     hle/service/am/service/application_proxy.cpp

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
@@ -15,8 +16,9 @@ public:
     ~IAppletCommonFunctions() override;
 
 private:
-    void SetCpuBoostRequestPriority(HLERequestContext& ctx);
-    void GetCurrentApplicationId(HLERequestContext& ctx);
+    Result GetHomeButtonDoubleClickEnabled(Out<bool> out_home_button_double_click_enabled);
+    Result SetCpuBoostRequestPriority(s32 priority);
+    Result GetCurrentApplicationId(Out<u64> out_application_id);
 
     const std::shared_ptr<Applet> applet;
 };
