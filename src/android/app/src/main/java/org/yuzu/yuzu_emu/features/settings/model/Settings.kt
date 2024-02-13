@@ -93,4 +93,15 @@ object Settings {
                 entries.firstOrNull { it.int == int } ?: Unspecified
         }
     }
+
+    enum class EmulationVerticalAlignment(val int: Int) {
+        Top(1),
+        Center(0),
+        Bottom(2);
+
+        companion object {
+            fun from(int: Int): EmulationVerticalAlignment =
+                entries.firstOrNull { it.int == int } ?: Center
+        }
+    }
 }
