@@ -189,6 +189,16 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SliderSetting(
+                    IntSetting.FSR_SHARPENING_SLIDER,
+                    R.string.fsr_sharpness,
+                    R.string.fsr_sharpness_description,
+                    0,
+                    100,
+                    "%"
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ANTI_ALIASING,
                     R.string.renderer_anti_aliasing,

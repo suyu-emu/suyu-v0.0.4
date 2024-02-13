@@ -143,6 +143,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)
             add(IntSetting.RENDERER_SCALING_FILTER.key)
+            add(IntSetting.FSR_SHARPENING_SLIDER.key)
             add(IntSetting.RENDERER_ANTI_ALIASING.key)
             add(IntSetting.MAX_ANISOTROPY.key)
             add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
