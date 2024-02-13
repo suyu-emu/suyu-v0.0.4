@@ -42,9 +42,9 @@ class MessageDialogFragment : DialogFragment() {
         } else if (positiveButtonString.isNotEmpty()) {
             positiveButtonString
         } else if (messageDialogViewModel.positiveAction != null) {
-            getString(R.string.close)
-        } else {
             getString(android.R.string.ok)
+        } else {
+            getString(R.string.close)
         }
 
         val negativeButtonId = requireArguments().getInt(NEGATIVE_BUTTON_TITLE_ID)
@@ -131,7 +131,7 @@ class MessageDialogFragment : DialogFragment() {
          * @param positiveButtonTitleId String resource ID that will be used for the positive button.
          * [positiveButtonTitleString] used if 0.
          * @param positiveButtonTitleString String that will be used for the positive button.
-         * android.R.string.ok used if empty. android.R.string.close will be used if [positiveAction]
+         * android.R.string.close used if empty. android.R.string.ok will be used if [positiveAction]
          * is not null.
          * @param positiveAction Lambda to run when the positive button is clicked.
          * @param showNegativeButton Normally the negative button isn't shown if there is no
