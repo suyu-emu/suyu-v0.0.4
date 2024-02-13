@@ -119,7 +119,8 @@ class AddonsFragment : Fragment() {
                                 requireActivity(),
                                 titleId = R.string.confirm_uninstall,
                                 descriptionId = R.string.confirm_uninstall_description,
-                                positiveAction = { addonViewModel.onDeleteAddon(it) }
+                                positiveAction = { addonViewModel.onDeleteAddon(it) },
+                                negativeAction = {}
                             ).show(parentFragmentManager, MessageDialogFragment.TAG)
                             addonViewModel.setAddonToDelete(null)
                         }
