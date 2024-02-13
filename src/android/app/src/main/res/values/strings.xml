@@ -226,6 +226,8 @@
     <string name="renderer_screen_layout">Orientation</string>
     <string name="renderer_aspect_ratio">Aspect ratio</string>
     <string name="renderer_scaling_filter">Window adapting filter</string>
+    <string name="fsr_sharpness">FSR sharpness</string>
+    <string name="fsr_sharpness_description">Determines how sharpened the image will look while using FSR\'s dynamic contrast</string>
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
