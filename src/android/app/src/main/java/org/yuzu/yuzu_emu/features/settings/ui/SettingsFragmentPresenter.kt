@@ -148,6 +148,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.MAX_ANISOTROPY.key)
             add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
             add(IntSetting.RENDERER_ASPECT_RATIO.key)
+            add(IntSetting.VERTICAL_ALIGNMENT.key)
             add(BooleanSetting.PICTURE_IN_PICTURE.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
