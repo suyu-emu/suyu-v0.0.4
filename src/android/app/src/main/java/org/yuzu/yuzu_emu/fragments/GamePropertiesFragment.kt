@@ -243,7 +243,9 @@ class GamePropertiesFragment : Fragment() {
                                     requireActivity(),
                                     titleId = R.string.delete_save_data,
                                     descriptionId = R.string.delete_save_data_warning_description,
-                                    positiveAction = {
+                                    positiveButtonTitleId = android.R.string.cancel,
+                                    negativeButtonTitleId = android.R.string.ok,
+                                    negativeAction = {
                                         File(args.game.saveDir).deleteRecursively()
                                         Toast.makeText(
                                             YuzuApplication.appContext,
