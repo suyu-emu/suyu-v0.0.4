@@ -123,6 +123,18 @@ enum class NodeStatus : u8 {
     Connected,
 };
 
+enum class WirelessControllerRestriction : u32 {
+    None,
+    Default,
+};
+
+struct ConnectOption {
+    union {
+        u32 raw;
+    };
+};
+static_assert(sizeof(ConnectOption) == 0x4, "ConnectOption is an invalid size");
+
 struct NodeLatestUpdate {
     NodeStateChange state_change;
     INSERT_PADDING_BYTES(0x7); // Unknown
@@ -139,9 +151,9 @@ static_assert(sizeof(SessionId) == 0x10, "SessionId is an invalid size");
 
 struct IntentId {
     u64 local_communication_id;
-    INSERT_PADDING_BYTES(0x2); // Reserved
+    INSERT_PADDING_BYTES_NOINIT(0x2); // Reserved
     u16 scene_id;
-    INSERT_PADDING_BYTES(0x4); // Reserved
+    INSERT_PADDING_BYTES_NOINIT(0x4); // Reserved
 };
 static_assert(sizeof(IntentId) == 0x10, "IntentId is an invalid size");
 
@@ -152,13 +164,14 @@ struct NetworkId {
 static_assert(sizeof(NetworkId) == 0x20, "NetworkId is an invalid size");
 
 struct Ssid {
-    u8 length{};
-    std::array<char, SsidLengthMax + 1> raw{};
+    u8 length;
+    std::array<char, SsidLengthMax + 1> raw;
 
     Ssid() = default;
 
     constexpr explicit Ssid(std::string_view data) {
         length = static_cast<u8>(std::min(data.size(), SsidLengthMax));
+        raw = {};
         data.copy(raw.data(), length);
         raw[length] = 0;
     }
@@ -181,7 +194,7 @@ using Ipv4Address = std::array<u8, 4>;
 static_assert(sizeof(Ipv4Address) == 0x4, "Ipv4Address is an invalid size");
 
 struct MacAddress {
-    std::array<u8, 6> raw{};
+    std::array<u8, 6> raw;
 
     friend bool operator==(const MacAddress& lhs, const MacAddress& rhs) = default;
 };
@@ -211,7 +224,7 @@ struct CommonNetworkInfo {
     WifiChannel channel;
     LinkLevel link_level;
     PackedNetworkType network_type;
-    INSERT_PADDING_BYTES(0x4);
+    INSERT_PADDING_BYTES_NOINIT(0x4);
 };
 static_assert(sizeof(CommonNetworkInfo) == 0x30, "CommonNetworkInfo is an invalid size");
 
@@ -221,9 +234,9 @@ struct NodeInfo {
     s8 node_id;
     u8 is_connected;
     std::array<u8, UserNameBytesMax + 1> user_name;
-    INSERT_PADDING_BYTES(0x1); // Reserved
+    INSERT_PADDING_BYTES_NOINIT(0x1); // Reserved
     s16 local_communication_version;
-    INSERT_PADDING_BYTES(0x10); // Reserved
+    INSERT_PADDING_BYTES_NOINIT(0x10); // Reserved
 };
 static_assert(sizeof(NodeInfo) == 0x40, "NodeInfo is an invalid size");
 
@@ -232,14 +245,14 @@ struct LdnNetworkInfo {
     SecurityMode security_mode;
     AcceptPolicy station_accept_policy;
     u8 has_action_frame;
-    INSERT_PADDING_BYTES(0x2); // Padding
+    INSERT_PADDING_BYTES_NOINIT(0x2); // Padding
     u8 node_count_max;
     u8 node_count;
     std::array<NodeInfo, NodeCountMax> nodes;
-    INSERT_PADDING_BYTES(0x2); // Reserved
+    INSERT_PADDING_BYTES_NOINIT(0x2); // Reserved
     u16 advertise_data_size;
     std::array<u8, AdvertiseDataSizeMax> advertise_data;
-    INSERT_PADDING_BYTES(0x8C); // Reserved
+    INSERT_PADDING_BYTES_NOINIT(0x8C); // Reserved
     u64 random_authentication_id;
 };
 static_assert(sizeof(LdnNetworkInfo) == 0x430, "LdnNetworkInfo is an invalid size");
@@ -250,6 +263,7 @@ struct NetworkInfo {
     LdnNetworkInfo ldn;
 };
 static_assert(sizeof(NetworkInfo) == 0x480, "NetworkInfo is an invalid size");
+static_assert(std::is_trivial_v<NetworkInfo>, "NetworkInfo type must be trivially copyable.");
 
 struct SecurityConfig {
     SecurityMode security_mode;
@@ -302,5 +316,37 @@ struct AddressList {
     std::array<AddressEntry, 0x8> addresses;
 };
 static_assert(sizeof(AddressList) == 0x60, "AddressList is an invalid size");
+
+struct GroupInfo {
+    std::array<u8, 0x200> info;
+};
+
+struct CreateNetworkConfig {
+    SecurityConfig security_config;
+    UserConfig user_config;
+    INSERT_PADDING_BYTES(0x4);
+    NetworkConfig network_config;
+};
+static_assert(sizeof(CreateNetworkConfig) == 0x98, "CreateNetworkConfig is an invalid size");
+
+#pragma pack(push, 4)
+struct CreateNetworkConfigPrivate {
+    SecurityConfig security_config;
+    SecurityParameter security_parameter;
+    UserConfig user_config;
+    INSERT_PADDING_BYTES(0x4);
+    NetworkConfig network_config;
+};
+#pragma pack(pop)
+static_assert(sizeof(CreateNetworkConfigPrivate) == 0xB8,
+              "CreateNetworkConfigPrivate is an invalid size");
+
+struct ConnectNetworkData {
+    SecurityConfig security_config;
+    UserConfig user_config;
+    s32 local_communication_version;
+    ConnectOption option;
+};
+static_assert(sizeof(ConnectNetworkData) == 0x7c, "ConnectNetworkData is an invalid size");
 
 } // namespace Service::LDN

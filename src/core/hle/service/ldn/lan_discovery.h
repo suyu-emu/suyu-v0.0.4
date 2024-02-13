@@ -54,11 +54,10 @@ public:
     void SetState(State new_state);
 
     Result GetNetworkInfo(NetworkInfo& out_network) const;
-    Result GetNetworkInfo(NetworkInfo& out_network, std::vector<NodeLatestUpdate>& out_updates,
-                          std::size_t buffer_count);
+    Result GetNetworkInfo(NetworkInfo& out_network, std::span<NodeLatestUpdate> out_updates);
 
     DisconnectReason GetDisconnectReason() const;
-    Result Scan(std::vector<NetworkInfo>& networks, u16& count, const ScanFilter& filter);
+    Result Scan(std::span<NetworkInfo> out_networks, s16& out_count, const ScanFilter& filter);
     Result SetAdvertiseData(std::span<const u8> data);
 
     Result OpenAccessPoint();
