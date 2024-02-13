@@ -104,7 +104,10 @@ class AddonsFragment : Fragment() {
                                 requireActivity(),
                                 titleId = R.string.addon_notice,
                                 descriptionId = R.string.addon_notice_description,
-                                positiveAction = { addonViewModel.showModInstallPicker(true) }
+                                dismissible = false,
+                                positiveAction = { addonViewModel.showModInstallPicker(true) },
+                                negativeAction = {},
+                                negativeButtonTitleId = R.string.close
                             ).show(parentFragmentManager, MessageDialogFragment.TAG)
                             addonViewModel.showModNoticeDialog(false)
                         }
