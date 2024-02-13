@@ -15,7 +15,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
+import android.util.Rational
 import android.view.*
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -24,6 +26,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -52,6 +55,7 @@ import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationOrientation
+import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationVerticalAlignment
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
@@ -617,7 +621,46 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateScreenLayout() {
-        binding.surfaceEmulation.setAspectRatio(null)
+        val verticalAlignment =
+            EmulationVerticalAlignment.from(IntSetting.VERTICAL_ALIGNMENT.getInt())
+        val aspectRatio = when (IntSetting.RENDERER_ASPECT_RATIO.getInt()) {
+            0 -> Rational(16, 9)
+            1 -> Rational(4, 3)
+            2 -> Rational(21, 9)
+            3 -> Rational(16, 10)
+            else -> null // Best fit
+        }
+        when (verticalAlignment) {
+            EmulationVerticalAlignment.Top -> {
+                binding.surfaceEmulation.setAspectRatio(aspectRatio)
+                val params = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                binding.surfaceEmulation.layoutParams = params
+            }
+
+            EmulationVerticalAlignment.Center -> {
+                binding.surfaceEmulation.setAspectRatio(null)
+                binding.surfaceEmulation.updateLayoutParams {
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
+                    height = ViewGroup.LayoutParams.MATCH_PARENT
+                }
+            }
+
+            EmulationVerticalAlignment.Bottom -> {
+                binding.surfaceEmulation.setAspectRatio(aspectRatio)
+                val params =
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                binding.surfaceEmulation.layoutParams = params
+            }
+        }
+        emulationState.updateSurface()
         emulationActivity?.buildPictureInPictureParams()
         updateOrientation()
     }

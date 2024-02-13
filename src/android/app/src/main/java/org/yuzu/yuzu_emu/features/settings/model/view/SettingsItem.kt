@@ -189,6 +189,16 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SliderSetting(
+                    IntSetting.FSR_SHARPENING_SLIDER,
+                    R.string.fsr_sharpness,
+                    R.string.fsr_sharpness_description,
+                    0,
+                    100,
+                    "%"
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ANTI_ALIASING,
                     R.string.renderer_anti_aliasing,
@@ -213,6 +223,15 @@ abstract class SettingsItem(
                     0,
                     R.array.rendererAspectRatioNames,
                     R.array.rendererAspectRatioValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.VERTICAL_ALIGNMENT,
+                    R.string.vertical_alignment,
+                    0,
+                    R.array.verticalAlignmentEntries,
+                    R.array.verticalAlignmentValues
                 )
             )
             put(
