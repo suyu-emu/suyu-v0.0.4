@@ -226,6 +226,15 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.VERTICAL_ALIGNMENT,
+                    R.string.vertical_alignment,
+                    0,
+                    R.array.verticalAlignmentEntries,
+                    R.array.verticalAlignmentValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE,
                     R.string.use_disk_shader_cache,

@@ -292,4 +292,15 @@
         <item>5</item>
     </integer-array>
 
+    <string-array name="verticalAlignmentEntries">
+        <item>@string/top</item>
+        <item>@string/center</item>
+        <item>@string/bottom</item>
+    </string-array>
+    <integer-array name="verticalAlignmentValues">
+        <item>1</item>
+        <item>0</item>
+        <item>2</item>
+    </integer-array>
+
 </resources>

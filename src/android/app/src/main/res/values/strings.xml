@@ -560,6 +560,12 @@
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>
 
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Vertical alignment</string>
+    <string name="top">Top</string>
+    <string name="center">Center</string>
+    <string name="bottom">Bottom</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>
     <string name="license_fidelityfx_fsr" translatable="false">FidelityFX-FSR</string>

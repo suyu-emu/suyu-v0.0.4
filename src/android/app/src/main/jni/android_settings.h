@@ -38,6 +38,13 @@ struct Values {
                                          Settings::Specialization::Default,
                                          true,
                                          true};
+    Settings::Setting<s32> vertical_alignment{linkage,
+                                              0,
+                                              "vertical_alignment",
+                                              Settings::Category::Android,
+                                              Settings::Specialization::Default,
+                                              true,
+                                              true};
 
     Settings::SwitchableSetting<std::string, false> driver_path{linkage, "", "driver_path",
                                                                 Settings::Category::GpuDriver};
