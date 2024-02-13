@@ -1297,10 +1297,6 @@ u64 Device::GetDeviceMemoryUsage() const {
 }
 
 void Device::CollectPhysicalMemoryInfo() {
-    // Account for resolution scaling in memory limits
-    const size_t normal_memory = 6_GiB;
-    const size_t scaler_memory = 1_GiB * Settings::values.resolution_info.ScaleUp(1);
-
     // Calculate limits using memory budget
     VkPhysicalDeviceMemoryBudgetPropertiesEXT budget{};
     budget.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT;
@@ -1331,7 +1327,15 @@ void Device::CollectPhysicalMemoryInfo() {
     if (!is_integrated) {
         const u64 reserve_memory = std::min<u64>(device_access_memory / 8, 1_GiB);
         device_access_memory -= reserve_memory;
-        device_access_memory = std::min<u64>(device_access_memory, normal_memory + scaler_memory);
+
+        if (Settings::values.vram_usage_mode.GetValue() != Settings::VramUsageMode::Aggressive) {
+            // Account for resolution scaling in memory limits
+            const size_t normal_memory = 6_GiB;
+            const size_t scaler_memory = 1_GiB * Settings::values.resolution_info.ScaleUp(1);
+            device_access_memory =
+                std::min<u64>(device_access_memory, normal_memory + scaler_memory);
+        }
+
         return;
     }
     const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
