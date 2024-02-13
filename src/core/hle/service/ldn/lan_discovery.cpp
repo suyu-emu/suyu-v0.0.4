@@ -85,15 +85,14 @@ Result LANDiscovery::GetNetworkInfo(NetworkInfo& out_network) const {
 }
 
 Result LANDiscovery::GetNetworkInfo(NetworkInfo& out_network,
-                                    std::vector<NodeLatestUpdate>& out_updates,
-                                    std::size_t buffer_count) {
-    if (buffer_count > NodeCountMax) {
+                                    std::span<NodeLatestUpdate> out_updates) {
+    if (out_updates.size() > NodeCountMax) {
         return ResultInvalidBufferCount;
     }
 
     if (state == State::AccessPointCreated || state == State::StationConnected) {
         std::memcpy(&out_network, &network_info, sizeof(network_info));
-        for (std::size_t i = 0; i < buffer_count; i++) {
+        for (std::size_t i = 0; i < out_updates.size(); i++) {
             out_updates[i].state_change = node_changes[i].state_change;
             node_changes[i].state_change = NodeStateChange::None;
         }
@@ -107,15 +106,8 @@ DisconnectReason LANDiscovery::GetDisconnectReason() const {
     return disconnect_reason;
 }
 
-Result LANDiscovery::Scan(std::vector<NetworkInfo>& networks, u16& count,
+Result LANDiscovery::Scan(std::span<NetworkInfo> out_networks, s16& out_count,
                           const ScanFilter& filter) {
-    if (!IsFlagSet(filter.flag, ScanFilterFlag::NetworkType) ||
-        filter.network_type <= NetworkType::All) {
-        if (!IsFlagSet(filter.flag, ScanFilterFlag::Ssid) && filter.ssid.length >= SsidLengthMax) {
-            return ResultBadInput;
-        }
-    }
-
     {
         std::scoped_lock lock{packet_mutex};
         scan_results.clear();
@@ -128,7 +120,7 @@ Result LANDiscovery::Scan(std::vector<NetworkInfo>& networks, u16& count,
 
     std::scoped_lock lock{packet_mutex};
     for (const auto& [key, info] : scan_results) {
-        if (count >= networks.size()) {
+        if (out_count >= static_cast<s16>(out_networks.size())) {
             break;
         }
 
@@ -159,7 +151,7 @@ Result LANDiscovery::Scan(std::vector<NetworkInfo>& networks, u16& count,
             }
         }
 
-        networks[count++] = info;
+        out_networks[out_count++] = info;
     }
 
     return ResultSuccess;
