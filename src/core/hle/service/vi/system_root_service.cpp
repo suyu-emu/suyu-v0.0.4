@@ -1,27 +1,26 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
+#include "core/hle/service/vi/system_root_service.h"
 #include "core/hle/service/vi/vi.h"
-#include "core/hle/service/vi/vi_s.h"
 #include "core/hle/service/vi/vi_types.h"
 
 namespace Service::VI {
 
-VI_S::VI_S(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
-           Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_)
+ISystemRootService::ISystemRootService(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
+                                       Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_)
     : ServiceFramework{system_, "vi:s"}, nv_flinger{nv_flinger_},
       hos_binder_driver_server{hos_binder_driver_server_} {
     static const FunctionInfo functions[] = {
-        {1, &VI_S::GetDisplayService, "GetDisplayService"},
+        {1, &ISystemRootService::GetDisplayService, "GetDisplayService"},
         {3, nullptr, "GetDisplayServiceWithProxyNameExchange"},
     };
     RegisterHandlers(functions);
 }
 
-VI_S::~VI_S() = default;
+ISystemRootService::~ISystemRootService() = default;
 
-void VI_S::GetDisplayService(HLERequestContext& ctx) {
+void ISystemRootService::GetDisplayService(HLERequestContext& ctx) {
     LOG_DEBUG(Service_VI, "called");
 
     detail::GetDisplayServiceImpl(ctx, system, nv_flinger, hos_binder_driver_server,

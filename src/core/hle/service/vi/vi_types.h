@@ -28,6 +28,22 @@ enum class Policy {
     Compositor,
 };
 
+enum class ConvertedScaleMode : u64 {
+    Freeze = 0,
+    ScaleToWindow = 1,
+    ScaleAndCrop = 2,
+    None = 3,
+    PreserveAspectRatio = 4,
+};
+
+enum class NintendoScaleMode : u32 {
+    None = 0,
+    Freeze = 1,
+    ScaleToWindow = 2,
+    ScaleAndCrop = 3,
+    PreserveAspectRatio = 4,
+};
+
 struct DisplayInfo {
     /// The name of this particular display.
     char display_name[0x40]{"Default"};

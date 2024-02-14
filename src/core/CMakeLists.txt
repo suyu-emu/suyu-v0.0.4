@@ -959,15 +959,24 @@ add_library(core STATIC
     hle/service/vi/display/vi_display.h
     hle/service/vi/layer/vi_layer.cpp
     hle/service/vi/layer/vi_layer.h
+    hle/service/vi/application_display_service.cpp
+    hle/service/vi/application_display_service.h
+    hle/service/vi/application_root_service.cpp
+    hle/service/vi/application_root_service.h
+    hle/service/vi/hos_binder_driver.cpp
+    hle/service/vi/hos_binder_driver.h
+    hle/service/vi/manager_display_service.cpp
+    hle/service/vi/manager_display_service.h
+    hle/service/vi/manager_root_service.cpp
+    hle/service/vi/manager_root_service.h
+    hle/service/vi/system_display_service.cpp
+    hle/service/vi/system_display_service.h
+    hle/service/vi/system_root_service.cpp
+    hle/service/vi/system_root_service.h
+    hle/service/vi/vi_results.h
+    hle/service/vi/vi_types.h
     hle/service/vi/vi.cpp
     hle/service/vi/vi.h
-    hle/service/vi/vi_m.cpp
-    hle/service/vi/vi_m.h
-    hle/service/vi/vi_s.cpp
-    hle/service/vi/vi_s.h
-    hle/service/vi/vi_types.h
-    hle/service/vi/vi_u.cpp
-    hle/service/vi/vi_u.h
     internal_network/network.cpp
     internal_network/network.h
     internal_network/network_interface.cpp
