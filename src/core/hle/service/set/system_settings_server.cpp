@@ -17,6 +17,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/set/settings_server.h"
@@ -91,83 +92,83 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
     : ServiceFramework{system_, "set:sys"}, m_system{system} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &ISystemSettingsServer::SetLanguageCode, "SetLanguageCode"},
+        {0, C<&ISystemSettingsServer::SetLanguageCode>, "SetLanguageCode"},
         {1, nullptr, "SetNetworkSettings"},
         {2, nullptr, "GetNetworkSettings"},
-        {3, &ISystemSettingsServer::GetFirmwareVersion, "GetFirmwareVersion"},
-        {4, &ISystemSettingsServer::GetFirmwareVersion2, "GetFirmwareVersion2"},
+        {3, C<&ISystemSettingsServer::GetFirmwareVersion>, "GetFirmwareVersion"},
+        {4, C<&ISystemSettingsServer::GetFirmwareVersion2>, "GetFirmwareVersion2"},
         {5, nullptr, "GetFirmwareVersionDigest"},
-        {7, &ISystemSettingsServer::GetLockScreenFlag, "GetLockScreenFlag"},
-        {8, &ISystemSettingsServer::SetLockScreenFlag, "SetLockScreenFlag"},
+        {7, C<&ISystemSettingsServer::GetLockScreenFlag>, "GetLockScreenFlag"},
+        {8, C<&ISystemSettingsServer::SetLockScreenFlag>, "SetLockScreenFlag"},
         {9, nullptr, "GetBacklightSettings"},
         {10, nullptr, "SetBacklightSettings"},
         {11, nullptr, "SetBluetoothDevicesSettings"},
         {12, nullptr, "GetBluetoothDevicesSettings"},
-        {13, &ISystemSettingsServer::GetExternalSteadyClockSourceId, "GetExternalSteadyClockSourceId"},
-        {14, &ISystemSettingsServer::SetExternalSteadyClockSourceId, "SetExternalSteadyClockSourceId"},
-        {15, &ISystemSettingsServer::GetUserSystemClockContext, "GetUserSystemClockContext"},
-        {16, &ISystemSettingsServer::SetUserSystemClockContext, "SetUserSystemClockContext"},
-        {17, &ISystemSettingsServer::GetAccountSettings, "GetAccountSettings"},
-        {18, &ISystemSettingsServer::SetAccountSettings, "SetAccountSettings"},
+        {13, C<&ISystemSettingsServer::GetExternalSteadyClockSourceId>, "GetExternalSteadyClockSourceId"},
+        {14, C<&ISystemSettingsServer::SetExternalSteadyClockSourceId>, "SetExternalSteadyClockSourceId"},
+        {15, C<&ISystemSettingsServer::GetUserSystemClockContext>, "GetUserSystemClockContext"},
+        {16, C<&ISystemSettingsServer::SetUserSystemClockContext>, "SetUserSystemClockContext"},
+        {17, C<&ISystemSettingsServer::GetAccountSettings>, "GetAccountSettings"},
+        {18, C<&ISystemSettingsServer::SetAccountSettings>, "SetAccountSettings"},
         {19, nullptr, "GetAudioVolume"},
         {20, nullptr, "SetAudioVolume"},
-        {21, &ISystemSettingsServer::GetEulaVersions, "GetEulaVersions"},
-        {22, &ISystemSettingsServer::SetEulaVersions, "SetEulaVersions"},
-        {23, &ISystemSettingsServer::GetColorSetId, "GetColorSetId"},
-        {24, &ISystemSettingsServer::SetColorSetId, "SetColorSetId"},
+        {21, C<&ISystemSettingsServer::GetEulaVersions>, "GetEulaVersions"},
+        {22, C<&ISystemSettingsServer::SetEulaVersions>, "SetEulaVersions"},
+        {23, C<&ISystemSettingsServer::GetColorSetId>, "GetColorSetId"},
+        {24, C<&ISystemSettingsServer::SetColorSetId>, "SetColorSetId"},
         {25, nullptr, "GetConsoleInformationUploadFlag"},
         {26, nullptr, "SetConsoleInformationUploadFlag"},
         {27, nullptr, "GetAutomaticApplicationDownloadFlag"},
         {28, nullptr, "SetAutomaticApplicationDownloadFlag"},
-        {29, &ISystemSettingsServer::GetNotificationSettings, "GetNotificationSettings"},
-        {30, &ISystemSettingsServer::SetNotificationSettings, "SetNotificationSettings"},
-        {31, &ISystemSettingsServer::GetAccountNotificationSettings, "GetAccountNotificationSettings"},
-        {32, &ISystemSettingsServer::SetAccountNotificationSettings, "SetAccountNotificationSettings"},
-        {35, &ISystemSettingsServer::GetVibrationMasterVolume, "GetVibrationMasterVolume"},
-        {36, &ISystemSettingsServer::SetVibrationMasterVolume, "SetVibrationMasterVolume"},
-        {37, &ISystemSettingsServer::GetSettingsItemValueSize, "GetSettingsItemValueSize"},
-        {38, &ISystemSettingsServer::GetSettingsItemValue, "GetSettingsItemValue"},
-        {39, &ISystemSettingsServer::GetTvSettings, "GetTvSettings"},
-        {40, &ISystemSettingsServer::SetTvSettings, "SetTvSettings"},
+        {29, C<&ISystemSettingsServer::GetNotificationSettings>, "GetNotificationSettings"},
+        {30, C<&ISystemSettingsServer::SetNotificationSettings>, "SetNotificationSettings"},
+        {31, C<&ISystemSettingsServer::GetAccountNotificationSettings>, "GetAccountNotificationSettings"},
+        {32, C<&ISystemSettingsServer::SetAccountNotificationSettings>, "SetAccountNotificationSettings"},
+        {35, C<&ISystemSettingsServer::GetVibrationMasterVolume>, "GetVibrationMasterVolume"},
+        {36, C<&ISystemSettingsServer::SetVibrationMasterVolume>, "SetVibrationMasterVolume"},
+        {37, C<&ISystemSettingsServer::GetSettingsItemValueSize>, "GetSettingsItemValueSize"},
+        {38, C<&ISystemSettingsServer::GetSettingsItemValue>, "GetSettingsItemValue"},
+        {39, C<&ISystemSettingsServer::GetTvSettings>, "GetTvSettings"},
+        {40, C<&ISystemSettingsServer::SetTvSettings>, "SetTvSettings"},
         {41, nullptr, "GetEdid"},
         {42, nullptr, "SetEdid"},
-        {43, &ISystemSettingsServer::GetAudioOutputMode, "GetAudioOutputMode"},
-        {44, &ISystemSettingsServer::SetAudioOutputMode, "SetAudioOutputMode"},
-        {45, &ISystemSettingsServer::GetSpeakerAutoMuteFlag , "GetSpeakerAutoMuteFlag"},
-        {46, &ISystemSettingsServer::SetSpeakerAutoMuteFlag , "SetSpeakerAutoMuteFlag"},
-        {47, &ISystemSettingsServer::GetQuestFlag, "GetQuestFlag"},
-        {48, &ISystemSettingsServer::SetQuestFlag, "SetQuestFlag"},
+        {43, C<&ISystemSettingsServer::GetAudioOutputMode>, "GetAudioOutputMode"},
+        {44, C<&ISystemSettingsServer::SetAudioOutputMode>, "SetAudioOutputMode"},
+        {45, C<&ISystemSettingsServer::GetSpeakerAutoMuteFlag> , "GetSpeakerAutoMuteFlag"},
+        {46, C<&ISystemSettingsServer::SetSpeakerAutoMuteFlag> , "SetSpeakerAutoMuteFlag"},
+        {47, C<&ISystemSettingsServer::GetQuestFlag>, "GetQuestFlag"},
+        {48, C<&ISystemSettingsServer::SetQuestFlag>, "SetQuestFlag"},
         {49, nullptr, "GetDataDeletionSettings"},
         {50, nullptr, "SetDataDeletionSettings"},
         {51, nullptr, "GetInitialSystemAppletProgramId"},
         {52, nullptr, "GetOverlayDispProgramId"},
-        {53, &ISystemSettingsServer::GetDeviceTimeZoneLocationName, "GetDeviceTimeZoneLocationName"},
-        {54, &ISystemSettingsServer::SetDeviceTimeZoneLocationName, "SetDeviceTimeZoneLocationName"},
+        {53, C<&ISystemSettingsServer::GetDeviceTimeZoneLocationName>, "GetDeviceTimeZoneLocationName"},
+        {54, C<&ISystemSettingsServer::SetDeviceTimeZoneLocationName>, "SetDeviceTimeZoneLocationName"},
         {55, nullptr, "GetWirelessCertificationFileSize"},
         {56, nullptr, "GetWirelessCertificationFile"},
-        {57, &ISystemSettingsServer::SetRegionCode, "SetRegionCode"},
-        {58, &ISystemSettingsServer::GetNetworkSystemClockContext, "GetNetworkSystemClockContext"},
-        {59, &ISystemSettingsServer::SetNetworkSystemClockContext, "SetNetworkSystemClockContext"},
-        {60, &ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled, "IsUserSystemClockAutomaticCorrectionEnabled"},
-        {61, &ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled, "SetUserSystemClockAutomaticCorrectionEnabled"},
-        {62, &ISystemSettingsServer::GetDebugModeFlag, "GetDebugModeFlag"},
-        {63, &ISystemSettingsServer::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
-        {64, &ISystemSettingsServer::SetPrimaryAlbumStorage, "SetPrimaryAlbumStorage"},
+        {57, C<&ISystemSettingsServer::SetRegionCode>, "SetRegionCode"},
+        {58, C<&ISystemSettingsServer::GetNetworkSystemClockContext>, "GetNetworkSystemClockContext"},
+        {59, C<&ISystemSettingsServer::SetNetworkSystemClockContext>, "SetNetworkSystemClockContext"},
+        {60, C<&ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled>, "IsUserSystemClockAutomaticCorrectionEnabled"},
+        {61, C<&ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled>, "SetUserSystemClockAutomaticCorrectionEnabled"},
+        {62, C<&ISystemSettingsServer::GetDebugModeFlag>, "GetDebugModeFlag"},
+        {63, C<&ISystemSettingsServer::GetPrimaryAlbumStorage>, "GetPrimaryAlbumStorage"},
+        {64, C<&ISystemSettingsServer::SetPrimaryAlbumStorage>, "SetPrimaryAlbumStorage"},
         {65, nullptr, "GetUsb30EnableFlag"},
         {66, nullptr, "SetUsb30EnableFlag"},
-        {67, &ISystemSettingsServer::GetBatteryLot, "GetBatteryLot"},
-        {68, &ISystemSettingsServer::GetSerialNumber, "GetSerialNumber"},
-        {69, &ISystemSettingsServer::GetNfcEnableFlag, "GetNfcEnableFlag"},
-        {70, &ISystemSettingsServer::SetNfcEnableFlag, "SetNfcEnableFlag"},
-        {71, &ISystemSettingsServer::GetSleepSettings, "GetSleepSettings"},
-        {72, &ISystemSettingsServer::SetSleepSettings, "SetSleepSettings"},
-        {73, &ISystemSettingsServer::GetWirelessLanEnableFlag, "GetWirelessLanEnableFlag"},
-        {74, &ISystemSettingsServer::SetWirelessLanEnableFlag, "SetWirelessLanEnableFlag"},
-        {75, &ISystemSettingsServer::GetInitialLaunchSettings, "GetInitialLaunchSettings"},
-        {76, &ISystemSettingsServer::SetInitialLaunchSettings, "SetInitialLaunchSettings"},
-        {77, &ISystemSettingsServer::GetDeviceNickName, "GetDeviceNickName"},
-        {78, &ISystemSettingsServer::SetDeviceNickName, "SetDeviceNickName"},
-        {79, &ISystemSettingsServer::GetProductModel, "GetProductModel"},
+        {67, C<&ISystemSettingsServer::GetBatteryLot>, "GetBatteryLot"},
+        {68, C<&ISystemSettingsServer::GetSerialNumber>, "GetSerialNumber"},
+        {69, C<&ISystemSettingsServer::GetNfcEnableFlag>, "GetNfcEnableFlag"},
+        {70, C<&ISystemSettingsServer::SetNfcEnableFlag>, "SetNfcEnableFlag"},
+        {71, C<&ISystemSettingsServer::GetSleepSettings>, "GetSleepSettings"},
+        {72, C<&ISystemSettingsServer::SetSleepSettings>, "SetSleepSettings"},
+        {73, C<&ISystemSettingsServer::GetWirelessLanEnableFlag>, "GetWirelessLanEnableFlag"},
+        {74, C<&ISystemSettingsServer::SetWirelessLanEnableFlag>, "SetWirelessLanEnableFlag"},
+        {75, C<&ISystemSettingsServer::GetInitialLaunchSettings>, "GetInitialLaunchSettings"},
+        {76, C<&ISystemSettingsServer::SetInitialLaunchSettings>, "SetInitialLaunchSettings"},
+        {77, C<&ISystemSettingsServer::GetDeviceNickName>, "GetDeviceNickName"},
+        {78, C<&ISystemSettingsServer::SetDeviceNickName>, "SetDeviceNickName"},
+        {79, C<&ISystemSettingsServer::GetProductModel>, "GetProductModel"},
         {80, nullptr, "GetLdnChannel"},
         {81, nullptr, "SetLdnChannel"},
         {82, nullptr, "AcquireTelemetryDirtyFlagEventHandle"},
@@ -176,25 +177,25 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {85, nullptr, "SetPtmBatteryLot"},
         {86, nullptr, "GetPtmFuelGaugeParameter"},
         {87, nullptr, "SetPtmFuelGaugeParameter"},
-        {88, &ISystemSettingsServer::GetBluetoothEnableFlag, "GetBluetoothEnableFlag"},
-        {89, &ISystemSettingsServer::SetBluetoothEnableFlag, "SetBluetoothEnableFlag"},
-        {90, &ISystemSettingsServer::GetMiiAuthorId, "GetMiiAuthorId"},
+        {88, C<&ISystemSettingsServer::GetBluetoothEnableFlag>, "GetBluetoothEnableFlag"},
+        {89, C<&ISystemSettingsServer::SetBluetoothEnableFlag>, "SetBluetoothEnableFlag"},
+        {90, C<&ISystemSettingsServer::GetMiiAuthorId>, "GetMiiAuthorId"},
         {91, nullptr, "SetShutdownRtcValue"},
         {92, nullptr, "GetShutdownRtcValue"},
         {93, nullptr, "AcquireFatalDirtyFlagEventHandle"},
         {94, nullptr, "GetFatalDirtyFlags"},
-        {95, &ISystemSettingsServer::GetAutoUpdateEnableFlag, "GetAutoUpdateEnableFlag"},
-        {96,  &ISystemSettingsServer::SetAutoUpdateEnableFlag, "SetAutoUpdateEnableFlag"},
+        {95, C<&ISystemSettingsServer::GetAutoUpdateEnableFlag>, "GetAutoUpdateEnableFlag"},
+        {96, C<&ISystemSettingsServer::SetAutoUpdateEnableFlag>, "SetAutoUpdateEnableFlag"},
         {97, nullptr, "GetNxControllerSettings"},
         {98, nullptr, "SetNxControllerSettings"},
-        {99, &ISystemSettingsServer::GetBatteryPercentageFlag, "GetBatteryPercentageFlag"},
-        {100, &ISystemSettingsServer::SetBatteryPercentageFlag, "SetBatteryPercentageFlag"},
+        {99, C<&ISystemSettingsServer::GetBatteryPercentageFlag>, "GetBatteryPercentageFlag"},
+        {100, C<&ISystemSettingsServer::SetBatteryPercentageFlag>, "SetBatteryPercentageFlag"},
         {101, nullptr, "GetExternalRtcResetFlag"},
         {102, nullptr, "SetExternalRtcResetFlag"},
         {103, nullptr, "GetUsbFullKeyEnableFlag"},
         {104, nullptr, "SetUsbFullKeyEnableFlag"},
-        {105, &ISystemSettingsServer::SetExternalSteadyClockInternalOffset, "SetExternalSteadyClockInternalOffset"},
-        {106, &ISystemSettingsServer::GetExternalSteadyClockInternalOffset, "GetExternalSteadyClockInternalOffset"},
+        {105, C<&ISystemSettingsServer::SetExternalSteadyClockInternalOffset>, "SetExternalSteadyClockInternalOffset"},
+        {106, C<&ISystemSettingsServer::GetExternalSteadyClockInternalOffset>, "GetExternalSteadyClockInternalOffset"},
         {107, nullptr, "GetBacklightSettingsEx"},
         {108, nullptr, "SetBacklightSettingsEx"},
         {109, nullptr, "GetHeadphoneVolumeWarningCount"},
@@ -208,14 +209,14 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {117, nullptr, "GetHeadphoneVolumeUpdateFlag"},
         {118, nullptr, "SetHeadphoneVolumeUpdateFlag"},
         {119, nullptr, "NeedsToUpdateHeadphoneVolume"},
-        {120, &ISystemSettingsServer::GetPushNotificationActivityModeOnSleep, "GetPushNotificationActivityModeOnSleep"},
-        {121, &ISystemSettingsServer::SetPushNotificationActivityModeOnSleep, "SetPushNotificationActivityModeOnSleep"},
+        {120, C<&ISystemSettingsServer::GetPushNotificationActivityModeOnSleep>, "GetPushNotificationActivityModeOnSleep"},
+        {121, C<&ISystemSettingsServer::SetPushNotificationActivityModeOnSleep>, "SetPushNotificationActivityModeOnSleep"},
         {122, nullptr, "GetServiceDiscoveryControlSettings"},
         {123, nullptr, "SetServiceDiscoveryControlSettings"},
-        {124, &ISystemSettingsServer::GetErrorReportSharePermission, "GetErrorReportSharePermission"},
-        {125, &ISystemSettingsServer::SetErrorReportSharePermission, "SetErrorReportSharePermission"},
-        {126, &ISystemSettingsServer::GetAppletLaunchFlags, "GetAppletLaunchFlags"},
-        {127, &ISystemSettingsServer::SetAppletLaunchFlags, "SetAppletLaunchFlags"},
+        {124, C<&ISystemSettingsServer::GetErrorReportSharePermission>, "GetErrorReportSharePermission"},
+        {125, C<&ISystemSettingsServer::SetErrorReportSharePermission>, "SetErrorReportSharePermission"},
+        {126, C<&ISystemSettingsServer::GetAppletLaunchFlags>, "GetAppletLaunchFlags"},
+        {127, C<&ISystemSettingsServer::SetAppletLaunchFlags>, "SetAppletLaunchFlags"},
         {128, nullptr, "GetConsoleSixAxisSensorAccelerationBias"},
         {129, nullptr, "SetConsoleSixAxisSensorAccelerationBias"},
         {130, nullptr, "GetConsoleSixAxisSensorAngularVelocityBias"},
@@ -224,8 +225,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {133, nullptr, "SetConsoleSixAxisSensorAccelerationGain"},
         {134, nullptr, "GetConsoleSixAxisSensorAngularVelocityGain"},
         {135, nullptr, "SetConsoleSixAxisSensorAngularVelocityGain"},
-        {136, &ISystemSettingsServer::GetKeyboardLayout, "GetKeyboardLayout"},
-        {137, &ISystemSettingsServer::SetKeyboardLayout, "SetKeyboardLayout"},
+        {136, C<&ISystemSettingsServer::GetKeyboardLayout>, "GetKeyboardLayout"},
+        {137, C<&ISystemSettingsServer::SetKeyboardLayout>, "SetKeyboardLayout"},
         {138, nullptr, "GetWebInspectorFlag"},
         {139, nullptr, "GetAllowedSslHosts"},
         {140, nullptr, "GetHostFsMountPoint"},
@@ -238,10 +239,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {147, nullptr, "GetConsoleSixAxisSensorAngularAcceleration"},
         {148, nullptr, "SetConsoleSixAxisSensorAngularAcceleration"},
         {149, nullptr, "GetRebootlessSystemUpdateVersion"},
-        {150, &ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime, "GetDeviceTimeZoneLocationUpdatedTime"},
-        {151, &ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime, "SetDeviceTimeZoneLocationUpdatedTime"},
-        {152, &ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
-        {153, &ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {150, C<&ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime>, "GetDeviceTimeZoneLocationUpdatedTime"},
+        {151, C<&ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime>, "SetDeviceTimeZoneLocationUpdatedTime"},
+        {152, C<&ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime>, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {153, C<&ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime>, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
         {154, nullptr, "GetAccountOnlineStorageSettings"},
         {155, nullptr, "SetAccountOnlineStorageSettings"},
         {156, nullptr, "GetPctlReadyFlag"},
@@ -258,11 +259,11 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {167, nullptr, "SetUsb30DeviceEnableFlag"},
         {168, nullptr, "GetThemeId"},
         {169, nullptr, "SetThemeId"},
-        {170, &ISystemSettingsServer::GetChineseTraditionalInputMethod, "GetChineseTraditionalInputMethod"},
+        {170, C<&ISystemSettingsServer::GetChineseTraditionalInputMethod>, "GetChineseTraditionalInputMethod"},
         {171, nullptr, "SetChineseTraditionalInputMethod"},
         {172, nullptr, "GetPtmCycleCountReliability"},
         {173, nullptr, "SetPtmCycleCountReliability"},
-        {174, &ISystemSettingsServer::GetHomeMenuScheme, "GetHomeMenuScheme"},
+        {174, C<&ISystemSettingsServer::GetHomeMenuScheme>, "GetHomeMenuScheme"},
         {175, nullptr, "GetThemeSettings"},
         {176, nullptr, "SetThemeSettings"},
         {177, nullptr, "GetThemeKey"},
@@ -273,10 +274,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {182, nullptr, "SetT"},
         {183, nullptr, "GetPlatformRegion"},
         {184, nullptr, "SetPlatformRegion"},
-        {185, &ISystemSettingsServer::GetHomeMenuSchemeModel, "GetHomeMenuSchemeModel"},
+        {185, C<&ISystemSettingsServer::GetHomeMenuSchemeModel>, "GetHomeMenuSchemeModel"},
         {186, nullptr, "GetMemoryUsageRateFlag"},
-        {187, &ISystemSettingsServer::GetTouchScreenMode, "GetTouchScreenMode"},
-        {188, &ISystemSettingsServer::SetTouchScreenMode, "SetTouchScreenMode"},
+        {187, C<&ISystemSettingsServer::GetTouchScreenMode>, "GetTouchScreenMode"},
+        {188, C<&ISystemSettingsServer::SetTouchScreenMode>, "SetTouchScreenMode"},
         {189, nullptr, "GetButtonConfigSettingsFull"},
         {190, nullptr, "SetButtonConfigSettingsFull"},
         {191, nullptr, "GetButtonConfigSettingsEmbedded"},
@@ -289,10 +290,10 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {198, nullptr, "SetButtonConfigRegisteredSettingsEmbedded"},
         {199, nullptr, "GetButtonConfigRegisteredSettings"},
         {200, nullptr, "SetButtonConfigRegisteredSettings"},
-        {201, &ISystemSettingsServer::GetFieldTestingFlag, "GetFieldTestingFlag"},
+        {201, C<&ISystemSettingsServer::GetFieldTestingFlag>, "GetFieldTestingFlag"},
         {202, nullptr, "SetFieldTestingFlag"},
-        {203, &ISystemSettingsServer::GetPanelCrcMode, "GetPanelCrcMode"},
-        {204, &ISystemSettingsServer::SetPanelCrcMode, "SetPanelCrcMode"},
+        {203, C<&ISystemSettingsServer::GetPanelCrcMode>, "GetPanelCrcMode"},
+        {204, C<&ISystemSettingsServer::SetPanelCrcMode>, "SetPanelCrcMode"},
         {205, nullptr, "GetNxControllerSettingsEx"},
         {206, nullptr, "SetNxControllerSettingsEx"},
         {207, nullptr, "GetHearingProtectionSafeguardFlag"},
@@ -422,178 +423,134 @@ bool ISystemSettingsServer::StoreSettingsFile(std::filesystem::path& path, auto&
     return true;
 }
 
-void ISystemSettingsServer::SetLanguageCode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.language_code = rp.PopEnum<LanguageCode>();
+Result ISystemSettingsServer::SetLanguageCode(LanguageCode language_code) {
+    LOG_INFO(Service_SET, "called, language_code={}", language_code);
+
+    m_system_settings.language_code = language_code;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, language_code={}", m_system_settings.language_code);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetFirmwareVersion(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetFirmwareVersion(
+    OutLargeData<FirmwareVersionFormat, BufferAttr_HipcPointer> out_firmware_data) {
     LOG_DEBUG(Service_SET, "called");
 
-    FirmwareVersionFormat firmware_data{};
-    const auto result =
-        GetFirmwareVersionImpl(firmware_data, system, GetFirmwareVersionType::Version1);
-
-    if (result.IsSuccess()) {
-        ctx.WriteBuffer(firmware_data);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_RETURN(GetFirmwareVersionImpl(*out_firmware_data, system, GetFirmwareVersionType::Version1));
 }
 
-void ISystemSettingsServer::GetFirmwareVersion2(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetFirmwareVersion2(
+    OutLargeData<FirmwareVersionFormat, BufferAttr_HipcPointer> out_firmware_data) {
     LOG_DEBUG(Service_SET, "called");
 
-    FirmwareVersionFormat firmware_data{};
-    const auto result =
-        GetFirmwareVersionImpl(firmware_data, system, GetFirmwareVersionType::Version2);
-
-    if (result.IsSuccess()) {
-        ctx.WriteBuffer(firmware_data);
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_RETURN(GetFirmwareVersionImpl(*out_firmware_data, system, GetFirmwareVersionType::Version2));
 }
 
-void ISystemSettingsServer::GetExternalSteadyClockSourceId(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
-
-    Common::UUID id{};
-    const auto res = GetExternalSteadyClockSourceId(id);
-
-    IPC::ResponseBuilder rb{ctx, 2 + sizeof(Common::UUID) / sizeof(u32)};
-    rb.Push(res);
-    rb.PushRaw(id);
-}
-
-void ISystemSettingsServer::SetExternalSteadyClockSourceId(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
-
-    IPC::RequestParser rp{ctx};
-    const auto id{rp.PopRaw<Common::UUID>()};
-
-    const auto res = SetExternalSteadyClockSourceId(id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ISystemSettingsServer::GetUserSystemClockContext(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
-
-    Service::PSC::Time::SystemClockContext context{};
-    const auto res = GetUserSystemClockContext(context);
-
-    IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::PSC::Time::SystemClockContext) / sizeof(u32)};
-    rb.Push(res);
-    rb.PushRaw(context);
-}
-
-void ISystemSettingsServer::SetUserSystemClockContext(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
-
-    IPC::RequestParser rp{ctx};
-    const auto context{rp.PopRaw<Service::PSC::Time::SystemClockContext>()};
-
-    const auto res = SetUserSystemClockContext(context);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ISystemSettingsServer::GetLockScreenFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetLockScreenFlag(Out<bool> out_lock_screen_flag) {
     LOG_INFO(Service_SET, "called, lock_screen_flag={}", m_system_settings.lock_screen_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.lock_screen_flag);
+    *out_lock_screen_flag = m_system_settings.lock_screen_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetLockScreenFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.lock_screen_flag = rp.Pop<bool>();
+Result ISystemSettingsServer::SetLockScreenFlag(bool lock_screen_flag) {
+    LOG_INFO(Service_SET, "called, lock_screen_flag={}", lock_screen_flag);
+
+    m_system_settings.lock_screen_flag = lock_screen_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, lock_screen_flag={}", m_system_settings.lock_screen_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetAccountSettings(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetExternalSteadyClockSourceId(
+    Out<Common::UUID> out_clock_source_id) {
+    LOG_INFO(Service_SET, "called, clock_source_id={}",
+             m_private_settings.external_clock_source_id.FormattedString());
+
+    *out_clock_source_id = m_private_settings.external_clock_source_id;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID& clock_source_id) {
+    LOG_INFO(Service_SET, "called, clock_source_id={}", clock_source_id.FormattedString());
+
+    m_private_settings.external_clock_source_id = clock_source_id;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetUserSystemClockContext(
+    Out<Service::PSC::Time::SystemClockContext> out_clock_context) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.account_settings);
+    *out_clock_context = m_system_settings.user_system_clock_context;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetAccountSettings(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.account_settings = rp.PopRaw<AccountSettings>();
-    SetSaveNeeded();
+Result ISystemSettingsServer::SetUserSystemClockContext(
+    const Service::PSC::Time::SystemClockContext& clock_context) {
+    LOG_INFO(Service_SET, "called");
 
+    m_system_settings.user_system_clock_context = clock_context;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetAccountSettings(Out<AccountSettings> out_account_settings) {
     LOG_INFO(Service_SET, "called, account_settings_flags={}",
              m_system_settings.account_settings.flags);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    *out_account_settings = m_system_settings.account_settings;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetEulaVersions(HLERequestContext& ctx) {
+Result ISystemSettingsServer::SetAccountSettings(AccountSettings account_settings) {
+    LOG_INFO(Service_SET, "called, account_settings_flags={}", account_settings.flags);
+
+    m_system_settings.account_settings = account_settings;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetEulaVersions(
+    Out<s32> out_count, OutArray<EulaVersion, BufferAttr_HipcMapAlias> out_eula_versions) {
     LOG_INFO(Service_SET, "called, elements={}", m_system_settings.eula_version_count);
 
-    ctx.WriteBuffer(m_system_settings.eula_versions);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.eula_version_count);
+    *out_count =
+        std::min(m_system_settings.eula_version_count, static_cast<s32>(out_eula_versions.size()));
+    memcpy(out_eula_versions.data(), m_system_settings.eula_versions.data(),
+           static_cast<std::size_t>(*out_count) * sizeof(EulaVersion));
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetEulaVersions(HLERequestContext& ctx) {
-    const auto elements = ctx.GetReadBufferNumElements<EulaVersion>();
-    const auto buffer_data = ctx.ReadBuffer();
+Result ISystemSettingsServer::SetEulaVersions(
+    InArray<EulaVersion, BufferAttr_HipcMapAlias> eula_versions) {
+    LOG_INFO(Service_SET, "called, elements={}", eula_versions.size());
 
-    LOG_INFO(Service_SET, "called, elements={}", elements);
-    ASSERT(elements <= m_system_settings.eula_versions.size());
+    ASSERT(eula_versions.size() <= m_system_settings.eula_versions.size());
 
-    m_system_settings.eula_version_count = static_cast<u32>(elements);
-    std::memcpy(&m_system_settings.eula_versions, buffer_data.data(),
-                sizeof(EulaVersion) * elements);
+    m_system_settings.eula_version_count = static_cast<s32>(eula_versions.size());
+    std::memcpy(m_system_settings.eula_versions.data(), eula_versions.data(),
+                eula_versions.size() * sizeof(EulaVersion));
     SetSaveNeeded();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetColorSetId(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetColorSetId(Out<ColorSet> out_color_set_id) {
     LOG_DEBUG(Service_SET, "called, color_set=", m_system_settings.color_set_id);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(m_system_settings.color_set_id);
+    *out_color_set_id = m_system_settings.color_set_id;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetColorSetId(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.color_set_id = rp.PopEnum<ColorSet>();
+Result ISystemSettingsServer::SetColorSetId(ColorSet color_set_id) {
+    LOG_DEBUG(Service_SET, "called, color_set={}", color_set_id);
+
+    m_system_settings.color_set_id = color_set_id;
     SetSaveNeeded();
-
-    LOG_DEBUG(Service_SET, "called, color_set={}", m_system_settings.color_set_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetNotificationSettings(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetNotificationSettings(
+    Out<NotificationSettings> out_notification_settings) {
     LOG_INFO(Service_SET, "called, flags={}, volume={}, head_time={}:{}, tailt_time={}:{}",
              m_system_settings.notification_settings.flags.raw,
              m_system_settings.notification_settings.volume,
@@ -602,77 +559,67 @@ void ISystemSettingsServer::GetNotificationSettings(HLERequestContext& ctx) {
              m_system_settings.notification_settings.stop_time.hour,
              m_system_settings.notification_settings.stop_time.minute);
 
-    IPC::ResponseBuilder rb{ctx, 8};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.notification_settings);
+    *out_notification_settings = m_system_settings.notification_settings;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetNotificationSettings(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.notification_settings = rp.PopRaw<NotificationSettings>();
-    SetSaveNeeded();
-
+Result ISystemSettingsServer::SetNotificationSettings(
+    const NotificationSettings& notification_settings) {
     LOG_INFO(Service_SET, "called, flags={}, volume={}, head_time={}:{}, tailt_time={}:{}",
-             m_system_settings.notification_settings.flags.raw,
-             m_system_settings.notification_settings.volume,
-             m_system_settings.notification_settings.start_time.hour,
-             m_system_settings.notification_settings.start_time.minute,
-             m_system_settings.notification_settings.stop_time.hour,
-             m_system_settings.notification_settings.stop_time.minute);
+             notification_settings.flags.raw, notification_settings.volume,
+             notification_settings.start_time.hour, notification_settings.start_time.minute,
+             notification_settings.stop_time.hour, notification_settings.stop_time.minute);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    m_system_settings.notification_settings = notification_settings;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetAccountNotificationSettings(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetAccountNotificationSettings(
+    Out<s32> out_count, OutArray<AccountNotificationSettings, BufferAttr_HipcMapAlias>
+                            out_account_notification_settings) {
     LOG_INFO(Service_SET, "called, elements={}",
              m_system_settings.account_notification_settings_count);
 
-    ctx.WriteBuffer(m_system_settings.account_notification_settings);
+    *out_count = std::min(m_system_settings.account_notification_settings_count,
+                          static_cast<s32>(out_account_notification_settings.size()));
+    memcpy(out_account_notification_settings.data(),
+           m_system_settings.account_notification_settings.data(),
+           static_cast<std::size_t>(*out_count) * sizeof(AccountNotificationSettings));
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.account_notification_settings_count);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetAccountNotificationSettings(HLERequestContext& ctx) {
-    const auto elements = ctx.GetReadBufferNumElements<AccountNotificationSettings>();
-    const auto buffer_data = ctx.ReadBuffer();
+Result ISystemSettingsServer::SetAccountNotificationSettings(
+    InArray<AccountNotificationSettings, BufferAttr_HipcMapAlias> account_notification_settings) {
+    LOG_INFO(Service_SET, "called, elements={}", account_notification_settings.size());
 
-    LOG_INFO(Service_SET, "called, elements={}", elements);
+    ASSERT(account_notification_settings.size() <=
+           m_system_settings.account_notification_settings.size());
 
-    ASSERT(elements <= m_system_settings.account_notification_settings.size());
-
-    m_system_settings.account_notification_settings_count = static_cast<u32>(elements);
-    std::memcpy(&m_system_settings.account_notification_settings, buffer_data.data(),
-                elements * sizeof(AccountNotificationSettings));
+    m_system_settings.account_notification_settings_count =
+        static_cast<s32>(account_notification_settings.size());
+    std::memcpy(m_system_settings.account_notification_settings.data(),
+                account_notification_settings.data(),
+                account_notification_settings.size() * sizeof(AccountNotificationSettings));
     SetSaveNeeded();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetVibrationMasterVolume(HLERequestContext& ctx) {
-    f32 vibration_master_volume = {};
-    const auto result = GetVibrationMasterVolume(vibration_master_volume);
+Result ISystemSettingsServer::GetVibrationMasterVolume(Out<f32> vibration_master_volume) {
+    LOG_INFO(Service_SET, "called, vibration_master_volume={}",
+             m_system_settings.vibration_master_volume);
 
-    LOG_INFO(Service_SET, "called, master_volume={}", vibration_master_volume);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(result);
-    rb.Push(vibration_master_volume);
+    *vibration_master_volume = m_system_settings.vibration_master_volume;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetVibrationMasterVolume(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto vibration_master_volume = rp.PopRaw<f32>();
+Result ISystemSettingsServer::SetVibrationMasterVolume(f32 vibration_master_volume) {
+    LOG_INFO(Service_SET, "called, vibration_master_volume={}", vibration_master_volume);
 
-    LOG_INFO(Service_SET, "called, elements={}", m_system_settings.vibration_master_volume);
-
-    const auto result = SetVibrationMasterVolume(vibration_master_volume);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    m_system_settings.vibration_master_volume = vibration_master_volume;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
 // FIXME: implement support for the real system_settings.ini
@@ -734,55 +681,38 @@ static Settings GetSettings() {
     return ret;
 }
 
-void ISystemSettingsServer::GetSettingsItemValueSize(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
+Result ISystemSettingsServer::GetSettingsItemValueSize(
+    Out<u64> out_size, InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_category_buffer,
+    InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_name_buffer) {
+    const std::string setting_category{Common::StringFromBuffer(*setting_category_buffer)};
+    const std::string setting_name{Common::StringFromBuffer(*setting_name_buffer)};
 
-    // The category of the setting. This corresponds to the top-level keys of
-    // system_settings.ini.
-    const auto setting_category_buf{ctx.ReadBuffer(0)};
-    const std::string setting_category{Common::StringFromBuffer(setting_category_buf)};
+    LOG_DEBUG(Service_SET, "called, category={}, name={}", setting_category, setting_name);
 
-    // The name of the setting. This corresponds to the second-level keys of
-    // system_settings.ini.
-    const auto setting_name_buf{ctx.ReadBuffer(1)};
-    const std::string setting_name{Common::StringFromBuffer(setting_name_buf)};
+    *out_size = 0;
 
     auto settings{GetSettings()};
-    u64 response_size{0};
-
     if (settings.contains(setting_category) && settings[setting_category].contains(setting_name)) {
-        response_size = settings[setting_category][setting_name].size();
+        *out_size = settings[setting_category][setting_name].size();
     }
 
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(response_size == 0 ? ResultUnknown : ResultSuccess);
-    rb.Push(response_size);
+    R_UNLESS(*out_size != 0, ResultUnknown);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetSettingsItemValue(HLERequestContext& ctx) {
-    // The category of the setting. This corresponds to the top-level keys of
-    // system_settings.ini.
-    const auto setting_category_buf{ctx.ReadBuffer(0)};
-    const std::string setting_category{Common::StringFromBuffer(setting_category_buf)};
+Result ISystemSettingsServer::GetSettingsItemValue(
+    OutBuffer<BufferAttr_HipcMapAlias> out_data,
+    InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_category_buffer,
+    InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_name_buffer) {
+    const std::string setting_category{Common::StringFromBuffer(*setting_category_buffer)};
+    const std::string setting_name{Common::StringFromBuffer(*setting_name_buffer)};
 
-    // The name of the setting. This corresponds to the second-level keys of
-    // system_settings.ini.
-    const auto setting_name_buf{ctx.ReadBuffer(1)};
-    const std::string setting_name{Common::StringFromBuffer(setting_name_buf)};
+    LOG_INFO(Service_SET, "called, category={}, name={}", setting_category, setting_name);
 
-    std::vector<u8> value;
-    auto response = GetSettingsItemValue(value, setting_category, setting_name);
-
-    LOG_INFO(Service_SET, "called. category={}, name={} -- res=0x{:X}", setting_category,
-             setting_name, response.raw);
-
-    ctx.WriteBuffer(value.data(), value.size());
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(response);
+    R_RETURN(GetSettingsItemValueImpl(out_data, setting_category, setting_name));
 }
 
-void ISystemSettingsServer::GetTvSettings(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetTvSettings(Out<TvSettings> out_tv_settings) {
     LOG_INFO(Service_SET,
              "called, flags={}, cmu_mode={}, contrast_ratio={}, hdmi_content_type={}, "
              "rgb_range={}, tv_gama={}, tv_resolution={}, tv_underscan={}",
@@ -793,371 +723,335 @@ void ISystemSettingsServer::GetTvSettings(HLERequestContext& ctx) {
              m_system_settings.tv_settings.tv_resolution,
              m_system_settings.tv_settings.tv_underscan);
 
-    IPC::ResponseBuilder rb{ctx, 10};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.tv_settings);
+    *out_tv_settings = m_system_settings.tv_settings;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetTvSettings(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.tv_settings = rp.PopRaw<TvSettings>();
-    SetSaveNeeded();
+Result ISystemSettingsServer::SetTvSettings(TvSettings tv_settings) {
 
     LOG_INFO(Service_SET,
              "called, flags={}, cmu_mode={}, contrast_ratio={}, hdmi_content_type={}, "
              "rgb_range={}, tv_gama={}, tv_resolution={}, tv_underscan={}",
-             m_system_settings.tv_settings.flags.raw, m_system_settings.tv_settings.cmu_mode,
-             m_system_settings.tv_settings.contrast_ratio,
-             m_system_settings.tv_settings.hdmi_content_type,
-             m_system_settings.tv_settings.rgb_range, m_system_settings.tv_settings.tv_gama,
-             m_system_settings.tv_settings.tv_resolution,
-             m_system_settings.tv_settings.tv_underscan);
+             tv_settings.flags.raw, tv_settings.cmu_mode, tv_settings.contrast_ratio,
+             tv_settings.hdmi_content_type, tv_settings.rgb_range, tv_settings.tv_gama,
+             tv_settings.tv_resolution, tv_settings.tv_underscan);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    m_system_settings.tv_settings = tv_settings;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetAudioOutputMode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto target{rp.PopEnum<AudioOutputModeTarget>()};
+Result ISystemSettingsServer::GetAudioOutputMode(Out<AudioOutputMode> out_output_mode,
+                                                 AudioOutputModeTarget target) {
+    switch (target) {
+    case AudioOutputModeTarget::Hdmi:
+        *out_output_mode = m_system_settings.audio_output_mode_hdmi;
+        break;
+    case AudioOutputModeTarget::Speaker:
+        *out_output_mode = m_system_settings.audio_output_mode_speaker;
+        break;
+    case AudioOutputModeTarget::Headphone:
+        *out_output_mode = m_system_settings.audio_output_mode_headphone;
+        break;
+    case AudioOutputModeTarget::Type3:
+        *out_output_mode = m_system_settings.audio_output_mode_type3;
+        break;
+    case AudioOutputModeTarget::Type4:
+        *out_output_mode = m_system_settings.audio_output_mode_type4;
+        break;
+    default:
+        LOG_ERROR(Service_SET, "Invalid audio output mode target {}", target);
+    }
 
-    AudioOutputMode output_mode{};
-    const auto result = GetAudioOutputMode(output_mode, target);
+    LOG_INFO(Service_SET, "called, target={}, output_mode={}", target, *out_output_mode);
+    R_SUCCEED();
+}
 
+Result ISystemSettingsServer::SetAudioOutputMode(AudioOutputModeTarget target,
+                                                 AudioOutputMode output_mode) {
     LOG_INFO(Service_SET, "called, target={}, output_mode={}", target, output_mode);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(result);
-    rb.PushEnum(output_mode);
+    switch (target) {
+    case AudioOutputModeTarget::Hdmi:
+        m_system_settings.audio_output_mode_hdmi = output_mode;
+        break;
+    case AudioOutputModeTarget::Speaker:
+        m_system_settings.audio_output_mode_speaker = output_mode;
+        break;
+    case AudioOutputModeTarget::Headphone:
+        m_system_settings.audio_output_mode_headphone = output_mode;
+        break;
+    case AudioOutputModeTarget::Type3:
+        m_system_settings.audio_output_mode_type3 = output_mode;
+        break;
+    case AudioOutputModeTarget::Type4:
+        m_system_settings.audio_output_mode_type4 = output_mode;
+        break;
+    default:
+        LOG_ERROR(Service_SET, "Invalid audio output mode target {}", target);
+    }
+
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetAudioOutputMode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto target{rp.PopEnum<AudioOutputModeTarget>()};
-    const auto output_mode{rp.PopEnum<AudioOutputMode>()};
-
-    const auto result = SetAudioOutputMode(target, output_mode);
-
-    LOG_INFO(Service_SET, "called, target={}, output_mode={}", target, output_mode);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
-}
-
-void ISystemSettingsServer::GetSpeakerAutoMuteFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetSpeakerAutoMuteFlag(
+    Out<bool> out_force_mute_on_headphone_removed) {
     LOG_INFO(Service_SET, "called, force_mute_on_headphone_removed={}",
              m_system_settings.force_mute_on_headphone_removed);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.force_mute_on_headphone_removed);
+    *out_force_mute_on_headphone_removed = m_system_settings.force_mute_on_headphone_removed;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetSpeakerAutoMuteFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.force_mute_on_headphone_removed = rp.PopRaw<bool>();
-    SetSaveNeeded();
-
+Result ISystemSettingsServer::SetSpeakerAutoMuteFlag(bool force_mute_on_headphone_removed) {
     LOG_INFO(Service_SET, "called, force_mute_on_headphone_removed={}",
-             m_system_settings.force_mute_on_headphone_removed);
+             force_mute_on_headphone_removed);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    m_system_settings.force_mute_on_headphone_removed = force_mute_on_headphone_removed;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetQuestFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetQuestFlag(Out<QuestFlag> out_quest_flag) {
     LOG_INFO(Service_SET, "called, quest_flag={}", m_system_settings.quest_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(m_system_settings.quest_flag);
+    *out_quest_flag = m_system_settings.quest_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetQuestFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.quest_flag = rp.PopEnum<QuestFlag>();
+Result ISystemSettingsServer::SetQuestFlag(QuestFlag quest_flag) {
+    LOG_INFO(Service_SET, "called, quest_flag={}", quest_flag);
+
+    m_system_settings.quest_flag = quest_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, quest_flag={}", m_system_settings.quest_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
+    Out<Service::PSC::Time::LocationName> out_name) {
     LOG_INFO(Service_SET, "called");
 
-    Service::PSC::Time::LocationName name{};
-    const auto res = GetDeviceTimeZoneLocationName(name);
-
-    IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::PSC::Time::LocationName) / sizeof(u32)};
-    rb.Push(res);
-    rb.PushRaw<Service::PSC::Time::LocationName>(name);
+    *out_name = m_system_settings.device_time_zone_location_name;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
+Result ISystemSettingsServer::SetDeviceTimeZoneLocationName(
+    const Service::PSC::Time::LocationName& name) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::RequestParser rp{ctx};
-    auto name{rp.PopRaw<Service::PSC::Time::LocationName>()};
-
-    const auto res = SetDeviceTimeZoneLocationName(name);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ISystemSettingsServer::SetRegionCode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.region_code = rp.PopEnum<SystemRegionCode>();
+    m_system_settings.device_time_zone_location_name = name;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, region_code={}", m_system_settings.region_code);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetNetworkSystemClockContext(HLERequestContext& ctx) {
+Result ISystemSettingsServer::SetRegionCode(SystemRegionCode region_code) {
+    LOG_INFO(Service_SET, "called, region_code={}", region_code);
+
+    m_system_settings.region_code = region_code;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetNetworkSystemClockContext(
+    Out<Service::PSC::Time::SystemClockContext> out_context) {
     LOG_INFO(Service_SET, "called");
 
-    Service::PSC::Time::SystemClockContext context{};
-    const auto res = GetNetworkSystemClockContext(context);
-
-    IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::PSC::Time::SystemClockContext) / sizeof(u32)};
-    rb.Push(res);
-    rb.PushRaw(context);
+    *out_context = m_system_settings.network_system_clock_context;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetNetworkSystemClockContext(HLERequestContext& ctx) {
+Result ISystemSettingsServer::SetNetworkSystemClockContext(
+    const Service::PSC::Time::SystemClockContext& context) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::RequestParser rp{ctx};
-    const auto context{rp.PopRaw<Service::PSC::Time::SystemClockContext>()};
-
-    const auto res = SetNetworkSystemClockContext(context);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
+    m_system_settings.network_system_clock_context = context;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(
+    Out<bool> out_automatic_correction_enabled) {
+    LOG_INFO(Service_SET, "called, out_automatic_correction_enabled={}",
+             m_system_settings.user_system_clock_automatic_correction_enabled);
 
-    bool enabled{};
-    const auto res = IsUserSystemClockAutomaticCorrectionEnabled(enabled);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(res);
-    rb.PushRaw(enabled);
+    *out_automatic_correction_enabled =
+        m_system_settings.user_system_clock_automatic_correction_enabled;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
+Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(
+    bool automatic_correction_enabled) {
+    LOG_INFO(Service_SET, "called, out_automatic_correction_enabled={}",
+             automatic_correction_enabled);
 
-    IPC::RequestParser rp{ctx};
-    auto enabled{rp.Pop<bool>()};
-
-    const auto res = SetUserSystemClockAutomaticCorrectionEnabled(enabled);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
+    m_system_settings.user_system_clock_automatic_correction_enabled = automatic_correction_enabled;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetDebugModeFlag(HLERequestContext& ctx) {
-    bool is_debug_mode_enabled = false;
-    GetSettingsItemValue<bool>(is_debug_mode_enabled, "settings_debug", "is_debug_mode_enabled");
+Result ISystemSettingsServer::GetDebugModeFlag(Out<bool> is_debug_mode_enabled) {
+    const auto result = GetSettingsItemValueImpl<bool>(*is_debug_mode_enabled, "settings_debug",
+                                                       "is_debug_mode_enabled");
 
-    LOG_DEBUG(Service_SET, "called, is_debug_mode_enabled={}", is_debug_mode_enabled);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(is_debug_mode_enabled);
+    LOG_DEBUG(Service_SET, "called, is_debug_mode_enabled={}", *is_debug_mode_enabled);
+    R_RETURN(result);
 }
 
-void ISystemSettingsServer::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetPrimaryAlbumStorage(
+    Out<PrimaryAlbumStorage> out_primary_album_storage) {
     LOG_INFO(Service_SET, "called, primary_album_storage={}",
              m_system_settings.primary_album_storage);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(m_system_settings.primary_album_storage);
+    *out_primary_album_storage = m_system_settings.primary_album_storage;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetPrimaryAlbumStorage(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.primary_album_storage = rp.PopEnum<PrimaryAlbumStorage>();
+Result ISystemSettingsServer::SetPrimaryAlbumStorage(PrimaryAlbumStorage primary_album_storage) {
+    LOG_INFO(Service_SET, "called, primary_album_storage={}", primary_album_storage);
+
+    m_system_settings.primary_album_storage = primary_album_storage;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, primary_album_storage={}",
-             m_system_settings.primary_album_storage);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetBatteryLot(HLERequestContext& ctx) {
-    BatteryLot battery_lot = {"YUZUEMULATOR123456789"};
-
+Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::ResponseBuilder rb{ctx, 8};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(battery_lot);
+    *out_battery_lot = {"YUZU0EMULATOR14022024"};
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetSerialNumber(HLERequestContext& ctx) {
-    SerialNumber console_serial = {"YUZ10012345678"};
-
+Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_serial) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::ResponseBuilder rb{ctx, 8};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(console_serial);
+    *out_console_serial = {"YUZ10000000001"};
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetNfcEnableFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetNfcEnableFlag(Out<bool> out_nfc_enable_flag) {
     LOG_INFO(Service_SET, "called, nfc_enable_flag={}", m_system_settings.nfc_enable_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u8>(m_system_settings.nfc_enable_flag);
+    *out_nfc_enable_flag = m_system_settings.nfc_enable_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetNfcEnableFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.nfc_enable_flag = rp.Pop<bool>();
+Result ISystemSettingsServer::SetNfcEnableFlag(bool nfc_enable_flag) {
+    LOG_INFO(Service_SET, "called, nfc_enable_flag={}", nfc_enable_flag);
+
+    m_system_settings.nfc_enable_flag = nfc_enable_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, nfc_enable_flag={}", m_system_settings.nfc_enable_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetSleepSettings(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetSleepSettings(Out<SleepSettings> out_sleep_settings) {
     LOG_INFO(Service_SET, "called, flags={}, handheld_sleep_plan={}, console_sleep_plan={}",
              m_system_settings.sleep_settings.flags.raw,
              m_system_settings.sleep_settings.handheld_sleep_plan,
              m_system_settings.sleep_settings.console_sleep_plan);
 
-    IPC::ResponseBuilder rb{ctx, 5};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.sleep_settings);
+    *out_sleep_settings = m_system_settings.sleep_settings;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetSleepSettings(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.sleep_settings = rp.PopRaw<SleepSettings>();
-    SetSaveNeeded();
-
+Result ISystemSettingsServer::SetSleepSettings(SleepSettings sleep_settings) {
     LOG_INFO(Service_SET, "called, flags={}, handheld_sleep_plan={}, console_sleep_plan={}",
-             m_system_settings.sleep_settings.flags.raw,
-             m_system_settings.sleep_settings.handheld_sleep_plan,
-             m_system_settings.sleep_settings.console_sleep_plan);
+             sleep_settings.flags.raw, sleep_settings.handheld_sleep_plan,
+             sleep_settings.console_sleep_plan);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void ISystemSettingsServer::GetWirelessLanEnableFlag(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called, wireless_lan_enable_flag={}",
-             m_system_settings.wireless_lan_enable_flag);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.wireless_lan_enable_flag);
-}
-
-void ISystemSettingsServer::SetWirelessLanEnableFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.wireless_lan_enable_flag = rp.Pop<bool>();
+    m_system_settings.sleep_settings = sleep_settings;
     SetSaveNeeded();
+    R_SUCCEED();
+}
 
+Result ISystemSettingsServer::GetWirelessLanEnableFlag(Out<bool> out_wireless_lan_enable_flag) {
     LOG_INFO(Service_SET, "called, wireless_lan_enable_flag={}",
              m_system_settings.wireless_lan_enable_flag);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    *out_wireless_lan_enable_flag = m_system_settings.wireless_lan_enable_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetInitialLaunchSettings(HLERequestContext& ctx) {
+Result ISystemSettingsServer::SetWirelessLanEnableFlag(bool wireless_lan_enable_flag) {
+    LOG_INFO(Service_SET, "called, wireless_lan_enable_flag={}", wireless_lan_enable_flag);
+
+    m_system_settings.wireless_lan_enable_flag = wireless_lan_enable_flag;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetInitialLaunchSettings(
+    Out<InitialLaunchSettings> out_initial_launch_settings) {
     LOG_INFO(Service_SET, "called, flags={}, timestamp={}",
              m_system_settings.initial_launch_settings_packed.flags.raw,
              m_system_settings.initial_launch_settings_packed.timestamp.time_point);
 
-    IPC::ResponseBuilder rb{ctx, 10};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.initial_launch_settings_packed);
+    *out_initial_launch_settings = {
+        .flags = m_system_settings.initial_launch_settings_packed.flags,
+        .timestamp = m_system_settings.initial_launch_settings_packed.timestamp,
+    };
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetInitialLaunchSettings(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    auto initial_launch_settings = rp.PopRaw<InitialLaunchSettings>();
+Result ISystemSettingsServer::SetInitialLaunchSettings(
+    InitialLaunchSettings initial_launch_settings) {
+    LOG_INFO(Service_SET, "called, flags={}, timestamp={}", initial_launch_settings.flags.raw,
+             initial_launch_settings.timestamp.time_point);
 
     m_system_settings.initial_launch_settings_packed.flags = initial_launch_settings.flags;
     m_system_settings.initial_launch_settings_packed.timestamp = initial_launch_settings.timestamp;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, flags={}, timestamp={}",
-             m_system_settings.initial_launch_settings_packed.flags.raw,
-             m_system_settings.initial_launch_settings_packed.timestamp.time_point);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetDeviceNickName(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetDeviceNickName(
+    OutLargeData<std::array<u8, 0x80>, BufferAttr_HipcMapAlias> out_device_name) {
     LOG_DEBUG(Service_SET, "called");
 
-    ctx.WriteBuffer(::Settings::values.device_name.GetValue());
+    *out_device_name = {};
+    const auto device_name_buffer = ::Settings::values.device_name.GetValue().c_str();
+    memcpy(out_device_name->data(), device_name_buffer,
+           ::Settings::values.device_name.GetValue().size());
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetDeviceNickName(HLERequestContext& ctx) {
-    const std::string device_name = Common::StringFromBuffer(ctx.ReadBuffer());
+Result ISystemSettingsServer::SetDeviceNickName(
+    InLargeData<std::array<u8, 0x80>, BufferAttr_HipcMapAlias> device_name_buffer) {
+    const std::string device_name = Common::StringFromBuffer(*device_name_buffer);
 
     LOG_INFO(Service_SET, "called, device_name={}", device_name);
 
     ::Settings::values.device_name = device_name;
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetProductModel(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetProductModel(Out<u32> out_product_model) {
     const u32 product_model = 1;
 
     LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(product_model);
+
+    *out_product_model = product_model;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetBluetoothEnableFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetBluetoothEnableFlag(Out<bool> out_bluetooth_enable_flag) {
     LOG_INFO(Service_SET, "called, bluetooth_enable_flag={}",
              m_system_settings.bluetooth_enable_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u8>(m_system_settings.bluetooth_enable_flag);
+    *out_bluetooth_enable_flag = m_system_settings.bluetooth_enable_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetBluetoothEnableFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.bluetooth_enable_flag = rp.Pop<bool>();
+Result ISystemSettingsServer::SetBluetoothEnableFlag(bool bluetooth_enable_flag) {
+    LOG_INFO(Service_SET, "called, bluetooth_enable_flag={}", bluetooth_enable_flag);
+
+    m_system_settings.bluetooth_enable_flag = bluetooth_enable_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, bluetooth_enable_flag={}",
-             m_system_settings.bluetooth_enable_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetMiiAuthorId(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetMiiAuthorId(Out<Common::UUID> out_mii_author_id) {
     if (m_system_settings.mii_author_id.IsInvalid()) {
         m_system_settings.mii_author_id = Common::UUID::MakeDefault();
         SetSaveNeeded();
@@ -1166,282 +1060,224 @@ void ISystemSettingsServer::GetMiiAuthorId(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called, author_id={}",
              m_system_settings.mii_author_id.FormattedString());
 
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(m_system_settings.mii_author_id);
+    *out_mii_author_id = m_system_settings.mii_author_id;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetAutoUpdateEnableFlag(Out<bool> out_auto_update_enable_flag) {
     LOG_INFO(Service_SET, "called, auto_update_flag={}", m_system_settings.auto_update_enable_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.auto_update_enable_flag);
+    *out_auto_update_enable_flag = m_system_settings.auto_update_enable_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetAutoUpdateEnableFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.auto_update_enable_flag = rp.Pop<bool>();
+Result ISystemSettingsServer::SetAutoUpdateEnableFlag(bool auto_update_enable_flag) {
+    LOG_INFO(Service_SET, "called, auto_update_flag={}", auto_update_enable_flag);
+
+    m_system_settings.auto_update_enable_flag = auto_update_enable_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, auto_update_flag={}", m_system_settings.auto_update_enable_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetBatteryPercentageFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetBatteryPercentageFlag(Out<bool> out_battery_percentage_flag) {
     LOG_DEBUG(Service_SET, "called, battery_percentage_flag={}",
               m_system_settings.battery_percentage_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.battery_percentage_flag);
+    *out_battery_percentage_flag = m_system_settings.battery_percentage_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetBatteryPercentageFlag(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.battery_percentage_flag = rp.Pop<bool>();
+Result ISystemSettingsServer::SetBatteryPercentageFlag(bool battery_percentage_flag) {
+    LOG_INFO(Service_SET, "called, battery_percentage_flag={}", battery_percentage_flag);
+
+    m_system_settings.battery_percentage_flag = battery_percentage_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, battery_percentage_flag={}",
-             m_system_settings.battery_percentage_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called.");
+Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
+    LOG_DEBUG(Service_SET, "called, external_steady_clock_internal_offset={}", offset);
 
-    IPC::RequestParser rp{ctx};
-    auto offset{rp.Pop<s64>()};
-
-    const auto res = SetExternalSteadyClockInternalOffset(offset);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
+    m_private_settings.external_steady_clock_internal_offset = offset;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called.");
+Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(Out<s64> out_offset) {
+    LOG_DEBUG(Service_SET, "called, external_steady_clock_internal_offset={}",
+              m_private_settings.external_steady_clock_internal_offset);
 
-    s64 offset{};
-    const auto res = GetExternalSteadyClockInternalOffset(offset);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(res);
-    rb.Push(offset);
+    *out_offset = m_private_settings.external_steady_clock_internal_offset;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetPushNotificationActivityModeOnSleep(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetPushNotificationActivityModeOnSleep(
+    Out<s32> out_push_notification_activity_mode_on_sleep) {
     LOG_INFO(Service_SET, "called, push_notification_activity_mode_on_sleep={}",
              m_system_settings.push_notification_activity_mode_on_sleep);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.push_notification_activity_mode_on_sleep);
+    *out_push_notification_activity_mode_on_sleep =
+        m_system_settings.push_notification_activity_mode_on_sleep;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetPushNotificationActivityModeOnSleep(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.push_notification_activity_mode_on_sleep = rp.Pop<s32>();
-    SetSaveNeeded();
-
+Result ISystemSettingsServer::SetPushNotificationActivityModeOnSleep(
+    s32 push_notification_activity_mode_on_sleep) {
     LOG_INFO(Service_SET, "called, push_notification_activity_mode_on_sleep={}",
-             m_system_settings.push_notification_activity_mode_on_sleep);
+             push_notification_activity_mode_on_sleep);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    m_system_settings.push_notification_activity_mode_on_sleep =
+        push_notification_activity_mode_on_sleep;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetErrorReportSharePermission(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetErrorReportSharePermission(
+    Out<ErrorReportSharePermission> out_error_report_share_permission) {
     LOG_INFO(Service_SET, "called, error_report_share_permission={}",
              m_system_settings.error_report_share_permission);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(m_system_settings.error_report_share_permission);
+    *out_error_report_share_permission = m_system_settings.error_report_share_permission;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetErrorReportSharePermission(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.error_report_share_permission = rp.PopEnum<ErrorReportSharePermission>();
-    SetSaveNeeded();
-
+Result ISystemSettingsServer::SetErrorReportSharePermission(
+    ErrorReportSharePermission error_report_share_permission) {
     LOG_INFO(Service_SET, "called, error_report_share_permission={}",
-             m_system_settings.error_report_share_permission);
+             error_report_share_permission);
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    m_system_settings.error_report_share_permission = error_report_share_permission;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetAppletLaunchFlags(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetAppletLaunchFlags(Out<u32> out_applet_launch_flag) {
     LOG_INFO(Service_SET, "called, applet_launch_flag={}", m_system_settings.applet_launch_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.applet_launch_flag);
+    *out_applet_launch_flag = m_system_settings.applet_launch_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetAppletLaunchFlags(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.applet_launch_flag = rp.Pop<u32>();
+Result ISystemSettingsServer::SetAppletLaunchFlags(u32 applet_launch_flag) {
+    LOG_INFO(Service_SET, "called, applet_launch_flag={}", applet_launch_flag);
+
+    m_system_settings.applet_launch_flag = applet_launch_flag;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, applet_launch_flag={}", m_system_settings.applet_launch_flag);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetKeyboardLayout(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetKeyboardLayout(Out<KeyboardLayout> out_keyboard_layout) {
     LOG_INFO(Service_SET, "called, keyboard_layout={}", m_system_settings.keyboard_layout);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(static_cast<u32>(m_system_settings.keyboard_layout));
+    *out_keyboard_layout = m_system_settings.keyboard_layout;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetKeyboardLayout(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.keyboard_layout = rp.PopRaw<KeyboardLayout>();
+Result ISystemSettingsServer::SetKeyboardLayout(KeyboardLayout keyboard_layout) {
+    LOG_INFO(Service_SET, "called, keyboard_layout={}", keyboard_layout);
+
+    m_system_settings.keyboard_layout = keyboard_layout;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
+    Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
+    LOG_INFO(Service_SET, "called");
+
+    *out_time_point = m_system_settings.device_time_zone_location_updated_time;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
+    const Service::PSC::Time::SteadyClockTimePoint& time_point) {
+    LOG_INFO(Service_SET, "called");
+
+    m_system_settings.device_time_zone_location_updated_time = time_point;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, keyboard_layout={}", m_system_settings.keyboard_layout);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
+    Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
     LOG_INFO(Service_SET, "called");
 
-    Service::PSC::Time::SteadyClockTimePoint time_point{};
-    const auto res = GetDeviceTimeZoneLocationUpdatedTime(time_point);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(res);
-    rb.PushRaw<Service::PSC::Time::SteadyClockTimePoint>(time_point);
+    *out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
+Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
+    const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::RequestParser rp{ctx};
-    auto time_point{rp.PopRaw<Service::PSC::Time::SteadyClockTimePoint>()};
-
-    const auto res = SetDeviceTimeZoneLocationUpdatedTime(time_point);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
+    m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
-    HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
-
-    Service::PSC::Time::SteadyClockTimePoint time_point{};
-    const auto res = GetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(res);
-    rb.PushRaw<Service::PSC::Time::SteadyClockTimePoint>(time_point);
-}
-
-void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
-    HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called");
-
-    IPC::RequestParser rp{ctx};
-    const auto time_point{rp.PopRaw<Service::PSC::Time::SteadyClockTimePoint>()};
-
-    const auto res = SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ISystemSettingsServer::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetChineseTraditionalInputMethod(
+    Out<ChineseTraditionalInputMethod> out_chinese_traditional_input_method) {
     LOG_INFO(Service_SET, "called, chinese_traditional_input_method={}",
              m_system_settings.chinese_traditional_input_method);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(m_system_settings.chinese_traditional_input_method);
+    *out_chinese_traditional_input_method = m_system_settings.chinese_traditional_input_method;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetHomeMenuScheme(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetHomeMenuScheme(Out<HomeMenuScheme> out_home_menu_scheme) {
     LOG_DEBUG(Service_SET, "(STUBBED) called");
 
-    const HomeMenuScheme default_color = {
+    *out_home_menu_scheme = {
         .main = 0xFF323232,
         .back = 0xFF323232,
         .sub = 0xFFFFFFFF,
         .bezel = 0xFFFFFFFF,
         .extra = 0xFF000000,
     };
-
-    IPC::ResponseBuilder rb{ctx, 2 + sizeof(HomeMenuScheme) / sizeof(u32)};
-    rb.Push(ResultSuccess);
-    rb.PushRaw(default_color);
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetHomeMenuSchemeModel(Out<u32> out_home_menu_scheme_model) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(0);
+    *out_home_menu_scheme_model = 0;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetTouchScreenMode(HLERequestContext& ctx) {
-    TouchScreenMode touch_screen_mode{};
-    auto res = GetTouchScreenMode(touch_screen_mode);
+Result ISystemSettingsServer::GetTouchScreenMode(Out<TouchScreenMode> out_touch_screen_mode) {
+    LOG_INFO(Service_SET, "called, touch_screen_mode={}", m_system_settings.touch_screen_mode);
 
+    *out_touch_screen_mode = m_system_settings.touch_screen_mode;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetTouchScreenMode(TouchScreenMode touch_screen_mode) {
     LOG_INFO(Service_SET, "called, touch_screen_mode={}", touch_screen_mode);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(res);
-    rb.PushEnum(touch_screen_mode);
+    m_system_settings.touch_screen_mode = touch_screen_mode;
+    SetSaveNeeded();
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetTouchScreenMode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto touch_screen_mode = rp.PopEnum<TouchScreenMode>();
-    auto res = SetTouchScreenMode(touch_screen_mode);
-
-    LOG_INFO(Service_SET, "called, touch_screen_mode={}", touch_screen_mode);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(res);
-}
-
-void ISystemSettingsServer::GetFieldTestingFlag(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetFieldTestingFlag(Out<bool> out_field_testing_flag) {
     LOG_INFO(Service_SET, "called, field_testing_flag={}", m_system_settings.field_testing_flag);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.field_testing_flag);
+    *out_field_testing_flag = m_system_settings.field_testing_flag;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::GetPanelCrcMode(HLERequestContext& ctx) {
+Result ISystemSettingsServer::GetPanelCrcMode(Out<s32> out_panel_crc_mode) {
     LOG_INFO(Service_SET, "called, panel_crc_mode={}", m_system_settings.panel_crc_mode);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(m_system_settings.panel_crc_mode);
+    *out_panel_crc_mode = m_system_settings.panel_crc_mode;
+    R_SUCCEED();
 }
 
-void ISystemSettingsServer::SetPanelCrcMode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    m_system_settings.panel_crc_mode = rp.PopRaw<s32>();
+Result ISystemSettingsServer::SetPanelCrcMode(s32 panel_crc_mode) {
+    LOG_INFO(Service_SET, "called, panel_crc_mode={}", panel_crc_mode);
+
+    m_system_settings.panel_crc_mode = panel_crc_mode;
     SetSaveNeeded();
-
-    LOG_INFO(Service_SET, "called, panel_crc_mode={}", m_system_settings.panel_crc_mode);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
 void ISystemSettingsServer::SetupSettings() {
@@ -1513,193 +1349,13 @@ void ISystemSettingsServer::SetSaveNeeded() {
     m_save_needed = true;
 }
 
-Result ISystemSettingsServer::GetSettingsItemValue(std::vector<u8>& out_value,
-                                                   const std::string& category,
-                                                   const std::string& name) {
+Result ISystemSettingsServer::GetSettingsItemValueImpl(std::vector<u8>& out_value,
+                                                       const std::string& category,
+                                                       const std::string& name) {
     auto settings{GetSettings()};
     R_UNLESS(settings.contains(category) && settings[category].contains(name), ResultUnknown);
 
     out_value = settings[category][name];
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetVibrationMasterVolume(f32& out_volume) const {
-    out_volume = m_system_settings.vibration_master_volume;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetVibrationMasterVolume(f32 volume) {
-    m_system_settings.vibration_master_volume = volume;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetAudioOutputMode(AudioOutputMode& out_output_mode,
-                                                 AudioOutputModeTarget target) const {
-    switch (target) {
-    case AudioOutputModeTarget::Hdmi:
-        out_output_mode = m_system_settings.audio_output_mode_hdmi;
-        break;
-    case AudioOutputModeTarget::Speaker:
-        out_output_mode = m_system_settings.audio_output_mode_speaker;
-        break;
-    case AudioOutputModeTarget::Headphone:
-        out_output_mode = m_system_settings.audio_output_mode_headphone;
-        break;
-    case AudioOutputModeTarget::Type3:
-        out_output_mode = m_system_settings.audio_output_mode_type3;
-        break;
-    case AudioOutputModeTarget::Type4:
-        out_output_mode = m_system_settings.audio_output_mode_type4;
-        break;
-    default:
-        LOG_ERROR(Service_SET, "Invalid audio output mode target {}", target);
-    }
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetAudioOutputMode(AudioOutputModeTarget target,
-                                                 AudioOutputMode output_mode) {
-    switch (target) {
-    case AudioOutputModeTarget::Hdmi:
-        m_system_settings.audio_output_mode_hdmi = output_mode;
-        break;
-    case AudioOutputModeTarget::Speaker:
-        m_system_settings.audio_output_mode_speaker = output_mode;
-        break;
-    case AudioOutputModeTarget::Headphone:
-        m_system_settings.audio_output_mode_headphone = output_mode;
-        break;
-    case AudioOutputModeTarget::Type3:
-        m_system_settings.audio_output_mode_type3 = output_mode;
-        break;
-    case AudioOutputModeTarget::Type4:
-        m_system_settings.audio_output_mode_type4 = output_mode;
-        break;
-    default:
-        LOG_ERROR(Service_SET, "Invalid audio output mode target {}", target);
-    }
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetSpeakerAutoMuteFlag(bool& is_auto_mute) const {
-    is_auto_mute = m_system_settings.force_mute_on_headphone_removed;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetSpeakerAutoMuteFlag(bool is_auto_mute) {
-    m_system_settings.force_mute_on_headphone_removed = is_auto_mute;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetExternalSteadyClockSourceId(Common::UUID& out_id) const {
-    out_id = m_private_settings.external_clock_source_id;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetExternalSteadyClockSourceId(const Common::UUID& id) {
-    m_private_settings.external_clock_source_id = id;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetUserSystemClockContext(
-    Service::PSC::Time::SystemClockContext& out_context) const {
-    out_context = m_system_settings.user_system_clock_context;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetUserSystemClockContext(
-    const Service::PSC::Time::SystemClockContext& context) {
-    m_system_settings.user_system_clock_context = context;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
-    Service::PSC::Time::LocationName& out_name) const {
-    out_name = m_system_settings.device_time_zone_location_name;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetDeviceTimeZoneLocationName(
-    const Service::PSC::Time::LocationName& name) {
-    m_system_settings.device_time_zone_location_name = name;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetNetworkSystemClockContext(
-    Service::PSC::Time::SystemClockContext& out_context) const {
-    out_context = m_system_settings.network_system_clock_context;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetNetworkSystemClockContext(
-    const Service::PSC::Time::SystemClockContext& context) {
-    m_system_settings.network_system_clock_context = context;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) const {
-    out_enabled = m_system_settings.user_system_clock_automatic_correction_enabled;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(bool enabled) {
-    m_system_settings.user_system_clock_automatic_correction_enabled = enabled;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
-    m_private_settings.external_steady_clock_internal_offset = offset;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(s64& out_offset) const {
-    out_offset = m_private_settings.external_steady_clock_internal_offset;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
-    Service::PSC::Time::SteadyClockTimePoint& out_time_point) const {
-    out_time_point = m_system_settings.device_time_zone_location_updated_time;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
-    const Service::PSC::Time::SteadyClockTimePoint& time_point) {
-    m_system_settings.device_time_zone_location_updated_time = time_point;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
-    Service::PSC::Time::SteadyClockTimePoint& out_time_point) const {
-    out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
-    const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
-    m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
-    SetSaveNeeded();
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::GetTouchScreenMode(TouchScreenMode& touch_screen_mode) const {
-    touch_screen_mode = m_system_settings.touch_screen_mode;
-    R_SUCCEED();
-}
-
-Result ISystemSettingsServer::SetTouchScreenMode(TouchScreenMode touch_screen_mode) {
-    m_system_settings.touch_screen_mode = touch_screen_mode;
-    SetSaveNeeded();
     R_SUCCEED();
 }
 

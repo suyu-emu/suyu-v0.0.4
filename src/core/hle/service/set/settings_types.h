@@ -12,6 +12,7 @@
 #include "core/hle/service/psc/time/common.h"
 
 namespace Service::Set {
+using SettingItemName = std::array<u8, 0x48>;
 
 /// This is nn::settings::system::AudioOutputMode
 enum class AudioOutputMode : u32 {
@@ -413,16 +414,18 @@ struct FirmwareVersionFormat {
     u8 major;
     u8 minor;
     u8 micro;
-    INSERT_PADDING_BYTES(1);
+    INSERT_PADDING_BYTES_NOINIT(1);
     u8 revision_major;
     u8 revision_minor;
-    INSERT_PADDING_BYTES(2);
+    INSERT_PADDING_BYTES_NOINIT(2);
     std::array<char, 0x20> platform;
     std::array<u8, 0x40> version_hash;
     std::array<char, 0x18> display_version;
     std::array<char, 0x80> display_title;
 };
 static_assert(sizeof(FirmwareVersionFormat) == 0x100, "FirmwareVersionFormat is an invalid size");
+static_assert(std::is_trivial_v<FirmwareVersionFormat>,
+              "FirmwareVersionFormat type must be trivially copyable.");
 
 /// This is nn::settings::system::HomeMenuScheme
 struct HomeMenuScheme {

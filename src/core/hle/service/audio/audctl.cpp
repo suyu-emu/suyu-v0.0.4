@@ -106,7 +106,7 @@ void AudCtl::GetAudioOutputMode(HLERequestContext& ctx) {
     const auto target{rp.PopEnum<Set::AudioOutputModeTarget>()};
 
     Set::AudioOutputMode output_mode{};
-    const auto result = m_set_sys->GetAudioOutputMode(output_mode, target);
+    const auto result = m_set_sys->GetAudioOutputMode(&output_mode, target);
 
     LOG_INFO(Service_SET, "called, target={}, output_mode={}", target, output_mode);
 
@@ -188,7 +188,7 @@ void AudCtl::SetSpeakerAutoMuteEnabled(HLERequestContext& ctx) {
 
 void AudCtl::IsSpeakerAutoMuteEnabled(HLERequestContext& ctx) {
     bool is_speaker_auto_mute_enabled{};
-    const auto result = m_set_sys->GetSpeakerAutoMuteFlag(is_speaker_auto_mute_enabled);
+    const auto result = m_set_sys->GetSpeakerAutoMuteFlag(&is_speaker_auto_mute_enabled);
 
     LOG_WARNING(Audio, "(STUBBED) called, is_speaker_auto_mute_enabled={}",
                 is_speaker_auto_mute_enabled);
