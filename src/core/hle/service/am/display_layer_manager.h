@@ -21,6 +21,10 @@ namespace Service::Nvnflinger {
 class Nvnflinger;
 }
 
+namespace Service::VI {
+class IApplicationDisplayService;
+}
+
 namespace Service::AM {
 
 class DisplayLayerManager {
@@ -47,6 +51,7 @@ public:
 private:
     Kernel::KProcess* m_process{};
     std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger{};
+    std::shared_ptr<VI::IApplicationDisplayService> m_display_service{};
     std::set<u64> m_managed_display_layers{};
     std::set<u64> m_managed_display_recording_layers{};
     u64 m_system_shared_buffer_id{};

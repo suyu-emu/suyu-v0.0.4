@@ -16,13 +16,15 @@ class IHOSBinderDriver;
 
 namespace Service::VI {
 
+class FbshareBufferManager;
 class IApplicationDisplayService;
 enum class Policy : u32;
 
 class ISystemRootService final : public ServiceFramework<ISystemRootService> {
 public:
     explicit ISystemRootService(Core::System& system_,
-                                std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service);
+                                std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service,
+                                std::shared_ptr<FbshareBufferManager> shared_buffer_manager);
     ~ISystemRootService() override;
 
 private:
@@ -31,6 +33,7 @@ private:
         Policy policy);
 
     const std::shared_ptr<Nvnflinger::IHOSBinderDriver> m_binder_service;
+    const std::shared_ptr<FbshareBufferManager> m_shared_buffer_manager;
 };
 
 } // namespace Service::VI

@@ -16,7 +16,7 @@ namespace Kernel {
 class KPageGroup;
 }
 
-namespace Service::Nvnflinger {
+namespace Service::VI {
 
 struct SharedMemorySlot {
     u64 buffer_offset;
@@ -32,16 +32,17 @@ struct SharedMemoryPoolLayout {
 };
 static_assert(sizeof(SharedMemoryPoolLayout) == 0x188, "SharedMemoryPoolLayout has wrong size");
 
-struct FbShareSession;
+struct FbshareSession;
 
-class FbShareBufferManager final {
+class FbshareBufferManager final {
 public:
-    explicit FbShareBufferManager(Core::System& system, Nvnflinger& flinger,
+    explicit FbshareBufferManager(Core::System& system,
+                                  std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
                                   std::shared_ptr<Nvidia::Module> nvdrv);
-    ~FbShareBufferManager();
+    ~FbshareBufferManager();
 
     Result Initialize(Kernel::KProcess* owner_process, u64* out_buffer_id, u64* out_layer_handle,
-                      u64 display_id, LayerBlending blending);
+                      u64 display_id, Nvnflinger::LayerBlending blending);
     void Finalize(Kernel::KProcess* owner_process);
 
     Result GetSharedBufferMemoryHandleId(u64* out_buffer_size, s32* out_nvmap_handle,
@@ -63,20 +64,20 @@ private:
     u64 m_display_id = 0;
     u64 m_buffer_id = 0;
     SharedMemoryPoolLayout m_pool_layout = {};
-    std::map<u64, FbShareSession> m_sessions;
+    std::map<u64, FbshareSession> m_sessions;
     std::unique_ptr<Kernel::KPageGroup> m_buffer_page_group;
 
     std::mutex m_guard;
     Core::System& m_system;
-    Nvnflinger& m_flinger;
-    std::shared_ptr<Nvidia::Module> m_nvdrv;
+    const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
+    const std::shared_ptr<Nvidia::Module> m_nvdrv;
 };
 
-struct FbShareSession {
+struct FbshareSession {
     Nvidia::DeviceFD nvmap_fd = {};
     Nvidia::NvCore::SessionId session_id = {};
     u64 layer_id = {};
     u32 buffer_nvmap_handle = 0;
 };
 
-} // namespace Service::Nvnflinger
+} // namespace Service::VI

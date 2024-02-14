@@ -5,18 +5,21 @@
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/nvnflinger/ui/fence.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/vi/fbshare_buffer_manager.h"
 
 namespace Service::Nvnflinger {
 class Nvnflinger;
-struct SharedMemoryPoolLayout;
 } // namespace Service::Nvnflinger
 
 namespace Service::VI {
 
+class FbshareBufferManager;
+
 class ISystemDisplayService final : public ServiceFramework<ISystemDisplayService> {
 public:
     explicit ISystemDisplayService(Core::System& system_,
-                                   std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger);
+                                   std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
+                                   std::shared_ptr<FbshareBufferManager> shared_buffer_manager);
     ~ISystemDisplayService() override;
 
 private:
@@ -27,7 +30,7 @@ private:
 
     Result GetSharedBufferMemoryHandleId(
         Out<s32> out_nvmap_handle, Out<u64> out_size,
-        OutLargeData<Nvnflinger::SharedMemoryPoolLayout, BufferAttr_HipcMapAlias> out_pool_layout,
+        OutLargeData<SharedMemoryPoolLayout, BufferAttr_HipcMapAlias> out_pool_layout,
         u64 buffer_id, ClientAppletResourceUserId aruid);
     Result OpenSharedLayer(u64 layer_id);
     Result ConnectSharedLayer(u64 layer_id);
@@ -42,6 +45,7 @@ private:
 
 private:
     const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
+    const std::shared_ptr<FbshareBufferManager> m_shared_buffer_manager;
 };
 
 } // namespace Service::VI

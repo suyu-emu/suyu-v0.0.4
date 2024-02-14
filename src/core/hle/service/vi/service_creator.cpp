@@ -23,7 +23,8 @@ static bool IsValidServiceAccess(Permission permission, Policy policy) {
 Result GetApplicationDisplayService(
     std::shared_ptr<IApplicationDisplayService>* out_application_display_service,
     Core::System& system, std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service,
-    Permission permission, Policy policy) {
+    std::shared_ptr<FbshareBufferManager> shared_buffer_manager, Permission permission,
+    Policy policy) {
 
     if (!IsValidServiceAccess(permission, policy)) {
         LOG_ERROR(Service_VI, "Permission denied for policy {}", policy);
@@ -31,7 +32,7 @@ Result GetApplicationDisplayService(
     }
 
     *out_application_display_service =
-        std::make_shared<IApplicationDisplayService>(system, binder_service);
+        std::make_shared<IApplicationDisplayService>(system, binder_service, shared_buffer_manager);
     R_SUCCEED();
 }
 

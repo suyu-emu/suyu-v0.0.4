@@ -16,14 +16,20 @@ class IHOSBinderDriver;
 
 namespace Service::VI {
 
+class FbshareBufferManager;
 class IManagerDisplayService;
 class ISystemDisplayService;
 
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
     IApplicationDisplayService(Core::System& system_,
-                               std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service);
+                               std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service,
+                               std::shared_ptr<FbshareBufferManager> shared_buffer_manager);
     ~IApplicationDisplayService() override;
+
+    std::shared_ptr<FbshareBufferManager> GetSharedBufferManager() const {
+        return m_shared_buffer_manager;
+    }
 
 private:
     Result GetRelayService(Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_relay_service);
@@ -62,6 +68,7 @@ private:
 private:
     const std::shared_ptr<Nvnflinger::IHOSBinderDriver> m_binder_service;
     const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
+    const std::shared_ptr<FbshareBufferManager> m_shared_buffer_manager;
     std::vector<u64> m_stray_layer_ids;
     bool m_vsync_event_fetched{false};
 };
