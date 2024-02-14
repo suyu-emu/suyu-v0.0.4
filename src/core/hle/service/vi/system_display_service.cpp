@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/vi/system_display_service.h"
 #include "core/hle/service/vi/vi_types.h"
@@ -10,8 +10,8 @@
 namespace Service::VI {
 
 ISystemDisplayService::ISystemDisplayService(Core::System& system_,
-                                             Nvnflinger::Nvnflinger& nvnflinger_)
-    : ServiceFramework{system_, "ISystemDisplayService"}, nvnflinger{nvnflinger_} {
+                                             Nvnflinger::Nvnflinger& nvnflinger)
+    : ServiceFramework{system_, "ISystemDisplayService"}, m_nvnflinger{nvnflinger} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1200, nullptr, "GetZOrderCountMin"},
@@ -21,8 +21,8 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
         {2201, nullptr, "SetLayerPosition"},
         {2203, nullptr, "SetLayerSize"},
         {2204, nullptr, "GetLayerZ"},
-        {2205, &ISystemDisplayService::SetLayerZ, "SetLayerZ"},
-        {2207, &ISystemDisplayService::SetLayerVisibility, "SetLayerVisibility"},
+        {2205, C<&ISystemDisplayService::SetLayerZ>, "SetLayerZ"},
+        {2207, C<&ISystemDisplayService::SetLayerVisibility>, "SetLayerVisibility"},
         {2209, nullptr, "SetLayerAlpha"},
         {2210, nullptr, "SetLayerPositionAndSize"},
         {2312, nullptr, "CreateStrayLayer"},
@@ -32,7 +32,7 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
         {3000, nullptr, "ListDisplayModes"},
         {3001, nullptr, "ListDisplayRgbRanges"},
         {3002, nullptr, "ListDisplayContentTypes"},
-        {3200, &ISystemDisplayService::GetDisplayMode, "GetDisplayMode"},
+        {3200, C<&ISystemDisplayService::GetDisplayMode>, "GetDisplayMode"},
         {3201, nullptr, "SetDisplayMode"},
         {3202, nullptr, "GetDisplayUnderscan"},
         {3203, nullptr, "SetDisplayUnderscan"},
@@ -50,14 +50,14 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
         {3217, nullptr, "SetDisplayCmuLuma"},
         {3218, nullptr, "SetDisplayCrcMode"},
         {6013, nullptr, "GetLayerPresentationSubmissionTimestamps"},
-        {8225, &ISystemDisplayService::GetSharedBufferMemoryHandleId, "GetSharedBufferMemoryHandleId"},
-        {8250, &ISystemDisplayService::OpenSharedLayer, "OpenSharedLayer"},
+        {8225, C<&ISystemDisplayService::GetSharedBufferMemoryHandleId>, "GetSharedBufferMemoryHandleId"},
+        {8250, C<&ISystemDisplayService::OpenSharedLayer>, "OpenSharedLayer"},
         {8251, nullptr, "CloseSharedLayer"},
-        {8252, &ISystemDisplayService::ConnectSharedLayer, "ConnectSharedLayer"},
+        {8252, C<&ISystemDisplayService::ConnectSharedLayer>, "ConnectSharedLayer"},
         {8253, nullptr, "DisconnectSharedLayer"},
-        {8254, &ISystemDisplayService::AcquireSharedFrameBuffer, "AcquireSharedFrameBuffer"},
-        {8255, &ISystemDisplayService::PresentSharedFrameBuffer, "PresentSharedFrameBuffer"},
-        {8256, &ISystemDisplayService::GetSharedFrameBufferAcquirableEvent, "GetSharedFrameBufferAcquirableEvent"},
+        {8254, C<&ISystemDisplayService::AcquireSharedFrameBuffer>, "AcquireSharedFrameBuffer"},
+        {8255, C<&ISystemDisplayService::PresentSharedFrameBuffer>, "PresentSharedFrameBuffer"},
+        {8256, C<&ISystemDisplayService::GetSharedFrameBufferAcquirableEvent>, "GetSharedFrameBufferAcquirableEvent"},
         {8257, nullptr, "FillSharedFrameBufferColor"},
         {8258, nullptr, "CancelSharedFrameBuffer"},
         {9000, nullptr, "GetDp2hdmiController"},
@@ -68,151 +68,78 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
 
 ISystemDisplayService::~ISystemDisplayService() = default;
 
-void ISystemDisplayService::GetSharedBufferMemoryHandleId(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 buffer_id = rp.PopRaw<u64>();
-    const u64 aruid = ctx.GetPID();
-
-    LOG_INFO(Service_VI, "called. buffer_id={:#x}, aruid={:#x}", buffer_id, aruid);
-
-    struct OutputParameters {
-        s32 nvmap_handle;
-        u64 size;
-    };
-
-    OutputParameters out{};
-    Nvnflinger::SharedMemoryPoolLayout layout{};
-    const auto result = nvnflinger.GetSystemBufferManager().GetSharedBufferMemoryHandleId(
-        &out.size, &out.nvmap_handle, &layout, buffer_id, aruid);
-
-    ctx.WriteBuffer(&layout, sizeof(layout));
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.PushRaw(out);
-}
-
-void ISystemDisplayService::OpenSharedLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.PopRaw<u64>();
-
-    LOG_INFO(Service_VI, "(STUBBED) called. layer_id={:#x}", layer_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void ISystemDisplayService::ConnectSharedLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.PopRaw<u64>();
-
-    LOG_INFO(Service_VI, "(STUBBED) called. layer_id={:#x}", layer_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void ISystemDisplayService::GetSharedFrameBufferAcquirableEvent(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_VI, "called");
-
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.PopRaw<u64>();
-
-    Kernel::KReadableEvent* event{};
-    const auto result =
-        nvnflinger.GetSystemBufferManager().GetSharedFrameBufferAcquirableEvent(&event, layer_id);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(result);
-    rb.PushCopyObjects(event);
-}
-
-void ISystemDisplayService::AcquireSharedFrameBuffer(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_VI, "called");
-
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.PopRaw<u64>();
-
-    struct OutputParameters {
-        android::Fence fence;
-        std::array<s32, 4> slots;
-        s64 target_slot;
-    };
-    static_assert(sizeof(OutputParameters) == 0x40, "OutputParameters has wrong size");
-
-    OutputParameters out{};
-    const auto result = nvnflinger.GetSystemBufferManager().AcquireSharedFrameBuffer(
-        &out.fence, out.slots, &out.target_slot, layer_id);
-
-    IPC::ResponseBuilder rb{ctx, 18};
-    rb.Push(result);
-    rb.PushRaw(out);
-}
-
-void ISystemDisplayService::PresentSharedFrameBuffer(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_VI, "called");
-
-    struct InputParameters {
-        android::Fence fence;
-        Common::Rectangle<s32> crop_region;
-        u32 window_transform;
-        s32 swap_interval;
-        u64 layer_id;
-        s64 surface_id;
-    };
-    static_assert(sizeof(InputParameters) == 0x50, "InputParameters has wrong size");
-
-    IPC::RequestParser rp{ctx};
-    auto input = rp.PopRaw<InputParameters>();
-
-    const auto result = nvnflinger.GetSystemBufferManager().PresentSharedFrameBuffer(
-        input.fence, input.crop_region, input.window_transform, input.swap_interval, input.layer_id,
-        input.surface_id);
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
-}
-
-void ISystemDisplayService::SetLayerZ(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.Pop<u64>();
-    const u64 z_value = rp.Pop<u64>();
-
-    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id=0x{:016X}, z_value=0x{:016X}", layer_id,
-                z_value);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result ISystemDisplayService::SetLayerZ(u32 z_value, u64 layer_id) {
+    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id={}, z_value={}", layer_id, z_value);
+    R_SUCCEED();
 }
 
 // This function currently does nothing but return a success error code in
 // the vi library itself, so do the same thing, but log out the passed in values.
-void ISystemDisplayService::SetLayerVisibility(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.Pop<u64>();
-    const bool visibility = rp.Pop<bool>();
-
-    LOG_DEBUG(Service_VI, "called, layer_id=0x{:08X}, visibility={}", layer_id, visibility);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result ISystemDisplayService::SetLayerVisibility(bool visible, u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called, layer_id={}, visible={}", layer_id, visible);
+    R_SUCCEED();
 }
 
-void ISystemDisplayService::GetDisplayMode(HLERequestContext& ctx) {
+Result ISystemDisplayService::GetDisplayMode(Out<u32> out_width, Out<u32> out_height,
+                                             Out<f32> out_refresh_rate, Out<u32> out_unknown) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
-
     if (Settings::IsDockedMode()) {
-        rb.Push(static_cast<u32>(DisplayResolution::DockedWidth));
-        rb.Push(static_cast<u32>(DisplayResolution::DockedHeight));
+        *out_width = static_cast<u32>(DisplayResolution::DockedWidth);
+        *out_height = static_cast<u32>(DisplayResolution::DockedHeight);
     } else {
-        rb.Push(static_cast<u32>(DisplayResolution::UndockedWidth));
-        rb.Push(static_cast<u32>(DisplayResolution::UndockedHeight));
+        *out_width = static_cast<u32>(DisplayResolution::UndockedWidth);
+        *out_height = static_cast<u32>(DisplayResolution::UndockedHeight);
     }
 
-    rb.PushRaw<float>(60.0f); // This wouldn't seem to be correct for 30 fps games.
-    rb.Push<u32>(0);
+    *out_refresh_rate = 60.f; // This wouldn't seem to be correct for 30 fps games.
+    *out_unknown = 0;
+
+    R_SUCCEED();
+}
+
+Result ISystemDisplayService::GetSharedBufferMemoryHandleId(
+    Out<s32> out_nvmap_handle, Out<u64> out_size,
+    OutLargeData<Nvnflinger::SharedMemoryPoolLayout, BufferAttr_HipcMapAlias> out_pool_layout,
+    u64 buffer_id, ClientAppletResourceUserId aruid) {
+    LOG_INFO(Service_VI, "called. buffer_id={}, aruid={:#x}", buffer_id, aruid.pid);
+
+    R_RETURN(m_nvnflinger.GetSystemBufferManager().GetSharedBufferMemoryHandleId(
+        out_size, out_nvmap_handle, out_pool_layout, buffer_id, aruid.pid));
+}
+
+Result ISystemDisplayService::OpenSharedLayer(u64 layer_id) {
+    LOG_INFO(Service_VI, "(STUBBED) called. layer_id={}", layer_id);
+    R_SUCCEED();
+}
+
+Result ISystemDisplayService::ConnectSharedLayer(u64 layer_id) {
+    LOG_INFO(Service_VI, "(STUBBED) called. layer_id={}", layer_id);
+    R_SUCCEED();
+}
+
+Result ISystemDisplayService::AcquireSharedFrameBuffer(Out<android::Fence> out_fence,
+                                                       Out<std::array<s32, 4>> out_slots,
+                                                       Out<s64> out_target_slot, u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called");
+    R_RETURN(m_nvnflinger.GetSystemBufferManager().AcquireSharedFrameBuffer(
+        out_fence, *out_slots, out_target_slot, layer_id));
+}
+
+Result ISystemDisplayService::PresentSharedFrameBuffer(android::Fence fence,
+                                                       Common::Rectangle<s32> crop_region,
+                                                       u32 window_transform, s32 swap_interval,
+                                                       u64 layer_id, s64 surface_id) {
+    LOG_DEBUG(Service_VI, "called");
+    R_RETURN(m_nvnflinger.GetSystemBufferManager().PresentSharedFrameBuffer(
+        fence, crop_region, window_transform, swap_interval, layer_id, surface_id));
+}
+
+Result ISystemDisplayService::GetSharedFrameBufferAcquirableEvent(
+    OutCopyHandle<Kernel::KReadableEvent> out_event, u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called");
+    R_RETURN(m_nvnflinger.GetSystemBufferManager().GetSharedFrameBufferAcquirableEvent(out_event,
+                                                                                       layer_id));
 }
 
 } // namespace Service::VI
