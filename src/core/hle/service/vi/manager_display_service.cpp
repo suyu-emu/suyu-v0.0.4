@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/vi/manager_display_service.h"
 #include "core/hle/service/vi/vi_results.h"
@@ -9,15 +9,14 @@
 namespace Service::VI {
 
 IManagerDisplayService::IManagerDisplayService(Core::System& system_,
-                                               Nvnflinger::Nvnflinger& nvnflinger_)
-    : ServiceFramework{system_, "IManagerDisplayService"}, nvnflinger{nvnflinger_} {
+                                               Nvnflinger::Nvnflinger& nvnflinger)
+    : ServiceFramework{system_, "IManagerDisplayService"}, m_nvnflinger{nvnflinger} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {200, nullptr, "AllocateProcessHeapBlock"},
         {201, nullptr, "FreeProcessHeapBlock"},
-        {1020, &IManagerDisplayService::CloseDisplay, "CloseDisplay"},
         {1102, nullptr, "GetDisplayResolution"},
-        {2010, &IManagerDisplayService::CreateManagedLayer, "CreateManagedLayer"},
+        {2010, C<&IManagerDisplayService::CreateManagedLayer>, "CreateManagedLayer"},
         {2011, nullptr, "DestroyManagedLayer"},
         {2012, nullptr, "CreateStrayLayer"},
         {2050, nullptr, "CreateIndirectLayer"},
@@ -45,9 +44,9 @@ IManagerDisplayService::IManagerDisplayService(Core::System& system_,
         {4208, nullptr, "SetDisplayFatalErrorEnabled"},
         {4209, nullptr, "IsDisplayPanelOn"},
         {4300, nullptr, "GetInternalPanelId"},
-        {6000, &IManagerDisplayService::AddToLayerStack, "AddToLayerStack"},
+        {6000, C<&IManagerDisplayService::AddToLayerStack>, "AddToLayerStack"},
         {6001, nullptr, "RemoveFromLayerStack"},
-        {6002, &IManagerDisplayService::SetLayerVisibility, "SetLayerVisibility"},
+        {6002, C<&IManagerDisplayService::SetLayerVisibility>, "SetLayerVisibility"},
         {6003, nullptr, "SetLayerConfig"},
         {6004, nullptr, "AttachLayerPresentationTracer"},
         {6005, nullptr, "DetachLayerPresentationTracer"},
@@ -103,62 +102,29 @@ IManagerDisplayService::IManagerDisplayService(Core::System& system_,
 
 IManagerDisplayService::~IManagerDisplayService() = default;
 
-void IManagerDisplayService::CloseDisplay(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 display = rp.Pop<u64>();
+Result IManagerDisplayService::CreateManagedLayer(Out<u64> out_layer_id, u32 unknown,
+                                                  u64 display_id, AppletResourceUserId aruid) {
+    LOG_WARNING(Service_VI, "(STUBBED) called. unknown={}, display={}, aruid={}", unknown,
+                display_id, aruid.pid);
 
-    const Result rc = nvnflinger.CloseDisplay(display) ? ResultSuccess : ResultUnknown;
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(rc);
-}
-
-void IManagerDisplayService::CreateManagedLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 unknown = rp.Pop<u32>();
-    rp.Skip(1, false);
-    const u64 display = rp.Pop<u64>();
-    const u64 aruid = rp.Pop<u64>();
-
-    LOG_WARNING(Service_VI,
-                "(STUBBED) called. unknown=0x{:08X}, display=0x{:016X}, aruid=0x{:016X}", unknown,
-                display, aruid);
-
-    const auto layer_id = nvnflinger.CreateLayer(display);
+    const auto layer_id = m_nvnflinger.CreateLayer(display_id);
     if (!layer_id) {
-        LOG_ERROR(Service_VI, "Layer not found! display=0x{:016X}", display);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNotFound);
-        return;
+        LOG_ERROR(Service_VI, "Layer not found! display={}", display_id);
+        R_THROW(VI::ResultNotFound);
     }
 
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(*layer_id);
+    *out_layer_id = *layer_id;
+    R_SUCCEED();
 }
 
-void IManagerDisplayService::AddToLayerStack(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 stack = rp.Pop<u32>();
-    const u64 layer_id = rp.Pop<u64>();
-
-    LOG_WARNING(Service_VI, "(STUBBED) called. stack=0x{:08X}, layer_id=0x{:016X}", stack,
-                layer_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result IManagerDisplayService::AddToLayerStack(u32 stack_id, u64 layer_id) {
+    LOG_WARNING(Service_VI, "(STUBBED) called. stack_id={}, layer_id={}", stack_id, layer_id);
+    R_SUCCEED();
 }
 
-void IManagerDisplayService::SetLayerVisibility(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.Pop<u64>();
-    const bool visibility = rp.Pop<bool>();
-
-    LOG_WARNING(Service_VI, "(STUBBED) called, layer_id=0x{:X}, visibility={}", layer_id,
-                visibility);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result IManagerDisplayService::SetLayerVisibility(bool visible, u64 layer_id) {
+    LOG_WARNING(Service_VI, "(STUBBED) called, layer_id={}, visible={}", layer_id, visible);
+    R_SUCCEED();
 }
 
 } // namespace Service::VI
