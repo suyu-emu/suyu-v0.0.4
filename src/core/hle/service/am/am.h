@@ -7,12 +7,8 @@ namespace Core {
 class System;
 }
 
-namespace Service::Nvnflinger {
-class Nvnflinger;
-}
-
 namespace Service::AM {
 
-void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system);
+void LoopProcess(Core::System& system);
 
 } // namespace Service::AM

@@ -25,7 +25,7 @@ class IWindowController;
 class ILibraryAppletProxy final : public ServiceFramework<ILibraryAppletProxy> {
 public:
     explicit ILibraryAppletProxy(Core::System& system_, std::shared_ptr<Applet> applet,
-                                 Kernel::KProcess* process, Nvnflinger::Nvnflinger& nvnflinger);
+                                 Kernel::KProcess* process);
     ~ILibraryAppletProxy();
 
 private:
@@ -47,7 +47,6 @@ private:
     Result GetGlobalStateController(
         Out<SharedPointer<IGlobalStateController>> out_global_state_controller);
 
-    Nvnflinger::Nvnflinger& m_nvnflinger;
     Kernel::KProcess* const m_process;
     const std::shared_ptr<Applet> m_applet;
 };

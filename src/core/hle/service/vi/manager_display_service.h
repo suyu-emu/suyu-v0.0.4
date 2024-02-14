@@ -8,7 +8,8 @@ namespace Service::VI {
 
 class IManagerDisplayService final : public ServiceFramework<IManagerDisplayService> {
 public:
-    explicit IManagerDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger);
+    explicit IManagerDisplayService(Core::System& system_,
+                                    std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger);
     ~IManagerDisplayService() override;
 
 private:
@@ -18,7 +19,7 @@ private:
     Result SetLayerVisibility(bool visible, u64 layer_id);
 
 private:
-    Nvnflinger::Nvnflinger& m_nvnflinger;
+    const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
 };
 
 } // namespace Service::VI

@@ -22,9 +22,8 @@ static bool IsValidServiceAccess(Permission permission, Policy policy) {
 
 Result GetApplicationDisplayService(
     std::shared_ptr<IApplicationDisplayService>* out_application_display_service,
-    Core::System& system, Nvnflinger::Nvnflinger& nvnflinger,
-    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server, Permission permission,
-    Policy policy) {
+    Core::System& system, std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service,
+    Permission permission, Policy policy) {
 
     if (!IsValidServiceAccess(permission, policy)) {
         LOG_ERROR(Service_VI, "Permission denied for policy {}", policy);
@@ -32,7 +31,7 @@ Result GetApplicationDisplayService(
     }
 
     *out_application_display_service =
-        std::make_shared<IApplicationDisplayService>(system, nvnflinger, hos_binder_driver_server);
+        std::make_shared<IApplicationDisplayService>(system, binder_service);
     R_SUCCEED();
 }
 

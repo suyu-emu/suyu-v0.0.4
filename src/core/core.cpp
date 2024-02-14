@@ -458,11 +458,9 @@ struct System::Impl {
             gpu_core->NotifyShutdown();
         }
 
+        core_timing.SyncPause(false);
         Network::CancelPendingSocketOperations();
         kernel.SuspendEmulation(true);
-        if (services) {
-            services->KillNVNFlinger();
-        }
         kernel.CloseServices();
         kernel.ShutdownCores();
         applet_manager.Reset();

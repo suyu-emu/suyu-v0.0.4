@@ -9,9 +9,10 @@
 
 namespace Service::VI {
 
-ISystemDisplayService::ISystemDisplayService(Core::System& system_,
-                                             Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "ISystemDisplayService"}, m_nvnflinger{nvnflinger} {
+ISystemDisplayService::ISystemDisplayService(
+    Core::System& system_, std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger)
+    : ServiceFramework{system_, "ISystemDisplayService"},
+      m_surface_flinger{std::move(surface_flinger)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1200, nullptr, "GetZOrderCountMin"},
@@ -104,7 +105,7 @@ Result ISystemDisplayService::GetSharedBufferMemoryHandleId(
     u64 buffer_id, ClientAppletResourceUserId aruid) {
     LOG_INFO(Service_VI, "called. buffer_id={}, aruid={:#x}", buffer_id, aruid.pid);
 
-    R_RETURN(m_nvnflinger.GetSystemBufferManager().GetSharedBufferMemoryHandleId(
+    R_RETURN(m_surface_flinger->GetSystemBufferManager().GetSharedBufferMemoryHandleId(
         out_size, out_nvmap_handle, out_pool_layout, buffer_id, aruid.pid));
 }
 
@@ -122,7 +123,7 @@ Result ISystemDisplayService::AcquireSharedFrameBuffer(Out<android::Fence> out_f
                                                        Out<std::array<s32, 4>> out_slots,
                                                        Out<s64> out_target_slot, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_nvnflinger.GetSystemBufferManager().AcquireSharedFrameBuffer(
+    R_RETURN(m_surface_flinger->GetSystemBufferManager().AcquireSharedFrameBuffer(
         out_fence, *out_slots, out_target_slot, layer_id));
 }
 
@@ -131,15 +132,15 @@ Result ISystemDisplayService::PresentSharedFrameBuffer(android::Fence fence,
                                                        u32 window_transform, s32 swap_interval,
                                                        u64 layer_id, s64 surface_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_nvnflinger.GetSystemBufferManager().PresentSharedFrameBuffer(
+    R_RETURN(m_surface_flinger->GetSystemBufferManager().PresentSharedFrameBuffer(
         fence, crop_region, window_transform, swap_interval, layer_id, surface_id));
 }
 
 Result ISystemDisplayService::GetSharedFrameBufferAcquirableEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_nvnflinger.GetSystemBufferManager().GetSharedFrameBufferAcquirableEvent(out_event,
-                                                                                       layer_id));
+    R_RETURN(m_surface_flinger->GetSystemBufferManager().GetSharedFrameBufferAcquirableEvent(
+        out_event, layer_id));
 }
 
 } // namespace Service::VI

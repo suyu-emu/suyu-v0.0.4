@@ -7,14 +7,16 @@
 #include "core/hle/service/service.h"
 
 namespace Service::Nvnflinger {
+class Nvnflinger;
 struct SharedMemoryPoolLayout;
-}
+} // namespace Service::Nvnflinger
 
 namespace Service::VI {
 
 class ISystemDisplayService final : public ServiceFramework<ISystemDisplayService> {
 public:
-    explicit ISystemDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger);
+    explicit ISystemDisplayService(Core::System& system_,
+                                   std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger);
     ~ISystemDisplayService() override;
 
 private:
@@ -39,7 +41,7 @@ private:
                                     s64 surface_id);
 
 private:
-    Nvnflinger::Nvnflinger& m_nvnflinger;
+    const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
 };
 
 } // namespace Service::VI

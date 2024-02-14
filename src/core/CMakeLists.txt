@@ -804,6 +804,8 @@ add_library(core STATIC
     hle/service/nvnflinger/graphic_buffer_producer.h
     hle/service/nvnflinger/hos_binder_driver_server.cpp
     hle/service/nvnflinger/hos_binder_driver_server.h
+    hle/service/nvnflinger/hos_binder_driver.cpp
+    hle/service/nvnflinger/hos_binder_driver.h
     hle/service/nvnflinger/hardware_composer.cpp
     hle/service/nvnflinger/hardware_composer.h
     hle/service/nvnflinger/hwc_layer.h
@@ -961,8 +963,6 @@ add_library(core STATIC
     hle/service/vi/application_display_service.h
     hle/service/vi/application_root_service.cpp
     hle/service/vi/application_root_service.h
-    hle/service/vi/hos_binder_driver.cpp
-    hle/service/vi/hos_binder_driver.h
     hle/service/vi/manager_display_service.cpp
     hle/service/vi/manager_display_service.h
     hle/service/vi/manager_root_service.cpp

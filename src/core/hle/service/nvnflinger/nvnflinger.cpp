@@ -1,33 +1,24 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <algorithm>
-#include <optional>
-
-#include "common/assert.h"
-#include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
-#include "common/thread.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
-#include "core/hle/service/nvnflinger/buffer_item_consumer.h"
-#include "core/hle/service/nvnflinger/buffer_queue_core.h"
+#include "core/hle/service/nvdrv/nvdrv_interface.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/hardware_composer.h"
+#include "core/hle/service/nvnflinger/hos_binder_driver.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
-#include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
+#include "core/hle/service/server_manager.h"
+#include "core/hle/service/sm/sm.h"
 #include "core/hle/service/vi/display/vi_display.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
 #include "core/hle/service/vi/vi_results.h"
-#include "video_core/gpu.h"
-#include "video_core/host1x/host1x.h"
-#include "video_core/host1x/syncpoint_manager.h"
 
 namespace Service::Nvnflinger {
 
@@ -47,6 +38,11 @@ void Nvnflinger::SplitVSync(std::stop_token stop_token) {
     while (!stop_token.stop_requested()) {
         vsync_signal.Wait();
 
+        if (system.IsShuttingDown()) {
+            ShutdownLayers();
+            return;
+        }
+
         const auto lock_guard = Lock();
 
         if (!is_abandoned) {
@@ -64,6 +60,9 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
     displays.emplace_back(3, "Internal", hos_binder_driver_server, service_context, system);
     displays.emplace_back(4, "Null", hos_binder_driver_server, service_context, system);
     guard = std::make_shared<std::mutex>();
+
+    nvdrv = system.ServiceManager().GetService<Nvidia::NVDRV>("nvdrv:s", true)->GetModule();
+    disp_fd = nvdrv->Open("/dev/nvdisp_disp0", {});
 
     // Schedule the screen composition events
     multi_composition_event = Core::Timing::CreateEvent(
@@ -110,22 +109,12 @@ Nvnflinger::~Nvnflinger() {
 
 void Nvnflinger::ShutdownLayers() {
     // Abandon consumers.
-    {
-        const auto lock_guard = Lock();
-        for (auto& display : displays) {
-            display.Abandon();
-        }
-
-        is_abandoned = true;
+    const auto lock_guard = Lock();
+    for (auto& display : displays) {
+        display.Abandon();
     }
 
-    // Join the vsync thread, if it exists.
-    vsync_thread = {};
-}
-
-void Nvnflinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
-    nvdrv = std::move(instance);
-    disp_fd = nvdrv->Open("/dev/nvdisp_disp0", {});
+    is_abandoned = true;
 }
 
 std::optional<u64> Nvnflinger::OpenDisplay(std::string_view name) {
@@ -330,6 +319,16 @@ FbShareBufferManager& Nvnflinger::GetSystemBufferManager() {
     }
 
     return *system_buffer_manager;
+}
+
+void LoopProcess(Core::System& system) {
+    const auto binder_server = std::make_shared<HosBinderDriverServer>(system);
+    const auto surface_flinger = std::make_shared<Nvnflinger>(system, *binder_server);
+
+    auto server_manager = std::make_unique<ServerManager>(system);
+    server_manager->RegisterNamedService(
+        "dispdrv", std::make_shared<IHOSBinderDriver>(system, binder_server, surface_flinger));
+    ServerManager::RunServer(std::move(server_manager));
 }
 
 } // namespace Service::Nvnflinger

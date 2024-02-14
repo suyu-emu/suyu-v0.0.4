@@ -15,9 +15,9 @@
 namespace Service::AM {
 
 ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> applet,
-                                 Kernel::KProcess* process, Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "ISelfController"}, m_nvnflinger{nvnflinger}, m_process{process},
-      m_applet{std::move(applet)} {
+                                 Kernel::KProcess* process)
+    : ServiceFramework{system_, "ISelfController"}, m_process{process}, m_applet{
+                                                                            std::move(applet)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&ISelfController::Exit>, "Exit"},
@@ -74,7 +74,7 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
     RegisterHandlers(functions);
 
     std::scoped_lock lk{m_applet->lock};
-    m_applet->display_layer_manager.Initialize(&m_nvnflinger, m_process, m_applet->applet_id,
+    m_applet->display_layer_manager.Initialize(system, m_process, m_applet->applet_id,
                                                m_applet->library_applet_mode);
 }
 

@@ -49,7 +49,6 @@
 #include "core/hle/service/npns/npns.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
-#include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/olsc/olsc.h"
 #include "core/hle/service/omm/omm.h"
@@ -210,14 +209,9 @@ Result ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& session,
 }
 
 /// Initialize Services
-Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system)
-    : hos_binder_driver_server{std::make_unique<Nvnflinger::HosBinderDriverServer>(system)},
-      nv_flinger{std::make_unique<Nvnflinger::Nvnflinger>(system, *hos_binder_driver_server)} {
-
+Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
     auto& kernel = system.Kernel();
 
-    // Nvnflinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
-    // here and pass it into the respective InstallInterfaces functions.
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
     // clang-format off
@@ -226,13 +220,14 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnHostCoreProcess("jit",        [&] { JIT::LoopProcess(system); }).detach();
     kernel.RunOnHostCoreProcess("ldn",        [&] { LDN::LoopProcess(system); }).detach();
     kernel.RunOnHostCoreProcess("Loader",     [&] { LDR::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("nvservices", [&] { Nvidia::LoopProcess(*nv_flinger, system); }).detach();
+    kernel.RunOnHostCoreProcess("nvservices", [&] { Nvidia::LoopProcess(system); }).detach();
     kernel.RunOnHostCoreProcess("bsdsocket",  [&] { Sockets::LoopProcess(system); }).detach();
-    kernel.RunOnHostCoreProcess("vi",         [&] { VI::LoopProcess(system, *nv_flinger, *hos_binder_driver_server); }).detach();
+    kernel.RunOnHostCoreProcess("vi",         [&] { VI::LoopProcess(system); }).detach();
+    kernel.RunOnHostCoreProcess("nvnflinger", [&] { Nvnflinger::LoopProcess(system); }).detach();
 
     kernel.RunOnGuestCoreProcess("sm",         [&] { SM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("account",    [&] { Account::LoopProcess(system); });
-    kernel.RunOnGuestCoreProcess("am",         [&] { AM::LoopProcess(*nv_flinger, system); });
+    kernel.RunOnGuestCoreProcess("am",         [&] { AM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("aoc",        [&] { AOC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("apm",        [&] { APM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("bcat",       [&] { BCAT::LoopProcess(system); });
@@ -246,7 +241,6 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnGuestCoreProcess("fatal",      [&] { Fatal::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("fgm",        [&] { FGM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("friends",    [&] { Friend::LoopProcess(system); });
-    // glue depends on settings and psc, so they must come first
     kernel.RunOnGuestCoreProcess("settings",   [&] { Set::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("psc",        [&] { PSC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("glue",       [&] { Glue::LoopProcess(system); });
@@ -282,9 +276,5 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
 }
 
 Services::~Services() = default;
-
-void Services::KillNVNFlinger() {
-    nv_flinger->ShutdownLayers();
-}
 
 } // namespace Service

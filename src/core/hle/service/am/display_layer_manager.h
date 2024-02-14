@@ -9,6 +9,10 @@
 #include "core/hle/result.h"
 #include "core/hle/service/am/am_types.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class KProcess;
 }
@@ -24,8 +28,8 @@ public:
     explicit DisplayLayerManager();
     ~DisplayLayerManager();
 
-    void Initialize(Nvnflinger::Nvnflinger* nvnflinger, Kernel::KProcess* process,
-                    AppletId applet_id, LibraryAppletMode mode);
+    void Initialize(Core::System& system, Kernel::KProcess* process, AppletId applet_id,
+                    LibraryAppletMode mode);
     void Finalize();
 
     Result CreateManagedDisplayLayer(u64* out_layer);
@@ -42,7 +46,7 @@ public:
 
 private:
     Kernel::KProcess* m_process{};
-    Nvnflinger::Nvnflinger* m_nvnflinger{};
+    std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger{};
     std::set<u64> m_managed_display_layers{};
     std::set<u64> m_managed_display_recording_layers{};
     u64 m_system_shared_buffer_id{};

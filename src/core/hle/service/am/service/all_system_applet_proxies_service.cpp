@@ -10,9 +10,8 @@
 
 namespace Service::AM {
 
-IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& system_,
-                                                               Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "appletAE"}, m_nvnflinger{nvnflinger} {
+IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& system_)
+    : ServiceFramework{system_, "appletAE"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxy"},
@@ -37,8 +36,8 @@ Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
     LOG_DEBUG(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_system_applet_proxy = std::make_shared<ISystemAppletProxy>(
-            system, applet, process_handle.Get(), m_nvnflinger);
+        *out_system_applet_proxy =
+            std::make_shared<ISystemAppletProxy>(system, applet, process_handle.Get());
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();
@@ -53,8 +52,8 @@ Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
     LOG_DEBUG(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid); applet) {
-        *out_library_applet_proxy = std::make_shared<ILibraryAppletProxy>(
-            system, applet, process_handle.Get(), m_nvnflinger);
+        *out_library_applet_proxy =
+            std::make_shared<ILibraryAppletProxy>(system, applet, process_handle.Get());
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();

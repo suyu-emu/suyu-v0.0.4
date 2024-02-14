@@ -8,9 +8,10 @@
 
 namespace Service::VI {
 
-IManagerDisplayService::IManagerDisplayService(Core::System& system_,
-                                               Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "IManagerDisplayService"}, m_nvnflinger{nvnflinger} {
+IManagerDisplayService::IManagerDisplayService(
+    Core::System& system_, std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger)
+    : ServiceFramework{system_, "IManagerDisplayService"},
+      m_surface_flinger{std::move(surface_flinger)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {200, nullptr, "AllocateProcessHeapBlock"},
@@ -107,7 +108,7 @@ Result IManagerDisplayService::CreateManagedLayer(Out<u64> out_layer_id, u32 unk
     LOG_WARNING(Service_VI, "(STUBBED) called. unknown={}, display={}, aruid={}", unknown,
                 display_id, aruid.pid);
 
-    const auto layer_id = m_nvnflinger.CreateLayer(display_id);
+    const auto layer_id = m_surface_flinger->CreateLayer(display_id);
     if (!layer_id) {
         LOG_ERROR(Service_VI, "Layer not found! display={}", display_id);
         R_THROW(VI::ResultNotFound);

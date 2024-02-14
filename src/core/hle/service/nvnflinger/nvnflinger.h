@@ -8,7 +8,6 @@
 #include <mutex>
 #include <optional>
 #include <thread>
-#include <vector>
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
@@ -56,9 +55,6 @@ public:
     ~Nvnflinger();
 
     void ShutdownLayers();
-
-    /// Sets the NVDrv module instance to use to send buffers to the GPU.
-    void SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance);
 
     /// Opens the specified display and returns the ID.
     ///
@@ -168,5 +164,7 @@ private:
 
     HosBinderDriverServer& hos_binder_driver_server;
 };
+
+void LoopProcess(Core::System& system);
 
 } // namespace Service::Nvnflinger
