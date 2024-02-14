@@ -3,16 +3,17 @@
 
 #include "common/settings.h"
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/vi/system_display_service.h"
 #include "core/hle/service/vi/vi_types.h"
 
 namespace Service::VI {
 
 ISystemDisplayService::ISystemDisplayService(
-    Core::System& system_, std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger)
+    Core::System& system_, std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
+    std::shared_ptr<FbshareBufferManager> shared_buffer_manager)
     : ServiceFramework{system_, "ISystemDisplayService"},
-      m_surface_flinger{std::move(surface_flinger)} {
+      m_surface_flinger{std::move(surface_flinger)},
+      m_shared_buffer_manager{std::move(shared_buffer_manager)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1200, nullptr, "GetZOrderCountMin"},
@@ -101,11 +102,11 @@ Result ISystemDisplayService::GetDisplayMode(Out<u32> out_width, Out<u32> out_he
 
 Result ISystemDisplayService::GetSharedBufferMemoryHandleId(
     Out<s32> out_nvmap_handle, Out<u64> out_size,
-    OutLargeData<Nvnflinger::SharedMemoryPoolLayout, BufferAttr_HipcMapAlias> out_pool_layout,
-    u64 buffer_id, ClientAppletResourceUserId aruid) {
+    OutLargeData<SharedMemoryPoolLayout, BufferAttr_HipcMapAlias> out_pool_layout, u64 buffer_id,
+    ClientAppletResourceUserId aruid) {
     LOG_INFO(Service_VI, "called. buffer_id={}, aruid={:#x}", buffer_id, aruid.pid);
 
-    R_RETURN(m_surface_flinger->GetSystemBufferManager().GetSharedBufferMemoryHandleId(
+    R_RETURN(m_shared_buffer_manager->GetSharedBufferMemoryHandleId(
         out_size, out_nvmap_handle, out_pool_layout, buffer_id, aruid.pid));
 }
 
@@ -123,8 +124,8 @@ Result ISystemDisplayService::AcquireSharedFrameBuffer(Out<android::Fence> out_f
                                                        Out<std::array<s32, 4>> out_slots,
                                                        Out<s64> out_target_slot, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_surface_flinger->GetSystemBufferManager().AcquireSharedFrameBuffer(
-        out_fence, *out_slots, out_target_slot, layer_id));
+    R_RETURN(m_shared_buffer_manager->AcquireSharedFrameBuffer(out_fence, *out_slots,
+                                                               out_target_slot, layer_id));
 }
 
 Result ISystemDisplayService::PresentSharedFrameBuffer(android::Fence fence,
@@ -132,15 +133,14 @@ Result ISystemDisplayService::PresentSharedFrameBuffer(android::Fence fence,
                                                        u32 window_transform, s32 swap_interval,
                                                        u64 layer_id, s64 surface_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_surface_flinger->GetSystemBufferManager().PresentSharedFrameBuffer(
+    R_RETURN(m_shared_buffer_manager->PresentSharedFrameBuffer(
         fence, crop_region, window_transform, swap_interval, layer_id, surface_id));
 }
 
 Result ISystemDisplayService::GetSharedFrameBufferAcquirableEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_surface_flinger->GetSystemBufferManager().GetSharedFrameBufferAcquirableEvent(
-        out_event, layer_id));
+    R_RETURN(m_shared_buffer_manager->GetSharedFrameBufferAcquirableEvent(out_event, layer_id));
 }
 
 } // namespace Service::VI

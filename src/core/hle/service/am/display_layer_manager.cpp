@@ -3,11 +3,13 @@
 
 #include "core/core.h"
 #include "core/hle/service/am/display_layer_manager.h"
-#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver.h"
-#include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/sm/sm.h"
+#include "core/hle/service/vi/application_display_service.h"
+#include "core/hle/service/vi/fbshare_buffer_manager.h"
+#include "core/hle/service/vi/manager_root_service.h"
 #include "core/hle/service/vi/vi_results.h"
+#include "core/hle/service/vi/vi_types.h"
 
 namespace Service::AM {
 
@@ -18,10 +20,14 @@ DisplayLayerManager::~DisplayLayerManager() {
 
 void DisplayLayerManager::Initialize(Core::System& system, Kernel::KProcess* process,
                                      AppletId applet_id, LibraryAppletMode mode) {
-    m_process = process;
     m_surface_flinger = system.ServiceManager()
                             .GetService<Nvnflinger::IHOSBinderDriver>("dispdrv", true)
                             ->GetSurfaceFlinger();
+    R_ASSERT(system.ServiceManager()
+                 .GetService<VI::IManagerRootService>("vi:m", true)
+                 ->GetDisplayService(&m_display_service, VI::Policy::Compositor));
+
+    m_process = process;
     m_system_shared_buffer_id = 0;
     m_system_shared_layer_id = 0;
     m_applet_id = applet_id;
@@ -46,7 +52,7 @@ void DisplayLayerManager::Finalize() {
 
     // Clean up shared layers.
     if (m_buffer_sharing_enabled) {
-        m_surface_flinger->GetSystemBufferManager().Finalize(m_process);
+        m_display_service->GetSharedBufferManager()->Finalize(m_process);
     }
 
     m_surface_flinger = nullptr;
@@ -103,7 +109,7 @@ Result DisplayLayerManager::IsSystemBufferSharingEnabled() {
     const auto blend =
         m_blending_enabled ? Nvnflinger::LayerBlending::Coverage : Nvnflinger::LayerBlending::None;
     const auto display_id = m_surface_flinger->OpenDisplay("Default").value();
-    R_TRY(m_surface_flinger->GetSystemBufferManager().Initialize(
+    R_TRY(m_display_service->GetSharedBufferManager()->Initialize(
         m_process, &m_system_shared_buffer_id, &m_system_shared_layer_id, display_id, blend));
 
     // We succeeded, so set up remaining state.
@@ -147,7 +153,7 @@ bool DisplayLayerManager::GetWindowVisibility() const {
 Result DisplayLayerManager::WriteAppletCaptureBuffer(bool* out_was_written,
                                                      s32* out_fbshare_layer_index) {
     R_UNLESS(m_buffer_sharing_enabled, VI::ResultPermissionDenied);
-    R_RETURN(m_surface_flinger->GetSystemBufferManager().WriteAppletCaptureBuffer(
+    R_RETURN(m_display_service->GetSharedBufferManager()->WriteAppletCaptureBuffer(
         out_was_written, out_fbshare_layer_index));
 }
 

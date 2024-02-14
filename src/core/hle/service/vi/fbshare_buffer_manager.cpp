@@ -9,15 +9,15 @@
 #include "core/hle/service/nvdrv/devices/nvmap.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
-#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
+#include "core/hle/service/vi/fbshare_buffer_manager.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
 #include "core/hle/service/vi/vi_results.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/host1x.h"
 
-namespace Service::Nvnflinger {
+namespace Service::VI {
 
 namespace {
 
@@ -26,7 +26,6 @@ Result AllocateSharedBufferMemory(std::unique_ptr<Kernel::KPageGroup>* out_page_
     using Core::Memory::YUZU_PAGESIZE;
 
     // Allocate memory for the system shared buffer.
-    // FIXME: This memory belongs to vi's .data section.
     auto& kernel = system.Kernel();
 
     // Hold a temporary page group reference while we try to map it.
@@ -204,15 +203,16 @@ void MakeGraphicBuffer(android::BufferQueueProducer& producer, u32 slot, u32 han
 
 } // namespace
 
-FbShareBufferManager::FbShareBufferManager(Core::System& system, Nvnflinger& flinger,
+FbshareBufferManager::FbshareBufferManager(Core::System& system,
+                                           std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
                                            std::shared_ptr<Nvidia::Module> nvdrv)
-    : m_system(system), m_flinger(flinger), m_nvdrv(std::move(nvdrv)) {}
+    : m_system(system), m_surface_flinger(std::move(surface_flinger)), m_nvdrv(std::move(nvdrv)) {}
 
-FbShareBufferManager::~FbShareBufferManager() = default;
+FbshareBufferManager::~FbshareBufferManager() = default;
 
-Result FbShareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* out_buffer_id,
+Result FbshareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* out_buffer_id,
                                         u64* out_layer_handle, u64 display_id,
-                                        LayerBlending blending) {
+                                        Nvnflinger::LayerBlending blending) {
     std::scoped_lock lk{m_guard};
 
     // Ensure we haven't already created.
@@ -237,7 +237,7 @@ Result FbShareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* ou
                                                  owner_process, m_system));
 
     // Create new session.
-    auto [it, was_emplaced] = m_sessions.emplace(aruid, FbShareSession{});
+    auto [it, was_emplaced] = m_sessions.emplace(aruid, FbshareSession{});
     auto& session = it->second;
 
     auto& container = m_nvdrv->GetContainer();
@@ -249,11 +249,11 @@ Result FbShareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* ou
                                   session.nvmap_fd, map_address, SharedBufferSize));
 
     // Create and open a layer for the display.
-    session.layer_id = m_flinger.CreateLayer(m_display_id, blending).value();
-    m_flinger.OpenLayer(session.layer_id);
+    session.layer_id = m_surface_flinger->CreateLayer(m_display_id, blending).value();
+    m_surface_flinger->OpenLayer(session.layer_id);
 
     // Get the layer.
-    VI::Layer* layer = m_flinger.FindLayer(m_display_id, session.layer_id);
+    VI::Layer* layer = m_surface_flinger->FindLayer(m_display_id, session.layer_id);
     ASSERT(layer != nullptr);
 
     // Get the producer and set preallocated buffers.
@@ -269,7 +269,7 @@ Result FbShareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* ou
     R_SUCCEED();
 }
 
-void FbShareBufferManager::Finalize(Kernel::KProcess* owner_process) {
+void FbshareBufferManager::Finalize(Kernel::KProcess* owner_process) {
     std::scoped_lock lk{m_guard};
 
     if (m_buffer_id == 0) {
@@ -285,7 +285,7 @@ void FbShareBufferManager::Finalize(Kernel::KProcess* owner_process) {
     auto& session = it->second;
 
     // Destroy the layer.
-    m_flinger.DestroyLayer(session.layer_id);
+    m_surface_flinger->DestroyLayer(session.layer_id);
 
     // Close nvmap handle.
     FreeHandle(session.buffer_nvmap_handle, *m_nvdrv, session.nvmap_fd);
@@ -301,7 +301,7 @@ void FbShareBufferManager::Finalize(Kernel::KProcess* owner_process) {
     m_sessions.erase(it);
 }
 
-Result FbShareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
+Result FbshareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
                                                            s32* out_nvmap_handle,
                                                            SharedMemoryPoolLayout* out_pool_layout,
                                                            u64 buffer_id,
@@ -319,12 +319,12 @@ Result FbShareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
     R_SUCCEED();
 }
 
-Result FbShareBufferManager::GetLayerFromId(VI::Layer** out_layer, u64 layer_id) {
+Result FbshareBufferManager::GetLayerFromId(VI::Layer** out_layer, u64 layer_id) {
     // Ensure the layer id is valid.
     R_UNLESS(layer_id > 0, VI::ResultNotFound);
 
     // Get the layer.
-    VI::Layer* layer = m_flinger.FindLayer(m_display_id, layer_id);
+    VI::Layer* layer = m_surface_flinger->FindLayer(m_display_id, layer_id);
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
 
     // We succeeded.
@@ -332,7 +332,7 @@ Result FbShareBufferManager::GetLayerFromId(VI::Layer** out_layer, u64 layer_id)
     R_SUCCEED();
 }
 
-Result FbShareBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
+Result FbshareBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
                                                       std::array<s32, 4>& out_slot_indexes,
                                                       s64* out_target_slot, u64 layer_id) {
     std::scoped_lock lk{m_guard};
@@ -359,7 +359,7 @@ Result FbShareBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
     R_SUCCEED();
 }
 
-Result FbShareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
+Result FbshareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
                                                       Common::Rectangle<s32> crop_region,
                                                       u32 transform, s32 swap_interval,
                                                       u64 layer_id, s64 slot) {
@@ -397,7 +397,7 @@ Result FbShareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
     R_SUCCEED();
 }
 
-Result FbShareBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadableEvent** out_event,
+Result FbshareBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadableEvent** out_event,
                                                                  u64 layer_id) {
     std::scoped_lock lk{m_guard};
 
@@ -415,7 +415,7 @@ Result FbShareBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadab
     R_SUCCEED();
 }
 
-Result FbShareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32* out_layer_index) {
+Result FbshareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32* out_layer_index) {
     std::vector<u8> capture_buffer(m_system.GPU().GetAppletCaptureBuffer());
     Common::ScratchBuffer<u32> scratch;
 
@@ -444,4 +444,4 @@ Result FbShareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32
     R_SUCCEED();
 }
 
-} // namespace Service::Nvnflinger
+} // namespace Service::VI

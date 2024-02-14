@@ -9,7 +9,6 @@
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/nvdrv_interface.h"
-#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/hardware_composer.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
@@ -309,16 +308,6 @@ s64 Nvnflinger::GetNextTicks() const {
 
     const f32 effective_fps = 60.f / static_cast<f32>(swap_interval);
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
-}
-
-FbShareBufferManager& Nvnflinger::GetSystemBufferManager() {
-    const auto lock_guard = Lock();
-
-    if (!system_buffer_manager) {
-        system_buffer_manager = std::make_unique<FbShareBufferManager>(system, *this, nvdrv);
-    }
-
-    return *system_buffer_manager;
 }
 
 void LoopProcess(Core::System& system) {

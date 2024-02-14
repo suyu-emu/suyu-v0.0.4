@@ -13,10 +13,12 @@
 namespace Service::VI {
 
 IApplicationDisplayService::IApplicationDisplayService(
-    Core::System& system_, std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service)
+    Core::System& system_, std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service,
+    std::shared_ptr<FbshareBufferManager> shared_buffer_manager)
     : ServiceFramework{system_, "IApplicationDisplayService"},
       m_binder_service{std::move(binder_service)},
-      m_surface_flinger{m_binder_service->GetSurfaceFlinger()} {
+      m_surface_flinger{m_binder_service->GetSurfaceFlinger()},
+      m_shared_buffer_manager{std::move(shared_buffer_manager)} {
 
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -64,7 +66,7 @@ Result IApplicationDisplayService::GetSystemDisplayService(
     Out<SharedPointer<ISystemDisplayService>> out_system_display_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
     *out_system_display_service =
-        std::make_shared<ISystemDisplayService>(system, m_surface_flinger);
+        std::make_shared<ISystemDisplayService>(system, m_surface_flinger, m_shared_buffer_manager);
     R_SUCCEED();
 }
 
