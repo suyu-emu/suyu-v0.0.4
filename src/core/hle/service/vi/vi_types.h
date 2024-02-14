@@ -44,9 +44,11 @@ enum class NintendoScaleMode : u32 {
     PreserveAspectRatio = 4,
 };
 
+using DisplayName = std::array<char, 0x40>;
+
 struct DisplayInfo {
     /// The name of this particular display.
-    char display_name[0x40]{"Default"};
+    DisplayName display_name{"Default"};
 
     /// Whether or not the display has a limited number of layers.
     u8 has_limited_layers{1};
