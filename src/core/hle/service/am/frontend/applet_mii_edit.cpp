@@ -7,7 +7,7 @@
 #include "core/frontend/applets/mii_edit.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/frontend/applet_mii_edit.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/mii/mii.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/sm/sm.h"

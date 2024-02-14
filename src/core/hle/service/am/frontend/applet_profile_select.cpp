@@ -10,7 +10,7 @@
 #include "core/hle/service/acc/errors.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/frontend/applet_profile_select.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 
 namespace Service::AM::Frontend {
 
