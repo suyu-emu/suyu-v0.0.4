@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/string_util.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/parcel.h"
 #include "core/hle/service/vi/application_display_service.h"
@@ -14,406 +13,307 @@
 namespace Service::VI {
 
 IApplicationDisplayService::IApplicationDisplayService(
-    Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_,
-    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_)
-    : ServiceFramework{system_, "IApplicationDisplayService"}, nvnflinger{nvnflinger_},
-      hos_binder_driver_server{hos_binder_driver_server_} {
+    Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
+    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server)
+    : ServiceFramework{system_, "IApplicationDisplayService"}, m_nvnflinger{nvnflinger},
+      m_hos_binder_driver_server{hos_binder_driver_server} {
 
+    // clang-format off
     static const FunctionInfo functions[] = {
-        {100, &IApplicationDisplayService::GetRelayService, "GetRelayService"},
-        {101, &IApplicationDisplayService::GetSystemDisplayService, "GetSystemDisplayService"},
-        {102, &IApplicationDisplayService::GetManagerDisplayService, "GetManagerDisplayService"},
-        {103, &IApplicationDisplayService::GetIndirectDisplayTransactionService,
-         "GetIndirectDisplayTransactionService"},
-        {1000, &IApplicationDisplayService::ListDisplays, "ListDisplays"},
-        {1010, &IApplicationDisplayService::OpenDisplay, "OpenDisplay"},
-        {1011, &IApplicationDisplayService::OpenDefaultDisplay, "OpenDefaultDisplay"},
-        {1020, &IApplicationDisplayService::CloseDisplay, "CloseDisplay"},
-        {1101, &IApplicationDisplayService::SetDisplayEnabled, "SetDisplayEnabled"},
-        {1102, &IApplicationDisplayService::GetDisplayResolution, "GetDisplayResolution"},
-        {2020, &IApplicationDisplayService::OpenLayer, "OpenLayer"},
-        {2021, &IApplicationDisplayService::CloseLayer, "CloseLayer"},
-        {2030, &IApplicationDisplayService::CreateStrayLayer, "CreateStrayLayer"},
-        {2031, &IApplicationDisplayService::DestroyStrayLayer, "DestroyStrayLayer"},
-        {2101, &IApplicationDisplayService::SetLayerScalingMode, "SetLayerScalingMode"},
-        {2102, &IApplicationDisplayService::ConvertScalingMode, "ConvertScalingMode"},
-        {2450, &IApplicationDisplayService::GetIndirectLayerImageMap, "GetIndirectLayerImageMap"},
+        {100, C<&IApplicationDisplayService::GetRelayService>, "GetRelayService"},
+        {101, C<&IApplicationDisplayService::GetSystemDisplayService>, "GetSystemDisplayService"},
+        {102, C<&IApplicationDisplayService::GetManagerDisplayService>, "GetManagerDisplayService"},
+        {103, C<&IApplicationDisplayService::GetIndirectDisplayTransactionService>, "GetIndirectDisplayTransactionService"},
+        {1000, C<&IApplicationDisplayService::ListDisplays>, "ListDisplays"},
+        {1010, C<&IApplicationDisplayService::OpenDisplay>, "OpenDisplay"},
+        {1011, C<&IApplicationDisplayService::OpenDefaultDisplay>, "OpenDefaultDisplay"},
+        {1020, C<&IApplicationDisplayService::CloseDisplay>, "CloseDisplay"},
+        {1101, C<&IApplicationDisplayService::SetDisplayEnabled>, "SetDisplayEnabled"},
+        {1102, C<&IApplicationDisplayService::GetDisplayResolution>, "GetDisplayResolution"},
+        {2020, C<&IApplicationDisplayService::OpenLayer>, "OpenLayer"},
+        {2021, C<&IApplicationDisplayService::CloseLayer>, "CloseLayer"},
+        {2030, C<&IApplicationDisplayService::CreateStrayLayer>, "CreateStrayLayer"},
+        {2031, C<&IApplicationDisplayService::DestroyStrayLayer>, "DestroyStrayLayer"},
+        {2101, C<&IApplicationDisplayService::SetLayerScalingMode>, "SetLayerScalingMode"},
+        {2102, C<&IApplicationDisplayService::ConvertScalingMode>, "ConvertScalingMode"},
+        {2450, C<&IApplicationDisplayService::GetIndirectLayerImageMap>, "GetIndirectLayerImageMap"},
         {2451, nullptr, "GetIndirectLayerImageCropMap"},
-        {2460, &IApplicationDisplayService::GetIndirectLayerImageRequiredMemoryInfo,
-         "GetIndirectLayerImageRequiredMemoryInfo"},
-        {5202, &IApplicationDisplayService::GetDisplayVsyncEvent, "GetDisplayVsyncEvent"},
+        {2460, C<&IApplicationDisplayService::GetIndirectLayerImageRequiredMemoryInfo>, "GetIndirectLayerImageRequiredMemoryInfo"},
+        {5202, C<&IApplicationDisplayService::GetDisplayVsyncEvent>, "GetDisplayVsyncEvent"},
         {5203, nullptr, "GetDisplayVsyncEventForDebug"},
     };
+    // clang-format on
+
     RegisterHandlers(functions);
 }
 
 IApplicationDisplayService::~IApplicationDisplayService() {
-    for (const auto layer_id : stray_layer_ids) {
-        nvnflinger.DestroyLayer(layer_id);
+    for (const auto layer_id : m_stray_layer_ids) {
+        m_nvnflinger.DestroyLayer(layer_id);
     }
 }
 
-void IApplicationDisplayService::GetRelayService(HLERequestContext& ctx) {
+Result IApplicationDisplayService::GetRelayService(
+    Out<SharedPointer<IHOSBinderDriver>> out_relay_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IHOSBinderDriver>(system, hos_binder_driver_server);
+    *out_relay_service = std::make_shared<IHOSBinderDriver>(system, m_hos_binder_driver_server);
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::GetSystemDisplayService(HLERequestContext& ctx) {
+Result IApplicationDisplayService::GetSystemDisplayService(
+    Out<SharedPointer<ISystemDisplayService>> out_system_display_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISystemDisplayService>(system, nvnflinger);
+    *out_system_display_service = std::make_shared<ISystemDisplayService>(system, m_nvnflinger);
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::GetManagerDisplayService(HLERequestContext& ctx) {
+Result IApplicationDisplayService::GetManagerDisplayService(
+    Out<SharedPointer<IManagerDisplayService>> out_manager_display_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IManagerDisplayService>(system, nvnflinger);
+    *out_manager_display_service = std::make_shared<IManagerDisplayService>(system, m_nvnflinger);
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::GetIndirectDisplayTransactionService(HLERequestContext& ctx) {
+Result IApplicationDisplayService::GetIndirectDisplayTransactionService(
+    Out<SharedPointer<IHOSBinderDriver>> out_indirect_display_transaction_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IHOSBinderDriver>(system, hos_binder_driver_server);
+    *out_indirect_display_transaction_service =
+        std::make_shared<IHOSBinderDriver>(system, m_hos_binder_driver_server);
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::OpenDisplay(HLERequestContext& ctx) {
+Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayName display_name) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
 
-    IPC::RequestParser rp{ctx};
-    const auto name_buf = rp.PopRaw<std::array<char, 0x40>>();
+    display_name[display_name.size() - 1] = '\0';
+    ASSERT_MSG(strcmp(display_name.data(), "Default") == 0,
+               "Non-default displays aren't supported yet");
 
-    OpenDisplayImpl(ctx, std::string_view{name_buf.data(), name_buf.size()});
+    const auto display_id = m_nvnflinger.OpenDisplay(display_name.data());
+    if (!display_id) {
+        LOG_ERROR(Service_VI, "Display not found! display_name={}", display_name.data());
+        R_THROW(VI::ResultNotFound);
+    }
+
+    *out_display_id = *display_id;
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::OpenDefaultDisplay(HLERequestContext& ctx) {
+Result IApplicationDisplayService::OpenDefaultDisplay(Out<u64> out_display_id) {
+    LOG_DEBUG(Service_VI, "called");
+    R_RETURN(this->OpenDisplay(out_display_id, DisplayName{"Default"}));
+}
+
+Result IApplicationDisplayService::CloseDisplay(u64 display_id) {
+    LOG_DEBUG(Service_VI, "called");
+    R_SUCCEED_IF(m_nvnflinger.CloseDisplay(display_id));
+    R_THROW(ResultUnknown);
+}
+
+Result IApplicationDisplayService::SetDisplayEnabled(u32 state, u64 display_id) {
     LOG_DEBUG(Service_VI, "called");
 
-    OpenDisplayImpl(ctx, "Default");
+    // This literally does nothing internally in the actual service itself,
+    // and just returns a successful result code regardless of the input.
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::OpenDisplayImpl(HLERequestContext& ctx, std::string_view name) {
-    const auto trim_pos = name.find('\0');
-
-    if (trim_pos != std::string_view::npos) {
-        name.remove_suffix(name.size() - trim_pos);
-    }
-
-    ASSERT_MSG(name == "Default", "Non-default displays aren't supported yet");
-
-    const auto display_id = nvnflinger.OpenDisplay(name);
-    if (!display_id) {
-        LOG_ERROR(Service_VI, "Display not found! display_name={}", name);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNotFound);
-        return;
-    }
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(*display_id);
-}
-
-void IApplicationDisplayService::CloseDisplay(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 display_id = rp.Pop<u64>();
-
-    const Result rc = nvnflinger.CloseDisplay(display_id) ? ResultSuccess : ResultUnknown;
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(rc);
-}
-
-// This literally does nothing internally in the actual service itself,
-// and just returns a successful result code regardless of the input.
-void IApplicationDisplayService::SetDisplayEnabled(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_VI, "called.");
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IApplicationDisplayService::GetDisplayResolution(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 display_id = rp.Pop<u64>();
-
-    LOG_DEBUG(Service_VI, "called. display_id=0x{:016X}", display_id);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
-
-    // This only returns the fixed values of 1280x720 and makes no distinguishing
-    // between docked and undocked dimensions. We take the liberty of applying
-    // the resolution scaling factor here.
-    rb.Push(static_cast<u64>(DisplayResolution::UndockedWidth));
-    rb.Push(static_cast<u64>(DisplayResolution::UndockedHeight));
-}
-
-void IApplicationDisplayService::SetLayerScalingMode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto scaling_mode = rp.PopEnum<NintendoScaleMode>();
-    const u64 unknown = rp.Pop<u64>();
-
-    LOG_DEBUG(Service_VI, "called. scaling_mode=0x{:08X}, unknown=0x{:016X}", scaling_mode,
-              unknown);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-
-    if (scaling_mode > NintendoScaleMode::PreserveAspectRatio) {
-        LOG_ERROR(Service_VI, "Invalid scaling mode provided.");
-        rb.Push(ResultOperationFailed);
-        return;
-    }
-
-    if (scaling_mode != NintendoScaleMode::ScaleToWindow &&
-        scaling_mode != NintendoScaleMode::PreserveAspectRatio) {
-        LOG_ERROR(Service_VI, "Unsupported scaling mode supplied.");
-        rb.Push(ResultNotSupported);
-        return;
-    }
-
-    rb.Push(ResultSuccess);
-}
-
-void IApplicationDisplayService::ListDisplays(HLERequestContext& ctx) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
-
-    const DisplayInfo display_info;
-    ctx.WriteBuffer(&display_info, sizeof(DisplayInfo));
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(1);
-}
-
-void IApplicationDisplayService::OpenLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto name_buf = rp.PopRaw<std::array<u8, 0x40>>();
-    const std::string display_name(Common::StringFromBuffer(name_buf));
-
-    const u64 layer_id = rp.Pop<u64>();
-    const u64 aruid = rp.Pop<u64>();
-
-    LOG_DEBUG(Service_VI, "called. layer_id=0x{:016X}, aruid=0x{:016X}", layer_id, aruid);
-
-    const auto display_id = nvnflinger.OpenDisplay(display_name);
-    if (!display_id) {
-        LOG_ERROR(Service_VI, "Layer not found! layer_id={}", layer_id);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNotFound);
-        return;
-    }
-
-    const auto buffer_queue_id = nvnflinger.FindBufferQueueId(*display_id, layer_id);
-    if (!buffer_queue_id) {
-        LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", *display_id);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNotFound);
-        return;
-    }
-
-    if (!nvnflinger.OpenLayer(layer_id)) {
-        LOG_WARNING(Service_VI, "Tried to open layer which was already open");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultOperationFailed);
-        return;
-    }
-
-    android::OutputParcel parcel;
-    parcel.WriteInterface(NativeWindow{*buffer_queue_id});
-
-    const auto buffer_size = ctx.WriteBuffer(parcel.Serialize());
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(buffer_size);
-}
-
-void IApplicationDisplayService::CloseLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto layer_id{rp.Pop<u64>()};
-
-    LOG_DEBUG(Service_VI, "called. layer_id=0x{:016X}", layer_id);
-
-    if (!nvnflinger.CloseLayer(layer_id)) {
-        LOG_WARNING(Service_VI, "Tried to close layer which was not open");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultOperationFailed);
-        return;
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IApplicationDisplayService::CreateStrayLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 flags = rp.Pop<u32>();
-    rp.Pop<u32>(); // padding
-    const u64 display_id = rp.Pop<u64>();
-
-    LOG_DEBUG(Service_VI, "called. flags=0x{:08X}, display_id=0x{:016X}", flags, display_id);
-
-    // TODO(Subv): What's the difference between a Stray and a Managed layer?
-
-    const auto layer_id = nvnflinger.CreateLayer(display_id);
-    if (!layer_id) {
-        LOG_ERROR(Service_VI, "Layer not found! display_id={}", display_id);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNotFound);
-        return;
-    }
-
-    stray_layer_ids.push_back(*layer_id);
-    const auto buffer_queue_id = nvnflinger.FindBufferQueueId(display_id, *layer_id);
-    if (!buffer_queue_id) {
-        LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", display_id);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNotFound);
-        return;
-    }
-
-    android::OutputParcel parcel;
-    parcel.WriteInterface(NativeWindow{*buffer_queue_id});
-
-    const auto buffer_size = ctx.WriteBuffer(parcel.Serialize());
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
-    rb.Push(*layer_id);
-    rb.Push<u64>(buffer_size);
-}
-
-void IApplicationDisplayService::DestroyStrayLayer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 layer_id = rp.Pop<u64>();
-
-    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id=0x{:016X}", layer_id);
-    nvnflinger.DestroyLayer(layer_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IApplicationDisplayService::GetDisplayVsyncEvent(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 display_id = rp.Pop<u64>();
-
+Result IApplicationDisplayService::GetDisplayResolution(Out<s64> out_width, Out<s64> out_height,
+                                                        u64 display_id) {
     LOG_DEBUG(Service_VI, "called. display_id={}", display_id);
 
-    Kernel::KReadableEvent* vsync_event{};
-    const auto result = nvnflinger.FindVsyncEvent(&vsync_event, display_id);
+    // This only returns the fixed values of 1280x720 and makes no distinguishing
+    // between docked and undocked dimensions.
+    *out_width = static_cast<s64>(DisplayResolution::UndockedWidth);
+    *out_height = static_cast<s64>(DisplayResolution::UndockedHeight);
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::SetLayerScalingMode(NintendoScaleMode scale_mode, u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called. scale_mode={}, unknown=0x{:016X}", scale_mode, layer_id);
+
+    if (scale_mode > NintendoScaleMode::PreserveAspectRatio) {
+        LOG_ERROR(Service_VI, "Invalid scaling mode provided.");
+        R_THROW(VI::ResultOperationFailed);
+    }
+
+    if (scale_mode != NintendoScaleMode::ScaleToWindow &&
+        scale_mode != NintendoScaleMode::PreserveAspectRatio) {
+        LOG_ERROR(Service_VI, "Unsupported scaling mode supplied.");
+        R_THROW(VI::ResultNotSupported);
+    }
+
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::ListDisplays(
+    Out<u64> out_count, OutArray<DisplayInfo, BufferAttr_HipcMapAlias> out_displays) {
+    LOG_WARNING(Service_VI, "(STUBBED) called");
+
+    if (out_displays.size() > 0) {
+        out_displays[0] = DisplayInfo{};
+        *out_count = 1;
+    } else {
+        *out_count = 0;
+    }
+
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
+                                             OutBuffer<BufferAttr_HipcMapAlias> out_native_window,
+                                             DisplayName display_name, u64 layer_id,
+                                             ClientAppletResourceUserId aruid) {
+    display_name[display_name.size() - 1] = '\0';
+
+    LOG_DEBUG(Service_VI, "called. layer_id={}, aruid={:#x}", layer_id, aruid.pid);
+
+    const auto display_id = m_nvnflinger.OpenDisplay(display_name.data());
+    if (!display_id) {
+        LOG_ERROR(Service_VI, "Layer not found! layer_id={}", layer_id);
+        R_THROW(VI::ResultNotFound);
+    }
+
+    const auto buffer_queue_id = m_nvnflinger.FindBufferQueueId(*display_id, layer_id);
+    if (!buffer_queue_id) {
+        LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", *display_id);
+        R_THROW(VI::ResultNotFound);
+    }
+
+    if (!m_nvnflinger.OpenLayer(layer_id)) {
+        LOG_WARNING(Service_VI, "Tried to open layer which was already open");
+        R_THROW(VI::ResultOperationFailed);
+    }
+
+    android::OutputParcel parcel;
+    parcel.WriteInterface(NativeWindow{*buffer_queue_id});
+
+    const auto buffer = parcel.Serialize();
+    std::memcpy(out_native_window.data(), buffer.data(),
+                std::min(out_native_window.size(), buffer.size()));
+    *out_size = buffer.size();
+
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::CloseLayer(u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
+
+    if (!m_nvnflinger.CloseLayer(layer_id)) {
+        LOG_WARNING(Service_VI, "Tried to close layer which was not open");
+        R_THROW(VI::ResultOperationFailed);
+    }
+
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::CreateStrayLayer(
+    Out<u64> out_layer_id, Out<u64> out_size, OutBuffer<BufferAttr_HipcMapAlias> out_native_window,
+    u32 flags, u64 display_id) {
+    LOG_DEBUG(Service_VI, "called. flags={}, display_id={}", flags, display_id);
+
+    const auto layer_id = m_nvnflinger.CreateLayer(display_id);
+    if (!layer_id) {
+        LOG_ERROR(Service_VI, "Layer not found! display_id={}", display_id);
+        R_THROW(VI::ResultNotFound);
+    }
+
+    m_stray_layer_ids.push_back(*layer_id);
+    const auto buffer_queue_id = m_nvnflinger.FindBufferQueueId(display_id, *layer_id);
+    if (!buffer_queue_id) {
+        LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", display_id);
+        R_THROW(VI::ResultNotFound);
+    }
+
+    android::OutputParcel parcel;
+    parcel.WriteInterface(NativeWindow{*buffer_queue_id});
+
+    const auto buffer = parcel.Serialize();
+    std::memcpy(out_native_window.data(), buffer.data(),
+                std::min(out_native_window.size(), buffer.size()));
+
+    *out_layer_id = *layer_id;
+    *out_size = buffer.size();
+
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
+    LOG_WARNING(Service_VI, "(STUBBED) called. layer_id={}", layer_id);
+    m_nvnflinger.DestroyLayer(layer_id);
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::GetDisplayVsyncEvent(
+    OutCopyHandle<Kernel::KReadableEvent> out_vsync_event, u64 display_id) {
+    LOG_DEBUG(Service_VI, "called. display_id={}", display_id);
+
+    const auto result = m_nvnflinger.FindVsyncEvent(out_vsync_event, display_id);
     if (result != ResultSuccess) {
         if (result == ResultNotFound) {
             LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);
         }
 
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-        return;
+        R_THROW(result);
     }
-    if (vsync_event_fetched) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(VI::ResultPermissionDenied);
-        return;
-    }
-    vsync_event_fetched = true;
 
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(vsync_event);
+    R_UNLESS(!m_vsync_event_fetched, VI::ResultPermissionDenied);
+    m_vsync_event_fetched = true;
+
+    R_SUCCEED();
 }
 
-void IApplicationDisplayService::ConvertScalingMode(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto mode = rp.PopEnum<NintendoScaleMode>();
+Result IApplicationDisplayService::ConvertScalingMode(Out<ConvertedScaleMode> out_scaling_mode,
+                                                      NintendoScaleMode mode) {
     LOG_DEBUG(Service_VI, "called mode={}", mode);
 
-    ConvertedScaleMode converted_mode{};
-    const auto result = ConvertScalingModeImpl(&converted_mode, mode);
-
-    if (result == ResultSuccess) {
-        IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(ResultSuccess);
-        rb.PushEnum(converted_mode);
-    } else {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-}
-
-void IApplicationDisplayService::GetIndirectLayerImageMap(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto width = rp.Pop<s64>();
-    const auto height = rp.Pop<s64>();
-    const auto indirect_layer_consumer_handle = rp.Pop<u64>();
-    const auto applet_resource_user_id = rp.Pop<u64>();
-
-    LOG_WARNING(Service_VI,
-                "(STUBBED) called, width={}, height={}, indirect_layer_consumer_handle={}, "
-                "applet_resource_user_id={}",
-                width, height, indirect_layer_consumer_handle, applet_resource_user_id);
-
-    std::vector<u8> out_buffer(0x46);
-    ctx.WriteBuffer(out_buffer);
-
-    // TODO: Figure out what these are
-
-    constexpr s64 unknown_result_1 = 0;
-    constexpr s64 unknown_result_2 = 0;
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(unknown_result_1);
-    rb.Push(unknown_result_2);
-    rb.Push(ResultSuccess);
-}
-
-void IApplicationDisplayService::GetIndirectLayerImageRequiredMemoryInfo(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto width = rp.Pop<u64>();
-    const auto height = rp.Pop<u64>();
-    LOG_DEBUG(Service_VI, "called width={}, height={}", width, height);
-
-    constexpr u64 base_size = 0x20000;
-    constexpr u64 alignment = 0x1000;
-    const auto texture_size = width * height * 4;
-    const auto out_size = (texture_size + base_size - 1) / base_size * base_size;
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(ResultSuccess);
-    rb.Push(out_size);
-    rb.Push(alignment);
-}
-
-Result IApplicationDisplayService::ConvertScalingModeImpl(ConvertedScaleMode* out_scaling_mode,
-                                                          NintendoScaleMode mode) {
     switch (mode) {
     case NintendoScaleMode::None:
         *out_scaling_mode = ConvertedScaleMode::None;
-        return ResultSuccess;
+        R_SUCCEED();
     case NintendoScaleMode::Freeze:
         *out_scaling_mode = ConvertedScaleMode::Freeze;
-        return ResultSuccess;
+        R_SUCCEED();
     case NintendoScaleMode::ScaleToWindow:
         *out_scaling_mode = ConvertedScaleMode::ScaleToWindow;
-        return ResultSuccess;
+        R_SUCCEED();
     case NintendoScaleMode::ScaleAndCrop:
         *out_scaling_mode = ConvertedScaleMode::ScaleAndCrop;
-        return ResultSuccess;
+        R_SUCCEED();
     case NintendoScaleMode::PreserveAspectRatio:
         *out_scaling_mode = ConvertedScaleMode::PreserveAspectRatio;
-        return ResultSuccess;
+        R_SUCCEED();
     default:
         LOG_ERROR(Service_VI, "Invalid scaling mode specified, mode={}", mode);
-        return ResultOperationFailed;
+        R_THROW(VI::ResultOperationFailed);
     }
+}
+
+Result IApplicationDisplayService::GetIndirectLayerImageMap(
+    Out<u64> out_size, Out<u64> out_stride,
+    OutBuffer<BufferAttr_HipcMapTransferAllowsNonSecure | BufferAttr_HipcMapAlias> out_buffer,
+    s64 width, s64 height, u64 indirect_layer_consumer_handle, ClientAppletResourceUserId aruid) {
+    LOG_WARNING(
+        Service_VI,
+        "(STUBBED) called, width={}, height={}, indirect_layer_consumer_handle={}, aruid={:#x}",
+        width, height, indirect_layer_consumer_handle, aruid.pid);
+    *out_size = 0;
+    *out_stride = 0;
+    R_SUCCEED();
+}
+
+Result IApplicationDisplayService::GetIndirectLayerImageRequiredMemoryInfo(Out<s64> out_size,
+                                                                           Out<s64> out_alignment,
+                                                                           s64 width, s64 height) {
+    LOG_DEBUG(Service_VI, "called width={}, height={}", width, height);
+
+    constexpr u64 base_size = 0x20000;
+    const auto texture_size = width * height * 4;
+
+    *out_alignment = 0x1000;
+    *out_size = (texture_size + base_size - 1) / base_size * base_size;
+
+    R_SUCCEED();
 }
 
 } // namespace Service::VI
