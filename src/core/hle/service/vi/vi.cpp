@@ -1,28 +1,20 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <array>
-#include <cstring>
 #include <memory>
 #include <optional>
 #include <type_traits>
 #include <utility>
 
-#include "common/alignment.h"
 #include "common/assert.h"
-#include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/settings.h"
 #include "common/string_util.h"
-#include "common/swap.h"
-#include "core/core_timing.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/nvdrv/devices/nvmap.h"
-#include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvnflinger/binder.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
@@ -36,44 +28,10 @@
 #include "core/hle/service/vi/vi_m.h"
 #include "core/hle/service/vi/vi_results.h"
 #include "core/hle/service/vi/vi_s.h"
+#include "core/hle/service/vi/vi_types.h"
 #include "core/hle/service/vi/vi_u.h"
 
 namespace Service::VI {
-
-struct DisplayInfo {
-    /// The name of this particular display.
-    char display_name[0x40]{"Default"};
-
-    /// Whether or not the display has a limited number of layers.
-    u8 has_limited_layers{1};
-    INSERT_PADDING_BYTES(7);
-
-    /// Indicates the total amount of layers supported by the display.
-    /// @note This is only valid if has_limited_layers is set.
-    u64 max_layers{1};
-
-    /// Maximum width in pixels.
-    u64 width{1920};
-
-    /// Maximum height in pixels.
-    u64 height{1080};
-};
-static_assert(sizeof(DisplayInfo) == 0x60, "DisplayInfo has wrong size");
-
-class NativeWindow final {
-public:
-    constexpr explicit NativeWindow(u32 id_) : id{id_} {}
-    constexpr explicit NativeWindow(const NativeWindow& other) = default;
-
-private:
-    const u32 magic = 2;
-    const u32 process_id = 1;
-    const u64 id;
-    INSERT_PADDING_WORDS(2);
-    std::array<u8, 8> dispdrv = {'d', 'i', 's', 'p', 'd', 'r', 'v', '\0'};
-    INSERT_PADDING_WORDS(2);
-};
-static_assert(sizeof(NativeWindow) == 0x28, "NativeWindow has wrong size");
 
 class IHOSBinderDriver final : public ServiceFramework<IHOSBinderDriver> {
 public:
