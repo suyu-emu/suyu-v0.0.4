@@ -11,6 +11,7 @@
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/vi/vi.h"
+#include "core/hle/service/vi/vi_types.h"
 
 namespace Service::AM {
 

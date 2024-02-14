@@ -4,13 +4,14 @@
 #include "common/logging/log.h"
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_s.h"
+#include "core/hle/service/vi/vi_types.h"
 
 namespace Service::VI {
 
 VI_S::VI_S(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
            Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_)
-    : ServiceFramework{system_, "vi:s"}, nv_flinger{nv_flinger_}, hos_binder_driver_server{
-                                                                      hos_binder_driver_server_} {
+    : ServiceFramework{system_, "vi:s"}, nv_flinger{nv_flinger_},
+      hos_binder_driver_server{hos_binder_driver_server_} {
     static const FunctionInfo functions[] = {
         {1, &VI_S::GetDisplayService, "GetDisplayService"},
         {3, nullptr, "GetDisplayServiceWithProxyNameExchange"},

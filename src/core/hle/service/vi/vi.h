@@ -20,26 +20,7 @@ class Nvnflinger;
 
 namespace Service::VI {
 
-enum class DisplayResolution : u32 {
-    DockedWidth = 1920,
-    DockedHeight = 1080,
-    UndockedWidth = 1280,
-    UndockedHeight = 720,
-};
-
-/// Permission level for a particular VI service instance
-enum class Permission {
-    User,
-    System,
-    Manager,
-};
-
-/// A policy type that may be requested via GetDisplayService and
-/// GetDisplayServiceWithProxyNameExchange
-enum class Policy {
-    User,
-    Compositor,
-};
+enum class Permission;
 
 namespace detail {
 void GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,

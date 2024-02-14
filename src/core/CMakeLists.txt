@@ -965,6 +965,7 @@ add_library(core STATIC
     hle/service/vi/vi_m.h
     hle/service/vi/vi_s.cpp
     hle/service/vi/vi_s.h
+    hle/service/vi/vi_types.h
     hle/service/vi/vi_u.cpp
     hle/service/vi/vi_u.h
     internal_network/network.cpp
