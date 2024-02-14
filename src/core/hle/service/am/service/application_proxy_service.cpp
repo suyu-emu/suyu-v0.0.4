@@ -10,9 +10,8 @@
 
 namespace Service::AM {
 
-IApplicationProxyService::IApplicationProxyService(Core::System& system_,
-                                                   Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "appletOE"}, m_nvnflinger{nvnflinger} {
+IApplicationProxyService::IApplicationProxyService(Core::System& system_)
+    : ServiceFramework{system_, "appletOE"} {
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationProxyService::OpenApplicationProxy>, "OpenApplicationProxy"},
     };
@@ -28,7 +27,7 @@ Result IApplicationProxyService::OpenApplicationProxy(
 
     if (const auto applet = this->GetAppletFromProcessId(pid)) {
         *out_application_proxy =
-            std::make_shared<IApplicationProxy>(system, applet, process_handle.Get(), m_nvnflinger);
+            std::make_shared<IApplicationProxy>(system, applet, process_handle.Get());
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();

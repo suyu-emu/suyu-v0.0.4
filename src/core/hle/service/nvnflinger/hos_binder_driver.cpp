@@ -3,13 +3,16 @@
 
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/nvnflinger/binder.h"
+#include "core/hle/service/nvnflinger/hos_binder_driver.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
-#include "core/hle/service/vi/hos_binder_driver.h"
 
-namespace Service::VI {
+namespace Service::Nvnflinger {
 
-IHOSBinderDriver::IHOSBinderDriver(Core::System& system_, Nvnflinger::HosBinderDriverServer& server)
-    : ServiceFramework{system_, "IHOSBinderDriver"}, m_server(server) {
+IHOSBinderDriver::IHOSBinderDriver(Core::System& system_,
+                                   std::shared_ptr<HosBinderDriverServer> server,
+                                   std::shared_ptr<Nvnflinger> surface_flinger)
+    : ServiceFramework{system_, "IHOSBinderDriver"}, m_server(server),
+      m_surface_flinger(surface_flinger) {
     static const FunctionInfo functions[] = {
         {0, C<&IHOSBinderDriver::TransactParcel>, "TransactParcel"},
         {1, C<&IHOSBinderDriver::AdjustRefcount>, "AdjustRefcount"},
@@ -27,7 +30,7 @@ Result IHOSBinderDriver::TransactParcel(s32 binder_id, android::TransactionId tr
                                         u32 flags) {
     LOG_DEBUG(Service_VI, "called. id={} transaction={}, flags={}", binder_id, transaction_id,
               flags);
-    m_server.TryGetProducer(binder_id)->Transact(transaction_id, flags, parcel_data, parcel_reply);
+    m_server->TryGetProducer(binder_id)->Transact(transaction_id, flags, parcel_data, parcel_reply);
     R_SUCCEED();
 }
 
@@ -39,7 +42,7 @@ Result IHOSBinderDriver::AdjustRefcount(s32 binder_id, s32 addval, s32 type) {
 Result IHOSBinderDriver::GetNativeHandle(s32 binder_id, u32 type_id,
                                          OutCopyHandle<Kernel::KReadableEvent> out_handle) {
     LOG_WARNING(Service_VI, "(STUBBED) called id={}, type_id={}", binder_id, type_id);
-    *out_handle = &m_server.TryGetProducer(binder_id)->GetNativeHandle();
+    *out_handle = &m_server->TryGetProducer(binder_id)->GetNativeHandle();
     R_SUCCEED();
 }
 
@@ -50,4 +53,4 @@ Result IHOSBinderDriver::TransactParcelAuto(s32 binder_id, android::TransactionI
     R_RETURN(this->TransactParcel(binder_id, transaction_id, parcel_data, parcel_reply, flags));
 }
 
-} // namespace Service::VI
+} // namespace Service::Nvnflinger

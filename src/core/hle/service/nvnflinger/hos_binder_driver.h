@@ -5,12 +5,20 @@
 #include "core/hle/service/nvnflinger/binder.h"
 #include "core/hle/service/service.h"
 
-namespace Service::VI {
+namespace Service::Nvnflinger {
+
+class HosBinderDriverServer;
+class Nvnflinger;
 
 class IHOSBinderDriver final : public ServiceFramework<IHOSBinderDriver> {
 public:
-    explicit IHOSBinderDriver(Core::System& system_, Nvnflinger::HosBinderDriverServer& server);
+    explicit IHOSBinderDriver(Core::System& system_, std::shared_ptr<HosBinderDriverServer> server,
+                              std::shared_ptr<Nvnflinger> surface_flinger);
     ~IHOSBinderDriver() override;
+
+    std::shared_ptr<Nvnflinger> GetSurfaceFlinger() {
+        return m_surface_flinger;
+    }
 
 private:
     Result TransactParcel(s32 binder_id, android::TransactionId transaction_id,
@@ -24,7 +32,8 @@ private:
                               OutBuffer<BufferAttr_HipcAutoSelect> parcel_reply, u32 flags);
 
 private:
-    Nvnflinger::HosBinderDriverServer& m_server;
+    const std::shared_ptr<HosBinderDriverServer> m_server;
+    const std::shared_ptr<Nvnflinger> m_surface_flinger;
 };
 
-} // namespace Service::VI
+} // namespace Service::Nvnflinger

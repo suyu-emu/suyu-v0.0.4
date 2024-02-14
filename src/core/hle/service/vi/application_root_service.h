@@ -11,8 +11,7 @@ class System;
 }
 
 namespace Service::Nvnflinger {
-class HosBinderDriverServer;
-class Nvnflinger;
+class IHOSBinderDriver;
 } // namespace Service::Nvnflinger
 
 namespace Service::VI {
@@ -22,8 +21,8 @@ enum class Policy : u32;
 
 class IApplicationRootService final : public ServiceFramework<IApplicationRootService> {
 public:
-    explicit IApplicationRootService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
-                                     Nvnflinger::HosBinderDriverServer& hos_binder_driver_server);
+    explicit IApplicationRootService(Core::System& system_,
+                                     std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service);
     ~IApplicationRootService() override;
 
 private:
@@ -32,8 +31,7 @@ private:
         Policy policy);
 
 private:
-    Nvnflinger::Nvnflinger& m_nvnflinger;
-    Nvnflinger::HosBinderDriverServer& m_hos_binder_driver_server;
+    const std::shared_ptr<Nvnflinger::IHOSBinderDriver> m_binder_service;
 };
 
 } // namespace Service::VI

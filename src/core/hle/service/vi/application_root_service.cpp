@@ -11,10 +11,8 @@
 namespace Service::VI {
 
 IApplicationRootService::IApplicationRootService(
-    Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
-    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server)
-    : ServiceFramework{system_, "vi:u"}, m_nvnflinger{nvnflinger}, m_hos_binder_driver_server{
-                                                                       hos_binder_driver_server} {
+    Core::System& system_, std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service)
+    : ServiceFramework{system_, "vi:u"}, m_binder_service{std::move(binder_service)} {
     static const FunctionInfo functions[] = {
         {0, C<&IApplicationRootService::GetDisplayService>, "GetDisplayService"},
         {1, nullptr, "GetDisplayServiceWithProxyNameExchange"},
@@ -27,8 +25,8 @@ IApplicationRootService::~IApplicationRootService() = default;
 Result IApplicationRootService::GetDisplayService(
     Out<SharedPointer<IApplicationDisplayService>> out_application_display_service, Policy policy) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(GetApplicationDisplayService(out_application_display_service, system, m_nvnflinger,
-                                          m_hos_binder_driver_server, Permission::User, policy));
+    R_RETURN(GetApplicationDisplayService(out_application_display_service, system, m_binder_service,
+                                          Permission::User, policy));
 }
 
 } // namespace Service::VI

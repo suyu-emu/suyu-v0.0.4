@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/cmif_serialization.h"
+#include "core/hle/service/nvnflinger/hos_binder_driver.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/parcel.h"
 #include "core/hle/service/vi/application_display_service.h"
-#include "core/hle/service/vi/hos_binder_driver.h"
 #include "core/hle/service/vi/manager_display_service.h"
 #include "core/hle/service/vi/system_display_service.h"
 #include "core/hle/service/vi/vi_results.h"
@@ -13,10 +13,10 @@
 namespace Service::VI {
 
 IApplicationDisplayService::IApplicationDisplayService(
-    Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
-    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server)
-    : ServiceFramework{system_, "IApplicationDisplayService"}, m_nvnflinger{nvnflinger},
-      m_hos_binder_driver_server{hos_binder_driver_server} {
+    Core::System& system_, std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service)
+    : ServiceFramework{system_, "IApplicationDisplayService"},
+      m_binder_service{std::move(binder_service)},
+      m_surface_flinger{m_binder_service->GetSurfaceFlinger()} {
 
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -49,36 +49,37 @@ IApplicationDisplayService::IApplicationDisplayService(
 
 IApplicationDisplayService::~IApplicationDisplayService() {
     for (const auto layer_id : m_stray_layer_ids) {
-        m_nvnflinger.DestroyLayer(layer_id);
+        m_surface_flinger->DestroyLayer(layer_id);
     }
 }
 
 Result IApplicationDisplayService::GetRelayService(
-    Out<SharedPointer<IHOSBinderDriver>> out_relay_service) {
+    Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_relay_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-    *out_relay_service = std::make_shared<IHOSBinderDriver>(system, m_hos_binder_driver_server);
+    *out_relay_service = m_binder_service;
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetSystemDisplayService(
     Out<SharedPointer<ISystemDisplayService>> out_system_display_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-    *out_system_display_service = std::make_shared<ISystemDisplayService>(system, m_nvnflinger);
+    *out_system_display_service =
+        std::make_shared<ISystemDisplayService>(system, m_surface_flinger);
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetManagerDisplayService(
     Out<SharedPointer<IManagerDisplayService>> out_manager_display_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-    *out_manager_display_service = std::make_shared<IManagerDisplayService>(system, m_nvnflinger);
+    *out_manager_display_service =
+        std::make_shared<IManagerDisplayService>(system, m_surface_flinger);
     R_SUCCEED();
 }
 
 Result IApplicationDisplayService::GetIndirectDisplayTransactionService(
-    Out<SharedPointer<IHOSBinderDriver>> out_indirect_display_transaction_service) {
+    Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_indirect_display_transaction_service) {
     LOG_WARNING(Service_VI, "(STUBBED) called");
-    *out_indirect_display_transaction_service =
-        std::make_shared<IHOSBinderDriver>(system, m_hos_binder_driver_server);
+    *out_indirect_display_transaction_service = m_binder_service;
     R_SUCCEED();
 }
 
@@ -89,7 +90,7 @@ Result IApplicationDisplayService::OpenDisplay(Out<u64> out_display_id, DisplayN
     ASSERT_MSG(strcmp(display_name.data(), "Default") == 0,
                "Non-default displays aren't supported yet");
 
-    const auto display_id = m_nvnflinger.OpenDisplay(display_name.data());
+    const auto display_id = m_surface_flinger->OpenDisplay(display_name.data());
     if (!display_id) {
         LOG_ERROR(Service_VI, "Display not found! display_name={}", display_name.data());
         R_THROW(VI::ResultNotFound);
@@ -106,7 +107,7 @@ Result IApplicationDisplayService::OpenDefaultDisplay(Out<u64> out_display_id) {
 
 Result IApplicationDisplayService::CloseDisplay(u64 display_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_SUCCEED_IF(m_nvnflinger.CloseDisplay(display_id));
+    R_SUCCEED_IF(m_surface_flinger->CloseDisplay(display_id));
     R_THROW(ResultUnknown);
 }
 
@@ -168,19 +169,19 @@ Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
 
     LOG_DEBUG(Service_VI, "called. layer_id={}, aruid={:#x}", layer_id, aruid.pid);
 
-    const auto display_id = m_nvnflinger.OpenDisplay(display_name.data());
+    const auto display_id = m_surface_flinger->OpenDisplay(display_name.data());
     if (!display_id) {
         LOG_ERROR(Service_VI, "Layer not found! layer_id={}", layer_id);
         R_THROW(VI::ResultNotFound);
     }
 
-    const auto buffer_queue_id = m_nvnflinger.FindBufferQueueId(*display_id, layer_id);
+    const auto buffer_queue_id = m_surface_flinger->FindBufferQueueId(*display_id, layer_id);
     if (!buffer_queue_id) {
         LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", *display_id);
         R_THROW(VI::ResultNotFound);
     }
 
-    if (!m_nvnflinger.OpenLayer(layer_id)) {
+    if (!m_surface_flinger->OpenLayer(layer_id)) {
         LOG_WARNING(Service_VI, "Tried to open layer which was already open");
         R_THROW(VI::ResultOperationFailed);
     }
@@ -199,7 +200,7 @@ Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
 Result IApplicationDisplayService::CloseLayer(u64 layer_id) {
     LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
 
-    if (!m_nvnflinger.CloseLayer(layer_id)) {
+    if (!m_surface_flinger->CloseLayer(layer_id)) {
         LOG_WARNING(Service_VI, "Tried to close layer which was not open");
         R_THROW(VI::ResultOperationFailed);
     }
@@ -212,14 +213,14 @@ Result IApplicationDisplayService::CreateStrayLayer(
     u32 flags, u64 display_id) {
     LOG_DEBUG(Service_VI, "called. flags={}, display_id={}", flags, display_id);
 
-    const auto layer_id = m_nvnflinger.CreateLayer(display_id);
+    const auto layer_id = m_surface_flinger->CreateLayer(display_id);
     if (!layer_id) {
         LOG_ERROR(Service_VI, "Layer not found! display_id={}", display_id);
         R_THROW(VI::ResultNotFound);
     }
 
     m_stray_layer_ids.push_back(*layer_id);
-    const auto buffer_queue_id = m_nvnflinger.FindBufferQueueId(display_id, *layer_id);
+    const auto buffer_queue_id = m_surface_flinger->FindBufferQueueId(display_id, *layer_id);
     if (!buffer_queue_id) {
         LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", display_id);
         R_THROW(VI::ResultNotFound);
@@ -240,7 +241,7 @@ Result IApplicationDisplayService::CreateStrayLayer(
 
 Result IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
     LOG_WARNING(Service_VI, "(STUBBED) called. layer_id={}", layer_id);
-    m_nvnflinger.DestroyLayer(layer_id);
+    m_surface_flinger->DestroyLayer(layer_id);
     R_SUCCEED();
 }
 
@@ -248,7 +249,7 @@ Result IApplicationDisplayService::GetDisplayVsyncEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_vsync_event, u64 display_id) {
     LOG_DEBUG(Service_VI, "called. display_id={}", display_id);
 
-    const auto result = m_nvnflinger.FindVsyncEvent(out_vsync_event, display_id);
+    const auto result = m_surface_flinger->FindVsyncEvent(out_vsync_event, display_id);
     if (result != ResultSuccess) {
         if (result == ResultNotFound) {
             LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);

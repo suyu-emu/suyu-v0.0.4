@@ -19,10 +19,9 @@
 namespace Service::AM {
 
 ILibraryAppletProxy::ILibraryAppletProxy(Core::System& system_, std::shared_ptr<Applet> applet,
-                                         Kernel::KProcess* process,
-                                         Nvnflinger::Nvnflinger& nvnflinger)
-    : ServiceFramework{system_, "ILibraryAppletProxy"},
-      m_nvnflinger{nvnflinger}, m_process{process}, m_applet{std::move(applet)} {
+                                         Kernel::KProcess* process)
+    : ServiceFramework{system_, "ILibraryAppletProxy"}, m_process{process}, m_applet{
+                                                                                std::move(applet)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&ILibraryAppletProxy::GetCommonStateGetter>, "GetCommonStateGetter"},
@@ -83,8 +82,7 @@ Result ILibraryAppletProxy::GetWindowController(
 Result ILibraryAppletProxy::GetSelfController(
     Out<SharedPointer<ISelfController>> out_self_controller) {
     LOG_DEBUG(Service_AM, "called");
-    *out_self_controller =
-        std::make_shared<ISelfController>(system, m_applet, m_process, m_nvnflinger);
+    *out_self_controller = std::make_shared<ISelfController>(system, m_applet, m_process);
     R_SUCCEED();
 }
 

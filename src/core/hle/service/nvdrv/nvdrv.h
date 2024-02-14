@@ -118,6 +118,6 @@ private:
     std::unordered_map<std::string, std::function<FilesContainerType::iterator(DeviceFD)>> builders;
 };
 
-void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system);
+void LoopProcess(Core::System& system);
 
 } // namespace Service::Nvidia
