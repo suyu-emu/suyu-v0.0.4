@@ -12,7 +12,7 @@
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/frontend/applet_controller.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"

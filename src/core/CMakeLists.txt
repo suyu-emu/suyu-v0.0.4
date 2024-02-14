@@ -417,74 +417,72 @@ add_library(core STATIC
     hle/service/am/am_types.h
     hle/service/am/applet.cpp
     hle/service/am/applet.h
-    hle/service/am/applet_ae.cpp
-    hle/service/am/applet_ae.h
     hle/service/am/applet_manager.cpp
     hle/service/am/applet_data_broker.cpp
     hle/service/am/applet_data_broker.h
     hle/service/am/applet_manager.h
-    hle/service/am/applet_oe.cpp
-    hle/service/am/applet_oe.h
-    hle/service/am/applet_common_functions.cpp
-    hle/service/am/applet_common_functions.h
     hle/service/am/applet_message_queue.cpp
     hle/service/am/applet_message_queue.h
-    hle/service/am/application_creator.cpp
-    hle/service/am/application_creator.h
-    hle/service/am/application_functions.cpp
-    hle/service/am/application_functions.h
-    hle/service/am/application_proxy.cpp
-    hle/service/am/application_proxy.h
-    hle/service/am/audio_controller.cpp
-    hle/service/am/audio_controller.h
-    hle/service/am/common_state_getter.cpp
-    hle/service/am/common_state_getter.h
-    hle/service/am/debug_functions.cpp
-    hle/service/am/debug_functions.h
-    hle/service/am/display_controller.cpp
-    hle/service/am/display_controller.h
-    hle/service/am/global_state_controller.cpp
-    hle/service/am/global_state_controller.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
-    hle/service/am/home_menu_functions.cpp
-    hle/service/am/home_menu_functions.h
-    hle/service/am/idle.cpp
-    hle/service/am/idle.h
-    hle/service/am/library_applet_accessor.cpp
-    hle/service/am/library_applet_accessor.h
-    hle/service/am/library_applet_creator.cpp
-    hle/service/am/library_applet_creator.h
-    hle/service/am/library_applet_proxy.cpp
-    hle/service/am/library_applet_proxy.h
-    hle/service/am/library_applet_self_accessor.cpp
-    hle/service/am/library_applet_self_accessor.h
     hle/service/am/library_applet_storage.cpp
     hle/service/am/library_applet_storage.h
-    hle/service/am/lock_accessor.cpp
-    hle/service/am/lock_accessor.h
     hle/service/am/managed_layer_holder.cpp
     hle/service/am/managed_layer_holder.h
-    hle/service/am/omm.cpp
-    hle/service/am/omm.h
-    hle/service/am/process_winding_controller.cpp
-    hle/service/am/process_winding_controller.h
     hle/service/am/process.cpp
     hle/service/am/process.h
-    hle/service/am/self_controller.cpp
-    hle/service/am/self_controller.h
-    hle/service/am/system_applet_proxy.cpp
-    hle/service/am/system_applet_proxy.h
+    hle/service/am/service/all_system_applet_proxies_service.cpp
+    hle/service/am/service/all_system_applet_proxies_service.h
+    hle/service/am/service/applet_common_functions.cpp
+    hle/service/am/service/applet_common_functions.h
+    hle/service/am/service/application_accessor.cpp
+    hle/service/am/service/application_accessor.h
+    hle/service/am/service/application_creator.cpp
+    hle/service/am/service/application_creator.h
+    hle/service/am/service/application_functions.cpp
+    hle/service/am/service/application_functions.h
+    hle/service/am/service/application_proxy_service.cpp
+    hle/service/am/service/application_proxy_service.h
+    hle/service/am/service/application_proxy.cpp
+    hle/service/am/service/application_proxy.h
+    hle/service/am/service/audio_controller.cpp
+    hle/service/am/service/audio_controller.h
+    hle/service/am/service/common_state_getter.cpp
+    hle/service/am/service/common_state_getter.h
+    hle/service/am/service/cradle_firmware_updater.cpp
+    hle/service/am/service/cradle_firmware_updater.h
+    hle/service/am/service/debug_functions.cpp
+    hle/service/am/service/debug_functions.h
+    hle/service/am/service/display_controller.cpp
+    hle/service/am/service/display_controller.h
+    hle/service/am/service/global_state_controller.cpp
+    hle/service/am/service/global_state_controller.h
+    hle/service/am/service/home_menu_functions.cpp
+    hle/service/am/service/home_menu_functions.h
+    hle/service/am/service/library_applet_accessor.cpp
+    hle/service/am/service/library_applet_accessor.h
+    hle/service/am/service/library_applet_creator.cpp
+    hle/service/am/service/library_applet_creator.h
+    hle/service/am/service/library_applet_proxy.cpp
+    hle/service/am/service/library_applet_proxy.h
+    hle/service/am/service/library_applet_self_accessor.cpp
+    hle/service/am/service/library_applet_self_accessor.h
+    hle/service/am/service/lock_accessor.cpp
+    hle/service/am/service/lock_accessor.h
+    hle/service/am/service/process_winding_controller.cpp
+    hle/service/am/service/process_winding_controller.h
+    hle/service/am/service/self_controller.cpp
+    hle/service/am/service/self_controller.h
+    hle/service/am/service/storage_accessor.cpp
+    hle/service/am/service/storage_accessor.h
+    hle/service/am/service/storage.cpp
+    hle/service/am/service/storage.h
+    hle/service/am/service/system_applet_proxy.cpp
+    hle/service/am/service/system_applet_proxy.h
+    hle/service/am/service/window_controller.cpp
+    hle/service/am/service/window_controller.h
     hle/service/am/system_buffer_manager.cpp
     hle/service/am/system_buffer_manager.h
-    hle/service/am/spsm.cpp
-    hle/service/am/spsm.h
-    hle/service/am/storage_accessor.cpp
-    hle/service/am/storage_accessor.h
-    hle/service/am/storage.cpp
-    hle/service/am/storage.h
-    hle/service/am/window_controller.cpp
-    hle/service/am/window_controller.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp
@@ -823,6 +821,14 @@ add_library(core STATIC
     hle/service/nvnflinger/window.h
     hle/service/olsc/olsc.cpp
     hle/service/olsc/olsc.h
+    hle/service/omm/omm.cpp
+    hle/service/omm/omm.h
+    hle/service/omm/operation_mode_manager.cpp
+    hle/service/omm/operation_mode_manager.h
+    hle/service/omm/policy_manager_system.cpp
+    hle/service/omm/policy_manager_system.h
+    hle/service/omm/power_state_interface.cpp
+    hle/service/omm/power_state_interface.h
     hle/service/os/event.cpp
     hle/service/os/event.h
     hle/service/os/multi_wait_holder.cpp

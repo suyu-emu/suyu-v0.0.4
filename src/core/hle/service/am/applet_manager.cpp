@@ -12,6 +12,7 @@
 #include "core/hle/service/am/frontend/applet_controller.h"
 #include "core/hle/service/am/frontend/applet_mii_edit_types.h"
 #include "core/hle/service/am/frontend/applet_software_keyboard_types.h"
+#include "core/hle/service/am/service/storage.h"
 #include "hid_core/hid_types.h"
 
 namespace Service::AM {
@@ -303,8 +304,8 @@ void AppletManager::CreateAndInsertByFrontendAppletParameters(
     }
 
     // Applet was started by frontend, so it is foreground.
-    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
-    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+    applet->message_queue.PushMessage(AppletMessage::ChangeIntoForeground);
+    applet->message_queue.PushMessage(AppletMessage::FocusStateChanged);
     applet->focus_state = FocusState::InFocus;
 
     this->InsertApplet(std::move(applet));

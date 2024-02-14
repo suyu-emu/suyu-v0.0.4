@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <list>
 #include <mutex>
 
 #include "common/math_util.h"
@@ -18,7 +17,6 @@
 #include "core/hle/service/am/hid_registration.h"
 #include "core/hle/service/am/managed_layer_holder.h"
 #include "core/hle/service/am/process.h"
-#include "core/hle/service/am/storage.h"
 #include "core/hle/service/am/system_buffer_manager.h"
 
 namespace Service::AM {
@@ -76,8 +74,8 @@ struct Applet {
     u32 application_core_usage_mode{};
 
     // Application functions
-    bool gameplay_recording_supported{};
-    GameplayRecordingState gameplay_recording_state{GameplayRecordingState::Disabled};
+    bool game_play_recording_supported{};
+    GamePlayRecordingState game_play_recording_state{GamePlayRecordingState::Disabled};
     bool jit_service_launched{};
     bool is_running{};
     bool application_crash_report_enabled{};

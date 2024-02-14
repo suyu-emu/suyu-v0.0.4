@@ -15,11 +15,8 @@
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
-#include "core/hle/service/am/applet_message_queue.h"
-#include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/frontend/applet_cabinet.h"
 #include "core/hle/service/am/frontend/applet_controller.h"
 #include "core/hle/service/am/frontend/applet_error.h"
@@ -29,7 +26,7 @@
 #include "core/hle/service/am/frontend/applet_software_keyboard.h"
 #include "core/hle/service/am/frontend/applet_web_browser.h"
 #include "core/hle/service/am/frontend/applets.h"
-#include "core/hle/service/am/storage.h"
+#include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::AM::Frontend {
