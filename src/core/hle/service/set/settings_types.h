@@ -148,6 +148,28 @@ enum class KeyboardLayout : u32 {
     ChineseTraditional = 14,
 };
 
+// This is nn::settings::Language
+enum class Language : u32 {
+    Japanese,
+    AmericanEnglish,
+    French,
+    German,
+    Italian,
+    Spanish,
+    Chinese,
+    Korean,
+    Dutch,
+    Portiguesue,
+    Russian,
+    Taiwanese,
+    BritishEnglish,
+    CanadianFrench,
+    LatinAmericanSpanish,
+    SimplifiedCHhinese,
+    TraditionalChinese,
+    BrazilianPortuguese,
+};
+
 /// This is "nn::settings::LanguageCode", which is a NUL-terminated string stored in a u64.
 enum class LanguageCode : u64 {
     JA = 0x000000000000616A,

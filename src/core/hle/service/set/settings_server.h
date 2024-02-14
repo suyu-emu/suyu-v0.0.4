@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/set/settings_types.h"
 
@@ -11,6 +12,7 @@ class System;
 }
 
 namespace Service::Set {
+using KeyCodeMap = std::array<u8, 0x1000>;
 
 LanguageCode GetLanguageCodeFromIndex(std::size_t idx);
 
@@ -20,17 +22,30 @@ public:
     ~ISettingsServer() override;
 
 private:
-    void GetLanguageCode(HLERequestContext& ctx);
-    void GetAvailableLanguageCodes(HLERequestContext& ctx);
-    void MakeLanguageCode(HLERequestContext& ctx);
-    void GetAvailableLanguageCodes2(HLERequestContext& ctx);
-    void GetAvailableLanguageCodeCount(HLERequestContext& ctx);
-    void GetAvailableLanguageCodeCount2(HLERequestContext& ctx);
-    void GetQuestFlag(HLERequestContext& ctx);
-    void GetRegionCode(HLERequestContext& ctx);
-    void GetKeyCodeMap(HLERequestContext& ctx);
-    void GetKeyCodeMap2(HLERequestContext& ctx);
-    void GetDeviceNickName(HLERequestContext& ctx);
+    Result GetLanguageCode(Out<LanguageCode> out_language_code);
+
+    Result GetAvailableLanguageCodes(Out<s32> out_count,
+                                     OutArray<LanguageCode, BufferAttr_HipcPointer> language_codes);
+
+    Result MakeLanguageCode(Out<LanguageCode> out_language_code, Language language);
+
+    Result GetAvailableLanguageCodeCount(Out<s32> out_count);
+
+    Result GetRegionCode(Out<SystemRegionCode> out_region_code);
+
+    Result GetAvailableLanguageCodes2(
+        Out<s32> out_count, OutArray<LanguageCode, BufferAttr_HipcMapAlias> language_codes);
+
+    Result GetAvailableLanguageCodeCount2(Out<s32> out_count);
+
+    Result GetKeyCodeMap(OutLargeData<KeyCodeMap, BufferAttr_HipcMapAlias> out_key_code_map);
+
+    Result GetQuestFlag(Out<bool> out_quest_flag);
+
+    Result GetKeyCodeMap2(OutLargeData<KeyCodeMap, BufferAttr_HipcMapAlias> out_key_code_map);
+
+    Result GetDeviceNickName(
+        OutLargeData<std::array<u8, 0x80>, BufferAttr_HipcMapAlias> out_device_name);
 };
 
 } // namespace Service::Set
