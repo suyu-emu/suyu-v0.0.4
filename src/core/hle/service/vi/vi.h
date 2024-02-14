@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "common/common_types.h"
-
 namespace Core {
 class System;
 }

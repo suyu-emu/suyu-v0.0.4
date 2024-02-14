@@ -16,11 +16,11 @@ class Nvnflinger;
 
 namespace Service::VI {
 
-class VI_S final : public ServiceFramework<VI_S> {
+class IApplicationRootService final : public ServiceFramework<IApplicationRootService> {
 public:
-    explicit VI_S(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
-                  Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_);
-    ~VI_S() override;
+    explicit IApplicationRootService(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
+                                     Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_);
+    ~IApplicationRootService() override;
 
 private:
     void GetDisplayService(HLERequestContext& ctx);
