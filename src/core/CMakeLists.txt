@@ -969,6 +969,8 @@ add_library(core STATIC
     hle/service/vi/manager_display_service.h
     hle/service/vi/manager_root_service.cpp
     hle/service/vi/manager_root_service.h
+    hle/service/vi/service_creator.cpp
+    hle/service/vi/service_creator.h
     hle/service/vi/system_display_service.cpp
     hle/service/vi/system_display_service.h
     hle/service/vi/system_root_service.cpp

@@ -23,7 +23,7 @@ enum class Permission {
 
 /// A policy type that may be requested via GetDisplayService and
 /// GetDisplayServiceWithProxyNameExchange
-enum class Policy {
+enum class Policy : u32 {
     User,
     Compositor,
 };
