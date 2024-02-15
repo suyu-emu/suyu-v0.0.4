@@ -3,141 +3,18 @@
 
 #include <memory>
 
-#include "common/logging/log.h"
-#include "core/core.h"
-#include "core/hle/kernel/k_event.h"
 #include "core/hle/service/btm/btm.h"
-#include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/btm/btm_debug.h"
+#include "core/hle/service/btm/btm_system.h"
+#include "core/hle/service/btm/btm_user.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Service::BTM {
 
-class IBtmUserCore final : public ServiceFramework<IBtmUserCore> {
+class IBtm final : public ServiceFramework<IBtm> {
 public:
-    explicit IBtmUserCore(Core::System& system_)
-        : ServiceFramework{system_, "IBtmUserCore"}, service_context{system_, "IBtmUserCore"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IBtmUserCore::AcquireBleScanEvent, "AcquireBleScanEvent"},
-            {1, nullptr, "GetBleScanFilterParameter"},
-            {2, nullptr, "GetBleScanFilterParameter2"},
-            {3, nullptr, "StartBleScanForGeneral"},
-            {4, nullptr, "StopBleScanForGeneral"},
-            {5, nullptr, "GetBleScanResultsForGeneral"},
-            {6, nullptr, "StartBleScanForPaired"},
-            {7, nullptr, "StopBleScanForPaired"},
-            {8, nullptr, "StartBleScanForSmartDevice"},
-            {9, nullptr, "StopBleScanForSmartDevice"},
-            {10, nullptr, "GetBleScanResultsForSmartDevice"},
-            {17, &IBtmUserCore::AcquireBleConnectionEvent, "AcquireBleConnectionEvent"},
-            {18, nullptr, "BleConnect"},
-            {19, nullptr, "BleDisconnect"},
-            {20, nullptr, "BleGetConnectionState"},
-            {21, nullptr, "AcquireBlePairingEvent"},
-            {22, nullptr, "BlePairDevice"},
-            {23, nullptr, "BleUnPairDevice"},
-            {24, nullptr, "BleUnPairDevice2"},
-            {25, nullptr, "BleGetPairedDevices"},
-            {26, &IBtmUserCore::AcquireBleServiceDiscoveryEvent, "AcquireBleServiceDiscoveryEvent"},
-            {27, nullptr, "GetGattServices"},
-            {28, nullptr, "GetGattService"},
-            {29, nullptr, "GetGattIncludedServices"},
-            {30, nullptr, "GetBelongingGattService"},
-            {31, nullptr, "GetGattCharacteristics"},
-            {32, nullptr, "GetGattDescriptors"},
-            {33, &IBtmUserCore::AcquireBleMtuConfigEvent, "AcquireBleMtuConfigEvent"},
-            {34, nullptr, "ConfigureBleMtu"},
-            {35, nullptr, "GetBleMtu"},
-            {36, nullptr, "RegisterBleGattDataPath"},
-            {37, nullptr, "UnregisterBleGattDataPath"},
-        };
-        // clang-format on
-        RegisterHandlers(functions);
-
-        scan_event = service_context.CreateEvent("IBtmUserCore:ScanEvent");
-        connection_event = service_context.CreateEvent("IBtmUserCore:ConnectionEvent");
-        service_discovery_event = service_context.CreateEvent("IBtmUserCore:DiscoveryEvent");
-        config_event = service_context.CreateEvent("IBtmUserCore:ConfigEvent");
-    }
-
-    ~IBtmUserCore() override {
-        service_context.CloseEvent(scan_event);
-        service_context.CloseEvent(connection_event);
-        service_context.CloseEvent(service_discovery_event);
-        service_context.CloseEvent(config_event);
-    }
-
-private:
-    void AcquireBleScanEvent(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3, 1};
-        rb.Push(ResultSuccess);
-        rb.Push(true);
-        rb.PushCopyObjects(scan_event->GetReadableEvent());
-    }
-
-    void AcquireBleConnectionEvent(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3, 1};
-        rb.Push(ResultSuccess);
-        rb.Push(true);
-        rb.PushCopyObjects(connection_event->GetReadableEvent());
-    }
-
-    void AcquireBleServiceDiscoveryEvent(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3, 1};
-        rb.Push(ResultSuccess);
-        rb.Push(true);
-        rb.PushCopyObjects(service_discovery_event->GetReadableEvent());
-    }
-
-    void AcquireBleMtuConfigEvent(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3, 1};
-        rb.Push(ResultSuccess);
-        rb.Push(true);
-        rb.PushCopyObjects(config_event->GetReadableEvent());
-    }
-
-    KernelHelpers::ServiceContext service_context;
-
-    Kernel::KEvent* scan_event;
-    Kernel::KEvent* connection_event;
-    Kernel::KEvent* service_discovery_event;
-    Kernel::KEvent* config_event;
-};
-
-class BTM_USR final : public ServiceFramework<BTM_USR> {
-public:
-    explicit BTM_USR(Core::System& system_) : ServiceFramework{system_, "btm:u"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &BTM_USR::GetCore, "GetCore"},
-        };
-        // clang-format on
-        RegisterHandlers(functions);
-    }
-
-private:
-    void GetCore(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IBtmUserCore>(system);
-    }
-};
-
-class BTM final : public ServiceFramework<BTM> {
-public:
-    explicit BTM(Core::System& system_) : ServiceFramework{system_, "btm"} {
+    explicit IBtm(Core::System& system_) : ServiceFramework{system_, "btm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetState"},
@@ -232,144 +109,13 @@ public:
     }
 };
 
-class BTM_DBG final : public ServiceFramework<BTM_DBG> {
-public:
-    explicit BTM_DBG(Core::System& system_) : ServiceFramework{system_, "btm:dbg"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, nullptr, "AcquireDiscoveryEvent"},
-            {1, nullptr, "StartDiscovery"},
-            {2, nullptr, "CancelDiscovery"},
-            {3, nullptr, "GetDeviceProperty"},
-            {4, nullptr, "CreateBond"},
-            {5, nullptr, "CancelBond"},
-            {6, nullptr, "SetTsiMode"},
-            {7, nullptr, "GeneralTest"},
-            {8, nullptr, "HidConnect"},
-            {9, nullptr, "GeneralGet"},
-            {10, nullptr, "GetGattClientDisconnectionReason"},
-            {11, nullptr, "GetBleConnectionParameter"},
-            {12, nullptr, "GetBleConnectionParameterRequest"},
-            {13, nullptr, "Unknown13"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-};
-
-class IBtmSystemCore final : public ServiceFramework<IBtmSystemCore> {
-public:
-    explicit IBtmSystemCore(Core::System& system_) : ServiceFramework{system_, "IBtmSystemCore"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IBtmSystemCore::StartGamepadPairing, "StartGamepadPairing"},
-            {1, &IBtmSystemCore::CancelGamepadPairing, "CancelGamepadPairing"},
-            {2, nullptr, "ClearGamepadPairingDatabase"},
-            {3, nullptr, "GetPairedGamepadCount"},
-            {4, nullptr, "EnableRadio"},
-            {5, nullptr, "DisableRadio"},
-            {6, &IBtmSystemCore::IsRadioEnabled, "IsRadioEnabled"},
-            {7, nullptr, "AcquireRadioEvent"},
-            {8, nullptr, "AcquireGamepadPairingEvent"},
-            {9, nullptr, "IsGamepadPairingStarted"},
-            {10, nullptr, "StartAudioDeviceDiscovery"},
-            {11, nullptr, "StopAudioDeviceDiscovery"},
-            {12, nullptr, "IsDiscoveryingAudioDevice"},
-            {13, nullptr, "GetDiscoveredAudioDevice"},
-            {14, nullptr, "AcquireAudioDeviceConnectionEvent"},
-            {15, nullptr, "ConnectAudioDevice"},
-            {16, nullptr, "IsConnectingAudioDevice"},
-            {17, &IBtmSystemCore::GetConnectedAudioDevices, "GetConnectedAudioDevices"},
-            {18, nullptr, "DisconnectAudioDevice"},
-            {19, nullptr, "AcquirePairedAudioDeviceInfoChangedEvent"},
-            {20, &IBtmSystemCore::GetPairedAudioDevices, "GetPairedAudioDevices"},
-            {21, nullptr, "RemoveAudioDevicePairing"},
-            {22, &IBtmSystemCore::RequestAudioDeviceConnectionRejection, "RequestAudioDeviceConnectionRejection"},
-            {23, &IBtmSystemCore::CancelAudioDeviceConnectionRejection, "CancelAudioDeviceConnectionRejection"}
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void IsRadioEnabled(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_BTM, "(STUBBED) called"); // Spams a lot when controller applet is running
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push(true);
-    }
-
-    void StartGamepadPairing(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void CancelGamepadPairing(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void CancelAudioDeviceConnectionRejection(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void GetConnectedAudioDevices(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push<u32>(0);
-    }
-
-    void GetPairedAudioDevices(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push<u32>(0);
-    }
-
-    void RequestAudioDeviceConnectionRejection(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-};
-
-class BTM_SYS final : public ServiceFramework<BTM_SYS> {
-public:
-    explicit BTM_SYS(Core::System& system_) : ServiceFramework{system_, "btm:sys"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &BTM_SYS::GetCore, "GetCore"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void GetCore(HLERequestContext& ctx) {
-        LOG_WARNING(Service_BTM, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IBtmSystemCore>(system);
-    }
-};
-
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("btm", std::make_shared<BTM>(system));
-    server_manager->RegisterNamedService("btm:dbg", std::make_shared<BTM_DBG>(system));
-    server_manager->RegisterNamedService("btm:sys", std::make_shared<BTM_SYS>(system));
-    server_manager->RegisterNamedService("btm:u", std::make_shared<BTM_USR>(system));
+    server_manager->RegisterNamedService("btm", std::make_shared<IBtm>(system));
+    server_manager->RegisterNamedService("btm:dbg", std::make_shared<IBtmDebug>(system));
+    server_manager->RegisterNamedService("btm:sys", std::make_shared<IBtmSystem>(system));
+    server_manager->RegisterNamedService("btm:u", std::make_shared<IBtmUser>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 
