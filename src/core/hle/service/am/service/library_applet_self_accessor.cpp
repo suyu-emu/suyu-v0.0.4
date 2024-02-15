@@ -284,17 +284,17 @@ Result ILibraryAppletSelfAccessor::GetCurrentApplicationId(Out<u64> out_applicat
 }
 
 Result ILibraryAppletSelfAccessor::GetMainAppletAvailableUsers(
-    Out<bool> out_no_users_available, Out<s32> out_users_count,
+    Out<bool> out_can_select_any_user, Out<s32> out_users_count,
     OutArray<Common::UUID, BufferAttr_HipcMapAlias> out_users) {
     const Service::Account::ProfileManager manager{};
 
-    *out_no_users_available = true;
+    *out_can_select_any_user = false;
     *out_users_count = -1;
 
     LOG_INFO(Service_AM, "called");
 
     if (manager.GetUserCount() > 0) {
-        *out_no_users_available = false;
+        *out_can_select_any_user = true;
         *out_users_count = static_cast<s32>(manager.GetUserCount());
 
         const auto users = manager.GetAllUsers();
