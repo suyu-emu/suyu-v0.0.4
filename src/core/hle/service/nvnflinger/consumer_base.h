@@ -27,7 +27,7 @@ public:
     void Abandon();
 
 protected:
-    explicit ConsumerBase(std::unique_ptr<BufferQueueConsumer> consumer_);
+    explicit ConsumerBase(std::shared_ptr<BufferQueueConsumer> consumer_);
     ~ConsumerBase() override;
 
     void OnFrameAvailable(const BufferItem& item) override;
@@ -54,7 +54,7 @@ protected:
 
     bool is_abandoned{};
 
-    std::unique_ptr<BufferQueueConsumer> consumer;
+    std::shared_ptr<BufferQueueConsumer> consumer;
 
     mutable std::mutex mutex;
 };

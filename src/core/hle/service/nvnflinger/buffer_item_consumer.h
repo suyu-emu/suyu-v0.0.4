@@ -19,7 +19,7 @@ class BufferItem;
 
 class BufferItemConsumer final : public ConsumerBase {
 public:
-    explicit BufferItemConsumer(std::unique_ptr<BufferQueueConsumer> consumer);
+    explicit BufferItemConsumer(std::shared_ptr<BufferQueueConsumer> consumer);
     Status AcquireBuffer(BufferItem* item, std::chrono::nanoseconds present_when,
                          bool wait_for_fence = true);
     Status ReleaseBuffer(const BufferItem& item, const Fence& release_fence);

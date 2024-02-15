@@ -68,7 +68,7 @@ static_assert(sizeof(DisplayInfo) == 0x60, "DisplayInfo has wrong size");
 
 class NativeWindow final {
 public:
-    constexpr explicit NativeWindow(u32 id_) : id{id_} {}
+    constexpr explicit NativeWindow(s32 id_) : id{static_cast<u64>(id_)} {}
     constexpr explicit NativeWindow(const NativeWindow& other) = default;
 
 private:

@@ -5,21 +5,15 @@
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/nvnflinger/ui/fence.h"
 #include "core/hle/service/service.h"
-#include "core/hle/service/vi/fbshare_buffer_manager.h"
-
-namespace Service::Nvnflinger {
-class Nvnflinger;
-} // namespace Service::Nvnflinger
+#include "core/hle/service/vi/shared_buffer_manager.h"
 
 namespace Service::VI {
 
-class FbshareBufferManager;
+class Container;
 
 class ISystemDisplayService final : public ServiceFramework<ISystemDisplayService> {
 public:
-    explicit ISystemDisplayService(Core::System& system_,
-                                   std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
-                                   std::shared_ptr<FbshareBufferManager> shared_buffer_manager);
+    explicit ISystemDisplayService(Core::System& system_, std::shared_ptr<Container> container);
     ~ISystemDisplayService() override;
 
 private:
@@ -42,10 +36,10 @@ private:
     Result PresentSharedFrameBuffer(android::Fence fence, Common::Rectangle<s32> crop_region,
                                     u32 window_transform, s32 swap_interval, u64 layer_id,
                                     s64 surface_id);
+    Result CancelSharedFrameBuffer(u64 layer_id, s64 slot);
 
 private:
-    const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
-    const std::shared_ptr<FbshareBufferManager> m_shared_buffer_manager;
+    const std::shared_ptr<Container> m_container;
 };
 
 } // namespace Service::VI

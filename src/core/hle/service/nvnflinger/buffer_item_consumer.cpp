@@ -12,7 +12,7 @@
 
 namespace Service::android {
 
-BufferItemConsumer::BufferItemConsumer(std::unique_ptr<BufferQueueConsumer> consumer_)
+BufferItemConsumer::BufferItemConsumer(std::shared_ptr<BufferQueueConsumer> consumer_)
     : ConsumerBase{std::move(consumer_)} {}
 
 Status BufferItemConsumer::AcquireBuffer(BufferItem* item, std::chrono::nanoseconds present_when,

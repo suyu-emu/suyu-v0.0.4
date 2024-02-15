@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <map>
+#include <set>
+
 #include "core/hle/service/cmif_types.h"
+#include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/os/event.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/vi/vi_types.h"
 
@@ -10,28 +15,25 @@ class KReadableEvent;
 }
 
 namespace Service::Nvnflinger {
-class Nvnflinger;
 class IHOSBinderDriver;
-} // namespace Service::Nvnflinger
+}
 
 namespace Service::VI {
 
-class FbshareBufferManager;
+class Container;
 class IManagerDisplayService;
 class ISystemDisplayService;
 
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
-    IApplicationDisplayService(Core::System& system_,
-                               std::shared_ptr<Nvnflinger::IHOSBinderDriver> binder_service,
-                               std::shared_ptr<FbshareBufferManager> shared_buffer_manager);
+    IApplicationDisplayService(Core::System& system_, std::shared_ptr<Container> container);
     ~IApplicationDisplayService() override;
 
-    std::shared_ptr<FbshareBufferManager> GetSharedBufferManager() const {
-        return m_shared_buffer_manager;
+    std::shared_ptr<Container> GetContainer() const {
+        return m_container;
     }
 
-private:
+public:
     Result GetRelayService(Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_relay_service);
     Result GetSystemDisplayService(
         Out<SharedPointer<ISystemDisplayService>> out_system_display_service);
@@ -66,10 +68,13 @@ private:
                                                    s64 width, s64 height);
 
 private:
-    const std::shared_ptr<Nvnflinger::IHOSBinderDriver> m_binder_service;
-    const std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger;
-    const std::shared_ptr<FbshareBufferManager> m_shared_buffer_manager;
-    std::vector<u64> m_stray_layer_ids;
+    const std::shared_ptr<Container> m_container;
+
+    KernelHelpers::ServiceContext m_context;
+    std::mutex m_lock{};
+    std::set<u64> m_open_layer_ids{};
+    std::set<u64> m_stray_layer_ids{};
+    std::map<u64, Event> m_display_vsync_events{};
     bool m_vsync_event_fetched{false};
 };
 

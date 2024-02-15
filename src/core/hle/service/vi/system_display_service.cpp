@@ -3,17 +3,15 @@
 
 #include "common/settings.h"
 #include "core/hle/service/cmif_serialization.h"
+#include "core/hle/service/vi/container.h"
 #include "core/hle/service/vi/system_display_service.h"
 #include "core/hle/service/vi/vi_types.h"
 
 namespace Service::VI {
 
-ISystemDisplayService::ISystemDisplayService(
-    Core::System& system_, std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
-    std::shared_ptr<FbshareBufferManager> shared_buffer_manager)
-    : ServiceFramework{system_, "ISystemDisplayService"},
-      m_surface_flinger{std::move(surface_flinger)},
-      m_shared_buffer_manager{std::move(shared_buffer_manager)} {
+ISystemDisplayService::ISystemDisplayService(Core::System& system_,
+                                             std::shared_ptr<Container> container)
+    : ServiceFramework{system_, "ISystemDisplayService"}, m_container{std::move(container)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1200, nullptr, "GetZOrderCountMin"},
@@ -61,7 +59,7 @@ ISystemDisplayService::ISystemDisplayService(
         {8255, C<&ISystemDisplayService::PresentSharedFrameBuffer>, "PresentSharedFrameBuffer"},
         {8256, C<&ISystemDisplayService::GetSharedFrameBufferAcquirableEvent>, "GetSharedFrameBufferAcquirableEvent"},
         {8257, nullptr, "FillSharedFrameBufferColor"},
-        {8258, nullptr, "CancelSharedFrameBuffer"},
+        {8258, C<&ISystemDisplayService::CancelSharedFrameBuffer>, "CancelSharedFrameBuffer"},
         {9000, nullptr, "GetDp2hdmiController"},
     };
     // clang-format on
@@ -106,7 +104,7 @@ Result ISystemDisplayService::GetSharedBufferMemoryHandleId(
     ClientAppletResourceUserId aruid) {
     LOG_INFO(Service_VI, "called. buffer_id={}, aruid={:#x}", buffer_id, aruid.pid);
 
-    R_RETURN(m_shared_buffer_manager->GetSharedBufferMemoryHandleId(
+    R_RETURN(m_container->GetSharedBufferManager()->GetSharedBufferMemoryHandleId(
         out_size, out_nvmap_handle, out_pool_layout, buffer_id, aruid.pid));
 }
 
@@ -124,8 +122,8 @@ Result ISystemDisplayService::AcquireSharedFrameBuffer(Out<android::Fence> out_f
                                                        Out<std::array<s32, 4>> out_slots,
                                                        Out<s64> out_target_slot, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_shared_buffer_manager->AcquireSharedFrameBuffer(out_fence, *out_slots,
-                                                               out_target_slot, layer_id));
+    R_RETURN(m_container->GetSharedBufferManager()->AcquireSharedFrameBuffer(
+        out_fence, *out_slots, out_target_slot, layer_id));
 }
 
 Result ISystemDisplayService::PresentSharedFrameBuffer(android::Fence fence,
@@ -133,14 +131,20 @@ Result ISystemDisplayService::PresentSharedFrameBuffer(android::Fence fence,
                                                        u32 window_transform, s32 swap_interval,
                                                        u64 layer_id, s64 surface_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_shared_buffer_manager->PresentSharedFrameBuffer(
+    R_RETURN(m_container->GetSharedBufferManager()->PresentSharedFrameBuffer(
         fence, crop_region, window_transform, swap_interval, layer_id, surface_id));
 }
 
 Result ISystemDisplayService::GetSharedFrameBufferAcquirableEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event, u64 layer_id) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(m_shared_buffer_manager->GetSharedFrameBufferAcquirableEvent(out_event, layer_id));
+    R_RETURN(m_container->GetSharedBufferManager()->GetSharedFrameBufferAcquirableEvent(out_event,
+                                                                                        layer_id));
+}
+
+Result ISystemDisplayService::CancelSharedFrameBuffer(u64 layer_id, s64 slot) {
+    LOG_DEBUG(Service_VI, "called");
+    R_RETURN(m_container->GetSharedBufferManager()->CancelSharedFrameBuffer(layer_id, slot));
 }
 
 } // namespace Service::VI

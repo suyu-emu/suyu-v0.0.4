@@ -47,6 +47,7 @@
 #include "core/hle/service/psc/time/system_clock.h"
 #include "core/hle/service/psc/time/time_zone_service.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/services.h"
 #include "core/hle/service/set/system_settings_server.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/internal_network/network.h"
@@ -310,7 +311,8 @@ struct System::Impl {
         audio_core = std::make_unique<AudioCore::AudioCore>(system);
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
-        services = std::make_unique<Service::Services>(service_manager, system);
+        services =
+            std::make_unique<Service::Services>(service_manager, system, stop_event.get_token());
 
         is_powered_on = true;
         exit_locked = false;
@@ -458,6 +460,7 @@ struct System::Impl {
             gpu_core->NotifyShutdown();
         }
 
+        stop_event.request_stop();
         core_timing.SyncPause(false);
         Network::CancelPendingSocketOperations();
         kernel.SuspendEmulation(true);
@@ -478,6 +481,7 @@ struct System::Impl {
         cpu_manager.Shutdown();
         debugger.reset();
         kernel.Shutdown();
+        stop_event = {};
         Network::RestartSocketOperations();
 
         if (auto room_member = room_network.GetRoomMember().lock()) {
@@ -613,6 +617,7 @@ struct System::Impl {
 
     ExecuteProgramCallback execute_program_callback;
     ExitCallback exit_callback;
+    std::stop_source stop_event;
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
     std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};

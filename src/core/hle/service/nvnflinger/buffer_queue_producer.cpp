@@ -6,12 +6,9 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "common/settings.h"
-#include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
@@ -19,7 +16,6 @@
 #include "core/hle/service/nvnflinger/parcel.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
 #include "core/hle/service/nvnflinger/window.h"
-#include "core/hle/service/vi/vi.h"
 
 namespace Service::android {
 
@@ -807,13 +803,31 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
-void BufferQueueProducer::Transact(TransactionId code, u32 flags, std::span<const u8> parcel_data,
-                                   std::span<u8> parcel_reply) {
+void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
+                                   std::span<u8> parcel_reply, u32 flags) {
+    // Values used by BnGraphicBufferProducer onTransact
+    enum class TransactionId {
+        RequestBuffer = 1,
+        SetBufferCount = 2,
+        DequeueBuffer = 3,
+        DetachBuffer = 4,
+        DetachNextBuffer = 5,
+        AttachBuffer = 6,
+        QueueBuffer = 7,
+        CancelBuffer = 8,
+        Query = 9,
+        Connect = 10,
+        Disconnect = 11,
+        AllocateBuffers = 13,
+        SetPreallocatedBuffer = 14,
+        GetBufferHistory = 17,
+    };
+
     Status status{Status::NoError};
     InputParcel parcel_in{parcel_data};
     OutputParcel parcel_out{};
 
-    switch (code) {
+    switch (static_cast<TransactionId>(code)) {
     case TransactionId::Connect: {
         const auto enable_listener = parcel_in.Read<bool>();
         const auto api = parcel_in.Read<NativeWindowApi>();
@@ -923,8 +937,8 @@ void BufferQueueProducer::Transact(TransactionId code, u32 flags, std::span<cons
                 std::min(parcel_reply.size(), serialized.size()));
 }
 
-Kernel::KReadableEvent& BufferQueueProducer::GetNativeHandle() {
-    return buffer_wait_event->GetReadableEvent();
+Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
+    return &buffer_wait_event->GetReadableEvent();
 }
 
 } // namespace Service::android
