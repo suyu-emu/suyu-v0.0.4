@@ -71,7 +71,7 @@ private:
         ErrorCode error_code, InLargeData<ErrorContext, BufferAttr_HipcMapAlias> error_context);
     Result GetMainAppletApplicationDesiredLanguage(Out<u64> out_desired_language);
     Result GetCurrentApplicationId(Out<u64> out_application_id);
-    Result GetMainAppletAvailableUsers(Out<bool> out_no_users_available, Out<s32> out_users_count,
+    Result GetMainAppletAvailableUsers(Out<bool> out_can_select_any_user, Out<s32> out_users_count,
                                        OutArray<Common::UUID, BufferAttr_HipcMapAlias> out_users);
     Result ShouldSetGpuTimeSliceManually(Out<bool> out_should_set_gpu_time_slice_manually);
     Result Cmd160(Out<u64> out_unknown0);
