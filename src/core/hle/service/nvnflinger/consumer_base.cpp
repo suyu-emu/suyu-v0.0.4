@@ -14,7 +14,7 @@
 
 namespace Service::android {
 
-ConsumerBase::ConsumerBase(std::unique_ptr<BufferQueueConsumer> consumer_)
+ConsumerBase::ConsumerBase(std::shared_ptr<BufferQueueConsumer> consumer_)
     : consumer{std::move(consumer_)} {}
 
 ConsumerBase::~ConsumerBase() {

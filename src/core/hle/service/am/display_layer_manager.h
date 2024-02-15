@@ -17,13 +17,10 @@ namespace Kernel {
 class KProcess;
 }
 
-namespace Service::Nvnflinger {
-class Nvnflinger;
-}
-
 namespace Service::VI {
 class IApplicationDisplayService;
-}
+class IManagerDisplayService;
+} // namespace Service::VI
 
 namespace Service::AM {
 
@@ -36,8 +33,8 @@ public:
                     LibraryAppletMode mode);
     void Finalize();
 
-    Result CreateManagedDisplayLayer(u64* out_layer);
-    Result CreateManagedDisplaySeparableLayer(u64* out_layer, u64* out_recording_layer);
+    Result CreateManagedDisplayLayer(u64* out_layer_id);
+    Result CreateManagedDisplaySeparableLayer(u64* out_layer_id, u64* out_recording_layer_id);
 
     Result IsSystemBufferSharingEnabled();
     Result GetSystemSharedLayerHandle(u64* out_system_shared_buffer_id,
@@ -50,8 +47,8 @@ public:
 
 private:
     Kernel::KProcess* m_process{};
-    std::shared_ptr<Nvnflinger::Nvnflinger> m_surface_flinger{};
     std::shared_ptr<VI::IApplicationDisplayService> m_display_service{};
+    std::shared_ptr<VI::IManagerDisplayService> m_manager_display_service{};
     std::set<u64> m_managed_display_layers{};
     std::set<u64> m_managed_display_recording_layers{};
     u64 m_system_shared_buffer_id{};

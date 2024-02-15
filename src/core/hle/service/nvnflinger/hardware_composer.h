@@ -3,35 +3,29 @@
 
 #pragma once
 
-#include <memory>
 #include <boost/container/flat_map.hpp>
 
 #include "core/hle/service/nvnflinger/buffer_item.h"
+#include "core/hle/service/nvnflinger/display.h"
 
 namespace Service::Nvidia::Devices {
 class nvdisp_disp0;
 }
 
-namespace Service::VI {
-class Display;
-class Layer;
-} // namespace Service::VI
-
 namespace Service::Nvnflinger {
 
-using LayerId = u64;
+using ConsumerId = s32;
 
 class HardwareComposer {
 public:
     explicit HardwareComposer();
     ~HardwareComposer();
 
-    u32 ComposeLocked(f32* out_speed_scale, VI::Display& display,
+    u32 ComposeLocked(f32* out_speed_scale, Display& display,
                       Nvidia::Devices::nvdisp_disp0& nvdisp);
-    void RemoveLayerLocked(VI::Display& display, LayerId layer_id);
+    void RemoveLayerLocked(Display& display, ConsumerId consumer_id);
 
 private:
-    // TODO: do we want to track frame number in vi instead?
     u64 m_frame_number{0};
 
 private:
@@ -49,11 +43,11 @@ private:
         CachedBufferReused,
     };
 
-    boost::container::flat_map<LayerId, Framebuffer> m_framebuffers{};
+    boost::container::flat_map<ConsumerId, Framebuffer> m_framebuffers{};
 
 private:
-    bool TryAcquireFramebufferLocked(VI::Layer& layer, Framebuffer& framebuffer);
-    CacheStatus CacheFramebufferLocked(VI::Layer& layer, LayerId layer_id);
+    bool TryAcquireFramebufferLocked(Layer& layer, Framebuffer& framebuffer);
+    CacheStatus CacheFramebufferLocked(Layer& layer, ConsumerId consumer_id);
 };
 
 } // namespace Service::Nvnflinger

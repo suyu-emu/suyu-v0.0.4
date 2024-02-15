@@ -2,23 +2,21 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/nvnflinger/nvnflinger.h"
+#include "core/hle/service/vi/container.h"
 #include "core/hle/service/vi/manager_display_service.h"
-#include "core/hle/service/vi/vi_results.h"
 
 namespace Service::VI {
 
-IManagerDisplayService::IManagerDisplayService(
-    Core::System& system_, std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger)
-    : ServiceFramework{system_, "IManagerDisplayService"},
-      m_surface_flinger{std::move(surface_flinger)} {
+IManagerDisplayService::IManagerDisplayService(Core::System& system_,
+                                               std::shared_ptr<Container> container)
+    : ServiceFramework{system_, "IManagerDisplayService"}, m_container{std::move(container)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {200, nullptr, "AllocateProcessHeapBlock"},
         {201, nullptr, "FreeProcessHeapBlock"},
         {1102, nullptr, "GetDisplayResolution"},
         {2010, C<&IManagerDisplayService::CreateManagedLayer>, "CreateManagedLayer"},
-        {2011, nullptr, "DestroyManagedLayer"},
+        {2011, C<&IManagerDisplayService::DestroyManagedLayer>, "DestroyManagedLayer"},
         {2012, nullptr, "CreateStrayLayer"},
         {2050, nullptr, "CreateIndirectLayer"},
         {2051, nullptr, "DestroyIndirectLayer"},
@@ -103,19 +101,30 @@ IManagerDisplayService::IManagerDisplayService(
 
 IManagerDisplayService::~IManagerDisplayService() = default;
 
-Result IManagerDisplayService::CreateManagedLayer(Out<u64> out_layer_id, u32 unknown,
-                                                  u64 display_id, AppletResourceUserId aruid) {
-    LOG_WARNING(Service_VI, "(STUBBED) called. unknown={}, display={}, aruid={}", unknown,
-                display_id, aruid.pid);
+Result IManagerDisplayService::CreateSharedLayerSession(Kernel::KProcess* owner_process,
+                                                        u64* out_buffer_id, u64* out_layer_handle,
+                                                        u64 display_id, bool enable_blending) {
+    R_RETURN(m_container->GetSharedBufferManager()->CreateSession(
+        owner_process, out_buffer_id, out_layer_handle, display_id, enable_blending));
+}
 
-    const auto layer_id = m_surface_flinger->CreateLayer(display_id);
-    if (!layer_id) {
-        LOG_ERROR(Service_VI, "Layer not found! display={}", display_id);
-        R_THROW(VI::ResultNotFound);
-    }
+void IManagerDisplayService::DestroySharedLayerSession(Kernel::KProcess* owner_process) {
+    m_container->GetSharedBufferManager()->DestroySession(owner_process);
+}
 
-    *out_layer_id = *layer_id;
-    R_SUCCEED();
+Result IManagerDisplayService::SetLayerBlending(bool enabled, u64 layer_id) {
+    R_RETURN(m_container->SetLayerBlending(layer_id, enabled));
+}
+
+Result IManagerDisplayService::CreateManagedLayer(Out<u64> out_layer_id, u32 flags, u64 display_id,
+                                                  AppletResourceUserId aruid) {
+    LOG_DEBUG(Service_VI, "called. flags={}, display={}, aruid={}", flags, display_id, aruid.pid);
+    R_RETURN(m_container->CreateManagedLayer(out_layer_id, display_id, aruid.pid));
+}
+
+Result IManagerDisplayService::DestroyManagedLayer(u64 layer_id) {
+    LOG_DEBUG(Service_VI, "called. layer_id={}", layer_id);
+    R_RETURN(m_container->DestroyManagedLayer(layer_id));
 }
 
 Result IManagerDisplayService::AddToLayerStack(u32 stack_id, u64 layer_id) {
@@ -124,8 +133,8 @@ Result IManagerDisplayService::AddToLayerStack(u32 stack_id, u64 layer_id) {
 }
 
 Result IManagerDisplayService::SetLayerVisibility(bool visible, u64 layer_id) {
-    LOG_WARNING(Service_VI, "(STUBBED) called, layer_id={}, visible={}", layer_id, visible);
-    R_SUCCEED();
+    LOG_DEBUG(Service_VI, "called, layer_id={}, visible={}", layer_id, visible);
+    R_RETURN(m_container->SetLayerVisibility(layer_id, visible));
 }
 
 } // namespace Service::VI

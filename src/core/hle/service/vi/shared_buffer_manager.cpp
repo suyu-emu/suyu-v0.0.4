@@ -11,8 +11,8 @@
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
-#include "core/hle/service/vi/fbshare_buffer_manager.h"
-#include "core/hle/service/vi/layer/vi_layer.h"
+#include "core/hle/service/vi/container.h"
+#include "core/hle/service/vi/shared_buffer_manager.h"
 #include "core/hle/service/vi/vi_results.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/host1x.h"
@@ -203,16 +203,15 @@ void MakeGraphicBuffer(android::BufferQueueProducer& producer, u32 slot, u32 han
 
 } // namespace
 
-FbshareBufferManager::FbshareBufferManager(Core::System& system,
-                                           std::shared_ptr<Nvnflinger::Nvnflinger> surface_flinger,
-                                           std::shared_ptr<Nvidia::Module> nvdrv)
-    : m_system(system), m_surface_flinger(std::move(surface_flinger)), m_nvdrv(std::move(nvdrv)) {}
+SharedBufferManager::SharedBufferManager(Core::System& system, Container& container,
+                                         std::shared_ptr<Nvidia::Module> nvdrv)
+    : m_system(system), m_container(container), m_nvdrv(std::move(nvdrv)) {}
 
-FbshareBufferManager::~FbshareBufferManager() = default;
+SharedBufferManager::~SharedBufferManager() = default;
 
-Result FbshareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* out_buffer_id,
-                                        u64* out_layer_handle, u64 display_id,
-                                        Nvnflinger::LayerBlending blending) {
+Result SharedBufferManager::CreateSession(Kernel::KProcess* owner_process, u64* out_buffer_id,
+                                          u64* out_layer_handle, u64 display_id,
+                                          bool enable_blending) {
     std::scoped_lock lk{m_guard};
 
     // Ensure we haven't already created.
@@ -237,7 +236,7 @@ Result FbshareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* ou
                                                  owner_process, m_system));
 
     // Create new session.
-    auto [it, was_emplaced] = m_sessions.emplace(aruid, FbshareSession{});
+    auto [it, was_emplaced] = m_sessions.emplace(aruid, SharedBufferSession{});
     auto& session = it->second;
 
     auto& container = m_nvdrv->GetContainer();
@@ -249,17 +248,18 @@ Result FbshareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* ou
                                   session.nvmap_fd, map_address, SharedBufferSize));
 
     // Create and open a layer for the display.
-    session.layer_id = m_surface_flinger->CreateLayer(m_display_id, blending).value();
-    m_surface_flinger->OpenLayer(session.layer_id);
+    s32 producer_binder_id;
+    R_TRY(m_container.CreateStrayLayer(std::addressof(producer_binder_id),
+                                       std::addressof(session.layer_id), display_id));
 
-    // Get the layer.
-    VI::Layer* layer = m_surface_flinger->FindLayer(m_display_id, session.layer_id);
-    ASSERT(layer != nullptr);
+    // Configure blending.
+    R_ASSERT(m_container.SetLayerBlending(session.layer_id, enable_blending));
 
     // Get the producer and set preallocated buffers.
-    auto& producer = layer->GetBufferQueue();
-    MakeGraphicBuffer(producer, 0, session.buffer_nvmap_handle);
-    MakeGraphicBuffer(producer, 1, session.buffer_nvmap_handle);
+    std::shared_ptr<android::BufferQueueProducer> producer;
+    R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), session.layer_id));
+    MakeGraphicBuffer(*producer, 0, session.buffer_nvmap_handle);
+    MakeGraphicBuffer(*producer, 1, session.buffer_nvmap_handle);
 
     // Assign outputs.
     *out_buffer_id = m_buffer_id;
@@ -269,7 +269,7 @@ Result FbshareBufferManager::Initialize(Kernel::KProcess* owner_process, u64* ou
     R_SUCCEED();
 }
 
-void FbshareBufferManager::Finalize(Kernel::KProcess* owner_process) {
+void SharedBufferManager::DestroySession(Kernel::KProcess* owner_process) {
     std::scoped_lock lk{m_guard};
 
     if (m_buffer_id == 0) {
@@ -285,7 +285,7 @@ void FbshareBufferManager::Finalize(Kernel::KProcess* owner_process) {
     auto& session = it->second;
 
     // Destroy the layer.
-    m_surface_flinger->DestroyLayer(session.layer_id);
+    R_ASSERT(m_container.DestroyStrayLayer(session.layer_id));
 
     // Close nvmap handle.
     FreeHandle(session.buffer_nvmap_handle, *m_nvdrv, session.nvmap_fd);
@@ -301,11 +301,11 @@ void FbshareBufferManager::Finalize(Kernel::KProcess* owner_process) {
     m_sessions.erase(it);
 }
 
-Result FbshareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
-                                                           s32* out_nvmap_handle,
-                                                           SharedMemoryPoolLayout* out_pool_layout,
-                                                           u64 buffer_id,
-                                                           u64 applet_resource_user_id) {
+Result SharedBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
+                                                          s32* out_nvmap_handle,
+                                                          SharedMemoryPoolLayout* out_pool_layout,
+                                                          u64 buffer_id,
+                                                          u64 applet_resource_user_id) {
     std::scoped_lock lk{m_guard};
 
     R_UNLESS(m_buffer_id > 0, VI::ResultNotFound);
@@ -319,36 +319,20 @@ Result FbshareBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
     R_SUCCEED();
 }
 
-Result FbshareBufferManager::GetLayerFromId(VI::Layer** out_layer, u64 layer_id) {
-    // Ensure the layer id is valid.
-    R_UNLESS(layer_id > 0, VI::ResultNotFound);
-
-    // Get the layer.
-    VI::Layer* layer = m_surface_flinger->FindLayer(m_display_id, layer_id);
-    R_UNLESS(layer != nullptr, VI::ResultNotFound);
-
-    // We succeeded.
-    *out_layer = layer;
-    R_SUCCEED();
-}
-
-Result FbshareBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
-                                                      std::array<s32, 4>& out_slot_indexes,
-                                                      s64* out_target_slot, u64 layer_id) {
+Result SharedBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
+                                                     std::array<s32, 4>& out_slot_indexes,
+                                                     s64* out_target_slot, u64 layer_id) {
     std::scoped_lock lk{m_guard};
 
-    // Get the layer.
-    VI::Layer* layer;
-    R_TRY(this->GetLayerFromId(std::addressof(layer), layer_id));
-
     // Get the producer.
-    auto& producer = layer->GetBufferQueue();
+    std::shared_ptr<android::BufferQueueProducer> producer;
+    R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
 
     // Get the next buffer from the producer.
     s32 slot;
-    R_UNLESS(producer.DequeueBuffer(std::addressof(slot), out_fence, SharedBufferAsync != 0,
-                                    SharedBufferWidth, SharedBufferHeight,
-                                    SharedBufferBlockLinearFormat, 0) == android::Status::NoError,
+    R_UNLESS(producer->DequeueBuffer(std::addressof(slot), out_fence, SharedBufferAsync != 0,
+                                     SharedBufferWidth, SharedBufferHeight,
+                                     SharedBufferBlockLinearFormat, 0) == android::Status::NoError,
              VI::ResultOperationFailed);
 
     // Assign remaining outputs.
@@ -359,27 +343,24 @@ Result FbshareBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
     R_SUCCEED();
 }
 
-Result FbshareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
-                                                      Common::Rectangle<s32> crop_region,
-                                                      u32 transform, s32 swap_interval,
-                                                      u64 layer_id, s64 slot) {
+Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
+                                                     Common::Rectangle<s32> crop_region,
+                                                     u32 transform, s32 swap_interval, u64 layer_id,
+                                                     s64 slot) {
     std::scoped_lock lk{m_guard};
 
-    // Get the layer.
-    VI::Layer* layer;
-    R_TRY(this->GetLayerFromId(std::addressof(layer), layer_id));
-
     // Get the producer.
-    auto& producer = layer->GetBufferQueue();
+    std::shared_ptr<android::BufferQueueProducer> producer;
+    R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
 
     // Request to queue the buffer.
     std::shared_ptr<android::GraphicBuffer> buffer;
-    R_UNLESS(producer.RequestBuffer(static_cast<s32>(slot), std::addressof(buffer)) ==
+    R_UNLESS(producer->RequestBuffer(static_cast<s32>(slot), std::addressof(buffer)) ==
                  android::Status::NoError,
              VI::ResultOperationFailed);
 
     ON_RESULT_FAILURE {
-        producer.CancelBuffer(static_cast<s32>(slot), fence);
+        producer->CancelBuffer(static_cast<s32>(slot), fence);
     };
 
     // Queue the buffer to the producer.
@@ -389,7 +370,7 @@ Result FbshareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
     input.fence = fence;
     input.transform = static_cast<android::NativeWindowTransform>(transform);
     input.swap_interval = swap_interval;
-    R_UNLESS(producer.QueueBuffer(static_cast<s32>(slot), input, std::addressof(output)) ==
+    R_UNLESS(producer->QueueBuffer(static_cast<s32>(slot), input, std::addressof(output)) ==
                  android::Status::NoError,
              VI::ResultOperationFailed);
 
@@ -397,25 +378,36 @@ Result FbshareBufferManager::PresentSharedFrameBuffer(android::Fence fence,
     R_SUCCEED();
 }
 
-Result FbshareBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadableEvent** out_event,
-                                                                 u64 layer_id) {
+Result SharedBufferManager::CancelSharedFrameBuffer(u64 layer_id, s64 slot) {
     std::scoped_lock lk{m_guard};
 
-    // Get the layer.
-    VI::Layer* layer;
-    R_TRY(this->GetLayerFromId(std::addressof(layer), layer_id));
-
     // Get the producer.
-    auto& producer = layer->GetBufferQueue();
+    std::shared_ptr<android::BufferQueueProducer> producer;
+    R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
 
-    // Set the event.
-    *out_event = std::addressof(producer.GetNativeHandle());
+    // Cancel.
+    producer->CancelBuffer(static_cast<s32>(slot), android::Fence::NoFence());
 
     // We succeeded.
     R_SUCCEED();
 }
 
-Result FbshareBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32* out_layer_index) {
+Result SharedBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadableEvent** out_event,
+                                                                u64 layer_id) {
+    std::scoped_lock lk{m_guard};
+
+    // Get the producer.
+    std::shared_ptr<android::BufferQueueProducer> producer;
+    R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
+
+    // Set the event.
+    *out_event = producer->GetNativeHandle({});
+
+    // We succeeded.
+    R_SUCCEED();
+}
+
+Result SharedBufferManager::WriteAppletCaptureBuffer(bool* out_was_written, s32* out_layer_index) {
     std::vector<u8> capture_buffer(m_system.GPU().GetAppletCaptureBuffer());
     Common::ScratchBuffer<u32> scratch;
 

@@ -4,12 +4,13 @@
 // Parts of this implementation were based on:
 // https://cs.android.com/android/platform/superproject/+/android-5.1.1_r38:frameworks/native/libs/gui/BufferQueueConsumer.cpp
 
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
+#include "core/hle/service/nvnflinger/parcel.h"
 #include "core/hle/service/nvnflinger/producer_listener.h"
-#include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
 
 namespace Service::android {
 
@@ -252,6 +253,79 @@ Status BufferQueueConsumer::GetReleasedBuffers(u64* out_slot_mask) {
     LOG_DEBUG(Service_Nvnflinger, "returning mask {}", mask);
     *out_slot_mask = mask;
     return Status::NoError;
+}
+
+void BufferQueueConsumer::Transact(u32 code, std::span<const u8> parcel_data,
+                                   std::span<u8> parcel_reply, u32 flags) {
+    // Values used by BnGraphicBufferConsumer onTransact
+    enum class TransactionId {
+        AcquireBuffer = 1,
+        DetachBuffer = 2,
+        AttachBuffer = 3,
+        ReleaseBuffer = 4,
+        ConsumerConnect = 5,
+        ConsumerDisconnect = 6,
+        GetReleasedBuffers = 7,
+        SetDefaultBufferSize = 8,
+        SetDefaultMaxBufferCount = 9,
+        DisableAsyncBuffer = 10,
+        SetMaxAcquiredBufferCount = 11,
+        SetConsumerName = 12,
+        SetDefaultBufferFormat = 13,
+        SetConsumerUsageBits = 14,
+        SetTransformHint = 15,
+        GetSidebandStream = 16,
+        Unknown18 = 18,
+        Unknown20 = 20,
+    };
+
+    Status status{Status::NoError};
+    InputParcel parcel_in{parcel_data};
+    OutputParcel parcel_out{};
+
+    switch (static_cast<TransactionId>(code)) {
+    case TransactionId::AcquireBuffer: {
+        BufferItem item;
+        const s64 present_when = parcel_in.Read<s64>();
+
+        status = AcquireBuffer(&item, std::chrono::nanoseconds{present_when});
+
+        // TODO: can't write this directly, needs a flattener for the sp<GraphicBuffer>
+        // parcel_out.WriteFlattened(item);
+        UNREACHABLE();
+    }
+    case TransactionId::ReleaseBuffer: {
+        const s32 slot = parcel_in.Read<s32>();
+        const u64 frame_number = parcel_in.Read<u64>();
+        const auto release_fence = parcel_in.ReadFlattened<Fence>();
+
+        status = ReleaseBuffer(slot, frame_number, release_fence);
+
+        break;
+    }
+    case TransactionId::GetReleasedBuffers: {
+        u64 slot_mask = 0;
+
+        status = GetReleasedBuffers(&slot_mask);
+
+        parcel_out.Write(slot_mask);
+        break;
+    }
+    default:
+        ASSERT_MSG(false, "called, code={} flags={}", code, flags);
+        break;
+    }
+
+    parcel_out.Write(status);
+
+    const auto serialized = parcel_out.Serialize();
+    std::memcpy(parcel_reply.data(), serialized.data(),
+                std::min(parcel_reply.size(), serialized.size()));
+}
+
+Kernel::KReadableEvent* BufferQueueConsumer::GetNativeHandle(u32 type_id) {
+    ASSERT_MSG(false, "called, type_id={}", type_id);
+    return nullptr;
 }
 
 } // namespace Service::android
