@@ -8,49 +8,46 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/btm/btm_user_core.h"
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/server_manager.h"
-#include "core/hle/service/service.h"
 
 namespace Service::BTM {
 
 IBtmUserCore::IBtmUserCore(Core::System& system_)
     : ServiceFramework{system_, "IBtmUserCore"}, service_context{system_, "IBtmUserCore"} {
     // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, C<&IBtmUserCore::AcquireBleScanEvent>, "AcquireBleScanEvent"},
-            {1, nullptr, "GetBleScanFilterParameter"},
-            {2, nullptr, "GetBleScanFilterParameter2"},
-            {3, nullptr, "StartBleScanForGeneral"},
-            {4, nullptr, "StopBleScanForGeneral"},
-            {5, nullptr, "GetBleScanResultsForGeneral"},
-            {6, nullptr, "StartBleScanForPaired"},
-            {7, nullptr, "StopBleScanForPaired"},
-            {8, nullptr, "StartBleScanForSmartDevice"},
-            {9, nullptr, "StopBleScanForSmartDevice"},
-            {10, nullptr, "GetBleScanResultsForSmartDevice"},
-            {17, C<&IBtmUserCore::AcquireBleConnectionEvent>, "AcquireBleConnectionEvent"},
-            {18, nullptr, "BleConnect"},
-            {19, nullptr, "BleDisconnect"},
-            {20, nullptr, "BleGetConnectionState"},
-            {21, nullptr, "AcquireBlePairingEvent"},
-            {22, nullptr, "BlePairDevice"},
-            {23, nullptr, "BleUnPairDevice"},
-            {24, nullptr, "BleUnPairDevice2"},
-            {25, nullptr, "BleGetPairedDevices"},
-            {26, C<&IBtmUserCore::AcquireBleServiceDiscoveryEvent>, "AcquireBleServiceDiscoveryEvent"},
-            {27, nullptr, "GetGattServices"},
-            {28, nullptr, "GetGattService"},
-            {29, nullptr, "GetGattIncludedServices"},
-            {30, nullptr, "GetBelongingGattService"},
-            {31, nullptr, "GetGattCharacteristics"},
-            {32, nullptr, "GetGattDescriptors"},
-            {33, C<&IBtmUserCore::AcquireBleMtuConfigEvent>, "AcquireBleMtuConfigEvent"},
-            {34, nullptr, "ConfigureBleMtu"},
-            {35, nullptr, "GetBleMtu"},
-            {36, nullptr, "RegisterBleGattDataPath"},
-            {37, nullptr, "UnregisterBleGattDataPath"},
-        };
+    static const FunctionInfo functions[] = {
+        {0, C<&IBtmUserCore::AcquireBleScanEvent>, "AcquireBleScanEvent"},
+        {1, nullptr, "GetBleScanFilterParameter"},
+        {2, nullptr, "GetBleScanFilterParameter2"},
+        {3, nullptr, "StartBleScanForGeneral"},
+        {4, nullptr, "StopBleScanForGeneral"},
+        {5, nullptr, "GetBleScanResultsForGeneral"},
+        {6, nullptr, "StartBleScanForPaired"},
+        {7, nullptr, "StopBleScanForPaired"},
+        {8, nullptr, "StartBleScanForSmartDevice"},
+        {9, nullptr, "StopBleScanForSmartDevice"},
+        {10, nullptr, "GetBleScanResultsForSmartDevice"},
+        {17, C<&IBtmUserCore::AcquireBleConnectionEvent>, "AcquireBleConnectionEvent"},
+        {18, nullptr, "BleConnect"},
+        {19, nullptr, "BleDisconnect"},
+        {20, nullptr, "BleGetConnectionState"},
+        {21, nullptr, "AcquireBlePairingEvent"},
+        {22, nullptr, "BlePairDevice"},
+        {23, nullptr, "BleUnPairDevice"},
+        {24, nullptr, "BleUnPairDevice2"},
+        {25, nullptr, "BleGetPairedDevices"},
+        {26, C<&IBtmUserCore::AcquireBleServiceDiscoveryEvent>, "AcquireBleServiceDiscoveryEvent"},
+        {27, nullptr, "GetGattServices"},
+        {28, nullptr, "GetGattService"},
+        {29, nullptr, "GetGattIncludedServices"},
+        {30, nullptr, "GetBelongingGattService"},
+        {31, nullptr, "GetGattCharacteristics"},
+        {32, nullptr, "GetGattDescriptors"},
+        {33, C<&IBtmUserCore::AcquireBleMtuConfigEvent>, "AcquireBleMtuConfigEvent"},
+        {34, nullptr, "ConfigureBleMtu"},
+        {35, nullptr, "GetBleMtu"},
+        {36, nullptr, "RegisterBleGattDataPath"},
+        {37, nullptr, "UnregisterBleGattDataPath"},
+    };
     // clang-format on
     RegisterHandlers(functions);
 
