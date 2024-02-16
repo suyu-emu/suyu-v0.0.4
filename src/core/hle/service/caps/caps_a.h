@@ -21,6 +21,9 @@ public:
     ~IAlbumAccessorService() override;
 
 private:
+    Result GetAlbumFileList(Out<u64> out_count, AlbumStorage storage,
+                            OutArray<AlbumEntry, BufferAttr_HipcMapAlias> out_entries);
+
     Result DeleteAlbumFile(AlbumFileId file_id);
 
     Result IsAlbumMounted(Out<bool> out_is_mounted, AlbumStorage storage);
