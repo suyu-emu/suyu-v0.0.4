@@ -47,7 +47,8 @@ public:
                                  Service::Nvidia::NvCore::NvMap& nvmap_);
     ~BufferQueueProducer();
 
-    void Transact(HLERequestContext& ctx, android::TransactionId code, u32 flags) override;
+    void Transact(android::TransactionId code, u32 flags, std::span<const u8> parcel_data,
+                  std::span<u8> parcel_reply) override;
 
     Kernel::KReadableEvent& GetNativeHandle() override;
 

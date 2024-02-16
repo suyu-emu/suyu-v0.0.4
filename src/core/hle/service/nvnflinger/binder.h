@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <span>
+
 #include "common/common_types.h"
 
 namespace Kernel {
@@ -38,7 +40,8 @@ enum class TransactionId {
 class IBinder {
 public:
     virtual ~IBinder() = default;
-    virtual void Transact(HLERequestContext& ctx, android::TransactionId code, u32 flags) = 0;
+    virtual void Transact(android::TransactionId code, u32 flags, std::span<const u8> parcel_data,
+                          std::span<u8> parcel_reply) = 0;
     virtual Kernel::KReadableEvent& GetNativeHandle() = 0;
 };
 
