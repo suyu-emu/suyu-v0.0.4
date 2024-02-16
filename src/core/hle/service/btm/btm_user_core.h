@@ -10,7 +10,7 @@
 namespace Kernel {
 class KEvent;
 class KReadableEvent;
-}
+} // namespace Kernel
 
 namespace Core {
 class System;

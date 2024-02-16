@@ -5,16 +5,14 @@
 #include "core/hle/service/btm/btm_user.h"
 #include "core/hle/service/btm/btm_user_core.h"
 #include "core/hle/service/cmif_serialization.h"
-#include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/service.h"
 
 namespace Service::BTM {
 
 IBtmUser::IBtmUser(Core::System& system_) : ServiceFramework{system_, "btm:u"} {
     // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, C<&IBtmUser::GetCore>, "GetCore"},
-        };
+    static const FunctionInfo functions[] = {
+        {0, C<&IBtmUser::GetCore>, "GetCore"},
+    };
     // clang-format on
 
     RegisterHandlers(functions);
