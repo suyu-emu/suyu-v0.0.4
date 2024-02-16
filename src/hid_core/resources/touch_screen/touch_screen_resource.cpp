@@ -48,7 +48,7 @@ Result TouchResource::ActivateTouch() {
     }
 
     Set::TouchScreenMode touch_mode{Set::TouchScreenMode::Standard};
-    m_set_sys->GetTouchScreenMode(touch_mode);
+    m_set_sys->GetTouchScreenMode(&touch_mode);
     default_touch_screen_mode = static_cast<Core::HID::TouchScreenModeForNx>(touch_mode);
 
     global_ref_counter++;

@@ -244,7 +244,7 @@ struct SystemSettings {
     INSERT_PADDING_BYTES(0x60); // Reserved
 
     // nn::settings::system::AccountNotificationSettings
-    u32 account_notification_settings_count;
+    s32 account_notification_settings_count;
     INSERT_PADDING_BYTES(0xC); // Reserved
     std::array<AccountNotificationSettings, 8> account_notification_settings;
     INSERT_PADDING_BYTES(0x140); // Reserved
@@ -308,7 +308,7 @@ struct SystemSettings {
     INSERT_PADDING_BYTES(0x34); // Reserved
 
     // nn::settings::system::EulaVersion
-    u32 eula_version_count;
+    s32 eula_version_count;
     INSERT_PADDING_BYTES(0xC); // Reserved
     std::array<EulaVersion, 32> eula_versions;
     INSERT_PADDING_BYTES(0x200); // Reserved
