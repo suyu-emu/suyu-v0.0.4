@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include "common/logging/log.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/erpt/erpt.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
@@ -15,7 +17,7 @@ public:
     explicit ErrorReportContext(Core::System& system_) : ServiceFramework{system_, "erpt:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "SubmitContext"},
+            {0, C<&ErrorReportContext::SubmitContext>, "SubmitContext"},
             {1, nullptr, "CreateReportV0"},
             {2, nullptr, "SetInitialLaunchSettingsCompletionTime"},
             {3, nullptr, "ClearInitialLaunchSettingsCompletionTime"},
@@ -35,6 +37,14 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    Result SubmitContext(InBuffer<BufferAttr_HipcMapAlias> buffer_a,
+                         InBuffer<BufferAttr_HipcMapAlias> buffer_b) {
+        LOG_WARNING(Service_SET, "(STUBBED) called, buffer_a_size={}, buffer_b_size={}",
+                    buffer_a.size(), buffer_b.size());
+        R_SUCCEED();
     }
 };
 
