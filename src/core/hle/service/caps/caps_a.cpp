@@ -16,7 +16,7 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetAlbumFileCount"},
-        {1, nullptr, "GetAlbumFileList"},
+        {1, C<&IAlbumAccessorService::GetAlbumFileList>, "GetAlbumFileList"},
         {2, nullptr, "LoadAlbumFile"},
         {3, C<&IAlbumAccessorService::DeleteAlbumFile>, "DeleteAlbumFile"},
         {4, nullptr, "StorageCopyAlbumFile"},
@@ -61,6 +61,15 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
 }
 
 IAlbumAccessorService::~IAlbumAccessorService() = default;
+
+Result IAlbumAccessorService::GetAlbumFileList(
+    Out<u64> out_count, AlbumStorage storage,
+    OutArray<AlbumEntry, BufferAttr_HipcMapAlias> out_entries) {
+    LOG_INFO(Service_Capture, "called, storage={}", storage);
+
+    const Result result = manager->GetAlbumFileList(out_entries, *out_count, storage, 0);
+    R_RETURN(TranslateResult(result));
+}
 
 Result IAlbumAccessorService::DeleteAlbumFile(AlbumFileId file_id) {
     LOG_INFO(Service_Capture, "called, application_id=0x{:0x}, storage={}, type={}",
