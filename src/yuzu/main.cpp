@@ -4189,7 +4189,7 @@ void GMainWindow::OnInstallFirmware() {
 
     LOG_INFO(Frontend, "Installing firmware from {}", firmware_source_location.toStdString());
 
-    // Check for a resonable number of .nca files (don't hardcode them, just see if there's some in
+    // Check for a reasonable number of .nca files (don't hardcode them, just see if there's some in
     // there.)
     std::filesystem::path firmware_source_path = firmware_source_location.toStdString();
     if (!Common::FS::IsDir(firmware_source_path)) {
