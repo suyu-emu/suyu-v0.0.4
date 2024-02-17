@@ -32,12 +32,6 @@ private:
     void ConvertApplicationLanguageToLanguageCode(HLERequestContext& ctx);
 };
 
-class IApplicationVersionInterface final : public ServiceFramework<IApplicationVersionInterface> {
-public:
-    explicit IApplicationVersionInterface(Core::System& system_);
-    ~IApplicationVersionInterface() override;
-};
-
 class IContentManagementInterface final : public ServiceFramework<IContentManagementInterface> {
 public:
     explicit IContentManagementInterface(Core::System& system_);
