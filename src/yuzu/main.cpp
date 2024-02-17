@@ -4161,13 +4161,15 @@ void GMainWindow::OnInstallFirmware() {
 
     // Check for installed keys, error out, suggest restart?
     if (!ContentManager::AreKeysPresent()) {
-        QMessageBox::information(this, tr("Keys not installed"),
-                                 tr("Install decryption keys and restart yuzu before attempting to install firmware."));
+        QMessageBox::information(
+            this, tr("Keys not installed"),
+            tr("Install decryption keys and restart yuzu before attempting to install firmware."));
         return;
     }
 
-    QString firmware_source_location = QFileDialog::getExistingDirectory(this,
-        tr("Select Dumped Firmware Source Location"), QString::fromStdString(""), QFileDialog::ShowDirsOnly);
+    QString firmware_source_location =
+        QFileDialog::getExistingDirectory(this, tr("Select Dumped Firmware Source Location"),
+                                          QString::fromStdString(""), QFileDialog::ShowDirsOnly);
     if (firmware_source_location.isEmpty()) {
         return;
     }
@@ -4187,7 +4189,8 @@ void GMainWindow::OnInstallFirmware() {
 
     LOG_INFO(Frontend, "Installing firmware from {}", firmware_source_location.toStdString());
 
-    // Check for a resonable number of .nca files (don't hardcode them, just see if there's some in there.)
+    // Check for a resonable number of .nca files (don't hardcode them, just see if there's some in
+    // there.)
     std::filesystem::path firmware_source_path = firmware_source_location.toStdString();
     if (!Common::FS::IsDir(firmware_source_path)) {
         progress.close();
@@ -4195,12 +4198,13 @@ void GMainWindow::OnInstallFirmware() {
     }
 
     std::vector<std::filesystem::path> out;
-    const Common::FS::DirEntryCallable callback = [&out](const std::filesystem::directory_entry& entry) {
-        if (entry.path().has_extension() && entry.path().extension() == ".nca")
-            out.emplace_back(entry.path());
+    const Common::FS::DirEntryCallable callback =
+        [&out](const std::filesystem::directory_entry& entry) {
+            if (entry.path().has_extension() && entry.path().extension() == ".nca")
+                out.emplace_back(entry.path());
 
-        return true;
-    };
+            return true;
+        };
 
     QtProgressCallback(100, 10);
 
@@ -4216,7 +4220,8 @@ void GMainWindow::OnInstallFirmware() {
     auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
     if (!sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
         progress.close();
-        QMessageBox::critical(this, tr("Firmware install failed"), tr("Failed to delete one or more firmware file."));
+        QMessageBox::critical(this, tr("Firmware install failed"),
+                              tr("Failed to delete one or more firmware file."));
         return;
     }
 
@@ -4234,7 +4239,8 @@ void GMainWindow::OnInstallFirmware() {
         i++;
         auto firmware_src_vfile =
             vfs->OpenFile(firmware_src_path.generic_string(), FileSys::OpenMode::Read);
-        auto firmware_dst_vfile = firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
+        auto firmware_dst_vfile =
+            firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
 
         if (!VfsRawCopy(firmware_src_vfile, firmware_dst_vfile)) {
             LOG_ERROR(Frontend, "Failed to copy firmware file {} to {} in registered folder!",
@@ -4242,8 +4248,7 @@ void GMainWindow::OnInstallFirmware() {
             success = false;
         }
 
-        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 80.0)))
-        {
+        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 80.0))) {
             success = false;
             cancelled = true;
             break;
@@ -4258,7 +4263,8 @@ void GMainWindow::OnInstallFirmware() {
     } else if (cancelled) {
         progress.close();
         QMessageBox::warning(this, tr("Firmware install failed"),
-                              tr("Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware."));
+                             tr("Firmware installation cancelled, firmware may be in bad state, "
+                                "restart yuzu or re-install firmware."));
         return;
     }
 
