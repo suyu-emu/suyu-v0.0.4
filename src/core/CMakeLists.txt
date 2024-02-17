@@ -745,6 +745,8 @@ add_library(core STATIC
     hle/service/ns/application_version_interface.h
     hle/service/ns/content_management_interface.cpp
     hle/service/ns/content_management_interface.h
+    hle/service/ns/document_interface.cpp
+    hle/service/ns/document_interface.h
     hle/service/ns/ecommerce_interface.cpp
     hle/service/ns/ecommerce_interface.h
     hle/service/ns/factory_reset_interface.cpp

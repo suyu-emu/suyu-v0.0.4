@@ -73,4 +73,9 @@ struct ApplicationOccupiedSize {
     std::array<ApplicationOccupiedSizeEntity, 4> entities;
 };
 
+struct ContentPath {
+    u8 file_system_proxy_type;
+    u64 program_id;
+};
+
 } // namespace Service::NS
