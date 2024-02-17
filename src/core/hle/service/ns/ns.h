@@ -9,28 +9,9 @@ namespace Core {
 class System;
 }
 
-namespace Service {
+namespace Service::NS {
 
-namespace FileSystem {
-class FileSystemController;
-} // namespace FileSystem
-
-namespace NS {
-
-class IApplicationManagerInterface final : public ServiceFramework<IApplicationManagerInterface> {
-public:
-    explicit IApplicationManagerInterface(Core::System& system_);
-    ~IApplicationManagerInterface() override;
-
-    Result GetApplicationDesiredLanguage(u8* out_desired_language, u32 supported_languages);
-    Result ConvertApplicationLanguageToLanguageCode(u64* out_language_code,
-                                                    u8 application_language);
-
-private:
-    void GetApplicationControlData(HLERequestContext& ctx);
-    void GetApplicationDesiredLanguage(HLERequestContext& ctx);
-    void ConvertApplicationLanguageToLanguageCode(HLERequestContext& ctx);
-};
+class IApplicationManagerInterface;
 
 class NS final : public ServiceFramework<NS> {
 public:
@@ -41,32 +22,14 @@ public:
 
 private:
     template <typename T, typename... Args>
-    void PushInterface(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NS, "called");
+    void PushInterface(HLERequestContext& ctx);
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<T>(system);
-    }
-
-    void PushIApplicationManagerInterface(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NS, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IApplicationManagerInterface>(system);
-    }
+    void PushIApplicationManagerInterface(HLERequestContext& ctx);
 
     template <typename T, typename... Args>
-    std::shared_ptr<T> GetInterface(Args&&... args) const {
-        static_assert(std::is_base_of_v<SessionRequestHandler, T>,
-                      "Not a base of ServiceFrameworkBase");
-
-        return std::make_shared<T>(std::forward<Args>(args)...);
-    }
+    std::shared_ptr<T> GetInterface(Args&&... args) const;
 };
 
 void LoopProcess(Core::System& system);
 
-} // namespace NS
-} // namespace Service
+} // namespace Service::NS

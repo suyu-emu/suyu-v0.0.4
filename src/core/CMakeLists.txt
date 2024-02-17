@@ -741,6 +741,8 @@ add_library(core STATIC
     hle/service/npns/npns.h
     hle/service/ns/account_proxy_interface.cpp
     hle/service/ns/account_proxy_interface.h
+    hle/service/ns/application_manager_interface.cpp
+    hle/service/ns/application_manager_interface.h
     hle/service/ns/application_version_interface.cpp
     hle/service/ns/application_version_interface.h
     hle/service/ns/content_management_interface.cpp

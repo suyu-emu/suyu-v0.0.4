@@ -71,7 +71,7 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
 }
 
 Result IReadOnlyApplicationControlDataInterface::GetApplicationDesiredLanguage(
-    Out<u8> out_desired_language, u32 supported_languages) {
+    Out<ApplicationLanguage> out_desired_language, u32 supported_languages) {
     LOG_INFO(Service_NS, "called with supported_languages={:08X}", supported_languages);
 
     // Get language code from settings
@@ -97,7 +97,7 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationDesiredLanguage(
     for (const auto lang : *priority_list) {
         const auto supported_flag = GetSupportedLanguageFlag(lang);
         if (supported_languages == 0 || (supported_languages & supported_flag) == supported_flag) {
-            *out_desired_language = static_cast<u8>(lang);
+            *out_desired_language = lang;
             R_SUCCEED();
         }
     }

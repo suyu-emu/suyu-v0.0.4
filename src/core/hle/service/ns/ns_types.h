@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/common_funcs.h"
+#include "common/uuid.h"
 #include "core/file_sys/romfs_factory.h"
 
 namespace Service::NS {
@@ -52,6 +53,14 @@ struct ApplicationView {
     u32 unk_x40;        ///< Unknown.
     u8 unk_x44;         ///< Unknown.
     u8 unk_x45[0xb];    ///< Unknown.
+};
+
+struct ApplicationRightsOnClient {
+    u64 application_id;
+    Common::UUID uid;
+    u8 flags;
+    u8 flags2;
+    INSERT_PADDING_BYTES(0x6);
 };
 
 /// NsPromotionInfo
