@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/common_funcs.h"
+#include "core/file_sys/romfs_factory.h"
 
 namespace Service::NS {
 
@@ -57,6 +58,19 @@ struct PromotionInfo {
 struct ApplicationViewWithPromotionInfo {
     ApplicationView view;    ///< \ref NsApplicationView
     PromotionInfo promotion; ///< \ref NsPromotionInfo
+};
+
+struct ApplicationOccupiedSizeEntity {
+    FileSys::StorageId storage_id;
+    u64 app_size;
+    u64 patch_size;
+    u64 aoc_size;
+};
+static_assert(sizeof(ApplicationOccupiedSizeEntity) == 0x20,
+              "ApplicationOccupiedSizeEntity has incorrect size.");
+
+struct ApplicationOccupiedSize {
+    std::array<ApplicationOccupiedSizeEntity, 4> entities;
 };
 
 } // namespace Service::NS

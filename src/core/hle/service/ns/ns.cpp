@@ -13,6 +13,7 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/account_proxy_interface.h"
 #include "core/hle/service/ns/application_version_interface.h"
+#include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/ecommerce_interface.h"
 #include "core/hle/service/ns/factory_reset_interface.h"
 #include "core/hle/service/ns/language.h"
@@ -462,48 +463,6 @@ Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
 
     *out_language_code = static_cast<u64>(*language_code);
     return ResultSuccess;
-}
-
-IContentManagementInterface::IContentManagementInterface(Core::System& system_)
-    : ServiceFramework{system_, "IContentManagementInterface"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {11, nullptr, "CalculateApplicationOccupiedSize"},
-        {43, nullptr, "CheckSdCardMountStatus"},
-        {47, &IContentManagementInterface::GetTotalSpaceSize, "GetTotalSpaceSize"},
-        {48, &IContentManagementInterface::GetFreeSpaceSize, "GetFreeSpaceSize"},
-        {600, nullptr, "CountApplicationContentMeta"},
-        {601, nullptr, "ListApplicationContentMetaStatus"},
-        {605, nullptr, "ListApplicationContentMetaStatusWithRightsCheck"},
-        {607, nullptr, "IsAnyApplicationRunning"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IContentManagementInterface::~IContentManagementInterface() = default;
-
-void IContentManagementInterface::GetTotalSpaceSize(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto storage{rp.PopEnum<FileSys::StorageId>()};
-
-    LOG_INFO(Service_Capture, "called, storage={}", storage);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(system.GetFileSystemController().GetTotalSpaceSize(storage));
-}
-
-void IContentManagementInterface::GetFreeSpaceSize(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto storage{rp.PopEnum<FileSys::StorageId>()};
-
-    LOG_INFO(Service_Capture, "called, storage={}", storage);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(system.GetFileSystemController().GetFreeSpaceSize(storage));
 }
 
 IDocumentInterface::IDocumentInterface(Core::System& system_)
