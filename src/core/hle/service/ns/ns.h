@@ -32,17 +32,6 @@ private:
     void ConvertApplicationLanguageToLanguageCode(HLERequestContext& ctx);
 };
 
-class IReadOnlyApplicationRecordInterface final
-    : public ServiceFramework<IReadOnlyApplicationRecordInterface> {
-public:
-    explicit IReadOnlyApplicationRecordInterface(Core::System& system_);
-    ~IReadOnlyApplicationRecordInterface() override;
-
-private:
-    void HasApplicationRecord(HLERequestContext& ctx);
-    void IsDataCorruptedResult(HLERequestContext& ctx);
-};
-
 class IReadOnlyApplicationControlDataInterface final
     : public ServiceFramework<IReadOnlyApplicationControlDataInterface> {
 public:
