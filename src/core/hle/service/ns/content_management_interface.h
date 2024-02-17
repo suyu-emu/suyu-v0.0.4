@@ -14,7 +14,7 @@ public:
     explicit IContentManagementInterface(Core::System& system_);
     ~IContentManagementInterface() override;
 
-private:
+public:
     Result CalculateApplicationOccupiedSize(Out<ApplicationOccupiedSize> out_size,
                                             u64 application_id);
     Result CheckSdCardMountStatus();

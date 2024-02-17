@@ -16,12 +16,13 @@ public:
     explicit IReadOnlyApplicationControlDataInterface(Core::System& system_);
     ~IReadOnlyApplicationControlDataInterface() override;
 
-private:
+public:
     Result GetApplicationControlData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
                                      Out<u32> out_actual_size,
                                      ApplicationControlSource application_control_source,
                                      u64 application_id);
-    Result GetApplicationDesiredLanguage(Out<u8> out_desired_language, u32 supported_languages);
+    Result GetApplicationDesiredLanguage(Out<ApplicationLanguage> out_desired_language,
+                                         u32 supported_languages);
     Result ConvertApplicationLanguageToLanguageCode(Out<u64> out_language_code,
                                                     ApplicationLanguage application_language);
 };
