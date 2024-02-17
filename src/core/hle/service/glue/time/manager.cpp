@@ -21,19 +21,6 @@
 
 namespace Service::Glue::Time {
 namespace {
-
-template <typename T>
-T GetSettingsItemValue(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys,
-                       const char* category, const char* name) {
-    std::vector<u8> interval_buf;
-    auto res = set_sys->GetSettingsItemValue(interval_buf, category, name);
-    ASSERT(res == ResultSuccess);
-
-    T v{};
-    std::memcpy(&v, interval_buf.data(), sizeof(T));
-    return v;
-}
-
 s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
     constexpr auto is_leap = [](s32 year) -> bool {
         return (((year) % 4) == 0 && (((year) % 100) != 0 || ((year) % 400) == 0));
@@ -65,13 +52,15 @@ s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
 
 s64 GetEpochTimeFromInitialYear(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys) {
     Service::PSC::Time::CalendarTime calendar{
-        .year = GetSettingsItemValue<s16>(set_sys, "time", "standard_user_clock_initial_year"),
+        .year = 2000,
         .month = 1,
         .day = 1,
         .hour = 0,
         .minute = 0,
         .second = 0,
     };
+    set_sys->GetSettingsItemValueImpl<s16>(calendar.year, "time",
+                                           "standard_user_clock_initial_year");
     return CalendarTimeToEpoch(calendar);
 }
 
@@ -124,7 +113,7 @@ TimeManager::TimeManager(Core::System& system)
     ASSERT(res == ResultSuccess);
 
     Service::PSC::Time::SystemClockContext user_clock_context{};
-    res = m_set_sys->GetUserSystemClockContext(user_clock_context);
+    res = m_set_sys->GetUserSystemClockContext(&user_clock_context);
     ASSERT(res == ResultSuccess);
 
     // TODO the local clock should initialise with this epoch time, and be updated somewhere else on
@@ -140,11 +129,12 @@ TimeManager::TimeManager(Core::System& system)
     ASSERT(res == ResultSuccess);
 
     Service::PSC::Time::SystemClockContext network_clock_context{};
-    res = m_set_sys->GetNetworkSystemClockContext(network_clock_context);
+    res = m_set_sys->GetNetworkSystemClockContext(&network_clock_context);
     ASSERT(res == ResultSuccess);
 
-    auto network_accuracy_m{GetSettingsItemValue<s32>(
-        m_set_sys, "time", "standard_network_clock_sufficient_accuracy_minutes")};
+    s32 network_accuracy_m{};
+    m_set_sys->GetSettingsItemValueImpl<s32>(network_accuracy_m, "time",
+                                             "standard_network_clock_sufficient_accuracy_minutes");
     auto one_minute_ns{
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::minutes(1)).count()};
     s64 network_accuracy_ns{network_accuracy_m * one_minute_ns};
@@ -153,12 +143,12 @@ TimeManager::TimeManager(Core::System& system)
     ASSERT(res == ResultSuccess);
 
     bool is_automatic_correction_enabled{};
-    res = m_set_sys->IsUserSystemClockAutomaticCorrectionEnabled(is_automatic_correction_enabled);
+    res = m_set_sys->IsUserSystemClockAutomaticCorrectionEnabled(&is_automatic_correction_enabled);
     ASSERT(res == ResultSuccess);
 
     Service::PSC::Time::SteadyClockTimePoint automatic_correction_time_point{};
     res = m_set_sys->GetUserSystemClockAutomaticCorrectionUpdatedTime(
-        automatic_correction_time_point);
+        &automatic_correction_time_point);
     ASSERT(res == ResultSuccess);
 
     res = m_time_m->SetupStandardUserSystemClockCore(is_automatic_correction_enabled,
@@ -198,11 +188,11 @@ TimeManager::TimeManager(Core::System& system)
 
 Result TimeManager::SetupStandardSteadyClockCore() {
     Common::UUID external_clock_source_id{};
-    auto res = m_set_sys->GetExternalSteadyClockSourceId(external_clock_source_id);
+    auto res = m_set_sys->GetExternalSteadyClockSourceId(&external_clock_source_id);
     ASSERT(res == ResultSuccess);
 
     s64 external_steady_clock_internal_offset_s{};
-    res = m_set_sys->GetExternalSteadyClockInternalOffset(external_steady_clock_internal_offset_s);
+    res = m_set_sys->GetExternalSteadyClockInternalOffset(&external_steady_clock_internal_offset_s);
     ASSERT(res == ResultSuccess);
 
     auto one_second_ns{
@@ -210,8 +200,9 @@ Result TimeManager::SetupStandardSteadyClockCore() {
     s64 external_steady_clock_internal_offset_ns{external_steady_clock_internal_offset_s *
                                                  one_second_ns};
 
-    s32 standard_steady_clock_test_offset_m{
-        GetSettingsItemValue<s32>(m_set_sys, "time", "standard_steady_clock_test_offset_minutes")};
+    s32 standard_steady_clock_test_offset_m{};
+    m_set_sys->GetSettingsItemValueImpl<s32>(standard_steady_clock_test_offset_m, "time",
+                                             "standard_steady_clock_test_offset_minutes");
     auto one_minute_ns{
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::minutes(1)).count()};
     s64 standard_steady_clock_test_offset_ns{standard_steady_clock_test_offset_m * one_minute_ns};
@@ -237,7 +228,7 @@ Result TimeManager::SetupStandardSteadyClockCore() {
 
 Result TimeManager::SetupTimeZoneServiceCore() {
     Service::PSC::Time::LocationName name{};
-    auto res = m_set_sys->GetDeviceTimeZoneLocationName(name);
+    auto res = m_set_sys->GetDeviceTimeZoneLocationName(&name);
     ASSERT(res == ResultSuccess);
 
     auto configured_zone = GetTimeZoneString(name);
@@ -255,7 +246,7 @@ Result TimeManager::SetupTimeZoneServiceCore() {
     }
 
     Service::PSC::Time::SteadyClockTimePoint time_point{};
-    res = m_set_sys->GetDeviceTimeZoneLocationUpdatedTime(time_point);
+    res = m_set_sys->GetDeviceTimeZoneLocationUpdatedTime(&time_point);
     ASSERT(res == ResultSuccess);
 
     auto location_count = GetTimeZoneCount();
