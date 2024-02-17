@@ -18,4 +18,6 @@
 
     <dimen name="dialog_margin">20dp</dimen>
     <dimen name="elevated_app_bar">3dp</dimen>
+
+    <dimen name="mapping_anim_size">75dp</dimen>
 </resources>

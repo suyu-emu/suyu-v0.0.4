@@ -1,19 +1,25 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.model
+package org.yuzu.yuzu_emu.features.settings.ui
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
+import org.yuzu.yuzu_emu.model.Game
+import org.yuzu.yuzu_emu.utils.InputHandler
+import org.yuzu.yuzu_emu.utils.ParamPackage
 
 class SettingsViewModel : ViewModel() {
     var game: Game? = null
 
     var clickedItem: SettingsItem? = null
+
+    var currentDevice = 0
 
     val shouldRecreate: StateFlow<Boolean> get() = _shouldRecreate
     private val _shouldRecreate = MutableStateFlow(false)
@@ -35,6 +41,18 @@ class SettingsViewModel : ViewModel() {
 
     val adapterItemChanged: StateFlow<Int> get() = _adapterItemChanged
     private val _adapterItemChanged = MutableStateFlow(-1)
+
+    private val _datasetChanged = MutableStateFlow(false)
+    val datasetChanged = _datasetChanged.asStateFlow()
+
+    private val _reloadListAndNotifyDataset = MutableStateFlow(false)
+    val reloadListAndNotifyDataset = _reloadListAndNotifyDataset.asStateFlow()
+
+    private val _shouldShowDeleteProfileDialog = MutableStateFlow("")
+    val shouldShowDeleteProfileDialog = _shouldShowDeleteProfileDialog.asStateFlow()
+
+    private val _shouldShowResetInputDialog = MutableStateFlow(false)
+    val shouldShowResetInputDialog = _shouldShowResetInputDialog.asStateFlow()
 
     fun setShouldRecreate(value: Boolean) {
         _shouldRecreate.value = value
@@ -68,4 +86,27 @@ class SettingsViewModel : ViewModel() {
     fun setAdapterItemChanged(value: Int) {
         _adapterItemChanged.value = value
     }
+
+    fun setDatasetChanged(value: Boolean) {
+        _datasetChanged.value = value
+    }
+
+    fun setReloadListAndNotifyDataset(value: Boolean) {
+        _reloadListAndNotifyDataset.value = value
+    }
+
+    fun setShouldShowDeleteProfileDialog(profile: String) {
+        _shouldShowDeleteProfileDialog.value = profile
+    }
+
+    fun setShouldShowResetInputDialog(value: Boolean) {
+        _shouldShowResetInputDialog.value = value
+    }
+
+    fun getCurrentDeviceParams(defaultParams: ParamPackage): ParamPackage =
+        try {
+            InputHandler.registeredControllers[currentDevice]
+        } catch (e: IndexOutOfBoundsException) {
+            defaultParams
+        }
 }

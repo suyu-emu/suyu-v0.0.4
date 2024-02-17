@@ -13,7 +13,12 @@ public:
     void ReloadAllValues() override;
     void SaveAllValues() override;
 
+    void ReadAndroidControlPlayerValues(std::size_t player_index);
+    void SaveAndroidControlPlayerValues(std::size_t player_index);
+
 protected:
+    void ReadAndroidPlayerValues(std::size_t player_index);
+    void ReadAndroidControlValues();
     void ReadAndroidValues();
     void ReadAndroidUIValues();
     void ReadDriverValues();
@@ -27,6 +32,8 @@ protected:
     void ReadUILayoutValues() override {}
     void ReadMultiplayerValues() override {}
 
+    void SaveAndroidPlayerValues(std::size_t player_index);
+    void SaveAndroidControlValues();
     void SaveAndroidValues();
     void SaveAndroidUIValues();
     void SaveDriverValues();

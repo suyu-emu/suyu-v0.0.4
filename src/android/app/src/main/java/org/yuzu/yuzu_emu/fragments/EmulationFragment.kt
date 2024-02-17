@@ -277,6 +277,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     true
                 }
 
+                R.id.menu_controls -> {
+                    val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                        null,
+                        Settings.MenuTag.SECTION_INPUT
+                    )
+                    binding.root.findNavController().navigate(action)
+                    true
+                }
+
                 R.id.menu_overlay_controls -> {
                     showOverlayOptions()
                     true

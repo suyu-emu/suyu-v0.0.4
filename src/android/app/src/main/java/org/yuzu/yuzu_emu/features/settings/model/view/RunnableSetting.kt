@@ -7,11 +7,11 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
 class RunnableSetting(
-    val isRuntimeRunnable: Boolean,
     @StringRes titleId: Int = 0,
     titleString: String = "",
     @StringRes descriptionId: Int = 0,
     descriptionString: String = "",
+    val isRunnable: Boolean,
     @DrawableRes val iconId: Int = 0,
     val runnable: () -> Unit
 ) : SettingsItem(emptySetting, titleId, titleString, descriptionId, descriptionString) {

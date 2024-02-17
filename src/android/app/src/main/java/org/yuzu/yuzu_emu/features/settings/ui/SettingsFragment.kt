@@ -24,8 +24,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
+import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.model.SettingsViewModel
+import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class SettingsFragment : Fragment() {
@@ -45,6 +46,12 @@ class SettingsFragment : Fragment() {
         returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+
+        val playerIndex = getPlayerIndex()
+        if (playerIndex != -1) {
+            NativeInput.loadInputProfiles()
+            NativeInput.reloadInputDevices()
+        }
     }
 
     override fun onCreateView(
@@ -57,8 +64,9 @@ class SettingsFragment : Fragment() {
     }
 
     // This is using the correct scope, lint is just acting up
-    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector", "NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         settingsAdapter = SettingsAdapter(this, requireContext())
         presenter = SettingsFragmentPresenter(
             settingsViewModel,
@@ -71,7 +79,17 @@ class SettingsFragment : Fragment() {
         ) {
             args.game!!.title
         } else {
-            getString(args.menuTag.titleId)
+            when (args.menuTag) {
+                Settings.MenuTag.SECTION_INPUT_PLAYER_ONE -> Settings.getPlayerString(1)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_TWO -> Settings.getPlayerString(2)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_THREE -> Settings.getPlayerString(3)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_FOUR -> Settings.getPlayerString(4)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_FIVE -> Settings.getPlayerString(5)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_SIX -> Settings.getPlayerString(6)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_SEVEN -> Settings.getPlayerString(7)
+                Settings.MenuTag.SECTION_INPUT_PLAYER_EIGHT -> Settings.getPlayerString(8)
+                else -> getString(args.menuTag.titleId)
+            }
         }
         binding.listSettings.apply {
             adapter = settingsAdapter
@@ -89,6 +107,55 @@ class SettingsFragment : Fragment() {
                         if (it) {
                             settingsViewModel.setShouldReloadSettingsList(false)
                             presenter.loadSettingsList()
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    settingsViewModel.adapterItemChanged.collect {
+                        if (it != -1) {
+                            settingsAdapter?.notifyItemChanged(it)
+                            settingsViewModel.setAdapterItemChanged(-1)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    settingsViewModel.datasetChanged.collect {
+                        if (it) {
+                            settingsAdapter?.notifyDataSetChanged()
+                            settingsViewModel.setDatasetChanged(false)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    settingsViewModel.reloadListAndNotifyDataset.collectLatest {
+                        if (it) {
+                            settingsViewModel.setReloadListAndNotifyDataset(false)
+                            presenter.loadSettingsList(true)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    settingsViewModel.shouldShowResetInputDialog.collectLatest {
+                        if (it) {
+                            MessageDialogFragment.newInstance(
+                                activity = requireActivity(),
+                                titleId = R.string.reset_mapping,
+                                descriptionId = R.string.reset_mapping_description,
+                                positiveAction = {
+                                    NativeInput.resetControllerMappings(getPlayerIndex())
+                                    settingsViewModel.setReloadListAndNotifyDataset(true)
+                                },
+                                negativeAction = {}
+                            ).show(parentFragmentManager, MessageDialogFragment.TAG)
+                            settingsViewModel.setShouldShowResetInputDialog(false)
                         }
                     }
                 }
@@ -114,6 +181,19 @@ class SettingsFragment : Fragment() {
 
         setInsets()
     }
+
+    private fun getPlayerIndex(): Int =
+        when (args.menuTag) {
+            Settings.MenuTag.SECTION_INPUT_PLAYER_ONE -> 0
+            Settings.MenuTag.SECTION_INPUT_PLAYER_TWO -> 1
+            Settings.MenuTag.SECTION_INPUT_PLAYER_THREE -> 2
+            Settings.MenuTag.SECTION_INPUT_PLAYER_FOUR -> 3
+            Settings.MenuTag.SECTION_INPUT_PLAYER_FIVE -> 4
+            Settings.MenuTag.SECTION_INPUT_PLAYER_SIX -> 5
+            Settings.MenuTag.SECTION_INPUT_PLAYER_SEVEN -> 6
+            Settings.MenuTag.SECTION_INPUT_PLAYER_EIGHT -> 7
+            else -> -1
+        }
 
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(

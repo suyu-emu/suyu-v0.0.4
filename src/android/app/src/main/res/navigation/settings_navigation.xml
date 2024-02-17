@@ -26,7 +26,7 @@
 
     <fragment
         android:id="@+id/settingsSearchFragment"
-        android:name="org.yuzu.yuzu_emu.fragments.SettingsSearchFragment"
+        android:name="org.yuzu.yuzu_emu.features.settings.ui.SettingsSearchFragment"
         android:label="SettingsSearchFragment" />
 
 </navigation>

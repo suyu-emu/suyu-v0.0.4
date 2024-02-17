@@ -14,7 +14,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import java.io.IOException
-import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.features.input.NativeInput
 
 class NfcReader(private val activity: Activity) {
     private var nfcAdapter: NfcAdapter? = null
@@ -76,12 +76,12 @@ class NfcReader(private val activity: Activity) {
         amiibo.connect()
 
         val tagData = ntag215ReadAll(amiibo) ?: return
-        NativeLibrary.onReadNfcTag(tagData)
+        NativeInput.onReadNfcTag(tagData)
 
         nfcAdapter?.ignore(
             tag,
             1000,
-            { NativeLibrary.onRemoveNfcTag() },
+            { NativeInput.onRemoveNfcTag() },
             Handler(Looper.getMainLooper())
         )
     }

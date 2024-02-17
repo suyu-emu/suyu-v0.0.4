@@ -47,6 +47,9 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
                 binding.textSettingValue.text = item.getChoiceAt(item.getSelectedValue())
             }
         }
+        if (binding.textSettingValue.text.isEmpty()) {
+            binding.textSettingValue.visibility = View.GONE
+        }
 
         binding.buttonClear.visibility = if (setting.setting.global ||
             !NativeConfig.isPerGameConfigLoaded()

@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(input_common STATIC
-    drivers/android.cpp
-    drivers/android.h
     drivers/camera.cpp
     drivers/camera.h
     drivers/keyboard.cpp
@@ -93,4 +91,12 @@ target_link_libraries(input_common PUBLIC hid_core PRIVATE common Boost::headers
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(input_common PRIVATE precompiled_headers.h)
+endif()
+
+if (ANDROID)
+    target_sources(input_common PRIVATE
+        drivers/android.cpp
+        drivers/android.h
+    )
+    target_link_libraries(input_common PRIVATE android)
 endif()
