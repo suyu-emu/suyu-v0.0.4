@@ -40,7 +40,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {26, D<&IApplicationFunctions::GetSaveDataSize>, "GetSaveDataSize"},
         {27, D<&IApplicationFunctions::CreateCacheStorage>, "CreateCacheStorage"},
         {28, D<&IApplicationFunctions::GetSaveDataSizeMax>, "GetSaveDataSizeMax"},
-        {29, nullptr, "GetCacheStorageMax"},
+        {29, D<&IApplicationFunctions::GetCacheStorageMax>, "GetCacheStorageMax"},
         {30, D<&IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed>, "BeginBlockingHomeButtonShortAndLongPressed"},
         {31, D<&IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed>, "EndBlockingHomeButtonShortAndLongPressed"},
         {32, D<&IApplicationFunctions::BeginBlockingHomeButton>, "BeginBlockingHomeButton"},
@@ -263,6 +263,16 @@ Result IApplicationFunctions::GetSaveDataSizeMax(Out<u64> out_max_normal_size,
 
     *out_max_normal_size = 0xFFFFFFF;
     *out_max_journal_size = 0xFFFFFFF;
+
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_max_normal_size,
+                                                 Out<u64> out_max_journal_size) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    *out_max_normal_size = 0xFFFFFF;
+    *out_max_journal_size = 0xFFFFFF;
 
     R_SUCCEED();
 }
