@@ -1603,6 +1603,7 @@ void GMainWindow::ConnectMenuEvents() {
     // Help
     connect_menu(ui->action_Open_yuzu_Folder, &GMainWindow::OnOpenYuzuFolder);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
+    connect_menu(ui->action_Install_Firmware, &GMainWindow::OnInstallFirmware);
     connect_menu(ui->action_About, &GMainWindow::OnAbout);
 }
 
@@ -1630,6 +1631,8 @@ void GMainWindow::UpdateMenuState() {
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
     }
+
+    ui->action_Install_Firmware->setEnabled(!emulation_running);
 
     for (QAction* action : applet_actions) {
         action->setEnabled(is_firmware_available && !emulation_running);
@@ -4148,6 +4151,116 @@ void GMainWindow::OnVerifyInstalledContents() {
             this, tr("Integrity verification failed!"),
             tr("Verification failed for the following files:\n\n%1").arg(failed_names));
     }
+}
+
+void GMainWindow::OnInstallFirmware() {
+    // Don't do this while emulation is running, that'd probably be a bad idea.
+    if (emu_thread != nullptr && emu_thread->IsRunning()) {
+        return;
+    }
+
+    // Check for installed keys, error out, suggest restart?
+    if (!ContentManager::AreKeysPresent()) {
+        QMessageBox::information(this, tr("Keys not installed"),
+                                 tr("Install decryption keys and restart yuzu before attempting to install firmware."));
+        return;
+    }
+
+    QString firmware_source_location = QFileDialog::getExistingDirectory(this,
+        tr("Select Dumped Firmware Source Location"), QString::fromStdString(""), QFileDialog::ShowDirsOnly);
+    if (firmware_source_location.isEmpty()) {
+        return;
+    }
+
+    QProgressDialog progress(tr("Installing Firmware..."), tr("Cancel"), 0, 100, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+    progress.show();
+
+    // Declare progress callback.
+    auto QtProgressCallback = [&](size_t total_size, size_t processed_size) {
+        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
+        return progress.wasCanceled();
+    };
+
+    LOG_INFO(Frontend, "Installing firmware from {}", firmware_source_location.toStdString());
+
+    // Check for a resonable number of .nca files (don't hardcode them, just see if there's some in there.
+    std::filesystem::path firmware_source_path = firmware_source_location.toStdString();
+    if (!Common::FS::IsDir(firmware_source_path)) {
+        progress.close();
+        return;
+    }
+
+    std::vector<std::filesystem::path> out;
+
+    const Common::FS::DirEntryCallable callback = [&out](const std::filesystem::directory_entry& entry) {
+        if (entry.path().has_extension() && entry.path().extension() == ".nca")
+            out.emplace_back(entry.path());
+
+        return true;
+    };
+
+    QtProgressCallback(100, 10);
+
+    Common::FS::IterateDirEntries(firmware_source_path, callback, Common::FS::DirEntryFilter::File);
+    if (out.size() <= 0) {
+        progress.close();
+        QMessageBox::warning(this, tr("Firmware install failed"),
+                             tr("Unable to locate potential firmware NCA files"));
+        return;
+    }
+
+    // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
+    auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
+    if (sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
+        LOG_INFO(Frontend,
+                 "Cleaned nand/system/Content/registered folder in preparation for new firmware.");
+    }
+
+    QtProgressCallback(100, 20);
+
+    auto firmware_vdir = sysnand_content_vdir->GetDirectoryRelative("registered");
+
+    bool success = true;
+    bool cancelled = false;
+    int i = 0;
+    for (const auto& firmware_src_path : out) {
+        i++;
+        auto firmware_src_vfile =
+            vfs->OpenFile(firmware_src_path.generic_string(), FileSys::OpenMode::Read);
+        auto firmware_dst_vfile = firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
+
+        if (!VfsRawCopy(firmware_src_vfile, firmware_dst_vfile)) {
+            LOG_ERROR(Frontend, "Failed to copy firmware file {} to {} in registered folder!",
+                      firmware_src_path.generic_string(), firmware_src_path.filename().string());
+            success = false;
+        }
+
+        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 70.0)))
+        {
+            success = false;
+            cancelled = true;
+            break;
+        }
+    }
+
+    if (!success && !cancelled) {
+        progress.close();
+        QMessageBox::critical(this, tr("Firmware install failed"),
+                              tr("One or more firmware files failed to copy into NAND."));
+        return;
+    } else if (cancelled) {
+        progress.close();
+        QMessageBox::warning(this, tr("Firmware install failed"),
+                              tr("Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware."));
+        return;
+    }
+
+    progress.close();
+    OnCheckFirmwareDecryption();
 }
 
 void GMainWindow::OnAbout() {
