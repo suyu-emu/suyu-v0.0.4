@@ -16,6 +16,7 @@
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/document_interface.h"
 #include "core/hle/service/ns/download_task_interface.h"
+#include "core/hle/service/ns/dynamic_rights_interface.h"
 #include "core/hle/service/ns/ecommerce_interface.h"
 #include "core/hle/service/ns/factory_reset_interface.h"
 #include "core/hle/service/ns/language.h"
@@ -549,7 +550,7 @@ void IReadOnlyApplicationControlDataInterface::GetApplicationControlData(HLERequ
 NS::NS(const char* name, Core::System& system_) : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {7988, nullptr, "GetDynamicRightsInterface"},
+        {7988, &NS::PushInterface<IDynamicRightsInterface>, "GetDynamicRightsInterface"},
         {7989, &NS::PushInterface<IReadOnlyApplicationControlDataInterface>, "GetReadOnlyApplicationControlDataInterface"},
         {7991, &NS::PushInterface<IReadOnlyApplicationRecordInterface>, "GetReadOnlyApplicationRecordInterface"},
         {7992, &NS::PushInterface<IECommerceInterface>, "GetECommerceInterface"},
