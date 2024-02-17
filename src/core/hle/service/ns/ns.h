@@ -32,12 +32,6 @@ private:
     void ConvertApplicationLanguageToLanguageCode(HLERequestContext& ctx);
 };
 
-class IDownloadTaskInterface final : public ServiceFramework<IDownloadTaskInterface> {
-public:
-    explicit IDownloadTaskInterface(Core::System& system_);
-    ~IDownloadTaskInterface() override;
-};
-
 class IReadOnlyApplicationRecordInterface final
     : public ServiceFramework<IReadOnlyApplicationRecordInterface> {
 public:

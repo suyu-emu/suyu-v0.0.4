@@ -15,6 +15,7 @@
 #include "core/hle/service/ns/application_version_interface.h"
 #include "core/hle/service/ns/content_management_interface.h"
 #include "core/hle/service/ns/document_interface.h"
+#include "core/hle/service/ns/download_task_interface.h"
 #include "core/hle/service/ns/ecommerce_interface.h"
 #include "core/hle/service/ns/factory_reset_interface.h"
 #include "core/hle/service/ns/language.h"
@@ -465,27 +466,6 @@ Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
     *out_language_code = static_cast<u64>(*language_code);
     return ResultSuccess;
 }
-
-IDownloadTaskInterface::IDownloadTaskInterface(Core::System& system_)
-    : ServiceFramework{system_, "IDownloadTaskInterface"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {701, nullptr, "ClearTaskStatusList"},
-        {702, nullptr, "RequestDownloadTaskList"},
-        {703, nullptr, "RequestEnsureDownloadTask"},
-        {704, nullptr, "ListDownloadTaskStatus"},
-        {705, nullptr, "RequestDownloadTaskListData"},
-        {706, nullptr, "TryCommitCurrentApplicationDownloadTask"},
-        {707, nullptr, "EnableAutoCommit"},
-        {708, nullptr, "DisableAutoCommit"},
-        {709, nullptr, "TriggerDynamicCommitEvent"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IDownloadTaskInterface::~IDownloadTaskInterface() = default;
 
 IReadOnlyApplicationRecordInterface::IReadOnlyApplicationRecordInterface(Core::System& system_)
     : ServiceFramework{system_, "IReadOnlyApplicationRecordInterface"} {
