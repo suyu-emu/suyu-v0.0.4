@@ -25,7 +25,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="margin" stdset="0">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
    </layout>
@@ -156,8 +165,8 @@
      <addaction name="separator"/>
      <addaction name="action_Configure_Tas"/>
     </widget>
-    <addaction name="action_Rederive"/>
     <addaction name="action_Verify_installed_contents"/>
+    <addaction name="action_Install_Firmware"/>
     <addaction name="separator"/>
     <addaction name="menu_cabinet_applet"/>
     <addaction name="action_Load_Album"/>
@@ -453,6 +462,11 @@
   <action name="action_Open_Controller_Menu">
    <property name="text">
     <string>Open &amp;Controller Menu</string>
+   </property>
+  </action>
+  <action name="action_Install_Firmware">
+   <property name="text">
+    <string>Install Firmware</string>
    </property>
   </action>
  </widget>
