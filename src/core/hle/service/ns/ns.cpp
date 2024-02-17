@@ -26,6 +26,7 @@
 #include "core/hle/service/ns/platform_service_manager.h"
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/ns/read_only_application_record_interface.h"
+#include "core/hle/service/ns/vulnerability_manager_interface.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/set/settings_server.h"
 
@@ -601,30 +602,6 @@ private:
     }
 };
 
-class NS_VM final : public ServiceFramework<NS_VM> {
-public:
-    explicit NS_VM(Core::System& system_) : ServiceFramework{system_, "ns:vm"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {1200, &NS_VM::NeedsUpdateVulnerability, "NeedsUpdateVulnerability"},
-            {1201, nullptr, "UpdateSafeSystemVersionForDebug"},
-            {1202, nullptr, "GetSafeSystemVersion"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void NeedsUpdateVulnerability(HLERequestContext& ctx) {
-        LOG_WARNING(Service_NS, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push(false);
-    }
-};
-
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
@@ -637,7 +614,8 @@ void LoopProcess(Core::System& system) {
 
     server_manager->RegisterNamedService("ns:dev", std::make_shared<NS_DEV>(system));
     server_manager->RegisterNamedService("ns:su", std::make_shared<NS_SU>(system));
-    server_manager->RegisterNamedService("ns:vm", std::make_shared<NS_VM>(system));
+    server_manager->RegisterNamedService("ns:vm",
+                                         std::make_shared<IVulnerabilityManagerInterface>(system));
     server_manager->RegisterNamedService("pdm:qry", std::make_shared<PDM_QRY>(system));
 
     server_manager->RegisterNamedService("pl:s",
