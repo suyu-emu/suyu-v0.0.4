@@ -14,6 +14,7 @@
 #include "core/hle/service/ns/account_proxy_interface.h"
 #include "core/hle/service/ns/application_version_interface.h"
 #include "core/hle/service/ns/content_management_interface.h"
+#include "core/hle/service/ns/document_interface.h"
 #include "core/hle/service/ns/ecommerce_interface.h"
 #include "core/hle/service/ns/factory_reset_interface.h"
 #include "core/hle/service/ns/language.h"
@@ -463,47 +464,6 @@ Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
 
     *out_language_code = static_cast<u64>(*language_code);
     return ResultSuccess;
-}
-
-IDocumentInterface::IDocumentInterface(Core::System& system_)
-    : ServiceFramework{system_, "IDocumentInterface"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {21, nullptr, "GetApplicationContentPath"},
-        {23, &IDocumentInterface::ResolveApplicationContentPath, "ResolveApplicationContentPath"},
-        {92, &IDocumentInterface::GetRunningApplicationProgramId, "GetRunningApplicationProgramId"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IDocumentInterface::~IDocumentInterface() = default;
-
-void IDocumentInterface::ResolveApplicationContentPath(HLERequestContext& ctx) {
-    struct ContentPath {
-        u8 file_system_proxy_type;
-        u64 program_id;
-    };
-    static_assert(sizeof(ContentPath) == 0x10, "ContentPath has wrong size");
-
-    IPC::RequestParser rp{ctx};
-    auto content_path = rp.PopRaw<ContentPath>();
-    LOG_WARNING(Service_NS, "(STUBBED) called, file_system_proxy_type={}, program_id={:016X}",
-                content_path.file_system_proxy_type, content_path.program_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IDocumentInterface::GetRunningApplicationProgramId(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto caller_program_id = rp.PopRaw<u64>();
-    LOG_WARNING(Service_NS, "(STUBBED) called, caller_program_id={:016X}", caller_program_id);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(system.GetApplicationProcessProgramID());
 }
 
 IDownloadTaskInterface::IDownloadTaskInterface(Core::System& system_)

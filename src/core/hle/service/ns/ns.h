@@ -32,16 +32,6 @@ private:
     void ConvertApplicationLanguageToLanguageCode(HLERequestContext& ctx);
 };
 
-class IDocumentInterface final : public ServiceFramework<IDocumentInterface> {
-public:
-    explicit IDocumentInterface(Core::System& system_);
-    ~IDocumentInterface() override;
-
-private:
-    void ResolveApplicationContentPath(HLERequestContext& ctx);
-    void GetRunningApplicationProgramId(HLERequestContext& ctx);
-};
-
 class IDownloadTaskInterface final : public ServiceFramework<IDownloadTaskInterface> {
 public:
     explicit IDownloadTaskInterface(Core::System& system_);
