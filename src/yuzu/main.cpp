@@ -4187,7 +4187,7 @@ void GMainWindow::OnInstallFirmware() {
 
     LOG_INFO(Frontend, "Installing firmware from {}", firmware_source_location.toStdString());
 
-    // Check for a resonable number of .nca files (don't hardcode them, just see if there's some in there.
+    // Check for a resonable number of .nca files (don't hardcode them, just see if there's some in there.)
     std::filesystem::path firmware_source_path = firmware_source_location.toStdString();
     if (!Common::FS::IsDir(firmware_source_path)) {
         progress.close();
@@ -4195,7 +4195,6 @@ void GMainWindow::OnInstallFirmware() {
     }
 
     std::vector<std::filesystem::path> out;
-
     const Common::FS::DirEntryCallable callback = [&out](const std::filesystem::directory_entry& entry) {
         if (entry.path().has_extension() && entry.path().extension() == ".nca")
             out.emplace_back(entry.path());
@@ -4215,10 +4214,14 @@ void GMainWindow::OnInstallFirmware() {
 
     // Locate and erase the content of nand/system/Content/registered/*.nca, if any.
     auto sysnand_content_vdir = system->GetFileSystemController().GetSystemNANDContentDirectory();
-    if (sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
-        LOG_INFO(Frontend,
-                 "Cleaned nand/system/Content/registered folder in preparation for new firmware.");
+    if (!sysnand_content_vdir->CleanSubdirectoryRecursive("registered")) {
+        progress.close();
+        QMessageBox::critical(this, tr("Firmware install failed"), tr("Failed to delete one or more firmware file."));
+        return;
     }
+
+    LOG_INFO(Frontend,
+             "Cleaned nand/system/Content/registered folder in preparation for new firmware.");
 
     QtProgressCallback(100, 20);
 
@@ -4239,7 +4242,7 @@ void GMainWindow::OnInstallFirmware() {
             success = false;
         }
 
-        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 70.0)))
+        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 80.0)))
         {
             success = false;
             cancelled = true;
