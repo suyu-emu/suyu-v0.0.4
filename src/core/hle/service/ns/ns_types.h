@@ -16,6 +16,12 @@ enum class ApplicationRecordType : u8 {
     GameCard = 0x10,
 };
 
+enum class ApplicationControlSource : u8 {
+    CacheOnly = 0,
+    Storage = 1,
+    StorageOnly = 2,
+};
+
 struct ApplicationRecord {
     u64 application_id;
     ApplicationRecordType type;

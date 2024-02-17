@@ -24,6 +24,7 @@
 #include "core/hle/service/ns/ns_results.h"
 #include "core/hle/service/ns/pdm_qry.h"
 #include "core/hle/service/ns/platform_service_manager.h"
+#include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/ns/read_only_application_record_interface.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/set/settings_server.h"
@@ -467,51 +468,6 @@ Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
 
     *out_language_code = static_cast<u64>(*language_code);
     return ResultSuccess;
-}
-
-IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterface(
-    Core::System& system_)
-    : ServiceFramework{system_, "IReadOnlyApplicationControlDataInterface"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {0, &IReadOnlyApplicationControlDataInterface::GetApplicationControlData, "GetApplicationControlData"},
-        {1, nullptr, "GetApplicationDesiredLanguage"},
-        {2, nullptr, "ConvertApplicationLanguageToLanguageCode"},
-        {3, nullptr, "ConvertLanguageCodeToApplicationLanguage"},
-        {4, nullptr, "SelectApplicationDesiredLanguage"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IReadOnlyApplicationControlDataInterface::~IReadOnlyApplicationControlDataInterface() = default;
-
-void IReadOnlyApplicationControlDataInterface::GetApplicationControlData(HLERequestContext& ctx) {
-    enum class ApplicationControlSource : u8 {
-        CacheOnly,
-        Storage,
-        StorageOnly,
-    };
-
-    struct RequestParameters {
-        ApplicationControlSource source;
-        u64 application_id;
-    };
-    static_assert(sizeof(RequestParameters) == 0x10, "RequestParameters has incorrect size.");
-
-    IPC::RequestParser rp{ctx};
-    std::vector<u8> nacp_data{};
-    const auto parameters{rp.PopRaw<RequestParameters>()};
-    const auto result =
-        system.GetARPManager().GetControlProperty(&nacp_data, parameters.application_id);
-
-    if (result == ResultSuccess) {
-        ctx.WriteBuffer(nacp_data.data(), nacp_data.size());
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
 }
 
 NS::NS(const char* name, Core::System& system_) : ServiceFramework{system_, name} {
