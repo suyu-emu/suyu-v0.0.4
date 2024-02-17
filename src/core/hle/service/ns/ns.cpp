@@ -12,6 +12,7 @@
 #include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/account_proxy_interface.h"
+#include "core/hle/service/ns/application_version_interface.h"
 #include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/ns_results.h"
@@ -460,31 +461,6 @@ Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
     *out_language_code = static_cast<u64>(*language_code);
     return ResultSuccess;
 }
-
-IApplicationVersionInterface::IApplicationVersionInterface(Core::System& system_)
-    : ServiceFramework{system_, "IApplicationVersionInterface"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {0, nullptr, "GetLaunchRequiredVersion"},
-        {1, nullptr, "UpgradeLaunchRequiredVersion"},
-        {35, nullptr, "UpdateVersionList"},
-        {36, nullptr, "PushLaunchVersion"},
-        {37, nullptr, "ListRequiredVersion"},
-        {800, nullptr, "RequestVersionList"},
-        {801, nullptr, "ListVersionList"},
-        {802, nullptr, "RequestVersionListData"},
-        {900, nullptr, "ImportAutoUpdatePolicyJsonForDebug"},
-        {901, nullptr, "ListDefaultAutoUpdatePolicy"},
-        {902, nullptr, "ListAutoUpdatePolicyForSpecificApplication"},
-        {1000, nullptr, "PerformAutoUpdate"},
-        {1001, nullptr, "ListAutoUpdateSchedule"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IApplicationVersionInterface::~IApplicationVersionInterface() = default;
 
 IContentManagementInterface::IContentManagementInterface(Core::System& system_)
     : ServiceFramework{system_, "IContentManagementInterface"} {
