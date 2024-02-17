@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
-import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.RunnableSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
@@ -17,12 +16,12 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
 
     override fun bind(item: SettingsItem) {
         setting = item as RunnableSetting
-        if (item.iconId != 0) {
+        if (setting.iconId != 0) {
             binding.icon.visibility = View.VISIBLE
             binding.icon.setImageDrawable(
                 ResourcesCompat.getDrawable(
                     binding.icon.resources,
-                    item.iconId,
+                    setting.iconId,
                     binding.icon.context.theme
                 )
             )
@@ -30,8 +29,8 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
             binding.icon.visibility = View.GONE
         }
 
-        binding.textSettingName.setText(item.nameId)
-        if (item.descriptionId != 0) {
+        binding.textSettingName.text = setting.title
+        if (setting.description.isNotEmpty()) {
             binding.textSettingDescription.setText(item.descriptionId)
             binding.textSettingDescription.visibility = View.VISIBLE
         } else {
@@ -44,7 +43,7 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
     }
 
     override fun onClick(clicked: View) {
-        if (!setting.isRuntimeRunnable && !NativeLibrary.isRunning()) {
+        if (setting.isRunnable) {
             setting.runnable.invoke()
         }
     }

@@ -16,7 +16,7 @@ class HeaderViewHolder(val binding: ListItemSettingsHeaderBinding, adapter: Sett
     }
 
     override fun bind(item: SettingsItem) {
-        binding.textHeaderName.setText(item.nameId)
+        binding.textHeaderName.text = item.title
     }
 
     override fun onClick(clicked: View) {

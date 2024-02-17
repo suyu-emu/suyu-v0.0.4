@@ -3,16 +3,20 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import androidx.annotation.ArrayRes
+import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
 class SingleChoiceSetting(
     setting: AbstractSetting,
-    titleId: Int,
-    descriptionId: Int,
-    val choicesId: Int,
-    val valuesId: Int
-) : SettingsItem(setting, titleId, descriptionId) {
+    @StringRes titleId: Int = 0,
+    titleString: String = "",
+    @StringRes descriptionId: Int = 0,
+    descriptionString: String = "",
+    @ArrayRes val choicesId: Int,
+    @ArrayRes val valuesId: Int
+) : SettingsItem(setting, titleId, titleString, descriptionId, descriptionString) {
     override val type = TYPE_SINGLE_CHOICE
 
     fun getSelectedValue(needsGlobal: Boolean = false) =
