@@ -773,6 +773,8 @@ add_library(core STATIC
     hle/service/ns/read_only_application_control_data_interface.h
     hle/service/ns/read_only_application_record_interface.cpp
     hle/service/ns/read_only_application_record_interface.h
+    hle/service/ns/service_getter_interface.cpp
+    hle/service/ns/service_getter_interface.h
     hle/service/ns/system_update_control.cpp
     hle/service/ns/system_update_control.h
     hle/service/ns/system_update_interface.cpp

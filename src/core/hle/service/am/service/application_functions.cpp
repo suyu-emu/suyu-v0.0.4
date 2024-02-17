@@ -17,7 +17,7 @@
 #include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/ns/application_manager_interface.h"
-#include "core/hle/service/ns/ns.h"
+#include "core/hle/service/ns/service_getter_interface.h"
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::AM {
@@ -164,8 +164,10 @@ Result IApplicationFunctions::GetDesiredLanguage(Out<u64> out_language_code) {
 
     // Call IApplicationManagerInterface implementation.
     auto& service_manager = system.ServiceManager();
-    auto ns_am2 = service_manager.GetService<NS::NS>("ns:am2");
-    auto app_man = ns_am2->GetApplicationManagerInterface();
+    auto ns_am2 = service_manager.GetService<NS::IServiceGetterInterface>("ns:am2");
+
+    std::shared_ptr<NS::IApplicationManagerInterface> app_man;
+    R_TRY(ns_am2->GetApplicationManagerInterface(&app_man));
 
     // Get desired application language
     NS::ApplicationLanguage desired_language{};
