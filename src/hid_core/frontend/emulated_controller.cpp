@@ -581,6 +581,9 @@ void EmulatedController::DisableConfiguration() {
 
     // Get Joycon colors before turning on the controller
     for (const auto& color_device : color_devices) {
+        if (color_device == nullptr) {
+            continue;
+        }
         color_device->ForceUpdate();
     }
 
