@@ -27,6 +27,7 @@
 #include "core/hle/service/ns/read_only_application_control_data_interface.h"
 #include "core/hle/service/ns/read_only_application_record_interface.h"
 #include "core/hle/service/ns/system_update_control.h"
+#include "core/hle/service/ns/system_update_interface.h"
 #include "core/hle/service/ns/vulnerability_manager_interface.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/set/settings_server.h"
@@ -529,44 +530,6 @@ public:
     }
 };
 
-class NS_SU final : public ServiceFramework<NS_SU> {
-public:
-    explicit NS_SU(Core::System& system_) : ServiceFramework{system_, "ns:su"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, nullptr, "GetBackgroundNetworkUpdateState"},
-            {1, &NS_SU::OpenSystemUpdateControl, "OpenSystemUpdateControl"},
-            {2, nullptr, "NotifyExFatDriverRequired"},
-            {3, nullptr, "ClearExFatDriverStatusForDebug"},
-            {4, nullptr, "RequestBackgroundNetworkUpdate"},
-            {5, nullptr, "NotifyBackgroundNetworkUpdate"},
-            {6, nullptr, "NotifyExFatDriverDownloadedForDebug"},
-            {9, nullptr, "GetSystemUpdateNotificationEventForContentDelivery"},
-            {10, nullptr, "NotifySystemUpdateForContentDelivery"},
-            {11, nullptr, "PrepareShutdown"},
-            {12, nullptr, "Unknown12"},
-            {13, nullptr, "Unknown13"},
-            {14, nullptr, "Unknown14"},
-            {15, nullptr, "Unknown15"},
-            {16, nullptr, "DestroySystemUpdateTask"},
-            {17, nullptr, "RequestSendSystemUpdate"},
-            {18, nullptr, "GetSendSystemUpdateProgress"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void OpenSystemUpdateControl(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NS, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISystemUpdateControl>(system);
-    }
-};
-
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
@@ -578,7 +541,7 @@ void LoopProcess(Core::System& system) {
     server_manager->RegisterNamedService("ns:ro", std::make_shared<NS>("ns:ro", system));
 
     server_manager->RegisterNamedService("ns:dev", std::make_shared<NS_DEV>(system));
-    server_manager->RegisterNamedService("ns:su", std::make_shared<NS_SU>(system));
+    server_manager->RegisterNamedService("ns:su", std::make_shared<ISystemUpdateInterface>(system));
     server_manager->RegisterNamedService("ns:vm",
                                          std::make_shared<IVulnerabilityManagerInterface>(system));
     server_manager->RegisterNamedService("pdm:qry", std::make_shared<PDM_QRY>(system));
