@@ -26,6 +26,7 @@ namespace Service::Glue::Time {
 class TimeManager {
 public:
     explicit TimeManager(Core::System& system);
+    ~TimeManager();
 
     std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 
