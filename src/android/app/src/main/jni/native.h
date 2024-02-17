@@ -23,6 +23,7 @@ public:
     const Core::System& System() const;
     Core::System& System();
     FileSys::ManualContentProvider* GetContentProvider();
+    InputCommon::InputSubsystem& GetInputSubsystem();
 
     const EmuWindow_Android& Window() const;
     EmuWindow_Android& Window();
@@ -50,10 +51,6 @@ public:
                                                  const std::size_t program_index,
                                                  const bool frontend_initiated);
 
-    bool IsHandheldOnly();
-    void SetDeviceType([[maybe_unused]] int index, int type);
-    void OnGamepadConnectEvent([[maybe_unused]] int index);
-    void OnGamepadDisconnectEvent([[maybe_unused]] int index);
     Common::Android::SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
 
     static void OnEmulationStarted();

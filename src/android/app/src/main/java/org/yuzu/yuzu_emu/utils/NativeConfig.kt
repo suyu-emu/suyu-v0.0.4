@@ -6,6 +6,8 @@ package org.yuzu.yuzu_emu.utils
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 
+import org.yuzu.yuzu_emu.features.input.model.PlayerInput
+
 object NativeConfig {
     /**
      * Loads global config.
@@ -168,4 +170,17 @@ object NativeConfig {
      */
     @Synchronized
     external fun setOverlayControlData(overlayControlData: Array<OverlayControlData>)
+
+    @Synchronized
+    external fun getInputSettings(global: Boolean): Array<PlayerInput>
+
+    @Synchronized
+    external fun setInputSettings(value: Array<PlayerInput>, global: Boolean)
+
+    /**
+     * Saves control values for a specific player
+     * Must be used when per game config is loaded
+     */
+    @Synchronized
+    external fun saveControlPlayerValues()
 }

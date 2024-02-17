@@ -4,16 +4,29 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 
 object Settings {
-    enum class MenuTag(val titleId: Int) {
+    enum class MenuTag(val titleId: Int = 0) {
         SECTION_ROOT(R.string.advanced_settings),
         SECTION_SYSTEM(R.string.preferences_system),
         SECTION_RENDERER(R.string.preferences_graphics),
         SECTION_AUDIO(R.string.preferences_audio),
+        SECTION_INPUT(R.string.preferences_controls),
+        SECTION_INPUT_PLAYER_ONE,
+        SECTION_INPUT_PLAYER_TWO,
+        SECTION_INPUT_PLAYER_THREE,
+        SECTION_INPUT_PLAYER_FOUR,
+        SECTION_INPUT_PLAYER_FIVE,
+        SECTION_INPUT_PLAYER_SIX,
+        SECTION_INPUT_PLAYER_SEVEN,
+        SECTION_INPUT_PLAYER_EIGHT,
         SECTION_THEME(R.string.preferences_theme),
         SECTION_DEBUG(R.string.preferences_debug);
     }
+
+    fun getPlayerString(player: Int): String =
+        YuzuApplication.appContext.getString(R.string.preferences_player, player)
 
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"

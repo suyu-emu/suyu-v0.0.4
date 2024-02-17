@@ -85,4 +85,28 @@ jclass GetBooleanClass();
 jmethodID GetBooleanConstructor();
 jfieldID GetBooleanValueField();
 
+jclass GetPlayerInputClass();
+jmethodID GetPlayerInputConstructor();
+jfieldID GetPlayerInputConnectedField();
+jfieldID GetPlayerInputButtonsField();
+jfieldID GetPlayerInputAnalogsField();
+jfieldID GetPlayerInputMotionsField();
+jfieldID GetPlayerInputVibrationEnabledField();
+jfieldID GetPlayerInputVibrationStrengthField();
+jfieldID GetPlayerInputBodyColorLeftField();
+jfieldID GetPlayerInputBodyColorRightField();
+jfieldID GetPlayerInputButtonColorLeftField();
+jfieldID GetPlayerInputButtonColorRightField();
+jfieldID GetPlayerInputProfileNameField();
+jfieldID GetPlayerInputUseSystemVibratorField();
+
+jclass GetYuzuInputDeviceInterface();
+jmethodID GetYuzuDeviceGetName();
+jmethodID GetYuzuDeviceGetGUID();
+jmethodID GetYuzuDeviceGetPort();
+jmethodID GetYuzuDeviceGetSupportsVibration();
+jmethodID GetYuzuDeviceVibrate();
+jmethodID GetYuzuDeviceGetAxes();
+jmethodID GetYuzuDeviceHasKeys();
+
 } // namespace Common::Android

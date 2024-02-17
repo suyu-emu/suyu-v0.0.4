@@ -1285,9 +1285,7 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
     };
 
     // Send vibrations to Android's input overlay
-    if (npad_id_type == NpadIdType::Handheld || npad_id_type == NpadIdType::Player1) {
-        output_devices[4]->SetVibration(status);
-    }
+    output_devices[4]->SetVibration(status);
 
     return output_devices[index]->SetVibration(status) == Common::Input::DriverResult::Success;
 }

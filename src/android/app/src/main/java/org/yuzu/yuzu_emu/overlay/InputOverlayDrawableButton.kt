@@ -9,7 +9,8 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
-import org.yuzu.yuzu_emu.NativeLibrary.ButtonState
+import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
+import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 
 /**
@@ -19,13 +20,13 @@ import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
  * @param res                [Resources] instance.
  * @param defaultStateBitmap [Bitmap] to use with the default state Drawable.
  * @param pressedStateBitmap [Bitmap] to use with the pressed state Drawable.
- * @param buttonId           Identifier for this type of button.
+ * @param button             [NativeButton] for this type of button.
  */
 class InputOverlayDrawableButton(
     res: Resources,
     defaultStateBitmap: Bitmap,
     pressedStateBitmap: Bitmap,
-    val buttonId: Int,
+    val button: NativeButton,
     val overlayControlData: OverlayControlData
 ) {
     // The ID value what motion event is tracking

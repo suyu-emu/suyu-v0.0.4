@@ -7,6 +7,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import org.yuzu.yuzu_emu.features.input.NativeInput
 import java.io.File
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
@@ -37,6 +38,7 @@ class YuzuApplication : Application() {
         documentsTree = DocumentsTree()
         DirectoryInitialization.start()
         GpuDriverHelper.initializeDriverParameters()
+        NativeInput.reloadInputDevices()
         NativeLibrary.logDeviceInfo()
         Log.logDeviceInfo()
 

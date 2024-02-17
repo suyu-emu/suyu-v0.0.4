@@ -4,7 +4,6 @@
 #include <memory>
 #include "common/input.h"
 #include "common/param_package.h"
-#include "input_common/drivers/android.h"
 #include "input_common/drivers/camera.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
@@ -26,6 +25,10 @@
 #ifdef HAVE_SDL2
 #include "input_common/drivers/joycon.h"
 #include "input_common/drivers/sdl_driver.h"
+#endif
+
+#ifdef ANDROID
+#include "input_common/drivers/android.h"
 #endif
 
 namespace InputCommon {
@@ -79,7 +82,9 @@ struct InputSubsystem::Impl {
         RegisterEngine("cemuhookudp", udp_client);
         RegisterEngine("tas", tas_input);
         RegisterEngine("camera", camera);
+#ifdef ANDROID
         RegisterEngine("android", android);
+#endif
         RegisterEngine("virtual_amiibo", virtual_amiibo);
         RegisterEngine("virtual_gamepad", virtual_gamepad);
 #ifdef HAVE_SDL2
@@ -111,7 +116,9 @@ struct InputSubsystem::Impl {
         UnregisterEngine(udp_client);
         UnregisterEngine(tas_input);
         UnregisterEngine(camera);
+#ifdef ANDROID
         UnregisterEngine(android);
+#endif
         UnregisterEngine(virtual_amiibo);
         UnregisterEngine(virtual_gamepad);
 #ifdef HAVE_SDL2
@@ -128,12 +135,16 @@ struct InputSubsystem::Impl {
             Common::ParamPackage{{"display", "Any"}, {"engine", "any"}},
         };
 
+#ifndef ANDROID
         auto keyboard_devices = keyboard->GetInputDevices();
         devices.insert(devices.end(), keyboard_devices.begin(), keyboard_devices.end());
         auto mouse_devices = mouse->GetInputDevices();
         devices.insert(devices.end(), mouse_devices.begin(), mouse_devices.end());
+#endif
+#ifdef ANDROID
         auto android_devices = android->GetInputDevices();
         devices.insert(devices.end(), android_devices.begin(), android_devices.end());
+#endif
 #ifdef HAVE_LIBUSB
         auto gcadapter_devices = gcadapter->GetInputDevices();
         devices.insert(devices.end(), gcadapter_devices.begin(), gcadapter_devices.end());
@@ -162,9 +173,11 @@ struct InputSubsystem::Impl {
         if (engine == mouse->GetEngineName()) {
             return mouse;
         }
+#ifdef ANDROID
         if (engine == android->GetEngineName()) {
             return android;
         }
+#endif
 #ifdef HAVE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return gcadapter;
@@ -245,9 +258,11 @@ struct InputSubsystem::Impl {
         if (engine == mouse->GetEngineName()) {
             return true;
         }
+#ifdef ANDROID
         if (engine == android->GetEngineName()) {
             return true;
         }
+#endif
 #ifdef HAVE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return true;
@@ -276,7 +291,9 @@ struct InputSubsystem::Impl {
     void BeginConfiguration() {
         keyboard->BeginConfiguration();
         mouse->BeginConfiguration();
+#ifdef ANDROID
         android->BeginConfiguration();
+#endif
 #ifdef HAVE_LIBUSB
         gcadapter->BeginConfiguration();
 #endif
@@ -290,7 +307,9 @@ struct InputSubsystem::Impl {
     void EndConfiguration() {
         keyboard->EndConfiguration();
         mouse->EndConfiguration();
+#ifdef ANDROID
         android->EndConfiguration();
+#endif
 #ifdef HAVE_LIBUSB
         gcadapter->EndConfiguration();
 #endif
@@ -321,7 +340,6 @@ struct InputSubsystem::Impl {
     std::shared_ptr<TasInput::Tas> tas_input;
     std::shared_ptr<CemuhookUDP::UDPClient> udp_client;
     std::shared_ptr<Camera> camera;
-    std::shared_ptr<Android> android;
     std::shared_ptr<VirtualAmiibo> virtual_amiibo;
     std::shared_ptr<VirtualGamepad> virtual_gamepad;
 
@@ -332,6 +350,10 @@ struct InputSubsystem::Impl {
 #ifdef HAVE_SDL2
     std::shared_ptr<SDLDriver> sdl;
     std::shared_ptr<Joycons> joycon;
+#endif
+
+#ifdef ANDROID
+    std::shared_ptr<Android> android;
 #endif
 };
 
@@ -387,6 +409,7 @@ const Camera* InputSubsystem::GetCamera() const {
     return impl->camera.get();
 }
 
+#ifdef ANDROID
 Android* InputSubsystem::GetAndroid() {
     return impl->android.get();
 }
@@ -394,6 +417,7 @@ Android* InputSubsystem::GetAndroid() {
 const Android* InputSubsystem::GetAndroid() const {
     return impl->android.get();
 }
+#endif
 
 VirtualAmiibo* InputSubsystem::GetVirtualAmiibo() {
     return impl->virtual_amiibo.get();

@@ -25,9 +25,9 @@ import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
+import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.ResetSettingsDialogFragment
-import org.yuzu.yuzu_emu.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.*
 
 class SettingsActivity : AppCompatActivity() {
@@ -137,6 +137,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onStop()
         Log.info("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
         if (isFinishing) {
+            NativeInput.reloadInputDevices()
             NativeLibrary.applySettings()
             if (args.game == null) {
                 NativeConfig.saveGlobalConfig()

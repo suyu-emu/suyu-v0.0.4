@@ -24,10 +24,10 @@ import androidx.core.content.ContextCompat
 import androidx.window.layout.WindowMetricsCalculator
 import kotlin.math.max
 import kotlin.math.min
-import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.NativeLibrary.ButtonType
-import org.yuzu.yuzu_emu.NativeLibrary.StickType
+import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
+import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
@@ -100,19 +100,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
         var shouldUpdateView = false
         val playerIndex =
-            if (NativeLibrary.isHandheldOnly()) {
-                NativeLibrary.ConsoleDevice
+            if (NativeInput.isHandheldOnly()) {
+                NativeInput.ConsoleDevice
             } else {
-                NativeLibrary.Player1Device
+                NativeInput.Player1Device
             }
 
         for (button in overlayButtons) {
             if (!button.updateStatus(event)) {
                 continue
             }
-            NativeLibrary.onGamePadButtonEvent(
+            NativeInput.onOverlayButtonEvent(
                 playerIndex,
-                button.buttonId,
+                button.button,
                 button.status
             )
             playHaptics(event)
@@ -123,24 +123,24 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             if (!dpad.updateStatus(event, BooleanSetting.DPAD_SLIDE.getBoolean())) {
                 continue
             }
-            NativeLibrary.onGamePadButtonEvent(
+            NativeInput.onOverlayButtonEvent(
                 playerIndex,
-                dpad.upId,
+                dpad.up,
                 dpad.upStatus
             )
-            NativeLibrary.onGamePadButtonEvent(
+            NativeInput.onOverlayButtonEvent(
                 playerIndex,
-                dpad.downId,
+                dpad.down,
                 dpad.downStatus
             )
-            NativeLibrary.onGamePadButtonEvent(
+            NativeInput.onOverlayButtonEvent(
                 playerIndex,
-                dpad.leftId,
+                dpad.left,
                 dpad.leftStatus
             )
-            NativeLibrary.onGamePadButtonEvent(
+            NativeInput.onOverlayButtonEvent(
                 playerIndex,
-                dpad.rightId,
+                dpad.right,
                 dpad.rightStatus
             )
             playHaptics(event)
@@ -151,16 +151,15 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             if (!joystick.updateStatus(event)) {
                 continue
             }
-            val axisID = joystick.joystickId
-            NativeLibrary.onGamePadJoystickEvent(
+            NativeInput.onOverlayJoystickEvent(
                 playerIndex,
-                axisID,
+                joystick.joystick,
                 joystick.xAxis,
                 joystick.realYAxis
             )
-            NativeLibrary.onGamePadButtonEvent(
+            NativeInput.onOverlayButtonEvent(
                 playerIndex,
-                joystick.buttonId,
+                joystick.button,
                 joystick.buttonStatus
             )
             playHaptics(event)
@@ -187,7 +186,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             motionEvent == MotionEvent.ACTION_UP || motionEvent == MotionEvent.ACTION_POINTER_UP
 
         if (isActionDown && !isTouchInputConsumed(pointerId)) {
-            NativeLibrary.onTouchPressed(pointerId, xPosition.toFloat(), yPosition.toFloat())
+            NativeInput.onTouchPressed(pointerId, xPosition.toFloat(), yPosition.toFloat())
         }
 
         if (isActionMove) {
@@ -196,12 +195,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 if (isTouchInputConsumed(fingerId)) {
                     continue
                 }
-                NativeLibrary.onTouchMoved(fingerId, event.getX(i), event.getY(i))
+                NativeInput.onTouchMoved(fingerId, event.getX(i), event.getY(i))
             }
         }
 
         if (isActionUp && !isTouchInputConsumed(pointerId)) {
-            NativeLibrary.onTouchReleased(pointerId)
+            NativeInput.onTouchReleased(pointerId)
         }
 
         return true
@@ -359,7 +358,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_a,
                             R.drawable.facebutton_a_depressed,
-                            ButtonType.BUTTON_A,
+                            NativeButton.A,
                             data,
                             position
                         )
@@ -373,7 +372,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_b,
                             R.drawable.facebutton_b_depressed,
-                            ButtonType.BUTTON_B,
+                            NativeButton.B,
                             data,
                             position
                         )
@@ -387,7 +386,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_x,
                             R.drawable.facebutton_x_depressed,
-                            ButtonType.BUTTON_X,
+                            NativeButton.X,
                             data,
                             position
                         )
@@ -401,7 +400,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_y,
                             R.drawable.facebutton_y_depressed,
-                            ButtonType.BUTTON_Y,
+                            NativeButton.Y,
                             data,
                             position
                         )
@@ -415,7 +414,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_plus,
                             R.drawable.facebutton_plus_depressed,
-                            ButtonType.BUTTON_PLUS,
+                            NativeButton.Plus,
                             data,
                             position
                         )
@@ -429,7 +428,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_minus,
                             R.drawable.facebutton_minus_depressed,
-                            ButtonType.BUTTON_MINUS,
+                            NativeButton.Minus,
                             data,
                             position
                         )
@@ -443,7 +442,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_home,
                             R.drawable.facebutton_home_depressed,
-                            ButtonType.BUTTON_HOME,
+                            NativeButton.Home,
                             data,
                             position
                         )
@@ -457,7 +456,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.facebutton_screenshot,
                             R.drawable.facebutton_screenshot_depressed,
-                            ButtonType.BUTTON_CAPTURE,
+                            NativeButton.Capture,
                             data,
                             position
                         )
@@ -471,7 +470,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.l_shoulder,
                             R.drawable.l_shoulder_depressed,
-                            ButtonType.TRIGGER_L,
+                            NativeButton.L,
                             data,
                             position
                         )
@@ -485,7 +484,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.r_shoulder,
                             R.drawable.r_shoulder_depressed,
-                            ButtonType.TRIGGER_R,
+                            NativeButton.R,
                             data,
                             position
                         )
@@ -499,7 +498,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.zl_trigger,
                             R.drawable.zl_trigger_depressed,
-                            ButtonType.TRIGGER_ZL,
+                            NativeButton.ZL,
                             data,
                             position
                         )
@@ -513,7 +512,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.zr_trigger,
                             R.drawable.zr_trigger_depressed,
-                            ButtonType.TRIGGER_ZR,
+                            NativeButton.ZR,
                             data,
                             position
                         )
@@ -527,7 +526,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.button_l3,
                             R.drawable.button_l3_depressed,
-                            ButtonType.STICK_L,
+                            NativeButton.LStick,
                             data,
                             position
                         )
@@ -541,7 +540,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             windowSize,
                             R.drawable.button_r3,
                             R.drawable.button_r3_depressed,
-                            ButtonType.STICK_R,
+                            NativeButton.RStick,
                             data,
                             position
                         )
@@ -556,8 +555,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             R.drawable.joystick_range,
                             R.drawable.joystick,
                             R.drawable.joystick_depressed,
-                            StickType.STICK_L,
-                            ButtonType.STICK_L,
+                            NativeAnalog.LStick,
+                            NativeButton.LStick,
                             data,
                             position
                         )
@@ -572,8 +571,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                             R.drawable.joystick_range,
                             R.drawable.joystick,
                             R.drawable.joystick_depressed,
-                            StickType.STICK_R,
-                            ButtonType.STICK_R,
+                            NativeAnalog.RStick,
+                            NativeButton.RStick,
                             data,
                             position
                         )
@@ -835,7 +834,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             windowSize: Pair<Point, Point>,
             defaultResId: Int,
             pressedResId: Int,
-            buttonId: Int,
+            button: NativeButton,
             overlayControlData: OverlayControlData,
             position: Pair<Double, Double>
         ): InputOverlayDrawableButton {
@@ -869,7 +868,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 res,
                 defaultStateBitmap,
                 pressedStateBitmap,
-                buttonId,
+                button,
                 overlayControlData
             )
 
@@ -940,11 +939,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 res,
                 defaultStateBitmap,
                 pressedOneDirectionStateBitmap,
-                pressedTwoDirectionsStateBitmap,
-                ButtonType.DPAD_UP,
-                ButtonType.DPAD_DOWN,
-                ButtonType.DPAD_LEFT,
-                ButtonType.DPAD_RIGHT
+                pressedTwoDirectionsStateBitmap
             )
 
             // Get the minimum and maximum coordinates of the screen where the button can be placed.
@@ -993,8 +988,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             resOuter: Int,
             defaultResInner: Int,
             pressedResInner: Int,
-            joystick: Int,
-            buttonId: Int,
+            joystick: NativeAnalog,
+            button: NativeButton,
             overlayControlData: OverlayControlData,
             position: Pair<Double, Double>
         ): InputOverlayDrawableJoystick {
@@ -1042,7 +1037,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 outerRect,
                 innerRect,
                 joystick,
-                buttonId,
+                button,
                 overlayControlData.id
             )
 
