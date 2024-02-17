@@ -176,16 +176,19 @@ void EmulatedController::LoadDevices() {
         camera_params[1] = Common::ParamPackage{"engine:camera,camera:1"};
         ring_params[1] = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
         nfc_params[0] = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
+        android_params = Common::ParamPackage{"engine:android,port:100"};
     }
 
     output_params[LeftIndex] = left_joycon;
     output_params[RightIndex] = right_joycon;
     output_params[2] = camera_params[1];
     output_params[3] = nfc_params[0];
+    output_params[4] = android_params;
     output_params[LeftIndex].Set("output", true);
     output_params[RightIndex].Set("output", true);
     output_params[2].Set("output", true);
     output_params[3].Set("output", true);
+    output_params[4].Set("output", true);
 
     LoadTASParams();
     LoadVirtualGamepadParams();
@@ -1277,6 +1280,12 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
         .high_frequency = vibration.high_frequency,
         .type = type,
     };
+
+    // Send vibrations to Android's input overlay
+    if (npad_id_type == NpadIdType::Handheld || npad_id_type == NpadIdType::Player1) {
+        output_devices[4]->SetVibration(status);
+    }
+
     return output_devices[index]->SetVibration(status) == Common::Input::DriverResult::Success;
 }
 
