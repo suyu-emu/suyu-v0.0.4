@@ -17,12 +17,6 @@ class FileSystemController;
 
 namespace NS {
 
-class IAccountProxyInterface final : public ServiceFramework<IAccountProxyInterface> {
-public:
-    explicit IAccountProxyInterface(Core::System& system_);
-    ~IAccountProxyInterface() override;
-};
-
 class IApplicationManagerInterface final : public ServiceFramework<IApplicationManagerInterface> {
 public:
     explicit IApplicationManagerInterface(Core::System& system_);

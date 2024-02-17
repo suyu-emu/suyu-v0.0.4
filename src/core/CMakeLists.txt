@@ -739,9 +739,12 @@ add_library(core STATIC
     hle/service/nim/nim.h
     hle/service/npns/npns.cpp
     hle/service/npns/npns.h
+    hle/service/ns/account_proxy_interface.cpp
+    hle/service/ns/account_proxy_interface.h
     hle/service/ns/language.cpp
     hle/service/ns/language.h
     hle/service/ns/ns_results.h
+    hle/service/ns/ns_types.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
     hle/service/ns/pdm_qry.cpp
