@@ -14,6 +14,7 @@
 #include "core/hle/service/ns/account_proxy_interface.h"
 #include "core/hle/service/ns/application_version_interface.h"
 #include "core/hle/service/ns/content_management_interface.h"
+#include "core/hle/service/ns/develop_interface.h"
 #include "core/hle/service/ns/document_interface.h"
 #include "core/hle/service/ns/download_task_interface.h"
 #include "core/hle/service/ns/dynamic_rights_interface.h"
@@ -499,37 +500,6 @@ std::shared_ptr<IApplicationManagerInterface> NS::GetApplicationManagerInterface
     return GetInterface<IApplicationManagerInterface>(system);
 }
 
-class NS_DEV final : public ServiceFramework<NS_DEV> {
-public:
-    explicit NS_DEV(Core::System& system_) : ServiceFramework{system_, "ns:dev"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, nullptr, "LaunchProgram"},
-            {1, nullptr, "TerminateProcess"},
-            {2, nullptr, "TerminateProgram"},
-            {4, nullptr, "GetShellEvent"},
-            {5, nullptr, "GetShellEventInfo"},
-            {6, nullptr, "TerminateApplication"},
-            {7, nullptr, "PrepareLaunchProgramFromHost"},
-            {8, nullptr, "LaunchApplicationFromHost"},
-            {9, nullptr, "LaunchApplicationWithStorageIdForDevelop"},
-            {10, nullptr, "IsSystemMemoryResourceLimitBoosted"},
-            {11, nullptr, "GetRunningApplicationProcessIdForDevelop"},
-            {12, nullptr, "SetCurrentApplicationRightsEnvironmentCanBeActiveForDevelop"},
-            {13, nullptr, "CreateApplicationResourceForDevelop"},
-            {14, nullptr, "IsPreomiaForDevelop"},
-            {15, nullptr, "GetApplicationProgramIdFromHost"},
-            {16, nullptr, "RefreshCachedDebugValues"},
-            {17, nullptr, "PrepareLaunchApplicationFromHost"},
-            {18, nullptr, "GetLaunchEvent"},
-            {19, nullptr, "GetLaunchResult"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-};
-
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
@@ -540,7 +510,7 @@ void LoopProcess(Core::System& system) {
     server_manager->RegisterNamedService("ns:web", std::make_shared<NS>("ns:web", system));
     server_manager->RegisterNamedService("ns:ro", std::make_shared<NS>("ns:ro", system));
 
-    server_manager->RegisterNamedService("ns:dev", std::make_shared<NS_DEV>(system));
+    server_manager->RegisterNamedService("ns:dev", std::make_shared<IDevelopInterface>(system));
     server_manager->RegisterNamedService("ns:su", std::make_shared<ISystemUpdateInterface>(system));
     server_manager->RegisterNamedService("ns:vm",
                                          std::make_shared<IVulnerabilityManagerInterface>(system));
