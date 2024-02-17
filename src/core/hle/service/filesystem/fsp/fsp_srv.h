@@ -58,6 +58,7 @@ private:
     void SetGlobalAccessLogMode(HLERequestContext& ctx);
     void GetGlobalAccessLogMode(HLERequestContext& ctx);
     void OutputAccessLogToSdCard(HLERequestContext& ctx);
+    void FlushAccessLogOnSdCard(HLERequestContext& ctx);
     void GetProgramIndexForAccessLog(HLERequestContext& ctx);
     void OpenMultiCommitManager(HLERequestContext& ctx);
     void GetCacheStorageSize(HLERequestContext& ctx);
