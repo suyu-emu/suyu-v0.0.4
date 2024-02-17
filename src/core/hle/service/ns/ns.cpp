@@ -11,6 +11,7 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/ns/account_proxy_interface.h"
 #include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/ns_results.h"
@@ -20,19 +21,6 @@
 #include "core/hle/service/set/settings_server.h"
 
 namespace Service::NS {
-
-IAccountProxyInterface::IAccountProxyInterface(Core::System& system_)
-    : ServiceFramework{system_, "IAccountProxyInterface"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {0, nullptr, "CreateUserAccount"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IAccountProxyInterface::~IAccountProxyInterface() = default;
 
 IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_)
     : ServiceFramework{system_, "IApplicationManagerInterface"} {
