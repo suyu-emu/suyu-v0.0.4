@@ -807,9 +807,10 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
-void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u32 flags) {
+void BufferQueueProducer::Transact(TransactionId code, u32 flags, std::span<const u8> parcel_data,
+                                   std::span<u8> parcel_reply) {
     Status status{Status::NoError};
-    InputParcel parcel_in{ctx.ReadBuffer()};
+    InputParcel parcel_in{parcel_data};
     OutputParcel parcel_out{};
 
     switch (code) {
@@ -917,7 +918,9 @@ void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u
 
     parcel_out.Write(status);
 
-    ctx.WriteBuffer(parcel_out.Serialize());
+    const auto serialized = parcel_out.Serialize();
+    std::memcpy(parcel_reply.data(), serialized.data(),
+                std::min(parcel_reply.size(), serialized.size()));
 }
 
 Kernel::KReadableEvent& BufferQueueProducer::GetNativeHandle() {

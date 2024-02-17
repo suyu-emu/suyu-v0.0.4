@@ -207,7 +207,8 @@ private:
 
     Result DestroyFile() {
         bool is_db_test_mode_enabled{};
-        m_set_sys->GetSettingsItemValue(is_db_test_mode_enabled, "mii", "is_db_test_mode_enabled");
+        m_set_sys->GetSettingsItemValueImpl(is_db_test_mode_enabled, "mii",
+                                            "is_db_test_mode_enabled");
 
         LOG_INFO(Service_Mii, "called is_db_test_mode_enabled={}", is_db_test_mode_enabled);
         R_UNLESS(is_db_test_mode_enabled, ResultTestModeOnly);
@@ -217,7 +218,8 @@ private:
 
     Result DeleteFile() {
         bool is_db_test_mode_enabled{};
-        m_set_sys->GetSettingsItemValue(is_db_test_mode_enabled, "mii", "is_db_test_mode_enabled");
+        m_set_sys->GetSettingsItemValueImpl(is_db_test_mode_enabled, "mii",
+                                            "is_db_test_mode_enabled");
 
         LOG_INFO(Service_Mii, "called is_db_test_mode_enabled={}", is_db_test_mode_enabled);
         R_UNLESS(is_db_test_mode_enabled, ResultTestModeOnly);
@@ -227,7 +229,8 @@ private:
 
     Result Format() {
         bool is_db_test_mode_enabled{};
-        m_set_sys->GetSettingsItemValue(is_db_test_mode_enabled, "mii", "is_db_test_mode_enabled");
+        m_set_sys->GetSettingsItemValueImpl(is_db_test_mode_enabled, "mii",
+                                            "is_db_test_mode_enabled");
 
         LOG_INFO(Service_Mii, "called is_db_test_mode_enabled={}", is_db_test_mode_enabled);
         R_UNLESS(is_db_test_mode_enabled, ResultTestModeOnly);

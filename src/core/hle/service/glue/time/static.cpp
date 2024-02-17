@@ -20,19 +20,6 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::Glue::Time {
-namespace {
-template <typename T>
-T GetSettingsItemValue(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys,
-                       const char* category, const char* name) {
-    std::vector<u8> interval_buf;
-    auto res = set_sys->GetSettingsItemValue(interval_buf, category, name);
-    ASSERT(res == ResultSuccess);
-
-    T v{};
-    std::memcpy(&v, interval_buf.data(), sizeof(T));
-    return v;
-}
-} // namespace
 
 StaticService::StaticService(Core::System& system_,
                              Service::PSC::Time::StaticServiceSetupInfo setup_info,
@@ -181,8 +168,8 @@ Result StaticService::SetStandardUserSystemClockAutomaticCorrectionEnabled(
 Result StaticService::GetStandardUserSystemClockInitialYear(Out<s32> out_year) {
     SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_year={}", *out_year); });
 
-    *out_year = GetSettingsItemValue<s32>(m_set_sys, "time", "standard_user_clock_initial_year");
-    R_SUCCEED();
+    R_RETURN(m_set_sys->GetSettingsItemValueImpl<s32>(*out_year, "time",
+                                                      "standard_user_clock_initial_year"));
 }
 
 Result StaticService::IsStandardNetworkSystemClockAccuracySufficient(Out<bool> out_is_sufficient) {

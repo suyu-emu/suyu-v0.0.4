@@ -27,7 +27,7 @@ template <typename T>
 T GetSettingsItemValue(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys,
                        const char* category, const char* name) {
     std::vector<u8> interval_buf;
-    auto res = set_sys->GetSettingsItemValue(interval_buf, category, name);
+    auto res = set_sys->GetSettingsItemValueImpl(interval_buf, category, name);
     ASSERT(res == ResultSuccess);
 
     T v{};
