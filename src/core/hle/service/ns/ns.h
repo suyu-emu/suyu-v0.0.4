@@ -32,16 +32,6 @@ private:
     void ConvertApplicationLanguageToLanguageCode(HLERequestContext& ctx);
 };
 
-class IReadOnlyApplicationControlDataInterface final
-    : public ServiceFramework<IReadOnlyApplicationControlDataInterface> {
-public:
-    explicit IReadOnlyApplicationControlDataInterface(Core::System& system_);
-    ~IReadOnlyApplicationControlDataInterface() override;
-
-private:
-    void GetApplicationControlData(HLERequestContext& ctx);
-};
-
 class NS final : public ServiceFramework<NS> {
 public:
     explicit NS(const char* name, Core::System& system_);
