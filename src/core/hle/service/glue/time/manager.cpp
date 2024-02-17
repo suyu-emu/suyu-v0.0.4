@@ -186,6 +186,10 @@ TimeManager::TimeManager(Core::System& system)
     }
 }
 
+TimeManager::~TimeManager() {
+    ResetTimeZoneBinary();
+}
+
 Result TimeManager::SetupStandardSteadyClockCore() {
     Common::UUID external_clock_source_id{};
     auto res = m_set_sys->GetExternalSteadyClockSourceId(&external_clock_source_id);
