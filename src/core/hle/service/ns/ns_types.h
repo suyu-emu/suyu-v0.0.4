@@ -22,6 +22,12 @@ enum class ApplicationControlSource : u8 {
     StorageOnly = 2,
 };
 
+enum class BackgroundNetworkUpdateState : u8 {
+    None,
+    InProgress,
+    Ready,
+};
+
 struct ApplicationRecord {
     u64 application_id;
     ApplicationRecordType type;
