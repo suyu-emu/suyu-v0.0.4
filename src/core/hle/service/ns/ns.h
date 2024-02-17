@@ -58,12 +58,6 @@ public:
     ~IDownloadTaskInterface() override;
 };
 
-class IFactoryResetInterface final : public ServiceFramework<IFactoryResetInterface> {
-public:
-    explicit IFactoryResetInterface(Core::System& system_);
-    ~IFactoryResetInterface() override;
-};
-
 class IReadOnlyApplicationRecordInterface final
     : public ServiceFramework<IReadOnlyApplicationRecordInterface> {
 public:

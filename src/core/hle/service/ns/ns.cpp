@@ -14,6 +14,7 @@
 #include "core/hle/service/ns/account_proxy_interface.h"
 #include "core/hle/service/ns/application_version_interface.h"
 #include "core/hle/service/ns/ecommerce_interface.h"
+#include "core/hle/service/ns/factory_reset_interface.h"
 #include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/ns_results.h"
@@ -566,25 +567,6 @@ IDownloadTaskInterface::IDownloadTaskInterface(Core::System& system_)
 }
 
 IDownloadTaskInterface::~IDownloadTaskInterface() = default;
-
-IFactoryResetInterface::IFactoryResetInterface(Core::System& system_)
-    : ServiceFramework{system_, "IFactoryResetInterface"} {
-    // clang-format off
-        static const FunctionInfo functions[] = {
-            {100, nullptr, "ResetToFactorySettings"},
-            {101, nullptr, "ResetToFactorySettingsWithoutUserSaveData"},
-            {102, nullptr, "ResetToFactorySettingsForRefurbishment"},
-            {103, nullptr, "ResetToFactorySettingsWithPlatformRegion"},
-            {104, nullptr, "ResetToFactorySettingsWithPlatformRegionAuthentication"},
-            {105, nullptr, "RequestResetToFactorySettingsSecurely"},
-            {106, nullptr, "RequestResetToFactorySettingsWithPlatformRegionAuthenticationSecurely"},
-        };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IFactoryResetInterface::~IFactoryResetInterface() = default;
 
 IReadOnlyApplicationRecordInterface::IReadOnlyApplicationRecordInterface(Core::System& system_)
     : ServiceFramework{system_, "IReadOnlyApplicationRecordInterface"} {
