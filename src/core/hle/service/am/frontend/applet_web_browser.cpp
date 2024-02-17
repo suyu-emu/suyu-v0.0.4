@@ -22,7 +22,7 @@
 #include "core/hle/service/am/frontend/applet_web_browser.h"
 #include "core/hle/service/am/service/storage.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/ns/iplatform_service_manager.h"
+#include "core/hle/service/ns/platform_service_manager.h"
 #include "core/loader/loader.h"
 
 namespace Service::AM::Frontend {
