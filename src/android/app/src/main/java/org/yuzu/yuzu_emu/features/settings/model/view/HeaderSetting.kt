@@ -3,8 +3,11 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import androidx.annotation.StringRes
+
 class HeaderSetting(
-    titleId: Int
-) : SettingsItem(emptySetting, titleId, 0) {
+    @StringRes titleId: Int = 0,
+    titleString: String = ""
+) : SettingsItem(emptySetting, titleId, titleString, 0, "") {
     override val type = TYPE_HEADER
 }

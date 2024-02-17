@@ -3,13 +3,16 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.features.settings.model.AbstractLongSetting
 
 class DateTimeSetting(
     private val longSetting: AbstractLongSetting,
-    titleId: Int,
-    descriptionId: Int
-) : SettingsItem(longSetting, titleId, descriptionId) {
+    @StringRes titleId: Int = 0,
+    titleString: String = "",
+    @StringRes descriptionId: Int = 0,
+    descriptionString: String = ""
+) : SettingsItem(longSetting, titleId, titleString, descriptionId, descriptionString) {
     override val type = TYPE_DATETIME_SETTING
 
     fun getValue(needsGlobal: Boolean = false): Long = longSetting.getLong(needsGlobal)

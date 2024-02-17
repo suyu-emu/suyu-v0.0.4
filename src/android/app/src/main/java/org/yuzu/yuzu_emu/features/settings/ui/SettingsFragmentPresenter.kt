@@ -84,42 +84,41 @@ class SettingsFragmentPresenter(
         sl.apply {
             add(
                 SubmenuSetting(
-                    R.string.preferences_system,
-                    R.string.preferences_system_description,
-                    R.drawable.ic_system_settings,
-                    Settings.MenuTag.SECTION_SYSTEM
+                    titleId = R.string.preferences_system,
+                    descriptionId = R.string.preferences_system_description,
+                    iconId = R.drawable.ic_system_settings,
+                    menuKey = MenuTag.SECTION_SYSTEM
                 )
             )
             add(
                 SubmenuSetting(
-                    R.string.preferences_graphics,
-                    R.string.preferences_graphics_description,
-                    R.drawable.ic_graphics,
-                    Settings.MenuTag.SECTION_RENDERER
+                    titleId = R.string.preferences_graphics,
+                    descriptionId = R.string.preferences_graphics_description,
+                    iconId = R.drawable.ic_graphics,
+                    menuKey = MenuTag.SECTION_RENDERER
                 )
             )
             add(
                 SubmenuSetting(
-                    R.string.preferences_audio,
-                    R.string.preferences_audio_description,
-                    R.drawable.ic_audio,
-                    Settings.MenuTag.SECTION_AUDIO
+                    titleId = R.string.preferences_audio,
+                    descriptionId = R.string.preferences_audio_description,
+                    iconId = R.drawable.ic_audio,
+                    menuKey = MenuTag.SECTION_AUDIO
                 )
             )
             add(
                 SubmenuSetting(
-                    R.string.preferences_debug,
-                    R.string.preferences_debug_description,
-                    R.drawable.ic_code,
-                    Settings.MenuTag.SECTION_DEBUG
+                    titleId = R.string.preferences_debug,
+                    descriptionId = R.string.preferences_debug_description,
+                    iconId = R.drawable.ic_code,
+                    menuKey = MenuTag.SECTION_DEBUG
                 )
             )
             add(
                 RunnableSetting(
-                    R.string.reset_to_default,
-                    R.string.reset_to_default_description,
-                    false,
-                    R.drawable.ic_restore
+                    titleId = R.string.reset_to_default,
+                    descriptionId = R.string.reset_to_default_description,
+                    iconId = R.drawable.ic_restore
                 ) { settingsViewModel.setShouldShowResetSettingsDialog(true) }
             )
         }
@@ -186,20 +185,18 @@ class SettingsFragmentPresenter(
                 add(
                     SingleChoiceSetting(
                         theme,
-                        R.string.change_app_theme,
-                        0,
-                        R.array.themeEntriesA12,
-                        R.array.themeValuesA12
+                        titleId = R.string.change_app_theme,
+                        choicesId = R.array.themeEntriesA12,
+                        valuesId = R.array.themeValuesA12
                     )
                 )
             } else {
                 add(
                     SingleChoiceSetting(
                         theme,
-                        R.string.change_app_theme,
-                        0,
-                        R.array.themeEntries,
-                        R.array.themeValues
+                        titleId = R.string.change_app_theme,
+                        choicesId = R.array.themeEntries,
+                        valuesId = R.array.themeValues
                     )
                 )
             }
@@ -228,10 +225,9 @@ class SettingsFragmentPresenter(
             add(
                 SingleChoiceSetting(
                     themeMode,
-                    R.string.change_theme_mode,
-                    0,
-                    R.array.themeModeEntries,
-                    R.array.themeModeValues
+                    titleId = R.string.change_theme_mode,
+                    choicesId = R.array.themeModeEntries,
+                    valuesId = R.array.themeModeValues
                 )
             )
 
@@ -262,8 +258,8 @@ class SettingsFragmentPresenter(
             add(
                 SwitchSetting(
                     blackBackgrounds,
-                    R.string.use_black_backgrounds,
-                    R.string.use_black_backgrounds_description
+                    titleId = R.string.use_black_backgrounds,
+                    descriptionId = R.string.use_black_backgrounds_description
                 )
             )
         }
