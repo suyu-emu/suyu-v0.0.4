@@ -769,6 +769,8 @@ add_library(core STATIC
     hle/service/ns/read_only_application_control_data_interface.h
     hle/service/ns/read_only_application_record_interface.cpp
     hle/service/ns/read_only_application_record_interface.h
+    hle/service/ns/system_update_control.cpp
+    hle/service/ns/system_update_control.h
     hle/service/ns/vulnerability_manager_interface.cpp
     hle/service/ns/vulnerability_manager_interface.h
     hle/service/nvdrv/core/container.cpp
