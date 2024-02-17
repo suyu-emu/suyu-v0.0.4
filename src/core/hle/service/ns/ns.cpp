@@ -24,6 +24,7 @@
 #include "core/hle/service/ns/ns_results.h"
 #include "core/hle/service/ns/pdm_qry.h"
 #include "core/hle/service/ns/platform_service_manager.h"
+#include "core/hle/service/ns/read_only_application_record_interface.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/set/settings_server.h"
 
@@ -466,40 +467,6 @@ Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
 
     *out_language_code = static_cast<u64>(*language_code);
     return ResultSuccess;
-}
-
-IReadOnlyApplicationRecordInterface::IReadOnlyApplicationRecordInterface(Core::System& system_)
-    : ServiceFramework{system_, "IReadOnlyApplicationRecordInterface"} {
-    static const FunctionInfo functions[] = {
-        {0, &IReadOnlyApplicationRecordInterface::HasApplicationRecord, "HasApplicationRecord"},
-        {1, nullptr, "NotifyApplicationFailure"},
-        {2, &IReadOnlyApplicationRecordInterface::IsDataCorruptedResult, "IsDataCorruptedResult"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-IReadOnlyApplicationRecordInterface::~IReadOnlyApplicationRecordInterface() = default;
-
-void IReadOnlyApplicationRecordInterface::HasApplicationRecord(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u64 program_id = rp.PopRaw<u64>();
-    LOG_WARNING(Service_NS, "(STUBBED) called, program_id={:X}", program_id);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u8>(1);
-}
-
-void IReadOnlyApplicationRecordInterface::IsDataCorruptedResult(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto result = rp.PopRaw<Result>();
-    LOG_WARNING(Service_NS, "(STUBBED) called, result={:#x}", result.GetInnerValue());
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u8>(0);
 }
 
 IReadOnlyApplicationControlDataInterface::IReadOnlyApplicationControlDataInterface(

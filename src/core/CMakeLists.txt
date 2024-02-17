@@ -765,6 +765,8 @@ add_library(core STATIC
     hle/service/ns/pdm_qry.h
     hle/service/ns/platform_service_manager.cpp
     hle/service/ns/platform_service_manager.h
+    hle/service/ns/read_only_application_record_interface.cpp
+    hle/service/ns/read_only_application_record_interface.h
     hle/service/nvdrv/core/container.cpp
     hle/service/nvdrv/core/container.h
     hle/service/nvdrv/core/heap_mapper.cpp
