@@ -9,7 +9,7 @@
 #include "core/file_sys/system_archive/data/font_standard.h"
 #include "core/file_sys/system_archive/shared_font.h"
 #include "core/file_sys/vfs/vfs_vector.h"
-#include "core/hle/service/ns/iplatform_service_manager.h"
+#include "core/hle/service/ns/platform_service_manager.h"
 
 namespace FileSys::SystemArchive {
 
