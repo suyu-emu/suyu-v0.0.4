@@ -242,7 +242,7 @@ struct System::Impl {
     void Run() {
         std::unique_lock<std::mutex> lk(suspend_guard);
 
-        kernel.SuspendApplication(false);
+        kernel.SuspendEmulation(false);
         core_timing.SyncPause(false);
         is_paused.store(false, std::memory_order_relaxed);
     }
@@ -251,7 +251,7 @@ struct System::Impl {
         std::unique_lock<std::mutex> lk(suspend_guard);
 
         core_timing.SyncPause(true);
-        kernel.SuspendApplication(true);
+        kernel.SuspendEmulation(true);
         is_paused.store(true, std::memory_order_relaxed);
     }
 
@@ -261,7 +261,7 @@ struct System::Impl {
 
     std::unique_lock<std::mutex> StallApplication() {
         std::unique_lock<std::mutex> lk(suspend_guard);
-        kernel.SuspendApplication(true);
+        kernel.SuspendEmulation(true);
         core_timing.SyncPause(true);
         return lk;
     }
@@ -269,7 +269,7 @@ struct System::Impl {
     void UnstallApplication() {
         if (!IsPaused()) {
             core_timing.SyncPause(false);
-            kernel.SuspendApplication(false);
+            kernel.SuspendEmulation(false);
         }
     }
 
@@ -459,7 +459,7 @@ struct System::Impl {
         }
 
         Network::CancelPendingSocketOperations();
-        kernel.SuspendApplication(true);
+        kernel.SuspendEmulation(true);
         if (services) {
             services->KillNVNFlinger();
         }

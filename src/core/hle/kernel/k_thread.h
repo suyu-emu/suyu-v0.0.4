@@ -66,6 +66,7 @@ enum class SuspendType : u32 {
     Debug = 2,
     Backtrace = 3,
     Init = 4,
+    System = 5,
 
     Count,
 };
@@ -84,8 +85,9 @@ enum class ThreadState : u16 {
     DebugSuspended = (1 << (2 + SuspendShift)),
     BacktraceSuspended = (1 << (3 + SuspendShift)),
     InitSuspended = (1 << (4 + SuspendShift)),
+    SystemSuspended = (1 << (5 + SuspendShift)),
 
-    SuspendFlagMask = ((1 << 5) - 1) << SuspendShift,
+    SuspendFlagMask = ((1 << 6) - 1) << SuspendShift,
 };
 DECLARE_ENUM_FLAG_OPERATORS(ThreadState);
 

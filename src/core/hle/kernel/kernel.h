@@ -258,8 +258,8 @@ public:
     /// Gets the shared memory object for HIDBus services.
     const Kernel::KSharedMemory& GetHidBusSharedMem() const;
 
-    /// Suspend/unsuspend application process.
-    void SuspendApplication(bool suspend);
+    /// Suspend/unsuspend emulated processes.
+    void SuspendEmulation(bool suspend);
 
     /// Exceptional exit application process.
     void ExceptionalExitApplication();

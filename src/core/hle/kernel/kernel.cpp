@@ -1204,39 +1204,48 @@ const Kernel::KSharedMemory& KernelCore::GetHidBusSharedMem() const {
     return *impl->hidbus_shared_mem;
 }
 
-void KernelCore::SuspendApplication(bool suspended) {
+void KernelCore::SuspendEmulation(bool suspended) {
     const bool should_suspend{exception_exited || suspended};
-    const auto activity =
-        should_suspend ? Svc::ProcessActivity::Paused : Svc::ProcessActivity::Runnable;
+    auto processes = GetProcessList();
 
-    // Get the application process.
-    KScopedAutoObject<KProcess> process = ApplicationProcess();
-    if (process.IsNull()) {
+    for (auto& process : processes) {
+        KScopedLightLock ll{process->GetListLock()};
+
+        for (auto& thread : process->GetThreadList()) {
+            if (should_suspend) {
+                thread.RequestSuspend(SuspendType::System);
+            } else {
+                thread.Resume(SuspendType::System);
+            }
+        }
+    }
+
+    if (!should_suspend) {
         return;
     }
 
-    // Set the new activity.
-    process->SetActivity(activity);
-
     // Wait for process execution to stop.
-    bool must_wait{should_suspend};
-
-    // KernelCore::SuspendApplication must be called from locked context,
-    // or we could race another call to SetActivity, interfering with waiting.
-    while (must_wait) {
+    // KernelCore::SuspendEmulation must be called from locked context,
+    // or we could race another call, interfering with waiting.
+    const auto TryWait = [&]() {
         KScopedSchedulerLock sl{*this};
 
-        // Assume that all threads have finished running.
-        must_wait = false;
-
-        for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
-            if (Scheduler(i).GetSchedulerCurrentThread()->GetOwnerProcess() ==
-                process.GetPointerUnsafe()) {
-                // A thread has not finished running yet.
-                // Continue waiting.
-                must_wait = true;
+        for (auto& process : processes) {
+            for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
+                if (Scheduler(i).GetSchedulerCurrentThread()->GetOwnerProcess() ==
+                    process.GetPointerUnsafe()) {
+                    // A thread has not finished running yet.
+                    // Continue waiting.
+                    return false;
+                }
             }
         }
+
+        return true;
+    };
+
+    while (!TryWait()) {
+        // ...
     }
 }
 
@@ -1260,7 +1269,7 @@ bool KernelCore::IsShuttingDown() const {
 
 void KernelCore::ExceptionalExitApplication() {
     exception_exited = true;
-    SuspendApplication(true);
+    SuspendEmulation(true);
 }
 
 void KernelCore::EnterSVCProfile() {
