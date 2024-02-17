@@ -29,7 +29,7 @@ ISystemDisplayService::ISystemDisplayService(Core::System& system_,
         {2400, nullptr, "OpenIndirectLayer"},
         {2401, nullptr, "CloseIndirectLayer"},
         {2402, nullptr, "FlipIndirectLayer"},
-        {3000, nullptr, "ListDisplayModes"},
+        {3000, C<&ISystemDisplayService::ListDisplayModes>, "ListDisplayModes"},
         {3001, nullptr, "ListDisplayRgbRanges"},
         {3002, nullptr, "ListDisplayContentTypes"},
         {3200, C<&ISystemDisplayService::GetDisplayMode>, "GetDisplayMode"},
@@ -80,20 +80,39 @@ Result ISystemDisplayService::SetLayerVisibility(bool visible, u64 layer_id) {
     R_SUCCEED();
 }
 
-Result ISystemDisplayService::GetDisplayMode(Out<u32> out_width, Out<u32> out_height,
-                                             Out<f32> out_refresh_rate, Out<u32> out_unknown) {
-    LOG_WARNING(Service_VI, "(STUBBED) called");
+Result ISystemDisplayService::ListDisplayModes(
+    Out<u64> out_count, u64 display_id,
+    OutArray<DisplayMode, BufferAttr_HipcMapAlias> out_display_modes) {
+    LOG_WARNING(Service_VI, "(STUBBED) called, display_id={}", display_id);
 
-    if (Settings::IsDockedMode()) {
-        *out_width = static_cast<u32>(DisplayResolution::DockedWidth);
-        *out_height = static_cast<u32>(DisplayResolution::DockedHeight);
+    if (!out_display_modes.empty()) {
+        out_display_modes[0] = {
+            .width = 1920,
+            .height = 1080,
+            .refresh_rate = 60.f,
+            .unknown = {},
+        };
+        *out_count = 1;
     } else {
-        *out_width = static_cast<u32>(DisplayResolution::UndockedWidth);
-        *out_height = static_cast<u32>(DisplayResolution::UndockedHeight);
+        *out_count = 0;
     }
 
-    *out_refresh_rate = 60.f; // This wouldn't seem to be correct for 30 fps games.
-    *out_unknown = 0;
+    R_SUCCEED();
+}
+
+Result ISystemDisplayService::GetDisplayMode(Out<DisplayMode> out_display_mode, u64 display_id) {
+    LOG_WARNING(Service_VI, "(STUBBED) called, display_id={}", display_id);
+
+    if (Settings::IsDockedMode()) {
+        out_display_mode->width = static_cast<u32>(DisplayResolution::DockedWidth);
+        out_display_mode->height = static_cast<u32>(DisplayResolution::DockedHeight);
+    } else {
+        out_display_mode->width = static_cast<u32>(DisplayResolution::UndockedWidth);
+        out_display_mode->height = static_cast<u32>(DisplayResolution::UndockedHeight);
+    }
+
+    out_display_mode->refresh_rate = 60.f; // This wouldn't seem to be correct for 30 fps games.
+    out_display_mode->unknown = 0;
 
     R_SUCCEED();
 }

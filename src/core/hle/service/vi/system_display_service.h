@@ -8,6 +8,7 @@
 #include "core/hle/service/vi/shared_buffer_manager.h"
 
 namespace Service::VI {
+struct DisplayMode;
 
 class Container;
 
@@ -19,8 +20,9 @@ public:
 private:
     Result SetLayerZ(u32 z_value, u64 layer_id);
     Result SetLayerVisibility(bool visible, u64 layer_id);
-    Result GetDisplayMode(Out<u32> out_width, Out<u32> out_height, Out<f32> out_refresh_rate,
-                          Out<u32> out_unknown);
+    Result ListDisplayModes(Out<u64> out_count, u64 display_id,
+                            OutArray<DisplayMode, BufferAttr_HipcMapAlias> out_display_modes);
+    Result GetDisplayMode(Out<DisplayMode> out_display_mode, u64 display_id);
 
     Result GetSharedBufferMemoryHandleId(
         Out<s32> out_nvmap_handle, Out<u64> out_size,
