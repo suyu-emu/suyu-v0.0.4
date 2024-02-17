@@ -58,12 +58,6 @@ public:
     ~IDownloadTaskInterface() override;
 };
 
-class IECommerceInterface final : public ServiceFramework<IECommerceInterface> {
-public:
-    explicit IECommerceInterface(Core::System& system_);
-    ~IECommerceInterface() override;
-};
-
 class IFactoryResetInterface final : public ServiceFramework<IFactoryResetInterface> {
 public:
     explicit IFactoryResetInterface(Core::System& system_);
