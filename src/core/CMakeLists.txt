@@ -585,6 +585,8 @@ add_library(core STATIC
     hle/service/filesystem/fsp/fs_i_file.h
     hle/service/filesystem/fsp/fs_i_filesystem.cpp
     hle/service/filesystem/fsp/fs_i_filesystem.h
+    hle/service/filesystem/fsp/fs_i_multi_commit_manager.cpp
+    hle/service/filesystem/fsp/fs_i_multi_commit_manager.h
     hle/service/filesystem/fsp/fs_i_save_data_info_reader.cpp
     hle/service/filesystem/fsp/fs_i_save_data_info_reader.h
     hle/service/filesystem/fsp/fs_i_storage.cpp
