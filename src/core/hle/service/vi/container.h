@@ -76,7 +76,7 @@ private:
     void DestroyBufferQueueLocked(Layer* layer);
 
 public:
-    void ComposeOnDisplay(s32* out_swap_interval, f32* out_compose_speed_scale, u64 display_id);
+    bool ComposeOnDisplay(s32* out_swap_interval, f32* out_compose_speed_scale, u64 display_id);
 
 private:
     std::mutex m_lock{};

@@ -44,6 +44,10 @@ struct Display {
         return nullptr;
     }
 
+    bool HasLayers() {
+        return !stack.layers.empty();
+    }
+
     u64 id;
     LayerStack stack;
 };
