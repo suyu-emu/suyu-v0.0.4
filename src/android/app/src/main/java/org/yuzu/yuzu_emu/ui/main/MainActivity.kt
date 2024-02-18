@@ -498,7 +498,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     this@MainActivity,
                     titleId = R.string.content_install_notice,
                     descriptionId = R.string.content_install_notice_description,
-                    positiveAction = { homeViewModel.setContentToInstall(documents) }
+                    positiveAction = { homeViewModel.setContentToInstall(documents) },
+                    negativeAction = {}
                 )
             }
         }.show(supportFragmentManager, ProgressDialogFragment.TAG)
