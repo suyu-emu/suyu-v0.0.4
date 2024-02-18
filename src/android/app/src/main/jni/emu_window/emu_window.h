@@ -38,6 +38,10 @@ public:
     void OnSurfaceChanged(ANativeWindow* surface);
     void OnFrameDisplayed() override;
 
+    void OnTouchPressed(int id, float x, float y);
+    void OnTouchMoved(int id, float x, float y);
+    void OnTouchReleased(int id);
+
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override {
         return {std::make_unique<GraphicsContext_Android>(m_driver_library)};
     }
