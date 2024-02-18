@@ -11,12 +11,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
@@ -29,6 +25,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringSingleChoiceSetting
 import org.yuzu.yuzu_emu.utils.ParamPackage
+import org.yuzu.yuzu_emu.utils.collect
 
 class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener {
     private var type = 0
@@ -169,17 +166,11 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
         super.onViewCreated(view, savedInstanceState)
         when (type) {
             SettingsItem.TYPE_SLIDER -> {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    repeatOnLifecycle(Lifecycle.State.CREATED) {
-                        settingsViewModel.sliderTextValue.collect {
-                            sliderBinding.textValue.text = it
-                        }
-                    }
-                    repeatOnLifecycle(Lifecycle.State.CREATED) {
-                        settingsViewModel.sliderProgress.collect {
-                            sliderBinding.slider.value = it.toFloat()
-                        }
-                    }
+                settingsViewModel.sliderTextValue.collect(viewLifecycleOwner) {
+                    sliderBinding.textValue.text = it
+                }
+                settingsViewModel.sliderProgress.collect(viewLifecycleOwner) {
+                    sliderBinding.slider.value = it.toFloat()
                 }
             }
         }

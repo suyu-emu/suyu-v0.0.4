@@ -6,11 +6,7 @@ package org.yuzu.yuzu_emu.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.databinding.CardInstallableIconBinding
 import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
 import org.yuzu.yuzu_emu.model.GameProperty
@@ -18,6 +14,7 @@ import org.yuzu.yuzu_emu.model.InstallableProperty
 import org.yuzu.yuzu_emu.model.SubmenuProperty
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.utils.collect
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GamePropertiesAdapter(
@@ -82,11 +79,7 @@ class GamePropertiesAdapter(
                 binding.details.text = submenuProperty.details.invoke()
             } else if (submenuProperty.detailsFlow != null) {
                 binding.details.setVisible(true)
-                viewLifecycle.lifecycleScope.launch {
-                    viewLifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        submenuProperty.detailsFlow.collect { binding.details.text = it }
-                    }
-                }
+                submenuProperty.detailsFlow.collect(viewLifecycle) { binding.details.text = it }
             } else {
                 binding.details.setVisible(false)
             }

@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.fragments
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,9 +13,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
@@ -35,6 +31,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 import java.io.File
 import java.io.IOException
 
@@ -63,8 +60,6 @@ class DriverManagerFragment : Fragment() {
         return binding.root
     }
 
-    // This is using the correct scope, lint is just acting up
-    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setNavigationVisibility(visible = false, animated = true)
@@ -89,15 +84,8 @@ class DriverManagerFragment : Fragment() {
                 }
             }
 
-            viewLifecycleOwner.lifecycleScope.apply {
-                launch {
-                    repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        driverViewModel.showClearButton.collect {
-                            binding.toolbarDrivers.menu
-                                .findItem(R.id.menu_driver_use_global).isVisible = it
-                        }
-                    }
-                }
+            driverViewModel.showClearButton.collect(viewLifecycleOwner) {
+                binding.toolbarDrivers.menu.findItem(R.id.menu_driver_use_global).isVisible = it
             }
         }
 

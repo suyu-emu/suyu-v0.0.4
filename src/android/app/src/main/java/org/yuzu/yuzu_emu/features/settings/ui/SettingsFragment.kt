@@ -13,21 +13,17 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 
 class SettingsFragment : Fragment() {
     private lateinit var presenter: SettingsFragmentPresenter
@@ -63,8 +59,7 @@ class SettingsFragment : Fragment() {
         return binding.root
     }
 
-    // This is using the correct scope, lint is just acting up
-    @SuppressLint("UnsafeRepeatOnLifecycleDetector", "NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         settingsAdapter = SettingsAdapter(this, requireContext())
@@ -100,65 +95,37 @@ class SettingsFragment : Fragment() {
             settingsViewModel.setShouldNavigateBack(true)
         }
 
-        viewLifecycleOwner.lifecycleScope.apply {
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    settingsViewModel.shouldReloadSettingsList.collectLatest {
-                        if (it) {
-                            settingsViewModel.setShouldReloadSettingsList(false)
-                            presenter.loadSettingsList()
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    settingsViewModel.adapterItemChanged.collect {
-                        if (it != -1) {
-                            settingsAdapter?.notifyItemChanged(it)
-                            settingsViewModel.setAdapterItemChanged(-1)
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    settingsViewModel.datasetChanged.collect {
-                        if (it) {
-                            settingsAdapter?.notifyDataSetChanged()
-                            settingsViewModel.setDatasetChanged(false)
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    settingsViewModel.reloadListAndNotifyDataset.collectLatest {
-                        if (it) {
-                            settingsViewModel.setReloadListAndNotifyDataset(false)
-                            presenter.loadSettingsList(true)
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    settingsViewModel.shouldShowResetInputDialog.collectLatest {
-                        if (it) {
-                            MessageDialogFragment.newInstance(
-                                activity = requireActivity(),
-                                titleId = R.string.reset_mapping,
-                                descriptionId = R.string.reset_mapping_description,
-                                positiveAction = {
-                                    NativeInput.resetControllerMappings(getPlayerIndex())
-                                    settingsViewModel.setReloadListAndNotifyDataset(true)
-                                },
-                                negativeAction = {}
-                            ).show(parentFragmentManager, MessageDialogFragment.TAG)
-                            settingsViewModel.setShouldShowResetInputDialog(false)
-                        }
-                    }
-                }
+        settingsViewModel.shouldReloadSettingsList.collect(
+            viewLifecycleOwner,
+            resetState = { settingsViewModel.setShouldReloadSettingsList(false) }
+        ) { if (it) presenter.loadSettingsList() }
+        settingsViewModel.adapterItemChanged.collect(
+            viewLifecycleOwner,
+            resetState = { settingsViewModel.setAdapterItemChanged(-1) }
+        ) { if (it != -1) settingsAdapter?.notifyItemChanged(it) }
+        settingsViewModel.datasetChanged.collect(
+            viewLifecycleOwner,
+            resetState = { settingsViewModel.setDatasetChanged(false) }
+        ) { if (it) settingsAdapter?.notifyDataSetChanged() }
+        settingsViewModel.reloadListAndNotifyDataset.collect(
+            viewLifecycleOwner,
+            resetState = { settingsViewModel.setReloadListAndNotifyDataset(false) }
+        ) { if (it) presenter.loadSettingsList(true) }
+        settingsViewModel.shouldShowResetInputDialog.collect(
+            viewLifecycleOwner,
+            resetState = { settingsViewModel.setShouldShowResetInputDialog(false) }
+        ) {
+            if (it) {
+                MessageDialogFragment.newInstance(
+                    activity = requireActivity(),
+                    titleId = R.string.reset_mapping,
+                    descriptionId = R.string.reset_mapping_description,
+                    positiveAction = {
+                        NativeInput.resetControllerMappings(getPlayerIndex())
+                        settingsViewModel.setReloadListAndNotifyDataset(true)
+                    },
+                    negativeAction = {}
+                ).show(parentFragmentManager, MessageDialogFragment.TAG)
             }
         }
 

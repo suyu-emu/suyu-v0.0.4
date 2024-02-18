@@ -11,16 +11,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogInputProfilesBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.InputProfileSetting
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
+import org.yuzu.yuzu_emu.utils.collect
 
 class InputProfileDialogFragment : DialogFragment() {
     private var position = 0
@@ -110,25 +107,21 @@ class InputProfileDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                settingsViewModel.shouldShowDeleteProfileDialog.collect {
-                    if (it.isNotEmpty()) {
-                        MessageDialogFragment.newInstance(
-                            activity = requireActivity(),
-                            titleId = R.string.delete_input_profile,
-                            descriptionId = R.string.delete_input_profile_description,
-                            positiveAction = {
-                                setting.deleteProfile(it)
-                                settingsViewModel.setReloadListAndNotifyDataset(true)
-                            },
-                            negativeAction = {},
-                            negativeButtonTitleId = android.R.string.cancel
-                        ).show(parentFragmentManager, MessageDialogFragment.TAG)
-                        settingsViewModel.setShouldShowDeleteProfileDialog("")
-                        dismiss()
-                    }
-                }
+        settingsViewModel.shouldShowDeleteProfileDialog.collect(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                MessageDialogFragment.newInstance(
+                    activity = requireActivity(),
+                    titleId = R.string.delete_input_profile,
+                    descriptionId = R.string.delete_input_profile_description,
+                    positiveAction = {
+                        setting.deleteProfile(it)
+                        settingsViewModel.setReloadListAndNotifyDataset(true)
+                    },
+                    negativeAction = {},
+                    negativeButtonTitleId = android.R.string.cancel
+                ).show(parentFragmentManager, MessageDialogFragment.TAG)
+                settingsViewModel.setShouldShowDeleteProfileDialog("")
+                dismiss()
             }
         }
     }
