@@ -8,10 +8,12 @@ import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 
 class SubmenuSetting(
-    @StringRes titleId: Int,
-    @StringRes descriptionId: Int,
-    @DrawableRes val iconId: Int,
+    @StringRes titleId: Int = 0,
+    titleString: String = "",
+    @StringRes descriptionId: Int = 0,
+    descriptionString: String = "",
+    @DrawableRes val iconId: Int = 0,
     val menuKey: Settings.MenuTag
-) : SettingsItem(emptySetting, titleId, descriptionId) {
+) : SettingsItem(emptySetting, titleId, titleString, descriptionId, descriptionString) {
     override val type = TYPE_SUBMENU
 }

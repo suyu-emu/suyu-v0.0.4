@@ -30,21 +30,12 @@ private:
 class EmuWindow_Android final : public Core::Frontend::EmuWindow {
 
 public:
-    EmuWindow_Android(InputCommon::InputSubsystem* input_subsystem, ANativeWindow* surface,
+    EmuWindow_Android(ANativeWindow* surface,
                       std::shared_ptr<Common::DynamicLibrary> driver_library);
 
-    ~EmuWindow_Android();
+    ~EmuWindow_Android() = default;
 
     void OnSurfaceChanged(ANativeWindow* surface);
-    void OnTouchPressed(int id, float x, float y);
-    void OnTouchMoved(int id, float x, float y);
-    void OnTouchReleased(int id);
-    void OnGamepadButtonEvent(int player_index, int button_id, bool pressed);
-    void OnGamepadJoystickEvent(int player_index, int stick_id, float x, float y);
-    void OnGamepadMotionEvent(int player_index, u64 delta_timestamp, float gyro_x, float gyro_y,
-                              float gyro_z, float accel_x, float accel_y, float accel_z);
-    void OnReadNfcTag(std::span<u8> data);
-    void OnRemoveNfcTag();
     void OnFrameDisplayed() override;
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override {
@@ -55,8 +46,6 @@ public:
     };
 
 private:
-    InputCommon::InputSubsystem* m_input_subsystem{};
-
     float m_window_width{};
     float m_window_height{};
 

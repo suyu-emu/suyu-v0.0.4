@@ -3,8 +3,12 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.input.model.NpadStyleIndex
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
@@ -23,13 +27,34 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
  */
 abstract class SettingsItem(
     val setting: AbstractSetting,
-    val nameId: Int,
-    val descriptionId: Int
+    @StringRes val titleId: Int,
+    val titleString: String,
+    @StringRes val descriptionId: Int,
+    val descriptionString: String
 ) {
     abstract val type: Int
 
+    val title: String by lazy {
+        if (titleId != 0) {
+            return@lazy YuzuApplication.appContext.getString(titleId)
+        }
+        return@lazy titleString
+    }
+
+    val description: String by lazy {
+        if (descriptionId != 0) {
+            return@lazy YuzuApplication.appContext.getString(descriptionId)
+        }
+        return@lazy descriptionString
+    }
+
     val isEditable: Boolean
         get() {
+            // Can't change docked mode toggle when using handheld mode
+            if (setting.key == BooleanSetting.USE_DOCKED_MODE.key) {
+                return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
+            }
+
             // Can't edit settings that aren't saveable in per-game config even if they are switchable
             if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
                 return false
@@ -59,6 +84,9 @@ abstract class SettingsItem(
         const val TYPE_STRING_SINGLE_CHOICE = 5
         const val TYPE_DATETIME_SETTING = 6
         const val TYPE_RUNNABLE = 7
+        const val TYPE_INPUT = 8
+        const val TYPE_INT_SINGLE_CHOICE = 9
+        const val TYPE_INPUT_PROFILE = 10
 
         const val FASTMEM_COMBINED = "fastmem_combined"
 
@@ -80,237 +108,242 @@ abstract class SettingsItem(
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_SPEED_LIMIT,
-                    R.string.frame_limit_enable,
-                    R.string.frame_limit_enable_description
+                    titleId = R.string.frame_limit_enable,
+                    descriptionId = R.string.frame_limit_enable_description
                 )
             )
             put(
                 SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,
-                    R.string.frame_limit_slider,
-                    R.string.frame_limit_slider_description,
-                    1,
-                    400,
-                    "%"
+                    titleId = R.string.frame_limit_slider,
+                    descriptionId = R.string.frame_limit_slider_description,
+                    min = 1,
+                    max = 400,
+                    units = "%"
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.CPU_BACKEND,
-                    R.string.cpu_backend,
-                    0,
-                    R.array.cpuBackendArm64Names,
-                    R.array.cpuBackendArm64Values
+                    titleId = R.string.cpu_backend,
+                    choicesId = R.array.cpuBackendArm64Names,
+                    valuesId = R.array.cpuBackendArm64Values
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.CPU_ACCURACY,
-                    R.string.cpu_accuracy,
-                    0,
-                    R.array.cpuAccuracyNames,
-                    R.array.cpuAccuracyValues
+                    titleId = R.string.cpu_accuracy,
+                    choicesId = R.array.cpuAccuracyNames,
+                    valuesId = R.array.cpuAccuracyValues
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.PICTURE_IN_PICTURE,
-                    R.string.picture_in_picture,
-                    R.string.picture_in_picture_description
+                    titleId = R.string.picture_in_picture,
+                    descriptionId = R.string.picture_in_picture_description
                 )
             )
+
+            val dockedModeSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.USE_DOCKED_MODE.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean {
+                    if (NativeInput.getStyleIndex(0) == NpadStyleIndex.Handheld) {
+                        return false
+                    }
+                    return BooleanSetting.USE_DOCKED_MODE.getBoolean(needsGlobal)
+                }
+
+                override fun setBoolean(value: Boolean) =
+                    BooleanSetting.USE_DOCKED_MODE.setBoolean(value)
+
+                override val defaultValue = BooleanSetting.USE_DOCKED_MODE.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.USE_DOCKED_MODE.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
+            }
             put(
                 SwitchSetting(
-                    BooleanSetting.USE_DOCKED_MODE,
-                    R.string.use_docked_mode,
-                    R.string.use_docked_mode_description
+                    dockedModeSetting,
+                    titleId = R.string.use_docked_mode,
+                    descriptionId = R.string.use_docked_mode_description
                 )
             )
+
             put(
                 SingleChoiceSetting(
                     IntSetting.REGION_INDEX,
-                    R.string.emulated_region,
-                    0,
-                    R.array.regionNames,
-                    R.array.regionValues
+                    titleId = R.string.emulated_region,
+                    choicesId = R.array.regionNames,
+                    valuesId = R.array.regionValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.LANGUAGE_INDEX,
-                    R.string.emulated_language,
-                    0,
-                    R.array.languageNames,
-                    R.array.languageValues
+                    titleId = R.string.emulated_language,
+                    choicesId = R.array.languageNames,
+                    valuesId = R.array.languageValues
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.USE_CUSTOM_RTC,
-                    R.string.use_custom_rtc,
-                    R.string.use_custom_rtc_description
+                    titleId = R.string.use_custom_rtc,
+                    descriptionId = R.string.use_custom_rtc_description
                 )
             )
-            put(DateTimeSetting(LongSetting.CUSTOM_RTC, R.string.set_custom_rtc, 0))
+            put(DateTimeSetting(LongSetting.CUSTOM_RTC, titleId = R.string.set_custom_rtc))
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ACCURACY,
-                    R.string.renderer_accuracy,
-                    0,
-                    R.array.rendererAccuracyNames,
-                    R.array.rendererAccuracyValues
+                    titleId = R.string.renderer_accuracy,
+                    choicesId = R.array.rendererAccuracyNames,
+                    valuesId = R.array.rendererAccuracyValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_RESOLUTION,
-                    R.string.renderer_resolution,
-                    0,
-                    R.array.rendererResolutionNames,
-                    R.array.rendererResolutionValues
+                    titleId = R.string.renderer_resolution,
+                    choicesId = R.array.rendererResolutionNames,
+                    valuesId = R.array.rendererResolutionValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_VSYNC,
-                    R.string.renderer_vsync,
-                    0,
-                    R.array.rendererVSyncNames,
-                    R.array.rendererVSyncValues
+                    titleId = R.string.renderer_vsync,
+                    choicesId = R.array.rendererVSyncNames,
+                    valuesId = R.array.rendererVSyncValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_SCALING_FILTER,
-                    R.string.renderer_scaling_filter,
-                    0,
-                    R.array.rendererScalingFilterNames,
-                    R.array.rendererScalingFilterValues
+                    titleId = R.string.renderer_scaling_filter,
+                    choicesId = R.array.rendererScalingFilterNames,
+                    valuesId = R.array.rendererScalingFilterValues
                 )
             )
             put(
                 SliderSetting(
                     IntSetting.FSR_SHARPENING_SLIDER,
-                    R.string.fsr_sharpness,
-                    R.string.fsr_sharpness_description,
-                    0,
-                    100,
-                    "%"
+                    titleId = R.string.fsr_sharpness,
+                    descriptionId = R.string.fsr_sharpness_description,
+                    units = "%"
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ANTI_ALIASING,
-                    R.string.renderer_anti_aliasing,
-                    0,
-                    R.array.rendererAntiAliasingNames,
-                    R.array.rendererAntiAliasingValues
+                    titleId = R.string.renderer_anti_aliasing,
+                    choicesId = R.array.rendererAntiAliasingNames,
+                    valuesId = R.array.rendererAntiAliasingValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_SCREEN_LAYOUT,
-                    R.string.renderer_screen_layout,
-                    0,
-                    R.array.rendererScreenLayoutNames,
-                    R.array.rendererScreenLayoutValues
+                    titleId = R.string.renderer_screen_layout,
+                    choicesId = R.array.rendererScreenLayoutNames,
+                    valuesId = R.array.rendererScreenLayoutValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ASPECT_RATIO,
-                    R.string.renderer_aspect_ratio,
-                    0,
-                    R.array.rendererAspectRatioNames,
-                    R.array.rendererAspectRatioValues
+                    titleId = R.string.renderer_aspect_ratio,
+                    choicesId = R.array.rendererAspectRatioNames,
+                    valuesId = R.array.rendererAspectRatioValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.VERTICAL_ALIGNMENT,
-                    R.string.vertical_alignment,
-                    0,
-                    R.array.verticalAlignmentEntries,
-                    R.array.verticalAlignmentValues
+                    titleId = R.string.vertical_alignment,
+                    descriptionId = 0,
+                    choicesId = R.array.verticalAlignmentEntries,
+                    valuesId = R.array.verticalAlignmentValues
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE,
-                    R.string.use_disk_shader_cache,
-                    R.string.use_disk_shader_cache_description
+                    titleId = R.string.use_disk_shader_cache,
+                    descriptionId = R.string.use_disk_shader_cache_description
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_FORCE_MAX_CLOCK,
-                    R.string.renderer_force_max_clock,
-                    R.string.renderer_force_max_clock_description
+                    titleId = R.string.renderer_force_max_clock,
+                    descriptionId = R.string.renderer_force_max_clock_description
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
-                    R.string.renderer_asynchronous_shaders,
-                    R.string.renderer_asynchronous_shaders_description
+                    titleId = R.string.renderer_asynchronous_shaders,
+                    descriptionId = R.string.renderer_asynchronous_shaders_description
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
-                    R.string.renderer_reactive_flushing,
-                    R.string.renderer_reactive_flushing_description
+                    titleId = R.string.renderer_reactive_flushing,
+                    descriptionId = R.string.renderer_reactive_flushing_description
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.MAX_ANISOTROPY,
-                    R.string.anisotropic_filtering,
-                    R.string.anisotropic_filtering_description,
-                    R.array.anisoEntries,
-                    R.array.anisoValues
+                    titleId = R.string.anisotropic_filtering,
+                    descriptionId = R.string.anisotropic_filtering_description,
+                    choicesId = R.array.anisoEntries,
+                    valuesId = R.array.anisoValues
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.AUDIO_OUTPUT_ENGINE,
-                    R.string.audio_output_engine,
-                    0,
-                    R.array.outputEngineEntries,
-                    R.array.outputEngineValues
+                    titleId = R.string.audio_output_engine,
+                    choicesId = R.array.outputEngineEntries,
+                    valuesId = R.array.outputEngineValues
                 )
             )
             put(
                 SliderSetting(
                     ByteSetting.AUDIO_VOLUME,
-                    R.string.audio_volume,
-                    R.string.audio_volume_description,
-                    0,
-                    100,
-                    "%"
+                    titleId = R.string.audio_volume,
+                    descriptionId = R.string.audio_volume_description,
+                    units = "%"
                 )
             )
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_BACKEND,
-                    R.string.renderer_api,
-                    0,
-                    R.array.rendererApiNames,
-                    R.array.rendererApiValues
+                    titleId = R.string.renderer_api,
+                    choicesId = R.array.rendererApiNames,
+                    valuesId = R.array.rendererApiValues
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_DEBUG,
-                    R.string.renderer_debug,
-                    R.string.renderer_debug_description
+                    titleId = R.string.renderer_debug,
+                    descriptionId = R.string.renderer_debug_description
                 )
             )
             put(
                 SwitchSetting(
                     BooleanSetting.CPU_DEBUG_MODE,
-                    R.string.cpu_debug_mode,
-                    R.string.cpu_debug_mode_description
+                    titleId = R.string.cpu_debug_mode,
+                    descriptionId = R.string.cpu_debug_mode_description
                 )
             )
 
@@ -346,7 +379,7 @@ abstract class SettingsItem(
 
                 override fun reset() = setBoolean(defaultValue)
             }
-            put(SwitchSetting(fastmem, R.string.fastmem, 0))
+            put(SwitchSetting(fastmem, R.string.fastmem))
         }
     }
 }

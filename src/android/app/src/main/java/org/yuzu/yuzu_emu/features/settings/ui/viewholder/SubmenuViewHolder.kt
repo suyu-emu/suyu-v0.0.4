@@ -12,16 +12,16 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
-    private lateinit var item: SubmenuSetting
+    private lateinit var setting: SubmenuSetting
 
     override fun bind(item: SettingsItem) {
-        this.item = item as SubmenuSetting
-        if (item.iconId != 0) {
+        setting = item as SubmenuSetting
+        if (setting.iconId != 0) {
             binding.icon.visibility = View.VISIBLE
             binding.icon.setImageDrawable(
                 ResourcesCompat.getDrawable(
                     binding.icon.resources,
-                    item.iconId,
+                    setting.iconId,
                     binding.icon.context.theme
                 )
             )
@@ -29,9 +29,9 @@ class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAd
             binding.icon.visibility = View.GONE
         }
 
-        binding.textSettingName.setText(item.nameId)
-        if (item.descriptionId != 0) {
-            binding.textSettingDescription.setText(item.descriptionId)
+        binding.textSettingName.text = setting.title
+        if (setting.description.isNotEmpty()) {
+            binding.textSettingDescription.text = setting.description
             binding.textSettingDescription.visibility = View.VISIBLE
         } else {
             binding.textSettingDescription.visibility = View.GONE
@@ -41,7 +41,7 @@ class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAd
     }
 
     override fun onClick(clicked: View) {
-        adapter.onSubmenuClick(item)
+        adapter.onSubmenuClick(setting)
     }
 
     override fun onLongClick(clicked: View): Boolean {

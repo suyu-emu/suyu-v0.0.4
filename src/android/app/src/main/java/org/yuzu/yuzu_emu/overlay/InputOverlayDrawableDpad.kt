@@ -9,7 +9,8 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
-import org.yuzu.yuzu_emu.NativeLibrary.ButtonState
+import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
+import org.yuzu.yuzu_emu.features.input.model.NativeButton
 
 /**
  * Custom [BitmapDrawable] that is capable
@@ -19,20 +20,12 @@ import org.yuzu.yuzu_emu.NativeLibrary.ButtonState
  * @param defaultStateBitmap              [Bitmap] of the default state.
  * @param pressedOneDirectionStateBitmap  [Bitmap] of the pressed state in one direction.
  * @param pressedTwoDirectionsStateBitmap [Bitmap] of the pressed state in two direction.
- * @param buttonUp                        Identifier for the up button.
- * @param buttonDown                      Identifier for the down button.
- * @param buttonLeft                      Identifier for the left button.
- * @param buttonRight                     Identifier for the right button.
  */
 class InputOverlayDrawableDpad(
     res: Resources,
     defaultStateBitmap: Bitmap,
     pressedOneDirectionStateBitmap: Bitmap,
-    pressedTwoDirectionsStateBitmap: Bitmap,
-    buttonUp: Int,
-    buttonDown: Int,
-    buttonLeft: Int,
-    buttonRight: Int
+    pressedTwoDirectionsStateBitmap: Bitmap
 ) {
     /**
      * Gets one of the InputOverlayDrawableDpad's button IDs.
@@ -40,10 +33,10 @@ class InputOverlayDrawableDpad(
      * @return the requested InputOverlayDrawableDpad's button ID.
      */
     // The ID identifying what type of button this Drawable represents.
-    val upId: Int
-    val downId: Int
-    val leftId: Int
-    val rightId: Int
+    val up = NativeButton.DUp
+    val down = NativeButton.DDown
+    val left = NativeButton.DLeft
+    val right = NativeButton.DRight
     var trackId: Int
 
     val width: Int
@@ -69,10 +62,6 @@ class InputOverlayDrawableDpad(
         this.pressedTwoDirectionsStateBitmap = BitmapDrawable(res, pressedTwoDirectionsStateBitmap)
         width = this.defaultStateBitmap.intrinsicWidth
         height = this.defaultStateBitmap.intrinsicHeight
-        upId = buttonUp
-        downId = buttonDown
-        leftId = buttonLeft
-        rightId = buttonRight
         trackId = -1
     }
 

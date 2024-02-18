@@ -395,6 +395,10 @@ struct PlayerInput {
     u32 button_color_left;
     u32 button_color_right;
     std::string profile_name;
+
+    // This is meant to tell the Android frontend whether to use a device's built-in vibration
+    // motor or a controller's vibrations.
+    bool use_system_vibrator;
 };
 
 struct TouchscreenInput {
