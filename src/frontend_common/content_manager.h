@@ -251,11 +251,12 @@ inline InstallResult InstallNCA(FileSys::VfsFilesystem& vfs, const std::string& 
  * \param callback Callback to report the progress of the installation. The first size_t
  * parameter is the total size of the installed contents and the second is the current progress. If
  * you return true to the callback, it will cancel the installation as soon as possible.
+ * \param firmware_only Set to true to only scan system nand NCAs (firmware), post firmware install.
  * \return A list of entries that failed to install. Returns an empty vector if successful.
  */
 inline std::vector<std::string> VerifyInstalledContents(
     Core::System& system, FileSys::ManualContentProvider& provider,
-    const std::function<bool(size_t, size_t)>& callback) {
+    const std::function<bool(size_t, size_t)>& callback, bool firmware_only = false) {
     // Get content registries.
     auto bis_contents = system.GetFileSystemController().GetSystemNANDContents();
     auto user_contents = system.GetFileSystemController().GetUserNANDContents();
@@ -264,7 +265,7 @@ inline std::vector<std::string> VerifyInstalledContents(
     if (bis_contents) {
         content_providers.push_back(bis_contents);
     }
-    if (user_contents) {
+    if (user_contents && !firmware_only) {
         content_providers.push_back(user_contents);
     }
 
