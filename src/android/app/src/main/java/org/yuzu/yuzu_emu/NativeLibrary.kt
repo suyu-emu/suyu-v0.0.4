@@ -3,24 +3,21 @@
 
 package org.yuzu.yuzu_emu
 
-import android.app.Dialog
 import android.content.DialogInterface
 import android.net.Uri
-import android.os.Bundle
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.view.Surface
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.Keep
-import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
+import org.yuzu.yuzu_emu.fragments.CoreErrorDialogFragment
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
-import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
 import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
 import org.yuzu.yuzu_emu.model.GameVerificationResult
@@ -184,46 +181,13 @@ object NativeLibrary {
         ErrorUnknown
     }
 
-    private var coreErrorAlertResult = false
-    private val coreErrorAlertLock = Object()
-
-    class CoreErrorDialogFragment : DialogFragment() {
-        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-            val title = requireArguments().serializable<String>("title")
-            val message = requireArguments().serializable<String>("message")
-
-            return MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(R.string.continue_button, null)
-                .setNegativeButton(R.string.abort_button) { _: DialogInterface?, _: Int ->
-                    coreErrorAlertResult = false
-                    synchronized(coreErrorAlertLock) { coreErrorAlertLock.notify() }
-                }
-                .create()
-        }
-
-        override fun onDismiss(dialog: DialogInterface) {
-            coreErrorAlertResult = true
-            synchronized(coreErrorAlertLock) { coreErrorAlertLock.notify() }
-        }
-
-        companion object {
-            fun newInstance(title: String?, message: String?): CoreErrorDialogFragment {
-                val frag = CoreErrorDialogFragment()
-                val args = Bundle()
-                args.putString("title", title)
-                args.putString("message", message)
-                frag.arguments = args
-                return frag
-            }
-        }
-    }
+    var coreErrorAlertResult = false
+    val coreErrorAlertLock = Object()
 
     private fun onCoreErrorImpl(title: String, message: String) {
         val emulationActivity = sEmulationActivity.get()
         if (emulationActivity == null) {
-            error("[NativeLibrary] EmulationActivity not present")
+            Log.error("[NativeLibrary] EmulationActivity not present")
             return
         }
 
@@ -239,7 +203,7 @@ object NativeLibrary {
     fun onCoreError(error: CoreError?, details: String): Boolean {
         val emulationActivity = sEmulationActivity.get()
         if (emulationActivity == null) {
-            error("[NativeLibrary] EmulationActivity not present")
+            Log.error("[NativeLibrary] EmulationActivity not present")
             return false
         }
 
@@ -270,7 +234,7 @@ object NativeLibrary {
         }
 
         // Show the AlertDialog on the main thread.
-        emulationActivity.runOnUiThread(Runnable { onCoreErrorImpl(title, message) })
+        emulationActivity.runOnUiThread { onCoreErrorImpl(title, message) }
 
         // Wait for the lock to notify that it is complete.
         synchronized(coreErrorAlertLock) { coreErrorAlertLock.wait() }
