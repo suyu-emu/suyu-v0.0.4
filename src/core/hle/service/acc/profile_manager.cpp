@@ -329,9 +329,8 @@ bool ProfileManager::GetProfileBaseAndData(const ProfileInfo& user, ProfileBase&
 
 /// Returns if the system is allowing user registrations or not
 bool ProfileManager::CanSystemRegisterUser() const {
-    return false; // TODO(ogniK): Games shouldn't have
-                  // access to user registration, when we
-    // emulate qlaunch. Update this to dynamically change.
+    // TODO: Both games and applets can register users. Determine when this condition is not meet.
+    return true;
 }
 
 bool ProfileManager::RemoveUser(UUID uuid) {
