@@ -380,6 +380,7 @@ private slots:
     void OnLoadAmiibo();
     void OnOpenYuzuFolder();
     void OnVerifyInstalledContents();
+    void OnInstallFirmware();
     void OnAbout();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
