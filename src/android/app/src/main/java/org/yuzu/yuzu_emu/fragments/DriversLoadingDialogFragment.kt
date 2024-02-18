@@ -10,14 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.DriverViewModel
+import org.yuzu.yuzu_emu.utils.collect
 
 class DriversLoadingDialogFragment : DialogFragment() {
     private val driverViewModel: DriverViewModel by activityViewModels()
@@ -44,13 +41,7 @@ class DriversLoadingDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.apply {
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.isInteractionAllowed.collect { if (it) dismiss() }
-                }
-            }
-        }
+        driverViewModel.isInteractionAllowed.collect(viewLifecycleOwner) { if (it) dismiss() }
     }
 
     companion object {

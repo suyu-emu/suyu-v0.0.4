@@ -13,16 +13,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.utils.collect
 
 class ProgressDialogFragment : DialogFragment() {
     private val taskViewModel: TaskViewModel by activityViewModels()
@@ -65,69 +62,49 @@ class ProgressDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.message.isSelected = true
-        viewLifecycleOwner.lifecycleScope.apply {
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    taskViewModel.isComplete.collect {
-                        if (it) {
-                            dismiss()
-                            when (val result = taskViewModel.result.value) {
-                                is String -> Toast.makeText(
-                                    requireContext(),
-                                    result,
-                                    Toast.LENGTH_LONG
-                                ).show()
+        taskViewModel.isComplete.collect(viewLifecycleOwner) {
+            if (it) {
+                dismiss()
+                when (val result = taskViewModel.result.value) {
+                    is String -> Toast.makeText(
+                        requireContext(),
+                        result,
+                        Toast.LENGTH_LONG
+                    ).show()
 
-                                is MessageDialogFragment -> result.show(
-                                    requireActivity().supportFragmentManager,
-                                    MessageDialogFragment.TAG
-                                )
+                    is MessageDialogFragment -> result.show(
+                        requireActivity().supportFragmentManager,
+                        MessageDialogFragment.TAG
+                    )
 
-                                else -> {
-                                    // Do nothing
-                                }
-                            }
-                            taskViewModel.clear()
-                        }
+                    else -> {
+                        // Do nothing
                     }
                 }
+                taskViewModel.clear()
             }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    taskViewModel.cancelled.collect {
-                        if (it) {
-                            dialog?.setTitle(R.string.cancelling)
-                        }
-                    }
+        }
+        taskViewModel.cancelled.collect(viewLifecycleOwner) {
+            if (it) {
+                dialog?.setTitle(R.string.cancelling)
+            }
+        }
+        taskViewModel.progress.collect(viewLifecycleOwner) {
+            if (it != 0.0) {
+                binding.progressBar.apply {
+                    isIndeterminate = false
+                    progress = (
+                        (it / taskViewModel.maxProgress.value) *
+                            PROGRESS_BAR_RESOLUTION
+                        ).toInt()
+                    min = 0
+                    max = PROGRESS_BAR_RESOLUTION
                 }
             }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    taskViewModel.progress.collect {
-                        if (it != 0.0) {
-                            binding.progressBar.apply {
-                                isIndeterminate = false
-                                progress = (
-                                    (it / taskViewModel.maxProgress.value) *
-                                        PROGRESS_BAR_RESOLUTION
-                                    ).toInt()
-                                min = 0
-                                max = PROGRESS_BAR_RESOLUTION
-                            }
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    taskViewModel.message.collect {
-                        binding.message.setVisible(it.isNotEmpty())
-                        if (it.isNotEmpty()) {
-                            binding.message.text = it
-                        }
-                    }
-                }
-            }
+        }
+        taskViewModel.message.collect(viewLifecycleOwner) {
+            binding.message.setVisible(it.isNotEmpty())
+            binding.message.text = it
         }
     }
 
