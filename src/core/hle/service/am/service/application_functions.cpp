@@ -15,6 +15,7 @@
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/save_data_controller.h"
+#include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/sm/sm.h"
 
@@ -40,7 +41,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_
         {26, D<&IApplicationFunctions::GetSaveDataSize>, "GetSaveDataSize"},
         {27, D<&IApplicationFunctions::CreateCacheStorage>, "CreateCacheStorage"},
         {28, D<&IApplicationFunctions::GetSaveDataSizeMax>, "GetSaveDataSizeMax"},
-        {29, nullptr, "GetCacheStorageMax"},
+        {29, D<&IApplicationFunctions::GetCacheStorageMax>, "GetCacheStorageMax"},
         {30, D<&IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed>, "BeginBlockingHomeButtonShortAndLongPressed"},
         {31, D<&IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed>, "EndBlockingHomeButtonShortAndLongPressed"},
         {32, D<&IApplicationFunctions::BeginBlockingHomeButton>, "BeginBlockingHomeButton"},
@@ -263,6 +264,22 @@ Result IApplicationFunctions::GetSaveDataSizeMax(Out<u64> out_max_normal_size,
 
     *out_max_normal_size = 0xFFFFFFF;
     *out_max_journal_size = 0xFFFFFFF;
+
+    R_SUCCEED();
+}
+
+Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_index_max,
+                                                 Out<u64> out_max_journal_size) {
+    LOG_DEBUG(Service_AM, "called");
+
+    std::vector<u8> nacp;
+    R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
+
+    auto raw_nacp = std::make_unique<FileSys::RawNACP>();
+    std::memcpy(raw_nacp.get(), nacp.data(), std::min(sizeof(*raw_nacp), nacp.size()));
+
+    *out_cache_storage_index_max = static_cast<u32>(raw_nacp->cache_storage_max_index);
+    *out_max_journal_size = static_cast<u64>(raw_nacp->cache_storage_data_and_journal_max_size);
 
     R_SUCCEED();
 }

@@ -40,6 +40,7 @@ private:
     Result CreateCacheStorage(Out<u32> out_target_media, Out<u64> out_required_size, u16 index,
                               u64 normal_size, u64 journal_size);
     Result GetSaveDataSizeMax(Out<u64> out_max_normal_size, Out<u64> out_max_journal_size);
+    Result GetCacheStorageMax(Out<u32> out_cache_storage_index_max, Out<u64> out_max_journal_size);
     Result BeginBlockingHomeButtonShortAndLongPressed(s64 unused);
     Result EndBlockingHomeButtonShortAndLongPressed();
     Result BeginBlockingHomeButton(s64 timeout_ns);
