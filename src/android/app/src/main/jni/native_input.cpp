@@ -190,8 +190,7 @@ void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onTouchPressed(JNIEnv* e
                                                                        jint j_id, jfloat j_x_axis,
                                                                        jfloat j_y_axis) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().GetInputSubsystem().GetTouchScreen()->TouchPressed(
-            j_id, j_x_axis, j_y_axis);
+        EmulationSession::GetInstance().Window().OnTouchPressed(j_id, j_x_axis, j_y_axis);
     }
 }
 
@@ -199,15 +198,14 @@ void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onTouchMoved(JNIEnv* env
                                                                      jint j_id, jfloat j_x_axis,
                                                                      jfloat j_y_axis) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().GetInputSubsystem().GetTouchScreen()->TouchMoved(
-            j_id, j_x_axis, j_y_axis);
+        EmulationSession::GetInstance().Window().OnTouchMoved(j_id, j_x_axis, j_y_axis);
     }
 }
 
 void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onTouchReleased(JNIEnv* env, jobject j_obj,
                                                                         jint j_id) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().GetInputSubsystem().GetTouchScreen()->TouchReleased(j_id);
+        EmulationSession::GetInstance().Window().OnTouchReleased(j_id);
     }
 }
 
