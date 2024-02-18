@@ -10,6 +10,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -18,26 +19,18 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
     override fun bind(item: SettingsItem) {
         setting = item as SliderSetting
         binding.textSettingName.text = setting.title
-        if (item.description.isNotEmpty()) {
-            binding.textSettingDescription.text = setting.description
-            binding.textSettingDescription.visibility = View.VISIBLE
-        } else {
-            binding.textSettingDescription.visibility = View.GONE
-        }
-        binding.textSettingValue.visibility = View.VISIBLE
+        binding.textSettingDescription.setVisible(item.description.isNotEmpty())
+        binding.textSettingDescription.text = setting.description
+        binding.textSettingValue.setVisible(true)
         binding.textSettingValue.text = String.format(
             binding.textSettingValue.context.getString(R.string.value_with_units),
             setting.getSelectedValue(),
             setting.units
         )
 
-        binding.buttonClear.visibility = if (setting.setting.global ||
-            !NativeConfig.isPerGameConfigLoaded()
-        ) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
+        binding.buttonClear.setVisible(
+            !setting.setting.global || NativeConfig.isPerGameConfigLoaded()
+        )
         binding.buttonClear.setOnClickListener {
             adapter.onClearClick(setting, bindingAdapterPosition)
         }

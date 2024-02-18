@@ -7,7 +7,6 @@ import android.annotation.SuppressLint
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -46,6 +45,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.MemoryUtil
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import java.io.BufferedOutputStream
 import java.io.File
@@ -107,13 +107,7 @@ class GamePropertiesFragment : Fragment() {
 
         GameIconUtils.loadGameIcon(args.game, binding.imageGameScreen)
         binding.title.text = args.game.title
-        binding.title.postDelayed(
-            {
-                binding.title.ellipsize = TextUtils.TruncateAt.MARQUEE
-                binding.title.isSelected = true
-            },
-            3000
-        )
+        binding.title.marquee()
 
         binding.buttonStart.setOnClickListener {
             LaunchGameDialogFragment.newInstance(args.game)

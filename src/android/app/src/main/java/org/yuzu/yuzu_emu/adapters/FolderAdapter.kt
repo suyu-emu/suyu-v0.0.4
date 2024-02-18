@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.net.Uri
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
@@ -12,6 +11,7 @@ import org.yuzu.yuzu_emu.databinding.CardFolderBinding
 import org.yuzu.yuzu_emu.fragments.GameFolderPropertiesDialogFragment
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesViewModel) :
@@ -29,13 +29,7 @@ class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesVie
         override fun bind(model: GameDir) {
             binding.apply {
                 path.text = Uri.parse(model.uriString).path
-                path.postDelayed(
-                    {
-                        path.isSelected = true
-                        path.ellipsize = TextUtils.TruncateAt.MARQUEE
-                    },
-                    3000
-                )
+                path.marquee()
 
                 buttonEdit.setOnClickListener {
                     GameFolderPropertiesDialogFragment.newInstance(model)

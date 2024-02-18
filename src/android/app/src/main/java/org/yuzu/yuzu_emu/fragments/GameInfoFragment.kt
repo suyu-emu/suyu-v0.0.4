@@ -27,6 +27,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentGameInfoBinding
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.GameMetadata
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class GameInfoFragment : Fragment() {
@@ -85,7 +86,7 @@ class GameInfoFragment : Fragment() {
                     copyToClipboard(getString(R.string.developer), args.game.developer)
                 }
             } else {
-                developer.visibility = View.GONE
+                developer.setVisible(false)
             }
 
             version.setHint(R.string.version)

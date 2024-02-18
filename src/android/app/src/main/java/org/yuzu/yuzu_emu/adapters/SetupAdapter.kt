@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.adapters
 
 import android.text.Html
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -17,6 +16,7 @@ import org.yuzu.yuzu_emu.model.SetupCallback
 import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.model.StepState
 import org.yuzu.yuzu_emu.utils.ViewUtils
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class SetupAdapter(val activity: AppCompatActivity, pages: List<SetupPage>) :
@@ -30,8 +30,8 @@ class SetupAdapter(val activity: AppCompatActivity, pages: List<SetupPage>) :
         AbstractViewHolder<SetupPage>(binding), SetupCallback {
         override fun bind(model: SetupPage) {
             if (model.stepCompleted.invoke() == StepState.COMPLETE) {
-                binding.buttonAction.visibility = View.INVISIBLE
-                binding.textConfirmation.visibility = View.VISIBLE
+                binding.buttonAction.setVisible(visible = false, gone = false)
+                binding.textConfirmation.setVisible(true)
             }
 
             binding.icon.setImageDrawable(

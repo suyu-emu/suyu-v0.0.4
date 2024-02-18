@@ -4,10 +4,10 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import org.yuzu.yuzu_emu.databinding.CardInstallableBinding
 import org.yuzu.yuzu_emu.model.Installable
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class InstallableAdapter(installables: List<Installable>) :
@@ -26,14 +26,10 @@ class InstallableAdapter(installables: List<Installable>) :
             binding.title.setText(model.titleId)
             binding.description.setText(model.descriptionId)
 
-            if (model.install != null) {
-                binding.buttonInstall.visibility = View.VISIBLE
-                binding.buttonInstall.setOnClickListener { model.install.invoke() }
-            }
-            if (model.export != null) {
-                binding.buttonExport.visibility = View.VISIBLE
-                binding.buttonExport.setOnClickListener { model.export.invoke() }
-            }
+            binding.buttonInstall.setVisible(model.install != null)
+            binding.buttonInstall.setOnClickListener { model.install?.invoke() }
+            binding.buttonExport.setVisible(model.export != null)
+            binding.buttonExport.setOnClickListener { model.export?.invoke() }
         }
     }
 }

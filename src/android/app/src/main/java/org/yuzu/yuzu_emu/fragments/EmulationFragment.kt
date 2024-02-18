@@ -63,6 +63,7 @@ import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
 import org.yuzu.yuzu_emu.utils.*
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import java.lang.NullPointerException
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
@@ -500,14 +501,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 binding.drawerLayout.close()
             }
             if (showInputOverlay) {
-                binding.surfaceInputOverlay.visibility = View.INVISIBLE
+                binding.surfaceInputOverlay.setVisible(visible = false, gone = false)
             }
         } else {
-            if (showInputOverlay && emulationViewModel.emulationStarted.value) {
-                binding.surfaceInputOverlay.visibility = View.VISIBLE
-            } else {
-                binding.surfaceInputOverlay.visibility = View.INVISIBLE
-            }
+            binding.surfaceInputOverlay.setVisible(
+                showInputOverlay && emulationViewModel.emulationStarted.value
+            )
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                     binding.surfaceInputOverlay.layout = OverlayLayout.Portrait
@@ -544,7 +543,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateShowFpsOverlay() {
-        if (BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()) {
+        val showOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
+        binding.showFpsText.setVisible(showOverlay)
+        if (showOverlay) {
             val SYSTEM_FPS = 0
             val FPS = 1
             val FRAMETIME = 2
@@ -564,17 +565,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
             }
             perfStatsUpdateHandler.post(perfStatsUpdater!!)
-            binding.showFpsText.visibility = View.VISIBLE
         } else {
             if (perfStatsUpdater != null) {
                 perfStatsUpdateHandler.removeCallbacks(perfStatsUpdater!!)
             }
-            binding.showFpsText.visibility = View.GONE
         }
     }
 
     private fun updateThermalOverlay() {
-        if (BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean()) {
+        val showOverlay = BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean()
+        binding.showThermalsText.setVisible(showOverlay)
+        if (showOverlay) {
             thermalStatsUpdater = {
                 if (emulationViewModel.emulationStarted.value &&
                     !emulationViewModel.isEmulationStopping.value
@@ -596,12 +597,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
             }
             thermalStatsUpdateHandler.post(thermalStatsUpdater!!)
-            binding.showThermalsText.visibility = View.VISIBLE
         } else {
             if (thermalStatsUpdater != null) {
                 thermalStatsUpdateHandler.removeCallbacks(thermalStatsUpdater!!)
             }
-            binding.showThermalsText.visibility = View.GONE
         }
     }
 
@@ -870,12 +869,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
             }
         }
-        binding.doneControlConfig.visibility = View.VISIBLE
+        binding.doneControlConfig.setVisible(false)
         binding.surfaceInputOverlay.setIsInEditMode(true)
     }
 
     private fun stopConfiguringControls() {
-        binding.doneControlConfig.visibility = View.GONE
+        binding.doneControlConfig.setVisible(false)
         binding.surfaceInputOverlay.setIsInEditMode(false)
         // Unlock the orientation if it was locked for editing
         if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == EmulationOrientation.Unspecified.int) {

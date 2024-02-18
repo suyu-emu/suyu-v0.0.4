@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.net.Uri
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -27,6 +26,7 @@ import org.yuzu.yuzu_emu.databinding.CardGameBinding
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.GameIconUtils
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GameAdapter(private val activity: AppCompatActivity) :
@@ -44,14 +44,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
             binding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
 
-            binding.textGameTitle.postDelayed(
-                {
-                    binding.textGameTitle.ellipsize = TextUtils.TruncateAt.MARQUEE
-                    binding.textGameTitle.isSelected = true
-                },
-                3000
-            )
-
+            binding.textGameTitle.marquee()
             binding.cardGame.setOnClickListener { onClick(model) }
             binding.cardGame.setOnLongClickListener { onLongClick(model) }
         }

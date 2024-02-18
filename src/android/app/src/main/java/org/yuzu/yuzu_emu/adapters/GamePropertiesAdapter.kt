@@ -3,9 +3,7 @@
 
 package org.yuzu.yuzu_emu.adapters
 
-import android.text.TextUtils
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.Lifecycle
@@ -18,6 +16,8 @@ import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
 import org.yuzu.yuzu_emu.model.GameProperty
 import org.yuzu.yuzu_emu.model.InstallableProperty
 import org.yuzu.yuzu_emu.model.SubmenuProperty
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GamePropertiesAdapter(
@@ -76,23 +76,19 @@ class GamePropertiesAdapter(
                 )
             )
 
-            binding.details.postDelayed({
-                binding.details.isSelected = true
-                binding.details.ellipsize = TextUtils.TruncateAt.MARQUEE
-            }, 3000)
-
+            binding.details.marquee()
             if (submenuProperty.details != null) {
-                binding.details.visibility = View.VISIBLE
+                binding.details.setVisible(true)
                 binding.details.text = submenuProperty.details.invoke()
             } else if (submenuProperty.detailsFlow != null) {
-                binding.details.visibility = View.VISIBLE
+                binding.details.setVisible(true)
                 viewLifecycle.lifecycleScope.launch {
                     viewLifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         submenuProperty.detailsFlow.collect { binding.details.text = it }
                     }
                 }
             } else {
-                binding.details.visibility = View.GONE
+                binding.details.setVisible(false)
             }
         }
     }
@@ -112,14 +108,10 @@ class GamePropertiesAdapter(
                 )
             )
 
-            if (installableProperty.install != null) {
-                binding.buttonInstall.visibility = View.VISIBLE
-                binding.buttonInstall.setOnClickListener { installableProperty.install.invoke() }
-            }
-            if (installableProperty.export != null) {
-                binding.buttonExport.visibility = View.VISIBLE
-                binding.buttonExport.setOnClickListener { installableProperty.export.invoke() }
-            }
+            binding.buttonInstall.setVisible(installableProperty.install != null)
+            binding.buttonInstall.setOnClickListener { installableProperty.install?.invoke() }
+            binding.buttonExport.setVisible(installableProperty.export != null)
+            binding.buttonExport.setOnClickListener { installableProperty.export?.invoke() }
         }
     }
 
