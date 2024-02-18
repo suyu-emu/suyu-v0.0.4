@@ -64,8 +64,8 @@ struct RawNACP {
     u64_le cache_storage_size;
     u64_le cache_storage_journal_size;
     u64_le cache_storage_data_and_journal_max_size;
-    u64_le cache_storage_max_index;
-    INSERT_PADDING_BYTES(0xE70);
+    u16_le cache_storage_max_index;
+    INSERT_PADDING_BYTES(0xE76);
 };
 static_assert(sizeof(RawNACP) == 0x4000, "RawNACP has incorrect size.");
 
