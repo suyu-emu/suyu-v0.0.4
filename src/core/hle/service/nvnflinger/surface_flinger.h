@@ -34,7 +34,7 @@ public:
 
     void AddDisplay(u64 display_id);
     void RemoveDisplay(u64 display_id);
-    void ComposeDisplay(s32* out_swap_interval, f32* out_compose_speed_scale, u64 display_id);
+    bool ComposeDisplay(s32* out_swap_interval, f32* out_compose_speed_scale, u64 display_id);
 
     void AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_id);
     void RemoveLayerFromDisplayStack(u64 display_id, s32 consumer_binder_id);
