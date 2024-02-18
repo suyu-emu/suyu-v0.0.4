@@ -117,9 +117,9 @@ bool StandardVmCallbacks::IsAddressInRange(VAddr in) const {
         (in < metadata.heap_extents.base ||
          in >= metadata.heap_extents.base + metadata.heap_extents.size) &&
         (in < metadata.alias_extents.base ||
-         in >= metadata.heap_extents.base + metadata.alias_extents.size) &&
+         in >= metadata.alias_extents.base + metadata.alias_extents.size) &&
         (in < metadata.aslr_extents.base ||
-         in >= metadata.heap_extents.base + metadata.aslr_extents.size)) {
+         in >= metadata.aslr_extents.base + metadata.aslr_extents.size)) {
         LOG_DEBUG(CheatEngine,
                   "Cheat attempting to access memory at invalid address={:016X}, if this "
                   "persists, "
