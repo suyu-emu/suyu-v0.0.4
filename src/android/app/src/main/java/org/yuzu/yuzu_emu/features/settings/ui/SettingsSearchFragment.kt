@@ -27,6 +27,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsSearchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class SettingsSearchFragment : Fragment() {
@@ -106,10 +107,9 @@ class SettingsSearchFragment : Fragment() {
 
     private fun search() {
         val searchTerm = binding.searchText.text.toString().lowercase()
-        binding.clearButton.visibility =
-            if (searchTerm.isEmpty()) View.INVISIBLE else View.VISIBLE
+        binding.clearButton.setVisible(visible = searchTerm.isNotEmpty(), gone = false)
         if (searchTerm.isEmpty()) {
-            binding.noResultsView.visibility = View.VISIBLE
+            binding.noResultsView.setVisible(visible = false, gone = false)
             settingsAdapter?.submitList(emptyList())
             return
         }
@@ -136,8 +136,7 @@ class SettingsSearchFragment : Fragment() {
             optionalSetting
         }
         settingsAdapter?.submitList(sortedList)
-        binding.noResultsView.visibility =
-            if (sortedList.isEmpty()) View.VISIBLE else View.INVISIBLE
+        binding.noResultsView.setVisible(visible = sortedList.isEmpty(), gone = false)
     }
 
     private fun focusSearch() {

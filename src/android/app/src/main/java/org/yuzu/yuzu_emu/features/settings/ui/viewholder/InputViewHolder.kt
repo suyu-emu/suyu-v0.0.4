@@ -12,6 +12,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.InputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.ModifierInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class InputViewHolder(val binding: ListItemSettingInputBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -22,38 +23,26 @@ class InputViewHolder(val binding: ListItemSettingInputBinding, adapter: Setting
         binding.textSettingName.text = setting.title
         binding.textSettingValue.text = setting.getSelectedValue()
 
-        binding.buttonOptions.visibility = when (item) {
+        when (item) {
             is AnalogInputSetting -> {
                 val param = NativeInput.getStickParam(item.playerIndex, item.nativeAnalog)
-                if (
+                binding.buttonOptions.setVisible(
                     param.get("engine", "") == "analog_from_button" ||
-                    param.has("axis_x") || param.has("axis_y")
-                ) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                        param.has("axis_x") || param.has("axis_y")
+                )
             }
 
             is ButtonInputSetting -> {
                 val param = NativeInput.getButtonParam(item.playerIndex, item.nativeButton)
-                if (
+                binding.buttonOptions.setVisible(
                     param.has("code") || param.has("button") || param.has("hat") ||
-                    param.has("axis")
-                ) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                        param.has("axis")
+                )
             }
 
             is ModifierInputSetting -> {
                 val params = NativeInput.getStickParam(item.playerIndex, item.nativeAnalog)
-                if (params.has("modifier")) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                binding.buttonOptions.setVisible(params.has("modifier"))
             }
         }
 

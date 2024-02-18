@@ -46,6 +46,7 @@ import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class SetupFragment : Fragment() {
     private var _binding: FragmentSetupBinding? = null
@@ -292,12 +293,8 @@ class SetupFragment : Fragment() {
             val backIsVisible = savedInstanceState.getBoolean(KEY_BACK_VISIBILITY)
             hasBeenWarned = savedInstanceState.getBooleanArray(KEY_HAS_BEEN_WARNED)!!
 
-            if (nextIsVisible) {
-                binding.buttonNext.visibility = View.VISIBLE
-            }
-            if (backIsVisible) {
-                binding.buttonBack.visibility = View.VISIBLE
-            }
+            binding.buttonNext.setVisible(nextIsVisible)
+            binding.buttonBack.setVisible(backIsVisible)
         } else {
             hasBeenWarned = BooleanArray(pages.size)
         }

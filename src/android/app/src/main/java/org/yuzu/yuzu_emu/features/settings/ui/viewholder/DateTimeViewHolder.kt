@@ -14,6 +14,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.DateTimeSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -22,27 +23,18 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
     override fun bind(item: SettingsItem) {
         setting = item as DateTimeSetting
         binding.textSettingName.text = item.title
-        if (setting.description.isNotEmpty()) {
-            binding.textSettingDescription.text = item.description
-            binding.textSettingDescription.visibility = View.VISIBLE
-        } else {
-            binding.textSettingDescription.visibility = View.GONE
-        }
-
-        binding.textSettingValue.visibility = View.VISIBLE
+        binding.textSettingDescription.setVisible(item.description.isNotEmpty())
+        binding.textSettingDescription.text = item.description
+        binding.textSettingValue.setVisible(true)
         val epochTime = setting.getValue()
         val instant = Instant.ofEpochMilli(epochTime * 1000)
         val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
         val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
         binding.textSettingValue.text = dateFormatter.format(zonedTime)
 
-        binding.buttonClear.visibility = if (setting.setting.global ||
-            !NativeConfig.isPerGameConfigLoaded()
-        ) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
+        binding.buttonClear.setVisible(
+            !setting.setting.global || NativeConfig.isPerGameConfigLoaded()
+        )
         binding.buttonClear.setOnClickListener {
             adapter.onClearClick(setting, bindingAdapterPosition)
         }

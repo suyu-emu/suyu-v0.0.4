@@ -35,6 +35,7 @@ import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
@@ -81,11 +82,7 @@ class SearchFragment : Fragment() {
         binding.chipGroup.setOnCheckedStateChangeListener { _, _ -> filterAndSearch() }
 
         binding.searchText.doOnTextChanged { text: CharSequence?, _: Int, _: Int, _: Int ->
-            if (text.toString().isNotEmpty()) {
-                binding.clearButton.visibility = View.VISIBLE
-            } else {
-                binding.clearButton.visibility = View.INVISIBLE
-            }
+            binding.clearButton.setVisible(text.toString().isNotEmpty())
             filterAndSearch()
         }
 
@@ -109,11 +106,7 @@ class SearchFragment : Fragment() {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
                     gamesViewModel.searchedGames.collect {
                         (binding.gridGamesSearch.adapter as GameAdapter).submitList(it)
-                        if (it.isEmpty()) {
-                            binding.noResultsView.visibility = View.VISIBLE
-                        } else {
-                            binding.noResultsView.visibility = View.GONE
-                        }
+                        binding.noResultsView.setVisible(it.isEmpty())
                     }
                 }
             }

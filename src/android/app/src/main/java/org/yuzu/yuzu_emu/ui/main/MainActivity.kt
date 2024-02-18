@@ -47,6 +47,7 @@ import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
@@ -139,8 +140,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         // Prevents navigation from being drawn for a short time on recreation if set to hidden
         if (!homeViewModel.navigationVisible.value.first) {
-            binding.navigationView.visibility = View.INVISIBLE
-            binding.statusBarShade.visibility = View.INVISIBLE
+            binding.navigationView.setVisible(visible = false, gone = false)
+            binding.statusBarShade.setVisible(visible = false, gone = false)
         }
 
         lifecycleScope.apply {
@@ -214,18 +215,14 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     private fun showNavigation(visible: Boolean, animated: Boolean) {
         if (!animated) {
-            if (visible) {
-                binding.navigationView.visibility = View.VISIBLE
-            } else {
-                binding.navigationView.visibility = View.INVISIBLE
-            }
+            binding.navigationView.setVisible(visible)
             return
         }
 
         val smallLayout = resources.getBoolean(R.bool.small_layout)
         binding.navigationView.animate().apply {
             if (visible) {
-                binding.navigationView.visibility = View.VISIBLE
+                binding.navigationView.setVisible(true)
                 duration = 300
                 interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
 
@@ -264,7 +261,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
         }.withEndAction {
             if (!visible) {
-                binding.navigationView.visibility = View.INVISIBLE
+                binding.navigationView.setVisible(visible = false, gone = false)
             }
         }.start()
     }
@@ -272,7 +269,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private fun showStatusBarShade(visible: Boolean) {
         binding.statusBarShade.animate().apply {
             if (visible) {
-                binding.statusBarShade.visibility = View.VISIBLE
+                binding.statusBarShade.setVisible(true)
                 binding.statusBarShade.translationY = binding.statusBarShade.height.toFloat() * -2
                 duration = 300
                 translationY(0f)
@@ -284,7 +281,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
         }.withEndAction {
             if (!visible) {
-                binding.statusBarShade.visibility = View.INVISIBLE
+                binding.statusBarShade.setVisible(visible = false, gone = false)
             }
         }.start()
     }

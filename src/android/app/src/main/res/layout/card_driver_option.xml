@@ -39,10 +39,7 @@
                 style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="none"
-                android:marqueeRepeatLimit="marquee_forever"
                 android:requiresFadingEdge="horizontal"
-                android:singleLine="true"
                 android:textAlignment="viewStart"
                 tools:text="@string/select_gpu_driver_default" />
 
@@ -52,10 +49,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:ellipsize="none"
-                android:marqueeRepeatLimit="marquee_forever"
                 android:requiresFadingEdge="horizontal"
-                android:singleLine="true"
                 android:textAlignment="viewStart"
                 tools:text="@string/install_gpu_driver_description" />
 
@@ -65,10 +59,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:ellipsize="none"
-                android:marqueeRepeatLimit="marquee_forever"
                 android:requiresFadingEdge="horizontal"
-                android:singleLine="true"
                 android:textAlignment="viewStart"
                 tools:text="@string/install_gpu_driver_description" />
 
