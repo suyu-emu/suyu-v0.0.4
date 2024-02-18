@@ -17,6 +17,7 @@
 #include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/sm/sm.h"
+#include "core/hle/service/glue/glue_manager.h"
 
 namespace Service::AM {
 
@@ -267,14 +268,23 @@ Result IApplicationFunctions::GetSaveDataSizeMax(Out<u64> out_max_normal_size,
     R_SUCCEED();
 }
 
-Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_max_normal_size,
+Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_index_max,
                                                  Out<u64> out_max_journal_size) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
 
-    *out_max_normal_size = 0xFFFFFF;
-    *out_max_journal_size = 0xFFFFFF;
+    const auto title_id = m_applet->program_id;
 
-    R_SUCCEED();
+    std::vector<u8> nacp;
+    const auto result = system.GetARPManager().GetControlProperty(&nacp, title_id);
+
+    if (R_SUCCEEDED(result)) {
+        const auto rawnacp = reinterpret_cast<FileSys::RawNACP*>(nacp.data());
+
+        *out_cache_storage_index_max = static_cast<u32>(rawnacp->cache_storage_max_index);
+        *out_max_journal_size = static_cast<u64>(rawnacp->cache_storage_data_and_journal_max_size);
+    }
+
+     R_SUCCEED();
 }
 
 Result IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed(s64 unused) {
