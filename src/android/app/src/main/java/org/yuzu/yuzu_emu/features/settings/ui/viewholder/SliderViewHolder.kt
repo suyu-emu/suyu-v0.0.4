@@ -17,9 +17,9 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
 
     override fun bind(item: SettingsItem) {
         setting = item as SliderSetting
-        binding.textSettingName.setText(item.nameId)
-        if (item.descriptionId != 0) {
-            binding.textSettingDescription.setText(item.descriptionId)
+        binding.textSettingName.text = setting.title
+        if (item.description.isNotEmpty()) {
+            binding.textSettingDescription.text = setting.description
             binding.textSettingDescription.visibility = View.VISIBLE
         } else {
             binding.textSettingDescription.visibility = View.GONE

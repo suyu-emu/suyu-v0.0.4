@@ -13,7 +13,9 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
-import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
+import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
+import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 
 /**
@@ -26,8 +28,8 @@ import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
  * @param bitmapInnerPressed [Bitmap] which represents the pressed inner movable part of the joystick.
  * @param rectOuter          [Rect] which represents the outer joystick bounds.
  * @param rectInner          [Rect] which represents the inner joystick bounds.
- * @param joystickId         The ID value what type of joystick this Drawable represents.
- * @param buttonId           The ID value what type of button this Drawable represents.
+ * @param joystick           The [NativeAnalog] this Drawable represents.
+ * @param button             The [NativeButton] this Drawable represents.
  */
 class InputOverlayDrawableJoystick(
     res: Resources,
@@ -36,8 +38,8 @@ class InputOverlayDrawableJoystick(
     bitmapInnerPressed: Bitmap,
     rectOuter: Rect,
     rectInner: Rect,
-    val joystickId: Int,
-    val buttonId: Int,
+    val joystick: NativeAnalog,
+    val button: NativeButton,
     val prefId: String
 ) {
     // The ID value what motion event is tracking
@@ -69,8 +71,7 @@ class InputOverlayDrawableJoystick(
 
     // TODO: Add button support
     val buttonStatus: Int
-        get() =
-            NativeLibrary.ButtonState.RELEASED
+        get() = ButtonState.RELEASED
     var bounds: Rect
         get() = outerBitmap.bounds
         set(bounds) {

@@ -17,8 +17,13 @@
         android:title="@string/per_game_settings" />
 
     <item
-        android:id="@+id/menu_overlay_controls"
+        android:id="@+id/menu_controls"
         android:icon="@drawable/ic_controller"
+        android:title="@string/preferences_controls" />
+
+    <item
+        android:id="@+id/menu_overlay_controls"
+        android:icon="@drawable/ic_overlay"
         android:title="@string/emulation_input_overlay" />
 
     <item

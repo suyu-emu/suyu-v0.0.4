@@ -88,6 +88,10 @@ FileSys::ManualContentProvider* EmulationSession::GetContentProvider() {
     return m_manual_provider.get();
 }
 
+InputCommon::InputSubsystem& EmulationSession::GetInputSubsystem() {
+    return m_input_subsystem;
+}
+
 const EmuWindow_Android& EmulationSession::Window() const {
     return *m_window;
 }
@@ -198,6 +202,8 @@ void EmulationSession::InitializeSystem(bool reload) {
         Common::Log::Initialize();
         Common::Log::SetColorConsoleBackendEnabled(true);
         Common::Log::Start();
+
+        m_input_subsystem.Initialize();
     }
 
     // Initialize filesystem.
@@ -222,8 +228,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     std::scoped_lock lock(m_mutex);
 
     // Create the render window.
-    m_window =
-        std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window, m_vulkan_library);
+    m_window = std::make_unique<EmuWindow_Android>(m_native_window, m_vulkan_library);
 
     // Initialize system.
     jauto android_keyboard = std::make_unique<Common::Android::SoftwareKeyboard::AndroidKeyboard>();
@@ -353,60 +358,6 @@ void EmulationSession::RunEmulation() {
 
     // Reset current applet ID.
     m_applet_id = static_cast<int>(Service::AM::AppletId::Application);
-}
-
-bool EmulationSession::IsHandheldOnly() {
-    jconst npad_style_set = m_system.HIDCore().GetSupportedStyleTag();
-
-    if (npad_style_set.fullkey == 1) {
-        return false;
-    }
-
-    if (npad_style_set.handheld == 0) {
-        return false;
-    }
-
-    return !Settings::IsDockedMode();
-}
-
-void EmulationSession::SetDeviceType([[maybe_unused]] int index, int type) {
-    jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
-    controller->SetNpadStyleIndex(static_cast<Core::HID::NpadStyleIndex>(type));
-}
-
-void EmulationSession::OnGamepadConnectEvent([[maybe_unused]] int index) {
-    jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
-
-    // Ensure that player1 is configured correctly and handheld disconnected
-    if (controller->GetNpadIdType() == Core::HID::NpadIdType::Player1) {
-        jauto handheld = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
-
-        if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
-            handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
-            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
-            handheld->Disconnect();
-        }
-    }
-
-    // Ensure that handheld is configured correctly and player 1 disconnected
-    if (controller->GetNpadIdType() == Core::HID::NpadIdType::Handheld) {
-        jauto player1 = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
-
-        if (controller->GetNpadStyleIndex() != Core::HID::NpadStyleIndex::Handheld) {
-            player1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
-            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
-            player1->Disconnect();
-        }
-    }
-
-    if (!controller->IsConnected()) {
-        controller->Connect();
-    }
-}
-
-void EmulationSession::OnGamepadDisconnectEvent([[maybe_unused]] int index) {
-    jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
-    controller->Disconnect();
 }
 
 Common::Android::SoftwareKeyboard::AndroidKeyboard* EmulationSession::SoftwareKeyboard() {
@@ -574,14 +525,14 @@ jobjectArray Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
                                              nullptr, nullptr, file_redirect_dir_, nullptr);
     auto driver_library = std::make_shared<Common::DynamicLibrary>(handle);
     InputCommon::InputSubsystem input_subsystem;
-    auto m_window = std::make_unique<EmuWindow_Android>(
-        &input_subsystem, ANativeWindow_fromSurface(env, j_surf), driver_library);
+    auto window =
+        std::make_unique<EmuWindow_Android>(ANativeWindow_fromSurface(env, j_surf), driver_library);
 
     Vulkan::vk::InstanceDispatch dld;
     Vulkan::vk::Instance vk_instance = Vulkan::CreateInstance(
         *driver_library, dld, VK_API_VERSION_1_1, Core::Frontend::WindowSystemType::Android);
 
-    auto surface = Vulkan::CreateSurface(vk_instance, m_window->GetWindowInfo());
+    auto surface = Vulkan::CreateSurface(vk_instance, window->GetWindowInfo());
 
     auto device = Vulkan::CreateDevice(vk_instance, dld, *surface);
 
@@ -620,103 +571,6 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning(JNIEnv* env, jclass cla
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isPaused(JNIEnv* env, jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsPaused());
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly(JNIEnv* env, jclass clazz) {
-    return EmulationSession::GetInstance().IsHandheldOnly();
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType(JNIEnv* env, jclass clazz,
-                                                             jint j_device, jint j_type) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().SetDeviceType(j_device, j_type);
-    }
-    return static_cast<jboolean>(true);
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent(JNIEnv* env, jclass clazz,
-                                                                     jint j_device) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().OnGamepadConnectEvent(j_device);
-    }
-    return static_cast<jboolean>(true);
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent(JNIEnv* env, jclass clazz,
-                                                                        jint j_device) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().OnGamepadDisconnectEvent(j_device);
-    }
-    return static_cast<jboolean>(true);
-}
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadButtonEvent(JNIEnv* env, jclass clazz,
-                                                                    jint j_device, jint j_button,
-                                                                    jint action) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        // Ensure gamepad is connected
-        EmulationSession::GetInstance().OnGamepadConnectEvent(j_device);
-        EmulationSession::GetInstance().Window().OnGamepadButtonEvent(j_device, j_button,
-                                                                      action != 0);
-    }
-    return static_cast<jboolean>(true);
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadJoystickEvent(JNIEnv* env, jclass clazz,
-                                                                      jint j_device, jint stick_id,
-                                                                      jfloat x, jfloat y) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadJoystickEvent(j_device, stick_id, x, y);
-    }
-    return static_cast<jboolean>(true);
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent(
-    JNIEnv* env, jclass clazz, jint j_device, jlong delta_timestamp, jfloat gyro_x, jfloat gyro_y,
-    jfloat gyro_z, jfloat accel_x, jfloat accel_y, jfloat accel_z) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadMotionEvent(
-            j_device, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
-    }
-    return static_cast<jboolean>(true);
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(JNIEnv* env, jclass clazz,
-                                                            jbyteArray j_data) {
-    jboolean isCopy{false};
-    std::span<u8> data(reinterpret_cast<u8*>(env->GetByteArrayElements(j_data, &isCopy)),
-                       static_cast<size_t>(env->GetArrayLength(j_data)));
-
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnReadNfcTag(data);
-    }
-    return static_cast<jboolean>(true);
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag(JNIEnv* env, jclass clazz) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnRemoveNfcTag();
-    }
-    return static_cast<jboolean>(true);
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchPressed(JNIEnv* env, jclass clazz, jint id,
-                                                          jfloat x, jfloat y) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnTouchPressed(id, x, y);
-    }
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved(JNIEnv* env, jclass clazz, jint id,
-                                                        jfloat x, jfloat y) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnTouchMoved(id, x, y);
-    }
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass clazz, jint id) {
-    if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnTouchReleased(id);
-    }
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz,
@@ -759,6 +613,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuDriver(JNIEnv* env, jobject 
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_applySettings(JNIEnv* env, jobject jobj) {
     EmulationSession::GetInstance().System().ApplySettings();
+    EmulationSession::GetInstance().System().HIDCore().ReloadInputDevices();
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_logSettings(JNIEnv* env, jobject jobj) {

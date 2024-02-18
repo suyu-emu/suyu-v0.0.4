@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.features.settings.model.AbstractByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractFloatSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
@@ -12,12 +13,14 @@ import kotlin.math.roundToInt
 
 class SliderSetting(
     setting: AbstractSetting,
-    titleId: Int,
-    descriptionId: Int,
-    val min: Int,
-    val max: Int,
-    val units: String
-) : SettingsItem(setting, titleId, descriptionId) {
+    @StringRes titleId: Int = 0,
+    titleString: String = "",
+    @StringRes descriptionId: Int = 0,
+    descriptionString: String = "",
+    val min: Int = 0,
+    val max: Int = 100,
+    val units: String = ""
+) : SettingsItem(setting, titleId, titleString, descriptionId, descriptionString) {
     override val type = TYPE_SLIDER
 
     fun getSelectedValue(needsGlobal: Boolean = false) =

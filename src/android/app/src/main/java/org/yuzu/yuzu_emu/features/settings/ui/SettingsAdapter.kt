@@ -8,12 +8,11 @@ import android.icu.util.Calendar
 import android.icu.util.TimeZone
 import android.text.format.DateFormat
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
@@ -21,16 +20,18 @@ import androidx.recyclerview.widget.ListAdapter
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.SettingsNavigationDirections
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingInputBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
+import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
+import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
-import org.yuzu.yuzu_emu.fragments.SettingsDialogFragment
-import org.yuzu.yuzu_emu.model.SettingsViewModel
+import org.yuzu.yuzu_emu.utils.ParamPackage
 
 class SettingsAdapter(
     private val fragment: Fragment,
@@ -40,19 +41,6 @@ class SettingsAdapter(
 ) {
     private val settingsViewModel: SettingsViewModel
         get() = ViewModelProvider(fragment.requireActivity())[SettingsViewModel::class.java]
-
-    init {
-        fragment.viewLifecycleOwner.lifecycleScope.launch {
-            fragment.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsViewModel.adapterItemChanged.collect {
-                    if (it != -1) {
-                        notifyItemChanged(it)
-                        settingsViewModel.setAdapterItemChanged(-1)
-                    }
-                }
-            }
-        }
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SettingViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -85,8 +73,19 @@ class SettingsAdapter(
                 RunnableViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
 
+            SettingsItem.TYPE_INPUT -> {
+                InputViewHolder(ListItemSettingInputBinding.inflate(inflater), this)
+            }
+
+            SettingsItem.TYPE_INT_SINGLE_CHOICE -> {
+                SingleChoiceViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
+            SettingsItem.TYPE_INPUT_PROFILE -> {
+                InputProfileViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
             else -> {
-                // TODO: Create an error view since we can't return null now
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
         }
@@ -122,6 +121,15 @@ class SettingsAdapter(
             settingsViewModel,
             item,
             SettingsItem.TYPE_STRING_SINGLE_CHOICE,
+            position
+        ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
+    }
+
+    fun onIntSingleChoiceClick(item: IntSingleChoiceSetting, position: Int) {
+        SettingsDialogFragment.newInstance(
+            settingsViewModel,
+            item,
+            SettingsItem.TYPE_INT_SINGLE_CHOICE,
             position
         ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
     }
@@ -183,6 +191,205 @@ class SettingsAdapter(
     fun onSubmenuClick(item: SubmenuSetting) {
         val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
         fragment.view?.findNavController()?.navigate(action)
+    }
+
+    fun onInputProfileClick(item: InputProfileSetting, position: Int) {
+        InputProfileDialogFragment.newInstance(
+            settingsViewModel,
+            item,
+            position
+        ).show(fragment.childFragmentManager, InputProfileDialogFragment.TAG)
+    }
+
+    fun onInputClick(item: InputSetting, position: Int) {
+        InputDialogFragment.newInstance(
+            settingsViewModel,
+            item,
+            position
+        ).show(fragment.childFragmentManager, InputDialogFragment.TAG)
+    }
+
+    fun onInputOptionsClick(anchor: View, item: InputSetting, position: Int) {
+        val popup = PopupMenu(context, anchor)
+        popup.menuInflater.inflate(R.menu.menu_input_options, popup.menu)
+
+        popup.menu.apply {
+            val invertAxis = findItem(R.id.invert_axis)
+            val invertButton = findItem(R.id.invert_button)
+            val toggleButton = findItem(R.id.toggle_button)
+            val turboButton = findItem(R.id.turbo_button)
+            val setThreshold = findItem(R.id.set_threshold)
+            val toggleAxis = findItem(R.id.toggle_axis)
+            when (item) {
+                is AnalogInputSetting -> {
+                    val params = NativeInput.getStickParam(item.playerIndex, item.nativeAnalog)
+
+                    invertAxis.isVisible = true
+                    invertAxis.isCheckable = true
+                    invertAxis.isChecked = when (item.analogDirection) {
+                        AnalogDirection.Left, AnalogDirection.Right -> {
+                            params.get("invert_x", "+") == "-"
+                        }
+
+                        AnalogDirection.Up, AnalogDirection.Down -> {
+                            params.get("invert_y", "+") == "-"
+                        }
+                    }
+                    invertAxis.setOnMenuItemClickListener {
+                        if (item.analogDirection == AnalogDirection.Left ||
+                            item.analogDirection == AnalogDirection.Right
+                        ) {
+                            val invertValue = params.get("invert_x", "+") == "-"
+                            val invertString = if (invertValue) "+" else "-"
+                            params.set("invert_x", invertString)
+                        } else if (
+                            item.analogDirection == AnalogDirection.Up ||
+                            item.analogDirection == AnalogDirection.Down
+                        ) {
+                            val invertValue = params.get("invert_y", "+") == "-"
+                            val invertString = if (invertValue) "+" else "-"
+                            params.set("invert_y", invertString)
+                        }
+                        true
+                    }
+
+                    popup.setOnDismissListener {
+                        NativeInput.setStickParam(item.playerIndex, item.nativeAnalog, params)
+                        settingsViewModel.setDatasetChanged(true)
+                    }
+                }
+
+                is ButtonInputSetting -> {
+                    val params = NativeInput.getButtonParam(item.playerIndex, item.nativeButton)
+                    if (params.has("code") || params.has("button") || params.has("hat")) {
+                        val buttonInvert = params.get("inverted", false)
+                        invertButton.isVisible = true
+                        invertButton.isCheckable = true
+                        invertButton.isChecked = buttonInvert
+                        invertButton.setOnMenuItemClickListener {
+                            params.set("inverted", !buttonInvert)
+                            true
+                        }
+
+                        val toggle = params.get("toggle", false)
+                        toggleButton.isVisible = true
+                        toggleButton.isCheckable = true
+                        toggleButton.isChecked = toggle
+                        toggleButton.setOnMenuItemClickListener {
+                            params.set("toggle", !toggle)
+                            true
+                        }
+
+                        val turbo = params.get("turbo", false)
+                        turboButton.isVisible = true
+                        turboButton.isCheckable = true
+                        turboButton.isChecked = turbo
+                        turboButton.setOnMenuItemClickListener {
+                            params.set("turbo", !turbo)
+                            true
+                        }
+                    } else if (params.has("axis")) {
+                        val axisInvert = params.get("invert", "+") == "-"
+                        invertAxis.isVisible = true
+                        invertAxis.isCheckable = true
+                        invertAxis.isChecked = axisInvert
+                        invertAxis.setOnMenuItemClickListener {
+                            params.set("invert", if (!axisInvert) "-" else "+")
+                            true
+                        }
+
+                        val buttonInvert = params.get("inverted", false)
+                        invertButton.isVisible = true
+                        invertButton.isCheckable = true
+                        invertButton.isChecked = buttonInvert
+                        invertButton.setOnMenuItemClickListener {
+                            params.set("inverted", !buttonInvert)
+                            true
+                        }
+
+                        setThreshold.isVisible = true
+                        val thresholdSetting = object : AbstractIntSetting {
+                            override val key = ""
+
+                            override fun getInt(needsGlobal: Boolean): Int =
+                                (params.get("threshold", 0.5f) * 100).toInt()
+
+                            override fun setInt(value: Int) {
+                                params.set("threshold", value.toFloat() / 100)
+                                NativeInput.setButtonParam(
+                                    item.playerIndex,
+                                    item.nativeButton,
+                                    params
+                                )
+                            }
+
+                            override val defaultValue = 50
+
+                            override fun getValueAsString(needsGlobal: Boolean): String =
+                                getInt(needsGlobal).toString()
+
+                            override fun reset() = setInt(defaultValue)
+                        }
+                        setThreshold.setOnMenuItemClickListener {
+                            onSliderClick(
+                                SliderSetting(thresholdSetting, R.string.set_threshold),
+                                position
+                            )
+                            true
+                        }
+
+                        val axisToggle = params.get("toggle", false)
+                        toggleAxis.isVisible = true
+                        toggleAxis.isCheckable = true
+                        toggleAxis.isChecked = axisToggle
+                        toggleAxis.setOnMenuItemClickListener {
+                            params.set("toggle", !axisToggle)
+                            true
+                        }
+                    }
+
+                    popup.setOnDismissListener {
+                        NativeInput.setButtonParam(item.playerIndex, item.nativeButton, params)
+                        settingsViewModel.setAdapterItemChanged(position)
+                    }
+                }
+
+                is ModifierInputSetting -> {
+                    val stickParams = NativeInput.getStickParam(item.playerIndex, item.nativeAnalog)
+                    val modifierParams = ParamPackage(stickParams.get("modifier", ""))
+
+                    val invert = modifierParams.get("inverted", false)
+                    invertButton.isVisible = true
+                    invertButton.isCheckable = true
+                    invertButton.isChecked = invert
+                    invertButton.setOnMenuItemClickListener {
+                        modifierParams.set("inverted", !invert)
+                        stickParams.set("modifier", modifierParams.serialize())
+                        true
+                    }
+
+                    val toggle = modifierParams.get("toggle", false)
+                    toggleButton.isVisible = true
+                    toggleButton.isCheckable = true
+                    toggleButton.isChecked = toggle
+                    toggleButton.setOnMenuItemClickListener {
+                        modifierParams.set("toggle", !toggle)
+                        stickParams.set("modifier", modifierParams.serialize())
+                        true
+                    }
+
+                    popup.setOnDismissListener {
+                        NativeInput.setStickParam(
+                            item.playerIndex,
+                            item.nativeAnalog,
+                            stickParams
+                        )
+                        settingsViewModel.setAdapterItemChanged(position)
+                    }
+                }
+            }
+        }
+        popup.show()
     }
 
     fun onLongClick(item: SettingsItem, position: Int): Boolean {

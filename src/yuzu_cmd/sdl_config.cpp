@@ -103,6 +103,7 @@ void SdlConfig::ReadSdlPlayerValues(const std::size_t player_index) {
         if (profile_name.empty()) {
             // Use the global input config
             player = Settings::values.players.GetValue(true)[player_index];
+            player.profile_name = "";
             return;
         }
     }

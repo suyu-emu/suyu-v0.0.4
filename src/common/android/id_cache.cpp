@@ -65,6 +65,30 @@ static jclass s_boolean_class;
 static jmethodID s_boolean_constructor;
 static jfieldID s_boolean_value_field;
 
+static jclass s_player_input_class;
+static jmethodID s_player_input_constructor;
+static jfieldID s_player_input_connected_field;
+static jfieldID s_player_input_buttons_field;
+static jfieldID s_player_input_analogs_field;
+static jfieldID s_player_input_motions_field;
+static jfieldID s_player_input_vibration_enabled_field;
+static jfieldID s_player_input_vibration_strength_field;
+static jfieldID s_player_input_body_color_left_field;
+static jfieldID s_player_input_body_color_right_field;
+static jfieldID s_player_input_button_color_left_field;
+static jfieldID s_player_input_button_color_right_field;
+static jfieldID s_player_input_profile_name_field;
+static jfieldID s_player_input_use_system_vibrator_field;
+
+static jclass s_yuzu_input_device_interface;
+static jmethodID s_yuzu_input_device_get_name;
+static jmethodID s_yuzu_input_device_get_guid;
+static jmethodID s_yuzu_input_device_get_port;
+static jmethodID s_yuzu_input_device_get_supports_vibration;
+static jmethodID s_yuzu_input_device_vibrate;
+static jmethodID s_yuzu_input_device_get_axes;
+static jmethodID s_yuzu_input_device_has_keys;
+
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 namespace Common::Android {
@@ -276,6 +300,94 @@ jfieldID GetBooleanValueField() {
     return s_boolean_value_field;
 }
 
+jclass GetPlayerInputClass() {
+    return s_player_input_class;
+}
+
+jmethodID GetPlayerInputConstructor() {
+    return s_player_input_constructor;
+}
+
+jfieldID GetPlayerInputConnectedField() {
+    return s_player_input_connected_field;
+}
+
+jfieldID GetPlayerInputButtonsField() {
+    return s_player_input_buttons_field;
+}
+
+jfieldID GetPlayerInputAnalogsField() {
+    return s_player_input_analogs_field;
+}
+
+jfieldID GetPlayerInputMotionsField() {
+    return s_player_input_motions_field;
+}
+
+jfieldID GetPlayerInputVibrationEnabledField() {
+    return s_player_input_vibration_enabled_field;
+}
+
+jfieldID GetPlayerInputVibrationStrengthField() {
+    return s_player_input_vibration_strength_field;
+}
+
+jfieldID GetPlayerInputBodyColorLeftField() {
+    return s_player_input_body_color_left_field;
+}
+
+jfieldID GetPlayerInputBodyColorRightField() {
+    return s_player_input_body_color_right_field;
+}
+
+jfieldID GetPlayerInputButtonColorLeftField() {
+    return s_player_input_button_color_left_field;
+}
+
+jfieldID GetPlayerInputButtonColorRightField() {
+    return s_player_input_button_color_right_field;
+}
+
+jfieldID GetPlayerInputProfileNameField() {
+    return s_player_input_profile_name_field;
+}
+
+jfieldID GetPlayerInputUseSystemVibratorField() {
+    return s_player_input_use_system_vibrator_field;
+}
+
+jclass GetYuzuInputDeviceInterface() {
+    return s_yuzu_input_device_interface;
+}
+
+jmethodID GetYuzuDeviceGetName() {
+    return s_yuzu_input_device_get_name;
+}
+
+jmethodID GetYuzuDeviceGetGUID() {
+    return s_yuzu_input_device_get_guid;
+}
+
+jmethodID GetYuzuDeviceGetPort() {
+    return s_yuzu_input_device_get_port;
+}
+
+jmethodID GetYuzuDeviceGetSupportsVibration() {
+    return s_yuzu_input_device_get_supports_vibration;
+}
+
+jmethodID GetYuzuDeviceVibrate() {
+    return s_yuzu_input_device_vibrate;
+}
+
+jmethodID GetYuzuDeviceGetAxes() {
+    return s_yuzu_input_device_get_axes;
+}
+
+jmethodID GetYuzuDeviceHasKeys() {
+    return s_yuzu_input_device_has_keys;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -387,6 +499,55 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_boolean_value_field = env->GetFieldID(boolean_class, "value", "Z");
     env->DeleteLocalRef(boolean_class);
 
+    const jclass player_input_class =
+        env->FindClass("org/yuzu/yuzu_emu/features/input/model/PlayerInput");
+    s_player_input_class = reinterpret_cast<jclass>(env->NewGlobalRef(player_input_class));
+    s_player_input_constructor = env->GetMethodID(
+        player_input_class, "<init>",
+        "(Z[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;ZIJJJJLjava/lang/String;Z)V");
+    s_player_input_connected_field = env->GetFieldID(player_input_class, "connected", "Z");
+    s_player_input_buttons_field =
+        env->GetFieldID(player_input_class, "buttons", "[Ljava/lang/String;");
+    s_player_input_analogs_field =
+        env->GetFieldID(player_input_class, "analogs", "[Ljava/lang/String;");
+    s_player_input_motions_field =
+        env->GetFieldID(player_input_class, "motions", "[Ljava/lang/String;");
+    s_player_input_vibration_enabled_field =
+        env->GetFieldID(player_input_class, "vibrationEnabled", "Z");
+    s_player_input_vibration_strength_field =
+        env->GetFieldID(player_input_class, "vibrationStrength", "I");
+    s_player_input_body_color_left_field =
+        env->GetFieldID(player_input_class, "bodyColorLeft", "J");
+    s_player_input_body_color_right_field =
+        env->GetFieldID(player_input_class, "bodyColorRight", "J");
+    s_player_input_button_color_left_field =
+        env->GetFieldID(player_input_class, "buttonColorLeft", "J");
+    s_player_input_button_color_right_field =
+        env->GetFieldID(player_input_class, "buttonColorRight", "J");
+    s_player_input_profile_name_field =
+        env->GetFieldID(player_input_class, "profileName", "Ljava/lang/String;");
+    s_player_input_use_system_vibrator_field =
+        env->GetFieldID(player_input_class, "useSystemVibrator", "Z");
+    env->DeleteLocalRef(player_input_class);
+
+    const jclass yuzu_input_device_interface =
+        env->FindClass("org/yuzu/yuzu_emu/features/input/YuzuInputDevice");
+    s_yuzu_input_device_interface =
+        reinterpret_cast<jclass>(env->NewGlobalRef(yuzu_input_device_interface));
+    s_yuzu_input_device_get_name =
+        env->GetMethodID(yuzu_input_device_interface, "getName", "()Ljava/lang/String;");
+    s_yuzu_input_device_get_guid =
+        env->GetMethodID(yuzu_input_device_interface, "getGUID", "()Ljava/lang/String;");
+    s_yuzu_input_device_get_port = env->GetMethodID(yuzu_input_device_interface, "getPort", "()I");
+    s_yuzu_input_device_get_supports_vibration =
+        env->GetMethodID(yuzu_input_device_interface, "getSupportsVibration", "()Z");
+    s_yuzu_input_device_vibrate = env->GetMethodID(yuzu_input_device_interface, "vibrate", "(F)V");
+    s_yuzu_input_device_get_axes =
+        env->GetMethodID(yuzu_input_device_interface, "getAxes", "()[Ljava/lang/Integer;");
+    s_yuzu_input_device_has_keys =
+        env->GetMethodID(yuzu_input_device_interface, "hasKeys", "([I)[Z");
+    env->DeleteLocalRef(yuzu_input_device_interface);
+
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
 
@@ -416,6 +577,8 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_double_class);
     env->DeleteGlobalRef(s_integer_class);
     env->DeleteGlobalRef(s_boolean_class);
+    env->DeleteGlobalRef(s_player_input_class);
+    env->DeleteGlobalRef(s_yuzu_input_device_interface);
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);

@@ -91,6 +91,20 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
+                    R.string.preferences_controls,
+                    R.string.preferences_controls_description,
+                    R.drawable.ic_controller,
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                            null,
+                            Settings.MenuTag.SECTION_INPUT
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
+                )
+            )
+            add(
+                HomeSetting(
                     R.string.gpu_driver_manager,
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,

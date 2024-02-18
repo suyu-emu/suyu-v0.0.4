@@ -3,15 +3,18 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
 class SwitchSetting(
     setting: AbstractSetting,
-    titleId: Int,
-    descriptionId: Int
-) : SettingsItem(setting, titleId, descriptionId) {
+    @StringRes titleId: Int = 0,
+    titleString: String = "",
+    @StringRes descriptionId: Int = 0,
+    descriptionString: String = ""
+) : SettingsItem(setting, titleId, titleString, descriptionId, descriptionString) {
     override val type = TYPE_SWITCH
 
     fun getIsChecked(needsGlobal: Boolean = false): Boolean {

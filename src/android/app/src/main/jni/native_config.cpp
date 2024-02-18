@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include <common/fs/fs_util.h>
 #include <jni.h>
 
 #include "android_config.h"
@@ -422,6 +421,122 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setOverlayControlData(
         AndroidSettings::values.overlay_control_data.push_back(AndroidSettings::OverlayControlData{
             Common::Android::GetJString(env, jidString), enabled, landscape_position,
             portrait_position, foldable_position});
+    }
+}
+
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getInputSettings(JNIEnv* env, jobject obj,
+                                                                         jboolean j_global) {
+    Settings::values.players.SetGlobal(static_cast<bool>(j_global));
+    auto& players = Settings::values.players.GetValue();
+    jobjectArray j_input_settings =
+        env->NewObjectArray(players.size(), Common::Android::GetPlayerInputClass(), nullptr);
+    for (size_t i = 0; i < players.size(); ++i) {
+        auto j_connected = static_cast<jboolean>(players[i].connected);
+
+        jobjectArray j_buttons = env->NewObjectArray(
+            players[i].buttons.size(), Common::Android::GetStringClass(), env->NewStringUTF(""));
+        for (size_t j = 0; j < players[i].buttons.size(); ++j) {
+            env->SetObjectArrayElement(j_buttons, j,
+                                       Common::Android::ToJString(env, players[i].buttons[j]));
+        }
+        jobjectArray j_analogs = env->NewObjectArray(
+            players[i].analogs.size(), Common::Android::GetStringClass(), env->NewStringUTF(""));
+        for (size_t j = 0; j < players[i].analogs.size(); ++j) {
+            env->SetObjectArrayElement(j_analogs, j,
+                                       Common::Android::ToJString(env, players[i].analogs[j]));
+        }
+        jobjectArray j_motions = env->NewObjectArray(
+            players[i].motions.size(), Common::Android::GetStringClass(), env->NewStringUTF(""));
+        for (size_t j = 0; j < players[i].motions.size(); ++j) {
+            env->SetObjectArrayElement(j_motions, j,
+                                       Common::Android::ToJString(env, players[i].motions[j]));
+        }
+
+        auto j_vibration_enabled = static_cast<jboolean>(players[i].vibration_enabled);
+        auto j_vibration_strength = static_cast<jint>(players[i].vibration_strength);
+
+        auto j_body_color_left = static_cast<jlong>(players[i].body_color_left);
+        auto j_body_color_right = static_cast<jlong>(players[i].body_color_right);
+        auto j_button_color_left = static_cast<jlong>(players[i].button_color_left);
+        auto j_button_color_right = static_cast<jlong>(players[i].button_color_right);
+
+        auto j_profile_name = Common::Android::ToJString(env, players[i].profile_name);
+
+        auto j_use_system_vibrator = players[i].use_system_vibrator;
+
+        jobject playerInput = env->NewObject(
+            Common::Android::GetPlayerInputClass(), Common::Android::GetPlayerInputConstructor(),
+            j_connected, j_buttons, j_analogs, j_motions, j_vibration_enabled, j_vibration_strength,
+            j_body_color_left, j_body_color_right, j_button_color_left, j_button_color_right,
+            j_profile_name, j_use_system_vibrator);
+        env->SetObjectArrayElement(j_input_settings, i, playerInput);
+    }
+    return j_input_settings;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setInputSettings(JNIEnv* env, jobject obj,
+                                                                 jobjectArray j_value,
+                                                                 jboolean j_global) {
+    auto& players = Settings::values.players.GetValue(static_cast<bool>(j_global));
+    int playersSize = env->GetArrayLength(j_value);
+    for (int i = 0; i < playersSize; ++i) {
+        jobject jplayer = env->GetObjectArrayElement(j_value, i);
+
+        players[i].connected = static_cast<bool>(
+            env->GetBooleanField(jplayer, Common::Android::GetPlayerInputConnectedField()));
+
+        auto j_buttons_array = static_cast<jobjectArray>(
+            env->GetObjectField(jplayer, Common::Android::GetPlayerInputButtonsField()));
+        int buttons_size = env->GetArrayLength(j_buttons_array);
+        for (int j = 0; j < buttons_size; ++j) {
+            auto button = static_cast<jstring>(env->GetObjectArrayElement(j_buttons_array, j));
+            players[i].buttons[j] = Common::Android::GetJString(env, button);
+        }
+        auto j_analogs_array = static_cast<jobjectArray>(
+            env->GetObjectField(jplayer, Common::Android::GetPlayerInputAnalogsField()));
+        int analogs_size = env->GetArrayLength(j_analogs_array);
+        for (int j = 0; j < analogs_size; ++j) {
+            auto analog = static_cast<jstring>(env->GetObjectArrayElement(j_analogs_array, j));
+            players[i].analogs[j] = Common::Android::GetJString(env, analog);
+        }
+        auto j_motions_array = static_cast<jobjectArray>(
+            env->GetObjectField(jplayer, Common::Android::GetPlayerInputMotionsField()));
+        int motions_size = env->GetArrayLength(j_motions_array);
+        for (int j = 0; j < motions_size; ++j) {
+            auto motion = static_cast<jstring>(env->GetObjectArrayElement(j_motions_array, j));
+            players[i].motions[j] = Common::Android::GetJString(env, motion);
+        }
+
+        players[i].vibration_enabled = static_cast<bool>(
+            env->GetBooleanField(jplayer, Common::Android::GetPlayerInputVibrationEnabledField()));
+        players[i].vibration_strength = static_cast<int>(
+            env->GetIntField(jplayer, Common::Android::GetPlayerInputVibrationStrengthField()));
+
+        players[i].body_color_left = static_cast<u32>(
+            env->GetLongField(jplayer, Common::Android::GetPlayerInputBodyColorLeftField()));
+        players[i].body_color_right = static_cast<u32>(
+            env->GetLongField(jplayer, Common::Android::GetPlayerInputBodyColorRightField()));
+        players[i].button_color_left = static_cast<u32>(
+            env->GetLongField(jplayer, Common::Android::GetPlayerInputButtonColorLeftField()));
+        players[i].button_color_right = static_cast<u32>(
+            env->GetLongField(jplayer, Common::Android::GetPlayerInputButtonColorRightField()));
+
+        auto profileName = static_cast<jstring>(
+            env->GetObjectField(jplayer, Common::Android::GetPlayerInputProfileNameField()));
+        players[i].profile_name = Common::Android::GetJString(env, profileName);
+
+        players[i].use_system_vibrator =
+            env->GetBooleanField(jplayer, Common::Android::GetPlayerInputUseSystemVibratorField());
+    }
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveControlPlayerValues(JNIEnv* env, jobject obj) {
+    Settings::values.players.SetGlobal(false);
+
+    // Clear all controls from the config in case the user reverted back to globals
+    per_game_config->ClearControlPlayerValues();
+    for (size_t index = 0; index < Settings::values.players.GetValue().size(); ++index) {
+        per_game_config->SaveAndroidControlPlayerValues(index);
     }
 }
 

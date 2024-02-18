@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <common/logging/log.h>
+#include <input_common/main.h>
 #include "android_config.h"
 #include "android_settings.h"
 #include "common/settings_setting.h"
@@ -32,6 +34,7 @@ void AndroidConfig::ReadAndroidValues() {
         ReadOverlayValues();
     }
     ReadDriverValues();
+    ReadAndroidControlValues();
 }
 
 void AndroidConfig::ReadAndroidUIValues() {
@@ -107,6 +110,76 @@ void AndroidConfig::ReadOverlayValues() {
     EndGroup();
 }
 
+void AndroidConfig::ReadAndroidPlayerValues(std::size_t player_index) {
+    std::string player_prefix;
+    if (type != ConfigType::InputProfile) {
+        player_prefix.append("player_").append(ToString(player_index)).append("_");
+    }
+
+    auto& player = Settings::values.players.GetValue()[player_index];
+    if (IsCustomConfig()) {
+        const auto profile_name =
+            ReadStringSetting(std::string(player_prefix).append("profile_name"));
+        if (profile_name.empty()) {
+            // Use the global input config
+            player = Settings::values.players.GetValue(true)[player_index];
+            player.profile_name = "";
+            return;
+        }
+    }
+
+    // Android doesn't have default options for controllers. We have the input overlay for that.
+    for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        const std::string default_param;
+        auto& player_buttons = player.buttons[i];
+
+        player_buttons = ReadStringSetting(
+            std::string(player_prefix).append(Settings::NativeButton::mapping[i]), default_param);
+        if (player_buttons.empty()) {
+            player_buttons = default_param;
+        }
+    }
+    for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        const std::string default_param;
+        auto& player_analogs = player.analogs[i];
+
+        player_analogs = ReadStringSetting(
+            std::string(player_prefix).append(Settings::NativeAnalog::mapping[i]), default_param);
+        if (player_analogs.empty()) {
+            player_analogs = default_param;
+        }
+    }
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param;
+        auto& player_motions = player.motions[i];
+
+        player_motions = ReadStringSetting(
+            std::string(player_prefix).append(Settings::NativeMotion::mapping[i]), default_param);
+        if (player_motions.empty()) {
+            player_motions = default_param;
+        }
+    }
+    player.use_system_vibrator = ReadBooleanSetting(
+        std::string(player_prefix).append("use_system_vibrator"), player_index == 0);
+}
+
+void AndroidConfig::ReadAndroidControlValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
+
+    Settings::values.players.SetGlobal(!IsCustomConfig());
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
+        ReadAndroidPlayerValues(p);
+    }
+    if (IsCustomConfig()) {
+        EndGroup();
+        return;
+    }
+    // ReadDebugControlValues();
+    // ReadHidbusValues();
+
+    EndGroup();
+}
+
 void AndroidConfig::SaveAndroidValues() {
     if (global) {
         SaveAndroidUIValues();
@@ -114,6 +187,7 @@ void AndroidConfig::SaveAndroidValues() {
         SaveOverlayValues();
     }
     SaveDriverValues();
+    SaveAndroidControlValues();
 
     WriteToIni();
 }
@@ -187,10 +261,77 @@ void AndroidConfig::SaveOverlayValues() {
     EndGroup();
 }
 
+void AndroidConfig::SaveAndroidPlayerValues(std::size_t player_index) {
+    std::string player_prefix;
+    if (type != ConfigType::InputProfile) {
+        player_prefix = std::string("player_").append(ToString(player_index)).append("_");
+    }
+
+    const auto& player = Settings::values.players.GetValue()[player_index];
+    if (IsCustomConfig() && player.profile_name.empty()) {
+        // No custom profile selected
+        return;
+    }
+
+    const std::string default_param;
+    for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeButton::mapping[i]),
+                           player.buttons[i], std::make_optional(default_param));
+    }
+    for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeAnalog::mapping[i]),
+                           player.analogs[i], std::make_optional(default_param));
+    }
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeMotion::mapping[i]),
+                           player.motions[i], std::make_optional(default_param));
+    }
+    WriteBooleanSetting(std::string(player_prefix).append("use_system_vibrator"),
+                        player.use_system_vibrator, std::make_optional(player_index == 0));
+}
+
+void AndroidConfig::SaveAndroidControlValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
+
+    Settings::values.players.SetGlobal(!IsCustomConfig());
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
+        SaveAndroidPlayerValues(p);
+    }
+    if (IsCustomConfig()) {
+        EndGroup();
+        return;
+    }
+    // SaveDebugControlValues();
+    // SaveHidbusValues();
+
+    EndGroup();
+}
+
 std::vector<Settings::BasicSetting*>& AndroidConfig::FindRelevantList(Settings::Category category) {
     auto& map = Settings::values.linkage.by_category;
     if (map.contains(category)) {
         return Settings::values.linkage.by_category[category];
     }
     return AndroidSettings::values.linkage.by_category[category];
+}
+
+void AndroidConfig::ReadAndroidControlPlayerValues(std::size_t player_index) {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
+
+    ReadPlayerValues(player_index);
+    ReadAndroidPlayerValues(player_index);
+
+    EndGroup();
+}
+
+void AndroidConfig::SaveAndroidControlPlayerValues(std::size_t player_index) {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
+
+    LOG_DEBUG(Config, "Saving players control configuration values");
+    SavePlayerValues(player_index);
+    SaveAndroidPlayerValues(player_index);
+
+    EndGroup();
+
+    WriteToIni();
 }

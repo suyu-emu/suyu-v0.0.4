@@ -21,7 +21,7 @@
 
 namespace Core::HID {
 const std::size_t max_emulated_controllers = 2;
-const std::size_t output_devices_size = 4;
+const std::size_t output_devices_size = 5;
 struct ControllerMotionInfo {
     Common::Input::MotionStatus raw_status{};
     MotionInput emulated{};
@@ -597,6 +597,7 @@ private:
     CameraParams camera_params;
     RingAnalogParams ring_params;
     NfcParams nfc_params;
+    Common::ParamPackage android_params;
     OutputParams output_params;
 
     ButtonDevices button_devices;

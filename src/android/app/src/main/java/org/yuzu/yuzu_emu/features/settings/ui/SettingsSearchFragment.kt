@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.fragments
+package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -26,8 +26,6 @@ import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsSearchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
-import org.yuzu.yuzu_emu.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
@@ -119,7 +117,7 @@ class SettingsSearchFragment : Fragment() {
         val baseList = SettingsItem.settingsItems
         val similarityAlgorithm = if (searchTerm.length > 2) Cosine() else Cosine(1)
         val sortedList: List<SettingsItem> = baseList.mapNotNull { item ->
-            val title = getString(item.value.nameId).lowercase()
+            val title = item.value.title.lowercase()
             val similarity = similarityAlgorithm.similarity(searchTerm, title)
             if (similarity > 0.08) {
                 Pair(similarity, item)
