@@ -35,6 +35,21 @@ AppletStorageChannel& InitializeFakeCallerApplet(Core::System& system,
     return applet->caller_applet_broker->GetInData();
 }
 
+void PushInShowQlaunch(Core::System& system, AppletStorageChannel& channel) {
+    const CommonArguments arguments{
+        .arguments_version = CommonArgumentVersion::Version3,
+        .size = CommonArgumentSize::Version3,
+        .library_version = 0,
+        .theme_color = ThemeColor::BasicBlack,
+        .play_startup_sound = true,
+        .system_tick = system.CoreTiming().GetClockTicks(),
+    };
+
+    std::vector<u8> argument_data(sizeof(arguments));
+    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
+    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+}
+
 void PushInShowAlbum(Core::System& system, AppletStorageChannel& channel) {
     const CommonArguments arguments{
         .arguments_version = CommonArgumentVersion::Version3,
@@ -284,6 +299,9 @@ void AppletManager::CreateAndInsertByFrontendAppletParameters(
 
     // Starting from frontend, some applets require input data.
     switch (applet->applet_id) {
+    case AppletId::QLaunch:
+        PushInShowQlaunch(m_system, InitializeFakeCallerApplet(m_system, applet));
+        break;
     case AppletId::Cabinet:
         PushInShowCabinetData(m_system, InitializeFakeCallerApplet(m_system, applet));
         break;
