@@ -19,9 +19,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -30,7 +27,6 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.navigation.NavigationBarView
 import java.io.File
 import java.io.FilenameFilter
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
@@ -144,37 +140,18 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             binding.statusBarShade.setVisible(visible = false, gone = false)
         }
 
-        lifecycleScope.apply {
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    homeViewModel.navigationVisible.collect { showNavigation(it.first, it.second) }
-                }
+        homeViewModel.navigationVisible.collect(this) { showNavigation(it.first, it.second) }
+        homeViewModel.statusBarShadeVisible.collect(this) { showStatusBarShade(it) }
+        homeViewModel.contentToInstall.collect(
+            this,
+            resetState = { homeViewModel.setContentToInstall(null) }
+        ) {
+            if (it != null) {
+                installContent(it)
             }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    homeViewModel.statusBarShadeVisible.collect { showStatusBarShade(it) }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    homeViewModel.contentToInstall.collect {
-                        if (it != null) {
-                            installContent(it)
-                            homeViewModel.setContentToInstall(null)
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    homeViewModel.checkKeys.collect {
-                        if (it) {
-                            checkKeys()
-                            homeViewModel.setCheckKeys(false)
-                        }
-                    }
-                }
-            }
+        }
+        homeViewModel.checkKeys.collect(this, resetState = { homeViewModel.setCheckKeys(false) }) {
+            if (it) checkKeys()
         }
 
         setInsets()

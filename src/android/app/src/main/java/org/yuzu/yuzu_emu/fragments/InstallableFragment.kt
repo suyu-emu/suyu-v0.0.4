@@ -14,9 +14,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
@@ -35,6 +32,7 @@ import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 import java.io.BufferedOutputStream
 import java.io.File
 import java.math.BigInteger
@@ -75,14 +73,10 @@ class InstallableFragment : Fragment() {
             binding.root.findNavController().popBackStack()
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                homeViewModel.openImportSaves.collect {
-                    if (it) {
-                        importSaves.launch(arrayOf("application/zip"))
-                        homeViewModel.setOpenImportSaves(false)
-                    }
-                }
+        homeViewModel.openImportSaves.collect(viewLifecycleOwner) {
+            if (it) {
+                importSaves.launch(arrayOf("application/zip"))
+                homeViewModel.setOpenImportSaves(false)
             }
         }
 

@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,12 +13,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.color.MaterialColors
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
@@ -28,6 +22,7 @@ import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -45,8 +40,6 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
-    // This is using the correct scope, lint is just acting up
-    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setNavigationVisibility(visible = true, animated = true)
@@ -89,48 +82,28 @@ class GamesFragment : Fragment() {
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.apply {
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.isReloading.collect {
-                        binding.swipeRefresh.isRefreshing = it
-                        binding.noticeText.setVisible(
-                            visible = gamesViewModel.games.value.isEmpty() && !it,
-                            gone = false
-                        )
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.games.collectLatest {
-                        (binding.gridGames.adapter as GameAdapter).submitList(it)
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.shouldSwapData.collect {
-                        if (it) {
-                            (binding.gridGames.adapter as GameAdapter).submitList(
-                                gamesViewModel.games.value
-                            )
-                            gamesViewModel.setShouldSwapData(false)
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.shouldScrollToTop.collect {
-                        if (it) {
-                            scrollToTop()
-                            gamesViewModel.setShouldScrollToTop(false)
-                        }
-                    }
-                }
+        gamesViewModel.isReloading.collect(viewLifecycleOwner) {
+            binding.swipeRefresh.isRefreshing = it
+            binding.noticeText.setVisible(
+                visible = gamesViewModel.games.value.isEmpty() && !it,
+                gone = false
+            )
+        }
+        gamesViewModel.games.collect(viewLifecycleOwner) {
+            (binding.gridGames.adapter as GameAdapter).submitList(it)
+        }
+        gamesViewModel.shouldSwapData.collect(
+            viewLifecycleOwner,
+            resetState = { gamesViewModel.setShouldSwapData(false) }
+        ) {
+            if (it) {
+                (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value)
             }
         }
+        gamesViewModel.shouldScrollToTop.collect(
+            viewLifecycleOwner,
+            resetState = { gamesViewModel.setShouldScrollToTop(false) }
+        ) { if (it) scrollToTop() }
 
         setInsets()
     }

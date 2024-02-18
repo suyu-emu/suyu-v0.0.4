@@ -13,9 +13,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
@@ -27,6 +24,7 @@ import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 
 class GameFoldersFragment : Fragment() {
     private var _binding: FragmentFoldersBinding? = null
@@ -70,12 +68,8 @@ class GameFoldersFragment : Fragment() {
             adapter = FolderAdapter(requireActivity(), gamesViewModel)
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                gamesViewModel.folders.collect {
-                    (binding.listFolders.adapter as FolderAdapter).submitList(it)
-                }
-            }
+        gamesViewModel.folders.collect(viewLifecycleOwner) {
+            (binding.listFolders.adapter as FolderAdapter).submitList(it)
         }
 
         val mainActivity = requireActivity() as MainActivity
