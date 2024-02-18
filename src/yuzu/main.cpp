@@ -4248,7 +4248,7 @@ void GMainWindow::OnInstallFirmware() {
             success = false;
         }
 
-        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 80.0))) {
+        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 70.0))) {
             success = false;
             cancelled = true;
             break;
@@ -4265,6 +4265,27 @@ void GMainWindow::OnInstallFirmware() {
         QMessageBox::warning(this, tr("Firmware install failed"),
                              tr("Firmware installation cancelled, firmware may be in bad state, "
                                 "restart yuzu or re-install firmware."));
+        return;
+    }
+
+    // Re-scan VFS for the newly placed firmware files.
+    system->GetFileSystemController().CreateFactories(*vfs);
+
+    auto VerifyFirmwareCallback = [&](size_t total_size, size_t processed_size) {
+        progress.setValue(90 + static_cast<int>((processed_size * 10) / total_size));
+        return progress.wasCanceled();
+    };
+
+    auto result =
+        ContentManager::VerifyInstalledContents(*system, *provider, VerifyFirmwareCallback, true);
+
+    if (result.size() > 0) {
+        const auto failed_names =
+            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+        progress.close();
+        QMessageBox::critical(
+            this, tr("Firmware integrity verification failed!"),
+            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
         return;
     }
 
