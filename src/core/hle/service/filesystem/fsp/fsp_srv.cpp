@@ -28,6 +28,7 @@
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/result.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/filesystem/fsp/fs_i_multi_commit_manager.h"
 #include "core/hle/service/filesystem/fsp/fs_i_filesystem.h"
 #include "core/hle/service/filesystem/fsp/fs_i_save_data_info_reader.h"
 #include "core/hle/service/filesystem/fsp/fs_i_storage.h"
@@ -561,35 +562,6 @@ void FSP_SRV::GetCacheStorageSize(HLERequestContext& ctx) {
     rb.Push(s64{0});
     rb.Push(s64{0});
 }
-
-class IMultiCommitManager final : public ServiceFramework<IMultiCommitManager> {
-public:
-    explicit IMultiCommitManager(Core::System& system_)
-        : ServiceFramework{system_, "IMultiCommitManager"} {
-        static const FunctionInfo functions[] = {
-            {1, &IMultiCommitManager::Add, "Add"},
-            {2, &IMultiCommitManager::Commit, "Commit"},
-        };
-        RegisterHandlers(functions);
-    }
-
-private:
-    FileSys::VirtualFile backend;
-
-    void Add(HLERequestContext& ctx) {
-        LOG_WARNING(Service_FS, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void Commit(HLERequestContext& ctx) {
-        LOG_WARNING(Service_FS, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-};
 
 void FSP_SRV::OpenMultiCommitManager(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
