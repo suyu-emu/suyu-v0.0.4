@@ -43,7 +43,7 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
     const auto size = out_buffer.size();
 
     const auto icon_size = control.second ? control.second->GetSize() : 0;
-    const auto total_size = 0x4000 + icon_size;
+    const auto total_size = sizeof(FileSys::RawNACP) + icon_size;
 
     if (size < total_size) {
         LOG_ERROR(Service_NS, "output buffer is too small! (actual={:016X}, expected_min=0x4000)",
@@ -57,11 +57,11 @@ Result IReadOnlyApplicationControlDataInterface::GetApplicationControlData(
     } else {
         LOG_WARNING(Service_NS, "missing NACP data for application_id={:016X}, defaulting to zero",
                     application_id);
-        std::memset(out_buffer.data(), 0, 0x4000);
+        std::memset(out_buffer.data(), 0, sizeof(FileSys::RawNACP));
     }
 
     if (control.second != nullptr) {
-        control.second->Read(out_buffer.data() + 0x4000, icon_size);
+        control.second->Read(out_buffer.data() + sizeof(FileSys::RawNACP), icon_size);
     } else {
         LOG_WARNING(Service_NS, "missing icon data for application_id={:016X}", application_id);
     }

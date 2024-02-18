@@ -441,12 +441,13 @@ Result IApplicationManagerInterface::GetApplicationRightsOnClient(
                 flags, application_id, account_id.FormattedString());
 
     if (!out_rights.empty()) {
-        out_rights[0] = {
-            .application_id = application_id,
-            .uid = account_id,
-            .flags = 0,
-            .flags2 = 0,
-        };
+        ApplicationRightsOnClient rights{};
+        rights.application_id = application_id;
+        rights.uid = account_id;
+        rights.flags = 0;
+        rights.flags2 = 0;
+
+        out_rights[0] = rights;
         *out_count = 1;
     } else {
         *out_count = 0;
