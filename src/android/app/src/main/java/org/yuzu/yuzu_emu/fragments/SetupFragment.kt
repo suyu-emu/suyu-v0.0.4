@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -23,9 +22,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
@@ -47,6 +43,7 @@ import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.utils.collect
 
 class SetupFragment : Fragment() {
     private var _binding: FragmentSetupBinding? = null
@@ -78,8 +75,6 @@ class SetupFragment : Fragment() {
         return binding.root
     }
 
-    // This is using the correct scope, lint is just acting up
-    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
@@ -211,28 +206,14 @@ class SetupFragment : Fragment() {
             )
         }
 
-        viewLifecycleOwner.lifecycleScope.apply {
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    homeViewModel.shouldPageForward.collect {
-                        if (it) {
-                            pageForward()
-                            homeViewModel.setShouldPageForward(false)
-                        }
-                    }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    homeViewModel.gamesDirSelected.collect {
-                        if (it) {
-                            gamesDirCallback.onStepCompleted()
-                            homeViewModel.setGamesDirSelected(false)
-                        }
-                    }
-                }
-            }
-        }
+        homeViewModel.shouldPageForward.collect(
+            viewLifecycleOwner,
+            resetState = { homeViewModel.setShouldPageForward(false) }
+        ) { if (it) pageForward() }
+        homeViewModel.gamesDirSelected.collect(
+            viewLifecycleOwner,
+            resetState = { homeViewModel.setGamesDirSelected(false) }
+        ) { if (it) gamesDirCallback.onStepCompleted() }
 
         binding.viewPager2.apply {
             adapter = SetupAdapter(requireActivity() as AppCompatActivity, pages)

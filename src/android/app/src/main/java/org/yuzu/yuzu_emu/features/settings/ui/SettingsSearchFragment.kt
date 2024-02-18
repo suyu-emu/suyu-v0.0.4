@@ -15,20 +15,17 @@ import androidx.core.view.updatePadding
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
 import info.debatty.java.stringsimilarity.Cosine
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsSearchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 
 class SettingsSearchFragment : Fragment() {
     private var _binding: FragmentSettingsSearchBinding? = null
@@ -84,14 +81,10 @@ class SettingsSearchFragment : Fragment() {
             search()
             binding.settingsList.smoothScrollToPosition(0)
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                settingsViewModel.shouldReloadSettingsList.collect {
-                    if (it) {
-                        settingsViewModel.setShouldReloadSettingsList(false)
-                        search()
-                    }
-                }
+        settingsViewModel.shouldReloadSettingsList.collect(viewLifecycleOwner) {
+            if (it) {
+                settingsViewModel.setShouldReloadSettingsList(false)
+                search()
             }
         }
 
