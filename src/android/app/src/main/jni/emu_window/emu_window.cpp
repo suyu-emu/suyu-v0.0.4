@@ -23,6 +23,22 @@ void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
     window_info.render_surface = reinterpret_cast<void*>(surface);
 }
 
+void EmuWindow_Android::OnTouchPressed(int id, float x, float y) {
+    const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
+    EmulationSession::GetInstance().GetInputSubsystem().GetTouchScreen()->TouchPressed(touch_x,
+                                                                                       touch_y, id);
+}
+
+void EmuWindow_Android::OnTouchMoved(int id, float x, float y) {
+    const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
+    EmulationSession::GetInstance().GetInputSubsystem().GetTouchScreen()->TouchMoved(touch_x,
+                                                                                     touch_y, id);
+}
+
+void EmuWindow_Android::OnTouchReleased(int id) {
+    EmulationSession::GetInstance().GetInputSubsystem().GetTouchScreen()->TouchReleased(id);
+}
+
 void EmuWindow_Android::OnFrameDisplayed() {
     if (!m_first_frame) {
         Common::Android::RunJNIOnFiber<void>(
