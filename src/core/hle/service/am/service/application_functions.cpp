@@ -272,17 +272,14 @@ Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_inde
                                                  Out<u64> out_max_journal_size) {
     LOG_DEBUG(Service_AM, "called");
 
-    const auto title_id = m_applet->program_id;
-
     std::vector<u8> nacp;
-    const auto result = system.GetARPManager().GetControlProperty(&nacp, title_id);
+    R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
-    if (R_SUCCEEDED(result)) {
-        const auto rawnacp = reinterpret_cast<FileSys::RawNACP*>(nacp.data());
+    FileSys::RawNACP raw_nacp{};
+    std::memcpy(&raw_nacp, nacp.data(), std::min(sizeof(raw_nacp), nacp.size()));
 
-        *out_cache_storage_index_max = static_cast<u32>(rawnacp->cache_storage_max_index);
-        *out_max_journal_size = static_cast<u64>(rawnacp->cache_storage_data_and_journal_max_size);
-    }
+    *out_cache_storage_index_max = static_cast<u32>(raw_nacp.cache_storage_max_index);
+    *out_max_journal_size = static_cast<u64>(raw_nacp.cache_storage_data_and_journal_max_size);
 
      R_SUCCEED();
 }
