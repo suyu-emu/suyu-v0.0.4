@@ -15,9 +15,9 @@
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/save_data_controller.h"
+#include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/sm/sm.h"
-#include "core/hle/service/glue/glue_manager.h"
 
 namespace Service::AM {
 
@@ -275,13 +275,13 @@ Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_inde
     std::vector<u8> nacp;
     R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
-    FileSys::RawNACP raw_nacp{};
-    std::memcpy(&raw_nacp, nacp.data(), std::min(sizeof(raw_nacp), nacp.size()));
+    std::unique_ptr<FileSys::RawNACP> raw_nacp(new FileSys::RawNACP{});
+    std::memcpy(raw_nacp.get(), nacp.data(), std::min(sizeof(*raw_nacp), nacp.size()));
 
-    *out_cache_storage_index_max = static_cast<u32>(raw_nacp.cache_storage_max_index);
-    *out_max_journal_size = static_cast<u64>(raw_nacp.cache_storage_data_and_journal_max_size);
+    *out_cache_storage_index_max = static_cast<u32>(raw_nacp->cache_storage_max_index);
+    *out_max_journal_size = static_cast<u64>(raw_nacp->cache_storage_data_and_journal_max_size);
 
-     R_SUCCEED();
+    R_SUCCEED();
 }
 
 Result IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed(s64 unused) {
