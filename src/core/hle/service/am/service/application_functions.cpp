@@ -275,7 +275,7 @@ Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_inde
     std::vector<u8> nacp;
     R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
-    std::unique_ptr<FileSys::RawNACP> raw_nacp(new FileSys::RawNACP{});
+    auto raw_nacp = std::make_unique<FileSys::RawNACP>();
     std::memcpy(raw_nacp.get(), nacp.data(), std::min(sizeof(*raw_nacp), nacp.size()));
 
     *out_cache_storage_index_max = static_cast<u32>(raw_nacp->cache_storage_max_index);
