@@ -174,9 +174,13 @@ void EmulatedController::LoadDevices() {
     // Only map virtual devices to the first controller
     if (npad_id_type == NpadIdType::Player1 || npad_id_type == NpadIdType::Handheld) {
         camera_params[1] = Common::ParamPackage{"engine:camera,camera:1"};
-        ring_params[1] = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
         nfc_params[0] = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
+#ifdef HAVE_LIBUSB
+        ring_params[1] = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
+#endif
+#ifdef ANDROID
         android_params = Common::ParamPackage{"engine:android,port:100"};
+#endif
     }
 
     output_params[LeftIndex] = left_joycon;
