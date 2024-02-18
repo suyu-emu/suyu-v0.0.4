@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
 import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class GamesFragment : Fragment() {
@@ -93,11 +94,10 @@ class GamesFragment : Fragment() {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.isReloading.collect {
                         binding.swipeRefresh.isRefreshing = it
-                        if (gamesViewModel.games.value.isEmpty() && !it) {
-                            binding.noticeText.visibility = View.VISIBLE
-                        } else {
-                            binding.noticeText.visibility = View.INVISIBLE
-                        }
+                        binding.noticeText.setVisible(
+                            visible = gamesViewModel.games.value.isEmpty() && !it,
+                            gone = false
+                        )
                     }
                 }
             }

@@ -11,6 +11,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringSingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -19,14 +20,10 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
     override fun bind(item: SettingsItem) {
         setting = item
         binding.textSettingName.text = setting.title
-        if (item.description.isNotEmpty()) {
-            binding.textSettingDescription.text = item.description
-            binding.textSettingDescription.visibility = View.VISIBLE
-        } else {
-            binding.textSettingDescription.visibility = View.GONE
-        }
+        binding.textSettingDescription.setVisible(item.description.isNotEmpty())
+        binding.textSettingDescription.text = item.description
 
-        binding.textSettingValue.visibility = View.VISIBLE
+        binding.textSettingValue.setVisible(true)
         when (item) {
             is SingleChoiceSetting -> {
                 val resMgr = binding.textSettingValue.context.resources
@@ -48,16 +45,12 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
             }
         }
         if (binding.textSettingValue.text.isEmpty()) {
-            binding.textSettingValue.visibility = View.GONE
+            binding.textSettingValue.setVisible(false)
         }
 
-        binding.buttonClear.visibility = if (setting.setting.global ||
-            !NativeConfig.isPerGameConfigLoaded()
-        ) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
+        binding.buttonClear.setVisible(
+            !setting.setting.global || NativeConfig.isPerGameConfigLoaded()
+        )
         binding.buttonClear.setOnClickListener {
             adapter.onClearClick(setting, bindingAdapterPosition)
         }

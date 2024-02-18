@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.TaskViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class ProgressDialogFragment : DialogFragment() {
     private val taskViewModel: TaskViewModel by activityViewModels()
@@ -120,10 +121,8 @@ class ProgressDialogFragment : DialogFragment() {
             launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
                     taskViewModel.message.collect {
-                        if (it.isEmpty()) {
-                            binding.message.visibility = View.GONE
-                        } else {
-                            binding.message.visibility = View.VISIBLE
+                        binding.message.setVisible(it.isNotEmpty())
+                        if (it.isNotEmpty()) {
                             binding.message.text = it
                         }
                     }

@@ -4,12 +4,12 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.fragments.LicenseBottomSheetDialogFragment
 import org.yuzu.yuzu_emu.model.License
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class LicenseAdapter(private val activity: AppCompatActivity, licenses: List<License>) :
@@ -25,7 +25,7 @@ class LicenseAdapter(private val activity: AppCompatActivity, licenses: List<Lic
             binding.apply {
                 textSettingName.text = root.context.getString(model.titleId)
                 textSettingDescription.text = root.context.getString(model.descriptionId)
-                textSettingValue.visibility = View.GONE
+                textSettingValue.setVisible(false)
 
                 root.setOnClickListener { onClick(model) }
             }

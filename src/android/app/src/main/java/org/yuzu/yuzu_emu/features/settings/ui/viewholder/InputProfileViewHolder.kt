@@ -9,6 +9,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.InputProfileSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class InputProfileViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -20,10 +21,10 @@ class InputProfileViewHolder(val binding: ListItemSettingBinding, adapter: Setti
         binding.textSettingValue.text =
             setting.getCurrentProfile().ifEmpty { binding.root.context.getString(R.string.not_set) }
 
-        binding.textSettingDescription.visibility = View.GONE
-        binding.buttonClear.visibility = View.GONE
-        binding.icon.visibility = View.GONE
-        binding.buttonClear.visibility = View.GONE
+        binding.textSettingDescription.setVisible(false)
+        binding.buttonClear.setVisible(false)
+        binding.icon.setVisible(false)
+        binding.buttonClear.setVisible(false)
     }
 
     override fun onClick(clicked: View) =
