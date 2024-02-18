@@ -336,7 +336,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1012, nullptr, "GetFsStackUsage"},
         {1013, nullptr, "UnsetSaveDataRootPath"},
         {1014, nullptr, "OutputMultiProgramTagAccessLog"},
-        {1016, nullptr, "FlushAccessLogOnSdCard"},
+        {1016, &FSP_SRV::FlushAccessLogOnSdCard, "FlushAccessLogOnSdCard"},
         {1017, nullptr, "OutputApplicationInfoAccessLog"},
         {1018, nullptr, "SetDebugOption"},
         {1019, nullptr, "UnsetDebugOption"},
@@ -704,6 +704,13 @@ void FSP_SRV::GetProgramIndexForAccessLog(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.PushEnum(AccessLogVersion::Latest);
     rb.Push(access_log_program_index);
+}
+
+void FSP_SRV::FlushAccessLogOnSdCard(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_FS, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void FSP_SRV::GetCacheStorageSize(HLERequestContext& ctx) {
