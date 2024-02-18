@@ -80,8 +80,14 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
 
         InputHandler.updateControllerData()
-        val playerOne = NativeConfig.getInputSettings(true)[0]
-        if (!playerOne.hasMapping() && InputHandler.androidControllers.isNotEmpty()) {
+        val players = NativeConfig.getInputSettings(true)
+        var hasConfiguredControllers = false
+        players.forEach {
+            if (it.hasMapping()) {
+                hasConfiguredControllers = true
+            }
+        }
+        if (!hasConfiguredControllers && InputHandler.androidControllers.isNotEmpty()) {
             var params: ParamPackage? = null
             for (controller in InputHandler.registeredControllers) {
                 if (controller.get("port", -1) == 0) {
