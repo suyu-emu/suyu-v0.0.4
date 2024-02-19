@@ -14,7 +14,7 @@ public:
     ~IMultiCommitManager() override;
 
 private:
-    Result Add();
+    Result Add(std::shared_ptr<IFileSystem> filesystem);
     Result Commit();
 
     FileSys::VirtualFile backend;

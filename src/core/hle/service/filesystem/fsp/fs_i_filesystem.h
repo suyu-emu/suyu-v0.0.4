@@ -5,7 +5,7 @@
 
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/filesystem/fsp/fsp_util.h"
+#include "core/hle/service/filesystem/fsp/fsp_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::FileSystem {
