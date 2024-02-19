@@ -29,7 +29,9 @@ SteadyClock::SteadyClock(Core::System& system_, std::shared_ptr<TimeManager> man
 }
 
 Result SteadyClock::GetCurrentTimePoint(Out<SteadyClockTimePoint> out_time_point) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_time_point={}", *out_time_point); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_time_point={}", *out_time_point);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
@@ -38,7 +40,9 @@ Result SteadyClock::GetCurrentTimePoint(Out<SteadyClockTimePoint> out_time_point
 }
 
 Result SteadyClock::GetTestOffset(Out<s64> out_test_offset) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_test_offset={}", *out_test_offset); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_test_offset={}", *out_test_offset);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
@@ -59,7 +63,9 @@ Result SteadyClock::SetTestOffset(s64 test_offset) {
 }
 
 Result SteadyClock::GetRtcValue(Out<s64> out_rtc_value) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_rtc_value={}", *out_rtc_value); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_rtc_value={}", *out_rtc_value);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
@@ -68,7 +74,9 @@ Result SteadyClock::GetRtcValue(Out<s64> out_rtc_value) {
 }
 
 Result SteadyClock::IsRtcResetDetected(Out<bool> out_is_detected) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_is_detected={}", *out_is_detected); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_is_detected={}", *out_is_detected);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
@@ -78,7 +86,9 @@ Result SteadyClock::IsRtcResetDetected(Out<bool> out_is_detected) {
 }
 
 Result SteadyClock::GetSetupResultValue(Out<Result> out_result) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_result=0x{:X}", out_result->raw); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_result=0x{:X}", out_result->raw);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
@@ -88,8 +98,9 @@ Result SteadyClock::GetSetupResultValue(Out<Result> out_result) {
 }
 
 Result SteadyClock::GetInternalOffset(Out<s64> out_internal_offset) {
-    SCOPE_EXIT(
-        { LOG_DEBUG(Service_Time, "called. out_internal_offset={}", *out_internal_offset); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_internal_offset={}", *out_internal_offset);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);

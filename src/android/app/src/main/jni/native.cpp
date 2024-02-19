@@ -404,7 +404,9 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath,
                                              const size_t program_index,
                                              const bool frontend_initiated) {
     MicroProfileOnThreadCreate("EmuThread");
-    SCOPE_EXIT({ MicroProfileShutdown(); });
+    SCOPE_EXIT {
+        MicroProfileShutdown();
+    };
 
     LOG_INFO(Frontend, "starting");
 
@@ -413,7 +415,9 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath,
         return Core::SystemResultStatus::ErrorLoader;
     }
 
-    SCOPE_EXIT({ EmulationSession::GetInstance().ShutdownEmulation(); });
+    SCOPE_EXIT {
+        EmulationSession::GetInstance().ShutdownEmulation();
+    };
 
     jconst result = EmulationSession::GetInstance().InitializeEmulation(filepath, program_index,
                                                                         frontend_initiated);

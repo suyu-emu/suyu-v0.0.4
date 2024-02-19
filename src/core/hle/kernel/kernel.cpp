@@ -109,7 +109,9 @@ struct KernelCore::Impl {
 
     void Shutdown() {
         is_shutting_down.store(true, std::memory_order_relaxed);
-        SCOPE_EXIT({ is_shutting_down.store(false, std::memory_order_relaxed); });
+        SCOPE_EXIT {
+            is_shutting_down.store(false, std::memory_order_relaxed);
+        };
 
         CloseServices();
 
@@ -1080,7 +1082,9 @@ std::jthread KernelCore::RunOnHostCoreProcess(std::string&& process_name,
         process->Initialize(Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
 
     // Ensure that we don't hold onto any extra references.
-    SCOPE_EXIT({ process->Close(); });
+    SCOPE_EXIT {
+        process->Close();
+    };
 
     // Register the new process.
     KProcess::Register(*this, process);
@@ -1108,7 +1112,9 @@ void KernelCore::RunOnGuestCoreProcess(std::string&& process_name, std::function
         process->Initialize(Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
 
     // Ensure that we don't hold onto any extra references.
-    SCOPE_EXIT({ process->Close(); });
+    SCOPE_EXIT {
+        process->Close();
+    };
 
     // Register the new process.
     KProcess::Register(*this, process);

@@ -57,7 +57,9 @@ TimeZoneService::~TimeZoneService() = default;
 
 Result TimeZoneService::GetDeviceLocationName(
     Out<Service::PSC::Time::LocationName> out_location_name) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_location_name={}", *out_location_name); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_location_name={}", *out_location_name);
+    };
 
     R_RETURN(m_wrapped_service->GetDeviceLocationName(out_location_name));
 }
@@ -94,7 +96,9 @@ Result TimeZoneService::SetDeviceLocationName(
 }
 
 Result TimeZoneService::GetTotalLocationNameCount(Out<u32> out_count) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_count={}", *out_count); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_count={}", *out_count);
+    };
 
     R_RETURN(m_wrapped_service->GetTotalLocationNameCount(out_count));
 }
@@ -102,10 +106,10 @@ Result TimeZoneService::GetTotalLocationNameCount(Out<u32> out_count) {
 Result TimeZoneService::LoadLocationNameList(
     Out<u32> out_count,
     OutArray<Service::PSC::Time::LocationName, BufferAttr_HipcMapAlias> out_names, u32 index) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. index={} out_count={} out_names[0]={} out_names[1]={}",
                   index, *out_count, out_names[0], out_names[1]);
-    });
+    };
 
     std::scoped_lock l{m_mutex};
     R_RETURN(GetTimeZoneLocationList(*out_count, out_names, out_names.size(), index));
@@ -124,7 +128,9 @@ Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule,
 
 Result TimeZoneService::GetTimeZoneRuleVersion(
     Out<Service::PSC::Time::RuleVersion> out_rule_version) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_rule_version={}", *out_rule_version); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_rule_version={}", *out_rule_version);
+    };
 
     R_RETURN(m_wrapped_service->GetTimeZoneRuleVersion(out_rule_version));
 }
@@ -132,10 +138,10 @@ Result TimeZoneService::GetTimeZoneRuleVersion(
 Result TimeZoneService::GetDeviceLocationNameAndUpdatedTime(
     Out<Service::PSC::Time::LocationName> location_name,
     Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. location_name={} out_time_point={}", *location_name,
                   *out_time_point);
-    });
+    };
 
     R_RETURN(m_wrapped_service->GetDeviceLocationNameAndUpdatedTime(location_name, out_time_point));
 }
@@ -178,10 +184,10 @@ Result TimeZoneService::GetDeviceLocationNameOperationEventReadableHandle(
 Result TimeZoneService::ToCalendarTime(
     Out<Service::PSC::Time::CalendarTime> out_calendar_time,
     Out<Service::PSC::Time::CalendarAdditionalInfo> out_additional_info, s64 time, InRule rule) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. time={} out_calendar_time={} out_additional_info={}", time,
                   *out_calendar_time, *out_additional_info);
-    });
+    };
 
     R_RETURN(m_wrapped_service->ToCalendarTime(out_calendar_time, out_additional_info, time, rule));
 }
@@ -189,10 +195,10 @@ Result TimeZoneService::ToCalendarTime(
 Result TimeZoneService::ToCalendarTimeWithMyRule(
     Out<Service::PSC::Time::CalendarTime> out_calendar_time,
     Out<Service::PSC::Time::CalendarAdditionalInfo> out_additional_info, s64 time) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. time={} out_calendar_time={} out_additional_info={}", time,
                   *out_calendar_time, *out_additional_info);
-    });
+    };
 
     R_RETURN(
         m_wrapped_service->ToCalendarTimeWithMyRule(out_calendar_time, out_additional_info, time));
@@ -202,11 +208,11 @@ Result TimeZoneService::ToPosixTime(Out<u32> out_count,
                                     OutArray<s64, BufferAttr_HipcPointer> out_times,
                                     const Service::PSC::Time::CalendarTime& calendar_time,
                                     InRule rule) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={}",
                   calendar_time, *out_count, out_times[0], out_times[1]);
-    });
+    };
 
     R_RETURN(m_wrapped_service->ToPosixTime(out_count, out_times, calendar_time, rule));
 }
@@ -214,11 +220,11 @@ Result TimeZoneService::ToPosixTime(Out<u32> out_count,
 Result TimeZoneService::ToPosixTimeWithMyRule(
     Out<u32> out_count, OutArray<s64, BufferAttr_HipcPointer> out_times,
     const Service::PSC::Time::CalendarTime& calendar_time) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={}",
                   calendar_time, *out_count, out_times[0], out_times[1]);
-    });
+    };
 
     R_RETURN(m_wrapped_service->ToPosixTimeWithMyRule(out_count, out_times, calendar_time));
 }

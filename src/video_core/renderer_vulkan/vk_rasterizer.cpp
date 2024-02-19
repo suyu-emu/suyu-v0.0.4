@@ -196,7 +196,9 @@ template <typename Func>
 void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     MICROPROFILE_SCOPE(Vulkan_Drawing);
 
-    SCOPE_EXIT({ gpu.TickWork(); });
+    SCOPE_EXIT {
+        gpu.TickWork();
+    };
     FlushWork();
     gpu_memory->FlushCaching();
 
@@ -288,7 +290,9 @@ void RasterizerVulkan::DrawIndirect() {
 void RasterizerVulkan::DrawTexture() {
     MICROPROFILE_SCOPE(Vulkan_Drawing);
 
-    SCOPE_EXIT({ gpu.TickWork(); });
+    SCOPE_EXIT {
+        gpu.TickWork();
+    };
     FlushWork();
 
     query_cache.NotifySegment(true);

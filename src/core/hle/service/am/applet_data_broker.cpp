@@ -24,11 +24,11 @@ void AppletStorageChannel::Push(std::shared_ptr<IStorage> storage) {
 Result AppletStorageChannel::Pop(std::shared_ptr<IStorage>* out_storage) {
     std::scoped_lock lk{m_lock};
 
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         if (m_data.empty()) {
             m_event.Clear();
         }
-    });
+    };
 
     R_UNLESS(!m_data.empty(), AM::ResultNoDataInChannel);
 

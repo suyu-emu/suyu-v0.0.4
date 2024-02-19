@@ -98,7 +98,9 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
 
 Loader::ResultStatus ProgramMetadata::Reload(VirtualFile file) {
     const u64 original_program_id = aci_header.title_id;
-    SCOPE_EXIT({ aci_header.title_id = original_program_id; });
+    SCOPE_EXIT {
+        aci_header.title_id = original_program_id;
+    };
 
     return this->Load(file);
 }

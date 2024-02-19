@@ -391,12 +391,12 @@ void DeviceMemoryManager<Traits>::WalkBlock(DAddr addr, std::size_t size, auto o
             std::min((next_pages << Memory::YUZU_PAGEBITS) - page_offset, remaining_size);
         const auto current_vaddr =
             static_cast<u64>((page_index << Memory::YUZU_PAGEBITS) + page_offset);
-        SCOPE_EXIT({
+        SCOPE_EXIT{
             page_index += next_pages;
             page_offset = 0;
             increment(copy_amount);
             remaining_size -= copy_amount;
-        });
+        };
 
         auto phys_addr = compressed_physical_ptr[page_index];
         if (phys_addr == 0) {

@@ -7,28 +7,60 @@
 #include "common/common_funcs.h"
 
 namespace detail {
-template <typename Func>
-struct ScopeExitHelper {
-    explicit ScopeExitHelper(Func&& func_) : func(std::move(func_)) {}
-    ~ScopeExitHelper() {
+template <class F>
+class ScopeGuard {
+    YUZU_NON_COPYABLE(ScopeGuard);
+
+private:
+    F f;
+    bool active;
+
+public:
+    constexpr ScopeGuard(F f_) : f(std::move(f_)), active(true) {}
+    constexpr ~ScopeGuard() {
         if (active) {
-            func();
+            f();
         }
     }
-
-    void Cancel() {
+    constexpr void Cancel() {
         active = false;
     }
 
-    Func func;
-    bool active{true};
+    constexpr ScopeGuard(ScopeGuard&& rhs) : f(std::move(rhs.f)), active(rhs.active) {
+        rhs.Cancel();
+    }
+
+    ScopeGuard& operator=(ScopeGuard&& rhs) = delete;
 };
 
-template <typename Func>
-ScopeExitHelper<Func> ScopeExit(Func&& func) {
-    return ScopeExitHelper<Func>(std::forward<Func>(func));
+template <class F>
+constexpr ScopeGuard<F> MakeScopeGuard(F f) {
+    return ScopeGuard<F>(std::move(f));
 }
+
+enum class ScopeGuardOnExit {};
+
+template <typename F>
+constexpr ScopeGuard<F> operator+(ScopeGuardOnExit, F&& f) {
+    return ScopeGuard<F>(std::forward<F>(f));
+}
+
 } // namespace detail
+
+#define CONCATENATE_IMPL(s1, s2) s1##s2
+#define CONCATENATE(s1, s2) CONCATENATE_IMPL(s1, s2)
+
+#ifdef __COUNTER__
+#define ANONYMOUS_VARIABLE(pref) CONCATENATE(pref, __COUNTER__)
+#else
+#define ANONYMOUS_VARIABLE(pref) CONCATENATE(pref, __LINE__)
+#endif
+
+/**
+ * This macro is similar to SCOPE_EXIT, except the object is caller managed. This is intended to be
+ * used when the caller might want to cancel the ScopeExit.
+ */
+#define SCOPE_GUARD detail::ScopeGuardOnExit() + [&]()
 
 /**
  * This macro allows you to conveniently specify a block of code that will run on scope exit. Handy
@@ -38,7 +70,7 @@ ScopeExitHelper<Func> ScopeExit(Func&& func) {
  * \code
  * const int saved_val = g_foo;
  * g_foo = 55;
- * SCOPE_EXIT({ g_foo = saved_val; });
+ * SCOPE_EXIT{ g_foo = saved_val; };
  *
  * if (Bar()) {
  *     return 0;
@@ -47,10 +79,4 @@ ScopeExitHelper<Func> ScopeExit(Func&& func) {
  * }
  * \endcode
  */
-#define SCOPE_EXIT(body) auto CONCAT2(scope_exit_helper_, __LINE__) = detail::ScopeExit([&]() body)
-
-/**
- * This macro is similar to SCOPE_EXIT, except the object is caller managed. This is intended to be
- * used when the caller might want to cancel the ScopeExit.
- */
-#define SCOPE_GUARD(body) detail::ScopeExit([&]() body)
+#define SCOPE_EXIT auto ANONYMOUS_VARIABLE(SCOPE_EXIT_STATE_) = SCOPE_GUARD

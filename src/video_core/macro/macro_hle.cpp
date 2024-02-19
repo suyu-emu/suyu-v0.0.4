@@ -92,12 +92,12 @@ public:
 
 private:
     void Fallback(const std::vector<u32>& parameters) {
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (extended) {
                 maxwell3d.engine_state = Maxwell3D::EngineHint::None;
                 maxwell3d.replace_table.clear();
             }
-        });
+        };
         maxwell3d.RefreshParameters();
         const u32 instance_count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
 
@@ -281,12 +281,12 @@ public:
 
 private:
     void Fallback(const std::vector<u32>& parameters) {
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             // Clean everything.
             maxwell3d.regs.vertex_id_base = 0x0;
             maxwell3d.engine_state = Maxwell3D::EngineHint::None;
             maxwell3d.replace_table.clear();
-        });
+        };
         maxwell3d.RefreshParameters();
         const u32 start_indirect = parameters[0];
         const u32 end_indirect = parameters[1];

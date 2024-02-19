@@ -1305,11 +1305,11 @@ Result KPageTableBase::UnmapCodeMemory(KProcessAddress dst_address, KProcessAddr
 
     // Ensure that we maintain the instruction cache.
     bool reprotected_pages = false;
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         if (reprotected_pages && any_code_pages) {
             InvalidateInstructionCache(m_kernel, this, dst_address, size);
         }
-    });
+    };
 
     // Unmap.
     {
@@ -1397,7 +1397,9 @@ Result KPageTableBase::MapInsecureMemory(KProcessAddress address, size_t size) {
     // Close the opened pages when we're done with them.
     // If the mapping succeeds, each page will gain an extra reference, otherwise they will be freed
     // automatically.
-    SCOPE_EXIT({ pg.Close(); });
+    SCOPE_EXIT {
+        pg.Close();
+    };
 
     // Clear all the newly allocated pages.
     for (const auto& it : pg) {
@@ -1603,7 +1605,9 @@ Result KPageTableBase::AllocateAndMapPagesImpl(PageLinkedList* page_list, KProce
         m_kernel.MemoryManager().AllocateAndOpen(std::addressof(pg), num_pages, m_allocate_option));
 
     // Ensure that the page group is closed when we're done working with it.
-    SCOPE_EXIT({ pg.Close(); });
+    SCOPE_EXIT {
+        pg.Close();
+    };
 
     // Clear all pages.
     for (const auto& it : pg) {
@@ -2191,7 +2195,9 @@ Result KPageTableBase::SetHeapSize(KProcessAddress* out, size_t size) {
     // Close the opened pages when we're done with them.
     // If the mapping succeeds, each page will gain an extra reference, otherwise they will be freed
     // automatically.
-    SCOPE_EXIT({ pg.Close(); });
+    SCOPE_EXIT {
+        pg.Close();
+    };
 
     // Clear all the newly allocated pages.
     for (const auto& it : pg) {
@@ -2592,7 +2598,9 @@ Result KPageTableBase::UnmapIoRegion(KProcessAddress dst_address, KPhysicalAddre
         // Temporarily unlock ourselves, so that other operations can occur while we flush the
         // region.
         m_general_lock.Unlock();
-        SCOPE_EXIT({ m_general_lock.Lock(); });
+        SCOPE_EXIT {
+            m_general_lock.Lock();
+        };
 
         // Flush the region.
         R_ASSERT(FlushDataCache(dst_address, size));
@@ -3311,10 +3319,10 @@ Result KPageTableBase::ReadIoMemoryImpl(KProcessAddress dst_addr, KPhysicalAddre
     // Ensure we unmap the io memory when we're done with it.
     const KPageProperties unmap_properties =
         KPageProperties{KMemoryPermission::None, false, false, DisableMergeAttribute::None};
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         R_ASSERT(this->Operate(updater.GetPageList(), io_addr, map_size / PageSize, 0, false,
                                unmap_properties, OperationType::Unmap, true));
-    });
+    };
 
     // Read the memory.
     const KProcessAddress read_addr = io_addr + (GetInteger(phys_addr) & (PageSize - 1));
@@ -3347,10 +3355,10 @@ Result KPageTableBase::WriteIoMemoryImpl(KPhysicalAddress phys_addr, KProcessAdd
     // Ensure we unmap the io memory when we're done with it.
     const KPageProperties unmap_properties =
         KPageProperties{KMemoryPermission::None, false, false, DisableMergeAttribute::None};
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         R_ASSERT(this->Operate(updater.GetPageList(), io_addr, map_size / PageSize, 0, false,
                                unmap_properties, OperationType::Unmap, true));
-    });
+    };
 
     // Write the memory.
     const KProcessAddress write_addr = io_addr + (GetInteger(phys_addr) & (PageSize - 1));
@@ -4491,14 +4499,14 @@ Result KPageTableBase::SetupForIpcServer(KProcessAddress* out_addr, size_t size,
 
     // If the partial pages are mapped, an extra reference will have been opened. Otherwise, they'll
     // free on scope exit.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         if (start_partial_page != 0) {
             m_kernel.MemoryManager().Close(start_partial_page, 1);
         }
         if (end_partial_page != 0) {
             m_kernel.MemoryManager().Close(end_partial_page, 1);
         }
-    });
+    };
 
     ON_RESULT_FAILURE {
         if (cur_mapped_addr != dst_addr) {
@@ -5166,10 +5174,10 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                 GetCurrentProcess(m_kernel).GetId(), m_heap_fill_value));
 
             // If we fail in the next bit (or retry), we need to cleanup the pages.
-            auto pg_guard = SCOPE_GUARD({
+            auto pg_guard = SCOPE_GUARD {
                 pg.OpenFirst();
                 pg.Close();
-            });
+            };
 
             // Map the memory.
             {
@@ -5694,7 +5702,9 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
 
         // Ensure that any pages we track are closed on exit.
         KPageGroup pages_to_close(m_kernel, this->GetBlockInfoManager());
-        SCOPE_EXIT({ pages_to_close.CloseAndReset(); });
+        SCOPE_EXIT {
+            pages_to_close.CloseAndReset();
+        };
 
         // Make a page group representing the region to unmap.
         this->MakePageGroup(pages_to_close, virt_addr, num_pages);

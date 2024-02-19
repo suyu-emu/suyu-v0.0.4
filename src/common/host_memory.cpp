@@ -430,11 +430,11 @@ public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
         : backing_size{backing_size_}, virtual_size{virtual_size_} {
         bool good = false;
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (!good) {
                 Release();
             }
-        });
+        };
 
         long page_size = sysconf(_SC_PAGESIZE);
         if (page_size != 0x1000) {

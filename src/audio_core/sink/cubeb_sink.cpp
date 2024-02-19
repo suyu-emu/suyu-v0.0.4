@@ -357,7 +357,9 @@ bool IsCubebSuitable() {
         return false;
     }
 
-    SCOPE_EXIT({ cubeb_destroy(ctx); });
+    SCOPE_EXIT {
+        cubeb_destroy(ctx);
+    };
 
 #ifdef _WIN32
     if (SUCCEEDED(com_init_result)) {

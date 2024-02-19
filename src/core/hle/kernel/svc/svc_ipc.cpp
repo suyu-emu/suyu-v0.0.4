@@ -129,11 +129,11 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
     }
 
     // Ensure handles are closed when we're done.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         for (auto i = 0; i < num_handles; ++i) {
             objs[i]->Close();
         }
-    });
+    };
 
     R_RETURN(ReplyAndReceiveImpl(kernel, out_index, message, buffer_size, message_paddr, objs,
                                  num_handles, reply_target, timeout_ns));
@@ -208,10 +208,10 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     event_reservation.Commit();
 
     // At end of scope, kill the standing references to the sub events.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         event->GetReadableEvent().Close();
         event->Close();
-    });
+    };
 
     // Register the event.
     KEvent::Register(system.Kernel(), event);
