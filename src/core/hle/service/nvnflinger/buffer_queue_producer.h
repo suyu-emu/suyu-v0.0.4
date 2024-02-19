@@ -45,12 +45,12 @@ public:
     explicit BufferQueueProducer(Service::KernelHelpers::ServiceContext& service_context_,
                                  std::shared_ptr<BufferQueueCore> buffer_queue_core_,
                                  Service::Nvidia::NvCore::NvMap& nvmap_);
-    ~BufferQueueProducer();
+    ~BufferQueueProducer() override;
 
-    void Transact(android::TransactionId code, u32 flags, std::span<const u8> parcel_data,
-                  std::span<u8> parcel_reply) override;
+    void Transact(u32 code, std::span<const u8> parcel_data, std::span<u8> parcel_reply,
+                  u32 flags) override;
 
-    Kernel::KReadableEvent& GetNativeHandle() override;
+    Kernel::KReadableEvent* GetNativeHandle(u32 type_id) override;
 
 public:
     Status RequestBuffer(s32 slot, std::shared_ptr<GraphicBuffer>* buf);

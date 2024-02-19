@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 #include "common/common_types.h"
-#include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nvnflinger/binder.h"
 
 namespace Core {
@@ -19,19 +18,18 @@ namespace Service::Nvnflinger {
 
 class HosBinderDriverServer final {
 public:
-    explicit HosBinderDriverServer(Core::System& system_);
+    explicit HosBinderDriverServer();
     ~HosBinderDriverServer();
 
-    u64 RegisterProducer(std::unique_ptr<android::IBinder>&& binder);
+    s32 RegisterBinder(std::shared_ptr<android::IBinder>&& binder);
+    void UnregisterBinder(s32 binder_id);
 
-    android::IBinder* TryGetProducer(u64 id);
+    std::shared_ptr<android::IBinder> TryGetBinder(s32 id) const;
 
 private:
-    KernelHelpers::ServiceContext service_context;
-
-    std::unordered_map<u64, std::unique_ptr<android::IBinder>> producers;
-    std::mutex lock;
-    u64 last_id{};
+    std::unordered_map<s32, std::shared_ptr<android::IBinder>> binders;
+    mutable std::mutex lock;
+    s32 last_id{};
 };
 
 } // namespace Service::Nvnflinger

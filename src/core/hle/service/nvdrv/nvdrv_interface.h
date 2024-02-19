@@ -16,6 +16,10 @@ public:
     explicit NVDRV(Core::System& system_, std::shared_ptr<Module> nvdrv_, const char* name);
     ~NVDRV() override;
 
+    std::shared_ptr<Module> GetModule() const {
+        return nvdrv;
+    }
+
 private:
     void Open(HLERequestContext& ctx);
     void Ioctl1(HLERequestContext& ctx);

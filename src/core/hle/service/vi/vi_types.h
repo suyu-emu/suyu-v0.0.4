@@ -66,9 +66,17 @@ struct DisplayInfo {
 };
 static_assert(sizeof(DisplayInfo) == 0x60, "DisplayInfo has wrong size");
 
+struct DisplayMode {
+    u32 width;
+    u32 height;
+    f32 refresh_rate;
+    u32 unknown;
+};
+static_assert(sizeof(DisplayMode) == 0x10, "DisplayMode has wrong size");
+
 class NativeWindow final {
 public:
-    constexpr explicit NativeWindow(u32 id_) : id{id_} {}
+    constexpr explicit NativeWindow(s32 id_) : id{static_cast<u64>(id_)} {}
     constexpr explicit NativeWindow(const NativeWindow& other) = default;
 
 private:

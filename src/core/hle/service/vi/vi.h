@@ -3,18 +3,14 @@
 
 #pragma once
 
+#include "common/polyfill_thread.h"
+
 namespace Core {
 class System;
 }
 
-namespace Service::Nvnflinger {
-class HosBinderDriverServer;
-class Nvnflinger;
-} // namespace Service::Nvnflinger
-
 namespace Service::VI {
 
-void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nvnflinger,
-                 Nvnflinger::HosBinderDriverServer& hos_binder_driver_server);
+void LoopProcess(Core::System& system, std::stop_token token);
 
 } // namespace Service::VI

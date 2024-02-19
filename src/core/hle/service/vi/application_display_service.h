@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <map>
+#include <set>
+
 #include "core/hle/service/cmif_types.h"
+#include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/os/event.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/vi/vi_types.h"
 
@@ -9,26 +14,33 @@ namespace Kernel {
 class KReadableEvent;
 }
 
+namespace Service::Nvnflinger {
+class IHOSBinderDriver;
+}
+
 namespace Service::VI {
 
-class IHOSBinderDriver;
+class Container;
 class IManagerDisplayService;
 class ISystemDisplayService;
 
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
-    IApplicationDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
-                               Nvnflinger::HosBinderDriverServer& hos_binder_driver_server);
+    IApplicationDisplayService(Core::System& system_, std::shared_ptr<Container> container);
     ~IApplicationDisplayService() override;
 
-private:
-    Result GetRelayService(Out<SharedPointer<IHOSBinderDriver>> out_relay_service);
+    std::shared_ptr<Container> GetContainer() const {
+        return m_container;
+    }
+
+public:
+    Result GetRelayService(Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_relay_service);
     Result GetSystemDisplayService(
         Out<SharedPointer<ISystemDisplayService>> out_system_display_service);
     Result GetManagerDisplayService(
         Out<SharedPointer<IManagerDisplayService>> out_manager_display_service);
     Result GetIndirectDisplayTransactionService(
-        Out<SharedPointer<IHOSBinderDriver>> out_indirect_display_transaction_service);
+        Out<SharedPointer<Nvnflinger::IHOSBinderDriver>> out_indirect_display_transaction_service);
     Result OpenDisplay(Out<u64> out_display_id, DisplayName display_name);
     Result OpenDefaultDisplay(Out<u64> out_display_id);
     Result CloseDisplay(u64 display_id);
@@ -56,9 +68,13 @@ private:
                                                    s64 width, s64 height);
 
 private:
-    Nvnflinger::Nvnflinger& m_nvnflinger;
-    Nvnflinger::HosBinderDriverServer& m_hos_binder_driver_server;
-    std::vector<u64> m_stray_layer_ids;
+    const std::shared_ptr<Container> m_container;
+
+    KernelHelpers::ServiceContext m_context;
+    std::mutex m_lock{};
+    std::set<u64> m_open_layer_ids{};
+    std::set<u64> m_stray_layer_ids{};
+    std::map<u64, Event> m_display_vsync_events{};
     bool m_vsync_event_fetched{false};
 };
 

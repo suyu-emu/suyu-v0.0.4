@@ -42,7 +42,7 @@ void EventInterface::FreeEvent(Kernel::KEvent* event) {
     module.service_context.CloseEvent(event);
 }
 
-void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system) {
+void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     auto module = std::make_shared<Module>(system);
     const auto NvdrvInterfaceFactoryForApplication = [&, module] {
@@ -62,7 +62,6 @@ void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system) {
     server_manager->RegisterNamedService("nvdrv:s", NvdrvInterfaceFactoryForSysmodules);
     server_manager->RegisterNamedService("nvdrv:t", NvdrvInterfaceFactoryForTesting);
     server_manager->RegisterNamedService("nvmemp", std::make_shared<NVMEMP>(system));
-    nvnflinger.SetNVDrvInstance(module);
     ServerManager::RunServer(std::move(server_manager));
 }
 

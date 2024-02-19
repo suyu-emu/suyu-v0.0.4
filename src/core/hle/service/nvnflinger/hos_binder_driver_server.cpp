@@ -8,26 +8,30 @@
 
 namespace Service::Nvnflinger {
 
-HosBinderDriverServer::HosBinderDriverServer(Core::System& system_)
-    : service_context(system_, "HosBinderDriverServer") {}
+HosBinderDriverServer::HosBinderDriverServer() = default;
+HosBinderDriverServer::~HosBinderDriverServer() = default;
 
-HosBinderDriverServer::~HosBinderDriverServer() {}
-
-u64 HosBinderDriverServer::RegisterProducer(std::unique_ptr<android::IBinder>&& binder) {
+s32 HosBinderDriverServer::RegisterBinder(std::shared_ptr<android::IBinder>&& binder) {
     std::scoped_lock lk{lock};
 
     last_id++;
 
-    producers[last_id] = std::move(binder);
+    binders[last_id] = std::move(binder);
 
     return last_id;
 }
 
-android::IBinder* HosBinderDriverServer::TryGetProducer(u64 id) {
+void HosBinderDriverServer::UnregisterBinder(s32 binder_id) {
     std::scoped_lock lk{lock};
 
-    if (auto search = producers.find(id); search != producers.end()) {
-        return search->second.get();
+    binders.erase(binder_id);
+}
+
+std::shared_ptr<android::IBinder> HosBinderDriverServer::TryGetBinder(s32 id) const {
+    std::scoped_lock lk{lock};
+
+    if (auto search = binders.find(id); search != binders.end()) {
+        return search->second;
     }
 
     return {};
