@@ -2323,15 +2323,15 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             ASSERT(user_id);
 
             const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser,
-                FileSys::SaveDataType::SaveData, program_id, user_id->AsU128(), 0);
+                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
+                program_id, user_id->AsU128(), 0);
 
             path = Common::FS::ConcatPathSafe(nand_dir, user_save_data_path);
         } else {
             // Device save data
             const auto device_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser,
-                FileSys::SaveDataType::SaveData, program_id, {}, 0);
+                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
+                program_id, {}, 0);
 
             path = Common::FS::ConcatPathSafe(nand_dir, device_save_data_path);
         }
@@ -2672,7 +2672,7 @@ void GMainWindow::RemoveCacheStorage(u64 program_id) {
         vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
     const auto cache_storage_path = FileSys::SaveDataFactory::GetFullPath(
-        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::CacheStorage,
+        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Cache,
         0 /* program_id */, {}, 0);
 
     const auto path = Common::FS::ConcatPathSafe(nand_dir, cache_storage_path);

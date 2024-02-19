@@ -72,7 +72,7 @@ void ISaveDataInfoReader::FindAllSaves(FileSys::SaveDataSpaceId space) {
     for (const auto& type : save_root->GetSubdirectories()) {
         if (type->GetName() == "save") {
             FindNormalSaves(space, type);
-        } else if (space == FileSys::SaveDataSpaceId::TemporaryStorage) {
+        } else if (space == FileSys::SaveDataSpaceId::Temporary) {
             FindTemporaryStorageSaves(space, type);
         }
     }
@@ -96,7 +96,7 @@ void ISaveDataInfoReader::FindNormalSaves(FileSys::SaveDataSpaceId space,
                 info.emplace_back(SaveDataInfo{
                     0,
                     space,
-                    FileSys::SaveDataType::SystemSaveData,
+                    FileSys::SaveDataType::System,
                     {},
                     user_id_numeric,
                     save_id_numeric,
@@ -115,8 +115,7 @@ void ISaveDataInfoReader::FindNormalSaves(FileSys::SaveDataSpaceId space,
                 info.emplace_back(SaveDataInfo{
                     0,
                     space,
-                    device ? FileSys::SaveDataType::DeviceSaveData
-                           : FileSys::SaveDataType::SaveData,
+                    device ? FileSys::SaveDataType::Device : FileSys::SaveDataType::Account,
                     {},
                     user_id_numeric,
                     save_id_numeric,
@@ -145,7 +144,7 @@ void ISaveDataInfoReader::FindTemporaryStorageSaves(FileSys::SaveDataSpaceId spa
                 info.emplace_back(SaveDataInfo{
                     0,
                     space,
-                    FileSys::SaveDataType::TemporaryStorage,
+                    FileSys::SaveDataType::Temporary,
                     {},
                     user_id_numeric,
                     stoull_be(type->GetName()),

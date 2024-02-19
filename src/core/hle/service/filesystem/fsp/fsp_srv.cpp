@@ -224,23 +224,23 @@ Result FSP_SRV::OpenSdCardFileSystem(OutInterface<IFileSystem> out_interface) {
     R_SUCCEED();
 }
 
-Result FSP_SRV::CreateSaveDataFileSystem(std::array<u8, 0x40> save_create_struct,
+Result FSP_SRV::CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_create_struct,
                                          FileSys::SaveDataAttribute save_struct, u128 uid) {
     LOG_DEBUG(Service_FS, "called save_struct = {}, uid = {:016X}{:016X}", save_struct.DebugInfo(),
               uid[1], uid[0]);
 
     FileSys::VirtualDir save_data_dir{};
-    R_RETURN(save_data_controller->CreateSaveData(&save_data_dir,
-                                                  FileSys::SaveDataSpaceId::NandUser, save_struct));
+    R_RETURN(save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::User,
+                                                  save_struct));
 }
 
-Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(std::array<u8, 0x40> save_create_struct,
-                                                           FileSys::SaveDataAttribute save_struct) {
+Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(
+    FileSys::SaveDataCreationInfo save_create_struct, FileSys::SaveDataAttribute save_struct) {
     LOG_DEBUG(Service_FS, "called save_struct = {}", save_struct.DebugInfo());
 
     FileSys::VirtualDir save_data_dir{};
-    R_RETURN(save_data_controller->CreateSaveData(
-        &save_data_dir, FileSys::SaveDataSpaceId::NandSystem, save_struct));
+    R_RETURN(save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::System,
+                                                  save_struct));
 }
 
 Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
@@ -253,17 +253,17 @@ Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
 
     FileSys::StorageId id{};
     switch (space_id) {
-    case FileSys::SaveDataSpaceId::NandUser:
+    case FileSys::SaveDataSpaceId::User:
         id = FileSys::StorageId::NandUser;
         break;
-    case FileSys::SaveDataSpaceId::SdCardSystem:
-    case FileSys::SaveDataSpaceId::SdCardUser:
+    case FileSys::SaveDataSpaceId::SdSystem:
+    case FileSys::SaveDataSpaceId::SdUser:
         id = FileSys::StorageId::SdCard;
         break;
-    case FileSys::SaveDataSpaceId::NandSystem:
+    case FileSys::SaveDataSpaceId::System:
         id = FileSys::StorageId::NandSystem;
         break;
-    case FileSys::SaveDataSpaceId::TemporaryStorage:
+    case FileSys::SaveDataSpaceId::Temporary:
     case FileSys::SaveDataSpaceId::ProperSystem:
     case FileSys::SaveDataSpaceId::SafeMode:
         ASSERT(false);
@@ -302,8 +302,8 @@ Result FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage(
     OutInterface<ISaveDataInfoReader> out_interface) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
-    *out_interface = std::make_shared<ISaveDataInfoReader>(
-        system, save_data_controller, FileSys::SaveDataSpaceId::TemporaryStorage);
+    *out_interface = std::make_shared<ISaveDataInfoReader>(system, save_data_controller,
+                                                           FileSys::SaveDataSpaceId::Temporary);
 
     R_SUCCEED();
 }
@@ -323,11 +323,11 @@ Result FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
     [[maybe_unused]] constexpr auto flags = static_cast<u32>(FileSys::SaveDataFlags::None);
 
     LOG_WARNING(Service_FS,
-                "(STUBBED) called, flags={}, space_id={}, attribute.title_id={:016X}\n"
+                "(STUBBED) called, flags={}, space_id={}, attribute.program_id={:016X}\n"
                 "attribute.user_id={:016X}{:016X}, attribute.save_id={:016X}\n"
                 "attribute.type={}, attribute.rank={}, attribute.index={}",
-                flags, space_id, attribute.title_id, attribute.user_id[1], attribute.user_id[0],
-                attribute.save_id, attribute.type, attribute.rank, attribute.index);
+                flags, space_id, attribute.program_id, attribute.user_id[1], attribute.user_id[0],
+                attribute.system_save_data_id, attribute.type, attribute.rank, attribute.index);
 
     R_SUCCEED();
 }
