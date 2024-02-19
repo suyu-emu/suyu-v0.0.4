@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -20,6 +21,11 @@ namespace Service::FileSystem {
 class RomFsController;
 class SaveDataController;
 
+class IFileSystem;
+class ISaveDataInfoReader;
+class IStorage;
+class IMultiCommitManager;
+
 enum class AccessLogVersion : u32 {
     V7_0_0 = 2,
 
@@ -32,36 +38,64 @@ enum class AccessLogMode : u32 {
     SdCard,
 };
 
+enum class FileSystemProxyType : u8 {
+    Code = 0,
+    Rom = 1,
+    Logo = 2,
+    Control = 3,
+    Manual = 4,
+    Meta = 5,
+    Data = 6,
+    Package = 7,
+    RegisteredUpdate = 8,
+};
+
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {
 public:
     explicit FSP_SRV(Core::System& system_);
     ~FSP_SRV() override;
 
 private:
-    void SetCurrentProcess(HLERequestContext& ctx);
-    void OpenFileSystemWithPatch(HLERequestContext& ctx);
-    void OpenSdCardFileSystem(HLERequestContext& ctx);
-    void CreateSaveDataFileSystem(HLERequestContext& ctx);
-    void CreateSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx);
-    void OpenSaveDataFileSystem(HLERequestContext& ctx);
-    void OpenSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx);
-    void OpenReadOnlySaveDataFileSystem(HLERequestContext& ctx);
-    void OpenSaveDataInfoReaderBySaveDataSpaceId(HLERequestContext& ctx);
-    void OpenSaveDataInfoReaderOnlyCacheStorage(HLERequestContext& ctx);
-    void WriteSaveDataFileSystemExtraDataBySaveDataAttribute(HLERequestContext& ctx);
-    void ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(HLERequestContext& ctx);
-    void OpenDataStorageByCurrentProcess(HLERequestContext& ctx);
-    void OpenDataStorageByDataId(HLERequestContext& ctx);
-    void OpenPatchDataStorageByCurrentProcess(HLERequestContext& ctx);
-    void OpenDataStorageWithProgramIndex(HLERequestContext& ctx);
-    void DisableAutoSaveDataCreation(HLERequestContext& ctx);
-    void SetGlobalAccessLogMode(HLERequestContext& ctx);
-    void GetGlobalAccessLogMode(HLERequestContext& ctx);
-    void OutputAccessLogToSdCard(HLERequestContext& ctx);
-    void FlushAccessLogOnSdCard(HLERequestContext& ctx);
-    void GetProgramIndexForAccessLog(HLERequestContext& ctx);
-    void OpenMultiCommitManager(HLERequestContext& ctx);
-    void GetCacheStorageSize(HLERequestContext& ctx);
+    Result SetCurrentProcess(ClientProcessId pid);
+    Result OpenFileSystemWithPatch(OutInterface<IFileSystem> out_interface,
+                                   FileSystemProxyType type, u64 open_program_id);
+    Result OpenSdCardFileSystem(OutInterface<IFileSystem> out_interface);
+    Result CreateSaveDataFileSystem(std::array<u8, 0x40> save_create_struct,
+                                    FileSys::SaveDataAttribute save_struct, u128 uid);
+    Result CreateSaveDataFileSystemBySystemSaveDataId(std::array<u8, 0x40> save_create_struct,
+                                                      FileSys::SaveDataAttribute save_struct);
+    Result OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
+                                  FileSys::SaveDataSpaceId space_id,
+                                  FileSys::SaveDataAttribute attribute);
+    Result OpenSaveDataFileSystemBySystemSaveDataId(OutInterface<IFileSystem> out_interface,
+                                                    FileSys::SaveDataSpaceId space_id,
+                                                    FileSys::SaveDataAttribute attribute);
+    Result OpenReadOnlySaveDataFileSystem(OutInterface<IFileSystem> out_interface,
+                                          FileSys::SaveDataSpaceId space_id,
+                                          FileSys::SaveDataAttribute attribute);
+    Result OpenSaveDataInfoReaderBySaveDataSpaceId(OutInterface<ISaveDataInfoReader> out_interface,
+                                                   FileSys::SaveDataSpaceId space);
+    Result OpenSaveDataInfoReaderOnlyCacheStorage(OutInterface<ISaveDataInfoReader> out_interface);
+    Result WriteSaveDataFileSystemExtraDataBySaveDataAttribute();
+    Result ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
+        FileSys::SaveDataSpaceId space_id, FileSys::SaveDataAttribute attribute,
+        InBuffer<BufferAttr_HipcMapAlias> mask_buffer,
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer);
+    Result OpenDataStorageByCurrentProcess(OutInterface<IStorage> out_interface);
+    Result OpenDataStorageByDataId(OutInterface<IStorage> out_interface,
+                                   FileSys::StorageId storage_id, u32 unknown, u64 title_id);
+    Result OpenPatchDataStorageByCurrentProcess(OutInterface<IStorage> out_interface,
+                                                FileSys::StorageId storage_id, u64 title_id);
+    Result OpenDataStorageWithProgramIndex(OutInterface<IStorage> out_interface, u8 program_index);
+    Result DisableAutoSaveDataCreation();
+    Result SetGlobalAccessLogMode(AccessLogMode access_log_mode_);
+    Result GetGlobalAccessLogMode(Out<AccessLogMode> out_access_log_mode);
+    Result OutputAccessLogToSdCard(InBuffer<BufferAttr_HipcMapAlias> log_message_buffer);
+    Result FlushAccessLogOnSdCard();
+    Result GetProgramIndexForAccessLog(Out<AccessLogVersion> out_access_log_version,
+                                       Out<u32> out_access_log_program_index);
+    Result OpenMultiCommitManager(OutInterface<IMultiCommitManager> out_interface);
+    Result GetCacheStorageSize(s32 index, Out<s64> out_data_size, Out<s64> out_journal_size);
 
     FileSystemController& fsc;
     const FileSys::ContentProvider& content_provider;
