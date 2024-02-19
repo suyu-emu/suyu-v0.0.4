@@ -3,10 +3,6 @@
 
 #pragma once
 
-namespace Service::SM {
-class ServiceManager;
-}
-
 namespace Core {
 class System;
 };
