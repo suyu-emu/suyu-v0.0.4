@@ -6,6 +6,7 @@
 #include <memory>
 #include "core/file_sys/fs_save_data_types.h"
 #include "core/hle/service/cmif_types.h"
+#include "core/hle/service/filesystem/fsp/fsp_types.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -37,18 +38,6 @@ enum class AccessLogMode : u32 {
     None,
     Log,
     SdCard,
-};
-
-enum class FileSystemProxyType : u8 {
-    Code = 0,
-    Rom = 1,
-    Logo = 2,
-    Control = 3,
-    Manual = 4,
-    Meta = 5,
-    Data = 6,
-    Package = 7,
-    RegisteredUpdate = 8,
 };
 
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {

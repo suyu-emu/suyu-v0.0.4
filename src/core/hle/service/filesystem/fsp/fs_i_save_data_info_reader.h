@@ -23,14 +23,14 @@ public:
         u64_le save_id_unknown;
         FileSys::SaveDataSpaceId space;
         FileSys::SaveDataType type;
-        INSERT_PADDING_BYTES_NOINIT(0x6);
+        INSERT_PADDING_BYTES(0x6);
         std::array<u8, 0x10> user_id;
         u64_le save_id;
         u64_le title_id;
         u64_le save_image_size;
         u16_le index;
         FileSys::SaveDataRank rank;
-        INSERT_PADDING_BYTES_NOINIT(0x25);
+        INSERT_PADDING_BYTES(0x25);
     };
     static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
 

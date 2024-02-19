@@ -7,6 +7,18 @@
 
 namespace Service::FileSystem {
 
+enum class FileSystemProxyType : u8 {
+    Code = 0,
+    Rom = 1,
+    Logo = 2,
+    Control = 3,
+    Manual = 4,
+    Meta = 5,
+    Data = 6,
+    Package = 7,
+    RegisteredUpdate = 8,
+};
+
 struct SizeGetter {
     std::function<u64()> get_free_size;
     std::function<u64()> get_total_size;
