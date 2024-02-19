@@ -18,9 +18,9 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_memory.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/ns/iplatform_service_manager.h"
+#include "core/hle/service/ns/platform_service_manager.h"
 
 namespace Service::NS {
 
@@ -36,11 +36,6 @@ constexpr u32 EXPECTED_RESULT{0x7f9a0218}; // What we expect the decrypted bfttf
 constexpr u32 EXPECTED_MAGIC{0x36f81a1e};  // What we expect the encrypted bfttf first 4 bytes to be
 constexpr u64 SHARED_FONT_MEM_SIZE{0x1100000};
 constexpr FontRegion EMPTY_REGION{0, 0};
-
-enum class LoadState : u32 {
-    Loading = 0,
-    Done = 1,
-};
 
 static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMemory& output,
                               std::size_t& offset) {
@@ -138,13 +133,13 @@ IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const ch
     : ServiceFramework{system_, service_name_}, impl{std::make_unique<Impl>()} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &IPlatformServiceManager::RequestLoad, "RequestLoad"},
-        {1, &IPlatformServiceManager::GetLoadState, "GetLoadState"},
-        {2, &IPlatformServiceManager::GetSize, "GetSize"},
-        {3, &IPlatformServiceManager::GetSharedMemoryAddressOffset, "GetSharedMemoryAddressOffset"},
-        {4, &IPlatformServiceManager::GetSharedMemoryNativeHandle, "GetSharedMemoryNativeHandle"},
-        {5, &IPlatformServiceManager::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
-        {6, &IPlatformServiceManager::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriorityForSystem"},
+        {0, D<&IPlatformServiceManager::RequestLoad>, "RequestLoad"},
+        {1, D<&IPlatformServiceManager::GetLoadState>, "GetLoadState"},
+        {2, D<&IPlatformServiceManager::GetSize>, "GetSize"},
+        {3, D<&IPlatformServiceManager::GetSharedMemoryAddressOffset>, "GetSharedMemoryAddressOffset"},
+        {4, D<&IPlatformServiceManager::GetSharedMemoryNativeHandle>, "GetSharedMemoryNativeHandle"},
+        {5, D<&IPlatformServiceManager::GetSharedFontInOrderOfPriority>, "GetSharedFontInOrderOfPriority"},
+        {6, D<&IPlatformServiceManager::GetSharedFontInOrderOfPriority>, "GetSharedFontInOrderOfPriorityForSystem"},
         {100, nullptr, "RequestApplicationFunctionAuthorization"},
         {101, nullptr, "RequestApplicationFunctionAuthorizationByProcessId"},
         {102, nullptr, "RequestApplicationFunctionAuthorizationByApplicationId"},
@@ -208,47 +203,33 @@ IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const ch
 
 IPlatformServiceManager::~IPlatformServiceManager() = default;
 
-void IPlatformServiceManager::RequestLoad(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 shared_font_type{rp.Pop<u32>()};
+Result IPlatformServiceManager::RequestLoad(SharedFontType type) {
     // Games don't call this so all fonts should be loaded
-    LOG_DEBUG(Service_NS, "called, shared_font_type={}", shared_font_type);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    LOG_DEBUG(Service_NS, "called, shared_font_type={}", type);
+    R_SUCCEED();
 }
 
-void IPlatformServiceManager::GetLoadState(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 font_id{rp.Pop<u32>()};
-    LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(static_cast<u32>(LoadState::Done));
+Result IPlatformServiceManager::GetLoadState(Out<LoadState> out_load_state, SharedFontType type) {
+    LOG_DEBUG(Service_NS, "called, shared_font_type={}", type);
+    *out_load_state = LoadState::Loaded;
+    R_SUCCEED();
 }
 
-void IPlatformServiceManager::GetSize(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 font_id{rp.Pop<u32>()};
-    LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(impl->GetSharedFontRegion(font_id).size);
+Result IPlatformServiceManager::GetSize(Out<u32> out_size, SharedFontType type) {
+    LOG_DEBUG(Service_NS, "called, shared_font_type={}", type);
+    *out_size = impl->GetSharedFontRegion(static_cast<size_t>(type)).size;
+    R_SUCCEED();
 }
 
-void IPlatformServiceManager::GetSharedMemoryAddressOffset(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 font_id{rp.Pop<u32>()};
-    LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(impl->GetSharedFontRegion(font_id).offset);
+Result IPlatformServiceManager::GetSharedMemoryAddressOffset(Out<u32> out_shared_memory_offset,
+                                                             SharedFontType type) {
+    LOG_DEBUG(Service_NS, "called, shared_font_type={}", type);
+    *out_shared_memory_offset = impl->GetSharedFontRegion(static_cast<size_t>(type)).offset;
+    R_SUCCEED();
 }
 
-void IPlatformServiceManager::GetSharedMemoryNativeHandle(HLERequestContext& ctx) {
+Result IPlatformServiceManager::GetSharedMemoryNativeHandle(
+    OutCopyHandle<Kernel::KSharedMemory> out_shared_memory_native_handle) {
     // Map backing memory for the font data
     LOG_DEBUG(Service_NS, "called");
 
@@ -256,50 +237,37 @@ void IPlatformServiceManager::GetSharedMemoryNativeHandle(HLERequestContext& ctx
     std::memcpy(kernel.GetFontSharedMem().GetPointer(), impl->shared_font->data(),
                 impl->shared_font->size());
 
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(&kernel.GetFontSharedMem());
+    // FIXME: this shouldn't belong to the kernel
+    *out_shared_memory_native_handle = &kernel.GetFontSharedMem();
+    R_SUCCEED();
 }
 
-void IPlatformServiceManager::GetSharedFontInOrderOfPriority(HLERequestContext& ctx) {
+Result IPlatformServiceManager::GetSharedFontInOrderOfPriority(
+    OutArray<u32, BufferAttr_HipcMapAlias> out_font_codes,
+    OutArray<u32, BufferAttr_HipcMapAlias> out_font_offsets,
+    OutArray<u32, BufferAttr_HipcMapAlias> out_font_sizes, Out<bool> out_fonts_are_loaded,
+    Out<u32> out_font_count, Set::LanguageCode language_code) {
+    LOG_DEBUG(Service_NS, "called, language_code={:#x}", language_code);
+
     // The maximum number of elements that can be returned is 6. Regardless of the available fonts
     // or buffer size.
-    constexpr std::size_t MaxElementCount = 6;
-    IPC::RequestParser rp{ctx};
-    const u64 language_code{rp.Pop<u64>()}; // TODO(ogniK): Find out what this is used for
-    const std::size_t font_codes_count =
-        std::min(MaxElementCount, ctx.GetWriteBufferNumElements<u32>(0));
-    const std::size_t font_offsets_count =
-        std::min(MaxElementCount, ctx.GetWriteBufferNumElements<u32>(1));
-    const std::size_t font_sizes_count =
-        std::min(MaxElementCount, ctx.GetWriteBufferNumElements<u32>(2));
-    LOG_DEBUG(Service_NS, "called, language_code={:X}", language_code);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    std::vector<u32> font_codes;
-    std::vector<u32> font_offsets;
-    std::vector<u32> font_sizes;
+    constexpr size_t MaxElementCount = 6;
 
     // TODO(ogniK): Have actual priority order
-    for (std::size_t i = 0; i < impl->shared_font_regions.size(); i++) {
-        font_codes.push_back(static_cast<u32>(i));
+    const auto max_size = std::min({MaxElementCount, out_font_codes.size(), out_font_offsets.size(),
+                                    out_font_sizes.size(), impl->shared_font_regions.size()});
+
+    for (size_t i = 0; i < max_size; i++) {
         auto region = impl->GetSharedFontRegion(i);
-        font_offsets.push_back(region.offset);
-        font_sizes.push_back(region.size);
+
+        out_font_codes[i] = static_cast<u32>(i);
+        out_font_offsets[i] = region.offset;
+        out_font_sizes[i] = region.size;
     }
 
-    // Resize buffers if game requests smaller size output
-    font_codes.resize(std::min(font_codes.size(), font_codes_count));
-    font_offsets.resize(std::min(font_offsets.size(), font_offsets_count));
-    font_sizes.resize(std::min(font_sizes.size(), font_sizes_count));
-
-    ctx.WriteBuffer(font_codes, 0);
-    ctx.WriteBuffer(font_offsets, 1);
-    ctx.WriteBuffer(font_sizes, 2);
-
-    rb.Push(ResultSuccess);
-    rb.Push<u8>(static_cast<u8>(LoadState::Done)); // Fonts Loaded
-    rb.Push<u32>(static_cast<u32>(font_codes.size()));
+    *out_fonts_are_loaded = true;
+    *out_font_count = static_cast<u32>(max_size);
+    R_SUCCEED();
 }
 
 } // namespace Service::NS

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "common/uuid.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NS {
@@ -20,13 +22,15 @@ struct PlayStatistics {
 };
 static_assert(sizeof(PlayStatistics) == 0x28, "PlayStatistics is an invalid size");
 
-class PDM_QRY final : public ServiceFramework<PDM_QRY> {
+class IQueryService final : public ServiceFramework<IQueryService> {
 public:
-    explicit PDM_QRY(Core::System& system_);
-    ~PDM_QRY() override;
+    explicit IQueryService(Core::System& system_);
+    ~IQueryService() override;
 
 private:
-    void QueryPlayStatisticsByApplicationIdAndUserAccountId(HLERequestContext& ctx);
+    Result QueryPlayStatisticsByApplicationIdAndUserAccountId(
+        Out<PlayStatistics> out_play_statistics, bool unknown, Common::UUID account_id,
+        u64 application_id);
 };
 
 } // namespace Service::NS
