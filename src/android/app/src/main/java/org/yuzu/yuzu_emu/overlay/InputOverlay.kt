@@ -28,6 +28,7 @@ import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
 import org.yuzu.yuzu_emu.features.input.model.NativeButton
+import org.yuzu.yuzu_emu.features.input.model.NpadStyleIndex
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
@@ -99,12 +100,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
 
         var shouldUpdateView = false
-        val playerIndex =
-            if (NativeInput.isHandheldOnly()) {
-                NativeInput.ConsoleDevice
-            } else {
-                NativeInput.Player1Device
-            }
+        val playerIndex = when (NativeInput.getStyleIndex(0)) {
+            NpadStyleIndex.Handheld -> 8
+            else -> 0
+        }
 
         for (button in overlayButtons) {
             if (!button.updateStatus(event)) {
