@@ -157,10 +157,10 @@ Result IFileSystem::GetFileTimeStampRaw(
     R_SUCCEED();
 }
 
-Result IFileSystem::GetFileSystemAttribute(Out<FileSystemAttribute> out_attribute) {
+Result IFileSystem::GetFileSystemAttribute(Out<FileSys::FileSystemAttribute> out_attribute) {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
-    FileSystemAttribute savedata_attribute{};
+    FileSys::FileSystemAttribute savedata_attribute{};
     savedata_attribute.dir_entry_name_length_max_defined = true;
     savedata_attribute.file_entry_name_length_max_defined = true;
     savedata_attribute.dir_entry_name_length_max = 0x40;

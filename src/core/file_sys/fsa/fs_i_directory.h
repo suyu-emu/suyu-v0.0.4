@@ -56,7 +56,7 @@ private:
         next_entry_index += actual_entries;
         *out_count = actual_entries;
 
-        std::memcpy(out_entries, entries.data(), range_size);
+        std::memcpy(out_entries, begin, range_size);
 
         R_SUCCEED();
     }
