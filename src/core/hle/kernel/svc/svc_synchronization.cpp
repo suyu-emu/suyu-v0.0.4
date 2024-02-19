@@ -78,11 +78,11 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
     }
 
     // Ensure handles are closed when we're done.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         for (auto i = 0; i < num_handles; ++i) {
             objs[i]->Close();
         }
-    });
+    };
 
     // Convert the timeout from nanoseconds to ticks.
     s64 timeout;

@@ -831,11 +831,11 @@ struct Memory::Impl {
         if (core == sys_core) [[unlikely]] {
             sys_core_guard.lock();
         }
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (core == sys_core) [[unlikely]] {
                 sys_core_guard.unlock();
             }
-        });
+        };
         gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr address) {
             auto& current_area = rasterizer_write_areas[core];
             PAddr subaddress = address >> YUZU_PAGEBITS;
@@ -866,11 +866,11 @@ struct Memory::Impl {
         if (core == sys_core) [[unlikely]] {
             sys_core_guard.lock();
         }
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (core == sys_core) [[unlikely]] {
                 sys_core_guard.unlock();
             }
-        });
+        };
         auto& gpu = system.GPU();
         gpu_device_memory->ApplyOpOnPointer(
             p, scratch_buffers[core], [&](DAddr address) { gpu.InvalidateRegion(address, size); });

@@ -154,10 +154,10 @@ void NVDRV::Close(HLERequestContext& ctx) {
 void NVDRV::Initialize(HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
     IPC::ResponseBuilder rb{ctx, 3};
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         rb.Push(ResultSuccess);
         rb.PushEnum(NvResult::Success);
-    });
+    };
 
     if (is_initialized) {
         // No need to initialize again

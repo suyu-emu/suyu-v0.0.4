@@ -24,7 +24,9 @@ Result KTransferMemory::Initialize(KProcessAddress addr, std::size_t size,
 
     // Construct the page group, guarding to make sure our state is valid on exit.
     m_page_group.emplace(m_kernel, page_table.GetBlockInfoManager());
-    auto pg_guard = SCOPE_GUARD({ m_page_group.reset(); });
+    auto pg_guard = SCOPE_GUARD {
+        m_page_group.reset();
+    };
 
     // Lock the memory.
     R_TRY(page_table.LockForTransferMemory(std::addressof(*m_page_group), addr, size,

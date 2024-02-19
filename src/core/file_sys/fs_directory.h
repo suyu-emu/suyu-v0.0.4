@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <string_view>
+#include "common/common_funcs.h"
+#include "common/common_types.h"
+
 namespace FileSys {
 
 constexpr inline size_t EntryNameLengthMax = 0x300;

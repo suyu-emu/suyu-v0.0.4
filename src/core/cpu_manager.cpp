@@ -199,10 +199,10 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     data.host_context = Common::Fiber::ThreadToFiber();
 
     // Cleanup
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         data.host_context->Exit();
         MicroProfileOnThreadExit();
-    });
+    };
 
     // Running
     if (!gpu_barrier->Sync(token)) {

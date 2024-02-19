@@ -82,7 +82,9 @@ void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
     // Finish any pending renderpass
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Wait(resource_ticks[image_index]);
-    SCOPE_EXIT({ resource_ticks[image_index] = scheduler.CurrentTick(); });
+    SCOPE_EXIT {
+        resource_ticks[image_index] = scheduler.CurrentTick();
+    };
 
     if (!use_accelerated) {
         UpdateRawImage(framebuffer, image_index);

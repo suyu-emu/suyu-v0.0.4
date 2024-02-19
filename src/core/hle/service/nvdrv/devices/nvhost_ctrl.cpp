@@ -92,11 +92,11 @@ NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_a
 
     bool must_unmark_fail = !is_allocation;
     const u32 event_id = params.value.raw;
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         if (must_unmark_fail) {
             events[event_id].fails = 0;
         }
-    });
+    };
 
     const u32 fence_id = static_cast<u32>(params.fence.id);
 

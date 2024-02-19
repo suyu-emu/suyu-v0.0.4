@@ -268,7 +268,9 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
 }
 
 Common::Input::DriverResult JoyconDriver::SetPollingMode() {
-    SCOPE_EXIT({ disable_input_thread = false; });
+    SCOPE_EXIT {
+        disable_input_thread = false;
+    };
     disable_input_thread = true;
 
     rumble_protocol->EnableRumble(vibration_enabled && supported_features.vibration);

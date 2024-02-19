@@ -37,7 +37,9 @@ TimeZoneService::TimeZoneService(Core::System& system_, StandardSteadyClockCore&
 }
 
 Result TimeZoneService::GetDeviceLocationName(Out<LocationName> out_location_name) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_location_name={}", *out_location_name); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_location_name={}", *out_location_name);
+    };
 
     R_RETURN(m_time_zone.GetLocationName(*out_location_name));
 }
@@ -50,7 +52,9 @@ Result TimeZoneService::SetDeviceLocationName(const LocationName& location_name)
 }
 
 Result TimeZoneService::GetTotalLocationNameCount(Out<u32> out_count) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_count={}", *out_count); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_count={}", *out_count);
+    };
 
     R_RETURN(m_time_zone.GetTotalLocationCount(*out_count));
 }
@@ -69,17 +73,19 @@ Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule, const LocationName& l
 }
 
 Result TimeZoneService::GetTimeZoneRuleVersion(Out<RuleVersion> out_rule_version) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_rule_version={}", *out_rule_version); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_rule_version={}", *out_rule_version);
+    };
 
     R_RETURN(m_time_zone.GetRuleVersion(*out_rule_version));
 }
 
 Result TimeZoneService::GetDeviceLocationNameAndUpdatedTime(
     Out<LocationName> out_location_name, Out<SteadyClockTimePoint> out_time_point) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. out_location_name={} out_time_point={}",
                   *out_location_name, *out_time_point);
-    });
+    };
 
     R_TRY(m_time_zone.GetLocationName(*out_location_name));
     R_RETURN(m_time_zone.GetTimePoint(*out_time_point));
@@ -116,10 +122,10 @@ Result TimeZoneService::GetDeviceLocationNameOperationEventReadableHandle(
 Result TimeZoneService::ToCalendarTime(Out<CalendarTime> out_calendar_time,
                                        Out<CalendarAdditionalInfo> out_additional_info, s64 time,
                                        InRule rule) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. time={} out_calendar_time={} out_additional_info={}", time,
                   *out_calendar_time, *out_additional_info);
-    });
+    };
 
     R_RETURN(
         m_time_zone.ToCalendarTime(*out_calendar_time, *out_additional_info, time, *rule.Get()));
@@ -128,10 +134,10 @@ Result TimeZoneService::ToCalendarTime(Out<CalendarTime> out_calendar_time,
 Result TimeZoneService::ToCalendarTimeWithMyRule(Out<CalendarTime> out_calendar_time,
                                                  Out<CalendarAdditionalInfo> out_additional_info,
                                                  s64 time) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. time={} out_calendar_time={} out_additional_info={}", time,
                   *out_calendar_time, *out_additional_info);
-    });
+    };
 
     R_RETURN(m_time_zone.ToCalendarTimeWithMyRule(*out_calendar_time, *out_additional_info, time));
 }
@@ -139,11 +145,11 @@ Result TimeZoneService::ToCalendarTimeWithMyRule(Out<CalendarTime> out_calendar_
 Result TimeZoneService::ToPosixTime(Out<u32> out_count,
                                     OutArray<s64, BufferAttr_HipcPointer> out_times,
                                     const CalendarTime& calendar_time, InRule rule) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} ",
                   calendar_time, *out_count, out_times[0], out_times[1]);
-    });
+    };
 
     R_RETURN(
         m_time_zone.ToPosixTime(*out_count, out_times, out_times.size(), calendar_time, *rule));
@@ -152,11 +158,11 @@ Result TimeZoneService::ToPosixTime(Out<u32> out_count,
 Result TimeZoneService::ToPosixTimeWithMyRule(Out<u32> out_count,
                                               OutArray<s64, BufferAttr_HipcPointer> out_times,
                                               const CalendarTime& calendar_time) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. calendar_time={} out_count={} out_times[0]={} out_times[1]={} ",
                   calendar_time, *out_count, out_times[0], out_times[1]);
-    });
+    };
 
     R_RETURN(
         m_time_zone.ToPosixTimeWithMyRule(*out_count, out_times, out_times.size(), calendar_time));

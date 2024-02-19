@@ -36,7 +36,9 @@ Result HierarchicalSha256Storage::Initialize(VirtualFile* base_storages, s32 lay
     // Get the base storage size.
     m_base_storage_size = base_storages[2]->GetSize();
     {
-        auto size_guard = SCOPE_GUARD({ m_base_storage_size = 0; });
+        auto size_guard = SCOPE_GUARD {
+            m_base_storage_size = 0;
+        };
         R_UNLESS(m_base_storage_size <= static_cast<s64>(HashSize)
                                             << m_log_size_ratio << m_log_size_ratio,
                  ResultHierarchicalSha256BaseStorageTooLarge);

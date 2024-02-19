@@ -20,10 +20,10 @@
 namespace AudioCore::Sink {
 
 void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         queue.enqueue(buffer);
         ++queued_buffers;
-    });
+    };
 
     if (type == StreamType::In) {
         return;
