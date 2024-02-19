@@ -5,7 +5,7 @@
 
 #include "core/hle/service/acc/acc.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/aoc/aoc_u.h"
+#include "core/hle/service/aoc/addon_content_manager.h"
 #include "core/hle/service/apm/apm.h"
 #include "core/hle/service/audio/audio.h"
 #include "core/hle/service/bcat/bcat.h"
