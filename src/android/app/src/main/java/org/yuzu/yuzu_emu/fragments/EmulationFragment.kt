@@ -810,7 +810,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
             }
         }
-        binding.doneControlConfig.setVisible(false)
+        binding.doneControlConfig.setVisible(true)
         binding.surfaceInputOverlay.setIsInEditMode(true)
     }
 
