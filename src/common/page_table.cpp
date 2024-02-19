@@ -24,10 +24,10 @@ bool PageTable::ContinueTraversal(TraversalEntry* out_entry, TraversalContext* c
     out_entry->block_size = page_size;
 
     // Regardless of whether the page was mapped, advance on exit.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         context->next_page += 1;
         context->next_offset += page_size;
-    });
+    };
 
     // Validate that we can read the actual entry.
     const auto page = context->next_page;

@@ -51,7 +51,9 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
     // Create the thread.
     KThread* thread = KThread::Create(kernel);
     R_UNLESS(thread != nullptr, ResultOutOfResource)
-    SCOPE_EXIT({ thread->Close(); });
+    SCOPE_EXIT {
+        thread->Close();
+    };
 
     // Initialize the thread.
     {

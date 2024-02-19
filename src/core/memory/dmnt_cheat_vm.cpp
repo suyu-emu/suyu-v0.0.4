@@ -224,12 +224,12 @@ bool DmntCheatVm::DecodeNextOpcode(CheatVmOpcode& out) {
     // If we've ever seen a decode failure, return false.
     bool valid = decode_success;
     CheatVmOpcode opcode = {};
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         decode_success &= valid;
         if (valid) {
             out = opcode;
         }
-    });
+    };
 
     // Helper function for getting instruction dwords.
     const auto GetNextDword = [&] {

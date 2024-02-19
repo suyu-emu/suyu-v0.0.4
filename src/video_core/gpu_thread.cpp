@@ -22,7 +22,9 @@ static void RunThread(std::stop_token stop_token, Core::System& system,
                       Tegra::Control::Scheduler& scheduler, SynchState& state) {
     std::string name = "GPU";
     MicroProfileOnThreadCreate(name.c_str());
-    SCOPE_EXIT({ MicroProfileOnThreadExit(); });
+    SCOPE_EXIT {
+        MicroProfileOnThreadExit();
+    };
 
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);

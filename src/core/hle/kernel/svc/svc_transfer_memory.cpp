@@ -52,7 +52,9 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
     R_UNLESS(trmem != nullptr, ResultOutOfResource);
 
     // Ensure the only reference is in the handle table when we're done.
-    SCOPE_EXIT({ trmem->Close(); });
+    SCOPE_EXIT {
+        trmem->Close();
+    };
 
     // Ensure that the region is in range.
     R_UNLESS(process.GetPageTable().Contains(address, size), ResultInvalidCurrentMemory);

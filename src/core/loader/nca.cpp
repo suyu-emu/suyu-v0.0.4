@@ -118,7 +118,9 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     mbedtls_sha256_starts_ret(&ctx, 0);
 
     // Ensure we maintain a clean state on exit.
-    SCOPE_EXIT({ mbedtls_sha256_free(&ctx); });
+    SCOPE_EXIT {
+        mbedtls_sha256_free(&ctx);
+    };
 
     // Declare counters.
     const size_t total_size = file->GetSize();

@@ -291,7 +291,9 @@ u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
 }
 
 void Maxwell3D::ConsumeSinkImpl() {
-    SCOPE_EXIT({ method_sink.clear(); });
+    SCOPE_EXIT {
+        method_sink.clear();
+    };
     const auto control = shadow_state.shadow_ram_control;
     if (control == Regs::ShadowRamControl::Track ||
         control == Regs::ShadowRamControl::TrackWithFilter) {

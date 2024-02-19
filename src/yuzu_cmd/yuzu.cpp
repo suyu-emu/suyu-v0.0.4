@@ -327,7 +327,9 @@ int main(int argc, char** argv) {
 #endif
 
     MicroProfileOnThreadCreate("EmuThread");
-    SCOPE_EXIT({ MicroProfileShutdown(); });
+    SCOPE_EXIT {
+        MicroProfileShutdown();
+    };
 
     Common::ConfigureNvidiaEnvironmentFlags();
 

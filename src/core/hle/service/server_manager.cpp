@@ -177,10 +177,10 @@ Result ServerManager::ManageNamedPort(const std::string& service_name,
     Kernel::KPort::Register(m_system.Kernel(), port);
 
     // Ensure that our reference to the port is closed if we fail to register it.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         port->GetClientPort().Close();
         port->GetServerPort().Close();
-    });
+    };
 
     // Register the object name with the kernel.
     R_TRY(Kernel::KObjectName::NewFromName(m_system.Kernel(), std::addressof(port->GetClientPort()),
@@ -237,7 +237,9 @@ void ServerManager::StartAdditionalHostThreads(const char* name, size_t num_thre
 }
 
 Result ServerManager::LoopProcess() {
-    SCOPE_EXIT({ m_stopped.Set(); });
+    SCOPE_EXIT {
+        m_stopped.Set();
+    };
 
     R_RETURN(this->LoopProcessImpl());
 }

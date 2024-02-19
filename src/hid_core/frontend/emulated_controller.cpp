@@ -933,8 +933,9 @@ void EmulatedController::SetStick(const Common::Input::CallbackStatus& callback,
     if (index >= controller.stick_values.size()) {
         return;
     }
-    auto trigger_guard =
-        SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Stick, !is_configuring); });
+    auto trigger_guard = SCOPE_GUARD {
+        TriggerOnChange(ControllerTriggerType::Stick, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     const auto stick_value = TransformToStick(callback);
 
@@ -989,8 +990,9 @@ void EmulatedController::SetTrigger(const Common::Input::CallbackStatus& callbac
     if (index >= controller.trigger_values.size()) {
         return;
     }
-    auto trigger_guard =
-        SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Trigger, !is_configuring); });
+    auto trigger_guard = SCOPE_GUARD {
+        TriggerOnChange(ControllerTriggerType::Trigger, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     const auto trigger_value = TransformToTrigger(callback);
 
@@ -1036,7 +1038,9 @@ void EmulatedController::SetMotion(const Common::Input::CallbackStatus& callback
     if (index >= controller.motion_values.size()) {
         return;
     }
-    SCOPE_EXIT({ TriggerOnChange(ControllerTriggerType::Motion, !is_configuring); });
+    SCOPE_EXIT {
+        TriggerOnChange(ControllerTriggerType::Motion, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     auto& raw_status = controller.motion_values[index].raw_status;
     auto& emulated = controller.motion_values[index].emulated;
@@ -1070,8 +1074,9 @@ void EmulatedController::SetColors(const Common::Input::CallbackStatus& callback
     if (index >= controller.color_values.size()) {
         return;
     }
-    auto trigger_guard =
-        SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Color, !is_configuring); });
+    auto trigger_guard = SCOPE_GUARD {
+        TriggerOnChange(ControllerTriggerType::Color, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     controller.color_values[index] = TransformToColor(callback);
 
@@ -1120,7 +1125,9 @@ void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callbac
     if (index >= controller.battery_values.size()) {
         return;
     }
-    SCOPE_EXIT({ TriggerOnChange(ControllerTriggerType::Battery, !is_configuring); });
+    SCOPE_EXIT {
+        TriggerOnChange(ControllerTriggerType::Battery, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     controller.battery_values[index] = TransformToBattery(callback);
 
@@ -1183,7 +1190,9 @@ void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callbac
 }
 
 void EmulatedController::SetCamera(const Common::Input::CallbackStatus& callback) {
-    SCOPE_EXIT({ TriggerOnChange(ControllerTriggerType::IrSensor, !is_configuring); });
+    SCOPE_EXIT {
+        TriggerOnChange(ControllerTriggerType::IrSensor, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     controller.camera_values = TransformToCamera(callback);
 
@@ -1198,7 +1207,9 @@ void EmulatedController::SetCamera(const Common::Input::CallbackStatus& callback
 }
 
 void EmulatedController::SetRingAnalog(const Common::Input::CallbackStatus& callback) {
-    SCOPE_EXIT({ TriggerOnChange(ControllerTriggerType::RingController, !is_configuring); });
+    SCOPE_EXIT {
+        TriggerOnChange(ControllerTriggerType::RingController, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     const auto force_value = TransformToStick(callback);
 
@@ -1212,7 +1223,9 @@ void EmulatedController::SetRingAnalog(const Common::Input::CallbackStatus& call
 }
 
 void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
-    SCOPE_EXIT({ TriggerOnChange(ControllerTriggerType::Nfc, !is_configuring); });
+    SCOPE_EXIT {
+        TriggerOnChange(ControllerTriggerType::Nfc, !is_configuring);
+    };
     std::scoped_lock lock{mutex};
     controller.nfc_values = TransformToNfc(callback);
 
@@ -1685,8 +1698,9 @@ void EmulatedController::Connect(bool use_temporary_value) {
         return;
     }
 
-    auto trigger_guard =
-        SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Connected, !is_configuring); });
+    auto trigger_guard = SCOPE_GUARD {
+        TriggerOnChange(ControllerTriggerType::Connected, !is_configuring);
+    };
     std::scoped_lock lock{connect_mutex, mutex};
     if (is_configuring) {
         tmp_is_connected = true;
@@ -1701,8 +1715,9 @@ void EmulatedController::Connect(bool use_temporary_value) {
 }
 
 void EmulatedController::Disconnect() {
-    auto trigger_guard =
-        SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Disconnected, !is_configuring); });
+    auto trigger_guard = SCOPE_GUARD {
+        TriggerOnChange(ControllerTriggerType::Disconnected, !is_configuring);
+    };
     std::scoped_lock lock{connect_mutex, mutex};
     if (is_configuring) {
         tmp_is_connected = false;
@@ -1738,8 +1753,9 @@ NpadStyleIndex EmulatedController::GetNpadStyleIndex(bool get_temporary_value) c
 }
 
 void EmulatedController::SetNpadStyleIndex(NpadStyleIndex npad_type_) {
-    auto trigger_guard =
-        SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Type, !is_configuring); });
+    auto trigger_guard = SCOPE_GUARD {
+        TriggerOnChange(ControllerTriggerType::Type, !is_configuring);
+    };
     std::scoped_lock lock{mutex, npad_mutex};
 
     if (is_configuring) {

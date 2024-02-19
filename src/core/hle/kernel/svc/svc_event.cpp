@@ -72,10 +72,10 @@ Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
     event_reservation.Commit();
 
     // Ensure that we clean up the event (and its only references are handle table) on function end.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         event->GetReadableEvent().Close();
         event->Close();
-    });
+    };
 
     // Register the event.
     KEvent::Register(kernel, event);

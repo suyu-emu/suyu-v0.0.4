@@ -142,16 +142,18 @@ Result StaticService::SetStandardSteadyClockInternalOffset(s64 offset_ns) {
 }
 
 Result StaticService::GetStandardSteadyClockRtcValue(Out<s64> out_rtc_value) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_rtc_value={}", *out_rtc_value); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_rtc_value={}", *out_rtc_value);
+    };
 
     R_RETURN(m_standard_steady_clock_resource.GetRtcTimeInSeconds(*out_rtc_value));
 }
 
 Result StaticService::IsStandardUserSystemClockAutomaticCorrectionEnabled(
     Out<bool> out_automatic_correction) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. out_automatic_correction={}", *out_automatic_correction);
-    });
+    };
 
     R_RETURN(m_wrapped_service->IsStandardUserSystemClockAutomaticCorrectionEnabled(
         out_automatic_correction));
@@ -166,21 +168,27 @@ Result StaticService::SetStandardUserSystemClockAutomaticCorrectionEnabled(
 }
 
 Result StaticService::GetStandardUserSystemClockInitialYear(Out<s32> out_year) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_year={}", *out_year); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_year={}", *out_year);
+    };
 
     R_RETURN(m_set_sys->GetSettingsItemValueImpl<s32>(*out_year, "time",
                                                       "standard_user_clock_initial_year"));
 }
 
 Result StaticService::IsStandardNetworkSystemClockAccuracySufficient(Out<bool> out_is_sufficient) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_is_sufficient={}", *out_is_sufficient); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_is_sufficient={}", *out_is_sufficient);
+    };
 
     R_RETURN(m_wrapped_service->IsStandardNetworkSystemClockAccuracySufficient(out_is_sufficient));
 }
 
 Result StaticService::GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
     Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_time_point={}", *out_time_point); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_time_point={}", *out_time_point);
+    };
 
     R_RETURN(m_wrapped_service->GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
         out_time_point));
@@ -188,15 +196,18 @@ Result StaticService::GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
 
 Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(
     Out<s64> out_time, const Service::PSC::Time::SystemClockContext& context) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. context={} out_time={}", context, *out_time); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. context={} out_time={}", context, *out_time);
+    };
 
     R_RETURN(m_wrapped_service->CalculateMonotonicSystemClockBaseTimePoint(out_time, context));
 }
 
 Result StaticService::GetClockSnapshot(OutClockSnapshot out_snapshot,
                                        Service::PSC::Time::TimeType type) {
-    SCOPE_EXIT(
-        { LOG_DEBUG(Service_Time, "called. type={} out_snapshot={}", type, *out_snapshot); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. type={} out_snapshot={}", type, *out_snapshot);
+    };
 
     R_RETURN(m_wrapped_service->GetClockSnapshot(out_snapshot, type));
 }
@@ -205,11 +216,11 @@ Result StaticService::GetClockSnapshotFromSystemClockContext(
     Service::PSC::Time::TimeType type, OutClockSnapshot out_snapshot,
     const Service::PSC::Time::SystemClockContext& user_context,
     const Service::PSC::Time::SystemClockContext& network_context) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. type={} out_snapshot={} user_context={} network_context={}", type,
                   *out_snapshot, user_context, network_context);
-    });
+    };
 
     R_RETURN(m_wrapped_service->GetClockSnapshotFromSystemClockContext(
         type, out_snapshot, user_context, network_context));
@@ -218,14 +229,18 @@ Result StaticService::GetClockSnapshotFromSystemClockContext(
 Result StaticService::CalculateStandardUserSystemClockDifferenceByUser(Out<s64> out_time,
                                                                        InClockSnapshot a,
                                                                        InClockSnapshot b) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. a={} b={} out_time={}", *a, *b, *out_time); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. a={} b={} out_time={}", *a, *b, *out_time);
+    };
 
     R_RETURN(m_wrapped_service->CalculateStandardUserSystemClockDifferenceByUser(out_time, a, b));
 }
 
 Result StaticService::CalculateSpanBetween(Out<s64> out_time, InClockSnapshot a,
                                            InClockSnapshot b) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. a={} b={} out_time={}", *a, *b, *out_time); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. a={} b={} out_time={}", *a, *b, *out_time);
+    };
 
     R_RETURN(m_wrapped_service->CalculateSpanBetween(out_time, a, b));
 }

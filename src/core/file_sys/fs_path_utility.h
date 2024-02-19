@@ -447,7 +447,7 @@ public:
         char* replacement_path = nullptr;
         size_t replacement_path_size = 0;
 
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (replacement_path != nullptr) {
                 if (std::is_constant_evaluated()) {
                     delete[] replacement_path;
@@ -455,7 +455,7 @@ public:
                     Deallocate(replacement_path, replacement_path_size);
                 }
             }
-        });
+        };
 
         // Perform path replacement, if necessary
         if (IsParentDirectoryPathReplacementNeeded(cur_path)) {
@@ -1102,8 +1102,8 @@ public:
         R_SUCCEED();
     }
 
-    static Result Normalize(char* dst, size_t dst_size, const char* path, size_t path_len,
-                            const PathFlags& flags) {
+    static constexpr Result Normalize(char* dst, size_t dst_size, const char* path, size_t path_len,
+                                      const PathFlags& flags) {
         // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 
@@ -1199,7 +1199,7 @@ public:
             const size_t replaced_src_len = path_len - (src - path);
 
             char* replaced_src = nullptr;
-            SCOPE_EXIT({
+            SCOPE_EXIT {
                 if (replaced_src != nullptr) {
                     if (std::is_constant_evaluated()) {
                         delete[] replaced_src;
@@ -1207,7 +1207,7 @@ public:
                         Deallocate(replaced_src, replaced_src_len);
                     }
                 }
-            });
+            };
 
             if (std::is_constant_evaluated()) {
                 replaced_src = new char[replaced_src_len];

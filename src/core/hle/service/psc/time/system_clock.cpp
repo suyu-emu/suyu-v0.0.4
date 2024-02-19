@@ -26,7 +26,9 @@ SystemClock::SystemClock(Core::System& system_, SystemClockCore& clock_core, boo
 }
 
 Result SystemClock::GetCurrentTime(Out<s64> out_time) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_time={}", *out_time); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_time={}", *out_time);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
@@ -45,7 +47,9 @@ Result SystemClock::SetCurrentTime(s64 time) {
 }
 
 Result SystemClock::GetSystemClockContext(Out<SystemClockContext> out_context) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_context={}", *out_context); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_context={}", *out_context);
+    };
 
     R_UNLESS(m_can_write_uninitialized_clock || m_clock_core.IsInitialized(),
              ResultClockUninitialized);
