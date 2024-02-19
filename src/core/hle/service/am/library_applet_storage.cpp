@@ -70,7 +70,7 @@ public:
     Result Read(s64 offset, void* buffer, size_t size) override {
         R_TRY(ValidateOffset(offset, size, m_size));
 
-        m_memory.ReadBlock(m_trmem->GetSourceAddress(), buffer, size);
+        m_memory.ReadBlock(m_trmem->GetSourceAddress() + offset, buffer, size);
 
         R_SUCCEED();
     }
@@ -79,7 +79,7 @@ public:
         R_UNLESS(m_is_writable, ResultUnknown);
         R_TRY(ValidateOffset(offset, size, m_size));
 
-        m_memory.WriteBlock(m_trmem->GetSourceAddress(), buffer, size);
+        m_memory.WriteBlock(m_trmem->GetSourceAddress() + offset, buffer, size);
 
         R_SUCCEED();
     }
