@@ -483,6 +483,8 @@ add_library(core STATIC
     hle/service/am/service/window_controller.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
+    hle/service/aoc/purchase_event_manager.cpp
+    hle/service/aoc/purchase_event_manager.h
     hle/service/apm/apm.cpp
     hle/service/apm/apm.h
     hle/service/apm/apm_controller.cpp
