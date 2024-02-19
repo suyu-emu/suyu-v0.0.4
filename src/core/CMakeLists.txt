@@ -543,6 +543,16 @@ add_library(core STATIC
     hle/service/btdrv/btdrv.h
     hle/service/btm/btm.cpp
     hle/service/btm/btm.h
+    hle/service/btm/btm_debug.cpp
+    hle/service/btm/btm_debug.h
+    hle/service/btm/btm_system.cpp
+    hle/service/btm/btm_system.h
+    hle/service/btm/btm_system_core.cpp
+    hle/service/btm/btm_system_core.h
+    hle/service/btm/btm_user.cpp
+    hle/service/btm/btm_user.h
+    hle/service/btm/btm_user_core.cpp
+    hle/service/btm/btm_user_core.h
     hle/service/caps/caps.cpp
     hle/service/caps/caps.h
     hle/service/caps/caps_a.cpp
