@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
 
@@ -16,24 +17,29 @@ class KEvent;
 
 namespace Service::AOC {
 
+class IPurchaseEventManager;
+
 class AOC_U final : public ServiceFramework<AOC_U> {
 public:
     explicit AOC_U(Core::System& system);
     ~AOC_U() override;
 
-private:
-    void CountAddOnContent(HLERequestContext& ctx);
-    void ListAddOnContent(HLERequestContext& ctx);
-    void GetAddOnContentBaseId(HLERequestContext& ctx);
-    void PrepareAddOnContent(HLERequestContext& ctx);
-    void GetAddOnContentListChangedEvent(HLERequestContext& ctx);
-    void GetAddOnContentListChangedEventWithProcessId(HLERequestContext& ctx);
-    void NotifyMountAddOnContent(HLERequestContext& ctx);
-    void NotifyUnmountAddOnContent(HLERequestContext& ctx);
-    void CheckAddOnContentMountStatus(HLERequestContext& ctx);
-    void CreateEcPurchasedEventManager(HLERequestContext& ctx);
-    void CreatePermanentEcPurchasedEventManager(HLERequestContext& ctx);
+    Result CountAddOnContent(Out<u32> out_count, ClientProcessId process_id);
+    Result ListAddOnContent(Out<u32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_addons,
+                            u32 offset, u32 count, ClientProcessId process_id);
+    Result GetAddOnContentBaseId(Out<u64> out_title_id, ClientProcessId process_id);
+    Result PrepareAddOnContent(s32 addon_index, ClientProcessId process_id);
+    Result GetAddOnContentListChangedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetAddOnContentListChangedEventWithProcessId(
+        OutCopyHandle<Kernel::KReadableEvent> out_event, ClientProcessId process_id);
+    Result NotifyMountAddOnContent();
+    Result NotifyUnmountAddOnContent();
+    Result CheckAddOnContentMountStatus();
+    Result CreateEcPurchasedEventManager(OutInterface<IPurchaseEventManager> out_interface);
+    Result CreatePermanentEcPurchasedEventManager(
+        OutInterface<IPurchaseEventManager> out_interface);
 
+private:
     std::vector<u64> add_on_content;
     KernelHelpers::ServiceContext service_context;
 
