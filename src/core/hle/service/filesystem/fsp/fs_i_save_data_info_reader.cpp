@@ -3,19 +3,19 @@
 
 #include "common/hex_util.h"
 #include "core/file_sys/savedata_factory.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/fsp/fs_i_save_data_info_reader.h"
 #include "core/hle/service/filesystem/save_data_controller.h"
-#include "core/hle/service/ipc_helpers.h"
 
 namespace Service::FileSystem {
 
 ISaveDataInfoReader::ISaveDataInfoReader(Core::System& system_,
                                          std::shared_ptr<SaveDataController> save_data_controller_,
                                          FileSys::SaveDataSpaceId space)
-    : ServiceFramework{system_, "ISaveDataInfoReader"},
-      save_data_controller{save_data_controller_} {
+    : ServiceFramework{system_, "ISaveDataInfoReader"}, save_data_controller{
+                                                            save_data_controller_} {
     static const FunctionInfo functions[] = {
-        {0, &ISaveDataInfoReader::ReadSaveDataInfo, "ReadSaveDataInfo"},
+        {0, D<&ISaveDataInfoReader::ReadSaveDataInfo>, "ReadSaveDataInfo"},
     };
     RegisterHandlers(functions);
 
@@ -36,11 +36,12 @@ static u64 stoull_be(std::string_view str) {
     return Common::swap64(out);
 }
 
-void ISaveDataInfoReader::ReadSaveDataInfo(HLERequestContext& ctx) {
+Result ISaveDataInfoReader::ReadSaveDataInfo(
+    Out<u64> out_count, OutArray<SaveDataInfo, BufferAttr_HipcMapAlias> out_entries) {
     LOG_DEBUG(Service_FS, "called");
 
     // Calculate how many entries we can fit in the output buffer
-    const u64 count_entries = ctx.GetWriteBufferNumElements<SaveDataInfo>();
+    const u64 count_entries = out_entries.size();
 
     // Cap at total number of entries.
     const u64 actual_entries = std::min(count_entries, info.size() - next_entry_index);
@@ -53,11 +54,10 @@ void ISaveDataInfoReader::ReadSaveDataInfo(HLERequestContext& ctx) {
     next_entry_index += actual_entries;
 
     // Write the data to memory
-    ctx.WriteBuffer(begin, range_size);
+    std::memcpy(out_entries.data(), begin, range_size);
+    *out_count = actual_entries;
 
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push<u64>(actual_entries);
+    R_SUCCEED();
 }
 
 void ISaveDataInfoReader::FindAllSaves(FileSys::SaveDataSpaceId space) {

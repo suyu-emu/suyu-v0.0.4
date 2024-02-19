@@ -14,8 +14,8 @@ public:
     ~IMultiCommitManager() override;
 
 private:
-    void Add(HLERequestContext& ctx);
-    void Commit(HLERequestContext& ctx);
+    Result Add();
+    Result Commit();
 
     FileSys::VirtualFile backend;
 };
