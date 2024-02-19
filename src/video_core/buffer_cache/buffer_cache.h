@@ -1130,7 +1130,7 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
         channel_state->vertex_buffers[index] = NULL_BINDING;
         return;
     }
-    if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end)) {
+    if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end) || size >= 64_MiB) {
         size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
     }
     const BufferId buffer_id = FindBuffer(*device_addr, size);
