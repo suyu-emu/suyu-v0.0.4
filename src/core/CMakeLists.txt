@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(core STATIC
-    arm/arm_interface.h
     arm/arm_interface.cpp
+    arm/arm_interface.h
     arm/debug.cpp
     arm/debug.h
     arm/exclusive_monitor.cpp
@@ -37,10 +37,10 @@ add_library(core STATIC
     debugger/gdbstub.h
     debugger/gdbstub_arch.cpp
     debugger/gdbstub_arch.h
-    device_memory_manager.h
-    device_memory_manager.inc
     device_memory.cpp
     device_memory.h
+    device_memory_manager.h
+    device_memory_manager.inc
     file_sys/bis_factory.cpp
     file_sys/bis_factory.h
     file_sys/card_image.cpp
@@ -390,6 +390,20 @@ add_library(core STATIC
     hle/service/acc/errors.h
     hle/service/acc/profile_manager.cpp
     hle/service/acc/profile_manager.h
+    hle/service/am/am.cpp
+    hle/service/am/am.h
+    hle/service/am/am_results.h
+    hle/service/am/am_types.h
+    hle/service/am/applet.cpp
+    hle/service/am/applet.h
+    hle/service/am/applet_data_broker.cpp
+    hle/service/am/applet_data_broker.h
+    hle/service/am/applet_manager.cpp
+    hle/service/am/applet_manager.h
+    hle/service/am/applet_message_queue.cpp
+    hle/service/am/applet_message_queue.h
+    hle/service/am/display_layer_manager.cpp
+    hle/service/am/display_layer_manager.h
     hle/service/am/frontend/applet_cabinet.cpp
     hle/service/am/frontend/applet_cabinet.h
     hle/service/am/frontend/applet_controller.cpp
@@ -411,20 +425,6 @@ add_library(core STATIC
     hle/service/am/frontend/applet_web_browser_types.h
     hle/service/am/frontend/applets.cpp
     hle/service/am/frontend/applets.h
-    hle/service/am/am.cpp
-    hle/service/am/am.h
-    hle/service/am/am_results.h
-    hle/service/am/am_types.h
-    hle/service/am/applet.cpp
-    hle/service/am/applet.h
-    hle/service/am/applet_manager.cpp
-    hle/service/am/applet_data_broker.cpp
-    hle/service/am/applet_data_broker.h
-    hle/service/am/applet_manager.h
-    hle/service/am/applet_message_queue.cpp
-    hle/service/am/applet_message_queue.h
-    hle/service/am/display_layer_manager.cpp
-    hle/service/am/display_layer_manager.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
     hle/service/am/library_applet_storage.cpp
@@ -441,10 +441,10 @@ add_library(core STATIC
     hle/service/am/service/application_creator.h
     hle/service/am/service/application_functions.cpp
     hle/service/am/service/application_functions.h
-    hle/service/am/service/application_proxy_service.cpp
-    hle/service/am/service/application_proxy_service.h
     hle/service/am/service/application_proxy.cpp
     hle/service/am/service/application_proxy.h
+    hle/service/am/service/application_proxy_service.cpp
+    hle/service/am/service/application_proxy_service.h
     hle/service/am/service/audio_controller.cpp
     hle/service/am/service/audio_controller.h
     hle/service/am/service/common_state_getter.cpp
@@ -473,10 +473,10 @@ add_library(core STATIC
     hle/service/am/service/process_winding_controller.h
     hle/service/am/service/self_controller.cpp
     hle/service/am/service/self_controller.h
-    hle/service/am/service/storage_accessor.cpp
-    hle/service/am/service/storage_accessor.h
     hle/service/am/service/storage.cpp
     hle/service/am/service/storage.h
+    hle/service/am/service/storage_accessor.cpp
+    hle/service/am/service/storage_accessor.h
     hle/service/am/service/system_applet_proxy.cpp
     hle/service/am/service/system_applet_proxy.h
     hle/service/am/service/window_controller.cpp
@@ -508,18 +508,6 @@ add_library(core STATIC
     hle/service/audio/hwopus.h
     hle/service/bcat/backend/backend.cpp
     hle/service/bcat/backend/backend.h
-    hle/service/bcat/news/newly_arrived_event_holder.cpp
-    hle/service/bcat/news/newly_arrived_event_holder.h
-    hle/service/bcat/news/news_data_service.cpp
-    hle/service/bcat/news/news_data_service.h
-    hle/service/bcat/news/news_database_service.cpp
-    hle/service/bcat/news/news_database_service.h
-    hle/service/bcat/news/news_service.cpp
-    hle/service/bcat/news/news_service.h
-    hle/service/bcat/news/overwrite_event_holder.cpp
-    hle/service/bcat/news/overwrite_event_holder.h
-    hle/service/bcat/news/service_creator.cpp
-    hle/service/bcat/news/service_creator.h
     hle/service/bcat/bcat.cpp
     hle/service/bcat/bcat.h
     hle/service/bcat/bcat_result.h
@@ -535,6 +523,18 @@ add_library(core STATIC
     hle/service/bcat/delivery_cache_progress_service.h
     hle/service/bcat/delivery_cache_storage_service.cpp
     hle/service/bcat/delivery_cache_storage_service.h
+    hle/service/bcat/news/newly_arrived_event_holder.cpp
+    hle/service/bcat/news/newly_arrived_event_holder.h
+    hle/service/bcat/news/news_data_service.cpp
+    hle/service/bcat/news/news_data_service.h
+    hle/service/bcat/news/news_database_service.cpp
+    hle/service/bcat/news/news_database_service.h
+    hle/service/bcat/news/news_service.cpp
+    hle/service/bcat/news/news_service.h
+    hle/service/bcat/news/overwrite_event_holder.cpp
+    hle/service/bcat/news/overwrite_event_holder.h
+    hle/service/bcat/news/service_creator.cpp
+    hle/service/bcat/news/service_creator.h
     hle/service/bcat/service_creator.cpp
     hle/service/bcat/service_creator.h
     hle/service/bpc/bpc.cpp
@@ -598,8 +598,6 @@ add_library(core STATIC
     hle/service/filesystem/romfs_controller.h
     hle/service/filesystem/save_data_controller.cpp
     hle/service/filesystem/save_data_controller.h
-    hle/service/fgm/fgm.cpp
-    hle/service/fgm/fgm.h
     hle/service/friend/friend.cpp
     hle/service/friend/friend.h
     hle/service/friend/friend_interface.cpp
@@ -759,10 +757,10 @@ add_library(core STATIC
     hle/service/ns/factory_reset_interface.h
     hle/service/ns/language.cpp
     hle/service/ns/language.h
-    hle/service/ns/ns_results.h
-    hle/service/ns/ns_types.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
+    hle/service/ns/ns_results.h
+    hle/service/ns/ns_types.h
     hle/service/ns/platform_service_manager.cpp
     hle/service/ns/platform_service_manager.h
     hle/service/ns/query_service.cpp
@@ -833,12 +831,12 @@ add_library(core STATIC
     hle/service/nvnflinger/consumer_listener.h
     hle/service/nvnflinger/graphic_buffer_producer.cpp
     hle/service/nvnflinger/graphic_buffer_producer.h
-    hle/service/nvnflinger/hos_binder_driver_server.cpp
-    hle/service/nvnflinger/hos_binder_driver_server.h
-    hle/service/nvnflinger/hos_binder_driver.cpp
-    hle/service/nvnflinger/hos_binder_driver.h
     hle/service/nvnflinger/hardware_composer.cpp
     hle/service/nvnflinger/hardware_composer.h
+    hle/service/nvnflinger/hos_binder_driver.cpp
+    hle/service/nvnflinger/hos_binder_driver.h
+    hle/service/nvnflinger/hos_binder_driver_server.cpp
+    hle/service/nvnflinger/hos_binder_driver_server.h
     hle/service/nvnflinger/hwc_layer.h
     hle/service/nvnflinger/nvnflinger.cpp
     hle/service/nvnflinger/nvnflinger.h
@@ -864,11 +862,11 @@ add_library(core STATIC
     hle/service/omm/power_state_interface.h
     hle/service/os/event.cpp
     hle/service/os/event.h
+    hle/service/os/multi_wait.cpp
+    hle/service/os/multi_wait.h
     hle/service/os/multi_wait_holder.cpp
     hle/service/os/multi_wait_holder.h
     hle/service/os/multi_wait_utils.h
-    hle/service/os/multi_wait.cpp
-    hle/service/os/multi_wait.h
     hle/service/os/mutex.cpp
     hle/service/os/mutex.h
     hle/service/pcie/pcie.cpp
@@ -906,15 +904,17 @@ add_library(core STATIC
     hle/service/psc/time/common.cpp
     hle/service/psc/time/common.h
     hle/service/psc/time/errors.h
-    hle/service/psc/time/shared_memory.cpp
-    hle/service/psc/time/shared_memory.h
-    hle/service/psc/time/static.cpp
-    hle/service/psc/time/static.h
     hle/service/psc/time/manager.h
+    hle/service/psc/time/power_state_request_manager.cpp
+    hle/service/psc/time/power_state_request_manager.h
     hle/service/psc/time/power_state_service.cpp
     hle/service/psc/time/power_state_service.h
     hle/service/psc/time/service_manager.cpp
     hle/service/psc/time/service_manager.h
+    hle/service/psc/time/shared_memory.cpp
+    hle/service/psc/time/shared_memory.h
+    hle/service/psc/time/static.cpp
+    hle/service/psc/time/static.h
     hle/service/psc/time/steady_clock.cpp
     hle/service/psc/time/steady_clock.h
     hle/service/psc/time/system_clock.cpp
@@ -923,8 +923,6 @@ add_library(core STATIC
     hle/service/psc/time/time_zone.h
     hle/service/psc/time/time_zone_service.cpp
     hle/service/psc/time/time_zone_service.h
-    hle/service/psc/time/power_state_request_manager.cpp
-    hle/service/psc/time/power_state_request_manager.h
     hle/service/ptm/psm.cpp
     hle/service/ptm/psm.h
     hle/service/ptm/ptm.cpp
@@ -943,19 +941,19 @@ add_library(core STATIC
     hle/service/service.h
     hle/service/services.cpp
     hle/service/services.h
-    hle/service/set/setting_formats/appln_settings.cpp
-    hle/service/set/setting_formats/appln_settings.h
-    hle/service/set/setting_formats/device_settings.cpp
-    hle/service/set/setting_formats/device_settings.h
-    hle/service/set/setting_formats/system_settings.cpp
-    hle/service/set/setting_formats/system_settings.h
-    hle/service/set/setting_formats/private_settings.cpp
-    hle/service/set/setting_formats/private_settings.h
     hle/service/set/factory_settings_server.cpp
     hle/service/set/factory_settings_server.h
     hle/service/set/firmware_debug_settings_server.cpp
     hle/service/set/firmware_debug_settings_server.h
     hle/service/set/key_code_map.h
+    hle/service/set/setting_formats/appln_settings.cpp
+    hle/service/set/setting_formats/appln_settings.h
+    hle/service/set/setting_formats/device_settings.cpp
+    hle/service/set/setting_formats/device_settings.h
+    hle/service/set/setting_formats/private_settings.cpp
+    hle/service/set/setting_formats/private_settings.h
+    hle/service/set/setting_formats/system_settings.cpp
+    hle/service/set/setting_formats/system_settings.h
     hle/service/set/settings.cpp
     hle/service/set/settings.h
     hle/service/set/settings_server.cpp
@@ -998,10 +996,10 @@ add_library(core STATIC
     hle/service/vi/conductor.h
     hle/service/vi/container.cpp
     hle/service/vi/container.h
-    hle/service/vi/display_list.h
     hle/service/vi/display.h
-    hle/service/vi/layer_list.h
+    hle/service/vi/display_list.h
     hle/service/vi/layer.h
+    hle/service/vi/layer_list.h
     hle/service/vi/manager_display_service.cpp
     hle/service/vi/manager_display_service.h
     hle/service/vi/manager_root_service.cpp
@@ -1014,10 +1012,10 @@ add_library(core STATIC
     hle/service/vi/system_display_service.h
     hle/service/vi/system_root_service.cpp
     hle/service/vi/system_root_service.h
-    hle/service/vi/vi_results.h
-    hle/service/vi/vi_types.h
     hle/service/vi/vi.cpp
     hle/service/vi/vi.h
+    hle/service/vi/vi_results.h
+    hle/service/vi/vi_types.h
     hle/service/vi/vsync_manager.cpp
     hle/service/vi/vsync_manager.h
     internal_network/network.cpp
