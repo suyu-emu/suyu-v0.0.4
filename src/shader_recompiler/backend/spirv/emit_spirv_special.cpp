@@ -129,7 +129,9 @@ void EmitEmitVertex(EmitContext& ctx, const IR::Value& stream) {
     if (ctx.runtime_info.convert_depth_mode && !ctx.profile.support_native_ndc) {
         ConvertDepthMode(ctx);
     }
-    if (stream.IsImmediate()) {
+    if (!ctx.profile.support_geometry_streams) {
+        throw NotImplementedException("Geometry streams");
+    } else if (stream.IsImmediate()) {
         ctx.OpEmitStreamVertex(ctx.Def(stream));
     } else {
         LOG_WARNING(Shader_SPIRV, "Stream is not immediate");
@@ -140,7 +142,9 @@ void EmitEmitVertex(EmitContext& ctx, const IR::Value& stream) {
 }
 
 void EmitEndPrimitive(EmitContext& ctx, const IR::Value& stream) {
-    if (stream.IsImmediate()) {
+    if (!ctx.profile.support_geometry_streams) {
+        throw NotImplementedException("Geometry streams");
+    } else if (stream.IsImmediate()) {
         ctx.OpEndStreamPrimitive(ctx.Def(stream));
     } else {
         LOG_WARNING(Shader_SPIRV, "Stream is not immediate");
