@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include "core/file_sys/fs_save_data_types.h"
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
@@ -60,10 +61,10 @@ private:
     Result OpenFileSystemWithPatch(OutInterface<IFileSystem> out_interface,
                                    FileSystemProxyType type, u64 open_program_id);
     Result OpenSdCardFileSystem(OutInterface<IFileSystem> out_interface);
-    Result CreateSaveDataFileSystem(std::array<u8, 0x40> save_create_struct,
+    Result CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_create_struct,
                                     FileSys::SaveDataAttribute save_struct, u128 uid);
-    Result CreateSaveDataFileSystemBySystemSaveDataId(std::array<u8, 0x40> save_create_struct,
-                                                      FileSys::SaveDataAttribute save_struct);
+    Result CreateSaveDataFileSystemBySystemSaveDataId(
+        FileSys::SaveDataCreationInfo save_create_struct, FileSys::SaveDataAttribute save_struct);
     Result OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
                                   FileSys::SaveDataSpaceId space_id,
                                   FileSys::SaveDataAttribute attribute);

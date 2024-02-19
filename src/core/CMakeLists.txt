@@ -58,6 +58,7 @@ add_library(core STATIC
     file_sys/fs_operate_range.h
     file_sys/fs_path.h
     file_sys/fs_path_utility.h
+    file_sys/fs_save_data_types.h
     file_sys/fs_string_util.h
     file_sys/fsmitm_romfsbuild.cpp
     file_sys/fsmitm_romfsbuild.h

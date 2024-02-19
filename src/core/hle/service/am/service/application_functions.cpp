@@ -123,13 +123,13 @@ Result IApplicationFunctions::EnsureSaveData(Out<u64> out_size, Common::UUID use
     LOG_INFO(Service_AM, "called, uid={}", user_id.FormattedString());
 
     FileSys::SaveDataAttribute attribute{};
-    attribute.title_id = m_applet->program_id;
+    attribute.program_id = m_applet->program_id;
     attribute.user_id = user_id.AsU128();
-    attribute.type = FileSys::SaveDataType::SaveData;
+    attribute.type = FileSys::SaveDataType::Account;
 
     FileSys::VirtualDir save_data{};
     R_TRY(system.GetFileSystemController().OpenSaveDataController()->CreateSaveData(
-        &save_data, FileSys::SaveDataSpaceId::NandUser, attribute));
+        &save_data, FileSys::SaveDataSpaceId::User, attribute));
 
     *out_size = 0;
     R_SUCCEED();
