@@ -664,7 +664,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
         val overlayControlData = NativeConfig.getOverlayControlData()
         overlayControlData.forEach {
-            it.enabled = OverlayControl.from(it.id)?.defaultVisibility == false
+            it.enabled = OverlayControl.from(it.id)?.defaultVisibility == true
         }
         NativeConfig.setOverlayControlData(overlayControlData)
 
