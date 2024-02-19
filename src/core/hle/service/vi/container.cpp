@@ -43,11 +43,7 @@ void Container::OnTerminate() {
 
     m_is_shut_down = true;
 
-    m_layers.ForEachLayer([&](auto& layer) {
-        if (layer.IsOpen()) {
-            this->DestroyBufferQueueLocked(&layer);
-        }
-    });
+    m_layers.ForEachLayer([&](auto& layer) { this->DestroyLayerLocked(layer.GetId()); });
 
     m_displays.ForEachDisplay(
         [&](auto& display) { m_surface_flinger->RemoveDisplay(display.GetId()); });
@@ -161,16 +157,29 @@ Result Container::CreateLayerLocked(u64* out_layer_id, u64 display_id, u64 owner
     auto* const display = m_displays.GetDisplayById(display_id);
     R_UNLESS(display != nullptr, VI::ResultNotFound);
 
-    auto* const layer = m_layers.CreateLayer(owner_aruid, display);
+    s32 consumer_binder_id, producer_binder_id;
+    m_surface_flinger->CreateBufferQueue(&consumer_binder_id, &producer_binder_id);
+
+    auto* const layer =
+        m_layers.CreateLayer(owner_aruid, display, consumer_binder_id, producer_binder_id);
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
+
+    m_surface_flinger->CreateLayer(consumer_binder_id);
 
     *out_layer_id = layer->GetId();
     R_SUCCEED();
 }
 
 Result Container::DestroyLayerLocked(u64 layer_id) {
-    R_SUCCEED_IF(m_layers.DestroyLayer(layer_id));
-    R_THROW(VI::ResultNotFound);
+    auto* const layer = m_layers.GetLayerById(layer_id);
+    R_UNLESS(layer != nullptr, VI::ResultNotFound);
+
+    m_surface_flinger->DestroyLayer(layer->GetConsumerBinderId());
+    m_surface_flinger->DestroyBufferQueue(layer->GetConsumerBinderId(),
+                                          layer->GetProducerBinderId());
+    m_layers.DestroyLayer(layer_id);
+
+    R_SUCCEED();
 }
 
 Result Container::OpenLayerLocked(s32* out_producer_binder_id, u64 layer_id, u64 aruid) {
@@ -181,7 +190,12 @@ Result Container::OpenLayerLocked(s32* out_producer_binder_id, u64 layer_id, u64
     R_UNLESS(!layer->IsOpen(), VI::ResultOperationFailed);
     R_UNLESS(layer->GetOwnerAruid() == aruid, VI::ResultPermissionDenied);
 
-    this->CreateBufferQueueLocked(layer);
+    layer->Open();
+
+    if (auto* display = layer->GetDisplay(); display != nullptr) {
+        m_surface_flinger->AddLayerToDisplayStack(display->GetId(), layer->GetConsumerBinderId());
+    }
+
     *out_producer_binder_id = layer->GetProducerBinderId();
 
     R_SUCCEED();
@@ -192,30 +206,14 @@ Result Container::CloseLayerLocked(u64 layer_id) {
     R_UNLESS(layer != nullptr, VI::ResultNotFound);
     R_UNLESS(layer->IsOpen(), VI::ResultOperationFailed);
 
-    this->DestroyBufferQueueLocked(layer);
-
-    R_SUCCEED();
-}
-
-void Container::CreateBufferQueueLocked(Layer* layer) {
-    s32 consumer_binder_id, producer_binder_id;
-    m_surface_flinger->CreateBufferQueue(&consumer_binder_id, &producer_binder_id);
-    layer->Open(consumer_binder_id, producer_binder_id);
-
-    if (auto* display = layer->GetDisplay(); display != nullptr) {
-        m_surface_flinger->AddLayerToDisplayStack(display->GetId(), consumer_binder_id);
-    }
-}
-
-void Container::DestroyBufferQueueLocked(Layer* layer) {
     if (auto* display = layer->GetDisplay(); display != nullptr) {
         m_surface_flinger->RemoveLayerFromDisplayStack(display->GetId(),
                                                        layer->GetConsumerBinderId());
     }
 
     layer->Close();
-    m_surface_flinger->DestroyBufferQueue(layer->GetConsumerBinderId(),
-                                          layer->GetProducerBinderId());
+
+    R_SUCCEED();
 }
 
 bool Container::ComposeOnDisplay(s32* out_swap_interval, f32* out_compose_speed_scale,
