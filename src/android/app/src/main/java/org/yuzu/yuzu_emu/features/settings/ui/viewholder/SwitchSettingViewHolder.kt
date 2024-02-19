@@ -9,7 +9,6 @@ import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SwitchSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
-import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter: SettingsAdapter) :
@@ -29,9 +28,7 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
             adapter.onBooleanClick(setting, binding.switchWidget.isChecked, bindingAdapterPosition)
         }
 
-        binding.buttonClear.setVisible(
-            !setting.setting.global || NativeConfig.isPerGameConfigLoaded()
-        )
+        binding.buttonClear.setVisible(setting.clearable)
         binding.buttonClear.setOnClickListener {
             adapter.onClearClick(setting, bindingAdapterPosition)
         }
