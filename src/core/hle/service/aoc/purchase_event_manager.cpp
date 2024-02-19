@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/aoc/purchase_event_manager.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AOC {
 
@@ -13,11 +13,11 @@ IPurchaseEventManager::IPurchaseEventManager(Core::System& system_)
       service_context{system, "IPurchaseEventManager"} {
     // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
-            {1, &IPurchaseEventManager::SetDeliveryTarget, "SetDeliveryTarget"},
-            {2, &IPurchaseEventManager::GetPurchasedEventReadableHandle, "GetPurchasedEventReadableHandle"},
-            {3, &IPurchaseEventManager::PopPurchasedProductInfo, "PopPurchasedProductInfo"},
-            {4, &IPurchaseEventManager::PopPurchasedProductInfoWithUid, "PopPurchasedProductInfoWithUid"},
+            {0, D<&IPurchaseEventManager::SetDefaultDeliveryTarget>, "SetDefaultDeliveryTarget"},
+            {1, D<&IPurchaseEventManager::SetDeliveryTarget>, "SetDeliveryTarget"},
+            {2, D<&IPurchaseEventManager::GetPurchasedEvent>, "GetPurchasedEvent"},
+            {3, D<&IPurchaseEventManager::PopPurchasedProductInfo>, "PopPurchasedProductInfo"},
+            {4, D<&IPurchaseEventManager::PopPurchasedProductInfoWithUid>, "PopPurchasedProductInfoWithUid"},
         };
     // clang-format on
 
@@ -30,50 +30,38 @@ IPurchaseEventManager::~IPurchaseEventManager() {
     service_context.CloseEvent(purchased_event);
 }
 
-void IPurchaseEventManager::SetDefaultDeliveryTarget(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
+Result IPurchaseEventManager::SetDefaultDeliveryTarget(
+    ClientProcessId process_id, InBuffer<BufferAttr_HipcMapAlias> in_buffer) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called, process_id={}", process_id.pid);
 
-    const auto unknown_1 = rp.Pop<u64>();
-    [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
-
-    LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IPurchaseEventManager::SetDeliveryTarget(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
+Result IPurchaseEventManager::SetDeliveryTarget(u64 unknown,
+                                                InBuffer<BufferAttr_HipcMapAlias> in_buffer) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called, unknown={}", unknown);
 
-    const auto unknown_1 = rp.Pop<u64>();
-    [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
-
-    LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IPurchaseEventManager::GetPurchasedEventReadableHandle(HLERequestContext& ctx) {
+Result IPurchaseEventManager::GetPurchasedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_WARNING(Service_AOC, "called");
 
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(purchased_event->GetReadableEvent());
+    *out_event = &purchased_event->GetReadableEvent();
+
+    R_SUCCEED();
 }
 
-void IPurchaseEventManager::PopPurchasedProductInfo(HLERequestContext& ctx) {
+Result IPurchaseEventManager::PopPurchasedProductInfo() {
     LOG_DEBUG(Service_AOC, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultNoPurchasedProductInfoAvailable);
+    R_RETURN(ResultNoPurchasedProductInfoAvailable);
 }
 
-void IPurchaseEventManager::PopPurchasedProductInfoWithUid(HLERequestContext& ctx) {
+Result IPurchaseEventManager::PopPurchasedProductInfoWithUid() {
     LOG_DEBUG(Service_AOC, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultNoPurchasedProductInfoAvailable);
+    R_RETURN(ResultNoPurchasedProductInfoAvailable);
 }
 
 } // namespace Service::AOC
