@@ -4,6 +4,7 @@
 #pragma once
 
 #include "core/file_sys/vfs/vfs.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/service.h"
 
@@ -16,8 +17,10 @@ public:
 private:
     FileSys::VirtualFile backend;
 
-    void Read(HLERequestContext& ctx);
-    void GetSize(HLERequestContext& ctx);
+    Result Read(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_bytes,
+        s64 offset, s64 length);
+    Result GetSize(Out<u64> out_size);
 };
 
 } // namespace Service::FileSystem

@@ -5,6 +5,7 @@
 
 #include <vector>
 #include "common/common_types.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::FileSystem {
@@ -17,13 +18,6 @@ public:
                                  std::shared_ptr<SaveDataController> save_data_controller_,
                                  FileSys::SaveDataSpaceId space);
     ~ISaveDataInfoReader() override;
-
-    void ReadSaveDataInfo(HLERequestContext& ctx);
-
-private:
-    void FindAllSaves(FileSys::SaveDataSpaceId space);
-    void FindNormalSaves(FileSys::SaveDataSpaceId space, const FileSys::VirtualDir& type);
-    void FindTemporaryStorageSaves(FileSys::SaveDataSpaceId space, const FileSys::VirtualDir& type);
 
     struct SaveDataInfo {
         u64_le save_id_unknown;
@@ -39,6 +33,14 @@ private:
         INSERT_PADDING_BYTES_NOINIT(0x25);
     };
     static_assert(sizeof(SaveDataInfo) == 0x60, "SaveDataInfo has incorrect size.");
+
+    Result ReadSaveDataInfo(Out<u64> out_count,
+                            OutArray<SaveDataInfo, BufferAttr_HipcMapAlias> out_entries);
+
+private:
+    void FindAllSaves(FileSys::SaveDataSpaceId space);
+    void FindNormalSaves(FileSys::SaveDataSpaceId space, const FileSys::VirtualDir& type);
+    void FindTemporaryStorageSaves(FileSys::SaveDataSpaceId space, const FileSys::VirtualDir& type);
 
     std::shared_ptr<SaveDataController> save_data_controller;
     std::vector<SaveDataInfo> info;

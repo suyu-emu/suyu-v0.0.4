@@ -1,34 +1,32 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/filesystem/fsp/fs_i_multi_commit_manager.h"
-#include "core/hle/service/ipc_helpers.h"
 
 namespace Service::FileSystem {
 
 IMultiCommitManager::IMultiCommitManager(Core::System& system_)
     : ServiceFramework{system_, "IMultiCommitManager"} {
     static const FunctionInfo functions[] = {
-        {1, &IMultiCommitManager::Add, "Add"},
-        {2, &IMultiCommitManager::Commit, "Commit"},
+        {1, D<&IMultiCommitManager::Add>, "Add"},
+        {2, D<&IMultiCommitManager::Commit>, "Commit"},
     };
     RegisterHandlers(functions);
 }
 
 IMultiCommitManager::~IMultiCommitManager() = default;
 
-void IMultiCommitManager::Add(HLERequestContext& ctx) {
+Result IMultiCommitManager::Add() {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IMultiCommitManager::Commit(HLERequestContext& ctx) {
+Result IMultiCommitManager::Commit() {
     LOG_WARNING(Service_FS, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
 } // namespace Service::FileSystem
