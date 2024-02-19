@@ -19,10 +19,10 @@ namespace Service::AOC {
 
 class IPurchaseEventManager;
 
-class AOC_U final : public ServiceFramework<AOC_U> {
+class IAddOnContentManager final : public ServiceFramework<IAddOnContentManager> {
 public:
-    explicit AOC_U(Core::System& system);
-    ~AOC_U() override;
+    explicit IAddOnContentManager(Core::System& system);
+    ~IAddOnContentManager() override;
 
     Result CountAddOnContent(Out<u32> out_count, ClientProcessId process_id);
     Result ListAddOnContent(Out<u32> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_addons,
