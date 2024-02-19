@@ -739,15 +739,48 @@ add_library(core STATIC
     hle/service/nim/nim.h
     hle/service/npns/npns.cpp
     hle/service/npns/npns.h
-    hle/service/ns/errors.h
-    hle/service/ns/iplatform_service_manager.cpp
-    hle/service/ns/iplatform_service_manager.h
+    hle/service/ns/account_proxy_interface.cpp
+    hle/service/ns/account_proxy_interface.h
+    hle/service/ns/application_manager_interface.cpp
+    hle/service/ns/application_manager_interface.h
+    hle/service/ns/application_version_interface.cpp
+    hle/service/ns/application_version_interface.h
+    hle/service/ns/content_management_interface.cpp
+    hle/service/ns/content_management_interface.h
+    hle/service/ns/develop_interface.cpp
+    hle/service/ns/develop_interface.h
+    hle/service/ns/document_interface.cpp
+    hle/service/ns/document_interface.h
+    hle/service/ns/download_task_interface.cpp
+    hle/service/ns/download_task_interface.h
+    hle/service/ns/dynamic_rights_interface.cpp
+    hle/service/ns/dynamic_rights_interface.h
+    hle/service/ns/ecommerce_interface.cpp
+    hle/service/ns/ecommerce_interface.h
+    hle/service/ns/factory_reset_interface.cpp
+    hle/service/ns/factory_reset_interface.h
     hle/service/ns/language.cpp
     hle/service/ns/language.h
+    hle/service/ns/ns_results.h
+    hle/service/ns/ns_types.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
-    hle/service/ns/pdm_qry.cpp
-    hle/service/ns/pdm_qry.h
+    hle/service/ns/platform_service_manager.cpp
+    hle/service/ns/platform_service_manager.h
+    hle/service/ns/query_service.cpp
+    hle/service/ns/query_service.h
+    hle/service/ns/read_only_application_control_data_interface.cpp
+    hle/service/ns/read_only_application_control_data_interface.h
+    hle/service/ns/read_only_application_record_interface.cpp
+    hle/service/ns/read_only_application_record_interface.h
+    hle/service/ns/service_getter_interface.cpp
+    hle/service/ns/service_getter_interface.h
+    hle/service/ns/system_update_control.cpp
+    hle/service/ns/system_update_control.h
+    hle/service/ns/system_update_interface.cpp
+    hle/service/ns/system_update_interface.h
+    hle/service/ns/vulnerability_manager_interface.cpp
+    hle/service/ns/vulnerability_manager_interface.h
     hle/service/nvdrv/core/container.cpp
     hle/service/nvdrv/core/container.h
     hle/service/nvdrv/core/heap_mapper.cpp

@@ -5,7 +5,9 @@
 
 #include <memory>
 #include <vector>
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/set/settings_types.h"
 
 namespace Service {
 
@@ -21,6 +23,20 @@ enum class FontArchives : u64 {
     Korean = 0x0100000000000812,
     ChineseTraditional = 0x0100000000000813,
     ChineseSimple = 0x0100000000000814,
+};
+
+enum class SharedFontType : u32 {
+    JapanUSEuropeStandard = 0,
+    ChineseSimplified = 1,
+    ExtendedChineseSimplified = 2,
+    ChineseTraditional = 3,
+    KoreanHangul = 4,
+    NintendoExtended = 5,
+};
+
+enum class LoadState : u32 {
+    Loading = 0,
+    Loaded = 1,
 };
 
 constexpr std::array<std::pair<FontArchives, const char*>, 7> SHARED_FONTS{
@@ -42,12 +58,17 @@ public:
     ~IPlatformServiceManager() override;
 
 private:
-    void RequestLoad(HLERequestContext& ctx);
-    void GetLoadState(HLERequestContext& ctx);
-    void GetSize(HLERequestContext& ctx);
-    void GetSharedMemoryAddressOffset(HLERequestContext& ctx);
-    void GetSharedMemoryNativeHandle(HLERequestContext& ctx);
-    void GetSharedFontInOrderOfPriority(HLERequestContext& ctx);
+    Result RequestLoad(SharedFontType type);
+    Result GetLoadState(Out<LoadState> out_load_state, SharedFontType type);
+    Result GetSize(Out<u32> out_size, SharedFontType type);
+    Result GetSharedMemoryAddressOffset(Out<u32> out_shared_memory_offset, SharedFontType type);
+    Result GetSharedMemoryNativeHandle(
+        OutCopyHandle<Kernel::KSharedMemory> out_shared_memory_native_handle);
+    Result GetSharedFontInOrderOfPriority(OutArray<u32, BufferAttr_HipcMapAlias> out_font_codes,
+                                          OutArray<u32, BufferAttr_HipcMapAlias> out_font_offsets,
+                                          OutArray<u32, BufferAttr_HipcMapAlias> out_font_sizes,
+                                          Out<bool> out_fonts_are_loaded, Out<u32> out_font_count,
+                                          Set::LanguageCode language_code);
 
     struct Impl;
     std::unique_ptr<Impl> impl;
