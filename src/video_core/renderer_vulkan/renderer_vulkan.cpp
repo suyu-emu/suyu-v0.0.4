@@ -144,7 +144,9 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
         return;
     }
 
-    SCOPE_EXIT({ render_window.OnFrameDisplayed(); });
+    SCOPE_EXIT {
+        render_window.OnFrameDisplayed();
+    };
 
     RenderAppletCaptureLayer(framebuffers);
 

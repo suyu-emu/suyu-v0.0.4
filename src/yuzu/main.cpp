@@ -646,10 +646,10 @@ void GMainWindow::AmiiboSettingsShowDialog(const Core::Frontend::CabinetParamete
                                            std::shared_ptr<Service::NFC::NfcDevice> nfp_device) {
     cabinet_applet =
         new QtAmiiboSettingsDialog(this, parameters, input_subsystem.get(), nfp_device);
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         cabinet_applet->deleteLater();
         cabinet_applet = nullptr;
-    });
+    };
 
     cabinet_applet->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
                                    Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
@@ -673,10 +673,10 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
     const Core::Frontend::ControllerParameters& parameters) {
     controller_applet =
         new QtControllerSelectorDialog(this, parameters, input_subsystem.get(), *system);
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         controller_applet->deleteLater();
         controller_applet = nullptr;
-    });
+    };
 
     controller_applet->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint |
                                       Qt::WindowStaysOnTopHint | Qt::WindowTitleHint |
@@ -703,10 +703,10 @@ void GMainWindow::ControllerSelectorRequestExit() {
 void GMainWindow::ProfileSelectorSelectProfile(
     const Core::Frontend::ProfileSelectParameters& parameters) {
     profile_select_applet = new QtProfileSelectionDialog(*system, this, parameters);
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         profile_select_applet->deleteLater();
         profile_select_applet = nullptr;
-    });
+    };
 
     profile_select_applet->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint |
                                           Qt::WindowStaysOnTopHint | Qt::WindowTitleHint |
@@ -2885,17 +2885,19 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
         LOG_ERROR(Frontend, "CoInitialize failed");
         return false;
     }
-    SCOPE_EXIT({ CoUninitialize(); });
+    SCOPE_EXIT {
+        CoUninitialize();
+    };
     IShellLinkW* ps1 = nullptr;
     IPersistFile* persist_file = nullptr;
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         if (persist_file != nullptr) {
             persist_file->Release();
         }
         if (ps1 != nullptr) {
             ps1->Release();
         }
-    });
+    };
     HRESULT hres = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
                                     reinterpret_cast<void**>(&ps1));
     if (FAILED(hres)) {
@@ -3520,10 +3522,10 @@ void GMainWindow::OnSaveConfig() {
 void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_text) {
     error_applet = new OverlayDialog(render_window, *system, error_code, error_text, QString{},
                                      tr("OK"), Qt::AlignLeft | Qt::AlignVCenter);
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         error_applet->deleteLater();
         error_applet = nullptr;
-    });
+    };
     error_applet->exec();
 
     emit ErrorDisplayFinished();
@@ -5192,7 +5194,9 @@ int main(int argc, char* argv[]) {
 
     Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");
-    SCOPE_EXIT({ MicroProfileShutdown(); });
+    SCOPE_EXIT {
+        MicroProfileShutdown();
+    };
 
     Common::ConfigureNvidiaEnvironmentFlags();
 

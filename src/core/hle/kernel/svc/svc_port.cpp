@@ -68,10 +68,10 @@ Result CreatePort(Core::System& system, Handle* out_server, Handle* out_client,
     port->Initialize(max_sessions, is_light, name);
 
     // Ensure that we clean up the port (and its only references are handle table) on function end.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         port->GetServerPort().Close();
         port->GetClientPort().Close();
-    });
+    };
 
     // Register the port.
     KPort::Register(kernel, port);
@@ -150,10 +150,10 @@ Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t
         KPort::Register(system.Kernel(), port);
 
         // Ensure that our only reference to the port is in the handle table when we're done.
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             port->GetClientPort().Close();
             port->GetServerPort().Close();
-        });
+        };
 
         // Register the handle in the table.
         R_TRY(handle_table.Add(out_server_handle, std::addressof(port->GetServerPort())));

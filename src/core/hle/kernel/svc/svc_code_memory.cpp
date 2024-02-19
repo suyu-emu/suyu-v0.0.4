@@ -45,7 +45,9 @@ Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t
 
     KCodeMemory* code_mem = KCodeMemory::Create(kernel);
     R_UNLESS(code_mem != nullptr, ResultOutOfResource);
-    SCOPE_EXIT({ code_mem->Close(); });
+    SCOPE_EXIT {
+        code_mem->Close();
+    };
 
     // Verify that the region is in range.
     R_UNLESS(GetCurrentProcess(system.Kernel()).GetPageTable().Contains(address, size),

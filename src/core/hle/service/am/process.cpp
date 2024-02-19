@@ -68,7 +68,9 @@ bool Process::Initialize(u64 program_id, u8 minimum_key_generation, u8 maximum_k
     Kernel::KProcess::Register(m_system.Kernel(), process);
 
     // On exit, ensure we free the additional reference to the process.
-    SCOPE_EXIT({ process->Close(); });
+    SCOPE_EXIT {
+        process->Close();
+    };
 
     // Insert process modules into memory.
     const auto [load_result, load_parameters] = app_loader->Load(*process, m_system);

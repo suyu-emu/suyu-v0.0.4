@@ -651,11 +651,11 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
     // Process any special data.
     if (src_header.GetHasSpecialHeader()) {
         // After we process, make sure we track whether the receive list is broken.
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (offset > dst_recv_list_idx) {
                 recv_list_broken = true;
             }
-        });
+        };
 
         // Process special data.
         R_TRY(ProcessMessageSpecialData<false>(offset, dst_process, src_process, src_thread,
@@ -665,11 +665,11 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
     // Process any pointer buffers.
     for (auto i = 0; i < src_header.GetPointerCount(); ++i) {
         // After we process, make sure we track whether the receive list is broken.
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (offset > dst_recv_list_idx) {
                 recv_list_broken = true;
             }
-        });
+        };
 
         R_TRY(ProcessReceiveMessagePointerDescriptors(
             offset, pointer_key, dst_page_table, src_page_table, dst_msg, src_msg, dst_recv_list,
@@ -680,11 +680,11 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
     // Process any map alias buffers.
     for (auto i = 0; i < src_header.GetMapAliasCount(); ++i) {
         // After we process, make sure we track whether the receive list is broken.
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (offset > dst_recv_list_idx) {
                 recv_list_broken = true;
             }
-        });
+        };
 
         // We process in order send, recv, exch. Buffers after send (recv/exch) are ReadWrite.
         const KMemoryPermission perm = (i >= src_header.GetSendCount())
@@ -702,11 +702,11 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
     // Process any raw data.
     if (const auto raw_count = src_header.GetRawCount(); raw_count != 0) {
         // After we process, make sure we track whether the receive list is broken.
-        SCOPE_EXIT({
+        SCOPE_EXIT {
             if (offset + raw_count > dst_recv_list_idx) {
                 recv_list_broken = true;
             }
-        });
+        };
 
         // Get the offset and size.
         const size_t offset_words = offset * sizeof(u32);
@@ -1124,7 +1124,9 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
         client_thread->Open();
     }
 
-    SCOPE_EXIT({ client_thread->Close(); });
+    SCOPE_EXIT {
+        client_thread->Close();
+    };
 
     // Set the request as our current.
     m_current_request = request;
@@ -1174,7 +1176,9 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
         // Reply to the client.
         {
             // After we reply, close our reference to the request.
-            SCOPE_EXIT({ request->Close(); });
+            SCOPE_EXIT {
+                request->Close();
+            };
 
             // Get the event to check whether the request is async.
             if (KEvent* event = request->GetEvent(); event != nullptr) {
@@ -1236,7 +1240,9 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
     }
 
     // Close reference to the request once we're done processing it.
-    SCOPE_EXIT({ request->Close(); });
+    SCOPE_EXIT {
+        request->Close();
+    };
 
     // Extract relevant information from the request.
     const uint64_t client_message = request->GetAddress();
@@ -1394,7 +1400,9 @@ void KServerSession::CleanupRequests() {
         }
 
         // Close a reference to the request once it's cleaned up.
-        SCOPE_EXIT({ request->Close(); });
+        SCOPE_EXIT {
+            request->Close();
+        };
 
         // Extract relevant information from the request.
         const uint64_t client_message = request->GetAddress();
@@ -1491,7 +1499,9 @@ void KServerSession::OnClientClosed() {
         ASSERT(thread != nullptr);
 
         // Ensure that we close the request when done.
-        SCOPE_EXIT({ request->Close(); });
+        SCOPE_EXIT {
+            request->Close();
+        };
 
         // If we're terminating, close a reference to the thread and event.
         if (terminate) {

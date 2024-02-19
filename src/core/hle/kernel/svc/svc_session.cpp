@@ -69,10 +69,10 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
 
     // Ensure that we clean up the session (and its only references are handle table) on function
     // end.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         session->GetClientSession().Close();
         session->GetServerSession().Close();
-    });
+    };
 
     // Register the session.
     T::Register(system.Kernel(), session);

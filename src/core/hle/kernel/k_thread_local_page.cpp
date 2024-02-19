@@ -21,7 +21,9 @@ Result KThreadLocalPage::Initialize(KernelCore& kernel, KProcess* process) {
     // Allocate a new page.
     KPageBuffer* page_buf = KPageBuffer::Allocate(kernel);
     R_UNLESS(page_buf != nullptr, ResultOutOfMemory);
-    auto page_buf_guard = SCOPE_GUARD({ KPageBuffer::Free(kernel, page_buf); });
+    auto page_buf_guard = SCOPE_GUARD {
+        KPageBuffer::Free(kernel, page_buf);
+    };
 
     // Map the address in.
     const auto phys_addr = kernel.System().DeviceMemory().GetPhysicalAddr(page_buf);

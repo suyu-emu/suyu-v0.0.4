@@ -230,7 +230,9 @@ template <typename Func>
 void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
 
-    SCOPE_EXIT({ gpu.TickWork(); });
+    SCOPE_EXIT {
+        gpu.TickWork();
+    };
     gpu_memory->FlushCaching();
 
     GraphicsPipeline* const pipeline{shader_cache.CurrentGraphicsPipeline()};
@@ -355,7 +357,9 @@ void RasterizerOpenGL::DrawIndirect() {
 void RasterizerOpenGL::DrawTexture() {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
 
-    SCOPE_EXIT({ gpu.TickWork(); });
+    SCOPE_EXIT {
+        gpu.TickWork();
+    };
 
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);

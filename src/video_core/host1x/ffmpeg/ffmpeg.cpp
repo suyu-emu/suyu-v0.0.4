@@ -273,10 +273,10 @@ DeinterlaceFilter::DeinterlaceFilter(const Frame& frame) {
     const AVFilter* buffer_sink = avfilter_get_by_name("buffersink");
     AVFilterInOut* inputs = avfilter_inout_alloc();
     AVFilterInOut* outputs = avfilter_inout_alloc();
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         avfilter_inout_free(&inputs);
         avfilter_inout_free(&outputs);
-    });
+    };
 
     // Don't know how to get the accurate time_base but it doesn't matter for yadif filter
     // so just use 1/1 to make buffer filter happy

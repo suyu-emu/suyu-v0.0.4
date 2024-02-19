@@ -116,7 +116,9 @@ void NsightAftermathTracker::OnGpuCrashDumpCallback(const void* gpu_crash_dump,
         LOG_ERROR(Render_Vulkan, "Failed to create decoder");
         return;
     }
-    SCOPE_EXIT({ GFSDK_Aftermath_GpuCrashDump_DestroyDecoder(decoder); });
+    SCOPE_EXIT {
+        GFSDK_Aftermath_GpuCrashDump_DestroyDecoder(decoder);
+    };
 
     u32 json_size = 0;
     if (!GFSDK_Aftermath_SUCCEED(GFSDK_Aftermath_GpuCrashDump_GenerateJSON(

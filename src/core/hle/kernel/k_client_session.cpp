@@ -24,7 +24,9 @@ Result KClientSession::SendSyncRequest(uintptr_t address, size_t size) {
     // Create a session request.
     KSessionRequest* request = KSessionRequest::Create(m_kernel);
     R_UNLESS(request != nullptr, ResultOutOfResource);
-    SCOPE_EXIT({ request->Close(); });
+    SCOPE_EXIT {
+        request->Close();
+    };
 
     // Initialize the request.
     request->Initialize(nullptr, address, size);
@@ -37,7 +39,9 @@ Result KClientSession::SendAsyncRequest(KEvent* event, uintptr_t address, size_t
     // Create a session request.
     KSessionRequest* request = KSessionRequest::Create(m_kernel);
     R_UNLESS(request != nullptr, ResultOutOfResource);
-    SCOPE_EXIT({ request->Close(); });
+    SCOPE_EXIT {
+        request->Close();
+    };
 
     // Initialize the request.
     request->Initialize(event, address, size);

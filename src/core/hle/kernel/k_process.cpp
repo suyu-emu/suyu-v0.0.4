@@ -77,7 +77,9 @@ Result TerminateChildren(KernelCore& kernel, KProcess* process,
         }
 
         // Terminate and close the thread.
-        SCOPE_EXIT({ cur_child->Close(); });
+        SCOPE_EXIT {
+            cur_child->Close();
+        };
 
         if (const Result terminate_result = cur_child->Terminate();
             ResultTerminationRequested == terminate_result) {
@@ -466,11 +468,11 @@ void KProcess::DoWorkerTaskImpl() {
 
 Result KProcess::StartTermination() {
     // Finalize the handle table when we're done, if the process isn't immortal.
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         if (!m_is_immortal) {
             this->FinalizeHandleTable();
         }
-    });
+    };
 
     // Terminate child threads other than the current one.
     R_RETURN(TerminateChildren(m_kernel, this, GetCurrentThreadPointer(m_kernel)));
@@ -964,7 +966,9 @@ Result KProcess::Run(s32 priority, size_t stack_size) {
     // Create a new thread for the process.
     KThread* main_thread = KThread::Create(m_kernel);
     R_UNLESS(main_thread != nullptr, ResultOutOfResource);
-    SCOPE_EXIT({ main_thread->Close(); });
+    SCOPE_EXIT {
+        main_thread->Close();
+    };
 
     // Initialize the thread.
     R_TRY(KThread::InitializeUserThread(m_kernel.System(), main_thread, this->GetEntryPoint(), 0,
@@ -1155,7 +1159,9 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
         Kernel::CreateResourceLimitForProcess(m_kernel.System(), physical_memory_size);
 
     // Ensure we maintain a clean state on exit.
-    SCOPE_EXIT({ res_limit->Close(); });
+    SCOPE_EXIT {
+        res_limit->Close();
+    };
 
     // Declare flags and code address.
     Svc::CreateProcessFlag flag{};

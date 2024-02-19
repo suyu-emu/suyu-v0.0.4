@@ -18,7 +18,9 @@ Result CreateResourceLimit(Core::System& system, Handle* out_handle) {
     R_UNLESS(resource_limit != nullptr, ResultOutOfResource);
 
     // Ensure we don't leak a reference to the limit.
-    SCOPE_EXIT({ resource_limit->Close(); });
+    SCOPE_EXIT {
+        resource_limit->Close();
+    };
 
     // Initialize the resource limit.
     resource_limit->Initialize();

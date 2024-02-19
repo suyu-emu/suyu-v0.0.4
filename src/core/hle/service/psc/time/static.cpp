@@ -144,7 +144,9 @@ Result StaticService::GetStandardSteadyClockRtcValue(Out<s64> out_rtc_value) {
 
 Result StaticService::IsStandardUserSystemClockAutomaticCorrectionEnabled(
     Out<bool> out_is_enabled) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_is_enabled={}", *out_is_enabled); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_is_enabled={}", *out_is_enabled);
+    };
 
     R_UNLESS(m_user_system_clock.IsInitialized(), ResultClockUninitialized);
 
@@ -180,7 +182,9 @@ Result StaticService::GetStandardUserSystemClockInitialYear(Out<s32> out_year) {
 }
 
 Result StaticService::IsStandardNetworkSystemClockAccuracySufficient(Out<bool> out_is_sufficient) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_is_sufficient={}", *out_is_sufficient); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_is_sufficient={}", *out_is_sufficient);
+    };
 
     *out_is_sufficient = m_network_system_clock.IsAccuracySufficient();
 
@@ -189,7 +193,9 @@ Result StaticService::IsStandardNetworkSystemClockAccuracySufficient(Out<bool> o
 
 Result StaticService::GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
     Out<SteadyClockTimePoint> out_time_point) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. out_time_point={}", *out_time_point); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. out_time_point={}", *out_time_point);
+    };
 
     R_UNLESS(m_user_system_clock.IsInitialized(), ResultClockUninitialized);
 
@@ -200,7 +206,9 @@ Result StaticService::GetStandardUserSystemClockAutomaticCorrectionUpdatedTime(
 
 Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(
     Out<s64> out_time, const SystemClockContext& context) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. context={} out_time={}", context, *out_time); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. context={} out_time={}", context, *out_time);
+    };
 
     R_UNLESS(m_time->m_standard_steady_clock.IsInitialized(), ResultClockUninitialized);
 
@@ -219,8 +227,9 @@ Result StaticService::CalculateMonotonicSystemClockBaseTimePoint(
 }
 
 Result StaticService::GetClockSnapshot(OutClockSnapshot out_snapshot, TimeType type) {
-    SCOPE_EXIT(
-        { LOG_DEBUG(Service_Time, "called. type={} out_snapshot={}", type, *out_snapshot); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. type={} out_snapshot={}", type, *out_snapshot);
+    };
 
     SystemClockContext user_context{};
     R_TRY(m_user_system_clock.GetContext(user_context));
@@ -234,11 +243,11 @@ Result StaticService::GetClockSnapshot(OutClockSnapshot out_snapshot, TimeType t
 Result StaticService::GetClockSnapshotFromSystemClockContext(
     TimeType type, OutClockSnapshot out_snapshot, const SystemClockContext& user_context,
     const SystemClockContext& network_context) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time,
                   "called. type={} user_context={} network_context={} out_snapshot={}", type,
                   user_context, network_context, *out_snapshot);
-    });
+    };
 
     R_RETURN(GetClockSnapshotImpl(out_snapshot, user_context, network_context, type));
 }
@@ -246,9 +255,9 @@ Result StaticService::GetClockSnapshotFromSystemClockContext(
 Result StaticService::CalculateStandardUserSystemClockDifferenceByUser(Out<s64> out_difference,
                                                                        InClockSnapshot a,
                                                                        InClockSnapshot b) {
-    SCOPE_EXIT({
+    SCOPE_EXIT {
         LOG_DEBUG(Service_Time, "called. a={} b={} out_difference={}", *a, *b, *out_difference);
-    });
+    };
 
     auto diff_s =
         std::chrono::seconds(b->user_context.offset) - std::chrono::seconds(a->user_context.offset);
@@ -276,7 +285,9 @@ Result StaticService::CalculateStandardUserSystemClockDifferenceByUser(Out<s64> 
 
 Result StaticService::CalculateSpanBetween(Out<s64> out_time, InClockSnapshot a,
                                            InClockSnapshot b) {
-    SCOPE_EXIT({ LOG_DEBUG(Service_Time, "called. a={} b={} out_time={}", *a, *b, *out_time); });
+    SCOPE_EXIT {
+        LOG_DEBUG(Service_Time, "called. a={} b={} out_time={}", *a, *b, *out_time);
+    };
 
     s64 time_s{};
     auto res =
