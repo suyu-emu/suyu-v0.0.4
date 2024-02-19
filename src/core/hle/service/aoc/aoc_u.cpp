@@ -16,13 +16,12 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/aoc/aoc_u.h"
+#include "core/hle/service/aoc/purchase_event_manager.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/loader/loader.h"
 
 namespace Service::AOC {
-
-constexpr Result ResultNoPurchasedProductInfoAvailable{ErrorModule::NIMShop, 400};
 
 static bool CheckAOCTitleIDMatchesBase(u64 title_id, u64 base) {
     return FileSys::GetBaseTitleID(title_id) == base;
@@ -45,82 +44,6 @@ static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
         add_on_content.end());
     return add_on_content;
 }
-
-class IPurchaseEventManager final : public ServiceFramework<IPurchaseEventManager> {
-public:
-    explicit IPurchaseEventManager(Core::System& system_)
-        : ServiceFramework{system_, "IPurchaseEventManager"}, service_context{
-                                                                  system, "IPurchaseEventManager"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
-            {1, &IPurchaseEventManager::SetDeliveryTarget, "SetDeliveryTarget"},
-            {2, &IPurchaseEventManager::GetPurchasedEventReadableHandle, "GetPurchasedEventReadableHandle"},
-            {3, &IPurchaseEventManager::PopPurchasedProductInfo, "PopPurchasedProductInfo"},
-            {4, &IPurchaseEventManager::PopPurchasedProductInfoWithUid, "PopPurchasedProductInfoWithUid"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-
-        purchased_event = service_context.CreateEvent("IPurchaseEventManager:PurchasedEvent");
-    }
-
-    ~IPurchaseEventManager() override {
-        service_context.CloseEvent(purchased_event);
-    }
-
-private:
-    void SetDefaultDeliveryTarget(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-
-        const auto unknown_1 = rp.Pop<u64>();
-        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
-
-        LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void SetDeliveryTarget(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-
-        const auto unknown_1 = rp.Pop<u64>();
-        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
-
-        LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void GetPurchasedEventReadableHandle(HLERequestContext& ctx) {
-        LOG_WARNING(Service_AOC, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(ResultSuccess);
-        rb.PushCopyObjects(purchased_event->GetReadableEvent());
-    }
-
-    void PopPurchasedProductInfo(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_AOC, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNoPurchasedProductInfoAvailable);
-    }
-
-    void PopPurchasedProductInfoWithUid(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_AOC, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultNoPurchasedProductInfoAvailable);
-    }
-
-    KernelHelpers::ServiceContext service_context;
-
-    Kernel::KEvent* purchased_event;
-};
 
 AOC_U::AOC_U(Core::System& system_)
     : ServiceFramework{system_, "aoc:u"}, add_on_content{AccumulateAOCTitleIDs(system)},
