@@ -125,10 +125,8 @@ protected:
 
 private:
     Result DoRead(size_t* out, s64 offset, void* buffer, size_t size, const ReadOption& option) {
-        std::vector<u8> output = backend->ReadBytes(size, offset);
-
-        *out = output.size();
-        std::memcpy(buffer, output.data(), size);
+        const auto read_size = backend->Read(static_cast<u8*>(buffer), size, offset);
+        *out = read_size;
 
         R_SUCCEED();
     }

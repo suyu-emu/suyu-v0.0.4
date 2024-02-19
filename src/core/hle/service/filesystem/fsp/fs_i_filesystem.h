@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/common_funcs.h"
+#include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/fsa/fs_i_filesystem.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/cmif_types.h"
@@ -23,31 +24,6 @@ class IDirectory;
 class IFileSystem final : public ServiceFramework<IFileSystem> {
 public:
     explicit IFileSystem(Core::System& system_, FileSys::VirtualDir dir_, SizeGetter size_getter_);
-
-    struct FileSystemAttribute {
-        u8 dir_entry_name_length_max_defined;
-        u8 file_entry_name_length_max_defined;
-        u8 dir_path_name_length_max_defined;
-        u8 file_path_name_length_max_defined;
-        INSERT_PADDING_BYTES_NOINIT(0x5);
-        u8 utf16_dir_entry_name_length_max_defined;
-        u8 utf16_file_entry_name_length_max_defined;
-        u8 utf16_dir_path_name_length_max_defined;
-        u8 utf16_file_path_name_length_max_defined;
-        INSERT_PADDING_BYTES_NOINIT(0x18);
-        s32 dir_entry_name_length_max;
-        s32 file_entry_name_length_max;
-        s32 dir_path_name_length_max;
-        s32 file_path_name_length_max;
-        INSERT_PADDING_WORDS_NOINIT(0x5);
-        s32 utf16_dir_entry_name_length_max;
-        s32 utf16_file_entry_name_length_max;
-        s32 utf16_dir_path_name_length_max;
-        s32 utf16_file_path_name_length_max;
-        INSERT_PADDING_WORDS_NOINIT(0x18);
-        INSERT_PADDING_WORDS_NOINIT(0x1);
-    };
-    static_assert(sizeof(FileSystemAttribute) == 0xC0, "FileSystemAttribute has incorrect size");
 
     Result CreateFile(const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path, s32 option,
                       s64 size);
@@ -74,7 +50,7 @@ public:
                              const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path);
     Result GetFileTimeStampRaw(Out<FileSys::FileTimeStampRaw> out_timestamp,
                                const InLargeData<FileSys::Sf::Path, BufferAttr_HipcPointer> path);
-    Result GetFileSystemAttribute(Out<FileSystemAttribute> out_attribute);
+    Result GetFileSystemAttribute(Out<FileSys::FileSystemAttribute> out_attribute);
 
 private:
     std::unique_ptr<FileSys::Fsa::IFileSystem> backend;
