@@ -263,8 +263,10 @@ NVDRV::NVDRV(Core::System& system_, std::shared_ptr<Module> nvdrv_, const char* 
 }
 
 NVDRV::~NVDRV() {
-    auto& container = nvdrv->GetContainer();
-    container.CloseSession(session_id);
+    if (is_initialized) {
+        auto& container = nvdrv->GetContainer();
+        container.CloseSession(session_id);
+    }
 }
 
 } // namespace Service::Nvidia

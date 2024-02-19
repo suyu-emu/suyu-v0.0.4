@@ -10,13 +10,11 @@
 #include <span>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "common/common_types.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/nvdata.h"
-#include "core/hle/service/nvnflinger/ui/fence.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -25,10 +23,6 @@ class System;
 
 namespace Kernel {
 class KEvent;
-}
-
-namespace Service::Nvnflinger {
-class Nvnflinger;
 }
 
 namespace Service::Nvidia {
@@ -99,7 +93,6 @@ public:
 
 private:
     friend class EventInterface;
-    friend class Service::Nvnflinger::Nvnflinger;
 
     /// Manages syncpoints on the host
     NvCore::Container container;
@@ -118,6 +111,6 @@ private:
     std::unordered_map<std::string, std::function<FilesContainerType::iterator(DeviceFD)>> builders;
 };
 
-void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system);
+void LoopProcess(Core::System& system);
 
 } // namespace Service::Nvidia

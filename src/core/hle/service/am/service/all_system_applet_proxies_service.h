@@ -8,10 +8,6 @@
 
 namespace Service {
 
-namespace Nvnflinger {
-class Nvnflinger;
-}
-
 namespace AM {
 
 struct Applet;
@@ -22,8 +18,7 @@ class ISystemAppletProxy;
 class IAllSystemAppletProxiesService final
     : public ServiceFramework<IAllSystemAppletProxiesService> {
 public:
-    explicit IAllSystemAppletProxiesService(Core::System& system_,
-                                            Nvnflinger::Nvnflinger& nvnflinger);
+    explicit IAllSystemAppletProxiesService(Core::System& system_);
     ~IAllSystemAppletProxiesService() override;
 
 private:
@@ -40,7 +35,6 @@ private:
 
 private:
     std::shared_ptr<Applet> GetAppletFromProcessId(ProcessId pid);
-    Nvnflinger::Nvnflinger& m_nvnflinger;
 };
 
 } // namespace AM

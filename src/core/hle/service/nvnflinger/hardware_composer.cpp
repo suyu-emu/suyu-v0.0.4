@@ -10,8 +10,6 @@
 #include "core/hle/service/nvnflinger/hardware_composer.h"
 #include "core/hle/service/nvnflinger/hwc_layer.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
-#include "core/hle/service/vi/display/vi_display.h"
-#include "core/hle/service/vi/layer/vi_layer.h"
 
 namespace Service::Nvnflinger {
 
@@ -44,7 +42,7 @@ s32 NormalizeSwapInterval(f32* out_speed_scale, s32 swap_interval) {
 HardwareComposer::HardwareComposer() = default;
 HardwareComposer::~HardwareComposer() = default;
 
-u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
+u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
                                     Nvidia::Devices::nvdisp_disp0& nvdisp) {
     boost::container::small_vector<HwcLayer, 2> composition_stack;
 
@@ -56,12 +54,11 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
     bool has_acquired_buffer{};
 
     // Acquire all necessary framebuffers.
-    for (size_t i = 0; i < display.GetNumLayers(); i++) {
-        auto& layer = display.GetLayer(i);
-        auto layer_id = layer.GetLayerId();
+    for (auto& layer : display.stack.layers) {
+        auto consumer_id = layer.consumer_id;
 
         // Try to fetch the framebuffer (either new or stale).
-        const auto result = this->CacheFramebufferLocked(layer, layer_id);
+        const auto result = this->CacheFramebufferLocked(layer, consumer_id);
 
         // If we failed, skip this layer.
         if (result == CacheStatus::NoBufferAvailable) {
@@ -73,24 +70,26 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
             has_acquired_buffer = true;
         }
 
-        const auto& buffer = m_framebuffers[layer_id];
+        const auto& buffer = m_framebuffers[consumer_id];
         const auto& item = buffer.item;
         const auto& igbp_buffer = *item.graphic_buffer;
 
         // TODO: get proper Z-index from layer
-        composition_stack.emplace_back(HwcLayer{
-            .buffer_handle = igbp_buffer.BufferId(),
-            .offset = igbp_buffer.Offset(),
-            .format = igbp_buffer.ExternalFormat(),
-            .width = igbp_buffer.Width(),
-            .height = igbp_buffer.Height(),
-            .stride = igbp_buffer.Stride(),
-            .z_index = 0,
-            .blending = layer.GetBlending(),
-            .transform = static_cast<android::BufferTransformFlags>(item.transform),
-            .crop_rect = item.crop,
-            .acquire_fence = item.fence,
-        });
+        if (layer.visible) {
+            composition_stack.emplace_back(HwcLayer{
+                .buffer_handle = igbp_buffer.BufferId(),
+                .offset = igbp_buffer.Offset(),
+                .format = igbp_buffer.ExternalFormat(),
+                .width = igbp_buffer.Width(),
+                .height = igbp_buffer.Height(),
+                .stride = igbp_buffer.Stride(),
+                .z_index = 0,
+                .blending = layer.blending,
+                .transform = static_cast<android::BufferTransformFlags>(item.transform),
+                .crop_rect = item.crop,
+                .acquire_fence = item.fence,
+            });
+        }
 
         // We need to compose again either before this frame is supposed to
         // be released, or exactly on the vsync period it should be released.
@@ -138,7 +137,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
         if (auto* layer = display.FindLayer(layer_id); layer != nullptr) {
             // TODO: support release fence
             // This is needed to prevent screen tearing
-            layer->GetConsumer().ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
+            layer->buffer_item_consumer->ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
             framebuffer.is_acquired = false;
         }
     }
@@ -146,26 +145,26 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, VI::Display& display,
     return frame_advance;
 }
 
-void HardwareComposer::RemoveLayerLocked(VI::Display& display, LayerId layer_id) {
-    // Check if we are tracking a slot with this layer_id.
-    const auto it = m_framebuffers.find(layer_id);
+void HardwareComposer::RemoveLayerLocked(Display& display, ConsumerId consumer_id) {
+    // Check if we are tracking a slot with this consumer_id.
+    const auto it = m_framebuffers.find(consumer_id);
     if (it == m_framebuffers.end()) {
         return;
     }
 
     // Try to release the buffer item.
-    auto* const layer = display.FindLayer(layer_id);
+    auto* const layer = display.FindLayer(consumer_id);
     if (layer && it->second.is_acquired) {
-        layer->GetConsumer().ReleaseBuffer(it->second.item, android::Fence::NoFence());
+        layer->buffer_item_consumer->ReleaseBuffer(it->second.item, android::Fence::NoFence());
     }
 
     // Erase the slot.
     m_framebuffers.erase(it);
 }
 
-bool HardwareComposer::TryAcquireFramebufferLocked(VI::Layer& layer, Framebuffer& framebuffer) {
+bool HardwareComposer::TryAcquireFramebufferLocked(Layer& layer, Framebuffer& framebuffer) {
     // Attempt the update.
-    const auto status = layer.GetConsumer().AcquireBuffer(&framebuffer.item, {}, false);
+    const auto status = layer.buffer_item_consumer->AcquireBuffer(&framebuffer.item, {}, false);
     if (status != android::Status::NoError) {
         return false;
     }
@@ -178,10 +177,10 @@ bool HardwareComposer::TryAcquireFramebufferLocked(VI::Layer& layer, Framebuffer
     return true;
 }
 
-HardwareComposer::CacheStatus HardwareComposer::CacheFramebufferLocked(VI::Layer& layer,
-                                                                       LayerId layer_id) {
+HardwareComposer::CacheStatus HardwareComposer::CacheFramebufferLocked(Layer& layer,
+                                                                       ConsumerId consumer_id) {
     // Check if this framebuffer is already present.
-    const auto it = m_framebuffers.find(layer_id);
+    const auto it = m_framebuffers.find(consumer_id);
     if (it != m_framebuffers.end()) {
         // If it's currently still acquired, we are done.
         if (it->second.is_acquired) {
@@ -203,7 +202,7 @@ HardwareComposer::CacheStatus HardwareComposer::CacheFramebufferLocked(VI::Layer
 
     if (this->TryAcquireFramebufferLocked(layer, framebuffer)) {
         // Move the buffer item into a new slot.
-        m_framebuffers.emplace(layer_id, std::move(framebuffer));
+        m_framebuffers.emplace(consumer_id, std::move(framebuffer));
 
         // We succeeded.
         return CacheStatus::BufferAcquired;

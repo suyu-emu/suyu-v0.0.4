@@ -11,23 +11,18 @@ namespace Core {
 class System;
 }
 
-namespace Service::Nvnflinger {
-class HosBinderDriverServer;
-class Nvnflinger;
-} // namespace Service::Nvnflinger
-
 union Result;
 
 namespace Service::VI {
 
+class Container;
 class IApplicationDisplayService;
 enum class Permission;
 enum class Policy : u32;
 
 Result GetApplicationDisplayService(
     std::shared_ptr<IApplicationDisplayService>* out_application_display_service,
-    Core::System& system, Nvnflinger::Nvnflinger& nvnflinger,
-    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server, Permission permission,
+    Core::System& system, std::shared_ptr<Container> container, Permission permission,
     Policy policy);
 
 } // namespace Service::VI

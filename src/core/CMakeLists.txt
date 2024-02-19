@@ -423,12 +423,12 @@ add_library(core STATIC
     hle/service/am/applet_manager.h
     hle/service/am/applet_message_queue.cpp
     hle/service/am/applet_message_queue.h
+    hle/service/am/display_layer_manager.cpp
+    hle/service/am/display_layer_manager.h
     hle/service/am/hid_registration.cpp
     hle/service/am/hid_registration.h
     hle/service/am/library_applet_storage.cpp
     hle/service/am/library_applet_storage.h
-    hle/service/am/managed_layer_holder.cpp
-    hle/service/am/managed_layer_holder.h
     hle/service/am/process.cpp
     hle/service/am/process.h
     hle/service/am/service/all_system_applet_proxies_service.cpp
@@ -481,8 +481,6 @@ add_library(core STATIC
     hle/service/am/service/system_applet_proxy.h
     hle/service/am/service/window_controller.cpp
     hle/service/am/service/window_controller.h
-    hle/service/am/system_buffer_manager.cpp
-    hle/service/am/system_buffer_manager.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp
@@ -833,12 +831,12 @@ add_library(core STATIC
     hle/service/nvnflinger/consumer_base.cpp
     hle/service/nvnflinger/consumer_base.h
     hle/service/nvnflinger/consumer_listener.h
-    hle/service/nvnflinger/fb_share_buffer_manager.cpp
-    hle/service/nvnflinger/fb_share_buffer_manager.h
     hle/service/nvnflinger/graphic_buffer_producer.cpp
     hle/service/nvnflinger/graphic_buffer_producer.h
     hle/service/nvnflinger/hos_binder_driver_server.cpp
     hle/service/nvnflinger/hos_binder_driver_server.h
+    hle/service/nvnflinger/hos_binder_driver.cpp
+    hle/service/nvnflinger/hos_binder_driver.h
     hle/service/nvnflinger/hardware_composer.cpp
     hle/service/nvnflinger/hardware_composer.h
     hle/service/nvnflinger/hwc_layer.h
@@ -848,6 +846,8 @@ add_library(core STATIC
     hle/service/nvnflinger/pixel_format.h
     hle/service/nvnflinger/producer_listener.h
     hle/service/nvnflinger/status.h
+    hle/service/nvnflinger/surface_flinger.cpp
+    hle/service/nvnflinger/surface_flinger.h
     hle/service/nvnflinger/ui/fence.h
     hle/service/nvnflinger/ui/graphic_buffer.cpp
     hle/service/nvnflinger/ui/graphic_buffer.h
@@ -941,6 +941,8 @@ add_library(core STATIC
     hle/service/server_manager.h
     hle/service/service.cpp
     hle/service/service.h
+    hle/service/services.cpp
+    hle/service/services.h
     hle/service/set/setting_formats/appln_settings.cpp
     hle/service/set/setting_formats/appln_settings.h
     hle/service/set/setting_formats/device_settings.cpp
@@ -988,22 +990,26 @@ add_library(core STATIC
     hle/service/ssl/ssl_backend.h
     hle/service/usb/usb.cpp
     hle/service/usb/usb.h
-    hle/service/vi/display/vi_display.cpp
-    hle/service/vi/display/vi_display.h
-    hle/service/vi/layer/vi_layer.cpp
-    hle/service/vi/layer/vi_layer.h
     hle/service/vi/application_display_service.cpp
     hle/service/vi/application_display_service.h
     hle/service/vi/application_root_service.cpp
     hle/service/vi/application_root_service.h
-    hle/service/vi/hos_binder_driver.cpp
-    hle/service/vi/hos_binder_driver.h
+    hle/service/vi/conductor.cpp
+    hle/service/vi/conductor.h
+    hle/service/vi/container.cpp
+    hle/service/vi/container.h
+    hle/service/vi/display_list.h
+    hle/service/vi/display.h
+    hle/service/vi/layer_list.h
+    hle/service/vi/layer.h
     hle/service/vi/manager_display_service.cpp
     hle/service/vi/manager_display_service.h
     hle/service/vi/manager_root_service.cpp
     hle/service/vi/manager_root_service.h
     hle/service/vi/service_creator.cpp
     hle/service/vi/service_creator.h
+    hle/service/vi/shared_buffer_manager.cpp
+    hle/service/vi/shared_buffer_manager.h
     hle/service/vi/system_display_service.cpp
     hle/service/vi/system_display_service.h
     hle/service/vi/system_root_service.cpp
@@ -1012,6 +1018,8 @@ add_library(core STATIC
     hle/service/vi/vi_types.h
     hle/service/vi/vi.cpp
     hle/service/vi/vi.h
+    hle/service/vi/vsync_manager.cpp
+    hle/service/vi/vsync_manager.h
     internal_network/network.cpp
     internal_network/network.h
     internal_network/network_interface.cpp

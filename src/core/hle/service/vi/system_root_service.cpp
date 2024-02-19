@@ -3,6 +3,7 @@
 
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/vi/application_display_service.h"
+#include "core/hle/service/vi/container.h"
 #include "core/hle/service/vi/service_creator.h"
 #include "core/hle/service/vi/system_root_service.h"
 #include "core/hle/service/vi/vi.h"
@@ -10,10 +11,8 @@
 
 namespace Service::VI {
 
-ISystemRootService::ISystemRootService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
-                                       Nvnflinger::HosBinderDriverServer& hos_binder_driver_server)
-    : ServiceFramework{system_, "vi:s"}, m_nvnflinger{nvnflinger}, m_hos_binder_driver_server{
-                                                                       hos_binder_driver_server} {
+ISystemRootService::ISystemRootService(Core::System& system_, std::shared_ptr<Container> container)
+    : ServiceFramework{system_, "vi:s"}, m_container{std::move(container)} {
     static const FunctionInfo functions[] = {
         {1, C<&ISystemRootService::GetDisplayService>, "GetDisplayService"},
         {3, nullptr, "GetDisplayServiceWithProxyNameExchange"},
@@ -26,8 +25,8 @@ ISystemRootService::~ISystemRootService() = default;
 Result ISystemRootService::GetDisplayService(
     Out<SharedPointer<IApplicationDisplayService>> out_application_display_service, Policy policy) {
     LOG_DEBUG(Service_VI, "called");
-    R_RETURN(GetApplicationDisplayService(out_application_display_service, system, m_nvnflinger,
-                                          m_hos_binder_driver_server, Permission::System, policy));
+    R_RETURN(GetApplicationDisplayService(out_application_display_service, system, m_container,
+                                          Permission::System, policy));
 }
 
 } // namespace Service::VI

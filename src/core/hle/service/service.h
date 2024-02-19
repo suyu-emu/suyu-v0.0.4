@@ -28,11 +28,6 @@ namespace FileSystem {
 class FileSystemController;
 }
 
-namespace Nvnflinger {
-class HosBinderDriverServer;
-class Nvnflinger;
-} // namespace Nvnflinger
-
 namespace SM {
 class ServiceManager;
 }
@@ -234,22 +229,6 @@ private:
         // Cast back up to our original types and call the member function
         (static_cast<Self*>(object)->*static_cast<HandlerFnP<Self>>(member))(ctx);
     }
-};
-
-/**
- * The purpose of this class is to own any objects that need to be shared across the other service
- * implementations. Will be torn down when the global system instance is shutdown.
- */
-class Services final {
-public:
-    explicit Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system);
-    ~Services();
-
-    void KillNVNFlinger();
-
-private:
-    std::unique_ptr<Nvnflinger::HosBinderDriverServer> hos_binder_driver_server;
-    std::unique_ptr<Nvnflinger::Nvnflinger> nv_flinger;
 };
 
 } // namespace Service

@@ -10,29 +10,23 @@ namespace Core {
 class System;
 }
 
-namespace Service::Nvnflinger {
-class HosBinderDriverServer;
-class Nvnflinger;
-} // namespace Service::Nvnflinger
-
 namespace Service::VI {
 
+class Container;
 class IApplicationDisplayService;
 enum class Policy : u32;
 
 class IManagerRootService final : public ServiceFramework<IManagerRootService> {
 public:
-    explicit IManagerRootService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger,
-                                 Nvnflinger::HosBinderDriverServer& hos_binder_driver_server);
+    explicit IManagerRootService(Core::System& system_, std::shared_ptr<Container> container);
     ~IManagerRootService() override;
 
-private:
     Result GetDisplayService(
         Out<SharedPointer<IApplicationDisplayService>> out_application_display_service,
         Policy policy);
 
-    Nvnflinger::Nvnflinger& m_nvnflinger;
-    Nvnflinger::HosBinderDriverServer& m_hos_binder_driver_server;
+private:
+    const std::shared_ptr<Container> m_container;
 };
 
 } // namespace Service::VI

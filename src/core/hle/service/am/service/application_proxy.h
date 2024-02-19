@@ -22,7 +22,7 @@ class IWindowController;
 class IApplicationProxy final : public ServiceFramework<IApplicationProxy> {
 public:
     explicit IApplicationProxy(Core::System& system_, std::shared_ptr<Applet> applet,
-                               Kernel::KProcess* process, Nvnflinger::Nvnflinger& nvnflinger);
+                               Kernel::KProcess* process);
     ~IApplicationProxy();
 
 private:
@@ -40,7 +40,6 @@ private:
         Out<SharedPointer<IApplicationFunctions>> out_application_functions);
 
 private:
-    Nvnflinger::Nvnflinger& m_nvnflinger;
     Kernel::KProcess* const m_process;
     const std::shared_ptr<Applet> m_applet;
 };

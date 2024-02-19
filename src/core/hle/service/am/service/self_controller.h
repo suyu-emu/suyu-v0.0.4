@@ -23,7 +23,7 @@ struct Applet;
 class ISelfController final : public ServiceFramework<ISelfController> {
 public:
     explicit ISelfController(Core::System& system_, std::shared_ptr<Applet> applet,
-                             Kernel::KProcess* process, Nvnflinger::Nvnflinger& nvnflinger);
+                             Kernel::KProcess* process);
     ~ISelfController() override;
 
 private:
@@ -64,7 +64,6 @@ private:
     Result SaveCurrentScreenshot(Capture::AlbumReportOption album_report_option);
     Result SetRecordVolumeMuted(bool muted);
 
-    Nvnflinger::Nvnflinger& m_nvnflinger;
     Kernel::KProcess* const m_process;
     const std::shared_ptr<Applet> m_applet;
 };
