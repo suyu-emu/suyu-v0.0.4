@@ -11,10 +11,10 @@ class System;
 
 namespace Service::Audio {
 
-class AudRecU final : public ServiceFramework<AudRecU> {
+class IFinalOutputRecorderManager final : public ServiceFramework<IFinalOutputRecorderManager> {
 public:
-    explicit AudRecU(Core::System& system_);
-    ~AudRecU() override;
+    explicit IFinalOutputRecorderManager(Core::System& system_);
+    ~IFinalOutputRecorderManager() override;
 };
 
 } // namespace Service::Audio
