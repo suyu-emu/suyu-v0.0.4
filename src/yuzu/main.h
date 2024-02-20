@@ -381,6 +381,7 @@ private slots:
     void OnOpenYuzuFolder();
     void OnVerifyInstalledContents();
     void OnInstallFirmware();
+    void OnInstallDecryptionKeys();
     void OnAbout();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
