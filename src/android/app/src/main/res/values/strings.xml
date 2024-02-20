@@ -209,6 +209,7 @@
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
+    <string name="device_name">Device name</string>
     <string name="use_docked_mode">Docked Mode</string>
     <string name="use_docked_mode_description">Increases resolution, decreasing performance. Handheld Mode is used when disabled, lowering resolution and increasing performance.</string>
     <string name="emulated_region">Emulated region</string>
