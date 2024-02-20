@@ -9,7 +9,7 @@
 #include "core/hle/service/audio/audio_renderer_manager.h"
 #include "core/hle/service/audio/final_output_recorder_manager.h"
 #include "core/hle/service/audio/final_output_recorder_manager_for_applet.h"
-#include "core/hle/service/audio/hwopus.h"
+#include "core/hle/service/audio/hardware_opus_decoder_manager.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 
@@ -27,7 +27,8 @@ void LoopProcess(Core::System& system) {
                                          std::make_shared<IFinalOutputRecorderManager>(system));
     server_manager->RegisterNamedService("audren:u",
                                          std::make_shared<IAudioRendererManager>(system));
-    server_manager->RegisterNamedService("hwopus", std::make_shared<HwOpus>(system));
+    server_manager->RegisterNamedService("hwopus",
+                                         std::make_shared<IHardwareOpusDecoderManager>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 

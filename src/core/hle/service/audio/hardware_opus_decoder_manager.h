@@ -12,10 +12,10 @@ class System;
 
 namespace Service::Audio {
 
-class HwOpus final : public ServiceFramework<HwOpus> {
+class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {
 public:
-    explicit HwOpus(Core::System& system_);
-    ~HwOpus() override;
+    explicit IHardwareOpusDecoderManager(Core::System& system_);
+    ~IHardwareOpusDecoderManager() override;
 
 private:
     void OpenHardwareOpusDecoder(HLERequestContext& ctx);
