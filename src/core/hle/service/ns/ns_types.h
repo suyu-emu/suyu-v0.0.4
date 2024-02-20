@@ -108,4 +108,9 @@ struct ContentPath {
 };
 static_assert(sizeof(ContentPath) == 0x10, "ContentPath has incorrect size.");
 
+struct Uid {
+    alignas(8) Common::UUID uuid;
+};
+static_assert(sizeof(Uid) == 0x10, "Uid has incorrect size.");
+
 } // namespace Service::NS

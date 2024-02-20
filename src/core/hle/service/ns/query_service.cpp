@@ -41,8 +41,7 @@ IQueryService::IQueryService(Core::System& system_) : ServiceFramework{system_, 
 IQueryService::~IQueryService() = default;
 
 Result IQueryService::QueryPlayStatisticsByApplicationIdAndUserAccountId(
-    Out<PlayStatistics> out_play_statistics, bool unknown, Common::UUID account_id,
-    u64 application_id) {
+    Out<PlayStatistics> out_play_statistics, bool unknown, u64 application_id, Uid account_id) {
     // TODO(German77): Read statistics of the game
     *out_play_statistics = {
         .application_id = application_id,
@@ -50,7 +49,7 @@ Result IQueryService::QueryPlayStatisticsByApplicationIdAndUserAccountId(
     };
 
     LOG_WARNING(Service_NS, "(STUBBED) called. unknown={}. application_id={:016X}, account_id={}",
-                unknown, application_id, account_id.FormattedString());
+                unknown, application_id, account_id.uuid.FormattedString());
     R_SUCCEED();
 }
 

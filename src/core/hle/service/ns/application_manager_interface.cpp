@@ -436,14 +436,14 @@ Result IApplicationManagerInterface::GetApplicationViewWithPromotionInfo(
 
 Result IApplicationManagerInterface::GetApplicationRightsOnClient(
     OutArray<ApplicationRightsOnClient, BufferAttr_HipcMapAlias> out_rights, Out<u32> out_count,
-    Common::UUID account_id, u32 flags, u64 application_id) {
+    u32 flags, u64 application_id, Uid account_id) {
     LOG_WARNING(Service_NS, "(STUBBED) called, flags={}, application_id={:016X}, account_id={}",
-                flags, application_id, account_id.FormattedString());
+                flags, application_id, account_id.uuid.FormattedString());
 
     if (!out_rights.empty()) {
         ApplicationRightsOnClient rights{};
         rights.application_id = application_id;
-        rights.uid = account_id;
+        rights.uid = account_id.uuid;
         rights.flags = 0;
         rights.flags2 = 0;
 

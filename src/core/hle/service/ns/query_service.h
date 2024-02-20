@@ -5,6 +5,7 @@
 
 #include "common/uuid.h"
 #include "core/hle/service/cmif_types.h"
+#include "core/hle/service/ns/ns_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NS {
@@ -29,8 +30,7 @@ public:
 
 private:
     Result QueryPlayStatisticsByApplicationIdAndUserAccountId(
-        Out<PlayStatistics> out_play_statistics, bool unknown, Common::UUID account_id,
-        u64 application_id);
+        Out<PlayStatistics> out_play_statistics, bool unknown, u64 application_id, Uid account_id);
 };
 
 } // namespace Service::NS
