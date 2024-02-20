@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <list>
-
 #include "core/hle/service/nvnflinger/buffer_item_consumer.h"
 #include "core/hle/service/nvnflinger/hwc_layer.h"
 
@@ -26,18 +24,12 @@ struct Layer {
 };
 
 struct LayerStack {
-    std::list<Layer> layers;
-};
+    std::vector<std::shared_ptr<Layer>> layers;
 
-struct Display {
-    explicit Display(u64 id_) {
-        id = id_;
-    }
-
-    Layer* FindLayer(s32 consumer_id) {
-        for (auto& layer : stack.layers) {
-            if (layer.consumer_id == consumer_id) {
-                return &layer;
+    std::shared_ptr<Layer> FindLayer(s32 consumer_id) {
+        for (auto& layer : layers) {
+            if (layer->consumer_id == consumer_id) {
+                return layer;
             }
         }
 
@@ -45,7 +37,13 @@ struct Display {
     }
 
     bool HasLayers() {
-        return !stack.layers.empty();
+        return !layers.empty();
+    }
+};
+
+struct Display {
+    explicit Display(u64 id_) {
+        id = id_;
     }
 
     u64 id;

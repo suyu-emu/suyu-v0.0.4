@@ -285,7 +285,7 @@ void SharedBufferManager::DestroySession(Kernel::KProcess* owner_process) {
     auto& session = it->second;
 
     // Destroy the layer.
-    R_ASSERT(m_container.DestroyStrayLayer(session.layer_id));
+    m_container.DestroyStrayLayer(session.layer_id);
 
     // Close nvmap handle.
     FreeHandle(session.buffer_nvmap_handle, *m_nvdrv, session.nvmap_fd);
@@ -322,8 +322,6 @@ Result SharedBufferManager::GetSharedBufferMemoryHandleId(u64* out_buffer_size,
 Result SharedBufferManager::AcquireSharedFrameBuffer(android::Fence* out_fence,
                                                      std::array<s32, 4>& out_slot_indexes,
                                                      s64* out_target_slot, u64 layer_id) {
-    std::scoped_lock lk{m_guard};
-
     // Get the producer.
     std::shared_ptr<android::BufferQueueProducer> producer;
     R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
@@ -347,8 +345,6 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
                                                      Common::Rectangle<s32> crop_region,
                                                      u32 transform, s32 swap_interval, u64 layer_id,
                                                      s64 slot) {
-    std::scoped_lock lk{m_guard};
-
     // Get the producer.
     std::shared_ptr<android::BufferQueueProducer> producer;
     R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
@@ -379,8 +375,6 @@ Result SharedBufferManager::PresentSharedFrameBuffer(android::Fence fence,
 }
 
 Result SharedBufferManager::CancelSharedFrameBuffer(u64 layer_id, s64 slot) {
-    std::scoped_lock lk{m_guard};
-
     // Get the producer.
     std::shared_ptr<android::BufferQueueProducer> producer;
     R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));
@@ -394,8 +388,6 @@ Result SharedBufferManager::CancelSharedFrameBuffer(u64 layer_id, s64 slot) {
 
 Result SharedBufferManager::GetSharedFrameBufferAcquirableEvent(Kernel::KReadableEvent** out_event,
                                                                 u64 layer_id) {
-    std::scoped_lock lk{m_guard};
-
     // Get the producer.
     std::shared_ptr<android::BufferQueueProducer> producer;
     R_TRY(m_container.GetLayerProducerHandle(std::addressof(producer), layer_id));

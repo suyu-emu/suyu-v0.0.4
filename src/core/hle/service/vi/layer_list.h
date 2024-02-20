@@ -11,13 +11,15 @@ class LayerList {
 public:
     constexpr LayerList() = default;
 
-    Layer* CreateLayer(u64 owner_aruid, Display* display) {
+    Layer* CreateLayer(u64 owner_aruid, Display* display, s32 consumer_binder_id,
+                       s32 producer_binder_id) {
         Layer* const layer = GetFreeLayer();
         if (!layer) {
             return nullptr;
         }
 
-        layer->Initialize(++m_next_id, owner_aruid, display);
+        layer->Initialize(++m_next_id, owner_aruid, display, consumer_binder_id,
+                          producer_binder_id);
         return layer;
     }
 

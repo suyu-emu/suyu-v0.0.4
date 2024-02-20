@@ -55,10 +55,10 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
 
     // Acquire all necessary framebuffers.
     for (auto& layer : display.stack.layers) {
-        auto consumer_id = layer.consumer_id;
+        auto consumer_id = layer->consumer_id;
 
         // Try to fetch the framebuffer (either new or stale).
-        const auto result = this->CacheFramebufferLocked(layer, consumer_id);
+        const auto result = this->CacheFramebufferLocked(*layer, consumer_id);
 
         // If we failed, skip this layer.
         if (result == CacheStatus::NoBufferAvailable) {
@@ -75,7 +75,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
         const auto& igbp_buffer = *item.graphic_buffer;
 
         // TODO: get proper Z-index from layer
-        if (layer.visible) {
+        if (layer->visible) {
             composition_stack.emplace_back(HwcLayer{
                 .buffer_handle = igbp_buffer.BufferId(),
                 .offset = igbp_buffer.Offset(),
@@ -84,7 +84,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
                 .height = igbp_buffer.Height(),
                 .stride = igbp_buffer.Stride(),
                 .z_index = 0,
-                .blending = layer.blending,
+                .blending = layer->blending,
                 .transform = static_cast<android::BufferTransformFlags>(item.transform),
                 .crop_rect = item.crop,
                 .acquire_fence = item.fence,
@@ -134,7 +134,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
             continue;
         }
 
-        if (auto* layer = display.FindLayer(layer_id); layer != nullptr) {
+        if (const auto layer = display.stack.FindLayer(layer_id); layer != nullptr) {
             // TODO: support release fence
             // This is needed to prevent screen tearing
             layer->buffer_item_consumer->ReleaseBuffer(framebuffer.item, android::Fence::NoFence());
@@ -153,7 +153,7 @@ void HardwareComposer::RemoveLayerLocked(Display& display, ConsumerId consumer_i
     }
 
     // Try to release the buffer item.
-    auto* const layer = display.FindLayer(consumer_id);
+    const auto layer = display.stack.FindLayer(consumer_id);
     if (layer && it->second.is_acquired) {
         layer->buffer_item_consumer->ReleaseBuffer(it->second.item, android::Fence::NoFence());
     }
