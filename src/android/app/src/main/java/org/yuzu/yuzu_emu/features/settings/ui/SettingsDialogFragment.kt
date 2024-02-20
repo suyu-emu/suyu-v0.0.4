@@ -14,6 +14,7 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.DialogEditTextBinding
 import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
@@ -23,6 +24,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.IntSingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
+import org.yuzu.yuzu_emu.features.settings.model.view.StringInputSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringSingleChoiceSetting
 import org.yuzu.yuzu_emu.utils.ParamPackage
 import org.yuzu.yuzu_emu.utils.collect
@@ -37,6 +39,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
     private val settingsViewModel: SettingsViewModel by activityViewModels()
 
     private lateinit var sliderBinding: DialogSliderBinding
+    private lateinit var stringInputBinding: DialogEditTextBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,6 +134,18 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     .create()
             }
 
+            SettingsItem.TYPE_STRING_INPUT -> {
+                stringInputBinding = DialogEditTextBinding.inflate(layoutInflater)
+                val item = settingsViewModel.clickedItem as StringInputSetting
+                stringInputBinding.editText.setText(item.getSelectedValue())
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(item.title)
+                    .setView(stringInputBinding.root)
+                    .setPositiveButton(android.R.string.ok, this)
+                    .setNegativeButton(android.R.string.cancel, defaultCancelListener)
+                    .create()
+            }
+
             SettingsItem.TYPE_STRING_SINGLE_CHOICE -> {
                 val item = settingsViewModel.clickedItem as StringSingleChoiceSetting
                 MaterialAlertDialogBuilder(requireContext())
@@ -158,6 +173,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
     ): View? {
         return when (type) {
             SettingsItem.TYPE_SLIDER -> sliderBinding.root
+            SettingsItem.TYPE_STRING_INPUT -> stringInputBinding.root
             else -> super.onCreateView(inflater, container, savedInstanceState)
         }
     }
@@ -199,6 +215,13 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
             is SliderSetting -> {
                 val sliderSetting = settingsViewModel.clickedItem as SliderSetting
                 sliderSetting.setSelectedValue(settingsViewModel.sliderProgress.value)
+            }
+
+            is StringInputSetting -> {
+                val stringInputSetting = settingsViewModel.clickedItem as StringInputSetting
+                stringInputSetting.setSelectedValue(
+                    (stringInputBinding.editText.text ?: "").toString()
+                )
             }
         }
         closeDialog()
