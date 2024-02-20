@@ -4,7 +4,6 @@
 #pragma once
 
 #include "audio_core/audio_render_manager.h"
-#include "common/scratch_buffer.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
 
@@ -15,10 +14,10 @@ class System;
 namespace Service::Audio {
 class IAudioRenderer;
 
-class AudRenU final : public ServiceFramework<AudRenU> {
+class IAudioRendererManager final : public ServiceFramework<IAudioRendererManager> {
 public:
-    explicit AudRenU(Core::System& system_);
-    ~AudRenU() override;
+    explicit IAudioRendererManager(Core::System& system_);
+    ~IAudioRendererManager() override;
 
 private:
     void OpenAudioRenderer(HLERequestContext& ctx);
