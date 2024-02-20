@@ -23,6 +23,7 @@ import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.Settings.MenuTag
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
@@ -153,6 +154,7 @@ class SettingsFragmentPresenter(
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
+            add(StringSetting.DEVICE_NAME.key)
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)

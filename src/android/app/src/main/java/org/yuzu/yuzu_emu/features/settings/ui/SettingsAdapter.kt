@@ -85,6 +85,10 @@ class SettingsAdapter(
                 InputProfileViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
 
+            SettingsItem.TYPE_STRING_INPUT -> {
+                StringInputViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
             else -> {
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
@@ -390,6 +394,15 @@ class SettingsAdapter(
             }
         }
         popup.show()
+    }
+
+    fun onStringInputClick(item: StringInputSetting, position: Int) {
+        SettingsDialogFragment.newInstance(
+            settingsViewModel,
+            item,
+            SettingsItem.TYPE_STRING_INPUT,
+            position
+        ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
     }
 
     fun onLongClick(item: SettingsItem, position: Int): Boolean {

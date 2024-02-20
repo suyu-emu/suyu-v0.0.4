@@ -6,7 +6,8 @@ package org.yuzu.yuzu_emu.features.settings.model
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 enum class StringSetting(override val key: String) : AbstractStringSetting {
-    DRIVER_PATH("driver_path");
+    DRIVER_PATH("driver_path"),
+    DEVICE_NAME("device_name");
 
     override fun getString(needsGlobal: Boolean): String = NativeConfig.getString(key, needsGlobal)
 
