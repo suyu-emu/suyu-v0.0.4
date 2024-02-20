@@ -75,6 +75,9 @@ abstract class SettingsItem(
         get() = NativeLibrary.isRunning() && !setting.global &&
             !NativeConfig.isPerGameConfigLoaded()
 
+    val clearable: Boolean
+        get() = !setting.global && NativeConfig.isPerGameConfigLoaded()
+
     companion object {
         const val TYPE_HEADER = 0
         const val TYPE_SWITCH = 1
