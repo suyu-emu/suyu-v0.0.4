@@ -16,6 +16,7 @@ import org.yuzu.yuzu_emu.features.settings.model.ByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
@@ -109,6 +110,7 @@ abstract class SettingsItem(
 
         // List of all general
         val settingsItems = HashMap<String, SettingsItem>().apply {
+            put(StringInputSetting(StringSetting.DEVICE_NAME, titleId = R.string.device_name))
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_SPEED_LIMIT,
