@@ -489,8 +489,8 @@ add_library(core STATIC
     hle/service/apm/apm_controller.h
     hle/service/apm/apm_interface.cpp
     hle/service/apm/apm_interface.h
-    hle/service/audio/audin_u.cpp
-    hle/service/audio/audin_u.h
+    hle/service/audio/audio_in_manager.cpp
+    hle/service/audio/audio_in_manager.h
     hle/service/audio/audio_in.cpp
     hle/service/audio/audio_in.h
     hle/service/audio/audio.cpp
