@@ -37,7 +37,7 @@ public:
         InArray<u64, BufferAttr_HipcMapAlias> application_ids);
     Result GetApplicationRightsOnClient(
         OutArray<ApplicationRightsOnClient, BufferAttr_HipcMapAlias> out_rights, Out<u32> out_count,
-        Common::UUID account_id, u32 flags, u64 application_id);
+        u32 flags, u64 application_id, Uid account_id);
     Result CheckSdCardMountStatus();
     Result GetSdCardMountStatusChangedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetFreeSpaceSize(Out<s64> out_free_space_size, FileSys::StorageId storage_id);
