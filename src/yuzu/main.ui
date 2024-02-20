@@ -165,8 +165,9 @@
      <addaction name="separator"/>
      <addaction name="action_Configure_Tas"/>
     </widget>
-    <addaction name="action_Verify_installed_contents"/>
+    <addaction name="action_Install_Keys"/>
     <addaction name="action_Install_Firmware"/>
+    <addaction name="action_Verify_installed_contents"/>
     <addaction name="separator"/>
     <addaction name="menu_cabinet_applet"/>
     <addaction name="action_Load_Album"/>
@@ -467,6 +468,11 @@
   <action name="action_Install_Firmware">
    <property name="text">
     <string>Install Firmware</string>
+   </property>
+  </action>
+  <action name="action_Install_Keys">
+   <property name="text">
+    <string>Install Decryption Keys</string>
    </property>
   </action>
  </widget>

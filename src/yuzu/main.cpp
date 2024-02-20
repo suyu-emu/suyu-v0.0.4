@@ -1604,6 +1604,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Open_yuzu_Folder, &GMainWindow::OnOpenYuzuFolder);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_Install_Firmware, &GMainWindow::OnInstallFirmware);
+    connect_menu(ui->action_Install_Keys, &GMainWindow::OnInstallDecryptionKeys);
     connect_menu(ui->action_About, &GMainWindow::OnAbout);
 }
 
@@ -1633,6 +1634,7 @@ void GMainWindow::UpdateMenuState() {
     }
 
     ui->action_Install_Firmware->setEnabled(!emulation_running);
+    ui->action_Install_Keys->setEnabled(!emulation_running);
 
     for (QAction* action : applet_actions) {
         action->setEnabled(is_firmware_available && !emulation_running);
@@ -4169,9 +4171,8 @@ void GMainWindow::OnInstallFirmware() {
         return;
     }
 
-    QString firmware_source_location =
-        QFileDialog::getExistingDirectory(this, tr("Select Dumped Firmware Source Location"),
-                                          QString::fromStdString(""), QFileDialog::ShowDirsOnly);
+    const QString firmware_source_location = QFileDialog::getExistingDirectory(
+        this, tr("Select Dumped Firmware Source Location"), {}, QFileDialog::ShowDirsOnly);
     if (firmware_source_location.isEmpty()) {
         return;
     }
@@ -4202,8 +4203,9 @@ void GMainWindow::OnInstallFirmware() {
     std::vector<std::filesystem::path> out;
     const Common::FS::DirEntryCallable callback =
         [&out](const std::filesystem::directory_entry& entry) {
-            if (entry.path().has_extension() && entry.path().extension() == ".nca")
+            if (entry.path().has_extension() && entry.path().extension() == ".nca") {
                 out.emplace_back(entry.path());
+            }
 
             return true;
         };
@@ -4235,7 +4237,6 @@ void GMainWindow::OnInstallFirmware() {
     auto firmware_vdir = sysnand_content_vdir->GetDirectoryRelative("registered");
 
     bool success = true;
-    bool cancelled = false;
     int i = 0;
     for (const auto& firmware_src_path : out) {
         i++;
@@ -4250,23 +4251,21 @@ void GMainWindow::OnInstallFirmware() {
             success = false;
         }
 
-        if (QtProgressCallback(100, 20 + (int)(((float)(i) / (float)out.size()) * 70.0))) {
-            success = false;
-            cancelled = true;
-            break;
+        if (QtProgressCallback(
+                100, 20 + static_cast<int>(((i) / static_cast<float>(out.size())) * 70.0))) {
+            progress.close();
+            QMessageBox::warning(
+                this, tr("Firmware install failed"),
+                tr("Firmware installation cancelled, firmware may be in bad state, "
+                   "restart yuzu or re-install firmware."));
+            return;
         }
     }
 
-    if (!success && !cancelled) {
+    if (!success) {
         progress.close();
         QMessageBox::critical(this, tr("Firmware install failed"),
                               tr("One or more firmware files failed to copy into NAND."));
-        return;
-    } else if (cancelled) {
-        progress.close();
-        QMessageBox::warning(this, tr("Firmware install failed"),
-                             tr("Firmware installation cancelled, firmware may be in bad state, "
-                                "restart yuzu or re-install firmware."));
         return;
     }
 
@@ -4292,6 +4291,84 @@ void GMainWindow::OnInstallFirmware() {
     }
 
     progress.close();
+    OnCheckFirmwareDecryption();
+}
+
+void GMainWindow::OnInstallDecryptionKeys() {
+    // Don't do this while emulation is running.
+    if (emu_thread != nullptr && emu_thread->IsRunning()) {
+        return;
+    }
+
+    const QString key_source_location = QFileDialog::getOpenFileName(
+        this, tr("Select Dumped Keys Location"), {}, QStringLiteral("prod.keys (prod.keys)"), {},
+        QFileDialog::ReadOnly);
+    if (key_source_location.isEmpty()) {
+        return;
+    }
+
+    // Verify that it contains prod.keys, title.keys and optionally, key_retail.bin
+    LOG_INFO(Frontend, "Installing key files from {}", key_source_location.toStdString());
+
+    const std::filesystem::path prod_key_path = key_source_location.toStdString();
+    const std::filesystem::path key_source_path = prod_key_path.parent_path();
+    if (!Common::FS::IsDir(key_source_path)) {
+        return;
+    }
+
+    bool prod_keys_found = false;
+    std::vector<std::filesystem::path> source_key_files;
+
+    if (Common::FS::Exists(prod_key_path)) {
+        prod_keys_found = true;
+        source_key_files.emplace_back(prod_key_path);
+    }
+
+    if (Common::FS::Exists(key_source_path / "title.keys")) {
+        source_key_files.emplace_back(key_source_path / "title.keys");
+    }
+
+    if (Common::FS::Exists(key_source_path / "key_retail.bin")) {
+        source_key_files.emplace_back(key_source_path / "key_retail.bin");
+    }
+
+    // There should be at least prod.keys.
+    if (source_key_files.empty() || !prod_keys_found) {
+        QMessageBox::warning(this, tr("Decryption Keys install failed"),
+                             tr("prod.keys is a required decryption key file."));
+        return;
+    }
+
+    const auto yuzu_keys_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::KeysDir);
+    for (auto key_file : source_key_files) {
+        std::filesystem::path destination_key_file = yuzu_keys_dir / key_file.filename();
+        if (!std::filesystem::copy_file(key_file, destination_key_file,
+                                        std::filesystem::copy_options::overwrite_existing)) {
+            LOG_ERROR(Frontend, "Failed to copy file {} to {}", key_file.string(),
+                      destination_key_file.string());
+            QMessageBox::critical(this, tr("Decryption Keys install failed"),
+                                  tr("One or more keys failed to copy."));
+            return;
+        }
+    }
+
+    // Reinitialize the key manager, re-read the vfs (for update/dlc files),
+    // and re-populate the game list in the UI if the user has already added
+    // game folders.
+    Core::Crypto::KeyManager::Instance().ReloadKeys();
+    system->GetFileSystemController().CreateFactories(*vfs);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+
+    if (ContentManager::AreKeysPresent()) {
+        QMessageBox::information(this, tr("Decryption Keys install succeeded"),
+                                 tr("Decryption Keys were successfully installed"));
+    } else {
+        QMessageBox::critical(
+            this, tr("Decryption Keys install failed"),
+            tr("Decryption Keys failed to initialize. Check that your dumping tools are "
+               "up to date and re-dump keys."));
+    }
+
     OnCheckFirmwareDecryption();
 }
 
