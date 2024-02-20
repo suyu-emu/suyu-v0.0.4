@@ -28,9 +28,14 @@ public:
     Result AppendAudioInBuffer(
         InArray<AudioCore::AudioIn::AudioInBuffer, BufferAttr_HipcMapAlias> buffer,
         u64 buffer_client_ptr);
+    Result AppendAudioInBufferAuto(
+        InArray<AudioCore::AudioIn::AudioInBuffer, BufferAttr_HipcAutoSelect> buffer,
+        u64 buffer_client_ptr);
     Result RegisterBufferEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
-    Result GetReleasedAudioInBuffer(OutArray<u64, BufferAttr_HipcMapAlias> out_audio_buffer,
-                                    Out<u32> out_count);
+    Result GetReleasedAudioInBuffers(OutArray<u64, BufferAttr_HipcMapAlias> out_audio_buffer,
+                                     Out<u32> out_count);
+    Result GetReleasedAudioInBuffersAuto(OutArray<u64, BufferAttr_HipcAutoSelect> out_audio_buffer,
+                                         Out<u32> out_count);
     Result ContainsAudioInBuffer(Out<bool> out_contains_buffer, u64 buffer_client_ptr);
     Result GetAudioInBufferCount(Out<u32> out_buffer_count);
     Result SetDeviceGain(f32 device_gain);

@@ -21,12 +21,12 @@ IAudioIn::IAudioIn(Core::System& system_, Manager& manager, size_t session_id,
         {2, C<&IAudioIn::Stop>, "Stop"},
         {3, C<&IAudioIn::AppendAudioInBuffer>, "AppendAudioInBuffer"},
         {4, C<&IAudioIn::RegisterBufferEvent>, "RegisterBufferEvent"},
-        {5, C<&IAudioIn::GetReleasedAudioInBuffer>, "GetReleasedAudioInBuffer"},
+        {5, C<&IAudioIn::GetReleasedAudioInBuffers>, "GetReleasedAudioInBuffers"},
         {6, C<&IAudioIn::ContainsAudioInBuffer>, "ContainsAudioInBuffer"},
         {7, C<&IAudioIn::AppendAudioInBuffer>, "AppendUacInBuffer"},
-        {8, C<&IAudioIn::AppendAudioInBuffer>, "AppendAudioInBufferAuto"},
-        {9, C<&IAudioIn::GetReleasedAudioInBuffer>, "GetReleasedAudioInBuffersAuto"},
-        {10, C<&IAudioIn::AppendAudioInBuffer>, "AppendUacInBufferAuto"},
+        {8, C<&IAudioIn::AppendAudioInBufferAuto>, "AppendAudioInBufferAuto"},
+        {9, C<&IAudioIn::GetReleasedAudioInBuffersAuto>, "GetReleasedAudioInBuffersAuto"},
+        {10, C<&IAudioIn::AppendAudioInBufferAuto>, "AppendUacInBufferAuto"},
         {11, C<&IAudioIn::GetAudioInBufferCount>, "GetAudioInBufferCount"},
         {12, C<&IAudioIn::SetDeviceGain>, "SetDeviceGain"},
         {13, C<&IAudioIn::GetDeviceGain>, "GetDeviceGain"},
@@ -69,6 +69,11 @@ Result IAudioIn::Stop() {
 
 Result IAudioIn::AppendAudioInBuffer(InArray<AudioInBuffer, BufferAttr_HipcMapAlias> buffer,
                                      u64 buffer_client_ptr) {
+    R_RETURN(this->AppendAudioInBufferAuto(buffer, buffer_client_ptr));
+}
+
+Result IAudioIn::AppendAudioInBufferAuto(InArray<AudioInBuffer, BufferAttr_HipcAutoSelect> buffer,
+                                         u64 buffer_client_ptr) {
     if (buffer.empty()) {
         LOG_ERROR(Service_Audio, "Input buffer is too small for an AudioInBuffer!");
         R_THROW(Audio::ResultInsufficientBuffer);
@@ -87,8 +92,17 @@ Result IAudioIn::RegisterBufferEvent(OutCopyHandle<Kernel::KReadableEvent> out_e
     R_SUCCEED();
 }
 
-Result IAudioIn::GetReleasedAudioInBuffer(OutArray<u64, BufferAttr_HipcMapAlias> out_audio_buffer,
-                                          Out<u32> out_count) {
+Result IAudioIn::GetReleasedAudioInBuffers(OutArray<u64, BufferAttr_HipcMapAlias> out_audio_buffer,
+                                           Out<u32> out_count) {
+    R_RETURN(this->GetReleasedAudioInBuffersAuto(out_audio_buffer, out_count));
+}
+
+Result IAudioIn::GetReleasedAudioInBuffersAuto(
+    OutArray<u64, BufferAttr_HipcAutoSelect> out_audio_buffer, Out<u32> out_count) {
+
+    if (!out_audio_buffer.empty()) {
+        out_audio_buffer[0] = 0;
+    }
     *out_count = impl->GetReleasedBuffers(out_audio_buffer);
 
     LOG_TRACE(Service_Audio, "called. Session {} released {} buffers",
