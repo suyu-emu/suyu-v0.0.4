@@ -501,13 +501,13 @@ add_library(core STATIC
     hle/service/audio/audio.h
     hle/service/audio/audio_controller.cpp
     hle/service/audio/audio_controller.h
-    hle/service/audio/audrec_a.cpp
-    hle/service/audio/audrec_a.h
-    hle/service/audio/audrec_u.cpp
-    hle/service/audio/audrec_u.h
     hle/service/audio/audren_u.cpp
     hle/service/audio/audren_u.h
     hle/service/audio/errors.h
+    hle/service/audio/final_output_recorder_manager_for_applet.cpp
+    hle/service/audio/final_output_recorder_manager_for_applet.h
+    hle/service/audio/final_output_recorder_manager.cpp
+    hle/service/audio/final_output_recorder_manager.h
     hle/service/audio/hwopus.cpp
     hle/service/audio/hwopus.h
     hle/service/bcat/backend/backend.cpp

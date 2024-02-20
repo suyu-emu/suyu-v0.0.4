@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/audio/audrec_u.h"
+#include "core/hle/service/audio/final_output_recorder_manager.h"
 
 namespace Service::Audio {
 
@@ -30,13 +30,14 @@ public:
     }
 };
 
-AudRecU::AudRecU(Core::System& system_) : ServiceFramework{system_, "audrec:u"} {
+IFinalOutputRecorderManager::IFinalOutputRecorderManager(Core::System& system_)
+    : ServiceFramework{system_, "audrec:u"} {
     static const FunctionInfo functions[] = {
         {0, nullptr, "OpenFinalOutputRecorder"},
     };
     RegisterHandlers(functions);
 }
 
-AudRecU::~AudRecU() = default;
+IFinalOutputRecorderManager::~IFinalOutputRecorderManager() = default;
 
 } // namespace Service::Audio
