@@ -36,7 +36,7 @@ void SurfaceFlinger::RemoveDisplay(u64 display_id) {
 bool SurfaceFlinger::ComposeDisplay(s32* out_swap_interval, f32* out_compose_speed_scale,
                                     u64 display_id) {
     auto* const display = this->FindDisplay(display_id);
-    if (!display || !display->HasLayers()) {
+    if (!display || !display->stack.HasLayers()) {
         return false;
     }
 
@@ -46,19 +46,34 @@ bool SurfaceFlinger::ComposeDisplay(s32* out_swap_interval, f32* out_compose_spe
     return true;
 }
 
-void SurfaceFlinger::AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_id) {
-    auto* const display = this->FindDisplay(display_id);
+void SurfaceFlinger::CreateLayer(s32 consumer_binder_id) {
     auto binder = std::static_pointer_cast<android::BufferQueueConsumer>(
         m_server.TryGetBinder(consumer_binder_id));
-
-    if (!display || !binder) {
+    if (!binder) {
         return;
     }
 
     auto buffer_item_consumer = std::make_shared<android::BufferItemConsumer>(std::move(binder));
     buffer_item_consumer->Connect(false);
 
-    display->stack.layers.emplace_back(std::move(buffer_item_consumer), consumer_binder_id);
+    m_layers.layers.emplace_back(
+        std::make_shared<Layer>(std::move(buffer_item_consumer), consumer_binder_id));
+}
+
+void SurfaceFlinger::DestroyLayer(s32 consumer_binder_id) {
+    std::erase_if(m_layers.layers,
+                  [&](auto& layer) { return layer->consumer_id == consumer_binder_id; });
+}
+
+void SurfaceFlinger::AddLayerToDisplayStack(u64 display_id, s32 consumer_binder_id) {
+    auto* const display = this->FindDisplay(display_id);
+    auto layer = this->FindLayer(consumer_binder_id);
+
+    if (!display || !layer) {
+        return;
+    }
+
+    display->stack.layers.emplace_back(std::move(layer));
 }
 
 void SurfaceFlinger::RemoveLayerFromDisplayStack(u64 display_id, s32 consumer_binder_id) {
@@ -69,18 +84,18 @@ void SurfaceFlinger::RemoveLayerFromDisplayStack(u64 display_id, s32 consumer_bi
 
     m_composer.RemoveLayerLocked(*display, consumer_binder_id);
     std::erase_if(display->stack.layers,
-                  [&](auto& layer) { return layer.consumer_id == consumer_binder_id; });
+                  [&](auto& layer) { return layer->consumer_id == consumer_binder_id; });
 }
 
 void SurfaceFlinger::SetLayerVisibility(s32 consumer_binder_id, bool visible) {
-    if (auto* layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
+    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
         layer->visible = visible;
         return;
     }
 }
 
 void SurfaceFlinger::SetLayerBlending(s32 consumer_binder_id, LayerBlending blending) {
-    if (auto* layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
+    if (const auto layer = this->FindLayer(consumer_binder_id); layer != nullptr) {
         layer->blending = blending;
         return;
     }
@@ -96,9 +111,9 @@ Display* SurfaceFlinger::FindDisplay(u64 display_id) {
     return nullptr;
 }
 
-Layer* SurfaceFlinger::FindLayer(s32 consumer_binder_id) {
-    for (auto& display : m_displays) {
-        if (auto* layer = display.FindLayer(consumer_binder_id); layer != nullptr) {
+std::shared_ptr<Layer> SurfaceFlinger::FindLayer(s32 consumer_binder_id) {
+    for (auto& layer : m_layers.layers) {
+        if (layer->consumer_id == consumer_binder_id) {
             return layer;
         }
     }

@@ -13,29 +13,31 @@ class Layer {
 public:
     constexpr Layer() = default;
 
-    void Initialize(u64 id, u64 owner_aruid, Display* display) {
+    void Initialize(u64 id, u64 owner_aruid, Display* display, s32 consumer_binder_id,
+                    s32 producer_binder_id) {
         m_id = id;
         m_owner_aruid = owner_aruid;
         m_display = display;
+        m_consumer_binder_id = consumer_binder_id;
+        m_producer_binder_id = producer_binder_id;
         m_is_initialized = true;
     }
 
     void Finalize() {
         m_id = {};
+        m_owner_aruid = {};
         m_display = {};
+        m_consumer_binder_id = {};
+        m_producer_binder_id = {};
         m_is_initialized = {};
     }
 
-    void Open(s32 consumer_binder_id, s32 producer_binder_id) {
-        m_consumer_binder_id = consumer_binder_id;
-        m_producer_binder_id = producer_binder_id;
+    void Open() {
         m_is_open = true;
     }
 
     void Close() {
-        m_producer_binder_id = {};
-        m_consumer_binder_id = {};
-        m_is_open = {};
+        m_is_open = false;
     }
 
     u64 GetId() const {
