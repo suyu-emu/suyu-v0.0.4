@@ -493,14 +493,14 @@ add_library(core STATIC
     hle/service/audio/audio_in_manager.h
     hle/service/audio/audio_in.cpp
     hle/service/audio/audio_in.h
+    hle/service/audio/audio_out_manager.cpp
+    hle/service/audio/audio_out_manager.h
     hle/service/audio/audio_out.cpp
     hle/service/audio/audio_out.h
     hle/service/audio/audio.cpp
     hle/service/audio/audio.h
     hle/service/audio/audio_controller.cpp
     hle/service/audio/audio_controller.h
-    hle/service/audio/audout_u.cpp
-    hle/service/audio/audout_u.h
     hle/service/audio/audrec_a.cpp
     hle/service/audio/audrec_a.h
     hle/service/audio/audrec_u.cpp
