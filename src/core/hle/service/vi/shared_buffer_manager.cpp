@@ -285,7 +285,7 @@ void SharedBufferManager::DestroySession(Kernel::KProcess* owner_process) {
     auto& session = it->second;
 
     // Destroy the layer.
-    R_ASSERT(m_container.DestroyStrayLayer(session.layer_id));
+    m_container.DestroyStrayLayer(session.layer_id);
 
     // Close nvmap handle.
     FreeHandle(session.buffer_nvmap_handle, *m_nvdrv, session.nvmap_fd);
