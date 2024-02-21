@@ -292,6 +292,9 @@ void EmulationSession::ShutdownEmulation() {
     // Unload user input.
     m_system.HIDCore().UnloadInputDevices();
 
+    // Enable all controllers
+    m_system.HIDCore().SetSupportedStyleTag({Core::HID::NpadStyleSet::All});
+
     // Shutdown the main emulated process
     if (m_load_result == Core::SystemResultStatus::Success) {
         m_system.DetachDebugger();
