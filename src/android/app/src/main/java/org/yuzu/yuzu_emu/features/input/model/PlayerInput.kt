@@ -64,17 +64,17 @@ data class PlayerInput(
     fun hasMapping(): Boolean {
         var hasMapping = false
         buttons.forEach {
-            if (it != "[empty]") {
+            if (it != "[empty]" && it.isNotEmpty()) {
                 hasMapping = true
             }
         }
         analogs.forEach {
-            if (it != "[empty]") {
+            if (it != "[empty]" && it.isNotEmpty()) {
                 hasMapping = true
             }
         }
         motions.forEach {
-            if (it != "[empty]") {
+            if (it != "[empty]" && it.isNotEmpty()) {
                 hasMapping = true
             }
         }
