@@ -4,6 +4,7 @@
 #pragma once
 
 #include "audio_core/opus/decoder.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::Audio {
@@ -20,16 +21,40 @@ public:
                       Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size);
 
 private:
-    void DecodeInterleavedOld(HLERequestContext& ctx);
-    void SetContext(HLERequestContext& ctx);
-    void DecodeInterleavedForMultiStreamOld(HLERequestContext& ctx);
-    void SetContextForMultiStream(HLERequestContext& ctx);
-    void DecodeInterleavedWithPerfOld(HLERequestContext& ctx);
-    void DecodeInterleavedForMultiStreamWithPerfOld(HLERequestContext& ctx);
-    void DecodeInterleavedWithPerfAndResetOld(HLERequestContext& ctx);
-    void DecodeInterleavedForMultiStreamWithPerfAndResetOld(HLERequestContext& ctx);
-    void DecodeInterleaved(HLERequestContext& ctx);
-    void DecodeInterleavedForMultiStream(HLERequestContext& ctx);
+    Result DecodeInterleavedOld(OutBuffer<BufferAttr_HipcMapAlias> out_pcm_data,
+                                Out<u32> out_data_size, Out<u32> out_sample_count,
+                                InBuffer<BufferAttr_HipcMapAlias> opus_data);
+    Result SetContext(InBuffer<BufferAttr_HipcMapAlias> decoder_context);
+    Result DecodeInterleavedForMultiStreamOld(OutBuffer<BufferAttr_HipcMapAlias> out_pcm_data,
+                                              Out<u32> out_data_size, Out<u32> out_sample_count,
+                                              InBuffer<BufferAttr_HipcMapAlias> opus_data);
+    Result SetContextForMultiStream(InBuffer<BufferAttr_HipcMapAlias> decoder_context);
+    Result DecodeInterleavedWithPerfOld(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+        Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+        InBuffer<BufferAttr_HipcMapAlias> opus_data);
+    Result DecodeInterleavedForMultiStreamWithPerfOld(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+        Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+        InBuffer<BufferAttr_HipcMapAlias> opus_data);
+    Result DecodeInterleavedWithPerfAndResetOld(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+        Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+        InBuffer<BufferAttr_HipcMapAlias> opus_data, bool reset);
+    Result DecodeInterleavedForMultiStreamWithPerfAndResetOld(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+        Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+        InBuffer<BufferAttr_HipcMapAlias> opus_data, bool reset);
+    Result DecodeInterleaved(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+        Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+        InBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> opus_data,
+        bool reset);
+    Result DecodeInterleavedForMultiStream(
+        OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+        Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+        InBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> opus_data,
+        bool reset);
 
     std::unique_ptr<AudioCore::OpusDecoder::OpusDecoder> impl;
     Common::ScratchBuffer<u8> output_data;

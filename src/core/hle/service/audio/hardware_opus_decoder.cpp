@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/audio/hardware_opus_decoder.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 
 namespace Service::Audio {
 
@@ -13,16 +13,16 @@ IHardwareOpusDecoder::IHardwareOpusDecoder(Core::System& system_, HardwareOpus& 
       impl{std::make_unique<AudioCore::OpusDecoder::OpusDecoder>(system_, hardware_opus)} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &IHardwareOpusDecoder::DecodeInterleavedOld, "DecodeInterleavedOld"},
-        {1, &IHardwareOpusDecoder::SetContext, "SetContext"},
-        {2, &IHardwareOpusDecoder::DecodeInterleavedForMultiStreamOld, "DecodeInterleavedForMultiStreamOld"},
-        {3, &IHardwareOpusDecoder::SetContextForMultiStream, "SetContextForMultiStream"},
-        {4, &IHardwareOpusDecoder::DecodeInterleavedWithPerfOld, "DecodeInterleavedWithPerfOld"},
-        {5, &IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfOld, "DecodeInterleavedForMultiStreamWithPerfOld"},
-        {6, &IHardwareOpusDecoder::DecodeInterleavedWithPerfAndResetOld, "DecodeInterleavedWithPerfAndResetOld"},
-        {7, &IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfAndResetOld, "DecodeInterleavedForMultiStreamWithPerfAndResetOld"},
-        {8, &IHardwareOpusDecoder::DecodeInterleaved, "DecodeInterleaved"},
-        {9, &IHardwareOpusDecoder::DecodeInterleavedForMultiStream, "DecodeInterleavedForMultiStream"},
+        {0, D<&IHardwareOpusDecoder::DecodeInterleavedOld>, "DecodeInterleavedOld"},
+        {1, D<&IHardwareOpusDecoder::SetContext>, "SetContext"},
+        {2, D<&IHardwareOpusDecoder::DecodeInterleavedForMultiStreamOld>, "DecodeInterleavedForMultiStreamOld"},
+        {3, D<&IHardwareOpusDecoder::SetContextForMultiStream>, "SetContextForMultiStream"},
+        {4, D<&IHardwareOpusDecoder::DecodeInterleavedWithPerfOld>, "DecodeInterleavedWithPerfOld"},
+        {5, D<&IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfOld>, "DecodeInterleavedForMultiStreamWithPerfOld"},
+        {6, D<&IHardwareOpusDecoder::DecodeInterleavedWithPerfAndResetOld>, "DecodeInterleavedWithPerfAndResetOld"},
+        {7, D<&IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfAndResetOld>, "DecodeInterleavedForMultiStreamWithPerfAndResetOld"},
+        {8, D<&IHardwareOpusDecoder::DecodeInterleaved>, "DecodeInterleaved"},
+        {9, D<&IHardwareOpusDecoder::DecodeInterleavedForMultiStream>, "DecodeInterleavedForMultiStream"},
     };
     // clang-format on
 
@@ -43,223 +43,103 @@ Result IHardwareOpusDecoder::Initialize(const OpusMultiStreamParametersEx& param
     return impl->Initialize(params, transfer_memory, transfer_memory_size);
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedOld(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    auto result =
-        impl->DecodeInterleaved(&size, nullptr, &sample_count, input_data, output_data, false);
-
-    LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {}", size, sample_count);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
+Result IHardwareOpusDecoder::DecodeInterleavedOld(OutBuffer<BufferAttr_HipcMapAlias> out_pcm_data,
+                                                  Out<u32> out_data_size, Out<u32> out_sample_count,
+                                                  InBuffer<BufferAttr_HipcMapAlias> opus_data) {
+    R_TRY(impl->DecodeInterleaved(out_data_size, nullptr, out_sample_count, opus_data, out_pcm_data,
+                                  false));
+    LOG_DEBUG(Service_Audio, "bytes read {:#x} samples generated {}", *out_data_size,
+              *out_sample_count);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::SetContext(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
+Result IHardwareOpusDecoder::SetContext(InBuffer<BufferAttr_HipcMapAlias> decoder_context) {
     LOG_DEBUG(Service_Audio, "called");
-
-    auto input_data{ctx.ReadBuffer(0)};
-    auto result = impl->SetContext(input_data);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_RETURN(impl->SetContext(decoder_context));
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedForMultiStreamOld(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    auto result = impl->DecodeInterleavedForMultiStream(&size, nullptr, &sample_count, input_data,
-                                                        output_data, false);
-
-    LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {}", size, sample_count);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
+Result IHardwareOpusDecoder::DecodeInterleavedForMultiStreamOld(
+    OutBuffer<BufferAttr_HipcMapAlias> out_pcm_data, Out<u32> out_data_size,
+    Out<u32> out_sample_count, InBuffer<BufferAttr_HipcMapAlias> opus_data) {
+    R_TRY(impl->DecodeInterleavedForMultiStream(out_data_size, nullptr, out_sample_count, opus_data,
+                                                out_pcm_data, false));
+    LOG_DEBUG(Service_Audio, "bytes read {:#x} samples generated {}", *out_data_size,
+              *out_sample_count);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::SetContextForMultiStream(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
+Result IHardwareOpusDecoder::SetContextForMultiStream(
+    InBuffer<BufferAttr_HipcMapAlias> decoder_context) {
     LOG_DEBUG(Service_Audio, "called");
-
-    auto input_data{ctx.ReadBuffer(0)};
-    auto result = impl->SetContext(input_data);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_RETURN(impl->SetContext(decoder_context));
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedWithPerfOld(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    u64 time_taken{};
-    auto result =
-        impl->DecodeInterleaved(&size, &time_taken, &sample_count, input_data, output_data, false);
-
-    LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {} time taken {}", size,
-              sample_count, time_taken);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
-    rb.Push(time_taken);
+Result IHardwareOpusDecoder::DecodeInterleavedWithPerfOld(
+    OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+    Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+    InBuffer<BufferAttr_HipcMapAlias> opus_data) {
+    R_TRY(impl->DecodeInterleaved(out_data_size, out_time_taken, out_sample_count, opus_data,
+                                  out_pcm_data, false));
+    LOG_DEBUG(Service_Audio, "bytes read {:#x} samples generated {} time taken {}", *out_data_size,
+              *out_sample_count, *out_time_taken);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfOld(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    u64 time_taken{};
-    auto result = impl->DecodeInterleavedForMultiStream(&size, &time_taken, &sample_count,
-                                                        input_data, output_data, false);
-
-    LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {} time taken {}", size,
-              sample_count, time_taken);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
-    rb.Push(time_taken);
+Result IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfOld(
+    OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+    Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+    InBuffer<BufferAttr_HipcMapAlias> opus_data) {
+    R_TRY(impl->DecodeInterleavedForMultiStream(out_data_size, out_time_taken, out_sample_count,
+                                                opus_data, out_pcm_data, false));
+    LOG_DEBUG(Service_Audio, "bytes read {:#x} samples generated {} time taken {}", *out_data_size,
+              *out_sample_count, *out_time_taken);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedWithPerfAndResetOld(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto reset{rp.Pop<bool>()};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    u64 time_taken{};
-    auto result =
-        impl->DecodeInterleaved(&size, &time_taken, &sample_count, input_data, output_data, reset);
-
-    LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}", reset,
-              size, sample_count, time_taken);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
-    rb.Push(time_taken);
+Result IHardwareOpusDecoder::DecodeInterleavedWithPerfAndResetOld(
+    OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+    Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+    InBuffer<BufferAttr_HipcMapAlias> opus_data, bool reset) {
+    R_TRY(impl->DecodeInterleaved(out_data_size, out_time_taken, out_sample_count, opus_data,
+                                  out_pcm_data, reset));
+    LOG_DEBUG(Service_Audio, "reset {} bytes read {:#x} samples generated {} time taken {}", reset,
+              *out_data_size, *out_sample_count, *out_time_taken);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfAndResetOld(
-    HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto reset{rp.Pop<bool>()};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    u64 time_taken{};
-    auto result = impl->DecodeInterleavedForMultiStream(&size, &time_taken, &sample_count,
-                                                        input_data, output_data, reset);
-
-    LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}", reset,
-              size, sample_count, time_taken);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
-    rb.Push(time_taken);
+Result IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfAndResetOld(
+    OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+    Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+    InBuffer<BufferAttr_HipcMapAlias> opus_data, bool reset) {
+    R_TRY(impl->DecodeInterleavedForMultiStream(out_data_size, out_time_taken, out_sample_count,
+                                                opus_data, out_pcm_data, reset));
+    LOG_DEBUG(Service_Audio, "reset {} bytes read {:#x} samples generated {} time taken {}", reset,
+              *out_data_size, *out_sample_count, *out_time_taken);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::DecodeInterleaved(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto reset{rp.Pop<bool>()};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    u64 time_taken{};
-    auto result =
-        impl->DecodeInterleaved(&size, &time_taken, &sample_count, input_data, output_data, reset);
-
-    LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}", reset,
-              size, sample_count, time_taken);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
-    rb.Push(time_taken);
+Result IHardwareOpusDecoder::DecodeInterleaved(
+    OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+    Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+    InBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> opus_data,
+    bool reset) {
+    R_TRY(impl->DecodeInterleaved(out_data_size, out_time_taken, out_sample_count, opus_data,
+                                  out_pcm_data, reset));
+    LOG_DEBUG(Service_Audio, "reset {} bytes read {:#x} samples generated {} time taken {}", reset,
+              *out_data_size, *out_sample_count, *out_time_taken);
+    R_SUCCEED();
 }
 
-void IHardwareOpusDecoder::DecodeInterleavedForMultiStream(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    auto reset{rp.Pop<bool>()};
-
-    auto input_data{ctx.ReadBuffer(0)};
-    output_data.resize_destructive(ctx.GetWriteBufferSize());
-
-    u32 size{};
-    u32 sample_count{};
-    u64 time_taken{};
-    auto result = impl->DecodeInterleavedForMultiStream(&size, &time_taken, &sample_count,
-                                                        input_data, output_data, reset);
-
-    LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}", reset,
-              size, sample_count, time_taken);
-
-    ctx.WriteBuffer(output_data);
-
-    IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(result);
-    rb.Push(size);
-    rb.Push(sample_count);
-    rb.Push(time_taken);
+Result IHardwareOpusDecoder::DecodeInterleavedForMultiStream(
+    OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_pcm_data,
+    Out<u32> out_data_size, Out<u32> out_sample_count, Out<u64> out_time_taken,
+    InBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> opus_data,
+    bool reset) {
+    R_TRY(impl->DecodeInterleavedForMultiStream(out_data_size, out_time_taken, out_sample_count,
+                                                opus_data, out_pcm_data, reset));
+    LOG_DEBUG(Service_Audio, "reset {} bytes read {:#x} samples generated {} time taken {}", reset,
+              *out_data_size, *out_sample_count, *out_time_taken);
+    R_SUCCEED();
 }
 
 } // namespace Service::Audio
