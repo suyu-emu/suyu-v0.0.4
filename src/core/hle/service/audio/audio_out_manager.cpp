@@ -14,10 +14,10 @@ IAudioOutManager::IAudioOutManager(Core::System& system_)
     : ServiceFramework{system_, "audout:u"}, impl{std::make_unique<Manager>(system_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IAudioOutManager::ListAudioOuts>, "ListAudioOuts"},
-        {1, C<&IAudioOutManager::OpenAudioOut>, "OpenAudioOut"},
-        {2, C<&IAudioOutManager::ListAudioOutsAuto>, "ListAudioOutsAuto"},
-        {3, C<&IAudioOutManager::OpenAudioOutAuto>, "OpenAudioOutAuto"},
+        {0, D<&IAudioOutManager::ListAudioOuts>, "ListAudioOuts"},
+        {1, D<&IAudioOutManager::OpenAudioOut>, "OpenAudioOut"},
+        {2, D<&IAudioOutManager::ListAudioOutsAuto>, "ListAudioOutsAuto"},
+        {3, D<&IAudioOutManager::OpenAudioOutAuto>, "OpenAudioOutAuto"},
     };
     // clang-format on
 

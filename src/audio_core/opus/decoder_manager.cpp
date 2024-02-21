@@ -38,7 +38,7 @@ OpusDecoderManager::OpusDecoderManager(Core::System& system_)
     }
 }
 
-Result OpusDecoderManager::GetWorkBufferSize(OpusParameters& params, u64& out_size) {
+Result OpusDecoderManager::GetWorkBufferSize(const OpusParameters& params, u32& out_size) {
     OpusParametersEx ex{
         .sample_rate = params.sample_rate,
         .channel_count = params.channel_count,
@@ -47,11 +47,11 @@ Result OpusDecoderManager::GetWorkBufferSize(OpusParameters& params, u64& out_si
     R_RETURN(GetWorkBufferSizeExEx(ex, out_size));
 }
 
-Result OpusDecoderManager::GetWorkBufferSizeEx(OpusParametersEx& params, u64& out_size) {
+Result OpusDecoderManager::GetWorkBufferSizeEx(const OpusParametersEx& params, u32& out_size) {
     R_RETURN(GetWorkBufferSizeExEx(params, out_size));
 }
 
-Result OpusDecoderManager::GetWorkBufferSizeExEx(OpusParametersEx& params, u64& out_size) {
+Result OpusDecoderManager::GetWorkBufferSizeExEx(const OpusParametersEx& params, u32& out_size) {
     R_UNLESS(IsValidChannelCount(params.channel_count), ResultInvalidOpusChannelCount);
     R_UNLESS(IsValidSampleRate(params.sample_rate), ResultInvalidOpusSampleRate);
 
@@ -63,8 +63,8 @@ Result OpusDecoderManager::GetWorkBufferSizeExEx(OpusParametersEx& params, u64& 
     R_SUCCEED();
 }
 
-Result OpusDecoderManager::GetWorkBufferSizeForMultiStream(OpusMultiStreamParameters& params,
-                                                           u64& out_size) {
+Result OpusDecoderManager::GetWorkBufferSizeForMultiStream(const OpusMultiStreamParameters& params,
+                                                           u32& out_size) {
     OpusMultiStreamParametersEx ex{
         .sample_rate = params.sample_rate,
         .channel_count = params.channel_count,
@@ -76,13 +76,13 @@ Result OpusDecoderManager::GetWorkBufferSizeForMultiStream(OpusMultiStreamParame
     R_RETURN(GetWorkBufferSizeForMultiStreamExEx(ex, out_size));
 }
 
-Result OpusDecoderManager::GetWorkBufferSizeForMultiStreamEx(OpusMultiStreamParametersEx& params,
-                                                             u64& out_size) {
+Result OpusDecoderManager::GetWorkBufferSizeForMultiStreamEx(
+    const OpusMultiStreamParametersEx& params, u32& out_size) {
     R_RETURN(GetWorkBufferSizeForMultiStreamExEx(params, out_size));
 }
 
-Result OpusDecoderManager::GetWorkBufferSizeForMultiStreamExEx(OpusMultiStreamParametersEx& params,
-                                                               u64& out_size) {
+Result OpusDecoderManager::GetWorkBufferSizeForMultiStreamExEx(
+    const OpusMultiStreamParametersEx& params, u32& out_size) {
     R_UNLESS(IsValidMultiStreamChannelCount(params.channel_count), ResultInvalidOpusChannelCount);
     R_UNLESS(IsValidSampleRate(params.sample_rate), ResultInvalidOpusSampleRate);
     R_UNLESS(IsValidStreamCount(params.channel_count, params.total_stream_count,
