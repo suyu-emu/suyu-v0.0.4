@@ -102,8 +102,50 @@ void ApplyControllerConfig(size_t player_index,
     }
 }
 
+std::vector<s32> GetSupportedStyles(int player_index) {
+    auto& hid_core = EmulationSession::GetInstance().System().HIDCore();
+    const auto npad_style_set = hid_core.GetSupportedStyleTag();
+    std::vector<s32> supported_indexes;
+    if (npad_style_set.fullkey == 1) {
+        supported_indexes.push_back(static_cast<s32>(Core::HID::NpadStyleIndex::Fullkey));
+    }
+
+    if (npad_style_set.joycon_dual == 1) {
+        supported_indexes.push_back(static_cast<s32>(Core::HID::NpadStyleIndex::JoyconDual));
+    }
+
+    if (npad_style_set.joycon_left == 1) {
+        supported_indexes.push_back(static_cast<s32>(Core::HID::NpadStyleIndex::JoyconLeft));
+    }
+
+    if (npad_style_set.joycon_right == 1) {
+        supported_indexes.push_back(static_cast<s32>(Core::HID::NpadStyleIndex::JoyconRight));
+    }
+
+    if (player_index == 0 && npad_style_set.handheld == 1) {
+        supported_indexes.push_back(static_cast<s32>(Core::HID::NpadStyleIndex::Handheld));
+    }
+
+    if (npad_style_set.gamecube == 1) {
+        supported_indexes.push_back(static_cast<s32>(Core::HID::NpadStyleIndex::GameCube));
+    }
+
+    return supported_indexes;
+}
+
 void ConnectController(size_t player_index, bool connected) {
     auto& hid_core = EmulationSession::GetInstance().System().HIDCore();
+    ApplyControllerConfig(player_index, [&](Core::HID::EmulatedController* controller) {
+        auto supported_styles = GetSupportedStyles(player_index);
+        auto controller_style = controller->GetNpadStyleIndex(true);
+        auto style = std::find(supported_styles.begin(), supported_styles.end(),
+                               static_cast<int>(controller_style));
+        if (style == supported_styles.end() && !supported_styles.empty()) {
+            controller->SetNpadStyleIndex(
+                static_cast<Core::HID::NpadStyleIndex>(supported_styles[0]));
+        }
+    });
+
     if (player_index == 0) {
         auto* handheld = hid_core.GetEmulatedController(Core::HID::NpadIdType::Handheld);
         auto* player_one = hid_core.GetEmulatedController(Core::HID::NpadIdType::Player1);
@@ -522,36 +564,10 @@ jint Java_org_yuzu_yuzu_1emu_features_input_NativeInput_getButtonNameImpl(JNIEnv
 
 jintArray Java_org_yuzu_yuzu_1emu_features_input_NativeInput_getSupportedStyleTagsImpl(
     JNIEnv* env, jobject j_obj, jint j_player_index) {
-    auto& hid_core = EmulationSession::GetInstance().System().HIDCore();
-    const auto npad_style_set = hid_core.GetSupportedStyleTag();
-    std::vector<s32> supported_indexes;
-    if (npad_style_set.fullkey == 1) {
-        supported_indexes.push_back(static_cast<u32>(Core::HID::NpadStyleIndex::Fullkey));
-    }
-
-    if (npad_style_set.joycon_dual == 1) {
-        supported_indexes.push_back(static_cast<u32>(Core::HID::NpadStyleIndex::JoyconDual));
-    }
-
-    if (npad_style_set.joycon_left == 1) {
-        supported_indexes.push_back(static_cast<u32>(Core::HID::NpadStyleIndex::JoyconLeft));
-    }
-
-    if (npad_style_set.joycon_right == 1) {
-        supported_indexes.push_back(static_cast<u32>(Core::HID::NpadStyleIndex::JoyconRight));
-    }
-
-    if (j_player_index == 0 && npad_style_set.handheld == 1) {
-        supported_indexes.push_back(static_cast<u32>(Core::HID::NpadStyleIndex::Handheld));
-    }
-
-    if (npad_style_set.gamecube == 1) {
-        supported_indexes.push_back(static_cast<u32>(Core::HID::NpadStyleIndex::GameCube));
-    }
-
-    jintArray j_supported_indexes = env->NewIntArray(supported_indexes.size());
-    env->SetIntArrayRegion(j_supported_indexes, 0, supported_indexes.size(),
-                           supported_indexes.data());
+    auto supported_styles = GetSupportedStyles(j_player_index);
+    jintArray j_supported_indexes = env->NewIntArray(supported_styles.size());
+    env->SetIntArrayRegion(j_supported_indexes, 0, supported_styles.size(),
+                           supported_styles.data());
     return j_supported_indexes;
 }
 
