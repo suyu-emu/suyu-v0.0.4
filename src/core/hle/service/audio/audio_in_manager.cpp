@@ -14,12 +14,12 @@ IAudioInManager::IAudioInManager(Core::System& system_)
       impl{std::make_unique<AudioCore::AudioIn::Manager>(system_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IAudioInManager::ListAudioIns>, "ListAudioIns"},
-        {1, C<&IAudioInManager::OpenAudioIn>, "OpenAudioIn"},
-        {2, C<&IAudioInManager::ListAudioIns>, "ListAudioInsAuto"},
-        {3, C<&IAudioInManager::OpenAudioIn>, "OpenAudioInAuto"},
-        {4, C<&IAudioInManager::ListAudioInsAutoFiltered>, "ListAudioInsAutoFiltered"},
-        {5, C<&IAudioInManager::OpenAudioInProtocolSpecified>, "OpenAudioInProtocolSpecified"},
+        {0, D<&IAudioInManager::ListAudioIns>, "ListAudioIns"},
+        {1, D<&IAudioInManager::OpenAudioIn>, "OpenAudioIn"},
+        {2, D<&IAudioInManager::ListAudioIns>, "ListAudioInsAuto"},
+        {3, D<&IAudioInManager::OpenAudioIn>, "OpenAudioInAuto"},
+        {4, D<&IAudioInManager::ListAudioInsAutoFiltered>, "ListAudioInsAutoFiltered"},
+        {5, D<&IAudioInManager::OpenAudioInProtocolSpecified>, "OpenAudioInProtocolSpecified"},
     };
     // clang-format on
 

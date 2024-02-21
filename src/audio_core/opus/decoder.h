@@ -22,10 +22,10 @@ public:
     explicit OpusDecoder(Core::System& system, HardwareOpus& hardware_opus_);
     ~OpusDecoder();
 
-    Result Initialize(OpusParametersEx& params, Kernel::KTransferMemory* transfer_memory,
+    Result Initialize(const OpusParametersEx& params, Kernel::KTransferMemory* transfer_memory,
                       u64 transfer_memory_size);
-    Result Initialize(OpusMultiStreamParametersEx& params, Kernel::KTransferMemory* transfer_memory,
-                      u64 transfer_memory_size);
+    Result Initialize(const OpusMultiStreamParametersEx& params,
+                      Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size);
     Result DecodeInterleaved(u32* out_data_size, u64* out_time_taken, u32* out_sample_count,
                              std::span<const u8> input_data, std::span<u8> output_data, bool reset);
     Result SetContext([[maybe_unused]] std::span<const u8> context);

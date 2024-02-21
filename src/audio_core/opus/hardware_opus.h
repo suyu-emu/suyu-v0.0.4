@@ -16,14 +16,14 @@ class HardwareOpus {
 public:
     HardwareOpus(Core::System& system);
 
-    u64 GetWorkBufferSize(u32 channel);
-    u64 GetWorkBufferSizeForMultiStream(u32 total_stream_count, u32 stereo_stream_count);
+    u32 GetWorkBufferSize(u32 channel);
+    u32 GetWorkBufferSizeForMultiStream(u32 total_stream_count, u32 stereo_stream_count);
 
     Result InitializeDecodeObject(u32 sample_rate, u32 channel_count, void* buffer,
                                   u64 buffer_size);
     Result InitializeMultiStreamDecodeObject(u32 sample_rate, u32 channel_count,
                                              u32 totaL_stream_count, u32 stereo_stream_count,
-                                             void* mappings, void* buffer, u64 buffer_size);
+                                             const void* mappings, void* buffer, u64 buffer_size);
     Result ShutdownDecodeObject(void* buffer, u64 buffer_size);
     Result ShutdownMultiStreamDecodeObject(void* buffer, u64 buffer_size);
     Result DecodeInterleaved(u32& out_sample_count, void* output_data, u64 output_data_size,

@@ -31,13 +31,13 @@ IHardwareOpusDecoder::IHardwareOpusDecoder(Core::System& system_, HardwareOpus& 
 
 IHardwareOpusDecoder::~IHardwareOpusDecoder() = default;
 
-Result IHardwareOpusDecoder::Initialize(OpusParametersEx& params,
+Result IHardwareOpusDecoder::Initialize(const OpusParametersEx& params,
                                         Kernel::KTransferMemory* transfer_memory,
                                         u64 transfer_memory_size) {
     return impl->Initialize(params, transfer_memory, transfer_memory_size);
 }
 
-Result IHardwareOpusDecoder::Initialize(OpusMultiStreamParametersEx& params,
+Result IHardwareOpusDecoder::Initialize(const OpusMultiStreamParametersEx& params,
                                         Kernel::KTransferMemory* transfer_memory,
                                         u64 transfer_memory_size) {
     return impl->Initialize(params, transfer_memory, transfer_memory_size);

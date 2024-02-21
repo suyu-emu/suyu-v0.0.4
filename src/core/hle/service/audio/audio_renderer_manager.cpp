@@ -18,11 +18,11 @@ IAudioRendererManager::IAudioRendererManager(Core::System& system_)
     : ServiceFramework{system_, "audren:u"}, impl{std::make_unique<Manager>(system_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IAudioRendererManager::OpenAudioRenderer>, "OpenAudioRenderer"},
-        {1, C<&IAudioRendererManager::GetWorkBufferSize>, "GetWorkBufferSize"},
-        {2, C<&IAudioRendererManager::GetAudioDeviceService>, "GetAudioDeviceService"},
+        {0, D<&IAudioRendererManager::OpenAudioRenderer>, "OpenAudioRenderer"},
+        {1, D<&IAudioRendererManager::GetWorkBufferSize>, "GetWorkBufferSize"},
+        {2, D<&IAudioRendererManager::GetAudioDeviceService>, "GetAudioDeviceService"},
         {3, nullptr, "OpenAudioRendererForManualExecution"},
-        {4, C<&IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo>, "GetAudioDeviceServiceWithRevisionInfo"},
+        {4, D<&IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo>, "GetAudioDeviceServiceWithRevisionInfo"},
     };
     // clang-format on
 

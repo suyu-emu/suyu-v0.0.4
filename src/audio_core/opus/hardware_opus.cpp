@@ -42,7 +42,7 @@ HardwareOpus::HardwareOpus(Core::System& system_)
     opus_decoder.SetSharedMemory(shared_memory);
 }
 
-u64 HardwareOpus::GetWorkBufferSize(u32 channel) {
+u32 HardwareOpus::GetWorkBufferSize(u32 channel) {
     if (!opus_decoder.IsRunning()) {
         return 0;
     }
@@ -55,10 +55,10 @@ u64 HardwareOpus::GetWorkBufferSize(u32 channel) {
                   ADSP::OpusDecoder::Message::GetWorkBufferSizeOK, msg);
         return 0;
     }
-    return shared_memory.dsp_return_data[0];
+    return static_cast<u32>(shared_memory.dsp_return_data[0]);
 }
 
-u64 HardwareOpus::GetWorkBufferSizeForMultiStream(u32 total_stream_count, u32 stereo_stream_count) {
+u32 HardwareOpus::GetWorkBufferSizeForMultiStream(u32 total_stream_count, u32 stereo_stream_count) {
     std::scoped_lock l{mutex};
     shared_memory.host_send_data[0] = total_stream_count;
     shared_memory.host_send_data[1] = stereo_stream_count;
@@ -70,7 +70,7 @@ u64 HardwareOpus::GetWorkBufferSizeForMultiStream(u32 total_stream_count, u32 st
                   ADSP::OpusDecoder::Message::GetWorkBufferSizeForMultiStreamOK, msg);
         return 0;
     }
-    return shared_memory.dsp_return_data[0];
+    return static_cast<u32>(shared_memory.dsp_return_data[0]);
 }
 
 Result HardwareOpus::InitializeDecodeObject(u32 sample_rate, u32 channel_count, void* buffer,
@@ -94,8 +94,9 @@ Result HardwareOpus::InitializeDecodeObject(u32 sample_rate, u32 channel_count, 
 
 Result HardwareOpus::InitializeMultiStreamDecodeObject(u32 sample_rate, u32 channel_count,
                                                        u32 total_stream_count,
-                                                       u32 stereo_stream_count, void* mappings,
-                                                       void* buffer, u64 buffer_size) {
+                                                       u32 stereo_stream_count,
+                                                       const void* mappings, void* buffer,
+                                                       u64 buffer_size) {
     std::scoped_lock l{mutex};
     shared_memory.host_send_data[0] = (u64)buffer;
     shared_memory.host_send_data[1] = buffer_size;

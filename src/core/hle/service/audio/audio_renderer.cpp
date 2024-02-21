@@ -18,20 +18,20 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
       process_handle{process_handle_} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, C<&IAudioRenderer::GetSampleRate>, "GetSampleRate"},
-        {1, C<&IAudioRenderer::GetSampleCount>, "GetSampleCount"},
-        {2, C<&IAudioRenderer::GetMixBufferCount>, "GetMixBufferCount"},
-        {3, C<&IAudioRenderer::GetState>, "GetState"},
-        {4, C<&IAudioRenderer::RequestUpdate>, "RequestUpdate"},
-        {5, C<&IAudioRenderer::Start>, "Start"},
-        {6, C<&IAudioRenderer::Stop>, "Stop"},
-        {7, C<&IAudioRenderer::QuerySystemEvent>, "QuerySystemEvent"},
-        {8, C<&IAudioRenderer::SetRenderingTimeLimit>, "SetRenderingTimeLimit"},
-        {9, C<&IAudioRenderer::GetRenderingTimeLimit>, "GetRenderingTimeLimit"},
-        {10, C<&IAudioRenderer::RequestUpdateAuto>, "RequestUpdateAuto"},
+        {0, D<&IAudioRenderer::GetSampleRate>, "GetSampleRate"},
+        {1, D<&IAudioRenderer::GetSampleCount>, "GetSampleCount"},
+        {2, D<&IAudioRenderer::GetMixBufferCount>, "GetMixBufferCount"},
+        {3, D<&IAudioRenderer::GetState>, "GetState"},
+        {4, D<&IAudioRenderer::RequestUpdate>, "RequestUpdate"},
+        {5, D<&IAudioRenderer::Start>, "Start"},
+        {6, D<&IAudioRenderer::Stop>, "Stop"},
+        {7, D<&IAudioRenderer::QuerySystemEvent>, "QuerySystemEvent"},
+        {8, D<&IAudioRenderer::SetRenderingTimeLimit>, "SetRenderingTimeLimit"},
+        {9, D<&IAudioRenderer::GetRenderingTimeLimit>, "GetRenderingTimeLimit"},
+        {10, D<&IAudioRenderer::RequestUpdateAuto>, "RequestUpdateAuto"},
         {11, nullptr, "ExecuteAudioRendererRendering"},
-        {12, C<&IAudioRenderer::SetVoiceDropParameter>, "SetVoiceDropParameter"},
-        {13, C<&IAudioRenderer::GetVoiceDropParameter>, "GetVoiceDropParameter"},
+        {12, D<&IAudioRenderer::SetVoiceDropParameter>, "SetVoiceDropParameter"},
+        {13, D<&IAudioRenderer::GetVoiceDropParameter>, "GetVoiceDropParameter"},
     };
     // clang-format on
     RegisterHandlers(functions);

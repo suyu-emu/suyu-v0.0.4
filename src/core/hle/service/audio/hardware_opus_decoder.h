@@ -14,9 +14,9 @@ public:
                                   AudioCore::OpusDecoder::HardwareOpus& hardware_opus);
     ~IHardwareOpusDecoder() override;
 
-    Result Initialize(AudioCore::OpusDecoder::OpusParametersEx& params,
+    Result Initialize(const AudioCore::OpusDecoder::OpusParametersEx& params,
                       Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size);
-    Result Initialize(AudioCore::OpusDecoder::OpusMultiStreamParametersEx& params,
+    Result Initialize(const AudioCore::OpusDecoder::OpusMultiStreamParametersEx& params,
                       Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size);
 
 private:

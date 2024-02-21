@@ -22,17 +22,19 @@ public:
         return hardware_opus;
     }
 
-    Result GetWorkBufferSize(OpusParameters& params, u64& out_size);
-    Result GetWorkBufferSizeEx(OpusParametersEx& params, u64& out_size);
-    Result GetWorkBufferSizeExEx(OpusParametersEx& params, u64& out_size);
-    Result GetWorkBufferSizeForMultiStream(OpusMultiStreamParameters& params, u64& out_size);
-    Result GetWorkBufferSizeForMultiStreamEx(OpusMultiStreamParametersEx& params, u64& out_size);
-    Result GetWorkBufferSizeForMultiStreamExEx(OpusMultiStreamParametersEx& params, u64& out_size);
+    Result GetWorkBufferSize(const OpusParameters& params, u32& out_size);
+    Result GetWorkBufferSizeEx(const OpusParametersEx& params, u32& out_size);
+    Result GetWorkBufferSizeExEx(const OpusParametersEx& params, u32& out_size);
+    Result GetWorkBufferSizeForMultiStream(const OpusMultiStreamParameters& params, u32& out_size);
+    Result GetWorkBufferSizeForMultiStreamEx(const OpusMultiStreamParametersEx& params,
+                                             u32& out_size);
+    Result GetWorkBufferSizeForMultiStreamExEx(const OpusMultiStreamParametersEx& params,
+                                               u32& out_size);
 
 private:
     Core::System& system;
     HardwareOpus hardware_opus;
-    std::array<u64, MaxChannels> required_workbuffer_sizes{};
+    std::array<u32, MaxChannels> required_workbuffer_sizes{};
 };
 
 } // namespace AudioCore::OpusDecoder
