@@ -55,7 +55,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         const s64 min_spacing_critical = device_local_memory - 512_MiB;
         const s64 mem_threshold = std::min(device_local_memory, TARGET_THRESHOLD);
         const s64 min_vacancy_expected = (6 * mem_threshold) / 10;
-        const s64 min_vacancy_critical = (3 * mem_threshold) / 10;
+        const s64 min_vacancy_critical = (2 * mem_threshold) / 10;
         expected_memory = static_cast<u64>(
             std::max(std::min(device_local_memory - min_vacancy_expected, min_spacing_expected),
                      DEFAULT_EXPECTED_MEMORY));
@@ -1979,7 +1979,7 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
     if ((IsPixelFormatASTC(image.info.format) &&
          True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
         True(image.flags & ImageFlagBits::Converted)) {
-        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+        tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
     image.lru_index = lru_cache.Insert(image_id, frame_tick);
@@ -2149,7 +2149,7 @@ void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
     if ((IsPixelFormatASTC(image.info.format) &&
          True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
         True(image.flags & ImageFlagBits::Converted)) {
-        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+        tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory -= Common::AlignUp(tentative_size, 1024);
     const GPUVAddr gpu_addr = image.gpu_addr;
