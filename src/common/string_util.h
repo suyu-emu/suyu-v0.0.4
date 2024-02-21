@@ -19,6 +19,7 @@ namespace Common {
 [[nodiscard]] std::string ToUpper(std::string str);
 
 [[nodiscard]] std::string StringFromBuffer(std::span<const u8> data);
+[[nodiscard]] std::string StringFromBuffer(std::span<const char> data);
 
 [[nodiscard]] std::string StripSpaces(const std::string& s);
 [[nodiscard]] std::string StripQuotes(const std::string& s);

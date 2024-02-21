@@ -96,8 +96,7 @@ Result IAudioInManager::OpenAudioInProtocolSpecified(
     LOG_DEBUG(Service_Audio, "Opening new AudioIn, session_id={}, free sessions={}", new_session_id,
               impl->num_free_sessions);
 
-    const auto name_buffer = std::span(reinterpret_cast<const u8*>(name[0].name.data()), 0x100);
-    const auto device_name = Common::StringFromBuffer(name_buffer);
+    const auto device_name = Common::StringFromBuffer(name[0].name);
     *out_audio_in = std::make_shared<IAudioIn>(system, *impl, new_session_id, device_name,
                                                parameter, process_handle.Get(), aruid.pid);
     impl->sessions[new_session_id] = (*out_audio_in)->GetImpl();

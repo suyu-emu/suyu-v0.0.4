@@ -4,10 +4,17 @@
 #pragma once
 
 #include "audio_core/renderer/audio_device.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
 
+namespace Kernel {
+class KReadableEvent;
+}
+
 namespace Service::Audio {
+
+using AudioCore::Renderer::AudioDevice;
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
 
@@ -17,15 +24,31 @@ public:
     ~IAudioDevice() override;
 
 private:
-    void ListAudioDeviceName(HLERequestContext& ctx);
-    void SetAudioDeviceOutputVolume(HLERequestContext& ctx);
-    void GetAudioDeviceOutputVolume(HLERequestContext& ctx);
-    void GetActiveAudioDeviceName(HLERequestContext& ctx);
-    void QueryAudioDeviceSystemEvent(HLERequestContext& ctx);
-    void GetActiveChannelCount(HLERequestContext& ctx);
-    void QueryAudioDeviceInputEvent(HLERequestContext& ctx);
-    void QueryAudioDeviceOutputEvent(HLERequestContext& ctx);
-    void ListAudioOutputDeviceName(HLERequestContext& ctx);
+    Result ListAudioDeviceName(
+        OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_names,
+        Out<s32> out_count);
+    Result SetAudioDeviceOutputVolume(
+        InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> name, f32 volume);
+    Result GetAudioDeviceOutputVolume(
+        Out<f32> out_volume, InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> name);
+    Result GetActiveAudioDeviceName(
+        OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_name);
+    Result ListAudioDeviceNameAuto(
+        OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> out_names,
+        Out<s32> out_count);
+    Result SetAudioDeviceOutputVolumeAuto(
+        InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> name, f32 volume);
+    Result GetAudioDeviceOutputVolumeAuto(
+        Out<f32> out_volume, InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> name);
+    Result GetActiveAudioDeviceNameAuto(
+        OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> out_name);
+    Result QueryAudioDeviceSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result QueryAudioDeviceInputEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result QueryAudioDeviceOutputEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result GetActiveChannelCount(Out<u32> out_active_channel_count);
+    Result ListAudioOutputDeviceName(
+        OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_names,
+        Out<s32> out_count);
 
     KernelHelpers::ServiceContext service_context;
     std::unique_ptr<AudioCore::Renderer::AudioDevice> impl;

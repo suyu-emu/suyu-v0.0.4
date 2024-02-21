@@ -4,7 +4,7 @@
 #include "audio_core/audio_core.h"
 #include "common/string_util.h"
 #include "core/hle/service/audio/audio_device.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 
 namespace Service::Audio {
 using namespace AudioCore::Renderer;
@@ -15,20 +15,20 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
       impl{std::make_unique<AudioDevice>(system_, applet_resource_user_id, revision)},
       event{service_context.CreateEvent(fmt::format("IAudioDeviceEvent-{}", device_num))} {
     static const FunctionInfo functions[] = {
-        {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
-        {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
-        {2, &IAudioDevice::GetAudioDeviceOutputVolume, "GetAudioDeviceOutputVolume"},
-        {3, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioDeviceName"},
-        {4, &IAudioDevice::QueryAudioDeviceSystemEvent, "QueryAudioDeviceSystemEvent"},
-        {5, &IAudioDevice::GetActiveChannelCount, "GetActiveChannelCount"},
-        {6, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceNameAuto"},
-        {7, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolumeAuto"},
-        {8, &IAudioDevice::GetAudioDeviceOutputVolume, "GetAudioDeviceOutputVolumeAuto"},
-        {10, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioDeviceNameAuto"},
-        {11, &IAudioDevice::QueryAudioDeviceInputEvent, "QueryAudioDeviceInputEvent"},
-        {12, &IAudioDevice::QueryAudioDeviceOutputEvent, "QueryAudioDeviceOutputEvent"},
-        {13, &IAudioDevice::GetActiveAudioDeviceName, "GetActiveAudioOutputDeviceName"},
-        {14, &IAudioDevice::ListAudioOutputDeviceName, "ListAudioOutputDeviceName"},
+        {0, D<&IAudioDevice::ListAudioDeviceName>, "ListAudioDeviceName"},
+        {1, D<&IAudioDevice::SetAudioDeviceOutputVolume>, "SetAudioDeviceOutputVolume"},
+        {2, D<&IAudioDevice::GetAudioDeviceOutputVolume>, "GetAudioDeviceOutputVolume"},
+        {3, D<&IAudioDevice::GetActiveAudioDeviceName>, "GetActiveAudioDeviceName"},
+        {4, D<&IAudioDevice::QueryAudioDeviceSystemEvent>, "QueryAudioDeviceSystemEvent"},
+        {5, D<&IAudioDevice::GetActiveChannelCount>, "GetActiveChannelCount"},
+        {6, D<&IAudioDevice::ListAudioDeviceNameAuto>, "ListAudioDeviceNameAuto"},
+        {7, D<&IAudioDevice::SetAudioDeviceOutputVolumeAuto>, "SetAudioDeviceOutputVolumeAuto"},
+        {8, D<&IAudioDevice::GetAudioDeviceOutputVolumeAuto>, "GetAudioDeviceOutputVolumeAuto"},
+        {10, D<&IAudioDevice::GetActiveAudioDeviceNameAuto>, "GetActiveAudioDeviceNameAuto"},
+        {11, D<&IAudioDevice::QueryAudioDeviceInputEvent>, "QueryAudioDeviceInputEvent"},
+        {12, D<&IAudioDevice::QueryAudioDeviceOutputEvent>, "QueryAudioDeviceOutputEvent"},
+        {13, D<&IAudioDevice::GetActiveAudioDeviceName>, "GetActiveAudioOutputDeviceName"},
+        {14, D<&IAudioDevice::ListAudioOutputDeviceName>, "ListAudioOutputDeviceName"},
     };
     RegisterHandlers(functions);
 
@@ -39,15 +39,33 @@ IAudioDevice::~IAudioDevice() {
     service_context.CloseEvent(event);
 }
 
-void IAudioDevice::ListAudioDeviceName(HLERequestContext& ctx) {
-    const size_t in_count = ctx.GetWriteBufferNumElements<AudioDevice::AudioDeviceName>();
+Result IAudioDevice::ListAudioDeviceName(
+    OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_names, Out<s32> out_count) {
+    R_RETURN(this->ListAudioDeviceNameAuto(out_names, out_count));
+}
 
-    std::vector<AudioDevice::AudioDeviceName> out_names{};
+Result IAudioDevice::SetAudioDeviceOutputVolume(
+    InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> name, f32 volume) {
+    R_RETURN(this->SetAudioDeviceOutputVolumeAuto(name, volume));
+}
 
-    const u32 out_count = impl->ListAudioDeviceName(out_names, in_count);
+Result IAudioDevice::GetAudioDeviceOutputVolume(
+    Out<f32> out_volume, InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> name) {
+    R_RETURN(this->GetAudioDeviceOutputVolumeAuto(out_volume, name));
+}
+
+Result IAudioDevice::GetActiveAudioDeviceName(
+    OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_name) {
+    R_RETURN(this->GetActiveAudioDeviceNameAuto(out_name));
+}
+
+Result IAudioDevice::ListAudioDeviceNameAuto(
+    OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> out_names,
+    Out<s32> out_count) {
+    *out_count = impl->ListAudioDeviceName(out_names);
 
     std::string out{};
-    for (u32 i = 0; i < out_count; i++) {
+    for (s32 i = 0; i < *out_count; i++) {
         std::string a{};
         u32 j = 0;
         while (out_names[i].name[j] != '\0') {
@@ -58,109 +76,77 @@ void IAudioDevice::ListAudioDeviceName(HLERequestContext& ctx) {
     }
 
     LOG_DEBUG(Service_Audio, "called.\nNames={}", out);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-
-    ctx.WriteBuffer(out_names);
-
-    rb.Push(ResultSuccess);
-    rb.Push(out_count);
+    R_SUCCEED();
 }
 
-void IAudioDevice::SetAudioDeviceOutputVolume(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const f32 volume = rp.Pop<f32>();
+Result IAudioDevice::SetAudioDeviceOutputVolumeAuto(
+    InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> name, f32 volume) {
+    R_UNLESS(!name.empty(), Audio::ResultInsufficientBuffer);
 
-    const auto device_name_buffer = ctx.ReadBuffer();
-    const std::string name = Common::StringFromBuffer(device_name_buffer);
+    const std::string device_name = Common::StringFromBuffer(name[0].name);
+    LOG_DEBUG(Service_Audio, "called. name={}, volume={}", device_name, volume);
 
-    LOG_DEBUG(Service_Audio, "called. name={}, volume={}", name, volume);
-
-    if (name == "AudioTvOutput") {
+    if (device_name == "AudioTvOutput") {
         impl->SetDeviceVolumes(volume);
     }
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IAudioDevice::GetAudioDeviceOutputVolume(HLERequestContext& ctx) {
-    const auto device_name_buffer = ctx.ReadBuffer();
-    const std::string name = Common::StringFromBuffer(device_name_buffer);
+Result IAudioDevice::GetAudioDeviceOutputVolumeAuto(
+    Out<f32> out_volume, InArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> name) {
+    R_UNLESS(!name.empty(), Audio::ResultInsufficientBuffer);
 
-    LOG_DEBUG(Service_Audio, "called. Name={}", name);
+    const std::string device_name = Common::StringFromBuffer(name[0].name);
+    LOG_DEBUG(Service_Audio, "called. Name={}", device_name);
 
-    f32 volume{1.0f};
-    if (name == "AudioTvOutput") {
-        volume = impl->GetDeviceVolume(name);
+    *out_volume = 1.0f;
+    if (device_name == "AudioTvOutput") {
+        *out_volume = impl->GetDeviceVolume(device_name);
     }
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(volume);
+    R_SUCCEED();
 }
 
-void IAudioDevice::GetActiveAudioDeviceName(HLERequestContext& ctx) {
-    const auto write_size = ctx.GetWriteBufferSize();
-    std::string out_name{"AudioTvOutput"};
-
-    LOG_DEBUG(Service_Audio, "(STUBBED) called. Name={}", out_name);
-
-    out_name.resize(write_size);
-
-    ctx.WriteBuffer(out_name);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IAudioDevice::QueryAudioDeviceSystemEvent(HLERequestContext& ctx) {
+Result IAudioDevice::GetActiveAudioDeviceNameAuto(
+    OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcAutoSelect> out_name) {
+    R_UNLESS(!out_name.empty(), Audio::ResultInsufficientBuffer);
+    out_name[0] = AudioDevice::AudioDeviceName("AudioTvOutput");
     LOG_DEBUG(Service_Audio, "(STUBBED) called");
+    R_SUCCEED();
+}
 
+Result IAudioDevice::QueryAudioDeviceSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_DEBUG(Service_Audio, "(STUBBED) called");
     event->Signal();
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(event->GetReadableEvent());
+    *out_event = &event->GetReadableEvent();
+    R_SUCCEED();
 }
 
-void IAudioDevice::GetActiveChannelCount(HLERequestContext& ctx) {
-    const auto& sink{system.AudioCore().GetOutputSink()};
-    u32 channel_count{sink.GetSystemChannels()};
-
-    LOG_DEBUG(Service_Audio, "(STUBBED) called. Channels={}", channel_count);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(channel_count);
-}
-
-void IAudioDevice::QueryAudioDeviceInputEvent(HLERequestContext& ctx) {
+Result IAudioDevice::QueryAudioDeviceInputEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_Audio, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(event->GetReadableEvent());
+    *out_event = &event->GetReadableEvent();
+    R_SUCCEED();
 }
 
-void IAudioDevice::QueryAudioDeviceOutputEvent(HLERequestContext& ctx) {
+Result IAudioDevice::QueryAudioDeviceOutputEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_Audio, "called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(event->GetReadableEvent());
+    *out_event = &event->GetReadableEvent();
+    R_SUCCEED();
 }
 
-void IAudioDevice::ListAudioOutputDeviceName(HLERequestContext& ctx) {
-    const size_t in_count = ctx.GetWriteBufferNumElements<AudioDevice::AudioDeviceName>();
+Result IAudioDevice::GetActiveChannelCount(Out<u32> out_active_channel_count) {
+    *out_active_channel_count = system.AudioCore().GetOutputSink().GetSystemChannels();
+    LOG_DEBUG(Service_Audio, "(STUBBED) called. Channels={}", *out_active_channel_count);
+    R_SUCCEED();
+}
 
-    std::vector<AudioDevice::AudioDeviceName> out_names{};
-
-    const u32 out_count = impl->ListAudioOutputDeviceName(out_names, in_count);
+Result IAudioDevice::ListAudioOutputDeviceName(
+    OutArray<AudioDevice::AudioDeviceName, BufferAttr_HipcMapAlias> out_names, Out<s32> out_count) {
+    *out_count = impl->ListAudioOutputDeviceName(out_names);
 
     std::string out{};
-    for (u32 i = 0; i < out_count; i++) {
+    for (s32 i = 0; i < *out_count; i++) {
         std::string a{};
         u32 j = 0;
         while (out_names[i].name[j] != '\0') {
@@ -171,13 +157,7 @@ void IAudioDevice::ListAudioOutputDeviceName(HLERequestContext& ctx) {
     }
 
     LOG_DEBUG(Service_Audio, "called.\nNames={}", out);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-
-    ctx.WriteBuffer(out_names);
-
-    rb.Push(ResultSuccess);
-    rb.Push(out_count);
+    R_SUCCEED();
 }
 
 } // namespace Service::Audio
