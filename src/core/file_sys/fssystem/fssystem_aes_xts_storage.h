@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <optional>
 
 #include "core/crypto/aes_util.h"
