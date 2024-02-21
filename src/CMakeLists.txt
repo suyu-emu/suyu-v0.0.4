@@ -121,6 +121,7 @@ else()
         -Wno-attributes
         -Wno-invalid-offsetof
         -Wno-unused-parameter
+        -Wno-missing-field-initializers
     )
 
     if (CMAKE_CXX_COMPILER_ID MATCHES Clang) # Clang or AppleClang
