@@ -780,7 +780,7 @@ class SettingsFragmentPresenter(
         playerIndex: Int,
         paramName: String,
         stick: NativeAnalog,
-        defaultValue: Int
+        defaultValue: Float
     ): AbstractIntSetting =
         object : AbstractIntSetting {
             val params get() = NativeInput.getStickParam(playerIndex, stick)
@@ -788,7 +788,7 @@ class SettingsFragmentPresenter(
             override val key = ""
 
             override fun getInt(needsGlobal: Boolean): Int =
-                (params.get(paramName, 0.15f) * 100).toInt()
+                (params.get(paramName, defaultValue) * 100).toInt()
 
             override fun setInt(value: Int) {
                 val tempParams = params
@@ -796,12 +796,12 @@ class SettingsFragmentPresenter(
                 NativeInput.setStickParam(playerIndex, stick, tempParams)
             }
 
-            override val defaultValue = defaultValue
+            override val defaultValue = (defaultValue * 100).toInt()
 
             override fun getValueAsString(needsGlobal: Boolean): String =
                 getInt(needsGlobal).toString()
 
-            override fun reset() = setInt(defaultValue)
+            override fun reset() = setInt(this.defaultValue)
         }
 
     private fun getExtraStickSettings(
@@ -811,11 +811,11 @@ class SettingsFragmentPresenter(
         val stickIsController =
             NativeInput.isController(NativeInput.getStickParam(playerIndex, nativeAnalog))
         val modifierRangeSetting =
-            getStickIntSettingFromParam(playerIndex, "modifier_scale", nativeAnalog, 50)
+            getStickIntSettingFromParam(playerIndex, "modifier_scale", nativeAnalog, 0.5f)
         val stickRangeSetting =
-            getStickIntSettingFromParam(playerIndex, "range", nativeAnalog, 95)
+            getStickIntSettingFromParam(playerIndex, "range", nativeAnalog, 0.95f)
         val stickDeadzoneSetting =
-            getStickIntSettingFromParam(playerIndex, "deadzone", nativeAnalog, 15)
+            getStickIntSettingFromParam(playerIndex, "deadzone", nativeAnalog, 0.15f)
 
         val out = mutableListOf<SettingsItem>().apply {
             if (stickIsController) {
