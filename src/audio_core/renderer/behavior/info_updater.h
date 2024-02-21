@@ -8,6 +8,10 @@
 #include "common/common_types.h"
 #include "core/hle/service/audio/errors.h"
 
+namespace Kernel {
+class KProcess;
+}
+
 namespace AudioCore::Renderer {
 class BehaviorInfo;
 class VoiceContext;
@@ -39,8 +43,8 @@ class InfoUpdater {
     static_assert(sizeof(UpdateDataHeader) == 0x40, "UpdateDataHeader has the wrong size!");
 
 public:
-    explicit InfoUpdater(std::span<const u8> input, std::span<u8> output, u32 process_handle,
-                         BehaviorInfo& behaviour);
+    explicit InfoUpdater(std::span<const u8> input, std::span<u8> output,
+                         Kernel::KProcess* process_handle, BehaviorInfo& behaviour);
 
     /**
      * Update the voice channel resources.
@@ -197,7 +201,7 @@ private:
     /// Expected output size, see CheckConsumedSize
     u64 expected_output_size;
     /// Unused
-    u32 process_handle;
+    Kernel::KProcess* process_handle;
     /// Behaviour
     BehaviorInfo& behaviour;
 };

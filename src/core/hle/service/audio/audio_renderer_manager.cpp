@@ -8,22 +8,21 @@
 #include "core/hle/service/audio/audio_device.h"
 #include "core/hle/service/audio/audio_renderer.h"
 #include "core/hle/service/audio/audio_renderer_manager.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 
 namespace Service::Audio {
 
 using namespace AudioCore::Renderer;
 
 IAudioRendererManager::IAudioRendererManager(Core::System& system_)
-    : ServiceFramework{system_, "audren:u"}, service_context{system_, "audren:u"},
-      impl{std::make_unique<Manager>(system_)} {
+    : ServiceFramework{system_, "audren:u"}, impl{std::make_unique<Manager>(system_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &IAudioRendererManager::OpenAudioRenderer, "OpenAudioRenderer"},
-        {1, &IAudioRendererManager::GetWorkBufferSize, "GetWorkBufferSize"},
-        {2, &IAudioRendererManager::GetAudioDeviceService, "GetAudioDeviceService"},
+        {0, C<&IAudioRendererManager::OpenAudioRenderer>, "OpenAudioRenderer"},
+        {1, C<&IAudioRendererManager::GetWorkBufferSize>, "GetWorkBufferSize"},
+        {2, C<&IAudioRendererManager::GetAudioDeviceService>, "GetAudioDeviceService"},
         {3, nullptr, "OpenAudioRendererForManualExecution"},
-        {4, &IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo, "GetAudioDeviceServiceWithRevisionInfo"},
+        {4, C<&IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo>, "GetAudioDeviceServiceWithRevisionInfo"},
     };
     // clang-format on
 
@@ -32,53 +31,38 @@ IAudioRendererManager::IAudioRendererManager(Core::System& system_)
 
 IAudioRendererManager::~IAudioRendererManager() = default;
 
-void IAudioRendererManager::OpenAudioRenderer(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    AudioCore::AudioRendererParameterInternal params;
-    rp.PopRaw<AudioCore::AudioRendererParameterInternal>(params);
-    rp.Skip(1, false);
-    auto transfer_memory_size = rp.Pop<u64>();
-    auto applet_resource_user_id = rp.Pop<u64>();
-    auto transfer_memory_handle = ctx.GetCopyHandle(0);
-    auto process_handle = ctx.GetCopyHandle(1);
+Result IAudioRendererManager::OpenAudioRenderer(
+    Out<SharedPointer<IAudioRenderer>> out_audio_renderer,
+    AudioCore::AudioRendererParameterInternal parameter,
+    InCopyHandle<Kernel::KTransferMemory> tmem_handle, u64 tmem_size,
+    InCopyHandle<Kernel::KProcess> process_handle, ClientAppletResourceUserId aruid) {
+    LOG_DEBUG(Service_Audio, "called");
 
     if (impl->GetSessionCount() + 1 > AudioCore::MaxRendererSessions) {
         LOG_ERROR(Service_Audio, "Too many AudioRenderer sessions open!");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Audio::ResultOutOfSessions);
-        return;
+        R_THROW(Audio::ResultOutOfSessions);
     }
-
-    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle).GetPointerUnsafe()};
-    auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     const auto session_id{impl->GetSessionId()};
     if (session_id == -1) {
         LOG_ERROR(Service_Audio, "Tried to open a session that's already in use!");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Audio::ResultOutOfSessions);
-        return;
+        R_THROW(Audio::ResultOutOfSessions);
     }
 
     LOG_DEBUG(Service_Audio, "Opened new AudioRenderer session {} sessions open {}", session_id,
               impl->GetSessionCount());
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IAudioRenderer>(system, *impl, params, transfer_memory.GetPointerUnsafe(),
-                                        transfer_memory_size, process_handle, *process,
-                                        applet_resource_user_id, session_id);
+    *out_audio_renderer =
+        std::make_shared<IAudioRenderer>(system, *impl, parameter, tmem_handle.Get(), tmem_size,
+                                         process_handle.Get(), aruid.pid, session_id);
+    R_SUCCEED();
 }
 
-void IAudioRendererManager::GetWorkBufferSize(HLERequestContext& ctx) {
-    AudioCore::AudioRendererParameterInternal params;
+Result IAudioRendererManager::GetWorkBufferSize(Out<u64> out_size,
+                                                AudioCore::AudioRendererParameterInternal params) {
+    LOG_DEBUG(Service_Audio, "called");
 
-    IPC::RequestParser rp{ctx};
-    rp.PopRaw<AudioCore::AudioRendererParameterInternal>(params);
-
-    u64 size{0};
-    auto result = impl->GetWorkBufferSize(params, size);
+    R_TRY(impl->GetWorkBufferSize(params, *out_size))
 
     std::string output_info{};
     output_info += fmt::format("\tRevision {}", AudioCore::GetRevisionNum(params.revision));
@@ -95,49 +79,26 @@ void IAudioRendererManager::GetWorkBufferSize(HLERequestContext& ctx) {
         params.external_context_size);
 
     LOG_DEBUG(Service_Audio, "called.\nInput params:\n{}\nOutput params:\n\tWorkbuffer size {:08X}",
-              output_info, size);
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(result);
-    rb.Push<u64>(size);
+              output_info, *out_size);
+    R_SUCCEED();
 }
 
-void IAudioRendererManager::GetAudioDeviceService(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
-    const auto applet_resource_user_id = rp.Pop<u64>();
-
-    LOG_DEBUG(Service_Audio, "called. Applet resource id {}", applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IAudioDevice>(system, applet_resource_user_id,
-                                      ::Common::MakeMagic('R', 'E', 'V', '1'), num_audio_devices++);
+Result IAudioRendererManager::GetAudioDeviceService(
+    Out<SharedPointer<IAudioDevice>> out_audio_device, ClientAppletResourceUserId aruid) {
+    LOG_DEBUG(Service_Audio, "called, aruid={:#x}", aruid.pid);
+    *out_audio_device = std::make_shared<IAudioDevice>(
+        system, aruid.pid, Common::MakeMagic('R', 'E', 'V', '1'), num_audio_devices++);
+    R_SUCCEED();
 }
 
-void IAudioRendererManager::OpenAudioRendererForManualExecution(HLERequestContext& ctx) {
-    LOG_ERROR(Service_Audio, "called. Implement me!");
-}
-
-void IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo(HLERequestContext& ctx) {
-    struct Parameters {
-        u32 revision;
-        u64 applet_resource_user_id;
-    };
-
-    IPC::RequestParser rp{ctx};
-
-    const auto [revision, applet_resource_user_id] = rp.PopRaw<Parameters>();
-
-    LOG_DEBUG(Service_Audio, "called. Revision {} Applet resource id {}",
-              AudioCore::GetRevisionNum(revision), applet_resource_user_id);
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IAudioDevice>(system, applet_resource_user_id, revision,
-                                      num_audio_devices++);
+Result IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo(
+    Out<SharedPointer<IAudioDevice>> out_audio_device, u32 revision,
+    ClientAppletResourceUserId aruid) {
+    LOG_DEBUG(Service_Audio, "called, revision={} aruid={:#x}", AudioCore::GetRevisionNum(revision),
+              aruid.pid);
+    *out_audio_device =
+        std::make_shared<IAudioDevice>(system, aruid.pid, revision, num_audio_devices++);
+    R_SUCCEED();
 }
 
 } // namespace Service::Audio

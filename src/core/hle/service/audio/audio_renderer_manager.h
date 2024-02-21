@@ -4,14 +4,12 @@
 #pragma once
 
 #include "audio_core/audio_render_manager.h"
-#include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
-namespace Core {
-class System;
-}
-
 namespace Service::Audio {
+
+class IAudioDevice;
 class IAudioRenderer;
 
 class IAudioRendererManager final : public ServiceFramework<IAudioRendererManager> {
@@ -20,13 +18,18 @@ public:
     ~IAudioRendererManager() override;
 
 private:
-    void OpenAudioRenderer(HLERequestContext& ctx);
-    void GetWorkBufferSize(HLERequestContext& ctx);
-    void GetAudioDeviceService(HLERequestContext& ctx);
-    void OpenAudioRendererForManualExecution(HLERequestContext& ctx);
-    void GetAudioDeviceServiceWithRevisionInfo(HLERequestContext& ctx);
+    Result OpenAudioRenderer(Out<SharedPointer<IAudioRenderer>> out_audio_renderer,
+                             AudioCore::AudioRendererParameterInternal parameter,
+                             InCopyHandle<Kernel::KTransferMemory> tmem_handle, u64 tmem_size,
+                             InCopyHandle<Kernel::KProcess> process_handle,
+                             ClientAppletResourceUserId aruid);
+    Result GetWorkBufferSize(Out<u64> out_size,
+                             AudioCore::AudioRendererParameterInternal parameter);
+    Result GetAudioDeviceService(Out<SharedPointer<IAudioDevice>> out_audio_device,
+                                 ClientAppletResourceUserId aruid);
+    Result GetAudioDeviceServiceWithRevisionInfo(Out<SharedPointer<IAudioDevice>> out_audio_device,
+                                                 u32 revision, ClientAppletResourceUserId aruid);
 
-    KernelHelpers::ServiceContext service_context;
     std::unique_ptr<AudioCore::Renderer::Manager> impl;
     u32 num_audio_devices{0};
 };

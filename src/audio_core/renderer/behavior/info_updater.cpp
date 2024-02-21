@@ -18,11 +18,10 @@
 namespace AudioCore::Renderer {
 
 InfoUpdater::InfoUpdater(std::span<const u8> input_, std::span<u8> output_,
-                         const u32 process_handle_, BehaviorInfo& behaviour_)
-    : input{input_.data() + sizeof(UpdateDataHeader)},
-      input_origin{input_}, output{output_.data() + sizeof(UpdateDataHeader)},
-      output_origin{output_}, in_header{reinterpret_cast<const UpdateDataHeader*>(
-                                  input_origin.data())},
+                         Kernel::KProcess* process_handle_, BehaviorInfo& behaviour_)
+    : input{input_.data() + sizeof(UpdateDataHeader)}, input_origin{input_},
+      output{output_.data() + sizeof(UpdateDataHeader)}, output_origin{output_},
+      in_header{reinterpret_cast<const UpdateDataHeader*>(input_origin.data())},
       out_header{reinterpret_cast<UpdateDataHeader*>(output_origin.data())},
       expected_input_size{input_.size()}, expected_output_size{output_.size()},
       process_handle{process_handle_}, behaviour{behaviour_} {

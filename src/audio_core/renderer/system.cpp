@@ -102,8 +102,8 @@ System::System(Core::System& core_, Kernel::KEvent* adsp_rendered_event_)
 
 Result System::Initialize(const AudioRendererParameterInternal& params,
                           Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size,
-                          u32 process_handle_, Kernel::KProcess& process_,
-                          u64 applet_resource_user_id_, s32 session_id_) {
+                          Kernel::KProcess* process_handle_, u64 applet_resource_user_id_,
+                          s32 session_id_) {
     if (!CheckValidRevision(params.revision)) {
         return Service::Audio::ResultInvalidRevision;
     }
@@ -119,7 +119,6 @@ Result System::Initialize(const AudioRendererParameterInternal& params,
     behavior.SetUserLibRevision(params.revision);
 
     process_handle = process_handle_;
-    process = &process_;
     applet_resource_user_id = applet_resource_user_id_;
     session_id = session_id_;
 
@@ -132,7 +131,8 @@ Result System::Initialize(const AudioRendererParameterInternal& params,
     render_device = params.rendering_device;
     execution_mode = params.execution_mode;
 
-    process->GetMemory().ZeroBlock(transfer_memory->GetSourceAddress(), transfer_memory_size);
+    process_handle->GetMemory().ZeroBlock(transfer_memory->GetSourceAddress(),
+                                          transfer_memory_size);
 
     // Note: We're not actually using the transfer memory because it's a pain to code for.
     // Allocate the memory normally instead and hope the game doesn't try to read anything back
@@ -616,7 +616,7 @@ void System::SendCommandToDsp() {
                 static_cast<u64>((time_limit_percent / 100) * 2'880'000.0 *
                                  (static_cast<f32>(render_time_limit_percent) / 100.0f))};
             audio_renderer.SetCommandBuffer(session_id, translated_addr, command_size, time_limit,
-                                            applet_resource_user_id, process,
+                                            applet_resource_user_id, process_handle,
                                             reset_command_buffers);
             reset_command_buffers = false;
             command_buffer_size = command_size;
