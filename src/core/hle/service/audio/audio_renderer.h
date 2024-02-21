@@ -14,8 +14,8 @@ public:
     explicit IAudioRenderer(Core::System& system_, AudioCore::Renderer::Manager& manager_,
                             AudioCore::AudioRendererParameterInternal& params,
                             Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size,
-                            u32 process_handle, Kernel::KProcess& process_,
-                            u64 applet_resource_user_id, s32 session_id);
+                            Kernel::KProcess* process_handle_, u64 applet_resource_user_id,
+                            s32 session_id);
     ~IAudioRenderer() override;
 
 private:
@@ -37,7 +37,7 @@ private:
     Kernel::KEvent* rendered_event;
     AudioCore::Renderer::Manager& manager;
     std::unique_ptr<AudioCore::Renderer::Renderer> impl;
-    Kernel::KProcess& process;
+    Kernel::KProcess* process_handle;
     Common::ScratchBuffer<u8> output_buffer;
     Common::ScratchBuffer<u8> performance_buffer;
 };

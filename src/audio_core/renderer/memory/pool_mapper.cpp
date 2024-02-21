@@ -8,13 +8,13 @@
 
 namespace AudioCore::Renderer {
 
-PoolMapper::PoolMapper(u32 process_handle_, bool force_map_)
+PoolMapper::PoolMapper(Kernel::KProcess* process_handle_, bool force_map_)
     : process_handle{process_handle_}, force_map{force_map_} {}
 
-PoolMapper::PoolMapper(u32 process_handle_, std::span<MemoryPoolInfo> pool_infos_, u32 pool_count_,
-                       bool force_map_)
-    : process_handle{process_handle_}, pool_infos{pool_infos_.data()},
-      pool_count{pool_count_}, force_map{force_map_} {}
+PoolMapper::PoolMapper(Kernel::KProcess* process_handle_, std::span<MemoryPoolInfo> pool_infos_,
+                       u32 pool_count_, bool force_map_)
+    : process_handle{process_handle_}, pool_infos{pool_infos_.data()}, pool_count{pool_count_},
+      force_map{force_map_} {}
 
 void PoolMapper::ClearUseState(std::span<MemoryPoolInfo> pools, const u32 count) {
     for (u32 i = 0; i < count; i++) {
@@ -106,15 +106,17 @@ bool PoolMapper::IsForceMapEnabled() const {
     return force_map;
 }
 
-u32 PoolMapper::GetProcessHandle(const MemoryPoolInfo* pool) const {
+Kernel::KProcess* PoolMapper::GetProcessHandle(const MemoryPoolInfo* pool) const {
     switch (pool->GetLocation()) {
     case MemoryPoolInfo::Location::CPU:
         return process_handle;
     case MemoryPoolInfo::Location::DSP:
-        return Kernel::Svc::CurrentProcess;
+        // return Kernel::Svc::CurrentProcess;
+        return nullptr;
     }
     LOG_WARNING(Service_Audio, "Invalid MemoryPoolInfo location!");
-    return Kernel::Svc::CurrentProcess;
+    // return Kernel::Svc::CurrentProcess;
+    return nullptr;
 }
 
 bool PoolMapper::Map([[maybe_unused]] const u32 handle, [[maybe_unused]] const CpuAddr cpu_addr,
@@ -147,14 +149,14 @@ bool PoolMapper::Unmap([[maybe_unused]] const u32 handle, [[maybe_unused]] const
 }
 
 bool PoolMapper::Unmap(MemoryPoolInfo& pool) const {
-    [[maybe_unused]] u32 handle{0};
+    [[maybe_unused]] Kernel::KProcess* handle{};
 
     switch (pool.GetLocation()) {
     case MemoryPoolInfo::Location::CPU:
         handle = process_handle;
         break;
     case MemoryPoolInfo::Location::DSP:
-        handle = Kernel::Svc::CurrentProcess;
+        // handle = Kernel::Svc::CurrentProcess;
         break;
     }
     // nn::audio::dsp::UnmapUserPointer(handle, pool->cpu_address, pool->size);

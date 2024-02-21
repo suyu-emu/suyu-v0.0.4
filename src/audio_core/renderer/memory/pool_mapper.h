@@ -10,6 +10,10 @@
 #include "common/common_types.h"
 #include "core/hle/service/audio/errors.h"
 
+namespace Kernel {
+class KProcess;
+}
+
 namespace AudioCore::Renderer {
 class AddressInfo;
 
@@ -18,9 +22,9 @@ class AddressInfo;
  */
 class PoolMapper {
 public:
-    explicit PoolMapper(u32 process_handle, bool force_map);
-    explicit PoolMapper(u32 process_handle, std::span<MemoryPoolInfo> pool_infos, u32 pool_count,
-                        bool force_map);
+    explicit PoolMapper(Kernel::KProcess* process_handle, bool force_map);
+    explicit PoolMapper(Kernel::KProcess* process_handle, std::span<MemoryPoolInfo> pool_infos,
+                        u32 pool_count, bool force_map);
 
     /**
      * Clear the usage state for all given pools.
@@ -98,7 +102,7 @@ public:
      * @return CurrentProcessHandle if location == DSP,
      *         the PoolMapper's process_handle if location == CPU
      */
-    u32 GetProcessHandle(const MemoryPoolInfo* pool) const;
+    Kernel::KProcess* GetProcessHandle(const MemoryPoolInfo* pool) const;
 
     /**
      * Map the given region with the given handle. This is a no-op.
@@ -167,7 +171,7 @@ public:
 
 private:
     /// Process handle for this mapper, used when location == CPU
-    u32 process_handle;
+    Kernel::KProcess* process_handle{};
     /// List of memory pools assigned to this mapper
     MemoryPoolInfo* pool_infos{};
     /// The number of pools

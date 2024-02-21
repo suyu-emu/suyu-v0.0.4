@@ -38,14 +38,14 @@ public:
      * @param params                  - Input parameters to initialize the system with.
      * @param transfer_memory         - Game-supplied memory for all workbuffers. Unused.
      * @param transfer_memory_size    - Size of the transfer memory. Unused.
-     * @param process_handle          - Process handle, also used for memory. Unused.
+     * @param process_handle          - Process handle, also used for memory.
      * @param applet_resource_user_id - Applet id for this renderer. Unused.
      * @param session_id              - Session id of this renderer.
      * @return Result code.
      */
     Result Initialize(const AudioRendererParameterInternal& params,
                       Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size,
-                      u32 process_handle, Kernel::KProcess& process, u64 applet_resource_user_id,
+                      Kernel::KProcess* process_handle, u64 applet_resource_user_id,
                       s32 session_id);
 
     /**
