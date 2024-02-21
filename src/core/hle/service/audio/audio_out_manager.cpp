@@ -75,9 +75,7 @@ Result IAudioOutManager::OpenAudioOutAuto(
     R_TRY(impl->LinkToManager());
     R_TRY(impl->AcquireSessionId(new_session_id));
 
-    const auto name_buffer = std::span(reinterpret_cast<const u8*>(name[0].name.data()), 0x100);
-    const auto device_name = Common::StringFromBuffer(name_buffer);
-
+    const auto device_name = Common::StringFromBuffer(name[0].name);
     LOG_DEBUG(Service_Audio, "Opening new AudioOut, sessionid={}, free sessions={}", new_session_id,
               impl->num_free_sessions);
 
