@@ -860,6 +860,8 @@ add_library(core STATIC
     hle/service/nvnflinger/ui/graphic_buffer.cpp
     hle/service/nvnflinger/ui/graphic_buffer.h
     hle/service/nvnflinger/window.h
+    hle/service/olsc/daemon_controller.cpp
+    hle/service/olsc/daemon_controller.h
     hle/service/olsc/native_handle_holder.cpp
     hle/service/olsc/native_handle_holder.h
     hle/service/olsc/olsc_service_for_application.cpp
