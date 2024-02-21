@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/olsc/olsc_service_for_application.h"
 
 namespace Service::OLSC {
@@ -10,10 +10,10 @@ IOlscServiceForApplication::IOlscServiceForApplication(Core::System& system_)
     : ServiceFramework{system_, "olsc:u"} {
     // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IOlscServiceForApplication::Initialize, "Initialize"},
+            {0, D<&IOlscServiceForApplication::Initialize>, "Initialize"},
             {10, nullptr, "VerifySaveDataBackupLicenseAsync"},
-            {13, &IOlscServiceForApplication::GetSaveDataBackupSetting, "GetSaveDataBackupSetting"},
-            {14, &IOlscServiceForApplication::SetSaveDataBackupSettingEnabled, "SetSaveDataBackupSettingEnabled"},
+            {13, D<&IOlscServiceForApplication::GetSaveDataBackupSetting>, "GetSaveDataBackupSetting"},
+            {14, D<&IOlscServiceForApplication::SetSaveDataBackupSettingEnabled>, "SetSaveDataBackupSettingEnabled"},
             {15, nullptr, "SetCustomData"},
             {16, nullptr, "DeleteSaveDataBackupSetting"},
             {18, nullptr, "GetSaveDataBackupInfoCache"},
@@ -40,31 +40,24 @@ IOlscServiceForApplication::IOlscServiceForApplication(Core::System& system_)
 
 IOlscServiceForApplication::~IOlscServiceForApplication() = default;
 
-void IOlscServiceForApplication::Initialize(HLERequestContext& ctx) {
+Result IOlscServiceForApplication::Initialize(ClientProcessId process_id) {
     LOG_WARNING(Service_OLSC, "(STUBBED) called");
-
     initialized = true;
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IOlscServiceForApplication::GetSaveDataBackupSetting(HLERequestContext& ctx) {
+Result IOlscServiceForApplication::GetSaveDataBackupSetting(Out<u8> out_save_data_backup_setting) {
     LOG_WARNING(Service_OLSC, "(STUBBED) called");
-
     // backup_setting is set to 0 since real value is unknown
-    constexpr u64 backup_setting = 0;
-
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(backup_setting);
+    *out_save_data_backup_setting = 0;
+    R_SUCCEED();
 }
 
-void IOlscServiceForApplication::SetSaveDataBackupSettingEnabled(HLERequestContext& ctx) {
-    LOG_WARNING(Service_OLSC, "(STUBBED) called");
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+Result IOlscServiceForApplication::SetSaveDataBackupSettingEnabled(bool enabled,
+                                                                   NS::Uid account_id) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called, enabled={}, account_id={}", enabled,
+                account_id.uuid.FormattedString());
+    R_SUCCEED();
 }
 
 } // namespace Service::OLSC

@@ -12,10 +12,16 @@ namespace Service::OLSC {
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("olsc:u",
-                                         std::make_shared<IOlscServiceForApplication>(system));
-    server_manager->RegisterNamedService("olsc:s",
-                                         std::make_shared<IOlscServiceForSystemService>(system));
+    const auto OlscFactoryForApplication = [&] {
+        return std::make_shared<IOlscServiceForApplication>(system);
+    };
+
+    const auto OlscFactoryForSystemService = [&] {
+        return std::make_shared<IOlscServiceForSystemService>(system);
+    };
+
+    server_manager->RegisterNamedService("olsc:u", OlscFactoryForApplication);
+    server_manager->RegisterNamedService("olsc:s", OlscFactoryForSystemService);
 
     ServerManager::RunServer(std::move(server_manager));
 }
