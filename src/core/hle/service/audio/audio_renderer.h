@@ -4,8 +4,13 @@
 #pragma once
 
 #include "audio_core/renderer/audio_renderer.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
+
+namespace Kernel {
+class KReadableEvent;
+}
 
 namespace Service::Audio {
 
@@ -19,19 +24,23 @@ public:
     ~IAudioRenderer() override;
 
 private:
-    void GetSampleRate(HLERequestContext& ctx);
-    void GetSampleCount(HLERequestContext& ctx);
-    void GetState(HLERequestContext& ctx);
-    void GetMixBufferCount(HLERequestContext& ctx);
-    void RequestUpdate(HLERequestContext& ctx);
-    void Start(HLERequestContext& ctx);
-    void Stop(HLERequestContext& ctx);
-    void QuerySystemEvent(HLERequestContext& ctx);
-    void SetRenderingTimeLimit(HLERequestContext& ctx);
-    void GetRenderingTimeLimit(HLERequestContext& ctx);
-    void ExecuteAudioRendererRendering(HLERequestContext& ctx);
-    void SetVoiceDropParameter(HLERequestContext& ctx);
-    void GetVoiceDropParameter(HLERequestContext& ctx);
+    Result GetSampleRate(Out<u32> out_sample_rate);
+    Result GetSampleCount(Out<u32> out_sample_count);
+    Result GetState(Out<u32> out_state);
+    Result GetMixBufferCount(Out<u32> out_mix_buffer_count);
+    Result RequestUpdate(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                         OutBuffer<BufferAttr_HipcMapAlias> out_performance_buffer,
+                         InBuffer<BufferAttr_HipcMapAlias> input);
+    Result RequestUpdateAuto(OutBuffer<BufferAttr_HipcAutoSelect> out_buffer,
+                             OutBuffer<BufferAttr_HipcAutoSelect> out_performance_buffer,
+                             InBuffer<BufferAttr_HipcAutoSelect> input);
+    Result Start();
+    Result Stop();
+    Result QuerySystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result SetRenderingTimeLimit(u32 rendering_time_limit);
+    Result GetRenderingTimeLimit(Out<u32> out_rendering_time_limit);
+    Result SetVoiceDropParameter(f32 voice_drop_parameter);
+    Result GetVoiceDropParameter(Out<f32> out_voice_drop_parameter);
 
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* rendered_event;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/audio/audio_renderer.h"
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
 
 namespace Service::Audio {
 using namespace AudioCore::Renderer;
@@ -18,20 +18,20 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
       process_handle{process_handle_} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &IAudioRenderer::GetSampleRate, "GetSampleRate"},
-        {1, &IAudioRenderer::GetSampleCount, "GetSampleCount"},
-        {2, &IAudioRenderer::GetMixBufferCount, "GetMixBufferCount"},
-        {3, &IAudioRenderer::GetState, "GetState"},
-        {4, &IAudioRenderer::RequestUpdate, "RequestUpdate"},
-        {5, &IAudioRenderer::Start, "Start"},
-        {6, &IAudioRenderer::Stop, "Stop"},
-        {7, &IAudioRenderer::QuerySystemEvent, "QuerySystemEvent"},
-        {8, &IAudioRenderer::SetRenderingTimeLimit, "SetRenderingTimeLimit"},
-        {9, &IAudioRenderer::GetRenderingTimeLimit, "GetRenderingTimeLimit"},
-        {10, &IAudioRenderer::RequestUpdate, "RequestUpdateAuto"},
+        {0, C<&IAudioRenderer::GetSampleRate>, "GetSampleRate"},
+        {1, C<&IAudioRenderer::GetSampleCount>, "GetSampleCount"},
+        {2, C<&IAudioRenderer::GetMixBufferCount>, "GetMixBufferCount"},
+        {3, C<&IAudioRenderer::GetState>, "GetState"},
+        {4, C<&IAudioRenderer::RequestUpdate>, "RequestUpdate"},
+        {5, C<&IAudioRenderer::Start>, "Start"},
+        {6, C<&IAudioRenderer::Stop>, "Stop"},
+        {7, C<&IAudioRenderer::QuerySystemEvent>, "QuerySystemEvent"},
+        {8, C<&IAudioRenderer::SetRenderingTimeLimit>, "SetRenderingTimeLimit"},
+        {9, C<&IAudioRenderer::GetRenderingTimeLimit>, "GetRenderingTimeLimit"},
+        {10, C<&IAudioRenderer::RequestUpdateAuto>, "RequestUpdateAuto"},
         {11, nullptr, "ExecuteAudioRendererRendering"},
-        {12, &IAudioRenderer::SetVoiceDropParameter, "SetVoiceDropParameter"},
-        {13, &IAudioRenderer::GetVoiceDropParameter, "GetVoiceDropParameter"},
+        {12, C<&IAudioRenderer::SetVoiceDropParameter>, "SetVoiceDropParameter"},
+        {13, C<&IAudioRenderer::GetVoiceDropParameter>, "GetVoiceDropParameter"},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -47,165 +47,93 @@ IAudioRenderer::~IAudioRenderer() {
     process_handle->Close();
 }
 
-void IAudioRenderer::GetSampleRate(HLERequestContext& ctx) {
-    const auto sample_rate{impl->GetSystem().GetSampleRate()};
-
-    LOG_DEBUG(Service_Audio, "called. Sample rate {}", sample_rate);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(sample_rate);
+Result IAudioRenderer::GetSampleRate(Out<u32> out_sample_rate) {
+    *out_sample_rate = impl->GetSystem().GetSampleRate();
+    LOG_DEBUG(Service_Audio, "called. Sample rate {}", *out_sample_rate);
+    R_SUCCEED();
 }
 
-void IAudioRenderer::GetSampleCount(HLERequestContext& ctx) {
-    const auto sample_count{impl->GetSystem().GetSampleCount()};
-
-    LOG_DEBUG(Service_Audio, "called. Sample count {}", sample_count);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(sample_count);
+Result IAudioRenderer::GetSampleCount(Out<u32> out_sample_count) {
+    *out_sample_count = impl->GetSystem().GetSampleCount();
+    LOG_DEBUG(Service_Audio, "called. Sample count {}", *out_sample_count);
+    R_SUCCEED();
 }
 
-void IAudioRenderer::GetState(HLERequestContext& ctx) {
-    const u32 state{!impl->GetSystem().IsActive()};
-
-    LOG_DEBUG(Service_Audio, "called, state {}", state);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(state);
+Result IAudioRenderer::GetState(Out<u32> out_state) {
+    *out_state = !impl->GetSystem().IsActive();
+    LOG_DEBUG(Service_Audio, "called, state {}", *out_state);
+    R_SUCCEED();
 }
 
-void IAudioRenderer::GetMixBufferCount(HLERequestContext& ctx) {
+Result IAudioRenderer::GetMixBufferCount(Out<u32> out_mix_buffer_count) {
     LOG_DEBUG(Service_Audio, "called");
-
-    const auto buffer_count{impl->GetSystem().GetMixBufferCount()};
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(buffer_count);
+    *out_mix_buffer_count = impl->GetSystem().GetMixBufferCount();
+    R_SUCCEED();
 }
 
-void IAudioRenderer::RequestUpdate(HLERequestContext& ctx) {
+Result IAudioRenderer::RequestUpdate(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                                     OutBuffer<BufferAttr_HipcMapAlias> out_performance_buffer,
+                                     InBuffer<BufferAttr_HipcMapAlias> input) {
+    R_RETURN(this->RequestUpdateAuto(out_buffer, out_performance_buffer, input));
+}
+
+Result IAudioRenderer::RequestUpdateAuto(
+    OutBuffer<BufferAttr_HipcAutoSelect> out_buffer,
+    OutBuffer<BufferAttr_HipcAutoSelect> out_performance_buffer,
+    InBuffer<BufferAttr_HipcAutoSelect> input) {
     LOG_TRACE(Service_Audio, "called");
 
-    const auto input{ctx.ReadBuffer(0)};
-
-    // These buffers are written manually to avoid an issue with WriteBuffer throwing errors for
-    // checking size 0. Performance size is 0 for most games.
-
-    auto is_buffer_b{ctx.BufferDescriptorB()[0].Size() != 0};
-    if (is_buffer_b) {
-        const auto buffersB{ctx.BufferDescriptorB()};
-        output_buffer.resize_destructive(buffersB[0].Size());
-        performance_buffer.resize_destructive(buffersB[1].Size());
-    } else {
-        const auto buffersC{ctx.BufferDescriptorC()};
-        output_buffer.resize_destructive(buffersC[0].Size());
-        performance_buffer.resize_destructive(buffersC[1].Size());
-    }
-
-    auto result = impl->RequestUpdate(input, performance_buffer, output_buffer);
-
-    if (result.IsSuccess()) {
-        if (is_buffer_b) {
-            ctx.WriteBufferB(output_buffer.data(), output_buffer.size(), 0);
-            ctx.WriteBufferB(performance_buffer.data(), performance_buffer.size(), 1);
-        } else {
-            ctx.WriteBufferC(output_buffer.data(), output_buffer.size(), 0);
-            ctx.WriteBufferC(performance_buffer.data(), performance_buffer.size(), 1);
-        }
-    } else {
+    const auto result = impl->RequestUpdate(input, out_performance_buffer, out_buffer);
+    if (result.IsFailure()) {
         LOG_ERROR(Service_Audio, "RequestUpdate failed error 0x{:02X}!", result.GetDescription());
     }
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(result);
+    R_RETURN(result);
 }
 
-void IAudioRenderer::Start(HLERequestContext& ctx) {
+Result IAudioRenderer::Start() {
     LOG_DEBUG(Service_Audio, "called");
-
     impl->Start();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IAudioRenderer::Stop(HLERequestContext& ctx) {
+Result IAudioRenderer::Stop() {
     LOG_DEBUG(Service_Audio, "called");
-
     impl->Stop();
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_SUCCEED();
 }
 
-void IAudioRenderer::QuerySystemEvent(HLERequestContext& ctx) {
+Result IAudioRenderer::QuerySystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_Audio, "called");
-
-    if (impl->GetSystem().GetExecutionMode() == AudioCore::ExecutionMode::Manual) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Audio::ResultNotSupported);
-        return;
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(rendered_event->GetReadableEvent());
+    R_UNLESS(impl->GetSystem().GetExecutionMode() != AudioCore::ExecutionMode::Manual,
+             Audio::ResultNotSupported);
+    *out_event = &rendered_event->GetReadableEvent();
+    R_SUCCEED();
 }
 
-void IAudioRenderer::SetRenderingTimeLimit(HLERequestContext& ctx) {
+Result IAudioRenderer::SetRenderingTimeLimit(u32 rendering_time_limit) {
     LOG_DEBUG(Service_Audio, "called");
-
-    IPC::RequestParser rp{ctx};
-    auto limit = rp.PopRaw<u32>();
-
-    auto& system_ = impl->GetSystem();
-    system_.SetRenderingTimeLimit(limit);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    impl->GetSystem().SetRenderingTimeLimit(rendering_time_limit);
+    ;
+    R_SUCCEED();
 }
 
-void IAudioRenderer::GetRenderingTimeLimit(HLERequestContext& ctx) {
+Result IAudioRenderer::GetRenderingTimeLimit(Out<u32> out_rendering_time_limit) {
     LOG_DEBUG(Service_Audio, "called");
-
-    auto& system_ = impl->GetSystem();
-    auto time = system_.GetRenderingTimeLimit();
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(time);
+    *out_rendering_time_limit = impl->GetSystem().GetRenderingTimeLimit();
+    R_SUCCEED();
 }
 
-void IAudioRenderer::ExecuteAudioRendererRendering(HLERequestContext& ctx) {
+Result IAudioRenderer::SetVoiceDropParameter(f32 voice_drop_parameter) {
     LOG_DEBUG(Service_Audio, "called");
+    impl->GetSystem().SetVoiceDropParameter(voice_drop_parameter);
+    R_SUCCEED();
 }
 
-void IAudioRenderer::SetVoiceDropParameter(HLERequestContext& ctx) {
+Result IAudioRenderer::GetVoiceDropParameter(Out<f32> out_voice_drop_parameter) {
     LOG_DEBUG(Service_Audio, "called");
-
-    IPC::RequestParser rp{ctx};
-    auto voice_drop_param{rp.Pop<f32>()};
-
-    auto& system_ = impl->GetSystem();
-    system_.SetVoiceDropParameter(voice_drop_param);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IAudioRenderer::GetVoiceDropParameter(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Audio, "called");
-
-    auto& system_ = impl->GetSystem();
-    auto voice_drop_param{system_.GetVoiceDropParameter()};
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(voice_drop_param);
+    *out_voice_drop_parameter = impl->GetSystem().GetVoiceDropParameter();
+    R_SUCCEED();
 }
 
 } // namespace Service::Audio
