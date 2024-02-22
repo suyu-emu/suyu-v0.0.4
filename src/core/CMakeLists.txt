@@ -891,6 +891,15 @@ add_library(core STATIC
     hle/service/pm/pm.h
     hle/service/prepo/prepo.cpp
     hle/service/prepo/prepo.h
+    hle/service/psc/ovln/ovln_types.h
+    hle/service/psc/ovln/receiver_service.cpp
+    hle/service/psc/ovln/receiver_service.h
+    hle/service/psc/ovln/receiver.cpp
+    hle/service/psc/ovln/receiver.h
+    hle/service/psc/ovln/sender_service.cpp
+    hle/service/psc/ovln/sender_service.h
+    hle/service/psc/ovln/sender.cpp
+    hle/service/psc/ovln/sender.h
     hle/service/psc/pm_control.cpp
     hle/service/psc/pm_control.h
     hle/service/psc/pm_module.cpp
