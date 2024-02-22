@@ -3,14 +3,13 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/pctl/pctl_types.h"
 #include "core/hle/service/service.h"
 
-namespace Core {
-class System;
-}
-
 namespace Service::PCTL {
+
+class IParentalControlService;
 
 class IParentalControlServiceFactory : public ServiceFramework<IParentalControlServiceFactory> {
 public:
@@ -18,8 +17,10 @@ public:
                                             Capability capability_);
     ~IParentalControlServiceFactory() override;
 
-    void CreateService(HLERequestContext& ctx);
-    void CreateServiceWithoutInitialize(HLERequestContext& ctx);
+    Result CreateService(Out<SharedPointer<IParentalControlService>> out_service,
+                         ClientProcessId process_id);
+    Result CreateServiceWithoutInitialize(Out<SharedPointer<IParentalControlService>> out_service,
+                                          ClientProcessId process_id);
 
 private:
     Capability capability{};
