@@ -261,7 +261,9 @@ void DefineEntryPoint(const IR::Program& program, EmitContext& ctx, Id main) {
     case Stage::Geometry:
         execution_model = spv::ExecutionModel::Geometry;
         ctx.AddCapability(spv::Capability::Geometry);
-        ctx.AddCapability(spv::Capability::GeometryStreams);
+        if (ctx.profile.support_geometry_streams) {
+            ctx.AddCapability(spv::Capability::GeometryStreams);
+        }
         switch (ctx.runtime_info.input_topology) {
         case InputTopology::Points:
             ctx.AddExecutionMode(main, spv::ExecutionMode::InputPoints);

@@ -44,6 +44,7 @@ struct Profile {
     bool support_gl_derivative_control{};
     bool support_scaled_attributes{};
     bool support_multi_viewport{};
+    bool support_geometry_streams{};
 
     bool warp_size_potentially_larger_than_guest{};
 
