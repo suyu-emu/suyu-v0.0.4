@@ -522,13 +522,17 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     auto* memory_device_inter = registered_processes[asid.id];
     const auto release_pending = [&] {
         if (uncache_bytes > 0) {
-            MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
-                              uncache_bytes, false);
+            if (memory_device_inter != nullptr) {
+                MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
+                                  uncache_bytes, false);
+            }
             uncache_bytes = 0;
         }
         if (cache_bytes > 0) {
-            MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS,
-                              cache_bytes, true);
+            if (memory_device_inter != nullptr) {
+                MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS,
+                                  cache_bytes, true);
+            }
             cache_bytes = 0;
         }
     };
