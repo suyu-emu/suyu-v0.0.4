@@ -9,18 +9,28 @@
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/pctl/pctl.h"
 #include "core/hle/service/pctl/pctl_module.h"
+#include "core/hle/service/pctl/pctl_results.h"
+#include "core/hle/service/pctl/pctl_types.h"
 #include "core/hle/service/server_manager.h"
 
 namespace Service::PCTL {
 
-namespace Error {
+struct States {
+    u64 current_tid{};
+    ApplicationInfo application_info{};
+    u64 tid_from_event{};
+    bool launch_time_valid{};
+    bool is_suspended{};
+    bool temporary_unlocked{};
+    bool free_communication{};
+    bool stereo_vision{};
+};
 
-constexpr Result ResultNoFreeCommunication{ErrorModule::PCTL, 101};
-constexpr Result ResultStereoVisionRestricted{ErrorModule::PCTL, 104};
-constexpr Result ResultNoCapability{ErrorModule::PCTL, 131};
-constexpr Result ResultNoRestrictionEnabled{ErrorModule::PCTL, 181};
-
-} // namespace Error
+struct ParentalControlSettings {
+    bool is_stero_vision_restricted{};
+    bool is_free_communication_default_on{};
+    bool disabled{};
+};
 
 class IParentalControlService final : public ServiceFramework<IParentalControlService> {
 public:
@@ -214,7 +224,7 @@ private:
                 states.free_communication = false;
                 states.stereo_vision = false;
                 states.application_info = ApplicationInfo{
-                    .tid = tid,
+                    .application_id = tid,
                     .age_rating = control.first->GetRatingAge(),
                     .parental_control_flag = control.first->GetParentalControlFlag(),
                     .capability = capability,
@@ -234,7 +244,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         if (!CheckFreeCommunicationPermissionImpl()) {
-            rb.Push(Error::ResultNoFreeCommunication);
+            rb.Push(ResultNoFreeCommunication);
         } else {
             rb.Push(ResultSuccess);
         }
@@ -246,7 +256,7 @@ private:
         LOG_WARNING(Service_PCTL, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Error::ResultNoFreeCommunication);
+        rb.Push(ResultNoFreeCommunication);
     }
 
     void IsRestrictionTemporaryUnlocked(HLERequestContext& ctx) {
@@ -280,7 +290,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         if (!CheckFreeCommunicationPermissionImpl()) {
-            rb.Push(Error::ResultNoFreeCommunication);
+            rb.Push(ResultNoFreeCommunication);
         } else {
             rb.Push(ResultSuccess);
         }
@@ -292,7 +302,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         if (False(capability & (Capability::Status | Capability::Recovery))) {
             LOG_ERROR(Service_PCTL, "Application does not have Status or Recovery capabilities!");
-            rb.Push(Error::ResultNoCapability);
+            rb.Push(ResultNoCapability);
             rb.Push(false);
             return;
         }
@@ -335,12 +345,12 @@ private:
 
         if (False(capability & Capability::StereoVision)) {
             LOG_ERROR(Service_PCTL, "Application does not have StereoVision capability!");
-            rb.Push(Error::ResultNoCapability);
+            rb.Push(ResultNoCapability);
             return;
         }
 
         if (pin_code[0] == '\0') {
-            rb.Push(Error::ResultNoRestrictionEnabled);
+            rb.Push(ResultNoRestrictionEnabled);
             return;
         }
 
@@ -352,7 +362,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         if (!ConfirmStereoVisionPermissionImpl()) {
-            rb.Push(Error::ResultStereoVisionRestricted);
+            rb.Push(ResultStereoVisionRestricted);
             rb.Push(false);
         } else {
             rb.Push(ResultSuccess);
@@ -423,7 +433,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         if (False(capability & Capability::StereoVision)) {
             LOG_ERROR(Service_PCTL, "Application does not have StereoVision capability!");
-            rb.Push(Error::ResultNoCapability);
+            rb.Push(ResultNoCapability);
             return;
         }
 
@@ -437,7 +447,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         if (False(capability & Capability::StereoVision)) {
             LOG_ERROR(Service_PCTL, "Application does not have StereoVision capability!");
-            rb.Push(Error::ResultNoCapability);
+            rb.Push(ResultNoCapability);
             rb.Push(false);
             return;
         }
@@ -454,44 +464,6 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
     }
-
-    struct ApplicationInfo {
-        u64 tid{};
-        std::array<u8, 32> age_rating{};
-        u32 parental_control_flag{};
-        Capability capability{};
-    };
-
-    struct States {
-        u64 current_tid{};
-        ApplicationInfo application_info{};
-        u64 tid_from_event{};
-        bool launch_time_valid{};
-        bool is_suspended{};
-        bool temporary_unlocked{};
-        bool free_communication{};
-        bool stereo_vision{};
-    };
-
-    struct ParentalControlSettings {
-        bool is_stero_vision_restricted{};
-        bool is_free_communication_default_on{};
-        bool disabled{};
-    };
-
-    // This is nn::pctl::RestrictionSettings
-    struct RestrictionSettings {
-        u8 rating_age;
-        bool sns_post_restriction;
-        bool free_communication_restriction;
-    };
-    static_assert(sizeof(RestrictionSettings) == 0x3, "RestrictionSettings has incorrect size.");
-
-    // This is nn::pctl::PlayTimerSettings
-    struct PlayTimerSettings {
-        std::array<u32, 13> settings;
-    };
-    static_assert(sizeof(PlayTimerSettings) == 0x34, "PlayTimerSettings has incorrect size.");
 
     States states{};
     ParentalControlSettings settings{};
