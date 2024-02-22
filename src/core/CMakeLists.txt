@@ -897,6 +897,8 @@ add_library(core STATIC
     hle/service/pctl/pctl.h
     hle/service/pctl/pctl_module.cpp
     hle/service/pctl/pctl_module.h
+    hle/service/pctl/pctl_results.h
+    hle/service/pctl/pctl_types.h
     hle/service/pcv/pcv.cpp
     hle/service/pcv/pcv.h
     hle/service/pm/pm.cpp
