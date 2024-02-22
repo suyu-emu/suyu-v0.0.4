@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::PSC {
+
+class IPmModule;
 
 class IPmService final : public ServiceFramework<IPmService> {
 public:
@@ -13,7 +16,7 @@ public:
     ~IPmService() override;
 
 private:
-    void GetPmModule(HLERequestContext& ctx);
+    Result GetPmModule(Out<SharedPointer<IPmModule>> out_module);
 };
 
 } // namespace Service::PSC
