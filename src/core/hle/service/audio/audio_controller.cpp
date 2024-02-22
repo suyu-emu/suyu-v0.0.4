@@ -36,7 +36,7 @@ IAudioController::IAudioController(Core::System& system_)
         {19, nullptr, "AcquireAudioVolumeUpdateEventForPlayReport"},
         {20, nullptr, "AcquireAudioOutputDeviceUpdateEventForPlayReport"},
         {21, nullptr, "GetAudioOutputTargetForPlayReport"},
-        {22, nullptr, "NotifyHeadphoneVolumeWarningDisplayedEvent"},
+        {22, D<&IAudioController::NotifyHeadphoneVolumeWarningDisplayedEvent>, "NotifyHeadphoneVolumeWarningDisplayedEvent"},
         {23, nullptr, "SetSystemOutputMasterVolume"},
         {24, nullptr, "GetSystemOutputMasterVolume"},
         {25, nullptr, "GetAudioVolumeDataForPlayReport"},
@@ -147,6 +147,11 @@ Result IAudioController::GetHeadphoneOutputLevelMode(
     LOG_INFO(Audio, "called");
 
     *out_output_level_mode = HeadphoneOutputLevelMode::Normal;
+    R_SUCCEED();
+}
+
+Result IAudioController::NotifyHeadphoneVolumeWarningDisplayedEvent() {
+    LOG_WARNING(Service_Audio, "(STUBBED) called");
     R_SUCCEED();
 }
 
