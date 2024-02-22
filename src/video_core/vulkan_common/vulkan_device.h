@@ -499,6 +499,11 @@ public:
         return extensions.transform_feedback;
     }
 
+    /// Returns true if the device supports VK_EXT_transform_feedback properly.
+    bool AreTransformFeedbackGeometryStreamsSupported() const {
+        return features.transform_feedback.geometryStreams;
+    }
+
     /// Returns true if the device supports VK_EXT_custom_border_color.
     bool IsExtCustomBorderColorSupported() const {
         return extensions.custom_border_color;
