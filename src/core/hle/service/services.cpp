@@ -46,7 +46,7 @@
 #include "core/hle/service/olsc/olsc.h"
 #include "core/hle/service/omm/omm.h"
 #include "core/hle/service/pcie/pcie.h"
-#include "core/hle/service/pctl/pctl_module.h"
+#include "core/hle/service/pctl/pctl.h"
 #include "core/hle/service/pcv/pcv.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/prepo/prepo.h"
