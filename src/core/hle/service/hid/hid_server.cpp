@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
+
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -10,6 +11,8 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/hid/hid_server.h"
+#include "core/hle/service/hid/active_vibration_device_list.h"
+#include "core/hle/service/hid/applet_resource.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
 #include "hid_core/hid_result.h"
@@ -35,67 +38,6 @@
 #include "hid_core/resources/vibration/vibration_device.h"
 
 namespace Service::HID {
-
-class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {
-public:
-    explicit IActiveVibrationDeviceList(Core::System& system_,
-                                        std::shared_ptr<ResourceManager> resource)
-        : ServiceFramework{system_, "IActiveVibrationDeviceList"}, resource_manager(resource) {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &IActiveVibrationDeviceList::ActivateVibrationDevice, "ActivateVibrationDevice"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-
-private:
-    void ActivateVibrationDevice(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto vibration_device_handle{rp.PopRaw<Core::HID::VibrationDeviceHandle>()};
-
-        LOG_DEBUG(Service_HID, "called, npad_type={}, npad_id={}, device_index={}",
-                  vibration_device_handle.npad_type, vibration_device_handle.npad_id,
-                  vibration_device_handle.device_index);
-
-        const auto result = ActivateVibrationDeviceImpl(vibration_device_handle);
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-    }
-
-    Result ActivateVibrationDeviceImpl(const Core::HID::VibrationDeviceHandle& handle) {
-        std::scoped_lock lock{mutex};
-
-        const Result is_valid = IsVibrationHandleValid(handle);
-        if (is_valid.IsError()) {
-            return is_valid;
-        }
-
-        for (std::size_t i = 0; i < list_size; i++) {
-            if (handle.device_index == vibration_device_list[i].device_index &&
-                handle.npad_id == vibration_device_list[i].npad_id &&
-                handle.npad_type == vibration_device_list[i].npad_type) {
-                return ResultSuccess;
-            }
-        }
-        if (list_size == vibration_device_list.size()) {
-            return ResultVibrationDeviceIndexOutOfRange;
-        }
-        const Result result = resource_manager->GetVibrationDevice(handle)->Activate();
-        if (result.IsError()) {
-            return result;
-        }
-        vibration_device_list[list_size++] = handle;
-        return ResultSuccess;
-    }
-
-    mutable std::mutex mutex;
-    std::size_t list_size{};
-    std::array<Core::HID::VibrationDeviceHandle, 0x100> vibration_device_list{};
-    std::shared_ptr<ResourceManager> resource_manager;
-};
 
 IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
                        std::shared_ptr<HidFirmwareSettings> settings)

@@ -4,7 +4,6 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/set/system_settings_server.h"
 #include "core/hle/service/sm/sm.h"
@@ -499,31 +498,6 @@ void ResourceManager::UpdateMotion(std::chrono::nanoseconds ns_late) {
     six_axis->OnUpdate(core_timing);
     seven_six_axis->OnUpdate(core_timing);
     console_six_axis->OnUpdate(core_timing);
-}
-
-IAppletResource::IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource,
-                                 u64 applet_resource_user_id)
-    : ServiceFramework{system_, "IAppletResource"}, aruid{applet_resource_user_id},
-      resource_manager{resource} {
-    static const FunctionInfo functions[] = {
-        {0, &IAppletResource::GetSharedMemoryHandle, "GetSharedMemoryHandle"},
-    };
-    RegisterHandlers(functions);
-}
-
-IAppletResource::~IAppletResource() {
-    resource_manager->FreeAppletResourceId(aruid);
-}
-
-void IAppletResource::GetSharedMemoryHandle(HLERequestContext& ctx) {
-    Kernel::KSharedMemory* handle;
-    const auto result = resource_manager->GetSharedMemoryHandle(&handle, aruid);
-
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result=0x{:X}", aruid, result.raw);
-
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(result);
-    rb.PushCopyObjects(handle);
 }
 
 } // namespace Service::HID

@@ -174,17 +174,4 @@ private:
     KernelHelpers::ServiceContext service_context;
 };
 
-class IAppletResource final : public ServiceFramework<IAppletResource> {
-public:
-    explicit IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource,
-                             u64 applet_resource_user_id);
-    ~IAppletResource() override;
-
-private:
-    void GetSharedMemoryHandle(HLERequestContext& ctx);
-
-    u64 aruid{};
-    std::shared_ptr<ResourceManager> resource_manager;
-};
-
 } // namespace Service::HID
