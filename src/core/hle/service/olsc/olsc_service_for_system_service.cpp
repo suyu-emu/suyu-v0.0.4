@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/cmif_serialization.h"
+#include "core/hle/service/olsc/daemon_controller.h"
 #include "core/hle/service/olsc/olsc_service_for_system_service.h"
+#include "core/hle/service/olsc/remote_storage_controller.h"
 #include "core/hle/service/olsc/transfer_task_list_controller.h"
 
 namespace Service::OLSC {
@@ -11,9 +13,9 @@ IOlscServiceForSystemService::IOlscServiceForSystemService(Core::System& system_
     : ServiceFramework{system_, "olsc:s"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &IOlscServiceForSystemService::OpenTransferTaskListController, "OpenTransferTaskListController"},
-        {1, nullptr, "OpenRemoteStorageController"},
-        {2, nullptr, "OpenDaemonController"},
+        {0, D<&IOlscServiceForSystemService::OpenTransferTaskListController>, "OpenTransferTaskListController"},
+        {1, D<&IOlscServiceForSystemService::OpenRemoteStorageController>, "OpenRemoteStorageController"},
+        {2, D<&IOlscServiceForSystemService::OpenDaemonController>, "OpenDaemonController"},
         {10, nullptr, "Unknown10"},
         {11, nullptr, "Unknown11"},
         {12, nullptr, "Unknown12"},
@@ -24,7 +26,7 @@ IOlscServiceForSystemService::IOlscServiceForSystemService(Core::System& system_
         {103, nullptr, "GetLastErrorInfo"},
         {104, nullptr, "GetLastErrorEventHolder"},
         {105, nullptr, "GetLastTransferTaskErrorInfo"},
-        {200, nullptr, "GetDataTransferPolicyInfo"},
+        {200, D<&IOlscServiceForSystemService::GetDataTransferPolicyInfo>, "GetDataTransferPolicyInfo"},
         {201, nullptr, "RemoveDataTransferPolicyInfo"},
         {202, nullptr, "UpdateDataTransferPolicyOld"},
         {203, nullptr, "UpdateDataTransferPolicy"},
@@ -68,6 +70,7 @@ IOlscServiceForSystemService::IOlscServiceForSystemService(Core::System& system_
         {1122, nullptr, "RepairIssue2"},
         {1123, nullptr, "RepairIssue3"},
         {1124, nullptr, "Unknown1124"},
+        {10000, D<&IOlscServiceForSystemService::CloneService>, "CloneService"},
     };
     // clang-format on
 
@@ -76,12 +79,39 @@ IOlscServiceForSystemService::IOlscServiceForSystemService(Core::System& system_
 
 IOlscServiceForSystemService::~IOlscServiceForSystemService() = default;
 
-void IOlscServiceForSystemService::OpenTransferTaskListController(HLERequestContext& ctx) {
+Result IOlscServiceForSystemService::OpenTransferTaskListController(
+    Out<SharedPointer<ITransferTaskListController>> out_interface) {
     LOG_INFO(Service_OLSC, "called");
+    *out_interface = std::make_shared<ITransferTaskListController>(system);
+    R_SUCCEED();
+}
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ITransferTaskListController>(system);
+Result IOlscServiceForSystemService::OpenRemoteStorageController(
+    Out<SharedPointer<IRemoteStorageController>> out_interface) {
+    LOG_INFO(Service_OLSC, "called");
+    *out_interface = std::make_shared<IRemoteStorageController>(system);
+    R_SUCCEED();
+}
+
+Result IOlscServiceForSystemService::OpenDaemonController(
+    Out<SharedPointer<IDaemonController>> out_interface) {
+    LOG_INFO(Service_OLSC, "called");
+    *out_interface = std::make_shared<IDaemonController>(system);
+    R_SUCCEED();
+}
+
+Result IOlscServiceForSystemService::GetDataTransferPolicyInfo(Out<u16> out_policy_info,
+                                                               u64 application_id) {
+    LOG_WARNING(Service_OLSC, "(STUBBED) called");
+    *out_policy_info = 0;
+    R_SUCCEED();
+}
+
+Result IOlscServiceForSystemService::CloneService(
+    Out<SharedPointer<IOlscServiceForSystemService>> out_interface) {
+    LOG_INFO(Service_OLSC, "called");
+    *out_interface = std::static_pointer_cast<IOlscServiceForSystemService>(shared_from_this());
+    R_SUCCEED();
 }
 
 } // namespace Service::OLSC
