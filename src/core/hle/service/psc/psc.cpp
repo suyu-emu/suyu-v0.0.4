@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/psc/ovln/receiver_service.h"
+#include "core/hle/service/psc/ovln/sender_service.h"
 #include "core/hle/service/psc/pm_control.h"
 #include "core/hle/service/psc/pm_service.h"
 #include "core/hle/service/psc/psc.h"
@@ -17,6 +19,8 @@ void LoopProcess(Core::System& system) {
 
     server_manager->RegisterNamedService("psc:c", std::make_shared<IPmControl>(system));
     server_manager->RegisterNamedService("psc:m", std::make_shared<IPmService>(system));
+    server_manager->RegisterNamedService("ovln:rcv", std::make_shared<IReceiverService>(system));
+    server_manager->RegisterNamedService("ovln:snd", std::make_shared<ISenderService>(system));
 
     auto time = std::make_shared<Time::TimeManager>(system);
 
