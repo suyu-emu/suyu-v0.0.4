@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "core/file_sys/fsa/fs_i_directory.h"
 #include "core/file_sys/vfs/vfs.h"
+#include "core/hle/service/cmif_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/service.h"
 
@@ -15,16 +17,15 @@ namespace Service::FileSystem {
 
 class IDirectory final : public ServiceFramework<IDirectory> {
 public:
-    explicit IDirectory(Core::System& system_, FileSys::VirtualDir backend_,
+    explicit IDirectory(Core::System& system_, FileSys::VirtualDir directory_,
                         FileSys::OpenDirectoryMode mode);
 
 private:
-    FileSys::VirtualDir backend;
-    std::vector<FileSys::DirectoryEntry> entries;
-    u64 next_entry_index = 0;
+    std::unique_ptr<FileSys::Fsa::IDirectory> backend;
 
-    void Read(HLERequestContext& ctx);
-    void GetEntryCount(HLERequestContext& ctx);
+    Result Read(Out<s64> out_count,
+                const OutArray<FileSys::DirectoryEntry, BufferAttr_HipcMapAlias> out_entries);
+    Result GetEntryCount(Out<s64> out_count);
 };
 
 } // namespace Service::FileSystem

@@ -10,7 +10,7 @@ namespace FileSys {
 
 constexpr size_t RequiredAlignment = alignof(u64);
 
-void* AllocateUnsafe(size_t size) {
+inline void* AllocateUnsafe(size_t size) {
     // Allocate
     void* const ptr = ::operator new(size, std::align_val_t{RequiredAlignment});
 
@@ -21,16 +21,16 @@ void* AllocateUnsafe(size_t size) {
     return ptr;
 }
 
-void DeallocateUnsafe(void* ptr, size_t size) {
+inline void DeallocateUnsafe(void* ptr, size_t size) {
     // Deallocate the pointer
     ::operator delete(ptr, std::align_val_t{RequiredAlignment});
 }
 
-void* Allocate(size_t size) {
+inline void* Allocate(size_t size) {
     return AllocateUnsafe(size);
 }
 
-void Deallocate(void* ptr, size_t size) {
+inline void Deallocate(void* ptr, size_t size) {
     // If the pointer is non-null, deallocate it
     if (ptr != nullptr) {
         DeallocateUnsafe(ptr, size);
