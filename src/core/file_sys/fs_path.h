@@ -381,7 +381,7 @@ public:
 
         // Check that it's possible for us to remove a child
         auto* p = m_write_buffer.Get();
-        s32 len = std::strlen(p);
+        s32 len = static_cast<s32>(std::strlen(p));
         R_UNLESS(len != 1 || (p[0] != '/' && p[0] != '.'), ResultNotImplemented);
 
         // Handle a trailing separator

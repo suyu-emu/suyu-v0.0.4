@@ -426,9 +426,10 @@ public:
         R_SUCCEED();
     }
 
-    static Result Normalize(char* dst, size_t* out_len, const char* path, size_t max_out_size,
-                            bool is_windows_path, bool is_drive_relative_path,
-                            bool allow_all_characters = false) {
+    static constexpr Result Normalize(char* dst, size_t* out_len, const char* path,
+                                      size_t max_out_size, bool is_windows_path,
+                                      bool is_drive_relative_path,
+                                      bool allow_all_characters = false) {
         // Use StringTraits names for remainder of scope
         using namespace StringTraits;
 

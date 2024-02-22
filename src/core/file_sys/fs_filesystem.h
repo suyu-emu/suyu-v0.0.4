@@ -23,6 +23,8 @@ enum class OpenDirectoryMode : u64 {
     File = (1 << 1),
 
     All = (Directory | File),
+
+    NotRequireFileSize = (1ULL << 31),
 };
 DECLARE_ENUM_FLAG_OPERATORS(OpenDirectoryMode)
 
@@ -35,5 +37,30 @@ enum class CreateOption : u8 {
     None = (0 << 0),
     BigFile = (1 << 0),
 };
+
+struct FileSystemAttribute {
+    u8 dir_entry_name_length_max_defined;
+    u8 file_entry_name_length_max_defined;
+    u8 dir_path_name_length_max_defined;
+    u8 file_path_name_length_max_defined;
+    INSERT_PADDING_BYTES_NOINIT(0x5);
+    u8 utf16_dir_entry_name_length_max_defined;
+    u8 utf16_file_entry_name_length_max_defined;
+    u8 utf16_dir_path_name_length_max_defined;
+    u8 utf16_file_path_name_length_max_defined;
+    INSERT_PADDING_BYTES_NOINIT(0x18);
+    s32 dir_entry_name_length_max;
+    s32 file_entry_name_length_max;
+    s32 dir_path_name_length_max;
+    s32 file_path_name_length_max;
+    INSERT_PADDING_WORDS_NOINIT(0x5);
+    s32 utf16_dir_entry_name_length_max;
+    s32 utf16_file_entry_name_length_max;
+    s32 utf16_dir_path_name_length_max;
+    s32 utf16_file_path_name_length_max;
+    INSERT_PADDING_WORDS_NOINIT(0x18);
+    INSERT_PADDING_WORDS_NOINIT(0x1);
+};
+static_assert(sizeof(FileSystemAttribute) == 0xC0, "FileSystemAttribute has incorrect size");
 
 } // namespace FileSys
