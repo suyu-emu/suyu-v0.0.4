@@ -56,12 +56,14 @@ Kernel::KReadableEvent& Palma::AcquirePalmaOperationCompleteEvent(
 
 Result Palma::GetPalmaOperationInfo(const PalmaConnectionHandle& handle,
                                     PalmaOperationType& operation_type,
-                                    PalmaOperationData& data) const {
+                                    std::span<u8> out_data) const {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation_type = operation.operation;
-    data = operation.data;
+    operation_type = static_cast<PalmaOperationType>(operation.operation);
+    std::memcpy(out_data.data(), operation.data.data(),
+                std::min(out_data.size(), operation.data.size()));
+
     return ResultSuccess;
 }
 
@@ -69,7 +71,7 @@ Result Palma::PlayPalmaActivity(const PalmaConnectionHandle& handle, u64 palma_a
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::PlayActivity;
+    operation.operation = PackedPalmaOperationType::PlayActivity;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation_complete_event->Signal();
@@ -88,7 +90,7 @@ Result Palma::ReadPalmaStep(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::ReadStep;
+    operation.operation = PackedPalmaOperationType::ReadStep;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation_complete_event->Signal();
@@ -117,7 +119,7 @@ Result Palma::ReadPalmaUniqueCode(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::ReadUniqueCode;
+    operation.operation = PackedPalmaOperationType::ReadUniqueCode;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation_complete_event->Signal();
@@ -128,7 +130,7 @@ Result Palma::SetPalmaUniqueCodeInvalid(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::SetUniqueCodeInvalid;
+    operation.operation = PackedPalmaOperationType::SetUniqueCodeInvalid;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation_complete_event->Signal();
@@ -141,7 +143,7 @@ Result Palma::WritePalmaRgbLedPatternEntry(const PalmaConnectionHandle& handle, 
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::WriteRgbLedPatternEntry;
+    operation.operation = PackedPalmaOperationType::WriteRgbLedPatternEntry;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation_complete_event->Signal();
@@ -153,7 +155,7 @@ Result Palma::WritePalmaWaveEntry(const PalmaConnectionHandle& handle, PalmaWave
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::WriteWaveEntry;
+    operation.operation = PackedPalmaOperationType::WriteWaveEntry;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation_complete_event->Signal();
@@ -166,7 +168,7 @@ Result Palma::SetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle&
         return InvalidPalmaHandle;
     }
     database_id_version = database_id_version_;
-    operation.operation = PalmaOperationType::ReadDataBaseIdentificationVersion;
+    operation.operation = PackedPalmaOperationType::ReadDataBaseIdentificationVersion;
     operation.result = PalmaResultSuccess;
     operation.data[0] = {};
     operation_complete_event->Signal();
@@ -177,7 +179,7 @@ Result Palma::GetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle&
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    operation.operation = PalmaOperationType::ReadDataBaseIdentificationVersion;
+    operation.operation = PackedPalmaOperationType::ReadDataBaseIdentificationVersion;
     operation.result = PalmaResultSuccess;
     operation.data = {};
     operation.data[0] = static_cast<u8>(database_id_version);
