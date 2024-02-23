@@ -138,7 +138,7 @@ Result IAudioController::SetOutputModeSetting(Set::AudioOutputModeTarget target,
 }
 
 Result IAudioController::SetHeadphoneOutputLevelMode(HeadphoneOutputLevelMode output_level_mode) {
-    LOG_WARNING(Audio, "(STUBBED) called");
+    LOG_WARNING(Audio, "(STUBBED) called, output_level_mode={}", output_level_mode);
     R_SUCCEED();
 }
 
