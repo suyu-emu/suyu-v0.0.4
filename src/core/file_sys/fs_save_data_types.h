@@ -164,6 +164,19 @@ static_assert(sizeof(SaveDataExtraData) == 0x200, "SaveDataExtraData has invalid
 static_assert(std::is_trivially_copyable_v<SaveDataExtraData>,
               "Data type must be trivially copyable.");
 
+struct SaveDataFilter {
+    bool use_program_id;
+    bool use_save_data_type;
+    bool use_user_id;
+    bool use_save_data_id;
+    bool use_index;
+    SaveDataRank rank;
+    SaveDataAttribute attribute;
+};
+static_assert(sizeof(SaveDataFilter) == 0x48, "SaveDataFilter has invalid size.");
+static_assert(std::is_trivially_copyable_v<SaveDataFilter>,
+              "Data type must be trivially copyable.");
+
 struct HashSalt {
     static constexpr size_t Size = 32;
 
