@@ -236,7 +236,7 @@ Result FSP_SRV::CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_crea
 }
 
 Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(
-    FileSys::SaveDataCreationInfo save_create_struct, FileSys::SaveDataAttribute save_struct) {
+    FileSys::SaveDataAttribute save_struct, FileSys::SaveDataCreationInfo save_create_struct) {
     LOG_DEBUG(Service_FS, "called save_struct = {}", save_struct.DebugInfo());
 
     FileSys::VirtualDir save_data_dir{};
