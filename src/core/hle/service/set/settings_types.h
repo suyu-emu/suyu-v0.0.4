@@ -405,8 +405,7 @@ struct EulaVersion {
     SystemRegionCode region_code;
     EulaVersionClockType clock_type;
     INSERT_PADDING_BYTES(0x4);
-    s64 posix_time;
-    Service::PSC::Time::SteadyClockTimePoint timestamp;
+    Service::PSC::Time::SystemClockContext system_clock_context;
 };
 static_assert(sizeof(EulaVersion) == 0x30, "EulaVersion is incorrect size");
 
