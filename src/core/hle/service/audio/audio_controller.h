@@ -45,6 +45,7 @@ private:
                                 Set::AudioOutputMode output_mode);
     Result SetHeadphoneOutputLevelMode(HeadphoneOutputLevelMode output_level_mode);
     Result GetHeadphoneOutputLevelMode(Out<HeadphoneOutputLevelMode> out_output_level_mode);
+    Result NotifyHeadphoneVolumeWarningDisplayedEvent();
     Result SetSpeakerAutoMuteEnabled(bool is_speaker_auto_mute_enabled);
     Result IsSpeakerAutoMuteEnabled(Out<bool> out_is_speaker_auto_mute_enabled);
     Result AcquireTargetNotification(OutCopyHandle<Kernel::KReadableEvent> out_notification_event);

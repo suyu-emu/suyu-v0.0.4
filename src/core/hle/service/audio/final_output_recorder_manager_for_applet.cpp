@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/audio/audrec_a.h"
+#include "core/hle/service/audio/final_output_recorder_manager_for_applet.h"
 
 namespace Service::Audio {
 
-AudRecA::AudRecA(Core::System& system_) : ServiceFramework{system_, "audrec:a"} {
+IFinalOutputRecorderManagerForApplet::IFinalOutputRecorderManagerForApplet(Core::System& system_)
+    : ServiceFramework{system_, "audrec:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestSuspend"},
@@ -16,6 +17,6 @@ AudRecA::AudRecA(Core::System& system_) : ServiceFramework{system_, "audrec:a"} 
     RegisterHandlers(functions);
 }
 
-AudRecA::~AudRecA() = default;
+IFinalOutputRecorderManagerForApplet::~IFinalOutputRecorderManagerForApplet() = default;
 
 } // namespace Service::Audio

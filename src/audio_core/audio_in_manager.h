@@ -60,13 +60,11 @@ public:
      * Get a list of audio in device names.
      *
      * @param names     - Output container to write names to.
-     * @param max_count - Maximum number of device names to write. Unused
      * @param filter    - Should the list be filtered? Unused.
      *
      * @return Number of names written.
      */
-    u32 GetDeviceNames(std::vector<Renderer::AudioDevice::AudioDeviceName>& names, u32 max_count,
-                       bool filter);
+    u32 GetDeviceNames(std::span<Renderer::AudioDevice::AudioDeviceName> names, bool filter);
 
     /// Core system
     Core::System& system;

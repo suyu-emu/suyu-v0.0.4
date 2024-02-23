@@ -28,8 +28,8 @@ OpusDecoder::~OpusDecoder() {
     }
 }
 
-Result OpusDecoder::Initialize(OpusParametersEx& params, Kernel::KTransferMemory* transfer_memory,
-                               u64 transfer_memory_size) {
+Result OpusDecoder::Initialize(const OpusParametersEx& params,
+                               Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size) {
     auto frame_size{params.use_large_frame_size ? 5760 : 1920};
     shared_buffer_size = transfer_memory_size;
     shared_buffer = std::make_unique<u8[]>(shared_buffer_size);
@@ -59,7 +59,7 @@ Result OpusDecoder::Initialize(OpusParametersEx& params, Kernel::KTransferMemory
     R_SUCCEED();
 }
 
-Result OpusDecoder::Initialize(OpusMultiStreamParametersEx& params,
+Result OpusDecoder::Initialize(const OpusMultiStreamParametersEx& params,
                                Kernel::KTransferMemory* transfer_memory, u64 transfer_memory_size) {
     auto frame_size{params.use_large_frame_size ? 5760 : 1920};
     shared_buffer_size = transfer_memory_size;

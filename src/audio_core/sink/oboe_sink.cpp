@@ -67,9 +67,13 @@ public:
         oboe::AudioStreamBuilder builder;
 
         const auto result = ConfigureBuilder(builder, direction)->openStream(temp_stream);
-        ASSERT(result == oboe::Result::OK);
+        if (result == oboe::Result::OK) {
+            return temp_stream->getChannelCount() >= 6 ? 6 : 2;
+        }
 
-        return temp_stream->getChannelCount() >= 6 ? 6 : 2;
+        LOG_ERROR(Audio_Sink, "Failed to open {} stream. Using default channel count 2",
+                  direction == oboe::Direction::Output ? "output" : "input");
+        return 2;
     }
 
 protected:
