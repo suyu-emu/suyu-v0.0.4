@@ -14,48 +14,11 @@ namespace FileSys {
 
 namespace {
 
-void PrintSaveDataAttributeWarnings(SaveDataAttribute meta) {
-    if (meta.type == SaveDataType::SystemSaveData || meta.type == SaveDataType::SaveData) {
-        if (meta.zero_1 != 0) {
-            LOG_WARNING(Service_FS,
-                        "Possibly incorrect SaveDataAttribute, type is "
-                        "SystemSaveData||SaveData but offset 0x28 is non-zero ({:016X}).",
-                        meta.zero_1);
-        }
-        if (meta.zero_2 != 0) {
-            LOG_WARNING(Service_FS,
-                        "Possibly incorrect SaveDataAttribute, type is "
-                        "SystemSaveData||SaveData but offset 0x30 is non-zero ({:016X}).",
-                        meta.zero_2);
-        }
-        if (meta.zero_3 != 0) {
-            LOG_WARNING(Service_FS,
-                        "Possibly incorrect SaveDataAttribute, type is "
-                        "SystemSaveData||SaveData but offset 0x38 is non-zero ({:016X}).",
-                        meta.zero_3);
-        }
-    }
-
-    if (meta.type == SaveDataType::SystemSaveData && meta.title_id != 0) {
-        LOG_WARNING(Service_FS,
-                    "Possibly incorrect SaveDataAttribute, type is SystemSaveData but title_id is "
-                    "non-zero ({:016X}).",
-                    meta.title_id);
-    }
-
-    if (meta.type == SaveDataType::DeviceSaveData && meta.user_id != u128{0, 0}) {
-        LOG_WARNING(Service_FS,
-                    "Possibly incorrect SaveDataAttribute, type is DeviceSaveData but user_id is "
-                    "non-zero ({:016X}{:016X})",
-                    meta.user_id[1], meta.user_id[0]);
-    }
-}
-
 bool ShouldSaveDataBeAutomaticallyCreated(SaveDataSpaceId space, const SaveDataAttribute& attr) {
-    return attr.type == SaveDataType::CacheStorage || attr.type == SaveDataType::TemporaryStorage ||
-           (space == SaveDataSpaceId::NandUser && ///< Normal Save Data -- Current Title & User
-            (attr.type == SaveDataType::SaveData || attr.type == SaveDataType::DeviceSaveData) &&
-            attr.title_id == 0 && attr.save_id == 0);
+    return attr.type == SaveDataType::Cache || attr.type == SaveDataType::Temporary ||
+           (space == SaveDataSpaceId::User && ///< Normal Save Data -- Current Title & User
+            (attr.type == SaveDataType::Account || attr.type == SaveDataType::Device) &&
+            attr.program_id == 0 && attr.system_save_data_id == 0);
 }
 
 std::string GetFutureSaveDataPath(SaveDataSpaceId space_id, SaveDataType type, u64 title_id,
@@ -63,7 +26,7 @@ std::string GetFutureSaveDataPath(SaveDataSpaceId space_id, SaveDataType type, u
     // Only detect nand user saves.
     const auto space_id_path = [space_id]() -> std::string_view {
         switch (space_id) {
-        case SaveDataSpaceId::NandUser:
+        case SaveDataSpaceId::User:
             return "/user/save";
         default:
             return "";
@@ -79,9 +42,9 @@ std::string GetFutureSaveDataPath(SaveDataSpaceId space_id, SaveDataType type, u
 
     // Only detect account/device saves from the future location.
     switch (type) {
-    case SaveDataType::SaveData:
+    case SaveDataType::Account:
         return fmt::format("{}/account/{}/{:016X}/0", space_id_path, uuid.RawString(), title_id);
-    case SaveDataType::DeviceSaveData:
+    case SaveDataType::Device:
         return fmt::format("{}/device/{:016X}/0", space_id_path, title_id);
     default:
         return "";
@@ -89,13 +52,6 @@ std::string GetFutureSaveDataPath(SaveDataSpaceId space_id, SaveDataType type, u
 }
 
 } // Anonymous namespace
-
-std::string SaveDataAttribute::DebugInfo() const {
-    return fmt::format("[title_id={:016X}, user_id={:016X}{:016X}, save_id={:016X}, type={:02X}, "
-                       "rank={}, index={}]",
-                       title_id, user_id[1], user_id[0], save_id, static_cast<u8>(type),
-                       static_cast<u8>(rank), index);
-}
 
 SaveDataFactory::SaveDataFactory(Core::System& system_, ProgramId program_id_,
                                  VirtualDir save_directory_)
@@ -108,18 +64,16 @@ SaveDataFactory::SaveDataFactory(Core::System& system_, ProgramId program_id_,
 SaveDataFactory::~SaveDataFactory() = default;
 
 VirtualDir SaveDataFactory::Create(SaveDataSpaceId space, const SaveDataAttribute& meta) const {
-    PrintSaveDataAttributeWarnings(meta);
-
-    const auto save_directory =
-        GetFullPath(program_id, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
+    const auto save_directory = GetFullPath(program_id, dir, space, meta.type, meta.program_id,
+                                            meta.user_id, meta.system_save_data_id);
 
     return dir->CreateDirectoryRelative(save_directory);
 }
 
 VirtualDir SaveDataFactory::Open(SaveDataSpaceId space, const SaveDataAttribute& meta) const {
 
-    const auto save_directory =
-        GetFullPath(program_id, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
+    const auto save_directory = GetFullPath(program_id, dir, space, meta.type, meta.program_id,
+                                            meta.user_id, meta.system_save_data_id);
 
     auto out = dir->GetDirectoryRelative(save_directory);
 
@@ -136,11 +90,11 @@ VirtualDir SaveDataFactory::GetSaveDataSpaceDirectory(SaveDataSpaceId space) con
 
 std::string SaveDataFactory::GetSaveDataSpaceIdPath(SaveDataSpaceId space) {
     switch (space) {
-    case SaveDataSpaceId::NandSystem:
+    case SaveDataSpaceId::System:
         return "/system/";
-    case SaveDataSpaceId::NandUser:
+    case SaveDataSpaceId::User:
         return "/user/";
-    case SaveDataSpaceId::TemporaryStorage:
+    case SaveDataSpaceId::Temporary:
         return "/temp/";
     default:
         ASSERT_MSG(false, "Unrecognized SaveDataSpaceId: {:02X}", static_cast<u8>(space));
@@ -153,7 +107,7 @@ std::string SaveDataFactory::GetFullPath(ProgramId program_id, VirtualDir dir,
                                          u128 user_id, u64 save_id) {
     // According to switchbrew, if a save is of type SaveData and the title id field is 0, it should
     // be interpreted as the title id of the current process.
-    if (type == SaveDataType::SaveData || type == SaveDataType::DeviceSaveData) {
+    if (type == SaveDataType::Account || type == SaveDataType::Device) {
         if (title_id == 0) {
             title_id = program_id;
         }
@@ -173,16 +127,16 @@ std::string SaveDataFactory::GetFullPath(ProgramId program_id, VirtualDir dir,
     std::string out = GetSaveDataSpaceIdPath(space);
 
     switch (type) {
-    case SaveDataType::SystemSaveData:
+    case SaveDataType::System:
         return fmt::format("{}save/{:016X}/{:016X}{:016X}", out, save_id, user_id[1], user_id[0]);
-    case SaveDataType::SaveData:
-    case SaveDataType::DeviceSaveData:
+    case SaveDataType::Account:
+    case SaveDataType::Device:
         return fmt::format("{}save/{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
                            title_id);
-    case SaveDataType::TemporaryStorage:
+    case SaveDataType::Temporary:
         return fmt::format("{}{:016X}/{:016X}{:016X}/{:016X}", out, 0, user_id[1], user_id[0],
                            title_id);
-    case SaveDataType::CacheStorage:
+    case SaveDataType::Cache:
         return fmt::format("{}save/cache/{:016X}", out, title_id);
     default:
         ASSERT_MSG(false, "Unrecognized SaveDataType: {:02X}", static_cast<u8>(type));
@@ -202,7 +156,7 @@ std::string SaveDataFactory::GetUserGameSaveDataRoot(u128 user_id, bool future) 
 SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
                                                u128 user_id) const {
     const auto path =
-        GetFullPath(program_id, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
+        GetFullPath(program_id, dir, SaveDataSpaceId::User, type, title_id, user_id, 0);
     const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
     const auto size_file = relative_dir->GetFile(GetSaveDataSizeFileName());
@@ -221,7 +175,7 @@ SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
 void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
                                         SaveDataSize new_value) const {
     const auto path =
-        GetFullPath(program_id, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
+        GetFullPath(program_id, dir, SaveDataSpaceId::User, type, title_id, user_id, 0);
     const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
     const auto size_file = relative_dir->CreateFile(GetSaveDataSizeFileName());

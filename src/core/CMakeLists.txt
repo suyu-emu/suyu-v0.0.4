@@ -58,6 +58,7 @@ add_library(core STATIC
     file_sys/fs_operate_range.h
     file_sys/fs_path.h
     file_sys/fs_path_utility.h
+    file_sys/fs_save_data_types.h
     file_sys/fs_string_util.h
     file_sys/fsa/fs_i_directory.h
     file_sys/fsa/fs_i_file.h
@@ -599,6 +600,10 @@ add_library(core STATIC
     hle/service/filesystem/fsp/fs_i_file.h
     hle/service/filesystem/fsp/fs_i_filesystem.cpp
     hle/service/filesystem/fsp/fs_i_filesystem.h
+    hle/service/filesystem/fsp/fs_i_multi_commit_manager.cpp
+    hle/service/filesystem/fsp/fs_i_multi_commit_manager.h
+    hle/service/filesystem/fsp/fs_i_save_data_info_reader.cpp
+    hle/service/filesystem/fsp/fs_i_save_data_info_reader.h
     hle/service/filesystem/fsp/fs_i_storage.cpp
     hle/service/filesystem/fsp/fs_i_storage.h
     hle/service/filesystem/fsp/fsp_ldr.cpp
@@ -607,7 +612,7 @@ add_library(core STATIC
     hle/service/filesystem/fsp/fsp_pr.h
     hle/service/filesystem/fsp/fsp_srv.cpp
     hle/service/filesystem/fsp/fsp_srv.h
-    hle/service/filesystem/fsp/fsp_util.h
+    hle/service/filesystem/fsp/fsp_types.h
     hle/service/filesystem/romfs_controller.cpp
     hle/service/filesystem/romfs_controller.h
     hle/service/filesystem/save_data_controller.cpp
