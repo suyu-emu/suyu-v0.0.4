@@ -73,16 +73,15 @@ void Manager::BufferReleaseAndRegister() {
     }
 }
 
-u32 Manager::GetDeviceNames(std::vector<Renderer::AudioDevice::AudioDeviceName>& names,
-                            [[maybe_unused]] const u32 max_count,
+u32 Manager::GetDeviceNames(std::span<Renderer::AudioDevice::AudioDeviceName> names,
                             [[maybe_unused]] const bool filter) {
     std::scoped_lock l{mutex};
 
     LinkToManager();
 
     auto input_devices{Sink::GetDeviceListForSink(Settings::values.sink_id.GetValue(), true)};
-    if (input_devices.size() > 1) {
-        names.emplace_back("Uac");
+    if (!input_devices.empty() && !names.empty()) {
+        names[0] = Renderer::AudioDevice::AudioDeviceName("Uac");
         return 1;
     }
     return 0;

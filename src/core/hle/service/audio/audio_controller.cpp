@@ -16,27 +16,27 @@ IAudioController::IAudioController(Core::System& system_)
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetTargetVolume"},
         {1, nullptr, "SetTargetVolume"},
-        {2, C<&IAudioController::GetTargetVolumeMin>, "GetTargetVolumeMin"},
-        {3, C<&IAudioController::GetTargetVolumeMax>, "GetTargetVolumeMax"},
+        {2, D<&IAudioController::GetTargetVolumeMin>, "GetTargetVolumeMin"},
+        {3, D<&IAudioController::GetTargetVolumeMax>, "GetTargetVolumeMax"},
         {4, nullptr, "IsTargetMute"},
         {5, nullptr, "SetTargetMute"},
         {6, nullptr, "IsTargetConnected"},
         {7, nullptr, "SetDefaultTarget"},
         {8, nullptr, "GetDefaultTarget"},
-        {9, C<&IAudioController::GetAudioOutputMode>, "GetAudioOutputMode"},
-        {10, C<&IAudioController::SetAudioOutputMode>, "SetAudioOutputMode"},
+        {9, D<&IAudioController::GetAudioOutputMode>, "GetAudioOutputMode"},
+        {10, D<&IAudioController::SetAudioOutputMode>, "SetAudioOutputMode"},
         {11, nullptr, "SetForceMutePolicy"},
-        {12, C<&IAudioController::GetForceMutePolicy>, "GetForceMutePolicy"},
-        {13, C<&IAudioController::GetOutputModeSetting>, "GetOutputModeSetting"},
-        {14, C<&IAudioController::SetOutputModeSetting>, "SetOutputModeSetting"},
+        {12, D<&IAudioController::GetForceMutePolicy>, "GetForceMutePolicy"},
+        {13, D<&IAudioController::GetOutputModeSetting>, "GetOutputModeSetting"},
+        {14, D<&IAudioController::SetOutputModeSetting>, "SetOutputModeSetting"},
         {15, nullptr, "SetOutputTarget"},
         {16, nullptr, "SetInputTargetForceEnabled"},
-        {17, C<&IAudioController::SetHeadphoneOutputLevelMode>, "SetHeadphoneOutputLevelMode"},
-        {18, C<&IAudioController::GetHeadphoneOutputLevelMode>, "GetHeadphoneOutputLevelMode"},
+        {17, D<&IAudioController::SetHeadphoneOutputLevelMode>, "SetHeadphoneOutputLevelMode"},
+        {18, D<&IAudioController::GetHeadphoneOutputLevelMode>, "GetHeadphoneOutputLevelMode"},
         {19, nullptr, "AcquireAudioVolumeUpdateEventForPlayReport"},
         {20, nullptr, "AcquireAudioOutputDeviceUpdateEventForPlayReport"},
         {21, nullptr, "GetAudioOutputTargetForPlayReport"},
-        {22, nullptr, "NotifyHeadphoneVolumeWarningDisplayedEvent"},
+        {22, D<&IAudioController::NotifyHeadphoneVolumeWarningDisplayedEvent>, "NotifyHeadphoneVolumeWarningDisplayedEvent"},
         {23, nullptr, "SetSystemOutputMasterVolume"},
         {24, nullptr, "GetSystemOutputMasterVolume"},
         {25, nullptr, "GetAudioVolumeDataForPlayReport"},
@@ -44,11 +44,11 @@ IAudioController::IAudioController(Core::System& system_)
         {27, nullptr, "SetVolumeMappingTableForDev"},
         {28, nullptr, "GetAudioOutputChannelCountForPlayReport"},
         {29, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"},
-        {30, C<&IAudioController::SetSpeakerAutoMuteEnabled>, "SetSpeakerAutoMuteEnabled"},
-        {31, C<&IAudioController::IsSpeakerAutoMuteEnabled>, "IsSpeakerAutoMuteEnabled"},
+        {30, D<&IAudioController::SetSpeakerAutoMuteEnabled>, "SetSpeakerAutoMuteEnabled"},
+        {31, D<&IAudioController::IsSpeakerAutoMuteEnabled>, "IsSpeakerAutoMuteEnabled"},
         {32, nullptr, "GetActiveOutputTarget"},
         {33, nullptr, "GetTargetDeviceInfo"},
-        {34, C<&IAudioController::AcquireTargetNotification>, "AcquireTargetNotification"},
+        {34, D<&IAudioController::AcquireTargetNotification>, "AcquireTargetNotification"},
         {35, nullptr, "SetHearingProtectionSafeguardTimerRemainingTimeForDebug"},
         {36, nullptr, "GetHearingProtectionSafeguardTimerRemainingTimeForDebug"},
         {37, nullptr, "SetHearingProtectionSafeguardEnabled"},
@@ -147,6 +147,11 @@ Result IAudioController::GetHeadphoneOutputLevelMode(
     LOG_INFO(Audio, "called");
 
     *out_output_level_mode = HeadphoneOutputLevelMode::Normal;
+    R_SUCCEED();
+}
+
+Result IAudioController::NotifyHeadphoneVolumeWarningDisplayedEvent() {
+    LOG_WARNING(Service_Audio, "(STUBBED) called");
     R_SUCCEED();
 }
 

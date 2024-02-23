@@ -38,6 +38,10 @@ std::string StringFromBuffer(std::span<const u8> data) {
     return std::string(data.begin(), std::find(data.begin(), data.end(), '\0'));
 }
 
+std::string StringFromBuffer(std::span<const char> data) {
+    return std::string(data.begin(), std::find(data.begin(), data.end(), '\0'));
+}
+
 // Turns "  hej " into "hej". Also handles tabs.
 std::string StripSpaces(const std::string& str) {
     const std::size_t s = str.find_first_not_of(" \t\r\n");

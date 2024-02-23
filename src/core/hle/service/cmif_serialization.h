@@ -415,7 +415,7 @@ void WriteOutArgument(bool is_domain, CallArguments& args, u8* raw_data, HLERequ
             auto& buffer = temp[OutBufferIndex];
             const size_t size = buffer.size();
 
-            if (ctx.CanWriteBuffer(OutBufferIndex)) {
+            if (size > 0 && ctx.CanWriteBuffer(OutBufferIndex)) {
                 if constexpr (ArgType::Attr & BufferAttr_HipcAutoSelect) {
                     ctx.WriteBuffer(buffer.data(), size, OutBufferIndex);
                 } else if constexpr (ArgType::Attr & BufferAttr_HipcMapAlias) {

@@ -494,23 +494,33 @@ add_library(core STATIC
     hle/service/apm/apm_controller.h
     hle/service/apm/apm_interface.cpp
     hle/service/apm/apm_interface.h
-    hle/service/audio/audin_u.cpp
-    hle/service/audio/audin_u.h
-    hle/service/audio/audio.cpp
-    hle/service/audio/audio.h
     hle/service/audio/audio_controller.cpp
     hle/service/audio/audio_controller.h
-    hle/service/audio/audout_u.cpp
-    hle/service/audio/audout_u.h
-    hle/service/audio/audrec_a.cpp
-    hle/service/audio/audrec_a.h
-    hle/service/audio/audrec_u.cpp
-    hle/service/audio/audrec_u.h
-    hle/service/audio/audren_u.cpp
-    hle/service/audio/audren_u.h
+    hle/service/audio/audio_device.cpp
+    hle/service/audio/audio_device.h
+    hle/service/audio/audio_in_manager.cpp
+    hle/service/audio/audio_in_manager.h
+    hle/service/audio/audio_in.cpp
+    hle/service/audio/audio_in.h
+    hle/service/audio/audio_out_manager.cpp
+    hle/service/audio/audio_out_manager.h
+    hle/service/audio/audio_out.cpp
+    hle/service/audio/audio_out.h
+    hle/service/audio/audio_renderer_manager.cpp
+    hle/service/audio/audio_renderer_manager.h
+    hle/service/audio/audio_renderer.cpp
+    hle/service/audio/audio_renderer.h
+    hle/service/audio/audio.cpp
+    hle/service/audio/audio.h
     hle/service/audio/errors.h
-    hle/service/audio/hwopus.cpp
-    hle/service/audio/hwopus.h
+    hle/service/audio/final_output_recorder_manager_for_applet.cpp
+    hle/service/audio/final_output_recorder_manager_for_applet.h
+    hle/service/audio/final_output_recorder_manager.cpp
+    hle/service/audio/final_output_recorder_manager.h
+    hle/service/audio/hardware_opus_decoder_manager.cpp
+    hle/service/audio/hardware_opus_decoder_manager.h
+    hle/service/audio/hardware_opus_decoder.cpp
+    hle/service/audio/hardware_opus_decoder.h
     hle/service/bcat/backend/backend.cpp
     hle/service/bcat/backend/backend.h
     hle/service/bcat/bcat.cpp

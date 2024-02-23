@@ -20,7 +20,7 @@ struct OpusParametersEx {
     /* 0x00 */ u32 sample_rate;
     /* 0x04 */ u32 channel_count;
     /* 0x08 */ bool use_large_frame_size;
-    /* 0x09 */ INSERT_PADDING_BYTES(7);
+    /* 0x09 */ INSERT_PADDING_BYTES_NOINIT(7);
 }; // size = 0x10
 static_assert(sizeof(OpusParametersEx) == 0x10, "OpusParametersEx has the wrong size!");
 
@@ -40,7 +40,7 @@ struct OpusMultiStreamParametersEx {
     /* 0x08 */ u32 total_stream_count;
     /* 0x0C */ u32 stereo_stream_count;
     /* 0x10 */ bool use_large_frame_size;
-    /* 0x11 */ INSERT_PADDING_BYTES(7);
+    /* 0x11 */ INSERT_PADDING_BYTES_NOINIT(7);
     /* 0x18 */ std::array<u8, OpusStreamCountMax + 1> mappings;
 }; // size = 0x118
 static_assert(sizeof(OpusMultiStreamParametersEx) == 0x118,

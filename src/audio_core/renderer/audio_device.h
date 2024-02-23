@@ -36,20 +36,18 @@ public:
      * Get a list of the available output devices.
      *
      * @param out_buffer - Output buffer to write the available device names.
-     * @param max_count  - Maximum number of devices to write (count of out_buffer).
      * @return Number of device names written.
      */
-    u32 ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer, size_t max_count) const;
+    u32 ListAudioDeviceName(std::span<AudioDeviceName> out_buffer) const;
 
     /**
      * Get a list of the available output devices.
      * Different to above somehow...
      *
      * @param out_buffer - Output buffer to write the available device names.
-     * @param max_count  - Maximum number of devices to write (count of out_buffer).
      * @return Number of device names written.
      */
-    u32 ListAudioOutputDeviceName(std::vector<AudioDeviceName>& out_buffer, size_t max_count) const;
+    u32 ListAudioOutputDeviceName(std::span<AudioDeviceName> out_buffer) const;
 
     /**
      * Set the volume of all streams in the backend sink.
