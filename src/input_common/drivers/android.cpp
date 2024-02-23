@@ -3,6 +3,7 @@
 
 #include <set>
 #include <common/settings_input.h>
+#include <common/thread.h>
 #include <jni.h>
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
@@ -10,7 +11,18 @@
 
 namespace InputCommon {
 
-Android::Android(std::string input_engine_) : InputEngine(std::move(input_engine_)) {}
+Android::Android(std::string input_engine_) : InputEngine(std::move(input_engine_)) {
+    vibration_thread = std::jthread([this](std::stop_token token) {
+        Common::SetCurrentThreadName("Android_Vibration");
+        auto env = Common::Android::GetEnvForThread();
+        using namespace std::chrono_literals;
+        while (!token.stop_requested()) {
+            SendVibrations(env, token);
+        }
+    });
+}
+
+Android::~Android() = default;
 
 void Android::RegisterController(jobject j_input_device) {
     auto env = Common::Android::GetEnvForThread();
@@ -57,17 +69,11 @@ void Android::SetMotionState(std::string guid, size_t port, u64 delta_timestamp,
 Common::Input::DriverResult Android::SetVibration(
     [[maybe_unused]] const PadIdentifier& identifier,
     [[maybe_unused]] const Common::Input::VibrationStatus& vibration) {
-    auto device = input_devices.find(identifier);
-    if (device != input_devices.end()) {
-        Common::Android::RunJNIOnFiber<void>([&](JNIEnv* env) {
-            float average_intensity =
-                static_cast<float>((vibration.high_amplitude + vibration.low_amplitude) / 2.0);
-            env->CallVoidMethod(device->second, Common::Android::GetYuzuDeviceVibrate(),
-                                average_intensity);
-        });
-        return Common::Input::DriverResult::Success;
-    }
-    return Common::Input::DriverResult::NotSupported;
+    vibration_queue.Push(VibrationRequest{
+        .identifier = identifier,
+        .vibration = vibration,
+    });
+    return Common::Input::DriverResult::Success;
 }
 
 bool Android::IsVibrationEnabled([[maybe_unused]] const PadIdentifier& identifier) {
@@ -345,6 +351,17 @@ PadIdentifier Android::GetIdentifier(const std::string& guid, size_t port) const
         .port = port,
         .pad = 0,
     };
+}
+
+void Android::SendVibrations(JNIEnv* env, std::stop_token token) {
+    VibrationRequest request = vibration_queue.PopWait(token);
+    auto device = input_devices.find(request.identifier);
+    if (device != input_devices.end()) {
+        float average_intensity = static_cast<float>(
+            (request.vibration.high_amplitude + request.vibration.low_amplitude) / 2.0);
+        env->CallVoidMethod(device->second, Common::Android::GetYuzuDeviceVibrate(),
+                            average_intensity);
+    }
 }
 
 } // namespace InputCommon

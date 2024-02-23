@@ -4,6 +4,7 @@
 #pragma once
 
 #include <set>
+#include <common/threadsafe_queue.h>
 #include <jni.h>
 #include "input_common/input_engine.h"
 
@@ -15,6 +16,8 @@ namespace InputCommon {
 class Android final : public InputEngine {
 public:
     explicit Android(std::string input_engine_);
+
+    ~Android() override;
 
     /**
      * Registers controller number to accept new inputs.
@@ -89,6 +92,9 @@ private:
     /// Returns the correct identifier corresponding to the player index
     PadIdentifier GetIdentifier(const std::string& guid, size_t port) const;
 
+    /// Takes all vibrations from the queue and sends the command to the controller
+    void SendVibrations(JNIEnv* env, std::stop_token token);
+
     static constexpr s32 AXIS_X = 0;
     static constexpr s32 AXIS_Y = 1;
     static constexpr s32 AXIS_Z = 11;
@@ -133,6 +139,10 @@ private:
                                                    redmagic_vid, backbone_labs_vid, xbox_vid};
     const std::vector<std::string> flipped_xy_vids{sony_vid, razer_vid, redmagic_vid,
                                                    backbone_labs_vid, xbox_vid};
+
+    /// Queue of vibration request to controllers
+    Common::SPSCQueue<VibrationRequest> vibration_queue;
+    std::jthread vibration_thread;
 };
 
 } // namespace InputCommon
