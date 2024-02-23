@@ -10,6 +10,8 @@
 #include "common/polyfill_thread.h"
 #include "common/thread.h"
 
+#include "core/hle/service/vi/vsync_manager.h"
+
 namespace Core {
 class System;
 }
@@ -26,7 +28,6 @@ namespace Service::VI {
 
 class Container;
 class DisplayList;
-class VsyncManager;
 
 class Conductor {
 public:
