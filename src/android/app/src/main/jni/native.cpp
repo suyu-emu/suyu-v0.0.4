@@ -668,7 +668,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
     ASSERT(user_id);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData, 1,
+        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account, 1,
         user_id->AsU128(), 0);
 
     const auto full_path = Common::FS::ConcatPathSafe(nand_dir, user_save_data_path);
@@ -836,8 +836,8 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
                                                             FileSys::OpenMode::Read);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-        {}, vfsNandDir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
-        program_id, user_id->AsU128(), 0);
+        {}, vfsNandDir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account, program_id,
+        user_id->AsU128(), 0);
     return Common::Android::ToJString(env, user_save_data_path);
 }
 
