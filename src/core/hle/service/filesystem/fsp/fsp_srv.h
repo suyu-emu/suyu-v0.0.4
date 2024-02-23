@@ -25,6 +25,7 @@ class SaveDataController;
 
 class IFileSystem;
 class ISaveDataInfoReader;
+class ISaveDataTransferProhibiter;
 class IStorage;
 class IMultiCommitManager;
 
@@ -66,11 +67,16 @@ private:
     Result OpenSaveDataInfoReaderBySaveDataSpaceId(OutInterface<ISaveDataInfoReader> out_interface,
                                                    FileSys::SaveDataSpaceId space);
     Result OpenSaveDataInfoReaderOnlyCacheStorage(OutInterface<ISaveDataInfoReader> out_interface);
+    Result FindSaveDataWithFilter(Out<s64> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                                  FileSys::SaveDataSpaceId space_id,
+                                  FileSys::SaveDataFilter filter);
     Result WriteSaveDataFileSystemExtraDataBySaveDataAttribute();
     Result ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
         FileSys::SaveDataSpaceId space_id, FileSys::SaveDataAttribute attribute,
         InBuffer<BufferAttr_HipcMapAlias> mask_buffer,
         OutBuffer<BufferAttr_HipcMapAlias> out_buffer);
+    Result OpenSaveDataTransferProhibiter(OutInterface<ISaveDataTransferProhibiter> out_prohibiter,
+                                          u64 id);
     Result OpenDataStorageByCurrentProcess(OutInterface<IStorage> out_interface);
     Result OpenDataStorageByDataId(OutInterface<IStorage> out_interface,
                                    FileSys::StorageId storage_id, u32 unknown, u64 title_id);
