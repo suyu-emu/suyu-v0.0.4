@@ -3010,9 +3010,6 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
 
 void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                            GameListShortcutTarget target) {
-    std::string game_title;
-    QString qt_game_title;
-    std::filesystem::path out_icon_path;
     // Get path to yuzu executable
     const QStringList args = QApplication::arguments();
     std::filesystem::path yuzu_command = args[0].toStdString();
@@ -3029,48 +3026,51 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         shortcut_path =
             QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
     }
-    // Icon path and title
-    if (std::filesystem::exists(shortcut_path)) {
-        // Get title from game file
-        const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
-                                       system->GetContentProvider()};
-        const auto control = pm.GetControlMetadata();
-        const auto loader =
-            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
-        game_title = fmt::format("{:016X}", program_id);
-        if (control.first != nullptr) {
-            game_title = control.first->GetApplicationName();
-        } else {
-            loader->ReadTitle(game_title);
-        }
-        // Delete illegal characters from title
-        const std::string illegal_chars = "<>:\"/\\|?*.";
-        for (auto it = game_title.rbegin(); it != game_title.rend(); ++it) {
-            if (illegal_chars.find(*it) != std::string::npos) {
-                game_title.erase(it.base() - 1);
-            }
-        }
-        qt_game_title = QString::fromStdString(game_title);
-        // Get icon from game file
-        std::vector<u8> icon_image_file{};
-        if (control.second != nullptr) {
-            icon_image_file = control.second->ReadAllBytes();
-        } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
-            LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
-        }
-        QImage icon_data =
-            QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
-        if (GMainWindow::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
-            if (!SaveIconToFile(out_icon_path, icon_data)) {
-                LOG_ERROR(Frontend, "Could not write icon to file");
-            }
-        }
-    } else {
-        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-                                               qt_game_title);
-        LOG_ERROR(Frontend, "Invalid shortcut target");
+
+    if (!std::filesystem::exists(shortcut_path)) {
+        GMainWindow::CreateShortcutMessagesGUI(
+            this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
+            QString::fromStdString(shortcut_path.generic_string()));
+        LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
         return;
     }
+
+    // Get title from game file
+    const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
+                                   system->GetContentProvider()};
+    const auto control = pm.GetControlMetadata();
+    const auto loader =
+        Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+    std::string game_title = fmt::format("{:016X}", program_id);
+    if (control.first != nullptr) {
+        game_title = control.first->GetApplicationName();
+    } else {
+        loader->ReadTitle(game_title);
+    }
+    // Delete illegal characters from title
+    const std::string illegal_chars = "<>:\"/\\|?*.";
+    for (auto it = game_title.rbegin(); it != game_title.rend(); ++it) {
+        if (illegal_chars.find(*it) != std::string::npos) {
+            game_title.erase(it.base() - 1);
+        }
+    }
+    const QString qt_game_title = QString::fromStdString(game_title);
+    // Get icon from game file
+    std::vector<u8> icon_image_file{};
+    if (control.second != nullptr) {
+        icon_image_file = control.second->ReadAllBytes();
+    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
+        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
+    }
+    QImage icon_data =
+        QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
+    std::filesystem::path out_icon_path;
+    if (GMainWindow::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
+        if (!SaveIconToFile(out_icon_path, icon_data)) {
+            LOG_ERROR(Frontend, "Could not write icon to file");
+        }
+    }
+
 #if defined(__linux__)
     // Special case for AppImages
     // Warn once if we are making a shortcut to a volatile AppImage
