@@ -42,13 +42,13 @@ public:
             {10701, nullptr, "GetPlayHistoryRegistrationKeyWithNetworkServiceAccountId"},
             {10702, nullptr, "AddPlayHistory"},
             {11000, nullptr, "GetProfileImageUrl"},
-            {20100, nullptr, "GetFriendCount"},
-            {20101, nullptr, "GetNewlyFriendCount"},
+            {20100, &IFriendService::GetFriendCount, "GetFriendCount"},
+            {20101, &IFriendService::GetNewlyFriendCount, "GetNewlyFriendCount"},
             {20102, nullptr, "GetFriendDetailedInfo"},
             {20103, nullptr, "SyncFriendList"},
             {20104, nullptr, "RequestSyncFriendList"},
             {20110, nullptr, "LoadFriendSetting"},
-            {20200, nullptr, "GetReceivedFriendRequestCount"},
+            {20200, &IFriendService::GetReceivedFriendRequestCount, "GetReceivedFriendRequestCount"},
             {20201, nullptr, "GetFriendRequestList"},
             {20300, nullptr, "GetFriendCandidateList"},
             {20301, nullptr, "GetNintendoNetworkIdInfo"},
@@ -61,14 +61,14 @@ public:
             {20501, nullptr, "GetRelationship"},
             {20600, nullptr, "GetUserPresenceView"},
             {20700, nullptr, "GetPlayHistoryList"},
-            {20701, nullptr, "GetPlayHistoryStatistics"},
+            {20701, &IFriendService::GetPlayHistoryStatistics, "GetPlayHistoryStatistics"},
             {20800, nullptr, "LoadUserSetting"},
             {20801, nullptr, "SyncUserSetting"},
             {20900, nullptr, "RequestListSummaryOverlayNotification"},
             {21000, nullptr, "GetExternalApplicationCatalog"},
             {22000, nullptr, "GetReceivedFriendInvitationList"},
             {22001, nullptr, "GetReceivedFriendInvitationDetailedInfo"},
-            {22010, nullptr, "GetReceivedFriendInvitationCountCache"},
+            {22010, &IFriendService::GetReceivedFriendInvitationCountCache, "GetReceivedFriendInvitationCountCache"},
             {30100, nullptr, "DropFriendNewlyFlags"},
             {30101, nullptr, "DeleteFriend"},
             {30110, nullptr, "DropFriendNewlyFlag"},
@@ -144,6 +144,33 @@ private:
         rb.PushCopyObjects(completion_event->GetReadableEvent());
     }
 
+    void GetFriendList(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto friend_offset = rp.Pop<u32>();
+        const auto uuid = rp.PopRaw<Common::UUID>();
+        [[maybe_unused]] const auto filter = rp.PopRaw<SizedFriendFilter>();
+        const auto pid = rp.Pop<u64>();
+        LOG_WARNING(Service_Friend, "(STUBBED) called, offset={}, uuid=0x{}, pid={}", friend_offset,
+                    uuid.RawString(), pid);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+
+        rb.Push<u32>(0); // Friend count
+        // TODO(ogniK): Return a buffer of u64s which are the "NetworkServiceAccountId"
+    }
+
+    void CheckFriendListAvailability(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto uuid{rp.PopRaw<Common::UUID>()};
+
+        LOG_WARNING(Service_Friend, "(STUBBED) called, uuid=0x{}", uuid.RawString());
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(true);
+    }
+
     void GetBlockedUserListIds(HLERequestContext& ctx) {
         // This is safe to stub, as there should be no adverse consequences from reporting no
         // blocked users.
@@ -151,6 +178,17 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
         rb.Push<u32>(0); // Indicates there are no blocked users
+    }
+
+    void CheckBlockedUserListAvailability(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto uuid{rp.PopRaw<Common::UUID>()};
+
+        LOG_WARNING(Service_Friend, "(STUBBED) called, uuid=0x{}", uuid.RawString());
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(true);
     }
 
     void DeclareCloseOnlinePlaySession(HLERequestContext& ctx) {
@@ -179,42 +217,43 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    void GetFriendList(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto friend_offset = rp.Pop<u32>();
-        const auto uuid = rp.PopRaw<Common::UUID>();
-        [[maybe_unused]] const auto filter = rp.PopRaw<SizedFriendFilter>();
-        const auto pid = rp.Pop<u64>();
-        LOG_WARNING(Service_Friend, "(STUBBED) called, offset={}, uuid=0x{}, pid={}", friend_offset,
-                    uuid.RawString(), pid);
+    void GetFriendCount(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-
-        rb.Push<u32>(0); // Friend count
-        // TODO(ogniK): Return a buffer of u64s which are the "NetworkServiceAccountId"
+        rb.Push(0);
     }
 
-    void CheckFriendListAvailability(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto uuid{rp.PopRaw<Common::UUID>()};
-
-        LOG_WARNING(Service_Friend, "(STUBBED) called, uuid=0x{}", uuid.RawString());
+    void GetNewlyFriendCount(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push(true);
+        rb.Push(0);
     }
 
-    void CheckBlockedUserListAvailability(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto uuid{rp.PopRaw<Common::UUID>()};
-
-        LOG_WARNING(Service_Friend, "(STUBBED) called, uuid=0x{}", uuid.RawString());
+    void GetReceivedFriendRequestCount(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push(true);
+        rb.Push(0);
+    }
+
+    void GetPlayHistoryStatistics(HLERequestContext& ctx) {
+        LOG_ERROR(Service_Friend, "(STUBBED) called, check in out");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetReceivedFriendInvitationCountCache(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called, check in out");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(0);
     }
 
     KernelHelpers::ServiceContext service_context;
