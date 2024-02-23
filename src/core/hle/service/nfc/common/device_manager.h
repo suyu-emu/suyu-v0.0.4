@@ -15,6 +15,10 @@
 #include "core/hle/service/service.h"
 #include "hid_core/hid_types.h"
 
+namespace Service::Set {
+class ISystemSettingsServer;
+}
+
 namespace Service::NFC {
 class NfcDevice;
 
@@ -98,6 +102,7 @@ private:
     Core::System& system;
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* availability_change_event;
+    std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 };
 
 } // namespace Service::NFC

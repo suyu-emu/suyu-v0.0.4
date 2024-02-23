@@ -13,13 +13,18 @@
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/nfc/nfc_types.h"
 #include "core/hle/service/nfp/nfp_result.h"
+#include "core/hle/service/set/system_settings_server.h"
+#include "core/hle/service/sm/sm.h"
 #include "hid_core/hid_types.h"
 
 namespace Service::NFC {
 
 NfcInterface::NfcInterface(Core::System& system_, const char* name, BackendType service_backend)
     : ServiceFramework{system_, name}, service_context{system_, service_name},
-      backend_type{service_backend} {}
+      backend_type{service_backend} {
+    m_set_sys =
+        system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
+}
 
 NfcInterface ::~NfcInterface() = default;
 
@@ -65,11 +70,11 @@ void NfcInterface::GetState(HLERequestContext& ctx) {
 void NfcInterface::IsNfcEnabled(HLERequestContext& ctx) {
     LOG_DEBUG(Service_NFC, "called");
 
-    // TODO: This calls nn::settings::detail::GetNfcEnableFlag
-    const bool is_enabled = true;
+    bool is_enabled{};
+    const auto result = m_set_sys->GetNfcEnableFlag(&is_enabled);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
     rb.Push(is_enabled);
 }
 
@@ -210,6 +215,17 @@ void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(result);
     rb.PushCopyObjects(out_event);
+}
+
+void NfcInterface::SetNfcEnabled(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto is_enabled{rp.Pop<bool>()};
+    LOG_DEBUG(Service_NFC, "called, is_enabled={}", is_enabled);
+
+    const auto result = m_set_sys->SetNfcEnableFlag(is_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void NfcInterface::ReadMifare(HLERequestContext& ctx) {
