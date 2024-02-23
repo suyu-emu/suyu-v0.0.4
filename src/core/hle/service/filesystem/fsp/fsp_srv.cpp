@@ -34,6 +34,7 @@
 #include "core/hle/service/filesystem/fsp/fs_i_save_data_info_reader.h"
 #include "core/hle/service/filesystem/fsp/fs_i_storage.h"
 #include "core/hle/service/filesystem/fsp/fsp_srv.h"
+#include "core/hle/service/filesystem/fsp/save_data_transfer_prohibiter.h"
 #include "core/hle/service/filesystem/romfs_controller.h"
 #include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/hle_ipc.h"
@@ -87,7 +88,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {64, nullptr, "OpenSaveDataInternalStorageFileSystem"},
         {65, nullptr, "UpdateSaveDataMacForDebug"},
         {66, nullptr, "WriteSaveDataFileSystemExtraData2"},
-        {67, nullptr, "FindSaveDataWithFilter"},
+        {67, D<&FSP_SRV::FindSaveDataWithFilter>, "FindSaveDataWithFilter"},
         {68, nullptr, "OpenSaveDataInfoReaderBySaveDataFilter"},
         {69, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataAttribute"},
         {70, D<&FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute>, "WriteSaveDataFileSystemExtraDataBySaveDataAttribute"},
@@ -95,7 +96,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {80, nullptr, "OpenSaveDataMetaFile"},
         {81, nullptr, "OpenSaveDataTransferManager"},
         {82, nullptr, "OpenSaveDataTransferManagerVersion2"},
-        {83, nullptr, "OpenSaveDataTransferProhibiterForCloudBackUp"},
+        {83, D<&FSP_SRV::OpenSaveDataTransferProhibiter>, "OpenSaveDataTransferProhibiter"},
         {84, nullptr, "ListApplicationAccessibleSaveDataOwnerId"},
         {85, nullptr, "OpenSaveDataTransferManagerForSaveDataRepair"},
         {86, nullptr, "OpenSaveDataMover"},
@@ -308,6 +309,14 @@ Result FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage(
     R_SUCCEED();
 }
 
+Result FSP_SRV::FindSaveDataWithFilter(Out<s64> out_count,
+                                       OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                                       FileSys::SaveDataSpaceId space_id,
+                                       FileSys::SaveDataFilter filter) {
+    LOG_WARNING(Service_FS, "(STUBBED) called");
+    R_THROW(FileSys::ResultTargetNotFound);
+}
+
 Result FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute() {
     LOG_WARNING(Service_FS, "(STUBBED) called.");
 
@@ -329,6 +338,13 @@ Result FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
                 flags, space_id, attribute.program_id, attribute.user_id[1], attribute.user_id[0],
                 attribute.system_save_data_id, attribute.type, attribute.rank, attribute.index);
 
+    R_SUCCEED();
+}
+
+Result FSP_SRV::OpenSaveDataTransferProhibiter(
+    OutInterface<ISaveDataTransferProhibiter> out_prohibiter, u64 id) {
+    LOG_WARNING(Service_FS, "(STUBBED) called, id={:016X}", id);
+    *out_prohibiter = std::make_shared<ISaveDataTransferProhibiter>(system);
     R_SUCCEED();
 }
 
