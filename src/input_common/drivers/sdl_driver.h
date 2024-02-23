@@ -69,11 +69,6 @@ public:
     bool IsVibrationEnabled(const PadIdentifier& identifier) override;
 
 private:
-    struct VibrationRequest {
-        PadIdentifier identifier;
-        Common::Input::VibrationStatus vibration;
-    };
-
     void InitJoystick(int joystick_index);
     void CloseJoystick(SDL_Joystick* sdl_joystick);
 
