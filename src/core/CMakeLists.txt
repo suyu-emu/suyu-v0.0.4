@@ -879,8 +879,20 @@ add_library(core STATIC
     hle/service/nvnflinger/ui/graphic_buffer.cpp
     hle/service/nvnflinger/ui/graphic_buffer.h
     hle/service/nvnflinger/window.h
+    hle/service/olsc/daemon_controller.cpp
+    hle/service/olsc/daemon_controller.h
+    hle/service/olsc/native_handle_holder.cpp
+    hle/service/olsc/native_handle_holder.h
+    hle/service/olsc/olsc_service_for_application.cpp
+    hle/service/olsc/olsc_service_for_application.h
+    hle/service/olsc/olsc_service_for_system_service.cpp
+    hle/service/olsc/olsc_service_for_system_service.h
     hle/service/olsc/olsc.cpp
     hle/service/olsc/olsc.h
+    hle/service/olsc/remote_storage_controller.cpp
+    hle/service/olsc/remote_storage_controller.h
+    hle/service/olsc/transfer_task_list_controller.cpp
+    hle/service/olsc/transfer_task_list_controller.h
     hle/service/omm/omm.cpp
     hle/service/omm/omm.h
     hle/service/omm/operation_mode_manager.cpp
@@ -900,10 +912,14 @@ add_library(core STATIC
     hle/service/os/mutex.h
     hle/service/pcie/pcie.cpp
     hle/service/pcie/pcie.h
+    hle/service/pctl/parental_control_service_factory.cpp
+    hle/service/pctl/parental_control_service_factory.h
+    hle/service/pctl/parental_control_service.cpp
+    hle/service/pctl/parental_control_service.h
     hle/service/pctl/pctl.cpp
     hle/service/pctl/pctl.h
-    hle/service/pctl/pctl_module.cpp
-    hle/service/pctl/pctl_module.h
+    hle/service/pctl/pctl_results.h
+    hle/service/pctl/pctl_types.h
     hle/service/pcv/pcv.cpp
     hle/service/pcv/pcv.h
     hle/service/pm/pm.cpp
