@@ -54,7 +54,7 @@ private:
     Result CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_create_struct,
                                     FileSys::SaveDataAttribute save_struct, u128 uid);
     Result CreateSaveDataFileSystemBySystemSaveDataId(
-        FileSys::SaveDataCreationInfo save_create_struct, FileSys::SaveDataAttribute save_struct);
+        FileSys::SaveDataAttribute save_struct, FileSys::SaveDataCreationInfo save_create_struct);
     Result OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
                                   FileSys::SaveDataSpaceId space_id,
                                   FileSys::SaveDataAttribute attribute);
