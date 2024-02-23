@@ -146,11 +146,15 @@ public:
                 break;
             }
 
+            if (released < tags.size()) {
+                tags[released] = tag;
+            }
+
+            released++;
+
             if (released >= tags.size()) {
                 break;
             }
-
-            tags[released++] = tag;
         }
 
         return released;
