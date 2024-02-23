@@ -7,10 +7,6 @@ namespace Core {
 class System;
 }
 
-namespace Service::SM {
-class ServiceManager;
-}
-
 namespace Service::PSC {
 
 void LoopProcess(Core::System& system);
