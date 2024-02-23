@@ -5,6 +5,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/btdrv/btdrv.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/server_manager.h"
@@ -13,9 +14,9 @@
 
 namespace Service::BtDrv {
 
-class Bt final : public ServiceFramework<Bt> {
+class IBluetoothUser final : public ServiceFramework<IBluetoothUser> {
 public:
-    explicit Bt(Core::System& system_)
+    explicit IBluetoothUser(Core::System& system_)
         : ServiceFramework{system_, "bt"}, service_context{system_, "bt"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -28,7 +29,7 @@ public:
             {6, nullptr, "SetLeResponse"},
             {7, nullptr, "LeSendIndication"},
             {8, nullptr, "GetLeEventInfo"},
-            {9, &Bt::RegisterBleEvent, "RegisterBleEvent"},
+            {9, C<&IBluetoothUser::RegisterBleEvent>, "RegisterBleEvent"},
         };
         // clang-format on
         RegisterHandlers(functions);
@@ -36,17 +37,16 @@ public:
         register_event = service_context.CreateEvent("BT:RegisterEvent");
     }
 
-    ~Bt() override {
+    ~IBluetoothUser() override {
         service_context.CloseEvent(register_event);
     }
 
 private:
-    void RegisterBleEvent(HLERequestContext& ctx) {
+    Result RegisterBleEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(ResultSuccess);
-        rb.PushCopyObjects(register_event->GetReadableEvent());
+        *out_event = &register_event->GetReadableEvent();
+        R_SUCCEED();
     }
 
     KernelHelpers::ServiceContext service_context;
@@ -54,9 +54,9 @@ private:
     Kernel::KEvent* register_event;
 };
 
-class BtDrv final : public ServiceFramework<BtDrv> {
+class IBluetoothDriver final : public ServiceFramework<IBluetoothDriver> {
 public:
-    explicit BtDrv(Core::System& system_) : ServiceFramework{system_, "btdrv"} {
+    explicit IBluetoothDriver(Core::System& system_) : ServiceFramework{system_, "btdrv"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "InitializeBluetoothDriver"},
@@ -93,7 +93,7 @@ public:
             {31, nullptr, "EnableMcMode"},
             {32, nullptr, "EnableLlrScan"},
             {33, nullptr, "DisableLlrScan"},
-            {34, nullptr, "EnableRadio"},
+            {34, C<&IBluetoothDriver::EnableRadio>, "EnableRadio"},
             {35, nullptr, "SetVisibility"},
             {36, nullptr, "EnableTbfcScan"},
             {37, nullptr, "RegisterHidReportEvent"},
@@ -195,13 +195,19 @@ public:
 
         RegisterHandlers(functions);
     }
+
+private:
+    Result EnableRadio() {
+        LOG_WARNING(Service_BTDRV, "(STUBBED) called");
+        R_SUCCEED();
+    }
 };
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("btdrv", std::make_shared<BtDrv>(system));
-    server_manager->RegisterNamedService("bt", std::make_shared<Bt>(system));
+    server_manager->RegisterNamedService("btdrv", std::make_shared<IBluetoothDriver>(system));
+    server_manager->RegisterNamedService("bt", std::make_shared<IBluetoothUser>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 
