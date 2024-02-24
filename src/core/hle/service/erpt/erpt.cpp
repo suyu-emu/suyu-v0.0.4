@@ -18,7 +18,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, C<&ErrorReportContext::SubmitContext>, "SubmitContext"},
-            {1, nullptr, "CreateReportV0"},
+            {1, C<&ErrorReportContext::CreateReportV0>, "CreateReportV0"},
             {2, nullptr, "SetInitialLaunchSettingsCompletionTime"},
             {3, nullptr, "ClearInitialLaunchSettingsCompletionTime"},
             {4, nullptr, "UpdatePowerOnTime"},
@@ -28,7 +28,8 @@ public:
             {8, nullptr, "ClearApplicationLaunchTime"},
             {9, nullptr, "SubmitAttachment"},
             {10, nullptr, "CreateReportWithAttachments"},
-            {11, nullptr, "CreateReport"},
+            {11, C<&ErrorReportContext::CreateReportV1>, "CreateReportV1"},
+            {12, C<&ErrorReportContext::CreateReport>, "CreateReport"},
             {20, nullptr, "RegisterRunningApplet"},
             {21, nullptr, "UnregisterRunningApplet"},
             {22, nullptr, "UpdateAppletSuspendedDuration"},
@@ -40,10 +41,37 @@ public:
     }
 
 private:
-    Result SubmitContext(InBuffer<BufferAttr_HipcMapAlias> buffer_a,
-                         InBuffer<BufferAttr_HipcMapAlias> buffer_b) {
-        LOG_WARNING(Service_SET, "(STUBBED) called, buffer_a_size={}, buffer_b_size={}",
-                    buffer_a.size(), buffer_b.size());
+    Result SubmitContext(InBuffer<BufferAttr_HipcMapAlias> context_entry,
+                         InBuffer<BufferAttr_HipcMapAlias> field_list) {
+        LOG_WARNING(Service_SET, "(STUBBED) called, context_entry_size={}, field_list_size={}",
+                    context_entry.size(), field_list.size());
+        R_SUCCEED();
+    }
+
+    Result CreateReportV0(u32 report_type, InBuffer<BufferAttr_HipcMapAlias> context_entry,
+                          InBuffer<BufferAttr_HipcMapAlias> report_list,
+                          InBuffer<BufferAttr_HipcMapAlias> report_meta_data) {
+        LOG_WARNING(Service_SET, "(STUBBED) called, report_type={:#x}", report_type);
+        R_SUCCEED();
+    }
+
+    Result CreateReportV1(u32 report_type, u32 unknown,
+                          InBuffer<BufferAttr_HipcMapAlias> context_entry,
+                          InBuffer<BufferAttr_HipcMapAlias> report_list,
+                          InBuffer<BufferAttr_HipcMapAlias> report_meta_data) {
+        LOG_WARNING(Service_SET, "(STUBBED) called, report_type={:#x}, unknown={:#x}", report_type,
+                    unknown);
+        R_SUCCEED();
+    }
+
+    Result CreateReport(u32 report_type, u32 unknown, u32 create_report_option_flag,
+                        InBuffer<BufferAttr_HipcMapAlias> context_entry,
+                        InBuffer<BufferAttr_HipcMapAlias> report_list,
+                        InBuffer<BufferAttr_HipcMapAlias> report_meta_data) {
+        LOG_WARNING(
+            Service_SET,
+            "(STUBBED) called, report_type={:#x}, unknown={:#x}, create_report_option_flag={:#x}",
+            report_type, unknown, create_report_option_flag);
         R_SUCCEED();
     }
 };
