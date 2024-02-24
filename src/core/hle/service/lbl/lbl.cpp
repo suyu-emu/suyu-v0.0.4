@@ -18,8 +18,8 @@ public:
     explicit LBL(Core::System& system_) : ServiceFramework{system_, "lbl"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "SaveCurrentSetting"},
-            {1, nullptr, "LoadCurrentSetting"},
+            {0, &LBL::SaveCurrentSetting, "SaveCurrentSetting"},
+            {1, &LBL::LoadCurrentSetting, "LoadCurrentSetting"},
             {2, &LBL::SetCurrentBrightnessSetting, "SetCurrentBrightnessSetting"},
             {3, &LBL::GetCurrentBrightnessSetting, "GetCurrentBrightnessSetting"},
             {4, nullptr, "ApplyCurrentBrightnessSettingToBacklight"},
@@ -47,7 +47,7 @@ public:
             {26, &LBL::EnableVrMode, "EnableVrMode"},
             {27, &LBL::DisableVrMode, "DisableVrMode"},
             {28, &LBL::IsVrModeEnabled, "IsVrModeEnabled"},
-            {29, nullptr, "IsAutoBrightnessControlSupported"},
+            {29, &LBL::IsAutoBrightnessControlSupported, "IsAutoBrightnessControlSupported"},
         };
         // clang-format on
 
@@ -59,6 +59,20 @@ private:
         Off = 0,
         On = 1,
     };
+
+    void SaveCurrentSetting(HLERequestContext& ctx) {
+        LOG_WARNING(Service_LBL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void LoadCurrentSetting(HLERequestContext& ctx) {
+        LOG_WARNING(Service_LBL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
 
     void SetCurrentBrightnessSetting(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
@@ -310,6 +324,14 @@ private:
         rb.Push(vr_mode_enabled);
     }
 
+    void IsAutoBrightnessControlSupported(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LBL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(auto_brightness_supported);
+    }
+
     bool vr_mode_enabled = false;
     float current_brightness = 1.0f;
     float ambient_light_value = 0.0f;
@@ -317,7 +339,8 @@ private:
     bool dimming = true;
     bool backlight_enabled = true;
     bool update_instantly = false;
-    bool auto_brightness = false; // TODO(ogniK): Move to system settings
+    bool auto_brightness = false;
+    bool auto_brightness_supported = true; // TODO(ogniK): Move to system settings
 };
 
 void LoopProcess(Core::System& system) {

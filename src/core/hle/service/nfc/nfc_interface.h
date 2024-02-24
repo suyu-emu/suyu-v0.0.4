@@ -7,6 +7,10 @@
 #include "core/hle/service/nfc/nfc_types.h"
 #include "core/hle/service/service.h"
 
+namespace Service::Set {
+class ISystemSettingsServer;
+}
+
 namespace Service::NFC {
 class DeviceManager;
 
@@ -29,6 +33,7 @@ public:
     void AttachActivateEvent(HLERequestContext& ctx);
     void AttachDeactivateEvent(HLERequestContext& ctx);
     void ReadMifare(HLERequestContext& ctx);
+    void SetNfcEnabled(HLERequestContext& ctx);
     void WriteMifare(HLERequestContext& ctx);
     void SendCommandByPassThrough(HLERequestContext& ctx);
 
@@ -44,6 +49,7 @@ protected:
     BackendType backend_type;
     State state{State::NonInitialized};
     std::shared_ptr<DeviceManager> device_manager = nullptr;
+    std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 };
 
 } // namespace Service::NFC
