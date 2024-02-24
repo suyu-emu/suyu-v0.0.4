@@ -13,6 +13,7 @@
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/psc/time/steady_clock.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/set/system_settings_server.h"
 #include "core/hle/service/sm/sm.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/hid_util.h"
@@ -32,6 +33,9 @@ DeviceManager::DeviceManager(Core::System& system_, KernelHelpers::ServiceContex
     }
 
     is_initialized = false;
+
+    m_set_sys =
+        system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
 }
 
 DeviceManager ::~DeviceManager() {
@@ -774,8 +778,8 @@ Result DeviceManager::CheckDeviceState(std::shared_ptr<NfcDevice> device) const 
 }
 
 Result DeviceManager::IsNfcEnabled() const {
-    // TODO: This calls nn::settings::detail::GetNfcEnableFlag
-    const bool is_enabled = true;
+    bool is_enabled{};
+    R_TRY(m_set_sys->GetNfcEnableFlag(&is_enabled));
     if (!is_enabled) {
         return ResultNfcDisabled;
     }

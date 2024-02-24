@@ -201,7 +201,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1269, nullptr, "DeleteButtonConfigStorageLeft"},
         {1270, nullptr, "DeleteButtonConfigStorageRight"},
         {1271, &IHidSystemServer::IsUsingCustomButtonConfig, "IsUsingCustomButtonConfig"},
-        {1272, nullptr, "IsAnyCustomButtonConfigEnabled"},
+        {1272, &IHidSystemServer::IsAnyCustomButtonConfigEnabled, "IsAnyCustomButtonConfigEnabled"},
         {1273, nullptr, "SetAllCustomButtonConfigEnabled"},
         {1274, nullptr, "SetDefaultButtonConfig"},
         {1275, nullptr, "SetAllDefaultButtonConfig"},
@@ -917,6 +917,16 @@ void IHidSystemServer::SetForceHandheldStyleVibration(HLERequestContext& ctx) {
 }
 
 void IHidSystemServer::IsUsingCustomButtonConfig(HLERequestContext& ctx) {
+    const bool is_enabled = false;
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, is_enabled={}", is_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(is_enabled);
+}
+
+void IHidSystemServer::IsAnyCustomButtonConfigEnabled(HLERequestContext& ctx) {
     const bool is_enabled = false;
 
     LOG_DEBUG(Service_HID, "(STUBBED) called, is_enabled={}", is_enabled);

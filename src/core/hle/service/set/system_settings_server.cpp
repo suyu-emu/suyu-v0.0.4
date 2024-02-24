@@ -306,6 +306,17 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
     RegisterHandlers(functions);
 
     SetupSettings();
+
+    // TODO: Remove this when starter applet is fully functional
+    EulaVersion eula_version{
+        .version = 0x10000,
+        .region_code = m_system_settings.region_code,
+        .clock_type = EulaVersionClockType::SteadyClock,
+        .system_clock_context = m_system_settings.user_system_clock_context,
+    };
+    m_system_settings.eula_versions[0] = eula_version;
+    m_system_settings.eula_version_count = 1;
+
     m_save_thread =
         std::jthread([this](std::stop_token stop_token) { StoreSettingsThreadFunc(stop_token); });
 }

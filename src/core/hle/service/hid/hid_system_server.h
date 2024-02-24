@@ -77,6 +77,7 @@ private:
     void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
     void SetForceHandheldStyleVibration(HLERequestContext& ctx);
     void IsUsingCustomButtonConfig(HLERequestContext& ctx);
+    void IsAnyCustomButtonConfigEnabled(HLERequestContext& ctx);
 
     std::shared_ptr<ResourceManager> GetResourceManager();
 
