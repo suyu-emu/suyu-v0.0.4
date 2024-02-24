@@ -435,8 +435,6 @@ struct Values {
         linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
     Setting<bool> enable_renderdoc_hotkey{linkage, false, "renderdoc_hotkey",
                                           Category::RendererDebug};
-    // TODO: remove this once AMDVLK supports VK_EXT_depth_bias_control
-    bool renderer_amdvlk_depth_bias_workaround{};
     Setting<bool> disable_buffer_reorder{linkage, false, "disable_buffer_reorder",
                                          Category::RendererDebug};
 
