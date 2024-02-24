@@ -1061,7 +1061,9 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
         if (device.IsExtDepthBiasControlSupported()) {
             return true;
         }
-        if (!Settings::values.renderer_amdvlk_depth_bias_workaround) {
+        // Only activate this in Super Smash Brothers Ultimate
+        // Affects AMD cards using AMDVLK
+        if (program_id != 0x1006A800016E000ULL) {
             return false;
         }
         // the base formulas can be obtained from here:

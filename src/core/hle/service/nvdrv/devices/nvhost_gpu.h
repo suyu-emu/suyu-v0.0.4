@@ -192,7 +192,7 @@ private:
     NvResult ZCullBind(IoctlZCullBind& params);
     NvResult SetErrorNotifier(IoctlSetErrorNotifier& params);
     NvResult SetChannelPriority(IoctlChannelSetPriority& params);
-    NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params);
+    NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params, DeviceFD fd);
     NvResult AllocateObjectContext(IoctlAllocObjCtx& params);
 
     NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries);
@@ -210,6 +210,7 @@ private:
     NvCore::SyncpointManager& syncpoint_manager;
     NvCore::NvMap& nvmap;
     std::shared_ptr<Tegra::Control::ChannelState> channel_state;
+    std::unordered_map<DeviceFD, NvCore::SessionId> sessions;
     u32 channel_syncpoint;
     std::mutex channel_mutex;
 
