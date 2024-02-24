@@ -307,6 +307,9 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
 
     SetupSettings();
 
+    m_system_settings.region_code =
+        static_cast<SystemRegionCode>(Settings::values.region_index.GetValue());
+
     // TODO: Remove this when starter applet is fully functional
     EulaVersion eula_version{
         .version = 0x10000,
