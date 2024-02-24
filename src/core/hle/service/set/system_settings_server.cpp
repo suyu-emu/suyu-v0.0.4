@@ -272,8 +272,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {180, nullptr, "SetZoomFlag"},
         {181, nullptr, "GetT"},
         {182, nullptr, "SetT"},
-        {183, nullptr, "GetPlatformRegion"},
-        {184, nullptr, "SetPlatformRegion"},
+        {183, C<&ISystemSettingsServer::GetPlatformRegion>, "GetPlatformRegion"},
+        {184, C<&ISystemSettingsServer::SetPlatformRegion>, "SetPlatformRegion"},
         {185, C<&ISystemSettingsServer::GetHomeMenuSchemeModel>, "GetHomeMenuSchemeModel"},
         {186, nullptr, "GetMemoryUsageRateFlag"},
         {187, C<&ISystemSettingsServer::GetTouchScreenMode>, "GetTouchScreenMode"},
@@ -1247,6 +1247,18 @@ Result ISystemSettingsServer::GetHomeMenuScheme(Out<HomeMenuScheme> out_home_men
         .bezel = 0xFFFFFFFF,
         .extra = 0xFF000000,
     };
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetPlatformRegion(Out<PlatformRegion> out_platform_region) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    *out_platform_region = PlatformRegion::Global;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetPlatformRegion(PlatformRegion platform_region) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
     R_SUCCEED();
 }
 

@@ -243,6 +243,11 @@ enum class TvResolution : u32 {
     Resolution480p,
 };
 
+enum class PlatformRegion : s32 {
+    Global = 1,
+    Terra = 2,
+};
+
 constexpr std::array<LanguageCode, 18> available_language_codes = {{
     LanguageCode::JA,
     LanguageCode::EN_US,
