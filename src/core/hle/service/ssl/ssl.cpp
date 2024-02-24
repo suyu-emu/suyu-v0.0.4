@@ -5,11 +5,13 @@
 
 #include "core/core.h"
 #include "core/hle/result.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/sockets/bsd.h"
+#include "core/hle/service/ssl/cert_store.h"
 #include "core/hle/service/ssl/ssl.h"
 #include "core/hle/service/ssl/ssl_backend.h"
 #include "core/internal_network/network.h"
@@ -492,13 +494,14 @@ private:
 
 class ISslService final : public ServiceFramework<ISslService> {
 public:
-    explicit ISslService(Core::System& system_) : ServiceFramework{system_, "ssl"} {
+    explicit ISslService(Core::System& system_)
+        : ServiceFramework{system_, "ssl"}, cert_store{system} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISslService::CreateContext, "CreateContext"},
             {1, nullptr, "GetContextCount"},
-            {2, nullptr, "GetCertificates"},
-            {3, nullptr, "GetCertificateBufSize"},
+            {2, D<&ISslService::GetCertificates>, "GetCertificates"},
+            {3, D<&ISslService::GetCertificateBufSize>, "GetCertificateBufSize"},
             {4, nullptr, "DebugIoctl"},
             {5, &ISslService::SetInterfaceVersion, "SetInterfaceVersion"},
             {6, nullptr, "FlushSessionCache"},
@@ -540,6 +543,22 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
     }
+
+    Result GetCertificateBufSize(
+        Out<u32> out_size, InArray<CaCertificateId, BufferAttr_HipcMapAlias> certificate_ids) {
+        LOG_INFO(Service_SSL, "called");
+        u32 num_entries;
+        R_RETURN(cert_store.GetCertificateBufSize(out_size, &num_entries, certificate_ids));
+    }
+
+    Result GetCertificates(Out<u32> out_num_entries, OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                           InArray<CaCertificateId, BufferAttr_HipcMapAlias> certificate_ids) {
+        LOG_INFO(Service_SSL, "called");
+        R_RETURN(cert_store.GetCertificates(out_num_entries, out_buffer, certificate_ids));
+    }
+
+private:
+    CertStore cert_store;
 };
 
 void LoopProcess(Core::System& system) {
