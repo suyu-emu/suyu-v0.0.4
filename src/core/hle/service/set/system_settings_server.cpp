@@ -308,7 +308,7 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
     SetupSettings();
 
     m_system_settings.region_code =
-        static_cast<SystemRegionCode>(Settings::values.region_index.GetValue());
+        static_cast<SystemRegionCode>(::Settings::values.region_index.GetValue());
 
     // TODO: Remove this when starter applet is fully functional
     EulaVersion eula_version{
@@ -715,7 +715,7 @@ Result ISystemSettingsServer::GetSettingsItemValueSize(
 }
 
 Result ISystemSettingsServer::GetSettingsItemValue(
-    OutBuffer<BufferAttr_HipcMapAlias> out_data,
+    Out<u64> out_size, OutBuffer<BufferAttr_HipcMapAlias> out_data,
     InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_category_buffer,
     InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_name_buffer) {
     const std::string setting_category{Common::StringFromBuffer(*setting_category_buffer)};
@@ -723,7 +723,7 @@ Result ISystemSettingsServer::GetSettingsItemValue(
 
     LOG_INFO(Service_SET, "called, category={}, name={}", setting_category, setting_name);
 
-    R_RETURN(GetSettingsItemValueImpl(out_data, setting_category, setting_name));
+    R_RETURN(GetSettingsItemValueImpl(out_data, *out_size, setting_category, setting_name));
 }
 
 Result ISystemSettingsServer::GetTvSettings(Out<TvSettings> out_tv_settings) {
@@ -1363,13 +1363,16 @@ void ISystemSettingsServer::SetSaveNeeded() {
     m_save_needed = true;
 }
 
-Result ISystemSettingsServer::GetSettingsItemValueImpl(std::vector<u8>& out_value,
+Result ISystemSettingsServer::GetSettingsItemValueImpl(std::span<u8> out_value, u64& out_size,
                                                        const std::string& category,
                                                        const std::string& name) {
     auto settings{GetSettings()};
     R_UNLESS(settings.contains(category) && settings[category].contains(name), ResultUnknown);
 
-    out_value = settings[category][name];
+    ASSERT_MSG(out_value.size() >= settings[category][name].size(),
+               "Stored type is bigger than requested type");
+    out_size = std::min<u64>(settings[category][name].size(), out_value.size());
+    std::memcpy(out_value.data(), settings[category][name].data(), out_size);
     R_SUCCEED();
 }
 
