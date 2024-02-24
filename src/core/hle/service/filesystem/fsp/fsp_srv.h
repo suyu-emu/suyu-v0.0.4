@@ -70,7 +70,19 @@ private:
     Result FindSaveDataWithFilter(Out<s64> out_count, OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
                                   FileSys::SaveDataSpaceId space_id,
                                   FileSys::SaveDataFilter filter);
-    Result WriteSaveDataFileSystemExtraDataBySaveDataAttribute();
+    Result WriteSaveDataFileSystemExtraData(InBuffer<BufferAttr_HipcMapAlias> buffer,
+                                            FileSys::SaveDataSpaceId space_id, u64 save_data_id);
+    Result WriteSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
+        InBuffer<BufferAttr_HipcMapAlias> buffer, InBuffer<BufferAttr_HipcMapAlias> mask_buffer,
+        FileSys::SaveDataSpaceId space_id, FileSys::SaveDataAttribute attribute);
+    Result ReadSaveDataFileSystemExtraData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                                           u64 save_data_id);
+    Result ReadSaveDataFileSystemExtraDataBySaveDataAttribute(
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer, FileSys::SaveDataSpaceId space_id,
+        FileSys::SaveDataAttribute attribute);
+    Result ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+        OutBuffer<BufferAttr_HipcMapAlias> out_buffer, FileSys::SaveDataSpaceId space_id,
+        u64 save_data_id);
     Result ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
         FileSys::SaveDataSpaceId space_id, FileSys::SaveDataAttribute attribute,
         InBuffer<BufferAttr_HipcMapAlias> mask_buffer,
@@ -91,6 +103,8 @@ private:
     Result GetProgramIndexForAccessLog(Out<AccessLogVersion> out_access_log_version,
                                        Out<u32> out_access_log_program_index);
     Result OpenMultiCommitManager(OutInterface<IMultiCommitManager> out_interface);
+    Result ExtendSaveDataFileSystem(FileSys::SaveDataSpaceId space_id, u64 save_data_id,
+                                    s64 available_size, s64 journal_size);
     Result GetCacheStorageSize(s32 index, Out<s64> out_data_size, Out<s64> out_journal_size);
 
     FileSystemController& fsc;

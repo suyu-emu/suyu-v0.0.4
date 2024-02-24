@@ -71,7 +71,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {28, nullptr, "DeleteSaveDataFileSystemBySaveDataAttribute"},
         {30, nullptr, "OpenGameCardStorage"},
         {31, nullptr, "OpenGameCardFileSystem"},
-        {32, nullptr, "ExtendSaveDataFileSystem"},
+        {32, D<&FSP_SRV::ExtendSaveDataFileSystem>, "ExtendSaveDataFileSystem"},
         {33, nullptr, "DeleteCacheStorage"},
         {34, D<&FSP_SRV::GetCacheStorageSize>, "GetCacheStorageSize"},
         {35, nullptr, "CreateSaveDataFileSystemByHashSalt"},
@@ -79,9 +79,9 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {51, D<&FSP_SRV::OpenSaveDataFileSystem>, "OpenSaveDataFileSystem"},
         {52, D<&FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId>, "OpenSaveDataFileSystemBySystemSaveDataId"},
         {53, D<&FSP_SRV::OpenReadOnlySaveDataFileSystem>, "OpenReadOnlySaveDataFileSystem"},
-        {57, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataSpaceId"},
-        {58, nullptr, "ReadSaveDataFileSystemExtraData"},
-        {59, nullptr, "WriteSaveDataFileSystemExtraData"},
+        {57, D<&FSP_SRV::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId>, "ReadSaveDataFileSystemExtraDataBySaveDataSpaceId"},
+        {58, D<&FSP_SRV::ReadSaveDataFileSystemExtraData>, "ReadSaveDataFileSystemExtraData"},
+        {59, D<&FSP_SRV::WriteSaveDataFileSystemExtraData>, "WriteSaveDataFileSystemExtraData"},
         {60, nullptr, "OpenSaveDataInfoReader"},
         {61, D<&FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId>, "OpenSaveDataInfoReaderBySaveDataSpaceId"},
         {62, D<&FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage>, "OpenSaveDataInfoReaderOnlyCacheStorage"},
@@ -90,8 +90,8 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {66, nullptr, "WriteSaveDataFileSystemExtraData2"},
         {67, D<&FSP_SRV::FindSaveDataWithFilter>, "FindSaveDataWithFilter"},
         {68, nullptr, "OpenSaveDataInfoReaderBySaveDataFilter"},
-        {69, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataAttribute"},
-        {70, D<&FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute>, "WriteSaveDataFileSystemExtraDataBySaveDataAttribute"},
+        {69, D<&FSP_SRV::ReadSaveDataFileSystemExtraDataBySaveDataAttribute>, "ReadSaveDataFileSystemExtraDataBySaveDataAttribute"},
+        {70, D<&FSP_SRV::WriteSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute>, "WriteSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute"},
         {71, D<&FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute>, "ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute"},
         {80, nullptr, "OpenSaveDataMetaFile"},
         {81, nullptr, "OpenSaveDataTransferManager"},
@@ -317,9 +317,23 @@ Result FSP_SRV::FindSaveDataWithFilter(Out<s64> out_count,
     R_THROW(FileSys::ResultTargetNotFound);
 }
 
-Result FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute() {
-    LOG_WARNING(Service_FS, "(STUBBED) called.");
+Result FSP_SRV::WriteSaveDataFileSystemExtraData(InBuffer<BufferAttr_HipcMapAlias> buffer,
+                                                 FileSys::SaveDataSpaceId space_id,
+                                                 u64 save_data_id) {
+    LOG_WARNING(Service_FS, "(STUBBED) called, space_id={}, save_data_id={:016X}", space_id,
+                save_data_id);
+    R_SUCCEED();
+}
 
+Result FSP_SRV::WriteSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
+    InBuffer<BufferAttr_HipcMapAlias> buffer, InBuffer<BufferAttr_HipcMapAlias> mask_buffer,
+    FileSys::SaveDataSpaceId space_id, FileSys::SaveDataAttribute attribute) {
+    LOG_WARNING(Service_FS,
+                "(STUBBED) called, space_id={}, attribute.program_id={:016X}\n"
+                "attribute.user_id={:016X}{:016X}, attribute.save_id={:016X}\n"
+                "attribute.type={}, attribute.rank={}, attribute.index={}",
+                space_id, attribute.program_id, attribute.user_id[1], attribute.user_id[0],
+                attribute.system_save_data_id, attribute.type, attribute.rank, attribute.index);
     R_SUCCEED();
 }
 
@@ -338,6 +352,38 @@ Result FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
                 flags, space_id, attribute.program_id, attribute.user_id[1], attribute.user_id[0],
                 attribute.system_save_data_id, attribute.type, attribute.rank, attribute.index);
 
+    R_SUCCEED();
+}
+
+Result FSP_SRV::ReadSaveDataFileSystemExtraData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
+                                                u64 save_data_id) {
+    // Stub, backend needs an impl to read/write the SaveDataExtraData
+    LOG_WARNING(Service_FS, "(STUBBED) called, save_data_id={:016X}", save_data_id);
+    std::memset(out_buffer.data(), 0, out_buffer.size());
+    R_SUCCEED();
+}
+
+Result FSP_SRV::ReadSaveDataFileSystemExtraDataBySaveDataAttribute(
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, FileSys::SaveDataSpaceId space_id,
+    FileSys::SaveDataAttribute attribute) {
+    // Stub, backend needs an impl to read/write the SaveDataExtraData
+    LOG_WARNING(Service_FS,
+                "(STUBBED) called, space_id={}, attribute.program_id={:016X}\n"
+                "attribute.user_id={:016X}{:016X}, attribute.save_id={:016X}\n"
+                "attribute.type={}, attribute.rank={}, attribute.index={}",
+                space_id, attribute.program_id, attribute.user_id[1], attribute.user_id[0],
+                attribute.system_save_data_id, attribute.type, attribute.rank, attribute.index);
+    std::memset(out_buffer.data(), 0, out_buffer.size());
+    R_SUCCEED();
+}
+
+Result FSP_SRV::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+    OutBuffer<BufferAttr_HipcMapAlias> out_buffer, FileSys::SaveDataSpaceId space_id,
+    u64 save_data_id) {
+    // Stub, backend needs an impl to read/write the SaveDataExtraData
+    LOG_WARNING(Service_FS, "(STUBBED) called, space_id={}, save_data_id={:016X}", space_id,
+                save_data_id);
+    std::memset(out_buffer.data(), 0, out_buffer.size());
     R_SUCCEED();
 }
 
@@ -473,6 +519,16 @@ Result FSP_SRV::GetProgramIndexForAccessLog(Out<AccessLogVersion> out_access_log
 Result FSP_SRV::FlushAccessLogOnSdCard() {
     LOG_DEBUG(Service_FS, "(STUBBED) called");
 
+    R_SUCCEED();
+}
+
+Result FSP_SRV::ExtendSaveDataFileSystem(FileSys::SaveDataSpaceId space_id, u64 save_data_id,
+                                         s64 available_size, s64 journal_size) {
+    // We don't have an index of save data ids, so we can't implement this.
+    LOG_WARNING(Service_FS,
+                "(STUBBED) called, space_id={}, save_data_id={:016X}, available_size={:#x}, "
+                "journal_size={:#x}",
+                space_id, save_data_id, available_size, journal_size);
     R_SUCCEED();
 }
 
