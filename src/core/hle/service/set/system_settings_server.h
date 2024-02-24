@@ -34,20 +34,17 @@ public:
     explicit ISystemSettingsServer(Core::System& system_);
     ~ISystemSettingsServer() override;
 
-    Result GetSettingsItemValueImpl(std::vector<u8>& out_value, const std::string& category,
-                                    const std::string& name);
+    Result GetSettingsItemValueImpl(std::span<u8> out_value, u64& out_size,
+                                    const std::string& category, const std::string& name);
 
     template <typename T>
-    Result GetSettingsItemValueImpl(T& value, const std::string& category,
+    Result GetSettingsItemValueImpl(T& out_value, const std::string& category,
                                     const std::string& name) {
-        std::vector<u8> data;
-        const auto result = GetSettingsItemValueImpl(data, category, name);
-        if (result.IsError()) {
-            return result;
-        }
-        ASSERT(data.size() >= sizeof(T));
-        std::memcpy(&value, data.data(), sizeof(T));
-        return result;
+        u64 data_size{};
+        std::vector<u8> data(sizeof(T));
+        R_TRY(GetSettingsItemValueImpl(data, data_size, category, name));
+        std::memcpy(&out_value, data.data(), data_size);
+        R_SUCCEED();
     }
 
 public:
@@ -84,7 +81,7 @@ public:
         InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_category_buffer,
         InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_name_buf);
     Result GetSettingsItemValue(
-        OutBuffer<BufferAttr_HipcMapAlias> out_data,
+        Out<u64> out_size, OutBuffer<BufferAttr_HipcMapAlias> out_data,
         InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_category_buffer,
         InLargeData<SettingItemName, BufferAttr_HipcPointer> setting_name_buffer);
     Result GetTvSettings(Out<TvSettings> out_tv_settings);
