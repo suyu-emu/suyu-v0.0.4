@@ -58,6 +58,7 @@ void ChannelSetupCaches<P>::BindToChannel(s32 id) {
     maxwell3d = &channel_state->maxwell3d;
     kepler_compute = &channel_state->kepler_compute;
     gpu_memory = &channel_state->gpu_memory;
+    program_id = channel_state->program_id;
     current_address_space = gpu_memory->GetID();
 }
 
@@ -76,6 +77,7 @@ void ChannelSetupCaches<P>::EraseChannel(s32 id) {
         maxwell3d = nullptr;
         kepler_compute = nullptr;
         gpu_memory = nullptr;
+        program_id = 0;
     } else if (current_channel_id != UNSET_CHANNEL) {
         channel_state = &channel_storage[current_channel_id];
     }
