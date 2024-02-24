@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <chrono>
 #include <common/scope_exit.h>
 
 #include "common/polyfill_ranges.h"
@@ -1285,6 +1286,22 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
 
     if (!player.vibration_enabled) {
         return false;
+    }
+
+    if (!Settings::values.enable_accurate_vibrations.GetValue()) {
+        using std::chrono::duration_cast;
+        using std::chrono::milliseconds;
+        using std::chrono::steady_clock;
+
+        const auto now = steady_clock::now();
+
+        // Filter out non-zero vibrations that are within 15ms of each other.
+        if ((vibration.low_amplitude != 0.0f || vibration.high_amplitude != 0.0f) &&
+            duration_cast<milliseconds>(now - last_vibration_timepoint[index]) < milliseconds(15)) {
+            return false;
+        }
+
+        last_vibration_timepoint[index] = now;
     }
 
     // Exponential amplification is too strong at low amplitudes. Switch to a linear

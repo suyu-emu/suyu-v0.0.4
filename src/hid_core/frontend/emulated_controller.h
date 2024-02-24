@@ -583,6 +583,7 @@ private:
     std::size_t nfc_handles{0};
     std::array<VibrationValue, 2> last_vibration_value{DEFAULT_VIBRATION_VALUE,
                                                        DEFAULT_VIBRATION_VALUE};
+    std::array<std::chrono::steady_clock::time_point, 2> last_vibration_timepoint{};
 
     // Temporary values to avoid doing changes while the controller is in configuring mode
     NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};

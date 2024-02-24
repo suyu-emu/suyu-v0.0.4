@@ -638,7 +638,11 @@ struct VibrationValue {
         if (low_amplitude != b.low_amplitude || high_amplitude != b.high_amplitude) {
             return false;
         }
-        if (low_frequency != b.low_amplitude || high_frequency != b.high_frequency) {
+        // Changes in frequency without amplitude don't have any effect
+        if (low_amplitude == 0 && high_amplitude == 0) {
+            return true;
+        }
+        if (low_frequency != b.low_frequency || high_frequency != b.high_frequency) {
             return false;
         }
         return true;
