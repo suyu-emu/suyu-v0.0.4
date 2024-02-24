@@ -46,6 +46,11 @@ enum class EngineInputType {
     Nfc,
 };
 
+struct VibrationRequest {
+    PadIdentifier identifier;
+    Common::Input::VibrationStatus vibration;
+};
+
 namespace std {
 // Hash used to create lists from PadIdentifier data
 template <>
