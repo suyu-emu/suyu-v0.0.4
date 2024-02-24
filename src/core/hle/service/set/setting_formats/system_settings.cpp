@@ -52,6 +52,10 @@ SystemSettings DefaultSystemSettings() {
     settings.battery_percentage_flag = true;
     settings.chinese_traditional_input_method = ChineseTraditionalInputMethod::Unknown0;
     settings.vibration_master_volume = 1.0f;
+    settings.touch_screen_mode = TouchScreenMode::Standard;
+    settings.nfc_enable_flag = true;
+    settings.bluetooth_enable_flag = true;
+    settings.wireless_lan_enable_flag = true;
 
     const auto language_code =
         available_language_codes[static_cast<s32>(::Settings::values.language_index.GetValue())];
