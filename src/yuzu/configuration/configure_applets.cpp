@@ -59,9 +59,7 @@ void ConfigureApplets::Setup(const ConfigurationShared::Builder& builder) {
 
         // Untested applets
         if (setting->Id() == Settings::values.data_erase_applet_mode.Id() ||
-            setting->Id() == Settings::values.error_applet_mode.Id() ||
             setting->Id() == Settings::values.net_connect_applet_mode.Id() ||
-            setting->Id() == Settings::values.web_applet_mode.Id() ||
             setting->Id() == Settings::values.shop_applet_mode.Id() ||
             setting->Id() == Settings::values.login_share_applet_mode.Id() ||
             setting->Id() == Settings::values.wifi_web_auth_applet_mode.Id() ||
