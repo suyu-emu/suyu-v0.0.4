@@ -51,16 +51,17 @@ s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
 }
 
 s64 GetEpochTimeFromInitialYear(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys) {
+    s32 year{2000};
+    set_sys->GetSettingsItemValueImpl(year, "time", "standard_user_clock_initial_year");
+
     Service::PSC::Time::CalendarTime calendar{
-        .year = 2000,
+        .year = static_cast<s16>(year),
         .month = 1,
         .day = 1,
         .hour = 0,
         .minute = 0,
         .second = 0,
     };
-    set_sys->GetSettingsItemValueImpl<s16>(calendar.year, "time",
-                                           "standard_user_clock_initial_year");
     return CalendarTimeToEpoch(calendar);
 }
 
