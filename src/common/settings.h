@@ -140,7 +140,7 @@ struct Values {
                                                Category::LibraryApplet};
     Setting<AppletMode> data_erase_applet_mode{linkage, AppletMode::HLE, "data_erase_applet_mode",
                                                Category::LibraryApplet};
-    Setting<AppletMode> error_applet_mode{linkage, AppletMode::HLE, "error_applet_mode",
+    Setting<AppletMode> error_applet_mode{linkage, AppletMode::LLE, "error_applet_mode",
                                           Category::LibraryApplet};
     Setting<AppletMode> net_connect_applet_mode{linkage, AppletMode::HLE, "net_connect_applet_mode",
                                                 Category::LibraryApplet};

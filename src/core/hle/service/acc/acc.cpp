@@ -25,8 +25,8 @@
 #include "core/hle/service/acc/async_context.h"
 #include "core/hle/service/acc/errors.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "core/hle/service/cmif_serialization.h"
 #include "core/hle/service/glue/glue_manager.h"
-#include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/loader/loader.h"
 
@@ -74,12 +74,12 @@ static void SanitizeJPEGImageSize(std::vector<u8>& image) {
 
 class IManagerForSystemService final : public ServiceFramework<IManagerForSystemService> {
 public:
-    explicit IManagerForSystemService(Core::System& system_, Common::UUID)
-        : ServiceFramework{system_, "IManagerForSystemService"} {
+    explicit IManagerForSystemService(Core::System& system_, Common::UUID uuid)
+        : ServiceFramework{system_, "IManagerForSystemService"}, account_id{uuid} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IManagerForSystemService::CheckAvailability, "CheckAvailability"},
-            {1, nullptr, "GetAccountId"},
+            {0, D<&IManagerForSystemService::CheckAvailability>, "CheckAvailability"},
+            {1, D<&IManagerForSystemService::GetAccountId>, "GetAccountId"},
             {2, nullptr, "EnsureIdTokenCacheAsync"},
             {3, nullptr, "LoadIdTokenCache"},
             {100, nullptr, "SetSystemProgramIdentification"},
@@ -109,11 +109,18 @@ public:
     }
 
 private:
-    void CheckAvailability(HLERequestContext& ctx) {
+    Result CheckAvailability() {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
+        R_SUCCEED();
     }
+
+    Result GetAccountId(Out<u64> out_account_id) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        *out_account_id = account_id.Hash();
+        R_SUCCEED();
+    }
+
+    Common::UUID account_id;
 };
 
 // 3.0.0+

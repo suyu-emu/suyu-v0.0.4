@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/hle/service/cmif_serialization.h"
+#include "core/hle/service/ldn/ldn_results.h"
 #include "core/hle/service/ldn/monitor_service.h"
 
 namespace Service::LDN {
@@ -17,7 +18,7 @@ IMonitorService::IMonitorService(Core::System& system_)
         {4, nullptr, "GetSecurityParameterForMonitor"},
         {5, nullptr, "GetNetworkConfigForMonitor"},
         {100, C<&IMonitorService::InitializeMonitor>, "InitializeMonitor"},
-        {101, nullptr, "FinalizeMonitor"},
+        {101, C<&IMonitorService::FinalizeMonitor>, "FinalizeMonitor"},
     };
     // clang-format on
 
@@ -27,16 +28,18 @@ IMonitorService::IMonitorService(Core::System& system_)
 IMonitorService::~IMonitorService() = default;
 
 Result IMonitorService::GetStateForMonitor(Out<State> out_state) {
-    LOG_INFO(Service_LDN, "called");
-
-    *out_state = state;
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+    *out_state = State::None;
     R_SUCCEED();
 }
 
 Result IMonitorService::InitializeMonitor() {
     LOG_INFO(Service_LDN, "called");
+    R_SUCCEED();
+}
 
-    state = State::Initialized;
+Result IMonitorService::FinalizeMonitor() {
+    LOG_INFO(Service_LDN, "called");
     R_SUCCEED();
 }
 
