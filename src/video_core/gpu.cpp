@@ -67,8 +67,8 @@ struct GPU::Impl {
         return CreateChannel(new_channel_id++);
     }
 
-    void InitChannel(Control::ChannelState& to_init) {
-        to_init.Init(system, gpu);
+    void InitChannel(Control::ChannelState& to_init, u64 program_id) {
+        to_init.Init(system, gpu, program_id);
         to_init.BindRasterizer(rasterizer);
         rasterizer->InitializeChannel(to_init);
     }
@@ -412,8 +412,8 @@ std::shared_ptr<Control::ChannelState> GPU::AllocateChannel() {
     return impl->AllocateChannel();
 }
 
-void GPU::InitChannel(Control::ChannelState& to_init) {
-    impl->InitChannel(to_init);
+void GPU::InitChannel(Control::ChannelState& to_init, u64 program_id) {
+    impl->InitChannel(to_init, program_id);
 }
 
 void GPU::BindChannel(s32 channel_id) {
