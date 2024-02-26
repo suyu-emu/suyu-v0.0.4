@@ -2098,7 +2098,9 @@ void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
     if (False(image.flags & ImageFlagBits::Sparse)) {
-        device_memory.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
+        if (image.cpu_addr < ~(1ULL << 40)) {
+            device_memory.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
+        }
         return;
     }
     if (True(image.flags & ImageFlagBits::Registered)) {
@@ -2124,7 +2126,9 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(True(image.flags & ImageFlagBits::Tracked));
     image.flags &= ~ImageFlagBits::Tracked;
     if (False(image.flags & ImageFlagBits::Sparse)) {
-        device_memory.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
+        if (image.cpu_addr < ~(1ULL << 40)) {
+            device_memory.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
+        }
         return;
     }
     ASSERT(True(image.flags & ImageFlagBits::Registered));
