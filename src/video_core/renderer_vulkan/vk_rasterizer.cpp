@@ -1054,37 +1054,16 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
                         regs.zeta.format == Tegra::DepthFormat::X8Z24_UNORM ||
                         regs.zeta.format == Tegra::DepthFormat::S8Z24_UNORM ||
                         regs.zeta.format == Tegra::DepthFormat::V8Z24_UNORM;
-    bool force_unorm = ([&] {
-        if (!is_d24 || device.SupportsD24DepthBuffer()) {
-            return false;
-        }
-        if (device.IsExtDepthBiasControlSupported()) {
-            return true;
-        }
-        if (!Settings::values.renderer_amdvlk_depth_bias_workaround) {
-            return false;
-        }
+    if (is_d24 && !device.SupportsD24DepthBuffer() && program_id == 0x1006A800016E000ULL) {
+        // Only activate this in Super Smash Brothers Ultimate
         // the base formulas can be obtained from here:
         //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
         const double rescale_factor =
             static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
         units = static_cast<float>(static_cast<double>(units) * rescale_factor);
-        return false;
-    })();
+    }
     scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
-                      factor = regs.slope_scale_depth_bias, force_unorm,
-                      precise = device.HasExactDepthBiasControl()](vk::CommandBuffer cmdbuf) {
-        if (force_unorm) {
-            VkDepthBiasRepresentationInfoEXT info{
-                .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
-                .pNext = nullptr,
-                .depthBiasRepresentation =
-                    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
-                .depthBiasExact = precise ? VK_TRUE : VK_FALSE,
-            };
-            cmdbuf.SetDepthBias(constant, clamp, factor, &info);
-            return;
-        }
+                      factor = regs.slope_scale_depth_bias](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetDepthBias(constant, clamp, factor);
     });
 }

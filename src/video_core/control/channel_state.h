@@ -40,11 +40,12 @@ struct ChannelState {
     ChannelState(ChannelState&& other) noexcept = default;
     ChannelState& operator=(ChannelState&& other) noexcept = default;
 
-    void Init(Core::System& system, GPU& gpu);
+    void Init(Core::System& system, GPU& gpu, u64 program_id);
 
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     s32 bind_id = -1;
+    u64 program_id = 0;
     /// 3D engine
     std::unique_ptr<Engines::Maxwell3D> maxwell_3d;
     /// 2D engine

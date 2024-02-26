@@ -149,7 +149,7 @@ public:
 
     std::shared_ptr<Control::ChannelState> AllocateChannel();
 
-    void InitChannel(Control::ChannelState& to_init);
+    void InitChannel(Control::ChannelState& to_init, u64 program_id);
 
     void BindChannel(s32 channel_id);
 

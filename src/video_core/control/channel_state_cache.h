@@ -39,6 +39,7 @@ public:
     Tegra::Engines::Maxwell3D& maxwell3d;
     Tegra::Engines::KeplerCompute& kepler_compute;
     Tegra::MemoryManager& gpu_memory;
+    u64 program_id;
 };
 
 template <class P>
@@ -77,9 +78,10 @@ protected:
     P* channel_state;
     size_t current_channel_id{UNSET_CHANNEL};
     size_t current_address_space{};
-    Tegra::Engines::Maxwell3D* maxwell3d;
-    Tegra::Engines::KeplerCompute* kepler_compute;
-    Tegra::MemoryManager* gpu_memory;
+    Tegra::Engines::Maxwell3D* maxwell3d{};
+    Tegra::Engines::KeplerCompute* kepler_compute{};
+    Tegra::MemoryManager* gpu_memory{};
+    u64 program_id{};
 
     std::deque<P> channel_storage;
     std::deque<size_t> free_channel_ids;

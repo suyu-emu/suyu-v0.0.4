@@ -425,11 +425,6 @@ struct System::Impl {
             room_member->SendGameInfo(game_info);
         }
 
-        // Workarounds:
-        // Activate this in Super Smash Brothers Ultimate, it only affects AMD cards using AMDVLK
-        Settings::values.renderer_amdvlk_depth_bias_workaround =
-            params.program_id == 0x1006A800016E000ULL;
-
         status = SystemResultStatus::Success;
         return status;
     }
@@ -488,9 +483,6 @@ struct System::Impl {
             Network::GameInfo game_info{};
             room_member->SendGameInfo(game_info);
         }
-
-        // Workarounds
-        Settings::values.renderer_amdvlk_depth_bias_workaround = false;
 
         LOG_DEBUG(Core, "Shutdown OK");
     }

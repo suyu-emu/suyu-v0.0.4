@@ -5,6 +5,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
@@ -75,7 +76,7 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
         case 0xd:
             return WrapFixed(this, &nvhost_gpu::SetChannelPriority, input, output);
         case 0x1a:
-            return WrapFixed(this, &nvhost_gpu::AllocGPFIFOEx2, input, output);
+            return WrapFixed(this, &nvhost_gpu::AllocGPFIFOEx2, input, output, fd);
         case 0x1b:
             return WrapFixedVariable(this, &nvhost_gpu::SubmitGPFIFOBase1, input, output, true);
         case 0x1d:
@@ -120,8 +121,13 @@ NvResult nvhost_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     return NvResult::NotImplemented;
 }
 
-void nvhost_gpu::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {}
-void nvhost_gpu::OnClose(DeviceFD fd) {}
+void nvhost_gpu::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
+    sessions[fd] = session_id;
+}
+
+void nvhost_gpu::OnClose(DeviceFD fd) {
+    sessions.erase(fd);
+}
 
 NvResult nvhost_gpu::SetNVMAPfd(IoctlSetNvmapFD& params) {
     LOG_DEBUG(Service_NVDRV, "called, fd={}", params.nvmap_fd);
@@ -161,7 +167,7 @@ NvResult nvhost_gpu::SetChannelPriority(IoctlChannelSetPriority& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params) {
+NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params, DeviceFD fd) {
     LOG_WARNING(Service_NVDRV,
                 "(STUBBED) called, num_entries={:X}, flags={:X}, unk0={:X}, "
                 "unk1={:X}, unk2={:X}, unk3={:X}",
@@ -173,7 +179,12 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params) {
         return NvResult::AlreadyAllocated;
     }
 
-    system.GPU().InitChannel(*channel_state);
+    u64 program_id{};
+    if (auto* const session = core.GetSession(sessions[fd]); session != nullptr) {
+        program_id = session->process->GetProgramId();
+    }
+
+    system.GPU().InitChannel(*channel_state, program_id);
 
     params.fence_out = syncpoint_manager.GetSyncpointFence(channel_syncpoint);
 
