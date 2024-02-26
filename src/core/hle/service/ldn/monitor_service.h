@@ -21,6 +21,7 @@ public:
 private:
     Result GetStateForMonitor(Out<State> out_state);
     Result InitializeMonitor();
+    Result FinalizeMonitor();
 
     State state{State::None};
 };

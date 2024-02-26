@@ -1047,9 +1047,12 @@ add_library(core STATIC
     hle/service/spl/spl_module.h
     hle/service/spl/spl_results.h
     hle/service/spl/spl_types.h
+    hle/service/ssl/cert_store.cpp
+    hle/service/ssl/cert_store.h
     hle/service/ssl/ssl.cpp
     hle/service/ssl/ssl.h
     hle/service/ssl/ssl_backend.h
+    hle/service/ssl/ssl_types.h
     hle/service/usb/usb.cpp
     hle/service/usb/usb.h
     hle/service/vi/application_display_service.cpp

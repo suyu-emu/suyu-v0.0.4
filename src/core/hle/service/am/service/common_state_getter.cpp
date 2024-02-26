@@ -260,9 +260,9 @@ Result ICommonStateGetter::GetAppletLaunchedHistory(
 }
 
 Result ICommonStateGetter::GetSettingsPlatformRegion(
-    Out<SysPlatformRegion> out_settings_platform_region) {
+    Out<Set::PlatformRegion> out_settings_platform_region) {
     LOG_INFO(Service_AM, "called");
-    *out_settings_platform_region = SysPlatformRegion::Global;
+    *out_settings_platform_region = Set::PlatformRegion::Global;
     R_SUCCEED();
 }
 

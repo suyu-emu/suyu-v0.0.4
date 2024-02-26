@@ -149,6 +149,8 @@ public:
     Result GetHomeMenuScheme(Out<HomeMenuScheme> out_home_menu_scheme);
     Result GetHomeMenuSchemeModel(Out<u32> out_home_menu_scheme_model);
     Result GetTouchScreenMode(Out<TouchScreenMode> out_touch_screen_mode);
+    Result GetPlatformRegion(Out<PlatformRegion> out_platform_region);
+    Result SetPlatformRegion(PlatformRegion platform_region);
     Result SetTouchScreenMode(TouchScreenMode touch_screen_mode);
     Result GetFieldTestingFlag(Out<bool> out_field_testing_flag);
     Result GetPanelCrcMode(Out<s32> out_panel_crc_mode);

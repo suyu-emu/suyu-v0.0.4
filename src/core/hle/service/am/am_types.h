@@ -48,11 +48,6 @@ enum class SystemButtonType {
     CaptureButtonLongPressing,
 };
 
-enum class SysPlatformRegion : s32 {
-    Global = 1,
-    Terra = 2,
-};
-
 struct AppletProcessLaunchReason {
     u8 flag;
     INSERT_PADDING_BYTES(3);

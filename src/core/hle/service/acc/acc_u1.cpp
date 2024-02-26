@@ -23,7 +23,7 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {99, nullptr, "DebugActivateOpenContextRetention"},
         {100, nullptr, "GetUserRegistrationNotifier"},
         {101, nullptr, "GetUserStateChangeNotifier"},
-        {102, nullptr, "GetBaasAccountManagerForSystemService"},
+        {102, &ACC_U1::GetBaasAccountManagerForSystemService, "GetBaasAccountManagerForSystemService"},
         {103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
         {104, nullptr, "GetProfileUpdateNotifier"},
         {105, nullptr, "CheckNetworkServiceAvailabilityAsync"},

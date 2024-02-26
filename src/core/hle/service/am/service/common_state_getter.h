@@ -8,6 +8,7 @@
 #include "core/hle/service/cmif_types.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/set/settings_types.h"
 
 namespace Kernel {
 class KReadableEvent;
@@ -50,7 +51,7 @@ private:
     Result GetOperationModeSystemInfo(Out<u32> out_operation_mode_system_info);
     Result GetAppletLaunchedHistory(Out<s32> out_count,
                                     OutArray<AppletId, BufferAttr_HipcMapAlias> out_applet_ids);
-    Result GetSettingsPlatformRegion(Out<SysPlatformRegion> out_settings_platform_region);
+    Result GetSettingsPlatformRegion(Out<Set::PlatformRegion> out_settings_platform_region);
     Result SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled();
 
     void SetCpuBoostMode(HLERequestContext& ctx);
