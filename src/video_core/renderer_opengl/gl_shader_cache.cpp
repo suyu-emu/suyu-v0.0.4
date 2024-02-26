@@ -215,6 +215,7 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
           .support_gl_variable_aoffi = device.HasVariableAoffi(),
           .support_gl_sparse_textures = device.HasSparseTexture2(),
           .support_gl_derivative_control = device.HasDerivativeControl(),
+          .support_geometry_streams = true,
 
           .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyLargerThanGuest(),
 
