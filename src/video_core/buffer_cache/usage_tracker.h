@@ -26,6 +26,9 @@ public:
     void Track(u64 offset, u64 size) noexcept {
         const size_t page = offset >> PAGE_SHIFT;
         const size_t page_end = (offset + size) >> PAGE_SHIFT;
+        if (page_end < page || page_end >= pages.size()) {
+            return;
+        }
         TrackPage(page, offset, size);
         if (page == page_end) {
             return;
@@ -41,6 +44,9 @@ public:
     [[nodiscard]] bool IsUsed(u64 offset, u64 size) const noexcept {
         const size_t page = offset >> PAGE_SHIFT;
         const size_t page_end = (offset + size) >> PAGE_SHIFT;
+        if (page_end < page || page_end >= pages.size()) {
+            return false;
+        }
         if (IsPageUsed(page, offset, size)) {
             return true;
         }
