@@ -216,14 +216,11 @@ void DrawManager::DrawTexture() {
     const bool lower_left{regs.window_origin.mode !=
                           Maxwell3D::Regs::WindowOrigin::Mode::UpperLeft};
     if (lower_left) {
-        draw_texture_state.dst_y0 -= dst_height;
+        draw_texture_state.dst_y0 =
+            static_cast<f32>(regs.surface_clip.height) - draw_texture_state.dst_y0;
     }
-    draw_texture_state.dst_x1 =
-        draw_texture_state.dst_x0 +
-        static_cast<f32>(Settings::values.resolution_info.ScaleUp(static_cast<u32>(dst_width)));
-    draw_texture_state.dst_y1 =
-        draw_texture_state.dst_y0 +
-        static_cast<f32>(Settings::values.resolution_info.ScaleUp(static_cast<u32>(dst_height)));
+    draw_texture_state.dst_x1 = draw_texture_state.dst_x0 + dst_width;
+    draw_texture_state.dst_y1 = draw_texture_state.dst_y0 + dst_height;
     draw_texture_state.src_x0 = static_cast<float>(regs.draw_texture.src_x0) / 4096.f;
     draw_texture_state.src_y0 = static_cast<float>(regs.draw_texture.src_y0) / 4096.f;
     draw_texture_state.src_x1 =

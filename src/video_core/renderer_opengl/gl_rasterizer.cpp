@@ -370,27 +370,32 @@ void RasterizerOpenGL::DrawTexture() {
     const auto& sampler = texture_cache.GetGraphicsSampler(draw_texture_state.src_sampler);
     const auto& texture = texture_cache.GetImageView(draw_texture_state.src_texture);
 
+    const auto Scale = [&](auto dim) -> s32 {
+        return Settings::values.resolution_info.ScaleUp(static_cast<s32>(dim));
+    };
+
+    Region2D dst_region = {
+        Offset2D{.x = Scale(draw_texture_state.dst_x0), .y = Scale(draw_texture_state.dst_y0)},
+        Offset2D{.x = Scale(draw_texture_state.dst_x1), .y = Scale(draw_texture_state.dst_y1)}};
+    Region2D src_region = {
+        Offset2D{.x = Scale(draw_texture_state.src_x0), .y = Scale(draw_texture_state.src_y0)},
+        Offset2D{.x = Scale(draw_texture_state.src_x1), .y = Scale(draw_texture_state.src_y1)}};
+    Extent3D src_size = {static_cast<u32>(Scale(texture.size.width)),
+                         static_cast<u32>(Scale(texture.size.height)), texture.size.depth};
+
     if (device.HasDrawTexture()) {
         state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());
 
-        glDrawTextureNV(texture.DefaultHandle(), sampler->Handle(), draw_texture_state.dst_x0,
-                        draw_texture_state.dst_y0, draw_texture_state.dst_x1,
-                        draw_texture_state.dst_y1, 0,
+        glDrawTextureNV(texture.DefaultHandle(), sampler->Handle(),
+                        static_cast<f32>(dst_region.start.x), static_cast<f32>(dst_region.start.y),
+                        static_cast<f32>(dst_region.end.x), static_cast<f32>(dst_region.end.y), 0,
                         draw_texture_state.src_x0 / static_cast<float>(texture.size.width),
                         draw_texture_state.src_y0 / static_cast<float>(texture.size.height),
                         draw_texture_state.src_x1 / static_cast<float>(texture.size.width),
                         draw_texture_state.src_y1 / static_cast<float>(texture.size.height));
     } else {
-        Region2D dst_region = {Offset2D{.x = static_cast<s32>(draw_texture_state.dst_x0),
-                                        .y = static_cast<s32>(draw_texture_state.dst_y0)},
-                               Offset2D{.x = static_cast<s32>(draw_texture_state.dst_x1),
-                                        .y = static_cast<s32>(draw_texture_state.dst_y1)}};
-        Region2D src_region = {Offset2D{.x = static_cast<s32>(draw_texture_state.src_x0),
-                                        .y = static_cast<s32>(draw_texture_state.src_y0)},
-                               Offset2D{.x = static_cast<s32>(draw_texture_state.src_x1),
-                                        .y = static_cast<s32>(draw_texture_state.src_y1)}};
         blit_image.BlitColor(texture_cache.GetFramebuffer()->Handle(), texture.DefaultHandle(),
-                             sampler->Handle(), dst_region, src_region, texture.size);
+                             sampler->Handle(), dst_region, src_region, src_size);
         state_tracker.InvalidateState();
     }
 
