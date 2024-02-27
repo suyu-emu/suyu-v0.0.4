@@ -72,12 +72,19 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
 
 template <class P>
 void TextureCache<P>::RunGarbageCollector() {
-    bool high_priority_mode = total_used_memory >= expected_memory;
-    bool aggressive_mode = total_used_memory >= critical_memory;
-    const u64 ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
-    size_t num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
-    const auto clean_up = [this, &num_iterations, &high_priority_mode,
-                           &aggressive_mode](ImageId image_id) {
+    bool high_priority_mode = false;
+    bool aggressive_mode = false;
+    u64 ticks_to_destroy = 0;
+    size_t num_iterations = 0;
+
+    const auto Configure = [&](bool allow_aggressive) {
+        high_priority_mode = total_used_memory >= expected_memory;
+        aggressive_mode = allow_aggressive && total_used_memory >= critical_memory;
+        ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
+        num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
+    };
+    const auto Cleanup = [this, &num_iterations, &high_priority_mode,
+                          &aggressive_mode](ImageId image_id) {
         if (num_iterations == 0) {
             return true;
         }
@@ -123,7 +130,16 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         return false;
     };
-    lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, clean_up);
+
+    // Try to remove anything old enough and not high priority.
+    Configure(false);
+    lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
+
+    // If pressure is still too high, prune aggressively.
+    if (total_used_memory >= critical_memory) {
+        Configure(true);
+        lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, Cleanup);
+    }
 }
 
 template <class P>
