@@ -1064,8 +1064,6 @@ public:
                 }
             });
         }
-        auto* ptr = device_memory.GetPointer<u8>(new_query->dependant_address);
-        ASSERT(ptr != nullptr);
 
         new_query->dependant_manage = must_manage_dependance;
         pending_flush_queries.push_back(index);
@@ -1104,9 +1102,11 @@ public:
                 tfb_streamer.Free(query->dependant_index);
             } else {
                 u8* pointer = device_memory.GetPointer<u8>(query->dependant_address);
-                u32 result;
-                std::memcpy(&result, pointer, sizeof(u32));
-                num_vertices = static_cast<u64>(result) / query->stride;
+                if (pointer != nullptr) {
+                    u32 result;
+                    std::memcpy(&result, pointer, sizeof(u32));
+                    num_vertices = static_cast<u64>(result) / query->stride;
+                }
             }
             query->value = [&]() -> u64 {
                 switch (query->topology) {
@@ -1360,7 +1360,9 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     const auto check_value = [&](DAddr address) {
         u8* ptr = impl->device_memory.GetPointer<u8>(address);
         u64 value{};
-        std::memcpy(&value, ptr, sizeof(value));
+        if (ptr != nullptr) {
+            std::memcpy(&value, ptr, sizeof(value));
+        }
         return value == 0;
     };
     std::array<VideoCommon::LookupData*, 2> objects{&object_1, &object_2};
