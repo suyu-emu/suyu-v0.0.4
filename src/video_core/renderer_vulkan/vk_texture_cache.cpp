@@ -1962,21 +1962,22 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
 }
 
 Framebuffer::Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
-                         ImageView* depth_buffer, VkExtent2D extent, bool is_rescaled)
+                         ImageView* depth_buffer, VkExtent2D extent, bool is_rescaled_)
     : render_area{extent} {
     std::array<ImageView*, NUM_RT> color_buffers{color_buffer};
-    CreateFramebuffer(runtime, color_buffers, depth_buffer, is_rescaled);
+    CreateFramebuffer(runtime, color_buffers, depth_buffer, is_rescaled_);
 }
 
 Framebuffer::~Framebuffer() = default;
 
 void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
                                     std::span<ImageView*, NUM_RT> color_buffers,
-                                    ImageView* depth_buffer, bool is_rescaled) {
+                                    ImageView* depth_buffer, bool is_rescaled_) {
     boost::container::small_vector<VkImageView, NUM_RT + 1> attachments;
     RenderPassKey renderpass_key{};
     s32 num_layers = 1;
 
+    is_rescaled = is_rescaled_;
     const auto& resolution = runtime.resolution;
 
     u32 width = std::numeric_limits<u32>::max();

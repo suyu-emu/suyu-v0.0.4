@@ -361,6 +361,10 @@ public:
         return has_stencil;
     }
 
+    [[nodiscard]] bool IsRescaled() const noexcept {
+        return is_rescaled;
+    }
+
 private:
     vk::Framebuffer framebuffer;
     VkRenderPass renderpass{};
@@ -373,6 +377,7 @@ private:
     std::array<size_t, NUM_RT> rt_map{};
     bool has_depth{};
     bool has_stencil{};
+    bool is_rescaled{};
 };
 
 struct TextureCacheParams {
