@@ -93,13 +93,19 @@ ServerManager::~ServerManager() {
     m_threads.clear();
 
     // Clean up ports.
-    for (auto it = m_servers.begin(); it != m_servers.end(); it = m_servers.erase(it)) {
-        delete std::addressof(*it);
+    auto port_it = m_servers.begin();
+    while (port_it != m_servers.end()) {
+        auto* const port = std::addressof(*port_it);
+        port_it = m_servers.erase(port_it);
+        delete port;
     }
 
     // Clean up sessions.
-    for (auto it = m_sessions.begin(); it != m_sessions.end(); it = m_sessions.erase(it)) {
-        delete std::addressof(*it);
+    auto session_it = m_sessions.begin();
+    while (session_it != m_sessions.end()) {
+        auto* const session = std::addressof(*session_it);
+        session_it = m_sessions.erase(session_it);
+        delete session;
     }
 
     // Close wakeup event.
