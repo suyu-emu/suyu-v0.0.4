@@ -31,8 +31,8 @@ AesXtsStorage::AesXtsStorage(VirtualFile base, const void* key1, const void* key
     ASSERT(iv_size == IvSize);
     ASSERT(Common::IsAligned(m_block_size, AesBlockSize));
 
-    std::memcpy(m_key.data() + 0, key1, KeySize);
-    std::memcpy(m_key.data() + 0x10, key2, KeySize);
+    std::memcpy(m_key.data() + 0, key1, KeySize / 2);
+    std::memcpy(m_key.data() + 0x10, key2, KeySize / 2);
     std::memcpy(m_iv.data(), iv, IvSize);
 
     m_cipher.emplace(m_key, Core::Crypto::Mode::XTS);
