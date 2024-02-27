@@ -668,6 +668,10 @@ add_library(core STATIC
     hle/service/glue/time/worker.h
     hle/service/grc/grc.cpp
     hle/service/grc/grc.h
+    hle/service/hid/active_vibration_device_list.cpp
+    hle/service/hid/active_vibration_device_list.h
+    hle/service/hid/applet_resource.cpp
+    hle/service/hid/applet_resource.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
     hle/service/hid/hid_debug_server.cpp

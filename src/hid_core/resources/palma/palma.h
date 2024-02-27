@@ -4,6 +4,8 @@
 #pragma once
 
 #include <array>
+#include <span>
+
 #include "common/common_funcs.h"
 #include "common/typed_address.h"
 #include "hid_core/hid_result.h"
@@ -27,9 +29,31 @@ namespace Service::HID {
 class Palma final : public ControllerBase {
 public:
     using PalmaOperationData = std::array<u8, 0x140>;
+    using PalmaApplicationSection = std::array<u8, 0x100>;
+    using Address = std::array<u8, 0x6>;
 
     // This is nn::hid::PalmaOperationType
-    enum class PalmaOperationType {
+    enum class PalmaOperationType : u64 {
+        PlayActivity,
+        SetFrModeType,
+        ReadStep,
+        EnableStep,
+        ResetStep,
+        ReadApplicationSection,
+        WriteApplicationSection,
+        ReadUniqueCode,
+        SetUniqueCodeInvalid,
+        WriteActivityEntry,
+        WriteRgbLedPatternEntry,
+        WriteWaveEntry,
+        ReadDataBaseIdentificationVersion,
+        WriteDataBaseIdentificationVersion,
+        SuspendFeature,
+        ReadPlayLog,
+        ResetPlayLog,
+    };
+
+    enum class PackedPalmaOperationType : u32 {
         PlayActivity,
         SetFrModeType,
         ReadStep,
@@ -75,7 +99,7 @@ public:
 
     // This is nn::hid::PalmaOperationInfo
     struct PalmaOperationInfo {
-        PalmaOperationType operation{};
+        PackedPalmaOperationType operation{};
         Result result{PalmaResultSuccess};
         PalmaOperationData data{};
     };
@@ -92,8 +116,7 @@ public:
     static_assert(sizeof(PalmaActivityEntry) == 0x20, "PalmaActivityEntry is an invalid size");
 
     struct PalmaConnectionHandle {
-        Core::HID::NpadIdType npad_id;
-        INSERT_PADDING_BYTES(4); // Unknown
+        alignas(8) Core::HID::NpadIdType npad_id;
     };
     static_assert(sizeof(PalmaConnectionHandle) == 0x8,
                   "PalmaConnectionHandle has incorrect size.");
@@ -115,8 +138,7 @@ public:
     Kernel::KReadableEvent& AcquirePalmaOperationCompleteEvent(
         const PalmaConnectionHandle& handle) const;
     Result GetPalmaOperationInfo(const PalmaConnectionHandle& handle,
-                                 PalmaOperationType& operation_type,
-                                 PalmaOperationData& data) const;
+                                 PalmaOperationType& operation_type, std::span<u8> out_data) const;
     Result PlayPalmaActivity(const PalmaConnectionHandle& handle, u64 palma_activity);
     Result SetPalmaFrModeType(const PalmaConnectionHandle& handle, PalmaFrModeType fr_mode_);
     Result ReadPalmaStep(const PalmaConnectionHandle& handle);
