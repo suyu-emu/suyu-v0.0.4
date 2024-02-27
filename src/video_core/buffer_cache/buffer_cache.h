@@ -1488,7 +1488,10 @@ void BufferCache<P>::ImmediateUploadMemory([[maybe_unused]] Buffer& buffer,
             std::span<const u8> upload_span;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
             if (IsRangeGranular(device_addr, copy.size)) {
-                upload_span = std::span(device_memory.GetPointer<u8>(device_addr), copy.size);
+                auto* const ptr = device_memory.GetPointer<u8>(device_addr);
+                if (ptr != nullptr) {
+                    upload_span = std::span(ptr, copy.size);
+                }
             } else {
                 if (immediate_buffer.empty()) {
                     immediate_buffer = ImmediateBuffer(largest_copy);
