@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
+    <string name="app_disclaimer">سيقوم برنامجه بتشغيل الألعاب لوحدة تحكم الألعاب Nintendo Switch.  لم يتم تضمين أي عناوين أو مفاتيح للألعاب.&lt;br /&gt;&lt;br /&gt;قبل البدء، يرجى تحديد موقع ملف <![CDATA[ prod.keys ]]> على وحدة تخزين جهازك.&lt;br /&gt;  &lt;br /&gt;<![CDATA[مزيد من المعلومات]]></string>
     <string name="notice_notification_channel_name">الإشعارات والأخطاء</string>
     <string name="notice_notification_channel_description">اظهار اشعار عند حصول اي مشكلة.</string>
     <string name="notification_permission_not_granted">لم يتم منح إذن الإشعار</string>
@@ -98,13 +99,18 @@
     <string name="firmware_installing">تثبيت فيرموير</string>
     <string name="firmware_installed_success">تم تثبيت فيرموير بنجاح</string>
     <string name="firmware_installed_failure">فشل تثبيت فيرموير</string>
+    <string name="firmware_installed_failure_description">تأكد ان ملف النظام الخاص بالسويتش في rootو صيغه الملف تكون zip و جرب مره اخري </string>
     <string name="share_log">مشاركة سجلات التصحيح</string>
     <string name="share_log_description">مشاركة ملف سجل يوزو لتصحيح المشكلات</string>
     <string name="share_log_missing">لم يتم العثور على ملف السجل</string>
     <string name="install_game_content">تثبيت محتوى اللعبة</string>
     <string name="install_game_content_description">DLC قم بتثبيت تحديثات اللعبة أو</string>
     <string name="installing_game_content">جاري تثبيت المحتوى</string>
+    <string name="install_game_content_failure">خطأ في تنزيل الملف او (الملفات)  الي NAND</string>
+    <string name="install_game_content_failure_description">تأكد من صحة المحتوى (المحتويات) ومن تثبيت ملف prod.keys</string>
     <string name="install_game_content_failure_base">لا يُسمح بتثبيت الألعاب الأساسية لتجنب التعارضات المحتملة.</string>
+    <string name="install_game_content_failure_file_extension">فقط صيغة nspو xci المدعوم.(تأكد ان محتويات اللعبه صالحه)</string>
+    <string name="install_game_content_success">محتوى (محتويات)اللعبه انزلت بنجاح</string>
     <string name="install_game_content_success_install">%1$d تم التثبيت بنجاح</string>
     <string name="install_game_content_success_overwrite">%1$d تمت الكتابة فوقه بنجاح</string>
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
@@ -120,6 +126,11 @@
     <string name="folder_already_added">تمت إضافة هذا المجلد بالفعل</string>
     <string name="game_folder_properties">خصائص مجلد اللعبة</string>
     <string name="no_save_data_found">لم يتم العثور على بيانات الحفظ</string>
+    <string name="verify_installed_content">التحقق من المحتوى المثبت</string>
+    <string name="verify_installed_content_description">التحقق من كافة المحتويات المثبتة</string>
+    <string name="keys_missing">مفاتيح التشفير مفقودة</string>
+    <string name="keys_missing_description">ملف النظام و اللعبه لا يمكن فك تشفيرهما</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">قائمة التطبيقات المصغرة</string>
@@ -130,9 +141,16 @@
     <string name="album_applet_description">شاهد الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
     <string name="mii_edit_applet">تحرير Mii</string>
     <string name="mii_edit_applet_description">باستخدام محرر النظام Miis عرض وتحرير</string>
+    <string name="cabinet_applet">خزانه </string>
     <string name="cabinet_applet_description">تحرير وحذف البيانات المخزنة على أميبو</string>
+    <string name="cabinet_launcher">منصه إطلاق الخزانه </string>
     <string name="cabinet_nickname_and_owner">إعدادات الاسم المستعار والمالك</string>
     <string name="cabinet_game_data_eraser">ممحاة بيانات اللعبة</string>
+    <string name="cabinet_restorer">مرمم</string>
+    <string name="cabinet_formatter">المنسق</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">جايا ليس حقيقيا </string>
     <string name="copied_to_clipboard">نسخ إلى الحافظة</string>
     <string name="about_app_description">محاكي سويتش مفتوح المصدر</string>
     <string name="contributors">المساهمين</string>
@@ -149,6 +167,7 @@
     <string name="user_data_export_success">تم تصدير بيانات المستخدم بنجاح</string>
     <string name="user_data_import_success">تم استيراد بيانات المستخدم بنجاح</string>
     <string name="user_data_export_cancelled">تم إلغاء التصدير</string>
+    <string name="user_data_import_failed_description">تأكد من أن مجلدات بيانات المستخدم موجودة في جذر المجلد المضغوط وتحتوي على ملف تكوين على config/config.ini وحاول مرة أخرى</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -172,10 +191,12 @@
     <string name="frame_limit_enable_description">يحد من سرعة المحاكاة بنسبة محددة من السرعة العادية</string>
     <string name="frame_limit_slider">الحد من السرعة في المئة</string>
     <string name="frame_limit_slider_description">يحدد النسبة المئوية للحد من سرعة المحاكاة. 100% هي السرعة الطبيعية. ستؤدي القيم الأعلى أو الأدنى إلى زيادة أو تقليل حد السرعة.</string>
+    <string name="cpu_backend">الواجهة الخلفية لوحدة المعالجة المركزية</string>
     <string name="cpu_accuracy">دقة وحدة المعالجة المركزية</string>
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
+    <string name="device_name">اسم الجهاز </string>
     <string name="use_docked_mode">وضع الإرساء</string>
     <string name="use_docked_mode_description">زيادة الدقة، وانخفاض الأداء. يتم استخدام الوضع المحمول عند تعطيله، مما يؤدي إلى خفض الدقة وزيادة الأداء.</string>
     <string name="emulated_region">المنطقة التي تمت محاكاتها</string>
@@ -192,12 +213,21 @@
     <string name="renderer_vsync">VSync وضع</string>
     <string name="renderer_screen_layout">اتجاه العرض</string>
     <string name="renderer_aspect_ratio">تناسب الابعاد</string>
+    <string name="renderer_scaling_filter">مرشح تكييف النافذة</string>
+    <string name="fsr_sharpness">حده fsr</string>
+    <string name="fsr_sharpness_description">تحدد كم الحده في الصوره سوف تزهر عند استعمال fsr</string>
     <string name="renderer_anti_aliasing">طريقة مكافحة التعرج</string>
+    <string name="renderer_force_max_clock">رفع ترددات المعالج لاقصي شئ(تعمل علي ادرينو فقط)</string>
+    <string name="renderer_force_max_clock_description">رفع ترددت كرت الشاشه الي اعلي شئ(قيود الحرارة سوف تبقي موجوده)</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">يجمع التظليل بشكل غير متزامن، مما يقلل من التأتأة ولكنه قد يؤدي إلى حدوث بعض الأخطاء.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">تحسين دقة العرض في بعض الألعاب على حساب الأداء</string>
+    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقت لتظليل القرص</string>
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+    <string name="anisotropic_filtering">الترشيح متباين الخواص</string>
+    <string name="anisotropic_filtering_description">تخسن الجوده عندما تنظر من زوايا معتمه</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>
     <string name="cpu_debug_mode">تصحيح أخطاء وحدة المعالجة المركزية</string>
@@ -212,6 +242,77 @@
     <string name="audio_output_engine">محرك الإخراج</string>
     <string name="audio_volume">مستوى الصوت</string>
     <string name="audio_volume_description">يحدد مستوى إخراج الصوت</string>
+
+    <!-- Input strings -->
+    <string name="buttons">أزرار</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">زائد</string>
+    <string name="button_minus">ناقص</string>
+    <string name="button_home">شاشة الرئيسية</string>
+    <string name="button_capture">التقاط</string>
+    <string name="start_pause">بدء/إيقاف مؤقت</string>
+    <string name="dpad">+ الإتجاهات</string>
+    <string name="up">فوق</string>
+    <string name="down">تحت</string>
+    <string name="left">يسار</string>
+    <string name="right">يمين</string>
+    <string name="left_stick">العصا اليسرى</string>
+    <string name="control_stick">عصا التحكم</string>
+    <string name="right_stick">العصا اليمنى</string>
+    <string name="c_stick">C-عصا</string>
+    <string name="pressed">الضغط</string>
+    <string name="range">نطاق</string>
+    <string name="deadzone">المنطقة الميتة</string>
+    <string name="modifier">معدل الضغطة</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">غير صالح</string>
+    <string name="not_set">غير مضبوط</string>
+    <string name="unknown">مجهول</string>
+    <string name="unused">غير مستخدم </string>
+    <string name="input_prompt">حرك أو اضغط على أحد المدخلات</string>
+    <string name="unsupported_input">نوع الإدخال غير مدعوم</string>
+    <string name="input_mapping_filter">مرشح تعيين الإدخال</string>
+    <string name="input_mapping_filter_description">حدد جهازًا لتصفية مدخلات التعيين</string>
+    <string name="auto_map">رسم خريطة تلقائية لوحدة التحكم</string>
+    <string name="auto_map_description">حدد جهازًا لمحاولة التعيين التلقائي</string>
+    <string name="controller_type">نوع وحده التحكم</string>
+    <string name="pro_controller">Pro Controller</string>
+    <string name="handheld">محمول</string>
+    <string name="dual_joycons">جوي كون ثنائي</string>
+    <string name="left_joycon">جوي كون يسار</string>
+    <string name="right_joycon">جوي كون يمين</string>
+    <string name="gamecube_controller">GameCube أداة تحكم</string>
+    <string name="invert_axis">عكس المحاور</string>
+    <string name="invert_button">عكس الزر</string>
+    <string name="toggle_button">زر التبديل</string>
+    <string name="set_threshold">تعيين الحد الأدنى</string>
+    <string name="toggle_axis">تبديل المحور</string>
+    <string name="connected">متصل</string>
+    <string name="use_system_vibrator">استخدام هزاز النظام</string>
+    <string name="input_overlay">تراكب الإدخال</string>
+    <string name="vibration">الاهتزاز</string>
+    <string name="vibration_strength">قوة الاهتزاز</string>
+    <string name="profile">ملف المستخدم</string>
+    <string name="create_new_profile">إنشاء ملف تعريف جديد</string>
+    <string name="enter_profile_name">أدخل اسم الملف الشخصي</string>
+    <string name="profile_name_already_exists">اسم الملف الشخصي موجود بالفعل</string>
+    <string name="invalid_profile_name">اسم ملف التعريف غير صالح</string>
+    <string name="use_global_input_configuration">استخدم تكوين الإدخال العالمي</string>
+    <string name="player_num_profile">لاعب %d ملف التعريف</string>
+    <string name="delete_input_profile">حذف ملف تعريف الإدخال</string>
+    <string name="delete_input_profile_description">هل أنت متأكد أنك تريد حذف هذا الملف الشخصي؟ هذا غير قابل للاسترداد.</string>
+    <string name="stick_map_description">حرك العصا لليسار ثم لأعلى أو اضغط على زر</string>
+    <string name="failed_to_load_profile">فشل تحميل الملف الشخصي</string>
+    <string name="failed_to_save_profile">فشل حفظ الملف الشخصي</string>
+    <string name="reset_mapping">إعادة تعيين التعيينات</string>
+    <string name="reset_mapping_description">هل أنت متأكد من أنك تريد إعادة تعيين كافة التعيينات لوحدة التحكم هذه إلى الوضع الافتراضي؟ هذا لا يمكن التراجع عنها.</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">افتراضي</string>
@@ -247,6 +348,14 @@
     <string name="custom">مخصص</string>
     <string name="notice">إشعار</string>
     <string name="import_complete">اكتمل الاستيراد</string>
+    <string name="more_options">المزيد من الخيارات</string>
+    <string name="use_global_setting">استخدم الإعداد العالمي</string>
+    <string name="operation_completed_successfully">اكتملت العملية بنجاح</string>
+    <string name="retry">أعد المحاولة</string>
+    <string name="confirm">تاكيد</string>
+    <string name="load">تحميل</string>
+    <string name="save">حفظ</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPU حدد برنامج تشغيل</string>
     <string name="select_gpu_driver_title">الحالي الخاص بك؟ GPU هل ترغب في استبدال برنامج تشغيل</string>
@@ -267,12 +376,17 @@
     <string name="preferences_graphics_description">مستوى الدقة ،الدقة ،ذاكرة التخزين المؤقت للتظليل</string>
     <string name="preferences_audio">الصوت</string>
     <string name="preferences_audio_description">محرك الإخراج ، حجم الصوت</string>
+    <string name="preferences_controls">ذراع التحكم</string>
+    <string name="preferences_controls_description">إدخال وحدة تحكم الخريطة</string>
+    <string name="preferences_player">%d لاعب</string>
     <string name="preferences_theme">السمة واللون</string>
     <string name="preferences_debug">تصحيح الأخطاء</string>
+    <string name="preferences_debug_description">تصحيح أخطاء وحدة المعالجة المركزية/وحدة معالجة الرسومات، واجهة برمجة تطبيقات الرسومات، الذاكرة السريعه</string>
+
     <!-- Game properties -->
     <string name="info">معلومات</string>
     <string name="info_description">معرف البرنامج، المطور، الإصدار</string>
-    <string name="per_game_settings">إعدادات كل لعبة</string>
+    <string name="per_game_settings">إعدادات خاصة للعبة</string>
     <string name="per_game_settings_description">تحرير الإعدادات الخاصة بهذه اللعبة</string>
     <string name="launch_options">تشغيل الإعدادات</string>
     <string name="path">المسار</string>
@@ -297,14 +411,31 @@
     <string name="updates_and_dlc">DLC التحديثات والمحتوى القابل للتنزيل  </string>
     <string name="mods_and_cheats">تعديل وغش</string>
     <string name="addon_notice">إشعار إضافي مهم</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">لتتمكن من تثبيت التعديلات والغش، يجب عليك تحديد المجلد الذي يحتوي على دليل الغش/، أو romfs/، أو exefs/.  لا يمكننا التحقق مما إذا كانت هذه العناصر متوافقة مع لعبتك، لذا كن حذرًا!</string>
     <string name="invalid_directory">مجلد غير صالح</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">يرجى التأكد من أن الدليل الذي حددته يحتوي على مجلداتheats/، romfs/، أو exefs/ ثم حاول مرة أخرى.</string>
     <string name="addon_installed_successfully">تم تثبيت الملحق بنجاح</string>
     <string name="verifying_content">جاري التحقق من المحتوى</string>
     <string name="content_install_notice">إشعار تثبيت المحتوى</string>
     <string name="content_install_notice_description">المحتوى الذي حددته لا يتطابق مع هذه اللعبة.هل تريد التثبيت على أية حال؟</string>
+    <string name="confirm_uninstall">تأكيد إلغاء التثبيت</string>
+    <string name="confirm_uninstall_description">هل أنت متأكد أنك تريد إلغاء تثبيت هذا الملحق؟</string>
+    <string name="verify_integrity">التحقق من السلامة</string>
+    <string name="verifying">جاري التحقق</string>
+    <string name="verify_success">نجح التحقق من سلامة</string>
+    <string name="verify_failure">فشل التحقق من سلامة</string>
+    <string name="verify_failure_description">قد تكون محتويات الملف تالفة</string>
+    <string name="verify_no_result">تعذر إجراء التحقق من السلامة</string>
+    <string name="verify_no_result_description">لم يتم التحقق من صحة محتويات الملف</string>
+    <string name="verification_failed_for">%1$sفشل التحقق من الملفات التالية</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">الخاص بك ROM تم تشفير</string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[يُرجى التأكد من تثبيت ملف prod.keys حتى يمكن فك تشفير الألعاب.]]</string>
     <string name="loader_error_video_core">حدث خطأ أثناء تهيئة مركز الفيديو</string>
+    <string name="loader_error_video_core_description">يحدث هذا عادةً بسبب برنامج تشغيل GPU غير متوافق.  قد يؤدي تثبيت برنامج تشغيل GPU مخصص إلى حل هذه المشكلة</string>
     <string name="loader_error_invalid_format">ROM غير قادر على تحميل</string>
     <string name="loader_error_file_not_found">غير موجود ROM ملف</string>
 
@@ -312,6 +443,7 @@
     <string name="emulation_exit">الخروج من المحاكاة</string>
     <string name="emulation_done">إنهاء</string>
     <string name="emulation_fps_counter">عداد إطار/ثانية</string>
+    <string name="emulation_thermal_indicator">المؤشر الحراري</string>
     <string name="emulation_toggle_controls">عناصر التحكم</string>
     <string name="emulation_rel_stick_center">مركز العصا النسبي</string>
     <string name="emulation_dpad_slide">مزلاق الأسهم</string>
@@ -327,6 +459,8 @@
     <string name="emulation_unpause">إلغاء الإيقاف المؤقت للمحاكاة</string>
     <string name="emulation_input_overlay">خيارات التراكب</string>
     <string name="touchscreen">شاشة اللمس</string>
+    <string name="lock_drawer">قفل الدرج</string>
+    <string name="unlock_drawer">فتح الدرج</string>
 
     <string name="load_settings">جاري تحميل الإعدادات</string>
 
@@ -337,6 +471,7 @@
     <string name="abort_button">إلغاء</string>
     <string name="continue_button">استمر</string>
     <string name="system_archive_not_found">لم يتم العثور على أرشيف النظام</string>
+    <string name="system_archive_not_found_message">مفقود.لو سمحت اخرج ارشيفات الملفات من نينتندو سويتش./nContinuing.المحاكه قد تحتوي علي اخطتء او تهنيجات%s</string>
     <string name="system_archive_general">أرشيف النظام</string>
     <string name="save_load_error">خطأ في الحفظ/التحميل</string>
     <string name="fatal_error">خطا فادح</string>
@@ -441,6 +576,8 @@
     <string name="theme_mode_light">فاتح</string>
     <string name="theme_mode_dark">داكن</string>
 
+    <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
     <!-- Anisotropic filtering options -->
@@ -460,6 +597,12 @@
     <string name="play">تشغيل</string>
     <string name="mute">كتم</string>
     <string name="unmute">إلغاء الكتم</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">انحياز عامودي</string>
+    <string name="top">اعلي</string>
+    <string name="center">منتصف</string>
+    <string name="bottom">قاع</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">التراخيص</string>

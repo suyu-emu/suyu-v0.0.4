@@ -95,6 +95,8 @@
     <string name="install_game_content">دامەزراندنی ناوەڕۆکی یاری</string>
     <string name="install_game_content_description">دامەزراندنی نوێکاری یارییەکان یان DLC</string>
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">گایا ڕاستەقینە نییە</string>
     <string name="copied_to_clipboard">کۆپی کرا بۆ تەختەی نووسین</string>
@@ -128,7 +130,6 @@
     <string name="frame_limit_slider">سنووردارکردنی لەسەدای خێرایی</string>
     <string name="frame_limit_slider_description">ڕێژەی سەدی دیاری دەکات بۆ سنووردارکردنی خێرایی ئیمولەیشن. 100% خێرایی ئاساییە. بەهایی بەرزتر یان نزمتر دەبێتە هۆی زیاد یان کەمکردنەوەی سنووری خێرایی.</string>
     <string name="cpu_accuracy">وردی CPU</string>
-    <!-- System settings strings -->
     <string name="use_docked_mode">دۆخی دۆککراو</string>
     <string name="use_docked_mode_description">ڕوونی زیاد دەکات، کارایی کەم دەکاتەوە. دۆخی دەستی بەکاردێت کاتێک لەکاردەخرێت، ئەمەش ڕوونی دادەبەزێنێت و کارایی زیاد دەکات.</string>
     <string name="emulated_region">ناوچەی ئیمولەیشن</string>
@@ -162,6 +163,46 @@
     <string name="audio_volume">قەبارەی دەنگی</string>
     <string name="audio_volume_description">دیاریکردنی قەبارەی دەنگی دەرچووی بیستۆک و بزوێنەری دەنگی دەرەکی.</string>
 
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Plus</string>
+    <string name="button_minus">Minus</string>
+    <string name="button_home">ماڵەوە</string>
+    <string name="button_capture">Capture</string>
+    <string name="dpad">D-Pad</string>
+    <string name="up">سەرەوە</string>
+    <string name="down">خوارەوە</string>
+    <string name="left">چەپ</string>
+    <string name="right">ڕاست</string>
+    <string name="left_stick">گێڕی چەپ</string>
+    <string name="right_stick">گێڕی ڕاست</string>
+    <string name="c_stick">گێڕی کامێرا</string>
+    <string name="pressed">فشارخراوەتەسەر</string>
+    <string name="range">مەودا</string>
+    <string name="modifier">دەستکاریکەر</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">نادروست</string>
+    <string name="pro_controller">کۆنتڕۆڵکەری پڕۆ</string>
+    <string name="handheld">دەستی</string>
+    <string name="dual_joycons">دووانە جۆیکۆن</string>
+    <string name="left_joycon">جۆیکۆنی چەپ</string>
+    <string name="right_joycon">جۆیکۆنی ڕاست</string>
+    <string name="gamecube_controller">کۆنتڕۆڵکەری گەیمکیوب</string>
+    <string name="invert_axis">پێچەوانەکردنەوەی تەوەر</string>
+    <string name="invert_button">دوگمەی پێچەوانەکردنەوە</string>
+    <string name="toggle_button">دوگمەی گۆڕین</string>
+    <string name="turbo_button">دوگمەی تۆربۆ</string>
+    <string name="set_threshold">دانانی ئاستەنگ</string>
+    <string name="toggle_axis">گۆڕینی تەوەر</string>
+    <string name="connected">پەیوەستە</string>
+    <string name="vibration">لەرزین</string>
+    <string name="profile">پڕۆفایل</string>
     <!-- Miscellaneous -->
     <string name="slider_default">بنەڕەت</string>
     <string name="ini_saved">ڕێکخستنە پاشەکەوتکراوەکان</string>
@@ -182,6 +223,8 @@
     <string name="install">دامەزراندن</string>
     <string name="delete">سڕینەوە</string>
     <string name="clear">سڕینەوە</string>
+    <string name="save">هەڵگرتن</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">هەڵبژاردنی وەگەڕخەری GPU</string>
     <string name="select_gpu_driver_title">حەز دەکەیت وەگەڕخەری GPU ی ئێستات بگۆڕیت؟</string>
@@ -228,7 +271,6 @@
     <string name="emulation_unpause">لادانی وەستاندنی ئیمولەیشن</string>
     <string name="emulation_input_overlay">هەڵبژاردەکانی داپۆشەر</string>
     <string name="touchscreen">رووکاری لەمسی</string>
-
     <string name="load_settings">بارکردنی ڕێکخستنەکان...</string>
 
     <!-- Software keyboard -->

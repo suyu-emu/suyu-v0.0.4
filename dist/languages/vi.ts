@@ -374,196 +374,396 @@ Việc này sẽ ban tên người dùng trên diễn đàn và IP của họ lu
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="30"/>
-        <source>Output Engine:</source>
-        <translation>Hệ thống xuất:</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="31"/>
-        <source>Output Device:</source>
-        <translation>Thiết bị đầu ra:</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="32"/>
-        <source>Input Device:</source>
-        <translation>Thiết bị đầu vào:</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="33"/>
-        <source>Mute audio</source>
+        <source>Amiibo editor</source>
         <translation type="unfinished"/>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="31"/>
+        <source>Controller configuration</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="32"/>
+        <source>Data erase</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="33"/>
+        <source>Error</source>
+        <translation>Lỗi</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="34"/>
-        <source>Volume:</source>
-        <translation>Âm lượng:</translation>
+        <source>Net connect</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="35"/>
+        <source>Player select</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="36"/>
-        <source>Mute audio when in background</source>
-        <translation>Tắt tiếng khi chạy nền</translation>
+        <source>Software keyboard</source>
+        <translation>Bàn phím mềm</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="37"/>
+        <source>Mii Edit</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="38"/>
+        <source>Online web</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="39"/>
+        <source>Shop</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="40"/>
-        <source>Multicore CPU Emulation</source>
-        <translation>Giả lập CPU đa nhân</translation>
+        <source>Photo viewer</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="41"/>
-        <source>Memory Layout</source>
+        <source>Offline web</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="42"/>
+        <source>Login share</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="43"/>
-        <source>Limit Speed Percent</source>
-        <translation>Giới hạn phần trăm tốc độ</translation>
+        <source>Wifi web auth</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="46"/>
-        <source>Accuracy:</source>
-        <translation>Độ chính xác:</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="44"/>
+        <source>My page</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="47"/>
-        <source>Backend:</source>
+        <source>Output Engine:</source>
+        <translation>Hệ thống xuất:</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="48"/>
+        <source>Output Device:</source>
+        <translation>Thiết bị đầu ra:</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="49"/>
+        <source>Input Device:</source>
+        <translation>Thiết bị đầu vào:</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="50"/>
+        <source>Mute audio</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="54"/>
-        <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
-        <translation>Không dùng FMA (tăng hiệu suất cho các dòng CPU không hỗ trợ FMA)</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="51"/>
+        <source>Volume:</source>
+        <translation>Âm lượng:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="55"/>
-        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
-        <translation type="unfinished"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="53"/>
+        <source>Mute audio when in background</source>
+        <translation>Tắt tiếng khi chạy nền</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="58"/>
-        <source>Faster FRSQRTE and FRECPE</source>
-        <translation>FRSQRTE và FRECPE nhanh hơn</translation>
+        <source>Multicore CPU Emulation</source>
+        <translation>Giả lập CPU đa nhân</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="59"/>
-        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
+        <source>This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.
+This is mainly a debug option and shouldn’t be disabled.</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="62"/>
-        <source>Faster ASIMD instructions (32 bits only)</source>
-        <translation>Các chỉ thị ASIMD nhanh hơn (chỉ cho 32 bit)</translation>
+        <source>Memory Layout</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="63"/>
-        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
+        <source>Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the developer kit's 8/6GB.
+It’s doesn’t improve stability or performance and is intended to let big texture mods fit in emulated RAM.
+Enabling it will increase memory use. It is not recommended to enable unless a specific game with a texture mod needs it.</source>
         <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="65"/>
-        <source>Inaccurate NaN handling</source>
-        <translation>Xử lí NaN không chính xác</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="66"/>
-        <source>This option improves speed by removing NaN checking. Please note this also reduces accuracy of certain floating-point instructions.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="68"/>
-        <source>Disable address space checks</source>
-        <translation>Tắt kiểm tra không gian địa chỉ</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="69"/>
-        <source>This option improves speed by eliminating a safety check before every memory read/write in guest. Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
+        <source>Limit Speed Percent</source>
+        <translation>Giới hạn phần trăm tốc độ</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="70"/>
+        <source>Controls the game's maximum rendering speed, but it’s up to each game if it runs faster or not.
+200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
+Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="73"/>
-        <source>Ignore global monitor</source>
-        <translation>Bỏ qua màn hình chung</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="76"/>
+        <source>Accuracy:</source>
+        <translation>Độ chính xác:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="74"/>
-        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions. Please note this may result in deadlocks and other race conditions.</source>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="77"/>
+        <source>This setting controls the accuracy of the emulated CPU.
+Don&apos;t change this unless you know what you are doing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="79"/>
+        <source>Backend:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="86"/>
+        <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
+        <translation>Không dùng FMA (tăng hiệu suất cho các dòng CPU không hỗ trợ FMA)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="87"/>
+        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="90"/>
+        <source>Faster FRSQRTE and FRECPE</source>
+        <translation>FRSQRTE và FRECPE nhanh hơn</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="91"/>
+        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="94"/>
+        <source>Faster ASIMD instructions (32 bits only)</source>
+        <translation>Các chỉ thị ASIMD nhanh hơn (chỉ cho 32 bit)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="95"/>
+        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="97"/>
+        <source>Inaccurate NaN handling</source>
+        <translation>Xử lí NaN không chính xác</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="98"/>
+        <source>This option improves speed by removing NaN checking.
+Please note this also reduces accuracy of certain floating-point instructions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="100"/>
+        <source>Disable address space checks</source>
+        <translation>Tắt kiểm tra không gian địa chỉ</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="101"/>
+        <source>This option improves speed by eliminating a safety check before every memory read/write in guest.
+Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="105"/>
+        <source>Ignore global monitor</source>
+        <translation>Bỏ qua màn hình chung</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="106"/>
+        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
+Please note this may result in deadlocks and other race conditions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="112"/>
         <source>API:</source>
         <translation>API:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="80"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="113"/>
+        <source>Switches between the available graphics APIs.
+Vulkan is recommended in most cases.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="114"/>
         <source>Device:</source>
         <translation>Thiết bị:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="81"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="115"/>
+        <source>This setting selects the GPU to use with the Vulkan backend.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="116"/>
         <source>Shader Backend:</source>
         <translation>Backend shader:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="117"/>
+        <source>The shader backend to use for the OpenGL renderer.
+GLSL is the fastest in performance and the best in rendering accuracy.
+GLASM is a deprecated NVIDIA-only backend that offers much better shader building performance at the cost of FPS and rendering accuracy.
+SPIR-V compiles the fastest, but yields poor results on most GPU drivers.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="122"/>
         <source>Resolution:</source>
         <translation>Độ phân giải:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="83"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="123"/>
+        <source>Forces the game to render at a different resolution.
+Higher resolutions require much more VRAM and bandwidth.
+Options lower than 1X can cause rendering issues.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="126"/>
         <source>Window Adapting Filter:</source>
         <translation>Bộ lọc điều chỉnh cửa sổ:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="84"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="127"/>
         <source>FSR Sharpness:</source>
         <translation>Độ nét FSR:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="85"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="128"/>
+        <source>Determines how sharpened the image will look while using FSR’s dynamic contrast.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="129"/>
         <source>Anti-Aliasing Method:</source>
         <translation>Phương pháp khử răng cưa:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="86"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="130"/>
+        <source>The anti-aliasing method to use.
+SMAA offers the best quality.
+FXAA has a lower performance impact and can produce a better and more stable picture under very low resolutions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="133"/>
         <source>Fullscreen Mode:</source>
         <translation>Chế độ toàn màn hình:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="87"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="134"/>
+        <source>The method used to render the window in fullscreen.
+Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
+Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="138"/>
         <source>Aspect Ratio:</source>
         <translation>Tỉ lệ khung hình:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="88"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="139"/>
+        <source>Stretches the game to fit the specified aspect ratio.
+Switch games only support 16:9, so custom game mods are required to get other ratios.
+Also controls the aspect ratio of captured screenshots.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="142"/>
         <source>Use disk pipeline cache</source>
         <translation>Dùng bộ nhớ đệm pipeline trên ổ cứng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="89"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="143"/>
+        <source>Allows saving shaders to storage for faster loading on following game boots.
+Disabling it is only intended for debugging.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="147"/>
         <source>Use asynchronous GPU emulation</source>
         <translation>Dùng giả lập GPU bất đồng bộ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="91"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="148"/>
+        <source>Uses an extra CPU thread for rendering.
+This option should always remain enabled.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="149"/>
         <source>NVDEC emulation:</source>
         <translation>Giả lập NVDEC:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="92"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="150"/>
+        <source>Specifies how videos should be decoded.
+It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
+In most cases, GPU decoding provides the best performance.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="153"/>
         <source>ASTC Decoding Method:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="93"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="154"/>
+        <source>This option controls how ASTC textures should be decoded.
+CPU: Use the CPU for decoding, slowest but safest method.
+GPU: Use the GPU's compute shaders to decode ASTC textures, recommended for most games and users.
+CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely eliminates ASTC decoding
+stuttering at the cost of rendering issues while the texture is being decoded.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="162"/>
         <source>ASTC Recompression Method:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="95"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="163"/>
+        <source>Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing the emulator to decompress to an intermediate format any card supports, RGBA8.
+This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but negatively affecting image quality.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="167"/>
+        <source>VRAM Usage Mode:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="168"/>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="173"/>
         <source>VSync Mode:</source>
         <translation>Chế độ Vsync:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="96"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="174"/>
         <source>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
 FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
 Mailbox can have lower latency than FIFO and does not tear but may drop frames.
@@ -574,868 +774,990 @@ Mailbox có thể có độ trễ thấp hơn FIFO và không gây hiện tượ
 Immediate (không đồng bộ hóa) chỉ hiển thị những gì đã có và có thể gây hiện tượng xé hình.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="106"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="184"/>
         <source>Enable asynchronous presentation (Vulkan only)</source>
         <translation>Bật hiển thị bất đồng bộ (chỉ cho Vulkan)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="109"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="185"/>
+        <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="187"/>
         <source>Force maximum clocks (Vulkan only)</source>
         <translation>Buộc chạy ở xung nhịp tối đa (chỉ cho Vulkan)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="110"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="188"/>
         <source>Runs work in the background while waiting for graphics commands to keep the GPU from lowering its clock speed.</source>
         <translation>Chạy các công việc trong nền trong khi đang chờ lệnh đồ họa để giữ cho GPU không giảm xung nhịp.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="112"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="190"/>
         <source>Anisotropic Filtering:</source>
         <translation>Lọc bất đẳng hướng:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="113"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="191"/>
+        <source>Controls the quality of texture rendering at oblique angles.
+It’s a light setting and safe to set at 16x on most GPUs.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="193"/>
         <source>Accuracy Level:</source>
         <translation>Mức độ chính xác:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="115"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="194"/>
+        <source>GPU emulation accuracy.
+Most games render fine with Normal, but High is still required for some.
+Particles tend to only render correctly with High accuracy.
+Extreme should only be used for debugging.
+This option can be changed while playing.
+Some games may require booting on high to render properly.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="199"/>
         <source>Use asynchronous shader building (Hack)</source>
         <translation>Dùng tính năng dựng shader bất đồng bộ (Hack)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="116"/>
-        <source>Enables asynchronous shader compilation, which may reduce shader stutter. This feature is experimental.</source>
-        <translation>Bật tính năng biên dịch shader bất đồng bộ, có thể giảm giật lag khi dựng shader. Tính năng này vẫn đang thử nghiệm.</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="200"/>
+        <source>Enables asynchronous shader compilation, which may reduce shader stutter.
+This feature is experimental.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="118"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="203"/>
         <source>Use Fast GPU Time (Hack)</source>
         <translation>Dùng thời gian GPU nhanh (Hack)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="119"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="204"/>
         <source>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</source>
         <translation>Bật chế độ Thời gian GPU nhanh. Tùy chọn này sẽ buộc hầu hết các game chạy ở độ phân giải gốc cao nhất của chúng.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="121"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="206"/>
         <source>Use Vulkan pipeline cache</source>
         <translation>Dùng bộ nhớ đệm pipeline Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="122"/>
-        <source>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
-        <translation>Bật bộ nhớ đệm pipeline dành riêng cho nhà cung cấp GPU. Tùy chọn này có thể cải thiện thời gian tải shader đáng kể trong các trường hợp driver Vulkan không lưu trữ các tập tin bộ nhớ đệm pipeline nội bộ.</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="207"/>
+        <source>Enables GPU vendor-specific pipeline cache.
+This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="126"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="211"/>
         <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="127"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="212"/>
         <source>Enable compute pipelines, required by some games.
 This setting only exists for Intel proprietary drivers, and may crash if enabled.
 Compute pipelines are always enabled on all other drivers.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="131"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="216"/>
         <source>Enable Reactive Flushing</source>
         <translation>Bật xả tương ứng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="132"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="217"/>
         <source>Uses reactive flushing instead of predictive flushing, allowing more accurate memory syncing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="134"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="219"/>
         <source>Sync to framerate of video playback</source>
         <translation>Đồng bộ hóa với tốc độ khung hình khi phát video</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="135"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="220"/>
         <source>Run the game at normal speed during video playback, even when the framerate is unlocked.</source>
         <translation>Chạy game với tốc độ bình thường trong quá trình phát video, ngay cả khi tốc độ khung hình được mở khóa.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="137"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="222"/>
         <source>Barrier feedback loops</source>
         <translation>Vòng lặp phản hồi rào cản</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="138"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="223"/>
         <source>Improves rendering of transparency effects in specific games.</source>
         <translation>Cải thiện hiệu quả kết xuất của hiệu ứng trong suốt trong một số game.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="143"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="228"/>
         <source>RNG Seed</source>
         <translation>Hạt giống RNG</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="145"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="229"/>
+        <source>Controls the seed of the random number generator.
+Mainly used for speedrunning purposes.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="232"/>
         <source>Device Name</source>
         <translation>Tên thiết bị</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="146"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="232"/>
+        <source>The name of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="233"/>
         <source>Custom RTC Date:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="150"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="234"/>
+        <source>This option allows to change the emulated clock of the Switch.
+Can be used to manipulate time in games.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="239"/>
         <source>Language:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="151"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="240"/>
         <source>Note: this can be overridden when region setting is auto-select</source>
         <translation>Lưu ý: Tuỳ chọn này có thể bị ghi đè nếu cài đặt vùng là chọn tự động.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="152"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="241"/>
         <source>Region:</source>
         <translation>Vùng:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="153"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="241"/>
+        <source>The region of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="242"/>
         <source>Time Zone:</source>
         <translation>Múi giờ:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="154"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="243"/>
+        <source>The time zone of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="244"/>
         <source>Sound Output Mode:</source>
         <translation>Chế độ đầu ra âm thanh:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="155"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="245"/>
         <source>Console Mode:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="173"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="246"/>
+        <source>Selects if the console is emulated in Docked or Handheld mode.
+Games will change their resolution, details and supported controllers and depending on this setting.
+Setting to Handheld can help improve performance for low end systems.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="266"/>
         <source>Prompt for user on game boot</source>
         <translation>Hiển thị cửa sổ chọn người dùng khi bắt đầu game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="174"/>
-        <source>Pause emulation when in background</source>
-        <translation>Tạm dừng giả lập khi chạy nền</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="176"/>
-        <source>Confirm before stopping emulation</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="178"/>
-        <source>Hide mouse on inactivity</source>
-        <translation>Ẩn con trỏ chuột khi không dùng</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="179"/>
-        <source>Disable controller applet</source>
-        <translation>Vô hiệu hoá applet tay cầm</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="183"/>
-        <source>Enable Gamemode</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="209"/>
-        <source>CPU</source>
-        <translation>CPU</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="210"/>
-        <source>GPU</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="211"/>
-        <source>CPU Asynchronous</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="216"/>
-        <source>Uncompressed (Best quality)</source>
-        <translation>Không nén (Chất lượng tốt nhất)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="217"/>
-        <source>BC1 (Low quality)</source>
-        <translation>BC1 (Chất lượng thấp)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="218"/>
-        <source>BC3 (Medium quality)</source>
-        <translation>BC3 (Chất lượng trung bình)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="223"/>
-        <source>OpenGL</source>
-        <translation>OpenGL</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="225"/>
-        <source>Vulkan</source>
-        <translation>Vulkan</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="226"/>
-        <source>Null</source>
-        <translation>Null</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="231"/>
-        <source>GLSL</source>
-        <translation>GLSL</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="232"/>
-        <source>GLASM (Assembly Shaders, NVIDIA Only)</source>
-        <translation>GLASM (Assembly Shaders, chỉ cho NVIDIA)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="233"/>
-        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="237"/>
-        <source>Normal</source>
-        <translation>Bình thường</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="238"/>
-        <source>High</source>
-        <translation>Cao</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="239"/>
-        <source>Extreme</source>
-        <translation>Cực đại</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="244"/>
-        <source>Auto</source>
-        <translation>Tự động</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="245"/>
-        <source>Accurate</source>
-        <translation>Chính xác</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="246"/>
-        <source>Unsafe</source>
-        <translation>Không an toàn</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="247"/>
-        <source>Paranoid (disables most optimizations)</source>
-        <translation>Paranoid (vô hiệu hoá hầu hết sự tối ưu)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="251"/>
-        <source>Dynarmic</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="252"/>
-        <source>NCE</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="256"/>
-        <source>Borderless Windowed</source>
-        <translation>Cửa sổ không viền</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="257"/>
-        <source>Exclusive Fullscreen</source>
-        <translation>Toàn màn hình</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="261"/>
-        <source>No Video Output</source>
-        <translation>Không có đầu ra video</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="262"/>
-        <source>CPU Video Decoding</source>
-        <translation>Giải mã video bằng CPU</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="263"/>
-        <source>GPU Video Decoding (Default)</source>
-        <translation>Giải mã video bằng GPU (Mặc định)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="268"/>
-        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="267"/>
+        <source>Ask to select a user profile on each boot, useful if multiple people use yuzu on the same PC.</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="269"/>
+        <source>Pause emulation when in background</source>
+        <translation>Tạm dừng giả lập khi chạy nền</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="270"/>
+        <source>This setting pauses yuzu when focusing other windows.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="271"/>
+        <source>Confirm before stopping emulation</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="272"/>
+        <source>This setting overrides game prompts asking to confirm stopping the game.
+Enabling it bypasses such prompts and directly exits the emulation.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="274"/>
+        <source>Hide mouse on inactivity</source>
+        <translation>Ẩn con trỏ chuột khi không dùng</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="275"/>
+        <source>This setting hides the mouse after 2.5s of inactivity.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="276"/>
+        <source>Disable controller applet</source>
+        <translation>Vô hiệu hoá applet tay cầm</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="277"/>
+        <source>Forcibly disables the use of the controller applet by guests.
+When a guest attempts to open the controller applet, it is immediately closed.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="281"/>
+        <source>Enable Gamemode</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="306"/>
+        <source>Custom frontend</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="307"/>
+        <source>Real applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="312"/>
+        <source>CPU</source>
+        <translation>CPU</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="313"/>
+        <source>GPU</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="314"/>
+        <source>CPU Asynchronous</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="319"/>
+        <source>Uncompressed (Best quality)</source>
+        <translation>Không nén (Chất lượng tốt nhất)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="320"/>
+        <source>BC1 (Low quality)</source>
+        <translation>BC1 (Chất lượng thấp)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="321"/>
+        <source>BC3 (Medium quality)</source>
+        <translation>BC3 (Chất lượng trung bình)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="325"/>
+        <source>Conservative</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="326"/>
+        <source>Aggressive</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="331"/>
+        <source>OpenGL</source>
+        <translation>OpenGL</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="333"/>
+        <source>Vulkan</source>
+        <translation>Vulkan</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="334"/>
+        <source>Null</source>
+        <translation>Null</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="339"/>
+        <source>GLSL</source>
+        <translation>GLSL</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="340"/>
+        <source>GLASM (Assembly Shaders, NVIDIA Only)</source>
+        <translation>GLASM (Assembly Shaders, chỉ cho NVIDIA)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="341"/>
+        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="345"/>
+        <source>Normal</source>
+        <translation>Bình thường</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="346"/>
+        <source>High</source>
+        <translation>Cao</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="347"/>
+        <source>Extreme</source>
+        <translation>Cực đại</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="352"/>
+        <source>Auto</source>
+        <translation>Tự động</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="353"/>
+        <source>Accurate</source>
+        <translation>Chính xác</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="354"/>
+        <source>Unsafe</source>
+        <translation>Không an toàn</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="355"/>
+        <source>Paranoid (disables most optimizations)</source>
+        <translation>Paranoid (vô hiệu hoá hầu hết sự tối ưu)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="359"/>
+        <source>Dynarmic</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="360"/>
+        <source>NCE</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="364"/>
+        <source>Borderless Windowed</source>
+        <translation>Cửa sổ không viền</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="365"/>
+        <source>Exclusive Fullscreen</source>
+        <translation>Toàn màn hình</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="369"/>
+        <source>No Video Output</source>
+        <translation>Không có đầu ra video</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="370"/>
+        <source>CPU Video Decoding</source>
+        <translation>Giải mã video bằng CPU</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="371"/>
+        <source>GPU Video Decoding (Default)</source>
+        <translation>Giải mã video bằng GPU (Mặc định)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="376"/>
+        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="377"/>
         <source>0.75X (540p/810p) [EXPERIMENTAL]</source>
         <translation>0.75X (540p/810p) [THỬ NGHIỆM]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="270"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="378"/>
         <source>1X (720p/1080p)</source>
         <translation>1X (720p/1080p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="271"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="379"/>
         <source>1.5X (1080p/1620p) [EXPERIMENTAL]</source>
         <translation>1.5X (1080p/1620p) [THỬ NGHIỆM]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="272"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="380"/>
         <source>2X (1440p/2160p)</source>
         <translation>2X (1440p/2160p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="273"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="381"/>
         <source>3X (2160p/3240p)</source>
         <translation>3X (2160p/3240p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="274"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="382"/>
         <source>4X (2880p/4320p)</source>
         <translation>4X (2880p/4320p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="275"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="383"/>
         <source>5X (3600p/5400p)</source>
         <translation>5X (3600p/5400p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="276"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="384"/>
         <source>6X (4320p/6480p)</source>
         <translation>6X (4320p/6480p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="277"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="385"/>
         <source>7X (5040p/7560p)</source>
         <translation>7X (5040p/7560p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="278"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="386"/>
         <source>8X (5760p/8640p)</source>
         <translation>8X (5760p/8640p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="282"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="390"/>
         <source>Nearest Neighbor</source>
         <translation>Nearest Neighbor</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="283"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="391"/>
         <source>Bilinear</source>
         <translation>Bilinear</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="284"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="392"/>
         <source>Bicubic</source>
         <translation>Bicubic</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="285"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="393"/>
         <source>Gaussian</source>
         <translation>Gaussian</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="286"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="394"/>
         <source>ScaleForce</source>
         <translation>ScaleForce</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="287"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="395"/>
         <source>AMD FidelityFX™️ Super Resolution</source>
         <translation>AMD FidelityFX™️ Super Resolution</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="291"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="399"/>
         <source>None</source>
         <translation>Không có</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="292"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="400"/>
         <source>FXAA</source>
         <translation>FXAA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="293"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="401"/>
         <source>SMAA</source>
         <translation>SMAA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="297"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="405"/>
         <source>Default (16:9)</source>
         <translation>Mặc định (16:9)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="298"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="406"/>
         <source>Force 4:3</source>
         <translation>Dùng 4:3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="299"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="407"/>
         <source>Force 21:9</source>
         <translation>Dùng 21:9</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="300"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="408"/>
         <source>Force 16:10</source>
         <translation>Dùng 16:10</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="301"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="409"/>
         <source>Stretch to Window</source>
         <translation>Mở rộng đến cửa sổ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="305"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="413"/>
         <source>Automatic</source>
         <translation>Tự động</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="306"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="414"/>
         <source>Default</source>
         <translation>Mặc định</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="307"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="415"/>
         <source>2x</source>
         <translation>2x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="308"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="416"/>
         <source>4x</source>
         <translation>4x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="309"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="417"/>
         <source>8x</source>
         <translation>8x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="310"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="418"/>
         <source>16x</source>
         <translation>16x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="315"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="423"/>
         <source>Japanese (日本語)</source>
         <translation>Tiếng Nhật (日本語)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="316"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="424"/>
         <source>American English</source>
         <translation>Tiếng Anh Mỹ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="317"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="425"/>
         <source>French (français)</source>
         <translation>Tiếng Pháp (French)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="318"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="426"/>
         <source>German (Deutsch)</source>
         <translation>Tiếng Đức (Deutsch)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="319"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="427"/>
         <source>Italian (italiano)</source>
         <translation>Tiếng Ý (italiano)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="320"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="428"/>
         <source>Spanish (español)</source>
         <translation>Tiếng Tây Ban Nha (Español)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="321"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="429"/>
         <source>Chinese</source>
         <translation>Tiếng Trung</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="322"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="430"/>
         <source>Korean (한국어)</source>
         <translation>Tiếng Hàn (한국어)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="323"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="431"/>
         <source>Dutch (Nederlands)</source>
         <translation>Tiếng Hà Lan (Nederlands)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="324"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="432"/>
         <source>Portuguese (português)</source>
         <translation>Tiếng Bồ Đào Nha (Portuguese)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="325"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="433"/>
         <source>Russian (Русский)</source>
         <translation>Tiếng Nga (Русский)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="326"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="434"/>
         <source>Taiwanese</source>
         <translation>Tiếng Đài Loan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="327"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="435"/>
         <source>British English</source>
         <translation>Tiếng Anh Anh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="328"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="436"/>
         <source>Canadian French</source>
         <translation>Tiếng Pháp Canada</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="329"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="437"/>
         <source>Latin American Spanish</source>
         <translation>Tiếng Tây Ban Nha Mỹ Latinh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="330"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="438"/>
         <source>Simplified Chinese</source>
         <translation>Tiếng Trung giản thể</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="331"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="439"/>
         <source>Traditional Chinese (正體中文)</source>
         <translation>Tiếng Trung phồn thể (正體中文)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="332"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="440"/>
         <source>Brazilian Portuguese (português do Brasil)</source>
         <translation>Tiếng Bồ Đào Nha Brasil (Português do Brasil)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="336"/>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="375"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="444"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="483"/>
         <source>Japan</source>
         <translation>Nhật Bản</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="337"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="445"/>
         <source>USA</source>
         <translation>Hoa Kỳ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="338"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="446"/>
         <source>Europe</source>
         <translation>Châu Âu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="339"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="447"/>
         <source>Australia</source>
         <translation>Úc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="340"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="448"/>
         <source>China</source>
         <translation>Trung Quốc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="341"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="449"/>
         <source>Korea</source>
         <translation>Hàn Quốc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="342"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="450"/>
         <source>Taiwan</source>
         <translation>Đài Loan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="348"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="456"/>
         <source>Auto (%1)</source>
         <comment>Auto select time zone</comment>
         <translation>Tự động (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="352"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="460"/>
         <source>Default (%1)</source>
         <comment>Default time zone</comment>
         <translation>Mặc định (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="354"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="462"/>
         <source>CET</source>
         <translation>CET</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="355"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="463"/>
         <source>CST6CDT</source>
         <translation>CST6CDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="356"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="464"/>
         <source>Cuba</source>
         <translation>Cuba</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="357"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="465"/>
         <source>EET</source>
         <translation>EET</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="358"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="466"/>
         <source>Egypt</source>
         <translation>Ai Cập</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="359"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="467"/>
         <source>Eire</source>
         <translation>Eire</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="360"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="468"/>
         <source>EST</source>
         <translation>EST</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="361"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="469"/>
         <source>EST5EDT</source>
         <translation>EST5EDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="362"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="470"/>
         <source>GB</source>
         <translation>GB</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="363"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="471"/>
         <source>GB-Eire</source>
         <translation>GB-Eire</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="364"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="472"/>
         <source>GMT</source>
         <translation>GMT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="365"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="473"/>
         <source>GMT+0</source>
         <translation>GMT+0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="366"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="474"/>
         <source>GMT-0</source>
         <translation>GMT-0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="367"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="475"/>
         <source>GMT0</source>
         <translation>GMT0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="368"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="476"/>
         <source>Greenwich</source>
         <translation>Greenwich</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="369"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="477"/>
         <source>Hongkong</source>
         <translation>Hồng Kông</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="370"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="478"/>
         <source>HST</source>
         <translation>HST</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="371"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="479"/>
         <source>Iceland</source>
         <translation>Iceland</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="372"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="480"/>
         <source>Iran</source>
         <translation>Iran</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="373"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="481"/>
         <source>Israel</source>
         <translation>Israel</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="374"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="482"/>
         <source>Jamaica</source>
         <translation>Jamaica</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="376"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="484"/>
         <source>Kwajalein</source>
         <translation>Kwajalein</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="377"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="485"/>
         <source>Libya</source>
         <translation>Libya</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="378"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="486"/>
         <source>MET</source>
         <translation>MET</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="379"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="487"/>
         <source>MST</source>
         <translation>MST</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="380"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="488"/>
         <source>MST7MDT</source>
         <translation>MST7MDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="381"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="489"/>
         <source>Navajo</source>
         <translation>Navajo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="382"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="490"/>
         <source>NZ</source>
         <translation>NZ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="383"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="491"/>
         <source>NZ-CHAT</source>
         <translation>NZ-CHAT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="384"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="492"/>
         <source>Poland</source>
         <translation>Ba Lan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="385"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="493"/>
         <source>Portugal</source>
         <translation>Bồ Đào Nha</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="386"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="494"/>
         <source>PRC</source>
         <translation>PRC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="387"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="495"/>
         <source>PST8PDT</source>
         <translation>PST8PDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="388"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="496"/>
         <source>ROC</source>
         <translation>ROC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="389"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="497"/>
         <source>ROK</source>
         <translation>ROK</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="390"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="498"/>
         <source>Singapore</source>
         <translation>Singapore</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="391"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="499"/>
         <source>Turkey</source>
         <translation>Thổ Nhĩ Kỳ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="392"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="500"/>
         <source>UCT</source>
         <translation>UCT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="393"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="501"/>
         <source>Universal</source>
         <translation>Quốc tế</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="394"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="502"/>
         <source>UTC</source>
         <translation>UTC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="395"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="503"/>
         <source>W-SU</source>
         <translation>W-SU</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="396"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="504"/>
         <source>WET</source>
         <translation>WET</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="397"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="505"/>
         <source>Zulu</source>
         <translation>Zulu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="401"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="509"/>
         <source>Mono</source>
         <translation>Mono</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="402"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="510"/>
         <source>Stereo</source>
         <translation>Stereo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="403"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="511"/>
         <source>Surround</source>
         <translation>Surround</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="407"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="515"/>
         <source>4GB DRAM (Default)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="408"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="516"/>
         <source>6GB DRAM (Unsafe)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="409"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="517"/>
         <source>8GB DRAM (Unsafe)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="413"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="521"/>
         <source>Docked</source>
         <translation>Docked</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="414"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="522"/>
         <source>Handheld</source>
         <translation>Handheld</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="419"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="527"/>
         <source>Always ask (Default)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="420"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="528"/>
         <source>Only if game specifies not to stop</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="421"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="529"/>
         <source>Never ask</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>ConfigureApplets</name>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_applets.ui" line="14"/>
+        <source>Form</source>
+        <translation>Mẫu</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_applets.ui" line="17"/>
+        <source>Applets</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_applets.ui" line="25"/>
+        <source>Applet mode preference</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -2036,78 +2358,83 @@ Compute pipelines are always enabled on all other drivers.</source>
         <translation>Một số cài đặt chỉ khả dụng khi game không chạy.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="61"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="167"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="63"/>
+        <source>Applets</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="64"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="172"/>
         <source>Audio</source>
         <translation>Âm thanh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="62"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="165"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="65"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="170"/>
         <source>CPU</source>
         <translation>CPU</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="63"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="66"/>
         <source>Debug</source>
         <translation>Gỡ lỗi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="64"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="67"/>
         <source>Filesystem</source>
         <translation>Hệ thống tập tin</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="65"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="161"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="68"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="165"/>
         <source>General</source>
         <translation>Chung</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="66"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="166"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="69"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="171"/>
         <source>Graphics</source>
         <translation>Đồ hoạ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="67"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="70"/>
         <source>GraphicsAdvanced</source>
         <translation>Đồ họa Nâng cao</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="68"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="71"/>
         <source>Hotkeys</source>
         <translation>Phím tắt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="69"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="168"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="72"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="173"/>
         <source>Controls</source>
         <translation>Điều khiển</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="70"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="73"/>
         <source>Profiles</source>
         <translation>Hồ sơ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="71"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="74"/>
         <source>Network</source>
         <translation>Mạng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="72"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="163"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="75"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="167"/>
         <source>System</source>
         <translation>Hệ thống</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="73"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="76"/>
         <source>Game List</source>
         <translation>Danh sách game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="74"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="77"/>
         <source>Web</source>
         <translation>Web</translation>
     </message>
@@ -2391,75 +2718,75 @@ Compute pipelines are always enabled on all other drivers.</source>
         <translation>Khôi phục mặc định</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="112"/>
         <source>Action</source>
         <translation>Hành động</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="112"/>
         <source>Hotkey</source>
         <translation>Phím tắt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="112"/>
         <source>Controller Hotkey</source>
         <translation>Phím tắt tay cầm</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="144"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="172"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="407"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="152"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="178"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="418"/>
         <source>Conflicting Key Sequence</source>
         <translation>Tổ hợp phím bị xung đột</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="145"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="173"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="153"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="179"/>
         <source>The entered key sequence is already assigned to: %1</source>
         <translation>Tổ hợp phím này đã gán với: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="180"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="191"/>
         <source>[waiting]</source>
         <translation>[chờ]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="257"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="268"/>
         <source>Invalid</source>
         <translation>Không hợp lệ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="329"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="340"/>
         <source>Invalid hotkey settings</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="330"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="341"/>
         <source>An error occurred. Please report this issue on github.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="370"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="381"/>
         <source>Restore Default</source>
         <translation>Khôi phục mặc định</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="371"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="382"/>
         <source>Clear</source>
         <translation>Xóa</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="392"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="403"/>
         <source>Conflicting Button Sequence</source>
         <translation>Tổ hợp nút bị xung đột</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="393"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="404"/>
         <source>The default button sequence is already assigned to: %1</source>
         <translation>Tổ hợp nút mặc định đã được gán cho: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="408"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="419"/>
         <source>The default key sequence is already assigned to: %1</source>
         <translation>Tổ hợp phím này đã gán với: %1</translation>
     </message>
@@ -3785,12 +4112,12 @@ Các giá trị hiện tại lần lượt là %1% và %2%.</translation>
         <translation>Hồ sơ đầu vào</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
         <source>Linux</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
         <source>Properties</source>
         <translation>Thuộc tính</translation>
     </message>
@@ -4515,12 +4842,17 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
         <translation>Chọn đường dẫn cho ảnh chụp màn hình...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="294"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="251"/>
         <source>&lt;System&gt;</source>
         <translation>&lt;System&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="399"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="252"/>
+        <source>English</source>
+        <translation>Tiếng Việt</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="339"/>
         <source>Auto (%1 x %2, %3 x %4)</source>
         <comment>Screenshot width value</comment>
         <translation>Tự động (%1 x %2, %3 x %4)</translation>
@@ -4838,809 +5170,811 @@ Kéo điểm để thay đổi vị trí, hoặc nhấp đúp chuột vào ô tr
 <context>
     <name>GMainWindow</name>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="217"/>
+        <location filename="../../src/yuzu/main.cpp" line="214"/>
         <source>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</source>
         <translation>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Dữ liệu ẩn danh được thu thập&lt;/a&gt;để hỗ trợ cải thiện yuzu. &lt;br/&gt;&lt;br/&gt;Bạn có muốn chia sẽ dữ liệu sử dụng với chúng tôi?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="220"/>
+        <location filename="../../src/yuzu/main.cpp" line="217"/>
         <source>Telemetry</source>
         <translation>Viễn trắc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="453"/>
+        <location filename="../../src/yuzu/main.cpp" line="450"/>
         <source>Broken Vulkan Installation Detected</source>
         <translation>Phát hiện cài đặt Vulkan bị hỏng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="454"/>
+        <location filename="../../src/yuzu/main.cpp" line="451"/>
         <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
         <translation>Khởi tạo Vulkan thất bại trong quá trình khởi động.&lt;br&gt;Nhấp &lt;br&gt;&lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;vào đây để xem hướng dẫn khắc phục vấn đề&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="479"/>
+        <location filename="../../src/yuzu/main.cpp" line="476"/>
         <source>Running a game</source>
         <extracomment>TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the computer from sleeping</extracomment>
         <translation>Đang chạy một game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="871"/>
+        <location filename="../../src/yuzu/main.cpp" line="868"/>
         <source>Loading Web Applet...</source>
         <translation>Đang tải applet web...</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/main.cpp" line="918"/>
         <location filename="../../src/yuzu/main.cpp" line="921"/>
-        <location filename="../../src/yuzu/main.cpp" line="924"/>
         <source>Disable Web Applet</source>
         <translation>Tắt applet web</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="925"/>
+        <location filename="../../src/yuzu/main.cpp" line="922"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
         <translation>Tắt applet web có thể dẫn đến hành vi không xác định và chỉ nên được sử dụng với Super Mario 3D All-Stars. Bạn có chắc chắn muốn tắt applet web không?
 (Có thể được bật lại trong cài đặt Gỡ lỗi.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1041"/>
+        <location filename="../../src/yuzu/main.cpp" line="1038"/>
         <source>The amount of shaders currently being built</source>
         <translation>Số lượng shader đang được dựng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1043"/>
+        <location filename="../../src/yuzu/main.cpp" line="1040"/>
         <source>The current selected resolution scaling multiplier.</source>
         <translation>Bội số tỷ lệ độ phân giải được chọn hiện tại.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1046"/>
+        <location filename="../../src/yuzu/main.cpp" line="1043"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
         <translation>Tốc độ giả lập hiện tại. Giá trị cao hơn hoặc thấp hơn 100% chỉ ra giả lập sẽ chạy nhanh hơn hoặc chậm hơn trên máy Switch.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1049"/>
+        <location filename="../../src/yuzu/main.cpp" line="1046"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
         <translation>Có bao nhiêu khung hình trên mỗi giây mà game đang hiển thị. Điều này sẽ thay đổi giữa các game và các cảnh khác nhau.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1053"/>
+        <location filename="../../src/yuzu/main.cpp" line="1050"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
         <translation>Thời gian mà giả lập lấy từ khung hình Switch, sẽ không kể đến giới hạn khung hình hoặc v-sync. Đối với tốc độ tối đa mà giả lập nhận được nhiều nhất là ở độ khoảng 16.67 ms.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1113"/>
+        <location filename="../../src/yuzu/main.cpp" line="1110"/>
         <source>Unmute</source>
         <translation>Bật tiếng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1113"/>
+        <location filename="../../src/yuzu/main.cpp" line="1110"/>
         <source>Mute</source>
         <translation>Tắt tiếng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1118"/>
+        <location filename="../../src/yuzu/main.cpp" line="1115"/>
         <source>Reset Volume</source>
         <translation>Đặt lại âm lượng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1305"/>
+        <location filename="../../src/yuzu/main.cpp" line="1302"/>
         <source>&amp;Clear Recent Files</source>
         <translation>&amp;Xoá tập tin gần đây</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1637"/>
+        <location filename="../../src/yuzu/main.cpp" line="1646"/>
         <source>&amp;Continue</source>
         <translation>&amp;Tiếp tục</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1639"/>
+        <location filename="../../src/yuzu/main.cpp" line="1648"/>
         <source>&amp;Pause</source>
         <translation>&amp;Tạm dừng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1808"/>
+        <location filename="../../src/yuzu/main.cpp" line="1817"/>
         <source>Warning Outdated Game Format</source>
         <translation>Cảnh báo định dạng game đã lỗi thời</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1809"/>
+        <location filename="../../src/yuzu/main.cpp" line="1818"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
         <translation>Bạn đang sử dụng định dạng thư mục ROM đã giải nén cho game này, một định dạng lỗi thời đã được thay thế bởi những thứ khác như NCA, NAX, XCI, hoặc NSP. Thư mục ROM đã giải nén có thể thiếu các biểu tượng, metadata, và hỗ trợ cập nhật.&lt;br&gt;&lt;br&gt;Để hiểu thêm về các định dạng khác nhau của Switch mà yuzu hỗ trợ, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;vui lòng kiểm tra wiki của chúng tôi&lt;/a&gt;. Thông báo này sẽ không hiển thị lại lần sau.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1821"/>
-        <location filename="../../src/yuzu/main.cpp" line="1855"/>
+        <location filename="../../src/yuzu/main.cpp" line="1830"/>
+        <location filename="../../src/yuzu/main.cpp" line="1864"/>
         <source>Error while loading ROM!</source>
         <translation>Lỗi khi nạp ROM!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1822"/>
+        <location filename="../../src/yuzu/main.cpp" line="1831"/>
         <source>The ROM format is not supported.</source>
         <translation>Định dạng ROM này không được hỗ trợ.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1826"/>
+        <location filename="../../src/yuzu/main.cpp" line="1835"/>
         <source>An error occurred initializing the video core.</source>
         <translation>Đã xảy ra lỗi khi khởi tạo lõi video.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1827"/>
+        <location filename="../../src/yuzu/main.cpp" line="1836"/>
         <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation>yuzu đã gặp lỗi khi chạy lõi video. Điều này thường xảy ra do phiên bản driver GPU đã cũ, bao gồm cả driver tích hợp. Vui lòng xem nhật ký để biết thêm chi tiết. Để biết thêm thông tin về cách truy cập nhật ký, vui lòng xem trang sau: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;Cách tải lên tập tin nhật ký&lt;/a&gt;. </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1842"/>
+        <location filename="../../src/yuzu/main.cpp" line="1851"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>Lỗi khi nạp ROM! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1845"/>
+        <location filename="../../src/yuzu/main.cpp" line="1854"/>
         <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation>%1&lt;br&gt;Vui lòng tuân theo &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;hướng dẫn nhanh của yuzu&lt;/a&gt; để trích xuất lại các tập tin của bạn.&lt;br&gt;Bạn có thể tham khảo yuzu wiki&lt;/a&gt; hoặc yuzu Discord&lt;/a&gt;để được hỗ trợ. </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1856"/>
+        <location filename="../../src/yuzu/main.cpp" line="1865"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>Đã xảy ra lỗi không xác định. Hãy xem nhật ký để biết thêm chi tiết.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2046"/>
+        <location filename="../../src/yuzu/main.cpp" line="2055"/>
         <source>(64-bit)</source>
         <translation>(64-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2046"/>
+        <location filename="../../src/yuzu/main.cpp" line="2055"/>
         <source>(32-bit)</source>
         <translation>(32-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2047"/>
+        <location filename="../../src/yuzu/main.cpp" line="2056"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2117"/>
+        <location filename="../../src/yuzu/main.cpp" line="2126"/>
         <source>Closing software...</source>
         <translation>Đang đóng phần mềm...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2283"/>
+        <location filename="../../src/yuzu/main.cpp" line="2292"/>
         <source>Save Data</source>
         <translation>Dữ liệu save</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2339"/>
+        <location filename="../../src/yuzu/main.cpp" line="2348"/>
         <source>Mod Data</source>
         <translation>Dữ liệu mod</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2352"/>
+        <location filename="../../src/yuzu/main.cpp" line="2361"/>
         <source>Error Opening %1 Folder</source>
         <translation>Lỗi khi mở thư mục %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2353"/>
-        <location filename="../../src/yuzu/main.cpp" line="3116"/>
+        <location filename="../../src/yuzu/main.cpp" line="2362"/>
+        <location filename="../../src/yuzu/main.cpp" line="3127"/>
         <source>Folder does not exist!</source>
         <translation>Thư mục này không tồn tại!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2365"/>
+        <location filename="../../src/yuzu/main.cpp" line="2374"/>
         <source>Error Opening Transferable Shader Cache</source>
         <translation>Lỗi khi mở bộ nhớ đệm shader chuyển được</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2366"/>
+        <location filename="../../src/yuzu/main.cpp" line="2375"/>
         <source>Failed to create the shader cache directory for this title.</source>
         <translation>Thất bại khi tạo thư mục bộ nhớ đệm shader cho title này.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2439"/>
+        <location filename="../../src/yuzu/main.cpp" line="2448"/>
         <source>Error Removing Contents</source>
         <translation>Lỗi khi loại bỏ nội dung</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2441"/>
+        <location filename="../../src/yuzu/main.cpp" line="2450"/>
         <source>Error Removing Update</source>
         <translation>Lỗi khi loại bỏ bản cập nhật</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2443"/>
+        <location filename="../../src/yuzu/main.cpp" line="2452"/>
         <source>Error Removing DLC</source>
         <translation>Lỗi khi loại bỏ DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2452"/>
+        <location filename="../../src/yuzu/main.cpp" line="2461"/>
         <source>Remove Installed Game Contents?</source>
         <translation>Loại bỏ nội dung game đã cài đặt?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2454"/>
+        <location filename="../../src/yuzu/main.cpp" line="2463"/>
         <source>Remove Installed Game Update?</source>
         <translation>Loại bỏ bản cập nhật game đã cài đặt?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2456"/>
+        <location filename="../../src/yuzu/main.cpp" line="2465"/>
         <source>Remove Installed Game DLC?</source>
         <translation>Loại bỏ DLC game đã cài đặt?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2462"/>
+        <location filename="../../src/yuzu/main.cpp" line="2471"/>
         <source>Remove Entry</source>
         <translation>Xoá mục</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2490"/>
-        <location filename="../../src/yuzu/main.cpp" line="2502"/>
-        <location filename="../../src/yuzu/main.cpp" line="2518"/>
-        <location filename="../../src/yuzu/main.cpp" line="2597"/>
-        <location filename="../../src/yuzu/main.cpp" line="2631"/>
-        <location filename="../../src/yuzu/main.cpp" line="2654"/>
+        <location filename="../../src/yuzu/main.cpp" line="2499"/>
+        <location filename="../../src/yuzu/main.cpp" line="2511"/>
+        <location filename="../../src/yuzu/main.cpp" line="2527"/>
+        <location filename="../../src/yuzu/main.cpp" line="2606"/>
+        <location filename="../../src/yuzu/main.cpp" line="2640"/>
+        <location filename="../../src/yuzu/main.cpp" line="2663"/>
         <source>Successfully Removed</source>
         <translation>Loại bỏ thành công</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2491"/>
+        <location filename="../../src/yuzu/main.cpp" line="2500"/>
         <source>Successfully removed the installed base game.</source>
         <translation>Loại bỏ thành công base game đã cài đặt.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2495"/>
+        <location filename="../../src/yuzu/main.cpp" line="2504"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
         <translation>Base game không được cài đặt trong NAND và không thể loại bỏ.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2503"/>
+        <location filename="../../src/yuzu/main.cpp" line="2512"/>
         <source>Successfully removed the installed update.</source>
         <translation>Loại bỏ thành công bản cập nhật đã cài đặt.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2506"/>
+        <location filename="../../src/yuzu/main.cpp" line="2515"/>
         <source>There is no update installed for this title.</source>
         <translation>Không có bản cập nhật nào được cài đặt cho title này.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2514"/>
+        <location filename="../../src/yuzu/main.cpp" line="2523"/>
         <source>There are no DLC installed for this title.</source>
         <translation>Không có DLC nào được cài đặt cho title này.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2519"/>
+        <location filename="../../src/yuzu/main.cpp" line="2528"/>
         <source>Successfully removed %1 installed DLC.</source>
         <translation>Loại bỏ thành công %1 DLC đã cài đặt.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2527"/>
+        <location filename="../../src/yuzu/main.cpp" line="2536"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation>Xoá bộ nhớ đệm shader OpenGL chuyển được?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2529"/>
+        <location filename="../../src/yuzu/main.cpp" line="2538"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation>Xoá bộ nhớ đệm shader Vulkan chuyển được?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2531"/>
+        <location filename="../../src/yuzu/main.cpp" line="2540"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation>Xoá tất cả bộ nhớ đệm shader chuyển được?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2533"/>
+        <location filename="../../src/yuzu/main.cpp" line="2542"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>Loại bỏ cấu hình game tuỳ chỉnh?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2535"/>
+        <location filename="../../src/yuzu/main.cpp" line="2544"/>
         <source>Remove Cache Storage?</source>
         <translation>Loại bỏ bộ nhớ đệm?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2541"/>
+        <location filename="../../src/yuzu/main.cpp" line="2550"/>
         <source>Remove File</source>
         <translation>Loại bỏ tập tin</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2566"/>
+        <location filename="../../src/yuzu/main.cpp" line="2575"/>
         <source>Remove Play Time Data</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2566"/>
+        <location filename="../../src/yuzu/main.cpp" line="2575"/>
         <source>Reset play time?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2592"/>
-        <location filename="../../src/yuzu/main.cpp" line="2600"/>
+        <location filename="../../src/yuzu/main.cpp" line="2601"/>
+        <location filename="../../src/yuzu/main.cpp" line="2609"/>
         <source>Error Removing Transferable Shader Cache</source>
         <translation>Lỗi khi loại bỏ bộ nhớ đệm shader chuyển được</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2593"/>
-        <location filename="../../src/yuzu/main.cpp" line="2627"/>
+        <location filename="../../src/yuzu/main.cpp" line="2602"/>
+        <location filename="../../src/yuzu/main.cpp" line="2636"/>
         <source>A shader cache for this title does not exist.</source>
         <translation>Bộ nhớ đệm shader cho title này không tồn tại.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2598"/>
+        <location filename="../../src/yuzu/main.cpp" line="2607"/>
         <source>Successfully removed the transferable shader cache.</source>
         <translation>Thành công loại bỏ bộ nhớ đệm shader chuyển được.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2601"/>
+        <location filename="../../src/yuzu/main.cpp" line="2610"/>
         <source>Failed to remove the transferable shader cache.</source>
         <translation>Thất bại khi xoá bộ nhớ đệm shader chuyển được.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2616"/>
+        <location filename="../../src/yuzu/main.cpp" line="2625"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
         <translation>Lỗi khi xoá bộ nhớ đệm pipeline Vulkan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2617"/>
+        <location filename="../../src/yuzu/main.cpp" line="2626"/>
         <source>Failed to remove the driver pipeline cache.</source>
         <translation>Thất bại khi xoá bộ nhớ đệm pipeline của driver.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2626"/>
-        <location filename="../../src/yuzu/main.cpp" line="2634"/>
+        <location filename="../../src/yuzu/main.cpp" line="2635"/>
+        <location filename="../../src/yuzu/main.cpp" line="2643"/>
         <source>Error Removing Transferable Shader Caches</source>
         <translation>Lỗi khi loại bỏ bộ nhớ đệm shader chuyển được</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2632"/>
+        <location filename="../../src/yuzu/main.cpp" line="2641"/>
         <source>Successfully removed the transferable shader caches.</source>
         <translation>Thành công loại bỏ tất cả bộ nhớ đệm shader chuyển được.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2635"/>
+        <location filename="../../src/yuzu/main.cpp" line="2644"/>
         <source>Failed to remove the transferable shader cache directory.</source>
         <translation>Thất bại khi loại bỏ thư mục bộ nhớ đệm shader.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2648"/>
         <location filename="../../src/yuzu/main.cpp" line="2657"/>
+        <location filename="../../src/yuzu/main.cpp" line="2666"/>
         <source>Error Removing Custom Configuration</source>
         <translation>Lỗi khi loại bỏ cấu hình tuỳ chỉnh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2649"/>
+        <location filename="../../src/yuzu/main.cpp" line="2658"/>
         <source>A custom configuration for this title does not exist.</source>
         <translation>Cấu hình tuỳ chỉnh cho title này không tồn tại.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2655"/>
+        <location filename="../../src/yuzu/main.cpp" line="2664"/>
         <source>Successfully removed the custom game configuration.</source>
         <translation>Loại bỏ thành công cấu hình game tuỳ chỉnh.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2658"/>
+        <location filename="../../src/yuzu/main.cpp" line="2667"/>
         <source>Failed to remove the custom game configuration.</source>
         <translation>Thất bại khi xoá cấu hình game tuỳ chỉnh.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2680"/>
-        <location filename="../../src/yuzu/main.cpp" line="2764"/>
+        <location filename="../../src/yuzu/main.cpp" line="2689"/>
+        <location filename="../../src/yuzu/main.cpp" line="2773"/>
         <source>RomFS Extraction Failed!</source>
         <translation>Giải nén RomFS không thành công!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2681"/>
+        <location filename="../../src/yuzu/main.cpp" line="2690"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>Đã xảy ra lỗi khi sao chép các tập tin RomFS hoặc người dùng đã hủy bỏ hoạt động này.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2739"/>
+        <location filename="../../src/yuzu/main.cpp" line="2748"/>
         <source>Full</source>
         <translation>Đầy đủ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2739"/>
+        <location filename="../../src/yuzu/main.cpp" line="2748"/>
         <source>Skeleton</source>
         <translation>Khung</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2741"/>
+        <location filename="../../src/yuzu/main.cpp" line="2750"/>
         <source>Select RomFS Dump Mode</source>
         <translation>Chọn chế độ trích xuất RomFS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2742"/>
+        <location filename="../../src/yuzu/main.cpp" line="2751"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation>Vui lòng chọn cách mà bạn muốn RomFS được trích xuất.&lt;br&gt;Chế độ Đầy đủ sẽ sao chép toàn bộ tập tin vào một thư mục mới trong khi &lt;br&gt;chế độ Khung chỉ tạo cấu trúc thư mục.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2765"/>
+        <location filename="../../src/yuzu/main.cpp" line="2774"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation>Không đủ bộ nhớ trống tại %1 để trích xuất RomFS. Hãy giải phóng bộ nhớ hoặc chọn một thư mục trích xuất khác tại Giả lập &gt; Cấu hình &gt; Hệ thống &gt; Hệ thống tập tin &gt; Thư mục trích xuất gốc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2772"/>
+        <location filename="../../src/yuzu/main.cpp" line="2781"/>
         <source>Extracting RomFS...</source>
         <translation>Giải nén RomFS...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2772"/>
-        <location filename="../../src/yuzu/main.cpp" line="2798"/>
-        <location filename="../../src/yuzu/main.cpp" line="3255"/>
-        <location filename="../../src/yuzu/main.cpp" line="4121"/>
+        <location filename="../../src/yuzu/main.cpp" line="2781"/>
+        <location filename="../../src/yuzu/main.cpp" line="2807"/>
+        <location filename="../../src/yuzu/main.cpp" line="3266"/>
+        <location filename="../../src/yuzu/main.cpp" line="4132"/>
+        <location filename="../../src/yuzu/main.cpp" line="4180"/>
         <source>Cancel</source>
         <translation>Hủy bỏ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2782"/>
+        <location filename="../../src/yuzu/main.cpp" line="2791"/>
         <source>RomFS Extraction Succeeded!</source>
         <translation>Giải nén RomFS thành công!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2783"/>
-        <location filename="../../src/yuzu/main.cpp" line="2814"/>
-        <location filename="../../src/yuzu/main.cpp" line="4139"/>
+        <location filename="../../src/yuzu/main.cpp" line="2792"/>
+        <location filename="../../src/yuzu/main.cpp" line="2823"/>
+        <location filename="../../src/yuzu/main.cpp" line="4150"/>
         <source>The operation completed successfully.</source>
         <translation>Các hoạt động đã hoàn tất thành công.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2794"/>
+        <location filename="../../src/yuzu/main.cpp" line="2803"/>
         <source>Integrity verification couldn&apos;t be performed!</source>
         <translation>Không thể thực hiện kiểm tra tính toàn vẹn!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2795"/>
+        <location filename="../../src/yuzu/main.cpp" line="2804"/>
         <source>File contents were not checked for validity.</source>
         <translation>Chưa kiểm tra sự hợp lệ của nội dung tập tin.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2798"/>
-        <location filename="../../src/yuzu/main.cpp" line="4121"/>
+        <location filename="../../src/yuzu/main.cpp" line="2807"/>
+        <location filename="../../src/yuzu/main.cpp" line="4132"/>
         <source>Verifying integrity...</source>
         <translation>Đang kiểm tra tính toàn vẹn...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2813"/>
-        <location filename="../../src/yuzu/main.cpp" line="4138"/>
+        <location filename="../../src/yuzu/main.cpp" line="2822"/>
+        <location filename="../../src/yuzu/main.cpp" line="4149"/>
         <source>Integrity verification succeeded!</source>
         <translation>Kiểm tra tính toàn vẹn thành công!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2817"/>
-        <location filename="../../src/yuzu/main.cpp" line="4144"/>
+        <location filename="../../src/yuzu/main.cpp" line="2826"/>
+        <location filename="../../src/yuzu/main.cpp" line="4155"/>
         <source>Integrity verification failed!</source>
         <translation>Kiểm tra tính toàn vẹn thất bại!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2818"/>
+        <location filename="../../src/yuzu/main.cpp" line="2827"/>
         <source>File contents may be corrupt.</source>
         <translation>Nội dung tập tin có thể bị hỏng.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2950"/>
-        <location filename="../../src/yuzu/main.cpp" line="2954"/>
-        <location filename="../../src/yuzu/main.cpp" line="2960"/>
-        <location filename="../../src/yuzu/main.cpp" line="2967"/>
+        <location filename="../../src/yuzu/main.cpp" line="2961"/>
+        <location filename="../../src/yuzu/main.cpp" line="2965"/>
+        <location filename="../../src/yuzu/main.cpp" line="2971"/>
+        <location filename="../../src/yuzu/main.cpp" line="2978"/>
         <source>Create Shortcut</source>
         <translation>Tạo lối tắt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2951"/>
+        <location filename="../../src/yuzu/main.cpp" line="2962"/>
         <source>Do you want to launch the game in fullscreen?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2955"/>
+        <location filename="../../src/yuzu/main.cpp" line="2966"/>
         <source>Successfully created a shortcut to %1</source>
         <translation>Thành công tạo lối tắt tại %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2961"/>
+        <location filename="../../src/yuzu/main.cpp" line="2972"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
         <translation>Việc này sẽ tạo một lối tắt tới AppImage hiện tại. Điều này có thể không hoạt động tốt nếu bạn cập nhật. Tiếp tục?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2968"/>
+        <location filename="../../src/yuzu/main.cpp" line="2979"/>
         <source>Failed to create a shortcut to %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2986"/>
+        <location filename="../../src/yuzu/main.cpp" line="2997"/>
         <source>Create Icon</source>
         <translation>Tạo biểu tượng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2987"/>
+        <location filename="../../src/yuzu/main.cpp" line="2998"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
         <translation>Không thể tạo tập tin biểu tượng. Đường dẫn &quot;%1&quot; không tồn tại và không thể tạo.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3115"/>
+        <location filename="../../src/yuzu/main.cpp" line="3126"/>
         <source>Error Opening %1</source>
         <translation>Lỗi khi mở %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3124"/>
+        <location filename="../../src/yuzu/main.cpp" line="3135"/>
         <source>Select Directory</source>
         <translation>Chọn thư mục</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3153"/>
+        <location filename="../../src/yuzu/main.cpp" line="3164"/>
         <source>Properties</source>
         <translation>Thuộc tính</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3154"/>
+        <location filename="../../src/yuzu/main.cpp" line="3165"/>
         <source>The game properties could not be loaded.</source>
         <translation>Không thể tải thuộc tính của game.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3171"/>
+        <location filename="../../src/yuzu/main.cpp" line="3182"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
         <translation>Thực thi Switch (%1);;Tất cả tập tin (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3175"/>
+        <location filename="../../src/yuzu/main.cpp" line="3186"/>
         <source>Load File</source>
         <translation>Nạp tập tin</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3188"/>
+        <location filename="../../src/yuzu/main.cpp" line="3199"/>
         <source>Open Extracted ROM Directory</source>
         <translation>Mở thư mục ROM đã giải nén</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3199"/>
+        <location filename="../../src/yuzu/main.cpp" line="3210"/>
         <source>Invalid Directory Selected</source>
         <translation>Danh mục đã chọn không hợp lệ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3200"/>
+        <location filename="../../src/yuzu/main.cpp" line="3211"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
         <translation>Thư mục mà bạn đã chọn không chứa tập tin &apos;main&apos;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3210"/>
+        <location filename="../../src/yuzu/main.cpp" line="3221"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
         <translation>Những tập tin Switch cài được (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3215"/>
+        <location filename="../../src/yuzu/main.cpp" line="3226"/>
         <source>Install Files</source>
         <translation>Cài đặt tập tin</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3262"/>
+        <location filename="../../src/yuzu/main.cpp" line="3273"/>
         <source>%n file(s) remaining</source>
         <translation><numerusform>%n tập tin còn lại</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3264"/>
+        <location filename="../../src/yuzu/main.cpp" line="3275"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>Đang cài đặt tập tin &quot;%1&quot;...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3318"/>
-        <location filename="../../src/yuzu/main.cpp" line="3332"/>
+        <location filename="../../src/yuzu/main.cpp" line="3329"/>
+        <location filename="../../src/yuzu/main.cpp" line="3343"/>
         <source>Install Results</source>
         <translation>Kết quả cài đặt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3319"/>
+        <location filename="../../src/yuzu/main.cpp" line="3330"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation>Để tránh xung đột có thể xảy ra, chúng tôi không khuyến khích người dùng cài đặt base game vào NAND.
 Vui lòng, chỉ sử dụng tính năng này để cài đặt các bản cập nhật và DLC.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3325"/>
+        <location filename="../../src/yuzu/main.cpp" line="3336"/>
         <source>%n file(s) were newly installed
 </source>
         <translation><numerusform>%n tập tin đã được cài đặt mới
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3328"/>
+        <location filename="../../src/yuzu/main.cpp" line="3339"/>
         <source>%n file(s) were overwritten
 </source>
         <translation><numerusform>%n tập tin đã được ghi đè
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3330"/>
+        <location filename="../../src/yuzu/main.cpp" line="3341"/>
         <source>%n file(s) failed to install
 </source>
         <translation><numerusform>%n tập tin thất bại khi cài đặt
 </numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3340"/>
+        <location filename="../../src/yuzu/main.cpp" line="3351"/>
         <source>System Application</source>
         <translation>Ứng dụng hệ thống</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3341"/>
+        <location filename="../../src/yuzu/main.cpp" line="3352"/>
         <source>System Archive</source>
         <translation>Bản lưu trữ của hệ thống</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3342"/>
+        <location filename="../../src/yuzu/main.cpp" line="3353"/>
         <source>System Application Update</source>
         <translation>Cập nhật ứng dụng hệ thống</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3343"/>
+        <location filename="../../src/yuzu/main.cpp" line="3354"/>
         <source>Firmware Package (Type A)</source>
         <translation>Gói firmware (Loại A)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3344"/>
+        <location filename="../../src/yuzu/main.cpp" line="3355"/>
         <source>Firmware Package (Type B)</source>
         <translation>Gói firmware (Loại B)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3345"/>
+        <location filename="../../src/yuzu/main.cpp" line="3356"/>
         <source>Game</source>
         <translation>Game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3346"/>
+        <location filename="../../src/yuzu/main.cpp" line="3357"/>
         <source>Game Update</source>
         <translation>Cập nhật game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3347"/>
+        <location filename="../../src/yuzu/main.cpp" line="3358"/>
         <source>Game DLC</source>
         <translation>DLC game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3348"/>
+        <location filename="../../src/yuzu/main.cpp" line="3359"/>
         <source>Delta Title</source>
         <translation>Title Delta</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3351"/>
+        <location filename="../../src/yuzu/main.cpp" line="3362"/>
         <source>Select NCA Install Type...</source>
         <translation>Chọn cách cài đặt NCA...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3352"/>
+        <location filename="../../src/yuzu/main.cpp" line="3363"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
         <translation>Vui lòng chọn loại title mà bạn muốn cài đặt NCA này:
 (Trong hầu hết trường hợp, chọn mặc định &apos;Game&apos; là tốt nhất.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3358"/>
+        <location filename="../../src/yuzu/main.cpp" line="3369"/>
         <source>Failed to Install</source>
         <translation>Cài đặt thất bại</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3359"/>
+        <location filename="../../src/yuzu/main.cpp" line="3370"/>
         <source>The title type you selected for the NCA is invalid.</source>
         <translation>Loại title mà bạn đã chọn cho NCA không hợp lệ.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3394"/>
+        <location filename="../../src/yuzu/main.cpp" line="3405"/>
         <source>File not found</source>
         <translation>Không tìm thấy tập tin</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3395"/>
+        <location filename="../../src/yuzu/main.cpp" line="3406"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>Không tìm thấy tập tin &quot;%1&quot;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3515"/>
+        <location filename="../../src/yuzu/main.cpp" line="3526"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3541"/>
-        <location filename="../../src/yuzu/main.cpp" line="3560"/>
+        <location filename="../../src/yuzu/main.cpp" line="3552"/>
+        <location filename="../../src/yuzu/main.cpp" line="3571"/>
         <source>Hardware requirements not met</source>
         <translation>Yêu cầu phần cứng không được đáp ứng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3542"/>
-        <location filename="../../src/yuzu/main.cpp" line="3561"/>
+        <location filename="../../src/yuzu/main.cpp" line="3553"/>
+        <location filename="../../src/yuzu/main.cpp" line="3572"/>
         <source>Your system does not meet the recommended hardware requirements. Compatibility reporting has been disabled.</source>
         <translation>Hệ thống của bạn không đáp ứng yêu cầu phần cứng được đề xuất. Báo cáo độ tương thích đã bị vô hiệu hoá.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3553"/>
+        <location filename="../../src/yuzu/main.cpp" line="3564"/>
         <source>Missing yuzu Account</source>
         <translation>Thiếu tài khoản yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3554"/>
+        <location filename="../../src/yuzu/main.cpp" line="3565"/>
         <source>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
         <translation>Để gửi trường hợp thử nghiệm game tương thích, bạn phải liên kết tài khoản yuzu.&lt;br&gt;&lt;br/&gt;Để liên kết tải khoản yuzu của bạn, hãy đến Giả lập &amp;gt; Cấu hình &amp;gt; Web.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3569"/>
+        <location filename="../../src/yuzu/main.cpp" line="3580"/>
         <source>Error opening URL</source>
         <translation>Lỗi khi mở URL</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3570"/>
+        <location filename="../../src/yuzu/main.cpp" line="3581"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>Không thể mở URL &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3880"/>
+        <location filename="../../src/yuzu/main.cpp" line="3891"/>
         <source>TAS Recording</source>
         <translation>Ghi lại TAS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3880"/>
+        <location filename="../../src/yuzu/main.cpp" line="3891"/>
         <source>Overwrite file of player 1?</source>
         <translation>Ghi đè tập tin của người chơi 1?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3899"/>
+        <location filename="../../src/yuzu/main.cpp" line="3910"/>
         <source>Invalid config detected</source>
         <translation>Đã phát hiện cấu hình không hợp lệ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3900"/>
+        <location filename="../../src/yuzu/main.cpp" line="3911"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>Tay cầm handheld không thể được sử dụng trong chế độ docked. Pro Controller sẽ được chọn.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4042"/>
-        <location filename="../../src/yuzu/main.cpp" line="4092"/>
+        <location filename="../../src/yuzu/main.cpp" line="4053"/>
+        <location filename="../../src/yuzu/main.cpp" line="4103"/>
         <source>Amiibo</source>
         <translation>Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4042"/>
-        <location filename="../../src/yuzu/main.cpp" line="4092"/>
+        <location filename="../../src/yuzu/main.cpp" line="4053"/>
+        <location filename="../../src/yuzu/main.cpp" line="4103"/>
         <source>The current amiibo has been removed</source>
         <translation>Amiibo hiện tại đã được loại bỏ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4047"/>
+        <location filename="../../src/yuzu/main.cpp" line="4058"/>
         <source>Error</source>
         <translation>Lỗi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4047"/>
-        <location filename="../../src/yuzu/main.cpp" line="4104"/>
+        <location filename="../../src/yuzu/main.cpp" line="4058"/>
+        <location filename="../../src/yuzu/main.cpp" line="4115"/>
         <source>The current game is not looking for amiibos</source>
         <translation>Game hiện tại không tìm kiếm amiibos</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4053"/>
+        <location filename="../../src/yuzu/main.cpp" line="4064"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>Tập tin Amiibo (%1);; Tất cả tập tin (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4054"/>
+        <location filename="../../src/yuzu/main.cpp" line="4065"/>
         <source>Load Amiibo</source>
         <translation>Nạp Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4088"/>
+        <location filename="../../src/yuzu/main.cpp" line="4099"/>
         <source>Error loading Amiibo data</source>
         <translation>Lỗi khi nạp dữ liệu Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4098"/>
+        <location filename="../../src/yuzu/main.cpp" line="4109"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>Tập tin đã chọn không phải là amiibo hợp lệ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4101"/>
+        <location filename="../../src/yuzu/main.cpp" line="4112"/>
         <source>The selected file is already on use</source>
         <translation>Tập tin đã chọn đã được sử dụng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4107"/>
+        <location filename="../../src/yuzu/main.cpp" line="4118"/>
         <source>An unknown error occurred</source>
         <translation>Đã xảy ra lỗi không xác định</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4145"/>
+        <location filename="../../src/yuzu/main.cpp" line="4156"/>
+        <location filename="../../src/yuzu/main.cpp" line="4289"/>
         <source>Verification failed for the following files:
 
 %1</source>
@@ -5649,225 +5983,315 @@ Vui lòng, chỉ sử dụng tính năng này để cài đặt các bản cập
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4171"/>
-        <location filename="../../src/yuzu/main.cpp" line="4194"/>
+        <location filename="../../src/yuzu/main.cpp" line="4169"/>
+        <source>Keys not installed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4170"/>
+        <source>Install decryption keys and restart yuzu before attempting to install firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4175"/>
+        <source>Select Dumped Firmware Source Location</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4180"/>
+        <source>Installing Firmware...</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/yuzu/main.cpp" line="4218"/>
-        <location filename="../../src/yuzu/main.cpp" line="4241"/>
-        <source>No firmware available</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4172"/>
-        <source>Please install the firmware to use the Album applet.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4178"/>
-        <source>Album Applet</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4179"/>
-        <source>Album applet is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4195"/>
-        <source>Please install the firmware to use the Cabinet applet.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4201"/>
-        <source>Cabinet Applet</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4202"/>
-        <source>Cabinet applet is not available. Please reinstall firmware.</source>
+        <location filename="../../src/yuzu/main.cpp" line="4227"/>
+        <location filename="../../src/yuzu/main.cpp" line="4258"/>
+        <location filename="../../src/yuzu/main.cpp" line="4267"/>
+        <source>Firmware install failed</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4219"/>
+        <source>Unable to locate potential firmware NCA files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4228"/>
+        <source>Failed to delete one or more firmware file.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4259"/>
+        <source>Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4268"/>
+        <source>One or more firmware files failed to copy into NAND.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4288"/>
+        <source>Firmware integrity verification failed!</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4304"/>
+        <source>Select Dumped Keys Location</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4337"/>
+        <location filename="../../src/yuzu/main.cpp" line="4349"/>
+        <location filename="../../src/yuzu/main.cpp" line="4367"/>
+        <source>Decryption Keys install failed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4338"/>
+        <source>prod.keys is a required decryption key file.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4350"/>
+        <source>One or more keys failed to copy.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4363"/>
+        <source>Decryption Keys install succeeded</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4364"/>
+        <source>Decryption Keys were successfully installed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4368"/>
+        <source>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4397"/>
+        <location filename="../../src/yuzu/main.cpp" line="4420"/>
+        <location filename="../../src/yuzu/main.cpp" line="4444"/>
+        <location filename="../../src/yuzu/main.cpp" line="4467"/>
+        <source>No firmware available</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4398"/>
+        <source>Please install the firmware to use the Album applet.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4404"/>
+        <source>Album Applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4405"/>
+        <source>Album applet is not available. Please reinstall firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4421"/>
+        <source>Please install the firmware to use the Cabinet applet.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4427"/>
+        <source>Cabinet Applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4428"/>
+        <source>Cabinet applet is not available. Please reinstall firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4445"/>
         <source>Please install the firmware to use the Mii editor.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4225"/>
+        <location filename="../../src/yuzu/main.cpp" line="4451"/>
         <source>Mii Edit Applet</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4226"/>
+        <location filename="../../src/yuzu/main.cpp" line="4452"/>
         <source>Mii editor is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4242"/>
+        <location filename="../../src/yuzu/main.cpp" line="4468"/>
         <source>Please install the firmware to use the Controller Menu.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4249"/>
+        <location filename="../../src/yuzu/main.cpp" line="4475"/>
         <source>Controller Applet</source>
         <translation>Applet tay cầm</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4250"/>
+        <location filename="../../src/yuzu/main.cpp" line="4476"/>
         <source>Controller Menu is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4284"/>
+        <location filename="../../src/yuzu/main.cpp" line="4510"/>
         <source>Capture Screenshot</source>
         <translation>Chụp ảnh màn hình</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4285"/>
+        <location filename="../../src/yuzu/main.cpp" line="4511"/>
         <source>PNG Image (*.png)</source>
         <translation>Hình ảnh PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4368"/>
+        <location filename="../../src/yuzu/main.cpp" line="4594"/>
         <source>TAS state: Running %1/%2</source>
         <translation>Trạng thái TAS: Đang chạy %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4372"/>
+        <location filename="../../src/yuzu/main.cpp" line="4598"/>
         <source>TAS state: Recording %1</source>
         <translation>Trạng thái TAS: Đang ghi %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4374"/>
+        <location filename="../../src/yuzu/main.cpp" line="4600"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>Trạng thái TAS: Đang chờ %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4378"/>
+        <location filename="../../src/yuzu/main.cpp" line="4604"/>
         <source>TAS State: Invalid</source>
         <translation>Trạng thái TAS: Không hợp lệ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4392"/>
+        <location filename="../../src/yuzu/main.cpp" line="4618"/>
         <source>&amp;Stop Running</source>
         <translation>&amp;Dừng chạy</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4392"/>
+        <location filename="../../src/yuzu/main.cpp" line="4618"/>
         <source>&amp;Start</source>
         <translation>&amp;Bắt đầu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4393"/>
+        <location filename="../../src/yuzu/main.cpp" line="4619"/>
         <source>Stop R&amp;ecording</source>
         <translation>Dừng G&amp;hi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4393"/>
+        <location filename="../../src/yuzu/main.cpp" line="4619"/>
         <source>R&amp;ecord</source>
         <translation>G&amp;hi</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="4417"/>
+        <location filename="../../src/yuzu/main.cpp" line="4643"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>Đang dựng: %n shader</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4426"/>
+        <location filename="../../src/yuzu/main.cpp" line="4652"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>Tỉ lệ thu phóng: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4429"/>
+        <location filename="../../src/yuzu/main.cpp" line="4655"/>
         <source>Speed: %1% / %2%</source>
         <translation>Tốc độ: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4433"/>
+        <location filename="../../src/yuzu/main.cpp" line="4659"/>
         <source>Speed: %1%</source>
         <translation>Tốc độ: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4437"/>
+        <location filename="../../src/yuzu/main.cpp" line="4663"/>
         <source>Game: %1 FPS (Unlocked)</source>
         <translation>Game: %1 FPS (Đã mở khoá)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4440"/>
+        <location filename="../../src/yuzu/main.cpp" line="4666"/>
         <source>Game: %1 FPS</source>
         <translation>Game: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4442"/>
+        <location filename="../../src/yuzu/main.cpp" line="4668"/>
         <source>Frame: %1 ms</source>
         <translation>Khung hình: %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4472"/>
+        <location filename="../../src/yuzu/main.cpp" line="4698"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4482"/>
+        <location filename="../../src/yuzu/main.cpp" line="4708"/>
         <location filename="../../src/yuzu/configuration/shared_translation.h" line="42"/>
         <source>FSR</source>
         <translation>FSR</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4490"/>
+        <location filename="../../src/yuzu/main.cpp" line="4716"/>
         <source>NO AA</source>
         <translation>NO AA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4499"/>
+        <location filename="../../src/yuzu/main.cpp" line="4725"/>
         <source>VOLUME: MUTE</source>
         <translation>ÂM LƯỢNG: TẮT TIẾNG</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4502"/>
+        <location filename="../../src/yuzu/main.cpp" line="4728"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>ÂM LƯỢNG: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4568"/>
+        <location filename="../../src/yuzu/main.cpp" line="4794"/>
         <source>Derivation Components Missing</source>
         <translation>Thiếu các thành phần chuyển hoá</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4569"/>
+        <location filename="../../src/yuzu/main.cpp" line="4795"/>
         <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4661"/>
+        <location filename="../../src/yuzu/main.cpp" line="4887"/>
         <source>Select RomFS Dump Target</source>
         <translation>Chọn thư mục để trích xuất RomFS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4662"/>
+        <location filename="../../src/yuzu/main.cpp" line="4888"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>Vui lòng chọn RomFS mà bạn muốn trích xuất.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4685"/>
+        <location filename="../../src/yuzu/main.cpp" line="4911"/>
         <source>Are you sure you want to close yuzu?</source>
         <translation>Bạn có chắc chắn muốn đóng yuzu?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4686"/>
-        <location filename="../../src/yuzu/main.cpp" line="4766"/>
-        <location filename="../../src/yuzu/main.cpp" line="4778"/>
+        <location filename="../../src/yuzu/main.cpp" line="4912"/>
+        <location filename="../../src/yuzu/main.cpp" line="4992"/>
+        <location filename="../../src/yuzu/main.cpp" line="5004"/>
         <source>yuzu</source>
         <translation>yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4767"/>
+        <location filename="../../src/yuzu/main.cpp" line="4993"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>Bạn có chắc rằng muốn dừng giả lập? Bất kì tiến trình nào chưa được lưu sẽ bị mất.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4775"/>
+        <location filename="../../src/yuzu/main.cpp" line="5001"/>
         <source>The currently running application has requested yuzu to not exit.
 
 Would you like to bypass this and exit anyway?</source>
@@ -6380,18 +6804,11 @@ Tin nhắn gỡ lỗi:</translation>
 <context>
     <name>Hotkeys</name>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="226"/>
+        <location filename="../../src/yuzu/uisettings.h" line="233"/>
         <source>Audio Mute/Unmute</source>
         <translation>Tắt/Bật tiếng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="226"/>
-        <location filename="../../src/yuzu/uisettings.h" line="227"/>
-        <location filename="../../src/yuzu/uisettings.h" line="228"/>
-        <location filename="../../src/yuzu/uisettings.h" line="229"/>
-        <location filename="../../src/yuzu/uisettings.h" line="230"/>
-        <location filename="../../src/yuzu/uisettings.h" line="231"/>
-        <location filename="../../src/yuzu/uisettings.h" line="232"/>
         <location filename="../../src/yuzu/uisettings.h" line="233"/>
         <location filename="../../src/yuzu/uisettings.h" line="234"/>
         <location filename="../../src/yuzu/uisettings.h" line="235"/>
@@ -6408,116 +6825,153 @@ Tin nhắn gỡ lỗi:</translation>
         <location filename="../../src/yuzu/uisettings.h" line="246"/>
         <location filename="../../src/yuzu/uisettings.h" line="247"/>
         <location filename="../../src/yuzu/uisettings.h" line="248"/>
+        <location filename="../../src/yuzu/uisettings.h" line="249"/>
+        <location filename="../../src/yuzu/uisettings.h" line="250"/>
+        <location filename="../../src/yuzu/uisettings.h" line="251"/>
+        <location filename="../../src/yuzu/uisettings.h" line="252"/>
+        <location filename="../../src/yuzu/uisettings.h" line="253"/>
+        <location filename="../../src/yuzu/uisettings.h" line="254"/>
+        <location filename="../../src/yuzu/uisettings.h" line="255"/>
+        <location filename="../../src/yuzu/uisettings.h" line="256"/>
+        <location filename="../../src/yuzu/uisettings.h" line="257"/>
+        <location filename="../../src/yuzu/uisettings.h" line="258"/>
+        <location filename="../../src/yuzu/uisettings.h" line="259"/>
+        <location filename="../../src/yuzu/uisettings.h" line="260"/>
         <source>Main Window</source>
         <translation>Cửa sổ chính</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="227"/>
+        <location filename="../../src/yuzu/uisettings.h" line="234"/>
         <source>Audio Volume Down</source>
         <translation>Giảm âm lượng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="228"/>
+        <location filename="../../src/yuzu/uisettings.h" line="235"/>
         <source>Audio Volume Up</source>
         <translation>Tăng âm lượng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="229"/>
+        <location filename="../../src/yuzu/uisettings.h" line="236"/>
         <source>Capture Screenshot</source>
         <translation>Chụp ảnh màn hình</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="230"/>
+        <location filename="../../src/yuzu/uisettings.h" line="237"/>
         <source>Change Adapting Filter</source>
         <translation>Thay đổi bộ lọc điều chỉnh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="231"/>
+        <location filename="../../src/yuzu/uisettings.h" line="238"/>
         <source>Change Docked Mode</source>
         <translation>Thay đổi chế độ docked</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="232"/>
+        <location filename="../../src/yuzu/uisettings.h" line="239"/>
         <source>Change GPU Accuracy</source>
         <translation>Thay đổi độ chính xác GPU</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="233"/>
+        <location filename="../../src/yuzu/uisettings.h" line="240"/>
         <source>Continue/Pause Emulation</source>
         <translation>Tiếp tục/Tạm dừng giả lập</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="234"/>
+        <location filename="../../src/yuzu/uisettings.h" line="241"/>
         <source>Exit Fullscreen</source>
         <translation>Thoát chế độ toàn màn hình</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="235"/>
+        <location filename="../../src/yuzu/uisettings.h" line="242"/>
         <source>Exit yuzu</source>
         <translation>Thoát yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="236"/>
+        <location filename="../../src/yuzu/uisettings.h" line="243"/>
         <source>Fullscreen</source>
         <translation>Toàn màn hình</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="237"/>
+        <location filename="../../src/yuzu/uisettings.h" line="244"/>
         <source>Load File</source>
         <translation>Nạp tập tin</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="238"/>
+        <location filename="../../src/yuzu/uisettings.h" line="245"/>
         <source>Load/Remove Amiibo</source>
         <translation>Nạp/Loại bỏ Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="239"/>
-        <source>Restart Emulation</source>
-        <translation>Khởi động lại giả lập</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="240"/>
-        <source>Stop Emulation</source>
-        <translation>Dừng giả lập</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="241"/>
-        <source>TAS Record</source>
-        <translation>Ghi lại TAS</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="242"/>
-        <source>TAS Reset</source>
-        <translation>Đặt lại TAS</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="243"/>
-        <source>TAS Start/Stop</source>
-        <translation>Bắt đầu/Dừng TAS</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="244"/>
-        <source>Toggle Filter Bar</source>
-        <translation>Hiện/Ẩn thanh lọc</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="245"/>
-        <source>Toggle Framerate Limit</source>
-        <translation>Bật/Tắt giới hạn tốc độ khung hình</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/uisettings.h" line="246"/>
-        <source>Toggle Mouse Panning</source>
-        <translation>Bật/Tắt lia chuột</translation>
+        <source>Multiplayer Browse Public Game Lobby</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="247"/>
-        <source>Toggle Renderdoc Capture</source>
+        <source>Multiplayer Create Room</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="248"/>
+        <source>Multiplayer Direct Connect to Room</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="249"/>
+        <source>Multiplayer Leave Room</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="250"/>
+        <source>Multiplayer Show Current Room</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="251"/>
+        <source>Restart Emulation</source>
+        <translation>Khởi động lại giả lập</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="252"/>
+        <source>Stop Emulation</source>
+        <translation>Dừng giả lập</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="253"/>
+        <source>TAS Record</source>
+        <translation>Ghi lại TAS</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="254"/>
+        <source>TAS Reset</source>
+        <translation>Đặt lại TAS</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="255"/>
+        <source>TAS Start/Stop</source>
+        <translation>Bắt đầu/Dừng TAS</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="256"/>
+        <source>Toggle Filter Bar</source>
+        <translation>Hiện/Ẩn thanh lọc</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="257"/>
+        <source>Toggle Framerate Limit</source>
+        <translation>Bật/Tắt giới hạn tốc độ khung hình</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="258"/>
+        <source>Toggle Mouse Panning</source>
+        <translation>Bật/Tắt lia chuột</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="259"/>
+        <source>Toggle Renderdoc Capture</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="260"/>
         <source>Toggle Status Bar</source>
         <translation>Hiện/Ẩn thanh trạng thái</translation>
     </message>
@@ -6637,42 +7091,42 @@ Tin nhắn gỡ lỗi:</translation>
         <translation>Làm mới sảnh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="114"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="121"/>
         <source>Password Required to Join</source>
         <translation>Yêu cầu mật khẩu để tham gia</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="114"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="121"/>
         <source>Password:</source>
         <translation>Mật khẩu:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="217"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="228"/>
         <source>Players</source>
         <translation>Người chơi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="218"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="229"/>
         <source>Room Name</source>
         <translation>Tên phòng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="219"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="230"/>
         <source>Preferred Game</source>
         <translation>Game ưa thích</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="220"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="231"/>
         <source>Host</source>
         <translation>Chủ phòng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="227"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="238"/>
         <source>Refreshing</source>
         <translation>Đang làm mới</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="284"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="295"/>
         <source>Refresh List</source>
         <translation>Làm mới danh sách</translation>
     </message>
@@ -6685,288 +7139,298 @@ Tin nhắn gỡ lỗi:</translation>
         <translation>yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="44"/>
+        <location filename="../../src/yuzu/main.ui" line="53"/>
         <source>&amp;File</source>
         <translation>&amp;Tập tin</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="48"/>
+        <location filename="../../src/yuzu/main.ui" line="57"/>
         <source>&amp;Recent Files</source>
         <translation>&amp;Tập tin gần đây</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="66"/>
+        <location filename="../../src/yuzu/main.ui" line="75"/>
         <source>&amp;Emulation</source>
         <translation>&amp;Giả lập</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="77"/>
+        <location filename="../../src/yuzu/main.ui" line="86"/>
         <source>&amp;View</source>
         <translation>&amp;Xem</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="81"/>
+        <location filename="../../src/yuzu/main.ui" line="90"/>
         <source>&amp;Reset Window Size</source>
         <translation>&amp;Đặt lại kích thước cửa sổ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="86"/>
+        <location filename="../../src/yuzu/main.ui" line="95"/>
         <source>&amp;Debugging</source>
         <translation>&amp;Gỡ lỗi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="91"/>
+        <location filename="../../src/yuzu/main.ui" line="100"/>
         <source>Reset Window Size to &amp;720p</source>
         <translation>Đặt lại kích thước cửa sổ về &amp;720p</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="94"/>
+        <location filename="../../src/yuzu/main.ui" line="103"/>
         <source>Reset Window Size to 720p</source>
         <translation>Đặt lại kích thước cửa sổ về 720p</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="99"/>
+        <location filename="../../src/yuzu/main.ui" line="108"/>
         <source>Reset Window Size to &amp;900p</source>
         <translation>Đặt lại kích thước cửa sổ về &amp;900p</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="102"/>
+        <location filename="../../src/yuzu/main.ui" line="111"/>
         <source>Reset Window Size to 900p</source>
         <translation>Đặt lại kích thước cửa sổ về 900p</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="107"/>
+        <location filename="../../src/yuzu/main.ui" line="116"/>
         <source>Reset Window Size to &amp;1080p</source>
         <translation>Đặt lại kích thước cửa sổ về &amp;1080p</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="110"/>
+        <location filename="../../src/yuzu/main.ui" line="119"/>
         <source>Reset Window Size to 1080p</source>
         <translation>Đặt lại kích thước cửa sổ về 1080p</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="127"/>
+        <location filename="../../src/yuzu/main.ui" line="136"/>
         <source>&amp;Multiplayer</source>
         <translation>&amp;Nhiều người chơi</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="138"/>
+        <location filename="../../src/yuzu/main.ui" line="147"/>
         <source>&amp;Tools</source>
         <translation>&amp;Công cụ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="142"/>
+        <location filename="../../src/yuzu/main.ui" line="151"/>
         <source>&amp;Amiibo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="151"/>
+        <location filename="../../src/yuzu/main.ui" line="160"/>
         <source>&amp;TAS</source>
         <translation>&amp;TAS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="172"/>
+        <location filename="../../src/yuzu/main.ui" line="182"/>
         <source>&amp;Help</source>
         <translation>&amp;Trợ giúp</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="193"/>
+        <location filename="../../src/yuzu/main.ui" line="203"/>
         <source>&amp;Install Files to NAND...</source>
         <translation>&amp;Cài đặt tập tin vào NAND...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="198"/>
+        <location filename="../../src/yuzu/main.ui" line="208"/>
         <source>L&amp;oad File...</source>
         <translation>N&amp;ạp tập tin...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="203"/>
+        <location filename="../../src/yuzu/main.ui" line="213"/>
         <source>Load &amp;Folder...</source>
         <translation>Nạp &amp;thư mục...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="208"/>
+        <location filename="../../src/yuzu/main.ui" line="218"/>
         <source>E&amp;xit</source>
         <translation>T&amp;hoát</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="216"/>
+        <location filename="../../src/yuzu/main.ui" line="226"/>
         <source>&amp;Pause</source>
         <translation>&amp;Tạm dừng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="224"/>
+        <location filename="../../src/yuzu/main.ui" line="234"/>
         <source>&amp;Stop</source>
         <translation>&amp;Dừng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="229"/>
+        <location filename="../../src/yuzu/main.ui" line="239"/>
         <source>&amp;Verify Installed Contents</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="234"/>
+        <location filename="../../src/yuzu/main.ui" line="244"/>
         <source>&amp;About yuzu</source>
         <translation>&amp;Thông tin về yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="242"/>
+        <location filename="../../src/yuzu/main.ui" line="252"/>
         <source>Single &amp;Window Mode</source>
         <translation>Chế độ &amp;cửa sổ đơn</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="247"/>
+        <location filename="../../src/yuzu/main.ui" line="257"/>
         <source>Con&amp;figure...</source>
         <translation>Cấu &amp;hình...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="258"/>
+        <location filename="../../src/yuzu/main.ui" line="268"/>
         <source>Display D&amp;ock Widget Headers</source>
         <translation>Hiển thị tiêu đề công cụ D&amp;ock</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="266"/>
+        <location filename="../../src/yuzu/main.ui" line="276"/>
         <source>Show &amp;Filter Bar</source>
         <translation>Hiện thanh &amp;lọc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="274"/>
+        <location filename="../../src/yuzu/main.ui" line="284"/>
         <source>Show &amp;Status Bar</source>
         <translation>Hiện thanh &amp;trạng thái</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="277"/>
+        <location filename="../../src/yuzu/main.ui" line="287"/>
         <source>Show Status Bar</source>
         <translation>Hiện thanh trạng thái</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="285"/>
+        <location filename="../../src/yuzu/main.ui" line="295"/>
         <source>&amp;Browse Public Game Lobby</source>
         <translation>&amp;Duyệt phòng game công khai</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="293"/>
+        <location filename="../../src/yuzu/main.ui" line="303"/>
         <source>&amp;Create Room</source>
         <translation>&amp;Tạo phòng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="301"/>
+        <location filename="../../src/yuzu/main.ui" line="311"/>
         <source>&amp;Leave Room</source>
         <translation>&amp;Rời phòng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="306"/>
+        <location filename="../../src/yuzu/main.ui" line="316"/>
         <source>&amp;Direct Connect to Room</source>
         <translation>&amp;Kết nối trực tiếp tới phòng</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="314"/>
+        <location filename="../../src/yuzu/main.ui" line="324"/>
         <source>&amp;Show Current Room</source>
         <translation>&amp;Hiện phòng hiện tại</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="322"/>
+        <location filename="../../src/yuzu/main.ui" line="332"/>
         <source>F&amp;ullscreen</source>
         <translation>T&amp;oàn màn hình</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="330"/>
+        <location filename="../../src/yuzu/main.ui" line="340"/>
         <source>&amp;Restart</source>
         <translation>&amp;Khởi động lại</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="338"/>
+        <location filename="../../src/yuzu/main.ui" line="348"/>
         <source>Load/Remove &amp;Amiibo...</source>
         <translation>Nạp/Loại bỏ &amp;Amiibo...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="346"/>
+        <location filename="../../src/yuzu/main.ui" line="356"/>
         <source>&amp;Report Compatibility</source>
         <translation>&amp;Báo cáo  độ tương thích</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="354"/>
+        <location filename="../../src/yuzu/main.ui" line="364"/>
         <source>Open &amp;Mods Page</source>
         <translation>Mở trang &amp;mods</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="359"/>
+        <location filename="../../src/yuzu/main.ui" line="369"/>
         <source>Open &amp;Quickstart Guide</source>
         <translation>Mở &amp;Hướng dẫn nhanh</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="364"/>
+        <location filename="../../src/yuzu/main.ui" line="374"/>
         <source>&amp;FAQ</source>
         <translation>&amp;FAQ</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="369"/>
+        <location filename="../../src/yuzu/main.ui" line="379"/>
         <source>Open &amp;yuzu Folder</source>
         <translation>Mở thư mục &amp;yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="377"/>
+        <location filename="../../src/yuzu/main.ui" line="387"/>
         <source>&amp;Capture Screenshot</source>
         <translation>&amp;Chụp ảnh màn hình</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="382"/>
+        <location filename="../../src/yuzu/main.ui" line="392"/>
         <source>Open &amp;Album</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="387"/>
+        <location filename="../../src/yuzu/main.ui" line="397"/>
         <source>&amp;Set Nickname and Owner</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="392"/>
+        <location filename="../../src/yuzu/main.ui" line="402"/>
         <source>&amp;Delete Game Data</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="397"/>
+        <location filename="../../src/yuzu/main.ui" line="407"/>
         <source>&amp;Restore Amiibo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="402"/>
+        <location filename="../../src/yuzu/main.ui" line="412"/>
         <source>&amp;Format Amiibo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="407"/>
+        <location filename="../../src/yuzu/main.ui" line="417"/>
         <source>Open &amp;Mii Editor</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="412"/>
+        <location filename="../../src/yuzu/main.ui" line="422"/>
         <source>&amp;Configure TAS...</source>
         <translation>&amp;Cấu hình TAS...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="423"/>
+        <location filename="../../src/yuzu/main.ui" line="433"/>
         <source>Configure C&amp;urrent Game...</source>
         <translation>Cấu hình game h&amp;iện tại...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="434"/>
+        <location filename="../../src/yuzu/main.ui" line="444"/>
         <source>&amp;Start</source>
         <translation>&amp;Bắt đầu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="442"/>
+        <location filename="../../src/yuzu/main.ui" line="452"/>
         <source>&amp;Reset</source>
         <translation>&amp;Đặt lại</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="450"/>
+        <location filename="../../src/yuzu/main.ui" line="460"/>
         <source>R&amp;ecord</source>
         <translation>G&amp;hi lại</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="455"/>
+        <location filename="../../src/yuzu/main.ui" line="465"/>
         <source>Open &amp;Controller Menu</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="470"/>
+        <source>Install Firmware</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="475"/>
+        <source>Install Decryption Keys</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -7258,12 +7722,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="236"/>
+        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="260"/>
         <source>%1 is not playing a game</source>
         <translation>%1 hiện không chơi game</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="238"/>
+        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="262"/>
         <source>%1 is playing %2</source>
         <translation>%1 đang chơi %2</translation>
     </message>
