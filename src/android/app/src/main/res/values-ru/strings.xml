@@ -140,6 +140,11 @@
         <item quantity="other">Импортировано %d сохранений</item>
     </plurals>
     <string name="no_save_data_found">Не найдены сохраненмия</string>
+    <string name="verify_installed_content">Подтвердить установленный контент</string>
+    <string name="verify_installed_content_description">Проверяет весь установленный контент на наличие повреждений</string>
+    <string name="keys_missing">Отсутствуют ключи шифрования</string>
+    <string name="keys_missing_description">Прошивка и розничные игры не могут быть расшифрованы</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Запуск апплета</string>
@@ -206,6 +211,7 @@
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
+    <string name="device_name">Название устройства</string>
     <string name="use_docked_mode">Режим док-станции</string>
     <string name="use_docked_mode_description">Увеличивает разрешение, снижая производительность. Портативный режим используется при отключении, снижая разрешение и повышая производительность.</string>
     <string name="emulated_region">Регион консоли</string>
@@ -223,6 +229,8 @@
     <string name="renderer_screen_layout">Ориентация</string>
     <string name="renderer_aspect_ratio">Соотношение сторон</string>
     <string name="renderer_scaling_filter">Фильтр адаптации окна</string>
+    <string name="fsr_sharpness">Резкость FSR</string>
+    <string name="fsr_sharpness_description">Определяет, насколько чётким будет изображение при использовании динамического контраста FSR.</string>
     <string name="renderer_anti_aliasing">Метод сглаживания</string>
     <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
     <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
@@ -249,6 +257,92 @@
     <string name="audio_output_engine">Движок вывода</string>
     <string name="audio_volume">Громкость</string>
     <string name="audio_volume_description">Задает громкость аудиовыхода.</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Кнопки</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Плюс</string>
+    <string name="button_minus">Минус</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Захват</string>
+    <string name="start_pause">Старт / Пауза</string>
+    <string name="dpad">Крестовина</string>
+    <string name="up">Вверх</string>
+    <string name="down">Вниз</string>
+    <string name="left">Влево</string>
+    <string name="right">Вправо</string>
+    <string name="left_stick">Левый стик</string>
+    <string name="control_stick">Стик управления</string>
+    <string name="right_stick">Правый стик</string>
+    <string name="c_stick">C-Джойстик</string>
+    <string name="pressed">Нажатие</string>
+    <string name="range">Диапазон</string>
+    <string name="deadzone">Мертвая зона</string>
+    <string name="modifier">Модификатор</string>
+    <string name="modifier_range">Диапазон модификатора</string>
+    <string name="triggers">Триггеры</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">Левый SL</string>
+    <string name="button_sr_left">Левый SR</string>
+    <string name="button_sl_right">Правый SL</string>
+    <string name="button_sr_right">Правый SR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Недопустимо</string>
+    <string name="not_set">Не установлено</string>
+    <string name="unknown">Неизвестно</string>
+    <string name="qualified_hat">%1$s%2$s%3$sКрест%4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sОсь%4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sКнопка %4$s</string>
+    <string name="qualified_axis">Ось %1$s%2$s</string>
+    <string name="unused">Не используется</string>
+    <string name="input_prompt">Переместите или нажмите</string>
+    <string name="unsupported_input">Неподдерживаемый тип ввода</string>
+    <string name="input_mapping_filter">Фильтр маппинга ввода</string>
+    <string name="input_mapping_filter_description">Выберите устройство для фильтрации маппинга</string>
+    <string name="auto_map">Авто-маппинг контроллера</string>
+    <string name="auto_map_description">Выберите устройство для автоматического маппинга</string>
+    <string name="attempted_auto_map">Попытка автоматического маппинга %1$s</string>
+    <string name="controller_type">Тип контроллера</string>
+    <string name="pro_controller">Контроллер Pro</string>
+    <string name="handheld">Портативный</string>
+    <string name="dual_joycons">Двойные Joy-Сon\'ы</string>
+    <string name="left_joycon">Левый Joy-Сon</string>
+    <string name="right_joycon">Правый Joy-Сon</string>
+    <string name="gamecube_controller">Контроллер GameCube</string>
+    <string name="invert_axis">Инвертировать оси</string>
+    <string name="invert_button">Инвертировать кнопку</string>
+    <string name="toggle_button">Переключить кнопку</string>
+    <string name="turbo_button">Турбо кнопка</string>
+    <string name="set_threshold">Установить порог</string>
+    <string name="toggle_axis">Переключить оси</string>
+    <string name="connected">Подключено</string>
+    <string name="use_system_vibrator">Использовать системное вибро</string>
+    <string name="input_overlay">Оверлей ввода</string>
+    <string name="vibration">Вибрация</string>
+    <string name="vibration_strength">Сила вибрации</string>
+    <string name="profile">Профиль</string>
+    <string name="create_new_profile">Создать новый профиль</string>
+    <string name="enter_profile_name">Введите имя профиля</string>
+    <string name="profile_name_already_exists">Имя профиля уже существует</string>
+    <string name="invalid_profile_name">Неверное имя профиля</string>
+    <string name="use_global_input_configuration">Использовать глобальную настройку управления</string>
+    <string name="player_num_profile">Профиль игрока %d</string>
+    <string name="delete_input_profile">Удалить профиль управления</string>
+    <string name="delete_input_profile_description">Вы уверены, что хотите удалить этот профиль? Это необратимо.</string>
+    <string name="stick_map_description">Переместите стик влево, а затем вверх или нажмите</string>
+    <string name="button_map_description">Нажмите кнопку или переместите триггер/стик.</string>
+    <string name="map_dpad_direction">Назначить на D-Pad %1$s</string>
+    <string name="map_control">Назначить на %1$s</string>
+    <string name="failed_to_load_profile">Не удалось загрузить профиль</string>
+    <string name="failed_to_save_profile">Не удалось сохранить профиль</string>
+    <string name="reset_mapping">Сбросить маппинги</string>
+    <string name="reset_mapping_description">Вы уверены, что хотите сбросить все маппинги для этого контроллера на значения по умолчанию? Это действие нельзя отменить.</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">По умолчанию</string>
@@ -284,6 +378,14 @@
     <string name="custom">Другое</string>
     <string name="notice">Уведомление</string>
     <string name="import_complete">Импорт завершен</string>
+    <string name="more_options">Больше настроек</string>
+    <string name="use_global_setting">Исп. глобальные настройки</string>
+    <string name="operation_completed_successfully">Операция выполнена успешно</string>
+    <string name="retry">Повторить</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="load">Загрузить</string>
+    <string name="save">Сохранить</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Выбрать драйвер ГП</string>
     <string name="select_gpu_driver_title">Хотите заменить текущий драйвер ГП?</string>
@@ -304,6 +406,9 @@
     <string name="preferences_graphics_description">Уровень точности, разрешение, кэш шейдеров</string>
     <string name="preferences_audio">Аудио</string>
     <string name="preferences_audio_description">Движок вывода, громкость</string>
+    <string name="preferences_controls">Управление</string>
+    <string name="preferences_controls_description">Маппинг контроллера</string>
+    <string name="preferences_player">Игрок %d</string>
     <string name="preferences_theme">Тема и цвет</string>
     <string name="preferences_debug">Отладка</string>
     <string name="preferences_debug_description">Отладка ЦП/ГП, графический API, fastmem</string>
@@ -345,6 +450,17 @@
     <string name="verifying_content">Проверка содержимого...</string>
     <string name="content_install_notice">Уведомление об установке контента</string>
     <string name="content_install_notice_description">Содержимое, которое вы выбрали, не соответствует этой игре.\nУстановить все равно?</string>
+    <string name="confirm_uninstall">Подтверждение удаления</string>
+    <string name="confirm_uninstall_description">Вы уверены, что хотите удалить это дополнение?</string>
+    <string name="verify_integrity">Проверить целостность</string>
+    <string name="verifying">Проверка...</string>
+    <string name="verify_success">Проверка целостности прошла успешно!</string>
+    <string name="verify_failure">Проверка целостности не удалась!</string>
+    <string name="verify_failure_description">Файл может быть поврежден</string>
+    <string name="verify_no_result">Проверка целостности не может быть выполнена</string>
+    <string name="verify_no_result_description">Файл не проверялся на корректность</string>
+    <string name="verification_failed_for">Проверка не удалась для следующих файлов:\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Следуйте инструкциям, чтобы пере-дампить игровые картриджи <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\"> или <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\"> установленные игры</a>.]]></string>
@@ -358,6 +474,7 @@
     <string name="emulation_exit">Выход из эмуляции</string>
     <string name="emulation_done">Готово</string>
     <string name="emulation_fps_counter">Счётчик FPS</string>
+    <string name="emulation_thermal_indicator">Индикатор температуры</string>
     <string name="emulation_toggle_controls">Переключение управления</string>
     <string name="emulation_rel_stick_center">Относительный центр стика</string>
     <string name="emulation_dpad_slide">Слайд крестовиной</string>
@@ -373,6 +490,8 @@
     <string name="emulation_unpause">Возобновить эмуляцию</string>
     <string name="emulation_input_overlay">Настройка оверлея</string>
     <string name="touchscreen">Сенсорный экран</string>
+    <string name="lock_drawer">Заморозить док</string>
+    <string name="unlock_drawer">Разморозить док</string>
 
     <string name="load_settings">Загрузка настроек...</string>
 
@@ -516,6 +635,12 @@
     <string name="play">Играть</string>
     <string name="mute">Выключить звук</string>
     <string name="unmute">Включить звук</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Вертикальное выравнивание</string>
+    <string name="top">Верх</string>
+    <string name="center">Центр</string>
+    <string name="bottom">Низ</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Лицензии</string>

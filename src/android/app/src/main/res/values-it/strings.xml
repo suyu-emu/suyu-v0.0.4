@@ -31,6 +31,7 @@
     <string name="empty_gamelist">Non sono stati trovati file o non è stata ancora selezionata alcuna directory di gioco.</string>
     <string name="search_and_filter_games">Cerca e filtra i giochi</string>
     <string name="select_games_folder">Seleziona la cartella dei giochi</string>
+    <string name="manage_game_folders">Gestisci le cartelle dei giochi</string>
     <string name="select_games_folder_description">Consente a yuzu di popolare l\'elenco dei giochi</string>
     <string name="add_games_warning">Saltare la selezione della cartella dei giochi?</string>
     <string name="add_games_warning_description">I giochi non saranno mostrati nella lista dei giochi se una cartella non è selezionata.</string>
@@ -83,7 +84,11 @@
     <string name="notification_no_directory_link_description">Per favore individua la cartella dell\'utente manualmente con il pannello laterale del file manager.</string>
     <string name="manage_save_data">Gestisci i salvataggi</string>
     <string name="manage_save_data_description">Salvataggio non trovato. Seleziona un\'opzione di seguito.</string>
+    <string name="import_save_warning">Importa dei salvataggi</string>
+    <string name="import_save_warning_description">ATTENZIONE: Tutti i salvataggi già presenti sul dispositivo verranno SOSTITUITI dai nuovi. Sicuro di voler continuare?</string>
     <string name="import_export_saves_description">Importa o esporta i salvataggi</string>
+    <string name="save_files_importing">Importazione dei salvataggi...</string>
+    <string name="save_files_exporting">Esportazione dei salvataggi..</string>
     <string name="save_file_imported_success">Importato con successo</string>
     <string name="save_file_invalid_zip_structure">La struttura della cartella dei salvataggi è invalida</string>
     <string name="save_file_invalid_zip_structure_description">La prima sotto cartella <b>deve</b> chiamarsi come l\'ID del titolo del gioco.</string>
@@ -116,6 +121,16 @@
     <string name="manage_yuzu_data_description">Importa/Esporta il firmware, le keys, i dati utente, e altro!</string>
     <string name="share_save_file">Condividi i tuoi dati di salvataggio</string>
     <string name="export_save_failed">Errore durante l\'esportazione del salvataggio</string>
+    <string name="game_folders">Cartelle di gioco</string>
+    <string name="deep_scan">Scansione Sotto-Cartelle</string>
+    <string name="add_game_folder">Aggiungi Cartella di gioco</string>
+    <string name="folder_already_added">Questa cartella è già presente nell\'elenco.</string>
+    <string name="game_folder_properties">Proprietà della cartella di Gioco</string>
+    <string name="no_save_data_found">Nessun salvataggio trovato</string>
+    <string name="verify_installed_content">Verifica i contenuti installati</string>
+    <string name="verify_installed_content_description">Verifica l\'integrità di tutti i contenuti installati.</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+
     <!-- Applet launcher strings -->
     <string name="applets">Avvia applet</string>
     <string name="applets_description">Avvia applet di sistema usando il firmware installato</string>
@@ -176,10 +191,10 @@
     <string name="frame_limit_enable_description">Limita la velocità dell\'emulazione a una specifica percentuale della velocità normale.</string>
     <string name="frame_limit_slider">Limite velocità percentuale</string>
     <string name="frame_limit_slider_description">Specifica la percentuale per limitare la velocità di emulazione. 100% è la velocità normale. Valori maggiori o minori aumenteranno o diminuiranno il limite di velocità</string>
+    <string name="cpu_backend">Backend CPU</string>
     <string name="cpu_accuracy">Accuratezza della CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
-    <!-- System settings strings -->
     <string name="use_docked_mode">Modalità Docked</string>
     <string name="use_docked_mode_description">Aumenta la risoluzione, diminuendo le performance. La modalità portatile è usata quando disabilitato, diminuendo la risoluzione e aumentando le performance.</string>
     <string name="emulated_region">Regione emulata</string>
@@ -206,6 +221,9 @@
     <string name="renderer_reactive_flushing_description">Migliora l\'accuratezza della grafica in alcuni giochi, al costo delle performance.</string>
     <string name="use_disk_shader_cache">Usa la cache delle shader</string>
     <string name="use_disk_shader_cache_description">Riduce lo stuttering caricando le shader già compilate all\'avvio.</string>
+    <string name="anisotropic_filtering">Filtro Anisotropico</string>
+    <string name="anisotropic_filtering_description">Migliora la qualità delle texture quando vengono visualizzate ad un angolo obliquo.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="cpu_debug_mode">Debug della CPU</string>
@@ -221,6 +239,49 @@
     <string name="audio_volume">Volume</string>
     <string name="audio_volume_description">Specifica il volume dell\'audio in uscita.</string>
 
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Più</string>
+    <string name="button_minus">Meno</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Cattura</string>
+    <string name="dpad">D-Pad</string>
+    <string name="up">Su</string>
+    <string name="down">Giù</string>
+    <string name="left">Sinistra</string>
+    <string name="right">Destra</string>
+    <string name="left_stick">Analogico sinistro</string>
+    <string name="right_stick">Analogico destro</string>
+    <string name="c_stick">Levetta C</string>
+    <string name="pressed">Premuto</string>
+    <string name="range">Raggio</string>
+    <string name="deadzone">Zona morta</string>
+    <string name="modifier">Modificatore</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Non valido</string>
+    <string name="unknown">Sconosciuto</string>
+    <string name="pro_controller">Pro Controller</string>
+    <string name="handheld">Portatile</string>
+    <string name="dual_joycons">Due Joycon</string>
+    <string name="left_joycon">Joycon sinistro</string>
+    <string name="right_joycon">Joycon destro</string>
+    <string name="gamecube_controller">Controller GameCube</string>
+    <string name="invert_axis">Inverti asse</string>
+    <string name="invert_button">Inverti pulsante</string>
+    <string name="toggle_button">Premi il pulsante</string>
+    <string name="turbo_button">Modalità Turbo</string>
+    <string name="set_threshold">Imposta soglia</string>
+    <string name="toggle_axis">Cancella asse</string>
+    <string name="connected">Connesso</string>
+    <string name="vibration">Vibrazione</string>
+    <string name="profile">Profilo</string>
+    <string name="use_global_input_configuration">Usa la configurazione di input globale</string>
     <!-- Miscellaneous -->
     <string name="slider_default">Predefinito</string>
     <string name="ini_saved">Impostazioni salvate</string>
@@ -231,6 +292,7 @@
     <string name="shutting_down">Spegnimento...</string>
     <string name="reset_setting_confirmation">Vuoi ripristinare queste impostazioni al loro valore originale?</string>
     <string name="reset_to_default">Riportare alle impostazioni originali</string>
+    <string name="reset_to_default_description">Reimposta tutte le impostazione avanzate</string>
     <string name="reset_all_settings">Resettare tutte le impostazioni?</string>
     <string name="reset_all_settings_description">Le impostazione avanzate verranno completamente reimpostate. Questa operazione è IRREVERSIBILE.</string>
     <string name="settings_reset">Reimposta le impostazioni</string>
@@ -246,9 +308,19 @@
     <string name="cancelling">Cancellazione</string>
     <string name="install">Installa</string>
     <string name="delete">Elimina</string>
+    <string name="edit">Modifica</string>
+    <string name="export_success">Esportazione completata</string>
     <string name="start">Start</string>
     <string name="clear">Cancella</string>
+    <string name="global">Globale</string>
     <string name="custom">Personalizzato</string>
+    <string name="notice">Avviso</string>
+    <string name="import_complete">Importazione completata</string>
+    <string name="more_options">Più opzioni</string>
+    <string name="use_global_setting">Usa l\'impostazione globale</string>
+    <string name="operation_completed_successfully">Operazione completata con successo</string>
+    <string name="save">Salva</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Seleziona il driver della GPU</string>
     <string name="select_gpu_driver_title">Vuoi sostituire il driver della tua GPU attuale?</string>
@@ -264,16 +336,32 @@
     <string name="preferences_settings">Impostazioni</string>
     <string name="preferences_general">Generali</string>
     <string name="preferences_system">Sistema</string>
+    <string name="preferences_system_description">Modalità Fissa, Regione, Lingua</string>
     <string name="preferences_graphics">Grafica</string>
+    <string name="preferences_graphics_description">Livello di Accuratezza, Risoluzione, Shader Cache</string>
     <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Motore di Output audio e volume</string>
+    <string name="preferences_controls">Comandi</string>
     <string name="preferences_theme">Tema e colori</string>
     <string name="preferences_debug">Debug</string>
+    <string name="preferences_debug_description">Debugging CPU/GPU, API grafiche, fastmem</string>
+
     <!-- Game properties -->
     <string name="info">Info</string>
+    <string name="info_description">ID Programma, Sviluppatore, Versione</string>
+    <string name="per_game_settings_description">Modifica le impostazioni solo per questo gioco</string>
+    <string name="launch_options">Avvia configurazione</string>
     <string name="path">Percorso</string>
+    <string name="program_id">Id Programma</string>
     <string name="developer">Sviluppatore</string>
     <string name="version">Versione</string>
     <string name="add_ons">Add-on</string>
+    <string name="clear_shader_cache">Rimuove la cache delle Shader</string>
+    <string name="clear_shader_cache_description">Cancella  tutte le shader compilate su questo gioco fino ad ora</string>
+    <string name="save_data_description">Gestisci i salvataggi di questo gioco</string>
+    <string name="verify_success">Verifica dell\'integrità completata con successo!</string>
+    <string name="verify_failure">Verifica dell\'integrità fallita!</string>
+    <string name="verify_no_result_description">L\'integrità dei contenuti non è stata validata</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">La tua ROM è criptata</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Segui la nostra guida per fare il <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">dump delle tue cartucce di gioco</a>oppure <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">dei titoli già installati</a>.]]></string>
@@ -302,7 +390,6 @@
     <string name="emulation_unpause">Riprendi l\'emulazione</string>
     <string name="emulation_input_overlay">Opzioni overlay</string>
     <string name="touchscreen">Touchscreen</string>
-
     <string name="load_settings">Carico le impostazioni...</string>
 
     <!-- Software keyboard -->
@@ -316,7 +403,7 @@
     <string name="system_archive_general">Un archivio di sistema</string>
     <string name="save_load_error">Errore di salvataggio/caricamento</string>
     <string name="fatal_error">Errore Fatale</string>
-    <string name="fatal_error_message">Un errore fatale è accaduto. Controlla i log per i dettagli.\nContinuare ad emulare potrebbe portare bug o causare crash.</string>
+    <string name="fatal_error_message">Errore Fatale. Controlla i log per i dettagli.\nContinuare l\'emulazione potrebbe portare a glitch grafici o causare crash.</string>
     <string name="performance_warning">Disattivare questa impostazione può ridurre significativamente le performance di emulazione! Per una migliore esperienza, è consigliato lasciare questa impostazione attivata.</string>
     <string name="device_memory_inadequate">RAM Totale:%1$s\nRaccomandati: %2$s</string>
     <string name="memory_formatted">%1$s%2$s</string>

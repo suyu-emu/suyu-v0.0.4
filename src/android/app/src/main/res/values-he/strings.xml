@@ -84,7 +84,10 @@
     <string name="notification_no_directory_link_description">בבקשה מקם את תיקיית המשתמש בפנל הצידי של מנהל הקבצים באופן ידני.</string>
     <string name="manage_save_data">נהל  מידע שמור</string>
     <string name="manage_save_data_description">מידע שמור לא נמצא. בבקשה בחר/י אופציה מלמטה</string>
+    <string name="import_save_warning">ייבוא נתוני שמירה</string>
+    <string name="import_save_warning_description">פעולה זו תמחק את כל הנתונים הקיימים ותחליף אותם בקובץ שסופק.האם אתה בטוח שברצונך להמשיך?</string>
     <string name="import_export_saves_description">יבא או יצא קבצי שמירה</string>
+    <string name="save_files_importing">מייבא  קבצי שמירה...</string>
     <string name="save_files_exporting">מייצא קבצי שמירה...</string>
     <string name="save_file_imported_success">יובא בהצלחה</string>
     <string name="save_file_invalid_zip_structure">מבנה ספריית השמירות לא חוקי</string>
@@ -123,6 +126,8 @@
     <string name="add_game_folder">הוסף תיקיית משחקים</string>
     <string name="folder_already_added">התיקייה הזו נוספה כבר!</string>
     <string name="game_folder_properties">מאפייני תיקיית משחקים</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+
     <!-- Applet launcher strings -->
     <string name="applets">משגר Applet</string>
     <string name="applets_description">מערכת שיגור Applet משתמשת בתוכנה המותקנת</string>
@@ -187,7 +192,6 @@
     <string name="cpu_accuracy">דיוק המעבד</string>
     <string name="value_with_units">%1$s%2$s</string>
 
-    <!-- System settings strings -->
     <string name="use_docked_mode">מצב עגינה</string>
     <string name="use_docked_mode_description">מעלה את הרזולוציה, פוגע בביצועים. משתמש במצב נייד כאשר מנוטרל, מפחית את הרזולוציה ומעלה את הביצועים.</string>
     <string name="emulated_region">אזור אמולציה</string>
@@ -229,6 +233,33 @@
     <string name="audio_volume">עוצמת שמע</string>
     <string name="audio_volume_description">מציין את עוצמת האודיו שיוצא.</string>
 
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">פלוס</string>
+    <string name="button_minus">מינוס</string>
+    <string name="button_home">בית</string>
+    <string name="up">למעלה</string>
+    <string name="down">למטה</string>
+    <string name="left">שמאל</string>
+    <string name="right">ימין</string>
+    <string name="left_stick">ג׳ויסטיק שמאלי</string>
+    <string name="right_stick">ג׳ויסטיק ימני</string>
+    <string name="pressed">לחוץ</string>
+    <string name="range">טווח</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">לא חוקי</string>
+    <string name="unknown">לא ידוע</string>
+    <string name="handheld">מצב נייד</string>
+    <string name="connected">מחובר</string>
+    <string name="vibration">רטט</string>
+    <string name="profile">פרופיל</string>
+    <string name="use_global_input_configuration">השתמש בהגדרת קלט גלובלי</string>
     <!-- Miscellaneous -->
     <string name="slider_default">ברירת מחדל</string>
     <string name="ini_saved">הגדרות שמורות</string>
@@ -259,6 +290,8 @@
     <string name="export_success">יוצא בהצלחה</string>
     <string name="start">התחלה</string>
     <string name="clear">נקה</string>
+    <string name="save">שמור</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">בחר דרייבר  למעבד הגרפי</string>
     <string name="select_gpu_driver_title">אתה מעוניין להחליף את הדרייבר של המעבד הגרפי שלך?</string>
@@ -289,6 +322,7 @@
     <string name="developer">מפתח</string>
     <string name="version">גרסה</string>
     <string name="add_ons">תוספים</string>
+    <string name="verify_success">אימות  התקינות הצליח!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">המשחק שלך מוצפן</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[אנא עקוב אחרי המדריכים כדי לבצע redump של <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">כרטיסי המשחק</a>או <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">הכותרות המותקנות</a> שלך.]]></string>
@@ -317,7 +351,6 @@
     <string name="emulation_unpause">המשך אמולציה</string>
     <string name="emulation_input_overlay">אופציות עבור שכבת-על</string>
     <string name="touchscreen">מסך מגע</string>
-
     <string name="load_settings">טוען הגדרות...</string>
 
     <!-- Software keyboard -->

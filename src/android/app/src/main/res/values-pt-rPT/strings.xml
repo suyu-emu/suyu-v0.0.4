@@ -137,6 +137,11 @@
         <item quantity="other">Dados salvos de %d importados com sucesso</item>
     </plurals>
     <string name="no_save_data_found">Dados salvos não encontrados</string>
+    <string name="verify_installed_content">Verificar conteúdo instalado</string>
+    <string name="verify_installed_content_description">Verifica todo o conteúdo instalado em busca de dados corrompidos</string>
+    <string name="keys_missing">Faltando chaves de encriptação</string>
+    <string name="keys_missing_description">O firmware e jogos comerciais não poderão ser decriptados</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Launcher de miniaplicativos</string>
@@ -203,6 +208,7 @@
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
+    <string name="device_name">Nome do Dispositivo</string>
     <string name="use_docked_mode">Modo Ancorado</string>
     <string name="use_docked_mode_description">Aumenta a resolução, diminuindo o desempenho. O Modo Portátil é utilizado quando estiver desabilitado, diminuindo a resolução e melhorando o desempenho.</string>
     <string name="emulated_region">Região da emulação</string>
@@ -220,6 +226,8 @@
     <string name="renderer_screen_layout">Oriantação</string>
     <string name="renderer_aspect_ratio">Proporção da tela</string>
     <string name="renderer_scaling_filter">Filtro de Adaptação da Janela</string>
+    <string name="fsr_sharpness">Nitidez do FSR</string>
+    <string name="fsr_sharpness_description">Determina a nitidez da imagem ao usar contraste dinâmico do FSR</string>
     <string name="renderer_anti_aliasing">Método de Anti-Serrilhado</string>
     <string name="renderer_force_max_clock">Força velocidade máxima (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Força o GPU a correr à velocidade máxima (restrições térmicas serão aplicadas)</string>
@@ -246,6 +254,93 @@
     <string name="audio_output_engine">Motor de saída</string>
     <string name="audio_volume">Volume</string>
     <string name="audio_volume_description">Especifica o volume de saída.</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Botões</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Mais</string>
+    <string name="button_minus">Menos</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Capturar</string>
+    <string name="start_pause">Start/Pause</string>
+    <string name="dpad">D-Pad</string>
+    <string name="up">Cima</string>
+    <string name="down">Baixo</string>
+    <string name="left">Esquerda</string>
+    <string name="right">Direita</string>
+    <string name="left_stick">Analógico esquerdo</string>
+    <string name="control_stick">Alavanca de controle</string>
+    <string name="right_stick">Analógico direito</string>
+    <string name="c_stick">C-Stick</string>
+    <string name="pressed">Premido</string>
+    <string name="range">Alcance</string>
+    <string name="deadzone">Zona morta</string>
+    <string name="modifier">Modificador</string>
+    <string name="modifier_range">Alcance do modificador</string>
+    <string name="triggers">Gatilhos</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">SL Esquerdo</string>
+    <string name="button_sr_left">SR Esquerdo</string>
+    <string name="button_sl_right">SL Direito</string>
+    <string name="button_sr_right">SR Direito</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Inválido</string>
+    <string name="not_set">Indefinido</string>
+    <string name="unknown">Desconhecido</string>
+    <string name="qualified_hat">%1$s%2$s%3$sHat %4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sEixo %4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sBotão %4$s</string>
+    <string name="qualified_axis">Eixo %1$s%2$s</string>
+    <string name="unused">Não usado</string>
+    <string name="input_prompt">Mova ou aperte um botão</string>
+    <string name="unsupported_input">Tipo de entrada não suportada</string>
+    <string name="input_mapping_filter">Filtro de mapeamento de entrada</string>
+    <string name="input_mapping_filter_description">Selecione um dispositivo para filtrar o mapeamento dos controles</string>
+    <string name="auto_map">Mapear controle automaticamente</string>
+    <string name="auto_map_description">Selecione um controle para iniciar
+uma tentativa de mapeamento automático</string>
+    <string name="attempted_auto_map">Tentativa de mapeamento automático de %1$s concluída</string>
+    <string name="controller_type">Tipo de controle</string>
+    <string name="pro_controller">Comando Pro</string>
+    <string name="handheld">Portátil</string>
+    <string name="dual_joycons">Par de Joycons</string>
+    <string name="left_joycon">Joycon Esquerdo</string>
+    <string name="right_joycon">Joycon Direito</string>
+    <string name="gamecube_controller">Controlador de depuração</string>
+    <string name="invert_axis">Inverter eixo</string>
+    <string name="invert_button">Inverter botão</string>
+    <string name="toggle_button">Alternar pressionamento do botão</string>
+    <string name="turbo_button">Botão Turbo</string>
+    <string name="set_threshold">Definir limite</string>
+    <string name="toggle_axis">Alternar eixos</string>
+    <string name="connected">Conectado</string>
+    <string name="use_system_vibrator">Usar vibração deste aparelho</string>
+    <string name="input_overlay">Overlay do controle</string>
+    <string name="vibration">Vibração</string>
+    <string name="vibration_strength">Intensidade da vibração</string>
+    <string name="profile">Perfil</string>
+    <string name="create_new_profile">Criar novo perfil</string>
+    <string name="enter_profile_name">Insira o nome do perfil</string>
+    <string name="profile_name_already_exists">O nome do perfil já existe</string>
+    <string name="invalid_profile_name">Nome de perfil inválido</string>
+    <string name="use_global_input_configuration">Usar configuração global de controles</string>
+    <string name="player_num_profile">Perfil do Jogador %d</string>
+    <string name="delete_input_profile">Deletar perfil de controle</string>
+    <string name="delete_input_profile_description">Tem certeza que quer deletar esse perfil? Ele não poderá ser recuperado.</string>
+    <string name="stick_map_description">Mova uma alavanca pra esquerda e depois pra cima ou aperte um botão</string>
+    <string name="button_map_description">Aperte um botão ou mova um gatilho/alavanca</string>
+    <string name="map_dpad_direction">Mapear Direcional para %1$s</string>
+    <string name="map_control">Mapear botão %1$s</string>
+    <string name="failed_to_load_profile">Falha ao carregar perfil</string>
+    <string name="failed_to_save_profile">Falha ao salvar perfil</string>
+    <string name="reset_mapping">Redefinir mapeamento</string>
+    <string name="reset_mapping_description">Você tem certeza que quer redefinir todos os mapeamentos deste controle para os padrões? Iso não pode ser desfeito.</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">Padrão</string>
@@ -281,6 +376,14 @@
     <string name="custom">Personalizado</string>
     <string name="notice">Aviso</string>
     <string name="import_complete">Importação concluída</string>
+    <string name="more_options">Mais opções</string>
+    <string name="use_global_setting">Usar configuração global</string>
+    <string name="operation_completed_successfully">A operação foi concluída com sucesso</string>
+    <string name="retry">Reiniciar</string>
+    <string name="confirm">Confirmar</string>
+    <string name="load">Carregar</string>
+    <string name="save">Guardar</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Seleciona a driver para o GPU</string>
     <string name="select_gpu_driver_title">Queres substituir o driver do GPU atual? </string>
@@ -301,6 +404,9 @@
     <string name="preferences_graphics_description">Nível de precisão, resolução, cache de shader</string>
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Engine de reprodução, volume</string>
+    <string name="preferences_controls">Controlos</string>
+    <string name="preferences_controls_description">Mapear entradas do controle</string>
+    <string name="preferences_player">Jogador %d</string>
     <string name="preferences_theme">Cor e tema.</string>
     <string name="preferences_debug">Depurar</string>
     <string name="preferences_debug_description">Depuração de CPU/GPU, API gráfica, fastmem</string>
@@ -342,6 +448,17 @@
     <string name="verifying_content">Verificando conteúdo</string>
     <string name="content_install_notice">Aviso sobre conteúdo adicional</string>
     <string name="content_install_notice_description">O conteúdo que você selecionou não corresponde a este jogo.\nInstalar mesmo assim?</string>
+    <string name="confirm_uninstall">Confirmar desinstalação</string>
+    <string name="confirm_uninstall_description">Tem certeza de que quer desinstalar esse adicional?</string>
+    <string name="verify_integrity">Verificar integridade</string>
+    <string name="verifying">Verificando...</string>
+    <string name="verify_success">Verificação de integridade concluída!</string>
+    <string name="verify_failure">Houve uma falha na verificação de integridade!</string>
+    <string name="verify_failure_description">Conteúdos do arquivo podem estar corrompidos</string>
+    <string name="verify_no_result">A verificação de integridade não pôde ser executada</string>
+    <string name="verify_no_result_description">Os conteúdos do arquivo não foram verificados se são válidos</string>
+    <string name="verification_failed_for">A verificação falhou para os seguintes arquivos:\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">A tua ROM está encriptada</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Por favor, siga os guias para despejar novamente o seu <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">cartucho de jogo</a> or <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">títulos instalados</a>.]]></string>
@@ -355,6 +472,7 @@
     <string name="emulation_exit">Parar emulação</string>
     <string name="emulation_done">Feito</string>
     <string name="emulation_fps_counter">Contador de FPS</string>
+    <string name="emulation_thermal_indicator">Indicador de temperatura</string>
     <string name="emulation_toggle_controls">Alterar controles</string>
     <string name="emulation_rel_stick_center">Centro Relativo de Analógico</string>
     <string name="emulation_dpad_slide">Deslizamento dos Botões Direcionais</string>
@@ -370,6 +488,8 @@
     <string name="emulation_unpause">Despausar emulação</string>
     <string name="emulation_input_overlay">Opções de overlay</string>
     <string name="touchscreen">Ecrã Táctil</string>
+    <string name="lock_drawer">Bloquear submenu</string>
+    <string name="unlock_drawer">Desbloquear submenu</string>
 
     <string name="load_settings">Carregando configurações...</string>
 
@@ -513,6 +633,12 @@
     <string name="play">Correr</string>
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Alinhamento vertical</string>
+    <string name="top">Em cima</string>
+    <string name="center">Centralizado</string>
+    <string name="bottom">Embaixo</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenças</string>

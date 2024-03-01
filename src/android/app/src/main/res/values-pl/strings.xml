@@ -95,6 +95,8 @@
     <string name="install_game_content">Zainstaluj zawartość gry</string>
     <string name="install_game_content_description">Zainstaluj aktualizację gry lub dodatek DLC</string>
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>
     <string name="copied_to_clipboard">Skopiowano do schowka</string>
@@ -128,7 +130,6 @@
     <string name="frame_limit_slider">Procentowy limit szybkości emulacji</string>
     <string name="frame_limit_slider_description">Określa limit szybkości emulacji gier. Domyślna wartość 100% oznacza normalną szybkość z jaką działa gra. Wartości niższe lub wyższe zmniejszą lub zwiększą limit szybkości.</string>
     <string name="cpu_accuracy">Dokładność procesora CPU</string>
-    <!-- System settings strings -->
     <string name="use_docked_mode">Tryb zadokowany</string>
     <string name="use_docked_mode_description">Zwiększa rozdzielczość kosztem wydajności. Kiedy wyłączone, używany jest tryb Handheld, który obniża rozdzielczość i dzięki temu zwiększa wydajność.</string>
     <string name="emulated_region">Region emulacji</string>
@@ -162,6 +163,48 @@
     <string name="audio_volume">Głośność</string>
     <string name="audio_volume_description">Ustala poziom głośności wyjścia dźwięku.</string>
 
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Plus</string>
+    <string name="button_minus">Minus</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Zrzut ekranu</string>
+    <string name="dpad">D-Pad</string>
+    <string name="up">Góra</string>
+    <string name="down">Dół</string>
+    <string name="left">Lewo</string>
+    <string name="right">Prawo</string>
+    <string name="left_stick">Lewa gałka</string>
+    <string name="right_stick">Prawa gałka</string>
+    <string name="c_stick">C-gałka</string>
+    <string name="pressed">Naciśnięty</string>
+    <string name="range">Zasięg</string>
+    <string name="modifier">Modyfikator</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Nieprawidłowe</string>
+    <string name="unknown">Nieznany</string>
+    <string name="pro_controller">Pro kontroler</string>
+    <string name="handheld">Przenośnie</string>
+    <string name="dual_joycons">Para Joyconów</string>
+    <string name="left_joycon">Lewy Joycon</string>
+    <string name="right_joycon">Prawy Joycon</string>
+    <string name="gamecube_controller">Kontroler GameCube</string>
+    <string name="invert_axis">Odwróć oś</string>
+    <string name="invert_button">Odwróć przycisk</string>
+    <string name="toggle_button">Przycisk Toggle</string>
+    <string name="turbo_button">Przycisk TURBO</string>
+    <string name="set_threshold">Ustaw próg</string>
+    <string name="toggle_axis">Przełącz oś</string>
+    <string name="connected">Połączono</string>
+    <string name="vibration">Wibracje</string>
+    <string name="profile">Profil</string>
+    <string name="use_global_input_configuration">Użyj globalnej konfiguracji wejściowej</string>
     <!-- Miscellaneous -->
     <string name="slider_default">Domyślne</string>
     <string name="ini_saved">Ustawienia zapisane</string>
@@ -184,6 +227,8 @@
     <string name="start">Start</string>
     <string name="clear">Wyczyść</string>
     <string name="custom">Losowy</string>
+    <string name="save">Zapisz</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Wybierz sterownik GPU </string>
     <string name="select_gpu_driver_title">Chcesz zastąpić obecny sterownik układu graficznego?</string>
@@ -199,6 +244,7 @@
     <string name="preferences_system">System</string>
     <string name="preferences_graphics">Grafika</string>
     <string name="preferences_audio">Dźwięk</string>
+    <string name="preferences_controls">Sterowanie</string>
     <string name="preferences_theme">Motyw i kolor</string>
     <string name="preferences_debug">Debug</string>
     <!-- Game properties -->
@@ -234,7 +280,6 @@
     <string name="emulation_unpause">Wznów emulację</string>
     <string name="emulation_input_overlay">Opcje nakładki</string>
     <string name="touchscreen">Ekran dotykowy</string>
-
     <string name="load_settings">Wczytuję ustawienia...</string>
 
     <!-- Software keyboard -->
