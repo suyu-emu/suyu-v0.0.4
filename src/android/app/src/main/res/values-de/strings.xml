@@ -84,7 +84,7 @@
     <string name="manage_save_data">Speicherdaten verwalten</string>
     <string name="manage_save_data_description">Speicherdaten gefunden. Bitte wähle unten eine Option aus.</string>
     <string name="import_save_warning">Speicherdaten importieren</string>
-    <string name="import_save_warning_description">Das überschreibt alle existierenden Speicherdaten für dieses Spiel mit der ausgewählten Datei. 
+    <string name="import_save_warning_description">Das überschreibt alle existierenden Speicherdaten für dieses Spiel mit der ausgewählten Datei.
 Wirklich fortfahren?</string>
     <string name="import_export_saves_description">Speicherdaten importieren oder exportieren</string>
     <string name="save_files_importing">Importiere Speicherdaten...</string>
@@ -156,7 +156,7 @@ Wirklich fortfahren?</string>
     <string name="frame_limit_slider_description">Gibt die prozentuale Geschwindigkeit der Emulation an. 100% sind normal. Werte darüber oder drunter werden die Geschwindigkeit entsprechend verändern.</string>
     <string name="cpu_accuracy">CPU-Genauigkeit</string>
     <string name="use_docked_mode">Gedockter Modus</string>
-    <string name="use_docked_mode_description">Der Gedockte-Modus erhöht die Auflösung, verringert aber die Leistung. 
+    <string name="use_docked_mode_description">Der Gedockte-Modus erhöht die Auflösung, verringert aber die Leistung.
 Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die Leistung.</string>
     <string name="emulated_region">Emulierte Region</string>
     <string name="emulated_language">Emulierte Sprache</string>
@@ -304,7 +304,7 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="save_data_description">Importiert oder exportiert Speicherdaten für dieses Spiel</string>
     <string name="delete_save_data">Speicherdaten löschen</string>
     <string name="delete_save_data_description">Löscht alle Speicherdaten für dieses Spiel</string>
-    <string name="delete_save_data_warning_description">Das löscht unwiederbringlich alle Speicherdaten für dieses Spiel. 
+    <string name="delete_save_data_warning_description">Das löscht unwiederbringlich alle Speicherdaten für dieses Spiel.
 Wirklich fortfahren?</string>
     <string name="save_data_deleted_successfully">Speicherdaten erfolgreich gelöscht</string>
     <string name="select_content_type">Inhaltstyp</string>
