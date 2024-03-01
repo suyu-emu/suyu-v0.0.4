@@ -5302,7 +5302,7 @@ Da usare solo con Super Mario 3D All-Stars. Sei sicuro di voler procedere?
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1836"/>
         <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
-        <translation>yuzu ha riscontrato un problema durante l&apos;avvio del core video. Di solito questo errore è causato da driver GPU obsoleti, compresi quelli integrati. 
+        <translation>yuzu ha riscontrato un problema durante l&apos;avvio del core video. Di solito questo errore è causato da driver GPU obsoleti, compresi quelli integrati.
 Consulta il log per maggiori dettagli. Se hai bisogno di aiuto per accedere ai log, consulta questa pagina (in inglese): &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;Come caricare i file di log&lt;/a&gt;.</translation>
     </message>
     <message>
@@ -5991,7 +5991,7 @@ Configurazione &amp;gt; Web.</translation>
         <source>Verification failed for the following files:
 
 %1</source>
-        <translation>La verifica sui seguenti file è fallita: 
+        <translation>La verifica sui seguenti file è fallita:
 
 %1</translation>
     </message>

@@ -942,7 +942,7 @@ Pipelines de computação estão sempre habilitadas em todos os outros drivers.<
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="229"/>
         <source>Controls the seed of the random number generator.
 Mainly used for speedrunning purposes.</source>
-        <translation>Controla a semente do gerador de números aleatórios. 
+        <translation>Controla a semente do gerador de números aleatórios.
 Usado principalmente para propósitos de speedrunning.</translation>
     </message>
     <message>
@@ -6030,7 +6030,7 @@ Por favor, use esse recurso apenas para instalar atualizações e DLCs.</transla
         <source>Verification failed for the following files:
 
 %1</source>
-        <translation>Houve uma falha na verificação dos seguintes arquivos: 
+        <translation>Houve uma falha na verificação dos seguintes arquivos:
 
 %1</translation>
     </message>

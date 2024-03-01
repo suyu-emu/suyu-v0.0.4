@@ -1884,7 +1884,7 @@ When a guest attempts to open the controller applet, it is immediately closed.</
            </source>
         <translation>
 &lt;div style=&quot;white-space: nowrap&quot;&gt;Den här optimeringen ökar hastigheten för minnesaccess av gästporgrammet.&lt;/div&gt;
-&lt;div style=&quot;white-space: nowrap&quot;&gt;Om på inlinar det access till PageTable::pointers till 
+&lt;div style=&quot;white-space: nowrap&quot;&gt;Om på inlinar det access till PageTable::pointers till
 avgjord kod.&lt;/div&gt;
 &lt;div style=&quot;white-space: nowrap&quot;&gt;Om av tvingas all minnesaccsess att gå genom Memory::Read/Memory::Write funktioner.&lt;/div&gt;
 </translation>

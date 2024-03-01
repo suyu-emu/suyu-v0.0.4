@@ -770,7 +770,7 @@ Mailbox can have lower latency than FIFO and does not tear but may drop frames.
 Immediate (no synchronization) just presents whatever is available and can exhibit tearing.</source>
         <translation>FIFO (수직동기화)는 프레임이 떨어지거나 티어링 현상이 나타나지 않지만 화면 재생률에 의해 제한됩니다.
 FIFO 릴랙스드는 FIFO와 유사하지만 속도가 느려진 후 복구할 때 끊김 현상이 발생할 수 있습니다.
-메일박스는 FIFO보다 지연 시간이 짧고 티어링이 발생하지 않지만 프레임이 떨어질 수 있습니다. 
+메일박스는 FIFO보다 지연 시간이 짧고 티어링이 발생하지 않지만 프레임이 떨어질 수 있습니다.
 즉시 (동기화 없음)는 사용 가능한 모든 것을 표시하며 티어링이 나타날 수 있습니다.</translation>
     </message>
     <message>

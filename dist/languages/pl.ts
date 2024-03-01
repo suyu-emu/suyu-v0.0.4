@@ -2019,7 +2019,7 @@ Gdy ta opcja jest włączona, niedopasowanie jest uruchamiane tylko wtedy, gdy d
            </source>
         <translation>
         &lt;div style=&quot;white-space: nowrap&quot;&gt;Ta optymalizacja przyspiesza wyłączny dostęp do pamięci przez program gościa.
-         &lt;div style=&quot;white-space: nowrap&quot;&gt;  Włączenie tej opcji powoduje, że wyłączne odczyty/zapisy pamięci gościa są wykonywane bezpośrednio w pamięci i korzystają z MMU hosta .&lt;/div&gt; 
+         &lt;div style=&quot;white-space: nowrap&quot;&gt;  Włączenie tej opcji powoduje, że wyłączne odczyty/zapisy pamięci gościa są wykonywane bezpośrednio w pamięci i korzystają z MMU hosta .&lt;/div&gt;
           &lt;div style=&quot;white-space: nowrap&quot;&gt;Wyłączenie tej opcji wymusza, aby wszystkie wyłączne dostępy do pamięci korzystały z programowej emulacji MMU.&lt;/div&gt;
 </translation>
     </message>
@@ -5580,7 +5580,7 @@ Przeciągnij punkty, aby zmienić pozycję, lub kliknij dwukrotnie komórki tabe
     <message>
         <location filename="../../src/yuzu/main.cpp" line="2774"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
-        <translation>Nie ma wystarczająco miejsca w %1 aby wyodrębnić RomFS. 
+        <translation>Nie ma wystarczająco miejsca w %1 aby wyodrębnić RomFS.
 Zwolnij trochę miejsca, albo zmień ścieżkę zrzutu RomFs w Emulacja&gt; Konfiguruj&gt; System&gt; System Plików&gt; Źródło Zrzutu</translation>
     </message>
     <message>
