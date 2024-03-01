@@ -374,1068 +374,1390 @@ This would ban both their forum username and their IP address.</source>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="30"/>
-        <source>Output Engine:</source>
-        <translation>출력 엔진:</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="31"/>
-        <source>Output Device:</source>
-        <translation>출력 장치:</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="32"/>
-        <source>Input Device:</source>
-        <translation>입력 장치:</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="33"/>
-        <source>Mute audio</source>
+        <source>Amiibo editor</source>
         <translation type="unfinished"/>
     </message>
     <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="31"/>
+        <source>Controller configuration</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="32"/>
+        <source>Data erase</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="33"/>
+        <source>Error</source>
+        <translation>오류</translation>
+    </message>
+    <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="34"/>
-        <source>Volume:</source>
-        <translation>볼륨:</translation>
+        <source>Net connect</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="35"/>
+        <source>Player select</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="36"/>
-        <source>Mute audio when in background</source>
-        <translation>백그라운드에서 오디오 음소거</translation>
+        <source>Software keyboard</source>
+        <translation>소프트웨어 키보드</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="37"/>
+        <source>Mii Edit</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="38"/>
+        <source>Online web</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="39"/>
+        <source>Shop</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="40"/>
-        <source>Multicore CPU Emulation</source>
-        <translation>멀티 코어 CPU 에뮬레이션</translation>
+        <source>Photo viewer</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="41"/>
-        <source>Memory Layout</source>
+        <source>Offline web</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="42"/>
+        <source>Login share</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="43"/>
-        <source>Limit Speed Percent</source>
-        <translation>속도 퍼센트 제한</translation>
+        <source>Wifi web auth</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="46"/>
-        <source>Accuracy:</source>
-        <translation>정확도:</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="44"/>
+        <source>My page</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="47"/>
-        <source>Backend:</source>
+        <source>Output Engine:</source>
+        <translation>출력 엔진:</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="48"/>
+        <source>Output Device:</source>
+        <translation>출력 장치:</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="49"/>
+        <source>Input Device:</source>
+        <translation>입력 장치:</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="50"/>
+        <source>Mute audio</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="54"/>
-        <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
-        <translation>FMA 분리 (FMA를 지원하지 않는 CPU에서의 성능을 향상시킵니다)</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="51"/>
+        <source>Volume:</source>
+        <translation>볼륨:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="55"/>
-        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
-        <translation type="unfinished"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="53"/>
+        <source>Mute audio when in background</source>
+        <translation>백그라운드에서 오디오 음소거</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="58"/>
-        <source>Faster FRSQRTE and FRECPE</source>
-        <translation>더 빠른 FRSQRTE와 FRECPE</translation>
+        <source>Multicore CPU Emulation</source>
+        <translation>멀티 코어 CPU 에뮬레이션</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="59"/>
-        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
+        <source>This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.
+This is mainly a debug option and shouldn’t be disabled.</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="62"/>
-        <source>Faster ASIMD instructions (32 bits only)</source>
-        <translation>더 빠른 ASIMD 명령어(32비트 전용)</translation>
+        <source>Memory Layout</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="63"/>
-        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
+        <source>Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the developer kit's 8/6GB.
+It’s doesn’t improve stability or performance and is intended to let big texture mods fit in emulated RAM.
+Enabling it will increase memory use. It is not recommended to enable unless a specific game with a texture mod needs it.</source>
         <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="65"/>
-        <source>Inaccurate NaN handling</source>
-        <translation>부정확한 NaN 처리</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="66"/>
-        <source>This option improves speed by removing NaN checking. Please note this also reduces accuracy of certain floating-point instructions.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="68"/>
-        <source>Disable address space checks</source>
-        <translation>주소 공간 검사 비활성화</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="69"/>
-        <source>This option improves speed by eliminating a safety check before every memory read/write in guest. Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
+        <source>Limit Speed Percent</source>
+        <translation>속도 퍼센트 제한</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="70"/>
+        <source>Controls the game's maximum rendering speed, but it’s up to each game if it runs faster or not.
+200% for a 30 FPS game is 60 FPS, and for a 60 FPS game it will be 120 FPS.
+Disabling it means unlocking the framerate to the maximum your PC can reach.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="73"/>
-        <source>Ignore global monitor</source>
-        <translation>글로벌 모니터 무시</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="76"/>
+        <source>Accuracy:</source>
+        <translation>정확도:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="74"/>
-        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions. Please note this may result in deadlocks and other race conditions.</source>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="77"/>
+        <source>This setting controls the accuracy of the emulated CPU.
+Don&apos;t change this unless you know what you are doing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="79"/>
+        <source>Backend:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="86"/>
+        <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
+        <translation>FMA 분리 (FMA를 지원하지 않는 CPU에서의 성능을 향상시킵니다)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="87"/>
+        <source>This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="90"/>
+        <source>Faster FRSQRTE and FRECPE</source>
+        <translation>더 빠른 FRSQRTE와 FRECPE</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="91"/>
+        <source>This option improves the speed of some approximate floating-point functions by using less accurate native approximations.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="94"/>
+        <source>Faster ASIMD instructions (32 bits only)</source>
+        <translation>더 빠른 ASIMD 명령어(32비트 전용)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="95"/>
+        <source>This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="97"/>
+        <source>Inaccurate NaN handling</source>
+        <translation>부정확한 NaN 처리</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="98"/>
+        <source>This option improves speed by removing NaN checking.
+Please note this also reduces accuracy of certain floating-point instructions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="100"/>
+        <source>Disable address space checks</source>
+        <translation>주소 공간 검사 비활성화</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="101"/>
+        <source>This option improves speed by eliminating a safety check before every memory read/write in guest.
+Disabling it may allow a game to read/write the emulator&apos;s memory.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="105"/>
+        <source>Ignore global monitor</source>
+        <translation>글로벌 모니터 무시</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="106"/>
+        <source>This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions.
+Please note this may result in deadlocks and other race conditions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="112"/>
         <source>API:</source>
         <translation>API:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="80"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="113"/>
+        <source>Switches between the available graphics APIs.
+Vulkan is recommended in most cases.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="114"/>
         <source>Device:</source>
         <translation>장치:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="81"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="115"/>
+        <source>This setting selects the GPU to use with the Vulkan backend.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="116"/>
         <source>Shader Backend:</source>
         <translation>셰이더 백엔드:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="117"/>
+        <source>The shader backend to use for the OpenGL renderer.
+GLSL is the fastest in performance and the best in rendering accuracy.
+GLASM is a deprecated NVIDIA-only backend that offers much better shader building performance at the cost of FPS and rendering accuracy.
+SPIR-V compiles the fastest, but yields poor results on most GPU drivers.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="122"/>
         <source>Resolution:</source>
         <translation>해상도:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="83"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="123"/>
+        <source>Forces the game to render at a different resolution.
+Higher resolutions require much more VRAM and bandwidth.
+Options lower than 1X can cause rendering issues.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="126"/>
         <source>Window Adapting Filter:</source>
         <translation>윈도우 적응형 필터:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="84"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="127"/>
         <source>FSR Sharpness:</source>
         <translation>FSR 선명도:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="85"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="128"/>
+        <source>Determines how sharpened the image will look while using FSR’s dynamic contrast.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="129"/>
         <source>Anti-Aliasing Method:</source>
         <translation>안티에일리어싱 방식:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="86"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="130"/>
+        <source>The anti-aliasing method to use.
+SMAA offers the best quality.
+FXAA has a lower performance impact and can produce a better and more stable picture under very low resolutions.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="133"/>
         <source>Fullscreen Mode:</source>
         <translation>전체 화면 모드:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="87"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="134"/>
+        <source>The method used to render the window in fullscreen.
+Borderless offers the best compatibility with the on-screen keyboard that some games request for input.
+Exclusive fullscreen may offer better performance and better Freesync/Gsync support.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="138"/>
         <source>Aspect Ratio:</source>
         <translation>화면비:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="88"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="139"/>
+        <source>Stretches the game to fit the specified aspect ratio.
+Switch games only support 16:9, so custom game mods are required to get other ratios.
+Also controls the aspect ratio of captured screenshots.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="142"/>
         <source>Use disk pipeline cache</source>
         <translation>디스크 파이프라인 캐시 사용</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="89"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="143"/>
+        <source>Allows saving shaders to storage for faster loading on following game boots.
+Disabling it is only intended for debugging.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="147"/>
         <source>Use asynchronous GPU emulation</source>
         <translation>비동기 GPU 에뮬레이션 사용</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="91"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="148"/>
+        <source>Uses an extra CPU thread for rendering.
+This option should always remain enabled.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="149"/>
         <source>NVDEC emulation:</source>
         <translation>NVDEC 에뮬레이션:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="92"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="150"/>
+        <source>Specifies how videos should be decoded.
+It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos).
+In most cases, GPU decoding provides the best performance.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="153"/>
         <source>ASTC Decoding Method:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="93"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="154"/>
+        <source>This option controls how ASTC textures should be decoded.
+CPU: Use the CPU for decoding, slowest but safest method.
+GPU: Use the GPU's compute shaders to decode ASTC textures, recommended for most games and users.
+CPU Asynchronously: Use the CPU to decode ASTC textures as they arrive. Completely eliminates ASTC decoding
+stuttering at the cost of rendering issues while the texture is being decoded.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="162"/>
         <source>ASTC Recompression Method:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="95"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="163"/>
+        <source>Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing the emulator to decompress to an intermediate format any card supports, RGBA8.
+This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but negatively affecting image quality.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="167"/>
+        <source>VRAM Usage Mode:</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="168"/>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="173"/>
         <source>VSync Mode:</source>
         <translation>VSync 모드:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="96"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="174"/>
         <source>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
 FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
 Mailbox can have lower latency than FIFO and does not tear but may drop frames.
 Immediate (no synchronization) just presents whatever is available and can exhibit tearing.</source>
         <translation>FIFO (수직동기화)는 프레임이 떨어지거나 티어링 현상이 나타나지 않지만 화면 재생률에 의해 제한됩니다.
 FIFO 릴랙스드는 FIFO와 유사하지만 속도가 느려진 후 복구할 때 끊김 현상이 발생할 수 있습니다.
-메일박스는 FIFO보다 지연 시간이 짧고 티어링이 발생하지 않지만 프레임이 떨어질 수 있습니다. 
+메일박스는 FIFO보다 지연 시간이 짧고 티어링이 발생하지 않지만 프레임이 떨어질 수 있습니다.
 즉시 (동기화 없음)는 사용 가능한 모든 것을 표시하며 티어링이 나타날 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="106"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="184"/>
         <source>Enable asynchronous presentation (Vulkan only)</source>
         <translation>비동기 프레젠테이션 활성화(Vulkan만 해당)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="109"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="185"/>
+        <source>Slightly improves performance by moving presentation to a separate CPU thread.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="187"/>
         <source>Force maximum clocks (Vulkan only)</source>
         <translation>강제 최대 클록 (Vulkan 전용)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="110"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="188"/>
         <source>Runs work in the background while waiting for graphics commands to keep the GPU from lowering its clock speed.</source>
         <translation>실행은 GPU가 클럭 속도를 낮추지 않도록 그래픽 명령을 기다리는 동안 백그라운드에서 작동합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="112"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="190"/>
         <source>Anisotropic Filtering:</source>
         <translation>비등방성 필터링:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="113"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="191"/>
+        <source>Controls the quality of texture rendering at oblique angles.
+It’s a light setting and safe to set at 16x on most GPUs.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="193"/>
         <source>Accuracy Level:</source>
         <translation>정확도 수준:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="115"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="194"/>
+        <source>GPU emulation accuracy.
+Most games render fine with Normal, but High is still required for some.
+Particles tend to only render correctly with High accuracy.
+Extreme should only be used for debugging.
+This option can be changed while playing.
+Some games may require booting on high to render properly.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="199"/>
         <source>Use asynchronous shader building (Hack)</source>
         <translation>비동기식 셰이더 빌드 사용(Hack)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="116"/>
-        <source>Enables asynchronous shader compilation, which may reduce shader stutter. This feature is experimental.</source>
-        <translation>비동기 셰이더 컴파일을 활성화하여 셰이더의 버벅임을 감소시킬 수 있습니다. 이 기능은 실험적 기능입니다.</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="200"/>
+        <source>Enables asynchronous shader compilation, which may reduce shader stutter.
+This feature is experimental.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="118"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="203"/>
         <source>Use Fast GPU Time (Hack)</source>
         <translation>빠른 GPU 시간 사용(Hack)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="119"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="204"/>
         <source>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</source>
         <translation>빠른 GPU 시간을 활성화합니다. 이 옵션을 사용하면 대부분의 게임이 가장 높은 기본 해상도에서 실행됩니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="121"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="206"/>
         <source>Use Vulkan pipeline cache</source>
         <translation>Vulkan 파이프라인 캐시 사용</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="122"/>
-        <source>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
-        <translation>GPU 공급업체별 파이프라인 캐시를 활성화합니다. 이 옵션은 Vulkan 드라이버가 파이프라인 캐시 파일을 내부에 저장하지 않는 경우 셰이더 로딩 시간을 크게 개선할 수 있습니다.</translation>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="207"/>
+        <source>Enables GPU vendor-specific pipeline cache.
+This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="126"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="211"/>
         <source>Enable Compute Pipelines (Intel Vulkan Only)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="127"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="212"/>
         <source>Enable compute pipelines, required by some games.
 This setting only exists for Intel proprietary drivers, and may crash if enabled.
 Compute pipelines are always enabled on all other drivers.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="131"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="216"/>
         <source>Enable Reactive Flushing</source>
         <translation>반응형 플러싱 활성화</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="132"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="217"/>
         <source>Uses reactive flushing instead of predictive flushing, allowing more accurate memory syncing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="134"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="219"/>
         <source>Sync to framerate of video playback</source>
         <translation>동영상 재생 프레임 속도에 동기화</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="135"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="220"/>
         <source>Run the game at normal speed during video playback, even when the framerate is unlocked.</source>
         <translation>프레임 속도가 잠금 해제된 상태에서도 동영상 재생 중에 일반 속도로 게임을 실행합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="137"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="222"/>
         <source>Barrier feedback loops</source>
         <translation>차단 피드백 루프</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="138"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="223"/>
         <source>Improves rendering of transparency effects in specific games.</source>
         <translation>특정 게임에서 투명도 효과의 렌더링을 개선합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="143"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="228"/>
         <source>RNG Seed</source>
         <translation>RNG 시드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="145"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="229"/>
+        <source>Controls the seed of the random number generator.
+Mainly used for speedrunning purposes.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="232"/>
         <source>Device Name</source>
         <translation>장치 이름</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="146"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="232"/>
+        <source>The name of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="233"/>
         <source>Custom RTC Date:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="150"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="234"/>
+        <source>This option allows to change the emulated clock of the Switch.
+Can be used to manipulate time in games.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="239"/>
         <source>Language:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="151"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="240"/>
         <source>Note: this can be overridden when region setting is auto-select</source>
         <translation>참고 : 이 설정은 지역 설정이 &apos;자동 선택&apos;일 때 무시될 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="152"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="241"/>
         <source>Region:</source>
         <translation>국가:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="153"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="241"/>
+        <source>The region of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="242"/>
         <source>Time Zone:</source>
         <translation>시계:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="154"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="243"/>
+        <source>The time zone of the emulated Switch.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="244"/>
         <source>Sound Output Mode:</source>
         <translation>소리 출력 모드:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="155"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="245"/>
         <source>Console Mode:</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="173"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="246"/>
+        <source>Selects if the console is emulated in Docked or Handheld mode.
+Games will change their resolution, details and supported controllers and depending on this setting.
+Setting to Handheld can help improve performance for low end systems.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="266"/>
         <source>Prompt for user on game boot</source>
         <translation>게임 부팅시 유저 선택 화면 표시</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="174"/>
-        <source>Pause emulation when in background</source>
-        <translation>백그라운드에 있을 시 에뮬레이션 일시중지</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="176"/>
-        <source>Confirm before stopping emulation</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="178"/>
-        <source>Hide mouse on inactivity</source>
-        <translation>비활성 상태일 때 마우스 숨기기</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="179"/>
-        <source>Disable controller applet</source>
-        <translation>컨트롤러 애플릿 비활성화</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="183"/>
-        <source>Enable Gamemode</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="209"/>
-        <source>CPU</source>
-        <translation>CPU</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="210"/>
-        <source>GPU</source>
-        <translation>GPU</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="211"/>
-        <source>CPU Asynchronous</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="216"/>
-        <source>Uncompressed (Best quality)</source>
-        <translation>비압축(최고 품질)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="217"/>
-        <source>BC1 (Low quality)</source>
-        <translation>BC1(저품질)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="218"/>
-        <source>BC3 (Medium quality)</source>
-        <translation>BC3(중간 품질)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="223"/>
-        <source>OpenGL</source>
-        <translation>OpenGL</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="225"/>
-        <source>Vulkan</source>
-        <translation>Vulcan</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="226"/>
-        <source>Null</source>
-        <translation>Null</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="231"/>
-        <source>GLSL</source>
-        <translation>GLSL</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="232"/>
-        <source>GLASM (Assembly Shaders, NVIDIA Only)</source>
-        <translation>GLASM(어셈블리 셰이더, NVIDIA 전용)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="233"/>
-        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="237"/>
-        <source>Normal</source>
-        <translation>보통</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="238"/>
-        <source>High</source>
-        <translation>높음</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="239"/>
-        <source>Extreme</source>
-        <translation>익스트림</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="244"/>
-        <source>Auto</source>
-        <translation>자동</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="245"/>
-        <source>Accurate</source>
-        <translation>정확함</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="246"/>
-        <source>Unsafe</source>
-        <translation>최적화 (안전하지 않음)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="247"/>
-        <source>Paranoid (disables most optimizations)</source>
-        <translation>편집증(대부분의 최적화 비활성화)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="251"/>
-        <source>Dynarmic</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="252"/>
-        <source>NCE</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="256"/>
-        <source>Borderless Windowed</source>
-        <translation>경계 없는 창 모드</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="257"/>
-        <source>Exclusive Fullscreen</source>
-        <translation>독점 전체화면 모드</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="261"/>
-        <source>No Video Output</source>
-        <translation>비디오 출력 없음</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="262"/>
-        <source>CPU Video Decoding</source>
-        <translation>CPU 비디오 디코딩</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="263"/>
-        <source>GPU Video Decoding (Default)</source>
-        <translation>GPU 비디오 디코딩(기본값)</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="268"/>
-        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="267"/>
+        <source>Ask to select a user profile on each boot, useful if multiple people use yuzu on the same PC.</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="269"/>
+        <source>Pause emulation when in background</source>
+        <translation>백그라운드에 있을 시 에뮬레이션 일시중지</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="270"/>
+        <source>This setting pauses yuzu when focusing other windows.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="271"/>
+        <source>Confirm before stopping emulation</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="272"/>
+        <source>This setting overrides game prompts asking to confirm stopping the game.
+Enabling it bypasses such prompts and directly exits the emulation.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="274"/>
+        <source>Hide mouse on inactivity</source>
+        <translation>비활성 상태일 때 마우스 숨기기</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="275"/>
+        <source>This setting hides the mouse after 2.5s of inactivity.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="276"/>
+        <source>Disable controller applet</source>
+        <translation>컨트롤러 애플릿 비활성화</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="277"/>
+        <source>Forcibly disables the use of the controller applet by guests.
+When a guest attempts to open the controller applet, it is immediately closed.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="281"/>
+        <source>Enable Gamemode</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="306"/>
+        <source>Custom frontend</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="307"/>
+        <source>Real applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="312"/>
+        <source>CPU</source>
+        <translation>CPU</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="313"/>
+        <source>GPU</source>
+        <translation>GPU</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="314"/>
+        <source>CPU Asynchronous</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="319"/>
+        <source>Uncompressed (Best quality)</source>
+        <translation>비압축(최고 품질)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="320"/>
+        <source>BC1 (Low quality)</source>
+        <translation>BC1(저품질)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="321"/>
+        <source>BC3 (Medium quality)</source>
+        <translation>BC3(중간 품질)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="325"/>
+        <source>Conservative</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="326"/>
+        <source>Aggressive</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="331"/>
+        <source>OpenGL</source>
+        <translation>OpenGL</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="333"/>
+        <source>Vulkan</source>
+        <translation>Vulcan</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="334"/>
+        <source>Null</source>
+        <translation>Null</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="339"/>
+        <source>GLSL</source>
+        <translation>GLSL</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="340"/>
+        <source>GLASM (Assembly Shaders, NVIDIA Only)</source>
+        <translation>GLASM(어셈블리 셰이더, NVIDIA 전용)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="341"/>
+        <source>SPIR-V (Experimental, AMD/Mesa Only)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="345"/>
+        <source>Normal</source>
+        <translation>보통</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="346"/>
+        <source>High</source>
+        <translation>높음</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="347"/>
+        <source>Extreme</source>
+        <translation>익스트림</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="352"/>
+        <source>Auto</source>
+        <translation>자동</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="353"/>
+        <source>Accurate</source>
+        <translation>정확함</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="354"/>
+        <source>Unsafe</source>
+        <translation>최적화 (안전하지 않음)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="355"/>
+        <source>Paranoid (disables most optimizations)</source>
+        <translation>편집증(대부분의 최적화 비활성화)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="359"/>
+        <source>Dynarmic</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="360"/>
+        <source>NCE</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="364"/>
+        <source>Borderless Windowed</source>
+        <translation>경계 없는 창 모드</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="365"/>
+        <source>Exclusive Fullscreen</source>
+        <translation>독점 전체화면 모드</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="369"/>
+        <source>No Video Output</source>
+        <translation>비디오 출력 없음</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="370"/>
+        <source>CPU Video Decoding</source>
+        <translation>CPU 비디오 디코딩</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="371"/>
+        <source>GPU Video Decoding (Default)</source>
+        <translation>GPU 비디오 디코딩(기본값)</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="376"/>
+        <source>0.5X (360p/540p) [EXPERIMENTAL]</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="377"/>
         <source>0.75X (540p/810p) [EXPERIMENTAL]</source>
         <translation>0.75X (540p/810p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="270"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="378"/>
         <source>1X (720p/1080p)</source>
         <translation>1X (720p/1080p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="271"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="379"/>
         <source>1.5X (1080p/1620p) [EXPERIMENTAL]</source>
         <translation>1.5X (1080p/1620p) [실험적]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="272"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="380"/>
         <source>2X (1440p/2160p)</source>
         <translation>2X (1440p/2160p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="273"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="381"/>
         <source>3X (2160p/3240p)</source>
         <translation>3X (2160p/3240p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="274"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="382"/>
         <source>4X (2880p/4320p)</source>
         <translation>4X (2880p/4320p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="275"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="383"/>
         <source>5X (3600p/5400p)</source>
         <translation>5X (3600p/5400p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="276"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="384"/>
         <source>6X (4320p/6480p)</source>
         <translation>6X (4320p/6480p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="277"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="385"/>
         <source>7X (5040p/7560p)</source>
         <translation>7X (5040p/7560p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="278"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="386"/>
         <source>8X (5760p/8640p)</source>
         <translation>8X (5760p/8640p)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="282"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="390"/>
         <source>Nearest Neighbor</source>
         <translation>최근접 보간</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="283"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="391"/>
         <source>Bilinear</source>
         <translation>Bilinear</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="284"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="392"/>
         <source>Bicubic</source>
         <translation>Bicubic</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="285"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="393"/>
         <source>Gaussian</source>
         <translation>가우시안</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="286"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="394"/>
         <source>ScaleForce</source>
         <translation>ScaleForce</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="287"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="395"/>
         <source>AMD FidelityFX™️ Super Resolution</source>
         <translation>AMD FidelityFX™️ Super Resolution</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="291"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="399"/>
         <source>None</source>
         <translation>없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="292"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="400"/>
         <source>FXAA</source>
         <translation>FXAA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="293"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="401"/>
         <source>SMAA</source>
         <translation>SMAA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="297"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="405"/>
         <source>Default (16:9)</source>
         <translation>기본 (16:9)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="298"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="406"/>
         <source>Force 4:3</source>
         <translation>강제 4:3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="299"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="407"/>
         <source>Force 21:9</source>
         <translation>강제 21:9</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="300"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="408"/>
         <source>Force 16:10</source>
         <translation>강제 16:10</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="301"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="409"/>
         <source>Stretch to Window</source>
         <translation>창에 맞게 늘림</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="305"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="413"/>
         <source>Automatic</source>
         <translation>자동</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="306"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="414"/>
         <source>Default</source>
         <translation>기본값</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="307"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="415"/>
         <source>2x</source>
         <translation>2x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="308"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="416"/>
         <source>4x</source>
         <translation>4x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="309"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="417"/>
         <source>8x</source>
         <translation>8x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="310"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="418"/>
         <source>16x</source>
         <translation>16x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="315"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="423"/>
         <source>Japanese (日本語)</source>
         <translation>일본어 (日本語)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="316"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="424"/>
         <source>American English</source>
         <translation>미국 영어</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="317"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="425"/>
         <source>French (français)</source>
         <translation>프랑스어(français)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="318"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="426"/>
         <source>German (Deutsch)</source>
         <translation>독일어(Deutsch)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="319"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="427"/>
         <source>Italian (italiano)</source>
         <translation>이탈리아어(italiano)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="320"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="428"/>
         <source>Spanish (español)</source>
         <translation>스페인어(español)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="321"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="429"/>
         <source>Chinese</source>
         <translation>중국어</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="322"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="430"/>
         <source>Korean (한국어)</source>
         <translation>한국어 (Korean)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="323"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="431"/>
         <source>Dutch (Nederlands)</source>
         <translation>네덜란드어 (Nederlands)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="324"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="432"/>
         <source>Portuguese (português)</source>
         <translation>포르투갈어(português)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="325"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="433"/>
         <source>Russian (Русский)</source>
         <translation>러시아어 (Русский)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="326"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="434"/>
         <source>Taiwanese</source>
         <translation>대만어</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="327"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="435"/>
         <source>British English</source>
         <translation>영어 (British English)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="328"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="436"/>
         <source>Canadian French</source>
         <translation>캐나다 프랑스어</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="329"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="437"/>
         <source>Latin American Spanish</source>
         <translation>라틴 아메리카 스페인어</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="330"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="438"/>
         <source>Simplified Chinese</source>
         <translation>간체</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="331"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="439"/>
         <source>Traditional Chinese (正體中文)</source>
         <translation>중국어 번체 (正體中文)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="332"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="440"/>
         <source>Brazilian Portuguese (português do Brasil)</source>
         <translation>브라질 포르투갈어(português do Brasil)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="336"/>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="375"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="444"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="483"/>
         <source>Japan</source>
         <translation>일본</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="337"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="445"/>
         <source>USA</source>
         <translation>미국</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="338"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="446"/>
         <source>Europe</source>
         <translation>유럽</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="339"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="447"/>
         <source>Australia</source>
         <translation>호주</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="340"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="448"/>
         <source>China</source>
         <translation>중국</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="341"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="449"/>
         <source>Korea</source>
         <translation>대한민국</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="342"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="450"/>
         <source>Taiwan</source>
         <translation>대만</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="348"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="456"/>
         <source>Auto (%1)</source>
         <comment>Auto select time zone</comment>
         <translation>자동 (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="352"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="460"/>
         <source>Default (%1)</source>
         <comment>Default time zone</comment>
         <translation>기본 (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="354"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="462"/>
         <source>CET</source>
         <translation>중앙유럽 표준시(CET)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="355"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="463"/>
         <source>CST6CDT</source>
         <translation>CST6CDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="356"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="464"/>
         <source>Cuba</source>
         <translation>쿠바</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="357"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="465"/>
         <source>EET</source>
         <translation>동유럽 표준시(EET)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="358"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="466"/>
         <source>Egypt</source>
         <translation>이집트</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="359"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="467"/>
         <source>Eire</source>
         <translation>Eire</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="360"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="468"/>
         <source>EST</source>
         <translation>EST</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="361"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="469"/>
         <source>EST5EDT</source>
         <translation>EST5EDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="362"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="470"/>
         <source>GB</source>
         <translation>영국 하계 표준시(GB)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="363"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="471"/>
         <source>GB-Eire</source>
         <translation>GB-Eire</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="364"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="472"/>
         <source>GMT</source>
         <translation>그리니치 표준시(GMT)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="365"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="473"/>
         <source>GMT+0</source>
         <translation>GMT+0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="366"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="474"/>
         <source>GMT-0</source>
         <translation>GMT-0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="367"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="475"/>
         <source>GMT0</source>
         <translation>GMT0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="368"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="476"/>
         <source>Greenwich</source>
         <translation>그리니치</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="369"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="477"/>
         <source>Hongkong</source>
         <translation>홍콩</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="370"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="478"/>
         <source>HST</source>
         <translation>하와이-알류샨 표준시(HST)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="371"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="479"/>
         <source>Iceland</source>
         <translation>아이슬란드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="372"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="480"/>
         <source>Iran</source>
         <translation>이란</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="373"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="481"/>
         <source>Israel</source>
         <translation>이스라엘</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="374"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="482"/>
         <source>Jamaica</source>
         <translation>자메이카</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="376"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="484"/>
         <source>Kwajalein</source>
         <translation>크와잘린</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="377"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="485"/>
         <source>Libya</source>
         <translation>리비아</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="378"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="486"/>
         <source>MET</source>
         <translation>중앙유럽 표준시(MET)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="379"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="487"/>
         <source>MST</source>
         <translation>산악 표준시(MST)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="380"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="488"/>
         <source>MST7MDT</source>
         <translation>MST7MDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="381"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="489"/>
         <source>Navajo</source>
         <translation>나바호</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="382"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="490"/>
         <source>NZ</source>
         <translation>뉴질랜드 표준시(NZ)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="383"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="491"/>
         <source>NZ-CHAT</source>
         <translation>채텀 표준시(NZ-CHAT)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="384"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="492"/>
         <source>Poland</source>
         <translation>폴란드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="385"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="493"/>
         <source>Portugal</source>
         <translation>포르투갈</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="386"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="494"/>
         <source>PRC</source>
         <translation>PRC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="387"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="495"/>
         <source>PST8PDT</source>
         <translation>PST8PDT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="388"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="496"/>
         <source>ROC</source>
         <translation>ROC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="389"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="497"/>
         <source>ROK</source>
         <translation>북한 표준시(ROK)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="390"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="498"/>
         <source>Singapore</source>
         <translation>싱가포르</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="391"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="499"/>
         <source>Turkey</source>
         <translation>터키</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="392"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="500"/>
         <source>UCT</source>
         <translation>UCT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="393"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="501"/>
         <source>Universal</source>
         <translation>Universal</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="394"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="502"/>
         <source>UTC</source>
         <translation>협정 세계시(UTC)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="395"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="503"/>
         <source>W-SU</source>
         <translation>유럽/모스크바(W-SU)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="396"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="504"/>
         <source>WET</source>
         <translation>서유럽</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="397"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="505"/>
         <source>Zulu</source>
         <translation>줄루</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="401"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="509"/>
         <source>Mono</source>
         <translation>모노</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="402"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="510"/>
         <source>Stereo</source>
         <translation>스테레오</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="403"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="511"/>
         <source>Surround</source>
         <translation>서라운드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="407"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="515"/>
         <source>4GB DRAM (Default)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="408"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="516"/>
         <source>6GB DRAM (Unsafe)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="409"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="517"/>
         <source>8GB DRAM (Unsafe)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="413"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="521"/>
         <source>Docked</source>
         <translation>거치 모드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="414"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="522"/>
         <source>Handheld</source>
         <translation>휴대 모드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="419"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="527"/>
         <source>Always ask (Default)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="420"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="528"/>
         <source>Only if game specifies not to stop</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="421"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="529"/>
         <source>Never ask</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>ConfigureApplets</name>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_applets.ui" line="14"/>
+        <source>Form</source>
+        <translation>형태</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_applets.ui" line="17"/>
+        <source>Applets</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_applets.ui" line="25"/>
+        <source>Applet mode preference</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -2037,78 +2359,83 @@ Compute pipelines are always enabled on all other drivers.</source>
         <translation>일부 설정은 게임이 실행 중이 아닐 때만 사용할 수 있습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="61"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="167"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="63"/>
+        <source>Applets</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="64"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="172"/>
         <source>Audio</source>
         <translation>오디오</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="62"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="165"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="65"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="170"/>
         <source>CPU</source>
         <translation>CPU</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="63"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="66"/>
         <source>Debug</source>
         <translation>디버그</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="64"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="67"/>
         <source>Filesystem</source>
         <translation>파일 시스템</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="65"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="161"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="68"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="165"/>
         <source>General</source>
         <translation>일반</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="66"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="166"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="69"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="171"/>
         <source>Graphics</source>
         <translation>그래픽</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="67"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="70"/>
         <source>GraphicsAdvanced</source>
         <translation>그래픽 고급</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="68"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="71"/>
         <source>Hotkeys</source>
         <translation>단축키</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="69"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="168"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="72"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="173"/>
         <source>Controls</source>
         <translation>조작</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="70"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="73"/>
         <source>Profiles</source>
         <translation>프로필</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="71"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="74"/>
         <source>Network</source>
         <translation>네트워크</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="72"/>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="163"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="75"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="167"/>
         <source>System</source>
         <translation>시스템</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="73"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="76"/>
         <source>Game List</source>
         <translation>게임 목록</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="74"/>
+        <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="77"/>
         <source>Web</source>
         <translation>웹</translation>
     </message>
@@ -2392,75 +2719,75 @@ Compute pipelines are always enabled on all other drivers.</source>
         <translation>초기화</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="112"/>
         <source>Action</source>
         <translation>액션</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="112"/>
         <source>Hotkey</source>
         <translation>단축키</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="104"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="112"/>
         <source>Controller Hotkey</source>
         <translation>컨트롤러 단축키</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="144"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="172"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="407"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="152"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="178"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="418"/>
         <source>Conflicting Key Sequence</source>
         <translation>키 시퀀스 충돌</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="145"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="173"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="153"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="179"/>
         <source>The entered key sequence is already assigned to: %1</source>
         <translation>입력한 키 시퀀스가 %1에 이미 할당되었습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="180"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="191"/>
         <source>[waiting]</source>
         <translation>[대기중]</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="257"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="268"/>
         <source>Invalid</source>
         <translation>유효하지않음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="329"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="340"/>
         <source>Invalid hotkey settings</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="330"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="341"/>
         <source>An error occurred. Please report this issue on github.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="370"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="381"/>
         <source>Restore Default</source>
         <translation>초기화</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="371"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="382"/>
         <source>Clear</source>
         <translation>비우기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="392"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="403"/>
         <source>Conflicting Button Sequence</source>
         <translation>키 시퀀스 충돌</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="393"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="404"/>
         <source>The default button sequence is already assigned to: %1</source>
         <translation>기본 키 시퀀스가 %1에 이미 할당되었습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="408"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="419"/>
         <source>The default key sequence is already assigned to: %1</source>
         <translation>기본 키 시퀀스가 %1에 이미 할당되었습니다.</translation>
     </message>
@@ -3785,12 +4112,12 @@ Current values are %1% and %2% respectively.</source>
         <translation>입력 프로파일</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="78"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="81"/>
         <source>Linux</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="82"/>
+        <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="85"/>
         <source>Properties</source>
         <translation>속성</translation>
     </message>
@@ -4515,12 +4842,17 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <translation>스크린샷 경로 선택...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="294"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="251"/>
         <source>&lt;System&gt;</source>
         <translation>&lt;System&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="399"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="252"/>
+        <source>English</source>
+        <translation>English</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="339"/>
         <source>Auto (%1 x %2, %3 x %4)</source>
         <comment>Screenshot width value</comment>
         <translation>자동 (%1 x %2, %3 x %4)</translation>
@@ -4838,1034 +5170,1126 @@ Drag points to change position, or double-click table cells to edit values.</sou
 <context>
     <name>GMainWindow</name>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="217"/>
+        <location filename="../../src/yuzu/main.cpp" line="214"/>
         <source>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</source>
         <translation>yuzu를 개선하기 위해 &lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;익명 데이터가 수집됩니다.&lt;/a&gt;  &lt;br/&gt;&lt;br/&gt;사용 데이터를 공유하시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="220"/>
+        <location filename="../../src/yuzu/main.cpp" line="217"/>
         <source>Telemetry</source>
         <translation>원격 측정</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="453"/>
+        <location filename="../../src/yuzu/main.cpp" line="450"/>
         <source>Broken Vulkan Installation Detected</source>
         <translation>깨진 Vulkan 설치 감지됨</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="454"/>
+        <location filename="../../src/yuzu/main.cpp" line="451"/>
         <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
         <translation>부팅하는 동안 Vulkan 초기화에 실패했습니다.&lt;br&gt;&lt;br&gt;문제 해결 지침을 보려면 &lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;여기&lt;/a&gt;를 클릭하세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="479"/>
+        <location filename="../../src/yuzu/main.cpp" line="476"/>
         <source>Running a game</source>
         <extracomment>TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the computer from sleeping</extracomment>
         <translation>게임 실행중</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="871"/>
+        <location filename="../../src/yuzu/main.cpp" line="868"/>
         <source>Loading Web Applet...</source>
         <translation>웹 애플릿을 로드하는 중...</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/main.cpp" line="918"/>
         <location filename="../../src/yuzu/main.cpp" line="921"/>
-        <location filename="../../src/yuzu/main.cpp" line="924"/>
         <source>Disable Web Applet</source>
         <translation>웹 애플릿 비활성화</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="925"/>
+        <location filename="../../src/yuzu/main.cpp" line="922"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
         <translation>웹 애플릿을 비활성화하면 정의되지 않은 동작이 발생할 수 있으며 Super Mario 3D All-Stars에서만 사용해야 합니다. 웹 애플릿을 비활성화하시겠습니까?
 (디버그 설정에서 다시 활성화할 수 있습니다.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1041"/>
+        <location filename="../../src/yuzu/main.cpp" line="1038"/>
         <source>The amount of shaders currently being built</source>
         <translation>현재 생성중인 셰이더의 양</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1043"/>
+        <location filename="../../src/yuzu/main.cpp" line="1040"/>
         <source>The current selected resolution scaling multiplier.</source>
         <translation>현재 선택된 해상도 배율입니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1046"/>
+        <location filename="../../src/yuzu/main.cpp" line="1043"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
         <translation>현재 에뮬레이션 속도. 100%보다 높거나 낮은 값은 에뮬레이션이 Switch보다 빠르거나 느린 것을 나타냅니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1049"/>
+        <location filename="../../src/yuzu/main.cpp" line="1046"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
         <translation>게임이 현재 표시하고 있는 초당 프레임 수입니다. 이것은 게임마다 다르고 장면마다 다릅니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1053"/>
+        <location filename="../../src/yuzu/main.cpp" line="1050"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
         <translation>프레임 제한이나 수직 동기화를 계산하지 않고 Switch 프레임을 에뮬레이션 하는 데 걸린 시간. 최대 속도로 에뮬레이트 중일 때에는 대부분 16.67 ms 근처입니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1113"/>
+        <location filename="../../src/yuzu/main.cpp" line="1110"/>
         <source>Unmute</source>
         <translation>음소거 해제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1113"/>
+        <location filename="../../src/yuzu/main.cpp" line="1110"/>
         <source>Mute</source>
         <translation>음소거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1118"/>
+        <location filename="../../src/yuzu/main.cpp" line="1115"/>
         <source>Reset Volume</source>
         <translation>볼륨 재설정</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1305"/>
+        <location filename="../../src/yuzu/main.cpp" line="1302"/>
         <source>&amp;Clear Recent Files</source>
         <translation>Clear Recent Files(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1637"/>
+        <location filename="../../src/yuzu/main.cpp" line="1646"/>
         <source>&amp;Continue</source>
         <translation>재개(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1639"/>
+        <location filename="../../src/yuzu/main.cpp" line="1648"/>
         <source>&amp;Pause</source>
         <translation>일시중지(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1808"/>
+        <location filename="../../src/yuzu/main.cpp" line="1817"/>
         <source>Warning Outdated Game Format</source>
         <translation>오래된 게임 포맷 경고</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1809"/>
+        <location filename="../../src/yuzu/main.cpp" line="1818"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
         <translation>이 게임 파일은 &apos;분해된 ROM 디렉토리&apos;라는 오래된 포맷을 사용하고 있습니다. 해당 포맷은 NCA, NAX, XCI 또는 NSP와 같은 다른 포맷으로 대체되었으며 분해된 ROM 디렉토리에는 아이콘, 메타 데이터 및 업데이트가 지원되지 않습니다.&lt;br&gt;&lt;br&gt;yuzu가 지원하는 다양한 Switch 포맷에 대한 설명은 &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;위키를 확인하세요.&lt;/a&gt; 이 메시지는 다시 표시되지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1821"/>
-        <location filename="../../src/yuzu/main.cpp" line="1855"/>
+        <location filename="../../src/yuzu/main.cpp" line="1830"/>
+        <location filename="../../src/yuzu/main.cpp" line="1864"/>
         <source>Error while loading ROM!</source>
         <translation>ROM 로드 중 오류 발생!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1822"/>
+        <location filename="../../src/yuzu/main.cpp" line="1831"/>
         <source>The ROM format is not supported.</source>
         <translation>지원되지 않는 롬 포맷입니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1826"/>
+        <location filename="../../src/yuzu/main.cpp" line="1835"/>
         <source>An error occurred initializing the video core.</source>
         <translation>비디오 코어를 초기화하는 동안 오류가 발생했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1827"/>
+        <location filename="../../src/yuzu/main.cpp" line="1836"/>
         <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation>비디오 코어를 실행하는 동안 yuzu에 오류가 발생했습니다. 이것은 일반적으로 통합 드라이버를 포함하여 오래된 GPU 드라이버로 인해 발생합니다. 자세한 내용은 로그를 참조하십시오. 로그 액세스에 대한 자세한 내용은 &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;로그 파일 업로드 방법&lt;/a&gt; 페이지를 참조하세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1842"/>
+        <location filename="../../src/yuzu/main.cpp" line="1851"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>ROM 불러오는 중 오류 발생! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1845"/>
+        <location filename="../../src/yuzu/main.cpp" line="1854"/>
         <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation>%1&lt;br&gt;파일들을 다시 덤프하기 위해&lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;yuzu 빠른 시작 가이드&lt;/a&gt; 를 따라주세요.&lt;br&gt;도움이 필요할 시 yuzu 위키&lt;/a&gt; 를 참고하거나 yuzu 디스코드&lt;/a&gt; 를 이용해보세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1856"/>
+        <location filename="../../src/yuzu/main.cpp" line="1865"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>알 수 없는 오류가 발생했습니다. 자세한 내용은 로그를 참고하십시오.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2046"/>
+        <location filename="../../src/yuzu/main.cpp" line="2055"/>
         <source>(64-bit)</source>
         <translation>(64비트)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2046"/>
+        <location filename="../../src/yuzu/main.cpp" line="2055"/>
         <source>(32-bit)</source>
         <translation>(32비트)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2047"/>
+        <location filename="../../src/yuzu/main.cpp" line="2056"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2117"/>
+        <location filename="../../src/yuzu/main.cpp" line="2126"/>
         <source>Closing software...</source>
         <translation>소프트웨어를 닫는 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2283"/>
+        <location filename="../../src/yuzu/main.cpp" line="2292"/>
         <source>Save Data</source>
         <translation>세이브 데이터</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2339"/>
+        <location filename="../../src/yuzu/main.cpp" line="2348"/>
         <source>Mod Data</source>
         <translation>모드 데이터</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2352"/>
+        <location filename="../../src/yuzu/main.cpp" line="2361"/>
         <source>Error Opening %1 Folder</source>
         <translation>%1 폴더 열기 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2353"/>
-        <location filename="../../src/yuzu/main.cpp" line="3116"/>
+        <location filename="../../src/yuzu/main.cpp" line="2362"/>
+        <location filename="../../src/yuzu/main.cpp" line="3127"/>
         <source>Folder does not exist!</source>
         <translation>폴더가 존재하지 않습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2365"/>
+        <location filename="../../src/yuzu/main.cpp" line="2374"/>
         <source>Error Opening Transferable Shader Cache</source>
         <translation>전송 가능한 셰이더 캐시 열기 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2366"/>
+        <location filename="../../src/yuzu/main.cpp" line="2375"/>
         <source>Failed to create the shader cache directory for this title.</source>
         <translation>이 타이틀에 대한 셰이더 캐시 디렉토리를 생성하지 못했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2439"/>
+        <location filename="../../src/yuzu/main.cpp" line="2448"/>
         <source>Error Removing Contents</source>
         <translation>콘텐츠 제거 중 오류 발생</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2441"/>
+        <location filename="../../src/yuzu/main.cpp" line="2450"/>
         <source>Error Removing Update</source>
         <translation>업데이트 제거 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2443"/>
+        <location filename="../../src/yuzu/main.cpp" line="2452"/>
         <source>Error Removing DLC</source>
         <translation>DLC 제거 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2452"/>
+        <location filename="../../src/yuzu/main.cpp" line="2461"/>
         <source>Remove Installed Game Contents?</source>
         <translation>설치된 게임 콘텐츠를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2454"/>
+        <location filename="../../src/yuzu/main.cpp" line="2463"/>
         <source>Remove Installed Game Update?</source>
         <translation>설치된 게임 업데이트를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2456"/>
+        <location filename="../../src/yuzu/main.cpp" line="2465"/>
         <source>Remove Installed Game DLC?</source>
         <translation>설치된 게임 DLC를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2462"/>
+        <location filename="../../src/yuzu/main.cpp" line="2471"/>
         <source>Remove Entry</source>
         <translation>항목 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2490"/>
-        <location filename="../../src/yuzu/main.cpp" line="2502"/>
-        <location filename="../../src/yuzu/main.cpp" line="2518"/>
-        <location filename="../../src/yuzu/main.cpp" line="2597"/>
-        <location filename="../../src/yuzu/main.cpp" line="2631"/>
-        <location filename="../../src/yuzu/main.cpp" line="2654"/>
+        <location filename="../../src/yuzu/main.cpp" line="2499"/>
+        <location filename="../../src/yuzu/main.cpp" line="2511"/>
+        <location filename="../../src/yuzu/main.cpp" line="2527"/>
+        <location filename="../../src/yuzu/main.cpp" line="2606"/>
+        <location filename="../../src/yuzu/main.cpp" line="2640"/>
+        <location filename="../../src/yuzu/main.cpp" line="2663"/>
         <source>Successfully Removed</source>
         <translation>삭제 완료</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2491"/>
+        <location filename="../../src/yuzu/main.cpp" line="2500"/>
         <source>Successfully removed the installed base game.</source>
         <translation>설치된 기본 게임을 성공적으로 제거했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2495"/>
+        <location filename="../../src/yuzu/main.cpp" line="2504"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
         <translation>기본 게임은 NAND에 설치되어 있지 않으며 제거 할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2503"/>
+        <location filename="../../src/yuzu/main.cpp" line="2512"/>
         <source>Successfully removed the installed update.</source>
         <translation>설치된 업데이트를 성공적으로 제거했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2506"/>
+        <location filename="../../src/yuzu/main.cpp" line="2515"/>
         <source>There is no update installed for this title.</source>
         <translation>이 타이틀에 대해 설치된 업데이트가 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2514"/>
+        <location filename="../../src/yuzu/main.cpp" line="2523"/>
         <source>There are no DLC installed for this title.</source>
         <translation>이 타이틀에 설치된 DLC가 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2519"/>
+        <location filename="../../src/yuzu/main.cpp" line="2528"/>
         <source>Successfully removed %1 installed DLC.</source>
         <translation>설치된 %1 DLC를 성공적으로 제거했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2527"/>
+        <location filename="../../src/yuzu/main.cpp" line="2536"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation>OpenGL 전송 가능한 셰이더 캐시를 삭제하시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2529"/>
+        <location filename="../../src/yuzu/main.cpp" line="2538"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation>Vulkan 전송 가능한 셰이더 캐시를 삭제하시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2531"/>
+        <location filename="../../src/yuzu/main.cpp" line="2540"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation>모든 전송 가능한 셰이더 캐시를 삭제하시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2533"/>
+        <location filename="../../src/yuzu/main.cpp" line="2542"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>사용자 지정 게임 구성을 제거 하시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2535"/>
+        <location filename="../../src/yuzu/main.cpp" line="2544"/>
         <source>Remove Cache Storage?</source>
         <translation>캐시 저장소를 제거하겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2541"/>
+        <location filename="../../src/yuzu/main.cpp" line="2550"/>
         <source>Remove File</source>
         <translation>파일 제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2566"/>
+        <location filename="../../src/yuzu/main.cpp" line="2575"/>
         <source>Remove Play Time Data</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2566"/>
+        <location filename="../../src/yuzu/main.cpp" line="2575"/>
         <source>Reset play time?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2592"/>
-        <location filename="../../src/yuzu/main.cpp" line="2600"/>
+        <location filename="../../src/yuzu/main.cpp" line="2601"/>
+        <location filename="../../src/yuzu/main.cpp" line="2609"/>
         <source>Error Removing Transferable Shader Cache</source>
         <translation>전송 가능한 셰이더 캐시 제거 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2593"/>
-        <location filename="../../src/yuzu/main.cpp" line="2627"/>
+        <location filename="../../src/yuzu/main.cpp" line="2602"/>
+        <location filename="../../src/yuzu/main.cpp" line="2636"/>
         <source>A shader cache for this title does not exist.</source>
         <translation>이 타이틀에 대한 셰이더 캐시가 존재하지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2598"/>
+        <location filename="../../src/yuzu/main.cpp" line="2607"/>
         <source>Successfully removed the transferable shader cache.</source>
         <translation>전송 가능한 셰이더 캐시를 성공적으로 제거했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2601"/>
+        <location filename="../../src/yuzu/main.cpp" line="2610"/>
         <source>Failed to remove the transferable shader cache.</source>
         <translation>전송 가능한 셰이더 캐시를 제거하지 못했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2616"/>
+        <location filename="../../src/yuzu/main.cpp" line="2625"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
         <translation>Vulkan 드라이버 파이프라인 캐시 제거 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2617"/>
+        <location filename="../../src/yuzu/main.cpp" line="2626"/>
         <source>Failed to remove the driver pipeline cache.</source>
         <translation>드라이버 파이프라인 캐시를 제거하지 못했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2626"/>
-        <location filename="../../src/yuzu/main.cpp" line="2634"/>
+        <location filename="../../src/yuzu/main.cpp" line="2635"/>
+        <location filename="../../src/yuzu/main.cpp" line="2643"/>
         <source>Error Removing Transferable Shader Caches</source>
         <translation>전송 가능한 셰이더 캐시 제거 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2632"/>
+        <location filename="../../src/yuzu/main.cpp" line="2641"/>
         <source>Successfully removed the transferable shader caches.</source>
         <translation>전송 가능한 셰이더 캐시를 성공적으로 제거했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2635"/>
+        <location filename="../../src/yuzu/main.cpp" line="2644"/>
         <source>Failed to remove the transferable shader cache directory.</source>
         <translation>전송 가능한 셰이더 캐시 디렉토리를 제거하지 못했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2648"/>
         <location filename="../../src/yuzu/main.cpp" line="2657"/>
+        <location filename="../../src/yuzu/main.cpp" line="2666"/>
         <source>Error Removing Custom Configuration</source>
         <translation>사용자 지정 구성 제거 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2649"/>
+        <location filename="../../src/yuzu/main.cpp" line="2658"/>
         <source>A custom configuration for this title does not exist.</source>
         <translation>이 타이틀에 대한 사용자 지정 구성이 존재하지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2655"/>
+        <location filename="../../src/yuzu/main.cpp" line="2664"/>
         <source>Successfully removed the custom game configuration.</source>
         <translation>사용자 지정 게임 구성을 성공적으로 제거했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2658"/>
+        <location filename="../../src/yuzu/main.cpp" line="2667"/>
         <source>Failed to remove the custom game configuration.</source>
         <translation>사용자 지정 게임 구성을 제거하지 못했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2680"/>
-        <location filename="../../src/yuzu/main.cpp" line="2764"/>
+        <location filename="../../src/yuzu/main.cpp" line="2689"/>
+        <location filename="../../src/yuzu/main.cpp" line="2773"/>
         <source>RomFS Extraction Failed!</source>
         <translation>RomFS 추출 실패!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2681"/>
+        <location filename="../../src/yuzu/main.cpp" line="2690"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>RomFS 파일을 복사하는 중에 오류가 발생했거나 사용자가 작업을 취소했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2739"/>
+        <location filename="../../src/yuzu/main.cpp" line="2748"/>
         <source>Full</source>
         <translation>전체</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2739"/>
+        <location filename="../../src/yuzu/main.cpp" line="2748"/>
         <source>Skeleton</source>
         <translation>뼈대</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2741"/>
+        <location filename="../../src/yuzu/main.cpp" line="2750"/>
         <source>Select RomFS Dump Mode</source>
         <translation>RomFS 덤프 모드 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2742"/>
+        <location filename="../../src/yuzu/main.cpp" line="2751"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation>RomFS 덤프 방법을 선택하십시오.&lt;br&gt;전체는 모든 파일을 새 디렉토리에 복사하고&lt;br&gt;뼈대는 디렉토리 구조 만 생성합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2765"/>
+        <location filename="../../src/yuzu/main.cpp" line="2774"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation>%1에 RomFS를 추출하기에 충분한 여유 공간이 없습니다. 공간을 확보하거나 에뮬레이견 &gt; 설정 &gt; 시스템 &gt; 파일시스템 &gt; 덤프 경로에서 다른 덤프 디렉토리를 선택하십시오.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2772"/>
+        <location filename="../../src/yuzu/main.cpp" line="2781"/>
         <source>Extracting RomFS...</source>
         <translation>RomFS 추출 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2772"/>
-        <location filename="../../src/yuzu/main.cpp" line="2798"/>
-        <location filename="../../src/yuzu/main.cpp" line="3255"/>
-        <location filename="../../src/yuzu/main.cpp" line="4121"/>
+        <location filename="../../src/yuzu/main.cpp" line="2781"/>
+        <location filename="../../src/yuzu/main.cpp" line="2807"/>
+        <location filename="../../src/yuzu/main.cpp" line="3266"/>
+        <location filename="../../src/yuzu/main.cpp" line="4132"/>
+        <location filename="../../src/yuzu/main.cpp" line="4180"/>
         <source>Cancel</source>
         <translation>취소</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2782"/>
+        <location filename="../../src/yuzu/main.cpp" line="2791"/>
         <source>RomFS Extraction Succeeded!</source>
         <translation>RomFS 추출이 성공했습니다!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2783"/>
-        <location filename="../../src/yuzu/main.cpp" line="2814"/>
-        <location filename="../../src/yuzu/main.cpp" line="4139"/>
+        <location filename="../../src/yuzu/main.cpp" line="2792"/>
+        <location filename="../../src/yuzu/main.cpp" line="2823"/>
+        <location filename="../../src/yuzu/main.cpp" line="4150"/>
         <source>The operation completed successfully.</source>
         <translation>작업이 성공적으로 완료되었습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2794"/>
+        <location filename="../../src/yuzu/main.cpp" line="2803"/>
         <source>Integrity verification couldn&apos;t be performed!</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2795"/>
+        <location filename="../../src/yuzu/main.cpp" line="2804"/>
         <source>File contents were not checked for validity.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2798"/>
-        <location filename="../../src/yuzu/main.cpp" line="4121"/>
+        <location filename="../../src/yuzu/main.cpp" line="2807"/>
+        <location filename="../../src/yuzu/main.cpp" line="4132"/>
         <source>Verifying integrity...</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2813"/>
-        <location filename="../../src/yuzu/main.cpp" line="4138"/>
+        <location filename="../../src/yuzu/main.cpp" line="2822"/>
+        <location filename="../../src/yuzu/main.cpp" line="4149"/>
         <source>Integrity verification succeeded!</source>
         <translation>무결성 검증에 성공했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2817"/>
-        <location filename="../../src/yuzu/main.cpp" line="4144"/>
+        <location filename="../../src/yuzu/main.cpp" line="2826"/>
+        <location filename="../../src/yuzu/main.cpp" line="4155"/>
         <source>Integrity verification failed!</source>
         <translation>무결성 검증에 실패했습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2818"/>
+        <location filename="../../src/yuzu/main.cpp" line="2827"/>
         <source>File contents may be corrupt.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2950"/>
-        <location filename="../../src/yuzu/main.cpp" line="2954"/>
-        <location filename="../../src/yuzu/main.cpp" line="2960"/>
-        <location filename="../../src/yuzu/main.cpp" line="2967"/>
+        <location filename="../../src/yuzu/main.cpp" line="2961"/>
+        <location filename="../../src/yuzu/main.cpp" line="2965"/>
+        <location filename="../../src/yuzu/main.cpp" line="2971"/>
+        <location filename="../../src/yuzu/main.cpp" line="2978"/>
         <source>Create Shortcut</source>
         <translation>바로가기 만들기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2951"/>
+        <location filename="../../src/yuzu/main.cpp" line="2962"/>
         <source>Do you want to launch the game in fullscreen?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2955"/>
+        <location filename="../../src/yuzu/main.cpp" line="2966"/>
         <source>Successfully created a shortcut to %1</source>
         <translation>%1 바로가기를 성공적으로 만듬</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2961"/>
+        <location filename="../../src/yuzu/main.cpp" line="2972"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
         <translation>현재 AppImage에 대한 바로 가기가 생성됩니다. 업데이트하면 제대로 작동하지 않을 수 있습니다. 계속합니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2968"/>
+        <location filename="../../src/yuzu/main.cpp" line="2979"/>
         <source>Failed to create a shortcut to %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2986"/>
+        <location filename="../../src/yuzu/main.cpp" line="2997"/>
         <source>Create Icon</source>
         <translation>아이콘 만들기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2987"/>
+        <location filename="../../src/yuzu/main.cpp" line="2998"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
         <translation>아이콘 파일을 만들 수 없습니다. 경로 &quot;%1&quot;이(가) 존재하지 않으며 생성할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3115"/>
+        <location filename="../../src/yuzu/main.cpp" line="3126"/>
         <source>Error Opening %1</source>
         <translation>%1 열기 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3124"/>
+        <location filename="../../src/yuzu/main.cpp" line="3135"/>
         <source>Select Directory</source>
         <translation>경로 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3153"/>
+        <location filename="../../src/yuzu/main.cpp" line="3164"/>
         <source>Properties</source>
         <translation>속성</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3154"/>
+        <location filename="../../src/yuzu/main.cpp" line="3165"/>
         <source>The game properties could not be loaded.</source>
         <translation>게임 속성을 로드 할 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3171"/>
+        <location filename="../../src/yuzu/main.cpp" line="3182"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
         <translation>Switch 실행파일 (%1);;모든 파일 (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3175"/>
+        <location filename="../../src/yuzu/main.cpp" line="3186"/>
         <source>Load File</source>
         <translation>파일 로드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3188"/>
+        <location filename="../../src/yuzu/main.cpp" line="3199"/>
         <source>Open Extracted ROM Directory</source>
         <translation>추출된 ROM 디렉토리 열기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3199"/>
+        <location filename="../../src/yuzu/main.cpp" line="3210"/>
         <source>Invalid Directory Selected</source>
         <translation>잘못된 디렉토리 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3200"/>
+        <location filename="../../src/yuzu/main.cpp" line="3211"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
         <translation>선택한 디렉토리에 &apos;main&apos;파일이 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3210"/>
+        <location filename="../../src/yuzu/main.cpp" line="3221"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
         <translation>설치 가능한 Switch 파일 (*.nca *.nsp *.xci);;Nintendo 컨텐츠 아카이브 (*.nca);;Nintendo 서브미션 패키지 (*.nsp);;NX 카트리지 이미지 (*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3215"/>
+        <location filename="../../src/yuzu/main.cpp" line="3226"/>
         <source>Install Files</source>
         <translation>파일 설치</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3262"/>
+        <location filename="../../src/yuzu/main.cpp" line="3273"/>
         <source>%n file(s) remaining</source>
         <translation><numerusform>%n개의 파일이 남음</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3264"/>
+        <location filename="../../src/yuzu/main.cpp" line="3275"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>파일 &quot;%1&quot; 설치 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3318"/>
-        <location filename="../../src/yuzu/main.cpp" line="3332"/>
+        <location filename="../../src/yuzu/main.cpp" line="3329"/>
+        <location filename="../../src/yuzu/main.cpp" line="3343"/>
         <source>Install Results</source>
         <translation>설치 결과</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3319"/>
+        <location filename="../../src/yuzu/main.cpp" line="3330"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation>충돌을 피하기 위해, 낸드에 베이스 게임을 설치하는 것을 권장하지 않습니다.
 이 기능은 업데이트나 DLC를 설치할 때에만 사용해주세요.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3325"/>
+        <location filename="../../src/yuzu/main.cpp" line="3336"/>
         <source>%n file(s) were newly installed
 </source>
         <translation><numerusform>%n개의 파일이 새로 설치되었습니다.
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3328"/>
+        <location filename="../../src/yuzu/main.cpp" line="3339"/>
         <source>%n file(s) were overwritten
 </source>
         <translation><numerusform>%n개의 파일을 덮어썼습니다.
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3330"/>
+        <location filename="../../src/yuzu/main.cpp" line="3341"/>
         <source>%n file(s) failed to install
 </source>
         <translation><numerusform>%n개의 파일을 설치하지 못했습니다.
 </numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3340"/>
+        <location filename="../../src/yuzu/main.cpp" line="3351"/>
         <source>System Application</source>
         <translation>시스템 애플리케이션</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3341"/>
+        <location filename="../../src/yuzu/main.cpp" line="3352"/>
         <source>System Archive</source>
         <translation>시스템 아카이브</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3342"/>
+        <location filename="../../src/yuzu/main.cpp" line="3353"/>
         <source>System Application Update</source>
         <translation>시스템 애플리케이션 업데이트</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3343"/>
+        <location filename="../../src/yuzu/main.cpp" line="3354"/>
         <source>Firmware Package (Type A)</source>
         <translation>펌웨어 패키지 (A타입)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3344"/>
+        <location filename="../../src/yuzu/main.cpp" line="3355"/>
         <source>Firmware Package (Type B)</source>
         <translation>펌웨어 패키지 (B타입)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3345"/>
+        <location filename="../../src/yuzu/main.cpp" line="3356"/>
         <source>Game</source>
         <translation>게임</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3346"/>
+        <location filename="../../src/yuzu/main.cpp" line="3357"/>
         <source>Game Update</source>
         <translation>게임 업데이트</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3347"/>
+        <location filename="../../src/yuzu/main.cpp" line="3358"/>
         <source>Game DLC</source>
         <translation>게임 DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3348"/>
+        <location filename="../../src/yuzu/main.cpp" line="3359"/>
         <source>Delta Title</source>
         <translation>델타 타이틀</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3351"/>
+        <location filename="../../src/yuzu/main.cpp" line="3362"/>
         <source>Select NCA Install Type...</source>
         <translation>NCA 설치 유형 선택...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3352"/>
+        <location filename="../../src/yuzu/main.cpp" line="3363"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
         <translation>이 NCA를 설치할 타이틀 유형을 선택하세요:
 (대부분의 경우 기본값인 &apos;게임&apos;이 괜찮습니다.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3358"/>
+        <location filename="../../src/yuzu/main.cpp" line="3369"/>
         <source>Failed to Install</source>
         <translation>설치 실패</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3359"/>
+        <location filename="../../src/yuzu/main.cpp" line="3370"/>
         <source>The title type you selected for the NCA is invalid.</source>
         <translation>NCA 타이틀 유형이 유효하지 않습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3394"/>
+        <location filename="../../src/yuzu/main.cpp" line="3405"/>
         <source>File not found</source>
         <translation>파일을 찾을 수 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3395"/>
+        <location filename="../../src/yuzu/main.cpp" line="3406"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>파일 &quot;%1&quot;을 찾을 수 없습니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3515"/>
+        <location filename="../../src/yuzu/main.cpp" line="3526"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3541"/>
-        <location filename="../../src/yuzu/main.cpp" line="3560"/>
+        <location filename="../../src/yuzu/main.cpp" line="3552"/>
+        <location filename="../../src/yuzu/main.cpp" line="3571"/>
         <source>Hardware requirements not met</source>
         <translation>하드웨어 요구 사항이 충족되지 않음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3542"/>
-        <location filename="../../src/yuzu/main.cpp" line="3561"/>
+        <location filename="../../src/yuzu/main.cpp" line="3553"/>
+        <location filename="../../src/yuzu/main.cpp" line="3572"/>
         <source>Your system does not meet the recommended hardware requirements. Compatibility reporting has been disabled.</source>
         <translation>시스템이 권장 하드웨어 요구 사항을 충족하지 않습니다. 호환성 보고가 비활성화되었습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3553"/>
+        <location filename="../../src/yuzu/main.cpp" line="3564"/>
         <source>Missing yuzu Account</source>
         <translation>yuzu 계정 누락</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3554"/>
+        <location filename="../../src/yuzu/main.cpp" line="3565"/>
         <source>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
         <translation>게임 호환성 테스트 결과를 제출하려면 yuzu 계정을 연결해야합니다.&lt;br&gt;&lt;br/&gt;yuzu 계정을 연결하려면 에뮬레이션 &amp;gt; 설정 &amp;gt; 웹으로 가세요.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3569"/>
+        <location filename="../../src/yuzu/main.cpp" line="3580"/>
         <source>Error opening URL</source>
         <translation>URL 열기 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3570"/>
+        <location filename="../../src/yuzu/main.cpp" line="3581"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>URL &quot;%1&quot;을 열 수 없습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3880"/>
+        <location filename="../../src/yuzu/main.cpp" line="3891"/>
         <source>TAS Recording</source>
         <translation>TAS 레코딩</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3880"/>
+        <location filename="../../src/yuzu/main.cpp" line="3891"/>
         <source>Overwrite file of player 1?</source>
         <translation>플레이어 1의 파일을 덮어쓰시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3899"/>
+        <location filename="../../src/yuzu/main.cpp" line="3910"/>
         <source>Invalid config detected</source>
         <translation>유효하지 않은 설정 감지</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3900"/>
+        <location filename="../../src/yuzu/main.cpp" line="3911"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>휴대 모드용 컨트롤러는 거치 모드에서 사용할 수 없습니다. 프로 컨트롤러로 대신 선택됩니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4042"/>
-        <location filename="../../src/yuzu/main.cpp" line="4092"/>
+        <location filename="../../src/yuzu/main.cpp" line="4053"/>
+        <location filename="../../src/yuzu/main.cpp" line="4103"/>
         <source>Amiibo</source>
         <translation>Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4042"/>
-        <location filename="../../src/yuzu/main.cpp" line="4092"/>
+        <location filename="../../src/yuzu/main.cpp" line="4053"/>
+        <location filename="../../src/yuzu/main.cpp" line="4103"/>
         <source>The current amiibo has been removed</source>
         <translation>현재 amiibo가 제거되었습니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4047"/>
+        <location filename="../../src/yuzu/main.cpp" line="4058"/>
         <source>Error</source>
         <translation>오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4047"/>
-        <location filename="../../src/yuzu/main.cpp" line="4104"/>
+        <location filename="../../src/yuzu/main.cpp" line="4058"/>
+        <location filename="../../src/yuzu/main.cpp" line="4115"/>
         <source>The current game is not looking for amiibos</source>
         <translation>현재 게임은 amiibo를 찾고 있지 않습니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4053"/>
+        <location filename="../../src/yuzu/main.cpp" line="4064"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>Amiibo 파일 (%1);; 모든 파일 (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4054"/>
+        <location filename="../../src/yuzu/main.cpp" line="4065"/>
         <source>Load Amiibo</source>
         <translation>Amiibo 로드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4088"/>
+        <location filename="../../src/yuzu/main.cpp" line="4099"/>
         <source>Error loading Amiibo data</source>
         <translation>Amiibo 데이터 로드 오류</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4098"/>
+        <location filename="../../src/yuzu/main.cpp" line="4109"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>선택한 파일은 유효한 amiibo가 아닙니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4101"/>
+        <location filename="../../src/yuzu/main.cpp" line="4112"/>
         <source>The selected file is already on use</source>
         <translation>선택한 파일은 이미 사용 중입니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4107"/>
+        <location filename="../../src/yuzu/main.cpp" line="4118"/>
         <source>An unknown error occurred</source>
         <translation>알수없는 오류가 발생했습니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4145"/>
+        <location filename="../../src/yuzu/main.cpp" line="4156"/>
+        <location filename="../../src/yuzu/main.cpp" line="4289"/>
         <source>Verification failed for the following files:
 
 %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4171"/>
-        <location filename="../../src/yuzu/main.cpp" line="4194"/>
+        <location filename="../../src/yuzu/main.cpp" line="4169"/>
+        <source>Keys not installed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4170"/>
+        <source>Install decryption keys and restart yuzu before attempting to install firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4175"/>
+        <source>Select Dumped Firmware Source Location</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4180"/>
+        <source>Installing Firmware...</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../../src/yuzu/main.cpp" line="4218"/>
-        <location filename="../../src/yuzu/main.cpp" line="4241"/>
-        <source>No firmware available</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4172"/>
-        <source>Please install the firmware to use the Album applet.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4178"/>
-        <source>Album Applet</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4179"/>
-        <source>Album applet is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4195"/>
-        <source>Please install the firmware to use the Cabinet applet.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4201"/>
-        <source>Cabinet Applet</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="4202"/>
-        <source>Cabinet applet is not available. Please reinstall firmware.</source>
+        <location filename="../../src/yuzu/main.cpp" line="4227"/>
+        <location filename="../../src/yuzu/main.cpp" line="4258"/>
+        <location filename="../../src/yuzu/main.cpp" line="4267"/>
+        <source>Firmware install failed</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4219"/>
+        <source>Unable to locate potential firmware NCA files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4228"/>
+        <source>Failed to delete one or more firmware file.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4259"/>
+        <source>Firmware installation cancelled, firmware may be in bad state, restart yuzu or re-install firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4268"/>
+        <source>One or more firmware files failed to copy into NAND.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4288"/>
+        <source>Firmware integrity verification failed!</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4304"/>
+        <source>Select Dumped Keys Location</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4337"/>
+        <location filename="../../src/yuzu/main.cpp" line="4349"/>
+        <location filename="../../src/yuzu/main.cpp" line="4367"/>
+        <source>Decryption Keys install failed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4338"/>
+        <source>prod.keys is a required decryption key file.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4350"/>
+        <source>One or more keys failed to copy.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4363"/>
+        <source>Decryption Keys install succeeded</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4364"/>
+        <source>Decryption Keys were successfully installed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4368"/>
+        <source>Decryption Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4397"/>
+        <location filename="../../src/yuzu/main.cpp" line="4420"/>
+        <location filename="../../src/yuzu/main.cpp" line="4444"/>
+        <location filename="../../src/yuzu/main.cpp" line="4467"/>
+        <source>No firmware available</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4398"/>
+        <source>Please install the firmware to use the Album applet.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4404"/>
+        <source>Album Applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4405"/>
+        <source>Album applet is not available. Please reinstall firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4421"/>
+        <source>Please install the firmware to use the Cabinet applet.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4427"/>
+        <source>Cabinet Applet</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4428"/>
+        <source>Cabinet applet is not available. Please reinstall firmware.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4445"/>
         <source>Please install the firmware to use the Mii editor.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4225"/>
+        <location filename="../../src/yuzu/main.cpp" line="4451"/>
         <source>Mii Edit Applet</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4226"/>
+        <location filename="../../src/yuzu/main.cpp" line="4452"/>
         <source>Mii editor is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4242"/>
+        <location filename="../../src/yuzu/main.cpp" line="4468"/>
         <source>Please install the firmware to use the Controller Menu.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4249"/>
+        <location filename="../../src/yuzu/main.cpp" line="4475"/>
         <source>Controller Applet</source>
         <translation>컨트롤러 애플릿</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4250"/>
+        <location filename="../../src/yuzu/main.cpp" line="4476"/>
         <source>Controller Menu is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4284"/>
+        <location filename="../../src/yuzu/main.cpp" line="4510"/>
         <source>Capture Screenshot</source>
         <translation>스크린샷 캡처</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4285"/>
+        <location filename="../../src/yuzu/main.cpp" line="4511"/>
         <source>PNG Image (*.png)</source>
         <translation>PNG 이미지 (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4368"/>
+        <location filename="../../src/yuzu/main.cpp" line="4594"/>
         <source>TAS state: Running %1/%2</source>
         <translation>TAS 상태: %1/%2 실행 중</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4372"/>
+        <location filename="../../src/yuzu/main.cpp" line="4598"/>
         <source>TAS state: Recording %1</source>
         <translation>TAS 상태: 레코딩 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4374"/>
+        <location filename="../../src/yuzu/main.cpp" line="4600"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>TAS 상태: 유휴 %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4378"/>
+        <location filename="../../src/yuzu/main.cpp" line="4604"/>
         <source>TAS State: Invalid</source>
         <translation>TAS 상태: 유효하지 않음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4392"/>
+        <location filename="../../src/yuzu/main.cpp" line="4618"/>
         <source>&amp;Stop Running</source>
         <translation>실행 중지(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4392"/>
+        <location filename="../../src/yuzu/main.cpp" line="4618"/>
         <source>&amp;Start</source>
         <translation>시작(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4393"/>
+        <location filename="../../src/yuzu/main.cpp" line="4619"/>
         <source>Stop R&amp;ecording</source>
         <translation>레코딩 중지(&amp;e)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4393"/>
+        <location filename="../../src/yuzu/main.cpp" line="4619"/>
         <source>R&amp;ecord</source>
         <translation>레코드(&amp;R)</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="4417"/>
+        <location filename="../../src/yuzu/main.cpp" line="4643"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>빌드중: %n개 셰이더</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4426"/>
+        <location filename="../../src/yuzu/main.cpp" line="4652"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>스케일: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4429"/>
+        <location filename="../../src/yuzu/main.cpp" line="4655"/>
         <source>Speed: %1% / %2%</source>
         <translation>속도: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4433"/>
+        <location filename="../../src/yuzu/main.cpp" line="4659"/>
         <source>Speed: %1%</source>
         <translation>속도: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4437"/>
+        <location filename="../../src/yuzu/main.cpp" line="4663"/>
         <source>Game: %1 FPS (Unlocked)</source>
         <translation>게임: %1 FPS (제한없음)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4440"/>
+        <location filename="../../src/yuzu/main.cpp" line="4666"/>
         <source>Game: %1 FPS</source>
         <translation>게임: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4442"/>
+        <location filename="../../src/yuzu/main.cpp" line="4668"/>
         <source>Frame: %1 ms</source>
         <translation>프레임: %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4472"/>
+        <location filename="../../src/yuzu/main.cpp" line="4698"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4482"/>
+        <location filename="../../src/yuzu/main.cpp" line="4708"/>
         <location filename="../../src/yuzu/configuration/shared_translation.h" line="42"/>
         <source>FSR</source>
         <translation>FSR</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4490"/>
+        <location filename="../../src/yuzu/main.cpp" line="4716"/>
         <source>NO AA</source>
         <translation>AA 없음</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4499"/>
+        <location filename="../../src/yuzu/main.cpp" line="4725"/>
         <source>VOLUME: MUTE</source>
         <translation>볼륨: 음소거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4502"/>
+        <location filename="../../src/yuzu/main.cpp" line="4728"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>볼륨: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4568"/>
+        <location filename="../../src/yuzu/main.cpp" line="4794"/>
         <source>Derivation Components Missing</source>
         <translation>파생 구성 요소 누락</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4569"/>
+        <location filename="../../src/yuzu/main.cpp" line="4795"/>
         <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4661"/>
+        <location filename="../../src/yuzu/main.cpp" line="4887"/>
         <source>Select RomFS Dump Target</source>
         <translation>RomFS 덤프 대상 선택</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4662"/>
+        <location filename="../../src/yuzu/main.cpp" line="4888"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>덤프할 RomFS를 선택하십시오.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4685"/>
+        <location filename="../../src/yuzu/main.cpp" line="4911"/>
         <source>Are you sure you want to close yuzu?</source>
         <translation>yuzu를 닫으시겠습니까?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4686"/>
-        <location filename="../../src/yuzu/main.cpp" line="4766"/>
-        <location filename="../../src/yuzu/main.cpp" line="4778"/>
+        <location filename="../../src/yuzu/main.cpp" line="4912"/>
+        <location filename="../../src/yuzu/main.cpp" line="4992"/>
+        <location filename="../../src/yuzu/main.cpp" line="5004"/>
         <source>yuzu</source>
         <translation>yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4767"/>
+        <location filename="../../src/yuzu/main.cpp" line="4993"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>에뮬레이션을 중지하시겠습니까? 모든 저장되지 않은 진행 상황은 사라집니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4775"/>
+        <location filename="../../src/yuzu/main.cpp" line="5001"/>
         <source>The currently running application has requested yuzu to not exit.
 
 Would you like to bypass this and exit anyway?</source>
@@ -6378,18 +6802,11 @@ Debug Message: </source>
 <context>
     <name>Hotkeys</name>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="226"/>
+        <location filename="../../src/yuzu/uisettings.h" line="233"/>
         <source>Audio Mute/Unmute</source>
         <translation>오디오 음소거/음소거 해제</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="226"/>
-        <location filename="../../src/yuzu/uisettings.h" line="227"/>
-        <location filename="../../src/yuzu/uisettings.h" line="228"/>
-        <location filename="../../src/yuzu/uisettings.h" line="229"/>
-        <location filename="../../src/yuzu/uisettings.h" line="230"/>
-        <location filename="../../src/yuzu/uisettings.h" line="231"/>
-        <location filename="../../src/yuzu/uisettings.h" line="232"/>
         <location filename="../../src/yuzu/uisettings.h" line="233"/>
         <location filename="../../src/yuzu/uisettings.h" line="234"/>
         <location filename="../../src/yuzu/uisettings.h" line="235"/>
@@ -6406,116 +6823,153 @@ Debug Message: </source>
         <location filename="../../src/yuzu/uisettings.h" line="246"/>
         <location filename="../../src/yuzu/uisettings.h" line="247"/>
         <location filename="../../src/yuzu/uisettings.h" line="248"/>
+        <location filename="../../src/yuzu/uisettings.h" line="249"/>
+        <location filename="../../src/yuzu/uisettings.h" line="250"/>
+        <location filename="../../src/yuzu/uisettings.h" line="251"/>
+        <location filename="../../src/yuzu/uisettings.h" line="252"/>
+        <location filename="../../src/yuzu/uisettings.h" line="253"/>
+        <location filename="../../src/yuzu/uisettings.h" line="254"/>
+        <location filename="../../src/yuzu/uisettings.h" line="255"/>
+        <location filename="../../src/yuzu/uisettings.h" line="256"/>
+        <location filename="../../src/yuzu/uisettings.h" line="257"/>
+        <location filename="../../src/yuzu/uisettings.h" line="258"/>
+        <location filename="../../src/yuzu/uisettings.h" line="259"/>
+        <location filename="../../src/yuzu/uisettings.h" line="260"/>
         <source>Main Window</source>
         <translation>메인 윈도우</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="227"/>
+        <location filename="../../src/yuzu/uisettings.h" line="234"/>
         <source>Audio Volume Down</source>
         <translation>오디오 볼륨 낮추기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="228"/>
+        <location filename="../../src/yuzu/uisettings.h" line="235"/>
         <source>Audio Volume Up</source>
         <translation>오디오 볼륨 키우기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="229"/>
+        <location filename="../../src/yuzu/uisettings.h" line="236"/>
         <source>Capture Screenshot</source>
         <translation>스크린샷 캡처</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="230"/>
+        <location filename="../../src/yuzu/uisettings.h" line="237"/>
         <source>Change Adapting Filter</source>
         <translation>적응형 필터 변경</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="231"/>
+        <location filename="../../src/yuzu/uisettings.h" line="238"/>
         <source>Change Docked Mode</source>
         <translation>독 모드 변경</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="232"/>
+        <location filename="../../src/yuzu/uisettings.h" line="239"/>
         <source>Change GPU Accuracy</source>
         <translation>GPU 정확성 변경</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="233"/>
+        <location filename="../../src/yuzu/uisettings.h" line="240"/>
         <source>Continue/Pause Emulation</source>
         <translation>재개/에뮬레이션 일시중지</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="234"/>
+        <location filename="../../src/yuzu/uisettings.h" line="241"/>
         <source>Exit Fullscreen</source>
         <translation>전체화면 종료</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="235"/>
+        <location filename="../../src/yuzu/uisettings.h" line="242"/>
         <source>Exit yuzu</source>
         <translation>yuzu 종료</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="236"/>
+        <location filename="../../src/yuzu/uisettings.h" line="243"/>
         <source>Fullscreen</source>
         <translation>전체화면</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="237"/>
+        <location filename="../../src/yuzu/uisettings.h" line="244"/>
         <source>Load File</source>
         <translation>파일 로드</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="238"/>
+        <location filename="../../src/yuzu/uisettings.h" line="245"/>
         <source>Load/Remove Amiibo</source>
         <translation>Amiibo 로드/제거</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="239"/>
-        <source>Restart Emulation</source>
-        <translation>에뮬레이션 재시작</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="240"/>
-        <source>Stop Emulation</source>
-        <translation>에뮬레이션 중단</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="241"/>
-        <source>TAS Record</source>
-        <translation>TAS 기록</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="242"/>
-        <source>TAS Reset</source>
-        <translation>TAS 리셋</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="243"/>
-        <source>TAS Start/Stop</source>
-        <translation>TAS 시작/멈춤</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="244"/>
-        <source>Toggle Filter Bar</source>
-        <translation>상태 표시줄 전환</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/uisettings.h" line="245"/>
-        <source>Toggle Framerate Limit</source>
-        <translation>프레임속도 제한 토글</translation>
-    </message>
-    <message>
         <location filename="../../src/yuzu/uisettings.h" line="246"/>
-        <source>Toggle Mouse Panning</source>
-        <translation>마우스 패닝 활성화</translation>
+        <source>Multiplayer Browse Public Game Lobby</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="247"/>
-        <source>Toggle Renderdoc Capture</source>
+        <source>Multiplayer Create Room</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="248"/>
+        <source>Multiplayer Direct Connect to Room</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="249"/>
+        <source>Multiplayer Leave Room</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="250"/>
+        <source>Multiplayer Show Current Room</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="251"/>
+        <source>Restart Emulation</source>
+        <translation>에뮬레이션 재시작</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="252"/>
+        <source>Stop Emulation</source>
+        <translation>에뮬레이션 중단</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="253"/>
+        <source>TAS Record</source>
+        <translation>TAS 기록</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="254"/>
+        <source>TAS Reset</source>
+        <translation>TAS 리셋</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="255"/>
+        <source>TAS Start/Stop</source>
+        <translation>TAS 시작/멈춤</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="256"/>
+        <source>Toggle Filter Bar</source>
+        <translation>상태 표시줄 전환</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="257"/>
+        <source>Toggle Framerate Limit</source>
+        <translation>프레임속도 제한 토글</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="258"/>
+        <source>Toggle Mouse Panning</source>
+        <translation>마우스 패닝 활성화</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="259"/>
+        <source>Toggle Renderdoc Capture</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/uisettings.h" line="260"/>
         <source>Toggle Status Bar</source>
         <translation>상태 표시줄 전환</translation>
     </message>
@@ -6635,42 +7089,42 @@ Debug Message: </source>
         <translation>로비 새로 고침</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="114"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="121"/>
         <source>Password Required to Join</source>
         <translation>입장시 비밀번호가 필요합니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="114"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="121"/>
         <source>Password:</source>
         <translation>비밀번호:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="217"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="228"/>
         <source>Players</source>
         <translation>플레이어</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="218"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="229"/>
         <source>Room Name</source>
         <translation>방 이름</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="219"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="230"/>
         <source>Preferred Game</source>
         <translation>선호하는 게임</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="220"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="231"/>
         <source>Host</source>
         <translation>호스트</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="227"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="238"/>
         <source>Refreshing</source>
         <translation>새로 고치는 중</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="284"/>
+        <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="295"/>
         <source>Refresh List</source>
         <translation>새로 고침 목록</translation>
     </message>
@@ -6683,288 +7137,298 @@ Debug Message: </source>
         <translation>yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="44"/>
+        <location filename="../../src/yuzu/main.ui" line="53"/>
         <source>&amp;File</source>
         <translation>파일(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="48"/>
+        <location filename="../../src/yuzu/main.ui" line="57"/>
         <source>&amp;Recent Files</source>
         <translation>최근 파일(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="66"/>
+        <location filename="../../src/yuzu/main.ui" line="75"/>
         <source>&amp;Emulation</source>
         <translation>에뮬레이션(&amp;E)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="77"/>
+        <location filename="../../src/yuzu/main.ui" line="86"/>
         <source>&amp;View</source>
         <translation>보기(&amp;V)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="81"/>
+        <location filename="../../src/yuzu/main.ui" line="90"/>
         <source>&amp;Reset Window Size</source>
         <translation>창 크기 초기화 (&amp;R)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="86"/>
+        <location filename="../../src/yuzu/main.ui" line="95"/>
         <source>&amp;Debugging</source>
         <translation>디버깅(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="91"/>
+        <location filename="../../src/yuzu/main.ui" line="100"/>
         <source>Reset Window Size to &amp;720p</source>
         <translation>창 크기를 720p로 맞추기(&amp;7)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="94"/>
+        <location filename="../../src/yuzu/main.ui" line="103"/>
         <source>Reset Window Size to 720p</source>
         <translation>창 크기를 720p로 맞추기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="99"/>
+        <location filename="../../src/yuzu/main.ui" line="108"/>
         <source>Reset Window Size to &amp;900p</source>
         <translation>창 크기를 900p로 맞추기(&amp;9)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="102"/>
+        <location filename="../../src/yuzu/main.ui" line="111"/>
         <source>Reset Window Size to 900p</source>
         <translation>창 크기를 900p로 맞추기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="107"/>
+        <location filename="../../src/yuzu/main.ui" line="116"/>
         <source>Reset Window Size to &amp;1080p</source>
         <translation>창 크기를 1080p로 맞추기(&amp;1)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="110"/>
+        <location filename="../../src/yuzu/main.ui" line="119"/>
         <source>Reset Window Size to 1080p</source>
         <translation>창 크기를 1080p로 맞추기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="127"/>
+        <location filename="../../src/yuzu/main.ui" line="136"/>
         <source>&amp;Multiplayer</source>
         <translation>멀티플레이어(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="138"/>
+        <location filename="../../src/yuzu/main.ui" line="147"/>
         <source>&amp;Tools</source>
         <translation>도구(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="142"/>
+        <location filename="../../src/yuzu/main.ui" line="151"/>
         <source>&amp;Amiibo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="151"/>
+        <location filename="../../src/yuzu/main.ui" line="160"/>
         <source>&amp;TAS</source>
         <translation>TAS(&amp;T)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="172"/>
+        <location filename="../../src/yuzu/main.ui" line="182"/>
         <source>&amp;Help</source>
         <translation>도움말(&amp;H)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="193"/>
+        <location filename="../../src/yuzu/main.ui" line="203"/>
         <source>&amp;Install Files to NAND...</source>
         <translation>낸드에 파일 설치(&amp;I)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="198"/>
+        <location filename="../../src/yuzu/main.ui" line="208"/>
         <source>L&amp;oad File...</source>
         <translation>파일 불러오기...(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="203"/>
+        <location filename="../../src/yuzu/main.ui" line="213"/>
         <source>Load &amp;Folder...</source>
         <translation>폴더 불러오기...(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="208"/>
+        <location filename="../../src/yuzu/main.ui" line="218"/>
         <source>E&amp;xit</source>
         <translation>종료(&amp;X)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="216"/>
+        <location filename="../../src/yuzu/main.ui" line="226"/>
         <source>&amp;Pause</source>
         <translation>일시중지(&amp;P)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="224"/>
+        <location filename="../../src/yuzu/main.ui" line="234"/>
         <source>&amp;Stop</source>
         <translation>정지(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="229"/>
+        <location filename="../../src/yuzu/main.ui" line="239"/>
         <source>&amp;Verify Installed Contents</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="234"/>
+        <location filename="../../src/yuzu/main.ui" line="244"/>
         <source>&amp;About yuzu</source>
         <translation>yuzu 정보(&amp;A)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="242"/>
+        <location filename="../../src/yuzu/main.ui" line="252"/>
         <source>Single &amp;Window Mode</source>
         <translation>싱글 창 모드(&amp;W)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="247"/>
+        <location filename="../../src/yuzu/main.ui" line="257"/>
         <source>Con&amp;figure...</source>
         <translation>설정(&amp;f)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="258"/>
+        <location filename="../../src/yuzu/main.ui" line="268"/>
         <source>Display D&amp;ock Widget Headers</source>
         <translation>독 위젯 헤더 표시(&amp;o)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="266"/>
+        <location filename="../../src/yuzu/main.ui" line="276"/>
         <source>Show &amp;Filter Bar</source>
         <translation>필터링 바 표시(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="274"/>
+        <location filename="../../src/yuzu/main.ui" line="284"/>
         <source>Show &amp;Status Bar</source>
         <translation>상태 표시줄 보이기(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="277"/>
+        <location filename="../../src/yuzu/main.ui" line="287"/>
         <source>Show Status Bar</source>
         <translation>상태 표시줄 보이기</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="285"/>
+        <location filename="../../src/yuzu/main.ui" line="295"/>
         <source>&amp;Browse Public Game Lobby</source>
         <translation>공개 게임 로비 찾아보기(&amp;B)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="293"/>
+        <location filename="../../src/yuzu/main.ui" line="303"/>
         <source>&amp;Create Room</source>
         <translation>방 만들기(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="301"/>
+        <location filename="../../src/yuzu/main.ui" line="311"/>
         <source>&amp;Leave Room</source>
         <translation>방에서 나가기(&amp;L)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="306"/>
+        <location filename="../../src/yuzu/main.ui" line="316"/>
         <source>&amp;Direct Connect to Room</source>
         <translation>방에 직접 연결(&amp;D)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="314"/>
+        <location filename="../../src/yuzu/main.ui" line="324"/>
         <source>&amp;Show Current Room</source>
         <translation>현재 방 표시(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="322"/>
+        <location filename="../../src/yuzu/main.ui" line="332"/>
         <source>F&amp;ullscreen</source>
         <translation>전체 화면(&amp;u)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="330"/>
+        <location filename="../../src/yuzu/main.ui" line="340"/>
         <source>&amp;Restart</source>
         <translation>재시작(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="338"/>
+        <location filename="../../src/yuzu/main.ui" line="348"/>
         <source>Load/Remove &amp;Amiibo...</source>
         <translation>Amiibo 로드/제거(&amp;A)...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="346"/>
+        <location filename="../../src/yuzu/main.ui" line="356"/>
         <source>&amp;Report Compatibility</source>
         <translation>호환성 보고(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="354"/>
+        <location filename="../../src/yuzu/main.ui" line="364"/>
         <source>Open &amp;Mods Page</source>
         <translation>게임 모드 페이지 열기(&amp;M)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="359"/>
+        <location filename="../../src/yuzu/main.ui" line="369"/>
         <source>Open &amp;Quickstart Guide</source>
         <translation>빠른 시작 가이드 열기(&amp;Q)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="364"/>
+        <location filename="../../src/yuzu/main.ui" line="374"/>
         <source>&amp;FAQ</source>
         <translation>FAQ(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="369"/>
+        <location filename="../../src/yuzu/main.ui" line="379"/>
         <source>Open &amp;yuzu Folder</source>
         <translation>yuzu 폴더 열기(&amp;y)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="377"/>
+        <location filename="../../src/yuzu/main.ui" line="387"/>
         <source>&amp;Capture Screenshot</source>
         <translation>스크린샷 찍기(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="382"/>
+        <location filename="../../src/yuzu/main.ui" line="392"/>
         <source>Open &amp;Album</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="387"/>
+        <location filename="../../src/yuzu/main.ui" line="397"/>
         <source>&amp;Set Nickname and Owner</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="392"/>
+        <location filename="../../src/yuzu/main.ui" line="402"/>
         <source>&amp;Delete Game Data</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="397"/>
+        <location filename="../../src/yuzu/main.ui" line="407"/>
         <source>&amp;Restore Amiibo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="402"/>
+        <location filename="../../src/yuzu/main.ui" line="412"/>
         <source>&amp;Format Amiibo</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="407"/>
+        <location filename="../../src/yuzu/main.ui" line="417"/>
         <source>Open &amp;Mii Editor</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="412"/>
+        <location filename="../../src/yuzu/main.ui" line="422"/>
         <source>&amp;Configure TAS...</source>
         <translation>TAS설정...(&amp;C)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="423"/>
+        <location filename="../../src/yuzu/main.ui" line="433"/>
         <source>Configure C&amp;urrent Game...</source>
         <translation>실행중인 게임 맞춤 설정...(&amp;u)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="434"/>
+        <location filename="../../src/yuzu/main.ui" line="444"/>
         <source>&amp;Start</source>
         <translation>시작(&amp;S)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="442"/>
+        <location filename="../../src/yuzu/main.ui" line="452"/>
         <source>&amp;Reset</source>
         <translation>리셋(&amp;R)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="450"/>
+        <location filename="../../src/yuzu/main.ui" line="460"/>
         <source>R&amp;ecord</source>
         <translation>레코드(&amp;e)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="455"/>
+        <location filename="../../src/yuzu/main.ui" line="465"/>
         <source>Open &amp;Controller Menu</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="470"/>
+        <source>Install Firmware</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="475"/>
+        <source>Install Decryption Keys</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -7256,12 +7720,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="236"/>
+        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="260"/>
         <source>%1 is not playing a game</source>
         <translation>%1은(는) 게임을 하고 있지 않습니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="238"/>
+        <location filename="../../src/yuzu/multiplayer/lobby_p.h" line="262"/>
         <source>%1 is playing %2</source>
         <translation>%1이(가) %2을(를) 플레이 중입니다</translation>
     </message>
