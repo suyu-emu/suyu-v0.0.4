@@ -81,6 +81,8 @@
     <string name="save_file_invalid_zip_structure_description">Назва першої вкладеної папки має бути ідентифікатором гри.</string>
     <string name="import_saves">Імпорт</string>
     <string name="export_saves">Експорт</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia не існує</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
@@ -124,6 +126,46 @@
     <string name="audio_volume">Гучність</string>
     <string name="audio_volume_description">Вказує гучність аудіовиходу.</string>
 
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Плюс</string>
+    <string name="button_minus">Мінус</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Захоплення</string>
+    <string name="dpad">Кнопки напрямків</string>
+    <string name="up">Вгору</string>
+    <string name="down">Вниз</string>
+    <string name="left">Вліво</string>
+    <string name="right">Вправо</string>
+    <string name="c_stick">C-Джойстик</string>
+    <string name="pressed">Натиснення</string>
+    <string name="range">Діапазон</string>
+    <string name="deadzone">Мертва зона</string>
+    <string name="modifier">Модифікатор</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Неприпустимо</string>
+    <string name="pro_controller">Контролер Pro</string>
+    <string name="handheld">Портативний</string>
+    <string name="dual_joycons">Подвійні Joy-Con\'и</string>
+    <string name="left_joycon">Лівий Joy-Con</string>
+    <string name="right_joycon">Правий Joy-Con</string>
+    <string name="gamecube_controller">Контролер GameCube</string>
+    <string name="invert_axis">Інвертувати осі</string>
+    <string name="invert_button">Інвертувати кнопку</string>
+    <string name="toggle_button">Переключити кнопку</string>
+    <string name="turbo_button">Турбо кнопка</string>
+    <string name="set_threshold">Встановити поріг</string>
+    <string name="toggle_axis">Переключити осі</string>
+    <string name="connected">З\'єднано</string>
+    <string name="vibration">Вібрація</string>
+    <string name="profile">Профіль</string>
+    <string name="use_global_input_configuration">Використовувати глобальну конфігурацію вводу</string>
     <!-- Miscellaneous -->
     <string name="slider_default">За замовчуванням</string>
     <string name="ini_saved">Збережені налаштування</string>
@@ -144,6 +186,8 @@
     <string name="delete">Видалити</string>
     <string name="start">Start</string>
     <string name="clear">Очистити</string>
+    <string name="save">Зберегти</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Вибрати драйвер ГП</string>
     <string name="select_gpu_driver_title">Хочете замінити поточний драйвер ГП?</string>
@@ -159,6 +203,7 @@
     <string name="preferences_system">Система</string>
     <string name="preferences_graphics">Графіка</string>
     <string name="preferences_audio">Аудіо</string>
+    <string name="preferences_controls">Керування</string>
     <string name="preferences_theme">Тема і колір</string>
     <string name="preferences_debug">Налагодження</string>
     <!-- Game properties -->
@@ -179,7 +224,6 @@
     <string name="emulation_control_scale">Масштаб</string>
     <string name="emulation_control_opacity">Непрозорість</string>
     <string name="touchscreen">Сенсорний екран</string>
-
     <!-- Errors and warnings -->
     <string name="abort_button">Перервати</string>
     <string name="continue_button">Продовжити</string>

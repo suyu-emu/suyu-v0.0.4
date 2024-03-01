@@ -137,6 +137,11 @@
         <item quantity="other">%d sauvegardes importées avec succès</item>
     </plurals>
     <string name="no_save_data_found">Aucune donnée de sauvegarde trouvée</string>
+    <string name="verify_installed_content">Vérifier les contenus installés</string>
+    <string name="verify_installed_content_description">Vérifie l\'intégrité des contenus installés</string>
+    <string name="keys_missing">Les clés de chiffrement sont manquantes.</string>
+    <string name="keys_missing_description">Le firmware et les jeux commerciaux ne peuvent pas être déchiffrés</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Lanceur d\'applets</string>
@@ -203,6 +208,7 @@
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
+    <string name="device_name">Nom de l\'appareil</string>
     <string name="use_docked_mode">Mode TV</string>
     <string name="use_docked_mode_description">Augmenter la résolution, ce qui diminue les performances. Le mode portable est utilisé lorsque la fonction est désactivée, ce qui réduit la résolution et améliore les performances.</string>
     <string name="emulated_region">Région émulée</string>
@@ -220,6 +226,8 @@
     <string name="renderer_screen_layout">Orientation</string>
     <string name="renderer_aspect_ratio">Format</string>
     <string name="renderer_scaling_filter">Filtre de fenêtre adaptatif</string>
+    <string name="fsr_sharpness">Netteté FSR</string>
+    <string name="fsr_sharpness_description">Détermine à quel point l\'image sera affinée lors de l\'utilisation du contraste dynamique FSR.</string>
     <string name="renderer_anti_aliasing">Méthode d\'anticrénelage</string>
     <string name="renderer_force_max_clock">Forcer les fréquences maximales (Adreno uniquement)</string>
     <string name="renderer_force_max_clock_description">Forcer le GPU à fonctionner à ses fréquences maximales possibles (les contraintes thermiques seront toujours appliquées).</string>
@@ -246,6 +254,92 @@
     <string name="audio_output_engine">Moteur de sortie</string>
     <string name="audio_volume">Volume</string>
     <string name="audio_volume_description">Spécifier le volume de la sortie audio.</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Boutons</string>
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">Plus</string>
+    <string name="button_minus">Moins</string>
+    <string name="button_home">Home</string>
+    <string name="button_capture">Capture</string>
+    <string name="start_pause">Start/Pause</string>
+    <string name="dpad">Pavé directionnel</string>
+    <string name="up">Haut</string>
+    <string name="down">Bas</string>
+    <string name="left">Gauche</string>
+    <string name="right">Droite</string>
+    <string name="left_stick">Stick gauche</string>
+    <string name="control_stick">Stick de contrôle </string>
+    <string name="right_stick">Stick droit</string>
+    <string name="c_stick">C-Stick</string>
+    <string name="pressed">Appuyé</string>
+    <string name="range">Portée</string>
+    <string name="deadzone">Zone morte</string>
+    <string name="modifier">Modificateur</string>
+    <string name="modifier_range">Modifier la plage</string>
+    <string name="triggers">Gachettes</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_sl_left">SL gauche</string>
+    <string name="button_sr_left">SR gauche</string>
+    <string name="button_sl_right">SL droit</string>
+    <string name="button_sr_right">SR droit</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">Invalide</string>
+    <string name="not_set">Non défini</string>
+    <string name="unknown">Inconnu</string>
+    <string name="qualified_hat">%1$s%2$s%3$sChapeau %4$s</string>
+    <string name="qualified_button_stick_axis">%1$s%2$s%3$sAxe %4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sBouton %4$s</string>
+    <string name="qualified_axis">Axe %1$s%2$s</string>
+    <string name="unused">Inutilisé</string>
+    <string name="input_prompt">Déplacez ou appuyez sur une entrée</string>
+    <string name="unsupported_input">Type d\'entrée non pris en charge</string>
+    <string name="input_mapping_filter">Filtre de mappage d\'entrée</string>
+    <string name="input_mapping_filter_description">Sélectionnez un appareil pour filtrer les entrées de mappage</string>
+    <string name="auto_map">Mapper automatiquement une manette</string>
+    <string name="auto_map_description">Sélectionnez un périphérique pour tenter le mappage automatique</string>
+    <string name="attempted_auto_map">Tentative de mappage automatique avec %1$s</string>
+    <string name="controller_type">Type de manette</string>
+    <string name="pro_controller">Manette Switch Pro</string>
+    <string name="handheld">Mode Portable</string>
+    <string name="dual_joycons">Deux Joycons</string>
+    <string name="left_joycon">Joycon gauche</string>
+    <string name="right_joycon">Joycon droit</string>
+    <string name="gamecube_controller">Manette GameCube</string>
+    <string name="invert_axis">Inverser l\'axe</string>
+    <string name="invert_button">Inverser les boutons</string>
+    <string name="toggle_button">Bouton d\'activation</string>
+    <string name="turbo_button">Bouton Turbo</string>
+    <string name="set_threshold">Définir le seuil</string>
+    <string name="toggle_axis">Basculer les axes</string>
+    <string name="connected">Connecté</string>
+    <string name="use_system_vibrator">Utiliser le vibreur du système</string>
+    <string name="input_overlay">Superposition d\'entrée</string>
+    <string name="vibration">Vibration</string>
+    <string name="vibration_strength">Intensité de la vibration</string>
+    <string name="profile">Profil</string>
+    <string name="create_new_profile">Créer un nouveau profil</string>
+    <string name="enter_profile_name">Entrez le nom du profil</string>
+    <string name="profile_name_already_exists">Le nom du profil existe déjà</string>
+    <string name="invalid_profile_name">Nom de profil invalide</string>
+    <string name="use_global_input_configuration">Utiliser la configuration d\'entrée globale</string>
+    <string name="player_num_profile">Profil du joueur %d</string>
+    <string name="delete_input_profile">Supprimer le profil d\'entrée</string>
+    <string name="delete_input_profile_description">Êtes-vous sûr de vouloir supprimer ce profil ? Cette action est irréversible.</string>
+    <string name="stick_map_description">Déplacez un stick vers la gauche puis vers le haut ou appuyez sur un bouton.</string>
+    <string name="button_map_description">Appuyez sur un bouton ou une gachette/stick</string>
+    <string name="map_dpad_direction">Mapper avec la croix directionnelle  %1$s</string>
+    <string name="map_control">Mapper avec le %1$s</string>
+    <string name="failed_to_load_profile">Échec du chargement du profil</string>
+    <string name="failed_to_save_profile">Échec de l\'enregistrement du profil</string>
+    <string name="reset_mapping">Réinitialiser les mappages</string>
+    <string name="reset_mapping_description">Êtes-vous sûr de vouloir réinitialiser tous les mappages de cette manette aux paramètres par défaut ? Cette action ne peut pas être annulée.</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">Par défaut</string>
@@ -281,6 +375,14 @@
     <string name="custom">Personnalisé</string>
     <string name="notice">Avis</string>
     <string name="import_complete">Importation terminée</string>
+    <string name="more_options">Plus d\'options</string>
+    <string name="use_global_setting">Utilisez les paramètres globaux</string>
+    <string name="operation_completed_successfully">L\'opération s\'est déroulée avec succès</string>
+    <string name="retry">Réessayer</string>
+    <string name="confirm">Confirmer</string>
+    <string name="load">Charger</string>
+    <string name="save">Enregistrer</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Sélectionner le pilote du GPU</string>
     <string name="select_gpu_driver_title">Souhaitez vous remplacer votre pilote actuel ?</string>
@@ -301,6 +403,9 @@
     <string name="preferences_graphics_description">Niveau de précision, résolution, cache de shaders</string>
     <string name="preferences_audio">Audio</string>
     <string name="preferences_audio_description">Moteur de sortie, volume</string>
+    <string name="preferences_controls">Contrôles</string>
+    <string name="preferences_controls_description">Mapper l\'entrée du contrôleur</string>
+    <string name="preferences_player">Joueur %d</string>
     <string name="preferences_theme">Thème et couleur</string>
     <string name="preferences_debug">Débogage</string>
     <string name="preferences_debug_description">Débogage CPU/GPU, API graphique, fastmem</string>
@@ -342,6 +447,17 @@
     <string name="verifying_content">Vérification du contenu...</string>
     <string name="content_install_notice">Avis d\'installation du contenu</string>
     <string name="content_install_notice_description">Le contenu que vous avez sélectionné ne correspond pas à ce jeu.\nInstaller quand même ?</string>
+    <string name="confirm_uninstall">Confirmer la désinstallation</string>
+    <string name="confirm_uninstall_description">Êtes-vous sûr de vouloir désinstaller cette extension ?</string>
+    <string name="verify_integrity">Vérifier l\'intégrité</string>
+    <string name="verifying">Vérification...</string>
+    <string name="verify_success">La vérification de l\'intégrité a réussi !</string>
+    <string name="verify_failure">La vérification de l\'intégrité a échoué !</string>
+    <string name="verify_failure_description">Le contenu d\'un fichier peut être corrompu</string>
+    <string name="verify_no_result">La vérification de l\'intégrité n\'a pas pu être effectuée</string>
+    <string name="verify_no_result_description">La validité du contenu du fichier n\'a pas été vérifiée</string>
+    <string name="verification_failed_for">La vérification a échoué pour les fichiers suivants :\n%1$s</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Votre ROM est cryptée</string>
     <string name="loader_error_encrypted_roms_description"><![CDATA[Veuillez suivre les guides pour refaire un dump de vos <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">cartouches de jeu</a> ou de vos <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">titres installés</a>.]]></string>
@@ -355,6 +471,7 @@
     <string name="emulation_exit">Quitter l\'émulation</string>
     <string name="emulation_done">Terminé</string>
     <string name="emulation_fps_counter">Compteur FPS</string>
+    <string name="emulation_thermal_indicator">Indicateur thermique</string>
     <string name="emulation_toggle_controls">Activer/Désactiver les contrôles</string>
     <string name="emulation_rel_stick_center">Centre du stick relatif</string>
     <string name="emulation_dpad_slide">Glissement du D-pad</string>
@@ -370,6 +487,8 @@
     <string name="emulation_unpause">Reprendre l\'émulation</string>
     <string name="emulation_input_overlay">Options de l\'overlay</string>
     <string name="touchscreen">Écran tactile</string>
+    <string name="lock_drawer">Verrouiller le tiroir</string>
+    <string name="unlock_drawer">Déverrouiller le tiroir</string>
 
     <string name="load_settings">Chargement des paramètres…</string>
 
@@ -513,6 +632,12 @@
     <string name="play">Jouer</string>
     <string name="mute">Couper le son</string>
     <string name="unmute">Remettre le son</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Alignement vertical</string>
+    <string name="top">Haut</string>
+    <string name="center">Centre</string>
+    <string name="bottom">Bas</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licences</string>

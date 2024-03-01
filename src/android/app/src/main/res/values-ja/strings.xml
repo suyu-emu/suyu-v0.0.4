@@ -83,7 +83,9 @@
     <string name="notification_no_directory_link_description">ファイルマネージャのサイドパネルでユーザーフォルダを手動で探してください。</string>
     <string name="manage_save_data">セーブデータ</string>
     <string name="manage_save_data_description">セーブデータが見つかりました。操作を選択してください。</string>
+    <string name="import_save_warning">セーブデータをインポート</string>
     <string name="import_export_saves_description">セーブファイルをインポート/エクスポート</string>
+    <string name="save_files_importing">セーブファイルをインポート中...</string>
     <string name="save_file_imported_success">インポートが完了しました</string>
     <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効</string>
     <string name="save_file_invalid_zip_structure_description">最初のサブフォルダ名は、ゲームのタイトルIDである必要があります。</string>
@@ -109,6 +111,8 @@
     <string name="custom_driver_not_supported">カスタムドライバはサポートされていません</string>
     <string name="manage_yuzu_data">yuzu データを管理</string>
     <string name="share_save_file">セーブファイルを共有</string>
+    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+
     <string name="applets_error_firmware">ファームウェア未インストール</string>
     <string name="album_applet">アルバム</string>
     <string name="cabinet_nickname_and_owner">ニックネームと所有者の設定</string>
@@ -151,8 +155,8 @@
     <string name="frame_limit_enable_description">エミュレーション速度を指定した割合に制限します。</string>
     <string name="frame_limit_slider">エミュレーション速度</string>
     <string name="frame_limit_slider_description">エミュレーション速度を制限するパーセンテージを指定します。100%は通常速度です。値の増減で速度も増減します。</string>
+    <string name="cpu_backend">CPUバックエンド</string>
     <string name="cpu_accuracy">CPU精度</string>
-    <!-- System settings strings -->
     <string name="use_docked_mode">TVモード</string>
     <string name="use_docked_mode_description">高解像度、低パフォーマンス。無効時には携帯モードが使用されます（低解像度、高パフォーマンス）。</string>
     <string name="emulated_region">地域</string>
@@ -179,6 +183,9 @@
     <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
     <string name="use_disk_shader_cache">ディスクシェーダーキャッシュ</string>
     <string name="use_disk_shader_cache_description">生成したシェーダーを端末に保存して読み込み、コマ落ちを軽減します。</string>
+    <string name="anisotropic_filtering">異方性フィルタリング</string>
+    <string name="anisotropic_filtering_description">斜めから見たときのテクスチャーの質感を向上させます</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
     <string name="cpu_debug_mode">CPUデバッグ</string>
@@ -193,6 +200,47 @@
     <string name="audio_volume">音量</string>
     <string name="audio_volume_description">オーディオ出力の音量を指定します</string>
 
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_plus">+</string>
+    <string name="button_minus">-</string>
+    <string name="button_home">HOMEボタン</string>
+    <string name="button_capture">キャプチャ</string>
+    <string name="dpad">方向ボタン</string>
+    <string name="up">上</string>
+    <string name="down">下</string>
+    <string name="left">左</string>
+    <string name="right">右</string>
+    <string name="left_stick">Lスティック</string>
+    <string name="right_stick">Rスティック</string>
+    <string name="c_stick">Cスティック</string>
+    <string name="pressed">押下</string>
+    <string name="range">範囲</string>
+    <string name="deadzone">遊び</string>
+    <string name="modifier">変更</string>
+    <string name="button_l">L</string>
+    <string name="button_r">R</string>
+    <string name="button_zl">ZL</string>
+    <string name="button_zr">ZR</string>
+    <string name="button_z">Z</string>
+    <string name="invalid">無効</string>
+    <string name="unknown">不明</string>
+    <string name="pro_controller">Proコントローラー</string>
+    <string name="handheld">携帯コントローラー</string>
+    <string name="dual_joycons">Joy-Con(L/R)</string>
+    <string name="left_joycon">Joy-Con(L)</string>
+    <string name="right_joycon">Joy-Con(R)</string>
+    <string name="gamecube_controller">ゲームキューブコントローラー</string>
+    <string name="invert_axis">軸を反転</string>
+    <string name="invert_button">ボタンを反転</string>
+    <string name="turbo_button">ターボボタン</string>
+    <string name="set_threshold">しきい値を設定</string>
+    <string name="connected">接続の状態</string>
+    <string name="vibration">振動</string>
+    <string name="profile">プロファイル</string>
+    <string name="use_global_input_configuration">グローバル入力設定を使用</string>
     <!-- Miscellaneous -->
     <string name="slider_default">デフォルト</string>
     <string name="ini_saved">設定を保存しました</string>
@@ -220,6 +268,8 @@
     <string name="start">開始</string>
     <string name="clear">クリア</string>
     <string name="custom">カスタム</string>
+    <string name="save">保存</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPUドライバを選択</string>
     <string name="select_gpu_driver_title">現在のGPUドライバを置き換えますか？</string>
@@ -235,6 +285,7 @@
     <string name="preferences_system">システム</string>
     <string name="preferences_graphics">グラフィック</string>
     <string name="preferences_audio">サウンド</string>
+    <string name="preferences_controls">操作</string>
     <string name="preferences_theme">テーマと色</string>
     <string name="preferences_debug">デバッグ</string>
     <!-- Game properties -->
@@ -243,6 +294,9 @@
     <string name="developer">開発元</string>
     <string name="version">バージョン</string>
     <string name="add_ons">アドオン</string>
+    <string name="invalid_directory">無効なディレクトリ</string>
+    <string name="verify_success">整合性の確認に成功しました!</string>
+    <string name="verify_failure">整合性の確認に失敗しました!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROMが暗号化されています</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[ゲームの復号化に必要な <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> ファイルがインストールされていることを確認してください。]]></string>
@@ -270,7 +324,6 @@
     <string name="emulation_unpause">再開</string>
     <string name="emulation_input_overlay">表示オプション</string>
     <string name="touchscreen">タッチスクリーン</string>
-
     <string name="load_settings">設定をロード中…</string>
 
     <!-- Software keyboard -->
@@ -356,6 +409,10 @@
     <string name="ratio_force_sixteen_ten">強制 16:10</string>
     <string name="ratio_stretch">画面に合わせる</string>
 
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (低速)</string>
+    <string name="cpu_backend_nce">ネイティブコード実行 (NCE)</string>
+
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">正確</string>
     <string name="cpu_accuracy_unsafe">不安定</string>
@@ -383,6 +440,8 @@
     <string name="theme_mode_light">ライト</string>
     <string name="theme_mode_dark">ダーク</string>
 
+    <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
     <!-- Anisotropic filtering options -->
