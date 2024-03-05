@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.fragments
+package org.suyu.suyu_emu.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,13 +15,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.adapters.AppletAdapter
-import org.yuzu.yuzu_emu.databinding.FragmentAppletLauncherBinding
-import org.yuzu.yuzu_emu.model.Applet
-import org.yuzu.yuzu_emu.model.AppletInfo
-import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.adapters.AppletAdapter
+import org.suyu.suyu_emu.databinding.FragmentAppletLauncherBinding
+import org.suyu.suyu_emu.model.Applet
+import org.suyu.suyu_emu.model.AppletInfo
+import org.suyu.suyu_emu.model.HomeViewModel
+import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
 
 class AppletLauncherFragment : Fragment() {
     private var _binding: FragmentAppletLauncherBinding? = null

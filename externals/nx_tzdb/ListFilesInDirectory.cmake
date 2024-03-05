@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2023 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # CMake does not have a way to list the files in a specific directory, 

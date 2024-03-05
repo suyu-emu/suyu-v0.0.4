@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.overlay
+package org.suyu.suyu_emu.overlay
 
 import android.app.Activity
 import android.content.Context
@@ -24,17 +24,17 @@ import androidx.core.content.ContextCompat
 import androidx.window.layout.WindowMetricsCalculator
 import kotlin.math.max
 import kotlin.math.min
-import org.yuzu.yuzu_emu.features.input.NativeInput
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
-import org.yuzu.yuzu_emu.features.input.model.NativeButton
-import org.yuzu.yuzu_emu.features.input.model.NpadStyleIndex
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
-import org.yuzu.yuzu_emu.features.settings.model.IntSetting
-import org.yuzu.yuzu_emu.overlay.model.OverlayControl
-import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
-import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
-import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.suyu.suyu_emu.features.input.NativeInput
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.features.input.model.NativeAnalog
+import org.suyu.suyu_emu.features.input.model.NativeButton
+import org.suyu.suyu_emu.features.input.model.NpadStyleIndex
+import org.suyu.suyu_emu.features.settings.model.BooleanSetting
+import org.suyu.suyu_emu.features.settings.model.IntSetting
+import org.suyu.suyu_emu.overlay.model.OverlayControl
+import org.suyu.suyu_emu.overlay.model.OverlayControlData
+import org.suyu.suyu_emu.overlay.model.OverlayLayout
+import org.suyu.suyu_emu.utils.NativeConfig
 
 /**
  * Draws the interactive input overlay on top of the

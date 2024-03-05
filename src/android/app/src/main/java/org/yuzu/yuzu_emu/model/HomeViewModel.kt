@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package org.yuzu.yuzu_emu.model
+package org.suyu.suyu_emu.model
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel

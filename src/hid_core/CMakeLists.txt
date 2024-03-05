@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2018 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(hid_core STATIC
@@ -161,6 +161,6 @@ endif()
 create_target_directory_groups(hid_core)
 target_link_libraries(hid_core PUBLIC core)
 
-if (YUZU_USE_PRECOMPILED_HEADERS)
+if (suyu_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(hid_core PRIVATE precompiled_headers.h)
 endif()

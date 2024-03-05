@@ -1,9 +1,9 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.features.settings.model
+package org.suyu.suyu_emu.features.settings.model
 
-import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.suyu.suyu_emu.utils.NativeConfig
 
 enum class FloatSetting(override val key: String) : AbstractFloatSetting {
     // No float settings currently exist

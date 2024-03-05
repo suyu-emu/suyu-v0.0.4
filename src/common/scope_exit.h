@@ -9,7 +9,7 @@
 namespace detail {
 template <class F>
 class ScopeGuard {
-    YUZU_NON_COPYABLE(ScopeGuard);
+    suyu_NON_COPYABLE(ScopeGuard);
 
 private:
     F f;

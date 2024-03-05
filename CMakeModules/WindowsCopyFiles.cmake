@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2018 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This file provides the function windows_copy_files.

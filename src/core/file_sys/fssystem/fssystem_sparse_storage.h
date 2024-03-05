@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -8,8 +8,8 @@
 namespace FileSys {
 
 class SparseStorage : public IndirectStorage {
-    YUZU_NON_COPYABLE(SparseStorage);
-    YUZU_NON_MOVEABLE(SparseStorage);
+    suyu_NON_COPYABLE(SparseStorage);
+    suyu_NON_MOVEABLE(SparseStorage);
 
 private:
     class ZeroStorage : public IReadOnlyStorage {

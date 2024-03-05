@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2010 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Parts of this implementation were based on:

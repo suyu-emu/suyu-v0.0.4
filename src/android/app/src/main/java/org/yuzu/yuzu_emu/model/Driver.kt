@@ -1,9 +1,9 @@
-// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.model
+package org.suyu.suyu_emu.model
 
-import org.yuzu.yuzu_emu.utils.GpuDriverMetadata
+import org.suyu.suyu_emu.utils.GpuDriverMetadata
 
 data class Driver(
     override var selected: Boolean,

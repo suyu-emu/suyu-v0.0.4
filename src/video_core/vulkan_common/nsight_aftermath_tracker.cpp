@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef HAS_NSIGHT_AFTERMATH
@@ -47,7 +47,7 @@ NsightAftermathTracker::NsightAftermathTracker() {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath function pointers");
         return;
     }
-    dump_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::LogDir) / "gpucrash";
+    dump_dir = Common::FS::GetsuyuPath(Common::FS::suyuPath::LogDir) / "gpucrash";
 
     Common::FS::RemoveDirRecursively(dump_dir);
     if (!Common::FS::CreateDir(dump_dir)) {
@@ -186,7 +186,7 @@ void NsightAftermathTracker::OnShaderDebugInfoCallback(const void* shader_debug_
 
 void NsightAftermathTracker::OnCrashDumpDescriptionCallback(
     PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description) {
-    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "yuzu");
+    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "suyu");
 }
 
 void NsightAftermathTracker::GpuCrashDumpCallback(const void* gpu_crash_dump,

@@ -13,24 +13,24 @@
         <item name="android:paddingRight">32dp</item>
     </style>
 
-    <style name="YuzuSlider" parent="Widget.Material3.Slider">
+    <style name="suyuSlider" parent="Widget.Material3.Slider">
         <item name="tickVisible">false</item>
         <item name="labelBehavior">gone</item>
     </style>
 
-    <style name="YuzuMaterialDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorPrimary">@color/yuzu_primaryContainer</item>
-        <item name="colorSurface">@color/yuzu_primaryContainer</item>
-        <item name="colorSecondary">@color/yuzu_primary</item>
-        <item name="android:textColorLink">@color/yuzu_primary</item>
-        <item name="buttonBarPositiveButtonStyle">@style/YuzuButton</item>
-        <item name="buttonBarNegativeButtonStyle">@style/YuzuButton</item>
-        <item name="buttonBarNeutralButtonStyle">@style/YuzuButton</item>
+    <style name="suyuMaterialDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/suyu_primaryContainer</item>
+        <item name="colorSurface">@color/suyu_primaryContainer</item>
+        <item name="colorSecondary">@color/suyu_primary</item>
+        <item name="android:textColorLink">@color/suyu_primary</item>
+        <item name="buttonBarPositiveButtonStyle">@style/suyuButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/suyuButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/suyuButton</item>
     </style>
 
-    <style name="YuzuButton" parent="Widget.Material3.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/yuzu_primary</item>
-        <item name="rippleColor">@color/yuzu_inversePrimary</item>
+    <style name="suyuButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/suyu_primary</item>
+        <item name="rippleColor">@color/suyu_inversePrimary</item>
     </style>
 
 </resources>

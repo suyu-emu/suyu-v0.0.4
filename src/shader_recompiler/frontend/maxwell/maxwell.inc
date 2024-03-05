@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 INST(AL2P,         "AL2P",           "1110 1111 1010 0---")

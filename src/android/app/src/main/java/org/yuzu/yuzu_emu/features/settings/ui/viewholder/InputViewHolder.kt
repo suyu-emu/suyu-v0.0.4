@@ -1,18 +1,18 @@
-// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.features.settings.ui.viewholder
+package org.suyu.suyu_emu.features.settings.ui.viewholder
 
 import android.view.View
-import org.yuzu.yuzu_emu.databinding.ListItemSettingInputBinding
-import org.yuzu.yuzu_emu.features.input.NativeInput
-import org.yuzu.yuzu_emu.features.settings.model.view.AnalogInputSetting
-import org.yuzu.yuzu_emu.features.settings.model.view.ButtonInputSetting
-import org.yuzu.yuzu_emu.features.settings.model.view.InputSetting
-import org.yuzu.yuzu_emu.features.settings.model.view.ModifierInputSetting
-import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
-import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.suyu.suyu_emu.databinding.ListItemSettingInputBinding
+import org.suyu.suyu_emu.features.input.NativeInput
+import org.suyu.suyu_emu.features.settings.model.view.AnalogInputSetting
+import org.suyu.suyu_emu.features.settings.model.view.ButtonInputSetting
+import org.suyu.suyu_emu.features.settings.model.view.InputSetting
+import org.suyu.suyu_emu.features.settings.model.view.ModifierInputSetting
+import org.suyu.suyu_emu.features.settings.model.view.SettingsItem
+import org.suyu.suyu_emu.features.settings.ui.SettingsAdapter
+import org.suyu.suyu_emu.utils.ViewUtils.setVisible
 
 class InputViewHolder(val binding: ListItemSettingInputBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {

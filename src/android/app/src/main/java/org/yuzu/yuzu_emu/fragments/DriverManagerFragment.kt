@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.fragments
+package org.suyu.suyu_emu.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,18 +20,18 @@ import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.adapters.DriverAdapter
-import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
-import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
-import org.yuzu.yuzu_emu.model.DriverViewModel
-import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.utils.FileUtil
-import org.yuzu.yuzu_emu.utils.GpuDriverHelper
-import org.yuzu.yuzu_emu.utils.NativeConfig
-import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
-import org.yuzu.yuzu_emu.utils.collect
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.adapters.DriverAdapter
+import org.suyu.suyu_emu.databinding.FragmentDriverManagerBinding
+import org.suyu.suyu_emu.features.settings.model.StringSetting
+import org.suyu.suyu_emu.model.Driver.Companion.toDriver
+import org.suyu.suyu_emu.model.DriverViewModel
+import org.suyu.suyu_emu.model.HomeViewModel
+import org.suyu.suyu_emu.utils.FileUtil
+import org.suyu.suyu_emu.utils.GpuDriverHelper
+import org.suyu.suyu_emu.utils.NativeConfig
+import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
+import org.suyu.suyu_emu.utils.collect
 import java.io.File
 import java.io.IOException
 

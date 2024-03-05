@@ -1,11 +1,11 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2019 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 . .ci/scripts/common/pre-upload.sh
 
-REV_NAME="yuzu-windows-mingw-${GITDATE}-${GITREV}"
+REV_NAME="suyu-windows-mingw-${GITDATE}-${GITREV}"
 ARCHIVE_NAME="${REV_NAME}.tar.xz"
 COMPRESSION_FLAGS="-cJvf"
 
