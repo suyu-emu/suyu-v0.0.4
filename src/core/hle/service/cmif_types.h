@@ -12,8 +12,10 @@ namespace Service {
 
 // clang-format off
 template <typename T>
-struct AutoOut {
-    T raw;
+class AutoOut {
+    public:
+        T raw;
+        AutoOut() : raw() {}
 };
 
 template <typename T>
