@@ -18,7 +18,7 @@ This repo is created based on yuzu EA 4176. Please contribute
   <br>
 </h1>
 
-<h4 align="center"><b>suyu</b>, prounced "sue-you" is the afterlife the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
+<h4 align="center"><b>suyu</b>, pronounced "sue-you" is the afterlife the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
