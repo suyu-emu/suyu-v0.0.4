@@ -1,28 +1,35 @@
 <!--
-SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-SPDX-License-Identifier: GPL-2.0-or-later
+SPDX-FileCopyrightText: 2024 suyu emulator project
+SPDX-License-Identifier: GPL v3
 -->
 
-<h1 align="center">
+<h4>This project DOES NOT suppot piracy, you are required to source your own games and keys, we make no money off this project (mainly so that Nintendon't sue us lol)</h4>
+
+
+We are in great need of developers, join our discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>
+
+This repo is created based on yuzu EA 4176. Please contribute
+
+<h1 style="text-align:center;">
   <br>
-  <a href="https://yuzu-emu.org/"><img src="https://raw.githubusercontent.com/yuzu-emu/yuzu-assets/master/icons/icon.png" alt="yuzu" width="200"></a>
+  <a href=""><img src="https://cdn.discordapp.com/attachments/1214441121099419718/1214452770334056488/Suyu-Logo_V2.png?ex=65f92a47&is=65e6b547&hm=a1f174d70a5c106fec6a998c603e1158d8f3011a6c9ff91415b7c02afe9c0262&" alt="suyu" width="200"></a>
   <br>
-  <b>yuzu</b>
+  <b>suyu</b>
   <br>
 </h1>
 
-<h4 align="center"><b>yuzu</b> is the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
+<h4 align="center"><b>suyu</b>, prounced "sue-you" is the afterlife the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
 
 <p align="center">
-    <a href="https://dev.azure.com/yuzu-emu/yuzu/">
-        <img src="https://dev.azure.com/yuzu-emu/yuzu/_apis/build/status/yuzu%20mainline?branchName=master"
+    <a href="https://dev.azure.com/suyu-emu/suyu/">
+        <img src="https://dev.azure.com/suyu-emu/suyu/_apis/build/status/suyu%20mainline?branchName=master"
             alt="Azure Mainline CI Build Status">
     </a>
     <a href="https://discord.com/invite/u77vRWY">
-        <img src="https://img.shields.io/discord/398318088170242053?color=5865F2&label=yuzu&logo=discord&logoColor=white"
+        <img src="https://img.shields.io/discord/398318088170242053?color=5865F2&label=suyu&logo=discord&logoColor=white"
             alt="Discord">
     </a>
 </p>
@@ -31,55 +38,55 @@ It is written in C++ with portability in mind, and we actively maintain builds f
   <a href="#compatibility">Compatibility</a> |
   <a href="#development">Development</a> |
   <a href="#building">Building</a> |
-  <a href="#download">Download</a> |
+  <a href="#downloads">Downloads</a> |
   <a href="#support">Support</a> |
   <a href="#license">License</a>
 </p>
 
+## Status
+
+We are trying to get the builds working. We are in need of developers. Join our discord to contribute.
+
 ## Compatibility
 
-The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](https://yuzu-emu.org/help/quickstart/#hardware-requirements).
+W.I.P.
 
-For a full list of games yuzu supports, please visit our [Compatibility page](https://yuzu-emu.org/game/).
+The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](https://suyu-emu.org/help/quickstart/#hardware-requirements).
 
-Check out our [website](https://yuzu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
+For a full list of games suyu supports, please visit our [Compatibility page](https://suyu-emu.org/game/).
+
+Check out our [website](https://suyu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
 
-Most of the development happens on GitHub. It's also where [our central repository](https://github.com/yuzu-emu/yuzu) is hosted. For development discussion, please join us on [Discord](https://discord.com/invite/u77vRWY).
+W.I.P.
 
-If you want to contribute, please take a look at the [Contributor's Guide](https://github.com/yuzu-emu/yuzu/wiki/Contributing) and [Developer Information](https://github.com/yuzu-emu/yuzu/wiki/Developer-Information).
+This project is completely free and open source, this project is made possible by many people who share the same interest.
+
+Most of the development happens on GitHub. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
+
+If you want to contribute, please take a look at the [Contributor's Guide](https://github.com/suyu-emu/suyu/wiki/Contributing) and [Developer Information](https://github.com/suyu-emu/suyu/wiki/Developer-Information).
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
 
-If you want to contribute to the user interface translation project, please check out the [yuzu project on transifex](https://www.transifex.com/yuzu-emulator/yuzu). We centralize translation work there, and periodically upstream translations.
+If you want to contribute to the user interface translation project, please check out the [suyu project on transifex](https://www.transifex.com/suyu-emulator/suyu). We centralize translation work there, and periodically upstream translations.
+
+## Downloads
+
+* __Windows__: [Legacy Artifacts](https://github.com/pineappleea/pineapple-src/releases)
+* __Linux__: [Legacy Artifacts](https://github.com/pineappleea/pineapple-src/releases)
 
 ## Building
 
-* __Windows__: [Windows Build](https://github.com/yuzu-emu/yuzu/wiki/Building-For-Windows)
-* __Linux__: [Linux Build](https://github.com/yuzu-emu/yuzu/wiki/Building-For-Linux)
+* __Windows__: W.I.P.
+* __Linux__: W.I.P.
 
-## Download
-
-You can download the latest releases automatically via the installer on our [downloads](https://yuzu-emu.org/downloads/) page.
 
 
 ## Support
 
-If you enjoy the project and want to support us financially, check out our Patreon!
+This project is completely free and open source, this project is made possible by many people who share the same interest. Please join the discord server to contribute.
 
-<a href="https://www.patreon.com/yuzuteam">
-    <img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
-</a>
-
-Any donations received will go towards things like:
-* Switch consoles to explore and reverse-engineer the hardware
-* Switch games for testing, reverse-engineering, and implementing new features
-* Web hosting and infrastructure setup
-* Software licenses (e.g. Visual Studio, IDA Pro, etc.)
-* Additional hardware (e.g. GPUs as-needed to improve rendering support, other peripherals to add support for, etc.)
-
-If you wish to support us a different way, please join our [Discord](https://discord.gg/u77vRWY) and talk to bunnei. You may also contact: donations@yuzu-emu.org.
 
 ## License
 
-yuzu is licensed under the GPLv3 (or any later version). Refer to the [LICENSE.txt](https://github.com/yuzu-emu/yuzu/blob/master/LICENSE.txt) file.
+suyu is licensed under the free and open-source GPL v3 license.
