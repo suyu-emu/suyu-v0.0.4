@@ -1,7 +1,5 @@
-# SPDX-FileCopyrightText: 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
-#
-# Modified by AMA25 on 3/5/24
 
 cmake_minimum_required(VERSION 3.22)
 
@@ -128,7 +126,7 @@ if (YUZU_USE_BUNDLED_VCPKG)
         set(VCPKG_DOWNLOADS_PATH ${PROJECT_SOURCE_DIR}/externals/vcpkg/downloads)
         set(NASM_VERSION "2.16.01")
         set(NASM_DESTINATION_PATH ${VCPKG_DOWNLOADS_PATH}/nasm-${NASM_VERSION}-win64.zip)
-        set(NASM_DOWNLOAD_URL "https://github.com/yuzu-emu/ext-windows-bin/raw/master/nasm/nasm-${NASM_VERSION}-win64.zip")
+        set(NASM_DOWNLOAD_URL "https://github.com/yuzu-mirror/ext-windows-bin/raw/master/nasm/nasm-${NASM_VERSION}-win64.zip")
 
         if (NOT EXISTS ${NASM_DESTINATION_PATH})
             file(DOWNLOAD ${NASM_DOWNLOAD_URL} ${NASM_DESTINATION_PATH} SHOW_PROGRESS STATUS NASM_STATUS)
@@ -622,7 +620,7 @@ if (NOT CLANG_FORMAT)
         message(STATUS "Clang format not found! Downloading...")
         set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
         file(DOWNLOAD
-            https://github.com/yuzu-emu/ext-windows-bin/raw/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
+            https://github.com/yuzu-mirror/ext-windows-bin/raw/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
             "${CLANG_FORMAT}" SHOW_PROGRESS
             STATUS DOWNLOAD_SUCCESS)
         if (NOT DOWNLOAD_SUCCESS EQUAL 0)
