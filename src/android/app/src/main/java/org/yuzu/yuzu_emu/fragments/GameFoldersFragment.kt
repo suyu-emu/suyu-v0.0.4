@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.fragments
+package org.suyu.suyu_emu.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,14 +17,14 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.launch
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.adapters.FolderAdapter
-import org.yuzu.yuzu_emu.databinding.FragmentFoldersBinding
-import org.yuzu.yuzu_emu.model.GamesViewModel
-import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.ui.main.MainActivity
-import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
-import org.yuzu.yuzu_emu.utils.collect
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.adapters.FolderAdapter
+import org.suyu.suyu_emu.databinding.FragmentFoldersBinding
+import org.suyu.suyu_emu.model.GamesViewModel
+import org.suyu.suyu_emu.model.HomeViewModel
+import org.suyu.suyu_emu.ui.main.MainActivity
+import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
+import org.suyu.suyu_emu.utils.collect
 
 class GameFoldersFragment : Fragment() {
     private var _binding: FragmentFoldersBinding? = null

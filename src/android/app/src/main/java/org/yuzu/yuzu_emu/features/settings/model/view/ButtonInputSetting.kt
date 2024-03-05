@@ -1,13 +1,13 @@
-// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.features.settings.model.view
+package org.suyu.suyu_emu.features.settings.model.view
 
 import androidx.annotation.StringRes
-import org.yuzu.yuzu_emu.utils.ParamPackage
-import org.yuzu.yuzu_emu.features.input.NativeInput
-import org.yuzu.yuzu_emu.features.input.model.InputType
-import org.yuzu.yuzu_emu.features.input.model.NativeButton
+import org.suyu.suyu_emu.utils.ParamPackage
+import org.suyu.suyu_emu.features.input.NativeInput
+import org.suyu.suyu_emu.features.input.model.InputType
+import org.suyu.suyu_emu.features.input.model.NativeButton
 
 class ButtonInputSetting(
     override val playerIndex: Int,

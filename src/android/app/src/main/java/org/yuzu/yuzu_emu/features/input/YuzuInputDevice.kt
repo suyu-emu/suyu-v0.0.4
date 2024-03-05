@@ -1,16 +1,16 @@
-// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.features.input
+package org.suyu.suyu_emu.features.input
 
 import android.view.InputDevice
 import androidx.annotation.Keep
-import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.utils.InputHandler.getGUID
+import org.suyu.suyu_emu.suyuApplication
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.utils.InputHandler.getGUID
 
 @Keep
-interface YuzuInputDevice {
+interface suyuInputDevice {
     fun getName(): String
 
     fun getGUID(): String
@@ -25,15 +25,15 @@ interface YuzuInputDevice {
     fun hasKeys(keys: IntArray): BooleanArray = BooleanArray(0)
 }
 
-class YuzuPhysicalDevice(
+class suyuPhysicalDevice(
     private val device: InputDevice,
     private val port: Int,
     useSystemVibrator: Boolean
-) : YuzuInputDevice {
+) : suyuInputDevice {
     private val vibrator = if (useSystemVibrator) {
-        YuzuVibrator.getSystemVibrator()
+        suyuVibrator.getSystemVibrator()
     } else {
-        YuzuVibrator.getControllerVibrator(device)
+        suyuVibrator.getControllerVibrator(device)
     }
 
     override fun getName(): String {
@@ -60,14 +60,14 @@ class YuzuPhysicalDevice(
     override fun hasKeys(keys: IntArray): BooleanArray = device.hasKeys(*keys)
 }
 
-class YuzuInputOverlayDevice(
+class suyuInputOverlayDevice(
     private val vibration: Boolean,
     private val port: Int
-) : YuzuInputDevice {
-    private val vibrator = YuzuVibrator.getSystemVibrator()
+) : suyuInputDevice {
+    private val vibrator = suyuVibrator.getSystemVibrator()
 
     override fun getName(): String {
-        return YuzuApplication.appContext.getString(R.string.input_overlay)
+        return suyuApplication.appContext.getString(R.string.input_overlay)
     }
 
     override fun getGUID(): String {

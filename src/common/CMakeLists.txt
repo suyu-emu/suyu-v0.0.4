@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2018 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if (DEFINED ENV{AZURECIREPO})
@@ -161,8 +161,8 @@ add_library(common STATIC
     zstd_compression.h
 )
 
-if (YUZU_ENABLE_PORTABLE)
-    add_compile_definitions(YUZU_ENABLE_PORTABLE)
+if (suyu_ENABLE_PORTABLE)
+    add_compile_definitions(suyu_ENABLE_PORTABLE)
 endif()
 
 if (WIN32)
@@ -262,7 +262,7 @@ if (ANDROID)
     target_link_libraries(common PRIVATE android)
 endif()
 
-if (YUZU_USE_PRECOMPILED_HEADERS)
+if (suyu_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
 

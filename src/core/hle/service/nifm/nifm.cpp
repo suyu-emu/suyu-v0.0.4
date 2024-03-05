@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/core.h"
@@ -396,11 +396,11 @@ void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
                 .mtu{1500},
             },
             .uuid{0xdeadbeef, 0xdeadbeef},
-            .network_name{"yuzu Network"},
+            .network_name{"suyu Network"},
             .wireless_setting_data{
                 .ssid_length{12},
-                .ssid{"yuzu Network"},
-                .passphrase{"yuzupassword"},
+                .ssid{"suyu Network"},
+                .passphrase{"suyupassword"},
             },
         };
     }();

@@ -1,15 +1,15 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.disk_shader_cache
+package org.suyu.suyu_emu.disk_shader_cache
 
 import androidx.annotation.Keep
 import androidx.lifecycle.ViewModelProvider
-import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.activities.EmulationActivity
-import org.yuzu.yuzu_emu.model.EmulationViewModel
-import org.yuzu.yuzu_emu.utils.Log
+import org.suyu.suyu_emu.NativeLibrary
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.activities.EmulationActivity
+import org.suyu.suyu_emu.model.EmulationViewModel
+import org.suyu.suyu_emu.utils.Log
 
 @Keep
 object DiskShaderCacheProgress {

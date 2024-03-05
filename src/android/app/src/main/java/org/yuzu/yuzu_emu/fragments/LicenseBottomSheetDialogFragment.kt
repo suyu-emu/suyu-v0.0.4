@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.fragments
+package org.suyu.suyu_emu.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,9 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import org.yuzu.yuzu_emu.databinding.DialogLicenseBinding
-import org.yuzu.yuzu_emu.model.License
-import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
+import org.suyu.suyu_emu.databinding.DialogLicenseBinding
+import org.suyu.suyu_emu.model.License
+import org.suyu.suyu_emu.utils.SerializableHelper.parcelable
 
 class LicenseBottomSheetDialogFragment : BottomSheetDialogFragment() {
     private var _binding: DialogLicenseBinding? = null

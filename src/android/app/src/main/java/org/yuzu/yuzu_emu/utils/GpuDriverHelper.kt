@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.utils
+package org.suyu.suyu_emu.utils
 
 import android.graphics.SurfaceTexture
 import android.net.Uri
@@ -9,9 +9,9 @@ import android.os.Build
 import android.view.Surface
 import java.io.File
 import java.io.IOException
-import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.suyu.suyu_emu.NativeLibrary
+import org.suyu.suyu_emu.suyuApplication
+import org.suyu.suyu_emu.features.settings.model.StringSetting
 import java.io.FileNotFoundException
 import java.util.zip.ZipException
 import java.util.zip.ZipFile
@@ -27,11 +27,11 @@ object GpuDriverHelper {
     fun initializeDriverParameters() {
         try {
             // Initialize the file redirection directory.
-            fileRedirectionPath = YuzuApplication.appContext
+            fileRedirectionPath = suyuApplication.appContext
                 .getExternalFilesDir(null)!!.canonicalPath + "/gpu/vk_file_redirect/"
 
             // Initialize the driver installation directory.
-            driverInstallationPath = YuzuApplication.appContext
+            driverInstallationPath = suyuApplication.appContext
                 .filesDir.canonicalPath + "/gpu_driver/"
         } catch (e: IOException) {
             throw RuntimeException(e)
@@ -41,7 +41,7 @@ object GpuDriverHelper {
         initializeDirectories()
 
         // Initialize hook libraries directory.
-        hookLibPath = YuzuApplication.appContext.applicationInfo.nativeLibraryDir + "/"
+        hookLibPath = suyuApplication.appContext.applicationInfo.nativeLibraryDir + "/"
 
         // Initialize GPU driver.
         NativeLibrary.initializeGpuDriver(

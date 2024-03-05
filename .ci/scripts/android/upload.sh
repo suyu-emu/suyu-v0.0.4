@@ -1,17 +1,19 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
+# 
+# Modified by AMA25 on 3/5/24
 
 . ./.ci/scripts/common/pre-upload.sh
 
-REV_NAME="yuzu-${GITDATE}-${GITREV}"
+REV_NAME="suyu-${GITDATE}-${GITREV}"
 
 BUILD_FLAVOR="mainline"
 
 BUILD_TYPE_LOWER="release"
 BUILD_TYPE_UPPER="Release"
-if [ "${GITHUB_REPOSITORY}" == "yuzu-emu/yuzu" ]; then
+if [ "${GITHUB_REPOSITORY}" == "suyu-emu/suyu" ]; then
     BUILD_TYPE_LOWER="relWithDebInfo"
     BUILD_TYPE_UPPER="RelWithDebInfo"
 fi

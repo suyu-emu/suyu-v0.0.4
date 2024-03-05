@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.fragments
+package org.suyu.suyu_emu.fragments
 
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
@@ -24,27 +24,27 @@ import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.yuzu.yuzu_emu.HomeNavigationDirections
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.adapters.GamePropertiesAdapter
-import org.yuzu.yuzu_emu.databinding.FragmentGamePropertiesBinding
-import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.model.DriverViewModel
-import org.yuzu.yuzu_emu.model.GameProperty
-import org.yuzu.yuzu_emu.model.GamesViewModel
-import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.model.InstallableProperty
-import org.yuzu.yuzu_emu.model.SubmenuProperty
-import org.yuzu.yuzu_emu.model.TaskState
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization
-import org.yuzu.yuzu_emu.utils.FileUtil
-import org.yuzu.yuzu_emu.utils.GameIconUtils
-import org.yuzu.yuzu_emu.utils.GpuDriverHelper
-import org.yuzu.yuzu_emu.utils.MemoryUtil
-import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
-import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
-import org.yuzu.yuzu_emu.utils.collect
+import org.suyu.suyu_emu.HomeNavigationDirections
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.suyuApplication
+import org.suyu.suyu_emu.adapters.GamePropertiesAdapter
+import org.suyu.suyu_emu.databinding.FragmentGamePropertiesBinding
+import org.suyu.suyu_emu.features.settings.model.Settings
+import org.suyu.suyu_emu.model.DriverViewModel
+import org.suyu.suyu_emu.model.GameProperty
+import org.suyu.suyu_emu.model.GamesViewModel
+import org.suyu.suyu_emu.model.HomeViewModel
+import org.suyu.suyu_emu.model.InstallableProperty
+import org.suyu.suyu_emu.model.SubmenuProperty
+import org.suyu.suyu_emu.model.TaskState
+import org.suyu.suyu_emu.utils.DirectoryInitialization
+import org.suyu.suyu_emu.utils.FileUtil
+import org.suyu.suyu_emu.utils.GameIconUtils
+import org.suyu.suyu_emu.utils.GpuDriverHelper
+import org.suyu.suyu_emu.utils.MemoryUtil
+import org.suyu.suyu_emu.utils.ViewUtils.marquee
+import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
+import org.suyu.suyu_emu.utils.collect
 import java.io.BufferedOutputStream
 import java.io.File
 
@@ -224,7 +224,7 @@ class GamePropertiesFragment : Fragment() {
                                     negativeAction = {
                                         File(args.game.saveDir).deleteRecursively()
                                         Toast.makeText(
-                                            YuzuApplication.appContext,
+                                            suyuApplication.appContext,
                                             R.string.save_data_deleted_successfully,
                                             Toast.LENGTH_SHORT
                                         ).show()
@@ -263,7 +263,7 @@ class GamePropertiesFragment : Fragment() {
                                 positiveAction = {
                                     shaderCacheDir.deleteRecursively()
                                     Toast.makeText(
-                                        YuzuApplication.appContext,
+                                        suyuApplication.appContext,
                                         R.string.cleared_shaders_successfully,
                                         Toast.LENGTH_SHORT
                                     ).show()
@@ -374,7 +374,7 @@ class GamePropertiesFragment : Fragment() {
                             return@withContext
                         }
                         Toast.makeText(
-                            YuzuApplication.appContext,
+                            suyuApplication.appContext,
                             getString(R.string.save_file_imported_success),
                             Toast.LENGTH_LONG
                         ).show()
@@ -384,7 +384,7 @@ class GamePropertiesFragment : Fragment() {
                     cacheSaveDir.deleteRecursively()
                 } catch (e: Exception) {
                     Toast.makeText(
-                        YuzuApplication.appContext,
+                        suyuApplication.appContext,
                         getString(R.string.fatal_error),
                         Toast.LENGTH_LONG
                     ).show()

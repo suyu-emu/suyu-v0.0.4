@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.model
+package org.suyu.suyu_emu.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.suyu.suyu_emu.NativeLibrary
+import org.suyu.suyu_emu.utils.NativeConfig
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AddonViewModel : ViewModel() {

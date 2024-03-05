@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.utils
+package org.suyu.suyu_emu.utils
 
 import android.content.res.Configuration
 import android.graphics.Color
@@ -12,10 +12,10 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import kotlin.math.roundToInt
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
-import org.yuzu.yuzu_emu.features.settings.model.IntSetting
-import org.yuzu.yuzu_emu.ui.main.ThemeProvider
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.features.settings.model.BooleanSetting
+import org.suyu.suyu_emu.features.settings.model.IntSetting
+import org.suyu.suyu_emu.ui.main.ThemeProvider
 
 object ThemeHelper {
     const val SYSTEM_BAR_ALPHA = 0.9f
@@ -23,12 +23,12 @@ object ThemeHelper {
     fun setTheme(activity: AppCompatActivity) {
         setThemeMode(activity)
         when (Theme.from(IntSetting.THEME.getInt())) {
-            Theme.Default -> activity.setTheme(R.style.Theme_Yuzu_Main)
+            Theme.Default -> activity.setTheme(R.style.Theme_suyu_Main)
             Theme.MaterialYou -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    activity.setTheme(R.style.Theme_Yuzu_Main_MaterialYou)
+                    activity.setTheme(R.style.Theme_suyu_Main_MaterialYou)
                 } else {
-                    activity.setTheme(R.style.Theme_Yuzu_Main)
+                    activity.setTheme(R.style.Theme_suyu_Main)
                 }
             }
         }
@@ -37,7 +37,7 @@ object ThemeHelper {
         // light app mode, dark system mode, and black backgrounds. Launching the settings activity
         // will then show light mode colors/navigation bars but with black backgrounds.
         if (BooleanSetting.BLACK_BACKGROUNDS.getBoolean() && isNightMode(activity)) {
-            activity.setTheme(R.style.ThemeOverlay_Yuzu_Dark)
+            activity.setTheme(R.style.ThemeOverlay_suyu_Dark)
         }
     }
 

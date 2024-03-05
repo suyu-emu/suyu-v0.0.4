@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -14,8 +14,8 @@ class KSpinLock {
 public:
     explicit KSpinLock() = default;
 
-    YUZU_NON_COPYABLE(KSpinLock);
-    YUZU_NON_MOVEABLE(KSpinLock);
+    suyu_NON_COPYABLE(KSpinLock);
+    suyu_NON_MOVEABLE(KSpinLock);
 
     void Lock();
     void Unlock();

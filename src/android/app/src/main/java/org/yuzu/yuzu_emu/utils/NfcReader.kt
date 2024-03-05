@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package org.yuzu.yuzu_emu.utils
+package org.suyu.suyu_emu.utils
 
 import android.app.Activity
 import android.app.PendingIntent
@@ -14,7 +14,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import java.io.IOException
-import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.suyu.suyu_emu.features.input.NativeInput
 
 class NfcReader(private val activity: Activity) {
     private var nfcAdapter: NfcAdapter? = null

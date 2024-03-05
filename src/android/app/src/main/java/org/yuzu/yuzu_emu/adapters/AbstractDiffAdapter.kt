@@ -1,13 +1,13 @@
-// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.adapters
+package org.suyu.suyu_emu.adapters
 
 import android.annotation.SuppressLint
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
+import org.suyu.suyu_emu.viewholder.AbstractViewHolder
 import androidx.recyclerview.widget.RecyclerView
 
 /**
