@@ -1170,7 +1170,6 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     // Determine if we are an application.
     if (pool == KMemoryManager::Pool::Application) {
         flag |= Svc::CreateProcessFlag::IsApplication;
-        m_is_application = true;
     }
 
     // If we are 64-bit, create as such.

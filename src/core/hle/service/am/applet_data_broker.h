@@ -53,6 +53,16 @@ public:
         return interactive_out_data;
     }
 
+    Event& GetStateChangedEvent() {
+        return state_changed_event;
+    }
+
+    bool IsCompleted() const {
+        return is_completed;
+    }
+
+    void SignalCompletion();
+
 private:
     Core::System& system;
     KernelHelpers::ServiceContext context;
@@ -61,6 +71,10 @@ private:
     AppletStorageChannel interactive_in_data;
     AppletStorageChannel out_data;
     AppletStorageChannel interactive_out_data;
+    Event state_changed_event;
+
+    std::mutex lock;
+    bool is_completed;
 };
 
 } // namespace Service::AM

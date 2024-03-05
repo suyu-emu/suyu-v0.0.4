@@ -13,11 +13,9 @@ namespace Service::HID {
 class IHidServer;
 }
 
-namespace Service {
-class Process;
-}
-
 namespace Service::AM {
+
+class Process;
 
 class HidRegistration {
 public:

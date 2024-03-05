@@ -18,12 +18,11 @@ class ILibraryAppletCreator;
 class IProcessWindingController;
 class ISelfController;
 class IWindowController;
-class WindowSystem;
 
 class IApplicationProxy final : public ServiceFramework<IApplicationProxy> {
 public:
     explicit IApplicationProxy(Core::System& system_, std::shared_ptr<Applet> applet,
-                               Kernel::KProcess* process, WindowSystem& window_system);
+                               Kernel::KProcess* process);
     ~IApplicationProxy();
 
 private:
@@ -41,7 +40,6 @@ private:
         Out<SharedPointer<IApplicationFunctions>> out_application_functions);
 
 private:
-    WindowSystem& m_window_system;
     Kernel::KProcess* const m_process;
     const std::shared_ptr<Applet> m_applet;
 };

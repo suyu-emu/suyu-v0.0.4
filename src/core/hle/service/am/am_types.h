@@ -61,6 +61,12 @@ enum class ScreenshotPermission : u32 {
     Disable = 2,
 };
 
+struct FocusHandlingMode {
+    bool notify;
+    bool background;
+    bool suspend;
+};
+
 enum class IdleTimeDetectionExtension : u32 {
     Disabled = 0,
     Extended = 1,
@@ -233,6 +239,7 @@ struct ApplicationPlayStatistics {
 static_assert(sizeof(ApplicationPlayStatistics) == 0x18,
               "ApplicationPlayStatistics has incorrect size.");
 
+using AppletResourceUserId = u64;
 using ProgramId = u64;
 
 struct Applet;

@@ -69,11 +69,7 @@ void FrontendApplet::PushInteractiveOutData(std::shared_ptr<IStorage> storage) {
 }
 
 void FrontendApplet::Exit() {
-    auto applet_ = applet.lock();
-
-    std::scoped_lock lk{applet_->lock};
-    applet_->is_completed = true;
-    applet_->state_changed_event.Signal();
+    applet.lock()->caller_applet_broker->SignalCompletion();
 }
 
 FrontendAppletSet::FrontendAppletSet() = default;

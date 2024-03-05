@@ -62,7 +62,6 @@ private:
 private:
     friend class RealVfsDirectory;
     VirtualFile OpenFileFromEntry(std::string_view path, std::optional<u64> size,
-                                  std::optional<std::string> parent_path,
                                   OpenMode perms = OpenMode::Read);
 
 private:
@@ -92,7 +91,7 @@ public:
 private:
     RealVfsFile(RealVfsFilesystem& base, std::unique_ptr<FileReference> reference,
                 const std::string& path, OpenMode perms = OpenMode::Read,
-                std::optional<u64> size = {}, std::optional<std::string> parent_path = {});
+                std::optional<u64> size = {});
 
     RealVfsFilesystem& base;
     std::unique_ptr<FileReference> reference;

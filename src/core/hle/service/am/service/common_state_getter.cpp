@@ -80,14 +80,15 @@ ICommonStateGetter::~ICommonStateGetter() = default;
 
 Result ICommonStateGetter::GetEventHandle(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_AM, "called");
-    *out_event = m_applet->lifecycle_manager.GetSystemEvent().GetHandle();
+    *out_event = &m_applet->message_queue.GetMessageReceiveEvent();
     R_SUCCEED();
 }
 
 Result ICommonStateGetter::ReceiveMessage(Out<AppletMessage> out_applet_message) {
     LOG_DEBUG(Service_AM, "called");
 
-    if (!m_applet->lifecycle_manager.PopMessage(out_applet_message)) {
+    *out_applet_message = m_applet->message_queue.PopMessage();
+    if (*out_applet_message == AppletMessage::None) {
         LOG_ERROR(Service_AM, "Tried to pop message but none was available!");
         R_THROW(AM::ResultNoMessages);
     }
@@ -99,7 +100,7 @@ Result ICommonStateGetter::GetCurrentFocusState(Out<FocusState> out_focus_state)
     LOG_DEBUG(Service_AM, "called");
 
     std::scoped_lock lk{m_applet->lock};
-    *out_focus_state = m_applet->lifecycle_manager.GetAndClearFocusState();
+    *out_focus_state = m_applet->focus_state;
 
     R_SUCCEED();
 }
@@ -136,7 +137,7 @@ Result ICommonStateGetter::GetWriterLockAccessorEx(
 Result ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_AM, "called");
-    *out_event = m_applet->lifecycle_manager.GetOperationModeChangedSystemEvent().GetHandle();
+    *out_event = &m_applet->message_queue.GetOperationModeChangedEvent();
     R_SUCCEED();
 }
 

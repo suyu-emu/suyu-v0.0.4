@@ -176,7 +176,8 @@ Result ILibraryAppletSelfAccessor::GetMainAppletStorageId(Out<FileSys::StorageId
 
 Result ILibraryAppletSelfAccessor::ExitProcessAndReturn() {
     LOG_INFO(Service_AM, "called");
-    m_applet->process->Terminate();
+    system.GetAppletManager().TerminateAndRemoveApplet(m_applet->aruid);
+    m_broker->SignalCompletion();
     R_SUCCEED();
 }
 

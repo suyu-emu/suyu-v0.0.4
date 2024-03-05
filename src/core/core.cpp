@@ -3,6 +3,7 @@
 
 #include <array>
 #include <atomic>
+#include <exception>
 #include <memory>
 #include <utility>
 
@@ -19,6 +20,7 @@
 #include "core/cpu_manager.h"
 #include "core/debugger/debugger.h"
 #include "core/device_memory.h"
+#include "core/file_sys/bis_factory.h"
 #include "core/file_sys/fs_filesystem.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -36,7 +38,6 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
-#include "core/hle/service/am/process_creation.h"
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/glue_manager.h"
@@ -70,6 +71,30 @@ MICROPROFILE_DEFINE(ARM_CPU2, "ARM", "CPU 2", MP_RGB(255, 64, 64));
 MICROPROFILE_DEFINE(ARM_CPU3, "ARM", "CPU 3", MP_RGB(255, 64, 64));
 
 namespace Core {
+
+namespace {
+
+FileSys::StorageId GetStorageIdForFrontendSlot(
+    std::optional<FileSys::ContentProviderUnionSlot> slot) {
+    if (!slot.has_value()) {
+        return FileSys::StorageId::None;
+    }
+
+    switch (*slot) {
+    case FileSys::ContentProviderUnionSlot::UserNAND:
+        return FileSys::StorageId::NandUser;
+    case FileSys::ContentProviderUnionSlot::SysNAND:
+        return FileSys::StorageId::NandSystem;
+    case FileSys::ContentProviderUnionSlot::SDMC:
+        return FileSys::StorageId::SdCard;
+    case FileSys::ContentProviderUnionSlot::FrontendManual:
+        return FileSys::StorageId::Host;
+    default:
+        return FileSys::StorageId::None;
+    }
+}
+
+} // Anonymous namespace
 
 FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
                                          const std::string& path) {
@@ -272,6 +297,9 @@ struct System::Impl {
     }
 
     SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
+        /// Reset all glue registrations
+        arp_manager.ResetAll();
+
         telemetry_session = std::make_unique<Core::TelemetrySession>();
 
         host1x_core = std::make_unique<Tegra::Host1x::Host1x>(system);
@@ -307,24 +335,8 @@ struct System::Impl {
     SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                             const std::string& filepath,
                             Service::AM::FrontendAppletParameters& params) {
-        InitializeKernel(system);
-
-        const auto file = GetGameFileFromPath(virtual_filesystem, filepath);
-
-        // Create the application process
-        Loader::ResultStatus load_result{};
-        std::vector<u8> control;
-        auto process =
-            Service::AM::CreateApplicationProcess(control, app_loader, load_result, system, file,
-                                                  params.program_id, params.program_index);
-
-        if (load_result != Loader::ResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
-            ShutdownMainProcess();
-
-            return static_cast<SystemResultStatus>(
-                static_cast<u32>(SystemResultStatus::ErrorLoader) + static_cast<u32>(load_result));
-        }
+        app_loader = Loader::GetLoader(system, GetGameFileFromPath(virtual_filesystem, filepath),
+                                       params.program_id, params.program_index);
 
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
@@ -332,7 +344,7 @@ struct System::Impl {
         }
 
         if (app_loader->ReadProgramId(params.program_id) != Loader::ResultStatus::Success) {
-            LOG_ERROR(Core, "Failed to find program id for ROM!");
+            LOG_ERROR(Core, "Failed to find title id for ROM!");
         }
 
         std::string name = "Unknown program";
@@ -340,10 +352,23 @@ struct System::Impl {
             LOG_ERROR(Core, "Failed to read title for ROM!");
         }
 
-        LOG_INFO(Core, "Loading {} ({:016X}) ...", name, params.program_id);
+        LOG_INFO(Core, "Loading {} ({})", name, params.program_id);
 
-        // Make the process created be the application
-        kernel.MakeApplicationProcess(process->GetHandle());
+        InitializeKernel(system);
+
+        // Create the application process.
+        auto main_process = Kernel::KProcess::Create(system.Kernel());
+        Kernel::KProcess::Register(system.Kernel(), main_process);
+        kernel.AppendNewProcess(main_process);
+        kernel.MakeApplicationProcess(main_process);
+        const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
+        if (load_result != Loader::ResultStatus::Success) {
+            LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
+            ShutdownMainProcess();
+
+            return static_cast<SystemResultStatus>(
+                static_cast<u32>(SystemResultStatus::ErrorLoader) + static_cast<u32>(load_result));
+        }
 
         // Set up the rest of the system.
         SystemResultStatus init_result{SetupForApplicationProcess(system, emu_window)};
@@ -354,6 +379,7 @@ struct System::Impl {
             return init_result;
         }
 
+        AddGlueRegistrationForProcess(*app_loader, *main_process);
         telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
 
         // Initialize cheat engine
@@ -361,9 +387,14 @@ struct System::Impl {
             cheat_engine->Initialize();
         }
 
-        // Register with applet manager
-        // All threads are started, begin main process execution, now that we're in the clear
-        applet_manager.CreateAndInsertByFrontendAppletParameters(std::move(process), params);
+        // Register with applet manager.
+        applet_manager.CreateAndInsertByFrontendAppletParameters(main_process->GetProcessId(),
+                                                                 params);
+
+        // All threads are started, begin main process execution, now that we're in the clear.
+        main_process->Run(load_parameters->main_thread_priority,
+                          load_parameters->main_thread_stack_size);
+        main_process->Close();
 
         if (Settings::values.gamecard_inserted) {
             if (Settings::values.gamecard_current_game) {
@@ -430,6 +461,7 @@ struct System::Impl {
         kernel.SuspendEmulation(true);
         kernel.CloseServices();
         kernel.ShutdownCores();
+        applet_manager.Reset();
         services.reset();
         service_manager.reset();
         fs_controller.Reset();
@@ -452,9 +484,6 @@ struct System::Impl {
             room_member->SendGameInfo(game_info);
         }
 
-        // Reset all glue registrations
-        arp_manager.ResetAll();
-
         LOG_DEBUG(Core, "Shutdown OK");
     }
 
@@ -470,6 +499,31 @@ struct System::Impl {
         if (app_loader == nullptr)
             return Loader::ResultStatus::ErrorNotInitialized;
         return app_loader->ReadTitle(out);
+    }
+
+    void AddGlueRegistrationForProcess(Loader::AppLoader& loader, Kernel::KProcess& process) {
+        std::vector<u8> nacp_data;
+        FileSys::NACP nacp;
+        if (loader.ReadControlData(nacp) == Loader::ResultStatus::Success) {
+            nacp_data = nacp.GetRawBytes();
+        } else {
+            nacp_data.resize(sizeof(FileSys::RawNACP));
+        }
+
+        Service::Glue::ApplicationLaunchProperty launch{};
+        launch.title_id = process.GetProgramId();
+
+        FileSys::PatchManager pm{launch.title_id, fs_controller, *content_provider};
+        launch.version = pm.GetGameVersion().value_or(0);
+
+        // TODO(DarkLordZach): When FSController/Game Card Support is added, if
+        // current_process_game_card use correct StorageId
+        launch.base_game_storage_id = GetStorageIdForFrontendSlot(content_provider->GetSlotForEntry(
+            launch.title_id, FileSys::ContentRecordType::Program));
+        launch.update_storage_id = GetStorageIdForFrontendSlot(content_provider->GetSlotForEntry(
+            FileSys::GetUpdateTitleID(launch.title_id), FileSys::ContentRecordType::Program));
+
+        arp_manager.Register(launch.title_id, launch, std::move(nacp_data));
     }
 
     void SetStatus(SystemResultStatus new_status, const char* details = nullptr) {

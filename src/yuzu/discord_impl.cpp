@@ -63,7 +63,7 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 
 void DiscordImpl::UpdateGameStatus(bool use_default) {
     const std::string default_text = "yuzu is an emulator for the Nintendo Switch";
-    const std::string default_image = "yuzu_logo_ea";
+    const std::string default_image = "yuzu_logo";
     const std::string url = use_default ? default_image : game_url;
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
                          std::chrono::system_clock::now().time_since_epoch())
@@ -82,7 +82,7 @@ void DiscordImpl::UpdateGameStatus(bool use_default) {
 
 void DiscordImpl::Update() {
     const std::string default_text = "yuzu is an emulator for the Nintendo Switch";
-    const std::string default_image = "yuzu_logo_ea";
+    const std::string default_image = "yuzu_logo";
 
     if (system.IsPoweredOn()) {
         system.GetAppLoader().ReadTitle(game_title);

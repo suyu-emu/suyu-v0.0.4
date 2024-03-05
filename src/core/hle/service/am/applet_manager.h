@@ -3,22 +3,16 @@
 
 #pragma once
 
-#include <condition_variable>
+#include <map>
 #include <mutex>
 
-#include "core/hle/service/am/am_types.h"
+#include "core/hle/service/am/applet.h"
 
 namespace Core {
 class System;
 }
 
-namespace Service {
-class Process;
-}
-
 namespace Service::AM {
-
-class WindowSystem;
 
 enum class LaunchType {
     FrontendInitiated,
@@ -39,24 +33,27 @@ public:
     explicit AppletManager(Core::System& system);
     ~AppletManager();
 
-    void CreateAndInsertByFrontendAppletParameters(std::unique_ptr<Process> process,
-                                                   const FrontendAppletParameters& params);
-    void RequestExit();
-    void OperationModeChanged();
+    void InsertApplet(std::shared_ptr<Applet> applet);
+    void TerminateAndRemoveApplet(AppletResourceUserId aruid);
 
-public:
-    void SetWindowSystem(WindowSystem* window_system);
+    void CreateAndInsertByFrontendAppletParameters(AppletResourceUserId aruid,
+                                                   const FrontendAppletParameters& params);
+    std::shared_ptr<Applet> GetByAppletResourceUserId(AppletResourceUserId aruid) const;
+
+    void Reset();
+
+    void RequestExit();
+    void RequestResume();
+    void OperationModeChanged();
+    void FocusStateChanged();
 
 private:
     Core::System& m_system;
 
-    std::mutex m_lock;
-    std::condition_variable m_cv;
+    mutable std::mutex m_lock{};
+    std::map<AppletResourceUserId, std::shared_ptr<Applet>> m_applets{};
 
-    WindowSystem* m_window_system{};
-
-    FrontendAppletParameters m_pending_parameters{};
-    std::unique_ptr<Process> m_pending_process{};
+    // AudioController state goes here
 };
 
 } // namespace Service::AM

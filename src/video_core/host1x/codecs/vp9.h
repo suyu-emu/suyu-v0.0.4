@@ -10,7 +10,6 @@
 #include "common/common_types.h"
 #include "common/scratch_buffer.h"
 #include "common/stream.h"
-#include "video_core/host1x/codecs/decoder.h"
 #include "video_core/host1x/codecs/vp9_types.h"
 #include "video_core/host1x/nvdec_common.h"
 
@@ -20,7 +19,7 @@ namespace Host1x {
 class Host1x;
 } // namespace Host1x
 
-namespace Decoders {
+namespace Decoder {
 
 /// The VpxRangeEncoder, and VpxBitStreamWriter classes are used to compose the
 /// VP9 header bitstreams.
@@ -111,32 +110,21 @@ private:
     std::vector<u8> byte_array;
 };
 
-class VP9 final : public Decoder {
+class VP9 {
 public:
-    explicit VP9(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs, s32 id,
-                 Host1x::FrameQueue& frame_queue);
-    ~VP9() override;
+    explicit VP9(Host1x::Host1x& host1x);
+    ~VP9();
 
     VP9(const VP9&) = delete;
     VP9& operator=(const VP9&) = delete;
 
-    VP9(VP9&&) = delete;
+    VP9(VP9&&) = default;
     VP9& operator=(VP9&&) = delete;
 
-    [[nodiscard]] std::span<const u8> ComposeFrame() override;
+    /// Composes the VP9 frame from the GPU state information.
+    /// Based on the official VP9 spec documentation
+    void ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state);
 
-    std::tuple<u64, u64> GetProgressiveOffsets() override;
-    std::tuple<u64, u64, u64, u64> GetInterlacedOffsets() override;
-
-    bool IsInterlaced() override {
-        return false;
-    }
-
-    std::string_view GetCurrentCodecName() const override {
-        return "VP9";
-    }
-
-private:
     /// Returns true if the most recent frame was a hidden frame.
     [[nodiscard]] bool WasFrameHidden() const {
         return !current_frame_info.show_frame;
@@ -144,9 +132,10 @@ private:
 
     /// Returns a const span to the composed frame data.
     [[nodiscard]] std::span<const u8> GetFrameBytes() const {
-        return frame_scratch;
+        return frame;
     }
 
+private:
     /// Generates compressed header probability updates in the bitstream writer
     template <typename T, std::size_t N>
     void WriteProbabilityUpdate(VpxRangeEncoder& writer, const std::array<T, N>& new_prob,
@@ -178,22 +167,23 @@ private:
     /// Write motion vector probability updates. 6.3.17 in the spec
     void WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
 
-    void WriteSegmentation(VpxBitStreamWriter& writer);
-
     /// Returns VP9 information from NVDEC provided offset and size
-    [[nodiscard]] Vp9PictureInfo GetVp9PictureInfo();
+    [[nodiscard]] Vp9PictureInfo GetVp9PictureInfo(
+        const Host1x::NvdecCommon::NvdecRegisters& state);
 
     /// Read and convert NVDEC provided entropy probs to Vp9EntropyProbs struct
     void InsertEntropy(u64 offset, Vp9EntropyProbs& dst);
 
     /// Returns frame to be decoded after buffering
-    [[nodiscard]] Vp9FrameContainer GetCurrentFrame();
+    [[nodiscard]] Vp9FrameContainer GetCurrentFrame(
+        const Host1x::NvdecCommon::NvdecRegisters& state);
 
     /// Use NVDEC providied information to compose the headers for the current frame
     [[nodiscard]] std::vector<u8> ComposeCompressedHeader();
     [[nodiscard]] VpxBitStreamWriter ComposeUncompressedHeader();
 
-    Common::ScratchBuffer<u8> frame_scratch;
+    Host1x::Host1x& host1x;
+    Common::ScratchBuffer<u8> frame;
 
     std::array<s8, 4> loop_filter_ref_deltas{};
     std::array<s8, 2> loop_filter_mode_deltas{};
@@ -202,11 +192,9 @@ private:
     std::array<Vp9EntropyProbs, 4> frame_ctxs{};
     bool swap_ref_indices{};
 
-    Segmentation last_segmentation{};
-    PictureInfo current_picture_info{};
     Vp9PictureInfo current_frame_info{};
     Vp9EntropyProbs prev_frame_probs{};
 };
 
-} // namespace Decoders
+} // namespace Decoder
 } // namespace Tegra

@@ -9,12 +9,10 @@
 namespace Service::AM {
 
 struct Applet;
-class WindowSystem;
 
 class IWindowController final : public ServiceFramework<IWindowController> {
 public:
-    explicit IWindowController(Core::System& system_, std::shared_ptr<Applet> applet,
-                               WindowSystem& window_system);
+    explicit IWindowController(Core::System& system_, std::shared_ptr<Applet> applet);
     ~IWindowController() override;
 
 private:
@@ -26,7 +24,6 @@ private:
     Result SetAppletWindowVisibility(bool visible);
     Result SetAppletGpuTimeSlice(s64 time_slice);
 
-    WindowSystem& m_window_system;
     const std::shared_ptr<Applet> m_applet;
 };
 

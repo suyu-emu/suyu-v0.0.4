@@ -1461,6 +1461,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
             OnPauseGame();
         } else if (!emu_thread->IsRunning() && auto_paused && state == Qt::ApplicationActive) {
             auto_paused = false;
+            RequestGameResume();
             OnStartGame();
         }
     }
@@ -1701,6 +1702,7 @@ void GMainWindow::OnPrepareForSleep(bool prepare_sleep) {
     } else {
         if (!emu_thread->IsRunning() && auto_paused) {
             auto_paused = false;
+            RequestGameResume();
             OnStartGame();
         }
     }
@@ -3455,6 +3457,7 @@ void GMainWindow::OnPauseContinueGame() {
         if (emu_thread->IsRunning()) {
             OnPauseGame();
         } else {
+            RequestGameResume();
             OnStartGame();
         }
     }
@@ -5008,6 +5011,10 @@ void GMainWindow::RequestGameExit() {
 
     system->SetExitRequested(true);
     system->GetAppletManager().RequestExit();
+}
+
+void GMainWindow::RequestGameResume() {
+    system->GetAppletManager().RequestResume();
 }
 
 void GMainWindow::filterBarSetChecked(bool state) {

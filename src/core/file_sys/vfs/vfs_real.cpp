@@ -76,7 +76,6 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 }
 
 VirtualFile RealVfsFilesystem::OpenFileFromEntry(std::string_view path_, std::optional<u64> size,
-                                                 std::optional<std::string> parent_path,
                                                  OpenMode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
     std::scoped_lock lk{list_lock};
@@ -95,14 +94,14 @@ VirtualFile RealVfsFilesystem::OpenFileFromEntry(std::string_view path_, std::op
     this->InsertReferenceIntoListLocked(*reference);
 
     auto file = std::shared_ptr<RealVfsFile>(
-        new RealVfsFile(*this, std::move(reference), path, perms, size, std::move(parent_path)));
+        new RealVfsFile(*this, std::move(reference), path, perms, size));
     cache[path] = file;
 
     return file;
 }
 
 VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, OpenMode perms) {
-    return OpenFileFromEntry(path_, {}, {}, perms);
+    return OpenFileFromEntry(path_, {}, perms);
 }
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, OpenMode perms) {
@@ -269,11 +268,10 @@ void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) 
 }
 
 RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::unique_ptr<FileReference> reference_,
-                         const std::string& path_, OpenMode perms_, std::optional<u64> size_,
-                         std::optional<std::string> parent_path_)
+                         const std::string& path_, OpenMode perms_, std::optional<u64> size_)
     : base(base_), reference(std::move(reference_)), path(path_),
-      parent_path(parent_path_ ? std::move(*parent_path_) : FS::GetParentPath(path_)),
-      path_components(FS::SplitPathComponentsCopy(path_)), size(size_), perms(perms_) {}
+      parent_path(FS::GetParentPath(path_)), path_components(FS::SplitPathComponentsCopy(path_)),
+      size(size_), perms(perms_) {}
 
 RealVfsFile::~RealVfsFile() {
     base.DropReference(std::move(reference));
@@ -350,7 +348,7 @@ std::vector<VirtualFile> RealVfsDirectory::IterateEntries<RealVfsFile, VfsFile>(
                                            &out](const std::filesystem::directory_entry& entry) {
         const auto full_path_string = FS::PathToUTF8String(entry.path());
 
-        out.emplace_back(base.OpenFileFromEntry(full_path_string, entry.file_size(), path, perms));
+        out.emplace_back(base.OpenFileFromEntry(full_path_string, entry.file_size(), perms));
 
         return true;
     };

@@ -64,8 +64,6 @@ public:
     Memory(Memory&&) = default;
     Memory& operator=(Memory&&) = delete;
 
-    static constexpr bool HAS_FLUSH_INVALIDATION = false;
-
     /**
      * Resets the state of the Memory system.
      */

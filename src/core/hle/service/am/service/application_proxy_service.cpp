@@ -6,14 +6,12 @@
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/service/application_proxy.h"
 #include "core/hle/service/am/service/application_proxy_service.h"
-#include "core/hle/service/am/window_system.h"
 #include "core/hle/service/cmif_serialization.h"
 
 namespace Service::AM {
 
-IApplicationProxyService::IApplicationProxyService(Core::System& system_,
-                                                   WindowSystem& window_system)
-    : ServiceFramework{system_, "appletOE"}, m_window_system{window_system} {
+IApplicationProxyService::IApplicationProxyService(Core::System& system_)
+    : ServiceFramework{system_, "appletOE"} {
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationProxyService::OpenApplicationProxy>, "OpenApplicationProxy"},
     };
@@ -28,8 +26,8 @@ Result IApplicationProxyService::OpenApplicationProxy(
     LOG_DEBUG(Service_AM, "called");
 
     if (const auto applet = this->GetAppletFromProcessId(pid)) {
-        *out_application_proxy = std::make_shared<IApplicationProxy>(
-            system, applet, process_handle.Get(), m_window_system);
+        *out_application_proxy =
+            std::make_shared<IApplicationProxy>(system, applet, process_handle.Get());
         R_SUCCEED();
     } else {
         UNIMPLEMENTED();
@@ -38,7 +36,7 @@ Result IApplicationProxyService::OpenApplicationProxy(
 }
 
 std::shared_ptr<Applet> IApplicationProxyService::GetAppletFromProcessId(ProcessId process_id) {
-    return m_window_system.GetByAppletResourceUserId(process_id.pid);
+    return system.GetAppletManager().GetByAppletResourceUserId(process_id.pid);
 }
 
 } // namespace Service::AM
