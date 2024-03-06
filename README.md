@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2024 suyu emulator project
 SPDX-License-Identifier: GPL v3
 -->
 
-<h4>This project DOES NOT suppot piracy, you are required to source your own games and keys, we make no money off this project (mainly so that Nintendo won't sue us lol)</h4>
+<h4>This project DOES NOT support piracy, you are required to source your own games and keys, we make no money off this project (mainly so that Nintendo won't sue us lol)</h4>
 
 
 We are in great need of developers, join our discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>
