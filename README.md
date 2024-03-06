@@ -71,8 +71,8 @@ If you want to contribute to the user interface translation project, please chec
 
 ## Building
 
-* __Windows__: [Currently in alpha development]
-* __Linux__: [Currently in alpha development]
+* __Windows__: [Wiki page](https://gitlab.com/suyu-emu/suyu/-/wikis/Building-for-Windows)
+* __Linux__: [Wiki page](https://gitlab.com/suyu-emu/suyu/-/wikis/Building-for-Linux)
 
 
 
