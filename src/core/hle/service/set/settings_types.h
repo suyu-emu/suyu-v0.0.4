@@ -401,6 +401,10 @@ static_assert(sizeof(AccountNotificationSettings) == 0x18,
 /// This is nn::settings::factory::BatteryLot
 struct BatteryLot {
     std::array<char, 0x18> lot_number;
+    BatteryLot() = default;
+    BatteryLot(const char* str) {
+        std::copy(str, str + std::min(sizeof(lot_number), strlen(str)), lot_number.begin());
+    }
 };
 static_assert(sizeof(BatteryLot) == 0x18, "BatteryLot is an invalid size");
 
@@ -477,6 +481,10 @@ static_assert(sizeof(NotificationSettings) == 0x18, "NotificationSettings is an 
 /// This is nn::settings::factory::SerialNumber
 struct SerialNumber {
     std::array<char, 0x18> serial_number;
+    SerialNumber() = default;
+    SerialNumber(const char* str) {
+        std::copy(str, str + std::min(sizeof(serial_number), strlen(str)), serial_number.begin());
+    }
 };
 static_assert(sizeof(SerialNumber) == 0x18, "SerialNumber is an invalid size");
 

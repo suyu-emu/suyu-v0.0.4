@@ -5,7 +5,7 @@
 
 // yuzu data directories
 
-#define YUZU_DIR "yuzu"
+#define YUZU_DIR "suyu"
 #define PORTABLE_DIR "user"
 
 // Sub-directories contained within a yuzu data directory
@@ -28,4 +28,4 @@
 
 // yuzu-specific files
 
-#define LOG_FILE "yuzu_log.txt"
+#define LOG_FILE "suyu_log.txt"
