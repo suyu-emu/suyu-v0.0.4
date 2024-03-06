@@ -34,7 +34,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </p>
 
 <p align="center">
-  <a href="compatibility.yml">Compatibility</a> |
+  <a href="https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility">Compatibility</a> |
   <a href="#development">Development</a> |
   <a href="#building">Building</a> |
   <a href="#downloads">Downloads</a> |
@@ -54,7 +54,7 @@ W.I.P.
 
 The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](https://suyu-emu.org/help/quickstart/#hardware-requirements).
 
-For a full list of games suyu supports, please visit our [Compatibility page](https://suyu-emu.org/game/).
+For a full list of games suyu supports, please visit our [Compatibility page](https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility).
 
 Check out our [website](https://suyu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
 
