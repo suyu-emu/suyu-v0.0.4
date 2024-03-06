@@ -13,7 +13,7 @@ This repo is based on Yuzu EA 4176. Please contribute if you can!
 
 <h1 align="center">
   <br>
-  <a href=""><img src="https://gitlab.com/Realmy/suyu/-/raw/master/dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
+  <a href=""><img src="https://gitlab.com/suyu-emu/suyu/-/raw/master/dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
   <br>
   <b>suyu</b>
   <br>
