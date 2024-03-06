@@ -9,7 +9,7 @@
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-suyu_ICON              ICON                    "../../dist/suyu.ico"
+YUZU_ICON              ICON                    "../../dist/yuzu.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -17,4 +17,4 @@ suyu_ICON              ICON                    "../../dist/suyu.ico"
 // RT_MANIFEST
 //
 
-0                       RT_MANIFEST             "../../dist/suyu.manifest"
+0                       RT_MANIFEST             "../../dist/yuzu.manifest"

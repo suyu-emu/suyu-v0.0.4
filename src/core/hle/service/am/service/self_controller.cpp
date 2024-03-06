@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/logging/log.h"
@@ -340,7 +340,7 @@ Result ISelfController::GetAccumulatedSuspendedTickValue(
     LOG_DEBUG(Service_AM, "called.");
 
     // This command returns the total number of system ticks since ISelfController creation
-    // where the game was suspended. Since suyu doesn't implement game suspension, this command
+    // where the game was suspended. Since Yuzu doesn't implement game suspension, this command
     // can just always return 0 ticks.
     std::scoped_lock lk{m_applet->lock};
     *out_accumulated_suspended_tick_value = m_applet->suspended_ticks;

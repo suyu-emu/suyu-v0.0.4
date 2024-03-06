@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstdlib>
@@ -14,7 +14,7 @@ namespace Common {
 void ConfigureNvidiaEnvironmentFlags() {
 #ifdef _WIN32
     const auto nvidia_shader_dir =
-        Common::FS::GetsuyuPath(Common::FS::suyuPath::ShaderDir) / "nvidia";
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir) / "nvidia";
 
     if (!Common::FS::CreateDirs(nvidia_shader_dir)) {
         return;

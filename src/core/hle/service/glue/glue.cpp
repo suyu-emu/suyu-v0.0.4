@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>

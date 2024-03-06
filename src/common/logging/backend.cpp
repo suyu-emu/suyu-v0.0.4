@@ -195,7 +195,7 @@ public:
             return;
         }
         using namespace Common::FS;
-        const auto& log_dir = GetsuyuPath(suyuPath::LogDir);
+        const auto& log_dir = GetYuzuPath(YuzuPath::LogDir);
         void(CreateDir(log_dir));
         Filter filter;
         filter.ParseFilterString(Settings::values.log_filter.GetValue());

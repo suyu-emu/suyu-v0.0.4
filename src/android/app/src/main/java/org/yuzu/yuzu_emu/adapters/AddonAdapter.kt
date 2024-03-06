@@ -1,14 +1,14 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.adapters
+package org.yuzu.yuzu_emu.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import org.suyu.suyu_emu.databinding.ListItemAddonBinding
-import org.suyu.suyu_emu.model.Patch
-import org.suyu.suyu_emu.model.AddonViewModel
-import org.suyu.suyu_emu.viewholder.AbstractViewHolder
+import org.yuzu.yuzu_emu.databinding.ListItemAddonBinding
+import org.yuzu.yuzu_emu.model.Patch
+import org.yuzu.yuzu_emu.model.AddonViewModel
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class AddonAdapter(val addonViewModel: AddonViewModel) :
     AbstractDiffAdapter<Patch, AddonAdapter.AddonViewHolder>() {

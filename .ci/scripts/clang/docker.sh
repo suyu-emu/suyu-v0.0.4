@@ -1,9 +1,7 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
-# 
-# Modified by AMA25 on 3/5/24
 
 # Exit on error, rather than continuing with the rest of the script.
 set -e
@@ -21,9 +19,9 @@ cmake .. \
       -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
       -DENABLE_QT_TRANSLATION=ON \
       -DUSE_DISCORD_PRESENCE=ON \
-      -DSUYU_CRASH_DUMPS=ON \
-      -DSUYU_ENABLE_COMPATIBILITY_REPORTING=${ENABLE_COMPATIBILITY_REPORTING:-"OFF"} \
-      -DSUYU_USE_BUNDLED_FFMPEG=ON \
+      -DYUZU_CRASH_DUMPS=ON \
+      -DYUZU_ENABLE_COMPATIBILITY_REPORTING=${ENABLE_COMPATIBILITY_REPORTING:-"OFF"} \
+      -DYUZU_USE_BUNDLED_FFMPEG=ON \
       -GNinja
 
 ninja

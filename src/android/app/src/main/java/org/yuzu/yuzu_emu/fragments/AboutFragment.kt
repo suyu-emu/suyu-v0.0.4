@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.fragments
+package org.yuzu.yuzu_emu.fragments
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -21,11 +21,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import com.google.android.material.transition.MaterialSharedAxis
-import org.suyu.suyu_emu.BuildConfig
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.databinding.FragmentAboutBinding
-import org.suyu.suyu_emu.model.HomeViewModel
-import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.BuildConfig
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.FragmentAboutBinding
+import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 
 class AboutFragment : Fragment() {
     private var _binding: FragmentAboutBinding? = null

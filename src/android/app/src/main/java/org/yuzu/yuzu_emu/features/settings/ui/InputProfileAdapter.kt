@@ -1,16 +1,16 @@
-// SPDX-FileCopyrightText: 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.settings.ui
+package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import org.suyu.suyu_emu.suyuApplication
-import org.suyu.suyu_emu.adapters.AbstractListAdapter
-import org.suyu.suyu_emu.databinding.ListItemInputProfileBinding
-import org.suyu.suyu_emu.viewholder.AbstractViewHolder
-import org.suyu.suyu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.adapters.AbstractListAdapter
+import org.yuzu.yuzu_emu.databinding.ListItemInputProfileBinding
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
+import org.yuzu.yuzu_emu.R
 
 class InputProfileAdapter(options: List<ProfileItem>) :
     AbstractListAdapter<ProfileItem, AbstractViewHolder<ProfileItem>>(options) {
@@ -57,7 +57,7 @@ sealed interface ProfileItem {
 data class NewProfileItem(
     val createNewProfile: () -> Unit
 ) : ProfileItem {
-    override val name: String = suyuApplication.appContext.getString(R.string.create_new_profile)
+    override val name: String = YuzuApplication.appContext.getString(R.string.create_new_profile)
 }
 
 data class ExistingProfileItem(

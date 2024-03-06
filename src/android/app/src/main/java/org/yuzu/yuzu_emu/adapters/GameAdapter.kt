@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.adapters
+package org.yuzu.yuzu_emu.adapters
 
 import android.net.Uri
 import android.view.LayoutInflater
@@ -19,15 +19,15 @@ import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.suyu.suyu_emu.HomeNavigationDirections
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.suyuApplication
-import org.suyu.suyu_emu.databinding.CardGameBinding
-import org.suyu.suyu_emu.model.Game
-import org.suyu.suyu_emu.model.GamesViewModel
-import org.suyu.suyu_emu.utils.GameIconUtils
-import org.suyu.suyu_emu.utils.ViewUtils.marquee
-import org.suyu.suyu_emu.viewholder.AbstractViewHolder
+import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.databinding.CardGameBinding
+import org.yuzu.yuzu_emu.model.Game
+import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.utils.GameIconUtils
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
@@ -51,12 +51,12 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
         fun onClick(game: Game) {
             val gameExists = DocumentFile.fromSingleUri(
-                suyuApplication.appContext,
+                YuzuApplication.appContext,
                 Uri.parse(game.path)
             )?.exists() == true
             if (!gameExists) {
                 Toast.makeText(
-                    suyuApplication.appContext,
+                    YuzuApplication.appContext,
                     R.string.loader_error_file_not_found,
                     Toast.LENGTH_LONG
                 ).show()
@@ -66,7 +66,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
             }
 
             val preferences =
-                PreferenceManager.getDefaultSharedPreferences(suyuApplication.appContext)
+                PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
             preferences.edit()
                 .putLong(
                     game.keyLastPlayedTime,
@@ -77,12 +77,12 @@ class GameAdapter(private val activity: AppCompatActivity) :
             activity.lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
                     val shortcut =
-                        ShortcutInfoCompat.Builder(suyuApplication.appContext, game.path)
+                        ShortcutInfoCompat.Builder(YuzuApplication.appContext, game.path)
                             .setShortLabel(game.title)
                             .setIcon(GameIconUtils.getShortcutIcon(activity, game))
                             .setIntent(game.launchIntent)
                             .build()
-                    ShortcutManagerCompat.pushDynamicShortcut(suyuApplication.appContext, shortcut)
+                    ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
                 }
             }
 

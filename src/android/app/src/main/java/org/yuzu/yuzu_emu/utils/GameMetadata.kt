@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.utils
+package org.yuzu.yuzu_emu.utils
 
 object GameMetadata {
     external fun getIsValid(path: String): Boolean
