@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2024 suyu emulator project
 SPDX-License-Identifier: GPL v3
 -->
 
-<h4>This project DOES NOT suppot piracy, you are required to source your own games and keys, we make no money off this project (mainly so that Nintendon't sue us lol)</h4>
+<h4>This project DOES NOT support piracy, you are required to source your own games and keys, we make no money off this project (mainly so that Nintendo won't sue us lol)</h4>
 
 
 We are in great need of developers, join our discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>
@@ -18,7 +18,7 @@ This repo is created based on yuzu EA 4176. Please contribute
   <br>
 </h1>
 
-<h4 align="center"><b>suyu</b>, prounced "sue-you" is the afterlife the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
+<h4 align="center"><b>suyu</b>, pronounced "sue-you" is the afterlife the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
@@ -65,7 +65,7 @@ This project is completely free and open source, this project is made possible b
 
 Most of the development happens on GitHub. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
 
-If you want to contribute, please take a look at the [Contributor's Guide](https://github.com/suyu-emu/suyu/wiki/Contributing) and [Developer Information](https://github.com/suyu-emu/suyu/wiki/Developer-Information).
+If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
 
 If you want to contribute to the user interface translation project, please check out the [suyu project on transifex](https://www.transifex.com/suyu-emulator/suyu). We centralize translation work there, and periodically upstream translations.
