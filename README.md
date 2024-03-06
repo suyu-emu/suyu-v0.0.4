@@ -24,7 +24,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-<div style="width:20%; margin: auto;">
+<div style="width:5%; margin: 5%;">
 
 [<img src="https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg">](https://gitlab.com/suyu-emu/suyu/-/pipelines)
 </div>
