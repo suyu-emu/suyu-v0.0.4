@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -18,8 +18,8 @@ namespace FileSys {
 using namespace Common::Literals;
 
 class BucketTree {
-    suyu_NON_COPYABLE(BucketTree);
-    suyu_NON_MOVEABLE(BucketTree);
+    YUZU_NON_COPYABLE(BucketTree);
+    YUZU_NON_MOVEABLE(BucketTree);
 
 public:
     static constexpr u32 Magic = Common::MakeMagic('B', 'K', 'T', 'R');
@@ -123,7 +123,7 @@ public:
 
 private:
     class NodeBuffer {
-        suyu_NON_COPYABLE(NodeBuffer);
+        YUZU_NON_COPYABLE(NodeBuffer);
 
     public:
         NodeBuffer() : m_header() {}
@@ -330,8 +330,8 @@ private:
 };
 
 class BucketTree::Visitor {
-    suyu_NON_COPYABLE(Visitor);
-    suyu_NON_MOVEABLE(Visitor);
+    YUZU_NON_COPYABLE(Visitor);
+    YUZU_NON_MOVEABLE(Visitor);
 
 public:
     constexpr Visitor()

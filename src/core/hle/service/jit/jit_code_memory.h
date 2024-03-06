@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -11,7 +11,7 @@ namespace Service::JIT {
 
 class CodeMemory {
 public:
-    suyu_NON_COPYABLE(CodeMemory);
+    YUZU_NON_COPYABLE(CodeMemory);
 
     explicit CodeMemory() = default;
 

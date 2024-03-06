@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package org.suyu.suyu_emu.utils
+package org.yuzu.yuzu_emu.utils
 
 import android.content.Intent
 import android.os.Build

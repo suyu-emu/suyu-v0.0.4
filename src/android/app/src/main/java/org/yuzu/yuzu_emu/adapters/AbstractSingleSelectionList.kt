@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.adapters
+package org.yuzu.yuzu_emu.adapters
 
-import org.suyu.suyu_emu.model.SelectableItem
-import org.suyu.suyu_emu.viewholder.AbstractViewHolder
+import org.yuzu.yuzu_emu.model.SelectableItem
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 /**
  * Generic list class meant to take care of single selection UI updates

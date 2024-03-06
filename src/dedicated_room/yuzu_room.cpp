@@ -57,22 +57,22 @@ static void PrintHelp(const char* argv0) {
              "--preferred-game-id The preferred game-id for this room\n"
              "--username          The username used for announce\n"
              "--token             The token used for announce\n"
-             "--web-api-url       suyu Web API url\n"
+             "--web-api-url       yuzu Web API url\n"
              "--ban-list-file     The file for storing the room ban list\n"
              "--log-file          The file for storing the room log\n"
-             "--enable-suyu-mods Allow suyu Community Moderators to moderate on your room\n"
+             "--enable-yuzu-mods Allow yuzu Community Moderators to moderate on your room\n"
              "-h, --help          Display this help and exit\n"
              "-v, --version       Output version information and exit\n",
              argv0);
 }
 
 static void PrintVersion() {
-    LOG_INFO(Network, "suyu dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
+    LOG_INFO(Network, "yuzu dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
              Common::g_scm_desc, Network::network_version);
 }
 
-/// The magic text at the beginning of a suyu-room ban list file.
-static constexpr char BanListMagic[] = "suyuRoom-BanList-1";
+/// The magic text at the beginning of a yuzu-room ban list file.
+static constexpr char BanListMagic[] = "YuzuRoom-BanList-1";
 
 static constexpr char token_delimiter{':'};
 
@@ -195,12 +195,12 @@ int main(int argc, char** argv) {
     std::string token;
     std::string web_api_url;
     std::string ban_list_file;
-    std::string log_file = "suyu-room.log";
+    std::string log_file = "yuzu-room.log";
     std::string bind_address;
     u64 preferred_game_id = 0;
     u32 port = Network::DefaultRoomPort;
     u32 max_members = 16;
-    bool enable_suyu_mods = false;
+    bool enable_yuzu_mods = false;
 
     static struct option long_options[] = {
         {"room-name", required_argument, 0, 'n'},
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
         {"web-api-url", required_argument, 0, 'a'},
         {"ban-list-file", required_argument, 0, 'b'},
         {"log-file", required_argument, 0, 'l'},
-        {"enable-suyu-mods", no_argument, 0, 'e'},
+        {"enable-yuzu-mods", no_argument, 0, 'e'},
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'v'},
         {0, 0, 0, 0},
@@ -269,7 +269,7 @@ int main(int argc, char** argv) {
                 log_file.assign(optarg);
                 break;
             case 'e':
-                enable_suyu_mods = true;
+                enable_yuzu_mods = true;
                 break;
             case 'h':
                 PrintHelp(argv[0]);
@@ -328,19 +328,19 @@ int main(int argc, char** argv) {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
             PadToken(token);
-            Settings::values.suyu_username = UsernameFromDisplayToken(token);
-            username = Settings::values.suyu_username.GetValue();
-            Settings::values.suyu_token = TokenFromDisplayToken(token);
+            Settings::values.yuzu_username = UsernameFromDisplayToken(token);
+            username = Settings::values.yuzu_username.GetValue();
+            Settings::values.yuzu_token = TokenFromDisplayToken(token);
         } else {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
-            Settings::values.suyu_username = username;
-            Settings::values.suyu_token = token;
+            Settings::values.yuzu_username = username;
+            Settings::values.yuzu_token = token;
         }
     }
-    if (!announce && enable_suyu_mods) {
-        enable_suyu_mods = false;
-        LOG_INFO(Network, "Can not enable suyu Moderators for private rooms");
+    if (!announce && enable_yuzu_mods) {
+        enable_yuzu_mods = false;
+        LOG_INFO(Network, "Can not enable yuzu Moderators for private rooms");
     }
 
     // Load the ban list
@@ -356,7 +356,7 @@ int main(int argc, char** argv) {
             std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
 #else
         LOG_INFO(Network,
-                 "suyu Web Services is not available with this build: validation is disabled.");
+                 "yuzu Web Services is not available with this build: validation is disabled.");
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
 #endif
     } else {
@@ -370,7 +370,7 @@ int main(int argc, char** argv) {
                                                               .id = preferred_game_id};
         if (!room->Create(room_name, room_description, bind_address, static_cast<u16>(port),
                           password, max_members, username, preferred_game_info,
-                          std::move(verify_backend), ban_list, enable_suyu_mods)) {
+                          std::move(verify_backend), ban_list, enable_yuzu_mods)) {
             LOG_INFO(Network, "Failed to create room: ");
             return -1;
         }

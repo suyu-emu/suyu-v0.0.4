@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.model
+package org.yuzu.yuzu_emu.model
 
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
@@ -17,10 +17,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.suyu.suyu_emu.NativeLibrary
-import org.suyu.suyu_emu.suyuApplication
-import org.suyu.suyu_emu.utils.GameHelper
-import org.suyu.suyu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.utils.GameHelper
+import org.yuzu.yuzu_emu.utils.NativeConfig
 import java.util.concurrent.atomic.AtomicBoolean
 
 class GamesViewModel : ViewModel() {
@@ -94,7 +94,7 @@ class GamesViewModel : ViewModel() {
                 if (firstStartup) {
                     // Retrieve list of cached games
                     val storedGames =
-                        PreferenceManager.getDefaultSharedPreferences(suyuApplication.appContext)
+                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
                             .getStringSet(GameHelper.KEY_GAMES, emptySet())
                     if (storedGames!!.isNotEmpty()) {
                         val deserializedGames = mutableSetOf<Game>()
@@ -109,7 +109,7 @@ class GamesViewModel : ViewModel() {
 
                             val gameExists =
                                 DocumentFile.fromSingleUri(
-                                    suyuApplication.appContext,
+                                    YuzuApplication.appContext,
                                     Uri.parse(game.path)
                                 )?.exists()
                             if (gameExists == true) {

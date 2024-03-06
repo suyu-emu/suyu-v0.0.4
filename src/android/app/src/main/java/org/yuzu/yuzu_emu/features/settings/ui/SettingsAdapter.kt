@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.settings.ui
+package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.content.Context
 import android.icu.util.Calendar
@@ -20,18 +20,18 @@ import androidx.recyclerview.widget.ListAdapter
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.SettingsNavigationDirections
-import org.suyu.suyu_emu.databinding.ListItemSettingBinding
-import org.suyu.suyu_emu.databinding.ListItemSettingInputBinding
-import org.suyu.suyu_emu.databinding.ListItemSettingSwitchBinding
-import org.suyu.suyu_emu.databinding.ListItemSettingsHeaderBinding
-import org.suyu.suyu_emu.features.input.NativeInput
-import org.suyu.suyu_emu.features.input.model.AnalogDirection
-import org.suyu.suyu_emu.features.settings.model.AbstractIntSetting
-import org.suyu.suyu_emu.features.settings.model.view.*
-import org.suyu.suyu_emu.features.settings.ui.viewholder.*
-import org.suyu.suyu_emu.utils.ParamPackage
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.SettingsNavigationDirections
+import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingInputBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
+import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.input.model.AnalogDirection
+import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
+import org.yuzu.yuzu_emu.features.settings.model.view.*
+import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
+import org.yuzu.yuzu_emu.utils.ParamPackage
 
 class SettingsAdapter(
     private val fragment: Fragment,

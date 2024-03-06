@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.settings.ui
+package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -19,13 +19,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
 import info.debatty.java.stringsimilarity.Cosine
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.databinding.FragmentSettingsSearchBinding
-import org.suyu.suyu_emu.features.settings.model.view.SettingsItem
-import org.suyu.suyu_emu.utils.NativeConfig
-import org.suyu.suyu_emu.utils.ViewUtils.setVisible
-import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
-import org.suyu.suyu_emu.utils.collect
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.FragmentSettingsSearchBinding
+import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
+import org.yuzu.yuzu_emu.utils.NativeConfig
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 
 class SettingsSearchFragment : Fragment() {
     private var _binding: FragmentSettingsSearchBinding? = null

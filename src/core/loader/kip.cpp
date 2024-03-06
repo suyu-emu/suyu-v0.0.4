@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
@@ -14,7 +14,7 @@ namespace Loader {
 
 namespace {
 constexpr u32 PageAlignSize(u32 size) {
-    return static_cast<u32>((size + Core::Memory::suyu_PAGEMASK) & ~Core::Memory::suyu_PAGEMASK);
+    return static_cast<u32>((size + Core::Memory::YUZU_PAGEMASK) & ~Core::Memory::YUZU_PAGEMASK);
 }
 } // Anonymous namespace
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 suyu Emulator Project
+# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(audio_core STATIC
@@ -262,7 +262,7 @@ if (ANDROID)
     target_compile_definitions(audio_core PRIVATE HAVE_OBOE)
 endif()
 
-if (suyu_USE_PRECOMPILED_HEADERS)
+if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(audio_core PRIVATE precompiled_headers.h)
 endif()
 

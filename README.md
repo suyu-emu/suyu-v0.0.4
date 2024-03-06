@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL v3
 
 We are in great need of developers, join our discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>
 
-This repo is created based on suyu EA 4176. Please contribute
+This repo is created based on yuzu EA 4176. Please contribute
 
 <h1 style="text-align:center;">
   <br>

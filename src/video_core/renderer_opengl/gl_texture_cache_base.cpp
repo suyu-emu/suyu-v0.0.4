@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "video_core/renderer_opengl/gl_texture_cache.h"

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-FileCopyrightText: 1996 Arthur David Olson
 // SPDX-License-Identifier: BSD-2-Clause
 

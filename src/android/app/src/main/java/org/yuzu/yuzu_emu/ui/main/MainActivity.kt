@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.ui.main
+package org.yuzu.yuzu_emu.ui.main
 
 import android.content.Intent
 import android.net.Uri
@@ -27,23 +27,23 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.navigation.NavigationBarView
 import java.io.File
 import java.io.FilenameFilter
-import org.suyu.suyu_emu.HomeNavigationDirections
-import org.suyu.suyu_emu.NativeLibrary
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.databinding.ActivityMainBinding
-import org.suyu.suyu_emu.features.settings.model.Settings
-import org.suyu.suyu_emu.fragments.AddGameFolderDialogFragment
-import org.suyu.suyu_emu.fragments.ProgressDialogFragment
-import org.suyu.suyu_emu.fragments.MessageDialogFragment
-import org.suyu.suyu_emu.model.AddonViewModel
-import org.suyu.suyu_emu.model.DriverViewModel
-import org.suyu.suyu_emu.model.GamesViewModel
-import org.suyu.suyu_emu.model.HomeViewModel
-import org.suyu.suyu_emu.model.InstallResult
-import org.suyu.suyu_emu.model.TaskState
-import org.suyu.suyu_emu.model.TaskViewModel
-import org.suyu.suyu_emu.utils.*
-import org.suyu.suyu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
+import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
+import org.yuzu.yuzu_emu.fragments.ProgressDialogFragment
+import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
+import org.yuzu.yuzu_emu.model.AddonViewModel
+import org.yuzu.yuzu_emu.model.DriverViewModel
+import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.InstallResult
+import org.yuzu.yuzu_emu.model.TaskState
+import org.yuzu.yuzu_emu.model.TaskViewModel
+import org.yuzu.yuzu_emu.utils.*
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
@@ -642,21 +642,21 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             ) { progressCallback, _ ->
                 val checkStream =
                     ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
-                var issuyuBackup = false
+                var isYuzuBackup = false
                 checkStream.use { stream ->
                     var ze: ZipEntry? = null
                     while (stream.nextEntry?.also { ze = it } != null) {
                         val itemName = ze!!.name.trim()
                         if (itemName == "/config/config.ini" || itemName == "config/config.ini") {
-                            issuyuBackup = true
+                            isYuzuBackup = true
                             return@use
                         }
                     }
                 }
-                if (!issuyuBackup) {
+                if (!isYuzuBackup) {
                     return@newInstance MessageDialogFragment.newInstance(
                         this,
-                        titleId = R.string.invalid_suyu_backup,
+                        titleId = R.string.invalid_yuzu_backup,
                         descriptionId = R.string.user_data_import_failed_description
                     )
                 }

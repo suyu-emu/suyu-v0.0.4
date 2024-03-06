@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.utils
+package org.yuzu.yuzu_emu.utils
 
 import android.database.Cursor
 import android.net.Uri
@@ -14,9 +14,9 @@ import java.io.InputStream
 import java.net.URLDecoder
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import org.suyu.suyu_emu.suyuApplication
-import org.suyu.suyu_emu.model.MinimalDocumentFile
-import org.suyu.suyu_emu.model.TaskState
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.model.MinimalDocumentFile
+import org.yuzu.yuzu_emu.model.TaskState
 import java.io.BufferedOutputStream
 import java.io.OutputStream
 import java.lang.NullPointerException
@@ -31,7 +31,7 @@ object FileUtil {
     const val APPLICATION_OCTET_STREAM = "application/octet-stream"
     const val TEXT_PLAIN = "text/plain"
 
-    private val context get() = suyuApplication.appContext
+    private val context get() = YuzuApplication.appContext
 
     /**
      * Create a file from directory with filename.
@@ -195,7 +195,7 @@ object FileUtil {
      * @return String display name
      */
     fun getFilename(uri: Uri): String {
-        val resolver = suyuApplication.appContext.contentResolver
+        val resolver = YuzuApplication.appContext.contentResolver
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_DISPLAY_NAME
         )
@@ -408,10 +408,10 @@ object FileUtil {
             val newFile = File(file, it.name!!)
             if (it.isDirectory) {
                 newFile.mkdirs()
-                DocumentFile.fromTreeUri(suyuApplication.appContext, it.uri)?.copyFilesTo(newFile)
+                DocumentFile.fromTreeUri(YuzuApplication.appContext, it.uri)?.copyFilesTo(newFile)
             } else {
                 val inputStream =
-                    suyuApplication.appContext.contentResolver.openInputStream(it.uri)
+                    YuzuApplication.appContext.contentResolver.openInputStream(it.uri)
                 BufferedInputStream(inputStream).use { bos ->
                     if (!newFile.exists()) {
                         newFile.createNewFile()
@@ -487,17 +487,17 @@ object FileUtil {
         String(stream.readBytes(), StandardCharsets.UTF_8)
 
     fun DocumentFile.inputStream(): InputStream =
-        suyuApplication.appContext.contentResolver.openInputStream(uri)!!
+        YuzuApplication.appContext.contentResolver.openInputStream(uri)!!
 
     fun DocumentFile.outputStream(): OutputStream =
-        suyuApplication.appContext.contentResolver.openOutputStream(uri)!!
+        YuzuApplication.appContext.contentResolver.openOutputStream(uri)!!
 
     fun Uri.inputStream(): InputStream =
-        suyuApplication.appContext.contentResolver.openInputStream(this)!!
+        YuzuApplication.appContext.contentResolver.openInputStream(this)!!
 
     fun Uri.outputStream(): OutputStream =
-        suyuApplication.appContext.contentResolver.openOutputStream(this)!!
+        YuzuApplication.appContext.contentResolver.openOutputStream(this)!!
 
     fun Uri.asDocumentFile(): DocumentFile? =
-        DocumentFile.fromSingleUri(suyuApplication.appContext, this)
+        DocumentFile.fromSingleUri(YuzuApplication.appContext, this)
 }

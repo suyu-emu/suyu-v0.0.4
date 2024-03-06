@@ -1,22 +1,22 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu
+package org.yuzu.yuzu_emu
 
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import org.suyu.suyu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.input.NativeInput
 import java.io.File
-import org.suyu.suyu_emu.utils.DirectoryInitialization
-import org.suyu.suyu_emu.utils.DocumentsTree
-import org.suyu.suyu_emu.utils.GpuDriverHelper
-import org.suyu.suyu_emu.utils.Log
+import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.DocumentsTree
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.utils.Log
 
 fun Context.getPublicFilesDir(): File = getExternalFilesDir(null) ?: filesDir
 
-class suyuApplication : Application() {
+class YuzuApplication : Application() {
     private fun createNotificationChannels() {
         val noticeChannel = NotificationChannel(
             getString(R.string.notice_notification_channel_id),
@@ -47,7 +47,7 @@ class suyuApplication : Application() {
 
     companion object {
         var documentsTree: DocumentsTree? = null
-        lateinit var application: suyuApplication
+        lateinit var application: YuzuApplication
 
         val appContext: Context
             get() = application.applicationContext

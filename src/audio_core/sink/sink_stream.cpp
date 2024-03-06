@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
@@ -32,11 +32,11 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
     constexpr s32 min{std::numeric_limits<s16>::min()};
     constexpr s32 max{std::numeric_limits<s16>::max()};
 
-    auto suyu_volume{Settings::Volume()};
-    if (suyu_volume > 1.0f) {
-        suyu_volume = 0.6f + 20 * std::log10(suyu_volume);
+    auto yuzu_volume{Settings::Volume()};
+    if (yuzu_volume > 1.0f) {
+        yuzu_volume = 0.6f + 20 * std::log10(yuzu_volume);
     }
-    auto volume{system_volume * device_volume * suyu_volume};
+    auto volume{system_volume * device_volume * yuzu_volume};
 
     if (system_channels == 6 && device_channels == 2) {
         // We're given 6 channels, but our device only outputs 2, so downmix.

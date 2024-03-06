@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu
+package org.yuzu.yuzu_emu
 
 import android.content.DialogInterface
 import android.net.Uri
@@ -13,18 +13,18 @@ import android.widget.TextView
 import androidx.annotation.Keep
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.lang.ref.WeakReference
-import org.suyu.suyu_emu.activities.EmulationActivity
-import org.suyu.suyu_emu.fragments.CoreErrorDialogFragment
-import org.suyu.suyu_emu.utils.DocumentsTree
-import org.suyu.suyu_emu.utils.FileUtil
-import org.suyu.suyu_emu.utils.Log
-import org.suyu.suyu_emu.model.InstallResult
-import org.suyu.suyu_emu.model.Patch
-import org.suyu.suyu_emu.model.GameVerificationResult
+import org.yuzu.yuzu_emu.activities.EmulationActivity
+import org.yuzu.yuzu_emu.fragments.CoreErrorDialogFragment
+import org.yuzu.yuzu_emu.utils.DocumentsTree
+import org.yuzu.yuzu_emu.utils.FileUtil
+import org.yuzu.yuzu_emu.utils.Log
+import org.yuzu.yuzu_emu.model.InstallResult
+import org.yuzu.yuzu_emu.model.Patch
+import org.yuzu.yuzu_emu.model.GameVerificationResult
 
 /**
  * Class which contains methods that interact
- * with the native side of the suyu code.
+ * with the native side of the Yuzu code.
  */
 object NativeLibrary {
     @JvmField
@@ -32,7 +32,7 @@ object NativeLibrary {
 
     init {
         try {
-            System.loadLibrary("suyu-android")
+            System.loadLibrary("yuzu-android")
         } catch (ex: UnsatisfiedLinkError) {
             error("[NativeLibrary] $ex")
         }
@@ -42,7 +42,7 @@ object NativeLibrary {
     @JvmStatic
     fun openContentUri(path: String?, openmode: String?): Int {
         return if (DocumentsTree.isNativePath(path!!)) {
-            suyuApplication.documentsTree!!.openContentUri(path, openmode)
+            YuzuApplication.documentsTree!!.openContentUri(path, openmode)
         } else {
             FileUtil.openContentUri(path, openmode)
         }
@@ -52,7 +52,7 @@ object NativeLibrary {
     @JvmStatic
     fun getSize(path: String?): Long {
         return if (DocumentsTree.isNativePath(path!!)) {
-            suyuApplication.documentsTree!!.getFileSize(path)
+            YuzuApplication.documentsTree!!.getFileSize(path)
         } else {
             FileUtil.getFileSize(path)
         }
@@ -62,7 +62,7 @@ object NativeLibrary {
     @JvmStatic
     fun exists(path: String?): Boolean {
         return if (DocumentsTree.isNativePath(path!!)) {
-            suyuApplication.documentsTree!!.exists(path)
+            YuzuApplication.documentsTree!!.exists(path)
         } else {
             FileUtil.exists(path, suppressLog = true)
         }
@@ -72,7 +72,7 @@ object NativeLibrary {
     @JvmStatic
     fun isDirectory(path: String?): Boolean {
         return if (DocumentsTree.isNativePath(path!!)) {
-            suyuApplication.documentsTree!!.isDirectory(path)
+            YuzuApplication.documentsTree!!.isDirectory(path)
         } else {
             FileUtil.isDirectory(path)
         }
@@ -82,7 +82,7 @@ object NativeLibrary {
     @JvmStatic
     fun getParentDirectory(path: String): String =
         if (DocumentsTree.isNativePath(path)) {
-            suyuApplication.documentsTree!!.getParentDirectory(path)
+            YuzuApplication.documentsTree!!.getParentDirectory(path)
         } else {
             path
         }
@@ -91,7 +91,7 @@ object NativeLibrary {
     @JvmStatic
     fun getFilename(path: String): String =
         if (DocumentsTree.isNativePath(path)) {
-            suyuApplication.documentsTree!!.getFilename(path)
+            YuzuApplication.documentsTree!!.getFilename(path)
         } else {
             FileUtil.getFilename(Uri.parse(path))
         }
@@ -326,7 +326,7 @@ object NativeLibrary {
     }
 
     /**
-     * Logs the suyu version, Android version and, CPU.
+     * Logs the Yuzu version, Android version and, CPU.
      */
     external fun logDeviceInfo()
 

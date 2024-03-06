@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -261,7 +261,7 @@ struct CheatVmOpcode {
 
 class DmntCheatVm {
 public:
-    /// Helper Type for DmntCheatVm <=> suyu Interface
+    /// Helper Type for DmntCheatVm <=> yuzu Interface
     class Callbacks {
     public:
         virtual ~Callbacks();
