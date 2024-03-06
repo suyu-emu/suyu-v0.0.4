@@ -10,6 +10,7 @@ function(download_bundled_external remote_path lib_name prefix_var)
 set(package_base_url "https://gitlab.com/suyu-emu/")
 set(package_repo "no_platform")
 set(package_extension "no_platform")
+set(package_head "?ref_type=heads")
 if (WIN32)
     set(package_repo "ext-windows-bin/-/raw/master/")
     set(package_extension ".7z")
@@ -28,7 +29,7 @@ set(prefix "${CMAKE_BINARY_DIR}/externals/${lib_name}")
 if (NOT EXISTS "${prefix}")
     message(STATUS "Downloading binaries for ${lib_name}...")
     file(DOWNLOAD
-        ${package_url}${remote_path}${lib_name}${package_extension}
+        ${package_url}${remote_path}${lib_name}${package_extension}${package_head}
         "${CMAKE_BINARY_DIR}/externals/${lib_name}${package_extension}" SHOW_PROGRESS)
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${CMAKE_BINARY_DIR}/externals/${lib_name}${package_extension}"
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
