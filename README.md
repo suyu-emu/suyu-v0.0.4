@@ -3,12 +3,11 @@ SPDX-FileCopyrightText: 2024 suyu emulator project
 SPDX-License-Identifier: GPL v3
 -->
 
-<h4>This project DOES NOT support piracy, you are required to source your own games and keys, we make no money off this project (mainly so that Nintendo won't sue us lol)</h4>
+**Note**: We do not support or condone piracy in any form. In order to use Suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
+We are in great need of developers, join our Discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>.
 
-We are in great need of developers, join our discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>
-
-This repo is created based on yuzu EA 4176. Please contribute
+This repo is created based on Yuzu EA 4176. Please contribute if you can!
 
 <h1 style="text-align:center;">
   <br>
