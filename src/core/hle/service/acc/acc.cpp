@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -36,7 +36,7 @@ namespace Service::Account {
 constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
 static std::filesystem::path GetImagePath(const Common::UUID& uuid) {
-    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
+    return Common::FS::GetsuyuPath(Common::FS::suyuPath::NANDDir) /
            fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 }
 
@@ -833,7 +833,7 @@ Result Module::Interface::InitializeApplicationInfoBase() {
     case FileSys::StorageId::Host:
     case FileSys::StorageId::NandUser:
     case FileSys::StorageId::SdCard:
-    case FileSys::StorageId::None: // Yuzu specific, differs from hardware
+    case FileSys::StorageId::None: // suyu specific, differs from hardware
         application_info.application_type = ApplicationType::Digital;
         break;
     default:
@@ -891,7 +891,7 @@ void Module::Interface::InitializeApplicationInfoV2(HLERequestContext& ctx) {
 
 void Module::Interface::BeginUserRegistration(HLERequestContext& ctx) {
     const auto user_id = Common::UUID::MakeRandom();
-    profile_manager->CreateNewUser(user_id, "yuzu");
+    profile_manager->CreateNewUser(user_id, "suyu");
 
     LOG_INFO(Service_ACC, "called, uuid={}", user_id.FormattedString());
 

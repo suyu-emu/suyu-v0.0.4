@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -33,8 +33,8 @@ class KScopedSchedulerLockAndSleep;
 
 class KScheduler final {
 public:
-    YUZU_NON_COPYABLE(KScheduler);
-    YUZU_NON_MOVEABLE(KScheduler);
+    suyu_NON_COPYABLE(KScheduler);
+    suyu_NON_MOVEABLE(KScheduler);
 
     using LockType = KAbstractSchedulerLock<KScheduler>;
 

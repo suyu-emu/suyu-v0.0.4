@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -13,8 +13,8 @@
 namespace FileSys {
 
 class AesXtsStorage : public IReadOnlyStorage {
-    YUZU_NON_COPYABLE(AesXtsStorage);
-    YUZU_NON_MOVEABLE(AesXtsStorage);
+    suyu_NON_COPYABLE(AesXtsStorage);
+    suyu_NON_MOVEABLE(AesXtsStorage);
 
 public:
     static constexpr size_t AesBlockSize = 0x10;

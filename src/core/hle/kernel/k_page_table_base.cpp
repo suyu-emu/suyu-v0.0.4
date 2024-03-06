@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/scope_exit.h"
@@ -14,8 +14,8 @@ namespace Kernel {
 namespace {
 
 class KScopedLightLockPair {
-    YUZU_NON_COPYABLE(KScopedLightLockPair);
-    YUZU_NON_MOVEABLE(KScopedLightLockPair);
+    suyu_NON_COPYABLE(KScopedLightLockPair);
+    suyu_NON_MOVEABLE(KScopedLightLockPair);
 
 private:
     KLightLock* m_lower;

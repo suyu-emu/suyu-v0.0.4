@@ -1,7 +1,9 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
+# 
+# Modified by AMA25 on 3/5/24
 
 export NDK_CCACHE="$(which ccache)"
 ccache -s

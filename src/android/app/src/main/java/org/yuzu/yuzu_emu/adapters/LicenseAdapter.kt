@@ -1,16 +1,16 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.adapters
+package org.suyu.suyu_emu.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
-import org.yuzu.yuzu_emu.fragments.LicenseBottomSheetDialogFragment
-import org.yuzu.yuzu_emu.model.License
-import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
-import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
+import org.suyu.suyu_emu.databinding.ListItemSettingBinding
+import org.suyu.suyu_emu.fragments.LicenseBottomSheetDialogFragment
+import org.suyu.suyu_emu.model.License
+import org.suyu.suyu_emu.utils.ViewUtils.setVisible
+import org.suyu.suyu_emu.viewholder.AbstractViewHolder
 
 class LicenseAdapter(private val activity: AppCompatActivity, licenses: List<License>) :
     AbstractListAdapter<License, LicenseAdapter.LicenseViewHolder>(licenses) {

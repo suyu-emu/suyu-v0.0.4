@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.overlay
+package org.suyu.suyu_emu.overlay
 
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -13,10 +13,10 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
-import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
-import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
-import org.yuzu.yuzu_emu.features.input.model.NativeButton
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.suyu.suyu_emu.features.input.NativeInput.ButtonState
+import org.suyu.suyu_emu.features.input.model.NativeAnalog
+import org.suyu.suyu_emu.features.input.model.NativeButton
+import org.suyu.suyu_emu.features.settings.model.BooleanSetting
 
 /**
  * Custom [BitmapDrawable] that is capable

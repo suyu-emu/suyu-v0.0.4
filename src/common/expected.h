@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // This is based on the proposed implementation of std::expected (P0323)

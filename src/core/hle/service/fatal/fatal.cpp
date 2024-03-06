@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
@@ -66,7 +66,7 @@ enum class FatalType : u32 {
 static void GenerateErrorReport(Core::System& system, Result error_code, const FatalInfo& info) {
     const auto title_id = system.GetApplicationProcessProgramID();
     std::string crash_report = fmt::format(
-        "Yuzu {}-{} crash report\n"
+        "suyu {}-{} crash report\n"
         "Title ID:                        {:016x}\n"
         "Result:                          0x{:X} ({:04}-{:04d})\n"
         "Set flags:                       0x{:16X}\n"

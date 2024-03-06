@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.features.settings.ui.viewholder
+package org.suyu.suyu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import java.time.Instant
@@ -9,11 +9,11 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
-import org.yuzu.yuzu_emu.features.settings.model.view.DateTimeSetting
-import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
-import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.suyu.suyu_emu.databinding.ListItemSettingBinding
+import org.suyu.suyu_emu.features.settings.model.view.DateTimeSetting
+import org.suyu.suyu_emu.features.settings.model.view.SettingsItem
+import org.suyu.suyu_emu.features.settings.ui.SettingsAdapter
+import org.suyu.suyu_emu.utils.ViewUtils.setVisible
 
 class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {

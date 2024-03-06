@@ -1,12 +1,12 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.utils
+package org.suyu.suyu_emu.utils
 
-import org.yuzu.yuzu_emu.model.GameDir
-import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
+import org.suyu.suyu_emu.model.GameDir
+import org.suyu.suyu_emu.overlay.model.OverlayControlData
 
-import org.yuzu.yuzu_emu.features.input.model.PlayerInput
+import org.suyu.suyu_emu.features.input.model.PlayerInput
 
 object NativeConfig {
     /**

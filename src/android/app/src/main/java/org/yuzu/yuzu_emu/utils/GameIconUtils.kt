@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.yuzu.yuzu_emu.utils
+package org.suyu.suyu_emu.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -21,9 +21,9 @@ import coil.key.Keyer
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
 import coil.request.Options
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.model.Game
+import org.suyu.suyu_emu.R
+import org.suyu.suyu_emu.suyuApplication
+import org.suyu.suyu_emu.model.Game
 
 class GameIconFetcher(
     private val game: Game,
@@ -58,20 +58,20 @@ class GameIconKeyer : Keyer<Game> {
 }
 
 object GameIconUtils {
-    private val imageLoader = ImageLoader.Builder(YuzuApplication.appContext)
+    private val imageLoader = ImageLoader.Builder(suyuApplication.appContext)
         .components {
             add(GameIconKeyer())
             add(GameIconFetcher.Factory())
         }
         .memoryCache {
-            MemoryCache.Builder(YuzuApplication.appContext)
+            MemoryCache.Builder(suyuApplication.appContext)
                 .maxSizePercent(0.25)
                 .build()
         }
         .build()
 
     fun loadGameIcon(game: Game, imageView: ImageView) {
-        val request = ImageRequest.Builder(YuzuApplication.appContext)
+        val request = ImageRequest.Builder(suyuApplication.appContext)
             .data(game)
             .target(imageView)
             .error(R.drawable.default_icon)
@@ -80,7 +80,7 @@ object GameIconUtils {
     }
 
     suspend fun getGameIcon(lifecycleOwner: LifecycleOwner, game: Game): Bitmap {
-        val request = ImageRequest.Builder(YuzuApplication.appContext)
+        val request = ImageRequest.Builder(suyuApplication.appContext)
             .data(game)
             .lifecycle(lifecycleOwner)
             .error(R.drawable.default_icon)
@@ -91,15 +91,15 @@ object GameIconUtils {
 
     suspend fun getShortcutIcon(lifecycleOwner: LifecycleOwner, game: Game): IconCompat {
         val layerDrawable = ResourcesCompat.getDrawable(
-            YuzuApplication.appContext.resources,
+            suyuApplication.appContext.resources,
             R.drawable.shortcut,
             null
         ) as LayerDrawable
         layerDrawable.setDrawableByLayerId(
             R.id.shortcut_foreground,
-            getGameIcon(lifecycleOwner, game).toDrawable(YuzuApplication.appContext.resources)
+            getGameIcon(lifecycleOwner, game).toDrawable(suyuApplication.appContext.resources)
         )
-        val inset = YuzuApplication.appContext.resources
+        val inset = suyuApplication.appContext.resources
             .getDimensionPixelSize(R.dimen.icon_inset)
         layerDrawable.setLayerInset(1, inset, inset, inset, inset)
         return IconCompat.createWithAdaptiveBitmap(
