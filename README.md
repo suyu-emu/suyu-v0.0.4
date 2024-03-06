@@ -24,9 +24,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-    <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">
-        <img src="https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg"
-            alt="GitLab Pipelines">
+        [![GitLab Pipelines](https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg)](https://gitlab.com/suyu-emu/suyu/-/pipelines)
     </a>
 </p>
 
@@ -51,7 +49,7 @@ The emulator is capable of running most commercial games at full speed, provided
 
 For a full list of games suyu supports, please visit our [Compatibility page](https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility).
 
-Check out our [website](https://suyu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
+Check out our [website](https://suyu.dev) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
 
