@@ -7,29 +7,29 @@ SPDX-License-Identifier: GPL v3
 
 We are in great need of developers, join our Discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>.
 
-This repo is created based on Yuzu EA 4176. Please contribute if you can!
+This repo is based on Yuzu EA 4176. Please contribute if you can!
 
-<h1 style="text-align:center;">
+<hr />
+
+<h1 align="center">
   <br>
-  <a href=""><img src="https://cdn.discordapp.com/attachments/1214441121099419718/1214452770334056488/Suyu-Logo_V2.png?ex=65f92a47&is=65e6b547&hm=a1f174d70a5c106fec6a998c603e1158d8f3011a6c9ff91415b7c02afe9c0262&" alt="suyu" width="200"></a>
+  <a href=""><img src="https://gitlab.com/Realmy/suyu/-/raw/master/dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
   <br>
   <b>suyu</b>
   <br>
 </h1>
 
-<h4 align="center"><b>suyu</b>, pronounced "sue-you" is the afterlife the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
+<h4 align="center"><b>suyu</b>, pronounced "sue-you" (wink wink) is the continuation of the world's most popular, open-source, Nintendo Switch emulator, yuzu.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
+
+<p align="center"><i>Logo by <a href="https://realmy.net">Realmy</a></i></p>
 
 <p align="center">
     <a href="https://dev.azure.com/suyu-emu/suyu/">
         <img src="https://dev.azure.com/suyu-emu/suyu/_apis/build/status/suyu%20mainline?branchName=master"
             alt="Azure Mainline CI Build Status">
-    </a>
-    <a href="https://discord.com/invite/u77vRWY">
-        <img src="https://img.shields.io/discord/398318088170242053?color=5865F2&label=suyu&logo=discord&logoColor=white"
-            alt="Discord">
     </a>
 </p>
 
@@ -44,7 +44,9 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 
 ## Status
 
-We are trying to get the builds working. We are in need of developers. Join our discord to contribute.
+We are trying to get the builds working. We are in need of developers. Join our Discord to contribute.
+
+**Note**: This README is a fork of the original project's README, most links are broken!
 
 ## Compatibility
 
