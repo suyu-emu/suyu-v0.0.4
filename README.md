@@ -13,7 +13,7 @@ This repo is based on Yuzu EA 4176. Please contribute if you can!
 
 <h1 align="center">
   <br>
-  <a href=""><img src="https://gitlab.com/suyu-emu/suyu/-/raw/master/dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
+  <a href="https://gitlab.com/suyu-emu/suyu"><img src="dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
   <br>
   <b>suyu</b>
   <br>
@@ -25,9 +25,9 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-    <a href="https://dev.azure.com/suyu-emu/suyu/">
-        <img src="https://dev.azure.com/suyu-emu/suyu/_apis/build/status/suyu%20mainline?branchName=master"
-            alt="Azure Mainline CI Build Status">
+    <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">
+        <img src="https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg"
+            alt="GitLab Pipelines">
     </a>
 </p>
 
@@ -48,8 +48,6 @@ We are trying to get the builds working. We are in need of developers. Join our 
 
 ## Compatibility
 
-W.I.P.
-
 The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](https://suyu-emu.org/help/quickstart/#hardware-requirements).
 
 For a full list of games suyu supports, please visit our [Compatibility page](https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility).
@@ -57,8 +55,6 @@ For a full list of games suyu supports, please visit our [Compatibility page](ht
 Check out our [website](https://suyu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
-
-W.I.P.
 
 This project is completely free and open source, this project is made possible by many people who share the same interest.
 
@@ -76,8 +72,8 @@ If you want to contribute to the user interface translation project, please chec
 
 ## Building
 
-* __Windows__: W.I.P.
-* __Linux__: W.I.P.
+* __Windows__: [Currently in alpha development]
+* __Linux__: [Currently in alpha development]
 
 
 
