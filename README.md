@@ -85,7 +85,7 @@ If you want to contribute to the user interface translation project, please chec
 
 ## Support
 
-This project is completely free and open source, this project is made possible by many people who share the same interest. Please join the discord server to contribute.
+This project is completely free and open source, this project is made possible by many people who share the same interest. Please join the Discord server to contribute.
 
 
 ## License
