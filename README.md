@@ -5,8 +5,7 @@ SPDX-License-Identifier: GPL v3
 
 **Note**: We do not support or condone piracy in any form. In order to use Suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We are in great need of developers, join our Discord server at <a href="https://discord.gg/2gQRBp44KT">https://discord.gg/2gQRBp44KT</a>.
-
+We are in great need of developers, join our Discord server [here](https://discord.gg/2gQRBp44KT)
 This repo is based on Yuzu EA 4176. Please contribute if you can!
 
 <hr />
@@ -32,7 +31,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </p>
 
 <p align="center">
-  <a href="https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility">Compatibility</a> |
+  <a href="#compatibility">Compatibility</a> |
   <a href="#development">Development</a> |
   <a href="#building">Building</a> |
   <a href="#downloads">Downloads</a> |
