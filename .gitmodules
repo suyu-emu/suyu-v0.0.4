@@ -9,22 +9,22 @@
 	url = https://github.com/mozilla/cubeb.git
 [submodule "dynarmic"]
 	path = externals/dynarmic
-	url = https://github.com/merryhime/dynarmic.git
+	url = https://gitlab.com/suyu-emu/dynarmic.git
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
 [submodule "discord-rpc"]
 	path = externals/discord-rpc
-	url = https://gitlab.com/suyu2/discord-rpc.git
+	url = https://gitlab.com/suyu-emu/discord-rpc.git
 [submodule "Vulkan-Headers"]
 	path = externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "sirit"]
 	path = externals/sirit
-	url = https://gitlab.com/suyu2/sirit.git
+	url = https://gitlab.com/suyu-emu/sirit.git
 [submodule "mbedtls"]
 	path = externals/mbedtls
-	url = https://gitlab.com/suyu2/mbedtls.git
+	url = https://gitlab.com/suyu-emu/mbedtls.git
 [submodule "xbyak"]
 	path = externals/xbyak
 	url = https://github.com/herumi/xbyak.git
@@ -57,7 +57,7 @@
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "breakpad"]
 	path = externals/breakpad
-	url = https://gitlab.com/suyu2/breakpad.git
+	url = https://gitlab.com/suyu-emu/breakpad.git
 [submodule "simpleini"]
 	path = externals/simpleini
 	url = https://github.com/brofield/simpleini.git
@@ -67,69 +67,3 @@
 [submodule "Vulkan-Utility-Libraries"]
 	path = externals/Vulkan-Utility-Libraries
 	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
-[submodule "externals/cubeb"]
-	path = externals/cubeb
-	url = https://github.com/mozilla/cubeb.git
-[submodule "externals/Vulkan-Headers"]
-	path = externals/Vulkan-Headers
-	url = https://github.com/KhronosGroup/Vulkan-Headers.git
-[submodule "externals/breakpad"]
-	path = externals/breakpad
-	url = https://gitlab.com/suyu2/breakpad.git
-[submodule "externals/VulkanMemoryAllocator"]
-	path = externals/VulkanMemoryAllocator
-	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-[submodule "externals/SDL"]
-	path = externals/SDL
-	url = https://github.com/libsdl-org/SDL.git
-[submodule "externals/mbedtls"]
-	path = externals/mbedtls
-	url = https://gitlab.com/suyu2/mbedtls.git
-[submodule "externals/Vulkan-Utility-Libraries"]
-	path = externals/Vulkan-Utility-Libraries
-	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
-[submodule "externals/oaknut"]
-	path = externals/oaknut
-	url = https://github.com/merryhime/oaknut.git
-[submodule "externals/sirit"]
-	path = externals/sirit
-	url = https://gitlab.com/suyu2/sirit.git
-[submodule "externals/enet"]
-	path = externals/enet
-	url = https://github.com/lsalzman/enet.git
-[submodule "externals/opus"]
-	path = externals/opus
-	url = https://github.com/xiph/opus.git
-[submodule "externals/xbyak"]
-	path = externals/xbyak
-	url = https://github.com/herumi/xbyak.git
-[submodule "externals/simpleini"]
-	path = externals/simpleini
-	url = https://github.com/brofield/simpleini.git
-[submodule "externals/nx_tzdb/tzdb_to_nx"]
-	path = externals/nx_tzdb/tzdb_to_nx
-	url = https://github.com/lat9nq/tzdb_to_nx.git
-[submodule "externals/cpp-jwt"]
-	path = externals/cpp-jwt
-	url = https://github.com/arun11299/cpp-jwt.git
-[submodule "externals/vcpkg"]
-	path = externals/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
-[submodule "externals/cpp-httplib"]
-	path = externals/cpp-httplib
-	url = https://github.com/yhirose/cpp-httplib.git
-[submodule "externals/libusb/libusb"]
-	path = externals/libusb/libusb
-	url = https://github.com/libusb/libusb.git
-[submodule "externals/discord-rpc"]
-	path = externals/discord-rpc
-	url = https://gitlab.com/suyu2/discord-rpc.git
-[submodule "externals/libadrenotools"]
-	path = externals/libadrenotools
-	url = https://github.com/bylaws/libadrenotools.git
-[submodule "externals/ffmpeg/ffmpeg"]
-	path = externals/ffmpeg/ffmpeg
-	url = https://github.com/FFmpeg/FFmpeg.git
-[submodule "externals/dynarmic"]
-	path = externals/dynarmic
-	url = https://gitlab.com/suyu2/dynarmic.git
