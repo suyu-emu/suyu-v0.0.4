@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 suyu Emulator Project
+// SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "video_core/control/channel_state_cache.inc"

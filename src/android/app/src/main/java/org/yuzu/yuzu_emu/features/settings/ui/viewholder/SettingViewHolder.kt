@@ -1,14 +1,14 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.settings.ui.viewholder
+package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import org.suyu.suyu_emu.databinding.ListItemSettingBinding
-import org.suyu.suyu_emu.databinding.ListItemSettingSwitchBinding
-import org.suyu.suyu_emu.features.settings.model.view.SettingsItem
-import org.suyu.suyu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
+import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 abstract class SettingViewHolder(itemView: View, protected val adapter: SettingsAdapter) :
     RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {

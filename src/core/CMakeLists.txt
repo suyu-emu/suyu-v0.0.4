@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 suyu Emulator Project
+# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(core STATIC
@@ -1223,11 +1223,11 @@ else()
         hle/service/ssl/ssl_backend_none.cpp)
 endif()
 
-if (suyu_USE_PRECOMPILED_HEADERS)
+if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(core PRIVATE precompiled_headers.h)
 endif()
 
-if (suyu_ENABLE_LTO)
+if (YUZU_ENABLE_LTO)
   set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 

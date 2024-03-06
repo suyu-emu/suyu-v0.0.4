@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -405,7 +405,7 @@ void NPad::RequestPadStateUpdate(u64 aruid, Core::HID::NpadIdType npad_id) {
         InitNewlyAddedController(aruid, npad_id);
     }
 
-    // This function is unique to suyu for the turbo buttons and motion to work properly
+    // This function is unique to yuzu for the turbo buttons and motion to work properly
     controller.device->StatusUpdate();
 
     auto& pad_entry = controller.npad_pad_state;

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019 suyu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 parameters:
@@ -14,7 +14,7 @@ steps:
 - task: CacheBeta@0
   displayName: 'Cache Build System'
   inputs:
-    key: suyu-v1-$(BuildName)-$(BuildSuffix)-$(CacheSuffix)
+    key: yuzu-v1-$(BuildName)-$(BuildSuffix)-$(CacheSuffix)
     path: $(System.DefaultWorkingDirectory)/ccache
     cacheHitVar: CACHE_RESTORED
 - script: chmod a+x ./.ci/scripts/$(ScriptFolder)/exec.sh && ./.ci/scripts/$(ScriptFolder)/exec.sh ${{ parameters['version'] }}
@@ -22,5 +22,5 @@ steps:
 - script: chmod a+x ./.ci/scripts/$(ScriptFolder)/upload.sh && RELEASE_NAME=$(BuildName) ./.ci/scripts/$(ScriptFolder)/upload.sh
   displayName: 'Package Artifacts'
 - publish: artifacts
-  artifact: 'suyu-$(BuildName)-$(BuildSuffix)'
+  artifact: 'yuzu-$(BuildName)-$(BuildSuffix)'
   displayName: 'Upload Artifacts'

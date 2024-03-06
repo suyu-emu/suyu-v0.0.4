@@ -1,15 +1,15 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.settings.ui.viewholder
+package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.databinding.ListItemSettingBinding
-import org.suyu.suyu_emu.features.settings.model.view.SettingsItem
-import org.suyu.suyu_emu.features.settings.model.view.SliderSetting
-import org.suyu.suyu_emu.features.settings.ui.SettingsAdapter
-import org.suyu.suyu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
+import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 
 class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {

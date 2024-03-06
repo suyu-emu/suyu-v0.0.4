@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/psc/ovln/receiver_service.h"

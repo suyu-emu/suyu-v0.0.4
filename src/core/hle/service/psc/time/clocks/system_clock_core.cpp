@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/psc/time/clocks/context_writers.h"

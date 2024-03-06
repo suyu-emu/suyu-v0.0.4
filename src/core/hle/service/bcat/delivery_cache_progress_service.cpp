@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/hle/service/bcat/bcat_types.h"
