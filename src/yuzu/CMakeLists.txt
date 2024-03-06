@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Modified by JuanCStar on 2024/03/06
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -229,8 +231,8 @@ add_executable(yuzu
     vk_device_info.h
     compatdb.cpp
     compatdb.h
-    yuzu.qrc
-    yuzu.rc
+    suyu.qrc
+    suyu.rc
 )
 
 if (YUZU_CRASH_DUMPS)

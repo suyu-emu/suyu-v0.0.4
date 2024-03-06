@@ -9,15 +9,15 @@ Files: dist/english_plurals/*
        dist/qt_themes/*/icons/48x48/sd_card.png
        dist/qt_themes/*/icons/index.theme
        dist/qt_themes/default/style.qss
-Copyright: yuzu Emulator Project
+Copyright: suyu Emulator Project
 License: GPL-2.0-or-later
 
 Files: dist/qt_themes/default/icons/256x256/yuzu.png
        dist/yuzu.bmp
        dist/yuzu.icns
-       dist/yuzu.ico
-       dist/yuzu.svg
-Copyright: yuzu Emulator Project
+       dist/suyu.ico
+       dist/suyu.svg
+Copyright: suyu Emulator Project
 License: GPL-2.0-or-later
 
 Files: dist/qt_themes/qdarkstyle*/LICENSE.*
