@@ -24,7 +24,10 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-        ![GitLab Pipelines](https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg)(https://gitlab.com/suyu-emu/suyu/-/pipelines)
+<div style="width:20%; margin: auto;">
+
+[<img src="https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg">](https://gitlab.com/suyu-emu/suyu/-/pipelines)
+</div>
     </a>
 </p>
 
