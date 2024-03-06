@@ -65,7 +65,7 @@ This project is completely free and open source, this project is made possible b
 
 Most of the development happens on GitHub. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
 
-If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu2/suyu/-/wikis//Contributing) and [Developer Information](https://gitlab.com/suyu2/suyu/-/wikis//Developer-Information).
+If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
 
 If you want to contribute to the user interface translation project, please check out the [suyu project on transifex](https://www.transifex.com/suyu-emulator/suyu). We centralize translation work there, and periodically upstream translations.
