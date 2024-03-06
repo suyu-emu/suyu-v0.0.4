@@ -24,8 +24,6 @@ This repo is based on Yuzu EA 4176. Please contribute if you can!
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
 
-<p align="center"><i>Logo by <a href="https://realmy.net">Realmy</a></i></p>
-
 <p align="center">
     <a href="https://dev.azure.com/suyu-emu/suyu/">
         <img src="https://dev.azure.com/suyu-emu/suyu/_apis/build/status/suyu%20mainline?branchName=master"
