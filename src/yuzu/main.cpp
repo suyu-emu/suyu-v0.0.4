@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// Modified by JuanCStar on 2024/03/06
+
 #include <cinttypes>
 #include <clocale>
 #include <cmath>
@@ -4551,10 +4553,10 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto yuzu_title = fmt::format("yuzu | {}-{}", branch_name, description);
+    const auto suyu_title = fmt::format("suyu | {}-{}", branch_name, description);
     const auto override_title =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
-    const auto window_title = override_title.empty() ? yuzu_title : override_title;
+    const auto window_title = override_title.empty() ? suyu_title : override_title;
 
     if (title_name.empty()) {
         setWindowTitle(QString::fromStdString(window_title));
@@ -5303,7 +5305,7 @@ int main(int argc, char* argv[]) {
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.
-    QGuiApplication::setDesktopFileName(QStringLiteral("org.yuzu_emu.yuzu"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("org.suyu_emu.suyu"));
 #endif
 
     SetHighDPIAttributes();

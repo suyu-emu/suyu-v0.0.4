@@ -11,11 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>yuzu</string>
+   <string>suyu</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="yuzu.qrc">
-    <normaloff>:/img/yuzu.ico</normaloff>:/img/yuzu.ico</iconset>
+   <iconset resource="suyu.qrc">
+    <normaloff>:/img/suyu.ico</normaloff>:/img/suyu.ico</iconset>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -477,7 +477,7 @@
   </action>
  </widget>
  <resources>
-  <include location="yuzu.qrc"/>
+  <include location="suyu.qrc"/>
  </resources>
  <connections/>
 </ui>

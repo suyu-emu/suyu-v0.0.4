@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Modified by JuanCStar on 2024/03/06
+
 # Credits to Samantas5855 and others for this function.
 function(create_resource file output filename)
     # Read hex data from file
@@ -25,7 +27,7 @@ add_executable(yuzu-cmd
     sdl_config.cpp
     sdl_config.h
     yuzu.cpp
-    yuzu.rc
+    suyu.rc
 )
 
 target_link_libraries(yuzu-cmd PRIVATE common core input_common frontend_common)
