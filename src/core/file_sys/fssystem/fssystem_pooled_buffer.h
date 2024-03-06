@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -16,7 +16,7 @@ constexpr inline size_t BufferPoolAlignment = 4_KiB;
 constexpr inline size_t BufferPoolWorkSize = 320;
 
 class PooledBuffer {
-    suyu_NON_COPYABLE(PooledBuffer);
+    YUZU_NON_COPYABLE(PooledBuffer);
 
 public:
     // Constructor/Destructor.

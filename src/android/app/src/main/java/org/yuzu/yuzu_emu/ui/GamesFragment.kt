@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.ui
+package org.yuzu.yuzu_emu.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,15 +14,15 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.color.MaterialColors
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.adapters.GameAdapter
-import org.suyu.suyu_emu.databinding.FragmentGamesBinding
-import org.suyu.suyu_emu.layout.AutofitGridLayoutManager
-import org.suyu.suyu_emu.model.GamesViewModel
-import org.suyu.suyu_emu.model.HomeViewModel
-import org.suyu.suyu_emu.utils.ViewUtils.setVisible
-import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
-import org.suyu.suyu_emu.utils.collect
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.adapters.GameAdapter
+import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
+import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
+import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null

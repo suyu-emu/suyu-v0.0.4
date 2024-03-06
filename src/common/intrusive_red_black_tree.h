@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -17,7 +17,7 @@ class IntrusiveRedBlackTreeImpl;
 
 #pragma pack(push, 4)
 struct IntrusiveRedBlackTreeNode {
-    suyu_NON_COPYABLE(IntrusiveRedBlackTreeNode);
+    YUZU_NON_COPYABLE(IntrusiveRedBlackTreeNode);
 
 public:
     using RBEntry = freebsd::RBEntry<IntrusiveRedBlackTreeNode>;
@@ -49,7 +49,7 @@ class IntrusiveRedBlackTree;
 namespace impl {
 
 class IntrusiveRedBlackTreeImpl {
-    suyu_NON_COPYABLE(IntrusiveRedBlackTreeImpl);
+    YUZU_NON_COPYABLE(IntrusiveRedBlackTreeImpl);
 
 private:
     template <class, class, class>
@@ -261,7 +261,7 @@ using RedBlackKeyType = std::remove_pointer_t<decltype(impl::GetRedBlackKeyType<
 
 template <class T, class Traits, class Comparator>
 class IntrusiveRedBlackTree {
-    suyu_NON_COPYABLE(IntrusiveRedBlackTree);
+    YUZU_NON_COPYABLE(IntrusiveRedBlackTree);
 
 public:
     using ImplType = impl::IntrusiveRedBlackTreeImpl;

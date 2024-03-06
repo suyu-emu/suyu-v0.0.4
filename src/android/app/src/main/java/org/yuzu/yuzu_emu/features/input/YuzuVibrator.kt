@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.input
+package org.yuzu.yuzu_emu.features.input
 
 import android.content.Context
 import android.os.Build
@@ -12,32 +12,32 @@ import android.os.VibratorManager
 import android.view.InputDevice
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
-import org.suyu.suyu_emu.suyuApplication
+import org.yuzu.yuzu_emu.YuzuApplication
 
 @Keep
 @Suppress("DEPRECATION")
-interface suyuVibrator {
+interface YuzuVibrator {
     fun supportsVibration(): Boolean
 
     fun vibrate(intensity: Float)
 
     companion object {
-        fun getControllerVibrator(device: InputDevice): suyuVibrator =
+        fun getControllerVibrator(device: InputDevice): YuzuVibrator =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                suyuVibratorManager(device.vibratorManager)
+                YuzuVibratorManager(device.vibratorManager)
             } else {
-                suyuVibratorManagerCompat(device.vibrator)
+                YuzuVibratorManagerCompat(device.vibrator)
             }
 
-        fun getSystemVibrator(): suyuVibrator =
+        fun getSystemVibrator(): YuzuVibrator =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vibratorManager = suyuApplication.appContext
+                val vibratorManager = YuzuApplication.appContext
                     .getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                suyuVibratorManager(vibratorManager)
+                YuzuVibratorManager(vibratorManager)
             } else {
-                val vibrator = suyuApplication.appContext
+                val vibrator = YuzuApplication.appContext
                     .getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                suyuVibratorManagerCompat(vibrator)
+                YuzuVibratorManagerCompat(vibrator)
             }
 
         fun getVibrationEffect(intensity: Float): VibrationEffect? {
@@ -53,24 +53,24 @@ interface suyuVibrator {
 }
 
 @RequiresApi(Build.VERSION_CODES.S)
-class suyuVibratorManager(private val vibratorManager: VibratorManager) : suyuVibrator {
+class YuzuVibratorManager(private val vibratorManager: VibratorManager) : YuzuVibrator {
     override fun supportsVibration(): Boolean {
         return vibratorManager.vibratorIds.isNotEmpty()
     }
 
     override fun vibrate(intensity: Float) {
-        val vibration = suyuVibrator.getVibrationEffect(intensity) ?: return
+        val vibration = YuzuVibrator.getVibrationEffect(intensity) ?: return
         vibratorManager.vibrate(CombinedVibration.createParallel(vibration))
     }
 }
 
-class suyuVibratorManagerCompat(private val vibrator: Vibrator) : suyuVibrator {
+class YuzuVibratorManagerCompat(private val vibrator: Vibrator) : YuzuVibrator {
     override fun supportsVibration(): Boolean {
         return vibrator.hasVibrator()
     }
 
     override fun vibrate(intensity: Float) {
-        val vibration = suyuVibrator.getVibrationEffect(intensity) ?: return
+        val vibration = YuzuVibrator.getVibrationEffect(intensity) ?: return
         vibrator.vibrate(vibration)
     }
 }

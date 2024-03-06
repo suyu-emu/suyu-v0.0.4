@@ -1,18 +1,18 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.utils
+package org.yuzu.yuzu_emu.utils
 
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.suyuApplication
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import java.util.Locale
 import kotlin.math.ceil
 
 object MemoryUtil {
-    private val context get() = suyuApplication.appContext
+    private val context get() = YuzuApplication.appContext
 
     private val Float.hundredths: String
         get() = String.format(Locale.ROOT, "%.2f", this)

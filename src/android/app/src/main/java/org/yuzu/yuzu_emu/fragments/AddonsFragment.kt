@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.fragments
+package org.yuzu.yuzu_emu.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -20,15 +20,15 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.launch
-import org.suyu.suyu_emu.R
-import org.suyu.suyu_emu.adapters.AddonAdapter
-import org.suyu.suyu_emu.databinding.FragmentAddonsBinding
-import org.suyu.suyu_emu.model.AddonViewModel
-import org.suyu.suyu_emu.model.HomeViewModel
-import org.suyu.suyu_emu.utils.AddonUtil
-import org.suyu.suyu_emu.utils.FileUtil.copyFilesTo
-import org.suyu.suyu_emu.utils.ViewUtils.updateMargins
-import org.suyu.suyu_emu.utils.collect
+import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.adapters.AddonAdapter
+import org.yuzu.yuzu_emu.databinding.FragmentAddonsBinding
+import org.yuzu.yuzu_emu.model.AddonViewModel
+import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.utils.AddonUtil
+import org.yuzu.yuzu_emu.utils.FileUtil.copyFilesTo
+import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
+import org.yuzu.yuzu_emu.utils.collect
 import java.io.File
 
 class AddonsFragment : Fragment() {

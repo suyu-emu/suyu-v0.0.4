@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -43,8 +43,8 @@ class DeinterlaceFilter;
 // Wraps an AVPacket, a container for compressed bitstream data.
 class Packet {
 public:
-    suyu_NON_COPYABLE(Packet);
-    suyu_NON_MOVEABLE(Packet);
+    YUZU_NON_COPYABLE(Packet);
+    YUZU_NON_MOVEABLE(Packet);
 
     explicit Packet(std::span<const u8> data);
     ~Packet();
@@ -60,8 +60,8 @@ private:
 // Wraps an AVFrame, a container for audio and video stream data.
 class Frame {
 public:
-    suyu_NON_COPYABLE(Frame);
-    suyu_NON_MOVEABLE(Frame);
+    YUZU_NON_COPYABLE(Frame);
+    YUZU_NON_MOVEABLE(Frame);
 
     explicit Frame();
     ~Frame();
@@ -109,8 +109,8 @@ private:
 // Wraps an AVCodec, a type containing information about a codec.
 class Decoder {
 public:
-    suyu_NON_COPYABLE(Decoder);
-    suyu_NON_MOVEABLE(Decoder);
+    YUZU_NON_COPYABLE(Decoder);
+    YUZU_NON_MOVEABLE(Decoder);
 
     explicit Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec);
     ~Decoder() = default;
@@ -128,8 +128,8 @@ private:
 // Wraps AVBufferRef for an accelerated decoder.
 class HardwareContext {
 public:
-    suyu_NON_COPYABLE(HardwareContext);
-    suyu_NON_MOVEABLE(HardwareContext);
+    YUZU_NON_COPYABLE(HardwareContext);
+    YUZU_NON_MOVEABLE(HardwareContext);
 
     static std::vector<AVHWDeviceType> GetSupportedDeviceTypes();
 
@@ -151,8 +151,8 @@ private:
 // Wraps an AVCodecContext.
 class DecoderContext {
 public:
-    suyu_NON_COPYABLE(DecoderContext);
-    suyu_NON_MOVEABLE(DecoderContext);
+    YUZU_NON_COPYABLE(DecoderContext);
+    YUZU_NON_MOVEABLE(DecoderContext);
 
     explicit DecoderContext(const Decoder& decoder);
     ~DecoderContext();
@@ -173,8 +173,8 @@ private:
 // Wraps an AVFilterGraph.
 class DeinterlaceFilter {
 public:
-    suyu_NON_COPYABLE(DeinterlaceFilter);
-    suyu_NON_MOVEABLE(DeinterlaceFilter);
+    YUZU_NON_COPYABLE(DeinterlaceFilter);
+    YUZU_NON_MOVEABLE(DeinterlaceFilter);
 
     explicit DeinterlaceFilter(const Frame& frame);
     ~DeinterlaceFilter();
@@ -191,8 +191,8 @@ private:
 
 class DecodeApi {
 public:
-    suyu_NON_COPYABLE(DecodeApi);
-    suyu_NON_MOVEABLE(DecodeApi);
+    YUZU_NON_COPYABLE(DecodeApi);
+    YUZU_NON_MOVEABLE(DecodeApi);
 
     DecodeApi() = default;
     ~DecodeApi() = default;

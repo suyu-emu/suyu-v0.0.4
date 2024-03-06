@@ -11,7 +11,7 @@ namespace WebService {
 
 /**
  * Implementation of VisitorInterface that serialized telemetry into JSON, and submits it to the
- * suyu web service
+ * yuzu web service
  */
 class TelemetryJson : public Common::Telemetry::VisitorInterface {
 public:

@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.overlay
+package org.yuzu.yuzu_emu.overlay
 
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -9,9 +9,9 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
-import org.suyu.suyu_emu.features.input.NativeInput.ButtonState
-import org.suyu.suyu_emu.features.input.model.NativeButton
-import org.suyu.suyu_emu.overlay.model.OverlayControlData
+import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
+import org.yuzu.yuzu_emu.features.input.model.NativeButton
+import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 
 /**
  * Custom [BitmapDrawable] that is capable

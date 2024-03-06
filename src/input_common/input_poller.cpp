@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/common_types.h"
@@ -184,7 +184,7 @@ public:
             .raw_value = input_engine->GetAxis(identifier, axis_y),
             .properties = properties_y,
         };
-        // This is a workaround to keep compatibility with old suyu versions. Vertical axis is
+        // This is a workaround to keep compatibility with old yuzu versions. Vertical axis is
         // inverted on SDL compared to Nintendo
         if (invert_axis_y) {
             status.y.raw_value = -status.y.raw_value;

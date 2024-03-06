@@ -1,17 +1,17 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-package org.suyu.suyu_emu.utils
+package org.yuzu.yuzu_emu.utils
 
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import org.suyu.suyu_emu.features.input.NativeInput
-import org.suyu.suyu_emu.features.input.suyuInputOverlayDevice
-import org.suyu.suyu_emu.features.input.suyuPhysicalDevice
+import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.input.YuzuInputOverlayDevice
+import org.yuzu.yuzu_emu.features.input.YuzuPhysicalDevice
 
 object InputHandler {
-    var androidControllers = mapOf<Int, suyuPhysicalDevice>()
+    var androidControllers = mapOf<Int, YuzuPhysicalDevice>()
     var registeredControllers = mutableListOf<ParamPackage>()
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -50,8 +50,8 @@ object InputHandler {
         return true
     }
 
-    fun getDevices(): Map<Int, suyuPhysicalDevice> {
-        val gameControllerDeviceIds = mutableMapOf<Int, suyuPhysicalDevice>()
+    fun getDevices(): Map<Int, YuzuPhysicalDevice> {
+        val gameControllerDeviceIds = mutableMapOf<Int, YuzuPhysicalDevice>()
         val deviceIds = InputDevice.getDeviceIds()
         var port = 0
         val inputSettings = NativeConfig.getInputSettings(true)
@@ -62,7 +62,7 @@ object InputHandler {
                     sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
                 ) {
                     if (!gameControllerDeviceIds.contains(controllerNumber)) {
-                        gameControllerDeviceIds[controllerNumber] = suyuPhysicalDevice(
+                        gameControllerDeviceIds[controllerNumber] = YuzuPhysicalDevice(
                             this,
                             port,
                             inputSettings[port].useSystemVibrator
@@ -82,7 +82,7 @@ object InputHandler {
         }
 
         // Register the input overlay on a dedicated port for all player 1 vibrations
-        NativeInput.registerController(suyuInputOverlayDevice(androidControllers.isEmpty(), 100))
+        NativeInput.registerController(YuzuInputOverlayDevice(androidControllers.isEmpty(), 100))
         registeredControllers.clear()
         NativeInput.getInputDevices().forEach {
             registeredControllers.add(ParamPackage(it))

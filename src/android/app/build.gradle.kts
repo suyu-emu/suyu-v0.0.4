@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import android.annotation.SuppressLint
@@ -25,7 +25,7 @@ val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toIn
 
 @Suppress("UnstableApiUsage")
 android {
-    namespace = "org.suyu.suyu_emu"
+    namespace = "org.yuzu.yuzu_emu"
 
     compileSdkVersion = "android-34"
     ndkVersion = "26.1.10909125"
@@ -54,7 +54,7 @@ android {
 
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
-        applicationId = "org.suyu.suyu_emu"
+        applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
         targetSdk = 34
         versionName = getGitVersion()
@@ -103,7 +103,7 @@ android {
                 signingConfigs.getByName("default")
             }
 
-            resValue("string", "app_name_suffixed", "suyu")
+            resValue("string", "app_name_suffixed", "yuzu")
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
@@ -116,7 +116,7 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
             isDefault = true
-            resValue("string", "app_name_suffixed", "suyu Debug Release")
+            resValue("string", "app_name_suffixed", "yuzu Debug Release")
             signingConfig = signingConfigs.getByName("default")
             isMinifyEnabled = true
             isDebuggable = true
@@ -133,7 +133,7 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
             signingConfig = signingConfigs.getByName("default")
-            resValue("string", "app_name_suffixed", "suyu Debug")
+            resValue("string", "app_name_suffixed", "yuzu Debug")
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
@@ -172,9 +172,9 @@ android {
                     "-DENABLE_WEB_SERVICE=0", // Don't use telemetry
                     "-DBUNDLE_SPEEX=ON",
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
-                    "-Dsuyu_USE_BUNDLED_VCPKG=ON",
-                    "-Dsuyu_USE_BUNDLED_FFMPEG=ON",
-                    "-Dsuyu_ENABLE_LTO=ON",
+                    "-DYUZU_USE_BUNDLED_VCPKG=ON",
+                    "-DYUZU_USE_BUNDLED_FFMPEG=ON",
+                    "-DYUZU_ENABLE_LTO=ON",
                     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
                 )
 

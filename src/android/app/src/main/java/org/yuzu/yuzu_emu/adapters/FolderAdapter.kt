@@ -1,18 +1,18 @@
-// SPDX-FileCopyrightText: 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.adapters
+package org.yuzu.yuzu_emu.adapters
 
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
-import org.suyu.suyu_emu.databinding.CardFolderBinding
-import org.suyu.suyu_emu.fragments.GameFolderPropertiesDialogFragment
-import org.suyu.suyu_emu.model.GameDir
-import org.suyu.suyu_emu.model.GamesViewModel
-import org.suyu.suyu_emu.utils.ViewUtils.marquee
-import org.suyu.suyu_emu.viewholder.AbstractViewHolder
+import org.yuzu.yuzu_emu.databinding.CardFolderBinding
+import org.yuzu.yuzu_emu.fragments.GameFolderPropertiesDialogFragment
+import org.yuzu.yuzu_emu.model.GameDir
+import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class FolderAdapter(val activity: FragmentActivity, val gamesViewModel: GamesViewModel) :
     AbstractDiffAdapter<GameDir, FolderAdapter.FolderViewHolder>() {

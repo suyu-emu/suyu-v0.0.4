@@ -14,13 +14,13 @@ void assert_fail_impl();
 [[noreturn]] void unreachable_impl();
 
 #ifdef _MSC_VER
-#define suyu_NO_INLINE __declspec(noinline)
+#define YUZU_NO_INLINE __declspec(noinline)
 #else
-#define suyu_NO_INLINE __attribute__((noinline))
+#define YUZU_NO_INLINE __attribute__((noinline))
 #endif
 
 #define ASSERT(_a_)                                                                                \
-    ([&]() suyu_NO_INLINE {                                                                        \
+    ([&]() YUZU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
             LOG_CRITICAL(Debug, "Assertion Failed!");                                              \
             assert_fail_impl();                                                                    \
@@ -28,7 +28,7 @@ void assert_fail_impl();
     }())
 
 #define ASSERT_MSG(_a_, ...)                                                                       \
-    ([&]() suyu_NO_INLINE {                                                                        \
+    ([&]() YUZU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
             LOG_CRITICAL(Debug, "Assertion Failed!\n" __VA_ARGS__);                                \
             assert_fail_impl();                                                                    \

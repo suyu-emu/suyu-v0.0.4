@@ -9,15 +9,15 @@ Files: dist/english_plurals/*
        dist/qt_themes/*/icons/48x48/sd_card.png
        dist/qt_themes/*/icons/index.theme
        dist/qt_themes/default/style.qss
-Copyright: suyu Emulator Project
+Copyright: yuzu Emulator Project
 License: GPL-2.0-or-later
 
-Files: dist/qt_themes/default/icons/256x256/suyu.png
-       dist/suyu.bmp
-       dist/suyu.icns
-       dist/suyu.ico
-       dist/suyu.svg
-Copyright: suyu Emulator Project
+Files: dist/qt_themes/default/icons/256x256/yuzu.png
+       dist/yuzu.bmp
+       dist/yuzu.icns
+       dist/yuzu.ico
+       dist/yuzu.svg
+Copyright: yuzu Emulator Project
 License: GPL-2.0-or-later
 
 Files: dist/qt_themes/qdarkstyle*/LICENSE.*
@@ -108,44 +108,44 @@ Files: externals/FidelityFX-FSR/*
 Copyright: 2021 Advanced Micro Devices, Inc.
 License: MIT
 
-Files: src/suyu/*.ui
-Copyright: 2018-2022 suyu Emulator Project
+Files: src/yuzu/*.ui
+Copyright: 2018-2022 yuzu Emulator Project
 License: GPL-2.0-or-later
 
-Files: src/suyu/compatdb.ui
-       src/suyu/main.ui
+Files: src/yuzu/compatdb.ui
+       src/yuzu/main.ui
 Copyright: 2014-2017 Citra Emulator Project
 License: GPL-2.0-or-later
 
-Files: src/suyu/loading_screen.ui
+Files: src/yuzu/loading_screen.ui
 Copyright: 2019 James Rowe <jroweboy@gmail.com>
 License: GPL-2.0-or-later
 
-Files: src/suyu/applets/aboutdialog.ui
-       src/suyu/applets/qt_software_keyboard.ui
-       src/suyu/util/overlay_dialog.ui
+Files: src/yuzu/applets/aboutdialog.ui
+       src/yuzu/applets/qt_software_keyboard.ui
+       src/yuzu/util/overlay_dialog.ui
 Copyright: 2020-2021 Its-Rei <kupfel@gmail.com>
-           2020-2021 suyu Emulator Project
+           2020-2021 yuzu Emulator Project
 License: GPL-2.0-or-later
 
 Files: vcpkg.json
-Copyright: 2022 suyu Emulator Project
+Copyright: 2022 yuzu Emulator Project
 License: GPL-3.0-or-later
 
 Files: .github/ISSUE_TEMPLATE/*
-Copyright: 2022 suyu Emulator Project
+Copyright: 2022 yuzu Emulator Project
 License: GPL-2.0-or-later
 
 Files: src/android/app/src/ea/res/*
-Copyright: 2023 suyu Emulator Project
+Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later
 
 Files: src/android/app/src/main/res/*
-Copyright: 2023 suyu Emulator Project
+Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later
 
 Files: src/android/gradle/wrapper/*
-Copyright: 2023 suyu Emulator Project
+Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later
 
 Files: externals/stb/*
@@ -157,5 +157,5 @@ Copyright: Copyright 2017-2019 Feral Interactive
 License: BSD-3-Clause
 
 Files: src/android/app/debug.keystore
-Copyright: 2023 suyu Emulator Project
+Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later

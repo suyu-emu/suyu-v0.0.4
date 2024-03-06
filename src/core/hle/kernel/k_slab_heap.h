@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -18,8 +18,8 @@ class KernelCore;
 namespace impl {
 
 class KSlabHeapImpl {
-    suyu_NON_COPYABLE(KSlabHeapImpl);
-    suyu_NON_MOVEABLE(KSlabHeapImpl);
+    YUZU_NON_COPYABLE(KSlabHeapImpl);
+    YUZU_NON_MOVEABLE(KSlabHeapImpl);
 
 public:
     struct Node {
@@ -72,8 +72,8 @@ private:
 
 template <bool SupportDynamicExpansion>
 class KSlabHeapBase : protected impl::KSlabHeapImpl {
-    suyu_NON_COPYABLE(KSlabHeapBase);
-    suyu_NON_MOVEABLE(KSlabHeapBase);
+    YUZU_NON_COPYABLE(KSlabHeapBase);
+    YUZU_NON_MOVEABLE(KSlabHeapBase);
 
 private:
     size_t m_obj_size{};

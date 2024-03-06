@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.h"
@@ -28,8 +28,8 @@ constexpr inline s32 IntegrityDataCacheCountForMeta = 16;
 constexpr inline s32 IntegrityHashCacheCountForMeta = 2;
 
 class SharedNcaBodyStorage : public IReadOnlyStorage {
-    suyu_NON_COPYABLE(SharedNcaBodyStorage);
-    suyu_NON_MOVEABLE(SharedNcaBodyStorage);
+    YUZU_NON_COPYABLE(SharedNcaBodyStorage);
+    YUZU_NON_MOVEABLE(SharedNcaBodyStorage);
 
 private:
     VirtualFile m_storage;

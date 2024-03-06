@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -109,11 +109,11 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
         return static_cast<T>(key) == 0;                                                           \
     }
 
-#define suyu_NON_COPYABLE(cls)                                                                     \
+#define YUZU_NON_COPYABLE(cls)                                                                     \
     cls(const cls&) = delete;                                                                      \
     cls& operator=(const cls&) = delete
 
-#define suyu_NON_MOVEABLE(cls)                                                                     \
+#define YUZU_NON_MOVEABLE(cls)                                                                     \
     cls(cls&&) = delete;                                                                           \
     cls& operator=(cls&&) = delete
 

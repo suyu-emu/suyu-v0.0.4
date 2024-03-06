@@ -1,10 +1,10 @@
-// SPDX-FileCopyrightText: 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.suyu.suyu_emu.features.settings.model.view
+package org.yuzu.yuzu_emu.features.settings.model.view
 
 import androidx.annotation.StringRes
-import org.suyu.suyu_emu.features.settings.model.AbstractStringSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 
 class StringInputSetting(
     setting: AbstractStringSetting,
