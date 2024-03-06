@@ -7,7 +7,7 @@
 #   prefix_var: name of a variable which will be set with the path to the extracted contents
 function(download_bundled_external remote_path lib_name prefix_var)
 
-set(package_base_url "https://gitlab.com/suyu2/")
+set(package_base_url "https://gitlab.com/suyu-emu/")
 set(package_repo "no_platform")
 set(package_extension "no_platform")
 set(package_head "?ref_type=heads")
