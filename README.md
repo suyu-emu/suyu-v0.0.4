@@ -24,20 +24,13 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-<div style="width:5%; margin: 5%;">
-
-[<img src="https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg">](https://gitlab.com/suyu-emu/suyu/-/pipelines)
-</div>
-    </a>
-</p>
-
-<p align="center">
   <a href="#compatibility">Compatibility</a> |
   <a href="#development">Development</a> |
   <a href="#building">Building</a> |
   <a href="#downloads">Downloads</a> |
   <a href="#support">Support</a> |
   <a href="#license">License</a>
+  <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">Pipelines</a>
 </p>
 
 ## Status
