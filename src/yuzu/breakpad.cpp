@@ -50,8 +50,8 @@ static void PruneDumpDirectory(const std::filesystem::path& dump_path) {
 }
 
 #if defined(__linux__)
-[[noreturn]] bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor, void* context,
-                               bool succeeded) {
+[[noreturn]] static bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor, void* context,
+                                      bool succeeded) {
     // Prevent time- and space-consuming core dumps from being generated, as we have
     // already generated a minidump and a core file will not be useful anyway.
     _exit(1);

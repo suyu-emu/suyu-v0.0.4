@@ -1,45 +1,19 @@
-# This file is a template, and might need editing before it works on your project.
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
-#
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-
-stages:          # List of stages for jobs, and their order of execution
+stages:
   - build
 
-build-ubuntu:       # This job runs in the build stage, which runs first.
+build-linux:
   stage: build
-  image: ubuntu:latest  # Maybe replace with image with more required dependencies
+  image: debian:trixie  # Maybe replace with image with more required dependencies
+  resource_group: linux-ci
+  variables:
+    RELEASE_NAME: mainline
   before_script:
-    - apt update --yes
-    - apt install --yes cmake gcc g++ git
+    - apt-get update --yes
+    - apt-get install --yes wget ccache cmake gcc g++ nasm git patchelf xz-utils ninja-build autoconf glslang-tools pkg-config catch2 libtool nlohmann-json3-dev qtbase5-dev qtbase5-private-dev qtmultimedia5-dev libqt5gui5 libva-dev libavcodec-dev libavfilter-dev libboost-dev libboost-context-dev libfmt-dev zlib1g-dev libzstd-dev libcurl4-openssl-dev liblz4-dev llvm-17-dev libedit-dev libssl-dev mesa-common-dev libzydis-dev libusb-dev libpulse-dev
   script:
-    - echo "Compiling the code..."
-    - git submodule update --init --recursive
-    - ls -la
-    # TODO: Add build instructions for linux
-    - echo "Compile complete."
-  
-build-win:
-  stage: build
-  tags:
-    - shared-windows
-    - windows
-    - windows-1809
-  script:
-    - echo "Compiling the code..."
-    - dir
-    # TODO: Add build instructions for windows
-    - echo "Compile complete."
+    - git submodule update --init --depth 1 --recursive
+    - bash .ci/scripts/linux/docker.sh
+    - bash .ci/scripts/linux/upload.sh
+  artifacts:
+    paths:
+      - artifacts/*
