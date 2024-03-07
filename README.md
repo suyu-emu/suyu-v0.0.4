@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL v3
 
 **Note**: We do not support or condone piracy in any form. In order to use Suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We are in great need of developers, join our Discord server [here](https://discord.gg/2gQRBp44KT)
+We are in great need of developers. Please join our Discord server below if you can help out with the project.
 This repo is based on Yuzu EA 4176. Please contribute if you can!
 
 <hr />
@@ -24,16 +24,10 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-    <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">
-        <img src="https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/GitLab-Dark.svg"
-            alt="GitLab Pipelines">
-    </a>
-</p>
-
-<p align="center">
   <a href="#compatibility">Compatibility</a> |
   <a href="#development">Development</a> |
   <a href="#building">Building</a> |
+  <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">Pipelines</a>
   <a href="#downloads">Downloads</a> |
   <a href="#support">Support</a> |
   <a href="#license">License</a>
@@ -51,7 +45,7 @@ The emulator is capable of running most commercial games at full speed, provided
 
 For a full list of games suyu supports, please visit our [Compatibility page](https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility).
 
-Check out our [website](https://suyu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
+Check out our [website](https://suyu.dev) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
 
@@ -61,8 +55,6 @@ Most of the development happens on GitHub. For development discussion, please jo
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
-
-If you want to contribute to the user interface translation project, please check out the [suyu project on transifex](https://www.transifex.com/suyu-emulator/suyu). We centralize translation work there, and periodically upstream translations.
 
 ## Downloads
 
@@ -78,7 +70,7 @@ If you want to contribute to the user interface translation project, please chec
 
 ## Support
 
-This project is completely free and open source, this project is made possible by many people who share the same interest. Please join the Discord server to contribute.
+This project is completely free and open source, this project is made possible by many people who share the same interest. Please join the Discord server [here](https://discord.gg/2gQRBp44KT) to contribute.
 
 
 ## License
