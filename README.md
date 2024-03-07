@@ -51,7 +51,7 @@ Check out our [website](https://suyu.dev) for the latest news on exciting featur
 
 This project is completely free and open source, this project is made possible by many people who share the same interest.
 
-Most of the development happens on GitHub. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
+Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
