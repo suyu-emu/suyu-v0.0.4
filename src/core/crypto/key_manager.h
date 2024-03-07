@@ -314,10 +314,6 @@ private:
     bool dev_mode;
     void LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys);
 
-    template <size_t Size>
-    void WriteKeyToFile(KeyCategory category, std::string_view keyname,
-                        const std::array<u8, Size>& key);
-
     void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
 
     void DeriveETicketRSAKey();
