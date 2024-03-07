@@ -349,7 +349,7 @@ target_sources(yuzu
 )
 
 if (APPLE)
-    set(MACOSX_ICON "../../dist/yuzu.icns")
+    set(MACOSX_ICON "../../dist/suyu.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(yuzu PRIVATE ${MACOSX_ICON})
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)

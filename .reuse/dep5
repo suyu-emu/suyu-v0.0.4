@@ -14,7 +14,7 @@ License: GPL-2.0-or-later
 
 Files: dist/qt_themes/default/icons/256x256/yuzu.png
        dist/yuzu.bmp
-       dist/yuzu.icns
+       dist/suyu.icns
        dist/suyu.ico
        dist/suyu.svg
 Copyright: suyu Emulator Project
