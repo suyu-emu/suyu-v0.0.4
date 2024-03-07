@@ -1,5 +1,8 @@
-// SPDX-FileCopyrightText: 2015 Citra Emulator Project
+// SPDX-FileCopyrightText: 2015 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
+
+// Modified by palfaiate on <2024/03/07>
+
 
 #include <regex>
 #include <QApplication>
@@ -561,9 +564,6 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     remove_menu->addSeparator();
     QAction* remove_shader_cache = remove_menu->addAction(tr("Remove All Pipeline Caches"));
     QAction* remove_all_content = remove_menu->addAction(tr("Remove All Installed Contents"));
-    QMenu* dump_romfs_menu = context_menu.addMenu(tr("Dump RomFS"));
-    QAction* dump_romfs = dump_romfs_menu->addAction(tr("Dump RomFS"));
-    QAction* dump_romfs_sdmc = dump_romfs_menu->addAction(tr("Dump RomFS to SDMC"));
     QAction* verify_integrity = context_menu.addAction(tr("Verify Integrity"));
     QAction* copy_tid = context_menu.addAction(tr("Copy Title ID to Clipboard"));
     QAction* navigate_to_gamedb_entry = context_menu.addAction(tr("Navigate to GameDB entry"));
@@ -630,12 +630,6 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
             [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
     connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
         emit RemoveFileRequested(program_id, GameListRemoveTarget::CacheStorage, path);
-    });
-    connect(dump_romfs, &QAction::triggered, [this, program_id, path]() {
-        emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::Normal);
-    });
-    connect(dump_romfs_sdmc, &QAction::triggered, [this, program_id, path]() {
-        emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::SDMC);
     });
     connect(verify_integrity, &QAction::triggered,
             [this, path]() { emit VerifyIntegrityRequested(path); });

@@ -1,5 +1,8 @@
-// SPDX-FileCopyrightText: 2015 Citra Emulator Project
+// SPDX-FileCopyrightText: 2015 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
+
+// Modified by palfaiate on <2024/03/07>
+
 
 #pragma once
 
@@ -48,11 +51,6 @@ enum class GameListRemoveTarget {
     AllShaderCache,
     CustomConfiguration,
     CacheStorage,
-};
-
-enum class DumpRomFSTarget {
-    Normal,
-    SDMC,
 };
 
 enum class GameListShortcutTarget {
@@ -115,7 +113,6 @@ signals:
     void RemoveFileRequested(u64 program_id, GameListRemoveTarget target,
                              const std::string& game_path);
     void RemovePlayTimeRequested(u64 program_id);
-    void DumpRomFSRequested(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void VerifyIntegrityRequested(const std::string& game_path);
     void CopyTIDRequested(u64 program_id);
     void CreateShortcut(u64 program_id, const std::string& game_path,
