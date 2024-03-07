@@ -6932,7 +6932,7 @@ Mensaje de depuración: </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="242"/>
-        <source>Exit yuzu</source>
+        <source>Exit suyu</source>
         <translation>Cerrar yuzu</translation>
     </message>
     <message>

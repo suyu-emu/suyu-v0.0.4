@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2016 Citra Emulator Project
+// SPDX-FileCopyrightText: 2016 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -80,7 +80,7 @@ void ConfigurePerGameAddons::ApplyConfiguration() {
     std::sort(disabled_addons.begin(), disabled_addons.end());
     std::sort(current.begin(), current.end());
     if (disabled_addons != current) {
-        Common::FS::RemoveFile(Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+        Common::FS::RemoveFile(Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) /
                                "game_list" / fmt::format("{:016X}.pv.txt", title_id));
     }
 

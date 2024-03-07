@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef YUZU_USE_QT_WEB_ENGINE
@@ -57,7 +57,7 @@ QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system,
       default_profile{QWebEngineProfile::defaultProfile()}, global_settings{
                                                                 default_profile->settings()} {
     default_profile->setPersistentStoragePath(QString::fromStdString(Common::FS::PathToUTF8String(
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::YuzuDir) / "qtwebengine")));
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::SuyuDir) / "qtwebengine")));
 
     QWebEngineScript gamepad;
     QWebEngineScript window_nx;
@@ -336,7 +336,7 @@ void QtNXWebEngineView::LoadExtractedFonts() {
     QWebEngineScript load_nx_font;
 
     auto fonts_dir_str = Common::FS::PathToUTF8String(
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "fonts/");
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "fonts/");
 
     std::replace(fonts_dir_str.begin(), fonts_dir_str.end(), '\\', '/');
 

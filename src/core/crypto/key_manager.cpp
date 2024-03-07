@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -372,7 +372,7 @@ Key128 DeriveKeyblobMACKey(const Key128& keyblob_key, const Key128& mac_source) 
 
 std::optional<Key128> DeriveSDSeed() {
     const auto system_save_43_path =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000043";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/8000000000000043";
     const Common::FS::IOFile save_43{system_save_43_path, Common::FS::FileAccessMode::Read,
                                      Common::FS::FileType::BinaryFile};
 
@@ -381,7 +381,7 @@ std::optional<Key128> DeriveSDSeed() {
     }
 
     const auto sd_private_path =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir) / "Nintendo/Contents/private";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "Nintendo/Contents/private";
 
     const Common::FS::IOFile sd_private{sd_private_path, Common::FS::FileAccessMode::Read,
                                         Common::FS::FileType::BinaryFile};
@@ -640,7 +640,7 @@ KeyManager::KeyManager() {
 
 void KeyManager::ReloadKeys() {
     // Initialize keys
-    const auto yuzu_keys_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::KeysDir);
+    const auto yuzu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
     if (!Common::FS::CreateDir(yuzu_keys_dir)) {
         LOG_ERROR(Core, "Failed to create the keys directory.");
@@ -861,7 +861,7 @@ void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
 }
 
 bool KeyManager::KeyFileExists(bool title) {
-    const auto yuzu_keys_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::KeysDir);
+    const auto yuzu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
     if (title) {
         return Common::FS::Exists(yuzu_keys_dir / "title.keys");
@@ -1108,7 +1108,7 @@ void KeyManager::PopulateTickets() {
     std::vector<Ticket> tickets;
 
     const auto system_save_e1_path =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/80000000000000e1";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/80000000000000e1";
     if (Common::FS::Exists(system_save_e1_path)) {
         const Common::FS::IOFile save_e1{system_save_e1_path, Common::FS::FileAccessMode::Read,
                                          Common::FS::FileType::BinaryFile};
@@ -1117,7 +1117,7 @@ void KeyManager::PopulateTickets() {
     }
 
     const auto system_save_e2_path =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/80000000000000e2";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) / "system/save/80000000000000e2";
     if (Common::FS::Exists(system_save_e2_path)) {
         const Common::FS::IOFile save_e2{system_save_e2_path, Common::FS::FileAccessMode::Read,
                                          Common::FS::FileType::BinaryFile};

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -9,7 +9,7 @@
 #include <utility>
 
 #if defined(_WIN32)
-#elif !YUZU_UNIX
+#elif !SUYU_UNIX
 #error "Platform not implemented"
 #endif
 
@@ -24,7 +24,7 @@ struct ProxyPacket;
 
 class SocketBase {
 public:
-#ifdef YUZU_UNIX
+#ifdef SUYU_UNIX
     using SOCKET = int;
     static constexpr SOCKET INVALID_SOCKET = -1;
     static constexpr SOCKET SOCKET_ERROR = -1;

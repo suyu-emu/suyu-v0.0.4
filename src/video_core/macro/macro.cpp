@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
@@ -28,7 +28,7 @@ MICROPROFILE_DEFINE(MacroHLE, "GPU", "Execute macro HLE", MP_RGB(128, 192, 192))
 namespace Tegra {
 
 static void Dump(u64 hash, std::span<const u32> code, bool decompiled = false) {
-    const auto base_dir{Common::FS::GetYuzuPath(Common::FS::YuzuPath::DumpDir)};
+    const auto base_dir{Common::FS::GetSuyuPath(Common::FS::SuyuPath::DumpDir)};
     const auto macro_dir{base_dir / "macros"};
     if (!Common::FS::CreateDir(base_dir) || !Common::FS::CreateDir(macro_dir)) {
         LOG_ERROR(Common_Filesystem, "Failed to create macro dump directories");

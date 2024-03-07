@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Modified by JuanCStar on 2024/03/06
-
 cmake_minimum_required(VERSION 3.22)
 
 project(yuzu)
@@ -40,7 +38,7 @@ option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 
 option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 
-option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
+option(SUYU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
@@ -66,7 +64,7 @@ option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
 
-option(YUZU_ENABLE_PORTABLE "Allow yuzu to enable portable mode if a user folder is found in the CWD" ON)
+option(SUYU_ENABLE_PORTABLE "Allow suyu to enable portable mode if a user folder is found in the CWD" ON)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
@@ -264,7 +262,7 @@ endif()
 message(STATUS "Target architecture: ${ARCHITECTURE}")
 
 if (UNIX)
-    add_definitions(-DYUZU_UNIX=1)
+    add_definitions(-DSUYU_UNIX=1)
 endif()
 
 if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
@@ -373,7 +371,7 @@ function(set_yuzu_qt_components)
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         list(APPEND YUZU_QT_COMPONENTS2 DBus)
     endif()
-    if (YUZU_USE_QT_MULTIMEDIA)
+    if (SUYU_USE_QT_MULTIMEDIA)
         list(APPEND YUZU_QT_COMPONENTS2 Multimedia)
     endif()
     if (YUZU_USE_QT_WEB_ENGINE)
@@ -411,7 +409,7 @@ if(ENABLE_QT)
         set(QT_DEFAULT_MAJOR_VERSION 5)
         set(QT_MAJOR_VERSION 5)
 
-        set(YUZU_USE_QT_MULTIMEDIA ON)
+        set(SUYU_USE_QT_MULTIMEDIA ON)
         # Check for system Qt on Linux, fallback to bundled Qt
         if (UNIX AND NOT APPLE)
             if (NOT YUZU_USE_BUNDLED_QT)
@@ -518,7 +516,7 @@ if(ENABLE_QT)
 
             set(YUZU_QT_NO_CMAKE_SYSTEM_PATH "NO_CMAKE_SYSTEM_PATH")
             # Binary package for Qt5 has Qt Multimedia
-            set(YUZU_USE_QT_MULTIMEDIA ON CACHE BOOL "Use Qt Multimedia" FORCE)
+            set(SUYU_USE_QT_MULTIMEDIA ON CACHE BOOL "Use Qt Multimedia" FORCE)
         endif()
 
         set_yuzu_qt_components()

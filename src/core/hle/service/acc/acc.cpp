@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -36,7 +36,7 @@ namespace Service::Account {
 constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
 static std::filesystem::path GetImagePath(const Common::UUID& uuid) {
-    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir) /
            fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 }
 

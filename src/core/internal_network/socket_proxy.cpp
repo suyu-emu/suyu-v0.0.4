@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
@@ -12,7 +12,7 @@
 #include "core/internal_network/socket_proxy.h"
 #include "network/network.h"
 
-#if YUZU_UNIX
+#if SUYU_UNIX
 #include <sys/socket.h>
 #endif
 

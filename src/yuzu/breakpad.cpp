@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -60,7 +60,7 @@ static void PruneDumpDirectory(const std::filesystem::path& dump_path) {
 
 void InstallCrashHandler() {
     // Write crash dumps to profile directory.
-    const auto dump_path = GetYuzuPath(Common::FS::YuzuPath::CrashDumpsDir);
+    const auto dump_path = GetSuyuPath(Common::FS::SuyuPath::CrashDumpsDir);
     PruneDumpDirectory(dump_path);
 
 #if defined(_WIN32)

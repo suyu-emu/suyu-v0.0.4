@@ -6889,7 +6889,7 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/uisettings.h" line="242"/>
-        <source>Exit yuzu</source>
+        <source>Exit suyu</source>
         <translation>Вийти з yuzu</translation>
     </message>
     <message>

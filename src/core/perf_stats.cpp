@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017 Citra Emulator Project
+// SPDX-FileCopyrightText: 2017 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -39,7 +39,7 @@ PerfStats::~PerfStats() {
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
 
-    const auto path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::LogDir);
+    const auto path = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
     const auto filename = fmt::format("{:%F-%H-%M}_{:016X}.csv", *std::localtime(&t), title_id);
     const auto filepath = path / filename;

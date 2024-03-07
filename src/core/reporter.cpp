@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <ctime>
@@ -27,7 +27,7 @@
 namespace {
 
 std::filesystem::path GetPath(std::string_view type, u64 title_id, std::string_view timestamp) {
-    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::LogDir) / type /
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir) / type /
            fmt::format("{:016X}_{}.json", title_id, timestamp);
 }
 
@@ -332,7 +332,7 @@ void Reporter::SaveErrorReport(u64 title_id, Result result,
 
 void Reporter::SaveFSAccessLog(std::string_view log_message) const {
     const auto access_log_path =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir) / "FsAccessLog.txt";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "FsAccessLog.txt";
 
     void(Common::FS::AppendStringToFile(access_log_path, Common::FS::FileType::TextFile,
                                         log_message));
@@ -352,7 +352,7 @@ void Reporter::SaveUserReport() const {
 
 void Reporter::ClearFSAccessLog() const {
     const auto access_log_path =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir) / "FsAccessLog.txt";
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir) / "FsAccessLog.txt";
 
     Common::FS::IOFile access_log_file{access_log_path, Common::FS::FileAccessMode::Write,
                                        Common::FS::FileType::TextFile};

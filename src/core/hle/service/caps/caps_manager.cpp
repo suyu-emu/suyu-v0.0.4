@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <sstream>
@@ -303,7 +303,7 @@ void AlbumManager::FindScreenshots() {
     album_files.clear();
 
     // TODO: Swap this with a blocking operation.
-    const auto screenshots_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ScreenshotsDir);
+    const auto screenshots_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::ScreenshotsDir);
     Common::FS::IterateDirEntries(
         screenshots_dir,
         [this](const std::filesystem::path& full_path) {
@@ -438,7 +438,7 @@ static void PNGToMemory(void* context, void* data, int len) {
 Result AlbumManager::SaveImage(ApplicationAlbumEntry& out_entry, std::span<const u8> image,
                                u64 title_id, const AlbumFileDateTime& date) const {
     const auto screenshot_path =
-        Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir);
+        Common::FS::GetSuyuPathString(Common::FS::SuyuPath::ScreenshotsDir);
     const std::string formatted_date =
         fmt::format("{:04}-{:02}-{:02}_{:02}-{:02}-{:02}-{:03}", date.year, date.month, date.day,
                     date.hour, date.minute, date.second, 0);

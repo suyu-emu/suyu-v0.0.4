@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -13,7 +13,7 @@
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
 #include "uisettings.h"
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && SUYU_USE_QT_MULTIMEDIA
 #include <QCamera>
 #include <QCameraImageCapture>
 #include <QCameraInfo>
@@ -286,7 +286,7 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
                              Core::System& system_)
     : QWidget(parent),
       emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)}, system{system_} {
-    setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
+    setWindowTitle(QStringLiteral("suyu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
                             QString::fromUtf8(Common::g_scm_desc)));
@@ -760,7 +760,7 @@ void GRenderWindow::TouchEndEvent() {
 }
 
 void GRenderWindow::InitializeCamera() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && SUYU_USE_QT_MULTIMEDIA
     constexpr auto camera_update_ms = std::chrono::milliseconds{50}; // (50ms, 20Hz)
     if (!Settings::values.enable_ir_sensor) {
         return;
@@ -821,7 +821,7 @@ void GRenderWindow::InitializeCamera() {
 }
 
 void GRenderWindow::FinalizeCamera() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && SUYU_USE_QT_MULTIMEDIA
     if (camera_timer) {
         camera_timer->stop();
     }
@@ -832,7 +832,7 @@ void GRenderWindow::FinalizeCamera() {
 }
 
 void GRenderWindow::RequestCameraCapture() {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && SUYU_USE_QT_MULTIMEDIA
     if (!Settings::values.enable_ir_sensor) {
         return;
     }
@@ -853,7 +853,7 @@ void GRenderWindow::RequestCameraCapture() {
 }
 
 void GRenderWindow::OnCameraCapture(int requestId, const QImage& img) {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && SUYU_USE_QT_MULTIMEDIA
     // TODO: Capture directly in the format and resolution needed
     const auto camera_width = input_subsystem->GetCamera()->getImageWidth();
     const auto camera_height = input_subsystem->GetCamera()->getImageHeight();
@@ -1034,7 +1034,7 @@ bool GRenderWindow::InitializeOpenGL() {
     return true;
 #else
     QMessageBox::warning(this, tr("OpenGL not available!"),
-                         tr("yuzu has not been compiled with OpenGL support."));
+                         tr("yusu has not been compiled with OpenGL support."));
     return false;
 #endif
 }

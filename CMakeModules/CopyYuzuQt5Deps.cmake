@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016 Citra Emulator Project
+# SPDX-FileCopyrightText: 2016 Citra Emulator Project & 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 function(copy_yuzu_Qt5_deps target_dir)
@@ -33,7 +33,7 @@ function(copy_yuzu_Qt5_deps target_dir)
             Qt5Widgets$<$<CONFIG:Debug>:d>.*
             Qt5Network$<$<CONFIG:Debug>:d>.*
         )
-        if (YUZU_USE_QT_MULTIMEDIA)
+        if (SUYU_USE_QT_MULTIMEDIA)
             windows_copy_files(${target_dir} ${Qt5_DLL_DIR} ${DLL_DEST}
                 Qt5Multimedia$<$<CONFIG:Debug>:d>.*
             )

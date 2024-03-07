@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef HAS_NSIGHT_AFTERMATH
@@ -47,7 +47,7 @@ NsightAftermathTracker::NsightAftermathTracker() {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath function pointers");
         return;
     }
-    dump_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::LogDir) / "gpucrash";
+    dump_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::LogDir) / "gpucrash";
 
     Common::FS::RemoveDirRecursively(dump_dir);
     if (!Common::FS::CreateDir(dump_dir)) {

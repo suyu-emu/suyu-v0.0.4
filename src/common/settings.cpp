@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <version>
@@ -130,11 +130,11 @@ void LogSettings() {
             log_setting(name, setting->Canonicalize());
         }
     }
-    log_path("DataStorage_CacheDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir));
-    log_path("DataStorage_ConfigDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir));
-    log_path("DataStorage_LoadDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::LoadDir));
-    log_path("DataStorage_NANDDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir));
-    log_path("DataStorage_SDMCDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir));
+    log_path("DataStorage_CacheDir", Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir));
+    log_path("DataStorage_ConfigDir", Common::FS::GetSuyuPath(Common::FS::SuyuPath::ConfigDir));
+    log_path("DataStorage_LoadDir", Common::FS::GetSuyuPath(Common::FS::SuyuPath::LoadDir));
+    log_path("DataStorage_NANDDir", Common::FS::GetSuyuPath(Common::FS::SuyuPath::NANDDir));
+    log_path("DataStorage_SDMCDir", Common::FS::GetSuyuPath(Common::FS::SuyuPath::SDMCDir));
 }
 
 void UpdateGPUAccuracy() {

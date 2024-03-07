@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project & 2024 Suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Modified by JuanCStar on 2024/03/06
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -431,9 +429,9 @@ if (ENABLE_WEB_SERVICE)
     target_compile_definitions(yuzu PRIVATE -DENABLE_WEB_SERVICE)
 endif()
 
-if (YUZU_USE_QT_MULTIMEDIA)
+if (SUYU_USE_QT_MULTIMEDIA)
     target_link_libraries(yuzu PRIVATE Qt${QT_MAJOR_VERSION}::Multimedia)
-    target_compile_definitions(yuzu PRIVATE -DYUZU_USE_QT_MULTIMEDIA)
+    target_compile_definitions(yuzu PRIVATE -DSUYU_USE_QT_MULTIMEDIA)
 endif ()
 
 if (YUZU_USE_QT_WEB_ENGINE)

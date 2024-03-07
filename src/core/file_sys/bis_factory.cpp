@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fmt/format.h>
@@ -83,7 +83,7 @@ VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id,
                                              VirtualFilesystem file_system) const {
     auto& keys = Core::Crypto::KeyManager::Instance();
     Core::Crypto::PartitionDataManager pdm{file_system->OpenDirectory(
-        Common::FS::GetYuzuPathString(Common::FS::YuzuPath::NANDDir), OpenMode::Read)};
+        Common::FS::GetSuyuPathString(Common::FS::SuyuPath::NANDDir), OpenMode::Read)};
     keys.PopulateFromPartitionData(pdm);
 
     switch (id) {

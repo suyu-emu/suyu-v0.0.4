@@ -1,4 +1,4 @@
-// Text : Copyright 2022 yuzu Emulator Project
+// Text : Copyright 2022 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -46,7 +46,7 @@ private:
 
     bool is_virtual_camera;
     int pending_snapshots;
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && SUYU_USE_QT_MULTIMEDIA
     std::unique_ptr<QCamera> camera;
     std::unique_ptr<QCameraImageCapture> camera_capture;
 #endif

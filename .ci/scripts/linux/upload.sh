@@ -3,8 +3,6 @@
 # SPDX-FileCopyrightText: 2019 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Modified by JuanCStar on 2024/03/06
-
 . .ci/scripts/common/pre-upload.sh
 
 APPIMAGE_NAME="yuzu-${RELEASE_NAME}-${GITDATE}-${GITREV}.AppImage"

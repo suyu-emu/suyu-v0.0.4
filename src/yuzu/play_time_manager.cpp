@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
@@ -26,7 +26,7 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
     if (!uuid.has_value()) {
         return std::nullopt;
     }
-    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::PlayTimeDir) /
+    return Common::FS::GetSuyuPath(Common::FS::SuyuPath::PlayTimeDir) /
            uuid->RawString().append(".bin");
 }
 

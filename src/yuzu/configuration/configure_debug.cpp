@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2016 Citra Emulator Project
+// SPDX-FileCopyrightText: 2016 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QDesktopServices>
@@ -21,7 +21,7 @@ ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
 
     connect(ui->open_log_button, &QPushButton::clicked, []() {
         const auto path =
-            QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::LogDir));
+            QString::fromStdString(Common::FS::GetSuyuPathString(Common::FS::SuyuPath::LogDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
     });
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -12,7 +12,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#elif YUZU_UNIX
+#elif SUYU_UNIX
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -77,7 +77,7 @@ SOCKET GetInterruptSocket() {
 sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
     sockaddr_in result;
 
-#if YUZU_UNIX
+#if SUYU_UNIX
     result.sin_len = sizeof(result);
 #endif
 
@@ -162,7 +162,7 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
     }
 }
 
-#elif YUZU_UNIX // ^ _WIN32 v YUZU_UNIX
+#elif SUYU_UNIX // ^ _WIN32 v SUYU_UNIX
 
 using SOCKET = int;
 using WSAPOLLFD = pollfd;
@@ -835,7 +835,7 @@ std::pair<s32, Errno> Socket::Send(std::span<const u8> message, int flags) {
     ASSERT(flags == 0);
 
     int native_flags = 0;
-#if YUZU_UNIX
+#if SUYU_UNIX
     native_flags |= MSG_NOSIGNAL; // do not send us SIGPIPE
 #endif
     const auto result = send(fd, reinterpret_cast<const char*>(message.data()),
