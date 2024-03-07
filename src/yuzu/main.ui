@@ -241,7 +241,7 @@
   </action>
   <action name="action_About">
    <property name="text">
-    <string>&amp;About Suzu</string>
+    <string>&amp;About suyu</string>
    </property>
   </action>
   <action name="action_Single_Window_Mode">
