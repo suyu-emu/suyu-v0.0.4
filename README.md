@@ -3,16 +3,16 @@ SPDX-FileCopyrightText: 2024 suyu emulator project
 SPDX-License-Identifier: GPL v3
 -->
 
-**Note**: We do not support or condone piracy in any form. In order to use Suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
+**Note**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We are in great need of developers. Please join our Discord server below if you can help out with the project.
-This repo is based on Yuzu EA 4176. Please contribute if you can!
+We're in need of developers. Please join our Discord server below if you want to contribute!
+This repo is based on Yuzu EA 4176.
 
 <hr />
 
 <h1 align="center">
   <br>
-  <a href="https://gitlab.com/suyu-emu/suyu"><img src="dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
+  <a href="https://suyu.dev"><img src="dist/readme/suyu__Logo-Pill.svg" alt="suyu" height="128"></a>
   <br>
   <b>suyu</b>
   <br>
@@ -24,42 +24,37 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-  <a href="#compatibility">Compatibility</a> |
+  <a href="https://discord.gg/2gQRBp44KT">Discord</a> |
+  <a href="#status">Status</a> |
   <a href="#development">Development</a> |
-  <a href="#building">Building</a> |
-  <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">Pipelines</a> |
   <a href="#downloads">Downloads</a> |
+  <a href="#building">Building</a> |
   <a href="#support">Support</a> |
-  <a href="#license">License</a>
+  <a href="#license">License</a> |
+  <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">Pipelines</a>
 </p>
 
 ## Status
 
-We are trying to get the builds working. We are in need of developers. Join our Discord to contribute.
+Although we're able to make builds, we don't have a version ready for distribution yet. But we can always use more help! You can make a merge request if you'd like to see something changed, or you can [chat with other developers to find out what needs work](https://discord.gg/2gQRBp44KT).
 
-**Note**: This README is a fork of the original project's README, most links are broken!
-
-## Compatibility
-
-The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](https://suyu-emu.org/help/quickstart/#hardware-requirements).
-
-For a full list of games suyu supports, please visit our [Compatibility page](https://gitlab.com/suyu-emu/suyu/-/wikis/Compatibility).
-
-Check out our [website](https://suyu.dev) for the latest news on exciting features, monthly progress reports, and more!
+**Note**: We try to update this README whenever we can, but some links might be broken, and some information may be outdated or irrelevant.
 
 ## Development
 
-This project is completely free and open source, this project is made possible by many people who share the same interest.
+This project is completely free and open source, and anyone can contribute to help improve suyu.
 
 Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
-You can also contact any of the developers on Discord in order to know about the current state of the emulator.
+You can also contact any of the developers on Discord to learn more about the current state of suyu.
 
 ## Downloads
 
-* __Windows__: [Legacy Artifacts](https://github.com/pineappleea/pineapple-src/releases)
-* __Linux__: [Legacy Artifacts](https://github.com/pineappleea/pineapple-src/releases)
+* __Windows__: WIP
+* __Linux__: WIP
+
+We don't have any official builds yet! If any website or person is claiming to have a build for suyu, take that with a grain of salt, because it might contain malware. Until we do have an official build, it might be a better idea to keep using the last version of yuzu.
 
 ## Building
 
@@ -70,7 +65,7 @@ You can also contact any of the developers on Discord in order to know about the
 
 ## Support
 
-This project is completely free and open source, this project is made possible by many people who share the same interest. Please join the Discord server [here](https://discord.gg/2gQRBp44KT) to contribute.
+If you have any questions, don't hesitate to ask us on [Discord](https://discord.gg/2gQRBp44KT). We don't bite!
 
 
 ## License
