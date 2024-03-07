@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -8,8 +8,8 @@
 namespace FileSys {
 
 class MemoryResourceBufferHoldStorage : public IStorage {
-    YUZU_NON_COPYABLE(MemoryResourceBufferHoldStorage);
-    YUZU_NON_MOVEABLE(MemoryResourceBufferHoldStorage);
+    SUYU_NON_COPYABLE(MemoryResourceBufferHoldStorage);
+    SUYU_NON_MOVEABLE(MemoryResourceBufferHoldStorage);
 
 public:
     MemoryResourceBufferHoldStorage(VirtualFile storage, size_t buffer_size)

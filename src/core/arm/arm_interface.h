@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -47,8 +47,8 @@ enum class Architecture {
 /// Generic ARMv8 CPU interface
 class ArmInterface {
 public:
-    YUZU_NON_COPYABLE(ArmInterface);
-    YUZU_NON_MOVEABLE(ArmInterface);
+    SUYU_NON_COPYABLE(ArmInterface);
+    SUYU_NON_MOVEABLE(ArmInterface);
 
     explicit ArmInterface(bool uses_wall_clock) : m_uses_wall_clock{uses_wall_clock} {}
     virtual ~ArmInterface() = default;

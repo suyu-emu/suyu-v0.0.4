@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -26,8 +26,8 @@ public:
     explicit PlayTimeManager(Service::Account::ProfileManager& profile_manager);
     ~PlayTimeManager();
 
-    YUZU_NON_COPYABLE(PlayTimeManager);
-    YUZU_NON_MOVEABLE(PlayTimeManager);
+    SUYU_NON_COPYABLE(PlayTimeManager);
+    SUYU_NON_MOVEABLE(PlayTimeManager);
 
     u64 GetPlayTime(u64 program_id) const;
     void ResetProgramPlayTime(u64 program_id);

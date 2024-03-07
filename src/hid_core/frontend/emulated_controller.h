@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -178,8 +178,8 @@ public:
     explicit EmulatedController(NpadIdType npad_id_type_);
     ~EmulatedController();
 
-    YUZU_NON_COPYABLE(EmulatedController);
-    YUZU_NON_MOVEABLE(EmulatedController);
+    SUYU_NON_COPYABLE(EmulatedController);
+    SUYU_NON_MOVEABLE(EmulatedController);
 
     /// Converts the controller type from settings to npad type
     static NpadStyleIndex MapSettingsTypeToNPad(Settings::ControllerType type);

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -15,8 +15,8 @@ namespace FileSys {
 class DirectoryPathParser;
 
 class Path {
-    YUZU_NON_COPYABLE(Path);
-    YUZU_NON_MOVEABLE(Path);
+    SUYU_NON_COPYABLE(Path);
+    SUYU_NON_MOVEABLE(Path);
 
 private:
     static constexpr const char* EmptyPath = "";
@@ -27,7 +27,7 @@ private:
 
 public:
     class WriteBuffer {
-        YUZU_NON_COPYABLE(WriteBuffer);
+        SUYU_NON_COPYABLE(WriteBuffer);
 
     private:
         char* m_buffer;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -17,8 +17,8 @@ class KMemoryRegion final : public Common::IntrusiveRedBlackTreeBaseNode<KMemory
     friend class KMemoryRegionTree;
 
 public:
-    YUZU_NON_COPYABLE(KMemoryRegion);
-    YUZU_NON_MOVEABLE(KMemoryRegion);
+    SUYU_NON_COPYABLE(KMemoryRegion);
+    SUYU_NON_MOVEABLE(KMemoryRegion);
 
     constexpr KMemoryRegion() = default;
     constexpr KMemoryRegion(u64 address, u64 last_address)
@@ -123,8 +123,8 @@ private:
         Common::IntrusiveRedBlackTreeBaseTraits<KMemoryRegion>::TreeType<KMemoryRegion>;
 
 public:
-    YUZU_NON_COPYABLE(KMemoryRegionTree);
-    YUZU_NON_MOVEABLE(KMemoryRegionTree);
+    SUYU_NON_COPYABLE(KMemoryRegionTree);
+    SUYU_NON_MOVEABLE(KMemoryRegionTree);
 
     using value_type = TreeType::value_type;
     using size_type = TreeType::size_type;
@@ -327,8 +327,8 @@ private:
 
 class KMemoryRegionAllocator final {
 public:
-    YUZU_NON_COPYABLE(KMemoryRegionAllocator);
-    YUZU_NON_MOVEABLE(KMemoryRegionAllocator);
+    SUYU_NON_COPYABLE(KMemoryRegionAllocator);
+    SUYU_NON_MOVEABLE(KMemoryRegionAllocator);
 
     static constexpr size_t MaxMemoryRegions = 200;
 

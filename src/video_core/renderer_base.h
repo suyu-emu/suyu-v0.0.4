@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -30,8 +30,8 @@ struct RendererSettings {
 
 class RendererBase {
 public:
-    YUZU_NON_COPYABLE(RendererBase);
-    YUZU_NON_MOVEABLE(RendererBase);
+    SUYU_NON_COPYABLE(RendererBase);
+    SUYU_NON_MOVEABLE(RendererBase);
 
     explicit RendererBase(Core::Frontend::EmuWindow& window,
                           std::unique_ptr<Core::Frontend::GraphicsContext> context);

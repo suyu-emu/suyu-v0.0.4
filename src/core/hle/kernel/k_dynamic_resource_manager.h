@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -12,8 +12,8 @@ namespace Kernel {
 
 template <typename T, bool ClearNode = false>
 class KDynamicResourceManager {
-    YUZU_NON_COPYABLE(KDynamicResourceManager);
-    YUZU_NON_MOVEABLE(KDynamicResourceManager);
+    SUYU_NON_COPYABLE(KDynamicResourceManager);
+    SUYU_NON_MOVEABLE(KDynamicResourceManager);
 
 public:
     using DynamicSlabType = KDynamicSlabHeap<T, ClearNode>;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -12,8 +12,8 @@
 namespace FileSys {
 
 class HierarchicalSha256Storage : public IReadOnlyStorage {
-    YUZU_NON_COPYABLE(HierarchicalSha256Storage);
-    YUZU_NON_MOVEABLE(HierarchicalSha256Storage);
+    SUYU_NON_COPYABLE(HierarchicalSha256Storage);
+    SUYU_NON_MOVEABLE(HierarchicalSha256Storage);
 
 public:
     static constexpr s32 LayerCount = 3;

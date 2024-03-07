@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -298,8 +298,8 @@ private:
 namespace ResultImpl {
 template <auto EvaluateResult, class F>
 class ScopedResultGuard {
-    YUZU_NON_COPYABLE(ScopedResultGuard);
-    YUZU_NON_MOVEABLE(ScopedResultGuard);
+    SUYU_NON_COPYABLE(ScopedResultGuard);
+    SUYU_NON_MOVEABLE(ScopedResultGuard);
 
 private:
     Result& m_ref;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -30,8 +30,8 @@ enum class VfsEntryType {
 // functionality, they will need to override.
 class VfsFilesystem {
 public:
-    YUZU_NON_COPYABLE(VfsFilesystem);
-    YUZU_NON_MOVEABLE(VfsFilesystem);
+    SUYU_NON_COPYABLE(VfsFilesystem);
+    SUYU_NON_MOVEABLE(VfsFilesystem);
 
     explicit VfsFilesystem(VirtualDir root);
     virtual ~VfsFilesystem();
@@ -81,8 +81,8 @@ protected:
 // A class representing a file in an abstract filesystem.
 class VfsFile {
 public:
-    YUZU_NON_COPYABLE(VfsFile);
-    YUZU_NON_MOVEABLE(VfsFile);
+    SUYU_NON_COPYABLE(VfsFile);
+    SUYU_NON_MOVEABLE(VfsFile);
 
     VfsFile() = default;
     virtual ~VfsFile();
@@ -184,8 +184,8 @@ public:
 // A class representing a directory in an abstract filesystem.
 class VfsDirectory {
 public:
-    YUZU_NON_COPYABLE(VfsDirectory);
-    YUZU_NON_MOVEABLE(VfsDirectory);
+    SUYU_NON_COPYABLE(VfsDirectory);
+    SUYU_NON_MOVEABLE(VfsDirectory);
 
     VfsDirectory() = default;
     virtual ~VfsDirectory();

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017 Citra Emulator Project
+// SPDX-FileCopyrightText: 2017 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -52,7 +52,7 @@ public:
 template <typename T>
 class Field : public FieldInterface {
 public:
-    YUZU_NON_COPYABLE(Field);
+    SUYU_NON_COPYABLE(Field);
 
     Field(FieldType type_, std::string_view name_, T value_)
         : name(name_), type(type_), value(std::move(value_)) {}
@@ -101,7 +101,7 @@ private:
  */
 class FieldCollection final {
 public:
-    YUZU_NON_COPYABLE(FieldCollection);
+    SUYU_NON_COPYABLE(FieldCollection);
 
     FieldCollection() = default;
     ~FieldCollection() = default;
@@ -168,7 +168,7 @@ struct VisitorInterface {
  * backend implementation is not available.
  */
 struct NullVisitor final : public VisitorInterface {
-    YUZU_NON_COPYABLE(NullVisitor);
+    SUYU_NON_COPYABLE(NullVisitor);
 
     NullVisitor() = default;
     ~NullVisitor() override = default;

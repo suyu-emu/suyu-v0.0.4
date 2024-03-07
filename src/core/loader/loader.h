@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -143,8 +143,8 @@ std::ostream& operator<<(std::ostream& os, ResultStatus status);
 /// Interface for loading an application
 class AppLoader {
 public:
-    YUZU_NON_COPYABLE(AppLoader);
-    YUZU_NON_MOVEABLE(AppLoader);
+    SUYU_NON_COPYABLE(AppLoader);
+    SUYU_NON_MOVEABLE(AppLoader);
 
     struct LoadParameters {
         s32 main_thread_priority;

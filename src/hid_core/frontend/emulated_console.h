@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -80,8 +80,8 @@ public:
     explicit EmulatedConsole();
     ~EmulatedConsole();
 
-    YUZU_NON_COPYABLE(EmulatedConsole);
-    YUZU_NON_MOVEABLE(EmulatedConsole);
+    SUYU_NON_COPYABLE(EmulatedConsole);
+    SUYU_NON_MOVEABLE(EmulatedConsole);
 
     /// Removes all callbacks created from input devices
     void UnloadInput();

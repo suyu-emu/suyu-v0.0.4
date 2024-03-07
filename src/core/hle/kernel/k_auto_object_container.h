@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -16,8 +16,8 @@ class KProcess;
 
 class KAutoObjectWithListContainer {
 public:
-    YUZU_NON_COPYABLE(KAutoObjectWithListContainer);
-    YUZU_NON_MOVEABLE(KAutoObjectWithListContainer);
+    SUYU_NON_COPYABLE(KAutoObjectWithListContainer);
+    SUYU_NON_MOVEABLE(KAutoObjectWithListContainer);
 
     using ListType = boost::intrusive::rbtree<KAutoObjectWithList>;
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -21,8 +21,8 @@ public:
     explicit HIDCore();
     ~HIDCore();
 
-    YUZU_NON_COPYABLE(HIDCore);
-    YUZU_NON_MOVEABLE(HIDCore);
+    SUYU_NON_COPYABLE(HIDCore);
+    SUYU_NON_MOVEABLE(HIDCore);
 
     EmulatedController* GetEmulatedController(NpadIdType npad_id_type);
     const EmulatedController* GetEmulatedController(NpadIdType npad_id_type) const;
