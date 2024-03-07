@@ -2,9 +2,6 @@
 <ui version="4.0">
  <class>ConfigureWeb</class>
  <widget class="QWidget" name="ConfigureWeb">
-  <property name="enabled">
-   <bool>false</bool>
-  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
