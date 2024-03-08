@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <QPushButton>
 #include <QWidget>
 #include "suyu/configuration/configuration_shared.h"
 
