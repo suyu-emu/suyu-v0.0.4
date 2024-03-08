@@ -114,7 +114,7 @@ void LogSettings() {
         LOG_INFO(Config, "{}: {}", name, Common::FS::PathToUTF8String(path));
     };
 
-    LOG_INFO(Config, "yuzu Configuration:");
+    LOG_INFO(Config, "suyu Configuration:");
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
             if (setting->Id() == values.yuzu_token.Id()) {
