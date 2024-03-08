@@ -13,10 +13,10 @@
 #include "configuration/shared_widget.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "frontend_common/config.h"
-#include "vk_device_info.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/qt_config.h"
 #include "suyu/configuration/shared_translation.h"
+#include "vk_device_info.h"
 
 namespace Core {
 class System;

@@ -20,13 +20,13 @@
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/main.h"
-#include "ui_configure_input_player.h"
 #include "suyu/bootmanager.h"
 #include "suyu/configuration/configure_input_player.h"
 #include "suyu/configuration/configure_input_player_widget.h"
 #include "suyu/configuration/configure_mouse_panning.h"
 #include "suyu/configuration/input_profiles.h"
 #include "suyu/util/limitable_input_dialog.h"
+#include "ui_configure_input_player.h"
 
 const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
     ConfigureInputPlayer::analog_sub_buttons{{

@@ -14,9 +14,9 @@
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/main.h"
-#include "ui_configure_ringcon.h"
 #include "suyu/bootmanager.h"
 #include "suyu/configuration/configure_ringcon.h"
+#include "ui_configure_ringcon.h"
 
 const std::array<std::string, ConfigureRingController::ANALOG_SUB_BUTTONS_NUM>
     ConfigureRingController::analog_sub_buttons{{

@@ -16,8 +16,8 @@
 #include "common/common_types.h"
 #include "common/settings_enums.h"
 #include "configuration/shared_translation.h"
-#include "vk_device_info.h"
 #include "suyu/configuration/configuration_shared.h"
+#include "vk_device_info.h"
 
 class QPushButton;
 class QEvent;

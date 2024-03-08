@@ -12,9 +12,9 @@
 #include "input_common/drivers/udp_client.h"
 #include "input_common/helpers/udp_protocol.h"
 #include "input_common/main.h"
-#include "ui_configure_motion_touch.h"
 #include "suyu/configuration/configure_motion_touch.h"
 #include "suyu/configuration/configure_touch_from_button.h"
+#include "ui_configure_motion_touch.h"
 
 CalibrationConfigurationDialog::CalibrationConfigurationDialog(QWidget* parent,
                                                                const std::string& host, u16 port)

@@ -7,9 +7,9 @@
 
 #include <QWidget>
 
-#include "ui_configure_input_per_game.h"
 #include "suyu/configuration/input_profiles.h"
 #include "suyu/configuration/qt_config.h"
+#include "ui_configure_input_per_game.h"
 
 class QComboBox;
 

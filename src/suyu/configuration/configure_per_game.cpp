@@ -26,7 +26,6 @@
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
-#include "ui_configure_per_game.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_audio.h"
 #include "suyu/configuration/configure_cpu.h"
@@ -40,6 +39,7 @@
 #include "suyu/uisettings.h"
 #include "suyu/util/util.h"
 #include "suyu/vk_device_info.h"
+#include "ui_configure_per_game.h"
 
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,

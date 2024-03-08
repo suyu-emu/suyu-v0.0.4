@@ -10,7 +10,6 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/internal_network/network_interface.h"
 #include "network/network.h"
-#include "ui_lobby.h"
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
 #include "suyu/multiplayer/client_room.h"
@@ -20,6 +19,7 @@
 #include "suyu/multiplayer/state.h"
 #include "suyu/multiplayer/validation.h"
 #include "suyu/uisettings.h"
+#include "ui_lobby.h"
 #ifdef ENABLE_WEB_SERVICE
 #include "web_service/web_backend.h"
 #endif

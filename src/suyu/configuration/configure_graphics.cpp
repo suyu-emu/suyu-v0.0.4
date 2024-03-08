@@ -36,13 +36,13 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
-#include "ui_configure_graphics.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_graphics.h"
 #include "suyu/configuration/shared_widget.h"
 #include "suyu/qt_common.h"
 #include "suyu/uisettings.h"
 #include "suyu/vk_device_info.h"
+#include "ui_configure_graphics.h"
 
 static const std::vector<VkPresentModeKHR> default_present_modes{VK_PRESENT_MODE_IMMEDIATE_KHR,
                                                                  VK_PRESENT_MODE_FIFO_KHR};

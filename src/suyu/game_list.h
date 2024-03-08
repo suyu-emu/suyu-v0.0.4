@@ -3,7 +3,6 @@
 
 // Modified by palfaiate on <2024/03/07>
 
-
 #pragma once
 
 #include <QFileSystemWatcher>
@@ -19,9 +18,9 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
-#include "uisettings.h"
 #include "suyu/compatibility_list.h"
 #include "suyu/play_time_manager.h"
+#include "uisettings.h"
 
 namespace Core {
 class System;

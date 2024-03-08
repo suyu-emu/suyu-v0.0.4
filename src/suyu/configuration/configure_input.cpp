@@ -12,9 +12,6 @@
 #include "core/hle/service/sm/sm.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
-#include "ui_configure_input.h"
-#include "ui_configure_input_advanced.h"
-#include "ui_configure_input_player.h"
 #include "suyu/configuration/configure_camera.h"
 #include "suyu/configuration/configure_debug_controller.h"
 #include "suyu/configuration/configure_input.h"
@@ -25,6 +22,9 @@
 #include "suyu/configuration/configure_touchscreen_advanced.h"
 #include "suyu/configuration/configure_vibration.h"
 #include "suyu/configuration/input_profiles.h"
+#include "ui_configure_input.h"
+#include "ui_configure_input_advanced.h"
+#include "ui_configure_input_player.h"
 
 namespace {
 template <typename Dialog, typename... Args>

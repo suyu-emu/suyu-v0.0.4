@@ -13,9 +13,9 @@
 #include <QStyleOption>
 #include "core/frontend/framebuffer_layout.h"
 #include "core/loader/loader.h"
+#include "suyu/loading_screen.h"
 #include "ui_loading_screen.h"
 #include "video_core/rasterizer_interface.h"
-#include "suyu/loading_screen.h"
 
 // Mingw seems to not have QMovie at all. If QMovie is missing then use a single frame instead of an
 // showing the full animation

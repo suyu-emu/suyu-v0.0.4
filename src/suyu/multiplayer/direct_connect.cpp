@@ -11,7 +11,6 @@
 #include "core/core.h"
 #include "core/internal_network/network_interface.h"
 #include "network/network.h"
-#include "ui_direct_connect.h"
 #include "suyu/main.h"
 #include "suyu/multiplayer/client_room.h"
 #include "suyu/multiplayer/direct_connect.h"
@@ -19,6 +18,7 @@
 #include "suyu/multiplayer/state.h"
 #include "suyu/multiplayer/validation.h"
 #include "suyu/uisettings.h"
+#include "ui_direct_connect.h"
 
 enum class ConnectionType : u8 { TraversalServer, IP };
 

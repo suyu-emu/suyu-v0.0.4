@@ -13,8 +13,8 @@
 #include "common/settings.h"
 #include "input_common/drivers/camera.h"
 #include "input_common/main.h"
-#include "ui_configure_camera.h"
 #include "suyu/configuration/configure_camera.h"
+#include "ui_configure_camera.h"
 
 ConfigureCamera::ConfigureCamera(QWidget* parent, InputCommon::InputSubsystem* input_subsystem_)
     : QDialog(parent), input_subsystem{input_subsystem_},

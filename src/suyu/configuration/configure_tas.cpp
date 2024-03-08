@@ -6,9 +6,9 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
-#include "ui_configure_tas.h"
 #include "suyu/configuration/configure_tas.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_tas.h"
 
 ConfigureTasDialog::ConfigureTasDialog(QWidget* parent)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureTas>()) {

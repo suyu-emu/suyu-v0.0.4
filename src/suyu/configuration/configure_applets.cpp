@@ -3,10 +3,10 @@
 
 #include "common/settings.h"
 #include "core/core.h"
-#include "ui_configure_applets.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_applets.h"
 #include "suyu/configuration/shared_widget.h"
+#include "ui_configure_applets.h"
 
 ConfigureApplets::ConfigureApplets(Core::System& system_,
                                    std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,

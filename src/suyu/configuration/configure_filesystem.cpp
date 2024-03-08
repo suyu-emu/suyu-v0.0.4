@@ -6,9 +6,9 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
-#include "ui_configure_filesystem.h"
 #include "suyu/configuration/configure_filesystem.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_filesystem.h"
 
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureFilesystem>()) {

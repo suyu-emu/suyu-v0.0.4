@@ -17,9 +17,9 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "ui_configure_profile_manager.h"
 #include "suyu/configuration/configure_profile_manager.h"
 #include "suyu/util/limitable_input_dialog.h"
+#include "ui_configure_profile_manager.h"
 
 namespace {
 // Same backup JPEG used by acc IProfile::GetImage if no jpeg found

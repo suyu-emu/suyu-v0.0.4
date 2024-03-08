@@ -4,8 +4,8 @@
 #include <QIcon>
 #include <fmt/format.h>
 #include "common/scm_rev.h"
-#include "ui_aboutdialog.h"
 #include "suyu/about_dialog.h"
+#include "ui_aboutdialog.h"
 
 AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent), ui{std::make_unique<Ui::AboutDialog>()} {
