@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2022 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-FileCopyrightText: 2022 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,8 +13,8 @@
 #include "core/memory.h"
 #include "video_core/host1x/host1x.h"
 
-using Core::Memory::YUZU_PAGESIZE;
-constexpr size_t BIG_PAGE_SIZE = YUZU_PAGESIZE * 16;
+using Core::Memory::SUYU_PAGESIZE;
+constexpr size_t BIG_PAGE_SIZE = SUYU_PAGESIZE * 16;
 
 namespace Service::Nvidia::NvCore {
 NvMap::Handle::Handle(u64 size_, Id id_)
@@ -32,7 +32,7 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
 
     flags = pFlags;
     kind = pKind;
-    align = pAlign < YUZU_PAGESIZE ? YUZU_PAGESIZE : pAlign;
+    align = pAlign < SUYU_PAGESIZE ? SUYU_PAGESIZE : pAlign;
     session_id = pSessionId;
 
     // This flag is only applicable for handles with an address passed
@@ -43,7 +43,7 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
                      "Mapping nvmap handles without a CPU side address is unimplemented!");
     }
 
-    size = Common::AlignUp(size, YUZU_PAGESIZE);
+    size = Common::AlignUp(size, SUYU_PAGESIZE);
     aligned_size = Common::AlignUp(size, align);
     address = pAddress;
     allocated = true;

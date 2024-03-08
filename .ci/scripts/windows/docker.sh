@@ -1,11 +1,11 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set -e
 
-#cd /yuzu
+#cd /suyu
 
 ccache -sv
 
@@ -17,11 +17,11 @@ cmake .. \
     -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
     -DENABLE_QT_TRANSLATION=ON \
     -DUSE_CCACHE=ON \
-    -DYUZU_USE_BUNDLED_SDL2=OFF \
-    -DYUZU_USE_EXTERNAL_SDL2=OFF \
-    -DYUZU_TESTS=OFF \
+    -DSUYU_USE_BUNDLED_SDL2=OFF \
+    -DSUYU_USE_EXTERNAL_SDL2=OFF \
+    -DSUYU_TESTS=OFF \
     -GNinja
-ninja yuzu yuzu-cmd
+ninja suyu suyu-cmd
 
 ccache -sv
 
@@ -39,7 +39,7 @@ else
   QT_PLUGINS_PATH='/usr/x86_64-w64-mingw32/lib/qt/plugins'
 fi
 
-find build/ -name "yuzu*.exe" -exec cp {} 'package' \;
+find build/ -name "suyu*.exe" -exec cp {} 'package' \;
 
 # copy Qt plugins
 mkdir package/platforms
@@ -62,5 +62,5 @@ EXTERNALS_PATH="$(pwd)/build/externals"
 FFMPEG_DLL_PATH="$(find "${EXTERNALS_PATH}" -maxdepth 1 -type d | grep 'ffmpeg-')/bin"
 find ${FFMPEG_DLL_PATH} -type f -regex ".*\.dll" -exec cp -nv {} package/ ';'
 
-# copy libraries from yuzu.exe path
+# copy libraries from suyu.exe path
 find "$(pwd)/build/bin/" -type f -regex ".*\.dll" -exec cp -v {} package/ ';'

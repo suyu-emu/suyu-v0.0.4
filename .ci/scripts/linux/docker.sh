@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Exit on error, rather than continuing with the rest of the script.
@@ -20,10 +20,10 @@ cmake .. \
       -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=OFF \
       -DENABLE_QT_TRANSLATION=OFF \
       -DUSE_DISCORD_PRESENCE=ON \
-      -DYUZU_ENABLE_COMPATIBILITY_REPORTING=${ENABLE_COMPATIBILITY_REPORTING:-"OFF"} \
-      -DYUZU_USE_BUNDLED_FFMPEG=ON \
-      -DYUZU_ENABLE_LTO=ON \
-      -DYUZU_CRASH_DUMPS=ON \
+      -DSUYU_ENABLE_COMPATIBILITY_REPORTING=${ENABLE_COMPATIBILITY_REPORTING:-"OFF"} \
+      -DSUYU_USE_BUNDLED_FFMPEG=ON \
+      -DSUYU_ENABLE_LTO=ON \
+      -DSUYU_CRASH_DUMPS=ON \
       -GNinja
 
 ninja
@@ -33,7 +33,7 @@ ccache -s
 ctest -VV -C Release
 
 # Separate debug symbols from specified executables
-for EXE in yuzu; do
+for EXE in suyu; do
     EXE_PATH="bin/$EXE"
     # Copy debug symbols out
     objcopy --only-keep-debug $EXE_PATH $EXE_PATH.debug
@@ -46,7 +46,7 @@ done
 find bin/ -type f -not -regex '.*.debug' -exec strip -g {} ';'
 
 DESTDIR="$PWD/AppDir" ninja install
-rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
+rm -vf AppDir/usr/bin/suyu-cmd AppDir/usr/bin/suyu-tester
 
 # Download tools needed to build an AppImage
 wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/deploy-linux.sh
@@ -66,13 +66,13 @@ mkdir -p AppDir/usr/optional
 mkdir -p AppDir/usr/optional/libstdc++
 mkdir -p AppDir/usr/optional/libgcc_s
 
-# Deploy yuzu's needed dependencies
-DEPLOY_QT=1 ./deploy-linux.sh AppDir/usr/bin/yuzu AppDir
+# Deploy suyu's needed dependencies
+DEPLOY_QT=1 ./deploy-linux.sh AppDir/usr/bin/suyu AppDir
 
 # Workaround for libQt5MultimediaGstTools indirectly requiring libwayland-client and breaking Vulkan usage on end-user systems
 find AppDir -type f -regex '.*libwayland-client\.so.*' -delete -print
 
-# Workaround for building yuzu with GCC 10 but also trying to distribute it to Ubuntu 18.04 et al.
+# Workaround for building suyu with GCC 10 but also trying to distribute it to Ubuntu 18.04 et al.
 # See https://github.com/darealshinji/AppImageKit-checkrt
 cp exec-x86_64.so AppDir/usr/optional/exec.so
 cp AppRun.sh AppDir/AppRun

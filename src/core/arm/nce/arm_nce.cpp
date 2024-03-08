@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cinttypes>
@@ -160,8 +160,8 @@ bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, voi
     // Try to handle an invalid access.
     // TODO: handle accesses which split a page?
     const Common::ProcessAddress addr =
-        (reinterpret_cast<u64>(info->si_addr) & ~Memory::YUZU_PAGEMASK);
-    if (guest_ctx->system->ApplicationMemory().InvalidateNCE(addr, Memory::YUZU_PAGESIZE)) {
+        (reinterpret_cast<u64>(info->si_addr) & ~Memory::SUYU_PAGEMASK);
+    if (guest_ctx->system->ApplicationMemory().InvalidateNCE(addr, Memory::SUYU_PAGESIZE)) {
         // We handled the access successfully and are returning to guest code.
         return true;
     }

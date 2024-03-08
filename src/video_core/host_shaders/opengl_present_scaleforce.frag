@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2020 BreadFish64
+// SPDX-FileCopyrightText: 2020 BreadFish64 & 2024 suyu Emulator Project
 // SPDX-License-Identifier: MIT
 
 // Adapted from https://github.com/BreadFish64/ScaleFish/tree/master/scaleforce
@@ -7,7 +7,7 @@
 
 #extension GL_ARB_separate_shader_objects : enable
 
-#ifdef YUZU_USE_FP16
+#ifdef SUYU_USE_FP16
 
 #extension GL_AMD_gpu_shader_half_float : enable
 #extension GL_NV_gpu_shader5 : enable

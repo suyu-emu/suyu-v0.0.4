@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 //!#version 460 core
@@ -33,12 +33,12 @@ layout (location = 0) uniform uvec4 constants[4];
 #define A_GLSL 1
 #define FSR_RCAS_PASSTHROUGH_ALPHA 1
 
-#ifdef YUZU_USE_FP16
+#ifdef SUYU_USE_FP16
     #define A_HALF
 #endif
 #include "ffx_a.h"
 
-#ifndef YUZU_USE_FP16
+#ifndef SUYU_USE_FP16
     layout (binding=0) uniform sampler2D InputTexture;
     #if USE_EASU
         #define FSR_EASU_F 1
@@ -74,7 +74,7 @@ layout (location = 0) out vec4 frag_color;
 void CurrFilter(AU2 pos)
 {
 #if USE_EASU
-    #ifndef YUZU_USE_FP16
+    #ifndef SUYU_USE_FP16
         AF3 c;
         FsrEasuF(c, pos, constants[0], constants[1], constants[2], constants[3]);
         frag_color = AF4(c, texture(InputTexture, frag_texcoord).a);
@@ -85,7 +85,7 @@ void CurrFilter(AU2 pos)
     #endif
 #endif
 #if USE_RCAS
-    #ifndef YUZU_USE_FP16
+    #ifndef SUYU_USE_FP16
         AF4 c;
         FsrRcasF(c.r, c.g, c.b, c.a, pos, constants[0]);
         frag_color = c;

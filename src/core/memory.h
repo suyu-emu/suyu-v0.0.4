@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -39,9 +39,9 @@ namespace Core::Memory {
  * Page size used by the ARM architecture. This is the smallest granularity with which memory can
  * be mapped.
  */
-constexpr std::size_t YUZU_PAGEBITS = 12;
-constexpr u64 YUZU_PAGESIZE = 1ULL << YUZU_PAGEBITS;
-constexpr u64 YUZU_PAGEMASK = YUZU_PAGESIZE - 1;
+constexpr std::size_t SUYU_PAGEBITS = 12;
+constexpr u64 SUYU_PAGESIZE = 1ULL << SUYU_PAGEBITS;
+constexpr u64 SUYU_PAGEMASK = SUYU_PAGESIZE - 1;
 
 /// Virtual user-space memory regions
 enum : u64 {

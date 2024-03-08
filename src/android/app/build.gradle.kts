@@ -172,9 +172,9 @@ android {
                     "-DENABLE_WEB_SERVICE=0", // Don't use telemetry
                     "-DBUNDLE_SPEEX=ON",
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
-                    "-DYUZU_USE_BUNDLED_VCPKG=ON",
-                    "-DYUZU_USE_BUNDLED_FFMPEG=ON",
-                    "-DYUZU_ENABLE_LTO=ON",
+                    "-DSUYU_USE_BUNDLED_VCPKG=ON",
+                    "-DSUYU_USE_BUNDLED_FFMPEG=ON",
+                    "-DSUYU_ENABLE_LTO=ON",
                     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
                 )
 

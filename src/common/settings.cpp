@@ -117,7 +117,7 @@ void LogSettings() {
     LOG_INFO(Config, "suyu Configuration:");
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
-            if (setting->Id() == values.yuzu_token.Id()) {
+            if (setting->Id() == values.suyu_token.Id()) {
                 // Hide the token secret, for security reasons.
                 continue;
             }

@@ -1,12 +1,12 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 . .ci/scripts/common/pre-upload.sh
 
-APPIMAGE_NAME="yuzu-${RELEASE_NAME}-${GITDATE}-${GITREV}.AppImage"
-BASE_NAME="yuzu-linux"
+APPIMAGE_NAME="suyu-${RELEASE_NAME}-${GITDATE}-${GITREV}.AppImage"
+BASE_NAME="suyu-linux"
 REV_NAME="${BASE_NAME}-${GITDATE}-${GITREV}"
 ARCHIVE_NAME="${REV_NAME}.tar.xz"
 COMPRESSION_FLAGS="-cJvf"
@@ -19,9 +19,9 @@ fi
 
 mkdir "$DIR_NAME"
 
-cp build/bin/yuzu-cmd "$DIR_NAME"
+cp build/bin/suyu-cmd "$DIR_NAME"
 if [ "${RELEASE_NAME}" != "early-access" ] && [ "${RELEASE_NAME}" != "mainline" ]; then
-    cp build/bin/yuzu "$DIR_NAME"
+    cp build/bin/suyu "$DIR_NAME"
 fi
 
 # Build an AppImage
@@ -42,7 +42,7 @@ fi
 
 if [ "${RELEASE_NAME}" = "mainline" ]; then
     # Generate update information if releasing to mainline
-    ./appimagetool-x86_64.AppImage -u "gh-releases-zsync|yuzu-emu|yuzu-${RELEASE_NAME}|latest|yuzu-*.AppImage.zsync" AppDir "${APPIMAGE_NAME}"
+    ./appimagetool-x86_64.AppImage -u "gh-releases-zsync|suyu-emu|suyu-${RELEASE_NAME}|latest|suyu-*.AppImage.zsync" AppDir "${APPIMAGE_NAME}"
 else
     ./appimagetool-x86_64.AppImage AppDir "${APPIMAGE_NAME}"
 fi
@@ -56,7 +56,7 @@ fi
 
 # Copy the AppImage to the general release directory and remove git revision info
 if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ]; then
-    cp "build/${APPIMAGE_NAME}" "${DIR_NAME}/yuzu-${RELEASE_NAME}.AppImage"
+    cp "build/${APPIMAGE_NAME}" "${DIR_NAME}/suyu-${RELEASE_NAME}.AppImage"
 fi
 
 # Copy debug symbols to artifacts

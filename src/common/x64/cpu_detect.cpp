@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2013 Dolphin Emulator Project / 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -78,7 +78,7 @@ static CPUCaps Detect() {
     CPUCaps caps = {};
 
     // Assumes the CPU supports the CPUID instruction. Those that don't would likely not support
-    // yuzu at all anyway
+    // suyu at all anyway
 
     int cpu_id[4];
 

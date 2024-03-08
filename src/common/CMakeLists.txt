@@ -262,7 +262,7 @@ if (ANDROID)
     target_link_libraries(common PRIVATE android)
 endif()
 
-if (YUZU_USE_PRECOMPILED_HEADERS)
+if (SUYU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
 

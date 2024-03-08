@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Gets a UTC timestamp and sets the provided variable to it
@@ -27,7 +27,7 @@ set(BUILD_VERSION "0")
 set(BUILD_ID ${DISPLAY_VERSION})
 if (BUILD_REPOSITORY)
   # regex capture the string nightly or canary into CMAKE_MATCH_1
-  string(REGEX MATCH "yuzu-emu/yuzu-?(.*)" OUTVAR ${BUILD_REPOSITORY})
+  string(REGEX MATCH "suyu-emu/suyu-?(.*)" OUTVAR ${BUILD_REPOSITORY})
   if ("${CMAKE_MATCH_COUNT}" GREATER 0)
     # capitalize the first letter of each word in the repo name.
     string(REPLACE "-" ";" REPO_NAME_LIST ${CMAKE_MATCH_1})

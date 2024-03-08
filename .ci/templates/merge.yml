@@ -18,12 +18,12 @@ jobs:
       rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
       includeRootFolder: false
       archiveType: '7z'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/yuzu-$(BuildName)-source.7z'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/suyu-$(BuildName)-source.7z'
   - task: PublishPipelineArtifact@1
     displayName: 'Upload Artifacts'
     inputs:
-      targetPath: '$(Build.ArtifactStagingDirectory)/yuzu-$(BuildName)-source.7z'
-      artifact: 'yuzu-$(BuildName)-source'
+      targetPath: '$(Build.ArtifactStagingDirectory)/suyu-$(BuildName)-source.7z'
+      artifact: 'suyu-$(BuildName)-source'
       replaceExistingArchive: true
 - job: upload_source
   displayName: 'upload'
@@ -35,7 +35,7 @@ jobs:
     parameters:
       artifactSource: 'true'
       needSubmodules: 'true'
-  - script: chmod a+x $(System.DefaultWorkingDirectory)/.ci/scripts/merge/yuzubot-git-config.sh && $(System.DefaultWorkingDirectory)/.ci/scripts/merge/yuzubot-git-config.sh
+  - script: chmod a+x $(System.DefaultWorkingDirectory)/.ci/scripts/merge/suyubot-git-config.sh && $(System.DefaultWorkingDirectory)/.ci/scripts/merge/suyubot-git-config.sh
     displayName: 'Apply Git Configuration'
   - script: git remote add other $(GitRepoPushChangesURL)
     displayName: 'Register Repository'

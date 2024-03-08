@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <span>
@@ -208,7 +208,7 @@ CubebSink::CubebSink(std::string_view target_device_name) {
     com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 #endif
 
-    if (cubeb_init(&ctx, "yuzu", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "suyu", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return;
     }
@@ -304,7 +304,7 @@ std::vector<std::string> ListCubebSinkDevices(bool capture) {
     auto com_init_result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 #endif
 
-    if (cubeb_init(&ctx, "yuzu Device Enumerator", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "suyu Device Enumerator", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return {};
     }
@@ -352,7 +352,7 @@ bool IsCubebSuitable() {
 #endif
 
     // Init cubeb
-    if (cubeb_init(&ctx, "yuzu Latency Getter", nullptr) != CUBEB_OK) {
+    if (cubeb_init(&ctx, "suyu Latency Getter", nullptr) != CUBEB_OK) {
         LOG_ERROR(Audio_Sink, "Cubeb failed to init, it is not suitable.");
         return false;
     }
@@ -386,7 +386,7 @@ bool IsCubebSuitable() {
     // Test opening a device with standard parameters
     cubeb_devid output_device{0};
     cubeb_devid input_device{0};
-    std::string name{"Yuzu test"};
+    std::string name{"Suyu test"};
     cubeb_stream* stream{nullptr};
 
     if (cubeb_stream_init(ctx, &stream, name.c_str(), input_device, nullptr, output_device, &params,

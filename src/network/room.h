@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
+// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -123,7 +123,7 @@ public:
                 const u32 max_connections = MaxConcurrentConnections,
                 const std::string& host_username = "", const GameInfo = {},
                 std::unique_ptr<VerifyUser::Backend> verify_backend = nullptr,
-                const BanList& ban_list = {}, bool enable_yuzu_mods = false);
+                const BanList& ban_list = {}, bool enable_suyu_mods = false);
 
     /**
      * Sets the verification GUID of the room.

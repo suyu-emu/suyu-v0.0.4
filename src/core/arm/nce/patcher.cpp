@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/arm64/native_clock.h"
@@ -213,7 +213,7 @@ bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
 }
 
 size_t Patcher::GetSectionSize() const noexcept {
-    return Common::AlignUp(m_patch_instructions.size() * sizeof(u32), Core::Memory::YUZU_PAGESIZE);
+    return Common::AlignUp(m_patch_instructions.size() * sizeof(u32), Core::Memory::SUYU_PAGESIZE);
 }
 
 void Patcher::WriteLoadContext() {

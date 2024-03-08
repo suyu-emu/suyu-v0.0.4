@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -14,13 +14,13 @@ void assert_fail_impl();
 [[noreturn]] void unreachable_impl();
 
 #ifdef _MSC_VER
-#define YUZU_NO_INLINE __declspec(noinline)
+#define SUYU_NO_INLINE __declspec(noinline)
 #else
-#define YUZU_NO_INLINE __attribute__((noinline))
+#define SUYU_NO_INLINE __attribute__((noinline))
 #endif
 
 #define ASSERT(_a_)                                                                                \
-    ([&]() YUZU_NO_INLINE {                                                                        \
+    ([&]() SUYU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
             LOG_CRITICAL(Debug, "Assertion Failed!");                                              \
             assert_fail_impl();                                                                    \
@@ -28,7 +28,7 @@ void assert_fail_impl();
     }())
 
 #define ASSERT_MSG(_a_, ...)                                                                       \
-    ([&]() YUZU_NO_INLINE {                                                                        \
+    ([&]() SUYU_NO_INLINE {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
             LOG_CRITICAL(Debug, "Assertion Failed!\n" __VA_ARGS__);                                \
             assert_fail_impl();                                                                    \

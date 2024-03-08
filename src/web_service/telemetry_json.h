@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017 Citra Emulator Project
+// SPDX-FileCopyrightText: 2017 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -11,7 +11,7 @@ namespace WebService {
 
 /**
  * Implementation of VisitorInterface that serialized telemetry into JSON, and submits it to the
- * yuzu web service
+ * suyu web service
  */
 class TelemetryJson : public Common::Telemetry::VisitorInterface {
 public:

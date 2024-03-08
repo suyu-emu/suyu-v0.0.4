@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016 Citra Emulator Project
+# SPDX-FileCopyrightText: 2016 Citra Emulator Project & 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Dynarmic has cmake_minimum_required(3.12) and we may want to override
@@ -63,11 +63,11 @@ if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
 endif()
 
 # SDL2
-if (YUZU_USE_EXTERNAL_SDL2)
+if (SUYU_USE_EXTERNAL_SDL2)
     if (NOT WIN32)
-        # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
+        # Suyu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
         # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
-        # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+        # Suyu-cmd also needs: Video (depends on Loadso/Dlopen)
         # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
         set(SDL_UNUSED_SUBSYSTEMS
             File Filesystem
@@ -142,7 +142,7 @@ if (NOT TARGET Opus::opus)
 endif()
 
 # FFMpeg
-if (YUZU_USE_BUNDLED_FFMPEG)
+if (SUYU_USE_BUNDLED_FFMPEG)
     add_subdirectory(ffmpeg)
     set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
     set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
@@ -151,12 +151,12 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 endif()
 
 # Vulkan-Headers
-if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
+if (SUYU_USE_EXTERNAL_VULKAN_HEADERS)
     add_subdirectory(Vulkan-Headers)
 endif()
 
 # Vulkan-Utility-Libraries
-if (YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
+if (SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     add_subdirectory(Vulkan-Utility-Libraries)
 endif()
 
@@ -210,7 +210,7 @@ endif()
 
 # Breakpad
 # https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
-if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
+if (SUYU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     set(BREAKPAD_WIN32_DEFINES
         NOMINMAX
         UNICODE

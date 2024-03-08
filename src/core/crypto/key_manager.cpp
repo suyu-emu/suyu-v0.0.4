@@ -640,22 +640,22 @@ KeyManager::KeyManager() {
 
 void KeyManager::ReloadKeys() {
     // Initialize keys
-    const auto yuzu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
-    if (!Common::FS::CreateDir(yuzu_keys_dir)) {
+    if (!Common::FS::CreateDir(suyu_keys_dir)) {
         LOG_ERROR(Core, "Failed to create the keys directory.");
     }
 
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
-        LoadFromFile(yuzu_keys_dir / "dev.keys", false);
+        LoadFromFile(suyu_keys_dir / "dev.keys", false);
     } else {
         dev_mode = false;
-        LoadFromFile(yuzu_keys_dir / "prod.keys", false);
+        LoadFromFile(suyu_keys_dir / "prod.keys", false);
     }
 
-    LoadFromFile(yuzu_keys_dir / "title.keys", true);
-    LoadFromFile(yuzu_keys_dir / "console.keys", false);
+    LoadFromFile(suyu_keys_dir / "title.keys", true);
+    LoadFromFile(suyu_keys_dir / "console.keys", false);
 }
 
 static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_t length) {
@@ -861,17 +861,17 @@ void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
 }
 
 bool KeyManager::KeyFileExists(bool title) {
-    const auto yuzu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+    const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
     if (title) {
-        return Common::FS::Exists(yuzu_keys_dir / "title.keys");
+        return Common::FS::Exists(suyu_keys_dir / "title.keys");
     }
 
     if (Settings::values.use_dev_keys) {
-        return Common::FS::Exists(yuzu_keys_dir / "dev.keys");
+        return Common::FS::Exists(suyu_keys_dir / "dev.keys");
     }
 
-    return Common::FS::Exists(yuzu_keys_dir / "prod.keys");
+    return Common::FS::Exists(suyu_keys_dir / "prod.keys");
 }
 
 void KeyManager::DeriveSDSeedLazy() {

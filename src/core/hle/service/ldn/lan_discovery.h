@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -109,7 +109,7 @@ protected:
     void SendPacket(const Network::LDNPacket& packet);
 
     static const LanEventFunc empty_func;
-    static constexpr Ssid fake_ssid{"YuzuFakeSsidForLdn"};
+    static constexpr Ssid fake_ssid{"SuyuFakeSsidForLdn"};
 
     bool inited{};
     std::mutex packet_mutex;

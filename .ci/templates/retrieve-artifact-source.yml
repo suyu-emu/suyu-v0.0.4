@@ -6,7 +6,7 @@ steps:
 - task: DownloadPipelineArtifact@2
   displayName: 'Download Source'
   inputs:
-    artifactName: 'yuzu-$(BuildName)-source'
+    artifactName: 'suyu-$(BuildName)-source'
     buildType: 'current'
     targetPath: '$(Build.ArtifactStagingDirectory)'
 - script: rm -rf $(System.DefaultWorkingDirectory) && mkdir $(System.DefaultWorkingDirectory)

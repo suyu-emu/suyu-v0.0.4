@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include "common/common_types.h"
 
-// This file contains yuzu's HLE API version constants.
+// This file contains suyu's HLE API version constants.
 
 namespace HLE::ApiVersion {
 

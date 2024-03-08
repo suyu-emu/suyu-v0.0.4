@@ -473,7 +473,7 @@ struct Values {
         linkage, 0,    "rng_seed",       Category::System, Specialization::Hex,
         true,    true, &rng_seed_enabled};
     Setting<std::string> device_name{
-        linkage, "yuzu", "device_name", Category::System, Specialization::Default, true, true};
+        linkage, "suyu", "device_name", Category::System, Specialization::Default, true, true};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
@@ -614,9 +614,9 @@ struct Values {
     Setting<bool> enable_telemetry{linkage, false, "enable_telemetry", Category::WebService};
     Setting<std::string> web_api_url{linkage, "https://api.suyu.dev", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> yuzu_username{linkage, std::string(), "yuzu_username",
+    Setting<std::string> suyu_username{linkage, std::string(), "suyu_username",
                                        Category::WebService};
-    Setting<std::string> yuzu_token{linkage, std::string(), "yuzu_token", Category::WebService};
+    Setting<std::string> suyu_token{linkage, std::string(), "suyu_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;

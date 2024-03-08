@@ -7,7 +7,7 @@ parameters:
 steps:
   - script: mkdir $(System.DefaultWorkingDirectory)/patches && pip install requests urllib3
     displayName: 'Prepare Environment'
-  - script: chmod a+x $(System.DefaultWorkingDirectory)/.ci/scripts/merge/yuzubot-git-config.sh && $(System.DefaultWorkingDirectory)/.ci/scripts/merge/yuzubot-git-config.sh
+  - script: chmod a+x $(System.DefaultWorkingDirectory)/.ci/scripts/merge/suyubot-git-config.sh && $(System.DefaultWorkingDirectory)/.ci/scripts/merge/suyubot-git-config.sh
     displayName: 'Apply Git Configuration'
   - task: PythonScript@0
     displayName: 'Discover, Download, and Apply Patches'

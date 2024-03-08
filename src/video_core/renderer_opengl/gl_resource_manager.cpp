@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2015 Citra Emulator Project
+// SPDX-FileCopyrightText: 2015 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string_view>
@@ -175,7 +175,7 @@ void OGLFramebuffer::Create() {
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     // Bind to READ_FRAMEBUFFER to stop Nvidia's driver from creating an EXT_framebuffer instead of
     // a core framebuffer. EXT framebuffer attachments have to match in size and can be shared
-    // across contexts. yuzu doesn't share framebuffers across contexts and we need attachments with
+    // across contexts. suyu doesn't share framebuffers across contexts and we need attachments with
     // mismatching size, this is why core framebuffers are preferred.
     glGenFramebuffers(1, &handle);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, handle);

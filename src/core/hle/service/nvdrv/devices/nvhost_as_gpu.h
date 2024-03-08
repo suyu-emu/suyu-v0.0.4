@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2021 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -190,8 +190,8 @@ private:
     std::mutex mutex;                         //!< Locks all AS operations
 
     struct VM {
-        static constexpr u32 YUZU_PAGESIZE{0x1000};
-        static constexpr u32 PAGE_SIZE_BITS{std::countr_zero(YUZU_PAGESIZE)};
+        static constexpr u32 SUYU_PAGESIZE{0x1000};
+        static constexpr u32 PAGE_SIZE_BITS{std::countr_zero(SUYU_PAGESIZE)};
 
         static constexpr u32 SUPPORTED_BIG_PAGE_SIZES{0x30000};
         static constexpr u32 DEFAULT_BIG_PAGE_SIZE{0x20000};
