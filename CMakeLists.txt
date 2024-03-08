@@ -340,6 +340,9 @@ endif()
 
 if (ENABLE_WEB_SERVICE)
     find_package(cpp-jwt 1.4 CONFIG)
+endif()
+
+if (ENABLE_WEB_SERVICE OR USE_DISCORD_PRESENCE)
     find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
 endif()
 
