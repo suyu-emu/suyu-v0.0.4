@@ -3,8 +3,8 @@
 
 #include "common/settings.h"
 #include "core/core.h"
-#include "ui_configure_cpu_debug.h"
 #include "suyu/configuration/configure_cpu_debug.h"
+#include "ui_configure_cpu_debug.h"
 
 ConfigureCpuDebug::ConfigureCpuDebug(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigureCpuDebug>()}, system{system_} {

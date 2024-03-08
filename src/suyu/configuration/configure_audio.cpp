@@ -13,12 +13,12 @@
 #include "common/settings.h"
 #include "common/settings_common.h"
 #include "core/core.h"
-#include "ui_configure_audio.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_audio.h"
 #include "suyu/configuration/shared_translation.h"
 #include "suyu/configuration/shared_widget.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_audio.h"
 
 ConfigureAudio::ConfigureAudio(const Core::System& system_,
                                std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,

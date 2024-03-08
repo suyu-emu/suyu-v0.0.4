@@ -8,13 +8,13 @@
 
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
+#include "suyu/vk_device_info.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "vulkan/vulkan_core.h"
-#include "suyu/vk_device_info.h"
 
 class QWindow;
 

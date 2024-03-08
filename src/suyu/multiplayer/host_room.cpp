@@ -15,7 +15,6 @@
 #include "core/core.h"
 #include "core/internal_network/network_interface.h"
 #include "network/announce_multiplayer_session.h"
-#include "ui_host_room.h"
 #include "suyu/game_list_p.h"
 #include "suyu/main.h"
 #include "suyu/multiplayer/host_room.h"
@@ -23,6 +22,7 @@
 #include "suyu/multiplayer/state.h"
 #include "suyu/multiplayer/validation.h"
 #include "suyu/uisettings.h"
+#include "ui_host_room.h"
 #ifdef ENABLE_WEB_SERVICE
 #include "web_service/verify_user_jwt.h"
 #endif

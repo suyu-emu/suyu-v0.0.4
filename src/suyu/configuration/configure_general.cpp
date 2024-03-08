@@ -7,11 +7,11 @@
 #include <QMessageBox>
 #include "common/settings.h"
 #include "core/core.h"
-#include "ui_configure_general.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_general.h"
 #include "suyu/configuration/shared_widget.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_general.h"
 
 ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
                                    std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,

@@ -5,8 +5,8 @@
 #include <QMessageBox>
 
 #include "common/settings.h"
-#include "ui_configure_mouse_panning.h"
 #include "suyu/configuration/configure_mouse_panning.h"
+#include "ui_configure_mouse_panning.h"
 
 ConfigureMousePanning::ConfigureMousePanning(QWidget* parent,
                                              InputCommon::InputSubsystem* input_subsystem_,

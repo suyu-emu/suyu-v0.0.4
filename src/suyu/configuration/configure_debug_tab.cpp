@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
-#include "ui_configure_debug_tab.h"
 #include "suyu/configuration/configure_cpu_debug.h"
 #include "suyu/configuration/configure_debug.h"
 #include "suyu/configuration/configure_debug_tab.h"
+#include "ui_configure_debug_tab.h"
 
 ConfigureDebugTab::ConfigureDebugTab(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigureDebugTab>()},

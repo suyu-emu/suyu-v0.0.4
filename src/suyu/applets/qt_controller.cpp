@@ -14,7 +14,6 @@
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/resources/npad/npad.h"
-#include "ui_qt_controller.h"
 #include "suyu/applets/qt_controller.h"
 #include "suyu/configuration/configure_input.h"
 #include "suyu/configuration/configure_input_profile_dialog.h"
@@ -23,6 +22,7 @@
 #include "suyu/configuration/input_profiles.h"
 #include "suyu/main.h"
 #include "suyu/util/controller_navigation.h"
+#include "ui_qt_controller.h"
 
 namespace {
 

@@ -13,10 +13,10 @@
 #include "hid_core/frontend/input_interpreter.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
-#include "ui_qt_software_keyboard.h"
 #include "suyu/applets/qt_software_keyboard.h"
 #include "suyu/main.h"
 #include "suyu/util/overlay_dialog.h"
+#include "ui_qt_software_keyboard.h"
 
 namespace {
 

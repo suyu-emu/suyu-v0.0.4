@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "hid_core/hid_core.h"
-#include "ui_configure_debug_controller.h"
 #include "suyu/configuration/configure_debug_controller.h"
 #include "suyu/configuration/configure_input_player.h"
+#include "ui_configure_debug_controller.h"
 
 ConfigureDebugController::ConfigureDebugController(QWidget* parent,
                                                    InputCommon::InputSubsystem* input_subsystem,

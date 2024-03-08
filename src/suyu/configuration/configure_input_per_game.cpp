@@ -6,9 +6,9 @@
 #include "frontend_common/config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
-#include "ui_configure_input_per_game.h"
 #include "suyu/configuration/configure_input_per_game.h"
 #include "suyu/configuration/input_profiles.h"
+#include "ui_configure_input_per_game.h"
 
 ConfigureInputPerGame::ConfigureInputPerGame(Core::System& system_, QtConfig* config_,
                                              QWidget* parent)

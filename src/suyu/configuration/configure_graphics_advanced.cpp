@@ -6,11 +6,11 @@
 #include <qnamespace.h>
 #include "common/settings.h"
 #include "core/core.h"
-#include "ui_configure_graphics_advanced.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_graphics_advanced.h"
 #include "suyu/configuration/shared_translation.h"
 #include "suyu/configuration/shared_widget.h"
+#include "ui_configure_graphics_advanced.h"
 
 ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(
     const Core::System& system_, std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,

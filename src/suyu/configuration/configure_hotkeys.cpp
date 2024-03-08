@@ -10,11 +10,11 @@
 #include "hid_core/hid_core.h"
 
 #include "frontend_common/config.h"
-#include "ui_configure_hotkeys.h"
 #include "suyu/configuration/configure_hotkeys.h"
 #include "suyu/hotkeys.h"
 #include "suyu/uisettings.h"
 #include "suyu/util/sequence_dialog/sequence_dialog.h"
+#include "ui_configure_hotkeys.h"
 
 constexpr int name_column = 0;
 constexpr int hotkey_column = 1;

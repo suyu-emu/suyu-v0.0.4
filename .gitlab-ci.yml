@@ -1,5 +1,14 @@
 stages:
+  - format
   - build
+
+clang-format:
+  stage: format
+  image: suyuemu/cibuild:latest
+  variables:
+    RELEASE_NAME: mainline
+  script:
+    - bash .ci/scripts/format/script.sh
 
 build-linux:
   stage: build

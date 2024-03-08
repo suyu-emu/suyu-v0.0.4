@@ -5,8 +5,8 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/internal_network/network_interface.h"
-#include "ui_configure_network.h"
 #include "suyu/configuration/configure_network.h"
+#include "ui_configure_network.h"
 
 ConfigureNetwork::ConfigureNetwork(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureNetwork>()), system{system_} {

@@ -8,8 +8,8 @@
 #include "core/core.h"
 #include "hid_core/frontend/input_interpreter.h"
 #include "hid_core/hid_types.h"
-#include "ui_overlay_dialog.h"
 #include "suyu/util/overlay_dialog.h"
+#include "ui_overlay_dialog.h"
 
 namespace {
 

@@ -18,10 +18,10 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
-#include "ui_configure_per_game_addons.h"
 #include "suyu/configuration/configure_input.h"
 #include "suyu/configuration/configure_per_game_addons.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_per_game_addons.h"
 
 ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigurePerGameAddons>()}, system{system_} {

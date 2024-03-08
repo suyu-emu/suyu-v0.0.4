@@ -54,12 +54,12 @@
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
-#include "video_core/gpu.h"
-#include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_base.h"
 #include "suyu/bootmanager.h"
 #include "suyu/main.h"
 #include "suyu/qt_common.h"
+#include "video_core/gpu.h"
+#include "video_core/rasterizer_interface.h"
+#include "video_core/renderer_base.h"
 
 class QObject;
 class QPaintEngine;

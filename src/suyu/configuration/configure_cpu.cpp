@@ -10,9 +10,9 @@
 #include "common/settings_enums.h"
 #include "configuration/shared_widget.h"
 #include "core/core.h"
-#include "ui_configure_cpu.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_cpu.h"
+#include "ui_configure_cpu.h"
 
 ConfigureCpu::ConfigureCpu(const Core::System& system_,
                            std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,

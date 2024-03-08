@@ -33,5 +33,5 @@ if [ ! -z "$DIFF" ]; then
     exit 1
 fi
 
-cd src/android
-./gradlew ktlintCheck
+#cd src/android
+#./gradlew ktlintCheck

@@ -3,7 +3,6 @@
 
 // Modified by palfaiate on <2024/03/07>
 
-
 #include <regex>
 #include <QApplication>
 #include <QDir>

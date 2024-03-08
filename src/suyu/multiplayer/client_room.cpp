@@ -11,12 +11,12 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include "common/logging/log.h"
 #include "network/announce_multiplayer_session.h"
-#include "ui_client_room.h"
 #include "suyu/game_list_p.h"
 #include "suyu/multiplayer/client_room.h"
 #include "suyu/multiplayer/message.h"
 #include "suyu/multiplayer/moderation_dialog.h"
 #include "suyu/multiplayer/state.h"
+#include "ui_client_room.h"
 
 ClientRoomWindow::ClientRoomWindow(QWidget* parent, Network::RoomNetwork& room_network_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),

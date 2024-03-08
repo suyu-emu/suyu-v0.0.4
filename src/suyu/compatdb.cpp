@@ -8,8 +8,8 @@
 #include "common/logging/log.h"
 #include "common/telemetry.h"
 #include "core/telemetry_session.h"
-#include "ui_compatdb.h"
 #include "suyu/compatdb.h"
+#include "ui_compatdb.h"
 
 CompatDB::CompatDB(Core::TelemetrySession& telemetry_session_, QWidget* parent)
     : QWizard(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),

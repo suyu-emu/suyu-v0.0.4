@@ -3,8 +3,8 @@
 
 #include <memory>
 #include "common/settings.h"
-#include "ui_configure_touchscreen_advanced.h"
 #include "suyu/configuration/configure_touchscreen_advanced.h"
+#include "ui_configure_touchscreen_advanced.h"
 
 ConfigureTouchscreenAdvanced::ConfigureTouchscreenAdvanced(QWidget* parent)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureTouchscreenAdvanced>()) {

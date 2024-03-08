@@ -26,8 +26,8 @@
 #include "common/settings_enums.h"
 #include "core/core.h"
 #include "core/frontend/framebuffer_layout.h"
-#include "ui_configure_ui.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_ui.h"
 
 namespace {
 constexpr std::array default_game_icon_sizes{

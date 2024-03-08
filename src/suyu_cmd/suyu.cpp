@@ -34,11 +34,11 @@
 #include "input_common/main.h"
 #include "network/network.h"
 #include "sdl_config.h"
-#include "video_core/renderer_base.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_gl.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_null.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_vk.h"
+#include "video_core/renderer_base.h"
 
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h

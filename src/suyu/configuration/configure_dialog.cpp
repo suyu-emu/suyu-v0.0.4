@@ -6,8 +6,6 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
-#include "ui_configure.h"
-#include "vk_device_info.h"
 #include "suyu/configuration/configure_applets.h"
 #include "suyu/configuration/configure_audio.h"
 #include "suyu/configuration/configure_cpu.h"
@@ -27,6 +25,8 @@
 #include "suyu/configuration/configure_web.h"
 #include "suyu/hotkeys.h"
 #include "suyu/uisettings.h"
+#include "ui_configure.h"
+#include "vk_device_info.h"
 
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  InputCommon::InputSubsystem* input_subsystem,

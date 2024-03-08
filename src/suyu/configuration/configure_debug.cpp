@@ -9,10 +9,10 @@
 #include "common/logging/filter.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "ui_configure_debug.h"
 #include "suyu/configuration/configure_debug.h"
 #include "suyu/debugger/console.h"
 #include "suyu/uisettings.h"
+#include "ui_configure_debug.h"
 
 ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
     : QScrollArea(parent), ui{std::make_unique<Ui::ConfigureDebug>()}, system{system_} {

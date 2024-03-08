@@ -5,8 +5,8 @@
 #include <QStandardItemModel>
 #include "network/network.h"
 #include "network/room_member.h"
-#include "ui_moderation_dialog.h"
 #include "suyu/multiplayer/moderation_dialog.h"
+#include "ui_moderation_dialog.h"
 
 namespace Column {
 enum {

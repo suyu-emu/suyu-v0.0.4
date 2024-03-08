@@ -9,8 +9,8 @@
 
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
-#include "video_core/renderer_null/renderer_null.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_null.h"
+#include "video_core/renderer_null/renderer_null.h"
 
 #ifdef SUYU_USE_EXTERNAL_SDL2
 // Include this before SDL.h to prevent the external from including a dummy
