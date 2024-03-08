@@ -24,7 +24,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-  <a href="https://discord.gg/2gQRBp44KT">Discord</a> |
+  <a href="https://discord.gg/suyu">Discord</a> |
   <a href="#status">Status</a> |
   <a href="#development">Development</a> |
   <a href="#downloads">Downloads</a> |
@@ -36,7 +36,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 
 ## Status
 
-Although we're able to make builds, we don't have a version ready for distribution yet. But we can always use more help! You can make a merge request if you'd like to see something changed, or you can [chat with other developers to find out what needs work](https://discord.gg/2gQRBp44KT).
+Although we're able to make builds, we don't have a version ready for distribution yet. But we can always use more help! You can make a merge request if you'd like to see something changed, or you can [chat with other developers to find out what needs work](https://discord.gg/suyu).
 
 **Note**: We try to update this README whenever we can, but some links might be broken, and some information may be outdated or irrelevant.
 
@@ -44,7 +44,7 @@ Although we're able to make builds, we don't have a version ready for distributi
 
 This project is completely free and open source, and anyone can contribute to help improve suyu.
 
-Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/2gQRBp44KT).
+Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/suyu).
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
 You can also contact any of the developers on Discord to learn more about the current state of suyu.
@@ -65,7 +65,7 @@ We don't have any official builds yet! If any website or person is claiming to h
 
 ## Support
 
-If you have any questions, don't hesitate to ask us on [Discord](https://discord.gg/2gQRBp44KT). We don't bite!
+If you have any questions, don't hesitate to ask us on [Discord](https://discord.gg/suyu). We don't bite!
 
 
 ## License
