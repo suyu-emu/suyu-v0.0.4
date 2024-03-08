@@ -24,6 +24,7 @@ cmake .. \
       -DSUYU_USE_BUNDLED_FFMPEG=ON \
       -DSUYU_ENABLE_LTO=ON \
       -DSUYU_CRASH_DUMPS=ON \
+      -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold" \
       -GNinja
 
 ninja
