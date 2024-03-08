@@ -15,19 +15,16 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::Glue::Time {
-namespace {
-static std::mutex g_list_mutex;
-static Common::IntrusiveListBaseTraits<Service::PSC::Time::OperationEvent>::ListType g_list_nodes{};
-} // namespace
 
 TimeZoneService::TimeZoneService(
     Core::System& system_, FileTimestampWorker& file_timestamp_worker,
-    bool can_write_timezone_device_location,
+    bool can_write_timezone_device_location, TimeZoneBinary& time_zone_binary,
     std::shared_ptr<Service::PSC::Time::TimeZoneService> time_zone_service)
     : ServiceFramework{system_, "ITimeZoneService"}, m_system{system},
       m_can_write_timezone_device_location{can_write_timezone_device_location},
-      m_file_timestamp_worker{file_timestamp_worker},
-      m_wrapped_service{std::move(time_zone_service)}, m_operation_event{m_system} {
+      m_file_timestamp_worker{file_timestamp_worker}, m_wrapped_service{std::move(
+                                                          time_zone_service)},
+      m_operation_event{m_system}, m_time_zone_binary{time_zone_binary} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0,   D<&TimeZoneService::GetDeviceLocationName>, "GetDeviceLocationName"},
@@ -48,7 +45,6 @@ TimeZoneService::TimeZoneService(
     // clang-format on
     RegisterHandlers(functions);
 
-    g_list_nodes.clear();
     m_set_sys =
         m_system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
 }
@@ -69,13 +65,13 @@ Result TimeZoneService::SetDeviceLocationName(
     LOG_DEBUG(Service_Time, "called. location_name={}", location_name);
 
     R_UNLESS(m_can_write_timezone_device_location, Service::PSC::Time::ResultPermissionDenied);
-    R_UNLESS(IsTimeZoneBinaryValid(location_name), Service::PSC::Time::ResultTimeZoneNotFound);
+    R_UNLESS(m_time_zone_binary.IsValid(location_name), Service::PSC::Time::ResultTimeZoneNotFound);
 
     std::scoped_lock l{m_mutex};
 
     std::span<const u8> binary{};
     size_t binary_size{};
-    R_TRY(GetTimeZoneRule(binary, binary_size, location_name))
+    R_TRY(m_time_zone_binary.GetTimeZoneRule(binary, binary_size, location_name))
 
     R_TRY(m_wrapped_service->SetDeviceLocationNameWithTimeZoneRule(location_name, binary));
 
@@ -88,8 +84,8 @@ Result TimeZoneService::SetDeviceLocationName(
     m_set_sys->SetDeviceTimeZoneLocationName(name);
     m_set_sys->SetDeviceTimeZoneLocationUpdatedTime(time_point);
 
-    std::scoped_lock m{g_list_mutex};
-    for (auto& operation_event : g_list_nodes) {
+    std::scoped_lock m{m_list_mutex};
+    for (auto& operation_event : m_list_nodes) {
         operation_event.m_event->Signal();
     }
     R_SUCCEED();
@@ -112,7 +108,8 @@ Result TimeZoneService::LoadLocationNameList(
     };
 
     std::scoped_lock l{m_mutex};
-    R_RETURN(GetTimeZoneLocationList(*out_count, out_names, out_names.size(), index));
+    R_RETURN(
+        m_time_zone_binary.GetTimeZoneLocationList(*out_count, out_names, out_names.size(), index));
 }
 
 Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule,
@@ -122,7 +119,7 @@ Result TimeZoneService::LoadTimeZoneRule(OutRule out_rule,
     std::scoped_lock l{m_mutex};
     std::span<const u8> binary{};
     size_t binary_size{};
-    R_TRY(GetTimeZoneRule(binary, binary_size, name))
+    R_TRY(m_time_zone_binary.GetTimeZoneRule(binary, binary_size, name))
     R_RETURN(m_wrapped_service->ParseTimeZoneBinary(out_rule, binary));
 }
 
@@ -174,7 +171,7 @@ Result TimeZoneService::GetDeviceLocationNameOperationEventReadableHandle(
             m_operation_event.m_ctx.CreateEvent("Psc:TimeZoneService:OperationEvent");
         operation_event_initialized = true;
         std::scoped_lock l{m_mutex};
-        g_list_nodes.push_back(m_operation_event);
+        m_list_nodes.push_back(m_operation_event);
     }
 
     *out_event = &m_operation_event.m_event->GetReadableEvent();

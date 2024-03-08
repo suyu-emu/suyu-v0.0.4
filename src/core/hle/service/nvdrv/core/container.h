@@ -68,10 +68,7 @@ public:
     const SyncpointManager& GetSyncpointManager() const;
 
     struct Host1xDeviceFileData {
-        std::unordered_map<DeviceFD, u32> fd_to_id{};
         std::deque<u32> syncpts_accumulated{};
-        u32 nvdec_next_id{};
-        u32 vic_next_id{};
     };
 
     Host1xDeviceFileData& Host1xDeviceFile();

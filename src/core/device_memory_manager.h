@@ -43,6 +43,8 @@ public:
     DeviceMemoryManager(const DeviceMemory& device_memory);
     ~DeviceMemoryManager();
 
+    static constexpr bool HAS_FLUSH_INVALIDATION = true;
+
     void BindInterface(DeviceInterface* device_inter);
 
     DAddr Allocate(size_t size);

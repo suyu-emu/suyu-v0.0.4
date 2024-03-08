@@ -32,6 +32,7 @@ class TimeZoneService;
 
 namespace Service::Glue::Time {
 class FileTimestampWorker;
+class TimeZoneBinary;
 
 class TimeZoneService final : public ServiceFramework<TimeZoneService> {
     using InRule = InLargeData<Tz::Rule, BufferAttr_HipcMapAlias>;
@@ -40,7 +41,7 @@ class TimeZoneService final : public ServiceFramework<TimeZoneService> {
 public:
     explicit TimeZoneService(
         Core::System& system, FileTimestampWorker& file_timestamp_worker,
-        bool can_write_timezone_device_location,
+        bool can_write_timezone_device_location, TimeZoneBinary& time_zone_binary,
         std::shared_ptr<Service::PSC::Time::TimeZoneService> time_zone_service);
 
     ~TimeZoneService() override;
@@ -85,6 +86,10 @@ private:
     std::mutex m_mutex;
     bool operation_event_initialized{};
     Service::PSC::Time::OperationEvent m_operation_event;
+    TimeZoneBinary& m_time_zone_binary;
+
+    std::mutex m_list_mutex;
+    Common::IntrusiveListBaseTraits<Service::PSC::Time::OperationEvent>::ListType m_list_nodes{};
 };
 
 } // namespace Service::Glue::Time

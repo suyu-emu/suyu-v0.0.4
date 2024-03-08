@@ -16,23 +16,6 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::Glue::Time {
-namespace {
-
-bool g_ig_report_network_clock_context_set{};
-Service::PSC::Time::SystemClockContext g_report_network_clock_context{};
-bool g_ig_report_ephemeral_clock_context_set{};
-Service::PSC::Time::SystemClockContext g_report_ephemeral_clock_context{};
-
-template <typename T>
-T GetSettingsItemValue(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys,
-                       const char* category, const char* name) {
-    T v{};
-    auto res = set_sys->GetSettingsItemValueImpl(v, category, name);
-    ASSERT(res == ResultSuccess);
-    return v;
-}
-
-} // namespace
 
 TimeWorker::TimeWorker(Core::System& system, StandardSteadyClockResource& steady_clock_resource,
                        FileTimestampWorker& file_timestamp_worker)
@@ -43,11 +26,6 @@ TimeWorker::TimeWorker(Core::System& system, StandardSteadyClockResource& steady
                                                           "Glue:TimeWorker:SteadyClockTimerEvent")},
       m_timer_file_system{m_ctx.CreateEvent("Glue:TimeWorker:FileTimeTimerEvent")},
       m_alarm_worker{m_system, m_steady_clock_resource}, m_pm_state_change_handler{m_alarm_worker} {
-    g_ig_report_network_clock_context_set = false;
-    g_report_network_clock_context = {};
-    g_ig_report_ephemeral_clock_context_set = false;
-    g_report_ephemeral_clock_context = {};
-
     m_timer_steady_clock_timing_event = Core::Timing::CreateEvent(
         "Time::SteadyClockEvent",
         [this](s64 time,
@@ -82,6 +60,14 @@ TimeWorker::~TimeWorker() {
     m_ctx.CloseEvent(m_timer_file_system);
 }
 
+template <typename T>
+T TimeWorker::GetSettingsItemValue(const std::string& category, const std::string& name) {
+    T v{};
+    auto res = m_set_sys->GetSettingsItemValueImpl(v, category, name);
+    ASSERT(res == ResultSuccess);
+    return v;
+}
+
 void TimeWorker::Initialize(std::shared_ptr<Service::PSC::Time::StaticService> time_sm,
                             std::shared_ptr<Service::Set::ISystemSettingsServer> set_sys) {
     m_set_sys = std::move(set_sys);
@@ -91,8 +77,8 @@ void TimeWorker::Initialize(std::shared_ptr<Service::PSC::Time::StaticService> t
 
     m_alarm_worker.Initialize(m_time_m);
 
-    auto steady_clock_interval_m = GetSettingsItemValue<s32>(
-        m_set_sys, "time", "standard_steady_clock_rtc_update_interval_minutes");
+    auto steady_clock_interval_m =
+        GetSettingsItemValue<s32>("time", "standard_steady_clock_rtc_update_interval_minutes");
 
     auto one_minute_ns{
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::minutes(1)).count()};
@@ -102,8 +88,7 @@ void TimeWorker::Initialize(std::shared_ptr<Service::PSC::Time::StaticService> t
                                                std::chrono::nanoseconds(steady_clock_interval_ns),
                                                m_timer_steady_clock_timing_event);
 
-    auto fs_notify_time_s =
-        GetSettingsItemValue<s32>(m_set_sys, "time", "notify_time_to_fs_interval_seconds");
+    auto fs_notify_time_s = GetSettingsItemValue<s32>("time", "notify_time_to_fs_interval_seconds");
     auto one_second_ns{
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count()};
     s64 fs_notify_time_ns{fs_notify_time_s * one_second_ns};
@@ -218,14 +203,14 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             }
 
             [[maybe_unused]] auto offset_before{
-                g_ig_report_network_clock_context_set ? g_report_network_clock_context.offset : 0};
+                m_ig_report_network_clock_context_set ? m_report_network_clock_context.offset : 0};
             // TODO system report "standard_netclock_operation"
             //              "clock_time" = time
             //              "context_offset_before" = offset_before
             //              "context_offset_after"  = context.offset
-            g_report_network_clock_context = context;
-            if (!g_ig_report_network_clock_context_set) {
-                g_ig_report_network_clock_context_set = true;
+            m_report_network_clock_context = context;
+            if (!m_ig_report_network_clock_context_set) {
+                m_ig_report_network_clock_context_set = true;
             }
 
             m_file_timestamp_worker.SetFilesystemPosixTime();
@@ -247,16 +232,16 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
                 break;
             }
 
-            [[maybe_unused]] auto offset_before{g_ig_report_ephemeral_clock_context_set
-                                                    ? g_report_ephemeral_clock_context.offset
+            [[maybe_unused]] auto offset_before{m_ig_report_ephemeral_clock_context_set
+                                                    ? m_report_ephemeral_clock_context.offset
                                                     : 0};
             // TODO system report "ephemeral_netclock_operation"
             //              "clock_time" = time
             //              "context_offset_before" = offset_before
             //              "context_offset_after"  = context.offset
-            g_report_ephemeral_clock_context = context;
-            if (!g_ig_report_ephemeral_clock_context_set) {
-                g_ig_report_ephemeral_clock_context_set = true;
+            m_report_ephemeral_clock_context = context;
+            if (!m_ig_report_ephemeral_clock_context_set) {
+                m_ig_report_ephemeral_clock_context_set = true;
             }
             break;
         }

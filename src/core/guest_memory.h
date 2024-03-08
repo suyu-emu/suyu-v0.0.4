@@ -44,14 +44,31 @@ public:
     GuestMemory() = delete;
     explicit GuestMemory(M& memory, u64 addr, std::size_t size,
                          Common::ScratchBuffer<T>* backup = nullptr)
-        : m_memory{memory}, m_addr{addr}, m_size{size} {
+        : m_memory{&memory}, m_addr{addr}, m_size{size} {
         static_assert(FLAGS & GuestMemoryFlags::Read || FLAGS & GuestMemoryFlags::Write);
-        if constexpr (FLAGS & GuestMemoryFlags::Read) {
+        if constexpr (!(FLAGS & GuestMemoryFlags::Read)) {
+            if (!this->TrySetSpan()) {
+                if (backup) {
+                    backup->resize_destructive(this->size());
+                    m_data_span = *backup;
+                    m_span_valid = true;
+                    m_is_data_copy = true;
+                } else {
+                    m_data_copy.resize(this->size());
+                    m_data_span = std::span(m_data_copy);
+                    m_span_valid = true;
+                    m_is_data_copy = true;
+                }
+            }
+        } else if constexpr (FLAGS & GuestMemoryFlags::Read) {
             Read(addr, size, backup);
         }
     }
 
     ~GuestMemory() = default;
+
+    GuestMemory(GuestMemory&& rhs) = default;
+    GuestMemory& operator=(GuestMemory&& rhs) = default;
 
     T* data() noexcept {
         return m_data_span.data();
@@ -109,8 +126,8 @@ public:
         }
 
         if (this->TrySetSpan()) {
-            if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                m_memory.FlushRegion(m_addr, this->size_bytes());
+            if constexpr (FLAGS & GuestMemoryFlags::Safe && M::HAS_FLUSH_INVALIDATION) {
+                m_memory->FlushRegion(m_addr, this->size_bytes());
             }
         } else {
             if (backup) {
@@ -123,9 +140,9 @@ public:
             m_is_data_copy = true;
             m_span_valid = true;
             if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                m_memory.ReadBlock(m_addr, this->data(), this->size_bytes());
+                m_memory->ReadBlock(m_addr, this->data(), this->size_bytes());
             } else {
-                m_memory.ReadBlockUnsafe(m_addr, this->data(), this->size_bytes());
+                m_memory->ReadBlockUnsafe(m_addr, this->data(), this->size_bytes());
             }
         }
         return m_data_span;
@@ -133,18 +150,19 @@ public:
 
     void Write(std::span<T> write_data) noexcept {
         if constexpr (FLAGS & GuestMemoryFlags::Cached) {
-            m_memory.WriteBlockCached(m_addr, write_data.data(), this->size_bytes());
+            m_memory->WriteBlockCached(m_addr, write_data.data(), this->size_bytes());
         } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-            m_memory.WriteBlock(m_addr, write_data.data(), this->size_bytes());
+            m_memory->WriteBlock(m_addr, write_data.data(), this->size_bytes());
         } else {
-            m_memory.WriteBlockUnsafe(m_addr, write_data.data(), this->size_bytes());
+            m_memory->WriteBlockUnsafe(m_addr, write_data.data(), this->size_bytes());
         }
     }
 
     bool TrySetSpan() noexcept {
-        if (u8* ptr = m_memory.GetSpan(m_addr, this->size_bytes()); ptr) {
+        if (u8* ptr = m_memory->GetSpan(m_addr, this->size_bytes()); ptr) {
             m_data_span = {reinterpret_cast<T*>(ptr), this->size()};
             m_span_valid = true;
+            m_is_data_copy = false;
             return true;
         }
         return false;
@@ -159,7 +177,7 @@ protected:
         return m_addr_changed;
     }
 
-    M& m_memory;
+    M* m_memory;
     u64 m_addr{};
     size_t m_size{};
     std::span<T> m_data_span{};
@@ -175,17 +193,7 @@ public:
     GuestMemoryScoped() = delete;
     explicit GuestMemoryScoped(M& memory, u64 addr, std::size_t size,
                                Common::ScratchBuffer<T>* backup = nullptr)
-        : GuestMemory<M, T, FLAGS>(memory, addr, size, backup) {
-        if constexpr (!(FLAGS & GuestMemoryFlags::Read)) {
-            if (!this->TrySetSpan()) {
-                if (backup) {
-                    this->m_data_span = *backup;
-                    this->m_span_valid = true;
-                    this->m_is_data_copy = true;
-                }
-            }
-        }
-    }
+        : GuestMemory<M, T, FLAGS>(memory, addr, size, backup) {}
 
     ~GuestMemoryScoped() {
         if constexpr (FLAGS & GuestMemoryFlags::Write) {
@@ -196,15 +204,17 @@ public:
             if (this->AddressChanged() || this->IsDataCopy()) {
                 ASSERT(this->m_span_valid);
                 if constexpr (FLAGS & GuestMemoryFlags::Cached) {
-                    this->m_memory.WriteBlockCached(this->m_addr, this->data(), this->size_bytes());
+                    this->m_memory->WriteBlockCached(this->m_addr, this->data(),
+                                                     this->size_bytes());
                 } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                    this->m_memory.WriteBlock(this->m_addr, this->data(), this->size_bytes());
+                    this->m_memory->WriteBlock(this->m_addr, this->data(), this->size_bytes());
                 } else {
-                    this->m_memory.WriteBlockUnsafe(this->m_addr, this->data(), this->size_bytes());
+                    this->m_memory->WriteBlockUnsafe(this->m_addr, this->data(),
+                                                     this->size_bytes());
                 }
             } else if constexpr ((FLAGS & GuestMemoryFlags::Safe) ||
                                  (FLAGS & GuestMemoryFlags::Cached)) {
-                this->m_memory.InvalidateRegion(this->m_addr, this->size_bytes());
+                this->m_memory->InvalidateRegion(this->m_addr, this->size_bytes());
             }
         }
     }
