@@ -1,5 +1,6 @@
 stages:
   - build
+  - format
 
 build-linux:
   stage: build
@@ -14,3 +15,12 @@ build-linux:
   artifacts:
     paths:
       - artifacts/*
+
+clang-format:
+  stage: format
+  image: suyuemu/cibuild:latest
+  resource_group: linux-ci
+  variables:
+    RELEASE_NAME: mainline
+  script:
+    - bash .ci/scripts/format/script.sh
