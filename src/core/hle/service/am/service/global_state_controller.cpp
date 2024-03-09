@@ -34,8 +34,7 @@ IGlobalStateController::IGlobalStateController(Core::System& system_)
 IGlobalStateController::~IGlobalStateController() = default;
 
 Result IGlobalStateController::StartSleepSequence(u8 a) {
-    LOG_WARNING(Service_AM, "called, a={}", a);
-    system.Pause();
+    LOG_WARNING(Service_AM, "(STUBBED) called, a={}", a);
     R_SUCCEED();
 }
 
