@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// Modified by AdyaGMD on <2024/03/09>
+
 #include <chrono>
 #include <string>
 
@@ -24,7 +26,7 @@ DiscordImpl::DiscordImpl(Core::System& system_) : system{system_} {
     DiscordEventHandlers handlers{};
     // The number is the client ID for suyu, it's used for images and the
     // application name
-    Discord_Initialize("712465656758665259", &handlers, 1, nullptr);
+    Discord_Initialize("1216044747781570671", &handlers, 1, nullptr);
 }
 
 DiscordImpl::~DiscordImpl() {
