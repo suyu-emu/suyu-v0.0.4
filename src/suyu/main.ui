@@ -173,6 +173,7 @@
     <addaction name="action_Load_Album"/>
     <addaction name="action_Load_Mii_Edit"/>
     <addaction name="action_Open_Controller_Menu"/>
+    <addaction name="action_Load_Home_Menu"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
     <addaction name="menuTAS"/>
@@ -473,6 +474,11 @@
   <action name="action_Install_Keys">
    <property name="text">
     <string>Install Decryption Keys</string>
+   </property>
+  </action>
+  <action name="action_Load_Home_Menu">
+   <property name="text">
+    <string>Open Home Menu</string>
    </property>
   </action>
  </widget>
