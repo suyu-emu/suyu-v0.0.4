@@ -23,7 +23,7 @@ IHomeMenuFunctions::IHomeMenuFunctions(Core::System& system_, std::shared_ptr<Ap
         {21, D<&IHomeMenuFunctions::GetPopFromGeneralChannelEvent>, "GetPopFromGeneralChannelEvent"},
         {30, nullptr, "GetHomeButtonWriterLockAccessor"},
         {31, nullptr, "GetWriterLockAccessorEx"},
-        {40, nullptr, "IsSleepEnabled"},
+        {40, D<&IHomeMenuFunctions::IsSleepEnabled>, "IsSleepEnabled"},
         {41, D<&IHomeMenuFunctions::IsRebootEnabled>, "IsRebootEnabled"},
         {50, nullptr, "LaunchSystemApplet"},
         {51, nullptr, "LaunchStarter"},
@@ -61,6 +61,12 @@ Result IHomeMenuFunctions::GetPopFromGeneralChannelEvent(
     OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_INFO(Service_AM, "called");
     *out_event = m_pop_from_general_channel_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IHomeMenuFunctions::IsSleepEnabled(Out<bool> out_is_sleep_enbaled) {
+    LOG_INFO(Service_AM, "called");
+    *out_is_sleep_enbaled = true;
     R_SUCCEED();
 }
 
