@@ -70,6 +70,8 @@ float EmulationAspectRatio(AspectRatio aspect, float window_aspect_ratio) {
         return 9.0f / 21.0f;
     case AspectRatio::R16_10:
         return 10.0f / 16.0f;
+    case AspectRatio::R32_9:
+        return 9.0f / 32.0f;
     case AspectRatio::StretchToWindow:
         return window_aspect_ratio;
     default:
