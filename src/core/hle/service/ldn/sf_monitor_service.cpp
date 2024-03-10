@@ -29,11 +29,11 @@ Result ISfMonitorService::Initialize(Out<u32> out_value) {
     R_SUCCEED();
 }
 
-Result ISfMonitorService::GetGroupInfo(
+Result ISfMonitorService::GetGroupInfo(GroupInfo in_group_info,
     OutLargeData<GroupInfo, BufferAttr_HipcAutoSelect> out_group_info) {
     LOG_WARNING(Service_LDN, "(STUBBED) called");
 
-    *out_group_info = GroupInfo{};
+    memcpy(out_group_info, &in_group_info, sizeof(GroupInfo));
     R_SUCCEED();
 }
 
