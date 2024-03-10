@@ -4,7 +4,7 @@ stages:
 
 clang-format:
   stage: format
-  image: suyuemu/cibuild:latest
+  image: suyuemu/cibuild:linux-x64
   variables:
     RELEASE_NAME: mainline
   script:
@@ -13,7 +13,7 @@ clang-format:
 
 build-linux:
   stage: build
-  image: suyuemu/cibuild:latest
+  image: suyuemu/cibuild:linux-x64
   resource_group: linux-ci
   variables:
     RELEASE_NAME: mainline
