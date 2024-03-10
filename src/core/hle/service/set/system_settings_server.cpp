@@ -1194,7 +1194,8 @@ Result ISystemSettingsServer::SetKeyboardLayout(KeyboardLayout keyboard_layout) 
     R_SUCCEED();
 }
 
-Result ISystemSettingsServer::GetRebootlessSystemUpdateVersion(Out<RebootlessSystemUpdateVersion> out_rebootless_system_update) {
+Result ISystemSettingsServer::GetRebootlessSystemUpdateVersion(
+    Out<RebootlessSystemUpdateVersion> out_rebootless_system_update) {
     LOG_INFO(Service_SET, "(STUBBED) called");
 
     out_rebootless_system_update->version = 0;
