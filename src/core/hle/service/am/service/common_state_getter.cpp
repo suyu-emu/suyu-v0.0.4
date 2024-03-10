@@ -170,7 +170,6 @@ Result ICommonStateGetter::GetCradleFwVersion(OutArray<uint32_t, 4> out_version)
     R_SUCCEED();
 }
 
-
 Result ICommonStateGetter::IsVrModeEnabled(Out<bool> out_is_vr_mode_enabled) {
     LOG_DEBUG(Service_AM, "called");
 
