@@ -515,6 +515,7 @@ struct RebootlessSystemUpdateVersion {
     u8 reserved[0x1c];
     char display_version[0x20];
 };
-static_assert(sizeof(RebootlessSystemUpdateVersion) == 0x40, "RebootlessSystemUpdateVersion is an invalid size");
+static_assert(sizeof(RebootlessSystemUpdateVersion) == 0x40,
+              "RebootlessSystemUpdateVersion is an invalid size");
 
 } // namespace Service::Set
