@@ -939,7 +939,7 @@ Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
 Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_serial) {
     LOG_INFO(Service_SET, "called");
 
-    *out_console_serial = SerialNumber("YUZ10000000001");
+    *out_console_serial = SerialNumber("SUY10000000001");
     R_SUCCEED();
 }
 
