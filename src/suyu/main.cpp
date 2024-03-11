@@ -1766,6 +1766,13 @@ void GMainWindow::AllowOSSleep() {
 }
 
 bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
+    if (!CheckFirmwarePresence()) {
+        QMessageBox::critical(
+            this, tr("Component Missing"),
+            tr("Missing Firmware."));
+        return false;
+    }
+
     // Shutdown previous session if the emu thread is still active...
     if (emu_thread != nullptr) {
         ShutdownGame();

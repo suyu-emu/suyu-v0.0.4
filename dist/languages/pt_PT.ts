@@ -6335,6 +6335,16 @@ Would you like to bypass this and exit anyway?</source>
 Deseja ignorar isso e sair mesmo assim?</translation>
     </message>
     <message>
+        <location filename="../../src/suyu/main.cpp" line="1763"/>
+        <source>Component Missing</source>
+        <translation>Component Missing</translation>
+    </message>
+    <message>
+        <location filename="../../src/suyu/main.cpp" line="1764"/>
+        <source>Missing Firmware.</source>
+        <translation>Missing Firmware.</translation>
+    </message>
+    <message>
         <location filename="../../src/suyu/configuration/shared_translation.h" line="27"/>
         <source>None</source>
         <translation>Nenhum</translation>
