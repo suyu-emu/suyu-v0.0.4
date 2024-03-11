@@ -1767,9 +1767,7 @@ void GMainWindow::AllowOSSleep() {
 
 bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
     if (!CheckFirmwarePresence()) {
-        QMessageBox::critical(
-            this, tr("Component Missing"),
-            tr("Missing Firmware."));
+        QMessageBox::critical(this, tr("Component Missing"), tr("Missing Firmware."));
         return false;
     }
 
