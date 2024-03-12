@@ -7,9 +7,6 @@
 [submodule "cubeb"]
 	path = externals/cubeb
 	url = https://github.com/mozilla/cubeb.git
-[submodule "dynarmic"]
-	path = externals/dynarmic
-	url = https://gitlab.com/suyu-emu/dynarmic.git
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
@@ -67,3 +64,7 @@
 [submodule "Vulkan-Utility-Libraries"]
 	path = externals/Vulkan-Utility-Libraries
 	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
+[submodule "externals/dynarmic"]
+	path = externals/dynarmic
+	url = https://gitlab.com/suyu-emu/dynarmic.git
+	branch = stable
