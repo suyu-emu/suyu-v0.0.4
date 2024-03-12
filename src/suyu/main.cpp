@@ -417,6 +417,9 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.game_dirs);
 
+    // Show one-time "callout" messages to the user
+    ShowTelemetryCallout();
+
     // make sure menubar has the arrow cursor instead of inheriting from this
     ui->menubar->setCursor(QCursor());
     statusBar()->setCursor(QCursor());
