@@ -254,8 +254,14 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   )
 endif()
 
+function (target_link_static_library TARGET MODE LIBRARY)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
+    target_link_libraries(${TARGET} ${MODE} ${LIBRARY})
+endfunction()
+
 target_link_libraries(common PUBLIC Boost::context Boost::headers fmt::fmt microprofile stb::headers Threads::Threads)
-target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd LLVM::Demangle)
+target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd)
+target_link_static_library(common PRIVATE LLVM::Demangle)
 
 if (ANDROID)
     # For ASharedMemory_create
