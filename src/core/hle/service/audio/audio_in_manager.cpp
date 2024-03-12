@@ -10,8 +10,8 @@ namespace Service::Audio {
 using namespace AudioCore::AudioIn;
 
 IAudioInManager::IAudioInManager(Core::System& system_)
-    : ServiceFramework{system_, "audin:u"},
-      impl{std::make_unique<AudioCore::AudioIn::Manager>(system_)} {
+    : ServiceFramework{system_, "audin:u"}, impl{std::make_unique<AudioCore::AudioIn::Manager>(
+                                                system_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IAudioInManager::ListAudioIns>, "ListAudioIns"},

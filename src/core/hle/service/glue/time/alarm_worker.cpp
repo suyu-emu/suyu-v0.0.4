@@ -11,8 +11,8 @@
 namespace Service::Glue::Time {
 
 AlarmWorker::AlarmWorker(Core::System& system, StandardSteadyClockResource& steady_clock_resource)
-    : m_system{system}, m_ctx{system, "Glue:AlarmWorker"},
-      m_steady_clock_resource{steady_clock_resource} {}
+    : m_system{system}, m_ctx{system, "Glue:AlarmWorker"}, m_steady_clock_resource{
+                                                               steady_clock_resource} {}
 
 AlarmWorker::~AlarmWorker() {
     m_system.CoreTiming().UnscheduleEvent(m_timer_timing_event);

@@ -293,11 +293,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                                            InputCommon::InputSubsystem* input_subsystem_,
                                            InputProfiles* profiles_, Core::HID::HIDCore& hid_core_,
                                            bool is_powered_on_, bool debug_)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()),
-      player_index{player_index_}, debug{debug_}, is_powered_on{is_powered_on_},
-      input_subsystem{input_subsystem_}, profiles(profiles_),
-      timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
-      bottom_row{bottom_row_}, hid_core{hid_core_} {
+    : QWidget(parent),
+      ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index{player_index_}, debug{debug_},
+      is_powered_on{is_powered_on_}, input_subsystem{input_subsystem_}, profiles(profiles_),
+      timeout_timer(std::make_unique<QTimer>()),
+      poll_timer(std::make_unique<QTimer>()), bottom_row{bottom_row_}, hid_core{hid_core_} {
     if (player_index == 0) {
         auto* emulated_controller_p1 =
             hid_core.GetEmulatedController(Core::HID::NpadIdType::Player1);

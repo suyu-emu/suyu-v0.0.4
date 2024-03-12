@@ -186,8 +186,8 @@ Function::Function(ObjectPool<Block>& block_pool, Location start_address)
 
 CFG::CFG(Environment& env_, ObjectPool<Block>& block_pool_, Location start_address,
          bool exits_to_dispatcher_)
-    : env{env_}, block_pool{block_pool_}, program_start{start_address},
-      exits_to_dispatcher{exits_to_dispatcher_} {
+    : env{env_}, block_pool{block_pool_}, program_start{start_address}, exits_to_dispatcher{
+                                                                            exits_to_dispatcher_} {
     if (exits_to_dispatcher) {
         dispatch_block = block_pool.Create(Block{});
         dispatch_block->begin = {};

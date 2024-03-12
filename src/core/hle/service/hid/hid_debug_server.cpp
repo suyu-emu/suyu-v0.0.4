@@ -17,8 +17,8 @@ namespace Service::HID {
 
 IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
                                  std::shared_ptr<HidFirmwareSettings> settings)
-    : ServiceFramework{system_, "hid:dbg"}, resource_manager{resource},
-      firmware_settings{settings} {
+    : ServiceFramework{system_, "hid:dbg"}, resource_manager{resource}, firmware_settings{
+                                                                            settings} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "DeactivateDebugPad"},

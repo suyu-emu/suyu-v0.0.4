@@ -398,8 +398,8 @@ u32 GraphicsEnvironment::ReadViewportTransformState() {
 ComputeEnvironment::ComputeEnvironment(Tegra::Engines::KeplerCompute& kepler_compute_,
                                        Tegra::MemoryManager& gpu_memory_, GPUVAddr program_base_,
                                        u32 start_address_)
-    : GenericEnvironment{gpu_memory_, program_base_, start_address_},
-      kepler_compute{&kepler_compute_} {
+    : GenericEnvironment{gpu_memory_, program_base_, start_address_}, kepler_compute{
+                                                                          &kepler_compute_} {
     const auto& qmd{kepler_compute->launch_description};
     stage = Shader::Stage::Compute;
     local_memory_size = qmd.local_pos_alloc + qmd.local_crs_alloc;

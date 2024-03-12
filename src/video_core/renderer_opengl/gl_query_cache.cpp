@@ -66,8 +66,9 @@ bool QueryCache::AnyCommandQueued() const noexcept {
 
 HostCounter::HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
                          VideoCore::QueryType type_)
-    : HostCounterBase{std::move(dependency_)}, cache{cache_}, type{type_},
-      query{cache.AllocateQuery(type)} {
+    : HostCounterBase{std::move(dependency_)}, cache{cache_}, type{type_}, query{
+                                                                               cache.AllocateQuery(
+                                                                                   type)} {
     glBeginQuery(GetTarget(type), query.handle);
 }
 
