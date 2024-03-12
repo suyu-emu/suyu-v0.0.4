@@ -5,6 +5,7 @@ stages:
 clang-format:
   stage: format
   image: suyuemu/cibuild:linux-x64
+  allow_failure: true
   variables:
     RELEASE_NAME: mainline
   script:

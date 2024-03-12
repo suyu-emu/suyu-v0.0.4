@@ -21,8 +21,8 @@ namespace Tegra::Engines {
 
 Puller::Puller(GPU& gpu_, MemoryManager& memory_manager_, DmaPusher& dma_pusher_,
                Control::ChannelState& channel_state_)
-    : gpu{gpu_}, memory_manager{memory_manager_}, dma_pusher{dma_pusher_}, channel_state{
-                                                                               channel_state_} {}
+    : gpu{gpu_}, memory_manager{memory_manager_}, dma_pusher{dma_pusher_},
+      channel_state{channel_state_} {}
 
 Puller::~Puller() = default;
 

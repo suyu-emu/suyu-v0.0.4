@@ -44,8 +44,8 @@
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
-    : QDialog(parent),
-      ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_},
+    : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_},
+      system{system_},
       builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
       tab_group{std::make_shared<std::vector<ConfigurationShared::Tab*>>()} {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));

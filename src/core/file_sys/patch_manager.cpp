@@ -486,6 +486,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                           .name = "Update",
                           .version = "",
                           .type = PatchType::Update,
+                          .file_path = std::nullopt,
+                          .root_path = std::nullopt,
                           .program_id = title_id,
                           .title_id = title_id};
 
@@ -514,6 +516,9 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
             std::string types;
 
             const auto exefs_dir = FindSubdirectoryCaseless(mod, "exefs");
+            std::optional<std::string> file_path = std::nullopt;
+            std::optional<std::string> root_path = std::nullopt;
+
             if (IsDirValidAndNonEmpty(exefs_dir)) {
                 bool ips = false;
                 bool ipswitch = false;
@@ -523,6 +528,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                     if (file->GetExtension() == "ips") {
                         ips = true;
                     } else if (file->GetExtension() == "pchtxt") {
+                        file_path = file->GetFullPath();
+                        root_path = exefs_dir->GetParentDirectory()->GetFullPath();
                         ipswitch = true;
                     } else if (std::find(EXEFS_FILE_NAMES.begin(), EXEFS_FILE_NAMES.end(),
                                          file->GetName()) != EXEFS_FILE_NAMES.end()) {
@@ -551,6 +558,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                            .name = mod->GetName(),
                            .version = types,
                            .type = PatchType::Mod,
+                           .file_path = file_path,
+                           .root_path = root_path,
                            .program_id = title_id,
                            .title_id = title_id});
         }
@@ -574,6 +583,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                            .name = "SDMC",
                            .version = types,
                            .type = PatchType::Mod,
+                           .file_path = std::nullopt,
                            .program_id = title_id,
                            .title_id = title_id});
         }
@@ -606,6 +616,8 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
                        .name = "DLC",
                        .version = std::move(list),
                        .type = PatchType::DLC,
+                       .file_path = std::nullopt,
+                       .root_path = std::nullopt,
                        .program_id = title_id,
                        .title_id = dlc_match.back().title_id});
     }

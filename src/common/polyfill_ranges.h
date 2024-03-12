@@ -18,9 +18,9 @@ namespace ranges {
 
 template <typename T>
 concept range = requires(T& t) {
-                    begin(t);
-                    end(t);
-                };
+    begin(t);
+    end(t);
+};
 
 template <typename T>
 concept input_range = range<T>;

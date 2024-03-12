@@ -7,9 +7,8 @@
 namespace Service::News {
 
 INewlyArrivedEventHolder::INewlyArrivedEventHolder(Core::System& system_)
-    : ServiceFramework{system_, "INewlyArrivedEventHolder"}, service_context{
-                                                                 system_,
-                                                                 "INewlyArrivedEventHolder"} {
+    : ServiceFramework{system_, "INewlyArrivedEventHolder"},
+      service_context{system_, "INewlyArrivedEventHolder"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&INewlyArrivedEventHolder::Get>, "Get"},

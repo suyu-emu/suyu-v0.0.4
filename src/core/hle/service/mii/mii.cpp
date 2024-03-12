@@ -23,8 +23,8 @@ class IDatabaseService final : public ServiceFramework<IDatabaseService> {
 public:
     explicit IDatabaseService(Core::System& system_, std::shared_ptr<MiiManager> mii_manager,
                               bool is_system_)
-        : ServiceFramework{system_, "IDatabaseService"}, manager{mii_manager}, is_system{
-                                                                                   is_system_} {
+        : ServiceFramework{system_, "IDatabaseService"}, manager{mii_manager},
+          is_system{is_system_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, D<&IDatabaseService::IsUpdated>, "IsUpdated"},

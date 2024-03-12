@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <utility>
 
@@ -11,12 +13,19 @@
 #include <QString>
 #include <QTimer>
 #include <QTreeView>
+#include <qdesktopservices.h>
+#include <qdialog.h>
+#include <qdialogbuttonbox.h>
+#include <qformlayout.h>
+#include <qlabel.h>
+#include <qlineedit.h>
+#include <qmessagebox.h>
+#include <qtreewidget.h>
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
-#include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
 #include "suyu/configuration/configure_input.h"
 #include "suyu/configuration/configure_per_game_addons.h"
@@ -63,6 +72,16 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
+
+    connect(tree_view, &QTreeView::clicked, this, &ConfigurePerGameAddons::OnPatchSelected);
+
+    connect(ui->new_btn, &QPushButton::clicked, this, &ConfigurePerGameAddons::OnPatchCreateClick);
+    connect(ui->edit_btn, &QPushButton::clicked, this, &ConfigurePerGameAddons::OnPatchEditClick);
+    connect(ui->remove_btn, &QPushButton::clicked, this,
+            &ConfigurePerGameAddons::OnPatchRemoveClick);
+
+    connect(ui->folder_btn, &QPushButton::clicked, this,
+            &ConfigurePerGameAddons::OnPatchOpenFolder);
 }
 
 ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
@@ -119,10 +138,11 @@ void ConfigurePerGameAddons::LoadConfiguration() {
 
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);
+    patches = pm.GetPatches(update_raw);
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
-    for (const auto& patch : pm.GetPatches(update_raw)) {
+    for (const auto& patch : patches) {
         const auto name = QString::fromStdString(patch.name);
 
         auto* const first_item = new QStandardItem;
@@ -140,4 +160,149 @@ void ConfigurePerGameAddons::LoadConfiguration() {
     }
 
     tree_view->resizeColumnToContents(1);
+}
+
+void ConfigurePerGameAddons::ReloadList() {
+    // Clear all items and selection
+    item_model->setRowCount(0);
+    list_items.clear();
+    selected_patch = std::nullopt;
+
+    // Remove the cache to ensure we'll recreate it
+    Common::FS::RemoveFile(Common::FS::GetSuyuPath(Common::FS::SuyuPath::CacheDir) / "game_list" /
+                           fmt::format("{:016X}.pv.txt", title_id));
+
+    // Reload stuff
+    UISettings::values.is_game_list_reload_pending.exchange(true);
+    UISettings::values.is_game_list_reload_pending.notify_all();
+    LoadConfiguration();
+    ApplyConfiguration();
+}
+
+void ConfigurePerGameAddons::OnPatchSelected(const QModelIndex& selectedIndex) {
+    QModelIndexList indexes = tree_view->selectionModel()->selectedIndexes();
+    if (indexes.size() == 0) {
+        // Nothing selected
+        ui->edit_btn->setEnabled(false);
+        ui->remove_btn->setEnabled(false);
+        return;
+    }
+
+    QStandardItemModel* model = (QStandardItemModel*)tree_view->model();
+    QStandardItem* item = model->itemFromIndex(selectedIndex.siblingAtColumn(0));
+
+    std::string patch_name = item->text().toStdString();
+    selected_patch = std::nullopt;
+
+    for (const auto& patch : patches) {
+        if (patch.name != patch_name)
+            continue;
+        if (patch.version != "IPSwitch")
+            continue;
+
+        selected_patch = patch;
+    }
+
+    if (!selected_patch || !selected_patch->file_path) {
+        // Either patch not found or selected isn't a patch
+        ui->edit_btn->setEnabled(false);
+        ui->remove_btn->setEnabled(false);
+        return;
+    }
+
+    ui->edit_btn->setEnabled(true);
+    ui->remove_btn->setEnabled(true);
+}
+
+void ConfigurePerGameAddons::OnPatchCreateClick(bool checked) {
+    std::filesystem::path addon_path =
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::LoadDir) / fmt::format("{:016X}", title_id);
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(QString::fromStdString("New Patch"));
+
+    QFormLayout form(&dialog);
+    form.addRow(
+        new QLabel(QString::fromStdString("Enter the name of the patch that will be created")));
+
+    QLineEdit* lineEdit = new QLineEdit(&dialog);
+    form.addRow(QString::fromStdString("Patch Name"), lineEdit);
+
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal,
+                               &dialog);
+
+    form.addRow(&buttonBox);
+    QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+    QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+    if (dialog.exec() == QDialog::Accepted) {
+        std::filesystem::path addon_root_path = addon_path / lineEdit->text().toStdString();
+        std::filesystem::path addon_exefs_path = addon_root_path / "exefs";
+        std::filesystem::path addon_file_path = addon_exefs_path / "patch.pchtxt";
+
+        // Create the folders
+        if (!Common::FS::CreateDir(addon_root_path)) {
+            LOG_ERROR(Core, "Could not create new addon root path at {}",
+                      addon_root_path.generic_string());
+            return;
+        }
+
+        if (!Common::FS::CreateDir(addon_exefs_path)) {
+            LOG_ERROR(Core, "Could not create new addon root path at {}",
+                      addon_root_path.generic_string());
+            return;
+        }
+
+        // Create the patch file
+        std::ofstream patch_file(addon_file_path);
+        patch_file << "# Place your patches below" << std::endl;
+        patch_file.close();
+
+        // Reload everything
+        ReloadList();
+    }
+}
+
+void ConfigurePerGameAddons::OnPatchEditClick(bool checked) {
+    if (!selected_patch || !selected_patch->file_path) {
+        // Either no patch selected or selected patch somehow doesn't have a file?
+        return;
+    }
+
+    QDesktopServices::openUrl(
+        QUrl::fromLocalFile(QString::fromStdString(selected_patch->file_path.value())));
+}
+
+void ConfigurePerGameAddons::OnPatchRemoveClick(bool checked) {
+    if (!selected_patch || !selected_patch->file_path || !selected_patch->root_path) {
+        // Either no patch selected or selected patch somehow doesn't have a file?
+        return;
+    }
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(
+        this, QString::fromStdString("Remove patch confirmation"),
+        QString::fromStdString(
+            "Are you sure you want to remove the patch '%1'? This action is permanent!")
+            .arg(QString::fromStdString(selected_patch->name)),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+
+    // Remove the patch then reload
+    if (!Common::FS::RemoveDirRecursively(selected_patch->root_path.value_or("Invalid Path"))) {
+        LOG_ERROR(Core, "Could not create new addon root path at {}",
+                  selected_patch->root_path.value_or("Invalid Path"));
+    }
+
+    ReloadList();
+}
+
+void ConfigurePerGameAddons::OnPatchOpenFolder(bool checked) {
+    std::filesystem::path path =
+        Common::FS::GetSuyuPath(Common::FS::SuyuPath::LoadDir) / fmt::format("{:016X}", title_id);
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(path.generic_string())));
 }
