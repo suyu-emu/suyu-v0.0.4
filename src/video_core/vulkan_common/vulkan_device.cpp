@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -580,6 +580,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                                    VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
+    // Mesa RadV drivers still have broken extendedDynamicState3ColorBlendEquation support.
     if (extensions.extended_dynamic_state3 && is_radv) {
         LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
@@ -594,13 +595,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
-    if (extensions.extended_dynamic_state3 && is_amd_driver) {
-        LOG_WARNING(Render_Vulkan,
-                    "AMD drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-    }
+    // In the past, AMD proprietary drivers had broken extendedDynamicState3ColorBlendEquation
+    // support. It should work now, even with MSAA surfaces. Uncomment the following code any new
+    // drivers by AMD bring back the issue as a regression.
+    // if (extensions.extended_dynamic_state3 && is_amd_driver) {
+    //    LOG_WARNING(Render_Vulkan,
+    //                "AMD drivers have broken extendedDynamicState3ColorBlendEquation");
+    //    features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+    //    features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+    //    dynamic_state3_blending = false;
+    //}
     if (extensions.vertex_input_dynamic_state && is_radv) {
         // TODO(ameerj): Blacklist only offending driver versions
         // TODO(ameerj): Confirm if RDNA1 is affected
