@@ -1,24 +1,17 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-#include <array>
 #include <cstring>
 #include <memory>
 #include <optional>
-#include <string>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
-#include "common/telemetry.h"
-#include "core/core_timing.h"
 #include "core/frontend/graphics_context.h"
-#include "core/telemetry_session.h"
 #include "video_core/capture.h"
 #include "video_core/gpu.h"
 #include "video_core/present.h"
@@ -53,37 +46,6 @@ constexpr VkExtent3D CaptureImageExtent{
 };
 
 constexpr VkFormat CaptureFormat = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-
-std::string GetReadableVersion(u32 version) {
-    return fmt::format("{}.{}.{}", VK_VERSION_MAJOR(version), VK_VERSION_MINOR(version),
-                       VK_VERSION_PATCH(version));
-}
-
-std::string GetDriverVersion(const Device& device) {
-    // Extracted from
-    // https://github.com/SaschaWillems/vulkan.gpuinfo.org/blob/5dddea46ea1120b0df14eef8f15ff8e318e35462/functions.php#L308-L314
-    const u32 version = device.GetDriverVersion();
-
-    if (device.GetDriverID() == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
-        const u32 major = (version >> 22) & 0x3ff;
-        const u32 minor = (version >> 14) & 0x0ff;
-        const u32 secondary = (version >> 6) & 0x0ff;
-        const u32 tertiary = version & 0x003f;
-        return fmt::format("{}.{}.{}.{}", major, minor, secondary, tertiary);
-    }
-    if (device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
-        const u32 major = version >> 14;
-        const u32 minor = version & 0x3fff;
-        return fmt::format("{}.{}", major, minor);
-    }
-    return GetReadableVersion(version);
-}
-
-std::string BuildCommaSeparatedExtensions(
-    const std::set<std::string, std::less<>>& available_extensions) {
-    return fmt::format("{}", fmt::join(available_extensions, ","));
-}
-
 } // Anonymous namespace
 
 Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld,
@@ -98,12 +60,11 @@ Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dl
     return Device(*instance, physical_device, surface, dld);
 }
 
-RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
-                               Core::Frontend::EmuWindow& emu_window,
+RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                                Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
-    : RendererBase(emu_window, std::move(context_)), telemetry_session(telemetry_session_),
-      device_memory(device_memory_), gpu(gpu_), library(OpenLibrary(context.get())),
+    : RendererBase(emu_window, std::move(context_)), device_memory(device_memory_), gpu(gpu_),
+      library(OpenLibrary(context.get())),
       instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
                               Settings::values.renderer_debug.GetValue())),
       debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
@@ -128,7 +89,6 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
     }
-    Report();
 } catch (const vk::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
     throw std::runtime_error{fmt::format("Vulkan initialization error {}", exception.what())};
@@ -164,32 +124,6 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
-}
-
-void RendererVulkan::Report() const {
-    using namespace Common::Literals;
-    const std::string vendor_name{device.GetVendorName()};
-    const std::string model_name{device.GetModelName()};
-    const std::string driver_version = GetDriverVersion(device);
-    const std::string driver_name = fmt::format("{} {}", vendor_name, driver_version);
-
-    const std::string api_version = GetReadableVersion(device.ApiVersion());
-
-    const std::string extensions = BuildCommaSeparatedExtensions(device.GetAvailableExtensions());
-
-    const auto available_vram = static_cast<f64>(device.GetDeviceLocalMemory()) / f64{1_GiB};
-
-    LOG_INFO(Render_Vulkan, "Driver: {}", driver_name);
-    LOG_INFO(Render_Vulkan, "Device: {}", model_name);
-    LOG_INFO(Render_Vulkan, "Vulkan: {}", api_version);
-    LOG_INFO(Render_Vulkan, "Available VRAM: {:.2f} GiB", available_vram);
-
-    static constexpr auto field = Common::Telemetry::FieldType::UserSystem;
-    telemetry_session.AddField(field, "GPU_Vendor", vendor_name);
-    telemetry_session.AddField(field, "GPU_Model", model_name);
-    telemetry_session.AddField(field, "GPU_Vulkan_Driver", driver_name);
-    telemetry_session.AddField(field, "GPU_Vulkan_Version", api_version);
-    telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
 vk::Buffer RendererVulkan::RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,

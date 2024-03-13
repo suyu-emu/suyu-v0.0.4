@@ -100,7 +100,6 @@
 #include "common/x64/cpu_detect.h"
 #endif
 #include "common/settings.h"
-#include "common/telemetry.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/crypto/key_manager.h"
@@ -119,7 +118,6 @@
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
-#include "core/telemetry_session.h"
 #include "frontend_common/config.h"
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/virtual_amiibo.h"
@@ -1870,8 +1868,6 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         return false;
     }
     current_game_path = filename;
-
-    system->TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "Qt");
     return true;
 }
 
@@ -3380,7 +3376,7 @@ void GMainWindow::OnMenuReportCompatibility() {
 
     if (!Settings::values.suyu_token.GetValue().empty() &&
         !Settings::values.suyu_username.GetValue().empty()) {
-        CompatDB compatdb{system->TelemetrySession(), this};
+        CompatDB compatdb{this};
         compatdb.exec();
     } else {
         QMessageBox::critical(
