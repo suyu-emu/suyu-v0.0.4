@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -161,6 +161,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 }
+
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
                                   const ImageInfo& info, std::span<const VkFormat> view_formats) {
