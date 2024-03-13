@@ -1416,6 +1416,7 @@ void GMainWindow::RestoreUIState() {
     game_list->SetFilterVisible(ui->action_Show_Filter_Bar->isChecked());
 
     ui->action_Show_Status_Bar->setChecked(UISettings::values.show_status_bar.GetValue());
+    ui->action_Show_Folders_In_List->setChecked(UISettings::values.show_folders_in_list.GetValue());
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
     Debugger::ToggleConsole();
 }
@@ -1531,6 +1532,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Display_Dock_Widget_Headers, &GMainWindow::OnDisplayTitleBars);
     connect_menu(ui->action_Show_Filter_Bar, &GMainWindow::OnToggleFilterBar);
     connect_menu(ui->action_Show_Status_Bar, &GMainWindow::OnToggleStatusBar);
+    connect_menu(ui->action_Show_Folders_In_List, &GMainWindow::OnToggleFoldersInList);
 
     connect_menu(ui->action_Reset_Window_Size_720, &GMainWindow::ResetWindowSize720);
     connect_menu(ui->action_Reset_Window_Size_900, &GMainWindow::ResetWindowSize900);
@@ -4185,6 +4187,14 @@ void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
+void GMainWindow::OnToggleFoldersInList() {
+    UISettings::values.show_folders_in_list = ui->action_Show_Folders_In_List->isChecked();
+
+    game_list->ClearList();
+    game_list->LoadCompatibilityList();
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+}
+
 void GMainWindow::OnAlbum() {
     constexpr u64 AlbumId = static_cast<u64>(Service::AM::AppletProgramId::PhotoViewer);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
@@ -4573,6 +4583,7 @@ void GMainWindow::UpdateUISettings() {
     UISettings::values.display_titlebar = ui->action_Display_Dock_Widget_Headers->isChecked();
     UISettings::values.show_filter_bar = ui->action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui->action_Show_Status_Bar->isChecked();
+    UISettings::values.show_folders_in_list = ui->action_Show_Folders_In_List->isChecked();
     UISettings::values.first_start = false;
 }
 

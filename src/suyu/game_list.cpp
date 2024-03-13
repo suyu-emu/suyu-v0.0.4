@@ -383,6 +383,17 @@ GameList::~GameList() {
     UnloadController();
 }
 
+void GameList::ClearList() {
+    // Clear all items
+    item_model->setRowCount(0);
+
+    // Notify a reload is pending
+    UISettings::values.is_game_list_reload_pending.exchange(true);
+    UISettings::values.is_game_list_reload_pending.notify_all();
+
+    // Load stuff back up
+}
+
 void GameList::SetFilterFocus() {
     if (tree_view->model()->rowCount() > 0) {
         search_field->setFocus();
@@ -471,7 +482,9 @@ bool GameList::IsEmpty() const {
 void GameList::DonePopulating(const QStringList& watch_list) {
     emit ShowList(!IsEmpty());
 
-    // item_model->invisibleRootItem()->appendRow(new GameListAddDir());
+    if (UISettings::values.show_folders_in_list) {
+        item_model->invisibleRootItem()->appendRow(new GameListAddDir());
+    }
 
     // Add favorites row
     item_model->invisibleRootItem()->insertRow(0, new GameListFavorites());
@@ -889,22 +902,44 @@ void GameList::ToggleFavorite(u64 program_id) {
 void GameList::AddFavorite(u64 program_id) {
     auto* favorites_row = item_model->item(0);
 
-    for (int i = 1; i < item_model->rowCount() - 1; i++) {
-        const auto* game = item_model->item(i);
-        if (game->data(GameListItemPath::ProgramIdRole).toULongLong() != program_id) {
-            continue;
+    if (UISettings::values.show_folders_in_list) {
+        for (int i = 0; i < item_model->rowCount(); i++) {
+            const auto* folder = item_model->item(i);
+            for (int j = 0; j < folder->rowCount(); j++) {
+                if (folder->child(j)->data(GameListItemPath::ProgramIdRole).toULongLong() ==
+                    program_id) {
+                    QList<QStandardItem*> list;
+                    for (int k = 0; k < COLUMN_COUNT; k++) {
+                        list.append(folder->child(j, k)->clone());
+                    }
+                    list[0]->setData(folder->child(j)->data(GameListItem::SortRole),
+                                     GameListItem::SortRole);
+                    list[0]->setText(folder->child(j)->data(Qt::DisplayRole).toString());
+
+                    favorites_row->appendRow(list);
+                    return;
+                }
+            }
         }
-
-        QList<QStandardItem*> list;
-        for (int j = 0; j < COLUMN_COUNT; j++) {
-            list.append(item_model->item(i, j)->clone());
-        }
-
-        list[0]->setData(game->data(GameListItem::SortRole), GameListItem::SortRole);
-        list[0]->setText(game->data(Qt::DisplayRole).toString());
-
-        favorites_row->appendRow(list);
         return;
+    } else {
+        for (int i = 1; i < item_model->rowCount() - 1; i++) {
+            const auto* game = item_model->item(i);
+            if (game->data(GameListItemPath::ProgramIdRole).toULongLong() != program_id) {
+                continue;
+            }
+
+            QList<QStandardItem*> list;
+            for (int j = 0; j < COLUMN_COUNT; j++) {
+                list.append(item_model->item(i, j)->clone());
+            }
+
+            list[0]->setData(game->data(GameListItem::SortRole), GameListItem::SortRole);
+            list[0]->setText(game->data(Qt::DisplayRole).toString());
+
+            favorites_row->appendRow(list);
+            return;
+        }
     }
 }
 

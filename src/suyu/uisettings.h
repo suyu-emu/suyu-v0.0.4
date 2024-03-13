@@ -200,6 +200,7 @@ struct Values {
     std::atomic_bool is_game_list_reload_pending{false};
     Setting<bool> cache_game_list{linkage, true, "cache_game_list", Category::UiGameList};
     Setting<bool> favorites_expanded{linkage, true, "favorites_expanded", Category::UiGameList};
+    Setting<bool> show_folders_in_list{linkage, true, "show_folders_in_list", Category::UiGameList};
     QVector<u64> favorited_ids;
 
     // Compatibility List
