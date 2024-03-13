@@ -530,9 +530,9 @@ struct Values {
     Setting<bool> mouse_enabled{linkage, false, "mouse_enabled", Category::Controls};
 
     Setting<u8, true> mouse_panning_x_sensitivity{
-        linkage, 50, 1, 100, "mouse_panning_x_sensitivity", Category::Controls};
+        linkage, 50, 1, 200, "mouse_panning_x_sensitivity", Category::Controls};
     Setting<u8, true> mouse_panning_y_sensitivity{
-        linkage, 50, 1, 100, "mouse_panning_y_sensitivity", Category::Controls};
+        linkage, 50, 1, 200, "mouse_panning_y_sensitivity", Category::Controls};
     Setting<u8, true> mouse_panning_deadzone_counterweight{
         linkage, 20, 0, 100, "mouse_panning_deadzone_counterweight", Category::Controls};
     Setting<u8, true> mouse_panning_decay_strength{
