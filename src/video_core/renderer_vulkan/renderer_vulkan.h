@@ -40,8 +40,7 @@ Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dl
 
 class RendererVulkan final : public VideoCore::RendererBase {
 public:
-    explicit RendererVulkan(Core::TelemetrySession& telemtry_session,
-                            Core::Frontend::EmuWindow& emu_window,
+    explicit RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                             Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererVulkan() override;
@@ -59,15 +58,12 @@ public:
     }
 
 private:
-    void Report() const;
-
     vk::Buffer RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,
                               const Layout::FramebufferLayout& layout, VkFormat format,
                               VkDeviceSize buffer_size);
     void RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers);
     void RenderAppletCaptureLayer(std::span<const Tegra::FramebufferConfig> framebuffers);
 
-    Core::TelemetrySession& telemetry_session;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
     Tegra::GPU& gpu;
 
