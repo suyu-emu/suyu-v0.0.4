@@ -383,6 +383,7 @@ private slots:
     void OnAbout();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
+    void OnToggleFoldersInList();
     void OnDisplayTitleBars(bool);
     void InitializeHotkeys();
     void ToggleFullscreen();
