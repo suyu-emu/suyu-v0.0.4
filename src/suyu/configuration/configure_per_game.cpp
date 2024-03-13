@@ -17,14 +17,17 @@
 #include <QTimer>
 
 #include "common/fs/fs_util.h"
+#include "common/hex_util.h"
 #include "common/settings_enums.h"
 #include "common/settings_input.h"
 #include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/ips_layer.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
+#include "core/loader/nso.h"
 #include "frontend_common/config.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_audio.h"
@@ -44,8 +47,8 @@
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
-    : QDialog(parent),
-      ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_},
+    : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_},
+      system{system_},
       builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
       tab_group{std::make_shared<std::vector<ConfigurationShared::Tab*>>()} {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
@@ -150,6 +153,16 @@ void ConfigurePerGame::LoadConfiguration() {
 
     ui->display_title_id->setText(
         QStringLiteral("%1").arg(title_id, 16, 16, QLatin1Char{'0'}).toUpper());
+
+    Loader::NSOHeader nso_header{};
+    if (sizeof(Loader::NSOHeader) != file->ReadObject(&nso_header)) {
+        LOG_ERROR(Core, "Could not read header for file {}", file->GetFullPath());
+        return;
+    }
+
+    const auto build_id_raw = Common::HexToString(nso_header.build_id);
+    const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
+    ui->display_build_id->setText(QString::fromStdString(build_id));
 
     const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                    system.GetContentProvider()};
