@@ -501,6 +501,7 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     if (!watch_dirs.isEmpty()) {
         watcher->removePaths(watch_dirs);
     }
+
     // Workaround: Add the watch paths in chunks to allow the gui to refresh
     // This prevents the UI from stalling when a large number of watch paths are added
     // Also artificially caps the watcher to a certain number of directories
@@ -923,7 +924,7 @@ void GameList::AddFavorite(u64 program_id) {
         }
         return;
     } else {
-        for (int i = 1; i < item_model->rowCount() - 1; i++) {
+        for (int i = 0; i < item_model->rowCount(); i++) {
             const auto* game = item_model->item(i);
             if (game->data(GameListItemPath::ProgramIdRole).toULongLong() != program_id) {
                 continue;
