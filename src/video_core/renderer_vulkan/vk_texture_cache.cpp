@@ -136,7 +136,10 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     auto usage = ImageUsageFlags(format_info, info.format);
     if (is_3d) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
-        usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        // Force usage to be VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT only on MoltenVK
+        if (device.IsMoltenVK()) {
+            usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        }
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
@@ -164,8 +167,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
                                   const ImageInfo& info, std::span<const VkFormat> view_formats) {
-    const bool is_buffer = (info.type == ImageType::Buffer);
-    if (is_buffer) {
+    if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
     VkImageCreateInfo image_ci = MakeImageCreateInfo(device, info);
