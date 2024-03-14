@@ -37,3 +37,5 @@ CMakeSettings.json
 # Windows global filetypes
 Thumbs.db
 
+# Local Gitlab CI Runner
+.gitlab-ci-local/

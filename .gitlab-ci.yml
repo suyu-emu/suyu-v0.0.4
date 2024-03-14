@@ -1,27 +1,41 @@
 stages:
   - format
   - build
-
+#CLANG FORMAT - CHECKS CODE FOR FORMATTING ISSUES
 clang-format:
   stage: format
-  image: suyuemu/cibuild:linux-x64
+  image: registry.gitlab.com/ddutchie/ci-docker:clangformat
+  #TODO: SET THIS TO FALSE!!!
   allow_failure: true
-  variables:
-    RELEASE_NAME: mainline
   script:
     - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/format/script.sh
-
+#LINUX BUILD - BUILDS LINUX APPIMAGE
 build-linux:
   stage: build
-  image: suyuemu/cibuild:linux-x64
+  image: registry.gitlab.com/ddutchie/ci-docker:linux-x64
   resource_group: linux-ci
   variables:
-    RELEASE_NAME: mainline
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_DEPTH: 1
+    RELEASE_NAME: mainline  
   script:
-    - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/linux/docker.sh
     - bash .ci/scripts/linux/upload.sh
+  artifacts:
+    paths:
+      - artifacts/*
+#ANDROID BUILD - BUILDS APK
+android:
+  stage: build
+  image: registry.gitlab.com/ddutchie/ci-docker:android-x64
+  script:
+    - apt-get update -y
+    - git submodule update --init --recursive
+    - export ANDROID_HOME="/usr/lib/android-sdk/"
+    - echo y | sdkmanager --sdk_root=/usr/lib/android-sdk --licenses
+    - bash ./.ci/scripts/android/build.sh
+    - bash ./.ci/scripts/android/upload.sh
   artifacts:
     paths:
       - artifacts/*

@@ -217,7 +217,7 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 
     return true;
 }
-
+#ifndef ANDROID
 // Nasty but allows linux builds to pass.
 // Requires double checks when FFMPEG gets updated.
 // Hopefully a future FFMPEG update will all and expose a solution in the public API.
@@ -376,7 +376,7 @@ static av_always_inline const FFCodec* ffcodec(const AVCodec* codec) {
 }
 
 } // namespace
-
+#endif
 bool DecoderContext::SendPacket(const Packet& packet) {
     m_temp_frame = std::make_shared<Frame>();
     m_got_frame = 0;
