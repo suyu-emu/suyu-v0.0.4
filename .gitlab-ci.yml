@@ -4,7 +4,7 @@ stages:
 #CLANG FORMAT - CHECKS CODE FOR FORMATTING ISSUES
 clang-format:
   stage: format
-  image: registry.gitlab.com/ddutchie/ci-docker:clangformat
+  image: suyuemu/cibuild:clangformat
   #TODO: SET THIS TO FALSE!!!
   allow_failure: true
   script:
@@ -13,7 +13,7 @@ clang-format:
 #LINUX BUILD - BUILDS LINUX APPIMAGE
 build-linux:
   stage: build
-  image: registry.gitlab.com/ddutchie/ci-docker:linux-x64
+  image: suyuemu/cibuild:linux-x64
   resource_group: linux-ci
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -28,7 +28,7 @@ build-linux:
 #ANDROID BUILD - BUILDS APK
 android:
   stage: build
-  image: registry.gitlab.com/ddutchie/ci-docker:android-x64
+  image: suyuemu/cibuild:android-x64
   script:
     - apt-get update -y
     - git submodule update --init --recursive
