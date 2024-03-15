@@ -5,8 +5,9 @@ stages:
 clang-format:
   stage: format
   image: suyuemu/cibuild:clangformat
-  #TODO: SET THIS TO FALSE!!!
-  allow_failure: true
+  #THIS HAS TO BE FALSE. IT KEEPS RESOURCES AVAILABLE - EG RUNNERS WONT TRY BUILDING IF CODEBASE IS WRONG
+  #MR's NEED TO BE CORRECTLY CLANG FORMATTED
+  allow_failure: false
   script:
     - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/format/script.sh
