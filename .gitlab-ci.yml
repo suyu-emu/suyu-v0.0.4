@@ -12,8 +12,8 @@ clang-format:
     - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/format/script.sh
   tags:
-    - Linux
-    - Windows
+  #  - Linux
+  #  - Windows
     - Parallelized
 #LINUX BUILD - BUILDS LINUX APPIMAGE
 build-linux:
