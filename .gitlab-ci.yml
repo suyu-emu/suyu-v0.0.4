@@ -11,6 +11,10 @@ clang-format:
   script:
     - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/format/script.sh
+  tags:
+    - Linux
+    - Windows
+    - Parallelized
 #LINUX BUILD - BUILDS LINUX APPIMAGE
 build-linux:
   stage: build
@@ -26,6 +30,9 @@ build-linux:
   artifacts:
     paths:
       - artifacts/*
+  tags:
+    - Linux
+    - Parallelized
 #ANDROID BUILD - BUILDS APK
 android:
   stage: build
@@ -43,3 +50,6 @@ android:
   artifacts:
     paths:
       - artifacts/*
+  tags:
+    - Linux
+    - Parallelized
