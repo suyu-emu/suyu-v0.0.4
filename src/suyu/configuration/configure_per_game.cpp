@@ -47,10 +47,12 @@
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_},
-      system{system_},
+    : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()),
+      pm{title_id_, system_.GetFileSystemController(), system_.GetContentProvider()},
+      title_id{title_id_}, system{system_},
       builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
       tab_group{std::make_shared<std::vector<ConfigurationShared::Tab*>>()} {
+
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
     const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
                                                 : fmt::format("{:016X}", title_id);
@@ -144,6 +146,14 @@ void ConfigurePerGame::LoadFromFile(FileSys::VirtualFile file_) {
     LoadConfiguration();
 }
 
+std::string ConfigurePerGame::GetBuildID() {
+    LOG_INFO(Core, "{}", file->GetExtension());
+
+    // https://github.com/Ryujinx/Ryujinx/blob/master/src/Ryujinx.UI.Common/App/ApplicationData.cs#L71
+
+    return "Invalid File";
+}
+
 void ConfigurePerGame::LoadConfiguration() {
     if (file == nullptr) {
         return;
@@ -151,23 +161,14 @@ void ConfigurePerGame::LoadConfiguration() {
 
     addons_tab->LoadFromFile(file);
 
+    const auto control = pm.GetControlMetadata();
+    const auto loader = Loader::GetLoader(system, file);
+
     ui->display_title_id->setText(
         QStringLiteral("%1").arg(title_id, 16, 16, QLatin1Char{'0'}).toUpper());
 
-    Loader::NSOHeader nso_header{};
-    if (sizeof(Loader::NSOHeader) != file->ReadObject(&nso_header)) {
-        LOG_ERROR(Core, "Could not read header for file {}", file->GetFullPath());
-        return;
-    }
-
-    const auto build_id_raw = Common::HexToString(nso_header.build_id);
-    const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
-    ui->display_build_id->setText(QString::fromStdString(build_id));
-
-    const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
-                                   system.GetContentProvider()};
-    const auto control = pm.GetControlMetadata();
-    const auto loader = Loader::GetLoader(system, file);
+    // TODO: Should get proper build id for UI
+    // ui->display_build_id->setText(QString::fromStdString(GetBuildID()));
 
     if (control.first != nullptr) {
         ui->display_version->setText(QString::fromStdString(control.first->GetVersionString()));
