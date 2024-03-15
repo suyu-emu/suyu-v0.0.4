@@ -24,8 +24,8 @@ using PushConstants = std::array<u32, 4 * 4>;
 
 FSR::FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count,
          VkExtent2D extent)
-    : m_device{device}, m_memory_allocator{memory_allocator},
-      m_image_count{image_count}, m_extent{extent} {
+    : m_device{device}, m_memory_allocator{memory_allocator}, m_image_count{image_count},
+      m_extent{extent} {
 
     CreateImages();
     CreateRenderPasses();

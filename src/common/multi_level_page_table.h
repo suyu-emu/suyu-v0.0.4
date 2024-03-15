@@ -25,12 +25,12 @@ public:
 
     MultiLevelPageTable(MultiLevelPageTable&& other) noexcept
         : address_space_bits{std::exchange(other.address_space_bits, 0)},
-          first_level_bits{std::exchange(other.first_level_bits, 0)}, page_bits{std::exchange(
-                                                                          other.page_bits, 0)},
+          first_level_bits{std::exchange(other.first_level_bits, 0)},
+          page_bits{std::exchange(other.page_bits, 0)},
           first_level_shift{std::exchange(other.first_level_shift, 0)},
           first_level_chunk_size{std::exchange(other.first_level_chunk_size, 0)},
-          first_level_map{std::move(other.first_level_map)}, base_ptr{std::exchange(other.base_ptr,
-                                                                                    nullptr)} {}
+          first_level_map{std::move(other.first_level_map)},
+          base_ptr{std::exchange(other.base_ptr, nullptr)} {}
 
     MultiLevelPageTable& operator=(MultiLevelPageTable&& other) noexcept {
         address_space_bits = std::exchange(other.address_space_bits, 0);

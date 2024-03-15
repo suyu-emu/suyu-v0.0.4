@@ -37,8 +37,8 @@ StaticService::StaticService(Core::System& system_, StaticServiceSetupInfo setup
       m_user_system_clock{m_time->m_standard_user_system_clock},
       m_network_system_clock{m_time->m_standard_network_system_clock},
       m_time_zone{m_time->m_time_zone},
-      m_ephemeral_network_clock{m_time->m_ephemeral_network_clock}, m_shared_memory{
-                                                                        m_time->m_shared_memory} {
+      m_ephemeral_network_clock{m_time->m_ephemeral_network_clock},
+      m_shared_memory{m_time->m_shared_memory} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0,   D<&StaticService::GetStandardUserSystemClock>, "GetStandardUserSystemClock"},

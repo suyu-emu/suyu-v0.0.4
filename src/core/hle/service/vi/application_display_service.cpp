@@ -15,8 +15,8 @@ namespace Service::VI {
 
 IApplicationDisplayService::IApplicationDisplayService(Core::System& system_,
                                                        std::shared_ptr<Container> container)
-    : ServiceFramework{system_, "IApplicationDisplayService"},
-      m_container{std::move(container)}, m_context{system, "IApplicationDisplayService"} {
+    : ServiceFramework{system_, "IApplicationDisplayService"}, m_container{std::move(container)},
+      m_context{system, "IApplicationDisplayService"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, C<&IApplicationDisplayService::GetRelayService>, "GetRelayService"},

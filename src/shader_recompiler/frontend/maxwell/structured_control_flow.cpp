@@ -112,8 +112,8 @@ struct Statement : ListBaseHook {
     Statement(SetVariable, u32 id_, Statement* op_, Statement* up_)
         : op{op_}, id{id_}, up{up_}, type{StatementType::SetVariable} {}
     Statement(SetIndirectBranchVariable, IR::Reg branch_reg_, s32 branch_offset_, Statement* up_)
-        : branch_offset{branch_offset_},
-          branch_reg{branch_reg_}, up{up_}, type{StatementType::SetIndirectBranchVariable} {}
+        : branch_offset{branch_offset_}, branch_reg{branch_reg_}, up{up_},
+          type{StatementType::SetIndirectBranchVariable} {}
     Statement(Variable, u32 id_, Statement* up_)
         : id{id_}, up{up_}, type{StatementType::Variable} {}
     Statement(IndirectBranchCond, u32 location_, Statement* up_)
