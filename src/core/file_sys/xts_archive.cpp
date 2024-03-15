@@ -44,8 +44,8 @@ static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t
 }
 
 NAX::NAX(VirtualFile file_)
-    : header(std::make_unique<NAXHeader>()), file(std::move(file_)),
-      keys{Core::Crypto::KeyManager::Instance()} {
+    : header(std::make_unique<NAXHeader>()),
+      file(std::move(file_)), keys{Core::Crypto::KeyManager::Instance()} {
     std::string path = Common::FS::SanitizePath(file->GetFullPath());
     static const std::regex nax_path_regex("/registered/(000000[0-9A-F]{2})/([0-9A-F]{32})\\.nca",
                                            std::regex_constants::ECMAScript |
@@ -62,8 +62,8 @@ NAX::NAX(VirtualFile file_)
 }
 
 NAX::NAX(VirtualFile file_, std::array<u8, 0x10> nca_id)
-    : header(std::make_unique<NAXHeader>()), file(std::move(file_)),
-      keys{Core::Crypto::KeyManager::Instance()} {
+    : header(std::make_unique<NAXHeader>()),
+      file(std::move(file_)), keys{Core::Crypto::KeyManager::Instance()} {
     Core::Crypto::SHA256Hash hash{};
     mbedtls_sha256_ret(nca_id.data(), nca_id.size(), hash.data(), 0);
     status = Parse(fmt::format("/registered/000000{:02X}/{}.nca", hash[0],

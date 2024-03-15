@@ -625,8 +625,8 @@ class Image {
 public:
     explicit Image(VkImage handle_, VkDevice owner_, VmaAllocator allocator_,
                    VmaAllocation allocation_, const DeviceDispatch& dld_) noexcept
-        : handle{handle_}, owner{owner_}, allocator{allocator_}, allocation{allocation_},
-          dld{&dld_} {}
+        : handle{handle_}, owner{owner_}, allocator{allocator_},
+          allocation{allocation_}, dld{&dld_} {}
     Image() = default;
 
     Image(const Image&) = delete;
@@ -680,8 +680,8 @@ public:
     explicit Buffer(VkBuffer handle_, VkDevice owner_, VmaAllocator allocator_,
                     VmaAllocation allocation_, std::span<u8> mapped_, bool is_coherent_,
                     const DeviceDispatch& dld_) noexcept
-        : handle{handle_}, owner{owner_}, allocator{allocator_}, allocation{allocation_},
-          mapped{mapped_}, is_coherent{is_coherent_}, dld{&dld_} {}
+        : handle{handle_}, owner{owner_}, allocator{allocator_},
+          allocation{allocation_}, mapped{mapped_}, is_coherent{is_coherent_}, dld{&dld_} {}
     Buffer() = default;
 
     Buffer(const Buffer&) = delete;
@@ -689,8 +689,8 @@ public:
 
     Buffer(Buffer&& rhs) noexcept
         : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
-          allocation{rhs.allocation}, mapped{rhs.mapped}, is_coherent{rhs.is_coherent},
-          dld{rhs.dld} {}
+          allocation{rhs.allocation}, mapped{rhs.mapped},
+          is_coherent{rhs.is_coherent}, dld{rhs.dld} {}
 
     Buffer& operator=(Buffer&& rhs) noexcept {
         Release();

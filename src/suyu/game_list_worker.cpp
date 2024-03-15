@@ -234,8 +234,8 @@ GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs_,
                                const PlayTime::PlayTimeManager& play_time_manager_,
                                Core::System& system_)
     : vfs{std::move(vfs_)}, provider{provider_}, game_dirs{game_dirs_},
-      compatibility_list{compatibility_list_}, play_time_manager{play_time_manager_},
-      system{system_} {
+      compatibility_list{compatibility_list_}, play_time_manager{play_time_manager_}, system{
+                                                                                          system_} {
     // We want the game list to manage our lifetime.
     setAutoDelete(false);
 }
@@ -330,13 +330,7 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
 
         auto entry = MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
                                        program_id, compatibility_list, play_time_manager, patch);
-        RecordEvent([=](GameList* game_list) {
-            if (UISettings::values.show_folders_in_list) {
-                game_list->AddEntry(entry, parent_dir);
-            } else {
-                game_list->AddRootEntry(entry);
-            }
-        });
+        RecordEvent([=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
     }
 }
 
@@ -414,7 +408,8 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                             physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
                             id, compatibility_list, play_time_manager, patch);
 
-                        RecordEvent([=](GameList* game_list) { game_list->AddRootEntry(entry); });
+                        RecordEvent(
+                            [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
                     }
                 } else {
                     std::vector<u8> icon;
@@ -430,13 +425,8 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
                         program_id, compatibility_list, play_time_manager, patch);
 
-                    RecordEvent([=](GameList* game_list) {
-                        if (UISettings::values.show_folders_in_list) {
-                            game_list->AddEntry(entry, parent_dir);
-                        } else {
-                            game_list->AddRootEntry(entry);
-                        }
-                    });
+                    RecordEvent(
+                        [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
                 }
             }
         } else if (is_dir) {
@@ -469,32 +459,20 @@ void GameListWorker::run() {
 
         if (game_dir.path == std::string("SDMC")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
+            DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == std::string("UserNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
+            DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == std::string("SysNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
+            DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else {
             watch_list.append(QString::fromStdString(game_dir.path));
             auto* const game_list_dir = new GameListDir(game_dir);
-
-            if (UISettings::values.show_folders_in_list)
-                DirEntryReady(game_list_dir);
-
+            DirEntryReady(game_list_dir);
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path, game_dir.deep_scan,
                            game_list_dir);
             ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,

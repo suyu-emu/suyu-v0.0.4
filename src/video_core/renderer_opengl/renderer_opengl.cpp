@@ -1,19 +1,27 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdlib>
 #include <memory>
 
 #include <glad/glad.h>
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/microprofile.h"
 #include "common/settings.h"
+#include "common/telemetry.h"
+#include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
+#include "core/telemetry_session.h"
 #include "video_core/capture.h"
 #include "video_core/present.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
+#include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/textures/decoders.h"
 
@@ -82,18 +90,20 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
 }
 } // Anonymous namespace
 
-RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window_,
+RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
+                               Core::Frontend::EmuWindow& emu_window_,
                                Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_)
-    : RendererBase{emu_window_, std::move(context_)}, emu_window{emu_window_},
-      device_memory{device_memory_}, gpu{gpu_}, device{emu_window_}, state_tracker{},
-      program_manager{device},
+    : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
+      emu_window{emu_window_}, device_memory{device_memory_}, gpu{gpu_}, device{emu_window_},
+      state_tracker{}, program_manager{device},
       rasterizer(emu_window, gpu, device_memory, device, program_manager, state_tracker) {
     if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(DebugHandler, nullptr);
     }
+    AddTelemetryFields();
 
     // Initialize default attributes to match hardware's disabled attributes
     GLint max_attribs{};
@@ -143,6 +153,21 @@ void RendererOpenGL::Composite(std::span<const Tegra::FramebufferConfig> framebu
 
     context->SwapBuffers();
     render_window.OnFrameDisplayed();
+}
+
+void RendererOpenGL::AddTelemetryFields() {
+    const char* const gl_version{reinterpret_cast<char const*>(glGetString(GL_VERSION))};
+    const char* const gpu_vendor{reinterpret_cast<char const*>(glGetString(GL_VENDOR))};
+    const char* const gpu_model{reinterpret_cast<char const*>(glGetString(GL_RENDERER))};
+
+    LOG_INFO(Render_OpenGL, "GL_VERSION: {}", gl_version);
+    LOG_INFO(Render_OpenGL, "GL_VENDOR: {}", gpu_vendor);
+    LOG_INFO(Render_OpenGL, "GL_RENDERER: {}", gpu_model);
+
+    constexpr auto user_system = Common::Telemetry::FieldType::UserSystem;
+    telemetry_session.AddField(user_system, "GPU_Vendor", std::string(gpu_vendor));
+    telemetry_session.AddField(user_system, "GPU_Model", std::string(gpu_model));
+    telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
 }
 
 void RendererOpenGL::RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,

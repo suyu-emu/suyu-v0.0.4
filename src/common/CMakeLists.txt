@@ -136,6 +136,8 @@ add_library(common STATIC
     string_util.cpp
     string_util.h
     swap.h
+    telemetry.cpp
+    telemetry.h
     thread.cpp
     thread.h
     thread_queue_list.h

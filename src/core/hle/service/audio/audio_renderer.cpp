@@ -14,8 +14,8 @@ IAudioRenderer::IAudioRenderer(Core::System& system_, Manager& manager_,
                                s32 session_id)
     : ServiceFramework{system_, "IAudioRenderer"}, service_context{system_, "IAudioRenderer"},
       rendered_event{service_context.CreateEvent("IAudioRendererEvent")}, manager{manager_},
-      impl{std::make_unique<Renderer>(system_, manager, rendered_event)},
-      process_handle{process_handle_} {
+      impl{std::make_unique<Renderer>(system_, manager, rendered_event)}, process_handle{
+                                                                              process_handle_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IAudioRenderer::GetSampleRate>, "GetSampleRate"},

@@ -148,8 +148,8 @@ public:
                             Common::Input::AnalogProperties properties_y_,
                             InputEngine* input_engine_)
         : identifier(identifier_), axis_x(axis_x_), axis_y(axis_y_), properties_x(properties_x_),
-          properties_y(properties_y_), input_engine(input_engine_),
-          invert_axis_y{input_engine_->GetEngineName() == "sdl"} {
+          properties_y(properties_y_),
+          input_engine(input_engine_), invert_axis_y{input_engine_->GetEngineName() == "sdl"} {
         UpdateCallback engine_callback{[this]() { OnChange(); }};
         const InputIdentifier x_input_identifier{
             .identifier = identifier,

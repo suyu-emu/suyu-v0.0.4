@@ -458,13 +458,9 @@ constexpr inline Result __TmpCurrentResultReference = ResultSuccess;
         if (true)
 
 #define R_CONVERT(catch_type, convert_type)                                                        \
-    R_CATCH(catch_type) {                                                                          \
-        R_THROW(static_cast<Result>(convert_type));                                                \
-    }
+    R_CATCH(catch_type) { R_THROW(static_cast<Result>(convert_type)); }
 
 #define R_CONVERT_ALL(convert_type)                                                                \
-    R_CATCH_ALL() {                                                                                \
-        R_THROW(static_cast<Result>(convert_type));                                                \
-    }
+    R_CATCH_ALL() { R_THROW(static_cast<Result>(convert_type)); }
 
 #define R_ASSERT(res_expr) ASSERT(R_SUCCEEDED(res_expr))

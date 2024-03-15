@@ -275,6 +275,7 @@ private:
     void BootGameFromList(const QString& filename, StartGameType with_config);
     void ShutdownGame();
 
+    void ShowTelemetryCallout();
     void SetDiscordEnabled(bool state);
     void LoadAmiibo(const QString& filename);
 
@@ -383,7 +384,6 @@ private slots:
     void OnAbout();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
-    void OnToggleFoldersInList();
     void OnDisplayTitleBars(bool);
     void InitializeHotkeys();
     void ToggleFullscreen();

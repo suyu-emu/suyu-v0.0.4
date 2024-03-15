@@ -8,8 +8,8 @@
 namespace AudioCore::AudioIn {
 
 In::In(Core::System& system_, Manager& manager_, Kernel::KEvent* event_, size_t session_id_)
-    : manager{manager_}, parent_mutex{manager.mutex}, event{event_},
-      system{system_, event, session_id_} {}
+    : manager{manager_}, parent_mutex{manager.mutex}, event{event_}, system{system_, event,
+                                                                            session_id_} {}
 
 void In::Free() {
     std::scoped_lock l{parent_mutex};
