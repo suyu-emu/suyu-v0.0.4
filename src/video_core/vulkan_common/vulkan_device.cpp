@@ -597,7 +597,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
     // AMD still has broken extendedDynamicState3ColorBlendEquation on RDNA3.
     // TODO: distinguis RDNA3 from other uArchs.
-     if (extensions.extended_dynamic_state3 && is_amd_driver) {
+    if (extensions.extended_dynamic_state3 && is_amd_driver) {
         LOG_WARNING(Render_Vulkan,
                     "AMD drivers have broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
