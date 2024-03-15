@@ -530,9 +530,9 @@ struct Values {
     Setting<bool> mouse_enabled{linkage, false, "mouse_enabled", Category::Controls};
 
     Setting<u8, true> mouse_panning_x_sensitivity{
-        linkage, 50, 1, 100, "mouse_panning_x_sensitivity", Category::Controls};
+        linkage, 50, 1, 200, "mouse_panning_x_sensitivity", Category::Controls};
     Setting<u8, true> mouse_panning_y_sensitivity{
-        linkage, 50, 1, 100, "mouse_panning_y_sensitivity", Category::Controls};
+        linkage, 50, 1, 200, "mouse_panning_y_sensitivity", Category::Controls};
     Setting<u8, true> mouse_panning_deadzone_counterweight{
         linkage, 20, 0, 100, "mouse_panning_deadzone_counterweight", Category::Controls};
     Setting<u8, true> mouse_panning_decay_strength{
@@ -611,7 +611,6 @@ struct Values {
                                            Category::Network};
 
     // WebService
-    Setting<bool> enable_telemetry{linkage, false, "enable_telemetry", Category::WebService};
     Setting<std::string> web_api_url{linkage, "http://74.113.97.71:3000", "web_api_url",
                                      Category::WebService};
     Setting<std::string> suyu_username{linkage, std::string(), "suyu_username",

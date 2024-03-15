@@ -100,7 +100,6 @@
 #include "common/x64/cpu_detect.h"
 #endif
 #include "common/settings.h"
-#include "common/telemetry.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/crypto/key_manager.h"
@@ -119,7 +118,6 @@
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
-#include "core/telemetry_session.h"
 #include "frontend_common/config.h"
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/virtual_amiibo.h"
@@ -188,27 +186,8 @@ constexpr size_t CopyBufferSize = 1_MiB;
  * user. This is 32-bits - if we have more than 32 callouts, we should retire and recycle old ones.
  */
 enum class CalloutFlag : uint32_t {
-    Telemetry = 0x1,
     DRDDeprecation = 0x2,
 };
-
-void GMainWindow::ShowTelemetryCallout() {
-    if (UISettings::values.callout_flags.GetValue() &
-        static_cast<uint32_t>(CalloutFlag::Telemetry)) {
-        return;
-    }
-
-    UISettings::values.callout_flags =
-        UISettings::values.callout_flags.GetValue() | static_cast<uint32_t>(CalloutFlag::Telemetry);
-    const QString telemetry_message =
-        tr("<a href='https://suyu.dev/help/feature/telemetry/'>Anonymous "
-           "data is collected</a> to help improve suyu. "
-           "<br/><br/>Would you like to share your usage data with us?");
-    if (!question(this, tr("Telemetry"), telemetry_message)) {
-        Settings::values.enable_telemetry = false;
-        system->ApplySettings();
-    }
-}
 
 const int GMainWindow::max_recent_files_item;
 
@@ -416,9 +395,6 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
 
     game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.game_dirs);
-
-    // Show one-time "callout" messages to the user
-    ShowTelemetryCallout();
 
     // make sure menubar has the arrow cursor instead of inheriting from this
     ui->menubar->setCursor(QCursor());
@@ -1440,6 +1416,7 @@ void GMainWindow::RestoreUIState() {
     game_list->SetFilterVisible(ui->action_Show_Filter_Bar->isChecked());
 
     ui->action_Show_Status_Bar->setChecked(UISettings::values.show_status_bar.GetValue());
+    ui->action_Show_Folders_In_List->setChecked(UISettings::values.show_folders_in_list.GetValue());
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
     Debugger::ToggleConsole();
 }
@@ -1555,6 +1532,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Display_Dock_Widget_Headers, &GMainWindow::OnDisplayTitleBars);
     connect_menu(ui->action_Show_Filter_Bar, &GMainWindow::OnToggleFilterBar);
     connect_menu(ui->action_Show_Status_Bar, &GMainWindow::OnToggleStatusBar);
+    connect_menu(ui->action_Show_Folders_In_List, &GMainWindow::OnToggleFoldersInList);
 
     connect_menu(ui->action_Reset_Window_Size_720, &GMainWindow::ResetWindowSize720);
     connect_menu(ui->action_Reset_Window_Size_900, &GMainWindow::ResetWindowSize900);
@@ -1870,8 +1848,6 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         return false;
     }
     current_game_path = filename;
-
-    system->TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "Qt");
     return true;
 }
 
@@ -3380,7 +3356,7 @@ void GMainWindow::OnMenuReportCompatibility() {
 
     if (!Settings::values.suyu_token.GetValue().empty() &&
         !Settings::values.suyu_username.GetValue().empty()) {
-        CompatDB compatdb{system->TelemetrySession(), this};
+        CompatDB compatdb{this};
         compatdb.exec();
     } else {
         QMessageBox::critical(
@@ -3610,8 +3586,6 @@ void GMainWindow::OnConfigure() {
 
         SetDefaultUIGeometry();
         RestoreUIState();
-
-        ShowTelemetryCallout();
     }
     InitializeHotkeys();
 
@@ -4213,6 +4187,14 @@ void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
+void GMainWindow::OnToggleFoldersInList() {
+    UISettings::values.show_folders_in_list = ui->action_Show_Folders_In_List->isChecked();
+
+    game_list->ClearList();
+    game_list->LoadCompatibilityList();
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+}
+
 void GMainWindow::OnAlbum() {
     constexpr u64 AlbumId = static_cast<u64>(Service::AM::AppletProgramId::PhotoViewer);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
@@ -4601,6 +4583,7 @@ void GMainWindow::UpdateUISettings() {
     UISettings::values.display_titlebar = ui->action_Display_Dock_Widget_Headers->isChecked();
     UISettings::values.show_filter_bar = ui->action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui->action_Show_Status_Bar->isChecked();
+    UISettings::values.show_folders_in_list = ui->action_Show_Folders_In_List->isChecked();
     UISettings::values.first_start = false;
 }
 

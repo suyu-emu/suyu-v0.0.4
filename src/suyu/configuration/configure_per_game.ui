@@ -67,8 +67,18 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_2">
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="display_developer">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item row="6" column="1">
-           <widget class="QLineEdit" name="display_size">
+           <widget class="QLineEdit" name="display_format">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -77,20 +87,17 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="display_version">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label">
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Name</string>
+             <string>Size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Filename</string>
             </property>
            </widget>
           </item>
@@ -98,6 +105,13 @@
            <widget class="QLabel" name="label_4">
             <property name="text">
              <string>Title ID</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Name</string>
             </property>
            </widget>
           </item>
@@ -111,30 +125,44 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Developer</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Format</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="display_version">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Version</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
            <widget class="QLineEdit" name="display_filename">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="readOnly">
              <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QLineEdit" name="display_format">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Filename</string>
             </property>
            </widget>
           </item>
@@ -148,8 +176,8 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="display_developer">
+          <item row="7" column="1">
+           <widget class="QLineEdit" name="display_size">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -157,35 +185,22 @@
              <bool>true</bool>
             </property>
            </widget>
+           </item>
+          <!-- TODO: Gotta implement proper working build id -->
+          <!--item row="5" column="1">
+           <widget class="QLineEdit" name="display_build_id">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
           <item row="5" column="0">
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>Format</string>
+             <string>Build ID</string>
             </property>
            </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Version</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Size</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Developer</string>
-            </property>
-           </widget>
-          </item>
+          </item-->
          </layout>
         </item>
         <item>

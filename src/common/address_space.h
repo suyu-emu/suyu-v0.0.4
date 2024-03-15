@@ -12,8 +12,7 @@
 
 namespace Common {
 template <typename VaType, size_t AddressSpaceBits>
-concept AddressSpaceValid = std::is_unsigned_v<VaType> && sizeof(VaType) * 8 >=
-AddressSpaceBits;
+concept AddressSpaceValid = std::is_unsigned_v<VaType> && sizeof(VaType) * 8 >= AddressSpaceBits;
 
 struct EmptyStruct {};
 

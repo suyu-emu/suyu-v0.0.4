@@ -766,8 +766,8 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
 Builder::Builder(QWidget* parent_, bool runtime_lock_)
     : translations{InitializeTranslations(parent_)},
-      combobox_translations{ComboboxEnumeration(parent_)}, parent{parent_}, runtime_lock{
-                                                                                runtime_lock_} {}
+      combobox_translations{ComboboxEnumeration(parent_)}, parent{parent_},
+      runtime_lock{runtime_lock_} {}
 
 Builder::~Builder() = default;
 

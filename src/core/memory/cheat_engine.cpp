@@ -218,8 +218,8 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
 
 CheatEngine::CheatEngine(System& system_, std::vector<CheatEntry> cheats_,
                          const std::array<u8, 0x20>& build_id_)
-    : vm{std::make_unique<StandardVmCallbacks>(system_, metadata)},
-      cheats(std::move(cheats_)), core_timing{system_.CoreTiming()}, system{system_} {
+    : vm{std::make_unique<StandardVmCallbacks>(system_, metadata)}, cheats(std::move(cheats_)),
+      core_timing{system_.CoreTiming()}, system{system_} {
     metadata.main_nso_build_id = build_id_;
 }
 

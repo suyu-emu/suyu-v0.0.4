@@ -32,9 +32,9 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  InputCommon::InputSubsystem* input_subsystem,
                                  std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
-    : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
-      registry(registry_), system{system_}, builder{std::make_unique<ConfigurationShared::Builder>(
-                                                this, !system_.IsPoweredOn())},
+    : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()}, registry(registry_),
+      system{system_},
+      builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
       applets_tab{std::make_unique<ConfigureApplets>(system_, nullptr, *builder, this)},
       audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, *builder, this)},
       cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, *builder, this)},

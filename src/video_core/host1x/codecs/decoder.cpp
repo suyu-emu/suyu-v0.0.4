@@ -11,8 +11,8 @@ namespace Tegra {
 
 Decoder::Decoder(Host1x::Host1x& host1x_, s32 id_, const Host1x::NvdecCommon::NvdecRegisters& regs_,
                  Host1x::FrameQueue& frame_queue_)
-    : host1x(host1x_), memory_manager{host1x.GMMU()}, regs{regs_}, id{id_}, frame_queue{
-                                                                                frame_queue_} {}
+    : host1x(host1x_), memory_manager{host1x.GMMU()}, regs{regs_}, id{id_},
+      frame_queue{frame_queue_} {}
 
 Decoder::~Decoder() = default;
 

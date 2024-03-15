@@ -8,8 +8,8 @@
 namespace Common::X64 {
 
 NativeClock::NativeClock(u64 rdtsc_frequency_)
-    : rdtsc_frequency{rdtsc_frequency_}, ns_rdtsc_factor{GetFixedPoint64Factor(NsRatio::den,
-                                                                               rdtsc_frequency)},
+    : rdtsc_frequency{rdtsc_frequency_},
+      ns_rdtsc_factor{GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency)},
       us_rdtsc_factor{GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency)},
       ms_rdtsc_factor{GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency)},
       cntpct_rdtsc_factor{GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency)},

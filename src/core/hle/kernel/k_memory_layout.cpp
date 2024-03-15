@@ -128,8 +128,8 @@ KVirtualAddress KMemoryRegionTree::GetRandomAlignedRegion(size_t size, size_t al
 
 KMemoryLayout::KMemoryLayout()
     : m_virtual_tree{m_memory_region_allocator}, m_physical_tree{m_memory_region_allocator},
-      m_virtual_linear_tree{m_memory_region_allocator}, m_physical_linear_tree{
-                                                            m_memory_region_allocator} {}
+      m_virtual_linear_tree{m_memory_region_allocator},
+      m_physical_linear_tree{m_memory_region_allocator} {}
 
 void KMemoryLayout::InitializeLinearMemoryRegionTrees(KPhysicalAddress aligned_linear_phys_start,
                                                       KVirtualAddress linear_virtual_start) {
