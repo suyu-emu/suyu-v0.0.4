@@ -40,8 +40,8 @@ class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
     explicit DynarmicCallbacks64(Core::Memory::Memory& memory_, std::vector<u8>& local_memory_,
                                  IntervalSet& mapped_ranges_, JITContextImpl& parent_)
-        : memory{memory_}, local_memory{local_memory_}, mapped_ranges{mapped_ranges_},
-          parent{parent_} {}
+        : memory{memory_}, local_memory{local_memory_},
+          mapped_ranges{mapped_ranges_}, parent{parent_} {}
 
     u8 MemoryRead8(u64 vaddr) override {
         return ReadMemory<u8>(vaddr);

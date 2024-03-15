@@ -11,7 +11,6 @@
 #include <QList>
 
 #include "configuration/shared_widget.h"
-#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "frontend_common/config.h"
 #include "suyu/configuration/configuration_shared.h"
@@ -69,11 +68,8 @@ private:
 
     void LoadConfiguration();
 
-    std::string GetBuildID();
-
     std::unique_ptr<Ui::ConfigurePerGame> ui;
     FileSys::VirtualFile file;
-    FileSys::PatchManager pm;
     u64 title_id;
 
     QGraphicsScene* scene;

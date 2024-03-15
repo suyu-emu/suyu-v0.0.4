@@ -14,8 +14,8 @@
 namespace AudioCore::AudioIn {
 
 System::System(Core::System& system_, Kernel::KEvent* event_, const size_t session_id_)
-    : system{system_}, buffer_event{event_}, session_id{session_id_},
-      session{std::make_unique<DeviceSession>(system_)} {}
+    : system{system_}, buffer_event{event_},
+      session_id{session_id_}, session{std::make_unique<DeviceSession>(system_)} {}
 
 System::~System() {
     Finalize();

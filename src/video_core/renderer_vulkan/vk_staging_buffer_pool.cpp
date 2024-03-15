@@ -49,8 +49,8 @@ size_t GetStreamBufferSize(const Device& device) {
 StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_)
     : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
-      stream_buffer_size{GetStreamBufferSize(device)},
-      region_size{stream_buffer_size / StagingBufferPool::NUM_SYNCS} {
+      stream_buffer_size{GetStreamBufferSize(device)}, region_size{stream_buffer_size /
+                                                                   StagingBufferPool::NUM_SYNCS} {
     VkBufferCreateInfo stream_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,

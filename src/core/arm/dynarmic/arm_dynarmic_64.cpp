@@ -16,8 +16,8 @@ using namespace Common::Literals;
 class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
     explicit DynarmicCallbacks64(ArmDynarmic64& parent, Kernel::KProcess* process)
-        : m_parent{parent}, m_memory(process->GetMemory()), m_process(process),
-          m_debugger_enabled{parent.m_system.DebuggerEnabled()},
+        : m_parent{parent}, m_memory(process->GetMemory()),
+          m_process(process), m_debugger_enabled{parent.m_system.DebuggerEnabled()},
           m_check_memory_access{m_debugger_enabled ||
                                 !Settings::values.cpuopt_ignore_memory_aborts.GetValue()} {}
 

@@ -7,8 +7,8 @@
 namespace Service::News {
 
 IOverwriteEventHolder::IOverwriteEventHolder(Core::System& system_)
-    : ServiceFramework{system_, "IOverwriteEventHolder"},
-      service_context{system_, "IOverwriteEventHolder"} {
+    : ServiceFramework{system_, "IOverwriteEventHolder"}, service_context{system_,
+                                                                          "IOverwriteEventHolder"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IOverwriteEventHolder::Get>, "Get"},

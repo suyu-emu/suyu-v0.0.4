@@ -94,8 +94,8 @@ void SwizzleSurface(std::span<u8> output, u32 out_stride, std::span<const u8> in
 } // namespace
 
 Vic::Vic(Host1x& host1x_, s32 id_, u32 syncpt, FrameQueue& frame_queue_)
-    : CDmaPusher{host1x_, id_}, id{id_}, syncpoint{syncpt}, frame_queue{frame_queue_},
-      has_sse41{HasSSE41()} {
+    : CDmaPusher{host1x_, id_}, id{id_}, syncpoint{syncpt},
+      frame_queue{frame_queue_}, has_sse41{HasSSE41()} {
     LOG_INFO(HW_GPU, "Created vic {}", id);
 }
 

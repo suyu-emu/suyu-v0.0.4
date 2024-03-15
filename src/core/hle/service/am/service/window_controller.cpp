@@ -11,8 +11,8 @@ namespace Service::AM {
 
 IWindowController::IWindowController(Core::System& system_, std::shared_ptr<Applet> applet,
                                      WindowSystem& window_system)
-    : ServiceFramework{system_, "IWindowController"}, m_window_system{window_system},
-      m_applet{std::move(applet)} {
+    : ServiceFramework{system_, "IWindowController"},
+      m_window_system{window_system}, m_applet{std::move(applet)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateWindow"},

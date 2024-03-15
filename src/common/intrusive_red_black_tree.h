@@ -238,8 +238,10 @@ public:
 
 template <typename T>
 concept HasRedBlackKeyType = requires {
-    { std::is_same<typename T::RedBlackKeyType, void>::value } -> std::convertible_to<bool>;
-};
+                                 {
+                                     std::is_same<typename T::RedBlackKeyType, void>::value
+                                     } -> std::convertible_to<bool>;
+                             };
 
 namespace impl {
 

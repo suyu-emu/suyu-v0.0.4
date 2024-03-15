@@ -13,8 +13,8 @@ PoolMapper::PoolMapper(Kernel::KProcess* process_handle_, bool force_map_)
 
 PoolMapper::PoolMapper(Kernel::KProcess* process_handle_, std::span<MemoryPoolInfo> pool_infos_,
                        u32 pool_count_, bool force_map_)
-    : process_handle{process_handle_}, pool_infos{pool_infos_.data()}, pool_count{pool_count_},
-      force_map{force_map_} {}
+    : process_handle{process_handle_}, pool_infos{pool_infos_.data()},
+      pool_count{pool_count_}, force_map{force_map_} {}
 
 void PoolMapper::ClearUseState(std::span<MemoryPoolInfo> pools, const u32 count) {
     for (u32 i = 0; i < count; i++) {
