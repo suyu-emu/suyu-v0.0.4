@@ -32,7 +32,9 @@ android:
   script:
     - apt-get update -y
     - git submodule update --init --recursive
-    - cd externals/vcpkg && git fetch --unshallow && cd -
+    - cd externals/vcpkg
+    - git fetch --unshallow || true
+    - cd ../..
     - export ANDROID_HOME="/usr/lib/android-sdk/"
     - echo y | sdkmanager --sdk_root=/usr/lib/android-sdk --licenses
     - bash ./.ci/scripts/android/build.sh
