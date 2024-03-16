@@ -8,6 +8,7 @@
 #include "suyu/configuration/configure_web.h"
 #include "suyu/uisettings.h"
 #include "ui_configure_web.h"
+#include "web_service/verify_login.h"
 
 static constexpr char token_delimiter{':'};
 
