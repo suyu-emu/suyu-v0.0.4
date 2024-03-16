@@ -31,8 +31,9 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
                                std::shared_ptr<Core::AnnounceMultiplayerSession> session,
                                Core::System& system_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::HostRoom>()), announce_multiplayer_session(session), system{system_},
-      room_network{system.GetRoomNetwork()} {
+      ui(std::make_unique<Ui::HostRoom>()),
+      announce_multiplayer_session(session), system{system_}, room_network{
+                                                                  system.GetRoomNetwork()} {
     ui->setupUi(this);
 
     // set up validation for all of the fields

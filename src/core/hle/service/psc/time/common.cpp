@@ -6,8 +6,8 @@
 
 namespace Service::PSC::Time {
 OperationEvent::OperationEvent(Core::System& system)
-    : m_ctx{system, "Time:OperationEvent"},
-      m_event{m_ctx.CreateEvent("Time:OperationEvent:Event")} {}
+    : m_ctx{system, "Time:OperationEvent"}, m_event{
+                                                m_ctx.CreateEvent("Time:OperationEvent:Event")} {}
 
 OperationEvent::~OperationEvent() {
     m_ctx.CloseEvent(m_event);

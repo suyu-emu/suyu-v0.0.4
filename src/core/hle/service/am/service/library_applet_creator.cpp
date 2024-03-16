@@ -165,8 +165,8 @@ std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& syste
 
 ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet,
                                              WindowSystem& window_system)
-    : ServiceFramework{system_, "ILibraryAppletCreator"}, m_window_system{window_system},
-      m_applet{std::move(applet)} {
+    : ServiceFramework{system_, "ILibraryAppletCreator"},
+      m_window_system{window_system}, m_applet{std::move(applet)} {
     static const FunctionInfo functions[] = {
         {0, D<&ILibraryAppletCreator::CreateLibraryApplet>, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},

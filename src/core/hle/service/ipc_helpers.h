@@ -72,8 +72,8 @@ public:
                              u32 num_handles_to_copy_ = 0, u32 num_objects_to_move_ = 0,
                              Flags flags = Flags::None)
         : RequestHelperBase(ctx), normal_params_size(normal_params_size_),
-          num_handles_to_copy(num_handles_to_copy_), num_objects_to_move(num_objects_to_move_),
-          kernel{ctx.kernel} {
+          num_handles_to_copy(num_handles_to_copy_),
+          num_objects_to_move(num_objects_to_move_), kernel{ctx.kernel} {
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 

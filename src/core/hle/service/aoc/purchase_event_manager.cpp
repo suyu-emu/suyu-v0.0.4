@@ -9,8 +9,8 @@ namespace Service::AOC {
 constexpr Result ResultNoPurchasedProductInfoAvailable{ErrorModule::NIMShop, 400};
 
 IPurchaseEventManager::IPurchaseEventManager(Core::System& system_)
-    : ServiceFramework{system_, "IPurchaseEventManager"},
-      service_context{system, "IPurchaseEventManager"} {
+    : ServiceFramework{system_, "IPurchaseEventManager"}, service_context{system,
+                                                                          "IPurchaseEventManager"} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, D<&IPurchaseEventManager::SetDefaultDeliveryTarget>, "SetDefaultDeliveryTarget"},

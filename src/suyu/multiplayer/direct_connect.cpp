@@ -24,8 +24,8 @@ enum class ConnectionType : u8 { TraversalServer, IP };
 
 DirectConnectWindow::DirectConnectWindow(Core::System& system_, QWidget* parent)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::DirectConnect>()), system{system_},
-      room_network{system.GetRoomNetwork()} {
+      ui(std::make_unique<Ui::DirectConnect>()), system{system_}, room_network{
+                                                                      system.GetRoomNetwork()} {
 
     ui->setupUi(this);
 

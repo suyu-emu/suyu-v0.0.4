@@ -1028,8 +1028,8 @@ void Module::Interface::TrySelectUserWithoutInteraction(HLERequestContext& ctx) 
 Module::Interface::Interface(std::shared_ptr<Module> module_,
                              std::shared_ptr<ProfileManager> profile_manager_,
                              Core::System& system_, const char* name)
-    : ServiceFramework{system_, name}, module{std::move(module_)},
-      profile_manager{std::move(profile_manager_)} {}
+    : ServiceFramework{system_, name}, module{std::move(module_)}, profile_manager{std::move(
+                                                                       profile_manager_)} {}
 
 Module::Interface::~Interface() = default;
 
