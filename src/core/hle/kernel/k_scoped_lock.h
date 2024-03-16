@@ -10,11 +10,10 @@
 namespace Kernel {
 
 template <typename T>
-concept KLockable = !
-std::is_reference_v<T>&& requires(T& t) {
-                             { t.Lock() } -> std::same_as<void>;
-                             { t.Unlock() } -> std::same_as<void>;
-                         };
+concept KLockable = !std::is_reference_v<T> && requires(T& t) {
+    { t.Lock() } -> std::same_as<void>;
+    { t.Unlock() } -> std::same_as<void>;
+};
 
 template <typename T>
     requires KLockable<T>

@@ -18,8 +18,8 @@ namespace Service::AM {
 
 IApplicationProxy::IApplicationProxy(Core::System& system_, std::shared_ptr<Applet> applet,
                                      Kernel::KProcess* process, WindowSystem& window_system)
-    : ServiceFramework{system_, "IApplicationProxy"},
-      m_window_system{window_system}, m_process{process}, m_applet{std::move(applet)} {
+    : ServiceFramework{system_, "IApplicationProxy"}, m_window_system{window_system},
+      m_process{process}, m_applet{std::move(applet)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, D<&IApplicationProxy::GetCommonStateGetter>, "GetCommonStateGetter"},

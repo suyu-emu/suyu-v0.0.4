@@ -103,9 +103,9 @@ concept IsRBEntry = CheckRBEntry<T>::value;
 
 template <typename T>
 concept HasRBEntry = requires(T& t, const T& ct) {
-                         { t.GetRBEntry() } -> std::same_as<RBEntry<T>&>;
-                         { ct.GetRBEntry() } -> std::same_as<const RBEntry<T>&>;
-                     };
+    { t.GetRBEntry() } -> std::same_as<RBEntry<T>&>;
+    { ct.GetRBEntry() } -> std::same_as<const RBEntry<T>&>;
+};
 
 template <typename T>
     requires HasRBEntry<T>

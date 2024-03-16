@@ -18,9 +18,8 @@ namespace Service::AM::Frontend {
 
 Cabinet::Cabinet(Core::System& system_, std::shared_ptr<Applet> applet_,
                  LibraryAppletMode applet_mode_, const Core::Frontend::CabinetApplet& frontend_)
-    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_}, service_context{
-                                                                               system_,
-                                                                               "CabinetApplet"} {
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_},
+      service_context{system_, "CabinetApplet"} {
 
     availability_change_event =
         service_context.CreateEvent("CabinetApplet:AvailabilityChangeEvent");

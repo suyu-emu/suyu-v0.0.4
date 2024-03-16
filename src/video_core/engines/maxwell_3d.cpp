@@ -24,9 +24,8 @@ constexpr u32 MacroRegistersStart = 0xE00;
 
 Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
     : draw_manager{std::make_unique<DrawManager>(this)}, system{system_},
-      memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)}, upload_state{
-                                                                                memory_manager,
-                                                                                regs.upload} {
+      memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)},
+      upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
     InitializeRegisterDefaults();
     execution_mask.reset();
