@@ -643,7 +643,7 @@ void KeyManager::ReloadKeys() {
     const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
 
     if (!Common::FS::CreateDir(suyu_keys_dir)) {
-        LOG_ERROR(Core, "Failed to create the keys directory.");
+        LOG_ERROR(Crypto, "Failed to create the keys directory.");
     }
 
     if (Settings::values.use_dev_keys) {
@@ -668,6 +668,8 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
 
 void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys) {
     if (!Common::FS::Exists(file_path)) {
+        LOG_ERROR(Crypto, "Failed to load key file at '{}': File not found",
+                  file_path.generic_string());
         return;
     }
 
@@ -675,9 +677,12 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
     Common::FS::OpenFileStream(file, file_path, std::ios_base::in);
 
     if (!file.is_open()) {
+        LOG_ERROR(Crypto, "Failed to load key file at '{}': Can't open file",
+                  file_path.generic_string());
         return;
     }
 
+    LOG_INFO(Crypto, "Loading key file at '{}'", file_path.generic_string());
     std::string line;
     while (std::getline(file, line)) {
         std::vector<std::string> out;
@@ -703,6 +708,8 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
             u128 rights_id{};
             std::memcpy(rights_id.data(), rights_id_raw.data(), rights_id_raw.size());
             Key128 key = Common::HexStringToArray<16>(out[1]);
+
+            LOG_INFO(Crypto, "Successfully loaded title key");
             s128_keys[{S128KeyType::Titlekey, rights_id[1], rights_id[0]}] = key;
         } else {
             out[0] = Common::ToLower(out[0]);
@@ -784,6 +791,21 @@ bool KeyManager::BaseDeriveNecessary() const {
     const auto check_key_existence = [this](auto key_type, u64 index1 = 0, u64 index2 = 0) {
         return !HasKey(key_type, index1, index2);
     };
+
+    // Ensure the files exists
+    const auto suyu_keys_dir = Common::FS::GetSuyuPath(Common::FS::SuyuPath::KeysDir);
+
+    if (!Common::FS::Exists(suyu_keys_dir /
+                            (Settings::values.use_dev_keys ? "dev.keys" : "prod.keys"))) {
+        LOG_ERROR(Crypto, "No {} found",
+                  (Settings::values.use_dev_keys ? "dev.keys" : "prod.keys"));
+        return true;
+    }
+
+    if (!Common::FS::Exists(suyu_keys_dir / "title.keys")) {
+        LOG_ERROR(Crypto, "No title.keys found");
+        return true;
+    }
 
     if (check_key_existence(S256KeyType::Header)) {
         return true;

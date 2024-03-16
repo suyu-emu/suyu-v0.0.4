@@ -1752,6 +1752,15 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         return false;
     }
 
+    if (!ContentManager::AreKeysPresent()) {
+        QMessageBox::warning(this, tr("Derivation Components Missing"),
+                             tr("Encryption keys are missing. "
+                                "You need to provide both your own title.keys "
+                                "and your own prod.keys "
+                                "in order to play games"));
+        return false;
+    }
+
     // Shutdown previous session if the emu thread is still active...
     if (emu_thread != nullptr) {
         ShutdownGame();
@@ -4619,13 +4628,13 @@ void GMainWindow::OnMouseActivity() {
 void GMainWindow::OnCheckFirmwareDecryption() {
     system->GetFileSystemController().CreateFactories(*vfs);
     if (!ContentManager::AreKeysPresent()) {
-        QMessageBox::warning(
-            this, tr("Derivation Components Missing"),
-            tr("Encryption keys are missing. "
-               "<br>Please follow <a href='https://suyu.dev/help/quickstart/'>the suyu "
-               "quickstart guide</a> to get all your keys, firmware and "
-               "games."));
+        QMessageBox::warning(this, tr("Derivation Components Missing"),
+                             tr("Encryption keys are missing. "
+                                "You need to provide both your own title.keys "
+                                "and your own prod.keys "
+                                "in order to play games"));
     }
+
     SetFirmwareVersion();
     UpdateMenuState();
 }
