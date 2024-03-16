@@ -79,9 +79,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <family>Ubuntu</family>
+            <pointsize>20</pointsize>
+            <italic>false</italic>
+            <bold>true</bold>
+            <kerning>true</kerning>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
-font: 75 20pt &quot;Arial&quot;;</string>
+font: 700 20pt &quot;Ubuntu&quot;;</string>
           </property>
           <property name="text">
            <string>Loading Shaders 387 / 1628</string>
@@ -132,7 +141,7 @@ border-radius: 15px;
           </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
-font: 75 15pt &quot;Arial&quot;;</string>
+font: 700 15pt &quot;Ubuntu&quot;;</string>
           </property>
           <property name="text">
            <string>Estimated Time 5m 4s</string>

@@ -47,7 +47,7 @@ QProgressBar {
   padding: 2px;
 }
 QProgressBar::chunk {
-  background-color: #ff3c28;
+  background-color: #white;
 })";
 
 LoadingScreen::LoadingScreen(QWidget* parent)
@@ -99,7 +99,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
 #ifdef SUYU_QT_MOVIE_MISSING
         QPixmap map;
         map.loadFromData(buffer.data(), buffer.size());
-        ui->banner->setPixmap(map);
+        setPixmap(map);
 #else
         backing_mem = std::make_unique<QByteArray>(reinterpret_cast<char*>(buffer.data()),
                                                    static_cast<int>(buffer.size()));
@@ -116,6 +116,8 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         map.loadFromData(buffer.data(), static_cast<uint>(buffer.size()));
         ui->logo->setPixmap(map);
     }
+    ui->logo->setVisible(false);
+    ui->banner->setVisible(false);
 
     slow_shader_compile_start = false;
     OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
