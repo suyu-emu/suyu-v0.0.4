@@ -49,6 +49,9 @@
       </property>
       <item alignment="Qt::AlignLeft|Qt::AlignTop">
        <widget class="QLabel" name="logo">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -140,6 +143,9 @@ font: 75 15pt &quot;Arial&quot;;</string>
       </item>
       <item alignment="Qt::AlignRight|Qt::AlignBottom">
        <widget class="QLabel" name="banner">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="styleSheet">
          <string notr="true">background-color: black;</string>
         </property>

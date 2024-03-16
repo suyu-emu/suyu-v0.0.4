@@ -31,19 +31,19 @@ constexpr char PROGRESSBAR_STYLE_BUILD[] = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
-  border-radius: 4px;
+  border-radius: 25px;
   padding: 2px;
 }
 QProgressBar::chunk {
-  background-color: #ff3c28;
+  background-color: white;
   width: 1px;
 })";
 
 constexpr char PROGRESSBAR_STYLE_COMPLETE[] = R"(
 QProgressBar {
-  background-color: #0ab9e6;
+  background-color: black;
   border: 2px solid white;
-  border-radius: 4px;
+  border-radius: 25px;
   padding: 2px;
 }
 QProgressBar::chunk {
