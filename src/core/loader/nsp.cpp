@@ -102,6 +102,10 @@ AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::KProcess& process, Core::S
             return {ResultStatus::ErrorMissingProductionKeyFile, {}};
         }
 
+        if (!Core::Crypto::KeyManager::KeyFileExists(true)) {
+            return {ResultStatus::ErrorMissingProductionKeyFile, {}};
+        }
+
         return {ResultStatus::ErrorNSPMissingProgramNCA, {}};
     }
 
