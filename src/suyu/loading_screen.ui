@@ -79,15 +79,6 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="font">
-           <font>
-            <family>Ubuntu</family>
-            <pointsize>20</pointsize>
-            <italic>false</italic>
-            <kerning>true</kerning>
-            <fontweight>Medium</fontweight>
-           </font>
-          </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
 font: 500 20pt &quot;Ubuntu&quot;;</string>
