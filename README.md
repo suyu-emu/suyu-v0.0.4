@@ -20,7 +20,7 @@ This repo is based on Yuzu EA 4176.
 
 <h4 align="center"><b>suyu</b> is the continuation of the world's most popular, open-source, Nintendo Switch emulator, yuzu.
 <br>
-It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
+It is written in C++ with portability in mind, and we're actively working on builds for Windows, Linux and Android.
 </h4>
 
 <p align="center">
