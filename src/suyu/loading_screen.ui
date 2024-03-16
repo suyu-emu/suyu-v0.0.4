@@ -84,13 +84,13 @@
             <family>Ubuntu</family>
             <pointsize>20</pointsize>
             <italic>false</italic>
-            <bold>true</bold>
             <kerning>true</kerning>
+            <fontweight>Medium</fontweight>
            </font>
           </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
-font: 700 20pt &quot;Ubuntu&quot;;</string>
+font: 500 20pt &quot;Ubuntu&quot;;</string>
           </property>
           <property name="text">
            <string>Loading Shaders 387 / 1628</string>
@@ -116,11 +116,11 @@ font: 700 20pt &quot;Ubuntu&quot;;</string>
 color: white;
 border: 2px solid white;
 outline-color: black;
-border-radius: 20px;
+border-radius: 10px;
 }
 QProgressBar::chunk {
 background-color: white;
-border-radius: 15px;
+border-radius: 5px;
 }</string>
           </property>
           <property name="value">
@@ -141,7 +141,7 @@ border-radius: 15px;
           </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
-font: 700 15pt &quot;Ubuntu&quot;;</string>
+font: 500 15pt &quot;Ubuntu&quot;;</string>
           </property>
           <property name="text">
            <string>Estimated Time 5m 4s</string>
