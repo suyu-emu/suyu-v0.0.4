@@ -107,11 +107,11 @@ font: 500 20pt &quot;Ubuntu&quot;;</string>
 color: white;
 border: 2px solid white;
 outline-color: black;
-border-radius: 10px;
+border-radius: 15px;
 }
 QProgressBar::chunk {
 background-color: white;
-border-radius: 5px;
+border-radius: 10px;
 }</string>
           </property>
           <property name="value">
