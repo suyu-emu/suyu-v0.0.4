@@ -393,6 +393,7 @@ private slots:
     void ToggleWindowMode();
     void ResetWindowSize(u32 width, u32 height);
     void ResetWindowSize720();
+    void ResetWindowSize800();
     void ResetWindowSize900();
     void ResetWindowSize1080();
     void OnAlbum();
