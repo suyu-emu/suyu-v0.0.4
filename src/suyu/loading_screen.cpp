@@ -36,6 +36,7 @@ QProgressBar {
 }
 QProgressBar::chunk {
   background-color: white;
+  border-radius: 6px;
 })";
 
 constexpr char PROGRESSBAR_STYLE_COMPLETE[] = R"(
@@ -46,7 +47,8 @@ QProgressBar {
   padding: 2px;
 }
 QProgressBar::chunk {
-  background-color: #white;
+  background-color: white;
+  border-radius: 6px;
 })";
 
 LoadingScreen::LoadingScreen(QWidget* parent)
