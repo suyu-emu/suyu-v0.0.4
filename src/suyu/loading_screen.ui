@@ -102,6 +102,12 @@ font: 500 20pt &quot;Ubuntu&quot;;</string>
             <height>30</height>
            </size>
           </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>30</height>
+           </size>
+          </property>
           <property name="styleSheet">
            <string notr="true">QProgressBar {
 background-color: black;
@@ -110,7 +116,7 @@ border-radius: 10px;
 padding: 2px;
 }
 QProgressBar::chunk {
-background-color: white;
+background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(98, 160, 234, 255), stop:1 rgba(237, 51, 59, 255));
 border-radius: 6px;
 }</string>
           </property>

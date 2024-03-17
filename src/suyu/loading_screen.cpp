@@ -47,8 +47,6 @@ QProgressBar {
   padding: 2px;
 }
 QProgressBar::chunk {
-  background-color: white;
-  width: 1px;
 })";
 
 LoadingScreen::LoadingScreen(QWidget* parent)
