@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <optional>
 #include <boost/container/small_vector.hpp>
 
 #include "common/microprofile.h"
