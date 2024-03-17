@@ -20,7 +20,7 @@ enum class AppletInfo(val appletId: Int, val entryId: Long = 0) {
     None(0x00),
     Application(0x01),
     OverlayDisplay(0x02),
-    QLaunch(0x03),
+    QLaunch(0x03, 0x0100000000001000),
     Starter(0x04),
     Auth(0x0A),
     Cabinet(0x0B, 0x0100000000001002),
