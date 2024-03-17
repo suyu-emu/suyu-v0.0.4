@@ -36,7 +36,6 @@ QProgressBar {
 }
 QProgressBar::chunk {
   background-color: white;
-  width: 1px;
 })";
 
 constexpr char PROGRESSBAR_STYLE_COMPLETE[] = R"(

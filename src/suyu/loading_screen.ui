@@ -99,19 +99,19 @@ font: 500 20pt &quot;Ubuntu&quot;;</string>
           <property name="minimumSize">
            <size>
             <width>500</width>
-            <height>40</height>
+            <height>30</height>
            </size>
           </property>
           <property name="styleSheet">
            <string notr="true">QProgressBar {
-color: white;
+background-color: black;
 border: 2px solid white;
-outline-color: black;
-border-radius: 15px;
+border-radius: 10px;
+padding: 2px;
 }
 QProgressBar::chunk {
 background-color: white;
-border-radius: 10px;
+border-radius: 6px;
 }</string>
           </property>
           <property name="value">
