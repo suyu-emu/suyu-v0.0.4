@@ -1538,10 +1538,9 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Reset_Window_Size_800, &GMainWindow::ResetWindowSize800);
     connect_menu(ui->action_Reset_Window_Size_900, &GMainWindow::ResetWindowSize900);
     connect_menu(ui->action_Reset_Window_Size_1080, &GMainWindow::ResetWindowSize1080);
-    ui->menu_Reset_Window_Size->addActions({ui->action_Reset_Window_Size_720,
-                                            ui->action_Reset_Window_Size_800,
-                                            ui->action_Reset_Window_Size_900,
-                                            ui->action_Reset_Window_Size_1080});
+    ui->menu_Reset_Window_Size->addActions(
+        {ui->action_Reset_Window_Size_720, ui->action_Reset_Window_Size_800,
+         ui->action_Reset_Window_Size_900, ui->action_Reset_Window_Size_1080});
 
     // Multiplayer
     connect(ui->action_View_Lobby, &QAction::triggered, multiplayer_state,
