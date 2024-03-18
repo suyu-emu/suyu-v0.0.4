@@ -64,15 +64,15 @@ Result IHomeMenuFunctions::GetPopFromGeneralChannelEvent(
     R_SUCCEED();
 }
 
-Result IHomeMenuFunctions::IsSleepEnabled(Out<bool> out_is_sleep_enbaled) {
+Result IHomeMenuFunctions::IsSleepEnabled(Out<bool> out_is_sleep_enabled) {
     LOG_INFO(Service_AM, "called");
-    *out_is_sleep_enbaled = true;
+    *out_is_sleep_enabled = true;
     R_SUCCEED();
 }
 
-Result IHomeMenuFunctions::IsRebootEnabled(Out<bool> out_is_reboot_enbaled) {
+Result IHomeMenuFunctions::IsRebootEnabled(Out<bool> out_is_reboot_enabled) {
     LOG_INFO(Service_AM, "called");
-    *out_is_reboot_enbaled = true;
+    *out_is_reboot_enabled = true;
     R_SUCCEED();
 }
 
