@@ -13,6 +13,7 @@
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/video_core.h"
 
+
 namespace {
 
 std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
@@ -21,9 +22,20 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
     auto& device_memory = system.Host1x().MemoryManager();
 
     switch (Settings::values.renderer_backend.GetValue()) {
-    case Settings::RendererBackend::OpenGL:
+        #ifdef __APPLE__
+        // do nothing for now, include metal in here at later date.
+
+
+        #else
+
+        // openGL, not supported on Apple so not bothering to include if macos
+        case Settings::RendererBackend::OpenGL:
         return std::make_unique<OpenGL::RendererOpenGL>(emu_window, device_memory, gpu,
                                                         std::move(context));
+
+
+        #endif
+
     case Settings::RendererBackend::Vulkan:
         return std::make_unique<Vulkan::RendererVulkan>(emu_window, device_memory, gpu,
                                                         std::move(context));
