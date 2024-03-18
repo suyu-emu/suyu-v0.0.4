@@ -3532,7 +3532,11 @@ void GMainWindow::ResetWindowSize720() {
 }
 
 void GMainWindow::ResetWindowSize800() {
-    ResetWindowSize(1280U, 800U);
+    if (!ui->action_Single_Window_Mode->isChecked()) {
+        render_window->resize(1280, 800);
+    } else {
+        resize(1280, 800);
+    }
 }
 
 void GMainWindow::ResetWindowSize900() {
