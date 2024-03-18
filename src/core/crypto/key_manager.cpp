@@ -648,14 +648,14 @@ void KeyManager::ReloadKeys() {
 
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
-        LoadFromFile(suyu_keys_dir / "dev.keys", false);
+        LoadFromFile(suyu_keys_dir / "dev.keys", 1);
     } else {
         dev_mode = false;
-        LoadFromFile(suyu_keys_dir / "prod.keys", false);
+        LoadFromFile(suyu_keys_dir / "prod.keys", 2);
     }
 
-    LoadFromFile(suyu_keys_dir / "title.keys", true);
-    LoadFromFile(suyu_keys_dir / "console.keys", false);
+    LoadFromFile(suyu_keys_dir / "title.keys", 3);
+    LoadFromFile(suyu_keys_dir / "console.keys", 4);
 }
 
 static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_t length) {
@@ -666,11 +666,26 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
                        [](u8 c) { return std::isxdigit(c); });
 }
 
-void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys) {
+void KeyManager::LoadFromFile(const std::filesystem::path& file_path, int key_type) {
     if (!Common::FS::Exists(file_path)) {
-        LOG_ERROR(Crypto, "Failed to load key file at '{}': File not found",
-                  file_path.generic_string());
-        return;
+        switch (key_type) {
+        case 1:
+            LOG_ERROR(Crypto, "Issue with Development key file at '{}': File not found",
+                      file_path.generic_string());
+            return;
+        case 2:
+            LOG_ERROR(Crypto, "Issue with Production key file at '{}': File not found",
+                      file_path.generic_string());
+            return;
+        case 3:
+            LOG_INFO(Crypto, "Issue with Title key file at '{}': File not found",
+                     file_path.generic_string());
+        case 4:
+            LOG_INFO(Crypto, "Issue with Console key file at '{}': File not found",
+                     file_path.generic_string());
+        default:
+            LOG_ERROR(Crypto, "Unknown Key Type");
+        }
     }
 
     std::ifstream file;

@@ -312,7 +312,7 @@ private:
     RSAKeyPair<2048> eticket_rsa_keypair{};
 
     bool dev_mode;
-    void LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys);
+    void LoadFromFile(const std::filesystem::path& file_path, int key_type);
 
     void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
 

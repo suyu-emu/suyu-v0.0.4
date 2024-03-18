@@ -55,10 +55,6 @@ AppLoader_NAX::LoadResult AppLoader_NAX::Load(Kernel::KProcess& process, Core::S
             return {ResultStatus::ErrorMissingProductionKeyFile, {}};
         }
 
-        if (!Core::Crypto::KeyManager::KeyFileExists(true)) {
-            return {ResultStatus::ErrorMissingProductionKeyFile, {}};
-        }
-
         return {ResultStatus::ErrorNAXInconvertibleToNCA, {}};
     }
 
