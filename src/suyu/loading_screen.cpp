@@ -35,7 +35,7 @@ QProgressBar {
   padding: 2px;
 }
 QProgressBar::chunk {
-  background-color: white;
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(98, 160, 234, 255), stop:1 rgba(237, 51, 59, 255));
   border-radius: 6px;
 })";
 
@@ -44,7 +44,7 @@ QProgressBar {
   background-color: black;
   border: 2px solid white;
   border-radius: 10px;
-  padding: 2px;
+  padding: 4px;
 }
 QProgressBar::chunk {
 })";
