@@ -507,7 +507,7 @@ void IGeneralService::GetCurrentIpConfigInfo(HLERequestContext& ctx) {
 }
 
 void IGeneralService::IsWirelessCommunicationEnabled(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NIFM, "(STUBBED) called");
+    LOG_WARNING(Service_NIFM, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);

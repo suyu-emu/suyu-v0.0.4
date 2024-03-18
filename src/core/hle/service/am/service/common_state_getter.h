@@ -38,6 +38,7 @@ private:
     Result GetOperationMode(Out<OperationMode> out_operation_mode);
     Result GetPerformanceMode(Out<APM::PerformanceMode> out_performance_mode);
     Result GetBootMode(Out<PM::SystemBootMode> out_boot_mode);
+    Result GetCradleFwVersion(OutArray<uint32_t, 4> out_version);
     Result IsVrModeEnabled(Out<bool> out_is_vr_mode_enabled);
     Result SetVrModeEnabled(bool is_vr_mode_enabled);
     Result SetLcdBacklighOffEnabled(bool is_lcd_backlight_off_enabled);

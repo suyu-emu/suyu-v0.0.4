@@ -5,5 +5,5 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 Please check out the
 
- * [Conributors's guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing).
+ * [Contributors's guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing).
  * [Merge request guidelines](https://gitlab.com/suyu-emu/suyu/-/wikis/Merge-requests)

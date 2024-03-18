@@ -3,6 +3,9 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT OFF)
+set(CMAKE_XCODE_EMIT_RELATIVE_PATH YES)
+
 project(suyu)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -68,7 +71,7 @@ option(SUYU_ENABLE_PORTABLE "Allow suyu to enable portable mode if a user folder
 
 CMAKE_DEPENDENT_OPTION(SUYU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
-CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
+CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" ON)
 
 option(USE_CCACHE "Use CCache for faster building" ON)
 

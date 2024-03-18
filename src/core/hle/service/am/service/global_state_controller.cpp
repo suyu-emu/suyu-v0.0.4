@@ -14,7 +14,7 @@ IGlobalStateController::IGlobalStateController(Core::System& system_)
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestToEnterSleep"},
         {1, nullptr, "EnterSleep"},
-        {2, nullptr, "StartSleepSequence"},
+        {2, D<&IGlobalStateController::StartSleepSequence>, "StartSleepSequence"},
         {3, D<&IGlobalStateController::StartShutdownSequence>, "StartShutdownSequence"},
         {4, D<&IGlobalStateController::StartRebootSequence>, "StartRebootSequence"},
         {9, nullptr, "IsAutoPowerDownRequested"},
@@ -31,6 +31,13 @@ IGlobalStateController::IGlobalStateController(Core::System& system_)
     RegisterHandlers(functions);
 }
 
+IGlobalStateController::~IGlobalStateController() = default;
+
+Result IGlobalStateController::StartSleepSequence(u8 a) {
+    LOG_WARNING(Service_AM, "(STUBBED) called, a={}", a);
+    R_SUCCEED();
+}
+
 Result IGlobalStateController::StartShutdownSequence() {
     LOG_INFO(Service_AM, "called");
     system.Exit();
@@ -42,8 +49,6 @@ Result IGlobalStateController::StartRebootSequence() {
     system.Exit();
     R_SUCCEED();
 }
-
-IGlobalStateController::~IGlobalStateController() = default;
 
 Result IGlobalStateController::LoadAndApplyIdlePolicySettings() {
     LOG_WARNING(Service_AM, "(STUBBED) called");

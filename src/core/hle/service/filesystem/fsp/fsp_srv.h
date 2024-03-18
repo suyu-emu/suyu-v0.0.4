@@ -53,6 +53,7 @@ private:
     Result OpenSdCardFileSystem(OutInterface<IFileSystem> out_interface);
     Result CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_create_struct,
                                     FileSys::SaveDataAttribute save_struct, u128 uid);
+    Result IsExFatSupported(Out<bool> out_is_supported);
     Result CreateSaveDataFileSystemBySystemSaveDataId(
         FileSys::SaveDataAttribute save_struct, FileSys::SaveDataCreationInfo save_create_struct);
     Result OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,

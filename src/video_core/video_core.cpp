@@ -21,9 +21,15 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
     auto& device_memory = system.Host1x().MemoryManager();
 
     switch (Settings::values.renderer_backend.GetValue()) {
+#ifdef __APPLE__
+        // do nothing for now, include metal in here at later date.
+#else
+        // openGL, not supported on Apple so not bothering to include if macos
     case Settings::RendererBackend::OpenGL:
         return std::make_unique<OpenGL::RendererOpenGL>(emu_window, device_memory, gpu,
                                                         std::move(context));
+#endif
+        // common renderers
     case Settings::RendererBackend::Vulkan:
         return std::make_unique<Vulkan::RendererVulkan>(emu_window, device_memory, gpu,
                                                         std::move(context));

@@ -136,6 +136,8 @@ public:
     Result SetAppletLaunchFlags(u32 applet_launch_flag);
     Result GetKeyboardLayout(Out<KeyboardLayout> out_keyboard_layout);
     Result SetKeyboardLayout(KeyboardLayout keyboard_layout);
+    Result GetRebootlessSystemUpdateVersion(
+        Out<RebootlessSystemUpdateVersion> out_rebootless_system_update);
     Result GetDeviceTimeZoneLocationUpdatedTime(
         Out<Service::PSC::Time::SteadyClockTimePoint> out_time_point);
     Result SetDeviceTimeZoneLocationUpdatedTime(

@@ -238,7 +238,7 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {146, nullptr, "SetConsoleSixAxisSensorAngularVelocityTimeBias"},
         {147, nullptr, "GetConsoleSixAxisSensorAngularAcceleration"},
         {148, nullptr, "SetConsoleSixAxisSensorAngularAcceleration"},
-        {149, nullptr, "GetRebootlessSystemUpdateVersion"},
+        {149, C<&ISystemSettingsServer::GetRebootlessSystemUpdateVersion>, "GetRebootlessSystemUpdateVersion"},
         {150, C<&ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime>, "GetDeviceTimeZoneLocationUpdatedTime"},
         {151, C<&ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime>, "SetDeviceTimeZoneLocationUpdatedTime"},
         {152, C<&ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime>, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
@@ -1191,6 +1191,16 @@ Result ISystemSettingsServer::SetKeyboardLayout(KeyboardLayout keyboard_layout) 
     LOG_INFO(Service_SET, "called, keyboard_layout={}", keyboard_layout);
 
     m_system_settings.keyboard_layout = keyboard_layout;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetRebootlessSystemUpdateVersion(
+    Out<RebootlessSystemUpdateVersion> out_rebootless_system_update) {
+    LOG_INFO(Service_SET, "(STUBBED) called");
+
+    out_rebootless_system_update->version = 0;
+    strcpy(out_rebootless_system_update->display_version, "0.0.0");
+
     R_SUCCEED();
 }
 
