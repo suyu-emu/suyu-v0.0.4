@@ -4778,6 +4778,16 @@ Would you like to bypass this and exit anyway?</source>
 
 Haluatko silti ohittaa tämän ja sulkea?</translation>
     </message>
+    <message>
+        <location filename="../../src/suyu/main.cpp" line="1763"/>
+        <source>Component Missing</source>
+        <translation>Component Missing</translation>
+    </message>
+    <message>
+        <location filename="../../src/suyu/main.cpp" line="1764"/>
+        <source>Missing Firmware.</source>
+        <translation>Missing Firmware.</translation>
+    </message>
 </context>
 <context>
     <name>GRenderWindow</name>

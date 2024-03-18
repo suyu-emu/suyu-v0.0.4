@@ -84,6 +84,7 @@ public:
     ~GameList() override;
 
     QString GetLastFilterResultItem() const;
+    void ClearList();
     void ClearFilter();
     void SetFilterFocus();
     void SetFilterVisible(bool visibility);
@@ -137,6 +138,7 @@ private:
 
     void AddDirEntry(GameListDir* entry_items);
     void AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent);
+    void AddRootEntry(const QList<QStandardItem*>& entry_items);
     void DonePopulating(const QStringList& watch_list);
 
 private:

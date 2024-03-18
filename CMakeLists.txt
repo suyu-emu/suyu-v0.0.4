@@ -3,6 +3,9 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT OFF)
+set(CMAKE_XCODE_EMIT_RELATIVE_PATH YES)
+
 project(suyu)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -30,7 +33,7 @@ set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries 
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" OFF)
+option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
 option(SUYU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
@@ -44,7 +47,7 @@ option(SUYU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OF
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
-option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" ON)
+option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
 option(SUYU_TESTS "Compile tests" "${BUILD_TESTING}")
 
@@ -68,7 +71,9 @@ option(SUYU_ENABLE_PORTABLE "Allow suyu to enable portable mode if a user folder
 
 CMAKE_DEPENDENT_OPTION(SUYU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
-CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
+CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" ON)
+
+option(USE_CCACHE "Use CCache for faster building" ON)
 
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE)
@@ -732,4 +737,18 @@ if(ENABLE_QT AND UNIX AND NOT APPLE)
             DESTINATION "share/mime/packages")
     install(FILES "dist/org.suyu_emu.suyu.metainfo.xml"
             DESTINATION "share/metainfo")
+endif()
+
+# Enable CCACHE. Linux only for now.
+if (USE_CCACHE)
+  find_program(CCACHE_PROGRAM ccache)
+  if(CCACHE_PROGRAM)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+    if (SUYU_USE_PRECOMPILED_HEADERS)
+      message(NOTICE "To make use of CCache, set SUYU_USE_PRECOMPILED_HEADERS to OFF or else, it will barely be functional")
+    endif()
+    message(STATUS "CCache found.")
+  else()
+    message(STATUS "CCache has not been found and it will not be used. Install CCache or set USE_CCACHE to OFF")
+  endif()
 endif()

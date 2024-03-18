@@ -6294,6 +6294,16 @@ Would you like to bypass this and exit anyway?</source>
 Czy chcesz to ominąć i mimo to wyjść?</translation>
     </message>
     <message>
+        <location filename="../../src/suyu/main.cpp" line="1763"/>
+        <source>Component Missing</source>
+        <translation>Component Missing</translation>
+    </message>
+    <message>
+        <location filename="../../src/suyu/main.cpp" line="1764"/>
+        <source>Missing Firmware.</source>
+        <translation>Missing Firmware.</translation>
+    </message>
+    <message>
         <location filename="../../src/configuration/shared_translation.h" line="27"/>
         <source>None</source>
         <translation>Żadna (wyłączony)</translation>

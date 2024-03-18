@@ -28,6 +28,7 @@ enum class AspectRatio {
     R4_3,
     R21_9,
     R16_10,
+    R32_9,
     StretchToWindow,
 };
 

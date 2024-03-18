@@ -330,7 +330,13 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
 
         auto entry = MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
                                        program_id, compatibility_list, play_time_manager, patch);
-        RecordEvent([=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
+        RecordEvent([=](GameList* game_list) {
+            if (UISettings::values.show_folders_in_list) {
+                game_list->AddEntry(entry, parent_dir);
+            } else {
+                game_list->AddRootEntry(entry);
+            }
+        });
     }
 }
 
@@ -408,8 +414,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                             physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
                             id, compatibility_list, play_time_manager, patch);
 
-                        RecordEvent(
-                            [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
+                        RecordEvent([=](GameList* game_list) { game_list->AddRootEntry(entry); });
                     }
                 } else {
                     std::vector<u8> icon;
@@ -425,8 +430,13 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
                         program_id, compatibility_list, play_time_manager, patch);
 
-                    RecordEvent(
-                        [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
+                    RecordEvent([=](GameList* game_list) {
+                        if (UISettings::values.show_folders_in_list) {
+                            game_list->AddEntry(entry, parent_dir);
+                        } else {
+                            game_list->AddRootEntry(entry);
+                        }
+                    });
                 }
             }
         } else if (is_dir) {
@@ -459,20 +469,32 @@ void GameListWorker::run() {
 
         if (game_dir.path == std::string("SDMC")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
-            DirEntryReady(game_list_dir);
+
+            if (UISettings::values.show_folders_in_list)
+                DirEntryReady(game_list_dir);
+
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == std::string("UserNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
-            DirEntryReady(game_list_dir);
+
+            if (UISettings::values.show_folders_in_list)
+                DirEntryReady(game_list_dir);
+
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == std::string("SysNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
-            DirEntryReady(game_list_dir);
+
+            if (UISettings::values.show_folders_in_list)
+                DirEntryReady(game_list_dir);
+
             AddTitlesToGameList(game_list_dir);
         } else {
             watch_list.append(QString::fromStdString(game_dir.path));
             auto* const game_list_dir = new GameListDir(game_dir);
-            DirEntryReady(game_list_dir);
+
+            if (UISettings::values.show_folders_in_list)
+                DirEntryReady(game_list_dir);
+
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path, game_dir.deep_scan,
                            game_list_dir);
             ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,

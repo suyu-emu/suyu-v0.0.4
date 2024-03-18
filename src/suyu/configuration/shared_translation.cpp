@@ -406,6 +406,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(AspectRatio, R4_3, tr("Force 4:3")),
                               PAIR(AspectRatio, R21_9, tr("Force 21:9")),
                               PAIR(AspectRatio, R16_10, tr("Force 16:10")),
+                              PAIR(AspectRatio, R32_9, tr("Force 32:9")),
                               PAIR(AspectRatio, Stretch, tr("Stretch to Window")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::AnisotropyMode>::Index(),

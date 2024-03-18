@@ -5,10 +5,10 @@
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrentRun>
 #include "common/settings.h"
-#include "core/telemetry_session.h"
 #include "suyu/configuration/configure_web.h"
 #include "suyu/uisettings.h"
 #include "ui_configure_web.h"
+#include "web_service/verify_login.h"
 
 static constexpr char token_delimiter{':'};
 
@@ -38,8 +38,6 @@ static std::string TokenFromDisplayToken(const std::string& display_token) {
 ConfigureWeb::ConfigureWeb(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()) {
     ui->setupUi(this);
-    connect(ui->button_regenerate_telemetry_id, &QPushButton::clicked, this,
-            &ConfigureWeb::RefreshTelemetryID);
     connect(ui->button_verify_login, &QPushButton::clicked, this, &ConfigureWeb::VerifyLogin);
     connect(&verify_watcher, &QFutureWatcher<bool>::finished, this, &ConfigureWeb::OnLoginVerified);
 
@@ -64,10 +62,6 @@ void ConfigureWeb::changeEvent(QEvent* event) {
 void ConfigureWeb::RetranslateUI() {
     ui->retranslateUi(this);
 
-    ui->telemetry_learn_more->setText(
-        tr("<a href='https://suyu.dev/help/feature/telemetry/'><span style=\"text-decoration: "
-           "underline; color:#039be5;\">Learn more</span></a>"));
-
     ui->web_signup_link->setText(
         tr("<a href='https://profile.suyu.dev/'><span style=\"text-decoration: underline; "
            "color:#039be5;\">Sign up</span></a>"));
@@ -75,15 +69,11 @@ void ConfigureWeb::RetranslateUI() {
     ui->web_token_info_link->setText(
         tr("<a href='https://suyu.dev/wiki/suyu-web-service/'><span style=\"text-decoration: "
            "underline; color:#039be5;\">What is my token?</span></a>"));
-
-    ui->label_telemetry_id->setText(
-        tr("Telemetry ID: 0x%1").arg(QString::number(Core::GetTelemetryId(), 16).toUpper()));
 }
 
 void ConfigureWeb::SetConfiguration() {
     ui->web_credentials_disclaimer->setWordWrap(true);
 
-    ui->telemetry_learn_more->setOpenExternalLinks(true);
     ui->web_signup_link->setOpenExternalLinks(true);
     ui->web_token_info_link->setOpenExternalLinks(true);
 
@@ -93,7 +83,6 @@ void ConfigureWeb::SetConfiguration() {
         ui->username->setText(QString::fromStdString(Settings::values.suyu_username.GetValue()));
     }
 
-    ui->toggle_telemetry->setChecked(Settings::values.enable_telemetry.GetValue());
     ui->edit_token->setText(QString::fromStdString(GenerateDisplayToken(
         Settings::values.suyu_username.GetValue(), Settings::values.suyu_token.GetValue())));
 
@@ -106,7 +95,6 @@ void ConfigureWeb::SetConfiguration() {
 }
 
 void ConfigureWeb::ApplyConfiguration() {
-    Settings::values.enable_telemetry = ui->toggle_telemetry->isChecked();
     UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
     if (user_verified) {
         Settings::values.suyu_username =
@@ -117,12 +105,6 @@ void ConfigureWeb::ApplyConfiguration() {
             this, tr("Token not verified"),
             tr("Token was not verified. The change to your token has not been saved."));
     }
-}
-
-void ConfigureWeb::RefreshTelemetryID() {
-    const u64 new_telemetry_id{Core::RegenerateTelemetryId()};
-    ui->label_telemetry_id->setText(
-        tr("Telemetry ID: 0x%1").arg(QString::number(new_telemetry_id, 16).toUpper()));
 }
 
 void ConfigureWeb::OnLoginChanged() {
@@ -150,7 +132,12 @@ void ConfigureWeb::VerifyLogin() {
     verify_watcher.setFuture(QtConcurrent::run(
         [username = UsernameFromDisplayToken(ui->edit_token->text().toStdString()),
          token = TokenFromDisplayToken(ui->edit_token->text().toStdString())] {
-            return Core::VerifyLogin(username, token);
+#ifdef ENABLE_WEB_SERVICE
+            return WebService::VerifyLogin(Settings::values.web_api_url.GetValue(), username,
+                                           token);
+#else
+            return false;
+#endif
         }));
 }
 

@@ -2,25 +2,81 @@ stages:
   - format
   - build
 
+variables:
+  # https://docs.gitlab.com/ee/ci/runners/configure_runners.html
+  TRANSFER_METER_FREQUENCY: "2s"
+  ARTIFACT_COMPRESSION_LEVEL: "fast"
+  CACHE_COMPRESSION_LEVEL: "fastest"
+  CACHE_REQUEST_TIMEOUT: 5
+  # Use FASTZIP for faster compression in cache and artifacts 
+  # https://docs.gitlab.com/runner/configuration/feature-flags.html#available-feature-flags
+  FF_USE_FASTZIP: true
+  
+  # Our Variables
+  CACHE_DIR: "$CI_PROJECT_DIR/ccache"
+  CCACHE_DIR: $CACHE_DIR
+
+
+#CLANG FORMAT - CHECKS CODE FOR FORMATTING ISSUES
 clang-format:
   stage: format
-  image: suyuemu/cibuild:latest
-  variables:
-    RELEASE_NAME: mainline
+  image: suyuemu/cibuild:clangformat
+  #THIS HAS TO BE FALSE. IT KEEPS RESOURCES AVAILABLE - EG RUNNERS WONT TRY BUILDING IF CODEBASE IS WRONG
+  #MR's NEED TO BE CORRECTLY CLANG FORMATTED
+  allow_failure: false
   script:
     - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/format/script.sh
+  tags:
+  #  - Linux
+  #  - Windows
+    - Parallelized
 
+#LINUX BUILD - BUILDS LINUX APPIMAGE
 build-linux:
   stage: build
-  image: suyuemu/cibuild:latest
+  image: suyuemu/cibuild:linux-x64
   resource_group: linux-ci
+  cache:
+    key: "$CI_COMMIT_REF_NAME-ccache"
+    paths:
+      - $CACHE_DIR
+  before_script:
+    - mkdir -p $CACHE_DIR
+    - chmod -R 777 $CACHE_DIR
+    - ls -la $CACHE_DIR
   variables:
-    RELEASE_NAME: mainline
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_DEPTH: 1
+    RELEASE_NAME: mainline  
   script:
-    - git submodule update --init --depth 1 --recursive
     - bash .ci/scripts/linux/docker.sh
     - bash .ci/scripts/linux/upload.sh
   artifacts:
     paths:
       - artifacts/*
+  tags:
+    - Linux
+    - Parallelized
+
+#ANDROID BUILD - BUILDS APK
+android:
+  stage: build
+  image: suyuemu/cibuild:android-x64
+  script:
+    - apt-get update -y
+    - git submodule update --init --recursive
+    - cd externals/vcpkg
+    - git fetch --unshallow || true
+    - cd ../..
+    - export ANDROID_HOME="/usr/lib/android-sdk/"
+    - echo y | sdkmanager --sdk_root=/usr/lib/android-sdk --licenses
+    - bash ./.ci/scripts/android/build.sh
+    - bash ./.ci/scripts/android/upload.sh
+  artifacts:
+    paths:
+      - artifacts/*
+  tags:
+    - Linux
+    - Parallelized
+

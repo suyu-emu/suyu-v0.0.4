@@ -25,7 +25,6 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void RefreshTelemetryID();
     void OnLoginChanged();
     void VerifyLogin();
     void OnLoginVerified();

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project & 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -121,15 +121,25 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 }
 
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
+    const bool is_2d = (info.type == ImageType::e2D);
+    const bool is_3d = (info.type == ImageType::e3D);
     const auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     VkImageCreateFlags flags{};
-    if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
-        info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
+    if (is_2d && info.resources.layers >= 6 && info.size.width == info.size.height &&
+        !device.HasBrokenCubeImageCompatibility()) {
         flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
-    if (info.type == ImageType::e3D) {
+
+    // fix moltenVK issues with some 3D games
+    // credit to Jarrod Norwell from Sudachi https://github.com/jarrodnorwell/Sudachi
+    auto usage = ImageUsageFlags(format_info, info.format);
+    if (is_3d) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+        // Force usage to be VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT only on MoltenVK
+        if (device.IsMoltenVK()) {
+            usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        }
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
@@ -147,7 +157,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .arrayLayers = static_cast<u32>(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = ImageUsageFlags(format_info, info.format),
+        .usage = usage,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -697,7 +707,7 @@ struct RangedBarrierRange {
 void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
                VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution,
                bool up_scaling = true) {
-    const bool is_2d = info.type == ImageType::e2D;
+    const bool is_2d = (info.type == ImageType::e2D);
     const auto resources = info.resources;
     const VkExtent2D extent{
         .width = info.size.width,
@@ -1562,7 +1572,7 @@ bool Image::ScaleUp(bool ignore) {
     flags |= ImageFlagBits::Rescaled;
     has_scaled = true;
     if (!scaled_image) {
-        const bool is_2d = info.type == ImageType::e2D;
+        const bool is_2d = (info.type == ImageType::e2D);
         const u32 scaled_width = resolution.ScaleUp(info.size.width);
         const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
         auto scaled_info = info;
@@ -1620,7 +1630,7 @@ bool Image::BlitScaleHelper(bool scale_up) {
     const auto operation = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
                                        : Tegra::Engines::Fermi2D::Filter::Point;
 
-    const bool is_2d = info.type == ImageType::e2D;
+    const bool is_2d = (info.type == ImageType::e2D);
     const auto& resolution = runtime->resolution;
     const u32 scaled_width = resolution.ScaleUp(info.size.width);
     const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;

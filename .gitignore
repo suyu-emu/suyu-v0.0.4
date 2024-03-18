@@ -14,6 +14,7 @@ dist/english_plurals/generated_en.ts
 .idea/
 .vs/
 .vscode/
+.cache/
 CMakeLists.txt.user*
 
 # *nix related
@@ -36,3 +37,5 @@ CMakeSettings.json
 # Windows global filetypes
 Thumbs.db
 
+# Local Gitlab CI Runner
+.gitlab-ci-local/

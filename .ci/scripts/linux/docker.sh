@@ -1,6 +1,6 @@
 #!/bin/bash -ex
-
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Exit on error, rather than continuing with the rest of the script.
@@ -12,6 +12,8 @@ mkdir build || true && cd build
 cmake .. \
       -DBoost_USE_STATIC_LIBS=ON \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+			-DSUYU_USE_PRECOMPILED_HEADERS=OFF \
+			-DDYNARMIC_USE_PRECOMPILED_HEADERS=OFF \
       -DCMAKE_CXX_FLAGS="-march=x86-64-v2" \
       -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++ \
       -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc \
@@ -24,6 +26,7 @@ cmake .. \
       -DSUYU_USE_BUNDLED_FFMPEG=ON \
       -DSUYU_ENABLE_LTO=ON \
       -DSUYU_CRASH_DUMPS=ON \
+      -DSUYU_USE_FASTER_LD=ON \
       -GNinja
 
 ninja

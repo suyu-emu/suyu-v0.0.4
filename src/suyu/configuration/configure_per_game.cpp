@@ -17,14 +17,17 @@
 #include <QTimer>
 
 #include "common/fs/fs_util.h"
+#include "common/hex_util.h"
 #include "common/settings_enums.h"
 #include "common/settings_input.h"
 #include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
+#include "core/file_sys/ips_layer.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
+#include "core/loader/nso.h"
 #include "frontend_common/config.h"
 #include "suyu/configuration/configuration_shared.h"
 #include "suyu/configuration/configure_audio.h"
@@ -45,9 +48,12 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
     : QDialog(parent),
-      ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_},
-      builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
+      ui(std::make_unique<Ui::ConfigurePerGame>()), pm{title_id_, system_.GetFileSystemController(),
+                                                       system_.GetContentProvider()},
+      title_id{title_id_}, system{system_}, builder{std::make_unique<ConfigurationShared::Builder>(
+                                                this, !system_.IsPoweredOn())},
       tab_group{std::make_shared<std::vector<ConfigurationShared::Tab*>>()} {
+
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
     const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
                                                 : fmt::format("{:016X}", title_id);
@@ -141,6 +147,14 @@ void ConfigurePerGame::LoadFromFile(FileSys::VirtualFile file_) {
     LoadConfiguration();
 }
 
+std::string ConfigurePerGame::GetBuildID() {
+    LOG_INFO(Core, "{}", file->GetExtension());
+
+    // https://github.com/Ryujinx/Ryujinx/blob/master/src/Ryujinx.UI.Common/App/ApplicationData.cs#L71
+
+    return "Invalid File";
+}
+
 void ConfigurePerGame::LoadConfiguration() {
     if (file == nullptr) {
         return;
@@ -148,13 +162,14 @@ void ConfigurePerGame::LoadConfiguration() {
 
     addons_tab->LoadFromFile(file);
 
+    const auto control = pm.GetControlMetadata();
+    const auto loader = Loader::GetLoader(system, file);
+
     ui->display_title_id->setText(
         QStringLiteral("%1").arg(title_id, 16, 16, QLatin1Char{'0'}).toUpper());
 
-    const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
-                                   system.GetContentProvider()};
-    const auto control = pm.GetControlMetadata();
-    const auto loader = Loader::GetLoader(system, file);
+    // TODO: Should get proper build id for UI
+    // ui->display_build_id->setText(QString::fromStdString(GetBuildID()));
 
     if (control.first != nullptr) {
         ui->display_version->setText(QString::fromStdString(control.first->GetVersionString()));
