@@ -648,14 +648,14 @@ void KeyManager::ReloadKeys() {
 
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
-        LoadFromFile(suyu_keys_dir / "dev.keys", 1);
+        LoadFromFile(suyu_keys_dir / "dev.keys", false);
     } else {
         dev_mode = false;
-        LoadFromFile(suyu_keys_dir / "prod.keys", 2);
+        LoadFromFile(suyu_keys_dir / "prod.keys", false);
     }
 
-    LoadFromFile(suyu_keys_dir / "title.keys", 3);
-    LoadFromFile(suyu_keys_dir / "console.keys", 4);
+    LoadFromFile(suyu_keys_dir / "title.keys", true);
+    LoadFromFile(suyu_keys_dir / "console.keys", false);
 }
 
 static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_t length) {
@@ -666,26 +666,11 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
                        [](u8 c) { return std::isxdigit(c); });
 }
 
-void KeyManager::LoadFromFile(const std::filesystem::path& file_path, int key_type) {
+void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys) {
     if (!Common::FS::Exists(file_path)) {
-        switch (key_type) {
-        case 1:
-            LOG_ERROR(Crypto, "Issue with Development key file at '{}': File not found",
-                      file_path.generic_string());
-            return;
-        case 2:
-            LOG_ERROR(Crypto, "Issue with Production key file at '{}': File not found",
-                      file_path.generic_string());
-            return;
-        case 3:
-            LOG_INFO(Crypto, "Issue with Title key file at '{}': File not found",
-                     file_path.generic_string());
-        case 4:
-            LOG_INFO(Crypto, "Issue with Console key file at '{}': File not found",
-                     file_path.generic_string());
-        default:
-            LOG_ERROR(Crypto, "Unknown Key Type");
-        }
+        LOG_ERROR(Crypto, "Cannot handle key file '{}': File not found",
+                  file_path.generic_string());
+        return;
     }
 
     std::ifstream file;
@@ -718,7 +703,7 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, int key_ty
             continue;
         }
 
-        if (key_type == 3) {
+        if (is_title_keys) {
             auto rights_id_raw = Common::HexStringToArray<16>(out[0]);
             u128 rights_id{};
             std::memcpy(rights_id.data(), rights_id_raw.data(), rights_id_raw.size());
@@ -818,8 +803,7 @@ bool KeyManager::BaseDeriveNecessary() const {
     }
 
     if (!Common::FS::Exists(suyu_keys_dir / "title.keys")) {
-        LOG_ERROR(Crypto, "No title.keys found");
-        return true;
+        LOG_WARNING(Crypto, "Could not locate a title.keys file");
     }
 
     if (check_key_existence(S256KeyType::Header)) {
