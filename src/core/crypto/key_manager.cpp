@@ -668,7 +668,7 @@ static bool ValidCryptoRevisionString(std::string_view base, size_t begin, size_
 
 void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys) {
     if (!Common::FS::Exists(file_path)) {
-        LOG_ERROR(Crypto, "Failed to load key file at '{}': File not found",
+        LOG_ERROR(Crypto, "Cannot handle key file '{}': File not found",
                   file_path.generic_string());
         return;
     }
@@ -803,8 +803,7 @@ bool KeyManager::BaseDeriveNecessary() const {
     }
 
     if (!Common::FS::Exists(suyu_keys_dir / "title.keys")) {
-        LOG_ERROR(Crypto, "No title.keys found");
-        return true;
+        LOG_WARNING(Crypto, "Could not locate a title.keys file");
     }
 
     if (check_key_existence(S256KeyType::Header)) {

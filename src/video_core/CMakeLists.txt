@@ -408,7 +408,7 @@ if (MSVC)
         /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
     )
 else()
-    if (APPLE)
+    if (APPLE OR ARCHITECTURE_arm64)
         # error: declaration shadows a typedef in 'interval_base_set<SubType, DomainT, Compare, Interval, Alloc>'
         # error: implicit conversion loses integer precision: 'int' to 'boost::icl::bound_type' (aka 'unsigned char')
         target_compile_options(video_core PRIVATE -Wno-shadow -Wno-unused-local-typedef)

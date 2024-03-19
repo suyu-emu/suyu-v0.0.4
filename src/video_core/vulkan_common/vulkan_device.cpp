@@ -1364,6 +1364,7 @@ void Device::CollectToolingInfo() {
         LOG_INFO(Render_Vulkan, "Attached debugging tool: {}", name);
         has_renderdoc = has_renderdoc || name == "RenderDoc";
         has_nsight_graphics = has_nsight_graphics || name == "NVIDIA Nsight Graphics";
+        has_radeon_gpu_profiler = has_radeon_gpu_profiler || name == "Radeon GPU Profiler";
     }
 }
 

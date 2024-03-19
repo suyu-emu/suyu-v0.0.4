@@ -4,6 +4,7 @@
 # Build directory
 [Bb]uild*/
 doc-build/
+cmake-build*/
 
 # Generated source files
 src/common/scm_rev.cpp
