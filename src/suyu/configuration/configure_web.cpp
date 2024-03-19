@@ -63,11 +63,11 @@ void ConfigureWeb::RetranslateUI() {
     ui->retranslateUi(this);
 
     ui->web_signup_link->setText(
-        tr("<a href='https://profile.suyu.dev/'><span style=\"text-decoration: underline; "
+        tr("<a href='https://suyu.dev/signup'><span style=\"text-decoration: underline; "
            "color:#039be5;\">Sign up</span></a>"));
 
     ui->web_token_info_link->setText(
-        tr("<a href='https://suyu.dev/wiki/suyu-web-service/'><span style=\"text-decoration: "
+        tr("<a href='https://suyu.dev/account'><span style=\"text-decoration: "
            "underline; color:#039be5;\">What is my token?</span></a>"));
 }
 

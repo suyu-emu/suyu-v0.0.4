@@ -611,7 +611,7 @@ struct Values {
                                            Category::Network};
 
     // WebService
-    Setting<std::string> web_api_url{linkage, "http://74.113.97.71:3000", "web_api_url",
+    Setting<std::string> web_api_url{linkage, "https://suyu.dev", "web_api_url",
                                      Category::WebService};
     Setting<std::string> suyu_username{linkage, std::string(), "suyu_username",
                                        Category::WebService};
