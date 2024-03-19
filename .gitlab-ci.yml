@@ -78,6 +78,6 @@ android:
     paths:
       - artifacts/*
   tags:
-    - Linux
+    - Android
     - Parallelized
 
