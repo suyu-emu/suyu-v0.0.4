@@ -51,10 +51,12 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Downloads
 
-* __Windows__: WIP
-* __Linux__: WIP
+* __Windows__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
+* __Linux__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
+* __macOS__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
+* __Android__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
 
-We don't have any official builds yet! If any website or person is claiming to have a build for suyu, take that with a grain of salt, because it might contain malware. Until we do have an official build, it might be a better idea to keep using the last version of yuzu.
+We have official builds [here.](https://gitlab.com/suyu-emu/suyu/-/releases) If any website or person is claiming to have a build for suyu, take that with a grain of salt.
 
 ## Building
 
