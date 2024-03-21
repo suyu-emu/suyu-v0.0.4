@@ -8,9 +8,9 @@ variables:
   ARTIFACT_COMPRESSION_LEVEL: "fast"
   CACHE_COMPRESSION_LEVEL: "fastest"
   CACHE_REQUEST_TIMEOUT: 5
-  # Use FASTZIP for faster compression in cache and artifacts 
+  # Use FASTZIP for faster compression in cache and artifacts (boolean)
   # https://docs.gitlab.com/runner/configuration/feature-flags.html#available-feature-flags
-  FF_USE_FASTZIP: true
+  FF_USE_FASTZIP: 1
   
   # Our Variables
   CACHE_DIR: "$CI_PROJECT_DIR/ccache"
