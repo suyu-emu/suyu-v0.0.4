@@ -760,10 +760,11 @@ void EmulatedController::StartMotionCalibration() {
     }
 }
 
-void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index, Common::UUID uuid) {
+void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index,
+                                   Common::UUID uuid) {
     const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
-	if (index >= controller.button_values.size()) {
+    if (index >= controller.button_values.size()) {
         return;
     }
     std::unique_lock lock{mutex};
