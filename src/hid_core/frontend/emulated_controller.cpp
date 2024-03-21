@@ -760,7 +760,8 @@ void EmulatedController::StartMotionCalibration() {
     }
 }
 
-void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index, Common::UUID uuid) {
+void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index,
+                                   Common::UUID uuid) {
     if (index >= controller.button_values.size()) {
         return;
     }
