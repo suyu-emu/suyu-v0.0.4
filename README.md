@@ -60,8 +60,10 @@ We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any 
 
 ## Building
 
-* __Windows__: [Wiki page](https://git.suyu.dev/suyu/suyu/wiki/Building-for-Windows)
-* __Linux__: [Wiki page](https://git.suyu.dev/suyu/suyu/wiki/Building-for-Linux)
+* __Windows__: [Windows Build](https://git.suyu.dev/suyu/suyu/wiki/Building-For-Windows)
+* __Linux__: [Linux Build](https://git.suyu.dev/suyu/suyu/wiki/Building-For-Linux)
+* __Android__: [Android Build](https://git.suyu.dev/suyu/suyu/wiki/Building-For-Android)
+* __MacOS__: [MacOS Build](https://git.suyu.dev/suyu/suyu/wiki/Building-for-macOS)
 
 
 
