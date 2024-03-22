@@ -35,4 +35,6 @@ private:
     const std::shared_ptr<Applet> m_applet;
 };
 
+AppletProgramId AppletIdToProgramId(AppletId applet_id);
+
 } // namespace Service::AM

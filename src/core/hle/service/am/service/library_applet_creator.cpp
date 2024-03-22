@@ -47,6 +47,75 @@ bool ShouldCreateGuestApplet(AppletId applet_id) {
     return true;
 }
 
+std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
+                                                          WindowSystem& window_system,
+                                                          std::shared_ptr<Applet> caller_applet,
+                                                          AppletId applet_id,
+                                                          LibraryAppletMode mode) {
+    const auto program_id = static_cast<u64>(Service::AM::AppletIdToProgramId(applet_id));
+    if (program_id == 0) {
+        // Unknown applet
+        return {};
+    }
+
+    // TODO: enable other versions of applets
+    enum : u8 {
+        Firmware1400 = 14,
+        Firmware1500 = 15,
+        Firmware1600 = 16,
+        Firmware1700 = 17,
+    };
+
+    auto process = CreateProcess(system, program_id, Firmware1400, Firmware1700);
+    if (!process) {
+        // Couldn't initialize the guest process
+        return {};
+    }
+
+    const auto applet = std::make_shared<Applet>(system, std::move(process), false);
+    applet->program_id = program_id;
+    applet->applet_id = applet_id;
+    applet->type = AppletType::LibraryApplet;
+    applet->library_applet_mode = mode;
+    applet->window_visible = mode != LibraryAppletMode::AllForegroundInitiallyHidden;
+
+    auto broker = std::make_shared<AppletDataBroker>(system);
+    applet->caller_applet = caller_applet;
+    applet->caller_applet_broker = broker;
+    caller_applet->child_applets.push_back(applet);
+
+    window_system.TrackApplet(applet, false);
+
+    return std::make_shared<ILibraryAppletAccessor>(system, broker, applet);
+}
+
+std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& system,
+                                                             WindowSystem& window_system,
+                                                             std::shared_ptr<Applet> caller_applet,
+                                                             AppletId applet_id,
+                                                             LibraryAppletMode mode) {
+    const auto program_id = static_cast<u64>(Service::AM::AppletIdToProgramId(applet_id));
+
+    auto process = std::make_unique<Process>(system);
+    auto applet = std::make_shared<Applet>(system, std::move(process), false);
+    applet->program_id = program_id;
+    applet->applet_id = applet_id;
+    applet->type = AppletType::LibraryApplet;
+    applet->library_applet_mode = mode;
+
+    auto storage = std::make_shared<AppletDataBroker>(system);
+    applet->caller_applet = caller_applet;
+    applet->caller_applet_broker = storage;
+    applet->frontend = system.GetFrontendAppletHolder().GetApplet(applet, applet_id, mode);
+    caller_applet->child_applets.push_back(applet);
+
+    window_system.TrackApplet(applet, false);
+
+    return std::make_shared<ILibraryAppletAccessor>(system, storage, applet);
+}
+
+} // namespace
+
 AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     switch (applet_id) {
     case AppletId::OverlayDisplay:
@@ -94,79 +163,10 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     }
 }
 
-std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
-                                                          WindowSystem& window_system,
-                                                          std::shared_ptr<Applet> caller_applet,
-                                                          AppletId applet_id,
-                                                          LibraryAppletMode mode) {
-    const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
-    if (program_id == 0) {
-        // Unknown applet
-        return {};
-    }
-
-    // TODO: enable other versions of applets
-    enum : u8 {
-        Firmware1400 = 14,
-        Firmware1500 = 15,
-        Firmware1600 = 16,
-        Firmware1700 = 17,
-    };
-
-    auto process = CreateProcess(system, program_id, Firmware1400, Firmware1700);
-    if (!process) {
-        // Couldn't initialize the guest process
-        return {};
-    }
-
-    const auto applet = std::make_shared<Applet>(system, std::move(process), false);
-    applet->program_id = program_id;
-    applet->applet_id = applet_id;
-    applet->type = AppletType::LibraryApplet;
-    applet->library_applet_mode = mode;
-    applet->window_visible = mode != LibraryAppletMode::AllForegroundInitiallyHidden;
-
-    auto broker = std::make_shared<AppletDataBroker>(system);
-    applet->caller_applet = caller_applet;
-    applet->caller_applet_broker = broker;
-    caller_applet->child_applets.push_back(applet);
-
-    window_system.TrackApplet(applet, false);
-
-    return std::make_shared<ILibraryAppletAccessor>(system, broker, applet);
-}
-
-std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& system,
-                                                             WindowSystem& window_system,
-                                                             std::shared_ptr<Applet> caller_applet,
-                                                             AppletId applet_id,
-                                                             LibraryAppletMode mode) {
-    const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
-
-    auto process = std::make_unique<Process>(system);
-    auto applet = std::make_shared<Applet>(system, std::move(process), false);
-    applet->program_id = program_id;
-    applet->applet_id = applet_id;
-    applet->type = AppletType::LibraryApplet;
-    applet->library_applet_mode = mode;
-
-    auto storage = std::make_shared<AppletDataBroker>(system);
-    applet->caller_applet = caller_applet;
-    applet->caller_applet_broker = storage;
-    applet->frontend = system.GetFrontendAppletHolder().GetApplet(applet, applet_id, mode);
-    caller_applet->child_applets.push_back(applet);
-
-    window_system.TrackApplet(applet, false);
-
-    return std::make_shared<ILibraryAppletAccessor>(system, storage, applet);
-}
-
-} // namespace
-
 ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet,
                                              WindowSystem& window_system)
-    : ServiceFramework{system_, "ILibraryAppletCreator"},
-      m_window_system{window_system}, m_applet{std::move(applet)} {
+    : ServiceFramework{system_, "ILibraryAppletCreator"}, m_window_system{window_system},
+      m_applet{std::move(applet)} {
     static const FunctionInfo functions[] = {
         {0, D<&ILibraryAppletCreator::CreateLibraryApplet>, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},
