@@ -31,7 +31,7 @@ It is written in C++ with portability in mind, and we're actively working on bui
   <a href="#building">Building</a> |
   <a href="#support">Support</a> |
   <a href="#license">License</a> |
-  <a href="https://gitlab.com/suyu-emu/suyu/-/pipelines">Pipelines</a>
+  <a href="https://git.suyu.dev/suyu/suyu/actions">Pipelines</a>
 </p>
 
 ## Status
@@ -46,22 +46,22 @@ This project is completely free and open source, and anyone can contribute to he
 
 Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/suyu).
 
-If you want to contribute, please take a look at the [Contributor's Guide](https://gitlab.com/suyu-emu/suyu/-/wikis/Contributing) and [Developer Information](https://gitlab.com/suyu-emu/suyu/-/wikis/Developer-Information).
+If you want to contribute, please take a look at the [Contributor's Guide](https://git.suyu.dev/suyu/suyu/wiki/Contributing) and [Developer Information](https://git.suyu.dev/suyu/suyu/wiki/Developer-Information).
 You can also contact any of the developers on Discord to learn more about the current state of suyu.
 
 ## Downloads
 
-* __Windows__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
-* __Linux__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
-* __macOS__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
-* __Android__: [Releases](https://gitlab.com/suyu-emu/suyu/-/releases)
+* __Windows__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
+* __Linux__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
+* __macOS__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
+* __Android__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 
-We have official builds [here.](https://gitlab.com/suyu-emu/suyu/-/releases) If any website or person is claiming to have a build for suyu, take that with a grain of salt.
+We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any website or person is claiming to have a build for suyu, take that with a grain of salt.
 
 ## Building
 
-* __Windows__: [Wiki page](https://gitlab.com/suyu-emu/suyu/-/wikis/Building-for-Windows)
-* __Linux__: [Wiki page](https://gitlab.com/suyu-emu/suyu/-/wikis/Building-for-Linux)
+* __Windows__: [Wiki page](https://git.suyu.dev/suyu/suyu/wiki/Building-for-Windows)
+* __Linux__: [Wiki page](https://git.suyu.dev/suyu/suyu/wiki/Building-for-Linux)
 
 
 
