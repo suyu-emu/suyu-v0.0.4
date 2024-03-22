@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# GitHub Action to automate the identification of common misspellings in text files.
+# https://github.com/codespell-project/actions-codespell
+# https://github.com/codespell-project/codespell
+
+# Actions Documentation: https://forgejo.org/docs/next/user/actions/#list-of-tasks-in-a-repository
+
+name: codespell
+on: pull_request
+permissions: {}
+jobs:
+  codespell:
+    name: Check for spelling errors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v3
+        with:
+          persist-credentials: false
+      - uses: https://github.com/codespell-project/actions-codespell@master
