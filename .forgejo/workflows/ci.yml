@@ -1,33 +1,38 @@
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-name: yuzu-ci
+# Actions Documentation: https://forgejo.org/docs/next/user/actions/#list-of-tasks-in-a-repository
+
+name: suyu-ci
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "*" ]
     tags: [ "*" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "dev" ]
 
 jobs:
-  transifex:
-    runs-on: ubuntu-latest
-    container: yuzuemu/build-environments:linux-transifex
-    if: ${{ github.repository == 'yuzu-emu/yuzu' && !github.head_ref }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-      - name: Update Translation
-        run: ./.ci/scripts/transifex/docker.sh
-        env:
-          TX_TOKEN: ${{ secrets.TRANSIFEX_API_TOKEN }}
+# We don't have transifex for now.
+#   transifex:
+#     runs-on: ubuntu-latest
+#     container: fijxu/build-environments:linux-transifex
+#     if: ${{ GITHUB_REPOSITORY == 'suyu/suyu' && !GITHUB_HEAD_REF }}
+#     steps:
+#       - uses: https://code.forgejo.org/actions/checkout@v3
+#         with:
+#           submodules: recursive
+#           fetch-depth: 0
+#       - name: Update Translation
+#         run: ./.ci/scripts/transifex/docker.sh
+#         env:
+#           TX_TOKEN: ${{ secrets.TRANSIFEX_API_TOKEN }}
 
   reuse:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'yuzu-emu/yuzu' }}
+    if: ${{ github.repository == 'suyu/suyu' }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: fsfe/reuse-action@v1
+    - uses: https://code.forgejo.org/actions/checkout@v3
+    - uses: https://github.com/fsfe/reuse-action@v1
+
