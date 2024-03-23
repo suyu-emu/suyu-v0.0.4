@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
                 break;
             }
             case 'l': {
-                std::string str_arg(optarg);
+                std::string str_arg(argv[optind++]);
                 str_arg.append(",0"); // FALLBACK: if string is partially completed ("1234,3")
                                       // this will set all those unset to 0. otherwise we get
                                       // all 3s.
