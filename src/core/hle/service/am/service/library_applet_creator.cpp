@@ -52,7 +52,7 @@ std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
                                                           std::shared_ptr<Applet> caller_applet,
                                                           AppletId applet_id,
                                                           LibraryAppletMode mode) {
-    const auto program_id = static_cast<u64>(Service::AM::AppletIdToProgramId(applet_id));
+    const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
     if (program_id == 0) {
         // Unknown applet
         return {};
@@ -94,7 +94,7 @@ std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& syste
                                                              std::shared_ptr<Applet> caller_applet,
                                                              AppletId applet_id,
                                                              LibraryAppletMode mode) {
-    const auto program_id = static_cast<u64>(Service::AM::AppletIdToProgramId(applet_id));
+    const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
 
     auto process = std::make_unique<Process>(system);
     auto applet = std::make_shared<Applet>(system, std::move(process), false);
@@ -163,10 +163,11 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     }
 }
 
+
 ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet,
                                              WindowSystem& window_system)
-    : ServiceFramework{system_, "ILibraryAppletCreator"}, m_window_system{window_system},
-      m_applet{std::move(applet)} {
+    : ServiceFramework{system_, "ILibraryAppletCreator"},
+      m_window_system{window_system}, m_applet{std::move(applet)} {
     static const FunctionInfo functions[] = {
         {0, D<&ILibraryAppletCreator::CreateLibraryApplet>, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},
