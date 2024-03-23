@@ -234,7 +234,7 @@ int main(int argc, char** argv) {
         {"fullscreen", no_argument, 0, 'f'},
         {"help", no_argument, 0, 'h'},
         {"game", required_argument, 0, 'g'},
-        {"applet-params", required_argument, 0, 'l'},
+        {"applet-params", optional_argument, 0, 'l'},
         {"multiplayer", required_argument, 0, 'm'},
         {"program", optional_argument, 0, 'p'},
         {"user", required_argument, 0, 'u'},
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "g:fhvp::c:u:l:", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "g:fhvp::c:u:l::", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'c':
