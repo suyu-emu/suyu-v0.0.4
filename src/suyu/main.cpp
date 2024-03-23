@@ -12,6 +12,7 @@
 #include <thread>
 #include "core/hle/service/am/applet_manager.h"
 #include "core/loader/nca.h"
+#include "core/loader/nro.h"
 #include "core/tools/renderdoc.h"
 
 #ifdef __APPLE__
@@ -1747,18 +1748,21 @@ void GMainWindow::AllowOSSleep() {
 }
 
 bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
-    if (!CheckFirmwarePresence()) {
-        QMessageBox::critical(this, tr("Component Missing"), tr("Missing Firmware."));
-        return false;
-    }
+    if (Loader::AppLoader_NRO::IdentifyType(
+            Core::GetGameFileFromPath(vfs, filename.toStdString())) != Loader::FileType::NRO) {
+        if (!CheckFirmwarePresence()) {
+            QMessageBox::critical(this, tr("Component Missing"), tr("Missing Firmware."));
+            return false;
+        }
 
-    if (!ContentManager::AreKeysPresent()) {
-        QMessageBox::warning(this, tr("Derivation Components Missing"),
-                             tr("Encryption keys are missing. "
-                                "In order to use this emulator"
-                                "you need to provide your own encryption keys"
-                                "in order to play them."));
-        return false;
+        if (!ContentManager::AreKeysPresent()) {
+            QMessageBox::warning(this, tr("Derivation Components Missing"),
+                                 tr("Encryption keys are missing. "
+                                    "In order to use this emulator, "
+                                    "you need to provide your own encryption keys "
+                                    "in order to play them."));
+            return false;
+        }
     }
 
     // Shutdown previous session if the emu thread is still active...
@@ -4630,8 +4634,8 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::warning(this, tr("Derivation Components Missing"),
                              tr("Encryption keys are missing. "
-                                "In order to use this emulator"
-                                "you need to provide your own encryption keys"
+                                "In order to use this emulator, "
+                                "you need to provide your own encryption keys "
                                 "in order to play them."));
     }
 
