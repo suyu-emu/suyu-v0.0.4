@@ -163,7 +163,6 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     }
 }
 
-
 ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet,
                                              WindowSystem& window_system)
     : ServiceFramework{system_, "ILibraryAppletCreator"},
