@@ -1755,8 +1755,8 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::warning(this, tr("Derivation Components Missing"),
                              tr("Encryption keys are missing. "
-                                "In order to use this emulator"
-                                "you need to provide your own encryption keys"
+                                "In order to use this emulator, "
+                                "you need to provide your own encryption keys "
                                 "in order to play them."));
         return false;
     }
@@ -4630,8 +4630,8 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::warning(this, tr("Derivation Components Missing"),
                              tr("Encryption keys are missing. "
-                                "In order to use this emulator"
-                                "you need to provide your own encryption keys"
+                                "In order to use this emulator, "
+                                "you need to provide your own encryption keys "
                                 "in order to play them."));
     }
 
