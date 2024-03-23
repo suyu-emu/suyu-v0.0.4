@@ -49,7 +49,8 @@ jobs:
             image: linux-mingw
     container:
       image: fijxu/build-environments:${{ matrix.image }}
-      options: -u 1001
+      # User 1001 doesn't exists on the images.
+      # options: -u 1001
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v3
         with:
