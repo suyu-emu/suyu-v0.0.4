@@ -1748,8 +1748,8 @@ void GMainWindow::AllowOSSleep() {
 }
 
 bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
-    if (Loader::AppLoader_NRO::IdentifyType(Core::GetGameFileFromPath(vfs, filename.toStdString())) !=
-        Loader::FileType::NRO) {
+    if (Loader::AppLoader_NRO::IdentifyType(
+            Core::GetGameFileFromPath(vfs, filename.toStdString())) != Loader::FileType::NRO) {
         if (!CheckFirmwarePresence()) {
             QMessageBox::critical(this, tr("Component Missing"), tr("Missing Firmware."));
             return false;
@@ -1757,7 +1757,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
 
         if (!ContentManager::AreKeysPresent()) {
             QMessageBox::warning(this, tr("Derivation Components Missing"),
-                                tr("Encryption keys are missing. "
+                                 tr("Encryption keys are missing. "
                                     "In order to use this emulator, "
                                     "you need to provide your own encryption keys "
                                     "in order to play them."));

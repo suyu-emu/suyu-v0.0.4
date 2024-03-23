@@ -29,7 +29,8 @@ jobs:
 #           TX_TOKEN: ${{ secrets.TRANSIFEX_API_TOKEN }}
 
   reuse:
-    runs-on: ubuntu-latest
+    name: Check REUSE Specification
+    runs-on: verify
     if: ${{ github.repository == 'suyu/suyu' }}
     steps:
     - uses: https://code.forgejo.org/actions/checkout@v3
