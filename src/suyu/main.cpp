@@ -12,6 +12,7 @@
 #include <thread>
 #include "core/hle/service/am/applet_manager.h"
 #include "core/loader/nca.h"
+#include "core/loader/nro.h"
 #include "core/tools/renderdoc.h"
 
 #ifdef __APPLE__
@@ -1747,7 +1748,7 @@ void GMainWindow::AllowOSSleep() {
 }
 
 bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
-    if (Loader::IdentifyType(Core::GetGameFileFromPath(vfs, filename.toStdString())) !=
+    if (Loader::AppLoader_NRO::IdentifyType(Core::GetGameFileFromPath(vfs, filename.toStdString())) !=
         Loader::FileType::NRO) {
         if (!CheckFirmwarePresence()) {
             QMessageBox::critical(this, tr("Component Missing"), tr("Missing Firmware."));
