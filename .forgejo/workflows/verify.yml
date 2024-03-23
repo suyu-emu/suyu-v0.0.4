@@ -13,20 +13,24 @@ on:
     branches: [ "dev" ]
 env:
   PR_NUMBER: pr${{ github.event.number }}
+  CCACHE_DIR: '.ccache'
+
 
 jobs:
   format:
-    name: 'verify format'
+    name: 'Verify Format'
     runs-on: ubuntu-latest
+    container:
+      image: fijxu/build-environments:linux-clang-format
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v3
         with:
           submodules: false
-      - name: set up JDK 17
-        uses: https://github.com/actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+      # - name: set up JDK 17
+      #   uses: https://github.com/actions/setup-java@v3
+      #   with:
+      #     java-version: '17'
+      #     distribution: 'temurin'
       - name: 'Verify Formatting'
         run: bash -ex ./.ci/scripts/format/script.sh
   build-linux:
@@ -55,13 +59,13 @@ jobs:
         uses: https://code.forgejo.org/actions/cache@v3
         id: ccache-restore
         with:
-          path: ~/.ccache
+          path: .ccache
           key: ${{ runner.os }}-${{ matrix.type }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.type }}-
       - name: Create ccache directory
         if: steps.ccache-restore.outputs.cache-hit != 'true'
-        run: mkdir -p ~/.ccache
+        run: mkdir -p .ccache
       - name: Build
         run: ./.ci/scripts/${{ matrix.type }}/docker.sh
         env:
@@ -171,7 +175,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            ~/.ccache
+            .ccache
           key: ${{ runner.os }}-android-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-android-

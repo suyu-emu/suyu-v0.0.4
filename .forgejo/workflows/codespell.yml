@@ -9,7 +9,13 @@
 # Actions Documentation: https://forgejo.org/docs/next/user/actions/#list-of-tasks-in-a-repository
 
 name: codespell
-on: pull_request
+on:
+  push:
+    branches: [ "*" ]
+    tags: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
 permissions: {}
 jobs:
   codespell:
@@ -20,3 +26,4 @@ jobs:
         with:
           persist-credentials: false
       - uses: https://github.com/codespell-project/actions-codespell@master
+

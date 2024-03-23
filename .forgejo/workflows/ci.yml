@@ -8,13 +8,12 @@ name: suyu-ci
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "dev" ]
     tags: [ "*" ]
   pull_request:
     branches: [ "dev" ]
 
 jobs:
-# We don't have transifex for now.
 #   transifex:
 #     runs-on: ubuntu-latest
 #     container: fijxu/build-environments:linux-transifex
