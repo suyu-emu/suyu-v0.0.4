@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2017 yuzu Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2017 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This function downloads a binary library package from our external repo.
@@ -7,7 +7,7 @@
 #   prefix_var: name of a variable which will be set with the path to the extracted contents
 function(download_bundled_external remote_path lib_name prefix_var)
 
-set(package_base_url "https://gitlab.com/suyu-emu/")
+set(package_base_url "https://git.suyu.dev/suyu")
 set(package_repo "no_platform")
 set(package_extension "no_platform")
 set(package_head "?ref_type=heads")

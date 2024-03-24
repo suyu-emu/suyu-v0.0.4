@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2020 BreadFish64 & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2020 BreadFish64
 // SPDX-License-Identifier: MIT
 
 // Adapted from https://github.com/BreadFish64/ScaleFish/tree/master/scaleforce
