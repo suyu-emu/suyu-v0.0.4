@@ -9,12 +9,28 @@ name: 'suyu verify'
 on:
   pull_request:
     branches: [ "dev" ]
+    paths:
+      - 'src/**'
+      - 'CMakeModules/**'
+      - 'dist/**'
+      - 'externals/**'
+      - 'vcpkg.json'
+    paths-ignore:
+      - 'src/android/**'
   push:
     branches: [ "dev" ]
+    paths:
+      - 'src/**'
+      - 'CMakeModules/**'
+      - 'dist/**'
+      - 'externals/**'
+      - 'vcpkg.json'
+    paths-ignore:
+      - 'src/android/**'
+
 env:
   PR_NUMBER: pr${{ github.event.number }}
   CCACHE_DIR: '.ccache'
-
 
 jobs:
   format:
