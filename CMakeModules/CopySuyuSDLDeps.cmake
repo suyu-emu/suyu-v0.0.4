@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: 2016 Citra Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2016 Citra Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 function(copy_suyu_SDL_deps target_dir)
