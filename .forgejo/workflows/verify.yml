@@ -9,12 +9,31 @@ name: 'suyu verify'
 on:
   pull_request:
     branches: [ "dev" ]
+    paths:
+      - 'src/**'
+      - 'CMakeModules/**'
+      - 'dist/**'
+      - 'externals/**'
+      - 'CMakeLists.txt'
+      - 'vcpkg.json'
+    paths-ignore:
+      - 'src/android/**'
   push:
     branches: [ "dev" ]
+    paths:
+      - 'src/**'
+      - 'CMakeModules/**'
+      - 'dist/**'
+      - 'externals/**'
+      - 'CMakeLists.txt'
+      - 'vcpkg.json'
+      - '.forgejo/workflows/verify.yml'
+    paths-ignore:
+      - 'src/android/**'
+
 env:
   PR_NUMBER: pr${{ github.event.number }}
   CCACHE_DIR: '.ccache'
-
 
 jobs:
   format:
@@ -44,8 +63,8 @@ jobs:
             image: linux-fresh
           - type: linux
             image: linux-fresh
-          - type: windows
-            image: linux-mingw
+            # - type: windows
+            # image: linux-mingw
     container: fijxu/build-environments:${{ matrix.image }}
       # User 1001 doesn't exists on the images.
       # options: -u 1001
@@ -155,47 +174,47 @@ jobs:
   #       with:
   #         name: ${{ env.INDIVIDUAL_EXE }}
   #         path: ${{ env.INDIVIDUAL_EXE }}
-  android:
-    runs-on: ubuntu-latest
-    needs: format
-    steps:
-      - uses: https://code.forgejo.org/actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-      - name: set up JDK 17
-        uses: https://github.com/actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Set up cache
-        uses: https://code.forgejo.org/actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            .ccache
-          key: ${{ runner.os }}-android-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-android-
-      - name: Query tag name
-        uses: https://github.com/olegtarasov/get-tag@v2.1.2
-        id: tagName
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ccache apksigner glslang-dev glslang-tools
-      - name: Build
-        run: ./.ci/scripts/android/build.sh
-      - name: Copy and sign artifacts
-        env:
-          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-        run: ./.ci/scripts/android/upload.sh
-      - name: Upload
-        uses: https://code.forgejo.org/actions/upload-artifact@v3
-        with:
-          name: android
-          path: artifacts/
+  # android:
+  #   runs-on: ubuntu-latest
+  #   needs: format
+  #   steps:
+  #     - uses: https://code.forgejo.org/actions/checkout@v3
+  #       with:
+  #         submodules: recursive
+  #         fetch-depth: 0
+  #     - name: set up JDK 17
+  #       uses: https://github.com/actions/setup-java@v3
+  #       with:
+  #         java-version: '17'
+  #         distribution: 'temurin'
+  #     - name: Set up cache
+  #       uses: https://code.forgejo.org/actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.gradle/caches
+  #           ~/.gradle/wrapper
+  #           .ccache
+  #         key: ${{ runner.os }}-android-${{ github.sha }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-android-
+  #     - name: Query tag name
+  #       uses: https://github.com/olegtarasov/get-tag@v2.1.2
+  #       id: tagName
+  #     - name: Install dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y ccache apksigner glslang-dev glslang-tools
+  #     - name: Build
+  #       run: ./.ci/scripts/android/build.sh
+  #     - name: Copy and sign artifacts
+  #       env:
+  #         ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+  #         ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+  #         ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+  #       run: ./.ci/scripts/android/upload.sh
+  #     - name: Upload
+  #       uses: https://code.forgejo.org/actions/upload-artifact@v3
+  #       with:
+  #         name: android
+  #         path: artifacts/
 

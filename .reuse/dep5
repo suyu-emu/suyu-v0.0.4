@@ -9,7 +9,8 @@ Files: dist/english_plurals/*
        dist/qt_themes/*/icons/48x48/sd_card.png
        dist/qt_themes/*/icons/index.theme
        dist/qt_themes/default/style.qss
-Copyright: suyu Emulator Project
+Copyright: yuzu Emulator Project
+           suyu Emulator Project
 License: GPL-2.0-or-later
 
 Files: dist/qt_themes/default/icons/256x256/suyu.png
@@ -158,4 +159,24 @@ License: BSD-3-Clause
 
 Files: src/android/app/debug.keystore
 Copyright: 2023 yuzu Emulator Project
+License: GPL-3.0-or-later
+
+Files: .github-archive/ISSUE_TEMPLATE/*
+Copyright: 2022 yuzu Emulator Project
+License: GPL-2.0-or-later
+
+Files: .forgejo/ISSUE_TEMPLATE/*
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: .gitea/ISSUE_TEMPLATE/*
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: .gitlab-ci.yml
+Copyright: 2024 suyu Emulator Project
+License: GPL-3.0-or-later
+
+Files: dist/icns_generator.sh
+Copyright: 2024 suyu Emulator Project
 License: GPL-3.0-or-later

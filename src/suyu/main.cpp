@@ -1756,11 +1756,10 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         }
 
         if (!ContentManager::AreKeysPresent()) {
-            QMessageBox::warning(this, tr("Derivation Components Missing"),
-                                 tr("Encryption keys are missing. "
-                                    "In order to use this emulator, "
-                                    "you need to provide your own encryption keys "
-                                    "in order to play them."));
+            QMessageBox::warning(
+                this, tr("Encryption Keys Missing"),
+                tr("In order to use suyu you need to provide your own encryption keys. "
+                   "You can install them by going to Tools -> Install encryption keys."));
             return false;
         }
     }

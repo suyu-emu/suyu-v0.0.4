@@ -374,6 +374,9 @@ if(ENABLE_QT6 AND Qt6_LOCATION)
     list(APPEND CMAKE_PREFIX_PATH "${Qt6_LOCATION}")
 endif()
 
+# QT6 searches for Vulkan::Headers, too, so we have to define it before QT6 has a chance to do it.
+add_subdirectory(externals)
+
 function(set_suyu_qt_components)
     # Best practice is to ask for all components at once, so they are from the same version
     set(SUYU_QT_COMPONENTS2 Core Widgets Concurrent)
@@ -709,7 +712,6 @@ if (SUYU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
-add_subdirectory(externals)
 add_subdirectory(src)
 
 # Set suyu project or suyu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
