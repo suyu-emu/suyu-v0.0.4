@@ -40,7 +40,7 @@ It is written in C++ with portability in mind, and we're actively working on bui
 
 ## Status
 
-Although we're able to make builds, we don't have a version ready for distribution yet. But we can always use more help! You can make a merge request if you'd like to see something changed, or you can [chat with other developers to find out what needs work](https://discord.gg/suyu).
+We currently have builds over at the [Releases](https://git.suyu.dev/suyu/suyu/releases) page.
 
 **Note**: We try to update this README whenever we can, but some links might be broken, and some information may be outdated or irrelevant.
 
