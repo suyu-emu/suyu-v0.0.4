@@ -33,7 +33,6 @@ on:
 
 env:
   PR_NUMBER: pr${{ github.event.number }}
-  CCACHE_DIR: '.ccache'
 
 jobs:
   format:
@@ -77,13 +76,13 @@ jobs:
         uses: https://code.forgejo.org/actions/cache@v3
         id: ccache-restore
         with:
-          path: .ccache
+          path: ~/.ccache
           key: ${{ runner.os }}-${{ matrix.type }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.type }}-
       - name: Create ccache directory
         if: steps.ccache-restore.outputs.cache-hit != 'true'
-        run: mkdir -p .ccache
+        run: mkdir -p ~/.ccache
       - name: Build
         run: ./.ci/scripts/${{ matrix.type }}/docker.sh
         env:
