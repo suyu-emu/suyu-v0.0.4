@@ -73,6 +73,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_loop_safety_checks->setChecked(
         Settings::values.disable_shader_loop_safety_checks.GetValue());
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
+    ui->log_async->setChecked(Settings::values.log_async.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
 
 #ifdef SUYU_USE_QT_WEB_ENGINE
@@ -115,6 +116,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter.GetValue());
     Common::Log::SetGlobalFilter(filter);
+    Settings::values.log_async = ui->log_async->isChecked();
 }
 
 void ConfigureDebug::changeEvent(QEvent* event) {
