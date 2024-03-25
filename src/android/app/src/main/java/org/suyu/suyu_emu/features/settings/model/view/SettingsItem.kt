@@ -241,6 +241,8 @@ abstract class SettingsItem(
                     IntSetting.FSR_SHARPENING_SLIDER,
                     titleId = R.string.fsr_sharpness,
                     descriptionId = R.string.fsr_sharpness_description,
+                    min = 0,
+                    max = 200,
                     units = "%"
                 )
             )
@@ -327,6 +329,8 @@ abstract class SettingsItem(
                     ByteSetting.AUDIO_VOLUME,
                     titleId = R.string.audio_volume,
                     descriptionId = R.string.audio_volume_description,
+                    min = 0,
+                    max = 120,
                     units = "%"
                 )
             )
