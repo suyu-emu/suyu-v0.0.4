@@ -27,6 +27,7 @@ on:
       - 'externals/**'
       - 'CMakeLists.txt'
       - 'vcpkg.json'
+      - '.forgejo/workflows/verify.yml'
     paths-ignore:
       - 'src/android/**'
 
