@@ -132,7 +132,7 @@ if (SUYU_USE_BUNDLED_VCPKG)
         set(VCPKG_DOWNLOADS_PATH ${PROJECT_SOURCE_DIR}/externals/vcpkg/downloads)
         set(NASM_VERSION "2.16.01")
         set(NASM_DESTINATION_PATH ${VCPKG_DOWNLOADS_PATH}/nasm-${NASM_VERSION}-win64.zip)
-        set(NASM_DOWNLOAD_URL "https://gitlab.com/suyu-emu/ext-windows-bin/raw/master/nasm/nasm-${NASM_VERSION}-win64.zip")
+        set(NASM_DOWNLOAD_URL "https://git.suyu.dev/suyu/ext-windows-bin/raw/branch/master/nasm/nasm-${NASM_VERSION}-win64.zip")
 
         if (NOT EXISTS ${NASM_DESTINATION_PATH})
             file(DOWNLOAD ${NASM_DOWNLOAD_URL} ${NASM_DESTINATION_PATH} SHOW_PROGRESS STATUS NASM_STATUS)
@@ -373,6 +373,7 @@ endif()
 if(ENABLE_QT6 AND Qt6_LOCATION)
     list(APPEND CMAKE_PREFIX_PATH "${Qt6_LOCATION}")
 endif()
+
 
 function(set_suyu_qt_components)
     # Best practice is to ask for all components at once, so they are from the same version
@@ -629,7 +630,7 @@ if (NOT CLANG_FORMAT)
         message(STATUS "Clang format not found! Downloading...")
         set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
         file(DOWNLOAD
-            https://gitlab.com/suyu-emu/ext-windows-bin/raw/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
+            https://git.suyu.dev/suyu/ext-windows-bin/raw/branch/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
             "${CLANG_FORMAT}" SHOW_PROGRESS
             STATUS DOWNLOAD_SUCCESS)
         if (NOT DOWNLOAD_SUCCESS EQUAL 0)
