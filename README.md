@@ -57,6 +57,8 @@ You can also contact any of the developers on Discord to learn more about the cu
 * __macOS__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __Android__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 
+If you want daily builds then go here. https://git.suyu.dev/suyu/suyu/actions
+
 We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any website or person is claiming to have a build for suyu, take that with a grain of salt.
 
 ## Building
