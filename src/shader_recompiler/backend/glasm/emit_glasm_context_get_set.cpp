@@ -406,6 +406,10 @@ void EmitInvocationInfo(EmitContext& ctx, IR::Inst& inst) {
     case Stage::TessellationEval:
         ctx.Add("SHL.U {}.x,primitive.vertexcount,16;", inst);
         break;
+    case Stage::Geometry:
+        ctx.Add("SHL.U {}.x,{},16;", inst,
+            InputTopologyVertices::vertices(ctx.runtime_info.input_topology));
+        break;
     default:
         LOG_WARNING(Shader, "(STUBBED) called");
         ctx.Add("MOV.S {}.x,0x00ff0000;", inst);
