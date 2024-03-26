@@ -428,7 +428,7 @@ void EmitInvocationInfo(EmitContext& ctx, IR::Inst& inst) {
         break;
     case Stage::Geometry:
         ctx.AddU32("{}=uint({}<<16);", inst,
-            InputTopologyVertices::vertices(ctx.runtime_info.input_topology));
+                InputTopologyVertices::vertices(ctx.runtime_info.input_topology));
         break;
     default:
         LOG_WARNING(Shader, "(STUBBED) called");
