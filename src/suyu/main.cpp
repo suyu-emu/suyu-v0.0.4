@@ -63,10 +63,10 @@ static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(
 }
 
 // Overloaded function, also removed by palafiate
-static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::VirtualDir& dir, const std::string& path) {
+static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::VirtualDir& dir,
+                                                          const std::string& path) {
     return dir->CreateFile(path);
 }
-
 
 #include <fmt/ostream.h>
 #include <glad/glad.h>
