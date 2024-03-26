@@ -56,7 +56,7 @@ enum class GameListRemoveTarget {
 enum class DumpRomFSTarget {
     Normal,
     SDMC,
-}; 
+};
 
 enum class GameListShortcutTarget {
     Desktop,
