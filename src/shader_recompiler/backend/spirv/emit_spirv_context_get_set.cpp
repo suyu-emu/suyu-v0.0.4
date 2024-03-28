@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project, 2024 sudachi Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <bit>
@@ -549,6 +549,8 @@ Id EmitInvocationInfo(EmitContext& ctx) {
     case Stage::TessellationEval:
         return ctx.OpShiftLeftLogical(ctx.U32[1], ctx.OpLoad(ctx.U32[1], ctx.patch_vertices_in),
                                       ctx.Const(16u));
+    case Stage::Geometry:
+        return ctx.Const(InputTopologyVertices::vertices(ctx.runtime_info.input_topology) << 16);
     default:
         LOG_WARNING(Shader, "(STUBBED) called");
         return ctx.Const(0x00ff0000u);
