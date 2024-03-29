@@ -1,4 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project, 2024 sudachi Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 sudachi Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string_view>
