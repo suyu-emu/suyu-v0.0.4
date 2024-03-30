@@ -180,3 +180,7 @@ License: GPL-3.0-or-later
 Files: dist/icns_generator.sh
 Copyright: 2024 suyu Emulator Project
 License: GPL-3.0-or-later
+
+Files: img/*
+Copyright: 2024 suyu Emulator Project
+License: CC0-1.0
