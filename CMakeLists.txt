@@ -396,7 +396,71 @@ function(set_suyu_qt_components)
     set(SUYU_QT_COMPONENTS ${SUYU_QT_COMPONENTS2} PARENT_SCOPE)
 endfunction(set_suyu_qt_components)
 
+# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the suyu_find_package
+if (ENABLE_SDL2)
+    if (SUYU_USE_BUNDLED_SDL2)
+        # Detect toolchain and platform
+        if ((MSVC_VERSION GREATER_EQUAL 1920 AND MSVC_VERSION LESS 1940) AND ARCHITECTURE_x86_64)
+            set(SDL2_VER "SDL2-2.28.2")
+        else()
+            message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable SUYU_USE_BUNDLED_SDL2 and provide your own.")
+        endif()
+
+        if (DEFINED SDL2_VER)
+            download_bundled_external("sdl2/" ${SDL2_VER} SDL2_PREFIX)
+        endif()
+
+        set(SDL2_FOUND YES)
+        set(SDL2_INCLUDE_DIR "${SDL2_PREFIX}/include" CACHE PATH "Path to SDL2 headers")
+        set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/x64/SDL2.lib" CACHE PATH "Path to SDL2 library")
+        set(SDL2_DLL_DIR "${SDL2_PREFIX}/lib/x64/" CACHE PATH "Path to SDL2.dll")
+
+        add_library(SDL2::SDL2 INTERFACE IMPORTED)
+        target_link_libraries(SDL2::SDL2 INTERFACE "${SDL2_LIBRARY}")
+        target_include_directories(SDL2::SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
+    elseif (SUYU_USE_EXTERNAL_SDL2)
+        message(STATUS "Using SDL2 from externals.")
+    else()
+        find_package(SDL2 2.26.4 REQUIRED)
+    endif()
+endif()
+
+# List of all FFmpeg components required
+set(FFmpeg_COMPONENTS
+    avcodec
+    avfilter
+    avutil
+    swscale)
+
+if (UNIX AND NOT APPLE AND NOT ANDROID)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBVA libva)
+endif()
+if (NOT SUYU_USE_BUNDLED_FFMPEG)
+    # Use system installed FFmpeg
+    find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+endif()
+
+if (WIN32 AND SUYU_CRASH_DUMPS)
+    set(BREAKPAD_VER "breakpad-c89f9dd")
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} BREAKPAD_PREFIX)
+
+    set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
+    set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
+
+    add_library(libbreakpad_client INTERFACE IMPORTED)
+    target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
+    target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
+endif()
+
+# Prefer the -pthread flag on Linux.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+add_subdirectory(externals)
+
 # Qt5 requires that we find components, so it doesn't fit our pretty little find package function
+# Qt6 sets Vulkan::Headers, so Qt search has to come after externals, so it doesn't get to do it.
 if(ENABLE_QT)
     set(QT_VERSION 5.15)
     # These are used to specify minimum versions
@@ -535,67 +599,6 @@ if(ENABLE_QT)
 
 endif()
 
-# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the suyu_find_package
-if (ENABLE_SDL2)
-    if (SUYU_USE_BUNDLED_SDL2)
-        # Detect toolchain and platform
-        if ((MSVC_VERSION GREATER_EQUAL 1920 AND MSVC_VERSION LESS 1940) AND ARCHITECTURE_x86_64)
-            set(SDL2_VER "SDL2-2.28.2")
-        else()
-            message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable SUYU_USE_BUNDLED_SDL2 and provide your own.")
-        endif()
-
-        if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} SDL2_PREFIX)
-        endif()
-
-        set(SDL2_FOUND YES)
-        set(SDL2_INCLUDE_DIR "${SDL2_PREFIX}/include" CACHE PATH "Path to SDL2 headers")
-        set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/x64/SDL2.lib" CACHE PATH "Path to SDL2 library")
-        set(SDL2_DLL_DIR "${SDL2_PREFIX}/lib/x64/" CACHE PATH "Path to SDL2.dll")
-
-        add_library(SDL2::SDL2 INTERFACE IMPORTED)
-        target_link_libraries(SDL2::SDL2 INTERFACE "${SDL2_LIBRARY}")
-        target_include_directories(SDL2::SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
-    elseif (SUYU_USE_EXTERNAL_SDL2)
-        message(STATUS "Using SDL2 from externals.")
-    else()
-        find_package(SDL2 2.26.4 REQUIRED)
-    endif()
-endif()
-
-# List of all FFmpeg components required
-set(FFmpeg_COMPONENTS
-    avcodec
-    avfilter
-    avutil
-    swscale)
-
-if (UNIX AND NOT APPLE AND NOT ANDROID)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(LIBVA libva)
-endif()
-if (NOT SUYU_USE_BUNDLED_FFMPEG)
-    # Use system installed FFmpeg
-    find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
-endif()
-
-if (WIN32 AND SUYU_CRASH_DUMPS)
-    set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} BREAKPAD_PREFIX)
-
-    set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
-    set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
-
-    add_library(libbreakpad_client INTERFACE IMPORTED)
-    target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
-    target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
-endif()
-
-# Prefer the -pthread flag on Linux.
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
 # Platform-specific library requirements
 # ======================================
 
@@ -710,7 +713,6 @@ if (SUYU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
-add_subdirectory(externals)
 add_subdirectory(src)
 
 # Set suyu project or suyu-cmd project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
