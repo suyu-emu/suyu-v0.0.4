@@ -31,7 +31,6 @@ enum GuestMemoryFlags : u32 {
     UnsafeReadCachedWrite = UnsafeReadWrite | Cached,
 };
 
-namespace {
 template <typename M, typename T, GuestMemoryFlags FLAGS>
 class GuestMemory {
     using iterator = T*;
@@ -219,6 +218,5 @@ public:
         }
     }
 };
-} // namespace
 
 } // namespace Core::Memory
