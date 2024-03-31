@@ -1,9 +1,6 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Modified by palfaiate on <2024/03/07>
-// Reverted palfaiate's changes on <2024/03/25> -Nine-Ball
-
 #include <cinttypes>
 #include <clocale>
 #include <cmath>
