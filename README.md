@@ -35,6 +35,9 @@ It is written in C++ with portability in mind, and we're actively working on bui
   <a href="https://git.suyu.dev/suyu/suyu/actions">Pipelines</a>
 </p>
 
+## Hardware Requirements
+[Click here to see the Hardware Requirements](https://git.suyu.dev/suyu/suyu/wiki/Hardware-Requirements)
+
 ## Status
 
 We currently have builds over at the [Releases](https://git.suyu.dev/suyu/suyu/releases) page.

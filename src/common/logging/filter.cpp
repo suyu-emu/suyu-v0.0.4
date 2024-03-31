@@ -171,6 +171,7 @@ const char* GetLogClassName(Class log_class) {
 #define SUB(x, y)                                                                                  \
     case Class::x##_##y:                                                                           \
         return #x "." #y;
+        // return #x "_" #y;
         ALL_LOG_CLASSES()
 #undef CLS
 #undef SUB

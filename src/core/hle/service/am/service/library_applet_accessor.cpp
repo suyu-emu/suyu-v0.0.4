@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/am/applet_data_broker.h"
@@ -101,6 +102,22 @@ Result ILibraryAppletAccessor::PushInData(SharedPointer<IStorage> storage) {
 
 Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_DEBUG(Service_AM, "called");
+    // suyu todo: move library applet fix to another function
+    // since this function is only called for applets that give a result,
+    // applets that don't (e.g. info applets in 1st party games) simply freeze
+    if (auto caller = m_applet->caller_applet.lock(); caller != nullptr) {
+        caller->SetInteractibleLocked(true);
+
+        caller->lifecycle_manager.SetFocusState(FocusState::InFocus);
+        caller->lifecycle_manager.UpdateRequestedFocusState();
+
+        caller->lifecycle_manager.SetResumeNotificationEnabled(true);
+        caller->lifecycle_manager.RequestResumeNotification();
+        caller->UpdateSuspensionStateLocked(true);
+    } else {
+        LOG_CRITICAL(Service_AM, "Caller applet pointer is invalid.");
+        LOG_CRITICAL(Service_AM, "The emulator will freeze!");
+    }
     R_RETURN(m_broker->GetOutData().Pop(out_storage.Get()));
 }
 

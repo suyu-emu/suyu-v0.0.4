@@ -247,7 +247,7 @@ vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
 
     vk::Check(vmaCreateImage(allocator, &ci, &alloc_ci, &handle, &allocation, nullptr));
 
-    return vk::Image(handle, *device.GetLogical(), allocator, allocation,
+    return vk::Image(handle, ci.usage, *device.GetLogical(), allocator, allocation,
                      device.GetDispatchLoader());
 }
 

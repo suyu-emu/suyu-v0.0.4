@@ -164,6 +164,20 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="log_async">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>When checked, logging will run asynchronously. This may cut the log on crashes.
+When unchecked, logging will run synchronously. This will slow down the emulator, but allow all logs to be written. Useful for debugging.</string>
+           </property>
+           <property name="text">
+            <string>Log asynchronously</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QWidget" name="logging_widget" native="true">
            <property name="sizePolicy">
@@ -199,7 +213,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="log_filter_edit"/>
+             <widget class="QLineEdit" name="log_filter_edit">
+              <property name="toolTip">
+               <string>Log filter in the form ＜class＞:＜level＞.
+Separate multiple filters with a space.
+Levels: Trace, Debug, Info, Warning, Error, Critical
+Classes: See Common/logging/types.h</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
