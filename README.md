@@ -62,6 +62,7 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 If you want daily builds then [Click here](https://git.suyu.dev/suyu/suyu/actions)
 If you don't know how to download the daily builds then [Click here](https://git.suyu.dev/suyu/suyu/raw/branch/dev/img/daily-builds.png)
+Right now we only have daily builds for Linux and Android.
 
 We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any website or person is claiming to have a build for suyu, take that with a grain of salt.
 
