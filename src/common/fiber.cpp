@@ -5,6 +5,7 @@
 
 #include "common/assert.h"
 #include "common/fiber.h"
+#define MCO_USE_VMEM_ALLOCATOR
 #define MINICORO_IMPL
 #include "common/minicoro.h"
 
