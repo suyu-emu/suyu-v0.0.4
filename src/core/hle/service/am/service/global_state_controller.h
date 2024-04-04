@@ -18,6 +18,8 @@ public:
     ~IGlobalStateController() override;
 
 private:
+    Result StartShutdownSequence();
+    Result StartRebootSequence();
     Result LoadAndApplyIdlePolicySettings();
     Result ShouldSleepOnBoot(Out<bool> out_should_sleep_on_boot);
     Result GetHdcpAuthenticationFailedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
