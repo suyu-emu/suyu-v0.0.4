@@ -15,10 +15,8 @@
 #include "common/polyfill_ranges.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
-#include "common/telemetry.h"
 #include "core/core_timing.h"
 #include "core/frontend/graphics_context.h"
-#include "core/telemetry_session.h"
 #include "video_core/capture.h"
 #include "video_core/gpu.h"
 #include "video_core/present.h"
@@ -98,12 +96,11 @@ Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dl
     return Device(*instance, physical_device, surface, dld);
 }
 
-RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
-                               Core::Frontend::EmuWindow& emu_window,
+RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                                Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
-    : RendererBase(emu_window, std::move(context_)), telemetry_session(telemetry_session_),
-      device_memory(device_memory_), gpu(gpu_), library(OpenLibrary(context.get())),
+    : RendererBase(emu_window, std::move(context_)), device_memory(device_memory_), gpu(gpu_),
+      library(OpenLibrary(context.get())),
       instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
                               Settings::values.renderer_debug.GetValue())),
       debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
@@ -183,13 +180,6 @@ void RendererVulkan::Report() const {
     LOG_INFO(Render_Vulkan, "Device: {}", model_name);
     LOG_INFO(Render_Vulkan, "Vulkan: {}", api_version);
     LOG_INFO(Render_Vulkan, "Available VRAM: {:.2f} GiB", available_vram);
-
-    static constexpr auto field = Common::Telemetry::FieldType::UserSystem;
-    telemetry_session.AddField(field, "GPU_Vendor", vendor_name);
-    telemetry_session.AddField(field, "GPU_Model", model_name);
-    telemetry_session.AddField(field, "GPU_Vulkan_Driver", driver_name);
-    telemetry_session.AddField(field, "GPU_Vulkan_Version", api_version);
-    telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
 vk::Buffer RendererVulkan::RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,

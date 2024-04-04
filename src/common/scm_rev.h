@@ -5,9 +5,9 @@
 
 namespace Common {
 
-extern const char g_scm_rev[];
-extern const char g_scm_branch[];
-extern const char g_scm_desc[];
+extern const char* g_scm_rev;
+extern const char* g_scm_branch;
+extern const char* g_scm_desc;
 extern const char g_build_name[];
 extern const char g_build_date[];
 extern const char g_build_fullname[];

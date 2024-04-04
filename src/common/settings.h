@@ -609,7 +609,6 @@ struct Values {
                                            Category::Network};
 
     // WebService
-    Setting<bool> enable_telemetry{linkage, true, "enable_telemetry", Category::WebService};
     Setting<std::string> web_api_url{linkage, "https://api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
     Setting<std::string> yuzu_username{linkage, std::string(), "yuzu_username",

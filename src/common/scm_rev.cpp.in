@@ -3,11 +3,15 @@
 
 #include "common/scm_rev.h"
 
-#define GIT_REV      "@GIT_REV@"
-#define GIT_BRANCH   "@GIT_BRANCH@"
-#define GIT_DESC     "@GIT_DESC@"
-#define BUILD_NAME   "@REPO_NAME@"
-#define BUILD_DATE   "@BUILD_DATE@"
+#include <fstream>
+#include <string>
+#include <fmt/format.h>
+
+#define GIT_REV "@GIT_REV@"
+#define GIT_BRANCH "@GIT_BRANCH@"
+#define GIT_DESC "@GIT_DESC@"
+#define BUILD_NAME "@REPO_NAME@"
+#define BUILD_DATE "@BUILD_DATE@"
 #define BUILD_FULLNAME "@BUILD_FULLNAME@"
 #define BUILD_VERSION "@BUILD_VERSION@"
 #define BUILD_ID "@BUILD_ID@"
@@ -16,16 +20,60 @@
 
 namespace Common {
 
-const char g_scm_rev[]      = GIT_REV;
-const char g_scm_branch[]   = GIT_BRANCH;
-const char g_scm_desc[]     = GIT_DESC;
-const char g_build_name[]   = BUILD_NAME;
-const char g_build_date[]   = BUILD_DATE;
+const char* g_scm_rev;
+const char* g_scm_branch;
+const char* g_scm_desc;
+const char g_build_name[] = BUILD_NAME;
+const char g_build_date[] = BUILD_DATE;
 const char g_build_fullname[] = BUILD_FULLNAME;
-const char g_build_version[]  = BUILD_VERSION;
+const char g_build_version[] = BUILD_VERSION;
 const char g_build_id[] = BUILD_ID;
 const char g_title_bar_format_idle[] = TITLE_BAR_FORMAT_IDLE;
 const char g_title_bar_format_running[] = TITLE_BAR_FORMAT_RUNNING;
 
-} // namespace
+/// Anonymizes SCM data
+/// This is quite weak. But better than nothing.
+class scm_encrypt {
+    std::string m_scm_rev, m_scm_branch, m_scm_desc;
 
+public:
+    scm_encrypt() {
+        // Get a key that is easy to obtain when asking the person directly but (usually) hard to
+        // guess
+        std::string key;
+#ifdef __linux__
+        if (!std::getline(std::ifstream("/proc/sys/kernel/hostname"), key))
+            key = "linux_error_key";
+#else
+        // Not a good fallback, but better than nothing I guess?
+        key = g_build_date;
+#endif
+        // Copy strings in place
+        m_scm_rev = GIT_REV;
+        m_scm_branch = GIT_BRANCH;
+        m_scm_desc = GIT_DESC;
+        // XOR each string with key
+        auto key_it = key.begin();
+        for (auto& string : {&m_scm_rev, &m_scm_branch, &m_scm_desc}) {
+            for (auto& c : *string) {
+                c ^= *key_it;
+                if (++key_it == key.end())
+                    key_it = key.begin();
+            }
+        }
+        // Make each string human-readable
+        for (auto& string : {&m_scm_rev, &m_scm_branch, &m_scm_desc}) {
+            const std::string original = *string;
+            string->clear();
+            for (const auto c : original) {
+                string->append(std::format("{:x}", unsigned(c)));
+            }
+            string->pop_back();
+        }
+        // Set pointers
+        g_scm_rev = m_scm_rev.c_str();
+        g_scm_branch = m_scm_branch.c_str();
+        g_scm_desc = m_scm_desc.c_str();
+    }
+} scm_encrypt_instance;
+} // namespace Common
