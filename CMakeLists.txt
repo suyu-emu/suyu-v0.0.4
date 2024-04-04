@@ -273,17 +273,8 @@ endif()
 # Configure C++ standard
 # ===========================
 
-# boost asio's concept usage doesn't play nicely with some compilers yet.
-add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
-if (MSVC)
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++20>)
-
-    # boost still makes use of deprecated result_of.
-    add_definitions(-D_HAS_DEPRECATED_RESULT_OF)
-else()
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Output binaries to bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -292,7 +283,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # =======================================================================
 
 # Enforce the search mode of non-required packages for better and shorter failure messages
-find_package(Boost 1.79.0 REQUIRED context)
 find_package(enet 1.3 MODULE)
 find_package(fmt 9 REQUIRED)
 find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
@@ -345,11 +335,6 @@ endif()
 
 if (YUZU_TESTS)
     find_package(Catch2 3.0.1 REQUIRED)
-endif()
-
-# boost:asio has functions that require AcceptEx et al
-if (MINGW)
-    find_library(MSWSOCK_LIBRARY mswsock REQUIRED)
 endif()
 
 if(ENABLE_OPENSSL)
@@ -674,8 +659,6 @@ function(create_target_directory_groups target_name)
     endforeach()
 endfunction()
 
-# Prevent boost from linking against libs when building
-target_link_libraries(Boost::headers INTERFACE Boost::disable_autolinking)
 # Adjustments for MSVC + Ninja
 if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
     add_compile_options(

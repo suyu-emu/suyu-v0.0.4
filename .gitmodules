@@ -55,3 +55,6 @@
 [submodule "externals/SPIRV-Headers"]
 	path = externals/SPIRV-Headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers.git
+[submodule "externals/boost-headers"]
+	path = externals/boost-headers
+	url = https://github.com/boostorg/headers.git
