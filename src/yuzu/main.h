@@ -274,7 +274,6 @@ private:
     void BootGameFromList(const QString& filename, StartGameType with_config);
     void ShutdownGame();
 
-    void ShowTelemetryCallout();
     void SetDiscordEnabled(bool state);
     void LoadAmiibo(const QString& filename);
 
