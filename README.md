@@ -28,6 +28,8 @@ Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv
 
 If you want to contribute, please take a look at the [Contributor's Guide](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Contributing) and [Developer Information](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Developer-Information).
 
+To clone this git repository, you can use `git -c http.proxy=socks5h://127.0.0.1:9050 clone http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu.git --depth 1 --recursive` given tor is installed and running.
+
 ## Building
 
 * __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Building-for-Linux)
