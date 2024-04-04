@@ -62,7 +62,7 @@ public:
             {20600, nullptr, "GetUserPresenceView"},
             {20700, nullptr, "GetPlayHistoryList"},
             {20701, &IFriendService::GetPlayHistoryStatistics, "GetPlayHistoryStatistics"},
-            {20800, nullptr, "LoadUserSetting"},
+            {20800, &IFriendService::LoadUserSetting, "LoadUserSetting"},
             {20801, nullptr, "SyncUserSetting"},
             {20900, nullptr, "RequestListSummaryOverlayNotification"},
             {21000, nullptr, "GetExternalApplicationCatalog"},
@@ -135,6 +135,17 @@ private:
         u64 group_id;
     };
     static_assert(sizeof(SizedFriendFilter) == 0x10, "SizedFriendFilter is an invalid size");
+
+    struct FriendsUserSetting {
+        Common::UUID uuid;
+        u32 presence_permission;
+        u32 play_log_permission;
+        u64 friend_request_reception;
+        char friend_code[0x20];
+        u64 friend_code_next_issuable_time;
+        u8 unk_x48[0x7C8];
+    };
+    static_assert(sizeof(FriendsUserSetting) == 0x810, "FriendsUserSetting is an invalid size");
 
     void GetCompletionEvent(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Friend, "called");
@@ -243,6 +254,25 @@ private:
 
     void GetPlayHistoryStatistics(HLERequestContext& ctx) {
         LOG_ERROR(Service_Friend, "(STUBBED) called, check in out");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void LoadUserSetting(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto uuid = rp.PopRaw<Common::UUID>();
+
+        LOG_WARNING(Service_Friend, "(STUBBED) called");
+
+        FriendsUserSetting setting{};
+        setting.uuid = uuid;
+        setting.presence_permission = 2;
+        setting.play_log_permission = 5;
+        setting.friend_request_reception = 1;
+        setting.friend_code_next_issuable_time = 99999999999;
+        strcpy(setting.friend_code, "0000-0000-0000");
+        ctx.WriteBuffer(setting);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
