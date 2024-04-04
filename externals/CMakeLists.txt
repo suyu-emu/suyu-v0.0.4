@@ -314,3 +314,10 @@ endif()
 if (NOT TARGET SimpleIni::SimpleIni)
     add_subdirectory(simpleini)
 endif()
+
+# sse2neon
+if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
+    add_library(sse2neon INTERFACE)
+    target_include_directories(sse2neon INTERFACE sse2neon)
+endif()
+

@@ -26,8 +26,9 @@ StaticService::StaticService(Core::System& system_,
                              std::shared_ptr<TimeManager> time, const char* name)
     : ServiceFramework{system_, name}, m_system{system_}, m_time_m{time->m_time_m},
       m_setup_info{setup_info}, m_time_sm{time->m_time_sm},
-      m_file_timestamp_worker{time->m_file_timestamp_worker}, m_standard_steady_clock_resource{
-                                                                  time->m_steady_clock_resource} {
+      m_file_timestamp_worker{time->m_file_timestamp_worker},
+      m_standard_steady_clock_resource{time->m_steady_clock_resource},
+      m_time_zone_binary{time->m_time_zone_binary} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0,   D<&StaticService::GetStandardUserSystemClock>, "GetStandardUserSystemClock"},
@@ -106,7 +107,7 @@ Result StaticService::GetTimeZoneService(OutInterface<TimeZoneService> out_servi
 
     *out_service = std::make_shared<TimeZoneService>(
         m_system, m_file_timestamp_worker, m_setup_info.can_write_timezone_device_location,
-        m_time_zone);
+        m_time_zone_binary, m_time_zone);
     R_SUCCEED();
 }
 

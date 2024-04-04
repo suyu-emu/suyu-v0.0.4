@@ -55,8 +55,9 @@ std::size_t WriteVectors(std::span<u8> dst, const std::vector<T>& src, std::size
 
 nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, NvCore::Container& core_,
                                          NvCore::ChannelType channel_type_)
-    : nvdevice{system_}, core{core_}, syncpoint_manager{core.GetSyncpointManager()},
-      nvmap{core.GetNvMapFile()}, channel_type{channel_type_} {
+    : nvdevice{system_}, host1x{system_.Host1x()}, core{core_},
+      syncpoint_manager{core.GetSyncpointManager()}, nvmap{core.GetNvMapFile()},
+      channel_type{channel_type_} {
     auto& syncpts_accumulated = core.Host1xDeviceFile().syncpts_accumulated;
     if (syncpts_accumulated.empty()) {
         channel_syncpoint = syncpoint_manager.AllocateSyncpoint(false);
@@ -95,24 +96,24 @@ NvResult nvhost_nvdec_common::Submit(IoctlSubmit& params, std::span<u8> data, De
     offset += SliceVectors(data, syncpt_increments, params.syncpoint_count, offset);
     offset += SliceVectors(data, fence_thresholds, params.fence_count, offset);
 
-    auto& gpu = system.GPU();
     auto* session = core.GetSession(sessions[fd]);
 
-    if (gpu.UseNvdec()) {
-        for (std::size_t i = 0; i < syncpt_increments.size(); i++) {
-            const SyncptIncr& syncpt_incr = syncpt_increments[i];
-            fence_thresholds[i] =
-                syncpoint_manager.IncrementSyncpointMaxExt(syncpt_incr.id, syncpt_incr.increments);
-        }
+    for (std::size_t i = 0; i < syncpt_increments.size(); i++) {
+        const SyncptIncr& syncpt_incr = syncpt_increments[i];
+        fence_thresholds[i] =
+            syncpoint_manager.IncrementSyncpointMaxExt(syncpt_incr.id, syncpt_incr.increments);
     }
+
     for (const auto& cmd_buffer : command_buffers) {
         const auto object = nvmap.GetHandle(cmd_buffer.memory_id);
         ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
-        Tegra::ChCommandHeaderList cmdlist(cmd_buffer.word_count);
-        session->process->GetMemory().ReadBlock(object->address + cmd_buffer.offset, cmdlist.data(),
-                                                cmdlist.size() * sizeof(u32));
-        gpu.PushCommandBuffer(core.Host1xDeviceFile().fd_to_id[fd], cmdlist);
+        Core::Memory::CpuGuestMemory<Tegra::ChCommandHeader,
+                                     Core::Memory::GuestMemoryFlags::SafeRead>
+            cmdlist(session->process->GetMemory(), object->address + cmd_buffer.offset,
+                    cmd_buffer.word_count);
+        host1x.PushEntries(fd, std::move(cmdlist));
     }
+
     // Some games expect command_buffers to be written back
     offset = 0;
     offset += WriteVectors(data, command_buffers, offset);

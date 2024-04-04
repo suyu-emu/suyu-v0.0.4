@@ -11,7 +11,6 @@
 #include "core/file_sys/vfs/vfs.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/service/glue/time/manager.h"
-#include "core/hle/service/glue/time/time_zone_binary.h"
 #include "core/hle/service/psc/time/service_manager.h"
 #include "core/hle/service/psc/time/static.h"
 #include "core/hle/service/psc/time/system_clock.h"
@@ -20,8 +19,8 @@
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::Glue::Time {
-namespace {
-s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
+
+static s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
     constexpr auto is_leap = [](s32 year) -> bool {
         return (((year) % 4) == 0 && (((year) % 100) != 0 || ((year) % 400) == 0));
     };
@@ -50,7 +49,8 @@ s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
     return epoch_s - 62135683200ll;
 }
 
-s64 GetEpochTimeFromInitialYear(std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys) {
+static s64 GetEpochTimeFromInitialYear(
+    std::shared_ptr<Service::Set::ISystemSettingsServer>& set_sys) {
     s32 year{2000};
     set_sys->GetSettingsItemValueImpl(year, "time", "standard_user_clock_initial_year");
 
@@ -65,31 +65,32 @@ s64 GetEpochTimeFromInitialYear(std::shared_ptr<Service::Set::ISystemSettingsSer
     return CalendarTimeToEpoch(calendar);
 }
 
-Service::PSC::Time::LocationName GetTimeZoneString(Service::PSC::Time::LocationName& in_name) {
+static Service::PSC::Time::LocationName GetTimeZoneString(
+    TimeZoneBinary& time_zone_binary, Service::PSC::Time::LocationName& in_name) {
     auto configured_zone = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
 
     Service::PSC::Time::LocationName configured_name{};
     std::memcpy(configured_name.data(), configured_zone.data(),
                 std::min(configured_name.size(), configured_zone.size()));
 
-    if (!IsTimeZoneBinaryValid(configured_name)) {
+    if (!time_zone_binary.IsValid(configured_name)) {
         configured_zone = Common::TimeZone::FindSystemTimeZone();
         configured_name = {};
         std::memcpy(configured_name.data(), configured_zone.data(),
                     std::min(configured_name.size(), configured_zone.size()));
     }
 
-    ASSERT_MSG(IsTimeZoneBinaryValid(configured_name), "Invalid time zone {}!",
+    ASSERT_MSG(time_zone_binary.IsValid(configured_name), "Invalid time zone {}!",
                configured_name.data());
 
     return configured_name;
 }
 
-} // namespace
-
 TimeManager::TimeManager(Core::System& system)
-    : m_steady_clock_resource{system}, m_worker{system, m_steady_clock_resource,
-                                                m_file_timestamp_worker} {
+    : m_steady_clock_resource{system}, m_time_zone_binary{system}, m_worker{
+                                                                       system,
+                                                                       m_steady_clock_resource,
+                                                                       m_file_timestamp_worker} {
     m_time_m =
         system.ServiceManager().GetService<Service::PSC::Time::ServiceManager>("time:m", true);
 
@@ -99,7 +100,7 @@ TimeManager::TimeManager(Core::System& system)
     m_set_sys =
         system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
 
-    res = MountTimeZoneBinary(system);
+    res = m_time_zone_binary.Mount();
     ASSERT(res == ResultSuccess);
 
     m_worker.Initialize(m_time_sm, m_set_sys);
@@ -187,10 +188,6 @@ TimeManager::TimeManager(Core::System& system)
     }
 }
 
-TimeManager::~TimeManager() {
-    ResetTimeZoneBinary();
-}
-
 Result TimeManager::SetupStandardSteadyClockCore() {
     Common::UUID external_clock_source_id{};
     auto res = m_set_sys->GetExternalSteadyClockSourceId(&external_clock_source_id);
@@ -236,7 +233,7 @@ Result TimeManager::SetupTimeZoneServiceCore() {
     auto res = m_set_sys->GetDeviceTimeZoneLocationName(&name);
     ASSERT(res == ResultSuccess);
 
-    auto configured_zone = GetTimeZoneString(name);
+    auto configured_zone = GetTimeZoneString(m_time_zone_binary, name);
 
     if (configured_zone != name) {
         m_set_sys->SetDeviceTimeZoneLocationName(configured_zone);
@@ -254,13 +251,13 @@ Result TimeManager::SetupTimeZoneServiceCore() {
     res = m_set_sys->GetDeviceTimeZoneLocationUpdatedTime(&time_point);
     ASSERT(res == ResultSuccess);
 
-    auto location_count = GetTimeZoneCount();
+    auto location_count = m_time_zone_binary.GetTimeZoneCount();
     Service::PSC::Time::RuleVersion rule_version{};
-    GetTimeZoneVersion(rule_version);
+    m_time_zone_binary.GetTimeZoneVersion(rule_version);
 
     std::span<const u8> rule_buffer{};
     size_t rule_size{};
-    res = GetTimeZoneRule(rule_buffer, rule_size, name);
+    res = m_time_zone_binary.GetTimeZoneRule(rule_buffer, rule_size, name);
     ASSERT(res == ResultSuccess);
 
     res = m_time_m->SetupTimeZoneServiceCore(name, rule_version, location_count, time_point,

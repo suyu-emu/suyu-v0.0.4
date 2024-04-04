@@ -16,7 +16,7 @@ namespace FileSys {
 class OffsetVfsFile : public VfsFile {
 public:
     OffsetVfsFile(VirtualFile file, std::size_t size, std::size_t offset = 0,
-                  std::string new_name = "", VirtualDir new_parent = nullptr);
+                  std::string new_name = "");
     ~OffsetVfsFile() override;
 
     std::string GetName() const override;
@@ -44,7 +44,6 @@ private:
     std::size_t offset;
     std::size_t size;
     std::string name;
-    VirtualDir parent;
 };
 
 } // namespace FileSys

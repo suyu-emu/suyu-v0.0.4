@@ -36,22 +36,23 @@ std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
 } // namespace
 
 FileType IdentifyFile(FileSys::VirtualFile file) {
-    if (const auto romdir_type = IdentifyFileLoader<AppLoader_DeconstructedRomDirectory>(file)) {
-        return *romdir_type;
-    } else if (const auto nso_type = IdentifyFileLoader<AppLoader_NSO>(file)) {
-        return *nso_type;
+    if (const auto nsp_type = IdentifyFileLoader<AppLoader_NSP>(file)) {
+        return *nsp_type;
+    } else if (const auto xci_type = IdentifyFileLoader<AppLoader_XCI>(file)) {
+        return *xci_type;
     } else if (const auto nro_type = IdentifyFileLoader<AppLoader_NRO>(file)) {
         return *nro_type;
     } else if (const auto nca_type = IdentifyFileLoader<AppLoader_NCA>(file)) {
         return *nca_type;
-    } else if (const auto xci_type = IdentifyFileLoader<AppLoader_XCI>(file)) {
-        return *xci_type;
     } else if (const auto nax_type = IdentifyFileLoader<AppLoader_NAX>(file)) {
         return *nax_type;
-    } else if (const auto nsp_type = IdentifyFileLoader<AppLoader_NSP>(file)) {
-        return *nsp_type;
     } else if (const auto kip_type = IdentifyFileLoader<AppLoader_KIP>(file)) {
         return *kip_type;
+    } else if (const auto nso_type = IdentifyFileLoader<AppLoader_NSO>(file)) {
+        return *nso_type;
+    } else if (const auto romdir_type =
+                   IdentifyFileLoader<AppLoader_DeconstructedRomDirectory>(file)) {
+        return *romdir_type;
     } else {
         return FileType::Unknown;
     }

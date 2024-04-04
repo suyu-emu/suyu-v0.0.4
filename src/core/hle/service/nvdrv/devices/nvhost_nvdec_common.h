@@ -119,6 +119,7 @@ protected:
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
+    Tegra::Host1x::Host1x& host1x;
     u32 channel_syncpoint;
     s32_le nvmap_fd{};
     u32_le submit_timeout{};

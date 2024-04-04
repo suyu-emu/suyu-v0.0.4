@@ -34,6 +34,9 @@ public:
     void StartThread();
 
 private:
+    template <typename T>
+    T GetSettingsItemValue(const std::string& category, const std::string& name);
+
     void ThreadFunc(std::stop_token stop_token);
 
     Core::System& m_system;
@@ -59,6 +62,11 @@ private:
     std::shared_ptr<Core::Timing::EventType> m_timer_file_system_timing_event;
     AlarmWorker m_alarm_worker;
     PmStateChangeHandler m_pm_state_change_handler;
+
+    bool m_ig_report_network_clock_context_set{};
+    Service::PSC::Time::SystemClockContext m_report_network_clock_context{};
+    bool m_ig_report_ephemeral_clock_context_set{};
+    Service::PSC::Time::SystemClockContext m_report_ephemeral_clock_context{};
 };
 
 } // namespace Service::Glue::Time

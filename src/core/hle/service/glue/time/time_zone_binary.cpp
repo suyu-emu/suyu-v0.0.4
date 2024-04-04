@@ -12,18 +12,58 @@
 #include "core/hle/service/glue/time/time_zone_binary.h"
 
 namespace Service::Glue::Time {
-namespace {
 constexpr u64 TimeZoneBinaryId = 0x10000000000080E;
 
-static FileSys::VirtualDir g_time_zone_binary_romfs{};
-static Result g_time_zone_binary_mount_result{ResultUnknown};
-static std::vector<u8> g_time_zone_scratch_space(0x2800, 0);
+void TimeZoneBinary::Reset() {
+    time_zone_binary_romfs = {};
+    time_zone_binary_mount_result = ResultUnknown;
+    time_zone_scratch_space.clear();
+    time_zone_scratch_space.resize(0x2800, 0);
+}
 
-Result TimeZoneReadBinary(size_t& out_read_size, std::span<u8> out_buffer, size_t out_buffer_size,
-                          std::string_view path) {
-    R_UNLESS(g_time_zone_binary_mount_result == ResultSuccess, g_time_zone_binary_mount_result);
+Result TimeZoneBinary::Mount() {
+    Reset();
 
-    auto vfs_file{g_time_zone_binary_romfs->GetFileRelative(path)};
+    auto& fsc{system.GetFileSystemController()};
+    std::unique_ptr<FileSys::NCA> nca{};
+
+    auto* bis_system = fsc.GetSystemNANDContents();
+
+    R_UNLESS(bis_system, ResultUnknown);
+
+    nca = bis_system->GetEntry(TimeZoneBinaryId, FileSys::ContentRecordType::Data);
+
+    if (nca) {
+        time_zone_binary_romfs = FileSys::ExtractRomFS(nca->GetRomFS());
+    }
+
+    if (time_zone_binary_romfs) {
+        // Validate that the romfs is readable, using invalid firmware keys can cause this to get
+        // set but the files to be garbage. In that case, we want to hit the next path and
+        // synthesise them instead.
+        time_zone_binary_mount_result = ResultSuccess;
+        Service::PSC::Time::LocationName name{"Etc/GMT"};
+        if (!IsValid(name)) {
+            Reset();
+        }
+    }
+
+    if (!time_zone_binary_romfs) {
+        time_zone_binary_romfs = FileSys::ExtractRomFS(
+            FileSys::SystemArchive::SynthesizeSystemArchive(TimeZoneBinaryId));
+    }
+
+    R_UNLESS(time_zone_binary_romfs, ResultUnknown);
+
+    time_zone_binary_mount_result = ResultSuccess;
+    R_SUCCEED();
+}
+
+Result TimeZoneBinary::Read(size_t& out_read_size, std::span<u8> out_buffer, size_t out_buffer_size,
+                            std::string_view path) {
+    R_UNLESS(time_zone_binary_mount_result == ResultSuccess, time_zone_binary_mount_result);
+
+    auto vfs_file{time_zone_binary_romfs->GetFileRelative(path)};
     R_UNLESS(vfs_file, ResultUnknown);
 
     auto file_size{vfs_file->GetSize()};
@@ -36,82 +76,37 @@ Result TimeZoneReadBinary(size_t& out_read_size, std::span<u8> out_buffer, size_
 
     R_SUCCEED();
 }
-} // namespace
 
-void ResetTimeZoneBinary() {
-    g_time_zone_binary_romfs = {};
-    g_time_zone_binary_mount_result = ResultUnknown;
-    g_time_zone_scratch_space.clear();
-    g_time_zone_scratch_space.resize(0x2800, 0);
-}
-
-Result MountTimeZoneBinary(Core::System& system) {
-    ResetTimeZoneBinary();
-
-    auto& fsc{system.GetFileSystemController()};
-    std::unique_ptr<FileSys::NCA> nca{};
-
-    auto* bis_system = fsc.GetSystemNANDContents();
-
-    R_UNLESS(bis_system, ResultUnknown);
-
-    nca = bis_system->GetEntry(TimeZoneBinaryId, FileSys::ContentRecordType::Data);
-
-    if (nca) {
-        g_time_zone_binary_romfs = FileSys::ExtractRomFS(nca->GetRomFS());
-    }
-
-    if (g_time_zone_binary_romfs) {
-        // Validate that the romfs is readable, using invalid firmware keys can cause this to get
-        // set but the files to be garbage. In that case, we want to hit the next path and
-        // synthesise them instead.
-        g_time_zone_binary_mount_result = ResultSuccess;
-        Service::PSC::Time::LocationName name{"Etc/GMT"};
-        if (!IsTimeZoneBinaryValid(name)) {
-            ResetTimeZoneBinary();
-        }
-    }
-
-    if (!g_time_zone_binary_romfs) {
-        g_time_zone_binary_romfs = FileSys::ExtractRomFS(
-            FileSys::SystemArchive::SynthesizeSystemArchive(TimeZoneBinaryId));
-    }
-
-    R_UNLESS(g_time_zone_binary_romfs, ResultUnknown);
-
-    g_time_zone_binary_mount_result = ResultSuccess;
-    R_SUCCEED();
-}
-
-void GetTimeZoneBinaryListPath(std::string& out_path) {
-    if (g_time_zone_binary_mount_result != ResultSuccess) {
+void TimeZoneBinary::GetListPath(std::string& out_path) {
+    if (time_zone_binary_mount_result != ResultSuccess) {
         return;
     }
     // out_path = fmt::format("{}:/binaryList.txt", "TimeZoneBinary");
     out_path = "/binaryList.txt";
 }
 
-void GetTimeZoneBinaryVersionPath(std::string& out_path) {
-    if (g_time_zone_binary_mount_result != ResultSuccess) {
+void TimeZoneBinary::GetVersionPath(std::string& out_path) {
+    if (time_zone_binary_mount_result != ResultSuccess) {
         return;
     }
     // out_path = fmt::format("{}:/version.txt", "TimeZoneBinary");
     out_path = "/version.txt";
 }
 
-void GetTimeZoneZonePath(std::string& out_path, const Service::PSC::Time::LocationName& name) {
-    if (g_time_zone_binary_mount_result != ResultSuccess) {
+void TimeZoneBinary::GetTimeZonePath(std::string& out_path,
+                                     const Service::PSC::Time::LocationName& name) {
+    if (time_zone_binary_mount_result != ResultSuccess) {
         return;
     }
     // out_path = fmt::format("{}:/zoneinfo/{}", "TimeZoneBinary", name);
     out_path = fmt::format("/zoneinfo/{}", name.data());
 }
 
-bool IsTimeZoneBinaryValid(const Service::PSC::Time::LocationName& name) {
+bool TimeZoneBinary::IsValid(const Service::PSC::Time::LocationName& name) {
     std::string path{};
-    GetTimeZoneZonePath(path, name);
+    GetTimeZonePath(path, name);
 
-    auto vfs_file{g_time_zone_binary_romfs->GetFileRelative(path)};
+    auto vfs_file{time_zone_binary_romfs->GetFileRelative(path)};
     if (!vfs_file) {
         LOG_INFO(Service_Time, "Could not find timezone file {}", path);
         return false;
@@ -119,19 +114,19 @@ bool IsTimeZoneBinaryValid(const Service::PSC::Time::LocationName& name) {
     return vfs_file->GetSize() != 0;
 }
 
-u32 GetTimeZoneCount() {
+u32 TimeZoneBinary::GetTimeZoneCount() {
     std::string path{};
-    GetTimeZoneBinaryListPath(path);
+    GetListPath(path);
 
     size_t bytes_read{};
-    if (TimeZoneReadBinary(bytes_read, g_time_zone_scratch_space, 0x2800, path) != ResultSuccess) {
+    if (Read(bytes_read, time_zone_scratch_space, 0x2800, path) != ResultSuccess) {
         return 0;
     }
     if (bytes_read == 0) {
         return 0;
     }
 
-    auto chars = std::span(reinterpret_cast<char*>(g_time_zone_scratch_space.data()), bytes_read);
+    auto chars = std::span(reinterpret_cast<char*>(time_zone_scratch_space.data()), bytes_read);
     u32 count{};
     for (auto chr : chars) {
         if (chr == '\n') {
@@ -141,50 +136,47 @@ u32 GetTimeZoneCount() {
     return count;
 }
 
-Result GetTimeZoneVersion(Service::PSC::Time::RuleVersion& out_rule_version) {
+Result TimeZoneBinary::GetTimeZoneVersion(Service::PSC::Time::RuleVersion& out_rule_version) {
     std::string path{};
-    GetTimeZoneBinaryVersionPath(path);
+    GetVersionPath(path);
 
     auto rule_version_buffer{std::span(reinterpret_cast<u8*>(&out_rule_version),
                                        sizeof(Service::PSC::Time::RuleVersion))};
     size_t bytes_read{};
-    R_TRY(TimeZoneReadBinary(bytes_read, rule_version_buffer, rule_version_buffer.size_bytes(),
-                             path));
+    R_TRY(Read(bytes_read, rule_version_buffer, rule_version_buffer.size_bytes(), path));
 
     rule_version_buffer[bytes_read] = 0;
     R_SUCCEED();
 }
 
-Result GetTimeZoneRule(std::span<const u8>& out_rule, size_t& out_rule_size,
-                       const Service::PSC::Time::LocationName& name) {
+Result TimeZoneBinary::GetTimeZoneRule(std::span<const u8>& out_rule, size_t& out_rule_size,
+                                       const Service::PSC::Time::LocationName& name) {
     std::string path{};
-    GetTimeZoneZonePath(path, name);
+    GetTimeZonePath(path, name);
 
     size_t bytes_read{};
-    R_TRY(TimeZoneReadBinary(bytes_read, g_time_zone_scratch_space,
-                             g_time_zone_scratch_space.size(), path));
+    R_TRY(Read(bytes_read, time_zone_scratch_space, time_zone_scratch_space.size(), path));
 
-    out_rule = std::span(g_time_zone_scratch_space.data(), bytes_read);
+    out_rule = std::span(time_zone_scratch_space.data(), bytes_read);
     out_rule_size = bytes_read;
     R_SUCCEED();
 }
 
-Result GetTimeZoneLocationList(u32& out_count,
-                               std::span<Service::PSC::Time::LocationName> out_names,
-                               size_t max_names, u32 index) {
+Result TimeZoneBinary::GetTimeZoneLocationList(
+    u32& out_count, std::span<Service::PSC::Time::LocationName> out_names, size_t max_names,
+    u32 index) {
     std::string path{};
-    GetTimeZoneBinaryListPath(path);
+    GetListPath(path);
 
     size_t bytes_read{};
-    R_TRY(TimeZoneReadBinary(bytes_read, g_time_zone_scratch_space,
-                             g_time_zone_scratch_space.size(), path));
+    R_TRY(Read(bytes_read, time_zone_scratch_space, time_zone_scratch_space.size(), path));
 
     out_count = 0;
     R_SUCCEED_IF(bytes_read == 0);
 
     Service::PSC::Time::LocationName current_name{};
     size_t current_name_len{};
-    std::span<const u8> chars{g_time_zone_scratch_space};
+    std::span<const u8> chars{time_zone_scratch_space};
     u32 name_count{};
 
     for (auto chr : chars) {
