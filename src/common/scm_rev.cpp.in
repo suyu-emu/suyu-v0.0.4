@@ -66,7 +66,7 @@ public:
             const std::string original = *string;
             string->clear();
             for (const auto c : original) {
-                string->append(std::format("{:x}", unsigned(c)));
+                string->append(fmt::format("{:x}", unsigned(c)));
             }
             string->pop_back();
         }
