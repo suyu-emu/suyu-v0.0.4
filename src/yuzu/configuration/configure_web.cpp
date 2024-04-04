@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2017 Citra Emulator Project
+// SPDX-FileCopyrightText: 2017 Citra Emulator Project and 2024 torzu project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QIcon>
