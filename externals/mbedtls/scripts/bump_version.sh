@@ -3,6 +3,45 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
+# This file is provided under the Apache License 2.0, or the
+# GNU General Public License v2.0 or later.
+#
+# **********
+# Apache License 2.0:
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# **********
+#
+# **********
+# GNU General Public License v2.0 or later:
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# **********
+#
 # Purpose
 #
 # Sets the version numbers in the source code to those given.
@@ -11,8 +50,6 @@
 #                           [ --so-x509 <version> ] [ --so-tls <version> ]
 #                           [ -v | --verbose ] [ -h | --help ]
 #
-
-set -e
 
 VERSION=""
 SOVERSION=""
@@ -69,10 +106,6 @@ then
   exit 1
 fi
 
-[ $VERBOSE ] && echo "Bumping VERSION in CMakeLists.txt"
-sed -e "s/ VERSION [0-9.]\{1,\}/ VERSION $VERSION/g" < CMakeLists.txt > tmp
-mv tmp CMakeLists.txt
-
 [ $VERBOSE ] && echo "Bumping VERSION in library/CMakeLists.txt"
 sed -e "s/ VERSION [0-9.]\{1,\}/ VERSION $VERSION/g" < library/CMakeLists.txt > tmp
 mv tmp library/CMakeLists.txt
@@ -84,7 +117,7 @@ then
   mv tmp library/CMakeLists.txt
 
   [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedcrypto in library/Makefile"
-  sed -e "s/SOEXT_CRYPTO?=so.[0-9]\{1,\}/SOEXT_CRYPTO?=so.$SO_CRYPTO/g" < library/Makefile > tmp
+  sed -e "s/SOEXT_CRYPTO=so.[0-9]\{1,\}/SOEXT_CRYPTO=so.$SO_CRYPTO/g" < library/Makefile > tmp
   mv tmp library/Makefile
 fi
 
@@ -95,7 +128,7 @@ then
   mv tmp library/CMakeLists.txt
 
   [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedx509 in library/Makefile"
-  sed -e "s/SOEXT_X509?=so.[0-9]\{1,\}/SOEXT_X509?=so.$SO_X509/g" < library/Makefile > tmp
+  sed -e "s/SOEXT_X509=so.[0-9]\{1,\}/SOEXT_X509=so.$SO_X509/g" < library/Makefile > tmp
   mv tmp library/Makefile
 fi
 
@@ -106,22 +139,22 @@ then
   mv tmp library/CMakeLists.txt
 
   [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedtls in library/Makefile"
-  sed -e "s/SOEXT_TLS?=so.[0-9]\{1,\}/SOEXT_TLS?=so.$SO_TLS/g" < library/Makefile > tmp
+  sed -e "s/SOEXT_TLS=so.[0-9]\{1,\}/SOEXT_TLS=so.$SO_TLS/g" < library/Makefile > tmp
   mv tmp library/Makefile
 fi
 
-[ $VERBOSE ] && echo "Bumping VERSION in include/mbedtls/build_info.h"
+[ $VERBOSE ] && echo "Bumping VERSION in include/mbedtls/version.h"
 read MAJOR MINOR PATCH <<<$(IFS="."; echo $VERSION)
 VERSION_NR="$( printf "0x%02X%02X%02X00" $MAJOR $MINOR $PATCH )"
-cat include/mbedtls/build_info.h |                                    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_MAJOR .\{1,\}/\1_MAJOR  $MAJOR/" |    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_MINOR .\{1,\}/\1_MINOR  $MINOR/" |    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_PATCH .\{1,\}/\1_PATCH  $PATCH/" |    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_NUMBER .\{1,\}/\1_NUMBER         $VERSION_NR/" |    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING .\{1,\}/\1_STRING         \"$VERSION\"/" |    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING_FULL .\{1,\}/\1_STRING_FULL    \"Mbed TLS $VERSION\"/" \
+cat include/mbedtls/version.h |                                    \
+    sed -e "s/_VERSION_MAJOR .\{1,\}/_VERSION_MAJOR  $MAJOR/" |    \
+    sed -e "s/_VERSION_MINOR .\{1,\}/_VERSION_MINOR  $MINOR/" |    \
+    sed -e "s/_VERSION_PATCH .\{1,\}/_VERSION_PATCH  $PATCH/" |    \
+    sed -e "s/_VERSION_NUMBER .\{1,\}/_VERSION_NUMBER         $VERSION_NR/" |    \
+    sed -e "s/_VERSION_STRING .\{1,\}/_VERSION_STRING         \"$VERSION\"/" |    \
+    sed -e "s/_VERSION_STRING_FULL .\{1,\}/_VERSION_STRING_FULL    \"mbed TLS $VERSION\"/" \
     > tmp
-mv tmp include/mbedtls/build_info.h
+mv tmp include/mbedtls/version.h
 
 [ $VERBOSE ] && echo "Bumping version in tests/suites/test_suite_version.data"
 sed -e "s/version:\".\{1,\}/version:\"$VERSION\"/g" < tests/suites/test_suite_version.data > tmp
@@ -130,14 +163,14 @@ mv tmp tests/suites/test_suite_version.data
 [ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/mbedtls.doxyfile and doxygen/input/doc_mainpage.h"
 for i in doxygen/mbedtls.doxyfile doxygen/input/doc_mainpage.h;
 do
-  sed -e "s/\\([Mm]bed TLS v\\)[0-9][0-9.]*/\\1$VERSION/g" < $i > tmp
+  sed -e "s/mbed TLS v[0-9\.]\{1,\}/mbed TLS v$VERSION/g" < $i > tmp
   mv tmp $i
 done
 
 [ $VERBOSE ] && echo "Re-generating library/error.c"
 scripts/generate_errors.pl
 
-[ $VERBOSE ] && echo "Re-generating programs/test/query_config.c"
+[ $VERBOSE ] && echo "Re-generating programs/ssl/query_config.c"
 scripts/generate_query_config.pl
 
 [ $VERBOSE ] && echo "Re-generating library/version_features.c"

@@ -21,11 +21,8 @@ We generally don't include changelog entries for:
 * Performance improvements, unless they are particularly significant.
 * Changes to parts of the code base that users don't interact with directly,
   such as test code and test data.
-* Fixes for compiler warnings. Releases typically contain a number of fixes
-  of this kind, so we will only mention them in the Changelog if they are
-  particularly significant.
 
-Until Mbed TLS 2.24.0, we required changelog entries in more cases.
+Until Mbed TLS 2.16.8, we required changelog entries in more cases.
 Looking at older changelog entries is good practice for how to write a
 changelog entry, but not for deciding whether to write one.
 

@@ -1,27 +1,36 @@
+Notes:
+* Pull requests cannot be accepted until the PR follows the [contributing guidelines](../CONTRIBUTING.md). In particular, each commit must have at least one `Signed-off-by:` line from the committer to certify that the contribution is made under the terms of the [Developer Certificate of Origin](../dco.txt).
+* This is just a template, so feel free to use/remove the unnecessary things
 ## Description
-
-Please write a few sentences describing the overall goals of the pull request's commits.
-
+A few sentences describing the overall goals of the pull request's commits.
 
 
-## PR checklist
+## Status
+**READY/IN DEVELOPMENT/HOLD**
 
-Please tick as appropriate and edit the reasons (e.g.: "backport: not needed because this is a new feature")
+## Requires Backporting
+When there is a bug fix, it should be backported to all maintained and supported branches.
+Changes do not have to be backported if:
+- This PR is a new feature\enhancement
+- This PR contains changes in the API. If this is true, and there is a need for the fix to be backported, the fix should be handled differently in the legacy branch
 
-- [ ] **changelog** provided, or not required
-- [ ] **backport** done, or not required
-- [ ] **tests** provided, or not required
+Yes | NO  
+Which branch?
+
+## Migrations
+If there is any API change, what's the incentive and logic for it.
+
+YES | NO
+
+## Additional comments
+Any additional information that could be of interest
+
+## Todos
+- [ ] Tests
+- [ ] Documentation
+- [ ] Changelog updated
+- [ ] Backported
 
 
-
-## Notes for the submitter
-
-Please refer to the [contributing guidelines](https://github.com/Mbed-TLS/mbedtls/blob/development/CONTRIBUTING.md), especially the
-checklist for PR contributors.
-
-Help make review efficient:
-* Multiple simple commits
-  - please structure your PR into a series of small commits, each of which does one thing
-* Avoid force-push
-  - please do not force-push to update your PR - just add new commit(s)
-* See our [Guidelines for Contributors](https://mbed-tls.readthedocs.io/en/latest/reviews/review-for-contributors/) for more details about the review process.
+## Steps to test or reproduce
+Outline the steps to test or reproduce the PR here.

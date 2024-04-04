@@ -2,6 +2,45 @@
 
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+#
+# This file is provided under the Apache License 2.0, or the
+# GNU General Public License v2.0 or later.
+#
+# **********
+# Apache License 2.0:
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# **********
+#
+# **********
+# GNU General Public License v2.0 or later:
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# **********
 
 """
 This script checks the current state of the source code for minor issues,
@@ -10,21 +49,13 @@ trailing whitespace, and presence of UTF-8 BOM.
 Note: requires python 3, must be run from Mbed TLS root.
 """
 
-import argparse
-import codecs
-import inspect
-import logging
 import os
+import argparse
+import logging
+import codecs
 import re
 import subprocess
 import sys
-try:
-    from typing import FrozenSet, Optional, Pattern # pylint: disable=unused-import
-except ImportError:
-    pass
-
-import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
 
 
 class FileIssueTracker:
@@ -44,8 +75,8 @@ class FileIssueTracker:
     ``heading``: human-readable description of the issue
     """
 
-    suffix_exemptions = frozenset() #type: FrozenSet[str]
-    path_exemptions = None #type: Optional[Pattern[str]]
+    suffix_exemptions = frozenset()
+    path_exemptions = None
     # heading must be defined in derived classes.
     # pylint: disable=no-member
 
@@ -105,14 +136,12 @@ class FileIssueTracker:
 
 BINARY_FILE_PATH_RE_LIST = [
     r'docs/.*\.pdf\Z',
-    r'docs/.*\.png\Z',
     r'programs/fuzz/corpuses/[^.]+\Z',
     r'tests/data_files/[^.]+\Z',
     r'tests/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
     r'tests/data_files/.*\.req\.[^/]+\Z',
     r'tests/data_files/.*malformed[^/]+\Z',
     r'tests/data_files/format_pkcs12\.fmt\Z',
-    r'tests/data_files/.*\.bin\Z',
 ]
 BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
 
@@ -126,7 +155,7 @@ class LineIssueTracker(FileIssueTracker):
     # Exclude binary files.
     path_exemptions = BINARY_FILE_PATH_RE
 
-    def issue_with_line(self, line, filepath, line_number):
+    def issue_with_line(self, line, filepath):
         """Check the specified line for the issue that this class is for.
 
         Subclasses must implement this method.
@@ -134,7 +163,7 @@ class LineIssueTracker(FileIssueTracker):
         raise NotImplementedError
 
     def check_file_line(self, filepath, line, line_number):
-        if self.issue_with_line(line, filepath, line_number):
+        if self.issue_with_line(line, filepath):
             self.record_issue(filepath, line_number)
 
     def check_file_for_issue(self, filepath):
@@ -152,50 +181,17 @@ def is_windows_file(filepath):
     return ext in ('.bat', '.dsp', '.dsw', '.sln', '.vcxproj')
 
 
-class ShebangIssueTracker(FileIssueTracker):
-    """Track files with a bad, missing or extraneous shebang line.
+class PermissionIssueTracker(FileIssueTracker):
+    """Track files with bad permissions.
 
-    Executable scripts must start with a valid shebang (#!) line.
-    """
+    Files that are not executable scripts must not be executable."""
 
-    heading = "Invalid shebang line:"
-
-    # Allow either /bin/sh, /bin/bash, or /usr/bin/env.
-    # Allow at most one argument (this is a Linux limitation).
-    # For sh and bash, the argument if present must be options.
-    # For env, the argument must be the base name of the interpreter.
-    _shebang_re = re.compile(rb'^#! ?(?:/bin/(bash|sh)(?: -[^\n ]*)?'
-                             rb'|/usr/bin/env ([^\n /]+))$')
-    _extensions = {
-        b'bash': 'sh',
-        b'perl': 'pl',
-        b'python3': 'py',
-        b'sh': 'sh',
-    }
-
-    def is_valid_shebang(self, first_line, filepath):
-        m = re.match(self._shebang_re, first_line)
-        if not m:
-            return False
-        interpreter = m.group(1) or m.group(2)
-        if interpreter not in self._extensions:
-            return False
-        if not filepath.endswith('.' + self._extensions[interpreter]):
-            return False
-        return True
+    heading = "Incorrect permissions:"
 
     def check_file_for_issue(self, filepath):
         is_executable = os.access(filepath, os.X_OK)
-        with open(filepath, "rb") as f:
-            first_line = f.readline()
-        if first_line.startswith(b'#!'):
-            if not is_executable:
-                # Shebang on a non-executable file
-                self.files_with_issues[filepath] = None
-            elif not self.is_valid_shebang(first_line, filepath):
-                self.files_with_issues[filepath] = [1]
-        elif is_executable:
-            # Executable without a shebang
+        should_be_executable = filepath.endswith((".sh", ".pl", ".py"))
+        if is_executable != should_be_executable:
             self.files_with_issues[filepath] = None
 
 
@@ -235,46 +231,6 @@ class Utf8BomIssueTracker(FileIssueTracker):
                 self.files_with_issues[filepath] = None
 
 
-class UnicodeIssueTracker(LineIssueTracker):
-    """Track lines with invalid characters or invalid text encoding."""
-
-    heading = "Invalid UTF-8 or forbidden character:"
-
-    # Only allow valid UTF-8, and only other explicitly allowed characters.
-    # We deliberately exclude all characters that aren't a simple non-blank,
-    # non-zero-width glyph, apart from a very small set (tab, ordinary space,
-    # line breaks, "basic" no-break space and soft hyphen). In particular,
-    # non-ASCII control characters, combinig characters, and Unicode state
-    # changes (e.g. right-to-left text) are forbidden.
-    # Note that we do allow some characters with a risk of visual confusion,
-    # for example '-' (U+002D HYPHEN-MINUS) vs '­' (U+00AD SOFT HYPHEN) vs
-    # '‐' (U+2010 HYPHEN), or 'A' (U+0041 LATIN CAPITAL LETTER A) vs
-    # 'Α' (U+0391 GREEK CAPITAL LETTER ALPHA).
-    GOOD_CHARACTERS = ''.join([
-        '\t\n\r -~', # ASCII (tabs and line endings are checked separately)
-        '\u00A0-\u00FF', # Latin-1 Supplement (for NO-BREAK SPACE and punctuation)
-        '\u2010-\u2027\u2030-\u205E', # General Punctuation (printable)
-        '\u2070\u2071\u2074-\u208E\u2090-\u209C', # Superscripts and Subscripts
-        '\u2190-\u21FF', # Arrows
-        '\u2200-\u22FF', # Mathematical Symbols
-        '\u2500-\u257F' # Box Drawings characters used in markdown trees
-    ])
-    # Allow any of the characters and ranges above, and anything classified
-    # as a word constituent.
-    GOOD_CHARACTERS_RE = re.compile(r'[\w{}]+\Z'.format(GOOD_CHARACTERS))
-
-    def issue_with_line(self, line, _filepath, line_number):
-        try:
-            text = line.decode('utf-8')
-        except UnicodeDecodeError:
-            return True
-        if line_number == 1 and text.startswith('\uFEFF'):
-            # Strip BOM (U+FEFF ZERO WIDTH NO-BREAK SPACE) at the beginning.
-            # Which files are allowed to have a BOM is handled in
-            # Utf8BomIssueTracker.
-            text = text[1:]
-        return not self.GOOD_CHARACTERS_RE.match(text)
-
 class UnixLineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
@@ -285,7 +241,7 @@ class UnixLineEndingIssueTracker(LineIssueTracker):
             return False
         return not is_windows_file(filepath)
 
-    def issue_with_line(self, line, _filepath, _line_number):
+    def issue_with_line(self, line, _filepath):
         return b"\r" in line
 
 
@@ -299,7 +255,7 @@ class WindowsLineEndingIssueTracker(LineIssueTracker):
             return False
         return is_windows_file(filepath)
 
-    def issue_with_line(self, line, _filepath, _line_number):
+    def issue_with_line(self, line, _filepath):
         return not line.endswith(b"\r\n") or b"\r" in line[:-2]
 
 
@@ -309,7 +265,7 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
     heading = "Trailing whitespace:"
     suffix_exemptions = frozenset([".dsp", ".md"])
 
-    def issue_with_line(self, line, _filepath, _line_number):
+    def issue_with_line(self, line, _filepath):
         return line.rstrip(b"\r\n") != line.rstrip()
 
 
@@ -318,15 +274,13 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     suffix_exemptions = frozenset([
-        ".make",
         ".pem", # some openssl dumps have tabs
         ".sln",
         "/Makefile",
-        "/Makefile.inc",
         "/generate_visualc_files.pl",
     ])
 
-    def issue_with_line(self, line, _filepath, _line_number):
+    def issue_with_line(self, line, _filepath):
         return b"\t" in line
 
 
@@ -336,7 +290,7 @@ class MergeArtifactIssueTracker(LineIssueTracker):
 
     heading = "Merge artifact:"
 
-    def issue_with_line(self, line, _filepath, _line_number):
+    def issue_with_line(self, line, _filepath):
         # Detect leftover git conflict markers.
         if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
             return True
@@ -348,101 +302,6 @@ class MergeArtifactIssueTracker(LineIssueTracker):
         return False
 
 
-def this_location():
-    frame = inspect.currentframe()
-    assert frame is not None
-    info = inspect.getframeinfo(frame)
-    return os.path.basename(info.filename), info.lineno
-THIS_FILE_BASE_NAME, LINE_NUMBER_BEFORE_LICENSE_ISSUE_TRACKER = this_location()
-
-class LicenseIssueTracker(LineIssueTracker):
-    """Check copyright statements and license indications.
-
-    This class only checks that statements are correct if present. It does
-    not enforce the presence of statements in each file.
-    """
-
-    heading = "License issue:"
-
-    LICENSE_EXEMPTION_RE_LIST = [
-        # Third-party code, other than whitelisted third-party modules,
-        # may be under a different license.
-        r'3rdparty/(?!(p256-m)/.*)',
-        # Documentation explaining the license may have accidental
-        # false positives.
-        r'(ChangeLog|LICENSE|[-0-9A-Z_a-z]+\.md)\Z',
-        # Files imported from TF-M, and not used except in test builds,
-        # may be under a different license.
-        r'configs/ext/crypto_config_profile_medium\.h\Z',
-        r'configs/ext/tfm_mbedcrypto_config_profile_medium\.h\Z',
-        r'configs/ext/README\.md\Z',
-        # Third-party file.
-        r'dco\.txt\Z',
-    ]
-    path_exemptions = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST +
-                                          LICENSE_EXEMPTION_RE_LIST))
-
-    COPYRIGHT_HOLDER = rb'The Mbed TLS Contributors'
-    # Catch "Copyright foo", "Copyright (C) foo", "Copyright © foo", etc.
-    COPYRIGHT_RE = re.compile(rb'.*\bcopyright\s+((?:\w|\s|[()]|[^ -~])*\w)', re.I)
-
-    SPDX_HEADER_KEY = b'SPDX-License-Identifier'
-    LICENSE_IDENTIFIER = b'Apache-2.0 OR GPL-2.0-or-later'
-    SPDX_RE = re.compile(br'.*?(' +
-                         re.escape(SPDX_HEADER_KEY) +
-                         br')(:\s*(.*?)\W*\Z|.*)', re.I)
-
-    LICENSE_MENTION_RE = re.compile(rb'.*(?:' + rb'|'.join([
-        rb'Apache License',
-        rb'General Public License',
-    ]) + rb')', re.I)
-
-    def __init__(self):
-        super().__init__()
-        # Record what problem was caused. We can't easily report it due to
-        # the structure of the script. To be fixed after
-        # https://github.com/Mbed-TLS/mbedtls/pull/2506
-        self.problem = None
-
-    def issue_with_line(self, line, filepath, line_number):
-        #pylint: disable=too-many-return-statements
-
-        # Use endswith() rather than the more correct os.path.basename()
-        # because experimentally, it makes a significant difference to
-        # the running time.
-        if filepath.endswith(THIS_FILE_BASE_NAME) and \
-           line_number > LINE_NUMBER_BEFORE_LICENSE_ISSUE_TRACKER:
-            # Avoid false positives from the code in this class.
-            # Also skip the rest of this file, which is highly unlikely to
-            # contain any problematic statements since we put those near the
-            # top of files.
-            return False
-
-        m = self.COPYRIGHT_RE.match(line)
-        if m and m.group(1) != self.COPYRIGHT_HOLDER:
-            self.problem = 'Invalid copyright line'
-            return True
-
-        m = self.SPDX_RE.match(line)
-        if m:
-            if m.group(1) != self.SPDX_HEADER_KEY:
-                self.problem = 'Misspelled ' + self.SPDX_HEADER_KEY.decode()
-                return True
-            if not m.group(3):
-                self.problem = 'Improperly formatted SPDX license identifier'
-                return True
-            if m.group(3) != self.LICENSE_IDENTIFIER:
-                self.problem = 'Wrong SPDX license identifier'
-                return True
-
-        m = self.LICENSE_MENTION_RE.match(line)
-        if m:
-            self.problem = 'Suspicious license mention'
-            return True
-
-        return False
-
-
 class IntegrityChecker:
     """Sanity-check files under the current directory."""
 
@@ -450,21 +309,24 @@ class IntegrityChecker:
         """Instantiate the sanity checker.
         Check files under the current directory.
         Write a report of issues to log_file."""
-        build_tree.check_repo_path()
+        self.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
         self.issues_to_check = [
-            ShebangIssueTracker(),
+            PermissionIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
-            UnicodeIssueTracker(),
             UnixLineEndingIssueTracker(),
             WindowsLineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
             MergeArtifactIssueTracker(),
-            LicenseIssueTracker(),
         ]
+
+    @staticmethod
+    def check_repo_path():
+        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
+            raise Exception("Must be run from Mbed TLS root")
 
     def setup_logger(self, log_file, level=logging.INFO):
         self.logger = logging.getLogger()

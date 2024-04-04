@@ -1,9 +1,3 @@
-enc_char (all digits)
-enc_chars:
-
-dec_value (all characters)
-dec_chars:
-
 Test case mbedtls_base64_encode #1 buffer just right
 mbedtls_base64_encode:"":"":0:0
 

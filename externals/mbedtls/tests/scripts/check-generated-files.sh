@@ -3,6 +3,45 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
+# This file is provided under the Apache License 2.0, or the
+# GNU General Public License v2.0 or later.
+#
+# **********
+# Apache License 2.0:
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# **********
+#
+# **********
+# GNU General Public License v2.0 or later:
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# **********
+#
 # Purpose
 #
 # Check if generated files are up-to-date.
@@ -11,104 +50,77 @@ set -eu
 
 if [ $# -ne 0 ] && [ "$1" = "--help" ]; then
     cat <<EOF
-$0 [-l | -u]
+$0 [-u]
 This script checks that all generated file are up-to-date. If some aren't, by
 default the scripts reports it and exits in error; with the -u option, it just
 updates them instead.
 
   -u    Update the files rather than return an error for out-of-date files.
-  -l    List generated files, but do not update them.
 EOF
     exit
 fi
 
-in_mbedtls_repo () {
-    test -d include -a -d library -a -d programs -a -d tests
-}
-
-in_tf_psa_crypto_repo () {
-    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
-}
-
-if in_mbedtls_repo; then
-    library_dir='library'
-elif in_tf_psa_crypto_repo; then
-    library_dir='core'
-else
-    echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2
+if [ -d library -a -d include -a -d tests ]; then :; else
+    echo "Must be run from mbed TLS root" >&2
     exit 1
 fi
 
 UPDATE=
-LIST=
-while getopts lu OPTLET; do
-    case $OPTLET in
-      l) LIST=1;;
-      u) UPDATE=1;;
-    esac
-done
+if [ $# -ne 0 ] && [ "$1" = "-u" ]; then
+    shift
+    UPDATE='y'
+fi
 
-# check SCRIPT FILENAME[...]
-# check SCRIPT DIRECTORY
-# Run SCRIPT and check that it does not modify any of the specified files.
-# In the first form, there can be any number of FILENAMEs, which must be
-# regular files.
-# In the second form, there must be a single DIRECTORY, standing for the
-# list of files in the directory. Running SCRIPT must not modify any file
-# in the directory and must not add or remove files either.
-# If $UPDATE is empty, abort with an error status if a file is modified.
 check()
 {
     SCRIPT=$1
-    shift
+    TO_CHECK=$2
+    PATTERN=""
+    FILES=""
 
-    if [ -n "$LIST" ]; then
-        printf '%s\n' "$@"
-        return
+    if [ -d $TO_CHECK ]; then
+        for FILE in $TO_CHECK/*; do
+            FILES="$FILE $FILES"
+        done
+    else
+        FILES=$TO_CHECK
     fi
 
-    directory=
-    if [ -d "$1" ]; then
-        directory="$1"
-        rm -f "$directory"/*.bak
-        set -- "$1"/*
-    fi
-
-    for FILE in "$@"; do
-        if [ -e "$FILE" ]; then
-            cp -p "$FILE" "$FILE.bak"
-        else
-            rm -f "$FILE.bak"
-        fi
+    for FILE in $FILES; do
+        cp $FILE $FILE.bak
     done
 
-    "$SCRIPT"
+    $SCRIPT
 
     # Compare the script output to the old files and remove backups
-    for FILE in "$@"; do
-        if diff "$FILE" "$FILE.bak" >/dev/null 2>&1; then
-            # Move the original file back so that $FILE's timestamp doesn't
-            # change (avoids spurious rebuilds with make).
-            mv "$FILE.bak" "$FILE"
-        else
+    for FILE in $FILES; do
+        if ! diff $FILE $FILE.bak >/dev/null 2>&1; then
             echo "'$FILE' was either modified or deleted by '$SCRIPT'"
             if [ -z "$UPDATE" ]; then
                 exit 1
+            fi
+        fi
+        if [ -z "$UPDATE" ]; then
+            mv $FILE.bak $FILE
+        else
+            rm $FILE.bak
+        fi
+
+        if [ -d $TO_CHECK ]; then
+            # Create a grep regular expression that we can check against the
+            # directory contents to test whether new files have been created
+            if [ -z $PATTERN ]; then
+                PATTERN="$(basename $FILE)"
             else
-                rm -f "$FILE.bak"
+                PATTERN="$PATTERN\|$(basename $FILE)"
             fi
         fi
     done
 
-    if [ -n "$directory" ]; then
-        old_list="$*"
-        set -- "$directory"/*
-        new_list="$*"
+    if [ -d $TO_CHECK ]; then
         # Check if there are any new files
-        if [ "$old_list" != "$new_list" ]; then
-            echo "Files were deleted or created by '$SCRIPT'"
-            echo "Before: $old_list"
-            echo "After: $new_list"
+        if ls -1 $TO_CHECK | grep -v "$PATTERN" >/dev/null 2>&1; then
+            echo "Files were created by '$SCRIPT'"
             if [ -z "$UPDATE" ]; then
                 exit 1
             fi
@@ -116,31 +128,7 @@ check()
     fi
 }
 
-# Note: if the format of calls to the "check" function changes, update
-# scripts/code_style.py accordingly. For generated C source files (*.h or *.c),
-# the format must be "check SCRIPT FILENAME...". For other source files,
-# any shell syntax is permitted (including e.g. command substitution).
-
-# Note: Instructions to generate those files are replicated in:
-#   - **/Makefile (to (re)build them with make)
-#   - **/CMakeLists.txt (to (re)build them with cmake)
-#   - scripts/make_generated_files.bat (to generate them under Windows)
-
-# These checks are common to Mbed TLS and TF-PSA-Crypto
-check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
-check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
-check tests/scripts/generate_ecp_tests.py $(tests/scripts/generate_ecp_tests.py --list)
-check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)
-check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
-
-# Additional checks for Mbed TLS only
-if in_mbedtls_repo; then
-    check scripts/generate_errors.pl library/error.c
-    check scripts/generate_query_config.pl programs/test/query_config.c
-    check scripts/generate_features.pl library/version_features.c
-    check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
-    # generate_visualc_files enumerates source files (library/*.c). It doesn't
-    # care about their content, but the files must exist. So it must run after
-    # the step that creates or updates these files.
-    check scripts/generate_visualc_files.pl visualc/VS2013
-fi
+check scripts/generate_errors.pl library/error.c
+check scripts/generate_query_config.pl programs/ssl/query_config.c
+check scripts/generate_features.pl library/version_features.c
+check scripts/generate_visualc_files.pl visualc/VS2010

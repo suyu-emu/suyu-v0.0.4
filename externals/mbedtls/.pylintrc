@@ -1,7 +1,3 @@
-[MASTER]
-init-hook='import sys; sys.path.append("scripts")'
-min-similarity-lines=10
-
 [BASIC]
 # We're ok with short funtion argument names.
 # [invalid-name]
@@ -16,9 +12,9 @@ bad-functions=input
 # [missing-docstring]
 docstring-min-length=10
 
-# No upper limit on method names. Pylint <2.1.0 has an upper limit of 30.
+# Allow longer methods than the default.
 # [invalid-name]
-method-rgx=[a-z_][a-z0-9_]{2,}$
+method-rgx=[a-z_][a-z0-9_]{2,35}$
 
 # Allow module names containing a dash (but no underscore or uppercase letter).
 # They are whole programs, not meant to be included by another module.
@@ -27,7 +23,7 @@ module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+)|[a-z][-0-9a-z]+)$
 
 # Some functions don't need docstrings.
 # [missing-docstring]
-no-docstring-rgx=(run_)?main$
+no-docstring-rgx=(run_)main$
 
 # We're ok with short local or global variable names.
 # [invalid-name]
@@ -74,7 +70,3 @@ reports=no
 # Allow unused variables if their name starts with an underscore.
 # [unused-argument]
 dummy-variables-rgx=_.*
-
-[SIMILARITIES]
-# Ignore imports when computing similarities.
-ignore-imports=yes

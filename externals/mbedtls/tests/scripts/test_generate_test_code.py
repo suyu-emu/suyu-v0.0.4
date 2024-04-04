@@ -3,15 +3,65 @@
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+#
+# This file is provided under the Apache License 2.0, or the
+# GNU General Public License v2.0 or later.
+#
+# **********
+# Apache License 2.0:
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# **********
+#
+# **********
+# GNU General Public License v2.0 or later:
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# **********
 
 """
 Unit tests for generate_test_code.py
 """
 
-from io import StringIO
+# pylint: disable=wrong-import-order
+try:
+    # Python 2
+    from StringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
 from unittest import TestCase, main as unittest_main
-from unittest.mock import patch
-
+try:
+    # Python 2
+    from mock import patch
+except ImportError:
+    # Python 3
+    from unittest.mock import patch
+# pylint: enable=wrong-import-order
 from generate_test_code import gen_dependencies, gen_dependencies_one_line
 from generate_test_code import gen_function_wrapper, gen_dispatch
 from generate_test_code import parse_until_pattern, GeneratorInputError
@@ -294,16 +344,25 @@ class StringIOWrapper(StringIO):
         :return: Line read from file.
         """
         parent = super(StringIOWrapper, self)
-        line = parent.__next__()
+        if getattr(parent, 'next', None):
+            # Python 2
+            line = parent.next()
+        else:
+            # Python 3
+            line = parent.__next__()
         return line
 
-    def readline(self, _length=0):
+    # Python 3
+    __next__ = next
+
+    def readline(self, length=0):
         """
         Wrap the base class readline.
 
         :param length:
         :return:
         """
+        # pylint: disable=unused-argument
         line = super(StringIOWrapper, self).readline()
         if line is not None:
             self.line_no += 1
@@ -473,10 +532,9 @@ class ParseFuncSignature(TestCase):
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, ['char*', 'int', 'int'])
         self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch,
-                         ['(char *) params[0]',
-                          '((mbedtls_test_argument_t *) params[1])->sint',
-                          '((mbedtls_test_argument_t *) params[2])->sint'])
+        self.assertEqual(arg_dispatch, ['(char *) params[0]',
+                                        '*( (int *) params[1] )',
+                                        '*( (int *) params[2] )'])
 
     def test_hex_params(self):
         """
@@ -488,58 +546,25 @@ class ParseFuncSignature(TestCase):
         self.assertEqual(args, ['char*', 'hex', 'int'])
         self.assertEqual(local,
                          '    data_t data1 = {(uint8_t *) params[1], '
-                         '((mbedtls_test_argument_t *) params[2])->len};\n')
+                         '*( (uint32_t *) params[2] )};\n')
         self.assertEqual(arg_dispatch, ['(char *) params[0]',
                                         '&data1',
-                                        '((mbedtls_test_argument_t *) params[3])->sint'])
+                                        '*( (int *) params[3] )'])
 
     def test_unsupported_arg(self):
         """
-        Test unsupported argument type
+        Test unsupported arguments (not among int, char * and data_t)
         :return:
         """
-        line = 'void entropy_threshold( char * a, data_t * h, unknown_t result )'
+        line = 'void entropy_threshold( char * a, data_t * h, char result )'
         self.assertRaises(ValueError, parse_function_arguments, line)
 
-    def test_empty_params(self):
+    def test_no_params(self):
         """
-        Test no parameters (nothing between parentheses).
+        Test no parameters.
         :return:
         """
         line = 'void entropy_threshold()'
-        args, local, arg_dispatch = parse_function_arguments(line)
-        self.assertEqual(args, [])
-        self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch, [])
-
-    def test_blank_params(self):
-        """
-        Test no parameters (space between parentheses).
-        :return:
-        """
-        line = 'void entropy_threshold( )'
-        args, local, arg_dispatch = parse_function_arguments(line)
-        self.assertEqual(args, [])
-        self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch, [])
-
-    def test_void_params(self):
-        """
-        Test no parameters (void keyword).
-        :return:
-        """
-        line = 'void entropy_threshold(void)'
-        args, local, arg_dispatch = parse_function_arguments(line)
-        self.assertEqual(args, [])
-        self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch, [])
-
-    def test_void_space_params(self):
-        """
-        Test no parameters (void with spaces).
-        :return:
-        """
-        line = 'void entropy_threshold( void )'
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, [])
         self.assertEqual(local, '')
@@ -550,6 +575,38 @@ class ParseFunctionCode(TestCase):
     """
     Test suite for testing parse_function_code()
     """
+
+    def assert_raises_regex(self, exp, regex, func, *args):
+        """
+        Python 2 & 3 portable wrapper of assertRaisesRegex(p)? function.
+
+        :param exp: Exception type expected to be raised by cb.
+        :param regex: Expected exception message
+        :param func: callable object under test
+        :param args: variable positional arguments
+        """
+        parent = super(ParseFunctionCode, self)
+
+        # Pylint does not appreciate that the super method called
+        # conditionally can be available in other Python version
+        # then that of Pylint.
+        # Workaround is to call the method via getattr.
+        # Pylint ignores that the method got via getattr is
+        # conditionally executed. Method has to be a callable.
+        # Hence, using a dummy callable for getattr default.
+        dummy = lambda *x: None
+        # First Python 3 assertRaisesRegex is checked, since Python 2
+        # assertRaisesRegexp is also available in Python 3 but is
+        # marked deprecated.
+        for name in ('assertRaisesRegex', 'assertRaisesRegexp'):
+            method = getattr(parent, name, dummy)
+            if method is not dummy:
+                method(exp, regex, func, *args)
+                break
+        else:
+            raise AttributeError(" 'ParseFunctionCode' object has no attribute"
+                                 " 'assertRaisesRegex' or 'assertRaisesRegexp'"
+                                )
 
     def test_no_function(self):
         """
@@ -563,8 +620,8 @@ function
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
         err_msg = 'file: test_suite_ut.function - Test functions not found!'
-        self.assertRaisesRegex(GeneratorInputError, err_msg,
-                               parse_function_code, stream, [], [])
+        self.assert_raises_regex(GeneratorInputError, err_msg,
+                                 parse_function_code, stream, [], [])
 
     def test_no_end_case_comment(self):
         """
@@ -579,8 +636,8 @@ void test_func()
         stream = StringIOWrapper('test_suite_ut.function', data)
         err_msg = r'file: test_suite_ut.function - '\
                   'end case pattern .*? not found!'
-        self.assertRaisesRegex(GeneratorInputError, err_msg,
-                               parse_function_code, stream, [], [])
+        self.assert_raises_regex(GeneratorInputError, err_msg,
+                                 parse_function_code, stream, [], [])
 
     @patch("generate_test_code.parse_function_arguments")
     def test_function_called(self,
@@ -635,7 +692,7 @@ void func()
         self.assertEqual(arg, [])
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func(void)
+void test_func()
 {
     ba ba black sheep
     have you any wool
@@ -678,7 +735,7 @@ exit:
 
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func(void)
+void test_func()
 {
     ba ba black sheep
     have you any wool
@@ -697,19 +754,19 @@ exit:
         data = 'int entropy_threshold( char * a, data_t * h, int result )'
         err_msg = 'file: test_suite_ut.function - Test functions not found!'
         stream = StringIOWrapper('test_suite_ut.function', data)
-        self.assertRaisesRegex(GeneratorInputError, err_msg,
-                               parse_function_code, stream, [], [])
+        self.assert_raises_regex(GeneratorInputError, err_msg,
+                                 parse_function_code, stream, [], [])
 
     @patch("generate_test_code.gen_dispatch")
     @patch("generate_test_code.gen_dependencies")
     @patch("generate_test_code.gen_function_wrapper")
     @patch("generate_test_code.parse_function_arguments")
-    def test_function_name_on_newline(self, parse_function_arguments_mock,
-                                      gen_function_wrapper_mock,
-                                      gen_dependencies_mock,
-                                      gen_dispatch_mock):
+    def test_functio_name_on_newline(self, parse_function_arguments_mock,
+                                     gen_function_wrapper_mock,
+                                     gen_dependencies_mock,
+                                     gen_dispatch_mock):
         """
-        Test with line break before the function name.
+        Test when exit label is present.
         :return:
         """
         parse_function_arguments_mock.return_value = ([], '', [])
@@ -738,195 +795,7 @@ exit:
 void
 
 
-test_func(void)
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-'''
-        self.assertEqual(code, expected)
-
-    @patch("generate_test_code.gen_dispatch")
-    @patch("generate_test_code.gen_dependencies")
-    @patch("generate_test_code.gen_function_wrapper")
-    @patch("generate_test_code.parse_function_arguments")
-    def test_case_starting_with_comment(self, parse_function_arguments_mock,
-                                        gen_function_wrapper_mock,
-                                        gen_dependencies_mock,
-                                        gen_dispatch_mock):
-        """
-        Test with comments before the function signature
-        :return:
-        """
-        parse_function_arguments_mock.return_value = ([], '', [])
-        gen_function_wrapper_mock.return_value = ''
-        gen_dependencies_mock.side_effect = gen_dependencies
-        gen_dispatch_mock.side_effect = gen_dispatch
-        data = '''/* comment */
-/* more
- * comment */
-// this is\\
-still \\
-a comment
-void func()
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-/* END_CASE */
-'''
-        stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
-
-        expected = '''#line 1 "test_suite_ut.function"
-
-
-
-
-
-
-void test_func(void)
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-'''
-        self.assertEqual(code, expected)
-
-    @patch("generate_test_code.gen_dispatch")
-    @patch("generate_test_code.gen_dependencies")
-    @patch("generate_test_code.gen_function_wrapper")
-    @patch("generate_test_code.parse_function_arguments")
-    def test_comment_in_prototype(self, parse_function_arguments_mock,
-                                  gen_function_wrapper_mock,
-                                  gen_dependencies_mock,
-                                  gen_dispatch_mock):
-        """
-        Test with comments in the function prototype
-        :return:
-        """
-        parse_function_arguments_mock.return_value = ([], '', [])
-        gen_function_wrapper_mock.return_value = ''
-        gen_dependencies_mock.side_effect = gen_dependencies
-        gen_dispatch_mock.side_effect = gen_dispatch
-        data = '''
-void func( int x, // (line \\
-                     comment)
-           int y /* lone closing parenthesis) */ )
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-/* END_CASE */
-'''
-        stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
-
-        expected = '''#line 1 "test_suite_ut.function"
-
-void test_func( int x,
-
-           int y                                 )
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-'''
-        self.assertEqual(code, expected)
-
-    @patch("generate_test_code.gen_dispatch")
-    @patch("generate_test_code.gen_dependencies")
-    @patch("generate_test_code.gen_function_wrapper")
-    @patch("generate_test_code.parse_function_arguments")
-    def test_line_comment_in_block_comment(self, parse_function_arguments_mock,
-                                           gen_function_wrapper_mock,
-                                           gen_dependencies_mock,
-                                           gen_dispatch_mock):
-        """
-        Test with line comment in block comment.
-        :return:
-        """
-        parse_function_arguments_mock.return_value = ([], '', [])
-        gen_function_wrapper_mock.return_value = ''
-        gen_dependencies_mock.side_effect = gen_dependencies
-        gen_dispatch_mock.side_effect = gen_dispatch
-        data = '''
-void func( int x /* // */ )
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-/* END_CASE */
-'''
-        stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
-
-        expected = '''#line 1 "test_suite_ut.function"
-
-void test_func( int x          )
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-'''
-        self.assertEqual(code, expected)
-
-    @patch("generate_test_code.gen_dispatch")
-    @patch("generate_test_code.gen_dependencies")
-    @patch("generate_test_code.gen_function_wrapper")
-    @patch("generate_test_code.parse_function_arguments")
-    def test_block_comment_in_line_comment(self, parse_function_arguments_mock,
-                                           gen_function_wrapper_mock,
-                                           gen_dependencies_mock,
-                                           gen_dispatch_mock):
-        """
-        Test with block comment in line comment.
-        :return:
-        """
-        parse_function_arguments_mock.return_value = ([], '', [])
-        gen_function_wrapper_mock.return_value = ''
-        gen_dependencies_mock.side_effect = gen_dependencies
-        gen_dispatch_mock.side_effect = gen_dispatch
-        data = '''
-// /*
-void func( int x )
-{
-    ba ba black sheep
-    have you any wool
-exit:
-    yes sir yes sir
-    3 bags full
-}
-/* END_CASE */
-'''
-        stream = StringIOWrapper('test_suite_ut.function', data)
-        _, _, code, _ = parse_function_code(stream, [], [])
-
-        expected = '''#line 1 "test_suite_ut.function"
-
-
-void test_func( int x )
+test_func()
 {
     ba ba black sheep
     have you any wool
@@ -1127,7 +996,7 @@ void func2()
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 13 "test_suite_ut.function"
-void test_func1(void)
+void test_func1()
 {
 exit:
     ;
@@ -1144,7 +1013,7 @@ void test_func1_wrapper( void ** params )
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 19 "test_suite_ut.function"
-void test_func2(void)
+void test_func2()
 {
 exit:
     ;
@@ -1286,33 +1155,29 @@ dhm_selftest:
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
-        self.assertEqual(test1[0], 3)
-        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[2], 'dhm_do_dhm')
-        self.assertEqual(test1[3], [])
-        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[1], 'dhm_do_dhm')
+        self.assertEqual(test1[2], [])
+        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 6)
-        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[2], 'dhm_do_dhm')
-        self.assertEqual(test2[3], [])
-        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[1], 'dhm_do_dhm')
+        self.assertEqual(test2[2], [])
+        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
-        self.assertEqual(test3[0], 9)
-        self.assertEqual(test3[1], 'Diffie-Hellman full exchange #3')
-        self.assertEqual(test3[2], 'dhm_do_dhm')
-        self.assertEqual(test3[3], [])
-        self.assertEqual(test3[4], ['10',
+        self.assertEqual(test3[0], 'Diffie-Hellman full exchange #3')
+        self.assertEqual(test3[1], 'dhm_do_dhm')
+        self.assertEqual(test3[2], [])
+        self.assertEqual(test3[3], ['10',
                                     '"9345098382739712938719287391879381271"',
                                     '10',
                                     '"9345098792137312973297123912791271"'])
 
-        self.assertEqual(test4[0], 12)
-        self.assertEqual(test4[1], 'Diffie-Hellman selftest')
-        self.assertEqual(test4[2], 'dhm_selftest')
+        self.assertEqual(test4[0], 'Diffie-Hellman selftest')
+        self.assertEqual(test4[1], 'dhm_selftest')
+        self.assertEqual(test4[2], [])
         self.assertEqual(test4[3], [])
-        self.assertEqual(test4[4], [])
 
     def test_with_dependencies(self):
         """
@@ -1332,17 +1197,15 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2 = tests
-        self.assertEqual(test1[0], 4)
-        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[2], 'dhm_do_dhm')
-        self.assertEqual(test1[3], ['YAHOO'])
-        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[1], 'dhm_do_dhm')
+        self.assertEqual(test1[2], ['YAHOO'])
+        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 7)
-        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[2], 'dhm_do_dhm')
-        self.assertEqual(test2[3], [])
-        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[1], 'dhm_do_dhm')
+        self.assertEqual(test2[2], [])
+        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
     def test_no_args(self):
@@ -1363,7 +1226,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)
@@ -1381,7 +1244,7 @@ depends_on:YAHOO
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)
