@@ -252,6 +252,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
+        rb.Push(0);
     }
 
     void GetUserPresenceView(HLERequestContext& ctx) {
