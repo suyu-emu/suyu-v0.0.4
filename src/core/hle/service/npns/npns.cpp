@@ -24,7 +24,7 @@ public:
             {4, nullptr, "ReceiveRaw"},
             {5, C<&INpnsSystem::GetReceiveEvent>, "GetReceiveEvent"},
             {6, nullptr, "ListenUndelivered"},
-            {7, nullptr, "GetStateChangeEVent"},
+            {7, nullptr, "GetStateChangeEvent"},
             {11, nullptr, "SubscribeTopic"},
             {12, nullptr, "UnsubscribeTopic"},
             {13, nullptr, "QueryIsTopicExist"},
