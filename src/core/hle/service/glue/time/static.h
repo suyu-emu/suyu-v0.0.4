@@ -80,5 +80,6 @@ private:
     std::shared_ptr<Service::PSC::Time::TimeZoneService> m_time_zone;
     FileTimestampWorker& m_file_timestamp_worker;
     StandardSteadyClockResource& m_standard_steady_clock_resource;
+    TimeZoneBinary& m_time_zone_binary;
 };
 } // namespace Service::Glue::Time

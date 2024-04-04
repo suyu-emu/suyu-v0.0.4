@@ -165,6 +165,7 @@ else()
 
     if (MINGW)
         add_definitions(-DMINGW_HAS_SECURE_API)
+        add_compile_options("-msse4.1")
 
         if (MINGW_STATIC_BUILD)
             add_definitions(-DQT_STATICPLUGIN)

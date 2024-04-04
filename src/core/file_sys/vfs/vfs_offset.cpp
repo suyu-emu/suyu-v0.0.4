@@ -9,9 +9,8 @@
 namespace FileSys {
 
 OffsetVfsFile::OffsetVfsFile(VirtualFile file_, std::size_t size_, std::size_t offset_,
-                             std::string name_, VirtualDir parent_)
-    : file(file_), offset(offset_), size(size_), name(std::move(name_)),
-      parent(parent_ == nullptr ? file->GetContainingDirectory() : std::move(parent_)) {}
+                             std::string name_)
+    : file(file_), offset(offset_), size(size_), name(std::move(name_)) {}
 
 OffsetVfsFile::~OffsetVfsFile() = default;
 
@@ -37,7 +36,7 @@ bool OffsetVfsFile::Resize(std::size_t new_size) {
 }
 
 VirtualDir OffsetVfsFile::GetContainingDirectory() const {
-    return parent;
+    return nullptr;
 }
 
 bool OffsetVfsFile::IsWritable() const {

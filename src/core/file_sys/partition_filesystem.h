@@ -35,7 +35,6 @@ public:
     std::vector<VirtualDir> GetSubdirectories() const override;
     std::string GetName() const override;
     VirtualDir GetParentDirectory() const override;
-    void PrintDebugInfo() const;
 
 private:
     struct Header {

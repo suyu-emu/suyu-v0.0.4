@@ -71,7 +71,7 @@ const char* GetType(GLenum type) {
 
 void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                            const GLchar* message, const void* user_param) {
-    const char format[] = "{} {} {}: {}";
+    constexpr std::string_view format = "{} {} {}: {}";
     const char* const str_source = GetSource(source);
     const char* const str_type = GetType(type);
 

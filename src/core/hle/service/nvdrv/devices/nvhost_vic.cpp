@@ -7,6 +7,7 @@
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
 #include "core/hle/service/nvdrv/devices/nvhost_vic.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/renderer_base.h"
 
 namespace Service::Nvidia::Devices {
@@ -21,13 +22,8 @@ NvResult nvhost_vic::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     switch (command.group) {
     case 0x0:
         switch (command.cmd) {
-        case 0x1: {
-            auto& host1x_file = core.Host1xDeviceFile();
-            if (!host1x_file.fd_to_id.contains(fd)) {
-                host1x_file.fd_to_id[fd] = host1x_file.vic_next_id++;
-            }
+        case 0x1:
             return WrapFixedVariable(this, &nvhost_vic::Submit, input, output, fd);
-        }
         case 0x2:
             return WrapFixed(this, &nvhost_vic::GetSyncpoint, input, output);
         case 0x3:
@@ -70,14 +66,11 @@ NvResult nvhost_vic::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> inpu
 
 void nvhost_vic::OnOpen(NvCore::SessionId session_id, DeviceFD fd) {
     sessions[fd] = session_id;
+    host1x.StartDevice(fd, Tegra::Host1x::ChannelType::VIC, channel_syncpoint);
 }
 
 void nvhost_vic::OnClose(DeviceFD fd) {
-    auto& host1x_file = core.Host1xDeviceFile();
-    const auto iter = host1x_file.fd_to_id.find(fd);
-    if (iter != host1x_file.fd_to_id.end()) {
-        system.GPU().ClearCdmaInstance(iter->second);
-    }
+    host1x.StopDevice(fd, Tegra::Host1x::ChannelType::VIC);
     sessions.erase(fd);
 }
 

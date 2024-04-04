@@ -320,3 +320,9 @@ if (ANDROID)
     add_subdirectory(oboe)
     add_library(oboe::oboe ALIAS oboe)
 endif()
+
+# sse2neon
+if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
+    add_library(sse2neon INTERFACE)
+    target_include_directories(sse2neon INTERFACE sse2neon)
+endif()

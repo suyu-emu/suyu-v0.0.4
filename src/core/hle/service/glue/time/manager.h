@@ -10,6 +10,7 @@
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/service/glue/time/file_timestamp_worker.h"
 #include "core/hle/service/glue/time/standard_steady_clock_resource.h"
+#include "core/hle/service/glue/time/time_zone_binary.h"
 #include "core/hle/service/glue/time/worker.h"
 #include "core/hle/service/service.h"
 
@@ -26,7 +27,7 @@ namespace Service::Glue::Time {
 class TimeManager {
 public:
     explicit TimeManager(Core::System& system);
-    ~TimeManager();
+    ~TimeManager() = default;
 
     std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 
@@ -34,6 +35,7 @@ public:
     std::shared_ptr<Service::PSC::Time::StaticService> m_time_sm{};
     StandardSteadyClockResource m_steady_clock_resource;
     FileTimestampWorker m_file_timestamp_worker;
+    TimeZoneBinary m_time_zone_binary;
     TimeWorker m_worker;
 
 private:
