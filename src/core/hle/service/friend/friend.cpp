@@ -143,9 +143,9 @@ private:
         u64 friend_request_reception;
         char friend_code[0x20];
         u64 friend_code_next_issuable_time;
-        u8 unk_x48[0x7C8];
+        u8 unk_x48[0x7B8];
     };
-    static_assert(sizeof(FriendsUserSetting) == 0x810, "FriendsUserSetting is an invalid size");
+    static_assert(sizeof(FriendsUserSetting) == 0x800, "FriendsUserSetting is an invalid size");
 
     void GetCompletionEvent(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Friend, "called");
@@ -250,9 +250,6 @@ private:
 
         LOG_DEBUG(Service_Friend, "(STUBBED) called");
 
-        u8 buf[0xe0];
-        ctx.WriteBuffer(buf);
-
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
     }
@@ -260,9 +257,11 @@ private:
     void GetUserPresenceView(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Friend, "(STUBBED) called");
 
+        u8 buf[0xe0]{};
+        ctx.WriteBuffer(buf);
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push(0);
     }
 
     void GetPlayHistoryStatistics(HLERequestContext& ctx) {
