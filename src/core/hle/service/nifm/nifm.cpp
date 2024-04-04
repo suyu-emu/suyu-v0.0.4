@@ -611,6 +611,13 @@ IGeneralService::IGeneralService(Core::System& system_)
         {41, nullptr, "GetAcceptableNetworkTypeFlag"},
         {42, nullptr, "NotifyConnectionStateChanged"},
         {43, nullptr, "SetWowlDelayedWakeTime"},
+        {44, nullptr, "IsWiredConnectionAvailable"}, // 18.0.0+
+        {45, nullptr, "IsNetworkEmulationFeatureEnabled"}, // 18.0.0+
+        {46, nullptr, "SelectActiveNetworkEmulationProfileIdForDebug"}, // 18.0.0+
+        {47, nullptr, "GetActiveNetworkEmulationProfileId"}, // 18.0.0+
+        {50, nullptr, "IsRewriteFeatureEnabled"}, // 18.0.0+
+        {51, nullptr, "CreateRewriteRule"}, // 18.0.0+
+        {52, nullptr, "DestroyRewriteRule"} // 18.0.0+
     };
     // clang-format on
 
