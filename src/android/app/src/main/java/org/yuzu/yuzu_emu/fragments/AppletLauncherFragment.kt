@@ -72,6 +72,12 @@ class AppletLauncherFragment : Fragment() {
                 R.string.mii_edit_applet_description,
                 R.drawable.ic_mii,
                 AppletInfo.MiiEdit
+            ),
+            Applet(
+                R.string.qlaunch_applet,
+                R.string.qlaunch_description,
+                R.drawable.ic_home,
+                AppletInfo.QLaunch
             )
         )
 
