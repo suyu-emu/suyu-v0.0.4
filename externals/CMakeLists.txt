@@ -160,6 +160,9 @@ if (YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     add_subdirectory(Vulkan-Utility-Libraries)
 endif()
 
+# Boost headers
+add_subdirectory(boost-headers)
+
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 

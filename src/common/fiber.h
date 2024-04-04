@@ -6,9 +6,7 @@
 #include <functional>
 #include <memory>
 
-namespace boost::context::detail {
-struct transfer_t;
-}
+#include "common/minicoro.h"
 
 namespace Common {
 
@@ -38,14 +36,8 @@ public:
     Fiber(Fiber&&) = default;
     Fiber& operator=(Fiber&&) = default;
 
-    /// Yields control from Fiber 'from' to Fiber 'to'
-    /// Fiber 'from' must be the currently running fiber.
     static void YieldTo(std::weak_ptr<Fiber> weak_from, Fiber& to);
     [[nodiscard]] static std::shared_ptr<Fiber> ThreadToFiber();
-
-    void SetRewindPoint(std::function<void()>&& rewind_func);
-
-    void Rewind();
 
     /// Only call from main thread's fiber
     void Exit();
@@ -53,10 +45,9 @@ public:
 private:
     Fiber();
 
-    void OnRewind(boost::context::detail::transfer_t& transfer);
-    void Start(boost::context::detail::transfer_t& transfer);
-    static void FiberStartFunc(boost::context::detail::transfer_t transfer);
-    static void RewindStartFunc(boost::context::detail::transfer_t transfer);
+    void DestroyPre();
+    void DestroyWorkFiber();
+    void DestroyThreadFiber();
 
     struct FiberImpl;
     std::unique_ptr<FiberImpl> impl;

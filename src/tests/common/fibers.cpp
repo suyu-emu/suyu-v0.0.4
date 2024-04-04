@@ -271,43 +271,4 @@ TEST_CASE("Fibers::StartRace", "[common]") {
     REQUIRE(test_control.value3 == 1);
 }
 
-class TestControl4;
-
-class TestControl4 {
-public:
-    TestControl4() {
-        fiber1 = std::make_shared<Fiber>([this] { DoWork(); });
-        goal_reached = false;
-        rewinded = false;
-    }
-
-    void Execute() {
-        thread_fiber = Fiber::ThreadToFiber();
-        Fiber::YieldTo(thread_fiber, *fiber1);
-        thread_fiber->Exit();
-    }
-
-    void DoWork() {
-        fiber1->SetRewindPoint([this] { DoWork(); });
-        if (rewinded) {
-            goal_reached = true;
-            Fiber::YieldTo(fiber1, *thread_fiber);
-        }
-        rewinded = true;
-        fiber1->Rewind();
-    }
-
-    std::shared_ptr<Common::Fiber> fiber1;
-    std::shared_ptr<Common::Fiber> thread_fiber;
-    bool goal_reached;
-    bool rewinded;
-};
-
-TEST_CASE("Fibers::Rewind", "[common]") {
-    TestControl4 test_control{};
-    test_control.Execute();
-    REQUIRE(test_control.goal_reached);
-    REQUIRE(test_control.rewinded);
-}
-
 } // namespace Common
