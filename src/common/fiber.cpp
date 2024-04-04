@@ -16,11 +16,11 @@ struct Fiber::FiberImpl {
     std::mutex guard;
     bool released{};
     bool is_thread_fiber{};
-    Fiber *next_fiber{};
-    Fiber **next_fiber_ptr;
+    Fiber* next_fiber{};
+    Fiber** next_fiber_ptr;
     std::function<void()> entry_point;
 
-    mco_coro *context;
+    mco_coro* context;
 };
 
 Fiber::Fiber() : impl{std::make_unique<FiberImpl>()} {
@@ -29,9 +29,8 @@ Fiber::Fiber() : impl{std::make_unique<FiberImpl>()} {
 
 Fiber::Fiber(std::function<void()>&& entry_point_func) : impl{std::make_unique<FiberImpl>()} {
     impl->entry_point = std::move(entry_point_func);
-    auto desc = mco_desc_init([] (mco_coro *coro) {
-        reinterpret_cast<Fiber*>(coro->user_data)->impl->entry_point();
-    }, 0);
+    auto desc = mco_desc_init(
+        [](mco_coro* coro) { reinterpret_cast<Fiber*>(coro->user_data)->impl->entry_point(); }, 0);
     desc.user_data = this;
     mco_result res = mco_create(&impl->context, &desc);
     ASSERT(res == MCO_SUCCESS);
