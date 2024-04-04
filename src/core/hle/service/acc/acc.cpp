@@ -99,9 +99,11 @@ public:
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
+            {143, D<&IManagerForSystemService::GetNetworkServiceLicenseEx>, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
-            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
-            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
+            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"}, // 15.0.0+
+            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"}, // 16.0.0+
+            {162, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
         };
         // clang-format on
 
@@ -117,6 +119,11 @@ private:
     Result GetAccountId(Out<u64> out_account_id) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         *out_account_id = account_id.Hash();
+        R_SUCCEED();
+    }
+
+    Result GetNetworkServiceLicenseEx() {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
         R_SUCCEED();
     }
 
