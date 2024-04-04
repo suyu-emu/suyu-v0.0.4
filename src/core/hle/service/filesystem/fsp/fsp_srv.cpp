@@ -67,7 +67,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {24, nullptr, "RegisterSaveDataFileSystemAtomicDeletion"},
         {25, nullptr, "DeleteSaveDataFileSystemBySaveDataSpaceId"},
         {26, nullptr, "FormatSdCardDryRun"},
-        {27, nullptr, "IsExFatSupported"},
+        {27, D<&FSP_SRV::IsExFatSupported>, "IsExFatSupported"},
         {28, nullptr, "DeleteSaveDataFileSystemBySaveDataAttribute"},
         {30, nullptr, "OpenGameCardStorage"},
         {31, nullptr, "OpenGameCardFileSystem"},
@@ -242,6 +242,14 @@ Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(
     FileSys::VirtualDir save_data_dir{};
     R_RETURN(save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::System,
                                                   save_struct));
+}
+
+Result FSP_SRV::IsExFatSupported(Out<bool> out_is_supported) {
+    LOG_WARNING(Service_FS, "(STUBBED) called");
+
+    *out_is_supported = true;
+
+    R_SUCCEED();
 }
 
 Result FSP_SRV::OpenSaveDataFileSystem(OutInterface<IFileSystem> out_interface,
