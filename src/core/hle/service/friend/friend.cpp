@@ -250,8 +250,9 @@ private:
 
         LOG_DEBUG(Service_Friend, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2};
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
+        rb.Push(0);
         rb.Push(0);
     }
 
