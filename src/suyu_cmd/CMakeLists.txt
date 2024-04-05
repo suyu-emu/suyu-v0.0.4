@@ -21,6 +21,8 @@ add_executable(suyu-cmd
     emu_window/emu_window_sdl2_null.h
     emu_window/emu_window_sdl2_vk.cpp
     emu_window/emu_window_sdl2_vk.h
+    emu_window/emu_window_sdl2_mtl.cpp
+    emu_window/emu_window_sdl2_mtl.h
     precompiled_headers.h
     sdl_config.cpp
     sdl_config.h

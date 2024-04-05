@@ -466,6 +466,9 @@ void ConfigureGraphics::ApplyConfiguration() {
             Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
             Settings::values.vulkan_device.SetValue(vulkan_device_combobox->currentIndex());
             break;
+        case Settings::RendererBackend::Metal:
+            // TODO
+            break;
         case Settings::RendererBackend::Null:
             break;
         }
