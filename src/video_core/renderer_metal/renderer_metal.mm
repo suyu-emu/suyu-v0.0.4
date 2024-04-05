@@ -13,7 +13,9 @@ RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
                              std::unique_ptr<Core::Frontend::GraphicsContext> context_)
     : RendererBase(emu_window, std::move(context_)), device_memory{device_memory_},
       gpu{gpu_}, device{},
-      swap_chain(device, static_cast<const CAMetalLayer*>(render_window.GetWindowInfo().render_surface)),
+      command_recorder(device),
+      swap_chain(device, command_recorder,
+                 static_cast<const CAMetalLayer*>(render_window.GetWindowInfo().render_surface)),
       rasterizer(gpu_, device, swap_chain) {}
 
 RendererMetal::~RendererMetal() = default;
@@ -24,22 +26,17 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
     }
 
     // HACK
-    @autoreleasepool {
-        swap_chain.AcquireNextDrawable();
+    swap_chain.AcquireNextDrawable();
 
-        MTLRenderPassDescriptor* render_pass_descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-        render_pass_descriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.5, 0.0, 1.0);
-        render_pass_descriptor.colorAttachments[0].loadAction  = MTLLoadActionClear;
-        render_pass_descriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-        render_pass_descriptor.colorAttachments[0].texture = swap_chain.GetDrawableTexture();
+    MTLRenderPassDescriptor* render_pass_descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+    render_pass_descriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.5, 0.0, 1.0);
+    render_pass_descriptor.colorAttachments[0].loadAction  = MTLLoadActionClear;
+    render_pass_descriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+    render_pass_descriptor.colorAttachments[0].texture = swap_chain.GetDrawableTexture();
 
-        id<MTLCommandBuffer> command_buffer = [device.GetCommandQueue() commandBuffer];
-        id<MTLRenderCommandEncoder> render_encoder = [command_buffer
-                                    renderCommandEncoderWithDescriptor:render_pass_descriptor];
-        [render_encoder endEncoding];
-        swap_chain.Present(command_buffer);
-        [command_buffer commit];
-    }
+    command_recorder.BeginRenderPass(render_pass_descriptor);
+    swap_chain.Present();
+    command_recorder.Submit();
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();

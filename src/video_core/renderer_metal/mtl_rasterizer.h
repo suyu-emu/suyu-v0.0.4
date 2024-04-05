@@ -3,7 +3,6 @@
 #pragma once
 
 #include "common/common_types.h"
-#include "objc_bridge.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_interface.h"

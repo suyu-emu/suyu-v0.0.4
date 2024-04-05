@@ -8,6 +8,7 @@
 #include "objc_bridge.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_base.h"
+#include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/mtl_rasterizer.h"
 #include "video_core/renderer_metal/mtl_swap_chain.h"
@@ -50,6 +51,7 @@ private:
     Tegra::GPU& gpu;
 
     Device device;
+    CommandRecorder command_recorder;
     SwapChain swap_chain;
 
     RasterizerMetal rasterizer;
