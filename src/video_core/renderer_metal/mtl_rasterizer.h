@@ -3,6 +3,7 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "objc_bridge.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_interface.h"
@@ -15,6 +16,7 @@ class System;
 namespace Metal {
 
 class Device;
+class SwapChain;
 
 class RasterizerMetal;
 
@@ -36,7 +38,7 @@ public:
 class RasterizerMetal final : public VideoCore::RasterizerInterface,
                               protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
-    explicit RasterizerMetal(Tegra::GPU& gpu_, const Device& device_, const CAMetalLayer* layer_);
+    explicit RasterizerMetal(Tegra::GPU& gpu_, const Device& device_, const SwapChain& swap_chain_);
     ~RasterizerMetal() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
@@ -90,7 +92,9 @@ private:
     AccelerateDMA accelerate_dma;
 
     const Device& device;
-    const CAMetalLayer* layer;
+    const SwapChain& swap_chain;
+
+    MTLCommandBuffer_t command_buffer;
 };
 
 } // namespace Metal

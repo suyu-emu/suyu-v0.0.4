@@ -12,17 +12,11 @@ RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
                              Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                              std::unique_ptr<Core::Frontend::GraphicsContext> context_)
     : RendererBase(emu_window, std::move(context_)), device_memory{device_memory_},
-                   gpu{gpu_}, device{},
-                   layer([static_cast<const CAMetalLayer*>(render_window.GetWindowInfo().render_surface)
-                          retain]),
-                   rasterizer(gpu_, device, layer) {
-    // Give the layer our device
-    layer.device = device.GetDevice();
-}
+      gpu{gpu_}, device{},
+      swap_chain(device, static_cast<const CAMetalLayer*>(render_window.GetWindowInfo().render_surface)),
+      rasterizer(gpu_, device, swap_chain) {}
 
-RendererMetal::~RendererMetal() {
-    [layer release];
-}
+RendererMetal::~RendererMetal() = default;
 
 void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
     if (framebuffers.empty()) {
@@ -31,20 +25,20 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
 
     // HACK
     @autoreleasepool {
-        id<CAMetalDrawable> drawable = [layer nextDrawable];
+        swap_chain.AcquireNextDrawable();
 
-        MTLRenderPassDescriptor* renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.5, 0.0, 1.0);
-        renderPassDescriptor.colorAttachments[0].loadAction  = MTLLoadActionClear;
-        renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-        renderPassDescriptor.colorAttachments[0].texture = drawable.texture;
+        MTLRenderPassDescriptor* render_pass_descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+        render_pass_descriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.5, 0.0, 1.0);
+        render_pass_descriptor.colorAttachments[0].loadAction  = MTLLoadActionClear;
+        render_pass_descriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        render_pass_descriptor.colorAttachments[0].texture = swap_chain.GetDrawableTexture();
 
-        id<MTLCommandBuffer> commandBuffer = [device.GetCommandQueue() commandBuffer];
-        id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer
-                                    renderCommandEncoderWithDescriptor:renderPassDescriptor];
-        [renderEncoder endEncoding];
-        [commandBuffer presentDrawable:drawable];
-        [commandBuffer commit];
+        id<MTLCommandBuffer> command_buffer = [device.GetCommandQueue() commandBuffer];
+        id<MTLRenderCommandEncoder> render_encoder = [command_buffer
+                                    renderCommandEncoderWithDescriptor:render_pass_descriptor];
+        [render_encoder endEncoding];
+        swap_chain.Present(command_buffer);
+        [command_buffer commit];
     }
 
     gpu.RendererFrameEndNotify();

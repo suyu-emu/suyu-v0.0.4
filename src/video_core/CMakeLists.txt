@@ -376,6 +376,7 @@ if (APPLE)
     list(APPEND sources
         renderer_metal/mtl_device.mm
         renderer_metal/mtl_rasterizer.mm
+        renderer_metal/mtl_swap_chain.mm
         renderer_metal/renderer_metal.mm
     )
 endif()

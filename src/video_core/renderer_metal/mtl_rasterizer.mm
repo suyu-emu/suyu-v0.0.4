@@ -4,6 +4,10 @@
 #include "video_core/control/channel_state.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
+#include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/engines/draw_manager.h"
+#include "video_core/engines/kepler_compute.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_metal/mtl_rasterizer.h"
 #include "video_core/renderer_metal/mtl_device.h"
 
@@ -20,11 +24,31 @@ bool AccelerateDMA::BufferClear(GPUVAddr src_address, u64 amount, u32 value) {
     return true;
 }
 
-RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_, const Device& device_, const CAMetalLayer* layer_)
-    : gpu{gpu_}, device{device_}, layer{layer_} {}
+RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_, const Device& device_, const SwapChain& swap_chain_)
+    : gpu{gpu_}, device{device_}, swap_chain{swap_chain_} {}
 RasterizerMetal::~RasterizerMetal() = default;
 
-void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {}
+void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
+    //const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    if (is_indexed) {
+        std::cout << "DrawIndexed" << std::endl;
+        /*[command_buffer drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                                   indexCount:draw_params.num_indices
+                                    indexType:MTLIndexTypeUInt32
+                                  indexBuffer:draw_state.index_buffer
+                            indexBufferOffset:draw_params.first_index * sizeof(u32)
+                                instanceCount:draw_params.num_instances
+                                   baseVertex:draw_params.base_vertex
+                                 baseInstance:draw_params.base_instance];*/
+        //cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
+        //                    draw_params.first_index, draw_params.base_vertex,
+        //                    draw_params.base_instance);
+    } else {
+        std::cout << "Draw" << std::endl;
+        //cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
+        //            draw_params.base_vertex, draw_params.base_instance);
+    }
+}
 void RasterizerMetal::DrawTexture() {}
 void RasterizerMetal::Clear(u32 layer_count) {}
 void RasterizerMetal::DispatchCompute() {}

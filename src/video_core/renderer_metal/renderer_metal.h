@@ -10,6 +10,7 @@
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/mtl_rasterizer.h"
+#include "video_core/renderer_metal/mtl_swap_chain.h"
 
 namespace Core {
 class TelemetrySession;
@@ -49,8 +50,7 @@ private:
     Tegra::GPU& gpu;
 
     Device device;
-    // TODO: use the layer to get the drawable when drawing directly to the screen
-    const CAMetalLayer* layer;
+    SwapChain swap_chain;
 
     RasterizerMetal rasterizer;
 };
