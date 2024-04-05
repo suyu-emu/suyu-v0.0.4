@@ -34,6 +34,12 @@ To clone this git repository, you can use these commands given tor is installed 
     cd torzu
     git submodule update --init --depth 1 --recursive
 
+Alternatively, you can clone from the [GitHub mirror repository](https://github.com/litucks/torzu):
+
+    git clone https://github.com/litucks/torzu.git --depth 1 --recursive
+
+Note that above repository may be taken down any time. Do not rely on its existence in production.
+
 This project incorporates several commits from the [Suyu](https://suyu.dev) and [Sudachi](https://github.com/sudachi-emu/sudachi) forks (but cleaned up due to the typically mediocre code/commit quality from both projects) as well as some custom changes, including lowered minimum boost library version requirements and faster fibers.
 
 ## Building
