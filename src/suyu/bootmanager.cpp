@@ -277,6 +277,14 @@ struct VulkanRenderWidget : public RenderWidget {
     }
 };
 
+struct MetalRenderWidget : public RenderWidget {
+    explicit MetalRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
+        // HACK: manually resize the renderable area
+        resize(600, 400);
+        windowHandle()->setSurfaceType(QWindow::MetalSurface);
+    }
+};
+
 struct NullRenderWidget : public RenderWidget {
     explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
 };
@@ -1056,8 +1064,9 @@ bool GRenderWindow::InitializeVulkan() {
 }
 
 bool GRenderWindow::InitializeMetal() {
-    // TODO: initialize Metal
-    child_widget = new NullRenderWidget(this);
+    auto child = new MetalRenderWidget(this);
+    child_widget = child;
+    child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
 
     return true;

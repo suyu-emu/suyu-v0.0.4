@@ -53,9 +53,6 @@ private:
     const CAMetalLayer* layer;
 
     RasterizerMetal rasterizer;
-
-    // HACK
-    MTLTexture_t renderTexture;
 };
 
 } // namespace Metal
