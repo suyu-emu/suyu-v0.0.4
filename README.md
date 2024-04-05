@@ -34,6 +34,8 @@ To clone this git repository, you can use these commands given tor is installed 
     cd torzu
     git submodule update --init --depth 1 --recursive
 
+This project incorporates several commits from the [Suyu](https://suyu.dev) and [Sudachi](https://github.com/sudachi-emu/sudachi) forks (but cleaned up due to the typically mediocre code/commit quality from both projects) as well as some custom changes, including lowered minimum boost library version requirements and faster fibers.
+
 ## Building
 
 * __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Building-for-Linux)
