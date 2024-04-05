@@ -30,7 +30,7 @@ If you want to contribute, please take a look at the [Contributor's Guide](http:
 
 To clone this git repository, you can use these commands given tor is installed and running:
 
-    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu.git --recursive
+    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu.git
     cd torzu
     git submodule update --init --depth 1 --recursive
 
