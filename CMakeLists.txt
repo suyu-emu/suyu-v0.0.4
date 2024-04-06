@@ -7,7 +7,11 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT OFF)
 set(CMAKE_XCODE_EMIT_RELATIVE_PATH YES)
 
-project(suyu LANGUAGES C CXX OBJC OBJCXX)
+if(APPLE)
+    project(suyu LANGUAGES C CXX OBJC OBJCXX)
+else()
+    project(suyu)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
