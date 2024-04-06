@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/alignment.h"
 #include "video_core/control/channel_state.h"
