@@ -47,6 +47,8 @@ public:
 private:
     const Device& device;
 
+    // HACK: Command buffers and encoders currently aren't released every frame due to Xcode
+    // crashing in Debug mode. This leads to memory leaks
     MTLCommandBuffer_t command_buffer = nil;
     MTLCommandEncoder_t encoder = nil;
 
