@@ -16,7 +16,7 @@ RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
       command_recorder(device),
       swap_chain(device, command_recorder,
                  static_cast<const CAMetalLayer*>(render_window.GetWindowInfo().render_surface)),
-      rasterizer(gpu_, device, swap_chain) {}
+      rasterizer(gpu_, device, command_recorder, swap_chain) {}
 
 RendererMetal::~RendererMetal() = default;
 
@@ -25,9 +25,10 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
         return;
     }
 
-    // HACK
+    // Ask the swap chain to get next drawable
     swap_chain.AcquireNextDrawable();
 
+    // TODO: copy the framebuffer to the drawable texture instead of this dummy render pass
     MTLRenderPassDescriptor* render_pass_descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
     render_pass_descriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.5, 0.0, 1.0);
     render_pass_descriptor.colorAttachments[0].loadAction  = MTLLoadActionClear;
@@ -35,6 +36,7 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
     render_pass_descriptor.colorAttachments[0].texture = swap_chain.GetDrawableTexture();
 
     command_recorder.BeginRenderPass(render_pass_descriptor);
+
     swap_chain.Present();
     command_recorder.Submit();
 

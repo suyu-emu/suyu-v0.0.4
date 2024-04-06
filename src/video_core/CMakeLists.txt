@@ -377,7 +377,10 @@ if (APPLE)
         renderer_metal/mtl_command_recorder.mm
         renderer_metal/mtl_device.mm
         renderer_metal/mtl_rasterizer.mm
+        renderer_metal/mtl_staging_buffer_pool.mm
         renderer_metal/mtl_swap_chain.mm
+        renderer_metal/mtl_texture_cache.mm
+        renderer_metal/mtl_texture_cache_base.cpp
         renderer_metal/renderer_metal.mm
     )
 endif()

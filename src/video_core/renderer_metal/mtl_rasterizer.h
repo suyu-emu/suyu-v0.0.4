@@ -15,6 +15,7 @@ class System;
 namespace Metal {
 
 class Device;
+class CommandRecorder;
 class SwapChain;
 
 class RasterizerMetal;
@@ -37,7 +38,8 @@ public:
 class RasterizerMetal final : public VideoCore::RasterizerInterface,
                               protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
-    explicit RasterizerMetal(Tegra::GPU& gpu_, const Device& device_, const SwapChain& swap_chain_);
+    explicit RasterizerMetal(Tegra::GPU& gpu_, const Device& device_,
+                             CommandRecorder& command_recorder_, const SwapChain& swap_chain_);
     ~RasterizerMetal() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
@@ -91,9 +93,8 @@ private:
     AccelerateDMA accelerate_dma;
 
     const Device& device;
+    CommandRecorder& command_recorder;
     const SwapChain& swap_chain;
-
-    MTLCommandBuffer_t command_buffer;
 };
 
 } // namespace Metal

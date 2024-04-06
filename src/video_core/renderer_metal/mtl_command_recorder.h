@@ -18,6 +18,13 @@ public:
 
     void BeginRenderPass(MTLRenderPassDescriptor* render_pass_descriptor);
 
+    void CheckIfRenderPassIsActive() {
+        if (!encoder || encoder_type != EncoderType::Render) {
+            throw std::runtime_error(
+                "Trying to perform render command, but render pass is not active");
+        }
+    }
+
     void RequireComputeEncoder();
 
     void RequireBlitEncoder();

@@ -49,10 +49,12 @@ void CommandRecorder::Present(CAMetalDrawable_t drawable) {
 }
 
 void CommandRecorder::Submit() {
-    EndEncoding();
-    [command_buffer commit];
-    [command_buffer release];
-    command_buffer = nil;
+    if (command_buffer) {
+        EndEncoding();
+        [command_buffer commit];
+        [command_buffer release];
+        command_buffer = nil;
+    }
 }
 
 void CommandRecorder::RequireCommandBuffer() {

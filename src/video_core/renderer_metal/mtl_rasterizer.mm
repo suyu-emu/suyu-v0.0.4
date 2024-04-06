@@ -8,8 +8,9 @@
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_metal/mtl_rasterizer.h"
+#include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
+#include "video_core/renderer_metal/mtl_rasterizer.h"
 
 #include <iostream>
 
@@ -24,11 +25,14 @@ bool AccelerateDMA::BufferClear(GPUVAddr src_address, u64 amount, u32 value) {
     return true;
 }
 
-RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_, const Device& device_, const SwapChain& swap_chain_)
-    : gpu{gpu_}, device{device_}, swap_chain{swap_chain_} {}
+RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_, const Device& device_,
+                                 CommandRecorder& command_recorder_, const SwapChain& swap_chain_)
+    : gpu{gpu_}, device{device_}, command_recorder{command_recorder_}, swap_chain{swap_chain_} {}
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
+    // TODO: uncomment
+    //command_recorder.CheckIfRenderPassIsActive();
     //const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (is_indexed) {
         std::cout << "DrawIndexed" << std::endl;
