@@ -374,6 +374,8 @@ if (APPLE)
     )
 
     list(APPEND sources
+        renderer_metal/mtl_buffer_cache.mm
+        renderer_metal/mtl_buffer_cache_base.cpp
         renderer_metal/mtl_command_recorder.mm
         renderer_metal/mtl_device.mm
         renderer_metal/mtl_rasterizer.mm
