@@ -372,6 +372,17 @@ if (APPLE)
         renderer_opengl/util_shaders.cpp
         renderer_opengl/util_shaders.h
     )
+
+    list(APPEND sources
+        renderer_metal/mtl_command_recorder.mm
+        renderer_metal/mtl_device.mm
+        renderer_metal/mtl_rasterizer.mm
+        renderer_metal/mtl_staging_buffer_pool.mm
+        renderer_metal/mtl_swap_chain.mm
+        renderer_metal/mtl_texture_cache.mm
+        renderer_metal/mtl_texture_cache_base.cpp
+        renderer_metal/renderer_metal.mm
+    )
 endif()
 
 add_library(video_core STATIC ${sources})

@@ -331,6 +331,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(RendererBackend, OpenGL, tr("OpenGL")),
 #endif
                               PAIR(RendererBackend, Vulkan, tr("Vulkan")),
+#ifdef __APPLE__
+                              PAIR(RendererBackend, Metal, tr("Metal")),
+#endif
                               PAIR(RendererBackend, Null, tr("Null")),
                           }});
     translations->insert(

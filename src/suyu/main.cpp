@@ -3800,6 +3800,8 @@ void GMainWindow::OnToggleGraphicsAPI() {
     } else {
 #ifdef HAS_OPENGL
         api = Settings::RendererBackend::OpenGL;
+#elif __APPLE__
+        api = Settings::RendererBackend::Metal;
 #else
         api = Settings::RendererBackend::Null;
 #endif

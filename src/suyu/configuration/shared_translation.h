@@ -56,6 +56,9 @@ static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map = {
 static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map = {
     {Settings::RendererBackend::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Vulkan"))},
     {Settings::RendererBackend::OpenGL, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL"))},
+#ifdef __APPLE__
+    {Settings::RendererBackend::Metal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Metal"))},
+#endif
     {Settings::RendererBackend::Null, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Null"))},
 };
 

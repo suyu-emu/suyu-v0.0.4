@@ -277,6 +277,14 @@ struct VulkanRenderWidget : public RenderWidget {
     }
 };
 
+struct MetalRenderWidget : public RenderWidget {
+    explicit MetalRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
+        // HACK: manually resize the renderable area
+        resize(600, 400);
+        windowHandle()->setSurfaceType(QWindow::MetalSurface);
+    }
+};
+
 struct NullRenderWidget : public RenderWidget {
     explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
 };
@@ -284,8 +292,8 @@ struct NullRenderWidget : public RenderWidget {
 GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
                              std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
                              Core::System& system_)
-    : QWidget(parent),
-      emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)}, system{system_} {
+    : QWidget(parent), emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)},
+      system{system_} {
     setWindowTitle(QStringLiteral("suyu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
@@ -933,6 +941,13 @@ bool GRenderWindow::InitRenderTarget() {
             return false;
         }
         break;
+#ifdef __APPLE__
+    case Settings::RendererBackend::Metal:
+        if (!InitializeMetal()) {
+            return false;
+        }
+        break;
+#endif
     case Settings::RendererBackend::Null:
         InitializeNull();
         break;
@@ -1041,6 +1056,15 @@ bool GRenderWindow::InitializeOpenGL() {
 
 bool GRenderWindow::InitializeVulkan() {
     auto child = new VulkanRenderWidget(this);
+    child_widget = child;
+    child_widget->windowHandle()->create();
+    main_context = std::make_unique<DummyContext>();
+
+    return true;
+}
+
+bool GRenderWindow::InitializeMetal() {
+    auto child = new MetalRenderWidget(this);
     child_widget = child;
     child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
