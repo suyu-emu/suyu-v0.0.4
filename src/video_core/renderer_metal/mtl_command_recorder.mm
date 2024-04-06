@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "video_core/renderer_metal/mtl_command_recorder.h"
