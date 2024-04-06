@@ -20,6 +20,7 @@ public:
 
     void Present();
 
+    // Can only be called between AcquireNextDrawable and Present
     MTLTexture_t GetDrawableTexture();
 
 private:

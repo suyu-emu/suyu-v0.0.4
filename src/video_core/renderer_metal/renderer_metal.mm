@@ -37,6 +37,7 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
     render_pass_descriptor.colorAttachments[0].texture = swap_chain.GetDrawableTexture();
 
     command_recorder.BeginRenderPass(render_pass_descriptor);
+    command_recorder.EndEncoding();
 
     swap_chain.Present();
     command_recorder.Submit();

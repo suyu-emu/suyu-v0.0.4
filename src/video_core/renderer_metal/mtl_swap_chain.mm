@@ -15,21 +15,17 @@ SwapChain::SwapChain(const Device& device_, CommandRecorder& command_recorder_,
 }
 
 SwapChain::~SwapChain() {
-    if (drawable) {
-        // TODO: should drawable be released?
-        [drawable release];
-    }
     [layer release];
 }
 
 void SwapChain::AcquireNextDrawable() {
     // Get the next drawable
-    drawable = [layer nextDrawable];
+    drawable = [[layer nextDrawable] retain];
 }
 
 void SwapChain::Present() {
-    command_recorder.EndEncoding();
     command_recorder.Present(drawable);
+    [drawable release];
 }
 
 MTLTexture_t SwapChain::GetDrawableTexture() {

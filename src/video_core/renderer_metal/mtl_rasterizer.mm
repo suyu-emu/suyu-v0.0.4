@@ -43,7 +43,7 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
     //command_recorder.CheckIfRenderPassIsActive();
     //const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (is_indexed) {
-        std::cout << "DrawIndexed" << std::endl;
+        std::cout << "Draw indexed" << std::endl;
         /*[command_buffer drawIndexedPrimitives:MTLPrimitiveTypeTriangle
                                    indexCount:draw_params.num_indices
                                     indexType:MTLIndexTypeUInt32
@@ -61,8 +61,24 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
         //            draw_params.base_vertex, draw_params.base_instance);
     }
 }
-void RasterizerMetal::DrawTexture() {}
-void RasterizerMetal::Clear(u32 layer_count) {}
+
+void RasterizerMetal::DrawTexture() {
+    std::cout << "Draw texture" << std::endl;
+}
+
+void RasterizerMetal::Clear(u32 layer_count) {
+    std::cout << "Clear" << std::endl;
+
+    texture_cache.UpdateRenderTargets(true);
+    const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
+    if (!framebuffer) {
+        return;
+    }
+
+    // Begin render pass
+    command_recorder.BeginRenderPass(framebuffer->GetHandle());
+}
+
 void RasterizerMetal::DispatchCompute() {}
 void RasterizerMetal::ResetCounter(VideoCommon::QueryType type) {}
 void RasterizerMetal::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
@@ -135,12 +151,15 @@ void RasterizerMetal::LoadDiskResources(u64 title_id, std::stop_token stop_loadi
                                         const VideoCore::DiskResourceLoadCallback& callback) {}
 void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
     CreateChannel(channel);
+    texture_cache.CreateChannel(channel);
 }
 void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
     BindToChannel(channel.bind_id);
+    texture_cache.BindToChannel(channel.bind_id);
 }
 void RasterizerMetal::ReleaseChannel(s32 channel_id) {
     EraseChannel(channel_id);
+    texture_cache.EraseChannel(channel_id);
 }
 
 } // namespace Metal

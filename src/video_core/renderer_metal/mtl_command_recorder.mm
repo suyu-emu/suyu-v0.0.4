@@ -40,7 +40,7 @@ void CommandRecorder::RequireBlitEncoder() {
 void CommandRecorder::EndEncoding() {
     if (encoder) {
         [encoder endEncoding];
-        [encoder release];
+        //[encoder release];
         encoder = nil;
     }
 }
@@ -53,7 +53,7 @@ void CommandRecorder::Submit() {
     if (command_buffer) {
         EndEncoding();
         [command_buffer commit];
-        [command_buffer release];
+        //[command_buffer release];
         command_buffer = nil;
     }
 }
