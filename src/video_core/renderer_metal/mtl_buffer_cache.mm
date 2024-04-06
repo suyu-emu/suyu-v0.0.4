@@ -25,7 +25,9 @@ BoundBuffer::BoundBuffer(MTLBuffer_t buffer_, size_t offset_, size_t size_)
     : buffer{[buffer_ retain]}, offset{offset_}, size{size_} {}
 
 BoundBuffer::~BoundBuffer() {
-    [buffer release];
+    if (buffer) {
+        [buffer release];
+    }
 }
 
 BufferView::BufferView(MTLBuffer_t buffer_, size_t offset_, size_t size_,
