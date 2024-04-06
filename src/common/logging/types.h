@@ -116,6 +116,7 @@ enum class Class : u8 {
     Render_Software,    ///< Software renderer backend
     Render_OpenGL,      ///< OpenGL backend
     Render_Vulkan,      ///< Vulkan backend
+    Render_Metal,       ///< Metal backend
     Shader,             ///< Shader recompiler
     Shader_SPIRV,       ///< Shader SPIR-V code generation
     Shader_GLASM,       ///< Shader GLASM code generation
