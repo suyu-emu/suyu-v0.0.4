@@ -184,6 +184,11 @@ else()
     endif()
 endif()
 
+if (APPLE)
+    # TODO: use target_link_libraries
+    include_directories(${CMAKE_SOURCE_DIR}/externals/metal-cpp)
+endif()
+
 add_subdirectory(common)
 add_subdirectory(core)
 add_subdirectory(audio_core)

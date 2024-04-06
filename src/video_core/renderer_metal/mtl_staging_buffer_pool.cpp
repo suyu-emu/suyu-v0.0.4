@@ -18,18 +18,18 @@
 
 namespace Metal {
 
-StagingBufferRef::StagingBufferRef(MTLBuffer_t buffer_, size_t offset_, std::span<u8> mapped_span_)
-    : buffer{[buffer_ retain]}, offset{offset_}, mapped_span{mapped_span_} {}
+StagingBufferRef::StagingBufferRef(MTL::Buffer* buffer_, size_t offset_, std::span<u8> mapped_span_)
+    : buffer{buffer_->retain()}, offset{offset_}, mapped_span{mapped_span_} {}
 
 StagingBufferRef::~StagingBufferRef() {
-    [buffer release];
+    buffer->release();
 }
 
-StagingBuffer::StagingBuffer(MTLBuffer_t buffer_, std::span<u8> mapped_span_)
-    : buffer{[buffer_ retain]}, mapped_span{mapped_span_} {}
+StagingBuffer::StagingBuffer(MTL::Buffer* buffer_, std::span<u8> mapped_span_)
+    : buffer{buffer_->retain()}, mapped_span{mapped_span_} {}
 
 StagingBuffer::~StagingBuffer() {
-    [buffer release];
+    buffer->release();
 }
 
 StagingBufferRef StagingBuffer::Ref() const noexcept {
@@ -37,13 +37,13 @@ StagingBufferRef StagingBuffer::Ref() const noexcept {
 }
 
 // TODO: use the _MiB suffix
-constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;//128_MiB;
+constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024; // 128_MiB;
 constexpr size_t REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS;
 
 StagingBufferPool::StagingBufferPool(const Device& device_, CommandRecorder& command_recorder_)
     : device{device_}, command_recorder{command_recorder_} {
-    stream_buffer = [device.GetDevice() newBufferWithLength:STREAM_BUFFER_SIZE
-                                                    options:MTLResourceStorageModeShared];
+    stream_buffer =
+        device.GetDevice()->newBuffer(STREAM_BUFFER_SIZE, MTL::ResourceStorageModeShared);
 }
 
 StagingBufferPool::~StagingBufferPool() = default;
@@ -57,7 +57,7 @@ StagingBufferRef StagingBufferPool::Request(size_t size, MemoryUsage usage, bool
 }
 
 void StagingBufferPool::FreeDeferred(StagingBufferRef& ref) {
-   // TODO: implement this
+    // TODO: implement this
 }
 
 void StagingBufferPool::TickFrame() {
@@ -83,10 +83,9 @@ StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage us
 StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage usage,
                                                         bool deferred) {
     const u32 log2 = Common::Log2Ceil64(size);
-    MTLBuffer_t buffer = [device.GetDevice() newBufferWithLength:size
-                                                         options:MTLResourceStorageModeShared];
+    MTL::Buffer* buffer = device.GetDevice()->newBuffer(size, MTL::ResourceStorageModeShared);
     // TODO: check if the mapped span is correct
-    std::span<u8> mapped_span(static_cast<u8*>([buffer contents]), size);
+    std::span<u8> mapped_span(static_cast<u8*>(buffer->contents()), size);
     auto& entry = GetCache(usage)[log2].entries.emplace_back(buffer, mapped_span);
 
     return entry.Ref();

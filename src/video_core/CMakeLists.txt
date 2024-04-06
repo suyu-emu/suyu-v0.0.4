@@ -374,16 +374,17 @@ if (APPLE)
     )
 
     list(APPEND sources
-        renderer_metal/mtl_buffer_cache.mm
+        renderer_metal/metal_cpp_impl.cpp
+        renderer_metal/mtl_buffer_cache.cpp
         renderer_metal/mtl_buffer_cache_base.cpp
-        renderer_metal/mtl_command_recorder.mm
-        renderer_metal/mtl_device.mm
-        renderer_metal/mtl_rasterizer.mm
-        renderer_metal/mtl_staging_buffer_pool.mm
-        renderer_metal/mtl_swap_chain.mm
-        renderer_metal/mtl_texture_cache.mm
+        renderer_metal/mtl_command_recorder.cpp
+        renderer_metal/mtl_device.cpp
+        renderer_metal/mtl_rasterizer.cpp
+        renderer_metal/mtl_staging_buffer_pool.cpp
+        renderer_metal/mtl_swap_chain.cpp
+        renderer_metal/mtl_texture_cache.cpp
         renderer_metal/mtl_texture_cache_base.cpp
-        renderer_metal/renderer_metal.mm
+        renderer_metal/renderer_metal.cpp
     )
 endif()
 
@@ -403,10 +404,6 @@ target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
 target_link_libraries(video_core PRIVATE sirit Vulkan::Headers Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
-
-if (APPLE)
-    target_include_directories(video_core PRIVATE ${CMAKE_SOURCE_DIR}/externals/metal-cpp)
-endif()
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})

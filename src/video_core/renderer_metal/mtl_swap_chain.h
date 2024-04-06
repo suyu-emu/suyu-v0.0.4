@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "video_core/renderer_metal/objc_bridge.h"
+#include <Metal/Metal.hpp>
+#include <QuartzCore/QuartzCore.hpp>
 
 namespace Metal {
 
@@ -12,8 +13,7 @@ class CommandRecorder;
 
 class SwapChain {
 public:
-    SwapChain(const Device& device_, CommandRecorder& command_recorder_,
-              const CAMetalLayer* layer_);
+    SwapChain(const Device& device_, CommandRecorder& command_recorder_, CA::MetalLayer* layer_);
     ~SwapChain();
 
     void AcquireNextDrawable();
@@ -21,14 +21,14 @@ public:
     void Present();
 
     // Can only be called between AcquireNextDrawable and Present
-    MTLTexture_t GetDrawableTexture();
+    MTL::Texture* GetDrawableTexture();
 
 private:
     const Device& device;
     CommandRecorder& command_recorder;
-    const CAMetalLayer* layer;
+    CA::MetalLayer* layer;
 
-    CAMetalDrawable_t drawable = nil;
+    CA::MetalDrawable* drawable = nil;
 };
 
 } // namespace Metal

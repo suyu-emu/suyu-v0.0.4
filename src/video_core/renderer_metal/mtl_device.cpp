@@ -6,19 +6,19 @@
 namespace Metal {
 
 Device::Device() {
-    device = MTLCreateSystemDefaultDevice();
+    device = MTL::CreateSystemDefaultDevice();
     if (!device) {
         throw std::runtime_error("Failed to create Metal device");
     }
-    command_queue = [device newCommandQueue];
+    command_queue = device->newCommandQueue();
     if (!command_queue) {
         throw std::runtime_error("Failed to create Metal command queue");
     }
 }
 
 Device::~Device() {
-    [command_queue release];
-    [device release];
+    command_queue->release();
+    device->release();
 }
 
 } // namespace Metal

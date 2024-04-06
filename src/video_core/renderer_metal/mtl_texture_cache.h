@@ -5,12 +5,13 @@
 
 #include <span>
 
+#include <Metal/Metal.hpp>
+
 #include "mtl_staging_buffer_pool.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_metal/mtl_staging_buffer_pool.h"
-#include "video_core/renderer_metal/objc_bridge.h"
 #include "video_core/texture_cache/image_view_base.h"
 
 namespace Settings {
@@ -127,21 +128,17 @@ public:
     Image(Image&&) = default;
     Image& operator=(Image&&) = default;
 
-    void UploadMemory(MTLBuffer_t buffer, size_t offset,
+    void UploadMemory(MTL::Buffer* buffer, size_t offset,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
     void UploadMemory(const StagingBufferRef& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void DownloadMemory(MTLBuffer_t buffer, size_t offset,
+    void DownloadMemory(MTL::Buffer* buffer, size_t offset,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
-    // For some reason, this function cannot be defined in the .mm file since it would report
-    // undefined symbols
-    void DownloadMemory(std::span<MTLBuffer_t> buffers, std::span<size_t> offsets,
-                        std::span<const VideoCommon::BufferImageCopy> copies) {
-        // TODO: implement
-    }
+    void DownloadMemory(std::span<MTL::Buffer*> buffers, std::span<size_t> offsets,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(const StagingBufferRef& map,
                         std::span<const VideoCommon::BufferImageCopy> copies);
@@ -160,12 +157,12 @@ public:
         return true;
     }
 
-    MTLTexture_t GetHandle() const noexcept {
+    MTL::Texture* GetHandle() const noexcept {
         return texture;
     }
 
 private:
-    MTLTexture_t texture = nil;
+    MTL::Texture* texture = nil;
     bool initialized = false;
 
     bool rescaled = false;
@@ -188,12 +185,12 @@ public:
     ImageView(ImageView&&) = default;
     ImageView& operator=(ImageView&&) = default;
 
-    MTLTexture_t GetHandle() const noexcept {
+    MTL::Texture* GetHandle() const noexcept {
         return texture;
     }
 
 private:
-    MTLTexture_t texture;
+    MTL::Texture* texture;
 };
 
 class ImageAlloc : public VideoCommon::ImageAllocBase {};
@@ -202,12 +199,12 @@ class Sampler {
 public:
     explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
 
-    MTLSamplerState_t GetHandle() const noexcept {
+    MTL::SamplerState* GetHandle() const noexcept {
         return sampler_state;
     }
 
 private:
-    MTLSamplerState_t sampler_state;
+    MTL::SamplerState* sampler_state;
 };
 
 class Framebuffer {
@@ -227,12 +224,12 @@ public:
                                     ImageView* depth_buffer, bool is_rescaled, size_t width,
                                     size_t height);
 
-    MTLRenderPassDescriptor* GetHandle() const noexcept {
+    MTL::RenderPassDescriptor* GetHandle() const noexcept {
         return render_pass;
     }
 
 private:
-    MTLRenderPassDescriptor* render_pass{};
+    MTL::RenderPassDescriptor* render_pass{};
 };
 
 struct TextureCacheParams {
@@ -249,7 +246,7 @@ struct TextureCacheParams {
     using Sampler = Metal::Sampler;
     using Framebuffer = Metal::Framebuffer;
     using AsyncBuffer = Metal::StagingBufferRef;
-    using BufferType = MTLBuffer_t;
+    using BufferType = MTL::Buffer*;
 };
 
 using TextureCache = VideoCommon::TextureCache<TextureCacheParams>;

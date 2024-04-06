@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "video_core/renderer_metal/objc_bridge.h"
+#include <Foundation/Foundation.hpp>
+#include <Metal/Metal.hpp>
+#include <QuartzCore/QuartzCore.hpp>
 
 namespace Metal {
 
@@ -12,17 +14,17 @@ public:
     explicit Device();
     ~Device();
 
-    MTLDevice_t GetDevice() const {
+    MTL::Device* GetDevice() const {
         return device;
     }
 
-    MTLCommandQueue_t GetCommandQueue() const {
+    MTL::CommandQueue* GetCommandQueue() const {
         return command_queue;
     }
 
 private:
-    MTLDevice_t device;
-    MTLCommandQueue_t command_queue;
+    MTL::Device* device;
+    MTL::CommandQueue* command_queue;
 };
 
 } // namespace Metal

@@ -15,37 +15,36 @@ namespace Metal {
 
 namespace {
 
-MTLBuffer_t CreatePrivateBuffer(const Device& device, size_t size) {
-    return [device.GetDevice() newBufferWithLength:size options:MTLResourceStorageModePrivate];
+MTL::Buffer* CreatePrivateBuffer(const Device& device, size_t size) {
+    return device.GetDevice()->newBuffer(size, MTL::ResourceStorageModePrivate);
 }
 
 } // Anonymous namespace
 
-BoundBuffer::BoundBuffer(MTLBuffer_t buffer_, size_t offset_, size_t size_)
-    : buffer{[buffer_ retain]}, offset{offset_}, size{size_} {}
+BoundBuffer::BoundBuffer(MTL::Buffer* buffer_, size_t offset_, size_t size_)
+    : buffer{buffer_->retain()}, offset{offset_}, size{size_} {}
 
 BoundBuffer::~BoundBuffer() {
     if (buffer) {
-        [buffer release];
+        buffer->release();
     }
 }
 
-BufferView::BufferView(MTLBuffer_t buffer_, size_t offset_, size_t size_,
+BufferView::BufferView(MTL::Buffer* buffer_, size_t offset_, size_t size_,
                        VideoCore::Surface::PixelFormat format_)
-    : buffer{[buffer_ retain]}, offset{offset_}, size{size_}, format{format_} {}
+    : buffer{buffer_->retain()}, offset{offset_}, size{size_}, format{format_} {}
 
 BufferView::~BufferView() {
-    [buffer release];
+    buffer->release();
 }
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase(null_params), buffer{runtime.CreateNullBuffer()},
-      is_null{true}, view(buffer, 0, BufferCacheRuntime::NULL_BUFFER_SIZE) {}
+    : VideoCommon::BufferBase(null_params), buffer{runtime.CreateNullBuffer()}, is_null{true},
+      view(buffer, 0, BufferCacheRuntime::NULL_BUFFER_SIZE) {}
 
 Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase(cpu_addr_, size_bytes_),
-      buffer{CreatePrivateBuffer(runtime.device, size_bytes_)},
-      view(buffer, 0, size_bytes_) {}
+      buffer{CreatePrivateBuffer(runtime.device, size_bytes_)}, view(buffer, 0, size_bytes_) {}
 
 BufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format) {
     return BufferView(buffer, offset, size, format);
@@ -78,18 +77,18 @@ void BufferCacheRuntime::TickFrame(Common::SlotVector<Buffer>& slot_buffers) noe
 
 void BufferCacheRuntime::Finish() {}
 
-void BufferCacheRuntime::CopyBuffer(MTLBuffer_t dst_buffer, MTLBuffer_t src_buffer,
+void BufferCacheRuntime::CopyBuffer(MTL::Buffer* dst_buffer, MTL::Buffer* src_buffer,
                                     std::span<const VideoCommon::BufferCopy> copies, bool barrier,
                                     bool can_reorder_upload) {
     // TODO: copy buffer
 }
 
-void BufferCacheRuntime::ClearBuffer(MTLBuffer_t dest_buffer, u32 offset, size_t size, u32 value) {
+void BufferCacheRuntime::ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_t size, u32 value) {
     // TODO: clear buffer
 }
 
 void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat index_format,
-                                         u32 base_vertex, u32 num_indices, MTLBuffer_t buffer,
+                                         u32 base_vertex, u32 num_indices, MTL::Buffer* buffer,
                                          u32 offset, [[maybe_unused]] u32 size) {
     // TODO: convert parameters to Metal enums
     bound_index_buffer = {BoundBuffer(buffer, offset, size)};
@@ -99,7 +98,7 @@ void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 fir
     // TODO: bind quad index buffer
 }
 
-void BufferCacheRuntime::BindVertexBuffer(u32 index, MTLBuffer_t buffer, u32 offset, u32 size,
+void BufferCacheRuntime::BindVertexBuffer(u32 index, MTL::Buffer* buffer, u32 offset, u32 size,
                                           u32 stride) {
     // TODO: use stride
     bound_vertex_buffers[MAX_METAL_BUFFERS - index - 1] = {BoundBuffer(buffer, offset, size)};
@@ -115,9 +114,8 @@ void BufferCacheRuntime::ReserveNullBuffer() {
     }
 }
 
-MTLBuffer_t BufferCacheRuntime::CreateNullBuffer() {
-    return [device.GetDevice() newBufferWithLength:NULL_BUFFER_SIZE
-                                           options:MTLResourceStorageModePrivate];
+MTL::Buffer* BufferCacheRuntime::CreateNullBuffer() {
+    return CreatePrivateBuffer(device, NULL_BUFFER_SIZE);
 }
 
-} // namespace Vulkan
+} // namespace Metal

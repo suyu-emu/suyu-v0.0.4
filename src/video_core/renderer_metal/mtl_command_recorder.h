@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "objc_bridge.h"
-#include "video_core/renderer_metal/objc_bridge.h"
+#include <Metal/Metal.hpp>
+#include <QuartzCore/QuartzCore.hpp>
 
 namespace Metal {
 
@@ -17,7 +17,7 @@ public:
     CommandRecorder(const Device& device_);
     ~CommandRecorder();
 
-    void BeginRenderPass(MTLRenderPassDescriptor* render_pass_descriptor);
+    void BeginRenderPass(MTL::RenderPassDescriptor* render_pass_descriptor);
 
     void CheckIfRenderPassIsActive() {
         if (!encoder || encoder_type != EncoderType::Render) {
@@ -32,15 +32,15 @@ public:
 
     void EndEncoding();
 
-    void Present(CAMetalDrawable_t drawable);
+    void Present(CA::MetalDrawable* drawable);
 
     void Submit();
 
-    MTLCommandBuffer_t GetCommandBuffer() {
+    MTL::CommandBuffer* GetCommandBuffer() {
         return command_buffer;
     }
 
-    MTLCommandEncoder_t GetCommandEncoder() {
+    MTL::CommandEncoder* GetCommandEncoder() {
         return encoder;
     }
 
@@ -49,8 +49,8 @@ private:
 
     // HACK: Command buffers and encoders currently aren't released every frame due to Xcode
     // crashing in Debug mode. This leads to memory leaks
-    MTLCommandBuffer_t command_buffer = nil;
-    MTLCommandEncoder_t encoder = nil;
+    MTL::CommandBuffer* command_buffer = nil;
+    MTL::CommandEncoder* encoder = nil;
 
     EncoderType encoder_type;
 

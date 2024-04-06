@@ -19,21 +19,21 @@ class BufferCacheRuntime;
 
 struct BoundBuffer {
     BoundBuffer() = default;
-    BoundBuffer(MTLBuffer_t buffer_, size_t offset_, size_t size_);
+    BoundBuffer(MTL::Buffer* buffer_, size_t offset_, size_t size_);
 
     ~BoundBuffer();
 
-    MTLBuffer_t buffer = nil;
+    MTL::Buffer* buffer = nil;
     size_t offset{};
     size_t size{};
 };
 
 struct BufferView {
-    BufferView(MTLBuffer_t buffer_, size_t offset_, size_t size_,
+    BufferView(MTL::Buffer* buffer_, size_t offset_, size_t size_,
                VideoCore::Surface::PixelFormat format_ = VideoCore::Surface::PixelFormat::Invalid);
     ~BufferView();
 
-    MTLBuffer_t buffer = nil;
+    MTL::Buffer* buffer = nil;
     size_t offset{};
     size_t size{};
     VideoCore::Surface::PixelFormat format{};
@@ -50,16 +50,16 @@ public:
         // TODO: track usage
     }
 
-    [[nodiscard]] MTLBuffer_t Handle() const noexcept {
+    [[nodiscard]] MTL::Buffer* Handle() const noexcept {
         return buffer;
     }
 
-    operator MTLBuffer_t() const noexcept {
+    operator MTL::Buffer*() const noexcept {
         return buffer;
     }
 
 private:
-    MTLBuffer_t buffer = nil;
+    MTL::Buffer* buffer = nil;
     bool is_null{};
 
     BufferView view;
@@ -108,25 +108,25 @@ public:
 
     void PreCopyBarrier() {}
 
-    void CopyBuffer(MTLBuffer_t src_buffer, MTLBuffer_t dst_buffer,
+    void CopyBuffer(MTL::Buffer* src_buffer, MTL::Buffer* dst_buffer,
                     std::span<const VideoCommon::BufferCopy> copies, bool barrier,
                     bool can_reorder_upload = false);
 
     void PostCopyBarrier() {}
 
-    void ClearBuffer(MTLBuffer_t dest_buffer, u32 offset, size_t size, u32 value);
+    void ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_t size, u32 value);
 
     void BindIndexBuffer(PrimitiveTopology topology, IndexFormat index_format, u32 num_indices,
-                         u32 base_vertex, MTLBuffer_t buffer, u32 offset, u32 size);
+                         u32 base_vertex, MTL::Buffer* buffer, u32 offset, u32 size);
 
     void BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count);
 
-    void BindVertexBuffer(u32 index, MTLBuffer_t buffer, u32 offset, u32 size, u32 stride);
+    void BindVertexBuffer(u32 index, MTL::Buffer* buffer, u32 offset, u32 size, u32 stride);
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
     // TODO: implement
-    void BindTransformFeedbackBuffer(u32 index, MTLBuffer_t buffer, u32 offset, u32 size) {}
+    void BindTransformFeedbackBuffer(u32 index, MTL::Buffer* buffer, u32 offset, u32 size) {}
 
     // TODO: implement
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings) {}
@@ -138,11 +138,11 @@ public:
         return ref.mapped_span;
     }
 
-    void BindUniformBuffer(MTLBuffer_t buffer, u32 offset, u32 size) {
+    void BindUniformBuffer(MTL::Buffer* buffer, u32 offset, u32 size) {
         BindBuffer(buffer, offset, size);
     }
 
-    void BindStorageBuffer(MTLBuffer_t buffer, u32 offset, u32 size,
+    void BindStorageBuffer(MTL::Buffer* buffer, u32 offset, u32 size,
                            [[maybe_unused]] bool is_written) {
         BindBuffer(buffer, offset, size);
     }
@@ -152,21 +152,21 @@ public:
                            VideoCore::Surface::PixelFormat format) {}
 
 private:
-    void BindBuffer(MTLBuffer_t buffer, u32 offset, u32 size) {
+    void BindBuffer(MTL::Buffer* buffer, u32 offset, u32 size) {
         // FIXME: what should be the index?
         bound_buffers[0] = BoundBuffer(buffer, offset, size);
     }
 
     void ReserveNullBuffer();
-    MTLBuffer_t CreateNullBuffer();
+    MTL::Buffer* CreateNullBuffer();
 
     const Device& device;
     CommandRecorder& command_recorder;
     StagingBufferPool& staging_pool;
 
     // Common buffers
-    MTLBuffer_t null_buffer = nil;
-    MTLBuffer_t quad_index_buffer = nil;
+    MTL::Buffer* null_buffer = nil;
+    MTL::Buffer* quad_index_buffer = nil;
 
     // TODO: probably move this into a separate class
     // Bound state

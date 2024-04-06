@@ -8,28 +8,28 @@
 namespace Metal {
 
 SwapChain::SwapChain(const Device& device_, CommandRecorder& command_recorder_,
-    const CAMetalLayer* layer_)
-    : device(device_), command_recorder(command_recorder_), layer([layer_ retain]) {
+                     CA::MetalLayer* layer_)
+    : device(device_), command_recorder(command_recorder_), layer(layer_->retain()) {
     // Give the layer our device
-    layer.device = device.GetDevice();
+    layer->setDevice(device.GetDevice());
 }
 
 SwapChain::~SwapChain() {
-    [layer release];
+    layer->release();
 }
 
 void SwapChain::AcquireNextDrawable() {
     // Get the next drawable
-    drawable = [[layer nextDrawable] retain];
+    drawable = layer->nextDrawable()->retain();
 }
 
 void SwapChain::Present() {
     command_recorder.Present(drawable);
-    [drawable release];
+    drawable->release();
 }
 
-MTLTexture_t SwapChain::GetDrawableTexture() {
-    return drawable.texture;
+MTL::Texture* SwapChain::GetDrawableTexture() {
+    return drawable->texture();
 }
 
 } // namespace Metal

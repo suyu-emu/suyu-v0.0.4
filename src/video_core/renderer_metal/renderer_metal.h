@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 
-#include "objc_bridge.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_metal/mtl_command_recorder.h"

@@ -7,10 +7,9 @@
 #include <span>
 #include <vector>
 
-#include "common/common_types.h"
+#include <Metal/Metal.hpp>
 
-#include "objc_bridge.h"
-#include "video_core/renderer_metal/objc_bridge.h"
+#include "common/common_types.h"
 
 namespace Metal {
 
@@ -24,19 +23,19 @@ enum class MemoryUsage {
 };
 
 struct StagingBufferRef {
-    StagingBufferRef(MTLBuffer_t buffer_, size_t offset_, std::span<u8> mapped_span_);
+    StagingBufferRef(MTL::Buffer* buffer_, size_t offset_, std::span<u8> mapped_span_);
     ~StagingBufferRef();
 
-    MTLBuffer_t buffer;
+    MTL::Buffer* buffer;
     size_t offset;
     std::span<u8> mapped_span;
 };
 
 struct StagingBuffer {
-    StagingBuffer(MTLBuffer_t buffer_, std::span<u8> mapped_span_);
+    StagingBuffer(MTL::Buffer* buffer_, std::span<u8> mapped_span_);
     ~StagingBuffer();
 
-    MTLBuffer_t buffer;
+    MTL::Buffer* buffer;
     std::span<u8> mapped_span;
 
     StagingBufferRef Ref() const noexcept;
@@ -52,7 +51,7 @@ public:
     StagingBufferRef Request(size_t size, MemoryUsage usage, bool deferred = false);
     void FreeDeferred(StagingBufferRef& ref);
 
-    [[nodiscard]] MTLBuffer_t GetSTreamBufferHandle() const noexcept {
+    [[nodiscard]] MTL::Buffer* GetSTreamBufferHandle() const noexcept {
         return stream_buffer;
     }
 
@@ -83,7 +82,7 @@ private:
     const Device& device;
     CommandRecorder& command_recorder;
 
-    MTLBuffer_t stream_buffer{};
+    MTL::Buffer* stream_buffer{};
 
     size_t iterator = 0;
     size_t used_iterator = 0;
