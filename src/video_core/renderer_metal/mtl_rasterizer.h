@@ -3,10 +3,11 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "mtl_texture_cache.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_metal/objc_bridge.h"
+#include "video_core/renderer_metal/mtl_texture_cache.h"
 
 namespace Core {
 class System;
@@ -17,6 +18,7 @@ namespace Metal {
 class Device;
 class CommandRecorder;
 class SwapChain;
+class TextureCacheRuntime;
 
 class RasterizerMetal;
 
@@ -38,8 +40,9 @@ public:
 class RasterizerMetal final : public VideoCore::RasterizerInterface,
                               protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
-    explicit RasterizerMetal(Tegra::GPU& gpu_, const Device& device_,
-                             CommandRecorder& command_recorder_, const SwapChain& swap_chain_);
+    explicit RasterizerMetal(Tegra::GPU& gpu_, Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                             const Device& device_, CommandRecorder& command_recorder_,
+                             const SwapChain& swap_chain_);
     ~RasterizerMetal() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
@@ -91,10 +94,15 @@ public:
 private:
     Tegra::GPU& gpu;
     AccelerateDMA accelerate_dma;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     const Device& device;
     CommandRecorder& command_recorder;
     const SwapChain& swap_chain;
+
+    StagingBufferPool staging_buffer_pool;
+    TextureCacheRuntime texture_cache_runtime;
+    TextureCache texture_cache;
 };
 
 } // namespace Metal

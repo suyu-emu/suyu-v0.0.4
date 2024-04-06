@@ -11,6 +11,7 @@
 #include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/mtl_rasterizer.h"
+#include "video_core/texture_cache/texture_cache_base.h"
 
 #include <iostream>
 
@@ -25,9 +26,15 @@ bool AccelerateDMA::BufferClear(GPUVAddr src_address, u64 amount, u32 value) {
     return true;
 }
 
-RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_, const Device& device_,
-                                 CommandRecorder& command_recorder_, const SwapChain& swap_chain_)
-    : gpu{gpu_}, device{device_}, command_recorder{command_recorder_}, swap_chain{swap_chain_} {}
+RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
+                                 Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                                 const Device& device_, CommandRecorder& command_recorder_,
+                                 const SwapChain& swap_chain_)
+    : gpu{gpu_}, device_memory{device_memory_}, device{device_},
+      command_recorder{command_recorder_}, swap_chain{swap_chain_},
+      staging_buffer_pool(device, command_recorder),
+      texture_cache_runtime(device, command_recorder, staging_buffer_pool),
+      texture_cache(texture_cache_runtime, device_memory) {}
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {

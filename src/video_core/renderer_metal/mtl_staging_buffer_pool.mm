@@ -42,7 +42,7 @@ constexpr size_t REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS
 StagingBufferPool::StagingBufferPool(const Device& device_, CommandRecorder& command_recorder_)
     : device{device_}, command_recorder{command_recorder_} {
     stream_buffer = [device.GetDevice() newBufferWithLength:STREAM_BUFFER_SIZE
-                                                    options:MTLResourceStorageModePrivate];
+                                                    options:MTLResourceStorageModeShared];
 }
 
 StagingBufferPool::~StagingBufferPool() = default;
@@ -83,7 +83,7 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage
                                                         bool deferred) {
     const u32 log2 = Common::Log2Ceil64(size);
     MTLBuffer_t buffer = [device.GetDevice() newBufferWithLength:size
-                                                         options:MTLResourceStorageModePrivate];
+                                                         options:MTLResourceStorageModeShared];
     // TODO: check if the mapped span is correct
     std::span<u8> mapped_span(static_cast<u8*>([buffer contents]), size);
     auto& entry = GetCache(usage)[log2].entries.emplace_back(buffer, mapped_span);

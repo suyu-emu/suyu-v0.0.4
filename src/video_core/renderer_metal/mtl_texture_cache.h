@@ -4,6 +4,7 @@
 
 #include <span>
 
+#include "mtl_staging_buffer_pool.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 
 #include "shader_recompiler/shader_info.h"
@@ -24,6 +25,7 @@ using VideoCommon::Region2D;
 using VideoCommon::RenderTargets;
 using VideoCore::Surface::PixelFormat;
 
+class CommandRecorder;
 class Device;
 class Image;
 class ImageView;
@@ -31,9 +33,13 @@ class Framebuffer;
 
 class TextureCacheRuntime {
 public:
-    explicit TextureCacheRuntime(const Device& device_);
+    explicit TextureCacheRuntime(const Device& device_, CommandRecorder& command_recorder_,
+                                 StagingBufferPool& staging_buffer_pool_);
 
-    void Finish();
+    // TODO: implement
+    void Finish() {}
+
+    void TickFrame();
 
     StagingBufferRef UploadStagingBuffer(size_t size);
 
@@ -45,35 +51,49 @@ public:
         return true;
     }
 
-    void TickFrame();
+    u64 GetDeviceLocalMemory() const {
+        return 0;
+    }
 
-    u64 GetDeviceLocalMemory() const;
+    u64 GetDeviceMemoryUsage() const {
+        return 0;
+    }
 
-    u64 GetDeviceMemoryUsage() const;
+    bool CanReportMemoryUsage() const {
+        return false;
+    }
 
-    bool CanReportMemoryUsage() const;
-
+    // TODO: implement
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
                    const Region2D& dst_region, const Region2D& src_region,
                    Tegra::Engines::Fermi2D::Filter filter,
-                   Tegra::Engines::Fermi2D::Operation operation);
+                   Tegra::Engines::Fermi2D::Operation operation) {}
 
-    void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+    // TODO: implement
+    void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies) {}
 
-    void CopyImageMSAA(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+    // TODO: implement
+    void CopyImageMSAA(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies) {}
 
-    bool ShouldReinterpret(Image& dst, Image& src);
+    bool ShouldReinterpret(Image& dst, Image& src) {
+        // HACK
+        return false;
+    }
 
-    void ReinterpretImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+    // TODO: implement
+    void ReinterpretImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies) {}
 
-    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view);
+    // TODO: implement
+    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view) {}
 
-    void InsertUploadMemoryBarrier();
+    // TODO: implement
+    void InsertUploadMemoryBarrier() {}
 
     void TransitionImageLayout(Image& image) {}
 
+    // TODO: implement
     void AccelerateImageUpload(Image&, const StagingBufferRef&,
-                               std::span<const VideoCommon::SwizzleParameters>);
+                               std::span<const VideoCommon::SwizzleParameters>) {}
 
     bool HasNativeBgr() const noexcept {
         return true;
@@ -83,9 +103,12 @@ public:
         return false;
     }
 
-    void BarrierFeedbackLoop();
+    // TODO: implement
+    void BarrierFeedbackLoop() {}
 
     const Device& device;
+    CommandRecorder& command_recorder;
+    StagingBufferPool& staging_buffer_pool;
     const Settings::ResolutionScalingInfo& resolution;
 };
 
@@ -112,25 +135,39 @@ public:
     void DownloadMemory(MTLBuffer_t buffer, size_t offset,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
+    // For some reason, this function cannot be defined in the .mm file since it would report
+    // undefined symbols
     void DownloadMemory(std::span<MTLBuffer_t> buffers, std::span<size_t> offsets,
-                        std::span<const VideoCommon::BufferImageCopy> copies);
+                        std::span<const VideoCommon::BufferImageCopy> copies) {
+        // TODO: implement
+    }
 
     void DownloadMemory(const StagingBufferRef& map,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
-    bool IsRescaled() const;
+    bool IsRescaled() const {
+        return rescaled;
+    }
 
-    bool ScaleUp(bool ignore = false);
+    bool ScaleUp(bool ignore = false) {
+        // HACK
+        return true;
+    }
 
-    bool ScaleDown(bool ignore = false);
+    bool ScaleDown(bool ignore = false) {
+        // HACK
+        return true;
+    }
 
     MTLTexture_t GetHandle() const noexcept {
         return texture;
     }
 
 private:
-    MTLTexture_t texture;
+    MTLTexture_t texture = nil;
     bool initialized = false;
+
+    bool rescaled = false;
 };
 
 class ImageView : public VideoCommon::ImageViewBase {

@@ -16,7 +16,7 @@ RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
       command_recorder(device),
       swap_chain(device, command_recorder,
                  static_cast<const CAMetalLayer*>(render_window.GetWindowInfo().render_surface)),
-      rasterizer(gpu_, device, command_recorder, swap_chain) {}
+      rasterizer(gpu_, device_memory, device, command_recorder, swap_chain) {}
 
 RendererMetal::~RendererMetal() = default;
 
