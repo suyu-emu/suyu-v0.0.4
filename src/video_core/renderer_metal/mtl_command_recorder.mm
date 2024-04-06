@@ -46,6 +46,7 @@ void CommandRecorder::EndEncoding() {
 }
 
 void CommandRecorder::Present(CAMetalDrawable_t drawable) {
+    EndEncoding();
     [command_buffer presentDrawable:drawable];
 }
 
