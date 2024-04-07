@@ -60,6 +60,10 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
         // cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
         //             draw_params.base_vertex, draw_params.base_instance);
     }
+
+    // HACK: test is buffers are being correctly created
+    buffer_cache.UpdateGraphicsBuffers(is_indexed);
+    buffer_cache.BindHostGeometryBuffers(is_indexed);
 }
 
 void RasterizerMetal::DrawTexture() {
@@ -238,6 +242,7 @@ void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
     LOG_DEBUG(Render_Metal, "called");
 
     CreateChannel(channel);
+    buffer_cache.CreateChannel(channel);
     texture_cache.CreateChannel(channel);
 }
 
@@ -245,6 +250,7 @@ void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
     LOG_DEBUG(Render_Metal, "called");
 
     BindToChannel(channel.bind_id);
+    buffer_cache.BindToChannel(channel.bind_id);
     texture_cache.BindToChannel(channel.bind_id);
 }
 
@@ -252,6 +258,7 @@ void RasterizerMetal::ReleaseChannel(s32 channel_id) {
     LOG_DEBUG(Render_Metal, "called");
 
     EraseChannel(channel_id);
+    buffer_cache.EraseChannel(channel_id);
     texture_cache.EraseChannel(channel_id);
 }
 
