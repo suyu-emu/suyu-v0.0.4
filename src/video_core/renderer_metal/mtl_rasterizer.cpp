@@ -41,6 +41,24 @@ RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
+    LOG_DEBUG(Render_Metal, "called");
+
+    // Bind the current graphics pipeline
+    GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
+    if (!pipeline) {
+        return;
+    }
+    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(
+        pipeline->GetPipelineState());
+
+    // HACK: test is buffers are being correctly created
+    buffer_cache.UpdateGraphicsBuffers(is_indexed);
+    buffer_cache.BindHostGeometryBuffers(is_indexed);
+
+    // HACK: dummy draw call
+    command_recorder.GetRenderCommandEncoder()->drawPrimitives(MTL::PrimitiveTypeTriangle,
+                                                               NS::UInteger(0), NS::UInteger(3));
+
     // TODO: uncomment
     // command_recorder.CheckIfRenderPassIsActive();
     // const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
@@ -62,10 +80,6 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
         // cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
         //             draw_params.base_vertex, draw_params.base_instance);
     }
-
-    // HACK: test is buffers are being correctly created
-    buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.BindHostGeometryBuffers(is_indexed);
 }
 
 void RasterizerMetal::DrawTexture() {
@@ -246,6 +260,7 @@ void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
     CreateChannel(channel);
     buffer_cache.CreateChannel(channel);
     texture_cache.CreateChannel(channel);
+    pipeline_cache.CreateChannel(channel);
 }
 
 void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
@@ -254,6 +269,7 @@ void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
     BindToChannel(channel.bind_id);
     buffer_cache.BindToChannel(channel.bind_id);
     texture_cache.BindToChannel(channel.bind_id);
+    pipeline_cache.BindToChannel(channel.bind_id);
 }
 
 void RasterizerMetal::ReleaseChannel(s32 channel_id) {
@@ -262,6 +278,7 @@ void RasterizerMetal::ReleaseChannel(s32 channel_id) {
     EraseChannel(channel_id);
     buffer_cache.EraseChannel(channel_id);
     texture_cache.EraseChannel(channel_id);
+    pipeline_cache.EraseChannel(channel_id);
 }
 
 } // namespace Metal

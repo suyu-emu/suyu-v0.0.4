@@ -4,18 +4,16 @@
 #include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 
-#include <iostream>
-
 namespace Metal {
 
 CommandRecorder::CommandRecorder(const Device& device_) : device(device_) {}
 
 CommandRecorder::~CommandRecorder() = default;
 
-void CommandRecorder::BeginRenderPass(MTL::RenderPassDescriptor* render_pass_descriptor) {
+void CommandRecorder::BeginRenderPass(MTL::RenderPassDescriptor* render_pass) {
     RequireCommandBuffer();
     EndEncoding();
-    encoder = command_buffer->renderCommandEncoder(render_pass_descriptor);
+    encoder = command_buffer->renderCommandEncoder(render_pass);
     encoder_type = EncoderType::Render;
 }
 
@@ -41,7 +39,7 @@ void CommandRecorder::EndEncoding() {
     if (encoder) {
         encoder->endEncoding();
         //[encoder release];
-        encoder = nil;
+        encoder = nullptr;
     }
 }
 
@@ -55,7 +53,7 @@ void CommandRecorder::Submit() {
         EndEncoding();
         command_buffer->commit();
         //[command_buffer release];
-        command_buffer = nil;
+        command_buffer = nullptr;
     }
 }
 

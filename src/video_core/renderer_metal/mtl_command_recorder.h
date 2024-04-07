@@ -17,7 +17,7 @@ public:
     CommandRecorder(const Device& device_);
     ~CommandRecorder();
 
-    void BeginRenderPass(MTL::RenderPassDescriptor* render_pass_descriptor);
+    void BeginRenderPass(MTL::RenderPassDescriptor* render_pass);
 
     void CheckIfRenderPassIsActive() {
         if (!encoder || encoder_type != EncoderType::Render) {

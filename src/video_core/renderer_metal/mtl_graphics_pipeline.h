@@ -103,6 +103,10 @@ public:
         gpu_memory = gpu_memory_;
     }
 
+    MTL::RenderPipelineState* GetPipelineState() const noexcept {
+        return pipeline_state;
+    }
+
 private:
     template <typename Spec>
     void ConfigureImpl(bool is_indexed);

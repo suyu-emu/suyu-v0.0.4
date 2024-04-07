@@ -157,6 +157,7 @@ GraphicsPipeline* PipelineCache::CurrentGraphicsPipeline() {
             return BuiltPipeline(current_pipeline);
         }
     }
+
     return CurrentGraphicsPipelineSlowPath();
 }
 
@@ -263,7 +264,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         library->newFunction(NS::String::string("fragmentMain", NS::ASCIIStringEncoding));
 
     // HACK: dummy info
-    std::array<const Shader::Info*, VideoCommon::NUM_STAGES> infos;
+    std::array<const Shader::Info*, VideoCommon::NUM_STAGES> infos = {nullptr};
     infos[0] = new Shader::Info{};
     infos[1] = new Shader::Info{};
 
