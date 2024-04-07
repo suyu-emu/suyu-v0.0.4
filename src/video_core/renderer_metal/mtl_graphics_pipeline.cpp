@@ -89,6 +89,13 @@ void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
         color_attachment->setPixelFormat(render_pass_attachment->texture()->pixelFormat());
         // TODO: provide blend information
     }
+
+    NS::Error* error = nullptr;
+    pipeline_state = device.GetDevice()->newRenderPipelineState(pipeline_descriptor, &error);
+    if (error) {
+        LOG_ERROR(Render_Metal, "failed to create pipeline state: {}",
+                  error->description()->cString(NS::ASCIIStringEncoding));
+    }
 }
 
 void GraphicsPipeline::Validate() {

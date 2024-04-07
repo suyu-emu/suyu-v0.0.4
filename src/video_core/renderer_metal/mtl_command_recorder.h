@@ -40,8 +40,22 @@ public:
         return command_buffer;
     }
 
-    MTL::CommandEncoder* GetCommandEncoder() {
-        return encoder;
+    MTL::RenderCommandEncoder* GetRenderCommandEncoder() {
+        CheckIfRenderPassIsActive();
+
+        return static_cast<MTL::RenderCommandEncoder*>(encoder);
+    }
+
+    MTL::ComputeCommandEncoder* GetComputeCommandEncoder() {
+        RequireComputeEncoder();
+
+        return static_cast<MTL::ComputeCommandEncoder*>(encoder);
+    }
+
+    MTL::BlitCommandEncoder* GetBlitCommandEncoder() {
+        RequireBlitEncoder();
+
+        return static_cast<MTL::BlitCommandEncoder*>(encoder);
     }
 
 private:

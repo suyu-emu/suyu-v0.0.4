@@ -47,12 +47,17 @@ public:
     }
 
 private:
+    void CreateBlitPipelineState();
+
     Tegra::MaxwellDeviceMemoryManager& device_memory;
     Tegra::GPU& gpu;
 
     Device device;
     CommandRecorder command_recorder;
     SwapChain swap_chain;
+
+    MTL::RenderPipelineState* blit_pipeline_state{nullptr};
+    MTL::SamplerState* blit_sampler_state{nullptr};
 
     RasterizerMetal rasterizer;
 };

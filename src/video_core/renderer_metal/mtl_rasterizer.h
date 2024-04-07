@@ -106,6 +106,9 @@ private:
     BufferCacheRuntime buffer_cache_runtime;
     BufferCache buffer_cache;
     TextureCacheRuntime texture_cache_runtime;
+
+    // HACK: make the texture cache public so that renderer can access it
+public:
     TextureCache texture_cache;
 };
 
