@@ -19,7 +19,7 @@ on:
     # paths-ignore:
     #   - 'src/android/**'
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "metal-dev" ]
     paths:
       - 'src/**'
       - 'CMakeModules/**'
