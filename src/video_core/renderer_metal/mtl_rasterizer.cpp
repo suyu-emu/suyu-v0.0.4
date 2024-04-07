@@ -35,7 +35,9 @@ RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
       buffer_cache_runtime(device, command_recorder, staging_buffer_pool),
       buffer_cache(device_memory, buffer_cache_runtime),
       texture_cache_runtime(device, command_recorder, staging_buffer_pool),
-      texture_cache(texture_cache_runtime, device_memory) {}
+      texture_cache(texture_cache_runtime, device_memory),
+      pipeline_cache(device_memory, device, command_recorder, buffer_cache, texture_cache,
+                     gpu.ShaderNotify()) {}
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {

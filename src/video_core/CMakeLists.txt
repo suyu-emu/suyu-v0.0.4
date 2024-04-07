@@ -381,6 +381,7 @@ if (APPLE)
         renderer_metal/mtl_compute_pipeline.cpp
         renderer_metal/mtl_device.cpp
         renderer_metal/mtl_graphics_pipeline.cpp
+        renderer_metal/mtl_pipeline_cache.cpp
         renderer_metal/mtl_rasterizer.cpp
         renderer_metal/mtl_staging_buffer_pool.cpp
         renderer_metal/mtl_swap_chain.cpp

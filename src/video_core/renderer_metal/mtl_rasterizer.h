@@ -9,6 +9,7 @@
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_metal/mtl_buffer_cache.h"
+#include "video_core/renderer_metal/mtl_pipeline_cache.h"
 #include "video_core/renderer_metal/mtl_texture_cache.h"
 
 namespace Core {
@@ -110,6 +111,9 @@ private:
     // HACK: make the texture cache public so that renderer can access it
 public:
     TextureCache texture_cache;
+
+private:
+    PipelineCache pipeline_cache;
 };
 
 } // namespace Metal
