@@ -17,7 +17,7 @@
 EmuWindow_SDL2_MTL::EmuWindow_SDL2_MTL(InputCommon::InputSubsystem* input_subsystem_,
                                        Core::System& system_, bool fullscreen)
     : EmuWindow_SDL2{input_subsystem_, system_} {
-    const std::string window_title = fmt::format("suyu {} | {}-{} (Vulkan)", Common::g_build_name,
+    const std::string window_title = fmt::format("suyu {} | {}-{} (Metal)", Common::g_build_name,
                                                  Common::g_scm_branch, Common::g_scm_desc);
     render_window =
         SDL_CreateWindow(window_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -39,18 +39,8 @@ EmuWindow_SDL2_MTL::EmuWindow_SDL2_MTL(InputCommon::InputSubsystem* input_subsys
         ShowCursor(false);
     }
 
-    switch (wm.subsystem) {
-#ifdef SDL_VIDEO_DRIVER_COCOA
-    case SDL_SYSWM_TYPE::SDL_SYSWM_COCOA:
-        window_info.type = Core::Frontend::WindowSystemType::Cocoa;
-        window_info.render_surface = SDL_Metal_CreateView(render_window);
-        break;
-#endif
-    default:
-        LOG_CRITICAL(Frontend, "Window manager subsystem {} not implemented", wm.subsystem);
-        std::exit(EXIT_FAILURE);
-        break;
-    }
+    window_info.type = Core::Frontend::WindowSystemType::Cocoa;
+    window_info.render_surface = SDL_Metal_CreateView(render_window);
 
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);

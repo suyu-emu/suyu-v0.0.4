@@ -320,3 +320,9 @@ if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
     add_library(sse2neon INTERFACE)
     target_include_directories(sse2neon INTERFACE sse2neon)
 endif()
+
+# metal-cpp
+if (APPLE)
+    add_library(metal-cpp INTERFACE)
+    target_include_directories(metal-cpp INTERFACE metal-cpp)
+endif()

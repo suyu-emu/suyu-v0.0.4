@@ -42,8 +42,12 @@ target_include_directories(suyu-cmd PRIVATE ${RESOURCES_DIR})
 
 target_link_libraries(suyu-cmd PRIVATE SDL2::SDL2 Vulkan::Headers)
 
-if(UNIX AND NOT APPLE)
-    install(TARGETS suyu-cmd)
+if(UNIX)
+    if (APPLE)
+        target_link_libraries(suyu-cmd PRIVATE metal-cpp)
+    else()
+        install(TARGETS suyu-cmd)
+    endif()
 endif()
 
 if(WIN32)
