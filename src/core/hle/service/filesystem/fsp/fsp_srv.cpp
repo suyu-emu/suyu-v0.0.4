@@ -53,7 +53,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1, D<&FSP_SRV::SetCurrentProcess>, "SetCurrentProcess"},
         {2, nullptr, "OpenDataFileSystemByCurrentProcess"},
         {7, D<&FSP_SRV::OpenFileSystemWithPatch>, "OpenFileSystemWithPatch"},
-        {8, nullptr, "OpenFileSystemWithId"},
+        {8, nullptr, "OpenFileSystemWithIdObsolete"}, // 16.0.0+, OpenFileSystemWithId 2.0.0-15.0.1
         {9, nullptr, "OpenDataFileSystemByApplicationId"},
         {11, nullptr, "OpenBisFileSystem"},
         {12, nullptr, "OpenBisStorage"},
@@ -169,6 +169,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1018, nullptr, "SetDebugOption"},
         {1019, nullptr, "UnsetDebugOption"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
+        {1101, nullptr, "OverrideSaveDataTransferKeyForTest"}, // 18.0.0+
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
         {1200, D<&FSP_SRV::OpenMultiCommitManager>, "OpenMultiCommitManager"},
         {1300, nullptr, "OpenBisWiper"},
