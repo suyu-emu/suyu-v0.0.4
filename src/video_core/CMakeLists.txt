@@ -378,6 +378,7 @@ if (APPLE)
         renderer_metal/mtl_buffer_cache.cpp
         renderer_metal/mtl_buffer_cache_base.cpp
         renderer_metal/mtl_command_recorder.cpp
+        renderer_metal/mtl_compute_pipeline.cpp
         renderer_metal/mtl_device.cpp
         renderer_metal/mtl_graphics_pipeline.cpp
         renderer_metal/mtl_rasterizer.cpp
