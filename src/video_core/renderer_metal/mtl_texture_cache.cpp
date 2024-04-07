@@ -103,7 +103,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
                      ImageId image_id_, Image& image)
     : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr} {
     using Shader::TextureType;
-    // TODO: For whatever reason, some images's internal objc objects is NULL, metal-cpp provides no method to check for this
+    // TODO: For whatever reason, some images's internal objc objects is NULL
+    // TODO: metal-cpp provides no method to check for this
     texture = image.GetHandle()->retain();
 
     // TODO: create texture view
