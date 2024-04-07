@@ -43,7 +43,7 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
     //command_recorder.CheckIfRenderPassIsActive();
     //const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (is_indexed) {
-        std::cout << "Draw indexed" << std::endl;
+        LOG_DEBUG(Render_Metal, "indexed");
         /*[command_buffer drawIndexedPrimitives:MTLPrimitiveTypeTriangle
                                    indexCount:draw_params.num_indices
                                     indexType:MTLIndexTypeUInt32
@@ -56,18 +56,18 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
         //                    draw_params.first_index, draw_params.base_vertex,
         //                    draw_params.base_instance);
     } else {
-        std::cout << "Draw" << std::endl;
+        LOG_DEBUG(Render_Metal, "not indexed");
         //cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
         //            draw_params.base_vertex, draw_params.base_instance);
     }
 }
 
 void RasterizerMetal::DrawTexture() {
-    std::cout << "Draw texture" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::Clear(u32 layer_count) {
-    std::cout << "Clear" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     texture_cache.UpdateRenderTargets(true);
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
@@ -80,16 +80,16 @@ void RasterizerMetal::Clear(u32 layer_count) {
 }
 
 void RasterizerMetal::DispatchCompute() {
-    std::cout << "Dispatch compute" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::ResetCounter(VideoCommon::QueryType type) {
-    std::cout << "Reset counter" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
                             VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) {
-    std::cout << "Query" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     // TODO: remove this
     if (!gpu_memory) {
@@ -106,19 +106,19 @@ void RasterizerMetal::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
 
 void RasterizerMetal::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
                                                 u32 size) {
-    std::cout << "Bind graphics uniform buffer" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
-    std::cout << "Disable graphics uniform buffer" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::FlushAll() {
-    std::cout << "Flush all" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
-    std::cout << "Flush region" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 bool RasterizerMetal::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
@@ -126,7 +126,7 @@ bool RasterizerMetal::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheTy
 }
 
 void RasterizerMetal::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
-    std::cout << "Invalidate region" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 bool RasterizerMetal::OnCPUWrite(PAddr addr, u64 size) {
@@ -134,11 +134,11 @@ bool RasterizerMetal::OnCPUWrite(PAddr addr, u64 size) {
 }
 
 void RasterizerMetal::OnCacheInvalidation(PAddr addr, u64 size) {
-    std::cout << "On cache invalidation" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 VideoCore::RasterizerDownloadArea RasterizerMetal::GetFlushArea(PAddr addr, u64 size) {
-    std::cout << "Get flush area" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     VideoCore::RasterizerDownloadArea new_area{
         .start_address = Common::AlignDown(addr, Core::DEVICE_PAGESIZE),
@@ -149,31 +149,31 @@ VideoCore::RasterizerDownloadArea RasterizerMetal::GetFlushArea(PAddr addr, u64 
 }
 
 void RasterizerMetal::InvalidateGPUCache() {
-    std::cout << "Invalidate GPU cache" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::UnmapMemory(DAddr addr, u64 size) {
-    std::cout << "Unmap memory" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
-    std::cout << "Modify GPU memory" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::SignalFence(std::function<void()>&& func) {
-    std::cout << "Signal fence" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     func();
 }
 
 void RasterizerMetal::SyncOperation(std::function<void()>&& func) {
-    std::cout << "Sync operation" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     func();
 }
 
 void RasterizerMetal::SignalSyncPoint(u32 value) {
-    std::cout << "Signal sync point" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     auto& syncpoint_manager = gpu.Host1x().GetSyncpointManager();
     syncpoint_manager.IncrementGuest(value);
@@ -181,35 +181,35 @@ void RasterizerMetal::SignalSyncPoint(u32 value) {
 }
 
 void RasterizerMetal::SignalReference() {
-    std::cout << "Signal reference" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::ReleaseFences(bool) {
-    std::cout << "Release fences" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::FlushAndInvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
-    std::cout << "Flush and invalidate region" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::WaitForIdle() {
-    std::cout << "Wait for idle" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::FragmentBarrier() {
-    std::cout << "Fragment barrier" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::TiledCacheBarrier() {
-    std::cout << "Tiled cache barrier" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::FlushCommands() {
-    std::cout << "Flush commands" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::TickFrame() {
-    std::cout << "Tick frame" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 Tegra::Engines::AccelerateDMAInterface& RasterizerMetal::AccessAccelerateDMA() {
@@ -219,37 +219,37 @@ Tegra::Engines::AccelerateDMAInterface& RasterizerMetal::AccessAccelerateDMA() {
 bool RasterizerMetal::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
                                             const Tegra::Engines::Fermi2D::Surface& dst,
                                             const Tegra::Engines::Fermi2D::Config& copy_config) {
-    std::cout << "Accelerate surface copy" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     return true;
 }
 
 void RasterizerMetal::AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                                std::span<const u8> memory) {
-    std::cout << "Accelerate inline to memory" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                                         const VideoCore::DiskResourceLoadCallback& callback) {
-    std::cout << "Load disk resources" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
-    std::cout << "Initialize channel" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     CreateChannel(channel);
     texture_cache.CreateChannel(channel);
 }
 
 void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
-    std::cout << "Bind channel" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     BindToChannel(channel.bind_id);
     texture_cache.BindToChannel(channel.bind_id);
 }
 
 void RasterizerMetal::ReleaseChannel(s32 channel_id) {
-    std::cout << "Release channel" << std::endl;
+    LOG_DEBUG(Render_Metal, "called");
 
     EraseChannel(channel_id);
     texture_cache.EraseChannel(channel_id);
