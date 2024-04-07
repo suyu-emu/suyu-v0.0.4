@@ -12,7 +12,6 @@ endif()
 
 # Sirit project options
 option(SIRIT_TESTS "Build tests" OFF)
-option(SIRIT_USE_SYSTEM_SPIRV_HEADERS "Use system SPIR-V headers" OFF)
 
 # Default to a Release build
 if (NOT CMAKE_BUILD_TYPE)
@@ -83,14 +82,6 @@ endif()
 
 # Enable unit-testing.
 enable_testing(true)
-
-# SPIR-V headers
-if (SIRIT_USE_SYSTEM_SPIRV_HEADERS)
-    find_package(SPIRV-Headers REQUIRED)
-else()
-    add_subdirectory(${CMAKE_SOURCE_DIR}/externals/SPIRV-Headers externals/SPIRV-Headers EXCLUDE_FROM_ALL)
-    add_library(SPIRV-Headers::SPIRV-Headers ALIAS SPIRV-Headers)
-endif()
 
 # Sirit project files
 add_subdirectory(src)
