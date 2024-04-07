@@ -4,10 +4,11 @@
 #pragma once
 
 #include "common/common_types.h"
-#include "mtl_texture_cache.h"
+#include "mtl_buffer_cache.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/renderer_metal/mtl_buffer_cache.h"
 #include "video_core/renderer_metal/mtl_texture_cache.h"
 
 namespace Core {
@@ -102,6 +103,8 @@ private:
     const SwapChain& swap_chain;
 
     StagingBufferPool staging_buffer_pool;
+    BufferCacheRuntime buffer_cache_runtime;
+    BufferCache buffer_cache;
     TextureCacheRuntime texture_cache_runtime;
     TextureCache texture_cache;
 };

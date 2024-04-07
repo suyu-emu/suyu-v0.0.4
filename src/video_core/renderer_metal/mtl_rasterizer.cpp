@@ -14,8 +14,6 @@
 #include "video_core/renderer_metal/mtl_rasterizer.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 
-#include <iostream>
-
 namespace Metal {
 
 AccelerateDMA::AccelerateDMA() = default;
@@ -34,6 +32,8 @@ RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
     : gpu{gpu_}, device_memory{device_memory_}, device{device_},
       command_recorder{command_recorder_}, swap_chain{swap_chain_},
       staging_buffer_pool(device, command_recorder),
+      buffer_cache_runtime(device, command_recorder, staging_buffer_pool),
+      buffer_cache(device_memory, buffer_cache_runtime),
       texture_cache_runtime(device, command_recorder, staging_buffer_pool),
       texture_cache(texture_cache_runtime, device_memory) {}
 RasterizerMetal::~RasterizerMetal() = default;
