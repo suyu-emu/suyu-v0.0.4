@@ -9,6 +9,7 @@
 
 #include "video_core/renderer_metal/mtl_buffer_cache.h"
 
+#include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 
 namespace Metal {
@@ -80,7 +81,10 @@ void BufferCacheRuntime::Finish() {}
 void BufferCacheRuntime::CopyBuffer(MTL::Buffer* dst_buffer, MTL::Buffer* src_buffer,
                                     std::span<const VideoCommon::BufferCopy> copies, bool barrier,
                                     bool can_reorder_upload) {
-    // TODO: copy buffer
+    for (const VideoCommon::BufferCopy& copy : copies) {
+        command_recorder.GetBlitCommandEncoder()->copyFromBuffer(
+            src_buffer, copy.src_offset, dst_buffer, copy.dst_offset, copy.size);
+    }
 }
 
 void BufferCacheRuntime::ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_t size, u32 value) {
