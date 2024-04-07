@@ -176,8 +176,8 @@ constexpr KMemoryPermission ConvertToKMemoryPermission(Svc::MemoryPermission per
         (static_cast<KMemoryPermission>(perm) & KMemoryPermission::UserMask) |
         KMemoryPermission::KernelRead |
         ((static_cast<KMemoryPermission>(perm) & KMemoryPermission::UserWrite)
-         ? KMemoryPermission::KernelWrite
-         : KMemoryPermission::None) |
+            ? KMemoryPermission::KernelWrite
+            : KMemoryPermission::None) |
         (perm == Svc::MemoryPermission::None ? KMemoryPermission::NotMapped
                                              : KMemoryPermission::None));
 }
