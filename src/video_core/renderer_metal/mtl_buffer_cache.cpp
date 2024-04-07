@@ -39,12 +39,12 @@ BufferView::~BufferView() {
 }
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase(null_params), buffer{runtime.CreateNullBuffer()}, is_null{true},
+    : BufferBase(null_params), buffer{runtime.CreateNullBuffer()}, is_null{true},
       view(buffer, 0, BufferCacheRuntime::NULL_BUFFER_SIZE) {}
 
 Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
-    : VideoCommon::BufferBase(cpu_addr_, size_bytes_),
-      buffer{CreatePrivateBuffer(runtime.device, size_bytes_)}, view(buffer, 0, size_bytes_) {}
+    : BufferBase(cpu_addr_, size_bytes_), buffer{CreatePrivateBuffer(runtime.device, size_bytes_)},
+      view(buffer, 0, size_bytes_) {}
 
 BufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format) {
     return BufferView(buffer, offset, size, format);

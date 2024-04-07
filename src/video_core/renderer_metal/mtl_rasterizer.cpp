@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
-#include "video_core/control/channel_state.h"
-#include "video_core/host1x/host1x.h"
-#include "video_core/memory_manager.h"
 #include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/control/channel_state.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/host1x/host1x.h"
+#include "video_core/memory_manager.h"
 #include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/mtl_rasterizer.h"
@@ -40,8 +40,8 @@ RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
     // TODO: uncomment
-    //command_recorder.CheckIfRenderPassIsActive();
-    //const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    // command_recorder.CheckIfRenderPassIsActive();
+    // const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (is_indexed) {
         LOG_DEBUG(Render_Metal, "indexed");
         /*[command_buffer drawIndexedPrimitives:MTLPrimitiveTypeTriangle
@@ -52,13 +52,13 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
                                 instanceCount:draw_params.num_instances
                                    baseVertex:draw_params.base_vertex
                                  baseInstance:draw_params.base_instance];*/
-        //cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-        //                    draw_params.first_index, draw_params.base_vertex,
-        //                    draw_params.base_instance);
+        // cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
+        //                     draw_params.first_index, draw_params.base_vertex,
+        //                     draw_params.base_instance);
     } else {
         LOG_DEBUG(Render_Metal, "not indexed");
-        //cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-        //            draw_params.base_vertex, draw_params.base_instance);
+        // cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
+        //             draw_params.base_vertex, draw_params.base_instance);
     }
 }
 
