@@ -94,7 +94,7 @@ void Fiber::YieldTo(std::weak_ptr<Fiber> weak_from, Fiber& to) {
             auto& next_fiber_ptr = from->impl->next_fiber_ptr;
             next_fiber_ptr = &from->impl->next_fiber;
             *next_fiber_ptr = &to;
-            for ([[maybe_unused]] unsigned round = 0; *next_fiber_ptr; round++) {
+            while (*next_fiber_ptr) {
                 auto next = *next_fiber_ptr;
                 *next_fiber_ptr = nullptr;
                 next_fiber_ptr = &next->impl->next_fiber;
