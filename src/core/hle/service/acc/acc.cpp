@@ -99,7 +99,7 @@ public:
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
-            {143, D<&IManagerForSystemService::GetNetworkServiceLicenseEx>, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
+            {143, &IManagerForSystemService::GetNetworkServiceLicenseEx, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"}, // 15.0.0+
             {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"}, // 16.0.0+
@@ -122,9 +122,13 @@ private:
         R_SUCCEED();
     }
 
-    Result GetNetworkServiceLicenseEx() {
+    void GetNetworkServiceLicenseEx(HLERequestContext& ctx) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
-        R_SUCCEED();
+        IPC::ResponseBuilder rb {ctx, 16};
+        rb.Push(ResultSuccess);
+        for (int i = 0; i < 16; i++) {
+            rb.Push(0x0);
+        }
     }
 
     Common::UUID account_id;
