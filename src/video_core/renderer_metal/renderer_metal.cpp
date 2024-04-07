@@ -7,6 +7,8 @@
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/renderer_metal.h"
 
+// TODO: Make it the way that we can make a swiftUI for the macOS app instead of qt
+
 namespace Metal {
 
 RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
