@@ -53,7 +53,14 @@ IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& sys
             {304, C<&IUserLocalCommunicationService::Disconnect>, "Disconnect"},
             {400, C<&IUserLocalCommunicationService::Initialize>, "Initialize"},
             {401, C<&IUserLocalCommunicationService::Finalize>, "Finalize"},
-            {402, C<&IUserLocalCommunicationService::Initialize2>, "Initialize2"},
+            {402, C<&IUserLocalCommunicationService::Initialize2>, "Initialize2"}, // 7.0.0+
+            {500, nullptr, "EnableActionFrame"}, // 18.0.0+
+            {501, nullptr, "DisableActionFrame"}, // 18.0.0+
+            {502, nullptr, "SendActionFrame"}, // 18.0.0+
+            {503, nullptr, "RecvActionFrame"}, // 18.0.0+
+            {505, nullptr, "SetHomeChannel"}, // 18.0.0+
+            {600, nullptr, "SetTxPower"}, // 18.0.0+
+            {601, nullptr, "ResetTxPower"} // 18.0.0+
         };
     // clang-format on
 
