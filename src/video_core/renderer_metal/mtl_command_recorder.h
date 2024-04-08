@@ -12,6 +12,9 @@ class Device;
 
 enum class EncoderType { Render, Compute, Blit };
 
+// TODO: whenever a render pass gets interrupted by either a compute or blit command and application
+// then tries to perform a render command, begin the same render pass, but with all load actions set
+// to "load"
 class CommandRecorder {
 public:
     CommandRecorder(const Device& device_);
