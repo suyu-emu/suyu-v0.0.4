@@ -80,9 +80,7 @@ public:
     // TODO: implement
     void AddTransition(GraphicsPipeline* transition) {}
 
-    void Configure(bool is_indexed) {
-        // configure_func(this, is_indexed);
-    }
+    void Configure(bool is_indexed);
 
     [[nodiscard]] GraphicsPipeline* Next(const GraphicsPipelineCacheKey& current_key) noexcept {
         // TODO: implement
@@ -93,26 +91,12 @@ public:
         return true;
     }
 
-    template <typename Spec>
-    static auto MakeConfigureSpecFunc() {
-        return [](GraphicsPipeline* pl, bool is_indexed) { pl->ConfigureImpl<Spec>(is_indexed); };
-    }
-
     void SetEngine(Tegra::Engines::Maxwell3D* maxwell3d_, Tegra::MemoryManager* gpu_memory_) {
         maxwell3d = maxwell3d_;
         gpu_memory = gpu_memory_;
     }
 
-    MTL::RenderPipelineState* GetPipelineState() const noexcept {
-        return pipeline_state;
-    }
-
 private:
-    template <typename Spec>
-    void ConfigureImpl(bool is_indexed);
-
-    void ConfigureDraw();
-
     void MakePipeline(MTL::RenderPassDescriptor* render_pass);
 
     void Validate();

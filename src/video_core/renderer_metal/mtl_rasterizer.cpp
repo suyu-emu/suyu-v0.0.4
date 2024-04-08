@@ -48,12 +48,7 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
     if (!pipeline) {
         return;
     }
-    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(
-        pipeline->GetPipelineState());
-
-    // HACK: test is buffers are being correctly created
-    buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.BindHostGeometryBuffers(is_indexed);
+    pipeline->Configure(is_indexed);
 
     // HACK: dummy draw call
     command_recorder.GetRenderCommandEncoder()->drawPrimitives(MTL::PrimitiveTypeTriangle,
@@ -95,7 +90,8 @@ void RasterizerMetal::Clear(u32 layer_count) {
         return;
     }
 
-    // Begin render pass
+    // TODO: track the textures used by render pass and only begin the render pass if their contents
+    // are needed Begin render pass
     command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 }
 

@@ -53,22 +53,20 @@ GraphicsPipeline::GraphicsPipeline(const Device& device_, CommandRecorder& comma
         return;
     }
     MakePipeline(framebuffer->GetHandle());
-    // configure_func = ConfigureFunc(functions, stage_infos);
 }
 
-template <typename Spec>
-void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
-    // TODO: implement
-}
+void GraphicsPipeline::Configure(bool is_indexed) {
+    buffer_cache.UpdateGraphicsBuffers(is_indexed);
+    buffer_cache.BindHostGeometryBuffers(is_indexed);
 
-void GraphicsPipeline::ConfigureDraw() {
-    Framebuffer* framebuffer = texture_cache.GetFramebuffer();
+    texture_cache.UpdateRenderTargets(true);
+    const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
     if (!framebuffer) {
         return;
     }
-    // MTL::RenderPassDescriptor* render_pass = framebuffer->GetHandle();
+    command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 
-    // TODO: bind resources
+    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(pipeline_state);
 }
 
 void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
