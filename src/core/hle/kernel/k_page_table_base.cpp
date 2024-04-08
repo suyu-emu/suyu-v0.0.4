@@ -2792,7 +2792,7 @@ Result KPageTableBase::MapPages(KProcessAddress address, size_t num_pages, KMemo
     KScopedPageTableUpdater updater(this);
 
     // Map the pages.
-    KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead}
+    KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead};
     R_TRY(this->AllocateAndMapPagesImpl(updater.GetPageList(), address, num_pages, properties));
 
     // Update the blocks.
