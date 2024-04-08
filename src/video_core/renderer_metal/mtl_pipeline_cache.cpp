@@ -51,6 +51,17 @@ auto MakeSpan(Container& container) {
     return std::span(container.data(), container.size());
 }
 
+Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> programs,
+                                    const GraphicsPipelineCacheKey& key,
+                                    const Shader::IR::Program& program,
+                                    const Shader::IR::Program* previous_program) {
+    Shader::RuntimeInfo info{};
+
+    // TODO: fill in the runtime info
+
+    return info;
+}
+
 } // Anonymous namespace
 
 size_t ComputePipelineCacheKey::Hash() const noexcept {
@@ -219,6 +230,47 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     auto hash = key.Hash();
     LOG_INFO(Render_Metal, "0x{:016x}", hash);
 
+    // Translate shaders to spirv
+    size_t env_index{0};
+    std::array<Shader::IR::Program, Maxwell::MaxShaderProgram> programs;
+
+    for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
+        if (key.unique_hashes[index] == 0) {
+            continue;
+        }
+        Shader::Environment& env{*envs[env_index]};
+        ++env_index;
+
+        const u32 cfg_offset{static_cast<u32>(env.StartAddress() + sizeof(Shader::ProgramHeader))};
+        Shader::Maxwell::Flow::CFG cfg(env, pools.flow_block, cfg_offset, index == 0);
+        programs[index] = TranslateProgram(pools.inst, pools.block, env, cfg, host_info);
+
+        if (Settings::values.dump_shaders) {
+            env.Dump(hash, key.unique_hashes[index]);
+        }
+    }
+    std::array<const Shader::Info*, Maxwell::MaxShaderStage> infos{};
+    std::array<MTL::Function*, VideoCommon::NUM_STAGES> functions;
+
+    const Shader::IR::Program* previous_stage{};
+    Shader::Backend::Bindings binding;
+    for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
+        if (key.unique_hashes[index] == 0) {
+            continue;
+        }
+
+        Shader::IR::Program& program{programs[index]};
+        const size_t stage_index{index - 1};
+        infos[stage_index] = &program.info;
+
+        const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
+        ConvertLegacyToGeneric(program, runtime_info);
+        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding)};
+        // TODO: translate the shader to metal using spirv cross
+        // functions[stage_index] = ;
+        previous_stage = &program;
+    }
+
     // HACK: create hardcoded shaders
     MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
     NS::Error* error = nullptr;
@@ -257,16 +309,9 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
                   error->description()->cString(NS::ASCIIStringEncoding));
     }
 
-    std::array<MTL::Function*, VideoCommon::NUM_STAGES> functions;
-
     functions[0] = library->newFunction(NS::String::string("vertexMain", NS::ASCIIStringEncoding));
     functions[1] =
         library->newFunction(NS::String::string("fragmentMain", NS::ASCIIStringEncoding));
-
-    // HACK: dummy info
-    std::array<const Shader::Info*, VideoCommon::NUM_STAGES> infos = {nullptr};
-    infos[0] = new Shader::Info{};
-    infos[4] = new Shader::Info{};
 
     return std::make_unique<GraphicsPipeline>(device, command_recorder, key, buffer_cache,
                                               texture_cache, &shader_notify, functions, infos);
