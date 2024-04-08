@@ -14,8 +14,8 @@ namespace Metal {
 RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
                              Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                              std::unique_ptr<Core::Frontend::GraphicsContext> context_)
-    : RendererBase(emu_window, std::move(context_)),
-      device_memory{device_memory_}, gpu{gpu_}, device{}, command_recorder(device),
+    : RendererBase(emu_window, std::move(context_)), device_memory{device_memory_}, gpu{gpu_},
+      device{}, command_recorder(device),
       swap_chain(device, command_recorder,
                  static_cast<CA::MetalLayer*>(render_window.GetWindowInfo().render_surface)),
       rasterizer(gpu_, device_memory, device, command_recorder, swap_chain) {
@@ -42,7 +42,7 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
     render_pass_descriptor->colorAttachments()->object(0)->setTexture(
         swap_chain.GetDrawableTexture());
 
-    command_recorder.BeginRenderPass(render_pass_descriptor);
+    command_recorder.BeginOrContinueRenderPass(render_pass_descriptor);
 
     // Blit the framebuffer to the drawable texture
     // TODO: acquire the texture from @ref framebuffers

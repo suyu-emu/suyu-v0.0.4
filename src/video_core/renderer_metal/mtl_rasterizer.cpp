@@ -96,7 +96,7 @@ void RasterizerMetal::Clear(u32 layer_count) {
     }
 
     // Begin render pass
-    command_recorder.BeginRenderPass(framebuffer->GetHandle());
+    command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 }
 
 void RasterizerMetal::DispatchCompute() {

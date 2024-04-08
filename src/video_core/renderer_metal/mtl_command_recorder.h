@@ -20,7 +20,7 @@ public:
     CommandRecorder(const Device& device_);
     ~CommandRecorder();
 
-    void BeginRenderPass(MTL::RenderPassDescriptor* render_pass);
+    void BeginOrContinueRenderPass(MTL::RenderPassDescriptor* render_pass);
 
     void CheckIfRenderPassIsActive() {
         if (!encoder || encoder_type != EncoderType::Render) {
@@ -66,10 +66,13 @@ private:
 
     // HACK: Command buffers and encoders currently aren't released every frame due to Xcode
     // crashing in Debug mode. This leads to memory leaks
-    MTL::CommandBuffer* command_buffer = nil;
-    MTL::CommandEncoder* encoder = nil;
+    MTL::CommandBuffer* command_buffer{nullptr};
+    MTL::CommandEncoder* encoder{nullptr};
 
     EncoderType encoder_type;
+
+    // Keep track of last bound render pass
+    MTL::RenderPassDescriptor* bound_render_pass{nullptr};
 
     void RequireCommandBuffer();
 };
