@@ -1594,7 +1594,7 @@ size_t KPageTableBase::GetAliasCodeDataSize() const {
 }
 
 Result KPageTableBase::AllocateAndMapPagesImpl(PageLinkedList* page_list, KProcessAddress address,
-                                               size_t num_pages, KMemoryPermission perm) {
+                                               size_t num_pages, KPageProperties &perm) {
     ASSERT(this->IsLockedByCurrentThread());
 
     // Create a page group to hold the pages we allocate.
@@ -1615,7 +1615,6 @@ Result KPageTableBase::AllocateAndMapPagesImpl(PageLinkedList* page_list, KProce
     }
 
     // Map the pages.
-    const KPageProperties properties = {perm, false, false, DisableMergeAttribute::None};
     R_RETURN(this->Operate(page_list, address, num_pages, pg, properties, OperationType::MapGroup,
                            false));
 }
@@ -2749,12 +2748,12 @@ Result KPageTableBase::MapPages(KProcessAddress* out_addr, size_t num_pages, siz
     KScopedPageTableUpdater updater(this);
 
     // Perform mapping operation.
+    KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead};
     if (is_pa_valid) {
-        const KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead};
         R_TRY(this->Operate(updater.GetPageList(), addr, num_pages, phys_addr, true, properties,
                             OperationType::Map, false));
     } else {
-        R_TRY(this->AllocateAndMapPagesImpl(updater.GetPageList(), addr, num_pages, perm));
+        R_TRY(this->AllocateAndMapPagesImpl(updater.GetPageList(), addr, num_pages, properties));
     }
 
     // Update the blocks.
@@ -2793,7 +2792,8 @@ Result KPageTableBase::MapPages(KProcessAddress address, size_t num_pages, KMemo
     KScopedPageTableUpdater updater(this);
 
     // Map the pages.
-    R_TRY(this->AllocateAndMapPagesImpl(updater.GetPageList(), address, num_pages, perm));
+    KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead}
+    R_TRY(this->AllocateAndMapPagesImpl(updater.GetPageList(), address, num_pages, properties));
 
     // Update the blocks.
     m_memory_block_manager.Update(std::addressof(allocator), address, num_pages, state, perm,
