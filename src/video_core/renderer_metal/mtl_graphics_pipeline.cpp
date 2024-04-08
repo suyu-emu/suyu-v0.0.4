@@ -59,7 +59,9 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
-    texture_cache.UpdateRenderTargets(true);
+    texture_cache.SynchronizeGraphicsDescriptors();
+
+    texture_cache.UpdateRenderTargets(false);
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
     if (!framebuffer) {
         return;

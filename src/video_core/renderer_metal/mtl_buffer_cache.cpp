@@ -81,11 +81,10 @@ void BufferCacheRuntime::Finish() {}
 void BufferCacheRuntime::CopyBuffer(MTL::Buffer* dst_buffer, MTL::Buffer* src_buffer,
                                     std::span<const VideoCommon::BufferCopy> copies, bool barrier,
                                     bool can_reorder_upload) {
-    // HACK: needs to be commented out, since it interrupts render pass
-    // for (const VideoCommon::BufferCopy& copy : copies) {
-    //  command_recorder.GetBlitCommandEncoder()->copyFromBuffer(
-    //     src_buffer, copy.src_offset, dst_buffer, copy.dst_offset, copy.size);
-    // }
+    for (const VideoCommon::BufferCopy& copy : copies) {
+        command_recorder.GetBlitCommandEncoder()->copyFromBuffer(
+            src_buffer, copy.src_offset, dst_buffer, copy.dst_offset, copy.size);
+    }
 }
 
 void BufferCacheRuntime::ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_t size, u32 value) {
