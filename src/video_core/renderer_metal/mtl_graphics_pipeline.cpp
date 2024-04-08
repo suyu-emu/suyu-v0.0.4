@@ -15,6 +15,7 @@
 #include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/shader_notify.h"
+#include "video_core/texture_cache/texture_cache.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 
 namespace Metal {

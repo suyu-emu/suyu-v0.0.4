@@ -103,9 +103,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
                      ImageId image_id_, Image& image)
     : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr} {
     using Shader::TextureType;
-    // TODO: For whatever reason, some images's internal objc objects is NULL
-    // TODO: metal-cpp provides no method to check for this
-    texture = image.GetHandle()->retain();
+    if (image.GetHandle()) {
+        texture = image.GetHandle()->retain();
+    }
 
     // TODO: create texture view
 }
@@ -128,7 +128,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
 }
 
 ImageView::~ImageView() {
-    texture->release();
+    if (texture) {
+        texture->release();
+    }
 }
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {

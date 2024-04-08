@@ -266,7 +266,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     // HACK: dummy info
     std::array<const Shader::Info*, VideoCommon::NUM_STAGES> infos = {nullptr};
     infos[0] = new Shader::Info{};
-    infos[1] = new Shader::Info{};
+    infos[4] = new Shader::Info{};
 
     return std::make_unique<GraphicsPipeline>(device, command_recorder, key, buffer_cache,
                                               texture_cache, &shader_notify, functions, infos);
