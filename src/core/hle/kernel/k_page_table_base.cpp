@@ -1594,7 +1594,7 @@ size_t KPageTableBase::GetAliasCodeDataSize() const {
 }
 
 Result KPageTableBase::AllocateAndMapPagesImpl(PageLinkedList* page_list, KProcessAddress address,
-                                               size_t num_pages, KPageProperties &perm) {
+                                               size_t num_pages, KPageProperties& perm) {
     ASSERT(this->IsLockedByCurrentThread());
 
     // Create a page group to hold the pages we allocate.
