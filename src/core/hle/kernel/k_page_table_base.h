@@ -441,7 +441,7 @@ private:
                             Svc::MemoryState state) const;
 
     Result AllocateAndMapPagesImpl(PageLinkedList* page_list, KProcessAddress address,
-                                   size_t num_pages, KMemoryPermission perm);
+                                   size_t num_pages, KPageProperties &perm);
     Result MapPageGroupImpl(PageLinkedList* page_list, KProcessAddress address,
                             const KPageGroup& pg, const KPageProperties properties, bool reuse_ll);
 
