@@ -11,6 +11,7 @@
 #include "common/bit_util.h"
 #include "common/settings.h"
 
+#include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/mtl_texture_cache.h"
 
@@ -53,16 +54,16 @@ void TextureCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
     staging_buffer_pool.FreeDeferred(ref);
 }
 
-Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info, GPUVAddr gpu_addr_,
+Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
-    : VideoCommon::ImageBase(info, gpu_addr_, cpu_addr_) {
+    : VideoCommon::ImageBase(info, gpu_addr_, cpu_addr_), runtime{&runtime_} {
     MTL::TextureDescriptor* texture_descriptor = MTL::TextureDescriptor::alloc()->init();
     // TODO: don't hardcode the format
     texture_descriptor->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
     texture_descriptor->setWidth(info.size.width);
     texture_descriptor->setHeight(info.size.height);
 
-    texture = runtime.device.GetDevice()->newTexture(texture_descriptor);
+    texture = runtime->device.GetDevice()->newTexture(texture_descriptor);
 }
 
 Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBase{params} {}
@@ -76,12 +77,22 @@ Image::~Image() {
 // TODO: implement these
 void Image::UploadMemory(MTL::Buffer* buffer, size_t offset,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
-    ;
+    for (const VideoCommon::BufferImageCopy& copy : copies) {
+        // TODO: query this from texture format
+        size_t bytes_per_pixel = 4;
+        size_t bytes_per_row = info.size.width * bytes_per_pixel;
+        size_t bytes_per_image = info.size.height * bytes_per_row;
+        MTL::Size size = MTL::Size::Make(info.size.width, info.size.height, 1);
+        MTL::Origin origin = MTL::Origin::Make(copy.image_offset.x, copy.image_offset.y,
+                                               copy.image_subresource.base_layer);
+        runtime->command_recorder.GetBlitCommandEncoder()->copyFromBuffer(
+            buffer, offset, bytes_per_row, bytes_per_image, size, texture, 0, 0, origin);
+    }
 }
 
 void Image::UploadMemory(const StagingBufferRef& map,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
-    ;
+    UploadMemory(map.buffer, map.offset, copies);
 }
 
 void Image::DownloadMemory(MTL::Buffer* buffer, size_t offset,

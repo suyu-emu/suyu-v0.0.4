@@ -116,7 +116,7 @@ public:
 
 class Image : public VideoCommon::ImageBase {
 public:
-    explicit Image(TextureCacheRuntime& runtime, const VideoCommon::ImageInfo& info,
+    explicit Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info,
                    GPUVAddr gpu_addr, VAddr cpu_addr);
     explicit Image(const VideoCommon::NullImageParams&);
 
@@ -162,7 +162,9 @@ public:
     }
 
 private:
-    MTL::Texture* texture = nil;
+    TextureCacheRuntime* runtime;
+
+    MTL::Texture* texture{nullptr};
     bool initialized = false;
 
     bool rescaled = false;

@@ -63,18 +63,7 @@ void GraphicsPipeline::Configure(bool is_indexed) {
 
     texture_cache.SynchronizeGraphicsDescriptors();
 
-    texture_cache.UpdateRenderTargets(false);
-    const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
-    if (!framebuffer) {
-        return;
-    }
-    command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
-
-    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(pipeline_state);
-
-    // Bind resources
-
-    // HACK: try to find a texture that we can bind
+    // Find resources
     size_t stage = 4;
     // const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
     const auto read_handle{[&](const auto& desc, u32 index) {
@@ -116,6 +105,20 @@ void GraphicsPipeline::Configure(bool is_indexed) {
         }
     }
     texture_cache.FillGraphicsImageViews<true>(std::span(views.data(), view_index));
+
+    // Begin render pass
+    texture_cache.UpdateRenderTargets(false);
+    const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
+    if (!framebuffer) {
+        return;
+    }
+    command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
+
+    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(pipeline_state);
+
+    // Bind resources
+
+    // HACK: try to find a texture that we can bind
     VideoCommon::ImageViewInOut* texture_buffer_it{views.data()};
 
     ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
