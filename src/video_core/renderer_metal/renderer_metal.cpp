@@ -122,7 +122,7 @@ void RendererMetal::CreateBlitPipelineState() {
     pipeline_descriptor->setVertexFunction(vertex_function);
     pipeline_descriptor->setFragmentFunction(fragment_function);
     // TODO: get the pixel format from metal layer
-    pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
+    pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
 
     error = nullptr;
     blit_pipeline_state = device.GetDevice()->newRenderPipelineState(pipeline_descriptor, &error);

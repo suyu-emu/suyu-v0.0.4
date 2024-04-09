@@ -63,6 +63,8 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info, GPUVAddr gpu_
     texture_descriptor->setPixelFormat(MaxwellToMTL::GetPixelFormat(info.format));
     texture_descriptor->setWidth(info.size.width);
     texture_descriptor->setHeight(info.size.height);
+    texture_descriptor->setDepth(info.size.depth);
+    texture_descriptor->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageRenderTarget);
     // TODO: set other parameters
 
     texture = runtime->device.GetDevice()->newTexture(texture_descriptor);
