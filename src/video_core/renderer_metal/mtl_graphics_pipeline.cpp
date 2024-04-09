@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <iostream>
 #include <span>
 
 #include <boost/container/small_vector.hpp>
@@ -70,6 +71,56 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 
     command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(pipeline_state);
+
+    // Bind resources
+
+    // HACK: try to find a texture that we can bind
+    size_t stage = 4;
+    // const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
+    const auto read_handle{[&](const auto& desc, u32 index) {
+        /*
+        ASSERT(cbufs[desc.cbuf_index].enabled);
+        const u32 index_offset{index << desc.size_shift};
+        const u32 offset{desc.cbuf_offset + index_offset};
+        const GPUVAddr addr{cbufs[desc.cbuf_index].address + offset};
+        if constexpr (std::is_same_v<decltype(desc), const Shader::TextureDescriptor&> ||
+                      std::is_same_v<decltype(desc), const Shader::TextureBufferDescriptor&>) {
+            if (desc.has_secondary) {
+                ASSERT(cbufs[desc.secondary_cbuf_index].enabled);
+                const u32 second_offset{desc.secondary_cbuf_offset + index_offset};
+                const GPUVAddr separate_addr{cbufs[desc.secondary_cbuf_index].address +
+                                             second_offset};
+                const u32 lhs_raw{gpu_memory->Read<u32>(addr) << desc.shift_left};
+                const u32 rhs_raw{gpu_memory->Read<u32>(separate_addr)
+                                  << desc.secondary_shift_left};
+                const u32 raw{lhs_raw | rhs_raw};
+                return TexturePair(raw, false);
+            }
+        }
+        */
+        // HACK: hardcode the texture address
+        return TexturePair(/*gpu_memory->Read<u32>(addr)*/ 310378932, false);
+    }};
+
+    const Shader::Info& info{stage_infos[stage]};
+    std::array<VideoCommon::ImageViewInOut, 32> views;
+    size_t view_index{};
+    for (const auto& desc : info.texture_descriptors) {
+        for (u32 index = 0; index < desc.count; ++index) {
+            const auto handle{read_handle(desc, index)};
+            views[view_index++] = {
+                .index = handle.first,
+                .blacklist = false,
+                .id = {},
+            };
+        }
+    }
+    texture_cache.FillGraphicsImageViews<true>(std::span(views.data(), view_index));
+    VideoCommon::ImageViewInOut* texture_buffer_it{views.data()};
+
+    ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
+
+    command_recorder.GetRenderCommandEncoder()->setFragmentTexture(image_view.GetHandle(), 0);
 }
 
 void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {

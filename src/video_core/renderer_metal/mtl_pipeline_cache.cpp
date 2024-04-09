@@ -298,8 +298,10 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
             return out;
         }
 
-        fragment float4 fragmentMain(VertexOut in [[stage_in]]) {
-            return float4(in.texCoord, 0.0, 1.0);
+        fragment float4 fragmentMain(VertexOut in [[stage_in]], texture2d<float> tex [[texture(0)]]) {
+            constexpr sampler samplr(mip_filter::linear, mag_filter::linear, min_filter::linear);
+
+            return tex.sample(samplr, in.texCoord);
         }
     )",
                                                                NS::ASCIIStringEncoding),
