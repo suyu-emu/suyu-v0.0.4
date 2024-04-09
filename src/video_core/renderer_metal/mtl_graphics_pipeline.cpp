@@ -65,9 +65,8 @@ void GraphicsPipeline::Configure(bool is_indexed) {
 
     // Find resources
     size_t stage = 4;
-    // const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
+    const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
     const auto read_handle{[&](const auto& desc, u32 index) {
-        /*
         ASSERT(cbufs[desc.cbuf_index].enabled);
         const u32 index_offset{index << desc.size_shift};
         const u32 offset{desc.cbuf_offset + index_offset};
@@ -83,25 +82,32 @@ void GraphicsPipeline::Configure(bool is_indexed) {
                 const u32 rhs_raw{gpu_memory->Read<u32>(separate_addr)
                                   << desc.secondary_shift_left};
                 const u32 raw{lhs_raw | rhs_raw};
+
                 return TexturePair(raw, false);
             }
         }
-        */
-        // HACK: hardcode the texture address
-        return TexturePair(/*gpu_memory->Read<u32>(addr)*/ 310378932, false);
+        auto a = gpu_memory->Read<u32>(addr);
+        // HACK: hardcode the image
+        if (a != 310378932)
+            a = 310378932;
+
+        return TexturePair(a, false);
     }};
 
     const Shader::Info& info{stage_infos[stage]};
+
     std::array<VideoCommon::ImageViewInOut, 32> views;
+    std::array<VideoCommon::SamplerId, 32> samplers;
     size_t view_index{};
+    size_t sampler_index{};
+
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
             const auto handle{read_handle(desc, index)};
-            views[view_index++] = {
-                .index = handle.first,
-                .blacklist = false,
-                .id = {},
-            };
+            views[view_index++] = {handle.first};
+
+            VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
+            samplers[sampler_index++] = sampler;
         }
     }
     texture_cache.FillGraphicsImageViews<true>(std::span(views.data(), view_index));
@@ -119,11 +125,14 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     // Bind resources
 
     // HACK: try to find a texture that we can bind
-    VideoCommon::ImageViewInOut* texture_buffer_it{views.data()};
+    const VideoCommon::ImageViewInOut* views_it{views.data()};
+    const VideoCommon::SamplerId* samplers_it{samplers.data()};
 
-    ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
+    ImageView& image_view{texture_cache.GetImageView(views_it->id)};
+    Sampler& sampler{texture_cache.GetSampler(*samplers_it)};
 
     command_recorder.GetRenderCommandEncoder()->setFragmentTexture(image_view.GetHandle(), 0);
+    command_recorder.GetRenderCommandEncoder()->setFragmentSamplerState(sampler.GetHandle(), 0);
 }
 
 void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {

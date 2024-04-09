@@ -48,6 +48,8 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
     if (!pipeline) {
         return;
     }
+    // Set the engine
+    pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
 
     // HACK: dummy draw call
