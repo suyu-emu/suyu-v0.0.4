@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <iostream>
 #include <utility>
 #include <vector>
 
@@ -77,7 +78,32 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
 
 StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage usage,
                                                      bool deferred) {
+    if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage, deferred)) {
+        return *ref;
+    }
+
     return CreateStagingBuffer(size, usage, deferred);
+}
+
+std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t size,
+                                                                        MemoryUsage usage,
+                                                                        bool deferred) {
+    StagingBuffers& cache_level = GetCache(usage)[Common::Log2Ceil64(size)];
+
+    // TODO: don't always return true
+    const auto is_free = [](const StagingBuffer& entry) { return true; };
+    auto& entries = cache_level.entries;
+    const auto hint_it = entries.begin() + cache_level.iterate_index;
+    auto it = std::find_if(entries.begin() + cache_level.iterate_index, entries.end(), is_free);
+    if (it == entries.end()) {
+        it = std::find_if(entries.begin(), hint_it, is_free);
+        if (it == hint_it) {
+            return std::nullopt;
+        }
+    }
+    cache_level.iterate_index = std::distance(entries.begin(), it) + 1;
+
+    return it->Ref();
 }
 
 StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage usage,

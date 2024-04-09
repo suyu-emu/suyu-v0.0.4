@@ -5,6 +5,7 @@
 #include <array>
 #include <span>
 #include <vector>
+
 #include <boost/container/small_vector.hpp>
 
 #include "common/bit_cast.h"
@@ -59,7 +60,8 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info, GPUVAddr gpu_
     : VideoCommon::ImageBase(info, gpu_addr_, cpu_addr_), runtime{&runtime_} {
     MTL::TextureDescriptor* texture_descriptor = MTL::TextureDescriptor::alloc()->init();
     // TODO: don't hardcode the format
-    texture_descriptor->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
+    texture_descriptor->setPixelFormat(info.size.width == 1600 ? MTL::PixelFormatRGBA8Unorm
+                                                               : MTL::PixelFormatASTC_4x4_sRGB);
     texture_descriptor->setWidth(info.size.width);
     texture_descriptor->setHeight(info.size.height);
 

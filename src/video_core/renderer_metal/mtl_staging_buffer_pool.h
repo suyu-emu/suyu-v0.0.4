@@ -71,6 +71,9 @@ private:
 
     StagingBufferRef GetStagingBuffer(size_t size, MemoryUsage usage, bool deferred = false);
 
+    std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, MemoryUsage usage,
+                                                         bool deferred);
+
     StagingBufferRef CreateStagingBuffer(size_t size, MemoryUsage usage, bool deferred);
 
     StagingBuffersCache& GetCache(MemoryUsage usage);
