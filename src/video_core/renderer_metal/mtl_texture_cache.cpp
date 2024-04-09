@@ -12,6 +12,7 @@
 #include "common/bit_util.h"
 #include "common/settings.h"
 
+#include "video_core/renderer_metal/maxwell_to_mtl.h"
 #include "video_core/renderer_metal/mtl_command_recorder.h"
 #include "video_core/renderer_metal/mtl_device.h"
 #include "video_core/renderer_metal/mtl_texture_cache.h"
@@ -59,11 +60,10 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info, GPUVAddr gpu_
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info, gpu_addr_, cpu_addr_), runtime{&runtime_} {
     MTL::TextureDescriptor* texture_descriptor = MTL::TextureDescriptor::alloc()->init();
-    // TODO: don't hardcode the format
-    texture_descriptor->setPixelFormat(info.size.width == 1600 ? MTL::PixelFormatRGBA8Unorm
-                                                               : MTL::PixelFormatASTC_4x4_sRGB);
+    texture_descriptor->setPixelFormat(MaxwellToMTL::GetPixelFormat(info.format));
     texture_descriptor->setWidth(info.size.width);
     texture_descriptor->setHeight(info.size.height);
+    // TODO: set other parameters
 
     texture = runtime->device.GetDevice()->newTexture(texture_descriptor);
 }
