@@ -279,10 +279,10 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         #include <metal_stdlib>
         using namespace metal;
 
-        constant float2 texCoords[] = {
-            float2(0.0, -1.0),
-            float2(0.0,  1.0),
-            float2(2.0,  1.0),
+        constant float2 positions[] = {
+            float2(-1.0, -3.0),
+            float2(-1.0,  1.0),
+            float2( 3.0,  1.0),
         };
 
         struct VertexOut {
@@ -292,8 +292,9 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         vertex VertexOut vertexMain(uint vid [[vertex_id]]) {
             VertexOut out;
-            out.position = float4(texCoords[vid] * 2.0 - 1.0, 0.0, 1.0);
-            out.texCoord = texCoords[vid];
+            out.position = float4(positions[vid], 0.0, 1.0);
+            out.texCoord = positions[vid] * 0.5 + 0.5;
+            out.texCoord.y = 1.0 - out.texCoord.y;
 
             return out;
         }
