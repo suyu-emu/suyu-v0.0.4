@@ -58,3 +58,6 @@
 [submodule "externals/boost-headers"]
 	path = externals/boost-headers
 	url = https://github.com/boostorg/headers.git
+[submodule "externals/SPIRV-Tools"]
+	path = externals/SPIRV-Tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git
