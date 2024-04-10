@@ -78,10 +78,6 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
 
 StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage usage,
                                                      bool deferred) {
-    if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage, deferred)) {
-        return *ref;
-    }
-
     return CreateStagingBuffer(size, usage, deferred);
 }
 

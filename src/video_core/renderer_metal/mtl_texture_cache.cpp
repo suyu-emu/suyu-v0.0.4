@@ -60,7 +60,7 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info, GPUVAddr gpu_
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info, gpu_addr_, cpu_addr_), runtime{&runtime_} {
     MTL::TextureDescriptor* texture_descriptor = MTL::TextureDescriptor::alloc()->init();
-    texture_descriptor->setPixelFormat(MaxwellToMTL::GetPixelFormat(info.format));
+    texture_descriptor->setPixelFormat(MaxwellToMTL::GetPixelFormatInfo(info.format).pixel_format);
     texture_descriptor->setWidth(info.size.width);
     texture_descriptor->setHeight(info.size.height);
     texture_descriptor->setDepth(info.size.depth);
@@ -82,9 +82,7 @@ Image::~Image() {
 void Image::UploadMemory(MTL::Buffer* buffer, size_t offset,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
     for (const VideoCommon::BufferImageCopy& copy : copies) {
-        // TODO: query this from texture format
-        size_t bytes_per_pixel = 4;
-        size_t bytes_per_row = info.size.width * bytes_per_pixel;
+        size_t bytes_per_row = MaxwellToMTL::GetTextureBytesPerRow(info.format, info.size.width);
         size_t bytes_per_image = info.size.height * bytes_per_row;
         MTL::Size size = MTL::Size::Make(info.size.width, info.size.height, 1);
         MTL::Origin origin = MTL::Origin::Make(copy.image_offset.x, copy.image_offset.y,
