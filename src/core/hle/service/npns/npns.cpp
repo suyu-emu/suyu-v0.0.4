@@ -38,7 +38,7 @@ public:
             {24, nullptr, "DestroyTokenWithApplicationId"},
             {25, nullptr, "QueryIsTokenValid"},
             {26, nullptr, "ListenToMyApplicationId"},
-            {27, nullptr, "DestroyTokenAll"},
+            {27, nullptr, "DestroyTokenAll"}, // 13.0.0+
             {28, nullptr, "CreateTokenWithName"}, // 18.0.0+
             {29, nullptr, "DestroyTokenWithName"}, // 18.0.0+
             {31, nullptr, "UploadTokenToBaaS"},
@@ -74,16 +74,16 @@ public:
             {154, nullptr, "CreateTokenAsync"},
             {155, nullptr, "CreateTokenAsyncWithApplicationId"},
             {156, nullptr, "CreateTokenWithNameAsync"}, // 18.0.0+
-            {161, nullptr, "GetRequestChangeStateCancelEvent"},
-            {162, nullptr, "RequestChangeStateForceTimedWithCancelEvent"},
-            {201, nullptr, "RequestChangeStateForceTimed"},
-            {202, nullptr, "RequestChangeStateForceAsync"},
+            {161, nullptr, "GetRequestChangeStateCancelEvent"}, // 10.0.0+
+            {162, nullptr, "RequestChangeStateForceTimedWithCancelEvent"}, // 10.0.0+
+            {201, nullptr, "RequestChangeStateForceTimed"}, // 3.0.0+
+            {202, nullptr, "RequestChangeStateForceAsync"}, // 3.0.0+
             {301, nullptr, "GetPassword"}, // 18.0.0+
             {302, nullptr, "GetAllImmigration"}, // 18.0.0+
             {303, nullptr, "GetNotificationHistories"}, // 18.0.0+
             {304, nullptr, "GetPersistentConnectionSummary"}, // 18.0.0+
             {305, nullptr, "GetDigitalTwinSummary"}, // 18.0.0+
-            {306, nullptr, "GetDigitalTwinValue"}, // 18.0.0+
+            {306, nullptr, "GetDigitalTwinValue"} // 18.0.0+
         };
         // clang-format on
 

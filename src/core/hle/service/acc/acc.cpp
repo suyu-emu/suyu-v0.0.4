@@ -179,10 +179,10 @@ public:
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
-            {143, nullptr, "GetNetworkServiceLicenseCacheEx"},
+            {143, nullptr, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
-            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
-            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
+            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"}, // 16.0.0+
+            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"}, // 16.0.0+
             {170, nullptr, "CreateDeviceHistoryRequest"}, // 17.0.0+
             {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
             {200, nullptr, "IsRegistered"},
@@ -323,9 +323,9 @@ public:
             {1, &IProfileCommon::GetBase, "GetBase"},
             {10, &IProfileCommon::GetImageSize, "GetImageSize"},
             {11, &IProfileCommon::LoadImage, "LoadImage"},
-            {20, nullptr, "GetLargeImageSize"}, // 18.0.0+
-            {21, nullptr, "LoadLargeImage"},    // 18.0.0+
-            {30, nullptr, "GetImageId"}         // 18.0.0+
+            {20, &IProfileCommon::GetImageSize, "GetLargeImageSize"}, // 18.0.0+
+            {21, &IProfileCommon::LoadImage, "LoadLargeImage"}, // 18.0.0+
+            {30, nullptr, "GetImageId"} // 18.0.0+
         };
 
         RegisterHandlers(functions);
@@ -334,7 +334,7 @@ public:
             static const FunctionInfo editor_functions[] = {
                 {100, &IProfileCommon::Store, "Store"},
                 {101, &IProfileCommon::StoreWithImage, "StoreWithImage"},
-                {110, nullptr, "StoreWithLargeImage"} // 18.0.0+
+                {110, &IProfileCommon::StoreWithImage, "StoreWithLargeImage"} // 18.0.0+
             };
 
             RegisterHandlers(editor_functions);
