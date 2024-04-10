@@ -120,7 +120,7 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     }
     command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 
-    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(pipeline_state);
+    command_recorder.SetRenderPipelineState(pipeline_state);
 
     // Bind resources
 
@@ -131,8 +131,8 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     ImageView& image_view{texture_cache.GetImageView(views_it->id)};
     Sampler& sampler{texture_cache.GetSampler(*samplers_it)};
 
-    command_recorder.GetRenderCommandEncoder()->setFragmentTexture(image_view.GetHandle(), 0);
-    command_recorder.GetRenderCommandEncoder()->setFragmentSamplerState(sampler.GetHandle(), 0);
+    command_recorder.SetFragmentTexture(image_view.GetHandle(), 0);
+    command_recorder.SetFragmentSamplerState(sampler.GetHandle(), 0);
 }
 
 void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {

@@ -11,12 +11,12 @@ CommandRecorder::CommandRecorder(const Device& device_) : device(device_) {}
 CommandRecorder::~CommandRecorder() = default;
 
 void CommandRecorder::BeginOrContinueRenderPass(MTL::RenderPassDescriptor* render_pass) {
-    if (render_pass != bound_render_pass) {
+    if (render_pass != render_state.render_pass) {
         RequireCommandBuffer();
         EndEncoding();
         encoder = command_buffer->renderCommandEncoder(render_pass);
         encoder_type = EncoderType::Render;
-        bound_render_pass = render_pass;
+        render_state.render_pass = render_pass;
     }
 }
 
@@ -43,7 +43,9 @@ void CommandRecorder::EndEncoding() {
         encoder->endEncoding();
         //[encoder release];
         encoder = nullptr;
-        bound_render_pass = nullptr;
+        if (encoder_type == EncoderType::Render) {
+            render_state = {};
+        }
     }
 }
 

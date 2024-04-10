@@ -51,9 +51,9 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
         return;
     }
     MTL::Texture* src_texture = framebuffer->GetHandle()->colorAttachments()->object(0)->texture();
-    command_recorder.GetRenderCommandEncoder()->setRenderPipelineState(blit_pipeline_state);
-    command_recorder.GetRenderCommandEncoder()->setFragmentTexture(src_texture, 0);
-    command_recorder.GetRenderCommandEncoder()->setFragmentSamplerState(blit_sampler_state, 0);
+    command_recorder.SetRenderPipelineState(blit_pipeline_state);
+    command_recorder.SetFragmentTexture(src_texture, 0);
+    command_recorder.SetFragmentSamplerState(blit_sampler_state, 0);
 
     // Draw a full screen triangle which will get clipped to a rectangle
     command_recorder.GetRenderCommandEncoder()->drawPrimitives(MTL::PrimitiveTypeTriangle,
