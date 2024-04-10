@@ -87,8 +87,8 @@ void GraphicsPipeline::Configure(bool is_indexed) {
             }
         }
         auto a = gpu_memory->Read<u32>(addr);
-        // HACK: hardcode the image
-        if (a != 310378932)
+        // HACK: this particular texture breaks SMO
+        if (a == 310378931)
             a = 310378932;
 
         return TexturePair(a, false);
