@@ -48,7 +48,7 @@ We currently have builds over at the [Releases](https://git.suyu.dev/suyu/suyu/r
 
 This project is completely free and open source, and anyone can contribute to help improve suyu.
 
-Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/suyu).
+Most of the development happens on GitLab. For development discussion, please join us on [Matrix](https://chat.suyu.dev).
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://git.suyu.dev/suyu/suyu/wiki/Contributing) and [Developer Information](https://git.suyu.dev/suyu/suyu/wiki/Developer-Information).
 You can also contact any of the developers on Discord to learn more about the current state of suyu.
