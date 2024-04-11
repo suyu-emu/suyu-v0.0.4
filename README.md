@@ -25,7 +25,7 @@ It is written in C++ with portability in mind, and we're actively working on bui
 </h4>
 
 <p align="center">
-  <a href="https://discord.gg/suyu">Discord</a> |
+  <a href="https://chat.suyu.dev">Matrix</a> |
   <a href="#status">Status</a> |
   <a href="#development">Development</a> |
   <a href="#downloads">Downloads</a> |
@@ -77,7 +77,7 @@ We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any 
 
 ## Support
 
-If you have any questions, don't hesitate to ask us on [Discord](https://discord.gg/suyu). We don't bite!
+If you have any questions, don't hesitate to ask us on [Matrix](https://chat.suyu.dev). We don't bite!
 
 
 ## License
