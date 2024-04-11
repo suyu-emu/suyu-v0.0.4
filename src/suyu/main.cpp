@@ -4851,6 +4851,7 @@ void GMainWindow::UpdateIcons(const QString& theme_path) {
 }
 
 bool GMainWindow::TryLoadStylesheet(const QString& theme_uri) {
+    LOG_DEBUG(Frontend, "TryLoadStylesheet()");
     QString style_path;
 
     // Use themed stylesheet if it exists
@@ -4900,6 +4901,7 @@ static void AdjustLinkColor() {
 }
 
 void GMainWindow::UpdateThemePalette() {
+    LOG_DEBUG(Frontend, "UpdateThemePalette()");
     QPalette themePalette(qApp->palette());
 #ifdef _WIN32
     QColor dark(25, 25, 25);
@@ -4955,6 +4957,33 @@ void GMainWindow::UpdateThemePalette() {
     }
     LOG_DEBUG(Frontend, "Using style: {}", style_name.toStdString());
     qApp->setStyle(style_name);
+#elif defined(__APPLE__)
+    // Force the usage of the light palette in light mode
+    if (CheckDarkMode()) {
+        // Reset dark palette
+        themePalette = this->style()->standardPalette();
+    } else {
+        themePalette.setColor(QPalette::Window, QColor(236, 236, 236));
+        themePalette.setColor(QPalette::WindowText, Qt::black);
+        themePalette.setColor(QPalette::Disabled, QPalette::WindowText, Qt::black);
+        themePalette.setColor(QPalette::Base, Qt::white);
+        themePalette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+        themePalette.setColor(QPalette::ToolTipBase, Qt::white);
+        themePalette.setColor(QPalette::ToolTipText, Qt::black);
+        themePalette.setColor(QPalette::Text, Qt::black);
+        themePalette.setColor(QPalette::Disabled, QPalette::Text, Qt::black);
+        themePalette.setColor(QPalette::Dark, QColor(191, 191, 191));
+        themePalette.setColor(QPalette::Shadow, Qt::black);
+        themePalette.setColor(QPalette::Button, QColor(236, 236, 236));
+        themePalette.setColor(QPalette::ButtonText, Qt::black);
+        themePalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(147, 147, 147));
+        themePalette.setColor(QPalette::BrightText, Qt::white);
+        themePalette.setColor(QPalette::Link, QColor(0, 140, 200));
+        themePalette.setColor(QPalette::Highlight, QColor(179, 215, 255));
+        themePalette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(220, 220, 220));
+        themePalette.setColor(QPalette::HighlightedText, Qt::black);
+        themePalette.setColor(QPalette::Disabled, QPalette::HighlightedText, Qt::black);
+    }
 #else
     if (CheckDarkMode()) {
         // Set Dark palette on non Windows platforms (that may not have a dark palette)
