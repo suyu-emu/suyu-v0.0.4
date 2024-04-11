@@ -73,7 +73,7 @@ void Fiber::DestroyWorkFiber() {
 }
 
 void Fiber::DestroyThreadFiber() {
-    if (*impl->next_fiber_ptr) {
+    if (impl->next_fiber_ptr && *impl->next_fiber_ptr) {
         *impl->next_fiber_ptr = nullptr;
     }
 }
