@@ -3,6 +3,14 @@ SPDX-FileCopyrightText: 2018 yuzu Emulator Project - 2024 torzu Emulator Project
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
+<h1 align="center">
+  <br>
+  <a href="http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu"><img src="https://raw.githubusercontent.com/litucks/torzu/master/dist/yuzu.svg" alt="torzu" width="200"></a>
+  <br>
+  <b>torzu</b>
+  <br>
+</h1>
+
 <h4 align="center"><b>torzu</b> is a fork of yuzu, the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
 <br>
 It is written in C++ with portability in mind, and I plan to actively maintain builds for Linux, Android and Windows.
