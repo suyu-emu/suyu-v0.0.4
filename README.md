@@ -24,13 +24,13 @@ It runs most Nintendo Switch games released until the date of the Yuzu takedown.
 
 ## Development
 
-Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu) is hosted.
+Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu) is hosted.
 
-If you want to contribute, please take a look at the [Contributor's Guide](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Contributing) and [Developer Information](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Developer-Information).
+If you want to contribute, please take a look at the [Contributor's Guide](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Contributing) and [Developer Information](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Developer-Information).
 
 To clone this git repository, you can use these commands given tor is installed and running:
 
-    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu.git
+    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu.git
     cd torzu
     git submodule update --init --depth 1 --recursive
 
@@ -44,10 +44,10 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 
 ## Building
 
-* __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Building-for-Linux)
-* __Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Building-for-Windows)
-* __Android__: [Android Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Building-For-Android)
-* __macOS__: [macOS Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/darktux/torzu/wiki/Building-for-macOS)
+* __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Linux)
+* __Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)
+* __Android__: [Android Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-For-Android)
+* __macOS__: [macOS Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-macOS)
 
 ## Download
 
