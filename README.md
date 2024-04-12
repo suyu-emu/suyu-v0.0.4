@@ -45,9 +45,11 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 ## Building
 
 * __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Linux)
-* __Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)
-* __Android__: [Android Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-For-Android)
-* __macOS__: [macOS Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-macOS)
+* ~~__Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)~~
+* ~~__Android__: [Android Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-For-Android)~~
+* ~~__macOS__: [macOS Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-macOS)~~
+
+(Only Linux builds are available for now. Next planned are Windows, then Android.)
 
 ## Download
 
