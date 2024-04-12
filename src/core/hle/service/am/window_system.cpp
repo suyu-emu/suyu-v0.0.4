@@ -121,7 +121,7 @@ void WindowSystem::RequestAppletVisibilityState(Applet& applet, bool visible) {
 void WindowSystem::OnOperationModeChanged() {
     std::scoped_lock lk{m_lock};
 
-    for (const auto& [aruid, applet] : m_applets) {
+    for (const auto& [_, applet] : m_applets) {
         std::scoped_lock lk2{applet->lock};
         applet->lifecycle_manager.OnOperationAndPerformanceModeChanged();
     }
@@ -130,7 +130,7 @@ void WindowSystem::OnOperationModeChanged() {
 void WindowSystem::OnExitRequested() {
     std::scoped_lock lk{m_lock};
 
-    for (const auto& [aruid, applet] : m_applets) {
+    for (const auto& [_, applet] : m_applets) {
         std::scoped_lock lk2{applet->lock};
         applet->lifecycle_manager.RequestExit();
     }
@@ -156,7 +156,7 @@ void WindowSystem::OnHomeButtonPressed(ButtonPressDuration type) {
 
 void WindowSystem::PruneTerminatedAppletsLocked() {
     for (auto it = m_applets.begin(); it != m_applets.end(); /* ... */) {
-        const auto& [aruid, applet] = *it;
+        const auto& [_, applet] = *it;
 
         std::scoped_lock lk{applet->lock};
 

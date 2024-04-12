@@ -83,7 +83,7 @@ static void PopulateResolutionComboBox(QComboBox* screenshot_height, QWidget* pa
     const auto& enumeration =
         Settings::EnumMetadata<Settings::ResolutionSetup>::Canonicalizations();
     std::set<u32> resolutions{};
-    for (const auto& [name, value] : enumeration) {
+    for (const auto& [_, value] : enumeration) {
         const float up_factor = GetUpFactor(value);
         u32 height_undocked = Layout::ScreenUndocked::Height * up_factor;
         u32 height_docked = Layout::ScreenDocked::Height * up_factor;

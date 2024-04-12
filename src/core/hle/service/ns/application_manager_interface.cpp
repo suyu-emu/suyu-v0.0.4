@@ -348,7 +348,7 @@ Result IApplicationManagerInterface::ListApplicationRecord(
     size_t i = 0;
     u8 ii = 24;
 
-    for (const auto& [slot, game] : installed_games) {
+    for (const auto& [_, game] : installed_games) {
         if (i >= limit) {
             break;
         }

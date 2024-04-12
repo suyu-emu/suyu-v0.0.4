@@ -54,7 +54,8 @@ public:
         const s32 to_register{std::min(std::min(appended_count, BufferAppendLimit),
                                        BufferAppendLimit - registered_count)};
 
-        for (s32 i = 0; i < to_register; i++) {
+        out_buffers.reserve(to_register);
+        for (s32 i = 0; i < to_register; ++i) {
             s32 index{appended_index - appended_count};
             if (index < 0) {
                 index += N;
@@ -180,6 +181,7 @@ public:
             return 0;
         }
 
+        buffers_flushed.reserve(registered_count + appended_count);
         while (registered_count > 0) {
             auto index{registered_index - registered_count};
             if (index < 0) {

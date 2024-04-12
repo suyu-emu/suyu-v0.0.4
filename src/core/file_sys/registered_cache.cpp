@@ -261,7 +261,7 @@ std::vector<NcaID> PlaceholderCache::List() const {
     std::vector<NcaID> out;
     for (const auto& sdir : dir->GetSubdirectories()) {
         for (const auto& file : sdir->GetFiles()) {
-            const auto name = file->GetName();
+            const auto& name = file->GetName();
             if (name.length() == 36 && name.ends_with(".nca")) {
                 out.push_back(Common::HexStringToArray<0x10>(name.substr(0, 32)));
             }

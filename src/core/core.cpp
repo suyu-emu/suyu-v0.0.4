@@ -80,6 +80,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     if (filename == "00") {
         const auto dir = vfs->OpenDirectory(dir_name, FileSys::OpenMode::Read);
         std::vector<FileSys::VirtualFile> concat;
+        concat.reserve(0x10);
 
         for (u32 i = 0; i < 0x10; ++i) {
             const auto file_name = fmt::format("{:02X}", i);

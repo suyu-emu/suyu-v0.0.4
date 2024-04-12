@@ -135,7 +135,7 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
     const ComboboxTranslations* enumeration{nullptr};
     if (combobox_enumerations.contains(type)) {
         enumeration = &combobox_enumerations.at(type);
-        for (const auto& [id, name] : *enumeration) {
+        for (const auto& [_, name] : *enumeration) {
             combobox->addItem(name);
         }
     } else {
@@ -223,7 +223,7 @@ QWidget* Widget::CreateRadioGroup(std::function<std::string()>& serializer,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        for (const auto& [id, button] : radio_buttons) {
+        for (const auto& [_, button] : radio_buttons) {
             QObject::connect(button, &QAbstractButton::clicked, [touch]() { touch(); });
         }
     }

@@ -358,7 +358,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
         }
     }
 
-    for (const auto& [id, widget] : hold_graphics) {
+    for (const auto& [_, widget] : hold_graphics) {
         graphics_layout.addWidget(widget);
     }
 
