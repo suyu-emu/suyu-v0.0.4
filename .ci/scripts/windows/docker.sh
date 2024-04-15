@@ -1,6 +1,7 @@
 #!/bin/bash -ex
 
 # SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set -e
@@ -9,12 +10,15 @@ set -e
 
 ccache -sv
 
+rm -rf build
 mkdir -p build && cd build
-cmake .. \
+/usr/bin/x86_64-w64-mingw32-cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_TOOLCHAIN_FILE="${PWD}/../CMakeModules/MinGWCross.cmake" \
     -DDISPLAY_VERSION="$1" \
-    -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
+    -DDYNARMIC_USE_PRECOMPILED_HEADERS=OFF \
+    -DSUYU_USE_PRECOMPILED_HEADERS=OFF \
+    -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=OFF \
+    -DUSE_DISCORD_PRESENCE=ON \
     -DENABLE_QT_TRANSLATION=ON \
     -DUSE_CCACHE=ON \
     -DSUYU_USE_BUNDLED_SDL2=OFF \

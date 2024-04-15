@@ -25,7 +25,7 @@ val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toIn
 
 @Suppress("UnstableApiUsage")
 android {
-    namespace = "org.suyu.suyu_emu"
+    namespace = "dev.suyu.suyu_emu"
 
     compileSdkVersion = "android-34"
     ndkVersion = "26.1.10909125"
@@ -54,7 +54,7 @@ android {
 
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
-        applicationId = "org.suyu.suyu_emu"
+        applicationId = "dev.suyu.suyu_emu"
         minSdk = 30
         targetSdk = 34
         versionName = getGitVersion()

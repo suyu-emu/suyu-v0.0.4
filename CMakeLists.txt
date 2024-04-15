@@ -732,14 +732,14 @@ endif()
 # https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 # https://www.freedesktop.org/software/appstream/docs/
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/org.suyu_emu.suyu.desktop"
+    install(FILES "dist/dev.suyu_emu.suyu.desktop"
             DESTINATION "share/applications")
     install(FILES "dist/suyu.svg"
             DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "org.suyu_emu.suyu.svg")
-    install(FILES "dist/org.suyu_emu.suyu.xml"
+            RENAME "dev.suyu_emu.suyu.svg")
+    install(FILES "dist/dev.suyu_emu.suyu.xml"
             DESTINATION "share/mime/packages")
-    install(FILES "dist/org.suyu_emu.suyu.metainfo.xml"
+    install(FILES "dist/dev.suyu_emu.suyu.metainfo.xml"
             DESTINATION "share/metainfo")
 endif()
 

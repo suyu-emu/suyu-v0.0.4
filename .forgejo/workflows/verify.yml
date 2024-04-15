@@ -63,8 +63,8 @@ jobs:
             image: linux-fresh
           - type: linux
             image: linux-fresh
-            # - type: windows
-            # image: linux-mingw
+          - type: windows
+            image: linux-mingw
     container: fijxu/build-environments:${{ matrix.image }}
       # User 1001 doesn't exists on the images.
       # options: -u 1001

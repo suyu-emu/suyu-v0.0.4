@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 **Note**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We're in need of developers. Please join our Discord server below if you want to contribute!
+We're in need of developers. Please join our chat below if you want to contribute!
 This repo is based on Yuzu EA 4176.
 
 <hr />
@@ -25,7 +25,7 @@ It is written in C++ with portability in mind, and we're actively working on bui
 </h4>
 
 <p align="center">
-  <a href="https://discord.gg/suyu">Discord</a> |
+  <a href="https://chat.suyu.dev">Chat</a> |
   <a href="#status">Status</a> |
   <a href="#development">Development</a> |
   <a href="#downloads">Downloads</a> |
@@ -48,7 +48,7 @@ We currently have builds over at the [Releases](https://git.suyu.dev/suyu/suyu/r
 
 This project is completely free and open source, and anyone can contribute to help improve suyu.
 
-Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/suyu).
+Most of the development happens on GitLab. For development discussion, please join us in our [Chat](https://chat.suyu.dev).
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://git.suyu.dev/suyu/suyu/wiki/Contributing) and [Developer Information](https://git.suyu.dev/suyu/suyu/wiki/Developer-Information).
 You can also contact any of the developers on Discord to learn more about the current state of suyu.
@@ -77,7 +77,7 @@ We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any 
 
 ## Support
 
-If you have any questions, don't hesitate to ask us on [Discord](https://discord.gg/suyu). We don't bite!
+If you have any questions, don't hesitate to ask us in our [chat](https://chat.suyu.dev). We don't bite!
 
 
 ## License
