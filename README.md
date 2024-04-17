@@ -21,9 +21,9 @@ Support the original suyu developer team [here](https://discord.gg/ajz5hdrZ)
   <br>
 </h1>
 
-<h4 align="center"><b>suyu</b> is the continuation of the world's most popular, open-source, Nintendo Switch emulator, yuzu.
+<h4 align="center"><b>suyu</b> was the continuation of the world's most popular, open-source, Nintendo Switch emulator, yuzu.
 <br>
-It is written in C++ with portability in mind, and we're actively working on builds for Windows, Linux and Android.
+It is written in C++ (C# possibly required soon) with portability in mind, and we're actively working on builds for Windows, Linux and Android along with a custom OS called [suyuos](https://git.suyu.dev/suyu/suyu-os).
 </h4>
 
 <p align="center">
