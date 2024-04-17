@@ -62,7 +62,7 @@ You can also contact any of the developers on Discord to learn more about the cu
 * __Linux__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __macOS__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __Android__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
-*__IOS (Sudachi redirect)__: [Releases](https://github.com/emuPlace/Sudachi/releases)
+* __IOS (Sudachi redirect)__: [Releases](https://github.com/emuPlace/Sudachi/releases)
 
 If you want daily builds then [Click here](https://git.suyu.dev/suyu/suyu/actions)
 If you don't know how to download the daily builds then [Click here](https://git.suyu.dev/suyu/suyu/raw/branch/dev/img/daily-builds.png)
