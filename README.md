@@ -34,6 +34,8 @@ It runs most Nintendo Switch games released until the date of the Yuzu takedown.
 
 Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu) is hosted.
 
+Currently, development is limited to external commits as I'm working on implementing a faster recompiler! This will increase emulation speed in CPU-bound scenarios.
+
 If you want to contribute, please take a look at the [Contributor's Guide](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Contributing) and [Developer Information](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Developer-Information).
 
 To clone this git repository, you can use these commands given tor is installed and running:
