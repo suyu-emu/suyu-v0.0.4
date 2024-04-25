@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <spirv-tools/optimizer.hpp>
 
 #include "common/settings.h"
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
@@ -481,7 +482,7 @@ void PatchPhiNodes(IR::Program& program, EmitContext& ctx) {
 } // Anonymous namespace
 
 std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,
-                           IR::Program& program, Bindings& bindings) {
+                           IR::Program& program, Bindings& bindings, bool optimize) {
     EmitContext ctx{profile, runtime_info, program, bindings};
     const Id main{DefineMain(ctx, program)};
     DefineEntryPoint(program, ctx, main);
@@ -493,7 +494,28 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
     SetupCapabilities(profile, program.info, ctx);
     SetupTransformFeedbackCapabilities(ctx, main);
     PatchPhiNodes(program, ctx);
-    return ctx.Assemble();
+
+    if (!optimize) {
+        return ctx.Assemble();
+    } else {
+        std::vector<u32> spirv = ctx.Assemble();
+
+        spvtools::Optimizer spv_opt(SPV_ENV_VULKAN_1_3);
+        spv_opt.SetMessageConsumer([](spv_message_level_t, const char*, const spv_position_t&,
+                                      const char* m) { LOG_ERROR(HW_GPU, "spirv-opt: {}", m); });
+        spv_opt.RegisterPerformancePasses();
+
+        spvtools::OptimizerOptions opt_options;
+        opt_options.set_run_validator(false);
+
+        std::vector<u32> result;
+        if (!spv_opt.Run(spirv.data(), spirv.size(), &result, opt_options)) {
+            LOG_ERROR(HW_GPU,
+                      "Failed to optimize SPIRV shader output, continuing without optimization");
+            result = std::move(spirv);
+        }
+        return result;
+    }
 }
 
 Id EmitPhi(EmitContext& ctx, IR::Inst* inst) {

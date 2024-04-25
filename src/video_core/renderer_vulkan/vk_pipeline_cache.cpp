@@ -673,7 +673,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding)};
+        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding,
+                                              Settings::values.optimize_spirv_output.GetValue())};
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
         if (device.HasDebuggingToolAttached()) {
@@ -767,7 +768,8 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     }
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};
-    const std::vector<u32> code{EmitSPIRV(profile, program)};
+    const std::vector<u32> code{
+        EmitSPIRV(profile, program, Settings::values.optimize_spirv_output.GetValue())};
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};
     if (device.HasDebuggingToolAttached()) {
