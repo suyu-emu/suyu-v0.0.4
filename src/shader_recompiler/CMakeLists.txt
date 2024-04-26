@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(shader_recompiler STATIC
