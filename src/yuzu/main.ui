@@ -242,7 +242,7 @@
   </action>
   <action name="action_About">
    <property name="text">
-    <string>&amp;About yuzu</string>
+    <string>&amp;About torzu</string>
    </property>
   </action>
   <action name="action_Single_Window_Mode">

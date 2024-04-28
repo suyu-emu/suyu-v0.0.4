@@ -4544,7 +4544,7 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto yuzu_title = fmt::format("yuzu | {}-{}", branch_name, description);
+    const auto yuzu_title = fmt::format("torzu | {}-{}", branch_name, description);
     const auto override_title =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto window_title = override_title.empty() ? yuzu_title : override_title;
