@@ -712,13 +712,13 @@ endif()
 # https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 # https://www.freedesktop.org/software/appstream/docs/
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/org.yuzu_emu.yuzu.desktop"
+    install(FILES "dist/onion.torzu_emu.torzu.desktop"
             DESTINATION "share/applications")
     install(FILES "dist/yuzu.svg"
             DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "org.yuzu_emu.yuzu.svg")
-    install(FILES "dist/org.yuzu_emu.yuzu.xml"
+            RENAME "onion.torzu_emu.torzu.svg")
+    install(FILES "dist/onion.torzu_emu.torzu.xml"
             DESTINATION "share/mime/packages")
-    install(FILES "dist/org.yuzu_emu.yuzu.metainfo.xml"
+    install(FILES "dist/onion.torzu_emu.torzu.metainfo.xml"
             DESTINATION "share/metainfo")
 endif()

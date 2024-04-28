@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+SPDX-License-Identifier: CC0-1.0
+-->
+
+<component type="desktop-application">
+  <id>onion.torzu_emu.torzu</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Torzu</name>
+  <summary>Nintendo Switch emulator</summary>
+  <description>
+    <p>yuzu is the world's most popular, open-source, Nintendo Switch emulator — started by the creators of Citra.</p>
+    <p>The emulator is capable of running most commercial games at full speed, provided you meet the necessary hardware requirements.</p>
+  </description>
+  <categories>
+    <category>Game</category>
+    <category>Emulator</category>
+  </categories>
+  <keywords>
+    <keyword>switch</keyword>
+    <keyword>emulator</keyword>
+  </keywords>
+  <url type="bugtracker">http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/issues</url>
+  <url type="vcs-browser">http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu</url>
+  <launchable type="desktop-id">onion.torzu_emu.torzu.desktop</launchable>
+  <provides>
+    <binary>yuzu</binary>
+    <binary>yuzu-cmd</binary>
+  </provides>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>gamepad</control>
+  </supports>
+  <requires>
+    <memory>8192</memory>
+  </requires>
+  <recommends>
+    <memory>16384</memory>
+  </recommends>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer_name>yuzu Emulator Team</developer_name>
+  <content_rating type="oars-1.0"/>
+</component>

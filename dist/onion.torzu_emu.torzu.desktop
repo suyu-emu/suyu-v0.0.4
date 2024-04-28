@@ -4,13 +4,13 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=yuzu
+Name=torzu
 GenericName=Switch Emulator
 Comment=Nintendo Switch video game console emulator
-Icon=org.yuzu_emu.yuzu
+Icon=onion.torzu_emu.torzu
 TryExec=yuzu
 Exec=yuzu %f
 Categories=Game;Emulator;Qt;
 MimeType=application/x-nx-nro;application/x-nx-nso;application/x-nx-nsp;application/x-nx-xci;
 Keywords=Nintendo;Switch;
-StartupWMClass=yuzu
+StartupWMClass=torzu

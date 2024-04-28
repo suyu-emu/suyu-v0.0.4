@@ -5292,7 +5292,7 @@ int main(int argc, char* argv[]) {
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.
-    QGuiApplication::setDesktopFileName(QStringLiteral("org.yuzu_emu.yuzu"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("onion.torzu_emu.torzu"));
 #endif
 
     SetHighDPIAttributes();
