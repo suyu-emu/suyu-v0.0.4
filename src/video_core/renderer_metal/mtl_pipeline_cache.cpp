@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -15,7 +16,7 @@
 #include "common/microprofile.h"
 #include "common/thread_worker.h"
 #include "core/core.h"
-#include "shader_recompiler/backend/spirv/emit_spirv.h"
+#include "shader_recompiler/backend/msl/emit_msl.h"
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/maxwell/control_flow.h"
 #include "shader_recompiler/frontend/maxwell/translate_program.h"
@@ -33,7 +34,7 @@
 namespace Metal {
 
 namespace {
-using Shader::Backend::SPIRV::EmitSPIRV;
+using Shader::Backend::MSL::EmitMSL;
 using Shader::Maxwell::ConvertLegacyToGeneric;
 using Shader::Maxwell::GenerateGeometryPassthrough;
 using Shader::Maxwell::MergeDualVertexPrograms;
@@ -265,8 +266,10 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
 
         const auto runtime_info{MakeRuntimeInfo(programs, key, program, previous_stage)};
         ConvertLegacyToGeneric(program, runtime_info);
-        const std::vector<u32> code{EmitSPIRV(profile, runtime_info, program, binding)};
-        // TODO: translate the shader to metal using spirv cross
+        const std::string code{EmitMSL(profile, runtime_info, program, binding)};
+        // HACK
+        std::cout << code << std::endl;
+        // TODO: create MTL::Function
         // functions[stage_index] = ;
         previous_stage = &program;
     }
