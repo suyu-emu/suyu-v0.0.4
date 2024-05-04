@@ -277,6 +277,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
             LOG_ERROR(Render_Metal, "failed to create library: {}",
                       error->description()->cString(NS::ASCIIStringEncoding));
             // HACK
+            std::cout << error->description()->cString(NS::ASCIIStringEncoding) << std::endl;
+            // HACK
             throw;
         }
 

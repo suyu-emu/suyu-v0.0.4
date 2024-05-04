@@ -215,7 +215,7 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr,
     case IR::Attribute::PositionW: {
         const bool is_array{IsInputArray(ctx.stage)};
         const auto input_decorator{is_array ? fmt::format("gl_in[{}].", vertex) : ""};
-        ctx.AddF32("{}={}{}.{};", inst, input_decorator, ctx.position_name, swizzle);
+        ctx.AddF32("{}={}{}.{};", inst, input_decorator, "__out.position", swizzle);
         break;
     }
     case IR::Attribute::PointSpriteS:
@@ -326,7 +326,7 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, std::string_view val
     case IR::Attribute::PositionY:
     case IR::Attribute::PositionZ:
     case IR::Attribute::PositionW:
-        ctx.Add("gl_Position.{}={};", swizzle, value);
+        ctx.Add("__out.position.{}={};", swizzle, value);
         break;
     case IR::Attribute::ClipDistance0:
     case IR::Attribute::ClipDistance1:
@@ -337,7 +337,7 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, std::string_view val
     case IR::Attribute::ClipDistance6:
     case IR::Attribute::ClipDistance7: {
         const u32 index{static_cast<u32>(attr) - static_cast<u32>(IR::Attribute::ClipDistance0)};
-        ctx.Add("gl_ClipDistance[{}]={};", index, value);
+        ctx.Add("IMPLEMENT(gl_ClipDistance)[{}]={};", index, value);
         break;
     }
     default:

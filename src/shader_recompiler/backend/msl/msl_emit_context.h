@@ -144,7 +144,6 @@ public:
 
     Stage stage{};
     std::string_view stage_name = "invalid";
-    std::string_view position_name = "gl_Position";
 
     std::vector<TextureImageDefinition> texture_buffers;
     std::vector<TextureImageDefinition> image_buffers;

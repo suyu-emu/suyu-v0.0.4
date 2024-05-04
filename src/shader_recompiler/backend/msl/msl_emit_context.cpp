@@ -253,7 +253,6 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         break;
     case Stage::Fragment:
         stage_name = "fs";
-        position_name = "gl_FragCoord";
         if (runtime_info.force_early_z) {
             header += "layout(early_fragment_tests)in;";
         }
@@ -461,7 +460,7 @@ void EmitContext::DefineHelperFunctions() {
             const auto position_idx{is_array ? "gl_in[vertex]." : ""};
             func += fmt::format("case {}:return {}{}[masked_index];",
                                 static_cast<u32>(IR::Attribute::PositionX) >> 2, position_idx,
-                                position_name);
+                                "__out.position");
         }
         const u32 base_attribute_value = static_cast<u32>(IR::Attribute::Generic0X) >> 2;
         for (u32 index = 0; index < IR::NUM_GENERICS; ++index) {

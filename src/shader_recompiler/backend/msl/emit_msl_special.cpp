@@ -9,16 +9,18 @@
 
 namespace Shader::Backend::MSL {
 namespace {
+// TODO
 std::string_view OutputVertexIndex(EmitContext& ctx) {
-    return ctx.stage == Stage::TessellationControl ? "[gl_InvocationID]" : "";
+    return ctx.stage == Stage::TessellationControl ? "[IMPLEMENT(gl_InvocationID)]" : "";
 }
 
 void InitializeOutputVaryings(EmitContext& ctx) {
     if (ctx.uses_geometry_passthrough) {
         return;
     }
+    ctx.Add("__Output __out;");
     if (ctx.stage == Stage::VertexB || ctx.stage == Stage::Geometry) {
-        ctx.Add("gl_Position=vec4(0,0,0,1);");
+        ctx.Add("__out.position=vec4(0,0,0,1);");
     }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (!ctx.info.stores.Generic(index)) {
@@ -29,7 +31,7 @@ void InitializeOutputVaryings(EmitContext& ctx) {
         size_t element{};
         while (element < info_array.size()) {
             const auto& info{info_array.at(element)};
-            const auto varying_name{fmt::format("{}{}", info.name, output_decorator)};
+            const auto varying_name{fmt::format("__out.{}{}", info.name, output_decorator)};
             switch (info.num_components) {
             case 1: {
                 const char value{element == 3 ? '1' : '0'};
@@ -39,15 +41,15 @@ void InitializeOutputVaryings(EmitContext& ctx) {
             case 2:
             case 3:
                 if (element + info.num_components < 4) {
-                    ctx.Add("{}=vec{}(0);", varying_name, info.num_components);
+                    ctx.Add("{}=vec<float, {}>(0);", varying_name, info.num_components);
                 } else {
                     // last element is the w component, must be initialized to 1
                     const auto zeros{info.num_components == 3 ? "0,0," : "0,"};
-                    ctx.Add("{}=vec{}({}1);", varying_name, info.num_components, zeros);
+                    ctx.Add("{}=vec<float, {}>({}1);", varying_name, info.num_components, zeros);
                 }
                 break;
             case 4:
-                ctx.Add("{}=vec4(0,0,0,1);", varying_name);
+                ctx.Add("{}=float4(0,0,0,1);", varying_name);
                 break;
             default:
                 break;
