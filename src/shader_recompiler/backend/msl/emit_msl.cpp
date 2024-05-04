@@ -205,213 +205,12 @@ void DefineVariables(const EmitContext& ctx, std::string& header) {
         header += fmt::format("int loop{}=0x2000;", i);
     }
 }
-
-// TODO
-std::string_view DepthSamplerType(TextureType type) {
-    switch (type) {
-    case TextureType::Color1D:
-        return "sampler1DShadow";
-    case TextureType::ColorArray1D:
-        return "sampler1DArrayShadow";
-    case TextureType::Color2D:
-        return "sampler2DShadow";
-    case TextureType::ColorArray2D:
-        return "sampler2DArrayShadow";
-    case TextureType::ColorCube:
-        return "samplerCubeShadow";
-    case TextureType::ColorArrayCube:
-        return "samplerCubeArrayShadow";
-    default:
-        throw NotImplementedException("Texture type: {}", type);
-    }
-}
-
-// TODO: emit sampler as well
-// TODO: handle multisample
-// TODO: handle texture buffer
-std::string_view ColorSamplerType(TextureType type, bool is_multisample = false) {
-    if (is_multisample) {
-        ASSERT(type == TextureType::Color2D || type == TextureType::ColorArray2D);
-    }
-    switch (type) {
-    case TextureType::Color1D:
-        return "texture1d";
-    case TextureType::ColorArray1D:
-        return "texture1d_array";
-    case TextureType::Color2D:
-    case TextureType::Color2DRect:
-        return "texture2d";
-    case TextureType::ColorArray2D:
-        return "texture2d_array";
-    case TextureType::Color3D:
-        return "texture3d";
-    case TextureType::ColorCube:
-        return "texturecube";
-    case TextureType::ColorArrayCube:
-        return "texturecube_array";
-    default:
-        throw NotImplementedException("Texture type: {}", type);
-    }
-}
-
-// TODO: handle texture buffer
-std::string_view ImageType(TextureType type) {
-    switch (type) {
-    case TextureType::Color1D:
-        return "texture1d";
-    case TextureType::ColorArray1D:
-        return "texture1d_array";
-    case TextureType::Color2D:
-        return "texture2d";
-    case TextureType::ColorArray2D:
-        return "texture2d_array";
-    case TextureType::Color3D:
-        return "texture3d";
-    case TextureType::ColorCube:
-        return "texturecube";
-    case TextureType::ColorArrayCube:
-        return "texturecube_array";
-    default:
-        throw NotImplementedException("Image type: {}", type);
-    }
-}
-
-// TODO: is this needed?
-/*
-std::string_view ImageFormatString(ImageFormat format) {
-    switch (format) {
-    case ImageFormat::Typeless:
-        return "";
-    case ImageFormat::R8_UINT:
-        return ",r8ui";
-    case ImageFormat::R8_SINT:
-        return ",r8i";
-    case ImageFormat::R16_UINT:
-        return ",r16ui";
-    case ImageFormat::R16_SINT:
-        return ",r16i";
-    case ImageFormat::R32_UINT:
-        return ",r32ui";
-    case ImageFormat::R32G32_UINT:
-        return ",rg32ui";
-    case ImageFormat::R32G32B32A32_UINT:
-        return ",rgba32ui";
-    default:
-        throw NotImplementedException("Image format: {}", format);
-    }
-}
-*/
-
-std::string_view ImageAccessQualifier(bool is_written, bool is_read) {
-    if (is_written && is_read) {
-        return "access::read, access::write";
-    }
-    if (is_written) {
-        return "access::write";
-    }
-    if (is_read) {
-        return "access::read";
-    }
-    return "";
-}
-
-void DefineInputs(EmitContext& ctx, std::string& header, Bindings& bindings) {
-    bool added{false};
-
-    // Constant buffers
-    for (const auto& desc : ctx.info.constant_buffer_descriptors) {
-        const u32 cbuf_used_size{
-            Common::DivCeil(ctx.info.constant_buffer_used_sizes[desc.index], 16U)};
-        const u32 cbuf_binding_size{ctx.info.uses_global_memory ? 0x1000U : cbuf_used_size};
-        if (added)
-            header += ",";
-        header += fmt::format("constant float4& cbuf{}[{}] [[buffer({})]]", desc.index,
-                              cbuf_binding_size, bindings.uniform_buffer);
-        bindings.uniform_buffer += desc.count;
-        added = true;
-    }
-
-    // Constant buffer indirect
-    // TODO
-
-    // Storage space buffers
-    u32 index{};
-    for (const auto& desc : ctx.info.storage_buffers_descriptors) {
-        if (added)
-            header += ",";
-        header +=
-            fmt::format("device uint& ssbo{}[] [[buffer({})]]", index, bindings.storage_buffer);
-        bindings.storage_buffer += desc.count;
-        index += desc.count;
-        added = true;
-    }
-
-    // Images
-    // TODO
-    /*
-    image_buffers.reserve(info.image_buffer_descriptors.size());
-    for (const auto& desc : info.image_buffer_descriptors) {
-        image_buffers.push_back({bindings.image, desc.count});
-        const auto format{ImageFormatString(desc.format)};
-        const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        header += fmt::format("layout(binding={}{}) uniform {}uimageBuffer img{}{};",
-                              bindings.image, format, qualifier, bindings.image, array_decorator);
-        bindings.image += desc.count;
-    }
-    */
-    ctx.images.reserve(ctx.info.image_descriptors.size());
-    for (const auto& desc : ctx.info.image_descriptors) {
-        ctx.images.push_back({bindings.image, desc.count});
-        // TODO: do we need format?
-        // const auto format{ImageFormatString(desc.format)};
-        const auto image_type{ImageType(desc.type)};
-        const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        if (added)
-            header += ",";
-        header += fmt::format("{}<{}> img{}{} [[texture({})]]", qualifier, image_type,
-                              bindings.image, array_decorator, bindings.image);
-        bindings.image += desc.count;
-        added = true;
-    }
-
-    // Textures
-    // TODO
-    /*
-    texture_buffers.reserve(info.texture_buffer_descriptors.size());
-    for (const auto& desc : info.texture_buffer_descriptors) {
-        texture_buffers.push_back({bindings.texture, desc.count});
-        const auto sampler_type{ColorSamplerType(TextureType::Buffer)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        header += fmt::format("layout(binding={}) uniform {} tex{}{};", bindings.texture,
-                              sampler_type, bindings.texture, array_decorator);
-        bindings.texture += desc.count;
-    }
-    */
-    ctx.textures.reserve(ctx.info.texture_descriptors.size());
-    for (const auto& desc : ctx.info.texture_descriptors) {
-        ctx.textures.push_back({bindings.texture, desc.count});
-        const auto texture_type{desc.is_depth ? DepthSamplerType(desc.type)
-                                              : ColorSamplerType(desc.type, desc.is_multisample)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        if (added)
-            header += ",";
-        header += fmt::format("{} tex{}{} [[texture({})]]", texture_type, bindings.texture,
-                              array_decorator, bindings.texture);
-        header += fmt::format(",sampler samp{}{} [[sampler({})]]", bindings.texture,
-                              array_decorator, bindings.texture);
-        bindings.texture += desc.count;
-        added = true;
-    }
-}
 } // Anonymous namespace
 
 std::string EmitMSL(const Profile& profile, const RuntimeInfo& runtime_info, IR::Program& program,
                     Bindings& bindings) {
     EmitContext ctx{program, bindings, profile, runtime_info};
     std::string inputs;
-    DefineInputs(ctx, inputs, bindings);
     Precolor(program);
     EmitCode(ctx, program);
     ctx.header.insert(0, "#include <metal_stdlib>\nusing namespace metal;\n");
@@ -426,8 +225,9 @@ std::string EmitMSL(const Profile& profile, const RuntimeInfo& runtime_info, IR:
         const auto smem_size{needs_clamp ? max_size : requested_size};
         ctx.header += fmt::format("shared uint smem[{}];", Common::DivCeil(smem_size, 4U));
     }
-    ctx.header += "void main_(";
-    ctx.header += inputs;
+    ctx.header += ctx.stage_name;
+    ctx.header += " __Output main_(";
+    ctx.header += ctx.input_str;
     ctx.header += "){\n";
     if (program.local_memory_size > 0) {
         ctx.header += fmt::format("uint lmem[{}];", Common::DivCeil(program.local_memory_size, 4U));

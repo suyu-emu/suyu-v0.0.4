@@ -107,6 +107,115 @@ std::string_view OutputPrimitive(OutputTopology topology) {
     }
     throw InvalidArgument("Invalid output topology {}", topology);
 }
+
+// TODO
+std::string_view DepthSamplerType(TextureType type) {
+    switch (type) {
+    case TextureType::Color1D:
+        return "sampler1DShadow";
+    case TextureType::ColorArray1D:
+        return "sampler1DArrayShadow";
+    case TextureType::Color2D:
+        return "sampler2DShadow";
+    case TextureType::ColorArray2D:
+        return "sampler2DArrayShadow";
+    case TextureType::ColorCube:
+        return "samplerCubeShadow";
+    case TextureType::ColorArrayCube:
+        return "samplerCubeArrayShadow";
+    default:
+        throw NotImplementedException("Texture type: {}", type);
+    }
+}
+
+// TODO: emit sampler as well
+// TODO: handle multisample
+// TODO: handle texture buffer
+std::string_view ColorSamplerType(TextureType type, bool is_multisample = false) {
+    if (is_multisample) {
+        ASSERT(type == TextureType::Color2D || type == TextureType::ColorArray2D);
+    }
+    switch (type) {
+    case TextureType::Color1D:
+        return "texture1d";
+    case TextureType::ColorArray1D:
+        return "texture1d_array";
+    case TextureType::Color2D:
+    case TextureType::Color2DRect:
+        return "texture2d";
+    case TextureType::ColorArray2D:
+        return "texture2d_array";
+    case TextureType::Color3D:
+        return "texture3d";
+    case TextureType::ColorCube:
+        return "texturecube";
+    case TextureType::ColorArrayCube:
+        return "texturecube_array";
+    default:
+        throw NotImplementedException("Texture type: {}", type);
+    }
+}
+
+// TODO: handle texture buffer
+std::string_view ImageType(TextureType type) {
+    switch (type) {
+    case TextureType::Color1D:
+        return "texture1d";
+    case TextureType::ColorArray1D:
+        return "texture1d_array";
+    case TextureType::Color2D:
+        return "texture2d";
+    case TextureType::ColorArray2D:
+        return "texture2d_array";
+    case TextureType::Color3D:
+        return "texture3d";
+    case TextureType::ColorCube:
+        return "texturecube";
+    case TextureType::ColorArrayCube:
+        return "texturecube_array";
+    default:
+        throw NotImplementedException("Image type: {}", type);
+    }
+}
+
+// TODO: is this needed?
+/*
+std::string_view ImageFormatString(ImageFormat format) {
+    switch (format) {
+    case ImageFormat::Typeless:
+        return "";
+    case ImageFormat::R8_UINT:
+        return ",r8ui";
+    case ImageFormat::R8_SINT:
+        return ",r8i";
+    case ImageFormat::R16_UINT:
+        return ",r16ui";
+    case ImageFormat::R16_SINT:
+        return ",r16i";
+    case ImageFormat::R32_UINT:
+        return ",r32ui";
+    case ImageFormat::R32G32_UINT:
+        return ",rg32ui";
+    case ImageFormat::R32G32B32A32_UINT:
+        return ",rgba32ui";
+    default:
+        throw NotImplementedException("Image format: {}", format);
+    }
+}
+*/
+
+std::string_view ImageAccessQualifier(bool is_written, bool is_read) {
+    if (is_written && is_read) {
+        return "access::read, access::write";
+    }
+    if (is_written) {
+        return "access::write";
+    }
+    if (is_read) {
+        return "access::read";
+    }
+    return "";
+}
 } // Anonymous namespace
 
 EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile& profile_,
@@ -120,20 +229,20 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
     switch (program.stage) {
     case Stage::VertexA:
     case Stage::VertexB:
-        stage_name = "vs";
+        stage_name = "vertex";
         break;
     case Stage::TessellationControl:
-        stage_name = "tcs";
+        stage_name = "kernel";
         header += fmt::format("layout(vertices={})out;", program.invocations);
         break;
     case Stage::TessellationEval:
-        stage_name = "tes";
+        stage_name = "vertex";
         header += fmt::format("layout({},{},{})in;", GetTessMode(runtime_info.tess_primitive),
                               GetTessSpacing(runtime_info.tess_spacing),
                               runtime_info.tess_clockwise ? "cw" : "ccw");
         break;
     case Stage::Geometry:
-        stage_name = "gs";
+        stage_name = "vertex";
         header += fmt::format("layout({})in;", InputPrimitive(runtime_info.input_topology));
         if (uses_geometry_passthrough) {
             header += "layout(passthrough)in gl_PerVertex{vec4 gl_Position;};";
@@ -147,13 +256,13 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
             OutputPrimitive(program.output_topology), program.output_vertices);
         break;
     case Stage::Fragment:
-        stage_name = "fs";
+        stage_name = "fragment";
         if (runtime_info.force_early_z) {
             header += "layout(early_fragment_tests)in;";
         }
         break;
     case Stage::Compute:
-        stage_name = "cs";
+        stage_name = "kernel";
         const u32 local_x{std::max(program.workgroup_size[0], 1u)};
         const u32 local_y{std::max(program.workgroup_size[1], 1u)};
         const u32 local_z{std::max(program.workgroup_size[2], 1u)};
@@ -190,19 +299,120 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
             header += fmt::format("layout(location={})out vec4 frag_color{};", index, index);
         }
     }
+    header += "struct __Output {\n";
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (info.stores.Generic(index)) {
             DefineGenericOutput(index, program.invocations);
         }
     }
+    header += "};\n";
+    bool added = DefineInputs(bindings);
     if (info.uses_rescaling_uniform) {
-        header += "layout(location=0) uniform vec4 scaling;";
+        if (added)
+            input_str += ",";
+        input_str += "constant float4& scaling";
+        added = true;
     }
     if (info.uses_render_area) {
-        header += "layout(location=1) uniform vec4 render_area;";
+        if (added)
+            input_str += ",";
+        input_str += "constant float4& render_area";
+        added = true;
     }
     DefineHelperFunctions();
     DefineConstants();
+}
+
+bool EmitContext::DefineInputs(Bindings& bindings) {
+    bool added{false};
+
+    // Constant buffers
+    for (const auto& desc : info.constant_buffer_descriptors) {
+        const u32 cbuf_used_size{Common::DivCeil(info.constant_buffer_used_sizes[desc.index], 16U)};
+        const u32 cbuf_binding_size{info.uses_global_memory ? 0x1000U : cbuf_used_size};
+        if (added)
+            input_str += ",";
+        input_str += fmt::format("constant float4& cbuf{}[{}] [[buffer({})]]", desc.index,
+                                 cbuf_binding_size, bindings.uniform_buffer);
+        bindings.uniform_buffer += desc.count;
+        added = true;
+    }
+
+    // Constant buffer indirect
+    // TODO
+
+    // Storage space buffers
+    u32 index{};
+    for (const auto& desc : info.storage_buffers_descriptors) {
+        if (added)
+            input_str += ",";
+        input_str +=
+            fmt::format("device uint& ssbo{}[] [[buffer({})]]", index, bindings.storage_buffer);
+        bindings.storage_buffer += desc.count;
+        index += desc.count;
+        added = true;
+    }
+
+    // Images
+    // TODO
+    /*
+    image_buffers.reserve(info.image_buffer_descriptors.size());
+    for (const auto& desc : info.image_buffer_descriptors) {
+        image_buffers.push_back({bindings.image, desc.count});
+        const auto format{ImageFormatString(desc.format)};
+        const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
+        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
+        input_str += fmt::format("layout(binding={}{}) uniform {}uimageBuffer img{}{};",
+                              bindings.image, format, qualifier, bindings.image, array_decorator);
+        bindings.image += desc.count;
+    }
+    */
+    images.reserve(info.image_descriptors.size());
+    for (const auto& desc : info.image_descriptors) {
+        images.push_back({bindings.image, desc.count});
+        // TODO: do we need format?
+        // const auto format{ImageFormatString(desc.format)};
+        const auto image_type{ImageType(desc.type)};
+        const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
+        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
+        if (added)
+            input_str += ",";
+        input_str += fmt::format("{}<{}> img{}{} [[texture({})]]", qualifier, image_type,
+                                 bindings.image, array_decorator, bindings.image);
+        bindings.image += desc.count;
+        added = true;
+    }
+
+    // Textures
+    // TODO
+    /*
+    texture_buffers.reserve(info.texture_buffer_descriptors.size());
+    for (const auto& desc : info.texture_buffer_descriptors) {
+        texture_buffers.push_back({bindings.texture, desc.count});
+        const auto sampler_type{ColorSamplerType(TextureType::Buffer)};
+        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
+        input_str += fmt::format("layout(binding={}) uniform {} tex{}{};", bindings.texture,
+                              sampler_type, bindings.texture, array_decorator);
+        bindings.texture += desc.count;
+    }
+    */
+    textures.reserve(info.texture_descriptors.size());
+    for (const auto& desc : info.texture_descriptors) {
+        textures.push_back({bindings.texture, desc.count});
+        const auto texture_type{desc.is_depth ? DepthSamplerType(desc.type)
+                                              : ColorSamplerType(desc.type, desc.is_multisample)};
+        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
+        if (added)
+            input_str += ",";
+        input_str += fmt::format("{} tex{}{} [[texture({})]]", texture_type, bindings.texture,
+                                 array_decorator, bindings.texture);
+        input_str += fmt::format(",sampler samp{}{} [[sampler({})]]", bindings.texture,
+                                 array_decorator, bindings.texture);
+        bindings.texture += desc.count;
+        added = true;
+    }
+
+    return added;
 }
 
 // TODO

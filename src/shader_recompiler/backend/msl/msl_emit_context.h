@@ -136,6 +136,7 @@ public:
     }
 
     std::string header;
+    std::string input_str;
     std::string code;
     VarAlloc var_alloc;
     const Info& info;
@@ -158,6 +159,8 @@ public:
     bool uses_geometry_passthrough{};
 
 private:
+    // TODO: break down into smaller functions
+    bool DefineInputs(Bindings& bindings);
     void DefineGenericOutput(size_t index, u32 invocations);
     void DefineHelperFunctions();
     void DefineConstants();
