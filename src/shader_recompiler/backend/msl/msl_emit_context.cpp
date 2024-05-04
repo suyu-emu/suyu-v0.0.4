@@ -30,6 +30,7 @@ std::string_view InterpDecorator(Interpolation interp) {
     throw InvalidArgument("Invalid interpolation {}", interp);
 }
 
+// TODO
 std::string_view InputArrayDecorator(Stage stage) {
     switch (stage) {
     case Stage::Geometry:
@@ -41,6 +42,7 @@ std::string_view InputArrayDecorator(Stage stage) {
     }
 }
 
+// TODO
 std::string OutputDecorator(Stage stage, u32 size) {
     switch (stage) {
     case Stage::TessellationControl:
@@ -48,113 +50,6 @@ std::string OutputDecorator(Stage stage, u32 size) {
     default:
         return "";
     }
-}
-
-// TODO
-std::string_view DepthSamplerType(TextureType type) {
-    switch (type) {
-    case TextureType::Color1D:
-        return "sampler1DShadow";
-    case TextureType::ColorArray1D:
-        return "sampler1DArrayShadow";
-    case TextureType::Color2D:
-        return "sampler2DShadow";
-    case TextureType::ColorArray2D:
-        return "sampler2DArrayShadow";
-    case TextureType::ColorCube:
-        return "samplerCubeShadow";
-    case TextureType::ColorArrayCube:
-        return "samplerCubeArrayShadow";
-    default:
-        throw NotImplementedException("Texture type: {}", type);
-    }
-}
-
-// TODO: emit sampler as well
-// TODO: handle multisample
-// TODO: handle texture buffer
-std::string_view ColorSamplerType(TextureType type, bool is_multisample = false) {
-    if (is_multisample) {
-        ASSERT(type == TextureType::Color2D || type == TextureType::ColorArray2D);
-    }
-    switch (type) {
-    case TextureType::Color1D:
-        return "texture1d";
-    case TextureType::ColorArray1D:
-        return "texture1d_array";
-    case TextureType::Color2D:
-    case TextureType::Color2DRect:
-        return "texture2d";
-    case TextureType::ColorArray2D:
-        return "texture2d_array";
-    case TextureType::Color3D:
-        return "texture3d";
-    case TextureType::ColorCube:
-        return "texturecube";
-    case TextureType::ColorArrayCube:
-        return "texturecube_array";
-    default:
-        throw NotImplementedException("Texture type: {}", type);
-    }
-}
-
-// TODO: handle texture buffer
-std::string_view ImageType(TextureType type) {
-    switch (type) {
-    case TextureType::Color1D:
-        return "texture1d";
-    case TextureType::ColorArray1D:
-        return "texture1d_array";
-    case TextureType::Color2D:
-        return "texture2d";
-    case TextureType::ColorArray2D:
-        return "texture2d_array";
-    case TextureType::Color3D:
-        return "texture3d";
-    case TextureType::ColorCube:
-        return "texturecube";
-    case TextureType::ColorArrayCube:
-        return "texturecube_array";
-    default:
-        throw NotImplementedException("Image type: {}", type);
-    }
-}
-
-// TODO: is this needed?
-std::string_view ImageFormatString(ImageFormat format) {
-    switch (format) {
-    case ImageFormat::Typeless:
-        return "";
-    case ImageFormat::R8_UINT:
-        return ",r8ui";
-    case ImageFormat::R8_SINT:
-        return ",r8i";
-    case ImageFormat::R16_UINT:
-        return ",r16ui";
-    case ImageFormat::R16_SINT:
-        return ",r16i";
-    case ImageFormat::R32_UINT:
-        return ",r32ui";
-    case ImageFormat::R32G32_UINT:
-        return ",rg32ui";
-    case ImageFormat::R32G32B32A32_UINT:
-        return ",rgba32ui";
-    default:
-        throw NotImplementedException("Image format: {}", format);
-    }
-}
-
-std::string_view ImageAccessQualifier(bool is_written, bool is_read) {
-    if (is_written && is_read) {
-        return "access::read, access::write";
-    }
-    if (is_written) {
-        return "access::write";
-    }
-    if (is_read) {
-        return "access::read";
-    }
-    return "";
 }
 
 // TODO
@@ -306,62 +201,11 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
     if (info.uses_render_area) {
         header += "layout(location=1) uniform vec4 render_area;";
     }
-    DefineConstantBuffers(bindings);
-    DefineConstantBufferIndirect();
-    DefineStorageBuffers(bindings);
-    SetupImages(bindings);
-    SetupTextures(bindings);
     DefineHelperFunctions();
     DefineConstants();
 }
 
-void EmitContext::DefineConstantBuffers(Bindings& bindings) {
-    if (info.constant_buffer_descriptors.empty()) {
-        return;
-    }
-    for (const auto& desc : info.constant_buffer_descriptors) {
-        const auto cbuf_type{profile.has_gl_cbuf_ftou_bug ? "uvec4" : "vec4"};
-        const u32 cbuf_used_size{Common::DivCeil(info.constant_buffer_used_sizes[desc.index], 16U)};
-        const u32 cbuf_binding_size{info.uses_global_memory ? 0x1000U : cbuf_used_size};
-        header += fmt::format("layout(std140,binding={}) uniform {}_cbuf_{}{{{} {}_cbuf{}[{}];}};",
-                              bindings.uniform_buffer, stage_name, desc.index, cbuf_type,
-                              stage_name, desc.index, cbuf_binding_size);
-        bindings.uniform_buffer += desc.count;
-    }
-}
-
-void EmitContext::DefineConstantBufferIndirect() {
-    if (!info.uses_cbuf_indirect) {
-        return;
-    }
-
-    header += profile.has_gl_cbuf_ftou_bug ? "uvec4 " : "vec4 ";
-    header += "GetCbufIndirect(uint binding, uint offset){"
-              "switch(binding){"
-              "default:";
-
-    for (const auto& desc : info.constant_buffer_descriptors) {
-        header +=
-            fmt::format("case {}:return {}_cbuf{}[offset];", desc.index, stage_name, desc.index);
-    }
-
-    header += "}}";
-}
-
-void EmitContext::DefineStorageBuffers(Bindings& bindings) {
-    if (info.storage_buffers_descriptors.empty()) {
-        return;
-    }
-    u32 index{};
-    for (const auto& desc : info.storage_buffers_descriptors) {
-        header += fmt::format("layout(std430,binding={}) buffer {}_ssbo_{}{{uint {}_ssbo{}[];}};",
-                              bindings.storage_buffer, stage_name, bindings.storage_buffer,
-                              stage_name, index);
-        bindings.storage_buffer += desc.count;
-        index += desc.count;
-    }
-}
-
+// TODO
 void EmitContext::DefineGenericOutput(size_t index, u32 invocations) {
     static constexpr std::string_view swizzle{"xyzw"};
     const size_t base_index{static_cast<size_t>(IR::Attribute::Generic0X) + index * 4};
@@ -537,55 +381,9 @@ std::string EmitContext::DefineGlobalMemoryFunctions() {
     write_func_64 += '}';
     write_func_128 += '}';
     load_func += "return 0u;}";
-    load_func_64 += "return uvec2(0);}";
-    load_func_128 += "return uvec4(0);}";
+    load_func_64 += "return uint2(0);}";
+    load_func_128 += "return uint4(0);}";
     return write_func + write_func_64 + write_func_128 + load_func + load_func_64 + load_func_128;
-}
-
-void EmitContext::SetupImages(Bindings& bindings) {
-    image_buffers.reserve(info.image_buffer_descriptors.size());
-    for (const auto& desc : info.image_buffer_descriptors) {
-        image_buffers.push_back({bindings.image, desc.count});
-        const auto format{ImageFormatString(desc.format)};
-        const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        header += fmt::format("layout(binding={}{}) uniform {}uimageBuffer img{}{};",
-                              bindings.image, format, qualifier, bindings.image, array_decorator);
-        bindings.image += desc.count;
-    }
-    images.reserve(info.image_descriptors.size());
-    for (const auto& desc : info.image_descriptors) {
-        images.push_back({bindings.image, desc.count});
-        const auto format{ImageFormatString(desc.format)};
-        const auto image_type{ImageType(desc.type)};
-        const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        header += fmt::format("layout(binding={}{})uniform {}{} img{}{};", bindings.image, format,
-                              qualifier, image_type, bindings.image, array_decorator);
-        bindings.image += desc.count;
-    }
-}
-
-void EmitContext::SetupTextures(Bindings& bindings) {
-    texture_buffers.reserve(info.texture_buffer_descriptors.size());
-    for (const auto& desc : info.texture_buffer_descriptors) {
-        texture_buffers.push_back({bindings.texture, desc.count});
-        const auto sampler_type{ColorSamplerType(TextureType::Buffer)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        header += fmt::format("layout(binding={}) uniform {} tex{}{};", bindings.texture,
-                              sampler_type, bindings.texture, array_decorator);
-        bindings.texture += desc.count;
-    }
-    textures.reserve(info.texture_descriptors.size());
-    for (const auto& desc : info.texture_descriptors) {
-        textures.push_back({bindings.texture, desc.count});
-        const auto sampler_type{desc.is_depth ? DepthSamplerType(desc.type)
-                                              : ColorSamplerType(desc.type, desc.is_multisample)};
-        const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        header += fmt::format("layout(binding={}) uniform {} tex{}{};", bindings.texture,
-                              sampler_type, bindings.texture, array_decorator);
-        bindings.texture += desc.count;
-    }
 }
 
 void EmitContext::DefineConstants() {
