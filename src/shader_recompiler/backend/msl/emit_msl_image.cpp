@@ -40,12 +40,12 @@ std::string CastToIntVec(std::string_view value, const IR::TextureInstInfo& info
     case TextureType::ColorArray1D:
     case TextureType::Color2D:
     case TextureType::ColorArray2D:
-        return fmt::format("ivec2({})", value);
+        return fmt::format("int2({})", value);
     case TextureType::Color3D:
     case TextureType::ColorCube:
-        return fmt::format("ivec3({})", value);
+        return fmt::format("int3({})", value);
     case TextureType::ColorArrayCube:
-        return fmt::format("ivec4({})", value);
+        return fmt::format("int4({})", value);
     default:
         throw NotImplementedException("Integer cast for TextureType {}", info.type.Value());
     }
@@ -58,13 +58,13 @@ std::string CoordsCastToInt(std::string_view value, const IR::TextureInstInfo& i
         return fmt::format("int({})", value);
     case TextureType::ColorArray1D:
     case TextureType::Color2D:
-        return fmt::format("ivec2({})", value);
+        return fmt::format("int2({})", value);
     case TextureType::ColorArray2D:
     case TextureType::Color3D:
     case TextureType::ColorCube:
-        return fmt::format("ivec3({})", value);
+        return fmt::format("int3({})", value);
     case TextureType::ColorArrayCube:
-        return fmt::format("ivec4({})", value);
+        return fmt::format("int4({})", value);
     default:
         throw NotImplementedException("TexelFetchCast type {}", info.type.Value());
     }
@@ -89,12 +89,12 @@ std::string GetOffsetVec(EmitContext& ctx, const IR::Value& offset) {
     if (inst->AreAllArgsImmediates()) {
         switch (inst->GetOpcode()) {
         case IR::Opcode::CompositeConstructU32x2:
-            return fmt::format("ivec2({},{})", inst->Arg(0).U32(), inst->Arg(1).U32());
+            return fmt::format("int2({},{})", inst->Arg(0).U32(), inst->Arg(1).U32());
         case IR::Opcode::CompositeConstructU32x3:
-            return fmt::format("ivec3({},{},{})", inst->Arg(0).U32(), inst->Arg(1).U32(),
+            return fmt::format("int3({},{},{})", inst->Arg(0).U32(), inst->Arg(1).U32(),
                                inst->Arg(2).U32());
         case IR::Opcode::CompositeConstructU32x4:
-            return fmt::format("ivec4({},{},{},{})", inst->Arg(0).U32(), inst->Arg(1).U32(),
+            return fmt::format("int4({},{},{},{})", inst->Arg(0).U32(), inst->Arg(1).U32(),
                                inst->Arg(2).U32(), inst->Arg(3).U32());
         default:
             break;
@@ -109,11 +109,11 @@ std::string GetOffsetVec(EmitContext& ctx, const IR::Value& offset) {
     case IR::Type::U32:
         return fmt::format("int({})", offset_str);
     case IR::Type::U32x2:
-        return fmt::format("ivec2({})", offset_str);
+        return fmt::format("int2({})", offset_str);
     case IR::Type::U32x3:
-        return fmt::format("ivec3({})", offset_str);
+        return fmt::format("int3({})", offset_str);
     case IR::Type::U32x4:
-        return fmt::format("ivec4({})", offset_str);
+        return fmt::format("int4({})", offset_str);
     default:
         throw NotImplementedException("Offset type {}", offset.Type());
     }
@@ -123,7 +123,7 @@ std::string PtpOffsets(const IR::Value& offset, const IR::Value& offset2) {
     const std::array values{offset.InstRecursive(), offset2.InstRecursive()};
     if (!values[0]->AreAllArgsImmediates() || !values[1]->AreAllArgsImmediates()) {
         LOG_WARNING(Shader_MSL, "Not all arguments in PTP are immediate, STUBBING");
-        return "ivec2[](ivec2(0), ivec2(1), ivec2(2), ivec2(3))";
+        return "int2[](int2(0), int2(1), int2(2), int2(3))";
     }
     const IR::Opcode opcode{values[0]->GetOpcode()};
     if (opcode != values[1]->GetOpcode() || opcode != IR::Opcode::CompositeConstructU32x4) {
@@ -131,7 +131,7 @@ std::string PtpOffsets(const IR::Value& offset, const IR::Value& offset2) {
     }
     auto read{[&](unsigned int a, unsigned int b) { return values[a]->Arg(b).U32(); }};
 
-    return fmt::format("ivec2[](ivec2({},{}),ivec2({},{}),ivec2({},{}),ivec2({},{}))", read(0, 0),
+    return fmt::format("int2[](int2({},{}),int2({},{}),int2({},{}),int2({},{}))", read(0, 0),
                        read(0, 1), read(0, 2), read(0, 3), read(1, 0), read(1, 1), read(1, 2),
                        read(1, 3));
 }
@@ -149,11 +149,11 @@ std::string ImageGatherSubpixelOffset(const IR::TextureInstInfo& info, std::stri
     switch (info.type) {
     case TextureType::Color2D:
     case TextureType::Color2DRect:
-        return fmt::format("{}+vec2(0.001953125)/vec2(textureSize({}, 0))", coords, texture);
+        return fmt::format("{}+float2(0.001953125)/float2(textureSize({}, 0))", coords, texture);
     case TextureType::ColorArray2D:
     case TextureType::ColorCube:
-        return fmt::format("vec3({0}.xy+vec2(0.001953125)/vec2(textureSize({1}, 0)),{0}.z)", coords,
-                           texture);
+        return fmt::format("float3({0}.xy+float2(0.001953125)/float2(textureSize({1}, 0)),{0}.z)",
+                           coords, texture);
     default:
         return std::string{coords};
     }
@@ -512,20 +512,20 @@ void EmitImageQueryDimensions(EmitContext& ctx, IR::Inst& inst, const IR::Value&
     const auto lod_str{uses_lod ? fmt::format(",int({})", lod) : ""};
     switch (info.type) {
     case TextureType::Color1D:
-        return ctx.AddU32x4("{}=uvec4(uint(textureSize({}{})),0u,0u,{});", inst, texture, lod_str,
+        return ctx.AddU32x4("{}=uint4(uint(textureSize({}{})),0u,0u,{});", inst, texture, lod_str,
                             mips);
     case TextureType::ColorArray1D:
     case TextureType::Color2D:
     case TextureType::ColorCube:
     case TextureType::Color2DRect:
-        return ctx.AddU32x4("{}=uvec4(uvec2(textureSize({}{})),0u,{});", inst, texture, lod_str,
+        return ctx.AddU32x4("{}=uint4(uint2(textureSize({}{})),0u,{});", inst, texture, lod_str,
                             mips);
     case TextureType::ColorArray2D:
     case TextureType::Color3D:
     case TextureType::ColorArrayCube:
-        return ctx.AddU32x4("{}=uvec4(uvec3(textureSize({}{})),{});", inst, texture, lod_str, mips);
+        return ctx.AddU32x4("{}=uint4(uint3(textureSize({}{})),{});", inst, texture, lod_str, mips);
     case TextureType::Buffer:
-        return ctx.AddU32x4("{}=uvec4(uint(textureSize({})),0u,0u,{});", inst, texture, mips);
+        return ctx.AddU32x4("{}=uint4(uint(textureSize({})),0u,0u,{});", inst, texture, mips);
     }
     throw LogicError("Unspecified image type {}", info.type.Value());
 }
@@ -534,7 +534,7 @@ void EmitImageQueryLod(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                        std::string_view coords) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto texture{Texture(ctx, info, index)};
-    return ctx.AddF32x4("{}=vec4(textureQueryLod({},{}),0.0,0.0);", inst, texture, coords);
+    return ctx.AddF32x4("{}=float4(textureQueryLod({},{}),0.0,0.0);", inst, texture, coords);
 }
 
 void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
@@ -558,11 +558,11 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
     if (multi_component) {
         if (info.num_derivatives >= 3) {
             const auto offset_vec{ctx.var_alloc.Consume(offset)};
-            ctx.Add("{}=textureGrad({},{},vec3({}.xz, {}.x),vec3({}.yw, {}.y));", texel, texture,
-                    coords, derivatives_vec, offset_vec, derivatives_vec, offset_vec);
+            ctx.Add("{}=textureGrad({},{},float3({}.xz, {}.x),float3({}.yw, {}.y));", texel,
+                    texture, coords, derivatives_vec, offset_vec, derivatives_vec, offset_vec);
             return;
         }
-        ctx.Add("{}=textureGrad({},{},vec2({}.xz),vec2({}.yz));", texel, texture, coords,
+        ctx.Add("{}=textureGrad({},{},float2({}.xz),float2({}.yz));", texel, texture, coords,
                 derivatives_vec, derivatives_vec);
     } else {
         ctx.Add("{}=textureGrad({},{},float({}.x),float({}.y));", texel, texture, coords,
@@ -578,7 +578,7 @@ void EmitImageRead(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         throw NotImplementedException("EmitImageRead Sparse");
     }
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32x4("{}=uvec4(imageLoad({},{}));", inst, image, CoordsCastToInt(coords, info));
+    ctx.AddU32x4("{}=uint4(imageLoad({},{}));", inst, image, CoordsCastToInt(coords, info));
 }
 
 void EmitImageWrite(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,

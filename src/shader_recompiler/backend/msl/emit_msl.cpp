@@ -174,13 +174,6 @@ void EmitCode(EmitContext& ctx, const IR::Program& program) {
     }
 }
 
-std::string MslVersionSpecifier(const EmitContext& ctx) {
-    if (ctx.uses_y_direction) {
-        return " compatibility";
-    }
-    return "";
-}
-
 bool IsPreciseType(MslVarType type) {
     switch (type) {
     case MslVarType::PrecF32:
@@ -219,8 +212,7 @@ std::string EmitMSL(const Profile& profile, const RuntimeInfo& runtime_info, IR:
     EmitContext ctx{program, bindings, profile, runtime_info};
     Precolor(program);
     EmitCode(ctx, program);
-    const std::string version{fmt::format("#version 460{}\n", MslVersionSpecifier(ctx))};
-    ctx.header.insert(0, version);
+    ctx.header.insert(0, "#include <metal_stdlib>\nusing namespace metal;\n");
     if (program.shared_memory_size > 0) {
         const auto requested_size{program.shared_memory_size};
         const auto max_size{profile.gl_max_compute_smem_size};
@@ -232,7 +224,7 @@ std::string EmitMSL(const Profile& profile, const RuntimeInfo& runtime_info, IR:
         const auto smem_size{needs_clamp ? max_size : requested_size};
         ctx.header += fmt::format("shared uint smem[{}];", Common::DivCeil(smem_size, 4U));
     }
-    ctx.header += "void main(){\n";
+    ctx.header += "void main_(){\n";
     if (program.local_memory_size > 0) {
         ctx.header += fmt::format("uint lmem[{}];", Common::DivCeil(program.local_memory_size, 4U));
     }

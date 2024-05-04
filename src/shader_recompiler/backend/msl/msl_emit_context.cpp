@@ -41,18 +41,6 @@ std::string_view InputArrayDecorator(Stage stage) {
     }
 }
 
-bool StoresPerVertexAttributes(Stage stage) {
-    switch (stage) {
-    case Stage::VertexA:
-    case Stage::VertexB:
-    case Stage::Geometry:
-    case Stage::TessellationEval:
-        return true;
-    default:
-        return false;
-    }
-}
-
 std::string OutputDecorator(Stage stage, u32 size) {
     switch (stage) {
     case Stage::TessellationControl:
@@ -62,6 +50,7 @@ std::string OutputDecorator(Stage stage, u32 size) {
     }
 }
 
+// TODO
 std::string_view DepthSamplerType(TextureType type) {
     switch (type) {
     case TextureType::Color1D:
@@ -81,56 +70,57 @@ std::string_view DepthSamplerType(TextureType type) {
     }
 }
 
+// TODO: emit sampler as well
+// TODO: handle multisample
+// TODO: handle texture buffer
 std::string_view ColorSamplerType(TextureType type, bool is_multisample = false) {
     if (is_multisample) {
         ASSERT(type == TextureType::Color2D || type == TextureType::ColorArray2D);
     }
     switch (type) {
     case TextureType::Color1D:
-        return "sampler1D";
+        return "texture1d";
     case TextureType::ColorArray1D:
-        return "sampler1DArray";
+        return "texture1d_array";
     case TextureType::Color2D:
     case TextureType::Color2DRect:
-        return is_multisample ? "sampler2DMS" : "sampler2D";
+        return "texture2d";
     case TextureType::ColorArray2D:
-        return is_multisample ? "sampler2DMSArray" : "sampler2DArray";
+        return "texture2d_array";
     case TextureType::Color3D:
-        return "sampler3D";
+        return "texture3d";
     case TextureType::ColorCube:
-        return "samplerCube";
+        return "texturecube";
     case TextureType::ColorArrayCube:
-        return "samplerCubeArray";
-    case TextureType::Buffer:
-        return "samplerBuffer";
+        return "texturecube_array";
     default:
         throw NotImplementedException("Texture type: {}", type);
     }
 }
 
+// TODO: handle texture buffer
 std::string_view ImageType(TextureType type) {
     switch (type) {
     case TextureType::Color1D:
-        return "uimage1D";
+        return "texture1d";
     case TextureType::ColorArray1D:
-        return "uimage1DArray";
+        return "texture1d_array";
     case TextureType::Color2D:
-        return "uimage2D";
+        return "texture2d";
     case TextureType::ColorArray2D:
-        return "uimage2DArray";
+        return "texture2d_array";
     case TextureType::Color3D:
-        return "uimage3D";
+        return "texture3d";
     case TextureType::ColorCube:
-        return "uimageCube";
+        return "texturecube";
     case TextureType::ColorArrayCube:
-        return "uimageCubeArray";
-    case TextureType::Buffer:
-        return "uimageBuffer";
+        return "texturecube_array";
     default:
         throw NotImplementedException("Image type: {}", type);
     }
 }
 
+// TODO: is this needed?
 std::string_view ImageFormatString(ImageFormat format) {
     switch (format) {
     case ImageFormat::Typeless:
@@ -155,15 +145,19 @@ std::string_view ImageFormatString(ImageFormat format) {
 }
 
 std::string_view ImageAccessQualifier(bool is_written, bool is_read) {
-    if (is_written && !is_read) {
-        return "writeonly ";
+    if (is_written && is_read) {
+        return "access::read, access::write";
     }
-    if (is_read && !is_written) {
-        return "readonly ";
+    if (is_written) {
+        return "access::write";
+    }
+    if (is_read) {
+        return "access::read";
     }
     return "";
 }
 
+// TODO
 std::string_view GetTessMode(TessPrimitive primitive) {
     switch (primitive) {
     case TessPrimitive::Triangles:
@@ -176,6 +170,7 @@ std::string_view GetTessMode(TessPrimitive primitive) {
     throw InvalidArgument("Invalid tessellation primitive {}", primitive);
 }
 
+// TODO
 std::string_view GetTessSpacing(TessSpacing spacing) {
     switch (spacing) {
     case TessSpacing::Equal:
@@ -188,6 +183,7 @@ std::string_view GetTessSpacing(TessSpacing spacing) {
     throw InvalidArgument("Invalid tessellation spacing {}", spacing);
 }
 
+// TODO
 std::string_view InputPrimitive(InputTopology topology) {
     switch (topology) {
     case InputTopology::Points:
@@ -204,6 +200,7 @@ std::string_view InputPrimitive(InputTopology topology) {
     throw InvalidArgument("Invalid input topology {}", topology);
 }
 
+// TODO
 std::string_view OutputPrimitive(OutputTopology topology) {
     switch (topology) {
     case OutputTopology::PointList:
@@ -215,56 +212,6 @@ std::string_view OutputPrimitive(OutputTopology topology) {
     }
     throw InvalidArgument("Invalid output topology {}", topology);
 }
-
-void SetupOutPerVertex(EmitContext& ctx, std::string& header) {
-    if (!StoresPerVertexAttributes(ctx.stage)) {
-        return;
-    }
-    if (ctx.uses_geometry_passthrough) {
-        return;
-    }
-    header += "out gl_PerVertex{vec4 gl_Position;";
-    if (ctx.info.stores[IR::Attribute::PointSize]) {
-        header += "float gl_PointSize;";
-    }
-    if (ctx.info.stores.ClipDistances()) {
-        header += "float gl_ClipDistance[];";
-    }
-    if (ctx.info.stores[IR::Attribute::ViewportIndex] &&
-        ctx.profile.support_viewport_index_layer_non_geometry && ctx.stage != Stage::Geometry) {
-        header += "int gl_ViewportIndex;";
-    }
-    header += "};";
-    if (ctx.info.stores[IR::Attribute::ViewportIndex] && ctx.stage == Stage::Geometry) {
-        header += "out int gl_ViewportIndex;";
-    }
-}
-
-void SetupInPerVertex(EmitContext& ctx, std::string& header) {
-    // Currently only required for TessellationControl to adhere to
-    // ARB_separate_shader_objects requirements
-    if (ctx.stage != Stage::TessellationControl) {
-        return;
-    }
-    const bool loads_position{ctx.info.loads.AnyComponent(IR::Attribute::PositionX)};
-    const bool loads_point_size{ctx.info.loads[IR::Attribute::PointSize]};
-    const bool loads_clip_distance{ctx.info.loads.ClipDistances()};
-    const bool loads_per_vertex{loads_position || loads_point_size || loads_clip_distance};
-    if (!loads_per_vertex) {
-        return;
-    }
-    header += "in gl_PerVertex{";
-    if (loads_position) {
-        header += "vec4 gl_Position;";
-    }
-    if (loads_point_size) {
-        header += "float gl_PointSize;";
-    }
-    if (loads_clip_distance) {
-        header += "float gl_ClipDistance[];";
-    }
-    header += "}gl_in[gl_MaxPatchVertices];";
-}
 } // Anonymous namespace
 
 EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile& profile_,
@@ -273,9 +220,8 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
       uses_geometry_passthrough{program.is_geometry_passthrough &&
                                 profile.support_geometry_shader_passthrough} {
     if (profile.need_fastmath_off) {
-        header += "#pragma optionNV(fastmath off)\n";
+        // TODO
     }
-    SetupExtensions();
     switch (program.stage) {
     case Stage::VertexA:
     case Stage::VertexB:
@@ -321,8 +267,9 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
                               local_x, local_y, local_z);
         break;
     }
-    SetupOutPerVertex(*this, header);
-    SetupInPerVertex(*this, header);
+    // TODO
+    // SetupOutPerVertex(*this, header);
+    // SetupInPerVertex(*this, header);
 
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (!info.loads.Generic(index) || !runtime_info.previous_stage_stores.Generic(index)) {
@@ -367,63 +314,6 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
     SetupTextures(bindings);
     DefineHelperFunctions();
     DefineConstants();
-}
-
-void EmitContext::SetupExtensions() {
-    header += "#extension GL_ARB_separate_shader_objects : enable\n";
-    if (info.uses_shadow_lod && profile.support_gl_texture_shadow_lod) {
-        header += "#extension GL_EXT_texture_shadow_lod : enable\n";
-    }
-    if (info.uses_int64 && profile.support_int64) {
-        header += "#extension GL_ARB_gpu_shader_int64 : enable\n";
-    }
-    if (info.uses_int64_bit_atomics) {
-        header += "#extension GL_NV_shader_atomic_int64 : enable\n";
-    }
-    if (info.uses_atomic_f32_add) {
-        header += "#extension GL_NV_shader_atomic_float : enable\n";
-    }
-    if (info.uses_atomic_f16x2_add || info.uses_atomic_f16x2_min || info.uses_atomic_f16x2_max) {
-        header += "#extension GL_NV_shader_atomic_fp16_vector : enable\n";
-    }
-    if (info.uses_fp16) {
-        if (profile.support_gl_nv_gpu_shader_5) {
-            header += "#extension GL_NV_gpu_shader5 : enable\n";
-        }
-        if (profile.support_gl_amd_gpu_shader_half_float) {
-            header += "#extension GL_AMD_gpu_shader_half_float : enable\n";
-        }
-    }
-    if (info.uses_subgroup_invocation_id || info.uses_subgroup_mask || info.uses_subgroup_vote ||
-        info.uses_subgroup_shuffles || info.uses_fswzadd) {
-        header += "#extension GL_ARB_shader_ballot : enable\n"
-                  "#extension GL_ARB_shader_group_vote : enable\n";
-        if (!info.uses_int64 && profile.support_int64) {
-            header += "#extension GL_ARB_gpu_shader_int64 : enable\n";
-        }
-        if (profile.support_gl_warp_intrinsics) {
-            header += "#extension GL_NV_shader_thread_shuffle : enable\n";
-        }
-    }
-    if ((info.stores[IR::Attribute::ViewportIndex] || info.stores[IR::Attribute::Layer]) &&
-        profile.support_viewport_index_layer_non_geometry && stage != Stage::Geometry) {
-        header += "#extension GL_ARB_shader_viewport_layer_array : enable\n";
-    }
-    if (info.uses_sparse_residency && profile.support_gl_sparse_textures) {
-        header += "#extension GL_ARB_sparse_texture2 : enable\n";
-    }
-    if (info.stores[IR::Attribute::ViewportMask] && profile.support_viewport_mask) {
-        header += "#extension GL_NV_viewport_array2 : enable\n";
-    }
-    if (info.uses_typeless_image_reads) {
-        header += "#extension GL_EXT_shader_image_load_formatted : enable\n";
-    }
-    if (info.uses_derivatives && profile.support_gl_derivative_control) {
-        header += "#extension GL_ARB_derivative_control : enable\n";
-    }
-    if (uses_geometry_passthrough) {
-        header += "#extension GL_NV_geometry_shader_passthrough : enable\n";
-    }
 }
 
 void EmitContext::DefineConstantBuffers(Bindings& bindings) {

@@ -269,8 +269,19 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         const std::string code{EmitMSL(profile, runtime_info, program, binding)};
         // HACK
         std::cout << code << std::endl;
-        // TODO: create MTL::Function
-        // functions[stage_index] = ;
+        MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
+        NS::Error* error = nullptr;
+        MTL::Library* library = device.GetDevice()->newLibrary(
+            NS::String::string(code.c_str(), NS::ASCIIStringEncoding), compile_options, &error);
+        if (error) {
+            LOG_ERROR(Render_Metal, "failed to create library: {}",
+                      error->description()->cString(NS::ASCIIStringEncoding));
+            // HACK
+            throw;
+        }
+
+        functions[index] =
+            library->newFunction(NS::String::string("main_", NS::ASCIIStringEncoding));
         previous_stage = &program;
     }
 
@@ -309,7 +320,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
                                                                NS::ASCIIStringEncoding),
                                                            compile_options, &error);
     if (error) {
-        LOG_ERROR(Render_Metal, "failed to create blit library: {}",
+        LOG_ERROR(Render_Metal, "failed to create library: {}",
                   error->description()->cString(NS::ASCIIStringEncoding));
     }
 

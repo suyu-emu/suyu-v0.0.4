@@ -50,7 +50,7 @@ void EmitLoadGlobal64(EmitContext& ctx, IR::Inst& inst, std::string_view address
         return ctx.AddU32x2("{}=LoadGlobal64({});", inst, address);
     }
     LOG_WARNING(Shader_MSL, "Int64 not supported, ignoring memory operation");
-    ctx.AddU32x2("{}=uvec2(0);", inst);
+    ctx.AddU32x2("{}=uint2(0);", inst);
 }
 
 void EmitLoadGlobal128(EmitContext& ctx, IR::Inst& inst, std::string_view address) {
@@ -58,7 +58,7 @@ void EmitLoadGlobal128(EmitContext& ctx, IR::Inst& inst, std::string_view addres
         return ctx.AddU32x4("{}=LoadGlobal128({});", inst, address);
     }
     LOG_WARNING(Shader_MSL, "Int64 not supported, ignoring memory operation");
-    ctx.AddU32x4("{}=uvec4(0);", inst);
+    ctx.AddU32x4("{}=uint4(0);", inst);
 }
 
 void EmitWriteGlobalU8(EmitContext&) {
