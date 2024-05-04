@@ -54,7 +54,7 @@ std::string_view BallotIndex(EmitContext& ctx) {
 
 std::string GetMask(EmitContext& ctx, std::string_view mask) {
     const auto ballot_index{BallotIndex(ctx)};
-    return fmt::format("uint(uvec2({}){})", mask, ballot_index);
+    return fmt::format("uint(uint2({}){})", mask, ballot_index);
 }
 } // Anonymous namespace
 
@@ -68,8 +68,8 @@ void EmitVoteAll(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
         return;
     }
     const auto ballot_index{BallotIndex(ctx)};
-    const auto active_mask{fmt::format("uvec2(ballotARB(true)){}", ballot_index)};
-    const auto ballot{fmt::format("uvec2(ballotARB({})){}", pred, ballot_index)};
+    const auto active_mask{fmt::format("uint2(ballotARB(true)){}", ballot_index)};
+    const auto ballot{fmt::format("uint2(ballotARB({})){}", pred, ballot_index)};
     ctx.AddU1("{}=({}&{})=={};", inst, ballot, active_mask, active_mask);
 }
 
@@ -79,8 +79,8 @@ void EmitVoteAny(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
         return;
     }
     const auto ballot_index{BallotIndex(ctx)};
-    const auto active_mask{fmt::format("uvec2(ballotARB(true)){}", ballot_index)};
-    const auto ballot{fmt::format("uvec2(ballotARB({})){}", pred, ballot_index)};
+    const auto active_mask{fmt::format("uint2(ballotARB(true)){}", ballot_index)};
+    const auto ballot{fmt::format("uint2(ballotARB({})){}", pred, ballot_index)};
     ctx.AddU1("{}=({}&{})!=0u;", inst, ballot, active_mask, active_mask);
 }
 
@@ -90,15 +90,15 @@ void EmitVoteEqual(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
         return;
     }
     const auto ballot_index{BallotIndex(ctx)};
-    const auto active_mask{fmt::format("uvec2(ballotARB(true)){}", ballot_index)};
-    const auto ballot{fmt::format("uvec2(ballotARB({})){}", pred, ballot_index)};
+    const auto active_mask{fmt::format("uint2(ballotARB(true)){}", ballot_index)};
+    const auto ballot{fmt::format("uint2(ballotARB({})){}", pred, ballot_index)};
     const auto value{fmt::format("({}^{})", ballot, active_mask)};
     ctx.AddU1("{}=({}==0)||({}=={});", inst, value, value, active_mask);
 }
 
 void EmitSubgroupBallot(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
     const auto ballot_index{BallotIndex(ctx)};
-    ctx.AddU32("{}=uvec2(ballotARB({})){};", inst, pred, ballot_index);
+    ctx.AddU32("{}=uint2(ballotARB({})){};", inst, pred, ballot_index);
 }
 
 void EmitSubgroupEqMask(EmitContext& ctx, IR::Inst& inst) {

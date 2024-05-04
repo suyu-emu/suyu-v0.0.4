@@ -174,30 +174,18 @@ void EmitCode(EmitContext& ctx, const IR::Program& program) {
     }
 }
 
-bool IsPreciseType(MslVarType type) {
-    switch (type) {
-    case MslVarType::PrecF32:
-    case MslVarType::PrecF64:
-        return true;
-    default:
-        return false;
-    }
-}
-
 void DefineVariables(const EmitContext& ctx, std::string& header) {
     for (u32 i = 0; i < static_cast<u32>(MslVarType::Void); ++i) {
         const auto type{static_cast<MslVarType>(i)};
         const auto& tracker{ctx.var_alloc.GetUseTracker(type)};
         const auto type_name{ctx.var_alloc.GetMslType(type)};
-        const bool has_precise_bug{ctx.stage == Stage::Fragment && ctx.profile.has_gl_precise_bug};
-        const auto precise{!has_precise_bug && IsPreciseType(type) ? "precise " : ""};
         // Temps/return types that are never used are stored at index 0
         if (tracker.uses_temp) {
-            header += fmt::format("{}{} t{}={}(0);", precise, type_name,
-                                  ctx.var_alloc.Representation(0, type), type_name);
+            header += fmt::format("{} t{}={}(0);", type_name, ctx.var_alloc.Representation(0, type),
+                                  type_name);
         }
         for (u32 index = 0; index < tracker.num_used; ++index) {
-            header += fmt::format("{}{} {}={}(0);", precise, type_name,
+            header += fmt::format("{} {}={}(0);", type_name,
                                   ctx.var_alloc.Representation(index, type), type_name);
         }
     }

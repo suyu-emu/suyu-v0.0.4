@@ -111,45 +111,45 @@ void GetCbuf16(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding, const
 
 void EmitGetCbufU8(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                    const IR::Value& offset) {
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "ftou"};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "as_type<uint>"};
     GetCbuf8(ctx, inst, binding, offset, cast);
 }
 
 void EmitGetCbufS8(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                    const IR::Value& offset) {
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "int" : "ftoi"};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "int" : "as_type<int>"};
     GetCbuf8(ctx, inst, binding, offset, cast);
 }
 
 void EmitGetCbufU16(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                     const IR::Value& offset) {
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "ftou"};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "as_type<uint>"};
     GetCbuf16(ctx, inst, binding, offset, cast);
 }
 
 void EmitGetCbufS16(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                     const IR::Value& offset) {
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "int" : "ftoi"};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "int" : "as_type<int>"};
     GetCbuf16(ctx, inst, binding, offset, cast);
 }
 
 void EmitGetCbufU32(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                     const IR::Value& offset) {
     const auto ret{ctx.var_alloc.Define(inst, MslVarType::U32)};
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "ftou"};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "as_type<uint>"};
     GetCbuf(ctx, ret, binding, offset, 32, cast);
 }
 
 void EmitGetCbufF32(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                     const IR::Value& offset) {
     const auto ret{ctx.var_alloc.Define(inst, MslVarType::F32)};
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "utof" : ""};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "as_type<float>" : ""};
     GetCbuf(ctx, ret, binding, offset, 32, cast);
 }
 
 void EmitGetCbufU32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                       const IR::Value& offset) {
-    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "ftou"};
+    const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "as_type<uint>"};
     if (offset.IsImmediate()) {
         const auto cbuf{fmt::format("{}_cbuf{}", ctx.stage_name, binding.U32())};
         static constexpr u32 cbuf_size{0x10000};
@@ -157,14 +157,14 @@ void EmitGetCbufU32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding
         const s32 signed_offset{static_cast<s32>(offset.U32())};
         if (signed_offset < 0 || u32_offset > cbuf_size) {
             LOG_WARNING(Shader_MSL, "Immediate constant buffer offset is out of bounds");
-            ctx.AddU32x2("{}=uvec2(0u);", inst);
+            ctx.AddU32x2("{}=uint2(0u);", inst);
             return;
         }
         if (u32_offset % 2 == 0) {
             ctx.AddU32x2("{}={}({}[{}].{}{});", inst, cast, cbuf, u32_offset / 16,
                          OffsetSwizzle(u32_offset), OffsetSwizzle(u32_offset + 4));
         } else {
-            ctx.AddU32x2("{}=uvec2({}({}[{}].{}),{}({}[{}].{}));", inst, cast, cbuf,
+            ctx.AddU32x2("{}=uint2({}({}[{}].{}),{}({}[{}].{}));", inst, cast, cbuf,
                          u32_offset / 16, OffsetSwizzle(u32_offset), cast, cbuf,
                          (u32_offset + 4) / 16, OffsetSwizzle(u32_offset + 4));
         }
@@ -173,14 +173,14 @@ void EmitGetCbufU32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding
     const auto offset_var{ctx.var_alloc.Consume(offset)};
     const auto cbuf{ChooseCbuf(ctx, binding, fmt::format("{}>>4", offset_var))};
     if (!ctx.profile.has_gl_component_indexing_bug) {
-        ctx.AddU32x2("{}=uvec2({}({}[({}>>2)%4]),{}({}[(({}+4)>>2)%4]));", inst, cast, cbuf,
+        ctx.AddU32x2("{}=uint2({}({}[({}>>2)%4]),{}({}[(({}+4)>>2)%4]));", inst, cast, cbuf,
                      offset_var, cast, cbuf, offset_var);
         return;
     }
     const auto ret{ctx.var_alloc.Define(inst, MslVarType::U32x2)};
     const auto cbuf_offset{fmt::format("{}>>2", offset_var)};
     for (u32 swizzle = 0; swizzle < 4; ++swizzle) {
-        ctx.Add("if(({}&3)=={}){}=uvec2({}({}.{}),{}({}.{}));", cbuf_offset, swizzle, ret, cast,
+        ctx.Add("if(({}&3)=={}){}=uint2({}({}.{}),{}({}.{}));", cbuf_offset, swizzle, ret, cast,
                 cbuf, "xyzw"[swizzle], cast, cbuf, "xyzw"[(swizzle + 1) % 4]);
     }
 }
@@ -199,23 +199,21 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr,
             }
             return;
         }
-        ctx.AddF32("{}=in_attr{}{}.{};", inst, index, InputVertexIndex(ctx, vertex), swizzle);
+        ctx.AddF32("{}=__in.attr{}{}.{};", inst, index, InputVertexIndex(ctx, vertex), swizzle);
         return;
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:
-        ctx.AddF32("{}=itof(gl_PrimitiveID);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_PrimitiveID);", inst);
         break;
     case IR::Attribute::Layer:
-        ctx.AddF32("{}=itof(gl_Layer);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_Layer);", inst);
         break;
     case IR::Attribute::PositionX:
     case IR::Attribute::PositionY:
     case IR::Attribute::PositionZ:
     case IR::Attribute::PositionW: {
-        const bool is_array{IsInputArray(ctx.stage)};
-        const auto input_decorator{is_array ? fmt::format("gl_in[{}].", vertex) : ""};
-        ctx.AddF32("{}={}{}.{};", inst, input_decorator, "__out.position", swizzle);
+        ctx.AddF32("{}={}.{};", inst, "__out.position", swizzle);
         break;
     }
     case IR::Attribute::PointSpriteS:
@@ -227,22 +225,22 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr,
         ctx.AddF32("{}=gl_TessCoord.{};", inst, swizzle);
         break;
     case IR::Attribute::InstanceId:
-        ctx.AddF32("{}=itof(gl_InstanceID);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_InstanceID);", inst);
         break;
     case IR::Attribute::VertexId:
-        ctx.AddF32("{}=itof(gl_VertexID);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_VertexID);", inst);
         break;
     case IR::Attribute::FrontFace:
-        ctx.AddF32("{}=itof(gl_FrontFacing?-1:0);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_FrontFacing?-1:0);", inst);
         break;
     case IR::Attribute::BaseInstance:
-        ctx.AddF32("{}=itof(gl_BaseInstance);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_BaseInstance);", inst);
         break;
     case IR::Attribute::BaseVertex:
-        ctx.AddF32("{}=itof(gl_BaseVertex);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_BaseVertex);", inst);
         break;
     case IR::Attribute::DrawID:
-        ctx.AddF32("{}=itof(gl_DrawID);", inst);
+        ctx.AddF32("{}=as_type<float>(gl_DrawID);", inst);
         break;
     default:
         throw NotImplementedException("Get attribute {}", attr);
@@ -299,7 +297,7 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, std::string_view val
                                     "viewport layer extension");
             break;
         }
-        ctx.Add("gl_Layer=ftoi({});", value);
+        ctx.Add("gl_Layer=as_type<int>({});", value);
         break;
     case IR::Attribute::ViewportIndex:
         if (ctx.stage != Stage::Geometry &&
@@ -308,7 +306,7 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, std::string_view val
                                     "viewport layer extension");
             break;
         }
-        ctx.Add("gl_ViewportIndex=ftoi({});", value);
+        ctx.Add("gl_ViewportIndex=as_type<int>({});", value);
         break;
     case IR::Attribute::ViewportMask:
         if (ctx.stage != Stage::Geometry && !ctx.profile.support_viewport_mask) {
@@ -317,7 +315,7 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, std::string_view val
                 "Shader stores viewport mask but device does not support viewport mask extension");
             break;
         }
-        ctx.Add("gl_ViewportMask[0]=ftoi({});", value);
+        ctx.Add("gl_ViewportMask[0]=as_type<int>({});", value);
         break;
     case IR::Attribute::PointSize:
         ctx.Add("gl_PointSize={};", value);

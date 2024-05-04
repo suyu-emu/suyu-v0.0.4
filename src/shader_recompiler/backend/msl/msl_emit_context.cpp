@@ -52,6 +52,7 @@ std::string OutputDecorator(Stage stage, u32 size) {
     }
 }
 
+/*
 // TODO
 std::string_view GetTessMode(TessPrimitive primitive) {
     switch (primitive) {
@@ -107,6 +108,7 @@ std::string_view OutputPrimitive(OutputTopology topology) {
     }
     throw InvalidArgument("Invalid output topology {}", topology);
 }
+*/
 
 // TODO
 std::string_view DepthSamplerType(TextureType type) {
@@ -233,33 +235,15 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         break;
     case Stage::TessellationControl:
         stage_name = "kernel";
-        header += fmt::format("layout(vertices={})out;", program.invocations);
         break;
     case Stage::TessellationEval:
         stage_name = "vertex";
-        header += fmt::format("layout({},{},{})in;", GetTessMode(runtime_info.tess_primitive),
-                              GetTessSpacing(runtime_info.tess_spacing),
-                              runtime_info.tess_clockwise ? "cw" : "ccw");
         break;
     case Stage::Geometry:
         stage_name = "vertex";
-        header += fmt::format("layout({})in;", InputPrimitive(runtime_info.input_topology));
-        if (uses_geometry_passthrough) {
-            header += "layout(passthrough)in gl_PerVertex{vec4 gl_Position;};";
-            break;
-        } else if (program.is_geometry_passthrough &&
-                   !profile.support_geometry_shader_passthrough) {
-            LOG_WARNING(Shader_MSL, "Passthrough geometry program used but not supported");
-        }
-        header += fmt::format(
-            "layout({},max_vertices={})out;in gl_PerVertex{{vec4 gl_Position;}}gl_in[];",
-            OutputPrimitive(program.output_topology), program.output_vertices);
         break;
     case Stage::Fragment:
         stage_name = "fragment";
-        if (runtime_info.force_early_z) {
-            header += "layout(early_fragment_tests)in;";
-        }
         break;
     case Stage::Compute:
         stage_name = "kernel";
@@ -300,6 +284,9 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         }
     }
     header += "struct __Output {\n";
+    if (stage == Stage::VertexB || stage == Stage::Geometry) {
+        header += "float4 position [[position]];\n";
+    }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (info.stores.Generic(index)) {
             DefineGenericOutput(index, program.invocations);
@@ -332,8 +319,8 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
         const u32 cbuf_binding_size{info.uses_global_memory ? 0x1000U : cbuf_used_size};
         if (added)
             input_str += ",";
-        input_str += fmt::format("constant float4& cbuf{}[{}] [[buffer({})]]", desc.index,
-                                 cbuf_binding_size, bindings.uniform_buffer);
+        input_str += fmt::format("constant float4& {}_cbuf{}[{}] [[buffer({})]]", stage_name,
+                                 desc.index, cbuf_binding_size, bindings.uniform_buffer);
         bindings.uniform_buffer += desc.count;
         added = true;
     }
@@ -346,8 +333,8 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
     for (const auto& desc : info.storage_buffers_descriptors) {
         if (added)
             input_str += ",";
-        input_str +=
-            fmt::format("device uint& ssbo{}[] [[buffer({})]]", index, bindings.storage_buffer);
+        input_str += fmt::format("device uint& {}_ssbo{}[] [[buffer({})]]", stage_name, index,
+                                 bindings.storage_buffer);
         bindings.storage_buffer += desc.count;
         index += desc.count;
         added = true;
@@ -377,8 +364,8 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
         const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
         if (added)
             input_str += ",";
-        input_str += fmt::format("{}<{}> img{}{} [[texture({})]]", qualifier, image_type,
-                                 bindings.image, array_decorator, bindings.image);
+        input_str += fmt::format("{}<{}> {}_img{}{} [[texture({})]]", qualifier, image_type,
+                                 stage_name, bindings.image, array_decorator, bindings.image);
         bindings.image += desc.count;
         added = true;
     }
@@ -404,10 +391,10 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
         const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
         if (added)
             input_str += ",";
-        input_str += fmt::format("{} tex{}{} [[texture({})]]", texture_type, bindings.texture,
-                                 array_decorator, bindings.texture);
-        input_str += fmt::format(",sampler samp{}{} [[sampler({})]]", bindings.texture,
-                                 array_decorator, bindings.texture);
+        input_str += fmt::format("{} {}_tex{}{} [[texture({})]]", texture_type, stage_name,
+                                 bindings.texture, array_decorator, bindings.texture);
+        input_str += fmt::format(",sampler {}_samp{}{} [[sampler({})]]", stage_name,
+                                 bindings.texture, array_decorator, bindings.texture);
         bindings.texture += desc.count;
         added = true;
     }
@@ -417,48 +404,20 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
 
 // TODO
 void EmitContext::DefineGenericOutput(size_t index, u32 invocations) {
-    static constexpr std::string_view swizzle{"xyzw"};
-    const size_t base_index{static_cast<size_t>(IR::Attribute::Generic0X) + index * 4};
-    u32 element{0};
-    while (element < 4) {
-        std::string definition{fmt::format("layout(location={}", index)};
-        const u32 remainder{4 - element};
-        const TransformFeedbackVarying* xfb_varying{};
-        const size_t xfb_varying_index{base_index + element};
-        if (xfb_varying_index < runtime_info.xfb_count) {
-            xfb_varying = &runtime_info.xfb_varyings[xfb_varying_index];
-            xfb_varying = xfb_varying->components > 0 ? xfb_varying : nullptr;
-        }
-        const u32 num_components{xfb_varying ? xfb_varying->components : remainder};
-        if (element > 0) {
-            definition += fmt::format(",component={}", element);
-        }
-        if (xfb_varying) {
-            definition +=
-                fmt::format(",xfb_buffer={},xfb_stride={},xfb_offset={}", xfb_varying->buffer,
-                            xfb_varying->stride, xfb_varying->offset);
-        }
-        std::string name{fmt::format("out_attr{}", index)};
-        if (num_components < 4 || element > 0) {
-            name += fmt::format("_{}", swizzle.substr(element, num_components));
-        }
-        const auto type{num_components == 1 ? "float" : fmt::format("vec{}", num_components)};
-        definition += fmt::format(")out {} {}{};", type, name, OutputDecorator(stage, invocations));
-        header += definition;
+    const auto type{fmt::format("float{}", 4)};
+    std::string name{fmt::format("attr{}", index)};
+    header += fmt::format("{} {}{} [[user(locn{})]];\n", type, name,
+                          OutputDecorator(stage, invocations), index);
 
-        const GenericElementInfo element_info{
-            .name = name,
-            .first_element = element,
-            .num_components = num_components,
-        };
-        std::fill_n(output_generics[index].begin() + element, num_components, element_info);
-        element += num_components;
-    }
+    const GenericElementInfo element_info{
+        .name = "__out." + name,
+        .first_element = 0,
+        .num_components = 4,
+    };
+    std::fill_n(output_generics[index].begin(), 4, element_info);
 }
 
 void EmitContext::DefineHelperFunctions() {
-    header += "\n#define ftoi floatBitsToInt\n#define ftou floatBitsToUint\n"
-              "#define itof intBitsToFloat\n#define utof uintBitsToFloat\n";
     if (info.uses_global_increment || info.uses_shared_increment) {
         header += "uint CasIncrement(uint op_a,uint op_b){return op_a>=op_b?0u:(op_a+1u);}";
     }
@@ -468,7 +427,7 @@ void EmitContext::DefineHelperFunctions() {
     }
     if (info.uses_atomic_f32_add) {
         header += "uint CasFloatAdd(uint op_a,float op_b){"
-                  "return ftou(utof(op_a)+op_b);}";
+                  "return as_type<uint>(as_type<float>(op_a)+op_b);}";
     }
     if (info.uses_atomic_f32x2_add) {
         header += "uint CasFloatAdd32x2(uint op_a,vec2 op_b){"
@@ -544,8 +503,10 @@ std::string EmitContext::DefineGlobalMemoryFunctions() {
         for (size_t i = 0; i < addr_xy.size(); ++i) {
             const auto addr_loc{ssbo.cbuf_offset + 4 * i};
             const auto size_loc{size_cbuf_offset + 4 * i};
-            addr_xy[i] = fmt::format("ftou({}[{}].{})", cbuf, addr_loc / 16, Swizzle(addr_loc));
-            size_xy[i] = fmt::format("ftou({}[{}].{})", cbuf, size_loc / 16, Swizzle(size_loc));
+            addr_xy[i] =
+                fmt::format("as_type<uint>({}[{}].{})", cbuf, addr_loc / 16, Swizzle(addr_loc));
+            size_xy[i] =
+                fmt::format("as_type<uint>({}[{}].{})", cbuf, size_loc / 16, Swizzle(size_loc));
         }
         const u32 ssbo_align_mask{~(static_cast<u32>(profile.min_ssbo_alignment) - 1U)};
         const auto aligned_low_addr{fmt::format("{}&{}", addr_xy[0], ssbo_align_mask)};

@@ -39,11 +39,11 @@ void EmitLoadSharedU32(EmitContext& ctx, IR::Inst& inst, std::string_view offset
 }
 
 void EmitLoadSharedU64(EmitContext& ctx, IR::Inst& inst, std::string_view offset) {
-    ctx.AddU32x2("{}=uvec2(smem[{}>>2],smem[({}+4)>>2]);", inst, offset, offset);
+    ctx.AddU32x2("{}=uint2(smem[{}>>2],smem[({}+4)>>2]);", inst, offset, offset);
 }
 
 void EmitLoadSharedU128(EmitContext& ctx, IR::Inst& inst, std::string_view offset) {
-    ctx.AddU32x4("{}=uvec4(smem[{}>>2],smem[({}+4)>>2],smem[({}+8)>>2],smem[({}+12)>>2]);", inst,
+    ctx.AddU32x4("{}=uint4(smem[{}>>2],smem[({}+4)>>2],smem[({}+8)>>2],smem[({}+12)>>2]);", inst,
                  offset, offset, offset, offset);
 }
 

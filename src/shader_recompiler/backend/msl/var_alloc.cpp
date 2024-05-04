@@ -53,13 +53,13 @@ std::string FormatFloat(std::string_view value, IR::Type type) {
     // TODO: Confirm FP64 nan/inf
     if (type == IR::Type::F32) {
         if (value == "nan") {
-            return "utof(0x7fc00000)";
+            return "as_type<float>(0x7fc00000)";
         }
         if (value == "inf") {
-            return "utof(0x7f800000)";
+            return "as_type<float>(0x7f800000)";
         }
         if (value == "-inf") {
-            return "utof(0xff800000)";
+            return "as_type<float>(0xff800000)";
         }
     }
     if (value.find_first_of('e') != std::string_view::npos) {
@@ -203,7 +203,7 @@ std::string VarAlloc::GetMslType(MslVarType type) const {
     case MslVarType::U1:
         return "bool";
     case MslVarType::F16x2:
-        return "f16vec2";
+        return "half2";
     case MslVarType::U32:
         return "uint";
     case MslVarType::F32:
@@ -215,17 +215,17 @@ std::string VarAlloc::GetMslType(MslVarType type) const {
     case MslVarType::PrecF64:
         return "double";
     case MslVarType::U32x2:
-        return "uvec2";
+        return "uint2";
     case MslVarType::F32x2:
-        return "vec2";
+        return "float2";
     case MslVarType::U32x3:
-        return "uvec3";
+        return "float3";
     case MslVarType::F32x3:
-        return "vec3";
+        return "float3";
     case MslVarType::U32x4:
-        return "uvec4";
+        return "uint4";
     case MslVarType::F32x4:
-        return "vec4";
+        return "float4";
     case MslVarType::Void:
         return "";
     default:

@@ -20,7 +20,7 @@ void InitializeOutputVaryings(EmitContext& ctx) {
     }
     ctx.Add("__Output __out;");
     if (ctx.stage == Stage::VertexB || ctx.stage == Stage::Geometry) {
-        ctx.Add("__out.position=vec4(0,0,0,1);");
+        ctx.Add("__out.position=float4(0,0,0,1);");
     }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (!ctx.info.stores.Generic(index)) {
@@ -31,7 +31,7 @@ void InitializeOutputVaryings(EmitContext& ctx) {
         size_t element{};
         while (element < info_array.size()) {
             const auto& info{info_array.at(element)};
-            const auto varying_name{fmt::format("__out.{}{}", info.name, output_decorator)};
+            const auto varying_name{fmt::format("{}{}", info.name, output_decorator)};
             switch (info.num_components) {
             case 1: {
                 const char value{element == 3 ? '1' : '0'};

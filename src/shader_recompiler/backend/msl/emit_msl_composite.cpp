@@ -23,17 +23,17 @@ void CompositeInsert(EmitContext& ctx, std::string_view result, std::string_view
 
 void EmitCompositeConstructU32x2(EmitContext& ctx, IR::Inst& inst, std::string_view e1,
                                  std::string_view e2) {
-    ctx.AddU32x2("{}=uvec2({},{});", inst, e1, e2);
+    ctx.AddU32x2("{}=uint2({},{});", inst, e1, e2);
 }
 
 void EmitCompositeConstructU32x3(EmitContext& ctx, IR::Inst& inst, std::string_view e1,
                                  std::string_view e2, std::string_view e3) {
-    ctx.AddU32x3("{}=uvec3({},{},{});", inst, e1, e2, e3);
+    ctx.AddU32x3("{}=uint3({},{},{});", inst, e1, e2, e3);
 }
 
 void EmitCompositeConstructU32x4(EmitContext& ctx, IR::Inst& inst, std::string_view e1,
                                  std::string_view e2, std::string_view e3, std::string_view e4) {
-    ctx.AddU32x4("{}=uvec4({},{},{},{});", inst, e1, e2, e3, e4);
+    ctx.AddU32x4("{}=uint4({},{},{},{});", inst, e1, e2, e3, e4);
 }
 
 void EmitCompositeExtractU32x2(EmitContext& ctx, IR::Inst& inst, std::string_view composite,
@@ -131,17 +131,17 @@ void EmitCompositeInsertF16x4([[maybe_unused]] EmitContext& ctx,
 
 void EmitCompositeConstructF32x2(EmitContext& ctx, IR::Inst& inst, std::string_view e1,
                                  std::string_view e2) {
-    ctx.AddF32x2("{}=vec2({},{});", inst, e1, e2);
+    ctx.AddF32x2("{}=float2({},{});", inst, e1, e2);
 }
 
 void EmitCompositeConstructF32x3(EmitContext& ctx, IR::Inst& inst, std::string_view e1,
                                  std::string_view e2, std::string_view e3) {
-    ctx.AddF32x3("{}=vec3({},{},{});", inst, e1, e2, e3);
+    ctx.AddF32x3("{}=float3({},{},{});", inst, e1, e2, e3);
 }
 
 void EmitCompositeConstructF32x4(EmitContext& ctx, IR::Inst& inst, std::string_view e1,
                                  std::string_view e2, std::string_view e3, std::string_view e4) {
-    ctx.AddF32x4("{}=vec4({},{},{},{});", inst, e1, e2, e3, e4);
+    ctx.AddF32x4("{}=float4({},{},{},{});", inst, e1, e2, e3, e4);
 }
 
 void EmitCompositeExtractF32x2(EmitContext& ctx, IR::Inst& inst, std::string_view composite,

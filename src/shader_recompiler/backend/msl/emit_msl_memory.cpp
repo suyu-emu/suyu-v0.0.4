@@ -135,14 +135,14 @@ void EmitLoadStorage32(EmitContext& ctx, IR::Inst& inst, const IR::Value& bindin
 void EmitLoadStorage64(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                        const IR::Value& offset) {
     const auto offset_var{ctx.var_alloc.Consume(offset)};
-    ctx.AddU32x2("{}=uvec2({}_ssbo{}[{}>>2],{}_ssbo{}[({}+4)>>2]);", inst, ctx.stage_name,
+    ctx.AddU32x2("{}=uint2({}_ssbo{}[{}>>2],{}_ssbo{}[({}+4)>>2]);", inst, ctx.stage_name,
                  binding.U32(), offset_var, ctx.stage_name, binding.U32(), offset_var);
 }
 
 void EmitLoadStorage128(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                         const IR::Value& offset) {
     const auto offset_var{ctx.var_alloc.Consume(offset)};
-    ctx.AddU32x4("{}=uvec4({}_ssbo{}[{}>>2],{}_ssbo{}[({}+4)>>2],{}_ssbo{}[({}+8)>>2],{}_ssbo{}[({}"
+    ctx.AddU32x4("{}=uint4({}_ssbo{}[{}>>2],{}_ssbo{}[({}+4)>>2],{}_ssbo{}[({}+8)>>2],{}_ssbo{}[({}"
                  "+12)>>2]);",
                  inst, ctx.stage_name, binding.U32(), offset_var, ctx.stage_name, binding.U32(),
                  offset_var, ctx.stage_name, binding.U32(), offset_var, ctx.stage_name,

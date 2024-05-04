@@ -41,7 +41,7 @@ void EmitBitCastU16F16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::I
 }
 
 void EmitBitCastU32F32(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
-    ctx.AddU32("{}=ftou({});", inst, value);
+    ctx.AddU32("{}=as_type<uint>({});", inst, value);
 }
 
 void EmitBitCastU64F64(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
@@ -53,7 +53,7 @@ void EmitBitCastF16U16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::I
 }
 
 void EmitBitCastF32U32(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
-    ctx.AddF32("{}=utof({});", inst, value);
+    ctx.AddF32("{}=as_type<float>({});", inst, value);
 }
 
 void EmitBitCastF64U64(EmitContext& ctx, IR::Inst& inst, std::string_view value) {

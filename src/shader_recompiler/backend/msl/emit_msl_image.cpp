@@ -256,7 +256,7 @@ void EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
     const auto texture{Texture(ctx, info, index)};
     const auto bias{info.has_bias ? fmt::format(",{}", bias_lc) : ""};
     const bool needs_shadow_ext{NeedsShadowLodExt(info.type)};
-    const auto cast{needs_shadow_ext ? "vec4" : "vec3"};
+    const auto cast{needs_shadow_ext ? "float4" : "float3"};
     const bool use_grad{!ctx.profile.support_gl_texture_shadow_lod &&
                         ctx.stage != Stage::Fragment && needs_shadow_ext};
     if (use_grad) {
@@ -267,7 +267,7 @@ void EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
             ctx.AddF32("{}=0.0f;", inst);
             return;
         }
-        const auto d_cast{info.type == TextureType::ColorArray2D ? "vec2" : "vec3"};
+        const auto d_cast{info.type == TextureType::ColorArray2D ? "float2" : "float3"};
         ctx.AddF32("{}=textureGrad({},{}({},{}),{}(0),{}(0));", inst, texture, cast, coords, dref,
                    d_cast, d_cast);
         return;
@@ -284,7 +284,7 @@ void EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
     } else {
         if (ctx.stage == Stage::Fragment) {
             if (info.type == TextureType::ColorArrayCube) {
-                ctx.AddF32("{}=texture({},vec4({}),{});", inst, texture, coords, dref);
+                ctx.AddF32("{}=texture({},float4({}),{});", inst, texture, coords, dref);
             } else {
                 ctx.AddF32("{}=texture({},{}({},{}){});", inst, texture, cast, coords, dref, bias);
             }
@@ -311,7 +311,7 @@ void EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
     const auto texture{Texture(ctx, info, index)};
     const bool needs_shadow_ext{NeedsShadowLodExt(info.type)};
     const bool use_grad{!ctx.profile.support_gl_texture_shadow_lod && needs_shadow_ext};
-    const auto cast{needs_shadow_ext ? "vec4" : "vec3"};
+    const auto cast{needs_shadow_ext ? "float3" : "float3"};
     if (use_grad) {
         LOG_WARNING(Shader_MSL,
                     "Device lacks GL_EXT_texture_shadow_lod. Using textureGrad fallback");
@@ -320,7 +320,7 @@ void EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
             ctx.AddF32("{}=0.0f;", inst);
             return;
         }
-        const auto d_cast{info.type == TextureType::ColorArray2D ? "vec2" : "vec3"};
+        const auto d_cast{info.type == TextureType::ColorArray2D ? "float2" : "float3"};
         ctx.AddF32("{}=textureGrad({},{}({},{}),{}(0),{}(0));", inst, texture, cast, coords, dref,
                    d_cast, d_cast);
         return;
@@ -671,7 +671,7 @@ void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
         throw NotImplementedException("Non-constant texture rescaling");
     }
     const u32 image_index{index.U32()};
-    ctx.AddU1("{}=(ftou(scaling.x)&{})!=0;", inst, 1u << image_index);
+    ctx.AddU1("{}=(as_type<uint>(scaling.x)&{})!=0;", inst, 1u << image_index);
 }
 
 void EmitIsImageScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index) {
@@ -679,7 +679,7 @@ void EmitIsImageScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index)
         throw NotImplementedException("Non-constant texture rescaling");
     }
     const u32 image_index{index.U32()};
-    ctx.AddU1("{}=(ftou(scaling.y)&{})!=0;", inst, 1u << image_index);
+    ctx.AddU1("{}=(as_type<uint>(scaling.y)&{})!=0;", inst, 1u << image_index);
 }
 
 void EmitBindlessImageSampleImplicitLod(EmitContext&) {
