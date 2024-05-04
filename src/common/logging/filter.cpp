@@ -153,6 +153,7 @@ bool ParseFilterRule(Filter& instance, Iterator begin, Iterator end) {
     SUB(Shader, SPIRV)                                                                             \
     SUB(Shader, GLASM)                                                                             \
     SUB(Shader, GLSL)                                                                              \
+    SUB(Shader, MSL)                                                                               \
     CLS(Audio)                                                                                     \
     SUB(Audio, DSP)                                                                                \
     SUB(Audio, Sink)                                                                               \

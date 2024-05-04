@@ -75,6 +75,31 @@ add_library(shader_recompiler STATIC
     backend/spirv/emit_spirv_warp.cpp
     backend/spirv/spirv_emit_context.cpp
     backend/spirv/spirv_emit_context.h
+    backend/msl/emit_msl.cpp
+    backend/msl/emit_msl.h
+    backend/msl/emit_msl_atomic.cpp
+    backend/msl/emit_msl_barriers.cpp
+    backend/msl/emit_msl_bitwise_conversion.cpp
+    backend/msl/emit_msl_composite.cpp
+    backend/msl/emit_msl_context_get_set.cpp
+    backend/msl/emit_msl_control_flow.cpp
+    backend/msl/emit_msl_convert.cpp
+    backend/msl/emit_msl_floating_point.cpp
+    backend/msl/emit_msl_image.cpp
+    backend/msl/emit_msl_instructions.h
+    backend/msl/emit_msl_integer.cpp
+    backend/msl/emit_msl_logical.cpp
+    backend/msl/emit_msl_memory.cpp
+    backend/msl/emit_msl_not_implemented.cpp
+    backend/msl/emit_msl_select.cpp
+    backend/msl/emit_msl_shared_memory.cpp
+    backend/msl/emit_msl_special.cpp
+    backend/msl/emit_msl_undefined.cpp
+    backend/msl/emit_msl_warp.cpp
+    backend/msl/msl_emit_context.cpp
+    backend/msl/msl_emit_context.h
+    backend/msl/var_alloc.cpp
+    backend/msl/var_alloc.h
     environment.h
     exception.h
     frontend/ir/abstract_syntax_list.h
