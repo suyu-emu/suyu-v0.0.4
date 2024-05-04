@@ -139,9 +139,9 @@ void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
     MTL::RenderPipelineDescriptor* pipeline_descriptor =
         MTL::RenderPipelineDescriptor::alloc()->init();
     pipeline_descriptor->setVertexFunction(functions[0]);
-    pipeline_descriptor->setFragmentFunction(functions[1]);
+    pipeline_descriptor->setFragmentFunction(functions[4]);
     // pipeline_descriptor->setVertexDescriptor(vertex_descriptor);
-    //  TODO: get the attachment count from render pass descriptor
+    // TODO: get the attachment count from render pass descriptor
     for (u32 index = 0; index < NUM_RT; index++) {
         auto* render_pass_attachment = render_pass->colorAttachments()->object(index);
         // TODO: is this the correct way to check if the attachment is valid?

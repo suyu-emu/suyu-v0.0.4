@@ -155,7 +155,7 @@ void EmitCode(EmitContext& ctx, const IR::Program& program) {
             break;
         case IR::AbstractSyntaxNode::Type::Return:
         case IR::AbstractSyntaxNode::Type::Unreachable:
-            ctx.Add("return;");
+            ctx.Add("return __out;");
             break;
         case IR::AbstractSyntaxNode::Type::Loop:
             ctx.Add("for(;;){{");

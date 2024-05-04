@@ -12,7 +12,7 @@ void EmitJoin(EmitContext&) {
 }
 
 void EmitDemoteToHelperInvocation(EmitContext& ctx) {
-    ctx.Add("discard;");
+    ctx.Add("discard_fragment();");
 }
 
 } // namespace Shader::Backend::MSL

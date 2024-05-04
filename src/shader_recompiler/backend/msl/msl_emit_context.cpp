@@ -6,6 +6,7 @@
 #include "shader_recompiler/backend/msl/msl_emit_context.h"
 #include "shader_recompiler/frontend/ir/program.h"
 #include "shader_recompiler/profile.h"
+
 #include "shader_recompiler/runtime_info.h"
 
 namespace Shader::Backend::MSL {
@@ -18,6 +19,8 @@ char Swizzle(size_t offset) {
     return "xyzw"[CbufIndex(offset)];
 }
 
+// TODO
+/*
 std::string_view InterpDecorator(Interpolation interp) {
     switch (interp) {
     case Interpolation::Smooth:
@@ -29,8 +32,10 @@ std::string_view InterpDecorator(Interpolation interp) {
     }
     throw InvalidArgument("Invalid interpolation {}", interp);
 }
+*/
 
 // TODO
+/*
 std::string_view InputArrayDecorator(Stage stage) {
     switch (stage) {
     case Stage::Geometry:
@@ -41,6 +46,7 @@ std::string_view InputArrayDecorator(Stage stage) {
         return "";
     }
 }
+*/
 
 // TODO
 std::string OutputDecorator(Stage stage, u32 size) {
@@ -208,13 +214,13 @@ std::string_view ImageFormatString(ImageFormat format) {
 
 std::string_view ImageAccessQualifier(bool is_written, bool is_read) {
     if (is_written && is_read) {
-        return "access::read, access::write";
+        return ",access::read,access::write";
     }
     if (is_written) {
-        return "access::write";
+        return ",access::write";
     }
     if (is_read) {
-        return "access::read";
+        return ",access::read";
     }
     return "";
 }
@@ -258,71 +264,98 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
     // SetupOutPerVertex(*this, header);
     // SetupInPerVertex(*this, header);
 
+    // Stage input
+    bool has_stage_input{};
+    header += "struct __Input {\n";
+    if (stage == Stage::Fragment) {
+        header += "float4 position [[position]];\n";
+        has_stage_input = true;
+    }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (!info.loads.Generic(index) || !runtime_info.previous_stage_stores.Generic(index)) {
             continue;
         }
-        const auto qualifier{uses_geometry_passthrough ? "passthrough"
-                                                       : fmt::format("location={}", index)};
-        header += fmt::format("layout({}){}in vec4 in_attr{}{};", qualifier,
-                              InterpDecorator(info.interpolation[index]), index,
-                              InputArrayDecorator(stage));
+        DefineStageInOut(index, program.invocations, true);
+        has_stage_input = true;
     }
     for (size_t index = 0; index < info.uses_patches.size(); ++index) {
+        // TODO: what is this
         if (!info.uses_patches[index]) {
             continue;
         }
-        const auto qualifier{stage == Stage::TessellationControl ? "out" : "in"};
-        header += fmt::format("layout(location={})patch {} vec4 patch{};", index, qualifier, index);
+        // TODO: implement
+    }
+    header += "};\n";
+
+    if (has_stage_input) {
+        input_str = "__Input __in [[stage_in]]";
+        has_at_least_one_input = true;
+    }
+    if (stage == Stage::VertexA || stage == Stage::VertexB) {
+        // TODO: don't always declare these
+        if (has_at_least_one_input)
+            input_str += ",";
+        input_str += "uint vid [[vertex_id]]";
+        has_at_least_one_input = true;
+
+        if (has_at_least_one_input)
+            input_str += ",";
+        input_str += "uint iid [[instance_id]]";
+        has_at_least_one_input = true;
+    }
+
+    // Stage output
+    header += "struct __Output {\n";
+    if (stage == Stage::VertexB || stage == Stage::Geometry) {
+        header += "float4 position [[position]];\n";
     }
     if (stage == Stage::Fragment) {
         for (size_t index = 0; index < info.stores_frag_color.size(); ++index) {
             if (!info.stores_frag_color[index] && !profile.need_declared_frag_colors) {
                 continue;
             }
-            header += fmt::format("layout(location={})out vec4 frag_color{};", index, index);
+            header += fmt::format("float4 color{} [[color({})]];", index, index);
         }
-    }
-    header += "struct __Output {\n";
-    if (stage == Stage::VertexB || stage == Stage::Geometry) {
-        header += "float4 position [[position]];\n";
     }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (info.stores.Generic(index)) {
-            DefineGenericOutput(index, program.invocations);
+            DefineStageInOut(index, program.invocations, false);
         }
     }
     header += "};\n";
-    bool added = DefineInputs(bindings);
+    DefineInputs(bindings);
     if (info.uses_rescaling_uniform) {
-        if (added)
+        if (has_at_least_one_input)
             input_str += ",";
         input_str += "constant float4& scaling";
-        added = true;
+        has_at_least_one_input = true;
     }
     if (info.uses_render_area) {
-        if (added)
+        if (has_at_least_one_input)
             input_str += ",";
         input_str += "constant float4& render_area";
-        added = true;
+        has_at_least_one_input = true;
     }
     DefineHelperFunctions();
     DefineConstants();
 }
 
-bool EmitContext::DefineInputs(Bindings& bindings) {
-    bool added{false};
-
+void EmitContext::DefineInputs(Bindings& bindings) {
     // Constant buffers
     for (const auto& desc : info.constant_buffer_descriptors) {
         const u32 cbuf_used_size{Common::DivCeil(info.constant_buffer_used_sizes[desc.index], 16U)};
         const u32 cbuf_binding_size{info.uses_global_memory ? 0x1000U : cbuf_used_size};
-        if (added)
+
+        const std::string cbuf_struct_name{fmt::format("{}_cbuf{}_t", stage_name, desc.index)};
+        header +=
+            fmt::format("struct {} {{float4 data[{}];}};\n", cbuf_struct_name, cbuf_binding_size);
+
+        if (has_at_least_one_input)
             input_str += ",";
-        input_str += fmt::format("constant float4& {}_cbuf{}[{}] [[buffer({})]]", stage_name,
-                                 desc.index, cbuf_binding_size, bindings.uniform_buffer);
+        input_str += fmt::format("constant {}& {}_cbuf{} [[buffer({})]]", cbuf_struct_name,
+                                 stage_name, desc.index, bindings.uniform_buffer);
         bindings.uniform_buffer += desc.count;
-        added = true;
+        has_at_least_one_input = true;
     }
 
     // Constant buffer indirect
@@ -331,13 +364,14 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
     // Storage space buffers
     u32 index{};
     for (const auto& desc : info.storage_buffers_descriptors) {
-        if (added)
+        if (has_at_least_one_input)
             input_str += ",";
-        input_str += fmt::format("device uint& {}_ssbo{}[] [[buffer({})]]", stage_name, index,
-                                 bindings.storage_buffer);
-        bindings.storage_buffer += desc.count;
+        const std::string address_space{desc.is_written ? "device" : "constant"};
+        input_str += fmt::format("{} uint* {}_ssbo{} [[buffer({})]]", address_space, stage_name,
+                                 index, bindings.uniform_buffer);
+        bindings.uniform_buffer += desc.count;
         index += desc.count;
-        added = true;
+        has_at_least_one_input = true;
     }
 
     // Images
@@ -350,24 +384,24 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
         const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
         const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
         input_str += fmt::format("layout(binding={}{}) uniform {}uimageBuffer img{}{};",
-                              bindings.image, format, qualifier, bindings.image, array_decorator);
-        bindings.image += desc.count;
+                              bindings.image, format, qualifier, bindings.image,
+    array_decorator); bindings.image += desc.count;
     }
     */
     images.reserve(info.image_descriptors.size());
     for (const auto& desc : info.image_descriptors) {
-        images.push_back({bindings.image, desc.count});
+        images.push_back({bindings.texture, desc.count});
         // TODO: do we need format?
         // const auto format{ImageFormatString(desc.format)};
         const auto image_type{ImageType(desc.type)};
         const auto qualifier{ImageAccessQualifier(desc.is_written, desc.is_read)};
         const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        if (added)
+        if (has_at_least_one_input)
             input_str += ",";
-        input_str += fmt::format("{}<{}> {}_img{}{} [[texture({})]]", qualifier, image_type,
-                                 stage_name, bindings.image, array_decorator, bindings.image);
-        bindings.image += desc.count;
-        added = true;
+        input_str += fmt::format("{}<float{}> img{}{} [[texture({})]]", qualifier, image_type,
+                                 bindings.texture, array_decorator, bindings.texture);
+        bindings.texture += desc.count;
+        has_at_least_one_input = true;
     }
 
     // Textures
@@ -389,28 +423,26 @@ bool EmitContext::DefineInputs(Bindings& bindings) {
         const auto texture_type{desc.is_depth ? DepthSamplerType(desc.type)
                                               : ColorSamplerType(desc.type, desc.is_multisample)};
         const auto array_decorator{desc.count > 1 ? fmt::format("[{}]", desc.count) : ""};
-        if (added)
+        if (has_at_least_one_input)
             input_str += ",";
-        input_str += fmt::format("{} {}_tex{}{} [[texture({})]]", texture_type, stage_name,
+        input_str += fmt::format("{}<float> tex{}{} [[texture({})]]", texture_type,
                                  bindings.texture, array_decorator, bindings.texture);
-        input_str += fmt::format(",sampler {}_samp{}{} [[sampler({})]]", stage_name,
-                                 bindings.texture, array_decorator, bindings.texture);
+        input_str += fmt::format(",sampler samp{}{} [[sampler({})]]", bindings.texture,
+                                 array_decorator, bindings.texture);
         bindings.texture += desc.count;
-        added = true;
+        has_at_least_one_input = true;
     }
-
-    return added;
 }
 
 // TODO
-void EmitContext::DefineGenericOutput(size_t index, u32 invocations) {
+void EmitContext::DefineStageInOut(size_t index, u32 invocations, bool is_input) {
     const auto type{fmt::format("float{}", 4)};
     std::string name{fmt::format("attr{}", index)};
     header += fmt::format("{} {}{} [[user(locn{})]];\n", type, name,
                           OutputDecorator(stage, invocations), index);
 
     const GenericElementInfo element_info{
-        .name = "__out." + name,
+        .name = (is_input ? "__in." : "__out.") + name,
         .first_element = 0,
         .num_components = 4,
     };
@@ -418,6 +450,9 @@ void EmitContext::DefineGenericOutput(size_t index, u32 invocations) {
 }
 
 void EmitContext::DefineHelperFunctions() {
+    header +=
+        "uint bitfieldExtract(uint value, int offset, int bits) {\nreturn (value >> offset) & "
+        "((1 << bits) - 1);\n}\n";
     if (info.uses_global_increment || info.uses_shared_increment) {
         header += "uint CasIncrement(uint op_a,uint op_b){return op_a>=op_b?0u:(op_a+1u);}";
     }
@@ -497,7 +532,7 @@ std::string EmitContext::DefineGlobalMemoryFunctions() {
         const auto& ssbo{info.storage_buffers_descriptors[index]};
         const u32 size_cbuf_offset{ssbo.cbuf_offset + 8};
         const auto ssbo_addr{fmt::format("ssbo_addr{}", index)};
-        const auto cbuf{fmt::format("{}_cbuf{}", stage_name, ssbo.cbuf_index)};
+        const auto cbuf{fmt::format("{}_cbuf{}.data", stage_name, ssbo.cbuf_index)};
         std::array<std::string, 2> addr_xy;
         std::array<std::string, 2> size_xy;
         for (size_t i = 0; i < addr_xy.size(); ++i) {

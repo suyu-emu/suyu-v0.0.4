@@ -268,6 +268,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         ConvertLegacyToGeneric(program, runtime_info);
         const std::string code{EmitMSL(profile, runtime_info, program, binding)};
         // HACK
+        std::cout << "SHADER INDEX: " << index - 1 << std::endl;
         std::cout << code << std::endl;
         MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
         NS::Error* error = nullptr;
@@ -276,12 +277,13 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         if (error) {
             LOG_ERROR(Render_Metal, "failed to create library: {}",
                       error->description()->cString(NS::ASCIIStringEncoding));
-            // std::cout << error->description()->cString(NS::ASCIIStringEncoding) << std::endl;
+            // HACK
+            std::cout << error->description()->cString(NS::ASCIIStringEncoding) << std::endl;
             // HACK
             throw;
         }
 
-        functions[index] =
+        functions[index - 1] =
             library->newFunction(NS::String::string("main_", NS::ASCIIStringEncoding));
         previous_stage = &program;
     }
@@ -326,7 +328,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     }
 
     functions[0] = library->newFunction(NS::String::string("vertexMain", NS::ASCIIStringEncoding));
-    functions[1] =
+    functions[4] =
         library->newFunction(NS::String::string("fragmentMain", NS::ASCIIStringEncoding));
 
     return std::make_unique<GraphicsPipeline>(device, command_recorder, key, buffer_cache,

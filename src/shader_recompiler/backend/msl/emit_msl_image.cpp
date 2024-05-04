@@ -18,6 +18,26 @@ std::string Texture(EmitContext& ctx, const IR::TextureInstInfo& info, const IR:
     return fmt::format("tex{}{}", def.binding, index_offset);
 }
 
+void TransformTextureCoords(const IR::TextureInstInfo& info, std::string_view& coords) {
+    // If the texture is array, the last component of the coords is the array index
+    if (info.type == TextureType::ColorArray1D) {
+        coords = fmt::format("{}.x,{}.y", coords, coords);
+    }
+    if (info.type == TextureType::ColorArray2D) {
+        coords = fmt::format("{}.xy,{}.z", coords, coords);
+    }
+    if (info.type == TextureType::ColorArrayCube) {
+        coords = fmt::format("{}.xyz,{}.w", coords, coords);
+    }
+}
+
+std::string Sampler(EmitContext& ctx, const IR::TextureInstInfo& info, const IR::Value& index) {
+    const auto def{info.type == TextureType::Buffer ? ctx.texture_buffers.at(info.descriptor_index)
+                                                    : ctx.textures.at(info.descriptor_index)};
+    const auto index_offset{def.count > 1 ? fmt::format("[{}]", ctx.var_alloc.Consume(index)) : ""};
+    return fmt::format("samp{}{}", def.binding, index_offset);
+}
+
 std::string Image(EmitContext& ctx, const IR::TextureInstInfo& info, const IR::Value& index) {
     const auto def{info.type == TextureType::Buffer ? ctx.image_buffers.at(info.descriptor_index)
                                                     : ctx.images.at(info.descriptor_index)};
@@ -160,6 +180,7 @@ std::string ImageGatherSubpixelOffset(const IR::TextureInstInfo& info, std::stri
 }
 } // Anonymous namespace
 
+// TODO
 void EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                                 std::string_view coords, std::string_view bias_lc,
                                 const IR::Value& offset) {
@@ -168,6 +189,8 @@ void EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
         throw NotImplementedException("EmitImageSampleImplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
+    const auto sampler{Sampler(ctx, info, index)};
     const auto bias{info.has_bias ? fmt::format(",{}", bias_lc) : ""};
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
@@ -186,9 +209,10 @@ void EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
             }
         } else {
             if (ctx.stage == Stage::Fragment) {
-                ctx.Add("{}=texture({},{}{});", texel, texture, coords, bias);
+                // TODO: is the array index correct
+                ctx.Add("{}={}.sample({},{}{});", texel, texture, sampler, coords, bias);
             } else {
-                ctx.Add("{}=textureLod({},{},0.0);", texel, texture, coords);
+                ctx.Add("{}={}.sampleLod({},{},0.0);", texel, texture, sampler, coords);
             }
         }
         return;
@@ -213,6 +237,7 @@ void EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
         throw NotImplementedException("EmitImageSampleExplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -254,6 +279,7 @@ void EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
         throw NotImplementedException("EmitImageSampleDrefImplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const auto bias{info.has_bias ? fmt::format(",{}", bias_lc) : ""};
     const bool needs_shadow_ext{NeedsShadowLodExt(info.type)};
     const auto cast{needs_shadow_ext ? "float4" : "float3"};
@@ -309,6 +335,7 @@ void EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
         throw NotImplementedException("EmitImageSampleDrefExplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const bool needs_shadow_ext{NeedsShadowLodExt(info.type)};
     const bool use_grad{!ctx.profile.support_gl_texture_shadow_lod && needs_shadow_ext};
     const auto cast{needs_shadow_ext ? "float3" : "float3"};
@@ -348,6 +375,7 @@ void EmitImageGather(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                      std::string_view coords, const IR::Value& offset, const IR::Value& offset2) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -402,6 +430,7 @@ void EmitImageGatherDref(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
                          std::string_view dref) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -459,6 +488,7 @@ void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         throw NotImplementedException("EmitImageFetch Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const auto sparse_inst{PrepareSparse(inst)};
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -552,6 +582,7 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         throw NotImplementedException("EmitImageGradient offset");
     }
     const auto texture{Texture(ctx, info, index)};
+    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const bool multi_component{info.num_derivatives > 1 || info.has_lod_clamp};
     const auto derivatives_vec{ctx.var_alloc.Consume(derivatives)};

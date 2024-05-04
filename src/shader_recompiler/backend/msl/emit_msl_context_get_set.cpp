@@ -37,7 +37,7 @@ std::string_view OutputVertexIndex(EmitContext& ctx) {
 
 std::string ChooseCbuf(EmitContext& ctx, const IR::Value& binding, std::string_view index) {
     if (binding.IsImmediate()) {
-        return fmt::format("{}_cbuf{}[{}]", ctx.stage_name, binding.U32(), index);
+        return fmt::format("{}_cbuf{}.data[{}]", ctx.stage_name, binding.U32(), index);
     } else {
         const auto binding_var{ctx.var_alloc.Consume(binding)};
         return fmt::format("GetCbufIndirect({},{})", binding_var, index);
@@ -151,7 +151,7 @@ void EmitGetCbufU32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding
                       const IR::Value& offset) {
     const auto cast{ctx.profile.has_gl_cbuf_ftou_bug ? "" : "as_type<uint>"};
     if (offset.IsImmediate()) {
-        const auto cbuf{fmt::format("{}_cbuf{}", ctx.stage_name, binding.U32())};
+        const auto cbuf{fmt::format("{}_cbuf{}.data", ctx.stage_name, binding.U32())};
         static constexpr u32 cbuf_size{0x10000};
         const u32 u32_offset{offset.U32()};
         const s32 signed_offset{static_cast<s32>(offset.U32())};
@@ -213,7 +213,7 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr,
     case IR::Attribute::PositionY:
     case IR::Attribute::PositionZ:
     case IR::Attribute::PositionW: {
-        ctx.AddF32("{}={}.{};", inst, "__out.position", swizzle);
+        ctx.AddF32("{}={}.{};", inst, "__in.position", swizzle);
         break;
     }
     case IR::Attribute::PointSpriteS:
@@ -225,10 +225,10 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr,
         ctx.AddF32("{}=gl_TessCoord.{};", inst, swizzle);
         break;
     case IR::Attribute::InstanceId:
-        ctx.AddF32("{}=as_type<float>(gl_InstanceID);", inst);
+        ctx.AddF32("{}=as_type<float>(iid);", inst);
         break;
     case IR::Attribute::VertexId:
-        ctx.AddF32("{}=as_type<float>(gl_VertexID);", inst);
+        ctx.AddF32("{}=as_type<float>(vid);", inst);
         break;
     case IR::Attribute::FrontFace:
         ctx.AddF32("{}=as_type<float>(gl_FrontFacing?-1:0);", inst);
@@ -253,10 +253,10 @@ void EmitGetAttributeU32(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr, s
         ctx.AddU32("{}=uint(gl_PrimitiveID);", inst);
         break;
     case IR::Attribute::InstanceId:
-        ctx.AddU32("{}=uint(gl_InstanceID);", inst);
+        ctx.AddU32("{}=uint(iid);", inst);
         break;
     case IR::Attribute::VertexId:
-        ctx.AddU32("{}=uint(gl_VertexID);", inst);
+        ctx.AddU32("{}=uint(vid);", inst);
         break;
     case IR::Attribute::BaseInstance:
         ctx.AddU32("{}=uint(gl_BaseInstance);", inst);
@@ -396,7 +396,7 @@ void EmitSetPatch(EmitContext& ctx, IR::Patch patch, std::string_view value) {
 
 void EmitSetFragColor(EmitContext& ctx, u32 index, u32 component, std::string_view value) {
     const char swizzle{"xyzw"[component]};
-    ctx.Add("frag_color{}.{}={};", index, swizzle, value);
+    ctx.Add("__out.color{}.{}={};", index, swizzle, value);
 }
 
 void EmitSetSampleMask(EmitContext& ctx, std::string_view value) {

@@ -145,6 +145,7 @@ public:
 
     Stage stage{};
     std::string_view stage_name = "invalid";
+    bool has_at_least_one_input{};
 
     std::vector<TextureImageDefinition> texture_buffers;
     std::vector<TextureImageDefinition> image_buffers;
@@ -160,8 +161,8 @@ public:
 
 private:
     // TODO: break down into smaller functions
-    bool DefineInputs(Bindings& bindings);
-    void DefineGenericOutput(size_t index, u32 invocations);
+    void DefineInputs(Bindings& bindings);
+    void DefineStageInOut(size_t index, u32 invocations, bool is_input);
     void DefineHelperFunctions();
     void DefineConstants();
     std::string DefineGlobalMemoryFunctions();
