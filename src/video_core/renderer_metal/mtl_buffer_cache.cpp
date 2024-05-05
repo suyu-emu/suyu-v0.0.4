@@ -22,15 +22,6 @@ MTL::Buffer* CreatePrivateBuffer(const Device& device, size_t size) {
 
 } // Anonymous namespace
 
-BoundBuffer::BoundBuffer(MTL::Buffer* buffer_, size_t offset_, size_t size_)
-    : buffer{buffer_->retain()}, offset{offset_}, size{size_} {}
-
-BoundBuffer::~BoundBuffer() {
-    if (buffer) {
-        buffer->release();
-    }
-}
-
 BufferView::BufferView(MTL::Buffer* buffer_, size_t offset_, size_t size_,
                        VideoCore::Surface::PixelFormat format_)
     : buffer{buffer_->retain()}, offset{offset_}, size{size_}, format{format_} {}
@@ -94,22 +85,27 @@ void BufferCacheRuntime::ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_
 void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat index_format,
                                          u32 base_vertex, u32 num_indices, MTL::Buffer* buffer,
                                          u32 offset, [[maybe_unused]] u32 size) {
-    // TODO: convert parameters to Metal enums
-    bound_index_buffer = {BoundBuffer(buffer, offset, size)};
+    command_recorder.SetIndexBuffer(buffer, offset, index_format, topology, num_indices,
+                                    base_vertex);
 }
 
 void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count) {
     // TODO: bind quad index buffer
 }
 
-void BufferCacheRuntime::BindVertexBuffer(u32 index, MTL::Buffer* buffer, u32 offset, u32 size,
-                                          u32 stride) {
+void BufferCacheRuntime::BindVertexBuffer(size_t stage, u32 index, MTL::Buffer* buffer, u32 offset,
+                                          u32 size, u32 stride) {
     // TODO: use stride
-    bound_vertex_buffers[MAX_METAL_BUFFERS - index - 1] = {BoundBuffer(buffer, offset, size)};
+    BindBuffer(stage, MAX_METAL_BUFFERS - index - 1, buffer, offset, size);
 }
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
     // TODO: implement
+}
+
+void BufferCacheRuntime::BindBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer,
+                                    u32 offset, u32 size) {
+    command_recorder.SetBuffer(stage, buffer, binding_index, offset);
 }
 
 void BufferCacheRuntime::ReserveNullBuffer() {

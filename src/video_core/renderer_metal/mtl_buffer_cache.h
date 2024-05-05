@@ -17,17 +17,6 @@ class CommandRecorder;
 
 class BufferCacheRuntime;
 
-struct BoundBuffer {
-    BoundBuffer() = default;
-    BoundBuffer(MTL::Buffer* buffer_, size_t offset_, size_t size_);
-
-    ~BoundBuffer();
-
-    MTL::Buffer* buffer = nil;
-    size_t offset{};
-    size_t size{};
-};
-
 struct BufferView {
     BufferView(MTL::Buffer* buffer_, size_t offset_, size_t size_,
                VideoCore::Surface::PixelFormat format_ = VideoCore::Surface::PixelFormat::Invalid);
@@ -121,7 +110,8 @@ public:
 
     void BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count);
 
-    void BindVertexBuffer(u32 index, MTL::Buffer* buffer, u32 offset, u32 size, u32 stride);
+    void BindVertexBuffer(size_t stage, u32 index, MTL::Buffer* buffer, u32 offset, u32 size,
+                          u32 stride);
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
@@ -131,31 +121,35 @@ public:
     // TODO: implement
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings) {}
 
-    std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t stage,
-                                          [[maybe_unused]] u32 binding_index, u32 size) {
+    std::span<u8> BindMappedUniformBuffer(size_t stage, u32 binding_index, u32 size) {
         const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
-        BindBuffer(ref.buffer, static_cast<u32>(ref.offset), size);
+        BindBuffer(stage, binding_index, ref.buffer, static_cast<u32>(ref.offset), size);
         return ref.mapped_span;
     }
 
-    void BindUniformBuffer(MTL::Buffer* buffer, u32 offset, u32 size) {
-        BindBuffer(buffer, offset, size);
+    void BindUniformBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer, u32 offset,
+                           u32 size) {
+        BindBuffer(stage, binding_index, buffer, offset, size);
     }
 
-    void BindStorageBuffer(MTL::Buffer* buffer, u32 offset, u32 size,
-                           [[maybe_unused]] bool is_written) {
-        BindBuffer(buffer, offset, size);
+    // TODO: implement
+    void BindComputeUniformBuffer(u32 binding_index, MTL::Buffer* buffer, u32 offset, u32 size) {}
+
+    void BindStorageBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer, u32 offset,
+                           u32 size, [[maybe_unused]] bool is_written) {
+        BindBuffer(stage, binding_index, buffer, offset, size);
     }
+
+    // TODO: implement
+    void BindComputeStorageBuffer(u32 binding_index, Buffer& buffer, u32 offset, u32 size,
+                                  bool is_written) {}
 
     // TODO: implement
     void BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
                            VideoCore::Surface::PixelFormat format) {}
 
 private:
-    void BindBuffer(MTL::Buffer* buffer, u32 offset, u32 size) {
-        // FIXME: what should be the index?
-        bound_buffers[0] = BoundBuffer(buffer, offset, size);
-    }
+    void BindBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer, u32 offset, u32 size);
 
     void ReserveNullBuffer();
     MTL::Buffer* CreateNullBuffer();
@@ -167,17 +161,6 @@ private:
     // Common buffers
     MTL::Buffer* null_buffer = nil;
     MTL::Buffer* quad_index_buffer = nil;
-
-    // TODO: probably move this into a separate class
-    // Bound state
-    // Vertex buffers are bound to MAX_METAL_BUFFERS - index - 1, while regular buffers are bound to
-    // index
-    BoundBuffer bound_vertex_buffers[MAX_METAL_BUFFERS] = {{}};
-    struct {
-        BoundBuffer buffer;
-        // TODO: include index type and primitive topology
-    } bound_index_buffer = {};
-    BoundBuffer bound_buffers[MAX_METAL_BUFFERS] = {{}};
 };
 
 struct BufferCacheParams {
@@ -189,8 +172,8 @@ struct BufferCacheParams {
     static constexpr bool IS_OPENGL = false;
     static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS = false;
     static constexpr bool HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT = false;
-    static constexpr bool NEEDS_BIND_UNIFORM_INDEX = false;
-    static constexpr bool NEEDS_BIND_STORAGE_INDEX = false;
+    static constexpr bool NEEDS_BIND_UNIFORM_INDEX = true;
+    static constexpr bool NEEDS_BIND_STORAGE_INDEX = true;
     static constexpr bool USE_MEMORY_MAPS = true;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = false;
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = true;

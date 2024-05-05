@@ -42,18 +42,20 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
     render_pass_descriptor->colorAttachments()->object(0)->setTexture(
         swap_chain.GetDrawableTexture());
 
-    command_recorder.BeginOrContinueRenderPass(render_pass_descriptor);
-
-    // Blit the framebuffer to the drawable texture
+    // Bind the source texture
     // TODO: acquire the texture from @ref framebuffers
     const Framebuffer* const framebuffer = rasterizer.texture_cache.GetFramebuffer();
     if (!framebuffer) {
         return;
     }
     MTL::Texture* src_texture = framebuffer->GetHandle()->colorAttachments()->object(0)->texture();
+    command_recorder.SetTexture(4, src_texture, 0);
+    command_recorder.SetSamplerState(4, blit_sampler_state, 0);
+
+    command_recorder.BeginOrContinueRenderPass(render_pass_descriptor);
+
+    // Blit the framebuffer to the drawable texture
     command_recorder.SetRenderPipelineState(blit_pipeline_state);
-    command_recorder.SetFragmentTexture(src_texture, 0);
-    command_recorder.SetFragmentSamplerState(blit_sampler_state, 0);
 
     // Draw a full screen triangle which will get clipped to a rectangle
     command_recorder.GetRenderCommandEncoder()->drawPrimitives(MTL::PrimitiveTypeTriangle,

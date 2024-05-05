@@ -58,69 +58,145 @@ GraphicsPipeline::GraphicsPipeline(const Device& device_, CommandRecorder& comma
 }
 
 void GraphicsPipeline::Configure(bool is_indexed) {
-    buffer_cache.UpdateGraphicsBuffers(is_indexed);
-    buffer_cache.BindHostGeometryBuffers(is_indexed);
-
     texture_cache.SynchronizeGraphicsDescriptors();
-
-    // Find resources
-    size_t stage = 4;
-    const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
-    const auto read_handle{[&](const auto& desc, u32 index) {
-        ASSERT(cbufs[desc.cbuf_index].enabled);
-        const u32 index_offset{index << desc.size_shift};
-        const u32 offset{desc.cbuf_offset + index_offset};
-        const GPUVAddr addr{cbufs[desc.cbuf_index].address + offset};
-        if constexpr (std::is_same_v<decltype(desc), const Shader::TextureDescriptor&> ||
-                      std::is_same_v<decltype(desc), const Shader::TextureBufferDescriptor&>) {
-            if (desc.has_secondary) {
-                ASSERT(cbufs[desc.secondary_cbuf_index].enabled);
-                const u32 second_offset{desc.secondary_cbuf_offset + index_offset};
-                const GPUVAddr separate_addr{cbufs[desc.secondary_cbuf_index].address +
-                                             second_offset};
-                const u32 lhs_raw{gpu_memory->Read<u32>(addr) << desc.shift_left};
-                const u32 rhs_raw{gpu_memory->Read<u32>(separate_addr)
-                                  << desc.secondary_shift_left};
-                const u32 raw{lhs_raw | rhs_raw};
-
-                return TexturePair(raw, false);
-            }
-        }
-        auto a = gpu_memory->Read<u32>(addr);
-        // HACK: this particular texture breaks SMO
-        if (a == 310378931)
-            a = 310378932;
-
-        return TexturePair(a, false);
-    }};
-
-    const Shader::Info& info{stage_infos[stage]};
 
     std::array<VideoCommon::ImageViewInOut, 32> views;
     std::array<VideoCommon::SamplerId, 32> samplers;
     size_t view_index{};
     size_t sampler_index{};
 
-    for (const auto& desc : info.texture_descriptors) {
-        for (u32 index = 0; index < desc.count; ++index) {
-            const auto handle{read_handle(desc, index)};
-            views[view_index++] = {handle.first};
-
-            VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
-            samplers[sampler_index++] = sampler;
+    // Find resources
+    const auto& regs{maxwell3d->regs};
+    const bool via_header_index{regs.sampler_binding == Maxwell::SamplerBinding::ViaHeaderBinding};
+    const auto configure_stage{[&](u32 stage) {
+        const Shader::Info& info{stage_infos[stage]};
+        buffer_cache.UnbindGraphicsStorageBuffers(stage);
+        size_t ssbo_index{};
+        for (const auto& desc : info.storage_buffers_descriptors) {
+            ASSERT(desc.count == 1);
+            buffer_cache.BindGraphicsStorageBuffer(stage, ssbo_index, desc.cbuf_index,
+                                                   desc.cbuf_offset, desc.is_written);
+            ++ssbo_index;
         }
-    }
+        const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
+        const auto read_handle{[&](const auto& desc, u32 index) {
+            ASSERT(cbufs[desc.cbuf_index].enabled);
+            const u32 index_offset{index << desc.size_shift};
+            const u32 offset{desc.cbuf_offset + index_offset};
+            const GPUVAddr addr{cbufs[desc.cbuf_index].address + offset};
+            if constexpr (std::is_same_v<decltype(desc), const Shader::TextureDescriptor&> ||
+                          std::is_same_v<decltype(desc), const Shader::TextureBufferDescriptor&>) {
+                if (desc.has_secondary) {
+                    ASSERT(cbufs[desc.secondary_cbuf_index].enabled);
+                    const u32 second_offset{desc.secondary_cbuf_offset + index_offset};
+                    const GPUVAddr separate_addr{cbufs[desc.secondary_cbuf_index].address +
+                                                 second_offset};
+                    const u32 lhs_raw{gpu_memory->Read<u32>(addr) << desc.shift_left};
+                    const u32 rhs_raw{gpu_memory->Read<u32>(separate_addr)
+                                      << desc.secondary_shift_left};
+                    const u32 raw{lhs_raw | rhs_raw};
+                    return TexturePair(raw, via_header_index);
+                }
+            }
+            auto a = gpu_memory->Read<u32>(addr);
+            // HACK: this particular texture breaks SMO
+            if (a == 310378931)
+                a = 310378932;
+
+            return TexturePair(a, via_header_index);
+        }};
+        const auto add_image{[&](const auto& desc, bool blacklist) {
+            for (u32 index = 0; index < desc.count; ++index) {
+                const auto handle{read_handle(desc, index)};
+                views[view_index++] = {
+                    .index = handle.first,
+                    .blacklist = blacklist,
+                    .id = {},
+                };
+            }
+        }};
+        /*
+        if constexpr (Spec::has_texture_buffers) {
+            for (const auto& desc : info.texture_buffer_descriptors) {
+                add_image(desc, false);
+            }
+        }
+        */
+        /*
+        if constexpr (Spec::has_image_buffers) {
+            for (const auto& desc : info.image_buffer_descriptors) {
+                add_image(desc, false);
+            }
+        }
+        */
+        for (const auto& desc : info.texture_descriptors) {
+            for (u32 index = 0; index < desc.count; ++index) {
+                const auto handle{read_handle(desc, index)};
+                views[view_index++] = {handle.first};
+
+                VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
+                samplers[sampler_index++] = sampler;
+            }
+        }
+        for (const auto& desc : info.image_descriptors) {
+            add_image(desc, desc.is_written);
+        }
+        /*
+        const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
+        const auto read_handle{[&](const auto& desc, u32 index) {
+            ASSERT(cbufs[desc.cbuf_index].enabled);
+            const u32 index_offset{index << desc.size_shift};
+            const u32 offset{desc.cbuf_offset + index_offset};
+            const GPUVAddr addr{cbufs[desc.cbuf_index].address + offset};
+            if constexpr (std::is_same_v<decltype(desc), const Shader::TextureDescriptor&> ||
+                          std::is_same_v<decltype(desc), const Shader::TextureBufferDescriptor&>) {
+                if (desc.has_secondary) {
+                    ASSERT(cbufs[desc.secondary_cbuf_index].enabled);
+                    const u32 second_offset{desc.secondary_cbuf_offset + index_offset};
+                    const GPUVAddr separate_addr{cbufs[desc.secondary_cbuf_index].address +
+                                                 second_offset};
+                    const u32 lhs_raw{gpu_memory->Read<u32>(addr) << desc.shift_left};
+                    const u32 rhs_raw{gpu_memory->Read<u32>(separate_addr)
+                                      << desc.secondary_shift_left};
+                    const u32 raw{lhs_raw | rhs_raw};
+
+                    return TexturePair(raw, false);
+                }
+            }
+            auto a = gpu_memory->Read<u32>(addr);
+            // HACK: this particular texture breaks SMO
+            if (a == 310378931)
+                a = 310378932;
+
+            return TexturePair(a, false);
+        }};
+
+        const Shader::Info& info{stage_infos[stage]};
+
+        std::array<VideoCommon::ImageViewInOut, 32> views;
+        std::array<VideoCommon::SamplerId, 32> samplers;
+        size_t view_index{};
+        size_t sampler_index{};
+
+        for (const auto& desc : info.texture_descriptors) {
+            for (u32 index = 0; index < desc.count; ++index) {
+                const auto handle{read_handle(desc, index)};
+                views[view_index++] = {handle.first};
+
+                VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
+                samplers[sampler_index++] = sampler;
+            }
+        }
+        */
+    }};
+
+    configure_stage(0);
+    configure_stage(4);
+
+    buffer_cache.UpdateGraphicsBuffers(is_indexed);
+    buffer_cache.BindHostGeometryBuffers(is_indexed);
+
     texture_cache.FillGraphicsImageViews<true>(std::span(views.data(), view_index));
-
-    // Begin render pass
-    texture_cache.UpdateRenderTargets(false);
-    const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
-    if (!framebuffer) {
-        return;
-    }
-    command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
-
-    command_recorder.SetRenderPipelineState(pipeline_state);
 
     // Bind resources
 
@@ -131,8 +207,18 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     ImageView& image_view{texture_cache.GetImageView(views_it->id)};
     Sampler& sampler{texture_cache.GetSampler(*samplers_it)};
 
-    command_recorder.SetFragmentTexture(image_view.GetHandle(), 0);
-    command_recorder.SetFragmentSamplerState(sampler.GetHandle(), 0);
+    command_recorder.SetTexture(4, image_view.GetHandle(), 0);
+    command_recorder.SetSamplerState(4, sampler.GetHandle(), 0);
+
+    // Begin render pass
+    texture_cache.UpdateRenderTargets(false);
+    const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
+    if (!framebuffer) {
+        return;
+    }
+    command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
+
+    command_recorder.SetRenderPipelineState(pipeline_state);
 }
 
 void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
