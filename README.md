@@ -38,6 +38,7 @@ Following are the changes made since forking from Yuzu:
  - Added option to synchronize CPU clock to render speed limit
  - Added option to launch home menu from Switch firmware
  - Fixed crash when switching away from null graphics per-game
+ - Fixed controller UI being cut off at the bottom
  - Minor improvements and additions
 
 ## Development
