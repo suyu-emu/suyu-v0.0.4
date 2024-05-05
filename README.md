@@ -30,6 +30,16 @@ The emulator is capable of running most commercial games at full speed, provided
 
 It runs most Nintendo Switch games released until the date of the Yuzu takedown.
 
+## Changes
+
+Following are the changes made since forking from Yuzu:
+
+ - Added option to optimize generated SPIR-V shaders via spirv-opt
+ - Added option to synchronize CPU clock to render speed limit
+ - Added option to launch home menu from Switch firmware
+ - Fixed crash when switching away from null graphics per-game
+ - Minor improvements and additions
+
 ## Development
 
 Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu) is hosted.
@@ -63,7 +73,7 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 
 ## Download
 
-There are no precompiled releases available (yet).
+Precompiled build are available **in the releases section**.
 
 ## License
 
