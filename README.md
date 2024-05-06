@@ -11,7 +11,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
   <br>
 </h1>
 
-<h4 align="center"><b>torzu</b> is a fork of yuzu, the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
+<h4 align="center"><b>torzu</b> is a fork of yuzu, the world's most popular, open-source, Nintendo Switch emulator.
 <br>
 It is written in C++ with portability in mind, and I plan to actively maintain builds for Linux, Android and Windows.
 </h4>
