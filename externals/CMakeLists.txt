@@ -168,6 +168,7 @@ endif()
 
 # SPIRV-Tools
 if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    set(SPIRV_SKIP_EXECUTABLES ON)
     add_subdirectory(SPIRV-Tools)
 endif()
 
