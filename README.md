@@ -41,6 +41,16 @@ Following are the changes made since forking from Yuzu:
  - Fixed controller UI being cut off at the bottom
  - Minor improvements and additions
 
+## Goals
+
+The first and foremost goal is long-term maintenance. Even if I stop commiting new features I will always do my best to keep the emulator functional and third party dependencies updated. This also means most of the changes made will eventually be bug fixes.
+Essentially, the main goal is that you can still use this emulator on modern systems in 20 years.
+It is very important to me that this project is going to be a good base to fork once grass has grown over the whole legal dilemma and people are willing to do real work on this emulator non-anonymously.
+
+While the main platform is Linux as it is the main operating system I run on my personal and development desktops, Windows support is planned and will not be forgotten about. Android support is low priority but would be a nice bonus.
+
+A secondary goal is the improvement of usability on low-end systems. This includes both improving the performance of the emulator as well as making games more playable below 100% speed whenever possible (the sync CPU to render speed limit option already helps with that in few cases).
+
 ## Development
 
 Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu) is hosted.
