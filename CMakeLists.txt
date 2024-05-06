@@ -344,6 +344,11 @@ if (YUZU_TESTS)
     find_package(Catch2 3.0.1 REQUIRED)
 endif()
 
+# boost:asio has functions that require AcceptEx et al
+if (MINGW)
+    find_library(MSWSOCK_LIBRARY mswsock REQUIRED)
+endif()
+
 if(ENABLE_OPENSSL)
     find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
