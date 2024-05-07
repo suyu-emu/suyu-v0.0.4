@@ -48,7 +48,7 @@ The first and foremost goal is long-term maintenance. Even if I stop commiting n
 Essentially, the main goal is that you can still use this emulator on modern systems in 20 years.
 It is very important to me that this project is going to be a good base to fork once grass has grown over the whole legal dilemma and people are willing to do real work on this emulator non-anonymously.
 
-While the main platform is Linux as it is the main operating system I run on my personal and development desktops, Windows support is planned and will not be forgotten about. Android support is low priority but would be a nice bonus.
+While the main platform is Linux as it is the main operating system I run on my personal and development desktops, Windows support is very near and will not be forgotten about. Android support is low priority but would be a nice bonus.
 
 A secondary goal is the improvement of usability on low-end systems. This includes both improving the performance of the emulator as well as making games more playable below 100% speed whenever possible (the sync CPU to render speed limit option already helps with that in few cases).
 
@@ -77,15 +77,16 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 ## Building
 
 * __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Linux)
-* ~~__Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)~~
+* __Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)
 * ~~__Android__: [Android Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-For-Android)~~
 * ~~__macOS__: [macOS Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-macOS)~~
 
-(Only Linux builds are available for now. Next planned are Windows, then Android.)
+(Only Linux and Windows builds are available for now. Android is planned eventually.)
 
 ## Download
 
 Precompiled build are available **in the releases section**.
+Windows builds have not been released yet but will very soon.
 
 ## License
 
