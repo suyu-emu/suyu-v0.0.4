@@ -37,7 +37,6 @@ add_library(input_common STATIC
 
 if (MSVC)
     target_compile_options(input_common PRIVATE
-        /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
         /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
         /we4800 # Implicit conversion from 'type' to bool. Possible information loss
     )

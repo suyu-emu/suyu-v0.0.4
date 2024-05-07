@@ -341,12 +341,7 @@ if (ENABLE_NSIGHT_AFTERMATH)
     target_include_directories(video_core PRIVATE "$ENV{NSIGHT_AFTERMATH_SDK}/include")
 endif()
 
-if (MSVC)
-    target_compile_options(video_core PRIVATE
-        /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
-        /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
-    )
-else()
+if (NOT MSVC)
     if (APPLE)
         # error: declaration shadows a typedef in 'interval_base_set<SubType, DomainT, Compare, Interval, Alloc>'
         # error: implicit conversion loses integer precision: 'int' to 'boost::icl::bound_type' (aka 'unsigned char')

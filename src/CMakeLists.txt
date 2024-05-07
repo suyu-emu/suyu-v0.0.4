@@ -62,12 +62,10 @@ if (MSVC)
 
         # Warnings
         /W4
-        /WX
 
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4189 # 'identifier': local variable is initialized but not referenced
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
-        /we4388 # 'expression': signed/unsigned mismatch
         /we4389 # 'operator': signed/unsigned mismatch
         /we4456 # Declaration of 'identifier' hides previous local declaration
         /we4457 # Declaration of 'identifier' hides function parameter
