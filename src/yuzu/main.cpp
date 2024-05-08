@@ -3520,38 +3520,18 @@ void GMainWindow::OpenURL(const QUrl& url) {
 }
 
 void GMainWindow::OnOpenMirrorRepo() {
-    struct Mirror {
-        const char *host, *path;
-    };
-    const std::initializer_list<Mirror> mirrors = {
-        {"https://github.com", "/litucks/torzu"},
-        {"https://gitlab.com", "/litucks/torzu"},
-        {"https://bitbucket.org", "/litucks/torzu"},
-        {"https://codeberg.org", "/litucks/torzu"},
-        {"https://notabug.org", "/litucks/torzu"},
-        {"https://gitea.com", "/litucks/torzu"},
-        {"https://try.gitea.io", "/litucks/torzu"},
-        {"https://git.math.hamburg", "/litucks/torzu"},
-        {"https://gitea.sprint-pay.com", "/litucks/torzu"},
-        {"https://gitea.djoe.ovh", "/litucks/torzu"},
-        {"https://git.sheetjs.com", "/litucks/torzu"},
-        {"https://gitea.cisetech.com", "/litucks/torzu"}
-    };
-
-    for (const auto& mirror : mirrors) {
-        httplib::Client cli(mirror.host);
-        if (cli.Get(mirror.path)) {
-            OpenURL(QUrl(QString::fromStdString(fmt::format("{}{}", mirror.host, mirror.path))));
-            return;
-        }
+    httplib::Client cli("https://codeberg.org");
+    auto res = cli.Get("/litucks/tz-mu/raw/branch/main/mu.txt");
+    if (!res) {
+        QMessageBox::warning(this, tr("Error locating mirror"), tr("There has been an error finding the current mirror repository.<br/>"
+                                                                   "Your version may be too old or your network connectivity may be"
+                                                                   "limited.<br/>"
+                                                                   "Please either try again later, through a VPN or access the main<br/>"
+                                                                   "repository via the Tor Browser:<br/>"
+                                                                   "<a href='http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu'>http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu</a>"));
     }
 
-    QMessageBox::warning(this, tr("Error locating mirror"), tr("There has been an error finding the current mirror repository.\n"
-                                                               "Your version may be so old the list has already been depleted\n"
-                                                               "or your network connectivity may be limited.\n"
-                                                               "Please either try again later, through a VPN or access the main\n"
-                                                               "repository via the Tor Browser:\n"
-                                                               "http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu"));
+    OpenURL(QUrl(QString::fromStdString(res->body)));
 }
 
 void GMainWindow::ToggleFullscreen() {
