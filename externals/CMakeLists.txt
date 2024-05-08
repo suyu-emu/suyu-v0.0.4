@@ -172,9 +172,6 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     add_subdirectory(SPIRV-Tools)
 endif()
 
-# Boost headers
-add_subdirectory(boost-headers)
-
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 
