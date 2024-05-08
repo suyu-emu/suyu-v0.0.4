@@ -1521,10 +1521,6 @@ void GMainWindow::ConnectMenuEvents() {
     // Emulation
     connect_menu(ui->action_Pause, &GMainWindow::OnPauseContinueGame);
     connect_menu(ui->action_Stop, &GMainWindow::OnStopGame);
-    connect_menu(ui->action_Report_Compatibility, &GMainWindow::OnMenuReportCompatibility);
-    connect_menu(ui->action_Open_Mods_Page, &GMainWindow::OnOpenModsPage);
-    connect_menu(ui->action_Open_Quickstart_Guide, &GMainWindow::OnOpenQuickstartGuide);
-    connect_menu(ui->action_Open_FAQ, &GMainWindow::OnOpenFAQ);
     connect_menu(ui->action_Open_Mirror_Repo, &GMainWindow::OnOpenMirrorRepo);
     connect_menu(ui->action_Restart, &GMainWindow::OnRestartGame);
     connect_menu(ui->action_Configure, &GMainWindow::OnConfigure);
@@ -3515,57 +3511,12 @@ void GMainWindow::ErrorDisplayRequestExit() {
     }
 }
 
-void GMainWindow::OnMenuReportCompatibility() {
-#if defined(ARCHITECTURE_x86_64) && !defined(__APPLE__)
-    const auto& caps = Common::GetCPUCaps();
-    const bool has_fma = caps.fma || caps.fma4;
-    const auto processor_count = std::thread::hardware_concurrency();
-    const bool has_4threads = processor_count == 0 || processor_count >= 4;
-    const bool has_8gb_ram = Common::GetMemInfo().TotalPhysicalMemory >= 8_GiB;
-    const bool has_broken_vulkan = UISettings::values.has_broken_vulkan;
-
-    if (!has_fma || !has_4threads || !has_8gb_ram || has_broken_vulkan) {
-        QMessageBox::critical(this, tr("Hardware requirements not met"),
-                              tr("Your system does not meet the recommended hardware requirements. "
-                                 "Compatibility reporting has been disabled."));
-        return;
-    }
-
-    if (!Settings::values.yuzu_token.GetValue().empty() &&
-        !Settings::values.yuzu_username.GetValue().empty()) {
-    } else {
-        QMessageBox::critical(
-            this, tr("Missing yuzu Account"),
-            tr("In order to submit a game compatibility test case, you must link your yuzu "
-               "account.<br><br/>To link your yuzu account, go to Emulation &gt; Configuration "
-               "&gt; "
-               "Web."));
-    }
-#else
-    QMessageBox::critical(this, tr("Hardware requirements not met"),
-                          tr("Your system does not meet the recommended hardware requirements. "
-                             "Compatibility reporting has been disabled."));
-#endif
-}
-
 void GMainWindow::OpenURL(const QUrl& url) {
     const bool open = QDesktopServices::openUrl(url);
     if (!open) {
         QMessageBox::warning(this, tr("Error opening URL"),
                              tr("Unable to open the URL \"%1\".").arg(url.toString()));
     }
-}
-
-void GMainWindow::OnOpenModsPage() {
-    OpenURL(QUrl(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods")));
-}
-
-void GMainWindow::OnOpenQuickstartGuide() {
-    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/help/quickstart/")));
-}
-
-void GMainWindow::OnOpenFAQ() {
-    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/wiki/faq/")));
 }
 
 void GMainWindow::OnOpenMirrorRepo() {
