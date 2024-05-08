@@ -45,7 +45,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -185,6 +185,7 @@
     <addaction name="action_Report_Compatibility"/>
     <addaction name="action_Open_Mods_Page"/>
     <addaction name="action_Open_Quickstart_Guide"/>
+    <addaction name="action_Open_Mirror_Repo"/>
     <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
@@ -479,6 +480,11 @@
   <action name="action_Load_Home_Menu">
    <property name="text">
     <string>Open Home Menu</string>
+   </property>
+  </action>
+  <action name="action_Open_Mirror_Repo">
+   <property name="text">
+    <string>Open current Mirror &amp;Repo</string>
    </property>
   </action>
  </widget>

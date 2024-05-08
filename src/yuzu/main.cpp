@@ -21,6 +21,7 @@
 #include "common/linux/gamemode.h"
 #endif
 
+#include <httplib.h>
 #include <boost/container/flat_set.hpp>
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
@@ -1524,6 +1525,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Open_Mods_Page, &GMainWindow::OnOpenModsPage);
     connect_menu(ui->action_Open_Quickstart_Guide, &GMainWindow::OnOpenQuickstartGuide);
     connect_menu(ui->action_Open_FAQ, &GMainWindow::OnOpenFAQ);
+    connect_menu(ui->action_Open_Mirror_Repo, &GMainWindow::OnOpenMirrorRepo);
     connect_menu(ui->action_Restart, &GMainWindow::OnRestartGame);
     connect_menu(ui->action_Configure, &GMainWindow::OnConfigure);
     connect_menu(ui->action_Configure_Current_Game, &GMainWindow::OnConfigurePerGame);
@@ -3564,6 +3566,41 @@ void GMainWindow::OnOpenQuickstartGuide() {
 
 void GMainWindow::OnOpenFAQ() {
     OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/wiki/faq/")));
+}
+
+void GMainWindow::OnOpenMirrorRepo() {
+    struct Mirror {
+        const char *host, *path;
+    };
+    const std::initializer_list<Mirror> mirrors = {
+        {"https://github.com", "/litucks/torzu"},
+        {"https://gitlab.com", "/litucks/torzu"},
+        {"https://bitbucket.org", "/litucks/torzu"},
+        {"https://codeberg.org", "/litucks/torzu"},
+        {"https://notabug.org", "/litucks/torzu"},
+        {"https://gitea.com", "/litucks/torzu"},
+        {"https://try.gitea.io", "/litucks/torzu"},
+        {"https://git.math.hamburg", "/litucks/torzu"},
+        {"https://gitea.sprint-pay.com", "/litucks/torzu"},
+        {"https://gitea.djoe.ovh", "/litucks/torzu"},
+        {"https://git.sheetjs.com", "/litucks/torzu"},
+        {"https://gitea.cisetech.com", "/litucks/torzu"}
+    };
+
+    for (const auto& mirror : mirrors) {
+        httplib::Client cli(mirror.host);
+        if (cli.Get(mirror.path)) {
+            OpenURL(QUrl(QString::fromStdString(fmt::format("{}{}", mirror.host, mirror.path))));
+            return;
+        }
+    }
+
+    QMessageBox::warning(this, tr("Error locating mirror"), tr("There has been an error finding the current mirror repository.\n"
+                                                               "Your version may be so old the list has already been depleted\n"
+                                                               "or your network connectivity may be limited.\n"
+                                                               "Please either try again later, through a VPN or access the main\n"
+                                                               "repository via the Tor Browser:\n"
+                                                               "http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu"));
 }
 
 void GMainWindow::ToggleFullscreen() {
