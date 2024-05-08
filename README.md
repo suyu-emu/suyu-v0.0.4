@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 We're in need of developers. Please join our chat below if you want to contribute!
 This repo was based on Yuzu EA 4176 but the code is being rewritten from the ground up for legal and performance reasons.
 
-Support the original suyu developer team [here](https://discord.gg/79B6wqFPnc)
+Support the original suyu developer team [here](https://discord.gg/79B6wqFPnc).
 
 <hr />
 
@@ -66,7 +66,7 @@ You can also contact any of the developers on the Chat to learn more about the c
 * __Linux__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __macOS__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __Android__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
-###### We currently do not provide builds for iOS, however if you would like, you could try the experimental [Sudachi](https://github.com/sudachi-emu/sudachi)/Folium.
+###### We currently do not provide builds for iOS, however if you would like, you could try the experimental [Sudachi](https://github.com/emuPlace/Sudachi/releases)/[Folium](https://github.com/jarrodnorwell/Folium/releases).
 
 If you want daily builds then [Click here](https://git.suyu.dev/suyu/suyu/actions).
 If you don't know how to download the daily builds then [Click here](https://git.suyu.dev/suyu/suyu/raw/branch/dev/img/daily-builds.png)
@@ -84,7 +84,7 @@ We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases)<br>If a
 
 ## Support
 
-If you have any questions, don't hesitate to ask us in our [chat](https://chat.suyu.dev). We don't bite!
+If you have any questions, don't hesitate to ask us in our [chat](https://chat.suyu.dev), make an issue or contact a developer. We don't bite!
 
 
 ## License
