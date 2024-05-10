@@ -86,7 +86,6 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 ## Download
 
 Precompiled build are available **in the releases section**.
-Windows builds have not been released yet but will very soon.
 
 ## License
 
