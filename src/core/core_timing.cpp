@@ -14,8 +14,8 @@
 #include "common/x64/cpu_wait.h"
 #endif
 
-#include "common/settings.h"
 #include "common/microprofile.h"
+#include "common/settings.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
 
@@ -194,8 +194,9 @@ u64 CoreTiming::GetClockTicks() const {
 
     if (Settings::values.sync_core_speed.GetValue()) {
         const double ticks = static_cast<double>(fres);
-        const double speed_limit = static_cast<double>(Settings::values.speed_limit.GetValue())*0.01;
-        return static_cast<u64>(ticks/speed_limit);
+        const double speed_limit =
+            static_cast<double>(Settings::values.speed_limit.GetValue()) * 0.01;
+        return static_cast<u64>(ticks / speed_limit);
     } else {
         return fres;
     }

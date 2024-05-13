@@ -21,8 +21,8 @@
 #include "common/linux/gamemode.h"
 #endif
 
-#include <httplib.h>
 #include <boost/container/flat_set.hpp>
+#include <httplib.h>
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "applets/qt_amiibo_settings.h"
@@ -3523,12 +3523,18 @@ void GMainWindow::OnOpenMirrorRepo() {
     httplib::Client cli("https://codeberg.org");
     auto res = cli.Get("/litucks/tz-mu/raw/branch/main/mu.txt");
     if (!res) {
-        QMessageBox::warning(this, tr("Error locating mirror"), tr("There has been an error finding the current mirror repository.<br/>"
-                                                                   "Your version may be too old or your network connectivity may be"
-                                                                   "limited.<br/>"
-                                                                   "Please either try again later, through a VPN or access the main<br/>"
-                                                                   "repository via the Tor Browser:<br/>"
-                                                                   "<a href='http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu'>http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu</a>"));
+        QMessageBox::warning(
+            this, tr("Error locating mirror"),
+            tr("There has been an error finding the current mirror repository.<br/>"
+               "Your version may be too old or your network connectivity may be"
+               "limited.<br/>"
+               "Please either try again later, through a VPN or access the main<br/>"
+               "repository via the Tor Browser:<br/>"
+               "<a "
+               "href='http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/"
+               "torzu-emu/torzu'>http://"
+               "y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu</"
+               "a>"));
     }
 
     OpenURL(QUrl(QString::fromStdString(res->body)));

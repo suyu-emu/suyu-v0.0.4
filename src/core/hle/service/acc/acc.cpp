@@ -324,8 +324,8 @@ public:
             {10, &IProfileCommon::GetImageSize, "GetImageSize"},
             {11, &IProfileCommon::LoadImage, "LoadImage"},
             {20, &IProfileCommon::GetImageSize, "GetLargeImageSize"}, // 18.0.0+
-            {21, &IProfileCommon::LoadImage, "LoadLargeImage"}, // 18.0.0+
-            {30, &IProfileCommon::Unknown, "GetImageId"} // 18.0.0+
+            {21, &IProfileCommon::LoadImage, "LoadLargeImage"},       // 18.0.0+
+            {30, &IProfileCommon::Unknown, "GetImageId"}              // 18.0.0+
         };
 
         RegisterHandlers(functions);
