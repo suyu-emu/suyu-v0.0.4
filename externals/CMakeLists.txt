@@ -125,17 +125,9 @@ endif()
 add_subdirectory(sirit)
 
 # httplib
-if (ENABLE_WEB_SERVICE AND NOT TARGET httplib::httplib)
+if (NOT TARGET httplib::httplib)
     set(HTTPLIB_REQUIRE_OPENSSL ON)
     add_subdirectory(cpp-httplib)
-endif()
-
-# cpp-jwt
-if (ENABLE_WEB_SERVICE AND NOT TARGET cpp-jwt::cpp-jwt)
-    set(CPP_JWT_BUILD_EXAMPLES OFF)
-    set(CPP_JWT_BUILD_TESTS OFF)
-    set(CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF)
-    add_subdirectory(cpp-jwt)
 endif()
 
 # Opus
