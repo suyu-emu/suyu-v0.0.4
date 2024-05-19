@@ -196,10 +196,10 @@ u64 CoreTiming::GetClockTicks() const {
         const double ticks = static_cast<double>(fres);
         const double speed_limit =
             static_cast<double>(Settings::values.speed_limit.GetValue()) * 0.01;
-        return static_cast<u64>(ticks / speed_limit);
-    } else {
-        return fres;
+        fres = static_cast<u64>(ticks / speed_limit);
     }
+
+    return fres;
 }
 
 u64 CoreTiming::GetGPUTicks() const {
