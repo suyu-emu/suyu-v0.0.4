@@ -70,7 +70,7 @@ Alternatively, you can clone from the [GitHub mirror repository](https://github.
 
     git clone https://github.com/litucks/torzu.git --depth 1 --recursive
 
-Note that above repository may be taken down any time. Do not rely on its existence in production. In case the GitHub mirror goes down, a mirror will be set up on Gitlab.
+Note that above repository may be taken down any time. Do not rely on its existence in production. In case the GitHub mirror goes down, another mirror will be most likely be set up on Bitbucket.
 
 This project incorporates several commits from the [Suyu](https://suyu.dev) and [Sudachi](https://github.com/sudachi-emu/sudachi) forks (but cleaned up due to the typically mediocre code/commit quality from both projects) as well as changes listed in **Changes**.
 
