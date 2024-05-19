@@ -31,14 +31,6 @@ if (NOT TARGET Catch2::Catch2WithMain)
     endif()
 endif()
 
-# fmt
-
-if (NOT TARGET fmt::fmt)
-    # fmtlib formatting library
-    set(FMT_INSTALL ON)
-    add_subdirectory(fmt)
-endif()
-
 # mcl
 
 if (NOT TARGET merry::mcl)
