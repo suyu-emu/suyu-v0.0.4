@@ -9,7 +9,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 We're in need of developers. Please join our chat below if you want to contribute!
 This repo was based on Yuzu EA 4176 but the code is being rewritten from the ground up for legal and performance reasons.
 
-Support the original suyu developer team [here](https://discord.gg/79B6wqFPnc).
 
 <hr />
 
