@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: 2024 suyu Emulator Project
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
 # Migrating from yuzu
 
 When coming from yuzu, the migration is as easy as renaming some directories.
