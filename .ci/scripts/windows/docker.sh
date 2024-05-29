@@ -8,7 +8,7 @@ set -e
 
 #cd /suyu
 
-ccache -sv
+ccache -s
 
 rm -rf build
 mkdir -p build && cd build

@@ -7,7 +7,7 @@
 # Exit on error, rather than continuing with the rest of the script.
 set -e
 
-ccache -sv
+ccache -s
 
 mkdir build || true && cd build
 cmake .. \
