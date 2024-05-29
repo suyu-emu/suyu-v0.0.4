@@ -10,6 +10,8 @@ set -e
 
 ccache -s
 
+git submodule update --init --recursive
+
 rm -rf build
 mkdir -p build && cd build
 /usr/bin/x86_64-w64-mingw32-cmake .. \

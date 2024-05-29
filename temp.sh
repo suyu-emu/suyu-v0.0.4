@@ -1,14 +1,4 @@
-#!/bin/bash -ex
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
-# SPDX-FileCopyrightText: 2024 suyu Emulator Project
-# SPDX-License-Identifier: GPL-2.0-or-later
-
-# Exit on error, rather than continuing with the rest of the script.
-set -e
-
-ccache -s
-
-git submodule update --init --recursive
+ccache -sv
 
 mkdir build || true && cd build
 cmake .. \

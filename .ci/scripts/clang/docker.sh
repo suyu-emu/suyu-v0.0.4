@@ -9,6 +9,8 @@ set -e
 
 ccache -s
 
+git submodule update --init --recursive
+
 mkdir build || true && cd build
 cmake .. \
       -DCMAKE_BUILD_TYPE=Release \
