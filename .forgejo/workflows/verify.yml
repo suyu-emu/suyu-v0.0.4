@@ -8,7 +8,7 @@ name: 'suyu verify'
 
 on:
   pull_request:
-    branches: [ "dev" ]
+    # branches: [ "dev" ]
     paths:
       - 'src/**'
       - 'CMakeModules/**'
@@ -19,7 +19,7 @@ on:
     # paths-ignore:
     #   - 'src/android/**'
   push:
-    branches: [ "dev" ]
+    # branches: [ "dev" ]
     paths:
       - 'src/**'
       - 'CMakeModules/**'
