@@ -52,9 +52,9 @@ DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/suyu-cmd AppDir/usr/bin/suyu-tester
 
 # Download tools needed to build an AppImage
-wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/deploy-linux.sh
-wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/exec-x86_64.so
-wget -nc https://gitlab.com/suyu-emu/AppImageKit-checkrt/-/raw/old/AppRun.sh
+wget -nc https://git.suyu.dev/suyu/ext-linux-bin/raw/branch/main/appimage/deploy-linux.sh
+wget -nc https://git.suyu.dev/suyu/ext-linux-bin/raw/branch/main/appimage/exec-x86_64.so
+wget -nc https://git.suyu.dev/suyu/AppImageKit-checkrt/raw/branch/gh-workflow/AppRun
 
 # Set executable bit
 chmod 755 \
