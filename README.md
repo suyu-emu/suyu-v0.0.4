@@ -40,6 +40,7 @@ Following are the changes made since forking from Yuzu:
  - Fixed crash when switching away from null graphics per-game
  - Fixed controller UI being cut off at the bottom
  - Removed analytics and authentication as they'd be useless (perhaps even outright dangerous) now
+ - Ported fixes from Sudachi and Suyu
  - Minor improvements and additions
 
 ## Goals
