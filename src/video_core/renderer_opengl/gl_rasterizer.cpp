@@ -1207,13 +1207,12 @@ void RasterizerOpenGL::SyncLogicOpState() {
     auto regs = maxwell3d->regs;
 
     if (device.IsAmd()) {
-        auto IsFloat = [] (Tegra::Engines::Maxwell3D::Regs::VertexAttribute n) {
+        auto IsFloat = [](Tegra::Engines::Maxwell3D::Regs::VertexAttribute n) {
             return n.type == Tegra::Engines::Maxwell3D::Regs::VertexAttribute::Type::Float;
         };
 
-        bool has_float =
-            std::any_of(regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
-                        IsFloat);
+        bool has_float = std::any_of(regs.vertex_attrib_format.begin(),
+                                     regs.vertex_attrib_format.end(), IsFloat);
         regs.logic_op.enable = static_cast<u32>(!has_float);
     }
 

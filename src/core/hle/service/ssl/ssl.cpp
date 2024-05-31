@@ -384,7 +384,8 @@ private:
             get_server_cert_chain = static_cast<bool>(parameters.value);
             break;
         case OptionType::EnableAlpn:
-            LOG_ERROR(Service_SSL, "Called with option={}, value={} (STUBBED)", parameters.option, parameters.value);
+            LOG_ERROR(Service_SSL, "Called with option={}, value={} (STUBBED)", parameters.option,
+                      parameters.value);
             enable_alpn = static_cast<bool>(parameters.value);
             break;
         default:
