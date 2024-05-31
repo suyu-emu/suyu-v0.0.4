@@ -10,9 +10,6 @@
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
-[submodule "Vulkan-Headers"]
-	path = externals/Vulkan-Headers
-	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "xbyak"]
 	path = externals/xbyak
 	url = https://github.com/herumi/xbyak.git
@@ -37,18 +34,12 @@
 [submodule "tzdb_to_nx"]
 	path = externals/nx_tzdb/tzdb_to_nx
 	url = https://github.com/lat9nq/tzdb_to_nx.git
-[submodule "VulkanMemoryAllocator"]
-	path = externals/VulkanMemoryAllocator
-	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "simpleini"]
 	path = externals/simpleini
 	url = https://github.com/brofield/simpleini.git
 [submodule "oaknut"]
 	path = externals/oaknut
 	url = https://github.com/merryhime/oaknut
-[submodule "Vulkan-Utility-Libraries"]
-	path = externals/Vulkan-Utility-Libraries
-	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
 [submodule "externals/SPIRV-Headers"]
 	path = externals/SPIRV-Headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers.git
@@ -58,3 +49,12 @@
 [submodule "externals/fmt"]
 	path = externals/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "externals/Vulkan-Utility-Libraries"]
+	path = externals/Vulkan-Utility-Libraries
+	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
+[submodule "externals/VulkanMemoryAllocator"]
+	path = externals/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "externals/Vulkan-Headers"]
+	path = externals/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
