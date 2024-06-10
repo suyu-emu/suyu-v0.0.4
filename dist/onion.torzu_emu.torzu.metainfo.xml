@@ -22,8 +22,8 @@ SPDX-License-Identifier: CC0-1.0
     <keyword>switch</keyword>
     <keyword>emulator</keyword>
   </keywords>
-  <url type="bugtracker">http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/issues</url>
-  <url type="vcs-browser">http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu</url>
+  <url type="bugtracker">http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/issues</url>
+  <url type="vcs-browser">http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu</url>
   <launchable type="desktop-id">onion.torzu_emu.torzu.desktop</launchable>
   <provides>
     <binary>yuzu</binary>

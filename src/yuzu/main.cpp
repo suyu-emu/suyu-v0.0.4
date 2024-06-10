@@ -3531,9 +3531,9 @@ void GMainWindow::OnOpenMirrorRepo() {
                "Please either try again later, through a VPN or access the main<br/>"
                "repository via the Tor Browser:<br/>"
                "<a "
-               "href='http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/"
+               "href='http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/"
                "torzu-emu/torzu'>http://"
-               "y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu</"
+               "vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu</"
                "a>"));
     }
 

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 <h1 align="center">
   <br>
-  <a href="http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu"><img src="https://raw.githubusercontent.com/litucks/torzu/master/dist/yuzu.bmp" alt="torzu" width="200"></a>
+  <a href="http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu"><img src="https://raw.githubusercontent.com/litucks/torzu/master/dist/yuzu.bmp" alt="torzu" width="200"></a>
   <br>
   <b>torzu</b>
   <br>
@@ -23,16 +23,15 @@ Keep in mind, this is just a hobby project. I feel like I always have to keep up
 Turns out: running an open source project takes a lot more time than I have.
 And then stupid and unnecessary issues like Windows Defender flagging the emulator as malware ruin the rest. I am grateful for all your bug reports, help and support, but all that has distracted me from taking the project into the direction I would've liked.
 
-Today I've accidentally locked myself out of the Tor site out pure stupidity and one of the things I didn't make a backup of for whatever reason was the key required to get the same Tor site set back up.
+Today I've accidentally locked myself out of the Tor site out of pure stupidity and one of the things I didn't make a backup of for was the key required to get the same Tor site set back up.
 
-For this reason, I have decided to limit public development.
+For these reasons, I have decided to limit public development.
 It is not all over though. My plan is to:
  - continue the blog
  - move the blog into a seperate repository
  - keep this repository updated just enough so it stays compilable on Linux and Windows
  - keep the externals updated
  - push some bigger updates from my private upstream whenever I feel like (no promises)
- - set up a new Tor site (I'll keep you updated here and via the blog!)
  - NOT publish releases. If someone feels like publishing builds they should feel free to do that
  - NOT offer support in any way
 
@@ -56,13 +55,13 @@ Android support is low priority but would be a nice bonus.
 
 ## Development
 
-**The Tor site mentioned here has stopped working, I'll update this once a new one is up.**
+**The Tor site has recently changed. You can make sure this README has actually been written by me by verifying against the `README.md.sig` file using the key in `public_pgp/`.**
 
-Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu) is hosted.
+Most of the development happens on [Dark Git](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/). It's also where [our central repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu) is hosted.
 
 To clone this git repository, you can use these commands given tor is installed and running:
 
-    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu.git
+    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu.git
     cd torzu
     git submodule update --init --depth 1 --recursive
 
@@ -76,8 +75,8 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 
 ## Building
 
-* __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Linux)
-* __Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)
+* __Linux__: [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/wiki/Building-for-Linux)
+* __Windows__: [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/wiki/Building-for-Windows)
 
 ## License
 
