@@ -16,32 +16,33 @@ SPDX-License-Identifier: GPL-2.0-or-later
 It is written in C++ with portability in mind, and I plan to actively maintain builds for Linux, Android and Windows.
 </h4>
 
-<p align="center">
-  <a href="#compatibility">Compatibility</a> |
-  <a href="#development">Development</a> |
-  <a href="#building">Building</a> |
-  <a href="#download">Download</a> |
-  <a href="#license">License</a>
-</p>
+## !!! Limited public development !!!
+
+I feel like working publicly on this has taken away the fun. You may not understand, but it's quite stressful to have the public eye on a project.
+Keep in mind, this is just a hobby project. I feel like I always have to keep updating so I don't disappoint you. It's just not a good situation for a hobby project to be in.
+Turns out: running an open source project takes a lot more time than I have.
+And then stupid and unnecessary issues like Windows Defender flagging the emulator as malware ruin the rest. I am grateful for all your bug reports, help and support, but all that has distracted me from taking the project into the direction I would've liked.
+
+Today I've accidentally locked myself out of the Tor site out pure stupidity and one of the things I didn't make a backup of for whatever reason was the key required to get the same Tor site set back up.
+
+For this reason, I have decided to limit public development.
+It is not all over though. My plan is to:
+ - continue the blog
+ - move the blog into a seperate repository
+ - keep this repository updated just enough so it stays compilable on Linux and Windows
+ - keep the externals updated
+ - push some bigger updates from my private upstream whenever I feel like (no promises)
+ - set up a new Tor site (I'll keep you updated here and via the blog!)
+ - NOT publish releases. If someone feels like publishing builds they should feel free to do that
+ - NOT offer support in any way
+
+Again, thanks to everyone who has supported me in any way (even by creating bug reports), I really appreciate it.
 
 ## Compatibility
 
 The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](http://web.archive.org/web/20240130133811/https://yuzu-emu.org/help/quickstart/#hardware-requirements).
 
 It runs most Nintendo Switch games released until the date of the Yuzu takedown.
-
-## Changes
-
-Following are the changes made since forking from Yuzu:
-
- - Added option to optimize generated SPIR-V shaders via spirv-opt
- - Added option to synchronize CPU clock to render speed limit
- - Added option to launch home menu from Switch firmware
- - Fixed crash when switching away from null graphics per-game
- - Fixed controller UI being cut off at the bottom
- - Removed analytics and authentication as they'd be useless (perhaps even outright dangerous) now
- - Ported fixes from Sudachi and Suyu
- - Minor improvements and additions
 
 ## Goals
 
@@ -55,11 +56,9 @@ Android support is low priority but would be a nice bonus.
 
 ## Development
 
+**The Tor site mentioned here has stopped working, I'll update this once a new one is up.**
+
 Most of the development happens on [Dark Git](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/). It's also where [our central repository](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu) is hosted.
-
-Currently, development is somewhat limited to external commits as I'm working on improvements in dynarmic! This will increase emulation speed in CPU-bound scenarios.
-
-If you want to contribute, please take a look at the [Contributor's Guide](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Contributing) and [Developer Information](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Developer-Information).
 
 To clone this git repository, you can use these commands given tor is installed and running:
 
@@ -79,14 +78,6 @@ This project incorporates several commits from the [Suyu](https://suyu.dev) and 
 
 * __Linux__: [Linux Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Linux)
 * __Windows__: [Windows Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-Windows)
-* ~~__Android__: [Android Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-For-Android)~~
-* ~~__macOS__: [macOS Build](http://y2nlvhmmk5jnsvechppxnbyzmmv3vbl7dvzn6ltwcdbpgxixp3clkgqd.onion/torzu-emu/torzu/wiki/Building-for-macOS)~~
-
-(Only Linux and Windows builds are available for now. Android is planned eventually.)
-
-## Download
-
-Precompiled build are available **in the releases section**.
 
 ## License
 
