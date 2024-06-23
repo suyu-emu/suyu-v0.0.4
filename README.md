@@ -16,7 +16,12 @@ SPDX-License-Identifier: GPL-2.0-or-later
 It is written in C++ with portability in mind, and I plan to actively maintain builds for Linux, Android and Windows.
 </h4>
 
-## !!! Limited public development !!!
+## POSSIBLE PENDING GITHUB MIRROR TAKEDOWN
+
+I have received emails about takedowns on the release binaries hosted at mega (no worries I'll find another place to reupload them).
+If the GitHub mirror gets taken down too, the next mirror repository is going to be: https://codeberg.org/litucks/torzu unless anything comes in the way. You can use the button in the "About" menu of the emulator to get to the current mirror repository or simply check out the [main repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu). Please note that this is a manual process that could take me up to 2 days (worst case).
+
+## Limited public development
 
 I feel like working publicly on this has taken away the fun. You may not understand, but it's quite stressful to have the public eye on a project.
 Keep in mind, this is just a hobby project. I feel like I always have to keep updating so I don't disappoint you. It's just not a good situation for a hobby project to be in.
@@ -55,8 +60,6 @@ A secondary goal is the improvement of usability on low-end systems. This includ
 Android support is low priority but would be a nice bonus.
 
 ## Development
-
-**The Tor site has recently changed. You can make sure this README has actually been written by me by verifying against the `README.md.sig` file using the key in `public_pgp/`.**
 
 Most of the development happens on [Dark Git](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/). It's also where [our central repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu) is hosted.
 
