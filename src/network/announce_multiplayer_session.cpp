@@ -6,6 +6,7 @@
 #include <vector>
 #include "announce_multiplayer_session.h"
 #include "common/announce_multiplayer_room.h"
+#include "common/settings.h"
 #include "common/assert.h"
 #include "network/network.h"
 
