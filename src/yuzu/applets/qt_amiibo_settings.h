@@ -43,6 +43,7 @@ public:
 private:
     void LoadInfo();
     void LoadAmiiboInfo();
+    void LoadAmiiboApiInfo(std::string_view amiibo_id);
     void LoadAmiiboData();
     void LoadAmiiboGameInfo();
     void SetGameDataName(u32 application_area_id);

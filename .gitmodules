@@ -28,6 +28,9 @@
 [submodule "vcpkg"]
 	path = externals/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
+[submodule "cpp-jwt"]
+	path = externals/cpp-jwt
+	url = https://github.com/arun11299/cpp-jwt.git
 [submodule "libadrenotools"]
 	path = externals/libadrenotools
 	url = https://github.com/bylaws/libadrenotools.git

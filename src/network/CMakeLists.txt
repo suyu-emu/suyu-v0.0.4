@@ -20,6 +20,10 @@ add_library(network STATIC
 create_target_directory_groups(network)
 
 target_link_libraries(network PRIVATE common enet::enet Boost::headers)
+if (ENABLE_WEB_SERVICE)
+    target_compile_definitions(network PRIVATE -DENABLE_WEB_SERVICE)
+    target_link_libraries(network PRIVATE web_service)
+endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(network PRIVATE precompiled_headers.h)

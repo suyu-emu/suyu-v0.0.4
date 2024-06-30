@@ -21,6 +21,9 @@
 #include "yuzu/game_list_p.h"
 #include "yuzu/multiplayer/chat_room.h"
 #include "yuzu/multiplayer/message.h"
+#ifdef ENABLE_WEB_SERVICE
+#include "web_service/web_backend.h"
+#endif
 
 class ChatMessage {
 public:
@@ -383,6 +386,38 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
             continue;
         QStandardItem* name_item = new PlayerListItem(member.nickname, member.username,
                                                       member.avatar_url, member.game_info);
+
+#ifdef ENABLE_WEB_SERVICE
+        if (!icon_cache.count(member.avatar_url) && !member.avatar_url.empty()) {
+            // Start a request to get the member's avatar
+            const QUrl url(QString::fromStdString(member.avatar_url));
+            QFuture<std::string> future = QtConcurrent::run([url] {
+                WebService::Client client(
+                    QStringLiteral("%1://%2").arg(url.scheme(), url.host()).toStdString(), "", "");
+                auto result = client.GetImage(url.path().toStdString(), true);
+                if (result.returned_data.empty()) {
+                    LOG_ERROR(WebService, "Failed to get avatar");
+                }
+                return result.returned_data;
+            });
+            auto* future_watcher = new QFutureWatcher<std::string>(this);
+            connect(future_watcher, &QFutureWatcher<std::string>::finished, this,
+                    [this, future_watcher, avatar_url = member.avatar_url] {
+                        const std::string result = future_watcher->result();
+                        if (result.empty())
+                            return;
+                        QPixmap pixmap;
+                        if (!pixmap.loadFromData(reinterpret_cast<const u8*>(result.data()),
+                                                 static_cast<uint>(result.size())))
+                            return;
+                        icon_cache[avatar_url] =
+                            pixmap.scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+                        // Update all the displayed icons with the new icon_cache
+                        UpdateIconDisplay();
+                    });
+            future_watcher->setFuture(future);
+        }
+#endif
 
         player_list->invisibleRootItem()->appendRow(name_item);
     }

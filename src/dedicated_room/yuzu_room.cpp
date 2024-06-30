@@ -33,6 +33,10 @@
 #include "network/room.h"
 #include "network/verify_user.h"
 
+#ifdef ENABLE_WEB_SERVICE
+#include "web_service/verify_user_jwt.h"
+#endif
+
 #undef _UNICODE
 #include <getopt.h>
 #ifndef _MSC_VER
@@ -347,9 +351,14 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<Network::VerifyUser::Backend> verify_backend;
     if (announce) {
+#ifdef ENABLE_WEB_SERVICE
+        verify_backend =
+            std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
+#else
         LOG_INFO(Network,
                  "yuzu Web Services is not available with this build: validation is disabled.");
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
+#endif
     } else {
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }

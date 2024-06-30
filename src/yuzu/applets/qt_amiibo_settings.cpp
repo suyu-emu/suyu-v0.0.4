@@ -13,6 +13,9 @@
 #include "input_common/drivers/virtual_amiibo.h"
 #include "input_common/main.h"
 #include "ui_qt_amiibo_settings.h"
+#ifdef ENABLE_WEB_SERVICE
+#include "web_service/web_backend.h"
+#endif
 #include "yuzu/applets/qt_amiibo_settings.h"
 #include "yuzu/main.h"
 
@@ -86,6 +89,55 @@ void QtAmiiboSettingsDialog::LoadAmiiboInfo() {
     // LoadAmiiboApiInfo(amiibo_id);
     ui->amiiboImageLabel->setVisible(false);
     ui->amiiboInfoGroup->setVisible(false);
+}
+
+void QtAmiiboSettingsDialog::LoadAmiiboApiInfo(std::string_view amiibo_id) {
+#ifdef ENABLE_WEB_SERVICE
+    // TODO: Host this data on our website
+    WebService::Client client{"https://amiiboapi.com", {}, {}};
+    WebService::Client image_client{"https://raw.githubusercontent.com", {}, {}};
+    const auto url_path = fmt::format("/api/amiibo/?id={}", amiibo_id);
+
+    const auto amiibo_json = client.GetJson(url_path, true).returned_data;
+    if (amiibo_json.empty()) {
+        ui->amiiboImageLabel->setVisible(false);
+        ui->amiiboInfoGroup->setVisible(false);
+        return;
+    }
+
+    std::string amiibo_series{};
+    std::string amiibo_name{};
+    std::string amiibo_image_url{};
+    std::string amiibo_type{};
+
+    const auto parsed_amiibo_json_json = nlohmann::json::parse(amiibo_json).at("amiibo");
+    parsed_amiibo_json_json.at("amiiboSeries").get_to(amiibo_series);
+    parsed_amiibo_json_json.at("name").get_to(amiibo_name);
+    parsed_amiibo_json_json.at("image").get_to(amiibo_image_url);
+    parsed_amiibo_json_json.at("type").get_to(amiibo_type);
+
+    ui->amiiboSeriesValue->setText(QString::fromStdString(amiibo_series));
+    ui->amiiboNameValue->setText(QString::fromStdString(amiibo_name));
+    ui->amiiboTypeValue->setText(QString::fromStdString(amiibo_type));
+
+    if (amiibo_image_url.size() < 34) {
+        ui->amiiboImageLabel->setVisible(false);
+    }
+
+    const auto image_url_path = amiibo_image_url.substr(34, amiibo_image_url.size() - 34);
+    const auto image_data = image_client.GetImage(image_url_path, true).returned_data;
+
+    if (image_data.empty()) {
+        ui->amiiboImageLabel->setVisible(false);
+    }
+
+    QPixmap pixmap;
+    pixmap.loadFromData(reinterpret_cast<const u8*>(image_data.data()),
+                        static_cast<uint>(image_data.size()));
+    pixmap = pixmap.scaled(250, 350, Qt::AspectRatioMode::KeepAspectRatio,
+                           Qt::TransformationMode::SmoothTransformation);
+    ui->amiiboImageLabel->setPixmap(pixmap);
+#endif
 }
 
 void QtAmiiboSettingsDialog::LoadAmiiboData() {

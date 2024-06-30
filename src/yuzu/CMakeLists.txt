@@ -425,6 +425,10 @@ if (USE_DISCORD_PRESENCE)
     target_compile_definitions(yuzu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
 
+if (ENABLE_WEB_SERVICE)
+    target_compile_definitions(yuzu PRIVATE -DENABLE_WEB_SERVICE)
+endif()
+
 if (YUZU_USE_QT_MULTIMEDIA)
     target_link_libraries(yuzu PRIVATE Qt${QT_MAJOR_VERSION}::Multimedia)
     target_compile_definitions(yuzu PRIVATE -DYUZU_USE_QT_MULTIMEDIA)

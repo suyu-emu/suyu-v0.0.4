@@ -30,6 +30,8 @@ set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries 
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
+option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
 option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
@@ -140,6 +142,9 @@ if (YUZU_USE_BUNDLED_VCPKG)
 
     if (YUZU_TESTS)
         list(APPEND VCPKG_MANIFEST_FEATURES "yuzu-tests")
+    endif()
+    if (ENABLE_WEB_SERVICE)
+        list(APPEND VCPKG_MANIFEST_FEATURES "web-service")
     endif()
     if (ANDROID)
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
@@ -340,7 +345,10 @@ if (USE_DISCORD_PRESENCE)
     find_package(DiscordRPC MODULE)
 endif()
 
-find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
+if (ENABLE_WEB_SERVICE)
+    find_package(cpp-jwt 1.4 CONFIG)
+    find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
+endif()
 
 if (YUZU_TESTS)
     find_package(Catch2 3.0.1 REQUIRED)

@@ -23,6 +23,9 @@
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/multiplayer/validation.h"
 #include "yuzu/uisettings.h"
+#ifdef ENABLE_WEB_SERVICE
+#include "web_service/verify_user_jwt.h"
+#endif
 
 HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
                                std::shared_ptr<Core::AnnounceMultiplayerSession> session,
@@ -95,7 +98,12 @@ std::unique_ptr<Network::VerifyUser::Backend> HostRoomWindow::CreateVerifyBacken
     bool use_validation) const {
     std::unique_ptr<Network::VerifyUser::Backend> verify_backend;
     if (use_validation) {
+#ifdef ENABLE_WEB_SERVICE
+        verify_backend =
+            std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
+#else
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
+#endif
     } else {
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }
@@ -193,6 +201,21 @@ void HostRoomWindow::Host() {
             }
         }
         std::string token;
+#ifdef ENABLE_WEB_SERVICE
+        if (is_public) {
+            WebService::Client client(Settings::values.web_api_url.GetValue(),
+                                      Settings::values.yuzu_username.GetValue(),
+                                      Settings::values.yuzu_token.GetValue());
+            if (auto room = room_network.GetRoom().lock()) {
+                token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
+            }
+            if (token.empty()) {
+                LOG_ERROR(WebService, "Could not get external JWT, verification may fail");
+            } else {
+                LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
+            }
+        }
+#endif
         // TODO: Check what to do with this
         member->Join(ui->username->text().toStdString(), "127.0.0.1", port, 0,
                      Network::NoPreferredIP, password, token);

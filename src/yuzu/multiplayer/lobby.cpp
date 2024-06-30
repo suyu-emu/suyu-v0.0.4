@@ -20,6 +20,9 @@
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/multiplayer/validation.h"
 #include "yuzu/uisettings.h"
+#ifdef ENABLE_WEB_SERVICE
+#include "web_service/web_backend.h"
+#endif
 
 Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
              std::shared_ptr<Core::AnnounceMultiplayerSession> session, Core::System& system_)
@@ -183,6 +186,20 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     // attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_uid, this] {
         std::string token;
+#ifdef ENABLE_WEB_SERVICE
+        if (!Settings::values.yuzu_username.GetValue().empty() &&
+            !Settings::values.yuzu_token.GetValue().empty()) {
+            WebService::Client client(Settings::values.web_api_url.GetValue(),
+                                      Settings::values.yuzu_username.GetValue(),
+                                      Settings::values.yuzu_token.GetValue());
+            token = client.GetExternalJWT(verify_uid).returned_data;
+            if (token.empty()) {
+                LOG_ERROR(WebService, "Could not get external JWT, verification may fail");
+            } else {
+                LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
+            }
+        }
+#endif
         if (auto room_member = room_network.GetRoomMember().lock()) {
             room_member->Join(nickname, ip.c_str(), port, 0, Network::NoPreferredIP, password,
                               token);

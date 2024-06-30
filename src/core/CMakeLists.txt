@@ -1165,6 +1165,11 @@ if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()
 
+if (ENABLE_WEB_SERVICE)
+    target_compile_definitions(core PRIVATE -DENABLE_WEB_SERVICE)
+    target_link_libraries(core PRIVATE web_service)
+endif()
+
 if (HAS_NCE)
     enable_language(C ASM)
     set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
