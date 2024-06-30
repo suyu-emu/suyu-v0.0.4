@@ -16,11 +16,6 @@ SPDX-License-Identifier: GPL-2.0-or-later
 It is written in C++ with portability in mind, and I plan to actively maintain builds for Linux, Android and Windows.
 </h4>
 
-## POSSIBLE PENDING GITHUB MIRROR TAKEDOWN
-
-I have received emails about takedowns on the release binaries hosted at mega (no worries I'll find another place to reupload them).
-If the GitHub mirror gets taken down too, the next mirror repository is going to be: https://codeberg.org/litucks/torzu unless anything comes in the way. You can use the button in the "About" menu of the emulator to get to the current mirror repository or simply check out the [main repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu). Please note that this is a manual process that could take me up to 2 days (worst case).
-
 ## Limited public development
 
 I feel like working publicly on this has taken away the fun. You may not understand, but it's quite stressful to have the public eye on a project.
@@ -42,6 +37,11 @@ It is not all over though. My plan is to:
  - accept pull requests as long as they are of reasonable quality
 
 Again, thanks to everyone who has supported my efforts so far in any way (even by creating bug reports), I really appreciate it.
+
+## Possible pending GitHub mirror takedown
+
+I have received emails about takedowns on the release binaries hosted at mega (no worries I'll find another place to reupload them).
+If the GitHub mirror gets taken down too, the next mirror repository is going to be at: https://codeberg.org/litucks/torzu (repo privatized until then) unless anything comes in the way. You can use the button in the "About" menu of the emulator to get to the current mirror repository or simply check out the [main repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu). Please note that setting the new mirror repo to public is a manual process that could take me up to 2 days depending on how long it takes me to notice that the GitHub mirror has been taken down (specially mid-week).
 
 ## Compatibility
 
