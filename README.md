@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 **Note**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
 We're in need of developers. Please join our chat below if you want to contribute!
-This repo was based on Yuzu EA 4176 but the code is being rewritten from the ground up for legal and performance reasons.
+This repo was based on Yuzu EA 4176
 
 
 <hr />
