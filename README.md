@@ -16,6 +16,41 @@ SPDX-License-Identifier: GPL-2.0-or-later
 It is written in C++ with portability in mind and runs on Linux and Windows
 </h4>
 
+## !!! PENDING GITHUB MIRROR TAKEDOWN !!!
+
+I have received a takedown notice from GitHub!
+
+```
+Hi litucks,
+
+GitHub Trust & Safety is contacting you because we've received a DMCA takedown notice regarding the following content:
+
+https://github.com/litucks/torzu
+
+You can see the DMCA takedown notice that we received here, which includes the complainant's requested changes to your repository:
+
+https://enterprise.githubsupport.com/attachments/token/IRkbmN2s4Pu7U7fwBNZ2hXYoP/?name=2024-07-05-nintendo.rtf
+
+We want to make clear that it is never our desire or goal to take down open source projects, but instead to help developers address DMCA concerns with their projects. To that end, you have some options:
+
+1. If you choose to make changes in response to this takedown notice, you'll have 1 business day to make the requested changes. Once you've made the changes, please reply to this message and let us know. If you don't tell us that you've made changes within the next 1 business day, we'll need to disable the entire repository according to our GitHub DMCA Takedown Policy - https://docs.github.com/en/github/site-policy/dmca-takedown-policy
+
+If you need to remove specific content from your repository, simply making the repository private or deleting it via a commit won't resolve the alleged infringement. Instead, you must follow these instructions to remove the content from your repository's history, even if you don't think it's sensitive - https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/removing-sensitive-data-from-a-repository
+
+2. If you believe your content on GitHub was mistakenly identified by a DMCA takedown request, you have the right to contest the takedown by submitting a counter notice, as described in our DMCA Takedown Policy - https://docs.github.com/en/github/site-policy/dmca-takedown-policy
+
+We want to help ensure you can make informed decisions when responding to this takedown request. To help, we have partnered with leading legal providers who can help you evaluate the takedown request and determine how to respond at no cost to you. If you are interested in receiving legal support through this program (https://github.blog/2021-07-27-github-developer-rights-fellowship-stanford-law-school/), reply to this message to let us know that.
+
+It is important that you reply to this message within 1 business day regardless of which option you choose. If you do not, the repository will be disabled.
+
+Please let us know if you have any questions or need any help removing the content.
+
+Regards,
+GitHub Trust & Safety
+```
+
+The next mirror repository is going to be at: https://codeberg.org/litucks/torzu (repo privatized until then) unless anything comes in the way. Otherwise you can use the button in the "About" menu of the emulator to get to the current mirror repository or simply check out the [main repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu).
+
 ## Limited public development
 
 I feel like working publicly on this has taken away the fun. You may not understand, but it's quite stressful to have the public eye on a project.
@@ -38,11 +73,6 @@ It is not all over though. My plan is to:
  - accept pull requests as long as they are of reasonable quality
 
 Again, thanks to everyone who has supported my efforts so far in any way (even by creating bug reports), I really appreciate it.
-
-## Possible pending GitHub mirror takedown
-
-I have received emails about takedowns on the release binaries hosted at mega (no worries I'll find another place to reupload them).
-If the GitHub mirror gets taken down too, the next mirror repository is going to be at: https://codeberg.org/litucks/torzu (repo privatized until then) unless anything comes in the way. You can use the button in the "About" menu of the emulator to get to the current mirror repository or simply check out the [main repository](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu). Please note that setting the new mirror repo to public is a manual process that could take me up to 2 days depending on how long it takes me to notice that the GitHub mirror has been taken down (specially mid-week).
 
 ## Compatibility
 
