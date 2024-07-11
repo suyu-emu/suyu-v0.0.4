@@ -16,6 +16,11 @@ SPDX-License-Identifier: GPL-2.0-or-later
 It is written in C++ with portability in mind and runs on Linux and Windows
 </h4>
 
+## Fake websites
+
+A lot of fake Torzu websites have popped up. These are not mine. **This project will not have a clearnet website for the foreseeable future!**
+I highly advice against downloading anything from these websites, specially if their intention is clearly to make money through advertisements.
+
 ## Limited public development
 
 I feel like working publicly on this has taken away the fun. You may not understand, but it's quite stressful to have the public eye on a project.
