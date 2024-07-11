@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 <h1 align="center">
   <br>
-  <a href="http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu"><img src="https://raw.githubusercontent.com/litucks/torzu/master/dist/yuzu.bmp" alt="torzu" width="200"></a>
+  <a href="http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu"><img src="https://codeberg.org/litucks/torzu/raw/branch/master/dist/yuzu.bmp" alt="torzu" width="200"></a>
   <br>
   <b>torzu</b>
   <br>
