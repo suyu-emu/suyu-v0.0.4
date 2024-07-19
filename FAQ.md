@@ -26,6 +26,9 @@ Let's say, it'd be a nice bonus but it's very low priority. If you'd like to run
 **A:** I have committed myself to at the very least keep it updated enough to compile and run on modern systems for the next decade or so. If you don't see commits for a while it doesn't mean I've abandoned it.
 I have ADHD and need to shift my focus between different projects sometimes to stay motivated. Also, personal life is a thing. ~~Who knows maybe I'll be run over by a car tomorrow? Joking, that's not going to happen. Hopefully.~~
 
+**Q:** Why don't you reply on Reddit?
+**A:** Reddit doesn't like the way I anonymize my connection and heavily restricts my actions. Whenever I post something, it's immediately flagged and deleted. The `r/torzu` subreddit isn't mine, I was just given moderator privileges to it.
+
 Enjoy playing your favorite (and legally obtained) Nintendo games on whatever device and emulator you prefer!<br/>
 Don't let Nintendo pressure you into using their kind of terrible and overpriced hardware... I'm truly sorry if no emulator can currently play the game you want to play.
 
