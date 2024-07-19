@@ -178,6 +178,7 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
       state_tracker{state_tracker_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{device.UseAsynchronousShaders()},
       strict_context_required{device.StrictContextRequired()},
+      optimize_spirv_output{Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Never},
       profile{
           .supported_spirv = 0x00010000,
 
@@ -343,6 +344,10 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     workers->WaitForRequests(stop_loading);
     if (!use_asynchronous_shaders) {
         workers.reset();
+    }
+
+    if (Settings::values.optimize_spirv_output.GetValue() != Settings::SpirvOptimizeMode::Always) {
+        this->optimize_spirv_output = false;
     }
 }
 
@@ -538,8 +543,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         case Settings::ShaderBackend::SpirV:
             ConvertLegacyToGeneric(program, runtime_info);
             sources_spirv[stage_index] =
-                EmitSPIRV(profile, runtime_info, program, binding,
-                          Settings::values.optimize_spirv_output.GetValue());
+                EmitSPIRV(profile, runtime_info, program, binding, this->optimize_spirv_output);
             break;
         }
         previous_program = &program;
@@ -598,7 +602,7 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
         code = EmitGLASM(profile, info, program);
         break;
     case Settings::ShaderBackend::SpirV:
-        code_spirv = EmitSPIRV(profile, program, Settings::values.optimize_spirv_output.GetValue());
+        code_spirv = EmitSPIRV(profile, program, this->optimize_spirv_output);
         break;
     }
 

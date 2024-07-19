@@ -73,6 +73,7 @@ SWITCHABLE(NvdecEmulation, false);
 SWITCHABLE(Region, true);
 SWITCHABLE(RendererBackend, true);
 SWITCHABLE(ScalingFilter, false);
+SWITCHABLE(SpirvOptimizeMode, true);
 SWITCHABLE(ShaderBackend, true);
 SWITCHABLE(TimeZone, true);
 SETTING(VSyncMode, true);
@@ -278,8 +279,12 @@ struct Values {
 
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
-    SwitchableSetting<bool> optimize_spirv_output{linkage, false, "optimize_spirv_output",
-                                                  Category::Renderer};
+    SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
+                                                                     SpirvOptimizeMode::OnLoad,
+                                                                     SpirvOptimizeMode::Never,
+                                                                     SpirvOptimizeMode::Always,
+                                                                     "optimize_spirv_output",
+                                                                     Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,

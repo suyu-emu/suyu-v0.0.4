@@ -234,6 +234,7 @@
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
+    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, reducing stutter but may introduce glitches.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
@@ -661,6 +662,11 @@
     <string name="top">Top</string>
     <string name="center">Center</string>
     <string name="bottom">Bottom</string>
+
+    <!-- Optimize SPIRV output -->
+    <string name="never">Never</string>
+    <string name="on_load">On Load</string>
+    <string name="always">Always</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>

@@ -277,3 +277,4 @@ Q_DECLARE_METATYPE(Settings::RendererBackend);
 Q_DECLARE_METATYPE(Settings::ShaderBackend);
 Q_DECLARE_METATYPE(Settings::AstcRecompression);
 Q_DECLARE_METATYPE(Settings::AstcDecodeMode);
+Q_DECLARE_METATYPE(Settings::SpirvOptimizeMode);

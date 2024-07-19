@@ -177,6 +177,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
             add(IntSetting.RENDERER_ASPECT_RATIO.key)
             add(IntSetting.VERTICAL_ALIGNMENT.key)
+            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
             add(BooleanSetting.PICTURE_IN_PICTURE.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)

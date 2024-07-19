@@ -303,4 +303,15 @@
         <item>2</item>
     </integer-array>
 
+    <string-array name="optimizeSpirvOutputEntries">
+        <item>@string/never</item>
+        <item>@string/on_load</item>
+        <item>@string/always</item>
+    </string-array>
+    <integer-array name="optimizeSpirvOutputValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
 </resources>

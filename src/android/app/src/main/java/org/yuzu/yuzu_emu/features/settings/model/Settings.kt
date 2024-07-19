@@ -117,4 +117,15 @@ object Settings {
                 entries.firstOrNull { it.int == int } ?: Center
         }
     }
+
+    enum class OptimizeSpirvOutput(val int: Int) {
+        Never(0),
+        OnLoad(1),
+        Always(2);
+
+        companion object {
+            fun from(int: Int): OptimizeSpirvOutput =
+                entries.firstOrNull { it.int == int } ?: OnLoad
+        }
+    }
 }
