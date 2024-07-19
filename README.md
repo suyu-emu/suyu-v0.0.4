@@ -66,9 +66,9 @@ Most of the development happens on [Dark Git](http://vub63vv26q6v27xzv2dtcd25xum
 
 To clone this git repository, you can use these commands given tor is installed and running:
 
-    git -c http.proxy=socks5h://127.0.0.1:9050 clone http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu.git
+    git -c http.proxy=socks5h://127.0.0.1:9050 clone --depth 1 http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu.git
     cd torzu
-    git submodule update --init --depth 1 --recursive
+    git submodule update --init --recursive
 
 Alternatively, you can clone from the [Codeberg mirror repository](https://codeberg.org/litucks/torzu):
 
@@ -84,8 +84,9 @@ The GitHub mirror repository has been taken down. The new mirror repository is l
 
 ## Building
 
-* __Linux__: [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/wiki/Building-for-Linux)
-* __Windows__: [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/wiki/Building-for-Windows)
+* [Android Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/build-for-android.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/build-for-android.md))
+* [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/build-for-linux.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/build-for-linux.md))
+* [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/build-for-windows.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/build-for-windows.md))
 
 ## License
 
