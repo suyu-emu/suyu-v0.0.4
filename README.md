@@ -84,9 +84,9 @@ The GitHub mirror repository has been taken down. The new mirror repository is l
 
 ## Building
 
-* [Android Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/build-for-android.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/build-for-android.md))
-* [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/build-for-linux.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/build-for-linux.md))
-* [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/build-for-windows.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/build-for-windows.md))
+* [Android Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-android.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/src/branch/master/build-for-android.md))
+* [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-linux.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/src/branch/master/build-for-linux.md))
+* [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-windows.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/src/branch/master/build-for-windows.md))
 
 ## License
 
