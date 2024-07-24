@@ -56,6 +56,8 @@ option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" 
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
 
+option(YUZU_CMD "Compile the -cmd executable (can disable if -cmd is unused)" ON)
+
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
