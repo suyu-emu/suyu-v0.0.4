@@ -17,9 +17,6 @@
             android:id="@+id/action_homeSettingsFragment_to_aboutFragment"
             app:destination="@id/aboutFragment" />
         <action
-            android:id="@+id/action_homeSettingsFragment_to_earlyAccessFragment"
-            app:destination="@id/earlyAccessFragment" />
-        <action
             android:id="@+id/action_homeSettingsFragment_to_installableFragment"
             app:destination="@id/installableFragment" />
         <action
@@ -57,11 +54,6 @@
             android:id="@+id/action_aboutFragment_to_licensesFragment"
             app:destination="@id/licensesFragment" />
     </fragment>
-
-    <fragment
-        android:id="@+id/earlyAccessFragment"
-        android:name="org.yuzu.yuzu_emu.fragments.EarlyAccessFragment"
-        android:label="EarlyAccessFragment" />
 
     <fragment
         android:id="@+id/licensesFragment"
