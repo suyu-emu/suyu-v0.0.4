@@ -25,14 +25,9 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void OnLoginChanged();
-    void VerifyLogin();
-    void OnLoginVerified();
+    void ResetToken();
 
     void SetConfiguration();
-
-    bool user_verified = true;
-    QFutureWatcher<bool> verify_watcher;
 
     std::unique_ptr<Ui::ConfigureWeb> ui;
 };

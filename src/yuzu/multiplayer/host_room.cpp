@@ -183,10 +183,9 @@ void HostRoomWindow::Host() {
                 if (result.result_code != WebService::WebResult::Code::Success) {
                     QMessageBox::warning(
                         this, tr("Error"),
-                        tr("Failed to announce the room to the public lobby. In order to host a "
-                           "room publicly, you must have a valid yuzu account configured in "
+                        tr("To host a room publicly, you must have a generated token configured in "
                            "Emulation -> Configure -> Web. If you do not want to publish a room in "
-                           "the public lobby, then select Unlisted instead.\nDebug Message: ") +
+                           "a public lobby, then select Unlisted instead.\n\nDebug Message: ") +
                             QString::fromStdString(result.result_string),
                         QMessageBox::Ok);
                     ui->host->setEnabled(true);
