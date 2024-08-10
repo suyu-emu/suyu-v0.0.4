@@ -184,8 +184,8 @@ void HostRoomWindow::Host() {
                     QMessageBox::warning(
                         this, tr("Error"),
                         tr("To host a room publicly, you must have a generated token configured in "
-                           "Emulation -> Configure -> Web. If you do not want to publish a room in "
-                           "a public lobby, then select Unlisted instead.\n\nDebug Message: ") +
+                           "Emulation -> Configure -> Profile -> Online Play. If you do not want to "
+                           "publish a room in a public lobby, then select Unlisted instead.\n\nDebug Message: ") +
                             QString::fromStdString(result.result_string),
                         QMessageBox::Ok);
                     ui->host->setEnabled(true);

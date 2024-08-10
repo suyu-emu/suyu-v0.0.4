@@ -14,7 +14,7 @@
    <string>Form</string>
   </property>
   <property name="accessibleName">
-   <string>Web</string>
+   <string>Online Play</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

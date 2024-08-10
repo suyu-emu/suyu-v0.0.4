@@ -74,7 +74,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
     ui->tabWidget->addTab(network_tab.get(), tr("Network"));
     ui->tabWidget->addTab(system_tab.get(), tr("System"));
     ui->tabWidget->addTab(ui_tab.get(), tr("Game List"));
-    ui->tabWidget->addTab(web_tab.get(), tr("Web"));
+    ui->tabWidget->addTab(web_tab.get(), tr("Online Play"));
 
     web_tab->SetWebServiceConfigEnabled(enable_web_config);
     hotkeys_tab->Populate(registry);
@@ -161,12 +161,14 @@ void ConfigureDialog::HandleApplyButtonClicked() {
 Q_DECLARE_METATYPE(QList<QWidget*>);
 
 void ConfigureDialog::PopulateSelectionList() {
-    const std::array<std::pair<QString, QList<QWidget*>>, 6> items{
+    const std::array<std::pair<QString, QList<QWidget*>>, 7> items{
         {{tr("General"),
-          {general_tab.get(), hotkeys_tab.get(), ui_tab.get(), web_tab.get(), debug_tab_tab.get()}},
+          {general_tab.get(), hotkeys_tab.get(), ui_tab.get()}},
+         {tr("Profile"),
+          {profile_tab.get(), web_tab.get()}},
          {tr("System"),
-          {system_tab.get(), profile_tab.get(), network_tab.get(), filesystem_tab.get(),
-           applets_tab.get()}},
+          {system_tab.get(), filesystem_tab.get(), network_tab.get(),
+           applets_tab.get(), debug_tab_tab.get()}},
          {tr("CPU"), {cpu_tab.get()}},
          {tr("Graphics"), {graphics_tab.get(), graphics_advanced_tab.get()}},
          {tr("Audio"), {audio_tab.get()}},
