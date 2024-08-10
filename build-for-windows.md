@@ -5,19 +5,28 @@
 On Windows, all library dependencies are automatically included within the `externals` folder, or can be downloaded on-demand. To build yuzu, you need to install:
 
   * **[Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)** - **Make sure to select C++ support in the installer. Make sure to update to the latest version if already installed.**
+
+  ![](https://i.imgur.com/0jwV1hW.png)
+
   * **[CMake](https://cmake.org/download/)** - Used to generate Visual Studio project files. Does not matter if either 32-bit or 64-bit version is installed.
+
+  ![](https://i.imgur.com/7pteS6d.png)
+
   * **[Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)** - **Make sure to select Latest SDK.**
+
+  ![](https://i.imgur.com/aHCJxsR.png)
+  
   * **[Python](https://www.python.org/downloads/windows/)** - Select latest stable Windows installer. Does not matter if either 32-bit or 64-bit version is installed.
 
-  ![2](https://i.imgur.com/giDwuTm.png)
+  ![](https://i.imgur.com/xIEuM6R.png)
 
   * **Git** - We recommend [Git for Windows](https://gitforwindows.org).
 
-  ![3](https://i.imgur.com/UeSzkBw.png)
+  ![](https://i.imgur.com/UeSzkBw.png)
 
   * While installing Git Bash, you should tell it to include Git in your system path. (Choose the "Git from the command line and also from 3rd-party software" option.) If you missed that, don't worry, you'll just have to manually tell CMake where your git.exe is, since it's used to include version info into the built executable.
 
-  ![4](https://i.imgur.com/x0rRs1t.png)
+  ![](https://i.imgur.com/x0rRs1t.png)
 
 ### Cloning yuzu with Git
 
@@ -33,7 +42,7 @@ cd torzu
 git submodule update --init --recursive
 ```
 
-  ![9](https://i.imgur.com/CcxIAht.png)
+  ![](https://i.imgur.com/CcxIAht.png)
 
 * *(Note: yuzu by default downloads to `C:\Users\<user-name>\yuzu` (Master) or `C:\Users\<user-name>\yuzu-mainline` (Mainline)*
 
@@ -41,16 +50,16 @@ git submodule update --init --recursive
 
 * Open the CMake GUI application and point it to the `torzu` directory.
 
-  ![10](https://i.imgur.com/qOslIWv.png)
+  ![](https://i.imgur.com/qOslIWv.png)
 
 * For the build directory, use a `/build` subdirectory inside the source directory or some other directory of your choice. (Tell CMake to create it.)
 
-  ![11](https://i.imgur.com/cNnhs22.png)
-  ![11](https://github.com/yuzu-emu/yuzu/assets/20753089/738efcab-0da6-44ce-889d-becf3712db10)
+  ![](https://i.imgur.com/cNnhs22.png)
+  ![](https://github.com/yuzu-emu/yuzu/assets/20753089/738efcab-0da6-44ce-889d-becf3712db10)
 
 * Click the "Configure" button and choose `Visual Studio 17 2022`, with `x64` for the optional platform.
 
-  ![12](https://i.imgur.com/DKiREaK.png)
+  ![](https://i.imgur.com/qJcUeIg.png)
 
   * *(Note: If you used GitHub's own app to clone, run `git submodule update --init --recursive` to get the remaining dependencies)*
 
@@ -58,27 +67,37 @@ git submodule update --init --recursive
 
   * *(You may also want to disable `YUZU_TESTS` in this case since Catch2 is not yet supported with this.)*
 
-  ![13](https://user-images.githubusercontent.com/22451773/180585999-07316d6e-9751-4d11-b957-1cf57cd7cd58.png)
+  ![](https://user-images.githubusercontent.com/22451773/180585999-07316d6e-9751-4d11-b957-1cf57cd7cd58.png)
+
+* If you get an error "Unable to find a valid Visual Studio instance", make sure that you installed following MSVC components (**especially VS 2019 build tools**.) and then try again.
+
+  ![](https://i.imgur.com/NtSnqjm.png)
+
+  ![](https://i.imgur.com/YLr1Qw2.png)
 
 * Click "Generate" to create the project files.
 
-  ![15](https://i.imgur.com/5LKg92k.png)
+  ![](https://i.imgur.com/5LKg92k.png)
 
 * Open the solution file `yuzu.sln` in Visual Studio 2022, which is located in the build folder.
 
-  ![16](https://i.imgur.com/208yMml.png)
+  ![](https://i.imgur.com/208yMml.png)
 
 * Depending if you want a graphical user interface or not (`yuzu` has the graphical user interface, while `yuzu-cmd` doesn't), select `yuzu` or `yuzu-cmd` in the Solution Explorer, right-click and `Set as StartUp Project`.
 
-  ![17](https://i.imgur.com/nPMajnn.png)  ![18](https://i.imgur.com/BDMLzRZ.png)
+  ![](https://i.imgur.com/nPMajnn.png)  ![](https://i.imgur.com/BDMLzRZ.png)
 
 * Select the appropriate build type, Debug for debug purposes or Release for performance (in case of doubt choose Release).
 
-  ![19](https://i.imgur.com/qxg4roC.png)
+  ![](https://i.imgur.com/qxg4roC.png)
 
 * Right-click the project you want to build and press Build in the submenu or press F5.
 
-  ![20](https://i.imgur.com/CkQgOFW.png)
+  ![](https://i.imgur.com/CkQgOFW.png)
+
+* After build completed you can find the Torzu executable in directory specified in output log.
+
+  ![](https://i.imgur.com/h78ugDN.png)
 
 
 ## Method II: MinGW-w64 Build with MSYS2
