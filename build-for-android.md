@@ -4,7 +4,7 @@
 
 ### Dependencies
 * [Android Studio](https://developer.android.com/studio)
-* [NDK 25.2.9519653 and CMake 3.22.1](https://developer.android.com/studio/projects/install-ndk#default-version)
+* [NDK 26.3.11579264 and CMake 3.22.1](https://developer.android.com/studio/projects/install-ndk#default-version)
 * [Git](https://git-scm.com/download)
 
 #### WINDOWS ONLY - Additional Dependencies
@@ -45,7 +45,7 @@ https://developer.android.com/studio/intro
 ```
 sudo apt-get update
 sudo apt-get install -y sdkmanager openjdk-17-jdk build-essential curl git pkg-config glslang-tools zip
-sudo sdkmanager "ndk;26.1.10909125" "platforms;android-34" "build-tools;33.0.1" "cmake;3.22.1" "platform-tools"
+sudo sdkmanager "ndk;26.3.11579264" "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "platform-tools;34.0.5"
 sudo update-alternatives --config java # Select Java 17 here if possible
 ```
 
