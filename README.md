@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 <h1 align="center">
   <br>
-  <a href="http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu"><img src="https://codeberg.org/litucks/torzu/raw/branch/master/dist/yuzu.bmp" alt="torzu" width="200"></a>
+  <a href="http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu"><img src="http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/raw/branch/master/dist/yuzu.bmp" alt="torzu" width="200"></a>
   <br>
   <b>torzu</b>
   <br>
@@ -20,6 +20,12 @@ It is written in C++ with portability in mind and runs on Linux, Windows and And
 
 A lot of fake Torzu websites have popped up. These are not mine. **This project will not have a clearnet website for the foreseeable future!**
 I highly advice against downloading anything from these websites, specially if their intention is clearly to make money through advertisements.
+
+## Move away from Codeberg
+
+As Codeberg staff has requested, **I will remove the Codeberg mirror repository until the end of next week**. Another mirror repository on another platform will be made before the Codeberg mirror is deleted.
+
+The next mirror repository is most likely going to be at **notabug.org**. If you have better suggestions (other than Gitlab, GitHub or Codeberg) please open an issue and I'll take a look.
 
 ## Limited public development
 
@@ -68,23 +74,13 @@ To clone this git repository, you can use these commands given tor is installed 
     cd torzu
     git submodule update --init --recursive
 
-Alternatively, you can clone from the [Codeberg mirror repository](https://codeberg.org/litucks/torzu):
-
-    git clone https://codeberg.org/litucks/torzu.git --depth 1 --recursive
-
-Note that above repository may be taken down any time. Do not rely on its existence in production. In case the Codeberg mirror goes down, another mirror will be most likely be set up on Bitbucket.
-
 This project incorporates several commits from the [Suyu](https://suyu.dev) and [Sudachi](https://github.com/sudachi-emu/sudachi) forks (but cleaned up due to the typically mediocre code/commit quality from both projects) as well as changes listed in **Changes**.
-
-## GitHub mirror repository
-
-The GitHub mirror repository has been taken down. The new mirror repository is located on [Codeberg](https://codeberg.org/litucks/torzu).
 
 ## Building
 
-* [Android Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-android.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/src/branch/master/build-for-android.md))
-* [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-linux.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/src/branch/master/build-for-linux.md))
-* [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-windows.md) (Codeberg [alt](https://codeberg.org/litucks/torzu/src/branch/master/build-for-windows.md))
+* [Android Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-android.md)
+* [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-linux.md)
+* [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-windows.md)
 
 ## License
 
