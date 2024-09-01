@@ -23,9 +23,7 @@ I highly advice against downloading anything from these websites, specially if t
 
 ## Move away from Codeberg
 
-As Codeberg staff has requested, **I will remove the Codeberg mirror repository until the end of next week**. Another mirror repository on another platform will be made before the Codeberg mirror is deleted.
-
-The next mirror repository is most likely going to be at **notabug.org**. If you have better suggestions (other than Gitlab, GitHub or Codeberg) please open an issue and I'll take a look.
+As requested by Codeberg staff, **I have removed the Codeberg mirror repository**. [The new mirror repository is on NotABug](https://notabug.org/litucks/torzu).
 
 ## Limited public development
 
@@ -34,19 +32,14 @@ Keep in mind, this is just a hobby project. I feel like I always have to keep up
 Turns out: running an open source project takes a lot more time than I have.
 And then stupid and unnecessary issues like Windows Defender flagging the emulator as malware ruin the rest. I am grateful for all your bug reports, help and support, but all that has distracted me from taking the project into the direction I would've liked.
 
-Today I've accidentally locked myself out of the Tor site out of pure stupidity and one of the things I didn't make a backup of for was the key required to get the same Tor site set back up.
-
-For these reasons, I have decided to limit public development.
 It is not all over though. My plan is to:
- - continue the blog
- - move the blog into a seperate repository
- - keep this repository updated just enough so it stays compilable on Linux and Windows
- - keep the externals updated
- - push some bigger updates from my private upstream whenever I feel like (no promises)
+ - Continue the blog
+ - Keep this repository updated enough so it stays compilable on Linux and Windows
+ - Keep the externals updated
  - NOT publish releases. If someone feels like publishing builds they should feel free to do that
  - NOT offer support in any way
-   - feel free to open issues on the main repository though if you feel like an issue REALLY needs my attention
- - accept pull requests as long as they are of reasonable quality
+   - Feel free to open issues on the main repository though if you feel like an issue REALLY needs my attention
+ - Accept pull requests as long as they are of reasonable quality
 
 Again, thanks to everyone who has supported my efforts so far in any way (even by creating bug reports), I really appreciate it.
 
@@ -74,13 +67,19 @@ To clone this git repository, you can use these commands given tor is installed 
     cd torzu
     git submodule update --init --recursive
 
+Alternatively, you can clone from the [NotABug mirror repository](https://notabug.org/litucks/torzu):
+
+    git clone https://notabug.org/litucks/torzu.git --depth 1 --recursive
+
+Note that above repository may be taken down any time. Do not rely on its existence in production. In case the NotABug mirror goes down, another mirror will be most likely be set up on Bitbucket.
+
 This project incorporates several commits from the [Suyu](https://suyu.dev) and [Sudachi](https://github.com/sudachi-emu/sudachi) forks (but cleaned up due to the typically mediocre code/commit quality from both projects) as well as changes listed in **Changes**.
 
 ## Building
-
-* [Android Build](./build-for-android.md)
-* [Linux Build](./build-for-linux.md)
-* [Windows Build](./build-for-windows.md)
+<!--  -->
+* [Android Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-android.md) (NotABug [alt](https://notabug.org/litucks/torzu/src/master/build-for-android.md))
+* [Linux Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-linux.md) (NotABug [alt](https://notabug.org/litucks/torzu/src/master/build-for-linux.md))
+* [Windows Build](http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu/src/branch/master/build-for-windows.md) (NotABug [alt](https://notabug.org/litucks/torzu/src/master/build-for-windows.md))
 
 ## License
 
