@@ -61,3 +61,69 @@ cd src/android
 ```
 
 The APK will be at `src/android/app/build/outputs/apk/mainline/release/app-mainline-release.apk`
+
+## Building an installable turnip driver package
+
+Adapted from the mesa documentation [here](https://docs.mesa3d.org/android.html#building-using-the-android-ndk) and the released zip in [this](https://github.com/K11MCH1/AdrenoToolsDrivers) GitHub repo.
+
+### Dependencies
+
+Follow the steps to setup a CLI build above and additionally run
+```
+sudo apt-get install -y python3-mako python3-yaml byacc flex
+```
+to install some additional required packages.
+
+Create a file `~/.local/share/meson/cross/android-aarch64` with the following content:
+```
+[binaries]
+ar = '/opt/android-sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar'
+c = ['/opt/android-sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang']
+cpp = ['/opt/android-sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++', '-fno-exceptions', '-fno-unwind-tables', '-fno-asynchronous-unwind-tables', '-static-libstdc++']
+c_ld = 'lld'
+cpp_ld = 'lld'
+strip = '/opt/android-sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip'
+pkg-config = ['env', 'PKG_CONFIG_LIBDIR=/opt/android-sdk/ndk/26.3.11579264/toolchains/llvm/prebuilt/linux-x86_64/python3/lib/pkgconfig', '/usr/bin/pkg-config']
+[host_machine]
+system = 'android'
+cpu_family = 'aarch64'
+cpu = 'armv8'
+endian = 'little'
+```
+This informs `meson` (the build system used by mesa) about the Android NDK tools.
+If you need to modify this file with newer versions you can use a command like `find /opt/android-sdk -name "aarch64-linux-android*-clang"` to find the new paths.
+
+### Clone the mesa git repo
+```
+git clone https://gitlab.freedesktop.org/mesa/mesa.git
+```
+Then use `git checkout <version>` to checkout the version you want to build (for example `mesa-24.2.0`).
+
+### Compiling the turnip driver
+```
+meson setup build-android-aarch64 --cross-file android-aarch64 -Dplatforms=android -Dplatform-sdk-version=30 -Dandroid-stub=true -Dgallium-drivers= -Dvulkan-drivers=freedreno -Dfreedreno-kmds=kgsl -Dbuildtype=release
+meson compile -C build-android-aarch64
+```
+
+### Create an installable driver package
+Check the file `VERSION` for the Mesa version and the file `include/vulkan/vulkan_core.h` and look for `VK_HEADER_VERSION_COMPLETE` for the Vulkan version.
+
+Create a file named `meta.json` with the following content (replacing the `<placeholders>`)
+```
+{
+  "schemaVersion": 1,
+  "name": "Mesa Turnip Driver <mesa_version>",
+  "description": "Compiled from source.",
+  "author": "<name>",
+  "packageVersion": "1",
+  "vendor": "Mesa",
+  "driverVersion": "Vulkan <vulkan_version>",
+  "minApi": 30,
+  "libraryName": "libvulkan_freedreno.so"
+}
+```
+and run these commands to create the package
+```
+mv ./build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so libvulkan_freedreno.so
+zip turnip.zip meta.json libvulkan_freedreno.so
+```
