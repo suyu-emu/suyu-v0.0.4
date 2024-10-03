@@ -459,8 +459,8 @@ int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
         auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
-                                                   Common::Android::ToJDouble(env, max),
-                                                   Common::Android::ToJDouble(env, progress));
+                                                   Common::Android::ToJLong(env, max),
+                                                   Common::Android::ToJLong(env, progress));
         return Common::Android::GetJBoolean(env, jwasCancelled);
     };
 
@@ -791,8 +791,8 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyInstalledContents(JNIEn
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
         auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
-                                                   Common::Android::ToJDouble(env, max),
-                                                   Common::Android::ToJDouble(env, progress));
+                                                   Common::Android::ToJLong(env, max),
+                                                   Common::Android::ToJLong(env, progress));
         return Common::Android::GetJBoolean(env, jwasCancelled);
     };
 
@@ -814,8 +814,8 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyGameContents(JNIEnv* env, jobje
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
         auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
-                                                   Common::Android::ToJDouble(env, max),
-                                                   Common::Android::ToJDouble(env, progress));
+                                                   Common::Android::ToJLong(env, max),
+                                                   Common::Android::ToJLong(env, progress));
         return Common::Android::GetJBoolean(env, jwasCancelled);
     };
     auto& session = EmulationSession::GetInstance();

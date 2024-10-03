@@ -81,6 +81,10 @@ jclass GetIntegerClass();
 jmethodID GetIntegerConstructor();
 jfieldID GetIntegerValueField();
 
+jclass GetLongClass();
+jmethodID GetLongConstructor();
+jfieldID GetLongValueField();
+
 jclass GetBooleanClass();
 jmethodID GetBooleanConstructor();
 jfieldID GetBooleanValueField();
