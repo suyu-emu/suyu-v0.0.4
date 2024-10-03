@@ -3,11 +3,13 @@
 
 #include <algorithm>
 #include <functional>
+#include <QColorDialog>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QGraphicsItem>
 #include <QHeaderView>
+#include <QListWidget>
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include <QTreeView>
@@ -15,8 +17,15 @@
 #include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "common/swap.h"
 #include "core/core.h"
+#include "core/file_sys/content_archive.h"
+#include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs.h"
+#include "core/file_sys/vfs/vfs.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "ui_configure_profile_manager.h"
 #include "yuzu/configuration/configure_profile_manager.h"
 #include "yuzu/util/limitable_input_dialog.h"
@@ -113,8 +122,12 @@ ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget*
     connect(ui->pm_rename, &QPushButton::clicked, this, &ConfigureProfileManager::RenameUser);
     connect(ui->pm_remove, &QPushButton::clicked, this,
             &ConfigureProfileManager::ConfirmDeleteUser);
-    connect(ui->pm_set_image, &QPushButton::clicked, this, &ConfigureProfileManager::SetUserImage);
+    connect(ui->pm_set_image, &QPushButton::clicked, this,
+            &ConfigureProfileManager::SelectImageFile);
+    connect(ui->pm_select_avatar, &QPushButton::clicked, this,
+            &ConfigureProfileManager::SelectFirmwareAvatar);
 
+    avatar_dialog = new ConfigureProfileManagerAvatarDialog(this);
     confirm_dialog = new ConfigureProfileManagerDeleteDialog(this);
 
     scene = new QGraphicsScene;
@@ -197,6 +210,7 @@ void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
     ui->pm_remove->setEnabled(profile_manager.GetUserCount() >= 2);
     ui->pm_rename->setEnabled(true);
     ui->pm_set_image->setEnabled(true);
+    ui->pm_select_avatar->setEnabled(true);
 }
 
 void ConfigureProfileManager::AddUser() {
@@ -270,17 +284,10 @@ void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
     ui->pm_rename->setEnabled(false);
 }
 
-void ConfigureProfileManager::SetUserImage() {
+void ConfigureProfileManager::SetUserImage(const QImage& image) {
     const auto index = tree_view->currentIndex().row();
     const auto uuid = profile_manager.GetUser(index);
     ASSERT(uuid);
-
-    const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
-                                                   tr("JPEG Images (*.jpg *.jpeg)"));
-
-    if (file.isEmpty()) {
-        return;
-    }
 
     const auto image_path = GetImagePath(*uuid);
     if (QFile::exists(image_path) && !QFile::remove(image_path)) {
@@ -307,27 +314,228 @@ void ConfigureProfileManager::SetUserImage() {
         return;
     }
 
-    if (!QFile::copy(file, image_path)) {
-        QMessageBox::warning(this, tr("Error copying user image"),
-                             tr("Unable to copy image from %1 to %2").arg(file, image_path));
+    if (!image.save(image_path, "JPEG", 100)) {
+        QMessageBox::warning(this, tr("Error saving user image"),
+                             tr("Unable to save image to file"));
         return;
-    }
-
-    // Profile image must be 256x256
-    QImage image(image_path);
-    if (image.width() != 256 || image.height() != 256) {
-        image = image.scaled(256, 256, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-        if (!image.save(image_path)) {
-            QMessageBox::warning(this, tr("Error resizing user image"),
-                                 tr("Unable to resize image"));
-            return;
-        }
     }
 
     const auto username = GetAccountUsername(profile_manager, *uuid);
     item_model->setItem(index, 0,
                         new QStandardItem{GetIcon(*uuid), FormatUserEntryText(username, *uuid)});
     UpdateCurrentUser();
+}
+
+void ConfigureProfileManager::SelectImageFile() {
+    const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
+                                                   tr("Image Formats (*.jpg *.jpeg *.png *.bmp)"));
+    if (file.isEmpty()) {
+        return;
+    }
+
+    // Profile image must be 256x256
+    QImage image(file);
+    if (image.width() != 256 || image.height() != 256) {
+        image = image.scaled(256, 256, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    }
+    SetUserImage(image);
+}
+
+void ConfigureProfileManager::SelectFirmwareAvatar() {
+    if (!avatar_dialog->AreImagesLoaded()) {
+        if (!LoadAvatarData()) {
+            return;
+        }
+    }
+    if (avatar_dialog->exec() == QDialog::Accepted) {
+        SetUserImage(avatar_dialog->GetSelectedAvatar().toImage());
+    }
+}
+
+bool ConfigureProfileManager::LoadAvatarData() {
+    constexpr u64 AvatarImageDataId = 0x010000000000080AULL;
+
+    // Attempt to load avatar data archive from installed firmware
+    auto* bis_system = system.GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use firmware avatars."));
+        return false;
+    }
+    const auto nca = bis_system->GetEntry(AvatarImageDataId, FileSys::ContentRecordType::Data);
+    if (!nca) {
+        QMessageBox::warning(this, tr("Error loading archive"),
+                             tr("Archive is not available. Please install/reinstall firmware."));
+        return false;
+    }
+    const auto romfs = nca->GetRomFS();
+    if (!romfs) {
+        QMessageBox::warning(this, tr("Error loading archive"),
+                             tr("Archive does not contain romfs. It is probably corrupt."));
+        return false;
+    }
+    const auto extracted = FileSys::ExtractRomFS(romfs);
+    if (!extracted) {
+        QMessageBox::warning(this, tr("Error extracting archive"),
+                             tr("Archive could not be extracted. It is probably corrupt."));
+        return false;
+    }
+    const auto chara_dir = extracted->GetSubdirectory("chara");
+    if (!chara_dir) {
+        QMessageBox::warning(this, tr("Error finding image directory"),
+                             tr("Failed to find image directory in the archive."));
+        return false;
+    }
+
+    QVector<QPixmap> images;
+    for (const auto& item : chara_dir->GetFiles()) {
+        if (item->GetExtension() != "szs") {
+            continue;
+        }
+
+        auto image_data = DecompressYaz0(item);
+        if (image_data.empty()) {
+            continue;
+        }
+        QImage image(reinterpret_cast<const uchar*>(image_data.data()), 256, 256,
+                     QImage::Format_RGBA8888);
+        images.append(QPixmap::fromImage(image));
+    }
+
+    if (images.isEmpty()) {
+        QMessageBox::warning(this, tr("No images found"),
+                             tr("No avatar images were found in the archive."));
+        return false;
+    }
+
+    // Load the image data into the dialog
+    avatar_dialog->LoadImages(images);
+    return true;
+}
+
+ConfigureProfileManagerAvatarDialog::ConfigureProfileManagerAvatarDialog(QWidget* parent)
+    : QDialog{parent}, avatar_list{new QListWidget(this)}, bg_color_button{new QPushButton(this)} {
+    auto* main_layout = new QVBoxLayout(this);
+    auto* button_layout = new QHBoxLayout(this);
+    auto* select_button = new QPushButton(tr("Select"), this);
+    auto* cancel_button = new QPushButton(tr("Cancel"), this);
+    auto* bg_color_label = new QLabel(tr("Background Color"), this);
+
+    SetBackgroundColor(Qt::white);
+
+    avatar_list->setViewMode(QListView::IconMode);
+    avatar_list->setIconSize(QSize(64, 64));
+    avatar_list->setSpacing(4);
+    avatar_list->setResizeMode(QListView::Adjust);
+    avatar_list->setSelectionMode(QAbstractItemView::SingleSelection);
+    avatar_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    avatar_list->setDragDropMode(QAbstractItemView::NoDragDrop);
+    avatar_list->setDragEnabled(false);
+    avatar_list->setDropIndicatorShown(false);
+    avatar_list->setAcceptDrops(false);
+
+    button_layout->addWidget(bg_color_button);
+    button_layout->addWidget(bg_color_label);
+    button_layout->addStretch();
+    button_layout->addWidget(select_button);
+    button_layout->addWidget(cancel_button);
+
+    this->setLayout(main_layout);
+    this->setWindowTitle(tr("Select Firmware Avatar"));
+    main_layout->addWidget(avatar_list);
+    main_layout->addLayout(button_layout);
+
+    connect(bg_color_button, &QPushButton::clicked, this, [this]() {
+        const auto new_color = QColorDialog::getColor(avatar_bg_color);
+        if (new_color.isValid()) {
+            SetBackgroundColor(new_color);
+            RefreshAvatars();
+        }
+    });
+    connect(select_button, &QPushButton::clicked, this, [this]() { accept(); });
+    connect(cancel_button, &QPushButton::clicked, this, [this]() { reject(); });
+}
+
+ConfigureProfileManagerAvatarDialog::~ConfigureProfileManagerAvatarDialog() = default;
+
+void ConfigureProfileManagerAvatarDialog::SetBackgroundColor(const QColor& color) {
+    avatar_bg_color = color;
+
+    bg_color_button->setStyleSheet(
+        QStringLiteral("background-color: %1; min-width: 60px;").arg(avatar_bg_color.name()));
+}
+
+QPixmap ConfigureProfileManagerAvatarDialog::CreateAvatar(const QPixmap& avatar) {
+    QPixmap output(avatar.size());
+    output.fill(avatar_bg_color);
+
+    // Scale the image and fill it black to become our shadow
+    QPixmap shadow_pixmap = avatar.transformed(QTransform::fromScale(1.04, 1.04));
+    QPainter shadow_painter(&shadow_pixmap);
+    shadow_painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    shadow_painter.fillRect(shadow_pixmap.rect(), Qt::black);
+    shadow_painter.end();
+
+    QPainter painter(&output);
+    painter.setOpacity(0.10);
+    painter.drawPixmap(0, 0, shadow_pixmap);
+    painter.setOpacity(1.0);
+    painter.drawPixmap(0, 0, avatar);
+    painter.end();
+
+    return output;
+}
+
+void ConfigureProfileManagerAvatarDialog::RefreshAvatars() {
+    if (avatar_list->count() != avatar_image_store.size()) {
+        return;
+    }
+    for (int i = 0; i < avatar_image_store.size(); ++i) {
+        const auto icon =
+            QIcon(CreateAvatar(avatar_image_store[i])
+                      .scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        avatar_list->item(i)->setIcon(icon);
+    }
+}
+
+void ConfigureProfileManagerAvatarDialog::LoadImages(const QVector<QPixmap>& avatar_images) {
+    avatar_image_store = avatar_images;
+    avatar_list->clear();
+
+    for (int i = 0; i < avatar_image_store.size(); ++i) {
+        avatar_list->addItem(new QListWidgetItem);
+    }
+    RefreshAvatars();
+
+    // Determine window size now that avatars are loaded into the grid
+    // There is probably a better way to handle this that I'm unaware of
+    const auto* style = avatar_list->style();
+
+    const int icon_size = avatar_list->iconSize().width();
+    const int icon_spacing = avatar_list->spacing() * 2;
+    const int icon_margin = style->pixelMetric(QStyle::PM_FocusFrameHMargin);
+    const int icon_full_size = icon_size + icon_spacing + icon_margin;
+
+    const int horizontal_margin = style->pixelMetric(QStyle::PM_LayoutLeftMargin) +
+                                  style->pixelMetric(QStyle::PM_LayoutRightMargin) +
+                                  style->pixelMetric(QStyle::PM_ScrollBarExtent);
+    const int vertical_margin = style->pixelMetric(QStyle::PM_LayoutTopMargin) +
+                                style->pixelMetric(QStyle::PM_LayoutBottomMargin);
+
+    // Set default list size so that it is 6 icons wide and 4.5 tall
+    const int columns = 6;
+    const double rows = 4.5;
+    const int total_width = icon_full_size * columns + horizontal_margin;
+    const int total_height = icon_full_size * rows + vertical_margin;
+    avatar_list->setMinimumSize(total_width, total_height);
+}
+
+bool ConfigureProfileManagerAvatarDialog::AreImagesLoaded() const {
+    return !avatar_image_store.isEmpty();
+}
+
+QPixmap ConfigureProfileManagerAvatarDialog::GetSelectedAvatar() {
+    return CreateAvatar(avatar_image_store[avatar_list->currentRow()]);
 }
 
 ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget* parent)
@@ -372,4 +580,76 @@ void ConfigureProfileManagerDeleteDialog::SetInfo(const QString& username, const
         close();
         accept_callback();
     });
+}
+
+std::vector<uint8_t> ConfigureProfileManager::DecompressYaz0(const FileSys::VirtualFile& file) {
+    if (!file) {
+        throw std::invalid_argument("Null file pointer passed to DecompressYaz0");
+    }
+
+    uint32_t magic{};
+    file->ReadObject(&magic, 0);
+    if (magic != Common::MakeMagic('Y', 'a', 'z', '0')) {
+        return std::vector<uint8_t>();
+    }
+
+    uint32_t decoded_length{};
+    file->ReadObject(&decoded_length, 4);
+    decoded_length = Common::swap32(decoded_length);
+
+    std::size_t input_size = file->GetSize() - 16;
+    std::vector<uint8_t> input(input_size);
+    file->ReadBytes(input.data(), input_size, 16);
+
+    uint32_t input_offset{};
+    uint32_t output_offset{};
+    std::vector<uint8_t> output(decoded_length);
+
+    uint16_t mask{};
+    uint8_t header{};
+
+    while (output_offset < decoded_length) {
+        if ((mask >>= 1) == 0) {
+            header = input[input_offset++];
+            mask = 0x80;
+        }
+
+        if ((header & mask) != 0) {
+            if (output_offset == output.size()) {
+                break;
+            }
+            output[output_offset++] = input[input_offset++];
+        } else {
+            uint8_t byte1 = input[input_offset++];
+            uint8_t byte2 = input[input_offset++];
+
+            uint32_t dist = ((byte1 & 0xF) << 8) | byte2;
+            uint32_t position = output_offset - (dist + 1);
+
+            uint32_t length = byte1 >> 4;
+            if (length == 0) {
+                length = static_cast<uint32_t>(input[input_offset++]) + 0x12;
+            } else {
+                length += 2;
+            }
+
+            uint32_t gap = output_offset - position;
+            uint32_t non_overlapping_length = length;
+
+            if (non_overlapping_length > gap) {
+                non_overlapping_length = gap;
+            }
+
+            std::memcpy(&output[output_offset], &output[position], non_overlapping_length);
+            output_offset += non_overlapping_length;
+            position += non_overlapping_length;
+            length -= non_overlapping_length;
+
+            while (length-- > 0) {
+                output[output_offset++] = output[position++];
+            }
+        }
+    }
+
+    return output;
 }
