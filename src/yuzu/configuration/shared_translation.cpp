@@ -411,6 +411,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
                               PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX™️ Super Resolution")),
+                              PAIR(ScalingFilter, Area, tr("Area")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::AntiAliasing>::Index(),
                           {
