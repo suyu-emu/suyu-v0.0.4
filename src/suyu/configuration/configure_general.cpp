@@ -81,10 +81,10 @@ void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
         }
     }
 
-    for (const auto& [id, widget] : general_hold) {
+    for (const auto& [_, widget] : general_hold) {
         general_layout.addWidget(widget);
     }
-    for (const auto& [id, widget] : linux_hold) {
+    for (const auto& [_, widget] : linux_hold) {
         linux_layout.addWidget(widget);
     }
 }

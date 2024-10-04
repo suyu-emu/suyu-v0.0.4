@@ -481,6 +481,7 @@ void GDBStub::HandleQuery(std::string_view command) {
         // beginning of list
         const auto& threads = GetProcess()->GetThreadList();
         std::vector<std::string> thread_ids;
+        thread_ids.reserve(threads.size());
         for (const auto& thread : threads) {
             thread_ids.push_back(fmt::format("{:x}", thread.GetThreadId()));
         }

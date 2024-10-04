@@ -507,7 +507,11 @@ public:
             {6, nullptr, "FlushSessionCache"},
             {7, nullptr, "SetDebugOption"},
             {8, nullptr, "GetDebugOption"},
-            {8, nullptr, "ClearTls12FallbackFlag"},
+            {9, nullptr, "ClearTls12FallbackFlag"},
+            {100, nullptr, "CreateContextForSystem"},
+            {101, nullptr, "SetThreadCoreMask"},
+            {102, nullptr, "GetThreadCoreMask"},
+            {103, nullptr, "VerifySignature"}, // 18.0.0+
         };
         // clang-format on
 

@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Modified by palfaiate on <2024/03/07>
-
 #pragma once
 
 #include <algorithm>
@@ -90,6 +88,7 @@ SWITCHABLE(u8, true);
 // Used in UISettings
 // TODO see if we can move this to uisettings.h
 SWITCHABLE(ConfirmStop, true);
+SWITCHABLE(DarkModeState, true);
 
 #undef SETTING
 #undef SWITCHABLE

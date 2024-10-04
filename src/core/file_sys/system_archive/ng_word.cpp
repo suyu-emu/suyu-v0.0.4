@@ -24,7 +24,7 @@ constexpr std::array<u8, 30> WORD_TXT{
 
 VirtualDir NgWord1() {
     std::vector<VirtualFile> files;
-    files.reserve(NgWord1Data::NUMBER_WORD_TXT_FILES);
+    files.reserve(files.size() + 2);
 
     for (std::size_t i = 0; i < files.size(); ++i) {
         files.push_back(MakeArrayFile(NgWord1Data::WORD_TXT, fmt::format("{}.txt", i)));
@@ -54,7 +54,7 @@ constexpr std::array<u8, 0x2C> AC_NX_DATA{
 
 VirtualDir NgWord2() {
     std::vector<VirtualFile> files;
-    files.reserve(NgWord2Data::NUMBER_AC_NX_FILES * 3);
+    files.reserve(NgWord2Data::NUMBER_AC_NX_FILES + 4);
 
     for (std::size_t i = 0; i < NgWord2Data::NUMBER_AC_NX_FILES; ++i) {
         files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_b1_nx", i)));

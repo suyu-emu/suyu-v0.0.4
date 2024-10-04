@@ -102,6 +102,7 @@ public:
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
             {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
+            {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
         };
         // clang-format on
 
@@ -135,6 +136,7 @@ public:
             {13, nullptr, "GetLinkedNintendoAccountId"},
             {14, nullptr, "GetNickname"},
             {15, nullptr, "GetProfileImage"},
+            {16, nullptr, "GetProfileLargeImage"}, // 18.0.0+
             {21, nullptr, "LoadIdTokenCache"},
             {100, nullptr, "RegisterUser"}, // [1.0.0-3.0.2] RegisterAsync
             {101, nullptr, "RegisterUserWithUid"}, // [1.0.0-3.0.2] RegisterWithUidAsync
@@ -176,10 +178,11 @@ public:
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
-            {143, nullptr, "GetNetworkServiceLicenseCacheEx"},
+            {143, nullptr, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
-            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
-            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
+            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"}, // 16.0.0+
+            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"}, // 16.0.0+
+            {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
             {200, nullptr, "IsRegistered"},
             {201, nullptr, "RegisterAsync"},
             {202, nullptr, "UnregisterAsync"},
@@ -263,6 +266,7 @@ public:
             {101, nullptr, "GetLinkedNintendoAccountId"},
             {102, nullptr, "GetNickname"},
             {103, nullptr, "GetProfileImage"},
+            {104, nullptr, "GetProfileLargeImage"}, // 18.0.0+
         };
         // clang-format on
 
@@ -317,6 +321,9 @@ public:
             {1, &IProfileCommon::GetBase, "GetBase"},
             {10, &IProfileCommon::GetImageSize, "GetImageSize"},
             {11, &IProfileCommon::LoadImage, "LoadImage"},
+            {20, &IProfileCommon::GetImageSize, "GetLargeImageSize"}, // 18.0.0+
+            {21, &IProfileCommon::LoadImage, "LoadLargeImage"},       // 18.0.0+
+            {30, &IProfileCommon::Unknown, "GetImageId"},             // 18.0.0+
         };
 
         RegisterHandlers(functions);
@@ -325,6 +332,7 @@ public:
             static const FunctionInfo editor_functions[] = {
                 {100, &IProfileCommon::Store, "Store"},
                 {101, &IProfileCommon::StoreWithImage, "StoreWithImage"},
+                {110, &IProfileCommon::StoreWithImage, "StoreWithLargeImage"}, // 18.0.0+
             };
 
             RegisterHandlers(editor_functions);
@@ -486,6 +494,13 @@ protected:
         rb.Push(ResultSuccess);
     }
 
+    void Unknown(HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(0);
+    }
+
     ProfileManager& profile_manager;
     Common::UUID user_id{}; ///< The user id this profile refers to.
 };
@@ -501,7 +516,15 @@ class IProfileEditor final : public IProfileCommon {
 public:
     explicit IProfileEditor(Core::System& system_, Common::UUID user_id_,
                             ProfileManager& profile_manager_)
-        : IProfileCommon{system_, "IProfileEditor", true, user_id_, profile_manager_} {}
+        : IProfileCommon{system_, "IProfileEditor", true, user_id_, profile_manager_} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {30, &IProfileEditor::Unknown, "Unknown"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
 };
 
 class ISessionObject final : public ServiceFramework<ISessionObject> {
@@ -530,6 +553,7 @@ public:
             {13, nullptr, "GetLinkedNintendoAccountId"},
             {14, nullptr, "GetNickname"},
             {15, nullptr, "GetProfileImage"},
+            {16, nullptr, "GetProfileLargeImage"}, // 18.0.0+
             {21, nullptr, "LoadIdTokenCache"}, // 3.0.0+
         };
         // clang-format on
@@ -684,8 +708,15 @@ public:
             {101, nullptr, "GetLinkedNintendoAccountId"},
             {102, nullptr, "GetNickname"},
             {103, nullptr, "GetProfileImage"},
+            {104, nullptr, "GetProfileLargeImage"}, // 18.0.0+
             {110, nullptr, "RegisterUserAsync"},
             {111, nullptr, "GetUid"},
+            {200, nullptr, "ApplyResponseForUserCreationAsync"}, // 17.0.0+
+            {205, nullptr, "SuspendAfterApplyResponse"}, // 17.0.0+
+            {210, nullptr, "IsProfileAvailable"}, // 17.0.0+
+            {220, nullptr, "RegisterUserAsyncWithoutProfile"}, // 17.0.0+
+            {221, nullptr, "RegisterUserWithProfileAsync"}, // 17.0.0+
+            {230, nullptr, "RegisterUserWithLargeImageProfileAsync"}, // 18.0.0+
         };
         // clang-format on
 

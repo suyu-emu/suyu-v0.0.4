@@ -20,7 +20,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 
     ui->setupUi(this);
     // Try and request the icon from Qt theme (Linux?)
-    const QIcon suyu_logo = QIcon::fromTheme(QStringLiteral("org.suyu_emu.suyu"));
+    const QIcon suyu_logo = QIcon::fromTheme(QStringLiteral("dev.suyu_emu.suyu"));
     if (!suyu_logo.isNull()) {
         ui->labelLogo->setPixmap(suyu_logo.pixmap(200));
     }

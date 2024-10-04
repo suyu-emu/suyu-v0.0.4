@@ -1,6 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <atomic>
+#include <memory>
+#include <thread>
+#include <vector>
+
 #include "common/fiber.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
@@ -24,6 +30,7 @@ void CpuManager::Initialize() {
     num_cores = is_multicore ? Core::Hardware::NUM_CPU_CORES : 1;
     gpu_barrier = std::make_unique<Common::Barrier>(num_cores + 1);
 
+    core_data.resize(num_cores);
     for (std::size_t core = 0; core < num_cores; core++) {
         core_data[core].host_thread =
             std::jthread([this, core](std::stop_token token) { RunThread(token, core); });
@@ -31,10 +38,10 @@ void CpuManager::Initialize() {
 }
 
 void CpuManager::Shutdown() {
-    for (std::size_t core = 0; core < num_cores; core++) {
-        if (core_data[core].host_thread.joinable()) {
-            core_data[core].host_thread.request_stop();
-            core_data[core].host_thread.join();
+    for (auto& data : core_data) {
+        if (data.host_thread.joinable()) {
+            data.host_thread.request_stop();
+            data.host_thread.join();
         }
     }
 }
@@ -66,12 +73,7 @@ void CpuManager::HandleInterrupt() {
     Kernel::KInterruptManager::HandleInterrupt(kernel, static_cast<s32>(core_index));
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///                             MultiCore                                   ///
-///////////////////////////////////////////////////////////////////////////////
-
 void CpuManager::MultiCoreRunGuestThread() {
-    // Similar to UserModeThreadStarter in HOS
     auto& kernel = system.Kernel();
     auto* thread = Kernel::GetCurrentThreadPointer(kernel);
     kernel.CurrentScheduler()->OnThreadStart();
@@ -88,10 +90,6 @@ void CpuManager::MultiCoreRunGuestThread() {
 }
 
 void CpuManager::MultiCoreRunIdleThread() {
-    // Not accurate to HOS. Remove this entire method when singlecore is removed.
-    // See notes in KScheduler::ScheduleImpl for more information about why this
-    // is inaccurate.
-
     auto& kernel = system.Kernel();
     kernel.CurrentScheduler()->OnThreadStart();
 
@@ -104,10 +102,6 @@ void CpuManager::MultiCoreRunIdleThread() {
         HandleInterrupt();
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///                             SingleCore                                   ///
-///////////////////////////////////////////////////////////////////////////////
 
 void CpuManager::SingleCoreRunGuestThread() {
     auto& kernel = system.Kernel();
@@ -154,19 +148,16 @@ void CpuManager::PreemptSingleCore(bool from_running_environment) {
         system.CoreTiming().Advance();
         kernel.SetIsPhantomModeForSingleCore(false);
     }
-    current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
+    current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES, std::memory_order_release);
     system.CoreTiming().ResetTicks();
     kernel.Scheduler(current_core).PreemptSingleCore();
 
-    // We've now been scheduled again, and we may have exchanged schedulers.
-    // Reload the scheduler in case it's different.
     if (!kernel.Scheduler(current_core).IsIdle()) {
         idle_count = 0;
     }
 }
 
 void CpuManager::GuestActivate() {
-    // Similar to the HorizonKernelMain callback in HOS
     auto& kernel = system.Kernel();
     auto* scheduler = kernel.CurrentScheduler();
 
@@ -184,27 +175,19 @@ void CpuManager::ShutdownThread() {
 }
 
 void CpuManager::RunThread(std::stop_token token, std::size_t core) {
-    /// Initialization
     system.RegisterCoreThread(core);
-    std::string name;
-    if (is_multicore) {
-        name = "CPUCore_" + std::to_string(core);
-    } else {
-        name = "CPUThread";
-    }
+    std::string name = is_multicore ? "CPUCore_" + std::to_string(core) : "CPUThread";
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     auto& data = core_data[core];
     data.host_context = Common::Fiber::ThreadToFiber();
 
-    // Cleanup
     SCOPE_EXIT {
         data.host_context->Exit();
         MicroProfileOnThreadExit();
     };
 
-    // Running
     if (!gpu_barrier->Sync(token)) {
         return;
     }

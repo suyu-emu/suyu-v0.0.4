@@ -119,7 +119,7 @@ Result LANDiscovery::Scan(std::span<NetworkInfo> out_networks, s16& out_count,
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
     std::scoped_lock lock{packet_mutex};
-    for (const auto& [key, info] : scan_results) {
+    for (const auto& [_, info] : scan_results) {
         if (out_count >= static_cast<s16>(out_networks.size())) {
             break;
         }

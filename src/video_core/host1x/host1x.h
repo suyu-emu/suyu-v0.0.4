@@ -45,7 +45,7 @@ public:
         // Vic does not know which nvdec is producing frames for it, so search all the fds here for
         // the given offset.
         for (auto& map : m_presentation_order) {
-            for (auto& [offset, frame] : map.second) {
+            for (auto& [offset, _] : map.second) {
                 if (offset == search_offset) {
                     return map.first;
                 }
@@ -53,7 +53,7 @@ public:
         }
 
         for (auto& map : m_decode_order) {
-            for (auto& [offset, frame] : map.second) {
+            for (auto& [offset, _] : map.second) {
                 if (offset == search_offset) {
                     return map.first;
                 }
