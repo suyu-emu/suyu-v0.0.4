@@ -102,10 +102,15 @@ git submodule update --init --recursive
 
 ## Method II: MinGW-w64 Build with MSYS2
 
-### Get Vulkan SDK and install dependencies
-```
-pacman -Syu git make mingw-w64-x86_64-SDL2 mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5 mingw-w64-x86_64-toolchain
-```
+### Prerequisites to install
+
+* [MSYS2](https://www.msys2.org)
+* [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows) - **Make sure to select Latest SDK.**
+* Make sure to follow the instructions and update to the latest version by running `pacman -Syu` as many times as needed. 
+
+### Install other dependencies
+* Open the `MSYS2 MinGW 64-bit` (mingw64.exe) shell
+* Download and install all dependencies using: `pacman -Syu git make mingw-w64-x86_64-SDL2 mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5 mingw-w64-x86_64-toolchain`
 
 ### Setup environment variables
 ```
@@ -116,6 +121,21 @@ export VCPKG_DEFAULT_TRIPLET=x64-mingw-static
 We have to manually set some VCPKG variables for some reason.
 This issue probably already exists in the original Yuzu.
 
+### Clone the yuzu repository with Git
+
+**from NotABug repo (the `--recursive` option automatically clones the required Git submodules):**
+```
+git clone --depth 1 --recursive https://notabug.org/litucks/torzu.git
+cd torzu
+git submodule update --init --recursive
+```
+**from Torzu repo (assuming Tor is installed as a service):**
+```
+git -c http.proxy=socks5h://127.0.0.1:9050 clone --depth 1 http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu.git
+cd torzu
+git submodule update --init --recursive 
+```
+
 ### Generating makefile
 ```
 mkdir build && cd build
@@ -125,7 +145,7 @@ cmake -G "MSYS Makefiles" -DYUZU_USE_BUNDLED_VCPKG=ON -DYUZU_TESTS=OFF -DVCPKG_T
 
 ### Build yuzu
 ```
-make -j4 yuzu
+make -j$(nproc) yuzu
 ```
 The reason we are not using `make all` is that linker will fail.
 This is because Yuzu developer didn't set linker flags properly in their `CMakeLists.txt` for some reason. So we have add something manually.
