@@ -272,7 +272,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         std::cout << code << std::endl;
         MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
         NS::Error* error = nullptr;
-        [[maybe_unused]] MTL::Library* library = device.GetDevice()->newLibrary(
+        MTL::Library* library = device.GetDevice()->newLibrary(
             NS::String::string(code.c_str(), NS::ASCIIStringEncoding), compile_options, &error);
         if (error) {
             LOG_ERROR(Render_Metal, "failed to create library: {}",
@@ -280,11 +280,11 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
             // HACK
             std::cout << error->description()->cString(NS::ASCIIStringEncoding) << std::endl;
             // HACK
-            // throw;
+            throw;
         }
 
-        // functions[stage_index] =
-        //     library->newFunction(NS::String::string("main_", NS::ASCIIStringEncoding));
+        functions[stage_index] =
+            library->newFunction(NS::String::string("main_", NS::ASCIIStringEncoding));
         previous_stage = &program;
     }
 
