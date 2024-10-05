@@ -27,7 +27,7 @@ BufferView::BufferView(MTL::Buffer* buffer_, size_t offset_, size_t size_,
     : buffer{buffer_->retain()}, offset{offset_}, size{size_}, format{format_} {}
 
 BufferView::~BufferView() {
-    buffer->release();
+    // buffer->release();
 }
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)

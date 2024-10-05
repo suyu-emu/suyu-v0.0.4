@@ -22,7 +22,7 @@ struct BufferView {
                VideoCore::Surface::PixelFormat format_ = VideoCore::Surface::PixelFormat::Invalid);
     ~BufferView();
 
-    MTL::Buffer* buffer = nil;
+    MTL::Buffer* buffer = nullptr;
     size_t offset{};
     size_t size{};
     VideoCore::Surface::PixelFormat format{};
