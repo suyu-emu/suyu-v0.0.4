@@ -18,6 +18,7 @@
 #include "video_core/shader_notify.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/texture_cache/texture_cache_base.h"
+#include "video_core/renderer_metal/maxwell_to_mtl.h"
 
 namespace Metal {
 namespace {
@@ -56,7 +57,6 @@ GraphicsPipeline::GraphicsPipeline(const Device& device_, CommandRecorder& comma
         LOG_DEBUG(Render_Metal, "framebuffer not available");
         return;
     }
-    MakePipeline(framebuffer->GetHandle());
 }
 
 void GraphicsPipeline::Configure(bool is_indexed) {
@@ -203,16 +203,47 @@ void GraphicsPipeline::Configure(bool is_indexed) {
     }
     command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 
+    MakePipeline(framebuffer->GetHandle());
     command_recorder.SetRenderPipelineState(pipeline_state);
 }
 
 void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
-    MTL::RenderPipelineDescriptor* pipeline_descriptor =
+    const auto& regs{maxwell3d->regs};
+
+    // Shader stages
+    MTL::RenderPipelineDescriptor* desc =
         MTL::RenderPipelineDescriptor::alloc()->init();
-    pipeline_descriptor->setVertexFunction(functions[0]);
-    pipeline_descriptor->setFragmentFunction(functions[4]);
-    // pipeline_descriptor->setVertexDescriptor(vertex_descriptor);
-    // TODO: get the attachment count from render pass descriptor
+    desc->setVertexFunction(functions[0]);
+    desc->setFragmentFunction(functions[4]);
+
+    // Vertex descriptor
+    MTL::VertexDescriptor* vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
+    for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        const auto& array = regs.vertex_streams[index];
+        if (!array.enable)
+            continue;
+
+        ASSERT(index < MAX_BUFFERS);
+
+        // TODO: instancing
+        auto layout = vertex_descriptor->layouts()->object(index);
+        layout->setStride(array.stride.Value());
+    }
+    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+        const auto& input = regs.vertex_attrib_format[index];
+        // TODO: doesn't this need some special handling?
+        if (input.constant)
+            continue;
+
+        auto attribute = vertex_descriptor->attributes()->object(index);
+        attribute->setBufferIndex(input.buffer);
+        attribute->setOffset(input.offset);
+        attribute->setFormat(MaxwellToMTL::VertexFormat(input.type.Value(), input.size.Value()));
+    }
+    desc->setVertexDescriptor(vertex_descriptor);
+    vertex_descriptor->release();
+
+    // Color attachments
     for (u32 index = 0; index < NUM_RT; index++) {
         auto* render_pass_attachment = render_pass->colorAttachments()->object(index);
         // TODO: is this the correct way to check if the attachment is valid?
@@ -220,13 +251,14 @@ void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
             continue;
         }
 
-        auto* color_attachment = pipeline_descriptor->colorAttachments()->object(index);
+        auto* color_attachment = desc->colorAttachments()->object(index);
         color_attachment->setPixelFormat(render_pass_attachment->texture()->pixelFormat());
         // TODO: provide blend information
     }
 
     NS::Error* error = nullptr;
-    pipeline_state = device.GetDevice()->newRenderPipelineState(pipeline_descriptor, &error);
+    pipeline_state = device.GetDevice()->newRenderPipelineState(desc, &error);
+    desc->release();
     if (error) {
         LOG_ERROR(Render_Metal, "failed to create pipeline state: {}",
                   error->description()->cString(NS::ASCIIStringEncoding));

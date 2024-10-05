@@ -145,4 +145,172 @@ inline size_t GetTextureBytesPerRow(VideoCore::Surface::PixelFormat pixel_format
            format_info.bytes_per_block;
 }
 
+inline MTL::VertexFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
+    const MTL::VertexFormat format{([&]() {
+        switch (type) {
+        case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway:
+            ASSERT_MSG(false, "Invalid vertex attribute type!");
+            break;
+        case Maxwell::VertexAttribute::Type::UNorm:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_R8:
+            case Maxwell::VertexAttribute::Size::Size_A8:
+                return MTL::VertexFormatUCharNormalized;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8:
+            case Maxwell::VertexAttribute::Size::Size_G8_R8:
+                return MTL::VertexFormatUChar2Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8:
+                return MTL::VertexFormatUChar3Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8_A8:
+            case Maxwell::VertexAttribute::Size::Size_X8_B8_G8_R8:
+                return MTL::VertexFormatUChar4Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R16:
+                return MTL::VertexFormatUShortNormalized;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16:
+                return MTL::VertexFormatUShort2Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16:
+                return MTL::VertexFormatUShort3Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16_A16:
+                return MTL::VertexFormatUShort4Normalized;
+            case Maxwell::VertexAttribute::Size::Size_A2_B10_G10_R10:
+                return MTL::VertexFormatInvalid; // TODO: emulate
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::SNorm:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_R8:
+            case Maxwell::VertexAttribute::Size::Size_A8:
+                return MTL::VertexFormatCharNormalized;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8:
+            case Maxwell::VertexAttribute::Size::Size_G8_R8:
+                return MTL::VertexFormatChar2Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8:
+                return MTL::VertexFormatChar3Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8_A8:
+            case Maxwell::VertexAttribute::Size::Size_X8_B8_G8_R8:
+                return MTL::VertexFormatChar4Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R16:
+                return MTL::VertexFormatShortNormalized;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16:
+                return MTL::VertexFormatShort2Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16:
+                return MTL::VertexFormatShort3Normalized;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16_A16:
+                return MTL::VertexFormatShort4Normalized;
+            case Maxwell::VertexAttribute::Size::Size_A2_B10_G10_R10:
+                return MTL::VertexFormatInvalid; // TODO: emulate
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::UInt:
+        case Maxwell::VertexAttribute::Type::UScaled:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_R8:
+            case Maxwell::VertexAttribute::Size::Size_A8:
+                return MTL::VertexFormatUChar;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8:
+            case Maxwell::VertexAttribute::Size::Size_G8_R8:
+                return MTL::VertexFormatUChar2;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8:
+                return MTL::VertexFormatUChar3;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8_A8:
+            case Maxwell::VertexAttribute::Size::Size_X8_B8_G8_R8:
+                return MTL::VertexFormatUChar4;
+            case Maxwell::VertexAttribute::Size::Size_R16:
+                return MTL::VertexFormatUShort;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16:
+                return MTL::VertexFormatUShort2;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16:
+                return MTL::VertexFormatUShort3;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16_A16:
+                return MTL::VertexFormatUShort4;
+            case Maxwell::VertexAttribute::Size::Size_R32:
+                return MTL::VertexFormatUInt;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32:
+                return MTL::VertexFormatUInt2;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32_B32:
+                return MTL::VertexFormatUInt3;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32_B32_A32:
+                return MTL::VertexFormatUInt4;
+            case Maxwell::VertexAttribute::Size::Size_A2_B10_G10_R10:
+                return MTL::VertexFormatInvalid; // TODO: emulate
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::SInt:
+        case Maxwell::VertexAttribute::Type::SScaled:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_R8:
+            case Maxwell::VertexAttribute::Size::Size_A8:
+                return MTL::VertexFormatChar;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8:
+            case Maxwell::VertexAttribute::Size::Size_G8_R8:
+                return MTL::VertexFormatChar2;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8:
+                return MTL::VertexFormatChar3;
+            case Maxwell::VertexAttribute::Size::Size_R8_G8_B8_A8:
+            case Maxwell::VertexAttribute::Size::Size_X8_B8_G8_R8:
+                return MTL::VertexFormatChar4;
+            case Maxwell::VertexAttribute::Size::Size_R16:
+                return MTL::VertexFormatShort;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16:
+                return MTL::VertexFormatShort2;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16:
+                return MTL::VertexFormatShort3;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16_A16:
+                return MTL::VertexFormatShort4;
+            case Maxwell::VertexAttribute::Size::Size_R32:
+                return MTL::VertexFormatInt;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32:
+                return MTL::VertexFormatInt2;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32_B32:
+                return MTL::VertexFormatInt3;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32_B32_A32:
+                return MTL::VertexFormatInt4;
+            case Maxwell::VertexAttribute::Size::Size_A2_B10_G10_R10:
+                return MTL::VertexFormatInvalid; // TODO: emulate
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::Float:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_R16:
+                return MTL::VertexFormatHalf;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16:
+                return MTL::VertexFormatHalf2;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16:
+                return MTL::VertexFormatHalf3;
+            case Maxwell::VertexAttribute::Size::Size_R16_G16_B16_A16:
+                return MTL::VertexFormatHalf4;
+            case Maxwell::VertexAttribute::Size::Size_R32:
+                return MTL::VertexFormatFloat;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32:
+                return MTL::VertexFormatFloat2;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32_B32:
+                return MTL::VertexFormatFloat3;
+            case Maxwell::VertexAttribute::Size::Size_R32_G32_B32_A32:
+                return MTL::VertexFormatFloat4;
+            case Maxwell::VertexAttribute::Size::Size_B10_G11_R11:
+                return MTL::VertexFormatInvalid; // TODO: emulate
+            default:
+                break;
+            }
+            break;
+        }
+
+        return MTL::VertexFormatInvalid;
+    })()};
+
+    if (format == MTL::VertexFormatInvalid) {
+        UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", type, size);
+    }
+
+    return format;
+}
+
 } // namespace Metal::MaxwellToMTL

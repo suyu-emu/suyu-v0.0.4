@@ -118,6 +118,7 @@ private:
     VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
     // u32 num_textures{};
 
+    // TODO: cache pipelines if state changes
     MTL::RenderPipelineState* pipeline_state{nullptr};
 };
 
