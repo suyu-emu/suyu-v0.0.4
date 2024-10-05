@@ -53,9 +53,6 @@ struct RenderState {
     BoundIndexBuffer bound_index_buffer;
 };
 
-// TODO: whenever a render pass gets interrupted by either a compute or blit command and application
-// then tries to perform a render command, begin the same render pass, but with all load actions set
-// to "load"
 class CommandRecorder {
     using PrimitiveTopology = Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology;
     using IndexFormat = Tegra::Engines::Maxwell3D::Regs::IndexFormat;

@@ -175,15 +175,13 @@ void Framebuffer::CreateRenderPassDescriptor(TextureCacheRuntime& runtime,
         }
         // TODO: don't use index as attachment index
         auto color_attachment = render_pass->colorAttachments()->object(index);
-        color_attachment->setClearColor(MTL::ClearColor::Make(0.5, 1.0, 0.0, 1.0));
-        color_attachment->setLoadAction(MTL::LoadActionClear);
+        color_attachment->setLoadAction(MTL::LoadActionLoad);
         color_attachment->setStoreAction(MTL::StoreActionStore);
         color_attachment->setTexture(color_buffer->GetHandle());
     }
     if (depth_buffer) {
         auto depth_attachment = render_pass->depthAttachment();
-        depth_attachment->setClearDepth(1.0);
-        depth_attachment->setLoadAction(MTL::LoadActionClear);
+        depth_attachment->setLoadAction(MTL::LoadActionLoad);
         depth_attachment->setStoreAction(MTL::StoreActionStore);
         depth_attachment->setTexture(depth_buffer->GetHandle());
     }

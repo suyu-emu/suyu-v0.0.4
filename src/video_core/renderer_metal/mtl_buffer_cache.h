@@ -159,8 +159,8 @@ private:
     StagingBufferPool& staging_pool;
 
     // Common buffers
-    MTL::Buffer* null_buffer = nil;
-    MTL::Buffer* quad_index_buffer = nil;
+    MTL::Buffer* null_buffer = nullptr;
+    MTL::Buffer* quad_index_buffer = nullptr;
 };
 
 struct BufferCacheParams {

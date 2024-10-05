@@ -289,6 +289,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     }
 
     // HACK: create hardcoded shaders
+    /*
     MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
     NS::Error* error = nullptr;
     MTL::Library* library = device.GetDevice()->newLibrary(NS::String::string(
@@ -330,6 +331,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     functions[0] = library->newFunction(NS::String::string("vertexMain", NS::ASCIIStringEncoding));
     functions[4] =
         library->newFunction(NS::String::string("fragmentMain", NS::ASCIIStringEncoding));
+    */
 
     return std::make_unique<GraphicsPipeline>(device, command_recorder, key, buffer_cache,
                                               texture_cache, &shader_notify, functions, infos);
