@@ -167,14 +167,18 @@ void GraphicsPipeline::Configure(bool is_indexed) {
         const size_t& view_index{all_views[stage].view_index};
         const size_t& sampler_index{all_samplers[stage].sampler_index};
 
-        texture_cache.FillGraphicsImageViews<true>(std::span(views.data(), view_index));
+        // Buffers
+        buffer_cache.BindHostStageBuffers(stage);
 
+        // Textures
+        texture_cache.FillGraphicsImageViews<true>(std::span(views.data(), view_index));
         for (u8 i = 0; i < view_index; i++) {
             const VideoCommon::ImageViewInOut& view{views[i]};
             ImageView& image_view{texture_cache.GetImageView(view.id)};
             command_recorder.SetTexture(stage, image_view.GetHandle(), i);
         }
 
+        // Samplers
         for (u8 i = 0; i < sampler_index; i++) {
             const VideoCommon::SamplerId& sampler_id{samplers[i]};
             Sampler& sampler{texture_cache.GetSampler(sampler_id)};
