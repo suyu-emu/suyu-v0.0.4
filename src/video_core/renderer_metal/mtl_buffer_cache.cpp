@@ -109,7 +109,7 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
 
 void BufferCacheRuntime::BindBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer,
                                     u32 offset, u32 size) {
-    command_recorder.SetBuffer(stage, buffer, binding_index, offset);
+    command_recorder.SetBuffer(stage, buffer, offset, binding_index);
 }
 
 void BufferCacheRuntime::ReserveNullBuffer() {

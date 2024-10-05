@@ -114,7 +114,7 @@ public:
         }
     }
 
-    inline void SetBuffer(size_t stage, MTL::Buffer* buffer, size_t index, size_t offset) {
+    inline void SetBuffer(size_t stage, MTL::Buffer* buffer, size_t offset, size_t index) {
         auto& bound_buffer = render_state.buffers[stage][index];
         if (buffer != bound_buffer.buffer) {
             bound_buffer = {true, buffer, offset};

@@ -20,6 +20,7 @@ void CommandRecorder::BeginOrContinueRenderPass(MTL::RenderPassDescriptor* rende
         render_state.render_pass = render_pass;
         should_reset_bound_resources = true;
     }
+
     const auto bind_resources{[&](size_t stage) {
         // Buffers
         for (u8 i = 0; i < MAX_BUFFERS; i++) {
@@ -28,17 +29,18 @@ void CommandRecorder::BeginOrContinueRenderPass(MTL::RenderPassDescriptor* rende
                 (bound_buffer.needs_update || should_reset_bound_resources)) {
                 switch (stage) {
                 case 0:
-                    GetRenderCommandEncoderUnchecked()->setVertexBuffer(bound_buffer.buffer, i,
-                                                                        bound_buffer.offset);
+                    GetRenderCommandEncoderUnchecked()->setVertexBuffer(bound_buffer.buffer,
+                                                                        bound_buffer.offset, i);
                     break;
                 case 4:
-                    GetRenderCommandEncoderUnchecked()->setFragmentBuffer(bound_buffer.buffer, i,
-                                                                          bound_buffer.offset);
+                    GetRenderCommandEncoderUnchecked()->setFragmentBuffer(bound_buffer.buffer,
+                                                                          bound_buffer.offset, i);
                     break;
                 }
                 bound_buffer.needs_update = false;
             }
         }
+
         // Textures
         for (u8 i = 0; i < MAX_TEXTURES; i++) {
             auto& bound_texture = render_state.textures[stage][i];
@@ -56,6 +58,7 @@ void CommandRecorder::BeginOrContinueRenderPass(MTL::RenderPassDescriptor* rende
                 bound_texture.needs_update = false;
             }
         }
+
         // Sampler states
         for (u8 i = 0; i < MAX_SAMPLERS; i++) {
             auto& bound_sampler_state = render_state.sampler_states[stage][i];
@@ -78,20 +81,6 @@ void CommandRecorder::BeginOrContinueRenderPass(MTL::RenderPassDescriptor* rende
 
     bind_resources(0);
     bind_resources(4);
-
-    if (should_reset_bound_resources) {
-        for (size_t stage = 0; stage < 5; stage++) {
-            for (u8 i = 0; i < MAX_BUFFERS; i++) {
-                render_state.buffers[stage][i].buffer = nullptr;
-            }
-            for (u8 i = 0; i < MAX_TEXTURES; i++) {
-                render_state.textures[stage][i].texture = nullptr;
-            }
-            for (u8 i = 0; i < MAX_SAMPLERS; i++) {
-                render_state.sampler_states[stage][i].sampler_state = nullptr;
-            }
-        }
-    }
 }
 
 void CommandRecorder::RequireComputeEncoder() {

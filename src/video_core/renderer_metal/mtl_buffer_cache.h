@@ -124,6 +124,7 @@ public:
     std::span<u8> BindMappedUniformBuffer(size_t stage, u32 binding_index, u32 size) {
         const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
         BindBuffer(stage, binding_index, ref.buffer, static_cast<u32>(ref.offset), size);
+
         return ref.mapped_span;
     }
 
