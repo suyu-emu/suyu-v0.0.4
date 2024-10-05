@@ -124,11 +124,11 @@ void RasterizerMetal::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
 
 void RasterizerMetal::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
                                                 u32 size) {
-    LOG_DEBUG(Render_Metal, "called");
+    buffer_cache.BindGraphicsUniformBuffer(stage, index, gpu_addr, size);
 }
 
 void RasterizerMetal::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
-    LOG_DEBUG(Render_Metal, "called");
+    buffer_cache.DisableGraphicsUniformBuffer(stage, index);
 }
 
 void RasterizerMetal::FlushAll() {

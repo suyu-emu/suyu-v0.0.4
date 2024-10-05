@@ -36,7 +36,7 @@ public:
     [[nodiscard]] BufferView View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format);
 
     void MarkUsage(u64 offset, u64 size) noexcept {
-        // TODO: track usage
+        // TODO: track usage?
     }
 
     [[nodiscard]] MTL::Buffer* Handle() const noexcept {
@@ -122,6 +122,7 @@ public:
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings) {}
 
     std::span<u8> BindMappedUniformBuffer(size_t stage, u32 binding_index, u32 size) {
+        // TODO: just set bytes in case the size is <= 4KB?
         const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
         BindBuffer(stage, binding_index, ref.buffer, static_cast<u32>(ref.offset), size);
 

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <iostream>
 #include <utility>
 #include <vector>
 
@@ -30,7 +29,8 @@ StagingBuffer::StagingBuffer(MTL::Buffer* buffer_, std::span<u8> mapped_span_)
     : buffer{buffer_->retain()}, mapped_span{mapped_span_} {}
 
 StagingBuffer::~StagingBuffer() {
-    buffer->release();
+    // TODO: uncomment
+    //buffer->release();
 }
 
 StagingBufferRef StagingBuffer::Ref() const noexcept {

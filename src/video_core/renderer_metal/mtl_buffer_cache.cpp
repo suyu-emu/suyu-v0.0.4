@@ -27,6 +27,7 @@ BufferView::BufferView(MTL::Buffer* buffer_, size_t offset_, size_t size_,
     : buffer{buffer_->retain()}, offset{offset_}, size{size_}, format{format_} {}
 
 BufferView::~BufferView() {
+    // TODO: uncomment
     // buffer->release();
 }
 
@@ -121,7 +122,7 @@ void BufferCacheRuntime::ReserveNullBuffer() {
 }
 
 MTL::Buffer* BufferCacheRuntime::CreateNullBuffer() {
-    return CreatePrivateBuffer(device, NULL_BUFFER_SIZE);
+    return CreatePrivateBuffer(device, NULL_BUFFER_SIZE * 2);
 }
 
 } // namespace Metal
