@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <iostream>
 #include <string_view>
 
 #include "shader_recompiler/backend/msl/emit_msl_instructions.h"
@@ -18,17 +19,17 @@ std::string Texture(EmitContext& ctx, const IR::TextureInstInfo& info, const IR:
     return fmt::format("tex{}{}", def.binding, index_offset);
 }
 
-void TransformTextureCoords(const IR::TextureInstInfo& info, std::string_view& coords) {
+std::string TransformTextureCoords(const IR::TextureInstInfo& info, std::string_view coords) {
     // If the texture is array, the last component of the coords is the array index
     if (info.type == TextureType::ColorArray1D) {
-        coords = fmt::format("{}.x,{}.y", coords, coords);
+        return fmt::format("{}.x,{}.y", coords, coords);
+    } else if (info.type == TextureType::ColorArray2D) {
+        return fmt::format("{}.xy,{}.z", coords, coords);
+    } else if (info.type == TextureType::ColorArrayCube) {
+        return fmt::format("{}.xyz,{}.w", coords, coords);
     }
-    if (info.type == TextureType::ColorArray2D) {
-        coords = fmt::format("{}.xy,{}.z", coords, coords);
-    }
-    if (info.type == TextureType::ColorArrayCube) {
-        coords = fmt::format("{}.xyz,{}.w", coords, coords);
-    }
+
+    return std::string(coords);
 }
 
 std::string Sampler(EmitContext& ctx, const IR::TextureInstInfo& info, const IR::Value& index) {
@@ -189,7 +190,6 @@ void EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
         throw NotImplementedException("EmitImageSampleImplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto sampler{Sampler(ctx, info, index)};
     const auto bias{info.has_bias ? fmt::format(",{}", bias_lc) : ""};
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
@@ -203,26 +203,30 @@ void EmitImageSampleImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
         if (!offset.IsEmpty()) {
             const auto offset_str{GetOffsetVec(ctx, offset)};
             if (ctx.stage == Stage::Fragment) {
-                ctx.Add("{}=textureOffset({},{},{}{});", texel, texture, coords, offset_str, bias);
+                ctx.Add("{}=textureOffset({},{},{}{});", texel, texture,
+                        TransformTextureCoords(info, coords), offset_str, bias);
             } else {
-                ctx.Add("{}=textureLodOffset({},{},0.0,{});", texel, texture, coords, offset_str);
+                ctx.Add("{}=textureLodOffset({},{},0.0,{});", texel, texture,
+                        TransformTextureCoords(info, coords), offset_str);
             }
         } else {
             if (ctx.stage == Stage::Fragment) {
-                // TODO: is the array index correct
-                ctx.Add("{}={}.sample({},{}{});", texel, texture, sampler, coords, bias);
+                ctx.Add("{}={}.sample({},{}{});", texel, texture, sampler,
+                        TransformTextureCoords(info, coords), bias);
             } else {
-                ctx.Add("{}={}.sampleLod({},{},0.0);", texel, texture, sampler, coords);
+                ctx.Add("{}={}.sample({},{},0.0);", texel, texture, sampler,
+                        TransformTextureCoords(info, coords));
             }
         }
         return;
     }
     if (!offset.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureOffsetARB({},{},{},{}{}));",
-                  *sparse_inst, texture, coords, GetOffsetVec(ctx, offset), texel, bias);
+                  *sparse_inst, texture, TransformTextureCoords(info, coords),
+                  GetOffsetVec(ctx, offset), texel, bias);
     } else {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureARB({},{},{}{}));", *sparse_inst,
-                  texture, coords, texel, bias);
+                  texture, TransformTextureCoords(info, coords), texel, bias);
     }
 }
 
@@ -237,7 +241,6 @@ void EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
         throw NotImplementedException("EmitImageSampleExplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -247,20 +250,21 @@ void EmitImageSampleExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::Valu
     }
     if (!sparse_inst || !supports_sparse) {
         if (!offset.IsEmpty()) {
-            ctx.Add("{}=textureLodOffset({},{},{},{});", texel, texture, coords, lod_lc,
-                    GetOffsetVec(ctx, offset));
+            ctx.Add("{}=textureLodOffset({},{},{},{});", texel, texture,
+                    TransformTextureCoords(info, coords), lod_lc, GetOffsetVec(ctx, offset));
         } else {
-            ctx.Add("{}=textureLod({},{},{});", texel, texture, coords, lod_lc);
+            ctx.Add("{}=textureLod({},{},{});", texel, texture,
+                    TransformTextureCoords(info, coords), lod_lc);
         }
         return;
     }
     if (!offset.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTexelFetchOffsetARB({},{},int({}),{},{}));",
-                  *sparse_inst, texture, CastToIntVec(coords, info), lod_lc,
-                  GetOffsetVec(ctx, offset), texel);
+                  *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)),
+                  lod_lc, GetOffsetVec(ctx, offset), texel);
     } else {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureLodARB({},{},{},{}));", *sparse_inst,
-                  texture, coords, lod_lc, texel);
+                  texture, TransformTextureCoords(info, coords), lod_lc, texel);
     }
 }
 
@@ -279,7 +283,6 @@ void EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
         throw NotImplementedException("EmitImageSampleDrefImplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto bias{info.has_bias ? fmt::format(",{}", bias_lc) : ""};
     const bool needs_shadow_ext{NeedsShadowLodExt(info.type)};
     const auto cast{needs_shadow_ext ? "float4" : "float3"};
@@ -294,28 +297,31 @@ void EmitImageSampleDrefImplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
             return;
         }
         const auto d_cast{info.type == TextureType::ColorArray2D ? "float2" : "float3"};
-        ctx.AddF32("{}=textureGrad({},{}({},{}),{}(0),{}(0));", inst, texture, cast, coords, dref,
-                   d_cast, d_cast);
+        ctx.AddF32("{}=textureGrad({},{}({},{}),{}(0),{}(0));", inst, texture, cast,
+                   TransformTextureCoords(info, coords), dref, d_cast, d_cast);
         return;
     }
     if (!offset.IsEmpty()) {
         const auto offset_str{GetOffsetVec(ctx, offset)};
         if (ctx.stage == Stage::Fragment) {
-            ctx.AddF32("{}=textureOffset({},{}({},{}),{}{});", inst, texture, cast, coords, dref,
-                       offset_str, bias);
+            ctx.AddF32("{}=textureOffset({},{}({},{}),{}{});", inst, texture, cast,
+                       TransformTextureCoords(info, coords), dref, offset_str, bias);
         } else {
-            ctx.AddF32("{}=textureLodOffset({},{}({},{}),0.0,{});", inst, texture, cast, coords,
-                       dref, offset_str);
+            ctx.AddF32("{}=textureLodOffset({},{}({},{}),0.0,{});", inst, texture, cast,
+                       TransformTextureCoords(info, coords), dref, offset_str);
         }
     } else {
         if (ctx.stage == Stage::Fragment) {
             if (info.type == TextureType::ColorArrayCube) {
-                ctx.AddF32("{}=texture({},float4({}),{});", inst, texture, coords, dref);
+                ctx.AddF32("{}=texture({},float4({}),{});", inst, texture,
+                           TransformTextureCoords(info, coords), dref);
             } else {
-                ctx.AddF32("{}=texture({},{}({},{}){});", inst, texture, cast, coords, dref, bias);
+                ctx.AddF32("{}=texture({},{}({},{}){});", inst, texture, cast,
+                           TransformTextureCoords(info, coords), dref, bias);
             }
         } else {
-            ctx.AddF32("{}=textureLod({},{}({},{}),0.0);", inst, texture, cast, coords, dref);
+            ctx.AddF32("{}=textureLod({},{}({},{}),0.0);", inst, texture, cast,
+                       TransformTextureCoords(info, coords), dref);
         }
     }
 }
@@ -335,7 +341,6 @@ void EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
         throw NotImplementedException("EmitImageSampleDrefExplicitLod Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const bool needs_shadow_ext{NeedsShadowLodExt(info.type)};
     const bool use_grad{!ctx.profile.support_gl_texture_shadow_lod && needs_shadow_ext};
     const auto cast{needs_shadow_ext ? "float3" : "float3"};
@@ -348,25 +353,26 @@ void EmitImageSampleDrefExplicitLod(EmitContext& ctx, IR::Inst& inst, const IR::
             return;
         }
         const auto d_cast{info.type == TextureType::ColorArray2D ? "float2" : "float3"};
-        ctx.AddF32("{}=textureGrad({},{}({},{}),{}(0),{}(0));", inst, texture, cast, coords, dref,
-                   d_cast, d_cast);
+        ctx.AddF32("{}=textureGrad({},{}({},{}),{}(0),{}(0));", inst, texture, cast,
+                   TransformTextureCoords(info, coords), dref, d_cast, d_cast);
         return;
     }
     if (!offset.IsEmpty()) {
         const auto offset_str{GetOffsetVec(ctx, offset)};
         if (info.type == TextureType::ColorArrayCube) {
-            ctx.AddF32("{}=textureLodOffset({},{},{},{},{});", inst, texture, coords, dref, lod_lc,
-                       offset_str);
+            ctx.AddF32("{}=textureLodOffset({},{},{},{},{});", inst, texture,
+                       TransformTextureCoords(info, coords), dref, lod_lc, offset_str);
         } else {
-            ctx.AddF32("{}=textureLodOffset({},{}({},{}),{},{});", inst, texture, cast, coords,
-                       dref, lod_lc, offset_str);
+            ctx.AddF32("{}=textureLodOffset({},{}({},{}),{},{});", inst, texture, cast,
+                       TransformTextureCoords(info, coords), dref, lod_lc, offset_str);
         }
     } else {
         if (info.type == TextureType::ColorArrayCube) {
-            ctx.AddF32("{}=textureLod({},{},{},{});", inst, texture, coords, dref, lod_lc);
+            ctx.AddF32("{}=textureLod({},{},{},{});", inst, texture,
+                       TransformTextureCoords(info, coords), dref, lod_lc);
         } else {
-            ctx.AddF32("{}=textureLod({},{}({},{}),{});", inst, texture, cast, coords, dref,
-                       lod_lc);
+            ctx.AddF32("{}=textureLod({},{}({},{}),{});", inst, texture, cast,
+                       TransformTextureCoords(info, coords), dref, lod_lc);
         }
     }
 }
@@ -375,7 +381,6 @@ void EmitImageGather(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                      std::string_view coords, const IR::Value& offset, const IR::Value& offset2) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -392,37 +397,39 @@ void EmitImageGather(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
     }
     if (!sparse_inst || !supports_sparse) {
         if (offset.IsEmpty()) {
-            ctx.Add("{}=textureGather({},{},int({}));", texel, texture, coords,
-                    info.gather_component);
+            ctx.Add("{}=textureGather({},{},int({}));", texel, texture,
+                    TransformTextureCoords(info, coords), info.gather_component);
             return;
         }
         if (offset2.IsEmpty()) {
-            ctx.Add("{}=textureGatherOffset({},{},{},int({}));", texel, texture, coords,
-                    GetOffsetVec(ctx, offset), info.gather_component);
+            ctx.Add("{}=textureGatherOffset({},{},{},int({}));", texel, texture,
+                    TransformTextureCoords(info, coords), GetOffsetVec(ctx, offset),
+                    info.gather_component);
             return;
         }
         // PTP
         const auto offsets{PtpOffsets(offset, offset2)};
-        ctx.Add("{}=textureGatherOffsets({},{},{},int({}));", texel, texture, coords, offsets,
-                info.gather_component);
+        ctx.Add("{}=textureGatherOffsets({},{},{},int({}));", texel, texture,
+                TransformTextureCoords(info, coords), offsets, info.gather_component);
         return;
     }
     if (offset.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureGatherARB({},{},{},int({})));",
-                  *sparse_inst, texture, coords, texel, info.gather_component);
+                  *sparse_inst, texture, TransformTextureCoords(info, coords), texel,
+                  info.gather_component);
         return;
     }
     if (offset2.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureGatherOffsetARB({},{},{},{},int({})));",
-                  *sparse_inst, texture, CastToIntVec(coords, info), GetOffsetVec(ctx, offset),
-                  texel, info.gather_component);
+                  *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)),
+                  GetOffsetVec(ctx, offset), texel, info.gather_component);
         return;
     }
     // PTP
     const auto offsets{PtpOffsets(offset, offset2)};
     ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureGatherOffsetARB({},{},{},{},int({})));",
-              *sparse_inst, texture, CastToIntVec(coords, info), offsets, texel,
-              info.gather_component);
+              *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)),
+              offsets, texel, info.gather_component);
 }
 
 void EmitImageGatherDref(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
@@ -430,7 +437,6 @@ void EmitImageGatherDref(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
                          std::string_view dref) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const auto sparse_inst{PrepareSparse(inst)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -447,34 +453,37 @@ void EmitImageGatherDref(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
     }
     if (!sparse_inst || !supports_sparse) {
         if (offset.IsEmpty()) {
-            ctx.Add("{}=textureGather({},{},{});", texel, texture, coords, dref);
+            ctx.Add("{}=textureGather({},{},{});", texel, texture,
+                    TransformTextureCoords(info, coords), dref);
             return;
         }
         if (offset2.IsEmpty()) {
-            ctx.Add("{}=textureGatherOffset({},{},{},{});", texel, texture, coords, dref,
-                    GetOffsetVec(ctx, offset));
+            ctx.Add("{}=textureGatherOffset({},{},{},{});", texel, texture,
+                    TransformTextureCoords(info, coords), dref, GetOffsetVec(ctx, offset));
             return;
         }
         // PTP
         const auto offsets{PtpOffsets(offset, offset2)};
-        ctx.Add("{}=textureGatherOffsets({},{},{},{});", texel, texture, coords, dref, offsets);
+        ctx.Add("{}=textureGatherOffsets({},{},{},{});", texel, texture,
+                TransformTextureCoords(info, coords), dref, offsets);
         return;
     }
     if (offset.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureGatherARB({},{},{},{}));", *sparse_inst,
-                  texture, coords, dref, texel);
+                  texture, TransformTextureCoords(info, coords), dref, texel);
         return;
     }
     if (offset2.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureGatherOffsetARB({},{},{},,{},{}));",
-                  *sparse_inst, texture, CastToIntVec(coords, info), dref,
-                  GetOffsetVec(ctx, offset), texel);
+                  *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)),
+                  dref, GetOffsetVec(ctx, offset), texel);
         return;
     }
     // PTP
     const auto offsets{PtpOffsets(offset, offset2)};
     ctx.AddU1("{}=sparseTexelsResidentARB(sparseTextureGatherOffsetARB({},{},{},,{},{}));",
-              *sparse_inst, texture, CastToIntVec(coords, info), dref, offsets, texel);
+              *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)), dref,
+              offsets, texel);
 }
 
 void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
@@ -488,7 +497,6 @@ void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         throw NotImplementedException("EmitImageFetch Lod clamp samples");
     }
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto sparse_inst{PrepareSparse(inst)};
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const bool supports_sparse{ctx.profile.support_gl_sparse_textures};
@@ -497,7 +505,7 @@ void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         ctx.AddU1("{}=true;", *sparse_inst);
     }
     if (!sparse_inst || !supports_sparse) {
-        const auto int_coords{CoordsCastToInt(coords, info)};
+        const auto int_coords{TransformTextureCoords(info, CoordsCastToInt(coords, info))};
         if (!ms.empty()) {
             ctx.Add("{}=texelFetch({},{},int({}));", texel, texture, int_coords, ms);
         } else if (!offset.IsEmpty()) {
@@ -505,7 +513,8 @@ void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                     GetOffsetVec(ctx, offset));
         } else {
             if (info.type == TextureType::Buffer) {
-                ctx.Add("{}=texelFetch({},int({}));", texel, texture, coords);
+                ctx.Add("{}=texelFetch({},int({}));", texel, texture,
+                        TransformTextureCoords(info, coords));
             } else {
                 ctx.Add("{}=texelFetch({},{},int({}));", texel, texture, int_coords, lod);
             }
@@ -517,11 +526,12 @@ void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
     }
     if (!offset.IsEmpty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTexelFetchOffsetARB({},{},int({}),{},{}));",
-                  *sparse_inst, texture, CastToIntVec(coords, info), lod, GetOffsetVec(ctx, offset),
-                  texel);
+                  *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)),
+                  lod, GetOffsetVec(ctx, offset), texel);
     } else {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTexelFetchARB({},{},int({}),{}));",
-                  *sparse_inst, texture, CastToIntVec(coords, info), lod, texel);
+                  *sparse_inst, texture, TransformTextureCoords(info, CastToIntVec(coords, info)),
+                  lod, texel);
     }
 }
 
@@ -564,7 +574,8 @@ void EmitImageQueryLod(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                        std::string_view coords) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto texture{Texture(ctx, info, index)};
-    return ctx.AddF32x4("{}=float4(textureQueryLod({},{}),0.0,0.0);", inst, texture, coords);
+    return ctx.AddF32x4("{}=float4(textureQueryLod({},{}),0.0,0.0);", inst, texture,
+                        TransformTextureCoords(info, coords));
 }
 
 void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
@@ -582,7 +593,6 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         throw NotImplementedException("EmitImageGradient offset");
     }
     const auto texture{Texture(ctx, info, index)};
-    TransformTextureCoords(info, coords);
     const auto texel{ctx.var_alloc.Define(inst, MslVarType::F32x4)};
     const bool multi_component{info.num_derivatives > 1 || info.has_lod_clamp};
     const auto derivatives_vec{ctx.var_alloc.Consume(derivatives)};
@@ -590,14 +600,15 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         if (info.num_derivatives >= 3) {
             const auto offset_vec{ctx.var_alloc.Consume(offset)};
             ctx.Add("{}=textureGrad({},{},float3({}.xz, {}.x),float3({}.yw, {}.y));", texel,
-                    texture, coords, derivatives_vec, offset_vec, derivatives_vec, offset_vec);
+                    texture, TransformTextureCoords(info, coords), derivatives_vec, offset_vec,
+                    derivatives_vec, offset_vec);
             return;
         }
-        ctx.Add("{}=textureGrad({},{},float2({}.xz),float2({}.yz));", texel, texture, coords,
-                derivatives_vec, derivatives_vec);
+        ctx.Add("{}=textureGrad({},{},float2({}.xz),float2({}.yz));", texel, texture,
+                TransformTextureCoords(info, coords), derivatives_vec, derivatives_vec);
     } else {
-        ctx.Add("{}=textureGrad({},{},float({}.x),float({}.y));", texel, texture, coords,
-                derivatives_vec, derivatives_vec);
+        ctx.Add("{}=textureGrad({},{},float({}.x),float({}.y));", texel, texture,
+                TransformTextureCoords(info, coords), derivatives_vec, derivatives_vec);
     }
 }
 
@@ -609,53 +620,56 @@ void EmitImageRead(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         throw NotImplementedException("EmitImageRead Sparse");
     }
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32x4("{}=uint4(imageLoad({},{}));", inst, image, CoordsCastToInt(coords, info));
+    ctx.AddU32x4("{}=uint4(imageLoad({},{}));", inst, image,
+                 TransformTextureCoords(info, CoordsCastToInt(coords, info)));
 }
 
 void EmitImageWrite(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                     std::string_view coords, std::string_view color) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.Add("imageStore({},{},{});", image, CoordsCastToInt(coords, info), color);
+    ctx.Add("imageStore({},{},{});", image,
+            TransformTextureCoords(info, CastToIntVec(coords, info)), color);
 }
 
 void EmitImageAtomicIAdd32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                            std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicAdd({},{},{});", inst, image, CoordsCastToInt(coords, info), value);
+    ctx.AddU32("{}=imageAtomicAdd({},{},{});", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicSMin32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                            std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicMin({},{},int({}));", inst, image, CoordsCastToInt(coords, info),
-               value);
+    ctx.AddU32("{}=imageAtomicMin({},{},int({}));", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicUMin32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                            std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicMin({},{},uint({}));", inst, image, CoordsCastToInt(coords, info),
-               value);
+    ctx.AddU32("{}=imageAtomicMin({},{},uint({}));", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicSMax32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                            std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicMax({},{},int({}));", inst, image, CoordsCastToInt(coords, info),
-               value);
+    ctx.AddU32("{}=imageAtomicMax({},{},int({}));", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicUMax32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                            std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicMax({},{},uint({}));", inst, image, CoordsCastToInt(coords, info),
-               value);
+    ctx.AddU32("{}=imageAtomicMax({},{},uint({}));", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicInc32(EmitContext&, IR::Inst&, const IR::Value&, std::string_view,
@@ -672,29 +686,32 @@ void EmitImageAtomicAnd32(EmitContext& ctx, IR::Inst& inst, const IR::Value& ind
                           std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicAnd({},{},{});", inst, image, CoordsCastToInt(coords, info), value);
+    ctx.AddU32("{}=imageAtomicAnd({},{},{});", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicOr32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                          std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicOr({},{},{});", inst, image, CoordsCastToInt(coords, info), value);
+    ctx.AddU32("{}=imageAtomicOr({},{},{});", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicXor32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                           std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicXor({},{},{});", inst, image, CoordsCastToInt(coords, info), value);
+    ctx.AddU32("{}=imageAtomicXor({},{},{});", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitImageAtomicExchange32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                                std::string_view coords, std::string_view value) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const auto image{Image(ctx, info, index)};
-    ctx.AddU32("{}=imageAtomicExchange({},{},{});", inst, image, CoordsCastToInt(coords, info),
-               value);
+    ctx.AddU32("{}=imageAtomicExchange({},{},{});", inst, image,
+               TransformTextureCoords(info, CastToIntVec(coords, info)), value);
 }
 
 void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index) {

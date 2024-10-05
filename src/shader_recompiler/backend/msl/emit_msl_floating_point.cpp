@@ -207,11 +207,11 @@ void EmitFPRoundEven16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::I
 }
 
 void EmitFPRoundEven32(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
-    ctx.AddF32("{}=roundEven({});", inst, value);
+    ctx.AddF32("{}=rint({});", inst, value);
 }
 
 void EmitFPRoundEven64(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
-    ctx.AddF64("{}=roundEven({});", inst, value);
+    ctx.AddF64("{}=rint({});", inst, value);
 }
 
 void EmitFPFloor16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
