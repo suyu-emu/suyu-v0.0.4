@@ -342,7 +342,7 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
 
 void EmitContext::DefineInputs(Bindings& bindings) {
     // Constant buffers
-    bindings.uniform_buffer = 0;
+    bindings.uniform_buffer = 0; // HACK
     for (const auto& desc : info.constant_buffer_descriptors) {
         const u32 cbuf_used_size{Common::DivCeil(info.constant_buffer_used_sizes[desc.index], 16U)};
         const u32 cbuf_binding_size{info.uses_global_memory ? 0x1000U : cbuf_used_size};
@@ -363,7 +363,7 @@ void EmitContext::DefineInputs(Bindings& bindings) {
     // TODO
 
     // Storage space buffers
-    bindings.uniform_buffer = 15;
+    bindings.uniform_buffer = 8; // HACK
     u32 index{};
     for (const auto& desc : info.storage_buffers_descriptors) {
         if (has_at_least_one_input)

@@ -46,6 +46,8 @@ GraphicsPipeline::GraphicsPipeline(const Device& device_, CommandRecorder& comma
             continue;
         }
         stage_infos[stage] = *info;
+        enabled_uniform_buffer_masks[stage] = info->constant_buffer_mask;
+        std::ranges::copy(info->constant_buffer_used_sizes, uniform_buffer_sizes[stage].begin());
     }
     Validate();
     // TODO: is the framebuffer available by this time?
@@ -80,6 +82,10 @@ void GraphicsPipeline::Configure(bool is_indexed) {
         std::array<VideoCommon::SamplerId, 32>& samplers{all_samplers[stage].samplers};
         size_t& view_index{all_views[stage].view_index};
         size_t& sampler_index{all_samplers[stage].sampler_index};
+
+        texture_cache.SynchronizeGraphicsDescriptors();
+
+        buffer_cache.SetUniformBuffersState(enabled_uniform_buffer_masks, &uniform_buffer_sizes);
 
         buffer_cache.UnbindGraphicsStorageBuffers(stage);
         size_t ssbo_index{};

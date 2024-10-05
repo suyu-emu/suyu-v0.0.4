@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <iostream>
 #include <string_view>
 
 #include "shader_recompiler/backend/msl/emit_msl_instructions.h"

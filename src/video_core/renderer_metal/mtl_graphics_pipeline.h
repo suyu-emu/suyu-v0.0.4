@@ -114,7 +114,8 @@ private:
     std::array<MTL::Function*, NUM_STAGES> functions;
 
     std::array<Shader::Info, NUM_STAGES> stage_infos;
-    // VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
+    std::array<u32, 5> enabled_uniform_buffer_masks{};
+    VideoCommon::UniformBufferSizes uniform_buffer_sizes{};
     // u32 num_textures{};
 
     MTL::RenderPipelineState* pipeline_state{nullptr};

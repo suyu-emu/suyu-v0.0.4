@@ -138,7 +138,7 @@ public:
 
     void BindStorageBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer, u32 offset,
                            u32 size, [[maybe_unused]] bool is_written) {
-        BindBuffer(stage, binding_index, buffer, offset, size);
+        BindBuffer(stage, binding_index + 8, buffer, offset, size); // HACK: offset by 8
     }
 
     // TODO: implement

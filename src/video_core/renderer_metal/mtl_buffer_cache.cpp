@@ -102,8 +102,10 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, MTL::Buffer* buffer, u32 of
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
     for (u32 index = 0; index < bindings.buffers.size(); ++index) {
         auto handle = bindings.buffers[index]->Handle();
-        // TODO: set stride?
-        BindVertexBuffer(index, handle, bindings.offsets[index], bindings.sizes[index], 0);
+        if (handle) {
+            // TODO: set stride?
+            BindVertexBuffer(index, handle, bindings.offsets[index], bindings.sizes[index], 0);
+        }
     }
 }
 
