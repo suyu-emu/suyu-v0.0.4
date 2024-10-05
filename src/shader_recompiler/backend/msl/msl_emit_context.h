@@ -162,7 +162,7 @@ public:
 private:
     // TODO: break down into smaller functions
     void DefineInputs(Bindings& bindings);
-    void DefineStageInOut(size_t index, u32 invocations, bool is_input);
+    void DefineStageOut(size_t index, u32 invocations);
     void DefineHelperFunctions();
     void DefineConstants();
     std::string DefineGlobalMemoryFunctions();

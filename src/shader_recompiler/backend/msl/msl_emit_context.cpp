@@ -49,6 +49,7 @@ std::string_view InputArrayDecorator(Stage stage) {
 */
 
 // TODO
+/*
 std::string OutputDecorator(Stage stage, u32 size) {
     switch (stage) {
     case Stage::TessellationControl:
@@ -57,6 +58,7 @@ std::string OutputDecorator(Stage stage, u32 size) {
         return "";
     }
 }
+*/
 
 /*
 // TODO
@@ -240,13 +242,13 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         stage_name = "vertex";
         break;
     case Stage::TessellationControl:
-        stage_name = "kernel";
+        stage_name = "INVALID";
         break;
     case Stage::TessellationEval:
-        stage_name = "vertex";
+        stage_name = "INVALID";
         break;
     case Stage::Geometry:
-        stage_name = "vertex";
+        stage_name = "INVALID";
         break;
     case Stage::Fragment:
         stage_name = "fragment";
@@ -275,7 +277,11 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         if (!info.loads.Generic(index) || !runtime_info.previous_stage_stores.Generic(index)) {
             continue;
         }
-        DefineStageInOut(index, program.invocations, true);
+        const std::string qualifier{(stage == Stage::VertexA || stage == Stage::VertexB) ? "attribute(" : "user(locn"};
+        // TODO: uncomment
+        header += fmt::format("float4 attr{} [[{}{})]];\n"/*,
+                              InterpDecorator(info.interpolation[index])*/, index/*,
+                              InputArrayDecorator(stage)*/, qualifier, index);
         has_stage_input = true;
     }
     for (size_t index = 0; index < info.uses_patches.size(); ++index) {
@@ -319,7 +325,7 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
     }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (info.stores.Generic(index)) {
-            DefineStageInOut(index, program.invocations, false);
+            DefineStageOut(index, program.invocations);
         }
     }
     header += "};\n";
@@ -437,14 +443,13 @@ void EmitContext::DefineInputs(Bindings& bindings) {
 }
 
 // TODO
-void EmitContext::DefineStageInOut(size_t index, u32 invocations, bool is_input) {
-    const auto type{fmt::format("float{}", 4)};
+void EmitContext::DefineStageOut(size_t index, u32 invocations) {
     std::string name{fmt::format("attr{}", index)};
-    header += fmt::format("{} {}{} [[user(locn{})]];\n", type, name,
-                          OutputDecorator(stage, invocations), index);
+    header += fmt::format("float4 {} [[user(locn{})]];\n", name/*,
+                          OutputDecorator(stage, invocations)*/, index);
 
     const GenericElementInfo element_info{
-        .name = (is_input ? "__in." : "__out.") + name,
+        .name = "__out." + name,
         .first_element = 0,
         .num_components = 4,
     };
@@ -452,6 +457,7 @@ void EmitContext::DefineStageInOut(size_t index, u32 invocations, bool is_input)
 }
 
 void EmitContext::DefineHelperFunctions() {
+    // TODO: use MSL's extract_bits instead
     header +=
         "uint bitfieldExtract(uint value, int offset, int bits) {\nreturn (value >> offset) & "
         "((1 << bits) - 1);\n}\n";

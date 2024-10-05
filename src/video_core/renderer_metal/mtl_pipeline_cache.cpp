@@ -56,9 +56,124 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
                                     const GraphicsPipelineCacheKey& key,
                                     const Shader::IR::Program& program,
                                     const Shader::IR::Program* previous_program) {
-    Shader::RuntimeInfo info{};
-
-    // TODO: fill in the runtime info
+    Shader::RuntimeInfo info;
+    if (previous_program) {
+        info.previous_stage_stores = previous_program->info.stores;
+        info.previous_stage_legacy_stores_mapping = previous_program->info.legacy_stores_mapping;
+        if (previous_program->is_geometry_passthrough) {
+            info.previous_stage_stores.mask |= previous_program->info.passthrough.mask;
+        }
+    } else {
+        info.previous_stage_stores.mask.set();
+    }
+    // TODO: uncomment
+    /*
+    const Shader::Stage stage{program.stage};
+    const bool has_geometry{key.unique_hashes[4] != 0 && !programs[4].is_geometry_passthrough};
+    const bool gl_ndc{key.state.ndc_minus_one_to_one != 0};
+    const float point_size{Common::BitCast<float>(key.state.point_size)};
+    switch (stage) {
+    case Shader::Stage::VertexB:
+        if (!has_geometry) {
+            if (key.state.topology == Maxwell::PrimitiveTopology::Points) {
+                info.fixed_state_point_size = point_size;
+            }
+            if (key.state.xfb_enabled) {
+                auto [varyings, count] =
+                    VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+                info.xfb_varyings = varyings;
+                info.xfb_count = count;
+            }
+            info.convert_depth_mode = gl_ndc;
+        }
+        if (key.state.dynamic_vertex_input) {
+            for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+                info.generic_input_types[index] = AttributeType(key.state, index);
+            }
+        } else {
+            std::ranges::transform(key.state.attributes, info.generic_input_types.begin(),
+                                    &CastAttributeType);
+        }
+        break;
+    case Shader::Stage::TessellationEval:
+        info.tess_clockwise = key.state.tessellation_clockwise != 0;
+        info.tess_primitive = [&key] {
+            const u32 raw{key.state.tessellation_primitive.Value()};
+            switch (static_cast<Maxwell::Tessellation::DomainType>(raw)) {
+            case Maxwell::Tessellation::DomainType::Isolines:
+                return Shader::TessPrimitive::Isolines;
+            case Maxwell::Tessellation::DomainType::Triangles:
+                return Shader::TessPrimitive::Triangles;
+            case Maxwell::Tessellation::DomainType::Quads:
+                return Shader::TessPrimitive::Quads;
+            }
+            ASSERT(false);
+            return Shader::TessPrimitive::Triangles;
+        }();
+        info.tess_spacing = [&] {
+            const u32 raw{key.state.tessellation_spacing};
+            switch (static_cast<Maxwell::Tessellation::Spacing>(raw)) {
+            case Maxwell::Tessellation::Spacing::Integer:
+                return Shader::TessSpacing::Equal;
+            case Maxwell::Tessellation::Spacing::FractionalOdd:
+                return Shader::TessSpacing::FractionalOdd;
+            case Maxwell::Tessellation::Spacing::FractionalEven:
+                return Shader::TessSpacing::FractionalEven;
+            }
+            ASSERT(false);
+            return Shader::TessSpacing::Equal;
+        }();
+        break;
+    case Shader::Stage::Geometry:
+        if (program.output_topology == Shader::OutputTopology::PointList) {
+            info.fixed_state_point_size = point_size;
+        }
+        if (key.state.xfb_enabled != 0) {
+            auto [varyings, count] =
+                VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+            info.xfb_varyings = varyings;
+            info.xfb_count = count;
+        }
+        info.convert_depth_mode = gl_ndc;
+        break;
+    case Shader::Stage::Fragment:
+        info.alpha_test_func = MaxwellToCompareFunction(
+            key.state.UnpackComparisonOp(key.state.alpha_test_func.Value()));
+        info.alpha_test_reference = Common::BitCast<float>(key.state.alpha_test_ref);
+        break;
+    default:
+        break;
+    }
+    switch (key.state.topology) {
+    case Maxwell::PrimitiveTopology::Points:
+        info.input_topology = Shader::InputTopology::Points;
+        break;
+    case Maxwell::PrimitiveTopology::Lines:
+    case Maxwell::PrimitiveTopology::LineLoop:
+    case Maxwell::PrimitiveTopology::LineStrip:
+        info.input_topology = Shader::InputTopology::Lines;
+        break;
+    case Maxwell::PrimitiveTopology::Triangles:
+    case Maxwell::PrimitiveTopology::TriangleStrip:
+    case Maxwell::PrimitiveTopology::TriangleFan:
+    case Maxwell::PrimitiveTopology::Quads:
+    case Maxwell::PrimitiveTopology::QuadStrip:
+    case Maxwell::PrimitiveTopology::Polygon:
+    case Maxwell::PrimitiveTopology::Patches:
+        info.input_topology = Shader::InputTopology::Triangles;
+        break;
+    case Maxwell::PrimitiveTopology::LinesAdjacency:
+    case Maxwell::PrimitiveTopology::LineStripAdjacency:
+        info.input_topology = Shader::InputTopology::LinesAdjacency;
+        break;
+    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
+    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
+        info.input_topology = Shader::InputTopology::TrianglesAdjacency;
+        break;
+    }
+    info.force_early_z = key.state.early_z != 0;
+    info.y_negate = key.state.y_negate != 0;
+    */
 
     return info;
 }
@@ -231,7 +346,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     auto hash = key.Hash();
     LOG_INFO(Render_Metal, "0x{:016x}", hash);
 
-    // Translate shaders to spirv
+    // Translate shaders
     size_t env_index{0};
     std::array<Shader::IR::Program, Maxwell::MaxShaderProgram> programs;
 
@@ -268,7 +383,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         ConvertLegacyToGeneric(program, runtime_info);
         const std::string code{EmitMSL(profile, runtime_info, program, binding)};
         // HACK
-        std::cout << "SHADER INDEX: " << index - 1 << std::endl;
+        std::cout << "SHADER INDEX: " << stage_index << std::endl;
         std::cout << code << std::endl;
         MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
         NS::Error* error = nullptr;
