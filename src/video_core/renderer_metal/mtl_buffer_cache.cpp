@@ -93,14 +93,18 @@ void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 fir
     // TODO: bind quad index buffer
 }
 
-void BufferCacheRuntime::BindVertexBuffer(size_t stage, u32 index, MTL::Buffer* buffer, u32 offset,
-                                          u32 size, u32 stride) {
-    // TODO: use stride
-    BindBuffer(stage, MAX_METAL_BUFFERS - index - 1, buffer, offset, size);
+void BufferCacheRuntime::BindVertexBuffer(u32 index, MTL::Buffer* buffer, u32 offset, u32 size,
+                                          u32 stride) {
+    // TODO: use stride?
+    BindBuffer(0, MAX_METAL_BUFFERS - index - 1, buffer, offset, size);
 }
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
-    // TODO: implement
+    for (u32 index = 0; index < bindings.buffers.size(); ++index) {
+        auto handle = bindings.buffers[index]->Handle();
+        // TODO: set stride?
+        BindVertexBuffer(index, handle, bindings.offsets[index], bindings.sizes[index], 0);
+    }
 }
 
 void BufferCacheRuntime::BindBuffer(size_t stage, u32 binding_index, MTL::Buffer* buffer,
