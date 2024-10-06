@@ -358,7 +358,22 @@ bool RasterizerMetal::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surfa
 
 void RasterizerMetal::AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                                std::span<const u8> memory) {
-    LOG_DEBUG(Render_Metal, "called");
+    auto cpu_addr = gpu_memory->GpuToCpuAddress(address);
+    if (!cpu_addr) [[unlikely]] {
+        gpu_memory->WriteBlock(address, memory.data(), copy_size);
+        return;
+    }
+
+    gpu_memory->WriteBlockUnsafe(address, memory.data(), copy_size);
+    {
+        if (!buffer_cache.InlineMemory(*cpu_addr, copy_size, memory)) {
+            buffer_cache.WriteMemory(*cpu_addr, copy_size);
+        }
+    }
+
+    texture_cache.WriteMemory(*cpu_addr, copy_size);
+
+    pipeline_cache.InvalidateRegion(*cpu_addr, copy_size);
 }
 
 void RasterizerMetal::LoadDiskResources(u64 title_id, std::stop_token stop_loading,

@@ -105,17 +105,17 @@ void Image::UploadMemory(const StagingBufferRef& map,
 
 void Image::DownloadMemory(MTL::Buffer* buffer, size_t offset,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
-    ;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void Image::DownloadMemory(std::span<MTL::Buffer*> buffers, std::span<size_t> offsets,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
-    ;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 void Image::DownloadMemory(const StagingBufferRef& map,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
-    ;
+    LOG_DEBUG(Render_Metal, "called");
 }
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
