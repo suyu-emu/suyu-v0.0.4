@@ -87,7 +87,7 @@ For Multiplayer, we recommend using the "Yuzu Online" patch, install instruction
 
 ## Support
 
-If you have any questions, don't hesitate to ask us in our [Chat](https://chat.suyu.dev) or Subreddit, make an issue or contact a developer. We don't bite!
+If you have any questions, don't hesitate to ask us in our [Chat](https://chat.suyu.dev) or [Subreddit](https://www.reddit.com/r/suyu/), make an issue or contact a developer. We don't bite!
 
 
 ## License
