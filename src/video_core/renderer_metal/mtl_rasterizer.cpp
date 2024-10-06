@@ -80,7 +80,8 @@ RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
       texture_cache_runtime(device, command_recorder, staging_buffer_pool),
       texture_cache(texture_cache_runtime, device_memory),
       pipeline_cache(device_memory, device, command_recorder, buffer_cache, texture_cache,
-                     gpu.ShaderNotify()), accelerate_dma(buffer_cache) {}
+                     gpu.ShaderNotify()),
+      accelerate_dma(buffer_cache) {}
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
@@ -98,19 +99,24 @@ void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
     const DrawParams draw_params{MakeDrawParams(draw_state, instance_count, is_indexed)};
 
     // TODO: get the primitive type
-    MTL::PrimitiveType primitiveType = MTL::PrimitiveTypeTriangle;//MaxwellToMTL::PrimitiveType(draw_state.topology);
+    MTL::PrimitiveType primitiveType =
+        MTL::PrimitiveTypeTriangle; // MaxwellToMTL::PrimitiveType(draw_state.topology);
 
     if (is_indexed) {
         auto& index_buffer = command_recorder.GetBoundIndexBuffer();
-        size_t index_buffer_offset = index_buffer.offset + draw_params.first_index * index_buffer.index_size;
+        size_t index_buffer_offset =
+            index_buffer.offset + draw_params.first_index * index_buffer.index_size;
 
         ASSERT(index_buffer_offset % 4 == 0);
 
-        command_recorder.GetRenderCommandEncoder()->drawIndexedPrimitives(primitiveType, draw_params.num_vertices, index_buffer.index_type, index_buffer.buffer, index_buffer_offset, draw_params.num_instances,
-            draw_params.base_vertex, draw_params.base_instance);
+        command_recorder.GetRenderCommandEncoder()->drawIndexedPrimitives(
+            primitiveType, draw_params.num_vertices, index_buffer.index_type, index_buffer.buffer,
+            index_buffer_offset, draw_params.num_instances, draw_params.base_vertex,
+            draw_params.base_instance);
     } else {
-        command_recorder.GetRenderCommandEncoder()->drawPrimitives(primitiveType,
-                                                                   draw_params.base_vertex, draw_params.num_vertices, draw_params.num_instances, draw_params.base_instance);
+        command_recorder.GetRenderCommandEncoder()->drawPrimitives(
+            primitiveType, draw_params.base_vertex, draw_params.num_vertices,
+            draw_params.num_instances, draw_params.base_instance);
     }
 }
 
@@ -181,9 +187,9 @@ void RasterizerMetal::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType w
     if ((True(which & VideoCommon::CacheType::BufferCache))) {
         buffer_cache.DownloadMemory(addr, size);
     }
-    //if ((True(which & VideoCommon::CacheType::QueryCache))) {
-    //    query_cache.FlushRegion(addr, size);
-    //}
+    // if ((True(which & VideoCommon::CacheType::QueryCache))) {
+    //     query_cache.FlushRegion(addr, size);
+    // }
 }
 
 bool RasterizerMetal::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
@@ -228,9 +234,9 @@ void RasterizerMetal::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheT
     if ((True(which & VideoCommon::CacheType::BufferCache))) {
         buffer_cache.WriteMemory(addr, size);
     }
-    //if ((True(which & VideoCommon::CacheType::QueryCache))) {
-    //    query_cache.InvalidateRegion(addr, size);
-    //}
+    // if ((True(which & VideoCommon::CacheType::QueryCache))) {
+    //     query_cache.InvalidateRegion(addr, size);
+    // }
     if ((True(which & VideoCommon::CacheType::ShaderCache))) {
         pipeline_cache.InvalidateRegion(addr, size);
     }

@@ -83,8 +83,8 @@ void BufferCacheRuntime::CopyBuffer(MTL::Buffer* dst_buffer, MTL::Buffer* src_bu
 }
 
 void BufferCacheRuntime::ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_t size, u32 value) {
-    LOG_DEBUG(Render_Metal, "called (buffer: {}, offset: {}, size: {}, value: {})", (void*)dest_buffer,
-              offset, size, value);
+    LOG_DEBUG(Render_Metal, "called (buffer: {}, offset: {}, size: {}, value: {})",
+              (void*)dest_buffer, offset, size, value);
     // TODO: clear buffer
 }
 

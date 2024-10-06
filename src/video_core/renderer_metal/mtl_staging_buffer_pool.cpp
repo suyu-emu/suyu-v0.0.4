@@ -30,7 +30,7 @@ StagingBuffer::StagingBuffer(MTL::Buffer* buffer_, std::span<u8> mapped_span_)
 
 StagingBuffer::~StagingBuffer() {
     // TODO: uncomment
-    //buffer->release();
+    // buffer->release();
 }
 
 StagingBufferRef StagingBuffer::Ref() const noexcept {
@@ -38,7 +38,7 @@ StagingBufferRef StagingBuffer::Ref() const noexcept {
 }
 
 // TODO: use the _MiB suffix
-constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;//128_MiB;
+constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024; // 128_MiB;
 constexpr size_t REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS;
 
 StagingBufferPool::StagingBufferPool(const Device& device_, CommandRecorder& command_recorder_)

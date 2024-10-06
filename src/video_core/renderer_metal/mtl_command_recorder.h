@@ -40,9 +40,9 @@ struct BoundIndexBuffer {
     size_t offset{0};
     MTL::IndexType index_type;
     size_t index_size;
-    //MTL::PrimitiveType primitive_topology;
-    //u32 num_indices;
-    //u32 base_vertex;
+    // MTL::PrimitiveType primitive_topology;
+    // u32 num_indices;
+    // u32 base_vertex;
 };
 
 struct RenderState {
