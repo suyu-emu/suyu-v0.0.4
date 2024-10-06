@@ -374,20 +374,33 @@ if (APPLE)
     )
 
     list(APPEND sources
+        renderer_metal/maxwell_to_mtl.cpp
+        renderer_metal/maxwell_to_mtl.h
         renderer_metal/metal_cpp_impl.cpp
         renderer_metal/mtl_buffer_cache.cpp
+        renderer_metal/mtl_buffer_cache.h
         renderer_metal/mtl_buffer_cache_base.cpp
         renderer_metal/mtl_command_recorder.cpp
+        renderer_metal/mtl_command_recorder.h
         renderer_metal/mtl_compute_pipeline.cpp
+        renderer_metal/mtl_compute_pipeline.h
         renderer_metal/mtl_device.cpp
+        renderer_metal/mtl_device.h
         renderer_metal/mtl_graphics_pipeline.cpp
+        renderer_metal/mtl_graphics_pipeline.h
         renderer_metal/mtl_pipeline_cache.cpp
+        renderer_metal/mtl_pipeline_cache.h
         renderer_metal/mtl_rasterizer.cpp
+        renderer_metal/mtl_rasterizer.h
         renderer_metal/mtl_staging_buffer_pool.cpp
+        renderer_metal/mtl_staging_buffer_pool.h
         renderer_metal/mtl_swap_chain.cpp
+        renderer_metal/mtl_swap_chain.h
         renderer_metal/mtl_texture_cache.cpp
+        renderer_metal/mtl_texture_cache.h
         renderer_metal/mtl_texture_cache_base.cpp
         renderer_metal/renderer_metal.cpp
+        renderer_metal/renderer_metal.h
     )
 endif()
 
