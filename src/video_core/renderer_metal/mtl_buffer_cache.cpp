@@ -17,7 +17,10 @@ namespace Metal {
 namespace {
 
 MTL::Buffer* CreatePrivateBuffer(const Device& device, size_t size) {
-    return device.GetDevice()->newBuffer(size, MTL::ResourceStorageModePrivate);
+    MTL::Buffer* buffer = device.GetDevice()->newBuffer(size, MTL::ResourceStorageModePrivate);
+    buffer->setLabel(NS::String::string("Buffer cache buffer", NS::ASCIIStringEncoding));
+
+    return buffer;
 }
 
 } // Anonymous namespace
@@ -80,6 +83,8 @@ void BufferCacheRuntime::CopyBuffer(MTL::Buffer* dst_buffer, MTL::Buffer* src_bu
 }
 
 void BufferCacheRuntime::ClearBuffer(MTL::Buffer* dest_buffer, u32 offset, size_t size, u32 value) {
+    LOG_DEBUG(Render_Metal, "called (buffer: {}, offset: {}, size: {}, value: {})", (void*)dest_buffer,
+              offset, size, value);
     // TODO: clear buffer
 }
 
@@ -91,6 +96,7 @@ void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat
 }
 
 void BufferCacheRuntime::BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count) {
+    LOG_DEBUG(Render_Metal, "called");
     // TODO: bind quad index buffer
 }
 
@@ -122,7 +128,7 @@ void BufferCacheRuntime::ReserveNullBuffer() {
 }
 
 MTL::Buffer* BufferCacheRuntime::CreateNullBuffer() {
-    return CreatePrivateBuffer(device, NULL_BUFFER_SIZE * 2);
+    return CreatePrivateBuffer(device, NULL_BUFFER_SIZE);
 }
 
 } // namespace Metal

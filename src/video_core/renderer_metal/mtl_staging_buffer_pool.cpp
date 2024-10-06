@@ -38,13 +38,14 @@ StagingBufferRef StagingBuffer::Ref() const noexcept {
 }
 
 // TODO: use the _MiB suffix
-constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024; // 128_MiB;
+constexpr size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;//128_MiB;
 constexpr size_t REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS;
 
 StagingBufferPool::StagingBufferPool(const Device& device_, CommandRecorder& command_recorder_)
     : device{device_}, command_recorder{command_recorder_} {
     stream_buffer =
         device.GetDevice()->newBuffer(STREAM_BUFFER_SIZE, MTL::ResourceStorageModeShared);
+    stream_buffer->setLabel(NS::String::string("Stream buffer", NS::ASCIIStringEncoding));
 }
 
 StagingBufferPool::~StagingBufferPool() = default;
@@ -106,6 +107,7 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage
                                                         bool deferred) {
     const u32 log2 = Common::Log2Ceil64(size);
     MTL::Buffer* buffer = device.GetDevice()->newBuffer(size, MTL::ResourceStorageModeShared);
+    buffer->setLabel(NS::String::string("Staging buffer", NS::ASCIIStringEncoding));
     // TODO: check if the mapped span is correct
     std::span<u8> mapped_span(static_cast<u8*>(buffer->contents()), size);
     auto& entry = GetCache(usage)[log2].entries.emplace_back(buffer, mapped_span);

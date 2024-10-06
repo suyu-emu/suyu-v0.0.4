@@ -17,6 +17,7 @@ struct PixelFormatInfo {
     MTL::PixelFormat pixel_format;
     size_t bytes_per_block;
     VideoCommon::Extent2D block_texel_size{1, 1};
+    bool can_be_render_target = true;
 };
 
 // TODO: replace some of the invalid formats with the correct ones and emulate those which don't map
@@ -46,17 +47,17 @@ constexpr std::array<PixelFormatInfo, VideoCore::Surface::MaxPixelFormat> FORMAT
     {MTL::PixelFormatRGBA16Uint, 8},             // R16G16B16A16_UINT
     {MTL::PixelFormatInvalid, 0},                // B10G11R11_FLOAT
     {MTL::PixelFormatRGBA32Uint, 16},            // R32G32B32A32_UINT
-    {MTL::PixelFormatBC1_RGBA, 8, {4, 4}},       // BC1_RGBA_UNORM
+    {MTL::PixelFormatBC1_RGBA, 8, {4, 4}, false},       // BC1_RGBA_UNORM
     {MTL::PixelFormatInvalid, 0},                // BC2_UNORM
     {MTL::PixelFormatInvalid, 0},                // BC3_UNORM
-    {MTL::PixelFormatBC4_RUnorm, 8, {4, 4}},     // BC4_UNORM
-    {MTL::PixelFormatBC4_RSnorm, 0},             // BC4_SNORM
+    {MTL::PixelFormatBC4_RUnorm, 8, {4, 4}, false},     // BC4_UNORM
+    {MTL::PixelFormatBC4_RSnorm, 0, {0, 0}, false},             // BC4_SNORM TODO
     {MTL::PixelFormatInvalid, 0},                // BC5_UNORM
     {MTL::PixelFormatInvalid, 0},                // BC5_SNORM
     {MTL::PixelFormatInvalid, 0},                // BC7_UNORM
     {MTL::PixelFormatInvalid, 0},                // BC6H_UFLOAT
     {MTL::PixelFormatInvalid, 0},                // BC6H_SFLOAT
-    {MTL::PixelFormatASTC_4x4_LDR, 0},           // ASTC_2D_4X4_UNORM
+    {MTL::PixelFormatASTC_4x4_LDR, 0, {0, 0}, false},           // ASTC_2D_4X4_UNORM TODO
     {MTL::PixelFormatBGRA8Unorm, 4},             // B8G8R8A8_UNORM
     {MTL::PixelFormatRGBA32Float, 16},           // R32G32B32A32_FLOAT
     {MTL::PixelFormatRGBA32Sint, 16},            // R32G32B32A32_SINT
@@ -83,40 +84,40 @@ constexpr std::array<PixelFormatInfo, VideoCore::Surface::MaxPixelFormat> FORMAT
     {MTL::PixelFormatInvalid, 0},                // R16G16B16X16_FLOAT
     {MTL::PixelFormatR32Uint, 4},                // R32_UINT
     {MTL::PixelFormatR32Sint, 4},                // R32_SINT
-    {MTL::PixelFormatASTC_8x8_LDR, 16, {8, 8}},  // ASTC_2D_8X8_UNORM
-    {MTL::PixelFormatASTC_8x5_LDR, 0},           // ASTC_2D_8X5_UNORM
-    {MTL::PixelFormatASTC_5x4_LDR, 0},           // ASTC_2D_5X4_UNORM
+    {MTL::PixelFormatASTC_8x8_LDR, 16, {8, 8}, false},  // ASTC_2D_8X8_UNORM
+    {MTL::PixelFormatASTC_8x5_LDR, 0, {0, 0}, false},           // ASTC_2D_8X5_UNORM TODO
+    {MTL::PixelFormatASTC_5x4_LDR, 0, {0, 0}, false},           // ASTC_2D_5X4_UNORM TODO
     {MTL::PixelFormatBGRA8Unorm_sRGB, 0},        // B8G8R8A8_SRGB
-    {MTL::PixelFormatBC1_RGBA_sRGB, 0},          // BC1_RGBA_SRGB
+    {MTL::PixelFormatBC1_RGBA_sRGB, 0, {0, 0}, false},          // BC1_RGBA_SRGB TODO
     {MTL::PixelFormatInvalid, 0},                // BC2_SRGB
     {MTL::PixelFormatInvalid, 0},                // BC3_SRGB
-    {MTL::PixelFormatBC7_RGBAUnorm_sRGB, 0},     // BC7_SRGB
+    {MTL::PixelFormatBC7_RGBAUnorm_sRGB, 0, {0, 0}, false},     // BC7_SRGB TODO
     {MTL::PixelFormatABGR4Unorm, 0},             // A4B4G4R4_UNORM
     {MTL::PixelFormatInvalid, 0},                // G4R4_UNORM
-    {MTL::PixelFormatASTC_4x4_sRGB, 16, {4, 4}}, // ASTC_2D_4X4_SRGB
-    {MTL::PixelFormatASTC_8x8_sRGB, 0},          // ASTC_2D_8X8_SRGB
-    {MTL::PixelFormatASTC_8x5_sRGB, 0},          // ASTC_2D_8X5_SRGB
-    {MTL::PixelFormatASTC_5x4_sRGB, 0},          // ASTC_2D_5X4_SRGB
-    {MTL::PixelFormatASTC_5x5_LDR, 0},           // ASTC_2D_5X5_UNORM
-    {MTL::PixelFormatASTC_5x5_sRGB, 0},          // ASTC_2D_5X5_SRGB
-    {MTL::PixelFormatASTC_10x8_LDR, 0},          // ASTC_2D_10X8_UNORM
-    {MTL::PixelFormatASTC_10x8_sRGB, 0},         // ASTC_2D_10X8_SRGB
-    {MTL::PixelFormatASTC_6x6_LDR, 0},           // ASTC_2D_6X6_UNORM
-    {MTL::PixelFormatASTC_6x6_sRGB, 0},          // ASTC_2D_6X6_SRGB
-    {MTL::PixelFormatASTC_10x6_LDR, 0},          // ASTC_2D_10X6_UNORM
-    {MTL::PixelFormatASTC_10x6_sRGB, 0},         // ASTC_2D_10X6_SRGB
-    {MTL::PixelFormatASTC_10x5_LDR, 0},          // ASTC_2D_10X5_UNORM
-    {MTL::PixelFormatASTC_10x5_sRGB, 0},         // ASTC_2D_10X5_SRGB
-    {MTL::PixelFormatASTC_10x10_LDR, 0},         // ASTC_2D_10X10_UNORM
-    {MTL::PixelFormatASTC_10x10_sRGB, 0},        // ASTC_2D_10X10_SRGB
-    {MTL::PixelFormatASTC_12x10_LDR, 0},         // ASTC_2D_12X10_UNORM
-    {MTL::PixelFormatASTC_12x10_sRGB, 0},        // ASTC_2D_12X10_SRGB
-    {MTL::PixelFormatASTC_12x12_LDR, 0},         // ASTC_2D_12X12_UNORM
-    {MTL::PixelFormatASTC_12x12_sRGB, 0},        // ASTC_2D_12X12_SRGB
-    {MTL::PixelFormatASTC_8x6_LDR, 0},           // ASTC_2D_8X6_UNORM
-    {MTL::PixelFormatASTC_8x6_sRGB, 0},          // ASTC_2D_8X6_SRGB
-    {MTL::PixelFormatASTC_6x5_LDR, 0},           // ASTC_2D_6X5_UNORM
-    {MTL::PixelFormatASTC_6x5_sRGB, 0},          // ASTC_2D_6X5_SRGB
+    {MTL::PixelFormatASTC_4x4_sRGB, 16, {4, 4}, false}, // ASTC_2D_4X4_SRGB
+    {MTL::PixelFormatASTC_8x8_sRGB, 0, {0, 0}, false},          // ASTC_2D_8X8_SRGB TODO
+    {MTL::PixelFormatASTC_8x5_sRGB, 0, {0, 0}, false},          // ASTC_2D_8X5_SRGB TODO
+    {MTL::PixelFormatASTC_5x4_sRGB, 0, {0, 0}, false},          // ASTC_2D_5X4_SRGB TODO
+    {MTL::PixelFormatASTC_5x5_LDR, 0, {0, 0}, false},           // ASTC_2D_5X5_UNORM TODO
+    {MTL::PixelFormatASTC_5x5_sRGB, 0, {0, 0}, false},          // ASTC_2D_5X5_SRGB TODO
+    {MTL::PixelFormatASTC_10x8_LDR, 0, {0, 0}, false},          // ASTC_2D_10X8_UNORM TODO
+    {MTL::PixelFormatASTC_10x8_sRGB, 0, {0, 0}, false},         // ASTC_2D_10X8_SRGB TODO
+    {MTL::PixelFormatASTC_6x6_LDR, 0, {0, 0}, false},           // ASTC_2D_6X6_UNORM TODO
+    {MTL::PixelFormatASTC_6x6_sRGB, 0, {0, 0}, false},          // ASTC_2D_6X6_SRGB TODO
+    {MTL::PixelFormatASTC_10x6_LDR, 0, {0, 0}, false},          // ASTC_2D_10X6_UNORM TODO
+    {MTL::PixelFormatASTC_10x6_sRGB, 0, {0, 0}, false},         // ASTC_2D_10X6_SRGB TODO
+    {MTL::PixelFormatASTC_10x5_LDR, 0, {0, 0}, false},          // ASTC_2D_10X5_UNORM TODO
+    {MTL::PixelFormatASTC_10x5_sRGB, 0, {0, 0}, false},         // ASTC_2D_10X5_SRGB TODO
+    {MTL::PixelFormatASTC_10x10_LDR, 0, {0, 0}, false},         // ASTC_2D_10X10_UNORM TODO
+    {MTL::PixelFormatASTC_10x10_sRGB, 0, {0, 0}, false},        // ASTC_2D_10X10_SRGB TODO
+    {MTL::PixelFormatASTC_12x10_LDR, 0, {0, 0}, false},         // ASTC_2D_12X10_UNORM TODO
+    {MTL::PixelFormatASTC_12x10_sRGB, 0, {0, 0}, false},        // ASTC_2D_12X10_SRGB TODO
+    {MTL::PixelFormatASTC_12x12_LDR, 0, {0, 0}, false},         // ASTC_2D_12X12_UNORM TODO
+    {MTL::PixelFormatASTC_12x12_sRGB, 0, {0, 0}, false},        // ASTC_2D_12X12_SRGB TODO
+    {MTL::PixelFormatASTC_8x6_LDR, 0, {0, 0}, false},           // ASTC_2D_8X6_UNORM TODO
+    {MTL::PixelFormatASTC_8x6_sRGB, 0, {0, 0}, false},          // ASTC_2D_8X6_SRGB TODO
+    {MTL::PixelFormatASTC_6x5_LDR, 0, {0, 0}, false},           // ASTC_2D_6X5_UNORM TODO
+    {MTL::PixelFormatASTC_6x5_sRGB, 0, {0, 0}, false},          // ASTC_2D_6X5_SRGB TODO
     {MTL::PixelFormatInvalid, 0},                // E5B9G9R9_FLOAT
     {MTL::PixelFormatDepth32Float, 0},           // D32_FLOAT
     {MTL::PixelFormatDepth16Unorm, 0},           // D16_UNORM

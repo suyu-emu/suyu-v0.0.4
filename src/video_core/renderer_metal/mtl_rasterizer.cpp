@@ -127,6 +127,7 @@ void RasterizerMetal::Clear(u32 layer_count) {
         return;
     }
 
+    // TODO: clear
     command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 }
 
@@ -146,6 +147,7 @@ void RasterizerMetal::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
     if (!gpu_memory) {
         return;
     }
+
     if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
         u64 ticks = gpu.GetTicks();
         gpu_memory->Write<u64>(gpu_addr + 8, ticks);
@@ -365,8 +367,6 @@ void RasterizerMetal::LoadDiskResources(u64 title_id, std::stop_token stop_loadi
 }
 
 void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
-    LOG_DEBUG(Render_Metal, "called");
-
     CreateChannel(channel);
     buffer_cache.CreateChannel(channel);
     texture_cache.CreateChannel(channel);
@@ -374,8 +374,6 @@ void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
 }
 
 void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
-    LOG_DEBUG(Render_Metal, "called");
-
     BindToChannel(channel.bind_id);
     buffer_cache.BindToChannel(channel.bind_id);
     texture_cache.BindToChannel(channel.bind_id);
@@ -383,8 +381,6 @@ void RasterizerMetal::BindChannel(Tegra::Control::ChannelState& channel) {
 }
 
 void RasterizerMetal::ReleaseChannel(s32 channel_id) {
-    LOG_DEBUG(Render_Metal, "called");
-
     EraseChannel(channel_id);
     buffer_cache.EraseChannel(channel_id);
     texture_cache.EraseChannel(channel_id);

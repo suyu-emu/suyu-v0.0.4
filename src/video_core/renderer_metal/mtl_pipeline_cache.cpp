@@ -405,51 +405,6 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         previous_stage = &program;
     }
 
-    // HACK: create hardcoded shaders
-    /*
-    MTL::CompileOptions* compile_options = MTL::CompileOptions::alloc()->init();
-    NS::Error* error = nullptr;
-    MTL::Library* library = device.GetDevice()->newLibrary(NS::String::string(
-                                                               R"(
-        #include <metal_stdlib>
-        using namespace metal;
-
-        constant float2 positions[] = {
-            float2(-1.0, -3.0),
-            float2(-1.0,  1.0),
-            float2( 3.0,  1.0),
-        };
-
-        struct VertexOut {
-            float4 position [[position]];
-            float2 texCoord;
-        };
-
-        vertex VertexOut vertexMain(uint vid [[vertex_id]]) {
-            VertexOut out;
-            out.position = float4(positions[vid], 0.0, 1.0);
-            out.texCoord = positions[vid] * 0.5 + 0.5;
-            out.texCoord.y = 1.0 - out.texCoord.y;
-
-            return out;
-        }
-
-        fragment float4 fragmentMain(VertexOut in [[stage_in]], texture2d<float> tex [[texture(0)]],
-    sampler samplr [[sampler(0)]]) { return tex.sample(samplr, in.texCoord);
-        }
-    )",
-                                                               NS::ASCIIStringEncoding),
-                                                           compile_options, &error);
-    if (error) {
-        LOG_ERROR(Render_Metal, "failed to create library: {}",
-                  error->description()->cString(NS::ASCIIStringEncoding));
-    }
-
-    functions[0] = library->newFunction(NS::String::string("vertexMain", NS::ASCIIStringEncoding));
-    functions[4] =
-        library->newFunction(NS::String::string("fragmentMain", NS::ASCIIStringEncoding));
-    */
-
     return std::make_unique<GraphicsPipeline>(device, command_recorder, key, buffer_cache,
                                               texture_cache, &shader_notify, functions, infos);
 } catch (const std::exception& e) {

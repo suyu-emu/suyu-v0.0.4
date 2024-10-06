@@ -35,7 +35,7 @@ void RendererMetal::Composite(std::span<const Tegra::FramebufferConfig> framebuf
     // Ask the swap chain to get next drawable
     swap_chain.AcquireNextDrawable();
 
-    // TODO: copy the framebuffer to the drawable texture instead of this dummy render pass
+    // Blit the framebuffer using a render pass
     MTL::RenderPassDescriptor* render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     render_pass_descriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionDontCare);
     render_pass_descriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);

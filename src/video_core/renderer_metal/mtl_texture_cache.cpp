@@ -59,13 +59,19 @@ void TextureCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info, gpu_addr_, cpu_addr_), runtime{&runtime_} {
+    const auto& pixel_format_info = MaxwellToMTL::GetPixelFormatInfo(info.format);
+
     MTL::TextureDescriptor* texture_descriptor = MTL::TextureDescriptor::alloc()->init();
-    texture_descriptor->setPixelFormat(MaxwellToMTL::GetPixelFormatInfo(info.format).pixel_format);
+    texture_descriptor->setPixelFormat(pixel_format_info.pixel_format);
     texture_descriptor->setWidth(info.size.width);
     texture_descriptor->setHeight(info.size.height);
     texture_descriptor->setDepth(info.size.depth);
-    texture_descriptor->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageRenderTarget);
-    // TODO: set other parameters
+
+    MTL::TextureUsage usage = MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite;
+    if (pixel_format_info.can_be_render_target) {
+        usage |= MTL::TextureUsageRenderTarget;
+    }
+    texture_descriptor->setUsage(usage);
 
     texture = runtime->device.GetDevice()->newTexture(texture_descriptor);
 }
