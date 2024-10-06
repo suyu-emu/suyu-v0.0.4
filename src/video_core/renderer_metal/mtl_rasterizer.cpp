@@ -16,6 +16,49 @@
 
 namespace Metal {
 
+using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+using MaxwellDrawState = Tegra::Engines::DrawManager::State;
+using VideoCommon::ImageViewId;
+using VideoCommon::ImageViewType;
+
+namespace {
+
+struct DrawParams {
+    u32 base_instance;
+    u32 num_instances;
+    u32 base_vertex;
+    u32 num_vertices;
+    u32 first_index;
+    bool is_indexed;
+};
+
+DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances, bool is_indexed) {
+    DrawParams params{
+        .base_instance = draw_state.base_instance,
+        .num_instances = num_instances,
+        .base_vertex = is_indexed ? draw_state.base_index : draw_state.vertex_buffer.first,
+        .num_vertices = is_indexed ? draw_state.index_buffer.count : draw_state.vertex_buffer.count,
+        .first_index = is_indexed ? draw_state.index_buffer.first : 0,
+        .is_indexed = is_indexed,
+    };
+
+    // 6 triangle vertices per quad, base vertex is part of the index
+    // See BindQuadIndexBuffer for more details
+    if (draw_state.topology == Maxwell::PrimitiveTopology::Quads) {
+        params.num_vertices = (params.num_vertices / 4) * 6;
+        params.base_vertex = 0;
+        params.is_indexed = true;
+    } else if (draw_state.topology == Maxwell::PrimitiveTopology::QuadStrip) {
+        params.num_vertices = (params.num_vertices - 2) / 2 * 6;
+        params.base_vertex = 0;
+        params.is_indexed = true;
+    }
+
+    return params;
+}
+
+} // Anonymous namespace
+
 AccelerateDMA::AccelerateDMA() = default;
 
 bool AccelerateDMA::BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) {
@@ -41,41 +84,33 @@ RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
-    LOG_DEBUG(Render_Metal, "called");
-
     // Bind the current graphics pipeline
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
     }
+
     // Set the engine
     pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
 
-    // HACK: dummy draw call
-    command_recorder.GetRenderCommandEncoder()->drawPrimitives(MTL::PrimitiveTypeTriangle,
-                                                               NS::UInteger(0), NS::UInteger(3));
+    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    const DrawParams draw_params{MakeDrawParams(draw_state, instance_count, is_indexed)};
 
-    // TODO: uncomment
-    // command_recorder.CheckIfRenderPassIsActive();
-    // const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+    // TODO: get the primitive type
+    MTL::PrimitiveType primitiveType = MTL::PrimitiveTypeTriangle;//MaxwellToMTL::PrimitiveType(draw_state.topology);
+
     if (is_indexed) {
-        LOG_DEBUG(Render_Metal, "indexed");
-        /*[command_buffer drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-                                   indexCount:draw_params.num_indices
-                                    indexType:MTLIndexTypeUInt32
-                                  indexBuffer:draw_state.index_buffer
-                            indexBufferOffset:draw_params.first_index * sizeof(u32)
-                                instanceCount:draw_params.num_instances
-                                   baseVertex:draw_params.base_vertex
-                                 baseInstance:draw_params.base_instance];*/
-        // cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-        //                     draw_params.first_index, draw_params.base_vertex,
-        //                     draw_params.base_instance);
+        auto& index_buffer = command_recorder.GetBoundIndexBuffer();
+        size_t index_buffer_offset = index_buffer.offset + draw_params.first_index * index_buffer.index_size;
+
+        ASSERT(index_buffer_offset % 4 == 0);
+
+        command_recorder.GetRenderCommandEncoder()->drawIndexedPrimitives(primitiveType, draw_params.num_vertices, index_buffer.index_type, index_buffer.buffer, index_buffer_offset, draw_params.num_instances,
+            draw_params.base_vertex, draw_params.base_instance);
     } else {
-        LOG_DEBUG(Render_Metal, "not indexed");
-        // cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-        //             draw_params.base_vertex, draw_params.base_instance);
+        command_recorder.GetRenderCommandEncoder()->drawPrimitives(primitiveType,
+                                                                   draw_params.base_vertex, draw_params.num_vertices, draw_params.num_instances, draw_params.base_instance);
     }
 }
 
@@ -92,8 +127,6 @@ void RasterizerMetal::Clear(u32 layer_count) {
         return;
     }
 
-    // TODO: track the textures used by render pass and only begin the render pass if their contents
-    // are needed Begin render pass
     command_recorder.BeginOrContinueRenderPass(framebuffer->GetHandle());
 }
 

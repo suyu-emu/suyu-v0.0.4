@@ -313,4 +313,33 @@ inline MTL::VertexFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwe
     return format;
 }
 
+inline MTL::IndexType IndexType(Maxwell::IndexFormat format) {
+    switch (format) {
+    // TODO: UnsignedByte
+    case Maxwell::IndexFormat::UnsignedShort:
+        return MTL::IndexTypeUInt16;
+    case Maxwell::IndexFormat::UnsignedInt:
+        return MTL::IndexTypeUInt32;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented index format {}", format);
+    }
+
+    return MTL::IndexTypeUInt16;
+}
+
+inline size_t IndexSize(Maxwell::IndexFormat format) {
+    switch (format) {
+    case Maxwell::IndexFormat::UnsignedByte:
+        return 1;
+    case Maxwell::IndexFormat::UnsignedShort:
+        return 2;
+    case Maxwell::IndexFormat::UnsignedInt:
+        return 4;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented index format {}", format);
+    }
+
+    return 0;
+}
+
 } // namespace Metal::MaxwellToMTL

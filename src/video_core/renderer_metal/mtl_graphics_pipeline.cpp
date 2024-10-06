@@ -226,7 +226,7 @@ void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
         ASSERT(index < MAX_BUFFERS);
 
         // TODO: instancing
-        auto layout = vertex_descriptor->layouts()->object(index);
+        auto layout = vertex_descriptor->layouts()->object(MAX_BUFFERS - 1 - index);
         layout->setStride(array.stride.Value());
     }
     for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
@@ -236,7 +236,7 @@ void GraphicsPipeline::MakePipeline(MTL::RenderPassDescriptor* render_pass) {
             continue;
 
         auto attribute = vertex_descriptor->attributes()->object(index);
-        attribute->setBufferIndex(input.buffer);
+        attribute->setBufferIndex(MAX_BUFFERS - 1 - input.buffer);
         attribute->setOffset(input.offset);
         attribute->setFormat(MaxwellToMTL::VertexFormat(input.type.Value(), input.size.Value()));
     }

@@ -7,6 +7,7 @@
 #include <QuartzCore/QuartzCore.hpp>
 
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/renderer_metal/maxwell_to_mtl.h"
 
 namespace Metal {
 
@@ -37,10 +38,11 @@ struct BoundSamplerState {
 struct BoundIndexBuffer {
     MTL::Buffer* buffer{nullptr};
     size_t offset{0};
-    MTL::IndexType index_format;
-    MTL::PrimitiveType primitive_topology;
-    u32 num_indices;
-    u32 base_vertex;
+    MTL::IndexType index_type;
+    size_t index_size;
+    //MTL::PrimitiveType primitive_topology;
+    //u32 num_indices;
+    //u32 base_vertex;
 };
 
 struct RenderState {
@@ -140,8 +142,13 @@ public:
                                u32 base_vertex) {
         // TODO: convert parameters to Metal enums
         render_state.bound_index_buffer = {
-            buffer,      offset,     MTL::IndexTypeUInt32, MTL::PrimitiveTypeTriangle,
-            num_indices, base_vertex};
+            buffer,      offset,     MaxwellToMTL::IndexType(index_format), MaxwellToMTL::IndexSize(index_format)/*, MTL::PrimitiveTypeTriangle,
+            num_indices, base_vertex*/};
+    }
+
+    // Getters
+    const BoundIndexBuffer& GetBoundIndexBuffer() const {
+        return render_state.bound_index_buffer;
     }
 
 private:
