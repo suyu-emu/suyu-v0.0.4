@@ -27,8 +27,8 @@ class RasterizerMetal;
 
 class AccelerateDMA : public Tegra::Engines::AccelerateDMAInterface {
 public:
-    explicit AccelerateDMA();
-    bool BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) override;
+    explicit AccelerateDMA(BufferCache& buffer_cache_);
+    bool BufferCopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount) override;
     bool BufferClear(GPUVAddr src_address, u64 amount, u32 value) override;
     bool ImageToBuffer(const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::ImageOperand& src,
                        const Tegra::DMA::BufferOperand& dst) override {
@@ -38,6 +38,9 @@ public:
                        const Tegra::DMA::ImageOperand& dst) override {
         return false;
     }
+
+private:
+    BufferCache& buffer_cache;
 };
 
 class RasterizerMetal final : public VideoCore::RasterizerInterface,
@@ -96,7 +99,6 @@ public:
 
 private:
     Tegra::GPU& gpu;
-    AccelerateDMA accelerate_dma;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     const Device& device;
@@ -114,6 +116,8 @@ public:
 
 private:
     PipelineCache pipeline_cache;
+
+    AccelerateDMA accelerate_dma;
 };
 
 } // namespace Metal

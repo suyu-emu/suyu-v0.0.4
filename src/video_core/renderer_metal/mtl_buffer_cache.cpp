@@ -62,7 +62,7 @@ void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
 }
 
 u32 BufferCacheRuntime::GetStorageBufferAlignment() const {
-    // TODO: do not hardcode this
+    // TODO: check
     return 4;
 }
 

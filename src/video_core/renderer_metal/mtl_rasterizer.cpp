@@ -59,13 +59,13 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
 
 } // Anonymous namespace
 
-AccelerateDMA::AccelerateDMA() = default;
+AccelerateDMA::AccelerateDMA(BufferCache& buffer_cache_) : buffer_cache{buffer_cache_} {}
 
-bool AccelerateDMA::BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) {
-    return true;
+bool AccelerateDMA::BufferCopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount) {
+    return buffer_cache.DMACopy(src_address, dest_address, amount);
 }
 bool AccelerateDMA::BufferClear(GPUVAddr src_address, u64 amount, u32 value) {
-    return true;
+    return buffer_cache.DMAClear(src_address, amount, value);
 }
 
 RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
@@ -80,7 +80,7 @@ RasterizerMetal::RasterizerMetal(Tegra::GPU& gpu_,
       texture_cache_runtime(device, command_recorder, staging_buffer_pool),
       texture_cache(texture_cache_runtime, device_memory),
       pipeline_cache(device_memory, device, command_recorder, buffer_cache, texture_cache,
-                     gpu.ShaderNotify()) {}
+                     gpu.ShaderNotify()), accelerate_dma(buffer_cache) {}
 RasterizerMetal::~RasterizerMetal() = default;
 
 void RasterizerMetal::Draw(bool is_indexed, u32 instance_count) {
@@ -168,24 +168,96 @@ void RasterizerMetal::FlushAll() {
     LOG_DEBUG(Render_Metal, "called");
 }
 
-void RasterizerMetal::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
-    LOG_DEBUG(Render_Metal, "called");
+void RasterizerMetal::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
+    if (addr == 0 || size == 0) {
+        return;
+    }
+
+    if (True(which & VideoCommon::CacheType::TextureCache)) {
+        texture_cache.DownloadMemory(addr, size);
+    }
+    if ((True(which & VideoCommon::CacheType::BufferCache))) {
+        buffer_cache.DownloadMemory(addr, size);
+    }
+    //if ((True(which & VideoCommon::CacheType::QueryCache))) {
+    //    query_cache.FlushRegion(addr, size);
+    //}
 }
 
-bool RasterizerMetal::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
+bool RasterizerMetal::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
+    if ((True(which & VideoCommon::CacheType::BufferCache))) {
+        if (buffer_cache.IsRegionGpuModified(addr, size)) {
+            return true;
+        }
+    }
+    if (!Settings::IsGPULevelHigh()) {
+        return false;
+    }
+    if (True(which & VideoCommon::CacheType::TextureCache)) {
+        return texture_cache.IsRegionGpuModified(addr, size);
+    }
     return false;
 }
 
-void RasterizerMetal::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
-    LOG_DEBUG(Render_Metal, "called");
+void RasterizerMetal::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
+    // TODO: inner invalidation
+    /*
+    for (const auto& [addr, size] : sequences) {
+        texture_cache.WriteMemory(addr, size);
+    }
+
+    for (const auto& [addr, size] : sequences) {
+        buffer_cache.WriteMemory(addr, size);
+    }
+
+    for (const auto& [addr, size] : sequences) {
+        query_cache.InvalidateRegion(addr, size);
+        pipeline_cache.InvalidateRegion(addr, size);
+    }
+    */
+
+    if (addr == 0 || size == 0) {
+        return;
+    }
+
+    if (True(which & VideoCommon::CacheType::TextureCache)) {
+        texture_cache.WriteMemory(addr, size);
+    }
+    if ((True(which & VideoCommon::CacheType::BufferCache))) {
+        buffer_cache.WriteMemory(addr, size);
+    }
+    //if ((True(which & VideoCommon::CacheType::QueryCache))) {
+    //    query_cache.InvalidateRegion(addr, size);
+    //}
+    if ((True(which & VideoCommon::CacheType::ShaderCache))) {
+        pipeline_cache.InvalidateRegion(addr, size);
+    }
 }
 
 bool RasterizerMetal::OnCPUWrite(PAddr addr, u64 size) {
+    if (addr == 0 || size == 0) {
+        return false;
+    }
+
+    if (buffer_cache.OnCPUWrite(addr, size)) {
+        return true;
+    }
+    texture_cache.WriteMemory(addr, size);
+
+    pipeline_cache.InvalidateRegion(addr, size);
+
     return false;
 }
 
 void RasterizerMetal::OnCacheInvalidation(PAddr addr, u64 size) {
-    LOG_DEBUG(Render_Metal, "called");
+    if (addr == 0 || size == 0) {
+        return;
+    }
+
+    texture_cache.WriteMemory(addr, size);
+    buffer_cache.WriteMemory(addr, size);
+
+    pipeline_cache.InvalidateRegion(addr, size);
 }
 
 VideoCore::RasterizerDownloadArea RasterizerMetal::GetFlushArea(PAddr addr, u64 size) {
@@ -196,19 +268,23 @@ VideoCore::RasterizerDownloadArea RasterizerMetal::GetFlushArea(PAddr addr, u64 
         .end_address = Common::AlignUp(addr + size, Core::DEVICE_PAGESIZE),
         .preemtive = true,
     };
+
     return new_area;
 }
 
 void RasterizerMetal::InvalidateGPUCache() {
-    LOG_DEBUG(Render_Metal, "called");
+    gpu.InvalidateGPUCache();
 }
 
 void RasterizerMetal::UnmapMemory(DAddr addr, u64 size) {
-    LOG_DEBUG(Render_Metal, "called");
+    texture_cache.UnmapMemory(addr, size);
+    buffer_cache.WriteMemory(addr, size);
+
+    pipeline_cache.OnCacheInvalidation(addr, size);
 }
 
 void RasterizerMetal::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
-    LOG_DEBUG(Render_Metal, "called");
+    texture_cache.UnmapGPUMemory(as_id, addr, size);
 }
 
 void RasterizerMetal::SignalFence(std::function<void()>&& func) {
@@ -239,8 +315,11 @@ void RasterizerMetal::ReleaseFences(bool) {
     LOG_DEBUG(Render_Metal, "called");
 }
 
-void RasterizerMetal::FlushAndInvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType) {
-    LOG_DEBUG(Render_Metal, "called");
+void RasterizerMetal::FlushAndInvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
+    if (Settings::IsGPULevelExtreme()) {
+        FlushRegion(addr, size, which);
+    }
+    InvalidateRegion(addr, size, which);
 }
 
 void RasterizerMetal::WaitForIdle() {
