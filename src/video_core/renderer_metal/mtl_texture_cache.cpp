@@ -122,17 +122,16 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
                      ImageId image_id_, Image& image)
     : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr} {
     using Shader::TextureType;
-    if (image.GetHandle()) {
-        texture = image.GetHandle()->retain();
-    }
+    texture = image.GetHandle();
 
-    // TODO: create texture view
+    // TODO: implement
 }
 
+// TODO: save slot images
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
                      ImageId image_id_, Image& image, const SlotVector<Image>& slot_imgs)
     : ImageView(runtime, info, image_id_, image) {
-    // TODO: save slot images
+    texture = image.GetHandle();
 }
 
 ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
@@ -147,9 +146,8 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageV
 }
 
 ImageView::~ImageView() {
-    if (texture) {
-        texture->release();
-    }
+    // TODO: uncomment
+    // texture->release();
 }
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
