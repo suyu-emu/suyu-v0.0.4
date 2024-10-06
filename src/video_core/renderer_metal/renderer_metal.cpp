@@ -19,6 +19,9 @@ RendererMetal::RendererMetal(Core::Frontend::EmuWindow& emu_window,
       swap_chain(device, command_recorder,
                  static_cast<CA::MetalLayer*>(render_window.GetWindowInfo().render_surface)),
       rasterizer(gpu_, device_memory, device, command_recorder, swap_chain) {
+    // Per device info
+    MaxwellToMTL::CheckForPixelFormatSupport(device.GetDevice());
+
     CreateBlitPipelineState();
 }
 

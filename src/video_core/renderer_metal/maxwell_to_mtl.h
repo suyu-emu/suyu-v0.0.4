@@ -20,7 +20,9 @@ struct PixelFormatInfo {
     bool can_be_render_target = true;
 };
 
-const PixelFormatInfo GetPixelFormatInfo(VideoCore::Surface::PixelFormat pixel_format);
+void CheckForPixelFormatSupport(MTL::Device* device);
+
+const PixelFormatInfo& GetPixelFormatInfo(VideoCore::Surface::PixelFormat pixel_format);
 
 size_t GetTextureBytesPerRow(VideoCore::Surface::PixelFormat pixel_format, u32 texels_per_row);
 

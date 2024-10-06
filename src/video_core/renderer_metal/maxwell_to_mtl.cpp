@@ -7,7 +7,7 @@ namespace Metal::MaxwellToMTL {
 
 // TODO: emulate some formats which don't map directly
 // TODO: ASTC formats
-constexpr std::array<PixelFormatInfo, VideoCore::Surface::MaxPixelFormat> FORMAT_TABLE = {{
+std::array<PixelFormatInfo, VideoCore::Surface::MaxPixelFormat> FORMAT_TABLE = {{
     {MTL::PixelFormatRGBA8Unorm, 4},                         // A8B8G8R8_UNORM TODO
     {MTL::PixelFormatRGBA8Snorm, 4},                         // A8B8G8R8_SNORM TODO
     {MTL::PixelFormatRGBA8Sint, 4},                          // A8B8G8R8_SINT TODO
@@ -112,7 +112,58 @@ constexpr std::array<PixelFormatInfo, VideoCore::Surface::MaxPixelFormat> FORMAT
     {MTL::PixelFormatDepth32Float_Stencil8, 5},              // D32_FLOAT_S8_UINT
 }};
 
-const PixelFormatInfo GetPixelFormatInfo(VideoCore::Surface::PixelFormat pixel_format) {
+void CheckForPixelFormatSupport(MTL::Device* device) {
+    [[maybe_unused]] bool supportsR8Unorm_sRGB = device->supportsFamily(MTL::GPUFamilyApple1);
+    [[maybe_unused]] bool supportsRG8Unorm_sRGB = device->supportsFamily(MTL::GPUFamilyApple1);
+    bool supportsPacked16BitFormats = device->supportsFamily(MTL::GPUFamilyApple1);
+    bool supportsDepth24Unorm_Stencil8 = device->depth24Stencil8PixelFormatSupported();
+
+    if (!supportsPacked16BitFormats) {
+        // B5G6R5Unorm
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::R5G6B5_UNORM].pixel_format =
+            MTL::PixelFormatRGBA8Unorm;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::R5G6B5_UNORM].bytes_per_block = 4;
+
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::B5G6R5_UNORM].pixel_format =
+            MTL::PixelFormatRGBA8Unorm;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::B5G6R5_UNORM].bytes_per_block = 4;
+
+        // A1BGR5Unorm
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A1R5G5B5_UNORM].pixel_format =
+            MTL::PixelFormatRGBA8Unorm;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A1R5G5B5_UNORM].bytes_per_block = 4;
+
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM].pixel_format =
+            MTL::PixelFormatRGBA8Unorm;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM].bytes_per_block = 4;
+
+        // ABGR4Unorm
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A4B4G4R4_UNORM].pixel_format =
+            MTL::PixelFormatRGBA8Unorm;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A4B4G4R4_UNORM].bytes_per_block = 4;
+
+        // BGR5A1Unorm
+        // FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM].pixel_format =
+        //    MTL::PixelFormatRGBA8Unorm;
+        // FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM].bytes_per_block =
+        // 4;
+    }
+
+    if (!supportsDepth24Unorm_Stencil8) {
+        // Depth24Unorm_Stencil8
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::D24_UNORM_S8_UINT].pixel_format =
+            MTL::PixelFormatDepth32Float_Stencil8;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::D24_UNORM_S8_UINT].bytes_per_block =
+            5;
+
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM].pixel_format =
+            MTL::PixelFormatDepth32Float_Stencil8;
+        FORMAT_TABLE[(size_t)VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM].bytes_per_block =
+            5;
+    }
+}
+
+const PixelFormatInfo& GetPixelFormatInfo(VideoCore::Surface::PixelFormat pixel_format) {
     ASSERT(static_cast<size_t>(pixel_format) < FORMAT_TABLE.size());
 
     return FORMAT_TABLE[static_cast<size_t>(pixel_format)];
