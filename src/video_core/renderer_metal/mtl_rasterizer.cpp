@@ -378,7 +378,7 @@ void RasterizerMetal::AccelerateInlineToMemory(GPUVAddr address, size_t copy_siz
 
 void RasterizerMetal::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                                         const VideoCore::DiskResourceLoadCallback& callback) {
-    LOG_DEBUG(Render_Metal, "called");
+    pipeline_cache.LoadDiskResources(title_id, stop_loading, callback);
 }
 
 void RasterizerMetal::InitializeChannel(Tegra::Control::ChannelState& channel) {
