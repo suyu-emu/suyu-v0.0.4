@@ -783,8 +783,12 @@ Ez az opció az RGBA8-at BC1 vagy BC3 formátumra tömöríti vissza, ami VRAM-o
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="168"/>
-        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</source>
-        <translation>Kiválasztja, hogy az emulátor a teljesítmény érdekében inkább takarékoskodjon a memóriával, vagy maximálisan kihasználja a rendelkezésre álló videomemóriát. Integrált grafikára nincs hatással. Az agresszív üzemmód jelentősen befolyásolhatja más alkalmazások, például a rögzítő szoftverek teljesítményét.</translation>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
+Aggressive mode may severely impact the performance of other applications such as recording software.
+Has no effect on integrated graphics.</source>
+        <translation>Kiválasztja, hogy az emulátor a teljesítmény érdekében inkább takarékoskodjon a memóriával, vagy maximálisan kihasználja a rendelkezésre álló videomemóriát.
+Az agresszív üzemmód jelentősen befolyásolhatja más alkalmazások, például a rögzítő szoftverek teljesítményét.
+Integrált grafikára nincs hatással.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="173"/>

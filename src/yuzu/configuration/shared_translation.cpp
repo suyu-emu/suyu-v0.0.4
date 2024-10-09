@@ -178,9 +178,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "negatively affecting image quality."));
     INSERT(Settings, vram_usage_mode, tr("VRAM Usage Mode:"),
            tr("Selects whether the emulator should prefer to conserve memory or make maximum usage "
-              "of available video memory for performance. Has no effect on integrated graphics. "
+              "of available video memory for performance.\n"
               "Aggressive mode may severely impact the performance of other applications such as "
-              "recording software."));
+              "recording software.\n"
+              "Has no effect on integrated graphics."));
     INSERT(
         Settings, vsync_mode, tr("VSync Mode:"),
         tr("FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "

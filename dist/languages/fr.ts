@@ -784,8 +784,12 @@ Cette option recomprime le RGBA8 en format BC1 ou BC3, économisant ainsi la VRA
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="168"/>
-        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</source>
-        <translation>Sélectionne si l&apos;émulateur doit privilégier la conservation de la mémoire ou utiliser au maximum la mémoire vidéo disponible pour les performances. N&apos;a aucun effet sur les graphiques intégrés. Le mode agressif peut avoir un impact sévère sur les performances d&apos;autres applications telles que les logiciels d&apos;enregistrement.</translation>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
+Aggressive mode may severely impact the performance of other applications such as recording software.
+Has no effect on integrated graphics.</source>
+        <translation>Sélectionne si l&apos;émulateur doit privilégier la conservation de la mémoire ou utiliser au maximum la mémoire vidéo disponible pour les performances.
+Le mode agressif peut avoir un impact sévère sur les performances d&apos;autres applications telles que les logiciels d&apos;enregistrement.
+N&apos;a aucun effet sur les graphiques intégrés.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="173"/>
