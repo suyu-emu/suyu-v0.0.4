@@ -481,7 +481,7 @@
   </action>
   <action name="action_Open_Mirror_Repo">
    <property name="text">
-    <string>Open current Mirror &amp;Repo</string>
+    <string>Open Current Mirror &amp;Repo</string>
    </property>
   </action>
  </widget>
