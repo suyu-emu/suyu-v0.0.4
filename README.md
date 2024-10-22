@@ -21,10 +21,6 @@ It is written in C++ with portability in mind and runs on Linux, Windows and And
 A lot of fake Torzu websites have popped up. These are not mine. **This project will not have a clearnet website for the foreseeable future!**
 I highly advice against downloading anything from these websites, specially if their intention is clearly to make money through advertisements.
 
-## Move away from Codeberg
-
-As requested by Codeberg staff, **I have removed the Codeberg mirror repository**. [The new mirror repository is on NotABug](https://notabug.org/litucks/torzu).
-
 ## Limited public development
 
 I feel like working publicly on this has taken away the fun. You may not understand, but it's quite stressful to have the public eye on a project.
@@ -74,6 +70,10 @@ Alternatively, you can clone from the [NotABug mirror repository](https://notabu
 Note that above repository may be taken down any time. Do not rely on its existence in production. In case the NotABug mirror goes down, another mirror will be most likely be set up on Bitbucket.
 
 This project incorporates several commits from the [Suyu](https://suyu.dev) and [Sudachi](https://github.com/sudachi-emu/sudachi) forks (but cleaned up due to the typically mediocre code/commit quality from both projects) as well as changes listed in **Changes**.
+
+## Move away from Codeberg
+
+As requested by Codeberg staff, **I have removed the Codeberg mirror repository**. [The new mirror repository is on NotABug](https://notabug.org/litucks/torzu).
 
 ## Building
 <!--  -->
