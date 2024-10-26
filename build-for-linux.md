@@ -1,4 +1,37 @@
-### Dependencies
+# Flatpak Build
+
+Install flatpak and flatpak-builder:
+
+* Arch / Manjaro:
+  - `sudo pacman -Syu --needed flatpak flatpak-builder`
+* Debian / Ubuntu / Linux Mint:
+  - `sudo apt-get install flatpak flatpak-builder`
+* Fedora:
+  - `sudo dnf install flatpak flatpak-builder`
+
+Install flatpak dependencies:
+
+```
+flatpak install org.kde.Sdk//5.15-23.08 io.qt.qtwebengine.BaseApp//5.15-23.08
+```
+Clone the torzu-flatpak repo and dependencies:
+```
+git clone --depth 1 --recursive https://github.com/litucks/onion.torzu_emu.torzu.git
+```
+Enter the cloned directory and run build script:
+```
+cd onion.torzu_emu.torzu && ./build.sh
+```
+Resulting `torzu.flatpak` will be in the same directory as the build script.
+
+To install:
+```
+flatpak install torzu.flatpak
+```
+
+# Native Builds
+
+### Dependencies (copy/paste commands provided after)
 
 You'll need to download and install the following to build yuzu:
 
@@ -33,13 +66,16 @@ If an ARM64 build is intended, export `VCPKG_FORCE_SYSTEM_BINARIES=1`.
 Dependencies are listed here as commands that can be copied/pasted. Of course, they should be inspected before being run.
 
 - Arch / Manjaro:
+
   - `sudo pacman -Syu --needed base-devel boost catch2 cmake ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt5 sdl2 zlib zstd zip unzip`
   - Building with QT Web Engine needs to be specified when running CMake with the param `-DCMAKE_CXX_FLAGS="-I/usr/include/qt/QtWebEngineWidgets"` with qt5-webengine installed.
   - GCC 11 or later is required.
-- Ubuntu / Linux Mint / Debian:
-  - `sudo apt-get install autoconf cmake g++-11 gcc-11 git glslang-tools libasound2 libboost-context-dev libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 mesa-common-dev nasm ninja-build qtbase5-dev qtbase5-private-dev qtwebengine5-dev qtmultimedia5-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev`
-  - Ubuntu 22.04, Linux Mint 20, or Debian Bullseye or later is required.
-  -  Users need to manually specify building with QT Web Engine enabled.  This is done using the parameter `-DYUZU_USE_QT_WEB_ENGINE=ON` when running CMake. 
+
+- Debian / Ubuntu / Linux Mint:
+
+  - `sudo apt-get install autoconf cmake g++-11 gcc-11 git glslang-tools libasound2 libboost-context-dev libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 libxxhash-dev mesa-common-dev nasm ninja-build qtbase5-dev qtbase5-private-dev qttools5-dev qtwebengine5-dev qtmultimedia5-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev libva-dev`
+  - Debian 11 (Bullseye), Ubuntu 22.04, Linux Mint 20 or later is required.
+  - Users need to manually specify building with QT Web Engine enabled.  This is done using the parameter `-DYUZU_USE_QT_WEB_ENGINE=ON` when running CMake. 
   - Users need to manually specify building with GCC 11. This can be done by adding the parameters `-DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11` when running CMake. i.e.
   - Users need to manually disable building SDL2 from externals if they intend to use the version provided by their system by adding the parameters `-DYUZU_USE_EXTERNAL_SDL2=OFF`
 
@@ -49,6 +85,7 @@ cmake .. -GNinja -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11
 ```
 
 - Fedora:
+
   - `sudo dnf install autoconf ccache cmake fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt5-linguist qt5-qtbase{-private,}-devel qt5-qtwebengine-devel qt5-qtmultimedia-devel speexdsp-devel wayland-devel zlib-devel ffmpeg-devel libXext-devel`
   - Fedora 32 or later is required.
   - Due to GCC 12, Fedora 36 or later users need to install `clang`, and configure CMake to use it via `-DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang`
@@ -56,7 +93,9 @@ cmake .. -GNinja -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11
     - SDL2: `-DYUZU_USE_BUNDLED_SDL2=OFF -DYUZU_USE_EXTERNAL_SDL2=OFF`
     - FFmpeg: `-DYUZU_USE_EXTERNAL_FFMPEG=OFF`
   - [RPM Fusion](https://rpmfusion.org/) (free) is required to install `ffmpeg-devel`
+
 - Gentoo:
+
   - **\*\*Disclaimer\*\***: this dependency list was written by a novice Gentoo user who first set it up with a DE, and then based this list off of the Fedora dependency list. This may be missing some requirements, or includes too many. Caveat emptor.
   - `emerge --ask app-arch/lz4 dev-libs/boost dev-libs/hidapi dev-libs/libzip dev-libs/openssl dev-qt/linguist dev-qt/qtconcurrent dev-qt/qtcore dev-util/cmake dev-util/glslang dev-vcs/git media-libs/alsa-lib media-libs/opus media-sound/pulseaudio media-video/ffmpeg net-libs/mbedtls sys-libs/zlib x11-libs/libXext`
   - GCC 11 or later is required.
@@ -66,7 +105,7 @@ cmake .. -GNinja -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11
 
 **from Codeberg repo (the `--recursive` option automatically clones the required Git submodules):**
 ```
-git clone --depth 1 --recursive https://codeberg.org/litucks/torzu.git
+git clone --depth 1 --recursive https://notabug.org/litucks/torzu.git
 cd torzu
 ```
 

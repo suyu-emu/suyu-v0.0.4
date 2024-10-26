@@ -16,8 +16,6 @@ cmake .. -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_USE_BUNDLED_VCPKG=OFF 
 ninja
 ```
 
-TODO: use newer vcpkg. This fixes the boost context library, and allows using the web service
-TODO: figure out what's up with libusb
 - TODO: use newer vcpkg. This fixes the boost context library, and allows using the web service
 - TODO: figure out what's up with libusb
 

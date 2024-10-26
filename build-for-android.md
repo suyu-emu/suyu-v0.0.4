@@ -14,7 +14,7 @@
 ### Cloning yuzu with Git
 **from Codeberg repo (the `--recursive` option automatically clones the required Git submodules):**
 ```
-git clone --depth 1 --recursive https://codeberg.org/litucks/torzu.git
+git clone --depth 1 --recursive https://notabug.org/litucks/torzu.git
 cd torzu
 ```
 **from Torzu repo (assuming Tor is installed as a service):**
