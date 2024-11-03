@@ -9,6 +9,7 @@
 #include <thread>
 
 #include <boost/algorithm/string.hpp>
+#include <fmt/ranges.h>
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"

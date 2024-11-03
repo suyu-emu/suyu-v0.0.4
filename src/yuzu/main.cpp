@@ -92,7 +92,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <SDL.h> // For SDL ScreenSaver functions
 #endif
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/detached_tasks.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"

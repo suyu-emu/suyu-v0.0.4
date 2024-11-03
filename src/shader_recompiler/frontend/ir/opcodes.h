@@ -54,7 +54,7 @@ constexpr Type F64x2{Type::F64x2};
 constexpr Type F64x3{Type::F64x3};
 constexpr Type F64x4{Type::F64x4};
 
-constexpr OpcodeMeta META_TABLE[]{
+constexpr OpcodeMeta META_TABLE[] {
 #define OPCODE(name_token, type_token, ...)                                                        \
     {                                                                                              \
         .name{#name_token},                                                                        \
@@ -103,7 +103,7 @@ struct fmt::formatter<Shader::IR::Opcode> {
         return ctx.begin();
     }
     template <typename FormatContext>
-    auto format(const Shader::IR::Opcode& op, FormatContext& ctx) {
+    auto format(const Shader::IR::Opcode& op, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", Shader::IR::NameOf(op));
     }
 };
