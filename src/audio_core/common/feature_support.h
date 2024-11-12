@@ -13,7 +13,7 @@
 #include "common/polyfill_ranges.h"
 
 namespace AudioCore {
-constexpr u32 CurrentRevision = 12; // 11
+constexpr u32 CurrentRevision = 13;
 
 enum class SupportTags {
     CommandProcessingTimeEstimatorVersion4,
