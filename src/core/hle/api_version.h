@@ -13,7 +13,7 @@ namespace HLE::ApiVersion {
 
 constexpr u8 HOS_VERSION_MAJOR = 19;
 constexpr u8 HOS_VERSION_MINOR = 0;
-constexpr u8 HOS_VERSION_MICRO = 0;
+constexpr u8 HOS_VERSION_MICRO = 1;
 
 // NintendoSDK version constants.
 
@@ -21,9 +21,9 @@ constexpr u8 SDK_REVISION_MAJOR = 1;
 constexpr u8 SDK_REVISION_MINOR = 0;
 
 constexpr char PLATFORM_STRING[] = "NX";
-constexpr char VERSION_HASH[] = "52971eebbba7ab9e6e23d73753aa63e0c3794b16";
-constexpr char DISPLAY_VERSION[] = "19.0.0";
-constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 19.0.0-4.0";
+constexpr char VERSION_HASH[] = "835c78223df116284ef7e36e8441760edc81729c";
+constexpr char DISPLAY_VERSION[] = "19.0.1";
+constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 19.0.1-1.0";
 
 // Atmosphere version constants.
 
