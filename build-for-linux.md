@@ -1,46 +1,83 @@
 # Flatpak Build
 
-Install flatpak and flatpak-builder:
+**NOTE: Flatpaks are built with a wrapper repo, which downloads everything needed including the main torzu repo.**
+
+First install `flatpak` and `flatpak-builder` for your specific distro:
 
 * Arch / Manjaro:
-  - `sudo pacman -Syu --needed flatpak flatpak-builder`
+  ```bash
+  sudo pacman -Syu --needed flatpak flatpak-builder
+  ```
 * Debian / Ubuntu / Linux Mint:
-  - `sudo apt-get install flatpak flatpak-builder`
+  ```bash
+  sudo apt-get install flatpak flatpak-builder
+  ```
 * Fedora:
-  - `sudo dnf install flatpak flatpak-builder`
+  ```bash
+  sudo dnf install flatpak flatpak-builder
+  ```
 
-Install flatpak dependencies:
+Then install flatpak dependencies from within flatpak:
 
-```
+```bash
 flatpak install org.kde.Sdk//5.15-23.08 io.qt.qtwebengine.BaseApp//5.15-23.08
 ```
-Clone the torzu-flatpak repo and dependencies:
+Clone the torzu-flatpak repo and dependencies **(note: this github repo is the correct one)**:
+```bash
+git clone --depth 1 --recursive https://github.com/litucks/onion.torzu_emu.torzu.git torzuFlatpak
 ```
-git clone --depth 1 --recursive https://github.com/litucks/onion.torzu_emu.torzu.git
+Enter the cloned directory and run the build script:
+```bash
+cd torzuFlatpak && ./build.sh
 ```
-Enter the cloned directory and run build script:
-```
-cd onion.torzu_emu.torzu && ./build.sh
-```
-Resulting `torzu.flatpak` will be in the same directory as the build script.
+The resulting `torzu.flatpak` will be in the same directory as the build script.
 
 To install:
-```
+```bash
 flatpak install torzu.flatpak
 ```
+---
+---
+---
+
+# AppImage Build
+
+The AppImage Builder is included in the main torzu repo.
+
+First you must build a native linux version from the section below, with the resulting executables in the `torzu/build/bin` folder. Leave everything where it is.
+
+After that you only have to run the following (assuming you're still in the `build` folder after running `ninja`):
+```bash
+cd .. && ./AppImage-build.sh
+```
+The script enters the `AppImageBuilder` folder and generates the AppImage executable.
+
+The resulting `torzu.AppImage` file is moved back into the main root `torzu` folder where `AppImage-build.sh` is.
+
+To run it:
+```bash
+./torzu.AppImage
+```
+***These steps are included as an option in the native build instructions below!***
+
+**NOTE: the native binaries will still be in the `torzu/build/bin` folder, so you can archive them to have both versions.**
+
+---
+---
+---
 
 # Native Builds
 
-### Dependencies (copy/paste commands provided after)
+### Dependencies (easy copy/paste commands provided after)
 
-You'll need to download and install the following to build yuzu:
+You'll need to download and install the following:
 
   * [GCC](https://gcc.gnu.org/) v11+ (for C++20 support) & misc
     * This page is being updated as we transition to GCC 11
   * If GCC 12 is installed, [Clang](https://clang.llvm.org/) v14+ is required for compiling
   * [CMake](https://www.cmake.org/) 3.15+
 
-The following are handled by yuzu's externals:
+The following are handled by torzu's externals:
 
   * [FFmpeg](https://ffmpeg.org/)
   * [SDL2](https://www.libsdl.org/download-2.0.php) 2.0.18+
@@ -61,32 +98,38 @@ All other dependencies will be downloaded by [vcpkg](https://vcpkg.io/) if neede
   * [ZLIB](https://www.zlib.net/) 1.2+
   * [zstd](https://facebook.github.io/zstd/) 1.5+
 
-If an ARM64 build is intended, export `VCPKG_FORCE_SYSTEM_BINARIES=1`.
+### Dependencies are listed here as commands that can be copied/pasted. Of course, they should be inspected before being run.
 
-Dependencies are listed here as commands that can be copied/pasted. Of course, they should be inspected before being run.
+- All Distros
+
+  - If an ARM64 build is intended, export `VCPKG_FORCE_SYSTEM_BINARIES=1`.
 
 - Arch / Manjaro:
 
-  - `sudo pacman -Syu --needed base-devel boost catch2 cmake ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt5 sdl2 zlib zstd zip unzip`
+  ```bash
+  sudo pacman -Syu --needed base-devel boost catch2 cmake ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt5 sdl2 shasum unzip zip zlib zstd
+  ```
   - Building with QT Web Engine needs to be specified when running CMake with the param `-DCMAKE_CXX_FLAGS="-I/usr/include/qt/QtWebEngineWidgets"` with qt5-webengine installed.
   - GCC 11 or later is required.
 
 - Debian / Ubuntu / Linux Mint:
 
-  - `sudo apt-get install autoconf cmake g++-11 gcc-11 git glslang-tools libasound2 libboost-context-dev libglu1-mesa-dev libhidapi-dev libpulse-dev libtool libudev-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 libxxhash-dev mesa-common-dev nasm ninja-build qtbase5-dev qtbase5-private-dev qttools5-dev qtwebengine5-dev qtmultimedia5-dev libmbedtls-dev catch2 libfmt-dev liblz4-dev nlohmann-json3-dev libzstd-dev libssl-dev libavfilter-dev libavcodec-dev libswscale-dev libva-dev`
+  ```bash
+  sudo apt-get install autoconf catch2 cmake g++-11 gcc-11 git glslang-tools libasound2 libavcodec-dev libavfilter-dev libboost-context-dev libfmt-dev libglu1-mesa-dev libhidapi-dev liblz4-dev libmbedtls-dev libpulse-dev libssl-dev libswscale-dev libtool libudev-dev libva-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxext-dev libxkbcommon-x11-0 libxxhash-dev libzstd-dev mesa-common-dev nasm ninja-build nlohmann-json3-dev qtbase5-dev qtbase5-private-dev qtmultimedia5-dev qttools5-dev qtwebengine5-dev shasum
+  ```
   - Debian 11 (Bullseye), Ubuntu 22.04, Linux Mint 20 or later is required.
   - Users need to manually specify building with QT Web Engine enabled.  This is done using the parameter `-DYUZU_USE_QT_WEB_ENGINE=ON` when running CMake. 
   - Users need to manually specify building with GCC 11. This can be done by adding the parameters `-DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11` when running CMake. i.e.
   - Users need to manually disable building SDL2 from externals if they intend to use the version provided by their system by adding the parameters `-DYUZU_USE_EXTERNAL_SDL2=OFF`
-
-```
-git submodule update --init --recursive
-cmake .. -GNinja -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11
-```
-
+  - ***example cmake without system SDL2 (swap into full build commands below):***
+  ```bash
+  cmake .. -GNinja -DYUZU_USE_BUNDLED_VCPKG=ON -DYUZU_TESTS=OFF -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11 -DYUZU_USE_QT_WEB_ENGINE=ON
+  ```
 - Fedora:
 
-  - `sudo dnf install autoconf ccache cmake fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt5-linguist qt5-qtbase{-private,}-devel qt5-qtwebengine-devel qt5-qtmultimedia-devel speexdsp-devel wayland-devel zlib-devel ffmpeg-devel libXext-devel`
+  ```bash
+  sudo dnf install autoconf ccache cmake ffmpeg-devel fmt-devel gcc{,-c++} glslang hidapi-devel json-devel libtool libusb1-devel libXext-devel libzstd-devel lz4-devel nasm ninja-build openssl-devel pulseaudio-libs-devel qt5-linguist qt5-qtbase{-private,}-devel qt5-qtmultimedia-devel qt5-qtwebengine-devel shasum speexdsp-devel wayland-devel zlib-devel
+  ```
   - Fedora 32 or later is required.
   - Due to GCC 12, Fedora 36 or later users need to install `clang`, and configure CMake to use it via `-DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang`
   - CMake arguments to force system libraries:
@@ -97,67 +140,89 @@ cmake .. -GNinja -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_CXX_COMPILER=g++-11
 - Gentoo:
 
   - **\*\*Disclaimer\*\***: this dependency list was written by a novice Gentoo user who first set it up with a DE, and then based this list off of the Fedora dependency list. This may be missing some requirements, or includes too many. Caveat emptor.
-  - `emerge --ask app-arch/lz4 dev-libs/boost dev-libs/hidapi dev-libs/libzip dev-libs/openssl dev-qt/linguist dev-qt/qtconcurrent dev-qt/qtcore dev-util/cmake dev-util/glslang dev-vcs/git media-libs/alsa-lib media-libs/opus media-sound/pulseaudio media-video/ffmpeg net-libs/mbedtls sys-libs/zlib x11-libs/libXext`
+  ```bash
+  emerge --ask app-arch/lz4 dev-libs/boost dev-libs/hidapi dev-libs/libzip dev-libs/openssl dev-qt/linguist dev-qt/qtconcurrent dev-qt/qtcore dev-util/cmake dev-util/glslang dev-vcs/git media-libs/alsa-lib media-libs/opus media-sound/pulseaudio media-video/ffmpeg net-libs/mbedtls sys-libs/zlib x11-libs/libXext
+  ```
   - GCC 11 or later is required.
   - Users may need to append `pulseaudio`, `bindist` and `context` to the `USE` flag.
 
-### Cloning yuzu with Git
+# Building
 
-**from Codeberg repo (the `--recursive` option automatically clones the required Git submodules):**
-```
-git clone --depth 1 --recursive https://notabug.org/litucks/torzu.git
-cd torzu
+### Clone the source with Git
+
+**from Codeberg repo:**
+```bash
+git clone --depth 1 https://notabug.org/litucks/torzu.git
 ```
 
-**from Torzu repo (assuming Tor is installed as a service):**
-```
+**from Torzu repo (assuming Tor is installed as a service, such as `sudo apt install tor` using default settings):**
+```bash
 git -c http.proxy=socks5h://127.0.0.1:9050 clone --depth 1 http://vub63vv26q6v27xzv2dtcd25xumubshogm67yrpaz2rculqxs7jlfqad.onion/torzu-emu/torzu.git
-cd torzu
-git submodule update --init --recursive
 ```
 
-### Building yuzu in Release Mode (Optimized)
+### Build in Release Mode (Optimized)
 
 If you need to run ctests, you can disable `-DYUZU_TESTS=OFF` and install Catch2.
 
+***Be sure to swap your above distro-specific commands into the line starting with*** `cmake` (the options already included below should still be used):
+
 ```bash
+cd torzu
+git submodule update --init --recursive
 mkdir build && cd build
 cmake .. -GNinja -DYUZU_USE_BUNDLED_VCPKG=ON -DYUZU_TESTS=OFF
 ninja
+```
+There should now be executable binaries located in the `torzu/build/bin` folder.
+
+You can choose to (all starting from the `build` folder):
+
+* **Make an AppImage** (the resulting `torzu.AppImage` will be in the `torzu` folder):
+```bash
+cd .. && ./AppImage-build.sh
+```
+
+* **Install the binaries to your system with shortcuts**:
+```bash
 sudo ninja install 
 ```
 
-Optionally, you can use `cmake-gui ..` to adjust various options (e.g. disable the Qt GUI).
-
-### Building yuzu in Debug Mode (Slow)
-
+* **Run them without installing**:
 ```bash
-mkdir build && cd build
+cd bin
+./yuzu
+# or
+./yuzu-cmd
+```
+
+* **PORTABLE INSTALL** - use the native binaries (without being installed to the system) and add a `user` folder next to them (does not work with AppImage or Flatpak):
+```bash
+cd bin
+mkdir user
+./yuzu
+```
+All data usually in the `~/.local/share/yuzu` folder will now be located in the `user` folder instead, so you can easily archive and restore a working install.
+
+Optionally, you can use `cmake-gui ..` instead to adjust various options (e.g. disable the Qt GUI).
+
+---
+---
+---
+
+### Build in Debug Mode (Slow)
+
+Same as above, but add `-DCMAKE_BUILD_TYPE=Debug`:
+```bash
 cmake .. -GNinja -DCMAKE_BUILD_TYPE=Debug -DYUZU_USE_BUNDLED_VCPKG=ON -DYUZU_TESTS=OFF
-ninja
 ```
 
-### Building with debug symbols
+### Build with debug symbols
+
+Same as above, but use `-DCMAKE_BUILD_TYPE=RelWithDebInfo`:
 
 ```bash
-mkdir build && cd build
 cmake .. -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DYUZU_USE_BUNDLED_VCPKG=ON -DYUZU_TESTS=OFF
-ninja
 ```
-
-### Running without installing
-
-After building, the binaries `yuzu` and `yuzu-cmd` (depending on your build options) will end up in `build/bin/`.
-
-  ```bash
-  # SDL
-  cd build/bin/
-  ./yuzu-cmd
-
-  # Qt
-  cd build/bin/
-  ./yuzu
-  ```
 
 ### Debugging
 

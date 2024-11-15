@@ -5,6 +5,12 @@
 [Bb]uild*/
 doc-build/
 
+# AppImageBuilder directory and torzu.AppImage
+AppImageBuilder/build/
+AppImageBuilder/appimagetool.AppImage
+AppImageBuilder/torzu.AppImage
+torzu.AppImage
+
 # Generated source files
 src/common/scm_rev.cpp
 dist/english_plurals/generated_en.ts
