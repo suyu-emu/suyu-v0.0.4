@@ -535,6 +535,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(MemoryLayout, Memory_4Gb, tr("4GB DRAM (Default)")),
                               PAIR(MemoryLayout, Memory_6Gb, tr("6GB DRAM (Unsafe)")),
                               PAIR(MemoryLayout, Memory_8Gb, tr("8GB DRAM (Unsafe)")),
+                              PAIR(MemoryLayout, Memory_12Gb, tr("12GB DRAM (Unsafe)")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::ConsoleMode>::Index(),
                           {
