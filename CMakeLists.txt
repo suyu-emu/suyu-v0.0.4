@@ -298,7 +298,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # Enforce the search mode of non-required packages for better and shorter failure messages
 find_package(Boost 1.79.0 REQUIRED context)
 find_package(enet 1.3 MODULE)
-find_package(fmt 11 REQUIRED)
+find_package(fmt REQUIRED)
 find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
