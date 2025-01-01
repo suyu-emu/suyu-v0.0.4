@@ -31,7 +31,7 @@ option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT6 "Allow usage of Qt6 to be attempted" OFF)
 set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries like C:/Qt/6.3.1/msvc2019_64/")
 
-option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
+option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" ON)
 CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
