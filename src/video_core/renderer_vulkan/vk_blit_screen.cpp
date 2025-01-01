@@ -43,6 +43,9 @@ void BlitScreen::SetWindowAdaptPass() {
     case Settings::ScalingFilter::ScaleForce:
         window_adapt = MakeScaleForce(device, swapchain_view_format);
         break;
+    case Settings::ScalingFilter::Area:
+        window_adapt = MakeArea(device, swapchain_view_format);
+        break;
     case Settings::ScalingFilter::Fsr:
     case Settings::ScalingFilter::Bilinear:
     default:
