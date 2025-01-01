@@ -185,16 +185,28 @@ enum class ErrorModule : u32 {
     Fst2 = 251,
     Nex = 306,
     NPLN = 321,
+    Libnx = 345,
+    HomebrewAbi = 346,
+    HomebrewLoader = 347,
+    LibnxNvidia = 348,
+    LibnxBinder = 349,
     TSPM = 499,
     DevMenu = 500,
     Nverpt = 520,
     Am_StuckMonitor = 521,
     Pia = 618,
     Eagle = 623,
+    LibAppletWeb = 800,
+    LibAppletAuth = 809,
+    LibAppletLns = 810,
+    LibAppletShop = 811,
+
+    // NOTE(EmulationEnjoyer): Keeping old applet entry names in the case there's some lookup by name happening somewhere
     GeneralWebApplet = 800,
     WifiWebAuthApplet = 809,
     WhitelistedApplet = 810,
     ShopN = 811,
+
     Coral = 815
 };
 
