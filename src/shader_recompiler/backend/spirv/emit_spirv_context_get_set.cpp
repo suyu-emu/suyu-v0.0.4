@@ -566,6 +566,16 @@ Id EmitIsHelperInvocation(EmitContext& ctx) {
     return ctx.OpLoad(ctx.U1, ctx.is_helper_invocation);
 }
 
+Id EmitSR_WScaleFactorXY(EmitContext& ctx) {
+    LOG_WARNING(Shader, "(STUBBED) called");
+    return ctx.Const(0x00ff0000u);
+}
+
+Id EmitSR_WScaleFactorZ(EmitContext& ctx) {
+    LOG_WARNING(Shader, "(STUBBED) called");
+    return ctx.Const(0x00ff0000u);
+}
+
 Id EmitYDirection(EmitContext& ctx) {
     return ctx.Const(ctx.runtime_info.y_negate ? -1.0f : 1.0f);
 }
