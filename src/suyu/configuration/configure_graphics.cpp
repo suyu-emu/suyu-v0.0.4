@@ -487,11 +487,8 @@ void ConfigureGraphics::RetranslateUI() {
 void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
     bg_color = color;
 
-    QPixmap pixmap(ui->bg_button->size());
-    pixmap.fill(bg_color);
-
-    const QIcon color_icon(pixmap);
-    ui->bg_button->setIcon(color_icon);
+    ui->bg_button->setStyleSheet(
+        QStringLiteral("background-color: %1; min-width: 80px;").arg(bg_color.name()));
 }
 
 void ConfigureGraphics::UpdateAPILayout() {
