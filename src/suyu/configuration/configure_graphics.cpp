@@ -225,7 +225,7 @@ void ConfigureGraphics::PopulateVSyncModeSelection(bool use_setting) {
 
 void ConfigureGraphics::UpdateVsyncSetting() const {
     const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
-    if (backend == Settings::RendererBackend::Null) {
+    if (backend == Settings::RendererBackend::Null || vsync_mode_combobox_enum_map.empty()) {
         return;
     }
 
