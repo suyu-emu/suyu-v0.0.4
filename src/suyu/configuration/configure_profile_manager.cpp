@@ -24,6 +24,7 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs/vfs.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "suyu/configuration/configure_profile_manager.h"
 #include "suyu/util/limitable_input_dialog.h"
