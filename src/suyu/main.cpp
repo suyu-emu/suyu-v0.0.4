@@ -1609,6 +1609,7 @@ void GMainWindow::UpdateMenuState() {
                                     ui->action_Load_Cabinet_Restorer,
                                     ui->action_Load_Cabinet_Formatter,
                                     ui->action_Load_Mii_Edit,
+                                    ui->action_Load_Home_Menu,
                                     ui->action_Open_Controller_Menu};
 
     for (QAction* action : running_actions) {
