@@ -932,14 +932,14 @@ Result ISystemSettingsServer::SetPrimaryAlbumStorage(PrimaryAlbumStorage primary
 Result ISystemSettingsServer::GetBatteryLot(Out<BatteryLot> out_battery_lot) {
     LOG_INFO(Service_SET, "called");
 
-    *out_battery_lot = {"SUYU0EMULATOR14022024"};
+    *out_battery_lot = BatteryLot{"SUYU0EMULATOR14022024"};
     R_SUCCEED();
 }
 
 Result ISystemSettingsServer::GetSerialNumber(Out<SerialNumber> out_console_serial) {
     LOG_INFO(Service_SET, "called");
 
-    *out_console_serial = SerialNumber("SUY10000000001");
+    *out_console_serial = SerialNumber{"SUY10000000001"};
     R_SUCCEED();
 }
 
