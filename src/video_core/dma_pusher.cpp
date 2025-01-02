@@ -98,19 +98,22 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
+
+        // Only use unsafe reads for non-compute macro operations
         if (Settings::IsGPULevelHigh()) {
-            if (dma_state.method >= MacroRegistersStart) {
+            const bool is_compute = (subchannel_type[dma_state.subchannel] ==
+                                   Engines::EngineTypes::KeplerCompute);
+
+            if (dma_state.method >= MacroRegistersStart && !is_compute) {
                 unsafe_process();
                 return true;
             }
-            if (subchannel_type[dma_state.subchannel] == Engines::EngineTypes::KeplerCompute &&
-                dma_state.method == ComputeInline) {
-                unsafe_process();
-                return true;
-            }
+
+            // Always use safe reads for compute operations
             safe_process();
             return true;
         }
+
         unsafe_process();
     }
     return true;
