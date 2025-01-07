@@ -228,6 +228,16 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         *result = system.Kernel().CurrentScheduler()->GetIdleThread()->GetCpuTime();
         R_SUCCEED();
     }
+    case InfoType::SystemResourceSize: {
+        LOG_DEBUG(Kernel_SVC, "called info_type={:#x}, info_subtype={:#x}, handle={:#x}", info_id,
+                  info_sub_id, handle);
+
+        // VAMM (Virtual Address Memory Manager) typically expects a larger memory size
+        // The value below (512MB) is based on typical system resource allocations
+        *result = 0x20000000; // 512MB in bytes
+
+        R_SUCCEED();
+    }
     case InfoType::MesosphereCurrentProcess: {
         // Verify the input handle is invalid.
         R_UNLESS(handle == InvalidHandle, ResultInvalidHandle);
