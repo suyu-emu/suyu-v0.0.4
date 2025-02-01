@@ -85,6 +85,15 @@ public:
                            u8 stencil_mask, u32 stencil_ref, u32 stencil_compare_mask,
                            const Region2D& dst_region);
 
+    void ConvertRGBAtoGBRA(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertYUV420toRGB(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertRGBtoYUV420(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertBC7toRGBA8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertASTCHDRtoRGBA16F(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ConvertRGBA16FtoRGBA8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ApplyDitherTemporal(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+    void ApplyDynamicResolutionScale(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+
 private:
     void Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,
                  const ImageView& src_image_view);
@@ -140,6 +149,14 @@ private:
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
     vk::ShaderModule convert_abgr8_srgb_to_d24s8_frag;
+    vk::ShaderModule convert_rgba_to_bgra_frag;
+    vk::ShaderModule convert_yuv420_to_rgb_comp;
+    vk::ShaderModule convert_rgb_to_yuv420_comp;
+    vk::ShaderModule convert_bc7_to_rgba8_comp;
+    vk::ShaderModule convert_astc_hdr_to_rgba16f_comp;
+    vk::ShaderModule convert_rgba16f_to_rgba8_frag;
+    vk::ShaderModule dither_temporal_frag;
+    vk::ShaderModule dynamic_resolution_scale_comp;
     vk::Sampler linear_sampler;
     vk::Sampler nearest_sampler;
 
@@ -161,6 +178,14 @@ private:
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
     vk::Pipeline convert_abgr8_srgb_to_d24s8_pipeline;
+    vk::Pipeline convert_rgba_to_bgra_pipeline;
+    vk::Pipeline convert_yuv420_to_rgb_pipeline;
+    vk::Pipeline convert_rgb_to_yuv420_pipeline;
+    vk::Pipeline convert_bc7_to_rgba8_pipeline;
+    vk::Pipeline convert_astc_hdr_to_rgba16f_pipeline;
+    vk::Pipeline convert_rgba16f_to_rgba8_pipeline;
+    vk::Pipeline dither_temporal_pipeline;
+    vk::Pipeline dynamic_resolution_scale_pipeline;
 };
 
 } // namespace Vulkan

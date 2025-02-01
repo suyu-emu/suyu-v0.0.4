@@ -1189,79 +1189,94 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
 }
 
 void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view) {
+    if (!dst->RenderPass()) {
+        return;
+    }
+
+    // Basic format conversions
     switch (dst_view.format) {
-    case PixelFormat::R16_UNORM:
-        if (src_view.format == PixelFormat::D16_UNORM) {
-            return blit_image_helper.ConvertD16ToR16(dst, src_view);
-        }
-        break;
-    case PixelFormat::A8B8G8R8_SRGB:
-        if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32FToABGR8(dst, src_view);
-        }
-        break;
-    case PixelFormat::A8B8G8R8_UNORM:
-        if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
-            return blit_image_helper.ConvertD24S8ToABGR8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::D24_UNORM_S8_UINT) {
-            return blit_image_helper.ConvertS8D24ToABGR8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32FToABGR8(dst, src_view);
-        }
-        break;
-    case PixelFormat::B8G8R8A8_SRGB:
-        if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32FToABGR8(dst, src_view);
-        }
-        break;
     case PixelFormat::B8G8R8A8_UNORM:
-        if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32FToABGR8(dst, src_view);
+        if (src_view.format == PixelFormat::A8B8G8R8_UNORM) {
+            return blit_image_helper.ConvertRGBAtoGBRA(dst, src_view);
         }
         break;
-    case PixelFormat::R32_FLOAT:
-        if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32ToR32(dst, src_view);
+
+    case PixelFormat::R16G16B16A16_FLOAT:
+        if (src_view.format == PixelFormat::BC7_UNORM) {
+            return blit_image_helper.ConvertBC7toRGBA8(dst, src_view);
         }
         break;
-    case PixelFormat::D16_UNORM:
-        if (src_view.format == PixelFormat::R16_UNORM) {
-            return blit_image_helper.ConvertR16ToD16(dst, src_view);
-        }
-        break;
-    case PixelFormat::S8_UINT_D24_UNORM:
+
+    case PixelFormat::D24_UNORM_S8_UINT:
         if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
             src_view.format == PixelFormat::B8G8R8A8_UNORM) {
             return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
         }
+        if (src_view.format == PixelFormat::A8B8G8R8_SRGB) {
+            return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
+        }
         break;
+
     case PixelFormat::D32_FLOAT:
         if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
-            src_view.format == PixelFormat::B8G8R8A8_UNORM ||
-            src_view.format == PixelFormat::A8B8G8R8_SRGB ||
-            src_view.format == PixelFormat::B8G8R8A8_SRGB) {
+            src_view.format == PixelFormat::B8G8R8A8_UNORM) {
             return blit_image_helper.ConvertABGR8ToD32F(dst, src_view);
         }
         if (src_view.format == PixelFormat::R32_FLOAT) {
             return blit_image_helper.ConvertR32ToD32(dst, src_view);
         }
         break;
-    case PixelFormat::D24_UNORM_S8_UINT:
-        if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
-            src_view.format == PixelFormat::B8G8R8A8_UNORM) {
-            return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::A8B8G8R8_SRGB ||
-            src_view.format == PixelFormat::B8G8R8A8_SRGB) {
-            return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
-        }
-        break;
+
     default:
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented format copy from {} to {}", src_view.format, dst_view.format);
+
+    // If no conversion path is found, try default blit
+    if (src_view.format == dst_view.format) {
+        const VideoCommon::Region2D src_region{
+            .start = {0, 0},
+            .end = {static_cast<s32>(src_view.size.width),
+                   static_cast<s32>(src_view.size.height)},
+        };
+        const VideoCommon::Region2D dst_region{
+            .start = {0, 0},
+            .end = {static_cast<s32>(dst_view.size.width),
+                   static_cast<s32>(dst_view.size.height)},
+        };
+
+        return blit_image_helper.BlitColor(dst, src_view.Handle(Shader::TextureType::Color2D),
+                                         src_region, dst_region,
+                                         Tegra::Engines::Fermi2D::Filter::Bilinear,
+                                         Tegra::Engines::Fermi2D::Operation::SrcCopy);
+    }
+
+    LOG_ERROR(Render_Vulkan, "Unimplemented image format conversion from {} to {}",
+              static_cast<int>(src_view.format), static_cast<int>(dst_view.format));
+}
+
+// Helper functions for format compatibility checks
+bool TextureCacheRuntime::IsFormatDitherable(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::B8G8R8A8_UNORM:
+    case PixelFormat::A8B8G8R8_UNORM:
+    case PixelFormat::B8G8R8A8_SRGB:
+    case PixelFormat::A8B8G8R8_SRGB:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool TextureCacheRuntime::IsFormatScalable(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::B8G8R8A8_UNORM:
+    case PixelFormat::A8B8G8R8_UNORM:
+    case PixelFormat::R16G16B16A16_FLOAT:
+    case PixelFormat::R32G32B32A32_FLOAT:
+        return true;
+    default:
+        return false;
+    }
 }
 
 void TextureCacheRuntime::CopyImage(Image& dst, Image& src,

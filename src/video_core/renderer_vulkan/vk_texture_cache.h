@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -110,6 +111,9 @@ public:
     }
 
     void BarrierFeedbackLoop();
+
+    bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
+    bool IsFormatScalable(VideoCore::Surface::PixelFormat format);
 
     const Device& device;
     Scheduler& scheduler;

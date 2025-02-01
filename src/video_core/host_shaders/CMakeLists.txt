@@ -70,6 +70,14 @@ set(SHADER_FILES
     vulkan_quad_indexed.comp
     vulkan_turbo_mode.comp
     vulkan_uint8.comp
+    convert_rgba8_to_bgra8.frag
+    convert_yuv420_to_rgb.comp
+    convert_rgb_to_yuv420.comp
+    convert_bc7_to_rgba8.comp
+    convert_astc_hdr_to_rgba16f.comp
+    convert_rgba16f_to_rgba8.frag
+    dither_temporal.frag
+    dynamic_resolution_scale.comp
 )
 
 find_program(GLSLANGVALIDATOR "glslangValidator")

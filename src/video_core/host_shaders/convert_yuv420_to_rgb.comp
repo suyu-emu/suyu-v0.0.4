@@ -1,0 +1,30 @@
+#version 450
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(binding = 0) uniform sampler2D y_texture;
+layout(binding = 1) uniform sampler2D u_texture;
+layout(binding = 2) uniform sampler2D v_texture;
+layout(binding = 3, rgba8) uniform writeonly image2D output_image;
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(output_image);
+
+    if (pos.x >= size.x || pos.y >= size.y) {
+        return;
+    }
+
+    vec2 tex_coord = vec2(pos) / vec2(size);
+    float y = texture(y_texture, tex_coord).r;
+    float u = texture(u_texture, tex_coord).r - 0.5;
+    float v = texture(v_texture, tex_coord).r - 0.5;
+
+    // YUV to RGB conversion
+    vec3 rgb;
+    rgb.r = y + 1.402 * v;
+    rgb.g = y - 0.344 * u - 0.714 * v;
+    rgb.b = y + 1.772 * u;
+
+    imageStore(output_image, pos, vec4(rgb, 1.0));
+}
