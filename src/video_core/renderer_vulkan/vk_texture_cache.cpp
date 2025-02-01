@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -1245,6 +1246,16 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
         }
         if (src_view.format == PixelFormat::R32_FLOAT) {
             return blit_image_helper.ConvertR32ToD32(dst, src_view);
+        }
+        break;
+    case PixelFormat::D24_UNORM_S8_UINT:
+        if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
+            src_view.format == PixelFormat::B8G8R8A8_UNORM) {
+            return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
+        }
+        if (src_view.format == PixelFormat::A8B8G8R8_SRGB ||
+            src_view.format == PixelFormat::B8G8R8A8_SRGB) {
+            return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
         }
         break;
     default:

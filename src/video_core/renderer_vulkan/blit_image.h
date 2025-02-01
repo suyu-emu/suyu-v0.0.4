@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -66,6 +67,8 @@ public:
     void ConvertR16ToD16(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
     void ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+
+    void ConvertABGR8SRGBToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
     void ConvertABGR8ToD32F(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
@@ -136,6 +139,7 @@ private:
     vk::ShaderModule convert_d32f_to_abgr8_frag;
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
+    vk::ShaderModule convert_abgr8_srgb_to_d24s8_frag;
     vk::Sampler linear_sampler;
     vk::Sampler nearest_sampler;
 
@@ -156,6 +160,7 @@ private:
     vk::Pipeline convert_d32f_to_abgr8_pipeline;
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
+    vk::Pipeline convert_abgr8_srgb_to_d24s8_pipeline;
 };
 
 } // namespace Vulkan
