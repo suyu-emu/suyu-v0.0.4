@@ -1193,65 +1193,142 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
         return;
     }
 
-    // Basic format conversions
     switch (dst_view.format) {
-    case PixelFormat::B8G8R8A8_UNORM:
-        if (src_view.format == PixelFormat::A8B8G8R8_UNORM) {
-            return blit_image_helper.ConvertRGBAtoGBRA(dst, src_view);
-        }
-        break;
-
-    case PixelFormat::R16G16B16A16_FLOAT:
-        if (src_view.format == PixelFormat::BC7_UNORM) {
-            return blit_image_helper.ConvertBC7toRGBA8(dst, src_view);
-        }
-        break;
-
     case PixelFormat::D24_UNORM_S8_UINT:
+        // Handle sRGB source formats
+        if (src_view.format == PixelFormat::A8B8G8R8_SRGB ||
+            src_view.format == PixelFormat::B8G8R8A8_SRGB) {
+            // Verify format support before conversion
+            if (device.IsFormatSupported(VK_FORMAT_D24_UNORM_S8_UINT,
+                                       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                       FormatType::Optimal)) {
+                return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
+            } else {
+                // Fallback to regular ABGR8 conversion if sRGB not supported
+                return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
+            }
+        }
         if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
             src_view.format == PixelFormat::B8G8R8A8_UNORM) {
             return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
         }
-        if (src_view.format == PixelFormat::A8B8G8R8_SRGB) {
-            return blit_image_helper.ConvertABGR8SRGBToD24S8(dst, src_view);
-        }
         break;
 
+    case PixelFormat::A8B8G8R8_UNORM:
+    case PixelFormat::A8B8G8R8_SNORM:
+    case PixelFormat::A8B8G8R8_SINT:
+    case PixelFormat::A8B8G8R8_UINT:
+    case PixelFormat::R5G6B5_UNORM:
+    case PixelFormat::B5G6R5_UNORM:
+    case PixelFormat::A1R5G5B5_UNORM:
+    case PixelFormat::A2B10G10R10_UNORM:
+    case PixelFormat::A2B10G10R10_UINT:
+    case PixelFormat::A2R10G10B10_UNORM:
+    case PixelFormat::A1B5G5R5_UNORM:
+    case PixelFormat::A5B5G5R1_UNORM:
+    case PixelFormat::R8_UNORM:
+    case PixelFormat::R8_SNORM:
+    case PixelFormat::R8_SINT:
+    case PixelFormat::R8_UINT:
+    case PixelFormat::R16G16B16A16_FLOAT:
+    case PixelFormat::R16G16B16A16_UNORM:
+    case PixelFormat::R16G16B16A16_SNORM:
+    case PixelFormat::R16G16B16A16_SINT:
+    case PixelFormat::R16G16B16A16_UINT:
+    case PixelFormat::B10G11R11_FLOAT:
+    case PixelFormat::R32G32B32A32_UINT:
+    case PixelFormat::BC1_RGBA_UNORM:
+    case PixelFormat::BC2_UNORM:
+    case PixelFormat::BC3_UNORM:
+    case PixelFormat::BC4_UNORM:
+    case PixelFormat::BC4_SNORM:
+    case PixelFormat::BC5_UNORM:
+    case PixelFormat::BC5_SNORM:
+    case PixelFormat::BC7_UNORM:
+    case PixelFormat::BC6H_UFLOAT:
+    case PixelFormat::BC6H_SFLOAT:
+    case PixelFormat::ASTC_2D_4X4_UNORM:
+    case PixelFormat::B8G8R8A8_UNORM:
+    case PixelFormat::R32G32B32A32_FLOAT:
+    case PixelFormat::R32G32B32A32_SINT:
+    case PixelFormat::R32G32_FLOAT:
+    case PixelFormat::R32G32_SINT:
+    case PixelFormat::R32_FLOAT:
+    case PixelFormat::R16_FLOAT:
+    case PixelFormat::R16_UNORM:
+    case PixelFormat::R16_SNORM:
+    case PixelFormat::R16_UINT:
+    case PixelFormat::R16_SINT:
+    case PixelFormat::R16G16_UNORM:
+    case PixelFormat::R16G16_FLOAT:
+    case PixelFormat::R16G16_UINT:
+    case PixelFormat::R16G16_SINT:
+    case PixelFormat::R16G16_SNORM:
+    case PixelFormat::R32G32B32_FLOAT:
+    case PixelFormat::A8B8G8R8_SRGB:
+    case PixelFormat::R8G8_UNORM:
+    case PixelFormat::R8G8_SNORM:
+    case PixelFormat::R8G8_SINT:
+    case PixelFormat::R8G8_UINT:
+    case PixelFormat::R32G32_UINT:
+    case PixelFormat::R16G16B16X16_FLOAT:
+    case PixelFormat::R32_UINT:
+    case PixelFormat::R32_SINT:
+    case PixelFormat::ASTC_2D_8X8_UNORM:
+    case PixelFormat::ASTC_2D_8X5_UNORM:
+    case PixelFormat::ASTC_2D_5X4_UNORM:
+    case PixelFormat::B8G8R8A8_SRGB:
+    case PixelFormat::BC1_RGBA_SRGB:
+    case PixelFormat::BC2_SRGB:
+    case PixelFormat::BC3_SRGB:
+    case PixelFormat::BC7_SRGB:
+    case PixelFormat::A4B4G4R4_UNORM:
+    case PixelFormat::G4R4_UNORM:
+    case PixelFormat::ASTC_2D_4X4_SRGB:
+    case PixelFormat::ASTC_2D_8X8_SRGB:
+    case PixelFormat::ASTC_2D_8X5_SRGB:
+    case PixelFormat::ASTC_2D_5X4_SRGB:
+    case PixelFormat::ASTC_2D_5X5_UNORM:
+    case PixelFormat::ASTC_2D_5X5_SRGB:
+    case PixelFormat::ASTC_2D_10X8_UNORM:
+    case PixelFormat::ASTC_2D_10X8_SRGB:
+    case PixelFormat::ASTC_2D_6X6_UNORM:
+    case PixelFormat::ASTC_2D_6X6_SRGB:
+    case PixelFormat::ASTC_2D_10X6_UNORM:
+    case PixelFormat::ASTC_2D_10X6_SRGB:
+    case PixelFormat::ASTC_2D_10X5_UNORM:
+    case PixelFormat::ASTC_2D_10X5_SRGB:
+    case PixelFormat::ASTC_2D_10X10_UNORM:
+    case PixelFormat::ASTC_2D_10X10_SRGB:
+    case PixelFormat::ASTC_2D_12X10_UNORM:
+    case PixelFormat::ASTC_2D_12X10_SRGB:
+    case PixelFormat::ASTC_2D_12X12_UNORM:
+    case PixelFormat::ASTC_2D_12X12_SRGB:
+    case PixelFormat::ASTC_2D_8X6_UNORM:
+    case PixelFormat::ASTC_2D_8X6_SRGB:
+    case PixelFormat::ASTC_2D_6X5_UNORM:
+    case PixelFormat::ASTC_2D_6X5_SRGB:
+    case PixelFormat::E5B9G9R9_FLOAT:
     case PixelFormat::D32_FLOAT:
-        if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
-            src_view.format == PixelFormat::B8G8R8A8_UNORM) {
-            return blit_image_helper.ConvertABGR8ToD32F(dst, src_view);
-        }
-        if (src_view.format == PixelFormat::R32_FLOAT) {
-            return blit_image_helper.ConvertR32ToD32(dst, src_view);
-        }
-        break;
-
+    case PixelFormat::D16_UNORM:
+    case PixelFormat::X8_D24_UNORM:
+    case PixelFormat::S8_UINT:
+    case PixelFormat::S8_UINT_D24_UNORM:
+    case PixelFormat::D32_FLOAT_S8_UINT:
+    case PixelFormat::Invalid:
     default:
         break;
     }
+}
 
-    // If no conversion path is found, try default blit
-    if (src_view.format == dst_view.format) {
-        const VideoCommon::Region2D src_region{
-            .start = {0, 0},
-            .end = {static_cast<s32>(src_view.size.width),
-                   static_cast<s32>(src_view.size.height)},
-        };
-        const VideoCommon::Region2D dst_region{
-            .start = {0, 0},
-            .end = {static_cast<s32>(dst_view.size.width),
-                   static_cast<s32>(dst_view.size.height)},
-        };
-
-        return blit_image_helper.BlitColor(dst, src_view.Handle(Shader::TextureType::Color2D),
-                                         src_region, dst_region,
-                                         Tegra::Engines::Fermi2D::Filter::Bilinear,
-                                         Tegra::Engines::Fermi2D::Operation::SrcCopy);
+VkFormat TextureCacheRuntime::GetSupportedFormat(VkFormat requested_format,
+                                                VkFormatFeatureFlags required_features) const {
+    if (requested_format == VK_FORMAT_A8B8G8R8_SRGB_PACK32 &&
+        (required_features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
+        // Force valid depth format when sRGB requested in depth context
+        return VK_FORMAT_D24_UNORM_S8_UINT;
     }
-
-    LOG_ERROR(Render_Vulkan, "Unimplemented image format conversion from {} to {}",
-              static_cast<int>(src_view.format), static_cast<int>(dst_view.format));
+    return requested_format;
 }
 
 // Helper functions for format compatibility checks
@@ -1806,7 +1883,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     slot_images = &slot_imgs;
 }
 
-ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
+ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageInfo& info,
                      const VideoCommon::ImageViewInfo& view_info, GPUVAddr gpu_addr_)
     : VideoCommon::ImageViewBase{info, view_info, gpu_addr_},
       buffer_size{VideoCommon::CalculateGuestSizeInBytes(info)} {}
