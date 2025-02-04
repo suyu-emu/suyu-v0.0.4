@@ -594,9 +594,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
-    if (extensions.extended_dynamic_state3 && is_amd_driver) {
+    if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
+        // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
-                    "AMD drivers have broken extendedDynamicState3ColorBlendEquation");
+                    "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
         dynamic_state3_blending = false;
@@ -919,7 +920,8 @@ bool Device::ShouldBoostClocks() const {
         driver_id == VK_DRIVER_ID_MESA_RADV || driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY ||
         driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS ||
         driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
-        driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP;
+        driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP ||
+        driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY;
 
     const bool is_steam_deck = (vendor_id == 0x1002 && device_id == 0x163F) ||
                                (vendor_id == 0x1002 && device_id == 0x1435);
