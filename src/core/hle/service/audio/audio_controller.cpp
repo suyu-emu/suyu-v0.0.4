@@ -179,12 +179,14 @@ Result IAudioController::AcquireTargetNotification(
     *out_notification_event = &notification_event->GetReadableEvent();
     R_SUCCEED();
 }
+
 Result IAudioController::Unknown5000(Out<SharedPointer<IAudioController>> out_audio_controller) {
     LOG_DEBUG(Audio, "Creating duplicate audio controller interface");
 
     // Return a new reference to this controller instance
-    *out_audio_controller = std::static_pointer_cast<IAudioController>(shared_from_this());
+    *out_audio_controller = SharedFrom(this);
 
     R_SUCCEED();
 }
+
 } // namespace Service::Audio
