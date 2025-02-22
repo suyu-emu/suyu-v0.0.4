@@ -140,6 +140,10 @@ public:
         return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
     }
 
+    [[nodiscard]] bool IsEmpty() const noexcept {
+        return commits.empty();
+    }
+
 private:
     [[nodiscard]] static constexpr u32 ShiftType(u32 type) {
         return 1U << type;
@@ -284,39 +288,78 @@ MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, M
     const u32 type_mask = requirements.memoryTypeBits;
     const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
     const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
+
+    // First attempt
     if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
         return std::move(*commit);
     }
-    // Commit has failed, allocate more memory.
+
+    // Commit has failed, allocate more memory
     const u64 chunk_size = AllocationChunkSize(requirements.size);
-    if (!TryAllocMemory(flags, type_mask, chunk_size)) {
-        // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
-        throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+    if (TryAllocMemory(flags, type_mask, chunk_size)) {
+        return TryCommit(requirements, flags).value();
     }
-    // Commit again, this time it won't fail since there's a fresh allocation above.
-    // If it does, there's a bug.
-    return TryCommit(requirements, flags).value();
+
+    // Memory allocation failed - try to recover by releasing empty allocations
+    for (auto it = allocations.begin(); it != allocations.end();) {
+        if ((*it)->IsEmpty()) {
+            it = allocations.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    // Try allocating again after cleanup
+    if (TryAllocMemory(flags, type_mask, chunk_size)) {
+        return TryCommit(requirements, flags).value();
+    }
+
+    // If still failing, try with non-device-local memory as a last resort
+    if (flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+        const VkMemoryPropertyFlags fallback_flags = flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        if (TryAllocMemory(fallback_flags, type_mask, chunk_size)) {
+            if (auto commit = TryCommit(requirements, fallback_flags)) {
+                LOG_WARNING(Render_Vulkan, "Falling back to non-device-local memory due to OOM");
+                return std::move(*commit);
+            }
+        }
+    }
+
+    LOG_CRITICAL(Render_Vulkan, "Vulkan memory allocation failed - out of device memory");
+    throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
 }
 
 bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
-    const u32 type = FindType(flags, type_mask).value();
+    const auto type_opt = FindType(flags, type_mask);
+    if (!type_opt) {
+        if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
+            // Try to allocate non device local memory
+            return TryAllocMemory(flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, type_mask, size);
+        }
+        return false;
+    }
+
+    const u64 aligned_size = (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) ?
+                            Common::AlignUp(size, 4096) :  // Adreno requires 4KB alignment
+                            size;                          // Others (NVIDIA, AMD, Intel, etc)
+
     vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
-        .allocationSize = size,
-        .memoryTypeIndex = type,
+        .allocationSize = aligned_size,
+        .memoryTypeIndex = *type_opt,
     });
+
     if (!memory) {
         if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
             // Try to allocate non device local memory
             return TryAllocMemory(flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, type_mask, size);
-        } else {
-            // RIP
-            return false;
         }
+        return false;
     }
+
     allocations.push_back(
-        std::make_unique<MemoryAllocation>(this, std::move(memory), flags, size, type));
+        std::make_unique<MemoryAllocation>(this, std::move(memory), flags, aligned_size, *type_opt));
     return true;
 }
 
