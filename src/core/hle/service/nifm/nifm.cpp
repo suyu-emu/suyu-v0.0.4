@@ -419,6 +419,24 @@ void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IGeneralService::EnumerateNetworkInterfaces(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_NIFM, "(STUBBED) called.");
+
+    // TODO (jarrodnorwell)
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IGeneralService::EnumerateNetworkProfiles(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_NIFM, "(STUBBED) called.");
+
+    // TODO (jarrodnorwell)
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IGeneralService::RemoveNetworkProfile(HLERequestContext& ctx) {
     LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
@@ -565,6 +583,24 @@ void IGeneralService::IsAnyForegroundRequestAccepted(HLERequestContext& ctx) {
     rb.Push<u8>(is_accepted);
 }
 
+void IGeneralService::ConfirmSystemAvailability(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_NIFM, "(STUBBED) called.");
+
+    // TODO (jarrodnorwell)
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IGeneralService::SetBackgroundRequestEnabled(HLERequestContext& ctx) {
+    LOG_WARNING(Service_NIFM, "(STUBBED) called.");
+
+    // TODO (jarrodnorwell)
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 IGeneralService::IGeneralService(Core::System& system_)
     : ServiceFramework{system_, "IGeneralService"}, network{system_.GetRoomNetwork()} {
     // clang-format off
@@ -573,8 +609,8 @@ IGeneralService::IGeneralService(Core::System& system_)
         {2, &IGeneralService::CreateScanRequest, "CreateScanRequest"},
         {4, &IGeneralService::CreateRequest, "CreateRequest"},
         {5, &IGeneralService::GetCurrentNetworkProfile, "GetCurrentNetworkProfile"},
-        {6, nullptr, "EnumerateNetworkInterfaces"},
-        {7, nullptr, "EnumerateNetworkProfiles"},
+        {6, &IGeneralService::EnumerateNetworkInterfaces, "EnumerateNetworkInterfaces"},
+        {7, &IGeneralService::EnumerateNetworkProfiles, "EnumerateNetworkProfiles"},
         {8, nullptr, "GetNetworkProfile"},
         {9, nullptr, "SetNetworkProfile"},
         {10, &IGeneralService::RemoveNetworkProfile, "RemoveNetworkProfile"},
@@ -600,8 +636,8 @@ IGeneralService::IGeneralService(Core::System& system_)
         {30, nullptr, "SetEthernetCommunicationEnabledForTest"},
         {31, nullptr, "GetTelemetorySystemEventReadableHandle"},
         {32, nullptr, "GetTelemetryInfo"},
-        {33, nullptr, "ConfirmSystemAvailability"},
-        {34, nullptr, "SetBackgroundRequestEnabled"},
+        {33, &IGeneralService::ConfirmSystemAvailability, "ConfirmSystemAvailability"}, // 2.0.0+
+        {34, &IGeneralService::SetBackgroundRequestEnabled, "SetBackgroundRequestEnabled"}, // 4.0.0+
         {35, nullptr, "GetScanData"},
         {36, nullptr, "GetCurrentAccessPoint"},
         {37, nullptr, "Shutdown"},

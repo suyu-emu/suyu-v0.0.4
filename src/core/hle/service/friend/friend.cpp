@@ -22,7 +22,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IFriendService::GetCompletionEvent, "GetCompletionEvent"},
-            {1, nullptr, "Cancel"},
+            {1, &IFriendService::Cancel, "Cancel"},
             {10100, nullptr, "GetFriendListIds"},
             {10101, &IFriendService::GetFriendList, "GetFriendList"},
             {10102, nullptr, "UpdateFriendInfo"},
@@ -49,7 +49,7 @@ public:
             {20101, &IFriendService::GetNewlyFriendCount, "GetNewlyFriendCount"},
             {20102, nullptr, "GetFriendDetailedInfo"},
             {20103, nullptr, "SyncFriendList"},
-            {20104, nullptr, "RequestSyncFriendList"},
+            {20104, &IFriendService::RequestSyncFriendList, "RequestSyncFriendList"},
             {20110, nullptr, "LoadFriendSetting"},
             {20200, &IFriendService::GetReceivedFriendRequestCount, "GetReceivedFriendRequestCount"},
             {20201, nullptr, "GetFriendRequestList"},
@@ -153,9 +153,20 @@ private:
     void GetCompletionEvent(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Friend, "called");
 
+        auto& readable_event = completion_event->GetReadableEvent();
+
         IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(readable_event.Signal());
+        rb.PushCopyObjects(readable_event);
+    }
+
+    void Cancel(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(completion_event->GetReadableEvent());
     }
 
     void GetFriendList(HLERequestContext& ctx) {
@@ -247,6 +258,15 @@ private:
         rb.Push(0);
     }
 
+    void RequestSyncFriendList(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_Friend, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
     void GetReceivedFriendRequestCount(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         [[maybe_unused]] const auto uuid = rp.PopRaw<Common::UUID>();
@@ -265,6 +285,18 @@ private:
         ctx.WriteBuffer(buf);
 
         IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetUserPresenceView(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto uuid = rp.PopRaw<Common::UUID>();
+
+        LOG_DEBUG(Service_Friend, "(STUBBED) called, uuid={}.", uuid.RawString());
+
+        // TODO (jarrodnorwell)
+
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
     }
 
