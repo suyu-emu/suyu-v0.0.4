@@ -565,6 +565,7 @@ void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("ssl", std::make_shared<ISslService>(system));
+    server_manager->RegisterNamedService("ssl:s", std::make_shared<ISslServiceForSystem>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 
