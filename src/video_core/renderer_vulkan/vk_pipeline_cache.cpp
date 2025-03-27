@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -264,18 +265,42 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
 }
 
 size_t GetTotalPipelineWorkers() {
-    const size_t max_core_threads =
-        std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
+    const size_t num_cores = std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL);
+
+    // Calculate optimal number of workers based on available CPU cores
+    size_t optimal_workers;
+
 #ifdef ANDROID
-    // Leave at least a few cores free in android
-    constexpr size_t free_cores = 3ULL;
-    if (max_core_threads <= free_cores) {
-        return 1ULL;
+    // Mobile devices need more conservative threading to avoid thermal issues
+    // Leave more cores free on Android for system processes and other apps
+    constexpr size_t min_free_cores = 3ULL;
+    if (num_cores <= min_free_cores + 1) {
+        return 1ULL; // At least one worker
     }
-    return max_core_threads - free_cores;
+    optimal_workers = num_cores - min_free_cores;
 #else
-    return max_core_threads;
+    // Desktop systems can use more aggressive threading
+    if (num_cores <= 3) {
+        optimal_workers = num_cores - 1; // Dual/triple core: leave 1 core free
+    } else if (num_cores <= 6) {
+        optimal_workers = num_cores - 2; // Quad/hex core: leave 2 cores free
+    } else {
+        // For 8+ core systems, use more workers but still leave some cores for other tasks
+        optimal_workers = num_cores - (num_cores / 4); // Leave ~25% of cores free
+    }
 #endif
+
+    // Apply threading priority via shader_compilation_priority setting if enabled
+    const int priority = Settings::values.shader_compilation_priority.GetValue();
+    if (priority > 0) {
+        // High priority - use more cores for shader compilation
+        optimal_workers = std::min(optimal_workers + 1, num_cores - 1);
+    } else if (priority < 0) {
+        // Low priority - use fewer cores for shader compilation
+        optimal_workers = (optimal_workers >= 2) ? optimal_workers - 1 : 1;
+    }
+
+    return optimal_workers;
 }
 
 } // Anonymous namespace
@@ -586,14 +611,35 @@ GraphicsPipeline* PipelineCache::BuiltPipeline(GraphicsPipeline* pipeline) const
     if (pipeline->IsBuilt()) {
         return pipeline;
     }
+
     if (!use_asynchronous_shaders) {
         return pipeline;
     }
+
+    // Advanced heuristics for smarter async shader compilation
+
+    // Track stutter metrics for better debugging and performance tuning
+    static thread_local u32 async_shader_count = 0;
+    static thread_local std::chrono::high_resolution_clock::time_point last_async_shader_log;
+    auto now = std::chrono::high_resolution_clock::now();
+
+    // Simplify UI shader detection since we don't have access to clear_buffers
+    const bool is_ui_shader = !maxwell3d->regs.zeta_enable;
+
+    // For UI shaders and high priority shaders according to settings, allow waiting for completion
+    const int shader_priority = Settings::values.shader_compilation_priority.GetValue();
+    if ((is_ui_shader && shader_priority >= 0) || shader_priority > 1) {
+        // For UI/menu elements and critical visuals, let's wait for the shader to compile
+        // but only if high shader priority
+        return pipeline;
+    }
+
     // If something is using depth, we can assume that games are not rendering anything which
     // will be used one time.
     if (maxwell3d->regs.zeta_enable) {
         return nullptr;
     }
+
     // If games are using a small index count, we can assume these are full screen quads.
     // Usually these shaders are only used once for building textures so we can assume they
     // can't be built async
@@ -601,6 +647,23 @@ GraphicsPipeline* PipelineCache::BuiltPipeline(GraphicsPipeline* pipeline) const
     if (draw_state.index_buffer.count <= 6 || draw_state.vertex_buffer.count <= 6) {
         return pipeline;
     }
+
+    // Track and log async shader statistics periodically
+    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+        now - last_async_shader_log).count();
+
+    if (elapsed >= 10) { // Log every 10 seconds
+        async_shader_count = 0;
+        last_async_shader_log = now;
+    }
+    async_shader_count++;
+
+    // Log less frequently to avoid spamming log
+    if (async_shader_count % 100 == 1) {
+        LOG_DEBUG(Render_Vulkan, "Async shader compilation in progress (count={})",
+                 async_shader_count);
+    }
+
     return nullptr;
 }
 

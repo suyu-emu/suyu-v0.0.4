@@ -18,6 +18,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
     RENDERER_DEBUG("debug"),
+    RENDERER_ENHANCED_SHADER_BUILDING("use_enhanced_shader_building"),
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),

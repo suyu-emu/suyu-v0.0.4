@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -258,7 +259,16 @@ GraphicsPipeline::GraphicsPipeline(
         std::ranges::copy(info->constant_buffer_used_sizes, uniform_buffer_sizes[stage].begin());
         num_textures += Shader::NumDescriptors(info->texture_descriptors);
     }
-    auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics] {
+
+    // Track compilation start time for performance metrics
+    const auto start_time = std::chrono::high_resolution_clock::now();
+
+    auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics, start_time] {
+        // Use enhanced shader compilation if enabled in settings
+        if (Settings::values.use_enhanced_shader_building.GetValue()) {
+            Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
+        }
+
         DescriptorLayoutBuilder builder{MakeBuilder(device, stage_infos)};
         uses_push_descriptor = builder.CanUsePushDescriptor();
         descriptor_set_layout = builder.CreateDescriptorSetLayout(uses_push_descriptor);
@@ -273,6 +283,17 @@ GraphicsPipeline::GraphicsPipeline(
         const VkRenderPass render_pass{render_pass_cache.Get(MakeRenderPassKey(key.state))};
         Validate();
         MakePipeline(render_pass);
+
+        // Performance measurement
+        const auto end_time = std::chrono::high_resolution_clock::now();
+        const auto compilation_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+            end_time - start_time).count();
+
+        // Log shader compilation time for slow shaders to help diagnose performance issues
+        if (compilation_time > 100) { // Only log very slow compilations
+            LOG_DEBUG(Render_Vulkan, "Compiled graphics pipeline in {}ms", compilation_time);
+        }
+
         if (pipeline_statistics) {
             pipeline_statistics->Collect(*pipeline);
         }
@@ -311,6 +332,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     const auto& regs{maxwell3d->regs};
     const bool via_header_index{regs.sampler_binding == Maxwell::SamplerBinding::ViaHeaderBinding};
     const auto config_stage{[&](size_t stage) LAMBDA_FORCEINLINE {
+        // Get the constant buffer information from Maxwell's state
+        const auto& cbufs = maxwell3d->state.shader_stages[stage].const_buffers;
+
         const Shader::Info& info{stage_infos[stage]};
         buffer_cache.UnbindGraphicsStorageBuffers(stage);
         if constexpr (Spec::has_storage_buffers) {
@@ -322,7 +346,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 ++ssbo_index;
             }
         }
-        const auto& cbufs{maxwell3d->state.shader_stages[stage].const_buffers};
+
         const auto read_handle{[&](const auto& desc, u32 index) {
             ASSERT(cbufs[desc.cbuf_index].enabled);
             const u32 index_offset{index << desc.size_shift};
@@ -344,6 +368,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             }
             return TexturePair(gpu_memory->Read<u32>(addr), via_header_index);
         }};
+
         const auto add_image{[&](const auto& desc, bool blacklist) LAMBDA_FORCEINLINE {
             for (u32 index = 0; index < desc.count; ++index) {
                 const auto handle{read_handle(desc, index)};
