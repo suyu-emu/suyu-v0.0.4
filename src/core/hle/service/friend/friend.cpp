@@ -279,24 +279,14 @@ private:
     }
 
     void GetUserPresenceView(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_Friend, "(STUBBED) called");
+        IPC::RequestParser rp{ctx};
+        const auto uuid = rp.PopRaw<Common::UUID>();
+        LOG_DEBUG(Service_Friend, "(STUBBED) called, uuid={}.", uuid.RawString());
 
         u8 buf[0xe0]{};
         ctx.WriteBuffer(buf);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-    }
-
-    void GetUserPresenceView(HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const auto uuid = rp.PopRaw<Common::UUID>();
-
-        LOG_DEBUG(Service_Friend, "(STUBBED) called, uuid={}.", uuid.RawString());
-
-        // TODO (jarrodnorwell)
-
-        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
     }
 
