@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -122,12 +123,15 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                   PresentFiltersForAppletCapture),
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
                  scheduler),
+      texture_manager(device, memory_allocator),
+      shader_manager(device),
       applet_frame() {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
     }
     Report();
+    InitializePlatformSpecific();
 } catch (const vk::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
     throw std::runtime_error{fmt::format("Vulkan initialization error {}", exception.what())};
@@ -401,6 +405,60 @@ void RendererVulkan::RenderAppletCaptureLayer(
 
     blit_applet.DrawToFrame(rasterizer, &applet_frame, framebuffers, VideoCore::Capture::Layout, 1,
                             CaptureFormat);
+}
+
+bool RendererVulkan::HandleVulkanError(VkResult result, const std::string& operation) {
+    if (result == VK_SUCCESS) {
+        return true;
+    }
+
+    if (result == VK_ERROR_DEVICE_LOST) {
+        LOG_CRITICAL(Render_Vulkan, "Vulkan device lost during {}", operation);
+        RecoverFromError();
+        return false;
+    }
+
+    if (result == VK_ERROR_OUT_OF_DEVICE_MEMORY || result == VK_ERROR_OUT_OF_HOST_MEMORY) {
+        LOG_CRITICAL(Render_Vulkan, "Vulkan out of memory during {}", operation);
+        // Potential recovery: clear caches, reduce workload
+        texture_manager.CleanupTextureCache();
+        return false;
+    }
+
+    LOG_ERROR(Render_Vulkan, "Vulkan error during {}: {}", operation, result);
+    return false;
+}
+
+void RendererVulkan::RecoverFromError() {
+    LOG_INFO(Render_Vulkan, "Attempting to recover from Vulkan error");
+
+    // Wait for device to finish operations
+    void(device.GetLogical().WaitIdle());
+
+    // Clean up resources that might be causing problems
+    texture_manager.CleanupTextureCache();
+
+    // Reset command buffers and pipelines
+    scheduler.Flush();
+
+    LOG_INFO(Render_Vulkan, "Recovery attempt completed");
+}
+
+void RendererVulkan::InitializePlatformSpecific() {
+    LOG_INFO(Render_Vulkan, "Initializing platform-specific Vulkan components");
+
+#if defined(_WIN32) || defined(_WIN64)
+    LOG_INFO(Render_Vulkan, "Initializing Vulkan for Windows");
+    // Windows-specific initialization
+#elif defined(__linux__)
+    LOG_INFO(Render_Vulkan, "Initializing Vulkan for Linux");
+    // Linux-specific initialization
+#elif defined(__ANDROID__)
+    LOG_INFO(Render_Vulkan, "Initializing Vulkan for Android");
+    // Android-specific initialization
+#else
+    LOG_INFO(Render_Vulkan, "Platform-specific Vulkan initialization not implemented for this platform");
+#endif
 }
 
 } // namespace Vulkan

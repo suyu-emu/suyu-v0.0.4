@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2025 Citron Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_subdirectory(host_shaders)
@@ -245,6 +246,8 @@ add_library(video_core STATIC
     renderer_vulkan/vk_turbo_mode.h
     renderer_vulkan/vk_update_descriptor.cpp
     renderer_vulkan/vk_update_descriptor.h
+    renderer_vulkan/vk_texture_manager.cpp
+    renderer_vulkan/vk_texture_manager.h
     shader_cache.cpp
     shader_cache.h
     shader_environment.cpp

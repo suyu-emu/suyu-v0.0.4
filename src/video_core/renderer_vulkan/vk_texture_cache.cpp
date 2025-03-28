@@ -30,6 +30,10 @@
 
 namespace Vulkan {
 
+// TextureCacheManager implementations to fix linker errors
+TextureCacheManager::TextureCacheManager() = default;
+TextureCacheManager::~TextureCacheManager() = default;
+
 using Tegra::Engines::Fermi2D;
 using Tegra::Texture::SwizzleSource;
 using Tegra::Texture::TextureMipmapFilter;
