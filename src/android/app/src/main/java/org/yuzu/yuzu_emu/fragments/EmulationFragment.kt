@@ -59,12 +59,21 @@ import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
 import org.yuzu.yuzu_emu.utils.*
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import java.lang.NullPointerException
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import android.util.TypedValue
+import android.app.ActivityManager
+import android.graphics.Color
+import android.os.Debug
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var emulationState: EmulationState
     private var emulationActivity: EmulationActivity? = null
     private var perfStatsUpdater: (() -> Unit)? = null
     private var thermalStatsUpdater: (() -> Unit)? = null
+        private var batteryReceiverRegistered: Boolean = false
 
     private var _binding: FragmentEmulationBinding? = null
     private val binding get() = _binding!!
@@ -372,7 +381,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 // Setup overlays
                 updateShowFpsOverlay()
-                updateThermalOverlay()
+                val temperature = getBatteryTemperature(requireContext())
+                updateThermalOverlay(temperature)
             }
         }
         emulationViewModel.isEmulationStopping.collect(viewLifecycleOwner) {
@@ -462,10 +472,22 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (emulationState.isRunning && emulationActivity?.isInPictureInPictureMode != true) {
             emulationState.pause()
         }
+        context?.let {
+            if (batteryReceiverRegistered) {
+                it.unregisterReceiver(batteryReceiver)
+                batteryReceiverRegistered = false
+        }
+    }
         super.onPause()
     }
 
     override fun onDestroyView() {
+    context?.let {
+        if (batteryReceiverRegistered) {
+            it.unregisterReceiver(batteryReceiver)
+            batteryReceiverRegistered = false
+        }
+    }
         super.onDestroyView()
         _binding = null
     }
@@ -473,6 +495,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onDetach() {
         NativeLibrary.clearEmulationActivity()
         super.onDetach()
+    }
+    override fun onResume() {
+    super.onResume()
+    if (!batteryReceiverRegistered) {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        context?.registerReceiver(batteryReceiver, filter)
+        batteryReceiverRegistered = true
+        }
     }
 
     private fun resetInputOverlay() {
@@ -482,7 +512,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             binding.surfaceInputOverlay.resetLayoutVisibilityAndPlacement()
         }
     }
-
+    @SuppressLint("DefaultLocale")
     private fun updateShowFpsOverlay() {
         val showOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
         binding.showFpsText.setVisible(showOverlay)
@@ -498,9 +528,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     val perfStats = NativeLibrary.getPerfStats()
                     val cpuBackend = NativeLibrary.getCpuBackend()
                     val gpuDriver = NativeLibrary.getGpuDriver()
+
+                     // Get memory info
+                    val mi = ActivityManager.MemoryInfo()
+                    val activityManager =
+                        requireContext().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    activityManager.getMemoryInfo(mi)
+
+                    // Calculate used memory
+                    val usedMegs = (mi.totalMem - mi.availMem) / 1048576L // Convert bytes to megabytes
+
                     if (_binding != null) {
-                        binding.showFpsText.text =
-                            String.format("FPS: %.1f\n%s/%s", perfStats[FPS], cpuBackend, gpuDriver)
+                          binding.showFpsText.text = String.format(
+                            "FPS: %.1f\nMEM: %d MB\n%s/%s",
+                            perfStats[FPS], usedMegs, cpuBackend, gpuDriver
+                        )
                     }
                     perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 800)
                 }
@@ -513,36 +555,54 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
-    private fun updateThermalOverlay() {
-        val showOverlay = BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean()
-        binding.showThermalsText.setVisible(showOverlay)
-        if (showOverlay) {
-            thermalStatsUpdater = {
-                if (emulationViewModel.emulationStarted.value &&
-                    !emulationViewModel.isEmulationStopping.value
-                ) {
-                    val thermalStatus = when (powerManager.currentThermalStatus) {
-                        PowerManager.THERMAL_STATUS_LIGHT -> "😥"
-                        PowerManager.THERMAL_STATUS_MODERATE -> "🥵"
-                        PowerManager.THERMAL_STATUS_SEVERE -> "🔥"
-                        PowerManager.THERMAL_STATUS_CRITICAL,
-                        PowerManager.THERMAL_STATUS_EMERGENCY,
-                        PowerManager.THERMAL_STATUS_SHUTDOWN -> "☢️"
-
-                        else -> "🙂"
-                    }
-                    if (_binding != null) {
-                        binding.showThermalsText.text = thermalStatus
-                    }
-                    thermalStatsUpdateHandler.postDelayed(thermalStatsUpdater!!, 1000)
-                }
-            }
-            thermalStatsUpdateHandler.post(thermalStatsUpdater!!)
-        } else {
-            if (thermalStatsUpdater != null) {
-                thermalStatsUpdateHandler.removeCallbacks(thermalStatsUpdater!!)
+private val batteryReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        intent?.let {
+            if (it.action == Intent.ACTION_BATTERY_CHANGED) {
+                val temperature = getBatteryTemperature(context!!)
+                updateThermalOverlay(temperature)
             }
         }
+    }
+}
+
+private fun updateThermalOverlay(temperature: Float) {
+    if (BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean() &&
+        emulationViewModel.emulationStarted.value &&
+                    !emulationViewModel.isEmulationStopping.value
+                ) {
+            // Get thermal status for color
+            val thermalStatus = when (powerManager.currentThermalStatus) {
+                PowerManager.THERMAL_STATUS_NONE -> 0f
+                PowerManager.THERMAL_STATUS_LIGHT -> 0.25f
+                PowerManager.THERMAL_STATUS_MODERATE -> 0.5f
+                PowerManager.THERMAL_STATUS_SEVERE -> 0.75f
+                PowerManager.THERMAL_STATUS_CRITICAL,
+                PowerManager.THERMAL_STATUS_EMERGENCY,
+                PowerManager.THERMAL_STATUS_SHUTDOWN -> 1.0f
+                else -> 0f
+            }
+
+            // Convert to Fahrenheit
+            val fahrenheit = (temperature * 9f / 5f) + 32f
+            
+            // Color based on thermal status (green to red)
+            val red = (thermalStatus * 255).toInt()
+            val green = ((1f - thermalStatus) * 255).toInt()
+            val color = android.graphics.Color.rgb(red, green, 0)
+
+            binding.showThermalsText.setTextColor(color)
+        binding.showThermalsText.text = String.format("%.1f°C • %.1f°F", temperature, fahrenheit)
+    }
+}
+
+private fun getBatteryTemperature(context: Context): Float {
+    val intent: Intent? = context.registerReceiver(
+        null,
+        IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+    )
+    val temperature = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) ?: 0
+    return temperature / 10.0f
     }
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -696,7 +756,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.thermal_indicator -> {
                     it.isChecked = !it.isChecked
                     BooleanSetting.SHOW_THERMAL_OVERLAY.setBoolean(it.isChecked)
-                    updateThermalOverlay()
+                    if (it.isChecked) {
+        val temperature = getBatteryTemperature(requireContext())
+        updateThermalOverlay(temperature)
+        if (!batteryReceiverRegistered) {
+            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            context?.registerReceiver(batteryReceiver, filter)
+            batteryReceiverRegistered = true
+        }
+    } else {
+        if (batteryReceiverRegistered) {
+            context?.unregisterReceiver(batteryReceiver)
+            batteryReceiverRegistered = false
+        }
+        binding.showThermalsText.text = ""
+    }
                     true
                 }
 
