@@ -101,6 +101,7 @@ ISettingsServer::ISettingsServer(Core::System& system_) : ServiceFramework{syste
         {9, C<&ISettingsServer::GetKeyCodeMap2>, "GetKeyCodeMap2"},
         {10, nullptr, "GetFirmwareVersionForDebug"},
         {11, C<&ISettingsServer::GetDeviceNickName>, "GetDeviceNickName"},
+        {12, &ISettingsServer::GetKeyCodeMapByPort, "GetKeyCodeMapByPort"},
     };
     // clang-format on
 
@@ -237,6 +238,39 @@ Result ISettingsServer::GetDeviceNickName(
     *out_device_name = {};
     memcpy(out_device_name->data(), Settings::values.device_name.GetValue().data(), string_size);
     R_SUCCEED();
+}
+
+void ISettingsServer::GetKeyCodeMapByPort(HLERequestContext& ctx) {
+    IPC::RequestParser rp(ctx);
+    const auto port_id = rp.Pop<u32>();
+    const auto buffer_size = rp.Pop<u64>();
+
+    static constexpr std::array<u8, 0x40> DEFAULT_MAPPING = {
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+        0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
+        0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+        0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20,
+        0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
+        0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30,
+        0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
+        0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40
+    };
+
+    if (buffer_size < DEFAULT_MAPPING.size()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(Result(-0x3F81)); // Buffer too small
+        return;
+    }
+
+    if (port_id > 7) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(Result(-0x3F82)); // Invalid port
+        return;
+    }
+
+    ctx.WriteBuffer(DEFAULT_MAPPING);
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 } // namespace Service::Set

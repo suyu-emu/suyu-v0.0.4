@@ -46,6 +46,8 @@ private:
 
     Result GetDeviceNickName(
         OutLargeData<std::array<u8, 0x80>, BufferAttr_HipcMapAlias> out_device_name);
+    
+    void GetKeyCodeMapByPort(HLERequestContext& ctx);
 };
 
 } // namespace Service::Set
