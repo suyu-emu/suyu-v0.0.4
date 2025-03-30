@@ -13,7 +13,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Rational
 import android.view.*
@@ -87,8 +86,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private var isInFoldableLayout = false
 
-    private lateinit var powerManager: PowerManager
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is EmulationActivity) {
@@ -105,8 +102,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         updateOrientation()
-
-        powerManager = requireContext().getSystemService(Context.POWER_SERVICE) as PowerManager
 
         val intentUri: Uri? = requireActivity().intent.data
         var intentGame: Game? = null
@@ -515,6 +510,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("DefaultLocale")
     private fun updateShowFpsOverlay() {
         val showOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
+        binding.showFpsText.setTextColor(Color.parseColor("#A146FF"))
         binding.showFpsText.setVisible(showOverlay)
         if (showOverlay) {
             val SYSTEM_FPS = 0
@@ -540,7 +536,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     if (_binding != null) {
                           binding.showFpsText.text = String.format(
-                            "FPS: %.1f\nMEM: %d MB\n%s/%s",
+                            "%.1f FPS • %d MB • %s/%s",
                             perfStats[FPS], usedMegs, cpuBackend, gpuDriver
                         )
                     }
@@ -569,29 +565,20 @@ private val batteryReceiver = object : BroadcastReceiver() {
 private fun updateThermalOverlay(temperature: Float) {
     if (BooleanSetting.SHOW_THERMAL_OVERLAY.getBoolean() &&
         emulationViewModel.emulationStarted.value &&
-                    !emulationViewModel.isEmulationStopping.value
-                ) {
-            // Get thermal status for color
-            val thermalStatus = when (powerManager.currentThermalStatus) {
-                PowerManager.THERMAL_STATUS_NONE -> 0f
-                PowerManager.THERMAL_STATUS_LIGHT -> 0.25f
-                PowerManager.THERMAL_STATUS_MODERATE -> 0.5f
-                PowerManager.THERMAL_STATUS_SEVERE -> 0.75f
-                PowerManager.THERMAL_STATUS_CRITICAL,
-                PowerManager.THERMAL_STATUS_EMERGENCY,
-                PowerManager.THERMAL_STATUS_SHUTDOWN -> 1.0f
-                else -> 0f
-            }
+        !emulationViewModel.isEmulationStopping.value
+    ) {
+        // Convert to Fahrenheit
+        val fahrenheit = (temperature * 9f / 5f) + 32f
 
-            // Convert to Fahrenheit
-            val fahrenheit = (temperature * 9f / 5f) + 32f
-            
-            // Color based on thermal status (green to red)
-            val red = (thermalStatus * 255).toInt()
-            val green = ((1f - thermalStatus) * 255).toInt()
-            val color = android.graphics.Color.rgb(red, green, 0)
+        // Determine color based on temperature ranges
+        val color = when {
+            temperature < 35  -> Color.parseColor("#00C8FF")
+            temperature < 40  -> Color.parseColor("#A146FF")
+            temperature < 45  -> Color.parseColor("#FFA500")
+            else              -> Color.RED                  
+        }
 
-            binding.showThermalsText.setTextColor(color)
+        binding.showThermalsText.setTextColor(color)
         binding.showThermalsText.text = String.format("%.1f°C • %.1f°F", temperature, fahrenheit)
     }
 }
