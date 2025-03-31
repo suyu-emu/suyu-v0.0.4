@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cinttypes>
 #include <clocale>
@@ -5234,9 +5234,6 @@ static void SetHighDPIAttributes() {
     QApplication::setHighDpiScaleFactorRoundingPolicy(
         Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 #endif
-
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 }
 
 int main(int argc, char* argv[]) {

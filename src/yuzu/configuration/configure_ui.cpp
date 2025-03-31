@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2016 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "yuzu/configuration/configure_ui.h"
 
@@ -256,7 +256,7 @@ void ConfigureUi::InitializeLanguageComboBox() {
         locale.truncate(locale.lastIndexOf(QLatin1Char{'.'}));
         locale.remove(0, locale.lastIndexOf(QLatin1Char{'/'}) + 1);
         const QString lang = QLocale::languageToString(QLocale(locale).language());
-        const QString country = QLocale::countryToString(QLocale(locale).country());
+        const QString country = QLocale::territoryToString(QLocale(locale).territory());
         ui->language_combobox->addItem(QStringLiteral("%1 (%2)").arg(lang, country), locale);
     }
 

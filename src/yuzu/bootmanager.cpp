@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <array>
@@ -736,19 +736,19 @@ void GRenderWindow::wheelEvent(QWheelEvent* event) {
 }
 
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {
-    QList<QTouchEvent::TouchPoint> touch_points = event->touchPoints();
+    QList<QTouchEvent::TouchPoint> touch_points = event->points();
     for (const auto& touch_point : touch_points) {
-        const auto [x, y] = ScaleTouch(touch_point.pos());
+        const auto [x, y] = ScaleTouch(touch_point.position());
         const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
         input_subsystem->GetTouchScreen()->TouchPressed(touch_x, touch_y, touch_point.id());
     }
 }
 
 void GRenderWindow::TouchUpdateEvent(const QTouchEvent* event) {
-    QList<QTouchEvent::TouchPoint> touch_points = event->touchPoints();
+    QList<QTouchEvent::TouchPoint> touch_points = event->points();
     input_subsystem->GetTouchScreen()->ClearActiveFlag();
     for (const auto& touch_point : touch_points) {
-        const auto [x, y] = ScaleTouch(touch_point.pos());
+        const auto [x, y] = ScaleTouch(touch_point.position());
         const auto [touch_x, touch_y] = MapToTouchScreen(x, y);
         input_subsystem->GetTouchScreen()->TouchMoved(touch_x, touch_y, touch_point.id());
     }

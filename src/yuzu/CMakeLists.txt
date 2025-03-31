@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -370,11 +370,7 @@ if (APPLE)
 
 elseif(WIN32)
     # compile as a win32 gui application instead of a console application
-    if (QT_VERSION VERSION_GREATER_EQUAL 6)
-        target_link_libraries(yuzu PRIVATE Qt6::EntryPointPrivate)
-    else()
-        target_link_libraries(yuzu PRIVATE Qt5::WinMain)
-    endif()
+    target_link_libraries(yuzu PRIVATE Qt6::EntryPointPrivate)
     if(MSVC)
         target_link_libraries(yuzu PRIVATE version.lib)
         set_target_properties(yuzu PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
@@ -384,15 +380,15 @@ elseif(WIN32)
 endif()
 
 target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core)
-target_link_libraries(yuzu PRIVATE Boost::headers glad Qt${QT_MAJOR_VERSION}::Widgets)
+target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 target_link_libraries(yuzu PRIVATE Vulkan::Headers)
 if (NOT WIN32)
-    target_include_directories(yuzu PRIVATE ${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS})
+    target_include_directories(yuzu PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
 endif()
 if (UNIX AND NOT APPLE)
-    target_link_libraries(yuzu PRIVATE Qt${QT_MAJOR_VERSION}::DBus)
+    target_link_libraries(yuzu PRIVATE Qt6::DBus)
 endif()
 
 target_compile_definitions(yuzu PRIVATE
@@ -450,9 +446,9 @@ if (WIN32 AND QT_VERSION VERSION_GREATER_EQUAL 6)
     add_custom_command(TARGET yuzu POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} "${YUZU_EXE_DIR}/yuzu.exe" --dir "${YUZU_EXE_DIR}" --libdir "${YUZU_EXE_DIR}" --plugindir "${YUZU_EXE_DIR}/plugins" --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-translations --verbose 0)
 endif()
 
-if (YUZU_USE_BUNDLED_QT AND QT_VERSION VERSION_LESS 6)
-    include(CopyYuzuQt5Deps)
-    copy_yuzu_Qt5_deps(yuzu)
+if (YUZU_USE_BUNDLED_QT)
+    include(CopyYuzuQt6Deps)
+    copy_yuzu_Qt6_deps(yuzu)
 endif()
 
 if (ENABLE_SDL2)
