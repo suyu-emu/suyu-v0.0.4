@@ -186,9 +186,7 @@
 
     <!-- Early access upgrade strings -->
     <string name="early_access">Acesso antecipado</string>
-    <string name="get_early_access">Obtém Acesso Antecipado</string>
     <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
-    <string name="get_early_access_description">Recursos de ponta, acesso antecipado a atualizações e muito mais</string>
     <string name="early_access_benefits">Benefícios do Acesso Antecipado</string>
     <string name="cutting_edge_features">Recursos de ponta</string>
     <string name="early_access_updates">Acesso antecipado a atualizações</string>

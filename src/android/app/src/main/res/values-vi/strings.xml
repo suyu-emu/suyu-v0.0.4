@@ -112,9 +112,7 @@
 
     <!-- Early access upgrade strings -->
     <string name="early_access">Early Access</string>
-    <string name="get_early_access">Tải Early Access</string>
     <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
-    <string name="get_early_access_description">Các tính năng tiên tiến, truy cập sớm vào các cập nhật và nhiều hơn nữa</string>
     <string name="early_access_benefits">Lợi ích của Early Access</string>
     <string name="cutting_edge_features">Tính năng tiên tiến</string>
     <string name="early_access_updates">Truy cập sớm vào cập nhật</string>

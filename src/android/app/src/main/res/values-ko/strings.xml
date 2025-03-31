@@ -182,9 +182,7 @@
 
     <!-- Early access upgrade strings -->
     <string name="early_access">앞서 해보기</string>
-    <string name="get_early_access">앞서 해보기 신청</string>
     <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
-    <string name="get_early_access_description">최신 기능, 업데이트 미리 체험 등</string>
     <string name="early_access_benefits">앞서 해보기 혜택</string>
     <string name="cutting_edge_features">최신 기능</string>
     <string name="early_access_updates">업데이트 미리 체험</string>

@@ -184,9 +184,7 @@
 
     <!-- Early access upgrade strings -->
     <string name="early_access">دسترسی زودهنگام</string>
-    <string name="get_early_access">دسترسی زودهنگام را دریافت کنید</string>
     <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
-    <string name="get_early_access_description">ویژگی‌های پیشرفته، دسترسی زودهنگام به بروزرسانی‌ها و موارد دیگر</string>
     <string name="early_access_benefits">مزایای دسترسی زودهنگام</string>
     <string name="cutting_edge_features">ویژگی‌های پیشرفته</string>
     <string name="early_access_updates">دسترسی زودهنگام به بروزرسانی‌ها</string>

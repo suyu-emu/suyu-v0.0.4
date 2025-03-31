@@ -171,9 +171,7 @@
 
     <!-- Early access upgrade strings -->
     <string name="early_access">גישה מוקדמת</string>
-    <string name="get_early_access">קבל גישה מוקדמת</string>
     <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
-    <string name="get_early_access_description">תכונות חותכות קצה, גישה מוקדמת לעדכונים, ועוד</string>
     <string name="early_access_benefits">יתרונות של גישה מקודמת</string>
     <string name="cutting_edge_features">תכונות חותכות קצה</string>
     <string name="early_access_updates">גישה מוקדמת לעדכונים</string>
