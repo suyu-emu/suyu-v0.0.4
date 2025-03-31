@@ -27,7 +27,7 @@ val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toIn
 android {
     namespace = "org.yuzu.yuzu_emu"
 
-    compileSdkVersion = "android-34"
+    compileSdkVersion = "android-35"
     ndkVersion = "26.1.10909125"
 
     buildFeatures {
@@ -35,12 +35,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 
     packaging {
@@ -56,7 +56,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionName = getGitVersion()
 
         versionCode = if (System.getenv("AUTO_VERSIONED") == "true") {
