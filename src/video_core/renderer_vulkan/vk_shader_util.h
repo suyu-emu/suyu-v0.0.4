@@ -10,6 +10,7 @@
 #include <mutex>
 #include <atomic>
 #include <functional>
+#include <vector>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -17,6 +18,19 @@
 namespace Vulkan {
 
 class Device;
+class Scheduler;
+
+// Command queue system for asynchronous operations
+void InitializeCommandQueue();
+void ShutdownCommandQueue();
+void SubmitCommandToQueue(std::function<void()> command);
+void CommandQueueWorker();
+
+// Scheduler integration functions
+void SetGlobalScheduler(Scheduler* scheduler);
+void SubmitToScheduler(std::function<void(vk::CommandBuffer)> command);
+u64 FlushScheduler(VkSemaphore signal_semaphore = nullptr, VkSemaphore wait_semaphore = nullptr);
+void ProcessAllCommands();
 
 vk::ShaderModule BuildShader(const Device& device, std::span<const u32> code);
 
@@ -35,6 +49,12 @@ public:
     void ReloadShader(const std::string& shader_path);
     bool LoadShader(const std::string& shader_path);
     void WaitForCompilation();
+
+    // Batch process multiple shaders in parallel
+    void PreloadShaders(const std::vector<std::string>& shader_paths);
+
+    // Integrate with Citron's scheduler
+    void SetScheduler(Scheduler* scheduler);
 
 private:
     const Device& device;

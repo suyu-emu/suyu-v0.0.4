@@ -130,6 +130,39 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
     }
+
+    // Initialize enhanced shader compilation system
+    shader_manager.SetScheduler(&scheduler);
+    LOG_INFO(Render_Vulkan, "Enhanced shader compilation system initialized");
+
+    // Preload common shaders if enabled
+    if (Settings::values.use_asynchronous_shaders.GetValue()) {
+        // Use a simple shader directory path - can be updated to match Citron's actual path structure
+        const std::string shader_dir = "./shaders";
+        std::vector<std::string> common_shaders;
+
+        // Add paths to common shaders that should be preloaded
+        // These will be compiled in parallel for faster startup
+        if (std::filesystem::exists(shader_dir)) {
+            try {
+                for (const auto& entry : std::filesystem::directory_iterator(shader_dir)) {
+                    if (entry.path().extension() == ".spv") {
+                        common_shaders.push_back(entry.path().string());
+                    }
+                }
+
+                if (!common_shaders.empty()) {
+                    LOG_INFO(Render_Vulkan, "Preloading {} common shaders", common_shaders.size());
+                    shader_manager.PreloadShaders(common_shaders);
+                }
+            } catch (const std::exception& e) {
+                LOG_ERROR(Render_Vulkan, "Error during shader preloading: {}", e.what());
+            }
+        } else {
+            LOG_INFO(Render_Vulkan, "Shader directory not found at {}", shader_dir);
+        }
+    }
+
     Report();
     InitializePlatformSpecific();
 } catch (const vk::Exception& exception) {
@@ -434,6 +467,12 @@ void RendererVulkan::RecoverFromError() {
 
     // Wait for device to finish operations
     void(device.GetLogical().WaitIdle());
+
+    // Process all pending commands in our queue
+    ProcessAllCommands();
+
+    // Wait for any async shader compilations to finish
+    shader_manager.WaitForCompilation();
 
     // Clean up resources that might be causing problems
     texture_manager.CleanupTextureCache();
