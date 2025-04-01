@@ -384,18 +384,38 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
 
 void ArmNce::ClearInstructionCache() {
     #if defined(__GNUC__) || defined(__clang__)
-        void* start = (void*)((uintptr_t)__builtin_return_address(0) & ~(uintptr_t)0xFFF);
-        void* end = (void*)((uintptr_t)start + 0x1000);
+        const size_t PAGE_SIZE = 4096;
+        void* start = (void*)((uintptr_t)__builtin_return_address(0) & ~(PAGE_SIZE - 1));
+        void* end = (void*)((uintptr_t)start + PAGE_SIZE * 2); // Clear two pages for better coverage
+
+        // Prefetch next likely pages
+        __builtin_prefetch((void*)((uintptr_t)end), 1, 3);
         __builtin___clear_cache(static_cast<char*>(start), static_cast<char*>(end));
     #endif
 
     #ifdef __aarch64__
+        // Ensure all previous memory operations complete
+        asm volatile("dmb ish" ::: "memory");
         asm volatile("dsb ish" ::: "memory");
         asm volatile("isb" ::: "memory");
     #endif
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
+    #if defined(__GNUC__) || defined(__clang__)
+        // Align the start address to cache line boundary for better performance
+        const size_t CACHE_LINE_SIZE = 64;
+        addr &= ~(CACHE_LINE_SIZE - 1);
+
+        // Round up size to nearest cache line
+        size = (size + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
+
+        // Prefetch the range to be invalidated
+        for (size_t offset = 0; offset < size; offset += CACHE_LINE_SIZE) {
+            __builtin_prefetch((void*)(addr + offset), 1, 3);
+        }
+    #endif
+
     this->ClearInstructionCache();
 }
 

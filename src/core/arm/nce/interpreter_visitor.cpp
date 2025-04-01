@@ -422,28 +422,39 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         signed_ = true;
     }
 
-    if (memop == MemOp::Load && wback && Rn == Rt && Rn != Reg::R31) {
-        // Unpredictable instruction
-        return false;
-    }
-    if (memop == MemOp::Store && wback && Rn == Rt && Rn != Reg::R31) {
+    if ((memop == MemOp::Load || memop == MemOp::Store) && wback && Rn == Rt && Rn != Reg::R31) {
         // Unpredictable instruction
         return false;
     }
 
-    u64 address;
+    // Use aligned access where possible
+    alignas(8) u64 address;
     if (Rn == Reg::SP) {
         address = this->GetSp();
     } else {
         address = this->GetReg(Rn);
     }
+
+    // Pre-index addressing
     if (!postindex) {
         address += offset;
     }
 
-    // Add early prefetch hint for loads
-    if (memop == MemOp::Load && (address % 8) == 0) {
-        __builtin_prefetch((void*)address, 0, 3);
+    // Alignment optimization for common cases
+    const bool is_aligned = (address % 8) == 0;
+
+    // Enhanced prefetching for loads with aligned addresses
+    if (memop == MemOp::Load) {
+        const size_t CACHE_LINE_SIZE = 64;
+        if ((address % 16) == 0) {
+            __builtin_prefetch((void*)address, 0, 3);
+            __builtin_prefetch((void*)(address + CACHE_LINE_SIZE), 0, 3);
+            if (datasize >= 32) {
+                __builtin_prefetch((void*)(address + CACHE_LINE_SIZE * 2), 0, 2);
+            }
+        } else if ((address % 8) == 0) {
+            __builtin_prefetch((void*)address, 0, 2);
+        }
     }
 
     const size_t datasize = 8 << scale;
@@ -526,9 +537,17 @@ bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale,
         address += offset;
     }
 
-    // Prefetch for SIMD loads
-    if (memop == MemOp::Load && (address % 16) == 0) {
-        __builtin_prefetch((void*)(address + datasize), 0, 3);
+    // Enhanced prefetching for SIMD loads
+    if (memop == MemOp::Load) {
+        if ((address % 32) == 0) {
+            // Aggressive prefetch for well-aligned SIMD operations
+            __builtin_prefetch((void*)address, 0, 3);
+            __builtin_prefetch((void*)(address + 32), 0, 3);
+            __builtin_prefetch((void*)(address + 64), 0, 2);
+        } else if ((address % 16) == 0) {
+            __builtin_prefetch((void*)address, 0, 3);
+            __builtin_prefetch((void*)(address + datasize), 0, 2);
+        }
     }
 
     switch (memop) {
