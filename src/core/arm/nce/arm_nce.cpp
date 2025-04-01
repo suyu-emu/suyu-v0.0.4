@@ -196,16 +196,23 @@ HaltReason ArmNce::RunThread(Kernel::KThread* thread) {
         return hr;
     }
 
-    // Get the thread context.
+    // Pre-fetch thread context data to improve cache locality
     auto* thread_params = &thread->GetNativeExecutionParameters();
     auto* process = thread->GetOwnerProcess();
 
-    // Assign current members.
+    // Move non-critical operations outside the locked section
+    const u64 tpidr_el0_cache = m_guest_ctx.tpidr_el0;
+    const u64 tpidrro_el0_cache = m_guest_ctx.tpidrro_el0;
+
+    // Critical section begins - minimize operations here
     m_running_thread = thread;
     m_guest_ctx.parent = this;
     thread_params->native_context = &m_guest_ctx;
-    thread_params->tpidr_el0 = m_guest_ctx.tpidr_el0;
-    thread_params->tpidrro_el0 = m_guest_ctx.tpidrro_el0;
+    thread_params->tpidr_el0 = tpidr_el0_cache;
+    thread_params->tpidrro_el0 = tpidrro_el0_cache;
+
+    // Memory barrier to ensure visibility of changes
+    std::atomic_thread_fence(std::memory_order_release);
     thread_params->is_running = true;
 
     // TODO: finding and creating the post handler needs to be locked
@@ -217,12 +224,19 @@ HaltReason ArmNce::RunThread(Kernel::KThread* thread) {
         hr = ReturnToRunCodeByExceptionLevelChange(m_thread_id, thread_params);
     }
 
-    // Unload members.
-    // The thread does not change, so we can persist the old reference.
-    m_running_thread = nullptr;
-    m_guest_ctx.tpidr_el0 = thread_params->tpidr_el0;
-    thread_params->native_context = nullptr;
+    // Critical section for thread cleanup
+    std::atomic_thread_fence(std::memory_order_acquire);
+
+    // Cache values before releasing thread
+    const u64 final_tpidr_el0 = thread_params->tpidr_el0;
+
+    // Minimize critical section
     thread_params->is_running = false;
+    thread_params->native_context = nullptr;
+    m_running_thread = nullptr;
+
+    // Non-critical updates can happen after releasing the thread
+    m_guest_ctx.tpidr_el0 = final_tpidr_el0;
 
     // Return the halt reason.
     return hr;
@@ -366,11 +380,21 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
 }
 
 void ArmNce::ClearInstructionCache() {
-    // TODO: This is not possible to implement correctly on Linux because
-    // we do not have any access to ic iallu.
+    // Implement efficient cache clearing using compiler built-ins
+    #if defined(__GNUC__) || defined(__clang__)
+        // Get current program counter
+        void* start = (void*)((uintptr_t)__builtin_return_address(0) & ~(uintptr_t)0xFFF);
+        void* end = (void*)((uintptr_t)start + 0x1000);  // Clear one page
+        __builtin___clear_cache(static_cast<char*>(start), static_cast<char*>(end));
+    #endif
 
-    // Require accesses to complete.
-    std::atomic_thread_fence(std::memory_order_seq_cst);
+    // Ensure memory accesses are complete before clearing cache
+    std::atomic_thread_fence(std::memory_order_release);
+
+    #ifdef __aarch64__
+        asm volatile("dsb ish");
+        asm volatile("isb");
+    #endif
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {

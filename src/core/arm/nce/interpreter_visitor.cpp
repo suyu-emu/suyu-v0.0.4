@@ -441,6 +441,11 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         address += offset;
     }
 
+    // Add early prefetch hint for loads
+    if (memop == MemOp::Load && (address % 8) == 0) {
+        __builtin_prefetch((void*)address, 0, 3);
+    }
+
     const size_t datasize = 8 << scale;
     switch (memop) {
     case MemOp::Store: {
@@ -519,6 +524,11 @@ bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale,
 
     if (!postindex) {
         address += offset;
+    }
+
+    // Prefetch for SIMD loads
+    if (memop == MemOp::Load && (address % 16) == 0) {
+        __builtin_prefetch((void*)(address + datasize), 0, 3);
     }
 
     switch (memop) {
