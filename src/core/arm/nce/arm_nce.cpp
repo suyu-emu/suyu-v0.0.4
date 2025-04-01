@@ -185,6 +185,9 @@ void ArmNce::LockThread(Kernel::KThread* thread) {
 
 void ArmNce::UnlockThread(Kernel::KThread* thread) {
     auto* thread_params = &thread->GetNativeExecutionParameters();
+    m_guest_ctx.tpidr_el0 = thread_params->tpidr_el0;
+    m_guest_ctx.tpidrro_el0 = thread_params->tpidrro_el0;
+    thread_params->native_context = nullptr;
     UnlockThreadParameters(thread_params);
 }
 
@@ -380,20 +383,15 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
 }
 
 void ArmNce::ClearInstructionCache() {
-    // Implement efficient cache clearing using compiler built-ins
     #if defined(__GNUC__) || defined(__clang__)
-        // Get current program counter
         void* start = (void*)((uintptr_t)__builtin_return_address(0) & ~(uintptr_t)0xFFF);
-        void* end = (void*)((uintptr_t)start + 0x1000);  // Clear one page
+        void* end = (void*)((uintptr_t)start + 0x1000);
         __builtin___clear_cache(static_cast<char*>(start), static_cast<char*>(end));
     #endif
 
-    // Ensure memory accesses are complete before clearing cache
-    std::atomic_thread_fence(std::memory_order_release);
-
     #ifdef __aarch64__
-        asm volatile("dsb ish");
-        asm volatile("isb");
+        asm volatile("dsb ish" ::: "memory");
+        asm volatile("isb" ::: "memory");
     #endif
 }
 
