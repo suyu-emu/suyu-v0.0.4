@@ -41,15 +41,6 @@ class HomeSettingAdapter(
                 )
             )
 
-            when (model.titleId) {
-                R.string.get_early_access ->
-                    binding.optionLayout.background =
-                        ContextCompat.getDrawable(
-                            binding.optionCard.context,
-                            R.drawable.premium_background
-                        )
-            }
-
             if (!model.isEnabled.invoke()) {
                 binding.optionTitle.alpha = 0.5f
                 binding.optionDescription.alpha = 0.5f
