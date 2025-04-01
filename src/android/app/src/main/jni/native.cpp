@@ -642,7 +642,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_run(JNIEnv* env, jobject jobj, jstrin
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_logDeviceInfo(JNIEnv* env, jclass clazz) {
-    LOG_INFO(Frontend, "yuzu Version: {}-{}", Common::g_scm_branch, Common::g_scm_desc);
+    LOG_INFO(Frontend, "eden Version: {}-{}", Common::g_scm_branch, Common::g_scm_desc);
     LOG_INFO(Frontend, "Host OS: Android API level {}", android_get_device_api_level());
 }
 

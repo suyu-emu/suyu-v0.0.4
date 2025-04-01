@@ -170,27 +170,27 @@ void ConfigureMotionTouch::OnUDPAddServer() {
     const int row = udp_server_list_model->rowCount();
 
     if (!ok) {
-        QMessageBox::warning(this, tr("yuzu"), tr("Port number has invalid characters"));
+        QMessageBox::warning(this, tr("eden"), tr("Port number has invalid characters"));
         return;
     }
     if (port_number < 0 || port_number > 65353) {
-        QMessageBox::warning(this, tr("yuzu"), tr("Port has to be in range 0 and 65353"));
+        QMessageBox::warning(this, tr("eden"), tr("Port has to be in range 0 and 65353"));
         return;
     }
     if (!re.match(server_text).hasMatch()) {
-        QMessageBox::warning(this, tr("yuzu"), tr("IP address is not valid"));
+        QMessageBox::warning(this, tr("eden"), tr("IP address is not valid"));
         return;
     }
     // Search for duplicates
     for (const auto& item : udp_server_list_model->stringList()) {
         if (item == server_string) {
-            QMessageBox::warning(this, tr("yuzu"), tr("This UDP server already exists"));
+            QMessageBox::warning(this, tr("eden"), tr("This UDP server already exists"));
             return;
         }
     }
     // Limit server count to 8
     if (row == 8) {
-        QMessageBox::warning(this, tr("yuzu"), tr("Unable to add more than 8 servers"));
+        QMessageBox::warning(this, tr("eden"), tr("Unable to add more than 8 servers"));
         return;
     }
 
@@ -284,7 +284,7 @@ void ConfigureMotionTouch::OnConfigureTouchFromButton() {
 
 bool ConfigureMotionTouch::CanCloseDialog() {
     if (udp_test_in_progress) {
-        QMessageBox::warning(this, tr("yuzu"),
+        QMessageBox::warning(this, tr("eden"),
                              tr("UDP Test or calibration configuration is in progress.<br>Please "
                                 "wait for them to finish."));
         return false;

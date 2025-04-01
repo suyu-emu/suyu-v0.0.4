@@ -3879,7 +3879,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1225"/>
-        <source>yuzu is running a game</source>
+        <source>eden is running a game</source>
         <extracomment>TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the computer from sleeping</extracomment>
         <translation type="unfinished"/>
     </message>

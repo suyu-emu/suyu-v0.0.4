@@ -1034,7 +1034,7 @@ bool GRenderWindow::InitializeOpenGL() {
     return true;
 #else
     QMessageBox::warning(this, tr("OpenGL not available!"),
-                         tr("yuzu has not been compiled with OpenGL support."));
+                         tr("eden has not been compiled with OpenGL support."));
     return false;
 #endif
 }

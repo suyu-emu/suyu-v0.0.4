@@ -370,13 +370,13 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto yuzu_build = fmt::format("yuzu Development Build | {}-{}", branch_name, description);
+    const auto yuzu_build = fmt::format("eden Development Build | {}-{}", branch_name, description);
     const auto override_build =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
     const auto processor_count = std::thread::hardware_concurrency();
 
-    LOG_INFO(Frontend, "yuzu Version: {}", yuzu_build_version);
+    LOG_INFO(Frontend, "eden Version: {}", yuzu_build_version);
     LogRuntimes();
 #ifdef ARCHITECTURE_x86_64
     const auto& caps = Common::GetCPUCaps();
@@ -1339,7 +1339,7 @@ void GMainWindow::InitializeHotkeys() {
 
     LinkActionShortcut(ui->action_Load_File, QStringLiteral("Load File"));
     LinkActionShortcut(ui->action_Load_Amiibo, QStringLiteral("Load/Remove Amiibo"));
-    LinkActionShortcut(ui->action_Exit, QStringLiteral("Exit yuzu"));
+    LinkActionShortcut(ui->action_Exit, QStringLiteral("Exit eden"));
     LinkActionShortcut(ui->action_Restart, QStringLiteral("Restart Emulation"));
     LinkActionShortcut(ui->action_Pause, QStringLiteral("Continue/Pause Emulation"));
     LinkActionShortcut(ui->action_Stop, QStringLiteral("Stop Emulation"));
@@ -1816,7 +1816,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
             tr("You are using the deconstructed ROM directory format for this game, which is an "
                "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
                "NSP. Deconstructed ROM directories lack icons, metadata, and update "
-               "support.<br><br>For an explanation of the various Switch formats yuzu supports, <a "
+               "support.<br><br>For an explanation of the various Switch formats eden supports, <a "
                "href='https://yuzu-emu.org/wiki/overview-of-switch-game-formats'>check out our "
                "wiki</a>. This message will not be shown again."));
     }
@@ -1831,7 +1831,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         case Core::SystemResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                 this, tr("An error occurred initializing the video core."),
-                tr("yuzu has encountered an error while running the video core. "
+                tr("eden has encountered an error while running the video core. "
                    "This is usually caused by outdated GPU drivers, including integrated ones. "
                    "Please see the log for more details. "
                    "For more information on accessing the log, please see the following page: "
@@ -1849,9 +1849,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                     tr("Error while loading ROM! %1", "%1 signifies a numeric error code.")
                         .arg(QString::fromStdString(error_code));
                 const auto description =
-                    tr("%1<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the "
-                       "yuzu quickstart guide</a> to redump your files.<br>You can refer "
-                       "to the yuzu wiki</a> or the yuzu Discord</a> for help.",
+                    tr("%1<br>Please redump your files or ask on Discord for help.",
                        "%1 signifies an error string.")
                         .arg(QString::fromStdString(
                             GetResultStatusString(static_cast<Loader::ResultStatus>(error_id))));
@@ -1926,7 +1924,7 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
 
 void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
                            StartGameType type) {
-    LOG_INFO(Frontend, "yuzu starting...");
+    LOG_INFO(Frontend, "eden starting...");
 
     if (params.program_id == 0 ||
         params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
@@ -3089,7 +3087,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
             this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
         arguments = "-f " + arguments;
     }
-    const std::string comment = fmt::format("Start {:s} with the yuzu Emulator", game_title);
+    const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
@@ -4254,7 +4252,7 @@ void GMainWindow::OnInstallFirmware() {
             QMessageBox::warning(
                 this, tr("Firmware install failed"),
                 tr("Firmware installation cancelled, firmware may be in bad state, "
-                   "restart yuzu or re-install firmware."));
+                   "restart eden or re-install firmware."));
             return;
         }
     }
@@ -4548,7 +4546,7 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto yuzu_title = fmt::format("yuzu | {}-{}", branch_name, description);
+    const auto yuzu_title = fmt::format("eden | {}-{}", branch_name, description);
     const auto override_title =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto window_title = override_title.empty() ? yuzu_title : override_title;
@@ -4789,10 +4787,7 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::warning(
             this, tr("Derivation Components Missing"),
-            tr("Encryption keys are missing. "
-               "<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the yuzu "
-               "quickstart guide</a> to get all your keys, firmware and "
-               "games."));
+            tr("Encryption keys are missing."));
     }
     SetFirmwareVersion();
     UpdateMenuState();
@@ -4905,8 +4900,8 @@ bool GMainWindow::ConfirmClose() {
         UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game) {
         return true;
     }
-    const auto text = tr("Are you sure you want to close yuzu?");
-    return question(this, tr("yuzu"), text);
+    const auto text = tr("Are you sure you want to close eden?");
+    return question(this, tr("eden"), text);
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event) {
@@ -4986,7 +4981,7 @@ bool GMainWindow::ConfirmChangeGame() {
 
     // Use custom question to link controller navigation
     return question(
-        this, tr("yuzu"),
+        this, tr("eden"),
         tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 }
@@ -4995,10 +4990,10 @@ bool GMainWindow::ConfirmForceLockedExit() {
     if (emu_thread == nullptr) {
         return true;
     }
-    const auto text = tr("The currently running application has requested yuzu to not exit.\n\n"
+    const auto text = tr("The currently running application has requested eden to not exit.\n\n"
                          "Would you like to bypass this and exit anyway?");
 
-    return question(this, tr("yuzu"), text);
+    return question(this, tr("eden"), text);
 }
 
 void GMainWindow::RequestGameExit() {
@@ -5272,7 +5267,7 @@ int main(int argc, char* argv[]) {
 
     // Init settings params
     QCoreApplication::setOrganizationName(QStringLiteral("yuzu team"));
-    QCoreApplication::setApplicationName(QStringLiteral("yuzu"));
+    QCoreApplication::setApplicationName(QStringLiteral("eden"));
 
 #ifdef _WIN32
     // Increases the maximum open file limit to 8192

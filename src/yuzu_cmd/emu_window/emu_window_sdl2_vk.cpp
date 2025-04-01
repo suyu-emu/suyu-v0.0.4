@@ -82,7 +82,7 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsyste
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
-    LOG_INFO(Frontend, "yuzu Version: {} | {}-{} (Vulkan)", Common::g_build_name,
+    LOG_INFO(Frontend, "eden Version: {} | {}-{} (Vulkan)", Common::g_build_name,
              Common::g_scm_branch, Common::g_scm_desc);
 }
 

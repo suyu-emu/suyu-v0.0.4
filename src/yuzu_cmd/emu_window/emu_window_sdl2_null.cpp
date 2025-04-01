@@ -40,7 +40,7 @@ EmuWindow_SDL2_Null::EmuWindow_SDL2_Null(InputCommon::InputSubsystem* input_subs
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
-    LOG_INFO(Frontend, "yuzu Version: {} | {}-{} (Null)", Common::g_build_name,
+    LOG_INFO(Frontend, "eden Version: {} | {}-{} (Null)", Common::g_build_name,
              Common::g_scm_branch, Common::g_scm_desc);
 }
 
