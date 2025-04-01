@@ -28,4 +28,4 @@
 
 // yuzu-specific files
 
-#define LOG_FILE "yuzu_log.txt"
+#define LOG_FILE "eden_log.txt"
