@@ -202,6 +202,7 @@ endif()
 
 if (ENABLE_SDL2)
     add_subdirectory(yuzu_cmd)
+    set_target_properties(yuzu-cmd PROPERTIES OUTPUT_NAME "eden-cli")
 endif()
 
 if (ENABLE_QT)

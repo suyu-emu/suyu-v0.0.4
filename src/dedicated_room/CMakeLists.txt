@@ -27,4 +27,6 @@ if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu-room PRIVATE precompiled_headers.h)
 endif()
 
+set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "eden-room")
+
 create_target_directory_groups(yuzu-room)

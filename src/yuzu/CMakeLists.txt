@@ -233,6 +233,8 @@ add_executable(yuzu
     yuzu.rc
 )
 
+set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
+
 if (YUZU_CRASH_DUMPS)
     target_sources(yuzu PRIVATE
         breakpad.cpp
