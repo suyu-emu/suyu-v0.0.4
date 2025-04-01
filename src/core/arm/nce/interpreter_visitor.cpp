@@ -408,6 +408,8 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
     bool signed_ = false;
     size_t regsize = 0;
 
+    const size_t datasize = 8 << scale;
+
     if (opc.Bit<1>() == 0) {
         memop = opc.Bit<0>() ? MemOp::Load : MemOp::Store;
         regsize = size == 0b11 ? 64 : 32;
@@ -427,7 +429,6 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         return false;
     }
 
-    // Use aligned access where possible
     alignas(8) u64 address;
     if (Rn == Reg::SP) {
         address = this->GetSp();
@@ -435,21 +436,18 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         address = this->GetReg(Rn);
     }
 
-    // Pre-index addressing
     if (!postindex) {
         address += offset;
     }
 
-    // Alignment optimization for common cases
-    const bool is_aligned = (address % 8) == 0;
+    //const bool is_aligned = (address % 8) == 0;
 
-    // Enhanced prefetching for loads with aligned addresses
     if (memop == MemOp::Load) {
         const size_t CACHE_LINE_SIZE = 64;
         if ((address % 16) == 0) {
             __builtin_prefetch((void*)address, 0, 3);
             __builtin_prefetch((void*)(address + CACHE_LINE_SIZE), 0, 3);
-            if (datasize >= 32) {
+            if (datasize >= 32) { // Now datasize is in scope
                 __builtin_prefetch((void*)(address + CACHE_LINE_SIZE * 2), 0, 2);
             }
         } else if ((address % 8) == 0) {
@@ -457,7 +455,6 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         }
     }
 
-    const size_t datasize = 8 << scale;
     switch (memop) {
     case MemOp::Store: {
         u64 data = this->GetReg(Rt);
@@ -483,7 +480,6 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         if (postindex) {
             address += offset;
         }
-
         if (Rn == Reg::SP) {
             this->SetSp(address);
         } else {

@@ -382,23 +382,23 @@ void ArmNce::SignalInterrupt(Kernel::KThread* thread) {
     }
 }
 
+const std::size_t CACHE_PAGE_SIZE = 4096;
+
 void ArmNce::ClearInstructionCache() {
-    #if defined(__GNUC__) || defined(__clang__)
-        const size_t PAGE_SIZE = 4096;
-        void* start = (void*)((uintptr_t)__builtin_return_address(0) & ~(PAGE_SIZE - 1));
-        void* end = (void*)((uintptr_t)start + PAGE_SIZE * 2); // Clear two pages for better coverage
-
-        // Prefetch next likely pages
-        __builtin_prefetch((void*)((uintptr_t)end), 1, 3);
-        __builtin___clear_cache(static_cast<char*>(start), static_cast<char*>(end));
-    #endif
-
-    #ifdef __aarch64__
-        // Ensure all previous memory operations complete
-        asm volatile("dmb ish" ::: "memory");
-        asm volatile("dsb ish" ::: "memory");
-        asm volatile("isb" ::: "memory");
-    #endif
+#if defined(__GNUC__) || defined(__clang__)
+    void* start = (void*)((uintptr_t)__builtin_return_address(0) & ~(CACHE_PAGE_SIZE - 1));
+    void* end =
+        (void*)((uintptr_t)start + CACHE_PAGE_SIZE * 2); // Clear two pages for better coverage
+    // Prefetch next likely pages
+    __builtin_prefetch((void*)((uintptr_t)end), 1, 3);
+    __builtin___clear_cache(static_cast<char*>(start), static_cast<char*>(end));
+#endif
+#ifdef __aarch64__
+    // Ensure all previous memory operations complete
+    asm volatile("dmb ish" ::: "memory");
+    asm volatile("dsb ish" ::: "memory");
+    asm volatile("isb" ::: "memory");
+#endif
 }
 
 void ArmNce::InvalidateCacheRange(u64 addr, std::size_t size) {
