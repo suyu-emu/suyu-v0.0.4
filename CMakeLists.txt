@@ -116,6 +116,7 @@ endif()
 
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
 endif()
 
 if (YUZU_USE_BUNDLED_VCPKG)
