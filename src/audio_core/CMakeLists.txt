@@ -251,15 +251,13 @@ if (ENABLE_SDL2)
     target_compile_definitions(audio_core PRIVATE HAVE_SDL2)
 endif()
 
-if (ANDROID)
+if(ANDROID)
     target_sources(audio_core PRIVATE
         sink/oboe_sink.cpp
         sink/oboe_sink.h
     )
-
-    # FIXME: this port seems broken, it cannot be imported with find_package(oboe REQUIRED)
-    target_link_libraries(audio_core PRIVATE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/liboboe.a")
-    target_compile_definitions(audio_core PRIVATE HAVE_OBOE)
+    target_link_libraries(audio_core PRIVATE oboe)
+    target_compile_definitions(audio_core PUBLIC HAVE_OBOE)
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)

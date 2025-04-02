@@ -41,15 +41,6 @@
                     "platform": "windows"
                 }
             ]
-        },
-        "android": {
-            "description": "Enable Android dependencies",
-            "dependencies": [
-                {
-                    "name": "oboe",
-                    "platform": "android"
-                }
-            ]
         }
     },
     "overrides": [

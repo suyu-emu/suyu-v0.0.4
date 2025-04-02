@@ -67,3 +67,6 @@
 [submodule "Vulkan-Utility-Libraries"]
 	path = externals/Vulkan-Utility-Libraries
 	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
+[submodule "oboe"]
+	path = externals/oboe
+	url = https://github.com/eden-emulator/oboe.git

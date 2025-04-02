@@ -314,3 +314,9 @@ endif()
 if (NOT TARGET SimpleIni::SimpleIni)
     add_subdirectory(simpleini)
 endif()
+
+# oboe
+if (ANDROID)
+    add_subdirectory(oboe)
+    add_library(oboe::oboe ALIAS oboe)
+endif()
