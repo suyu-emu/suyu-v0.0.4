@@ -258,13 +258,13 @@ void ISettingsServer::GetKeyCodeMapByPort(HLERequestContext& ctx) {
 
     if (buffer_size < DEFAULT_MAPPING.size()) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Result(-0x3F81)); // Buffer too small
+        rb.Push(Result(static_cast<u32>(-0x3F81))); // Buffer too small
         return;
     }
 
     if (port_id > 7) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Result(-0x3F82)); // Invalid port
+        rb.Push(Result(static_cast<u32>(-0x3F82))); // Invalid port
         return;
     }
 
