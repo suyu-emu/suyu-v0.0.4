@@ -1,8 +1,9 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.utils
 
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
@@ -16,19 +17,26 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.ui.main.ThemeProvider
+import androidx.preference.PreferenceManager
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 
 object ThemeHelper {
     const val SYSTEM_BAR_ALPHA = 0.9f
+    // Listener that detects if the theme keys are being changed from the setting menu and recreates the activity
+    private var listener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+    private val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
 
     fun setTheme(activity: AppCompatActivity) {
         setThemeMode(activity)
         when (Theme.from(IntSetting.THEME.getInt())) {
-            Theme.Default -> activity.setTheme(R.style.Theme_Yuzu_Main)
+            Theme.Default -> activity.setTheme(getSelectedStaticThemeColor())
             Theme.MaterialYou -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     activity.setTheme(R.style.Theme_Yuzu_Main_MaterialYou)
                 } else {
-                    activity.setTheme(R.style.Theme_Yuzu_Main)
+                    activity.setTheme(getSelectedStaticThemeColor())
                 }
             }
         }
@@ -39,6 +47,22 @@ object ThemeHelper {
         if (BooleanSetting.BLACK_BACKGROUNDS.getBoolean() && isNightMode(activity)) {
             activity.setTheme(R.style.ThemeOverlay_Yuzu_Dark)
         }
+    }
+
+    private fun getSelectedStaticThemeColor(): Int {
+        val themeIndex = preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
+        val themes = arrayOf(
+            R.style.Theme_Yuzu_Main_Violet,
+            R.style.Theme_Yuzu_Main_Blue,
+            R.style.Theme_Yuzu_Main_Cyan,
+            R.style.Theme_Yuzu_Main_Red,
+            R.style.Theme_Yuzu_Main_Green,
+            R.style.Theme_Yuzu_Main_Yellow,
+            R.style.Theme_Yuzu_Main_Orange,
+            R.style.Theme_Yuzu_Main_Pink,
+            R.style.Theme_Yuzu_Main_Gray
+        )
+        return themes[themeIndex]
     }
 
     @ColorInt
@@ -92,6 +116,16 @@ object ThemeHelper {
     private fun setDarkModeSystemBars(windowController: WindowInsetsControllerCompat) {
         windowController.isAppearanceLightStatusBars = false
         windowController.isAppearanceLightNavigationBars = false
+    }
+
+    fun ThemeChangeListener(activity: AppCompatActivity) {
+        listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            val relevantKeys = listOf(Settings.PREF_STATIC_THEME_COLOR, Settings.PREF_THEME_MODE, Settings.PREF_BLACK_BACKGROUNDS)
+            if (key in relevantKeys) {
+                activity.recreate()
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
     }
 }
 

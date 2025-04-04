@@ -644,6 +644,9 @@
     <string name="use_black_backgrounds">Black backgrounds</string>
     <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
 
+    <!-- Static Themes -->
+    <string name="static_theme_color">Theme Color</string>
+
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>
     <string name="picture_in_picture_description">Minimize window when placed in the background</string>

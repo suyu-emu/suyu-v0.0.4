@@ -181,6 +181,7 @@
         android:focusedByDefault="true"
         app:headerLayout="@layout/header_in_game"
         app:menu="@menu/menu_in_game"
+        android:background="?attr/colorSurface"
         tools:visibility="gone" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

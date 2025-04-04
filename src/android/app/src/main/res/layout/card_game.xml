@@ -13,10 +13,11 @@
         android:layout_gravity="center"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
-        android:clipToPadding="false"
+        android:clipToPadding="true"
         android:focusable="true"
         android:transitionName="card_game"
         app:cardCornerRadius="4dp"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardElevation="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -31,7 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraSmall"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
                 tools:src="@drawable/default_icon" />
 
             <com.google.android.material.textview.MaterialTextView

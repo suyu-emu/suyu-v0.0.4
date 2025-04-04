@@ -1,11 +1,12 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -27,6 +28,7 @@ import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import androidx.core.content.edit
 
 class SettingsFragmentPresenter(
     private val settingsViewModel: SettingsViewModel,
@@ -916,12 +918,41 @@ class SettingsFragmentPresenter(
                 }
             }
 
+            val staticThemeColor: AbstractIntSetting = object : AbstractIntSetting {
+                val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                override fun getInt(needsGlobal: Boolean): Int =
+                    preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
+                override fun setInt(value: Int) {
+                    preferences.edit() { putInt(Settings.PREF_STATIC_THEME_COLOR, value) }
+                    settingsViewModel.setShouldRecreate(true)
+                }
+
+                override val key: String = Settings.PREF_STATIC_THEME_COLOR
+                override val isRuntimeModifiable: Boolean = true
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0).toString()
+                override val defaultValue: Any = 0
+                override fun reset() {
+                    preferences.edit() { putInt(Settings.PREF_STATIC_THEME_COLOR, 0) }
+                    settingsViewModel.setShouldRecreate(true)
+                }
+            }
+
             add(
                 SingleChoiceSetting(
                     themeMode,
                     titleId = R.string.change_theme_mode,
                     choicesId = R.array.themeModeEntries,
                     valuesId = R.array.themeModeValues
+                )
+            )
+
+            add(
+                SingleChoiceSetting(
+                    staticThemeColor,
+                    titleId = R.string.static_theme_color,
+                    choicesId = R.array.staticThemeNames,
+                    valuesId = R.array.staticThemeValues
                 )
             )
 

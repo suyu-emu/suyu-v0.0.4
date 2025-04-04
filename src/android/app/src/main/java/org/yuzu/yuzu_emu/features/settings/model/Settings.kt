@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 
 package org.yuzu.yuzu_emu.features.settings.model
 
@@ -91,6 +92,7 @@ object Settings {
     const val PREF_THEME = "Theme"
     const val PREF_THEME_MODE = "ThemeMode"
     const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
+    const val PREF_STATIC_THEME_COLOR = "StaticThemeColor"
 
     enum class EmulationOrientation(val int: Int) {
         Unspecified(0),
