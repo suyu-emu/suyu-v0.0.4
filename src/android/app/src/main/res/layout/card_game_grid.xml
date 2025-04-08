@@ -6,7 +6,7 @@
     android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_game"
+        android:id="@+id/card_game_grid"
         style="?attr/materialCardViewElevatedStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

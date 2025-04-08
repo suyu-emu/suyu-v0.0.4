@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
 
@@ -33,7 +33,8 @@ class AddGameFolderDialogFragment : DialogFragment() {
             .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
                 val newGameDir = GameDir(folderUriString!!, binding.deepScanSwitch.isChecked)
                 homeViewModel.setGamesDirSelected(true)
-                gamesViewModel.addFolder(newGameDir)
+                val calledFromGameFragment = requireArguments().getBoolean("calledFromGameFragment", false)
+                gamesViewModel.addFolder(newGameDir, calledFromGameFragment)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .setView(binding.root)
@@ -45,9 +46,10 @@ class AddGameFolderDialogFragment : DialogFragment() {
 
         private const val FOLDER_URI_STRING = "FolderUriString"
 
-        fun newInstance(folderUriString: String): AddGameFolderDialogFragment {
+        fun newInstance(folderUriString: String, calledFromGameFragment: Boolean): AddGameFolderDialogFragment {
             val args = Bundle()
             args.putString(FOLDER_URI_STRING, folderUriString)
+            args.putBoolean("calledFromGameFragment", calledFromGameFragment)
             val fragment = AddGameFolderDialogFragment()
             fragment.arguments = args
             return fragment

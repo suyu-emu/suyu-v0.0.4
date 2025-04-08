@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="grid_columns">1</integer>
+    <integer name="game_columns_list">1</integer>
+    <integer name="game_columns_grid">2</integer>
 
     <!-- Default SWITCH landscape layout -->
     <integer name="BUTTON_A_X">760</integer>

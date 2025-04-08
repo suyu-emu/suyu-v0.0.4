@@ -1,35 +1,69 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.ui
 
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import android.widget.PopupMenu
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
+import info.debatty.java.stringsimilarity.Jaccard
+import info.debatty.java.stringsimilarity.JaroWinkler
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
-import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
-import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
 import org.yuzu.yuzu_emu.utils.collect
+import java.util.Locale
+import androidx.core.content.edit
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
     private val binding get() = _binding!!
 
+    companion object {
+        private const val SEARCH_TEXT = "SearchText"
+        private const val PREF_VIEW_TYPE = "GamesViewType"
+        private const val PREF_SORT_TYPE = "GamesSortType"
+    }
+
     private val gamesViewModel: GamesViewModel by activityViewModels()
     private val homeViewModel: HomeViewModel by activityViewModels()
+    private lateinit var gameAdapter: GameAdapter
+
+    private val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
+    private lateinit var mainActivity: MainActivity
+    private val getGamesDirectory =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
+            if (result != null) {
+                mainActivity.processGamesDir(result, true)
+            }
+        }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,16 +76,18 @@ class GamesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        homeViewModel.setNavigationVisibility(visible = true, animated = true)
         homeViewModel.setStatusBarShadeVisibility(true)
+        mainActivity = requireActivity() as MainActivity
 
-        binding.gridGames.apply {
-            layoutManager = AutofitGridLayoutManager(
-                requireContext(),
-                requireContext().resources.getDimensionPixelSize(R.dimen.card_width)
-            )
-            adapter = GameAdapter(requireActivity() as AppCompatActivity)
+        if (savedInstanceState != null) {
+            binding.searchText.setText(savedInstanceState.getString(SEARCH_TEXT))
         }
+
+        gameAdapter = GameAdapter(
+            requireActivity() as AppCompatActivity,
+        )
+
+        applyGridGamesBinding()
 
         binding.swipeRefresh.apply {
             // Add swipe down to refresh gesture
@@ -90,14 +126,14 @@ class GamesFragment : Fragment() {
             )
         }
         gamesViewModel.games.collect(viewLifecycleOwner) {
-            (binding.gridGames.adapter as GameAdapter).submitList(it)
+            setAdapter(it)
         }
         gamesViewModel.shouldSwapData.collect(
             viewLifecycleOwner,
             resetState = { gamesViewModel.setShouldSwapData(false) }
         ) {
             if (it) {
-                (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value)
+                setAdapter(gamesViewModel.games.value)
             }
         }
         gamesViewModel.shouldScrollToTop.collect(
@@ -105,8 +141,192 @@ class GamesFragment : Fragment() {
             resetState = { gamesViewModel.setShouldScrollToTop(false) }
         ) { if (it) scrollToTop() }
 
-        setInsets()
+        setupTopView()
+
+        binding.addDirectory.setOnClickListener {
+            getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+        }
+
+    setInsets()
     }
+
+    val applyGridGamesBinding = {
+        binding.gridGames.apply {
+            val savedViewType = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID)
+            gameAdapter.setViewType(savedViewType)
+            currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
+            adapter = gameAdapter
+
+            val gameGrid = when (savedViewType) {
+                GameAdapter.VIEW_TYPE_LIST -> R.integer.game_columns_list
+                GameAdapter.VIEW_TYPE_GRID -> R.integer.game_columns_grid
+                else -> 0
+            }
+
+            layoutManager = GridLayoutManager(requireContext(), resources.getInteger(gameGrid))
+
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (_binding != null) {
+            outState.putString(SEARCH_TEXT, binding.searchText.text.toString())
+        }
+    }
+
+    private fun setAdapter(games: List<Game>) {
+        val currentSearchText = binding.searchText.text.toString()
+        val currentFilter = binding.filterButton.id
+
+
+        if (currentSearchText.isNotEmpty() || currentFilter != View.NO_ID) {
+            filterAndSearch(games)
+        } else {
+            (binding.gridGames.adapter as GameAdapter).submitList(games)
+            gamesViewModel.setFilteredGames(games)
+        }
+    }
+
+    private fun setupTopView() {
+        binding.searchText.doOnTextChanged() { text: CharSequence?, _: Int, _: Int, _: Int ->
+            if (text.toString().isNotEmpty()) {
+                binding.clearButton.visibility = View.VISIBLE
+            } else {
+                binding.clearButton.visibility = View.INVISIBLE
+            }
+            filterAndSearch()
+        }
+
+        binding.clearButton.setOnClickListener { binding.searchText.setText("") }
+        binding.searchBackground.setOnClickListener { focusSearch() }
+
+        // Setup view button
+        binding.viewButton.setOnClickListener { showViewMenu(it) }
+
+        // Setup filter button
+        binding.filterButton.setOnClickListener { view ->
+            showFilterMenu(view)
+        }
+
+        // Setup settings button
+        binding.settingsButton.setOnClickListener { navigateToSettings() }
+    }
+
+    private fun navigateToSettings() {
+        val navController = findNavController()
+        navController.navigate(R.id.action_gamesFragment_to_homeSettingsFragment)
+    }
+
+    private fun showViewMenu(anchor: View) {
+        val popup = PopupMenu(requireContext(), anchor)
+        popup.menuInflater.inflate(R.menu.menu_game_views, popup.menu)
+
+        val currentViewType = (preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID))
+        when (currentViewType) {
+            GameAdapter.VIEW_TYPE_LIST -> popup.menu.findItem(R.id.view_list).isChecked = true
+            GameAdapter.VIEW_TYPE_GRID -> popup.menu.findItem(R.id.view_grid).isChecked = true
+        }
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.view_grid -> {
+                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID) }
+                    applyGridGamesBinding()
+                    item.isChecked = true
+                    true
+                }
+                R.id.view_list -> {
+                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_LIST) }
+                    applyGridGamesBinding()
+                    item.isChecked = true
+                    true
+                }
+                else -> false
+            }
+        }
+
+        popup.show()
+    }
+
+    private fun showFilterMenu(anchor: View) {
+        val popup = PopupMenu(requireContext(), anchor)
+        popup.menuInflater.inflate(R.menu.menu_game_filters, popup.menu)
+
+        // Set checked state based on current filter
+        when (currentFilter) {
+            R.id.alphabetical -> popup.menu.findItem(R.id.alphabetical).isChecked = true
+            R.id.filter_recently_played -> popup.menu.findItem(R.id.filter_recently_played).isChecked =
+                true
+
+            R.id.filter_recently_added -> popup.menu.findItem(R.id.filter_recently_added).isChecked =
+                true
+        }
+
+        popup.setOnMenuItemClickListener { item ->
+            currentFilter = item.itemId
+            preferences.edit().putInt(PREF_SORT_TYPE, currentFilter).apply()
+            filterAndSearch()
+            true
+        }
+
+        popup.show()
+    }
+
+    // Track current filter
+    private var currentFilter = View.NO_ID
+
+    private fun filterAndSearch(baseList: List<Game> = gamesViewModel.games.value) {
+        val filteredList: List<Game> = when (currentFilter) {
+            R.id.alphabetical -> baseList.sortedBy { it.title }
+            R.id.filter_recently_played -> {
+                baseList.filter {
+                    val lastPlayedTime = preferences.getLong(it.keyLastPlayedTime, 0L)
+                    lastPlayedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
+                }.sortedByDescending { preferences.getLong(it.keyLastPlayedTime, 0L) }
+            }
+
+            R.id.filter_recently_added -> {
+                baseList.filter {
+                    val addedTime = preferences.getLong(it.keyAddedToLibraryTime, 0L)
+                    addedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
+                }.sortedByDescending { preferences.getLong(it.keyAddedToLibraryTime, 0L) }
+            }
+
+            else -> baseList
+        }
+
+        val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())
+        if (searchTerm.isEmpty()) {
+            (binding.gridGames.adapter as GameAdapter).submitList(filteredList)
+            gamesViewModel.setFilteredGames(filteredList)
+            return
+        }
+
+        val searchAlgorithm = if (searchTerm.length > 1) Jaccard(2) else JaroWinkler()
+        val sortedList = filteredList.mapNotNull { game ->
+            val title = game.title.lowercase(Locale.getDefault())
+            val score = searchAlgorithm.similarity(searchTerm, title)
+            if (score > 0.03) {
+                ScoredGame(score, game)
+            } else {
+                null
+            }
+        }.sortedByDescending { it.score }.map { it.item }
+
+        (binding.gridGames.adapter as GameAdapter).submitList(sortedList)
+        gamesViewModel.setFilteredGames(sortedList)
+    }
+
+    private inner class ScoredGame(val score: Double, val item: Game)
+
+    private fun focusSearch() {
+        binding.searchText.requestFocus()
+        val imm = requireActivity()
+            .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+        imm?.showSoftInput(binding.searchText, InputMethodManager.SHOW_IMPLICIT)
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -125,15 +345,10 @@ class GamesFragment : Fragment() {
         ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-            val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_large)
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
-            val spacingNavigationRail =
                 resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
-
-            binding.gridGames.updatePadding(
-                top = barInsets.top + extraListSpacing,
-                bottom = barInsets.bottom + spacingNavigation + extraListSpacing
-            )
+            val isLandscape =
+                resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
             binding.swipeRefresh.setProgressViewEndTarget(
                 false,
@@ -142,18 +357,28 @@ class GamesFragment : Fragment() {
 
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
-            val left: Int
-            val right: Int
+            val mlpSwipe = binding.swipeRefresh.layoutParams as ViewGroup.MarginLayoutParams
             if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
-                left = leftInsets + spacingNavigationRail
-                right = rightInsets
+                mlpSwipe.leftMargin = leftInsets
+                mlpSwipe.rightMargin = rightInsets
             } else {
-                left = leftInsets
-                right = rightInsets + spacingNavigationRail
+                mlpSwipe.leftMargin = leftInsets
+                mlpSwipe.rightMargin = rightInsets
             }
-            binding.swipeRefresh.updateMargins(left = left, right = right)
+            binding.swipeRefresh.layoutParams = mlpSwipe
 
             binding.noticeText.updatePadding(bottom = spacingNavigation)
+            binding.header.updatePadding(top = cutoutInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_large) + if (isLandscape) barInsets.top else 0)
+            binding.gridGames.updatePadding(
+                top =  resources.getDimensionPixelSize(R.dimen.spacing_med)
+            )
+
+            val mlpFab = binding.addDirectory.layoutParams as ViewGroup.MarginLayoutParams
+            val fabPadding = resources.getDimensionPixelSize(R.dimen.spacing_large)
+            mlpFab.leftMargin = leftInsets + fabPadding
+            mlpFab.bottomMargin = barInsets.bottom + fabPadding
+            mlpFab.rightMargin = rightInsets + fabPadding
+            binding.addDirectory.layoutParams = mlpFab
 
             windowInsets
         }

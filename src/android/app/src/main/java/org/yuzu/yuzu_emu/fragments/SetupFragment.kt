@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
 
@@ -78,7 +78,6 @@ class SetupFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
-        homeViewModel.setNavigationVisibility(visible = false, animated = false)
 
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,

@@ -1,9 +1,10 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.model
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,9 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
@@ -26,9 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 class GamesViewModel : ViewModel() {
     val games: StateFlow<List<Game>> get() = _games
     private val _games = MutableStateFlow(emptyList<Game>())
-
-    val searchedGames: StateFlow<List<Game>> get() = _searchedGames
-    private val _searchedGames = MutableStateFlow(emptyList<Game>())
 
     val isReloading: StateFlow<Boolean> get() = _isReloading
     private val _isReloading = MutableStateFlow(false)
@@ -46,6 +44,8 @@ class GamesViewModel : ViewModel() {
 
     private val _folders = MutableStateFlow(mutableListOf<GameDir>())
     val folders = _folders.asStateFlow()
+
+    private val _filteredGames = MutableStateFlow<List<Game>>(emptyList())
 
     init {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
@@ -66,10 +66,6 @@ class GamesViewModel : ViewModel() {
         _games.value = sortedList
     }
 
-    fun setSearchedGames(games: List<Game>) {
-        _searchedGames.value = games
-    }
-
     fun setShouldSwapData(shouldSwap: Boolean) {
         _shouldSwapData.value = shouldSwap
     }
@@ -80,6 +76,10 @@ class GamesViewModel : ViewModel() {
 
     fun setSearchFocused(searchFocused: Boolean) {
         _searchFocused.value = searchFocused
+    }
+
+    fun setFilteredGames(games: List<Game>) {
+        _filteredGames.value = games
     }
 
     fun reloadGames(directoriesChanged: Boolean, firstStartup: Boolean = false) {
@@ -131,11 +131,20 @@ class GamesViewModel : ViewModel() {
         }
     }
 
-    fun addFolder(gameDir: GameDir) =
+    fun addFolder(gameDir: GameDir,  savedFromGameFragment: Boolean) =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 NativeConfig.addGameDir(gameDir)
                 getGameDirs(true)
+            }
+
+            if (savedFromGameFragment) {
+                NativeConfig.saveGlobalConfig()
+                Toast.makeText(
+                    YuzuApplication.appContext,
+                    R.string.add_directory_success,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 

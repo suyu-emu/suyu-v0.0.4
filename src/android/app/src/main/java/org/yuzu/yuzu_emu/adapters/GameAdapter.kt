@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.adapters
 
@@ -16,13 +16,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
+import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.databinding.CardGameBinding
+import org.yuzu.yuzu_emu.databinding.CardGameListBinding
+import org.yuzu.yuzu_emu.databinding.CardGameGridBinding
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.GameIconUtils
@@ -31,22 +33,70 @@ import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
-        CardGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            .also { return GameViewHolder(it) }
+
+    companion object {
+        const val VIEW_TYPE_GRID = 0
+        const val VIEW_TYPE_LIST = 1
     }
 
-    inner class GameViewHolder(val binding: CardGameBinding) :
-        AbstractViewHolder<Game>(binding) {
+    private var viewType = 0
+
+    fun setViewType(type: Int) {
+        viewType = type
+        notifyDataSetChanged()
+    }
+
+    override fun getItemViewType(position: Int): Int = viewType
+
+
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
+        val binding = when (viewType) {
+            VIEW_TYPE_LIST -> CardGameListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            VIEW_TYPE_GRID -> CardGameGridBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
+        return GameViewHolder(binding, viewType)
+    }
+
+    inner class GameViewHolder(
+        private val binding: ViewBinding,
+        private val viewType: Int
+    ) : AbstractViewHolder<Game>(binding) {
+
+
         override fun bind(model: Game) {
-            binding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
-            GameIconUtils.loadGameIcon(model, binding.imageGameScreen)
+            when (viewType) {
+                VIEW_TYPE_LIST -> bindListView(model)
+                VIEW_TYPE_GRID -> bindGridView(model)
+            }
+        }
 
-            binding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+        private fun bindListView(model: Game) {
+            val listBinding = binding as CardGameListBinding
 
-            binding.textGameTitle.marquee()
-            binding.cardGame.setOnClickListener { onClick(model) }
-            binding.cardGame.setOnLongClickListener { onLongClick(model) }
+            listBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
+            GameIconUtils.loadGameIcon(model, listBinding.imageGameScreen)
+
+            listBinding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+            listBinding.textGameDeveloper.text = model.developer
+
+            listBinding.textGameTitle.marquee()
+            listBinding.cardGameList.setOnClickListener { onClick(model) }
+            listBinding.cardGameList.setOnLongClickListener { onLongClick(model) }
+        }
+
+        private fun bindGridView(model: Game) {
+            val gridBinding = binding as CardGameGridBinding
+
+            gridBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
+            GameIconUtils.loadGameIcon(model, gridBinding.imageGameScreen)
+
+            gridBinding.textGameTitle.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+
+            gridBinding.textGameTitle.marquee()
+            gridBinding.cardGameGrid.setOnClickListener { onClick(model) }
+            gridBinding.cardGameGrid.setOnLongClickListener { onLongClick(model) }
         }
 
         fun onClick(game: Game) {

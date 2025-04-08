@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <!-- General application strings -->
-    <string name="app_name" translatable="false">eden</string>
+    <string name="app_name" translatable="false">Eden</string>
     <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://yuzu-emu.org/help/quickstart">Learn more</a>]]></string>
     <string name="notice_notification_channel_name">Notices and errors</string>
     <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
@@ -28,6 +28,11 @@
     <string name="step_complete">Complete!</string>
 
     <!-- Home strings -->
+    <string name="alphabetical">Alphabetical</string>
+    <string name="view_list">List</string>
+    <string name="view_grid">Grid</string>
+    <string name="folder">Folder</string>
+    <string name="add_directory_success">"New game directory added successfully "</string>
     <string name="home_games">Games</string>
     <string name="home_search">Search</string>
     <string name="home_settings">Settings</string>
