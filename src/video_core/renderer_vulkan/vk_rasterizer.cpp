@@ -952,7 +952,28 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 UpdateDepthBiasEnable(regs);
             }
             if (device.IsExtExtendedDynamicState3EnablesSupported()) {
-                UpdateLogicOpEnable(regs);
+                using namespace Tegra::Engines;
+
+                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE
+                    || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+                    struct In {
+                        const Maxwell3D::Regs::VertexAttribute::Type d;
+                        In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
+                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
+                            return n.type == d;
+                        }
+                    };
+
+                    auto has_float = std::any_of(
+                        regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
+                        In(Maxwell3D::Regs::VertexAttribute::Type::Float));
+
+                    if (regs.logic_op.enable)
+                        regs.logic_op.enable = static_cast<u32>(!has_float);
+
+                    UpdateLogicOpEnable(regs);
+                } else
+                    UpdateLogicOpEnable(regs);
                 UpdateDepthClampEnable(regs);
             }
         }
