@@ -45,6 +45,8 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
             return WrapFixed(this, &nvhost_ctrl_gpu::GetActiveSlotMask, input, output);
         case 0x1c:
             return WrapFixed(this, &nvhost_ctrl_gpu::GetGpuTime, input, output);
+        case 0x13:
+            return WrapFixed(this, &nvhost_ctrl_gpu::GetTpcMasks2, input, output);
         default:
             break;
         }
@@ -71,6 +73,23 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
         case 0x6:
             return WrapFixedInlOut(this, &nvhost_ctrl_gpu::GetTPCMasks3, input, output,
                                    inline_output);
+        case 0x13: {
+            // NVGPU_GPU_IOCTL_NUM_VSMS
+            struct Parameters {
+                u32 num_vsms;     // Output: number of SM units
+                u32 reserved;     // Output: reserved/padding
+            };
+            static_assert(sizeof(Parameters) == 8, "Parameters is incorrect size");
+
+            // The Tegra X1 used in Switch has 2 SM units
+            Parameters params{
+                .num_vsms = 2,
+                .reserved = 0
+            };
+
+            std::memcpy(output.data(), &params, sizeof(Parameters));
+            return NvResult::Success;
+        }
         default:
             break;
         }
@@ -78,7 +97,8 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
     default:
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}, group={:01X}, command={:01X}", command.raw,
+                      command.group, command.cmd);
     return NvResult::NotImplemented;
 }
 
