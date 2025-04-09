@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
 #include <atomic>
@@ -113,6 +113,8 @@ struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
+
+    u64 program_id;
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -301,6 +303,38 @@ struct System::Impl {
         return SystemResultStatus::Success;
     }
 
+
+    void LoadOverrides(u64 programId) const {
+        std::string vendor = gpu_core->Renderer().GetDeviceVendor();
+        LOG_INFO(Core, "GPU Vendor: {}", vendor);
+
+        // Insert PC overrides here
+
+    #ifdef ANDROID
+        // Example on how to set a setting based on the program ID and vendor
+        if (programId == 0x010028600EBDA000 && vendor == "Mali") { // Mario 3d World
+          // Settings::values.example = true;
+        }
+
+        // Example array of program IDs
+        const std::array<u64, 10> example_array = {
+                //0xprogramId
+                0x0004000000033400, // Game 1
+                0x0004000000033500 // Game 2
+                // And so on
+        };
+
+        for (auto id : example_array) {
+            if (programId == id) {
+             // Settings::values.example = true;
+                break;
+            }
+        }
+
+    #endif
+
+    }
+
     SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                             const std::string& filepath,
                             Service::AM::FrontendAppletParameters& params) {
@@ -381,6 +415,12 @@ struct System::Impl {
         if (metadata.first != nullptr) {
             title_version = metadata.first->GetVersionString();
         }
+
+        if (app_loader->ReadProgramId(program_id) != Loader::ResultStatus::Success) {
+            LOG_ERROR(Core, "Failed to find program id for ROM");
+        }
+
+        LoadOverrides(program_id);
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
