@@ -30,6 +30,7 @@ object Settings {
         YuzuApplication.appContext.getString(R.string.preferences_player, player)
 
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
+    const val PREF_SHOULD_SHOW_PRE_ALPHA_WARNING = "ShouldShowPreAlphaWarning"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
 
     // Deprecated input overlay preference keys

@@ -32,6 +32,10 @@
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
     <string name="folder">Folder</string>
+    <string name="pre_alpha_warning_title">Pre-Alpha Software</string>
+    <string name="pre_alpha_warning_description">"WARNING: This build is not meant to be shared or shown to the public. This software is in pre-alpha stages and may have bugs and incomplete feature implementations. \nIf you somehow got unauthorized access to this build; it's heavily recommended to uninstall it immediately   "</string>
+    <string name="dont_show_again">Dont Show Again</string>
+    <string name="pre_alpha_warning">PRE-ALPHA SOFTWARE; NOT MEANT FOR PUBLIC USE</string>\
     <string name="add_directory_success">"New game directory added successfully "</string>
     <string name="home_games">Games</string>
     <string name="home_search">Search</string>
@@ -1174,5 +1178,4 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </string>
-
 </resources>

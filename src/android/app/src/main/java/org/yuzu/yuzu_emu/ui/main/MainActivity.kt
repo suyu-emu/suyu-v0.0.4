@@ -48,6 +48,7 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import androidx.core.content.edit
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -83,6 +84,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
             if (!firstTimeSetup) {
                 checkKeys()
+                showPreAlphaWarningDialog()
             }
             checkedDecryption = true
         }
@@ -137,6 +139,30 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         setInsets()
     }
+
+    fun showPreAlphaWarningDialog() {
+        val shouldDisplayAlphaWarning =
+            PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, true)
+        if (shouldDisplayAlphaWarning) {
+            MessageDialogFragment.newInstance(
+                this,
+                titleId = R.string.pre_alpha_warning_title,
+                descriptionId = R.string.pre_alpha_warning_description,
+                positiveButtonTitleId = R.string.dont_show_again,
+                negativeButtonTitleId = R.string.close,
+                showNegativeButton = true,
+                positiveAction = {
+                    PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                        .edit() {
+                            putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, false)
+                        }
+                }
+            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+        }
+    }
+
+
 
     private fun checkKeys() {
         if (!NativeLibrary.areKeysPresent()) {

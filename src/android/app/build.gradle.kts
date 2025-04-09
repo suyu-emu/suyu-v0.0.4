@@ -240,6 +240,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.8.9")
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("androidx.compose.ui:ui-graphics-android:1.7.8")
+    implementation("androidx.compose.ui:ui-text-android:1.7.8")
 }
 
 fun runGitCommand(command: List<String>): String {

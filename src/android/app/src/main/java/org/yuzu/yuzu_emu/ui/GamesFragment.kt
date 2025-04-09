@@ -7,13 +7,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.PopupMenu
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -39,6 +42,7 @@ import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
 import java.util.Locale
 import androidx.core.content.edit
+import androidx.core.view.updateLayoutParams
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -148,6 +152,7 @@ class GamesFragment : Fragment() {
         }
 
     setInsets()
+    addPreAlphaBanner()
     }
 
     val applyGridGamesBinding = {
@@ -216,6 +221,49 @@ class GamesFragment : Fragment() {
     private fun navigateToSettings() {
         val navController = findNavController()
         navController.navigate(R.id.action_gamesFragment_to_homeSettingsFragment)
+    }
+
+    private fun addPreAlphaBanner() {
+        val preAlphaBanner = TextView(requireContext()).apply {
+            id = "pre_alpha_banner".hashCode()
+            layoutParams = ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginStart = resources.getDimensionPixelSize(R.dimen.spacing_med)
+                marginEnd = resources.getDimensionPixelSize(R.dimen.spacing_med)
+                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_large)
+                topToBottom = R.id.frame_search
+            }
+            setPadding(
+                resources.getDimensionPixelSize(R.dimen.spacing_med),
+                resources.getDimensionPixelSize(R.dimen.spacing_large),
+                resources.getDimensionPixelSize(R.dimen.spacing_med),
+                resources.getDimensionPixelSize(R.dimen.spacing_med)
+            )
+
+            setBackgroundColor(
+                MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorPrimary
+                )
+            )
+            text = getString(R.string.pre_alpha_warning)
+            setTextAppearance(
+                com.google.android.material.R.style.TextAppearance_Material3_HeadlineSmall
+            )
+            setTextColor(
+                MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorOnError
+                )
+            )
+            gravity = Gravity.CENTER
+        }
+        binding.root.addView(preAlphaBanner)
+        binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            topToBottom = preAlphaBanner.id
+        }
     }
 
     private fun showViewMenu(anchor: View) {

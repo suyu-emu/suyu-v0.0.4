@@ -369,6 +369,25 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
 
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
+
+    warning_layout = new QHBoxLayout;
+    pre_alpha_warning = new QLabel;
+    pre_alpha_warning->setText(
+        tr("IMPORTANT: Eden is PRE-ALPHA SOFTWARE and is not meant to be used by or get shared to the public just yet;  "
+           "Bugs and unfinished features are expected to be present at this stage."));
+    pre_alpha_warning->setOpenExternalLinks(true);
+    pre_alpha_warning->setStyleSheet(
+        QString::fromStdString("color: black; font-weight: bold;"));
+
+    warning_layout->addWidget(pre_alpha_warning);
+    warning_layout->addStretch();
+    warning_layout->setContentsMargins(3, 3, 3, 3);
+    warning_widget = new QWidget;
+    warning_widget->setStyleSheet(QString::fromStdString("background-color: khaki;"));
+    warning_widget->setLayout(warning_layout);
+
+    layout->addWidget(warning_widget);
+
     layout->addWidget(tree_view);
     layout->addWidget(search_field);
     setLayout(layout);
