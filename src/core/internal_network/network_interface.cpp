@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <fstream>
@@ -117,6 +117,16 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
             continue;
         }
 
+#ifdef ANDROID
+        // On Android, we can't reliably get gateway info from /proc/net/route
+        // Just use 0 as the gateway address
+        result.emplace_back(NetworkInterface{
+                .name{ifa->ifa_name},
+                .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
+                .subnet_mask{Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
+                .gateway{in_addr{.s_addr = 0}}
+        });
+#else
         u32 gateway{};
 
         std::ifstream file{"/proc/net/route"};
@@ -177,14 +187,14 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
             .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
             .subnet_mask{Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
             .gateway{in_addr{.s_addr = gateway}}});
+#endif // ANDROID
     }
 
     freeifaddrs(ifaddr);
-
     return result;
 }
 
-#endif
+#endif // _WIN32
 
 std::optional<NetworkInterface> GetSelectedNetworkInterface() {
     const auto& selected_network_interface = Settings::values.network_interface.GetValue();
@@ -193,6 +203,12 @@ std::optional<NetworkInterface> GetSelectedNetworkInterface() {
         LOG_ERROR(Network, "GetAvailableNetworkInterfaces returned no interfaces");
         return std::nullopt;
     }
+
+    #ifdef __ANDROID__
+        if (selected_network_interface.empty()) {
+            return network_interfaces[0];
+        }
+    #endif
 
     const auto res =
         std::ranges::find_if(network_interfaces, [&selected_network_interface](const auto& iface) {
