@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/logging/log.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/dynarmic_cp15.h"
@@ -22,7 +22,7 @@ struct fmt::formatter<Dynarmic::A32::CoprocReg> {
         return ctx.begin();
     }
     template <typename FormatContext>
-    auto format(const Dynarmic::A32::CoprocReg& reg, FormatContext& ctx) {
+    auto format(const Dynarmic::A32::CoprocReg& reg, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "cp{}", static_cast<size_t>(reg));
     }
 };

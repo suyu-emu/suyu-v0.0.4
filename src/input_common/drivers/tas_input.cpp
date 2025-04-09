@@ -3,7 +3,7 @@
 
 #include <cstring>
 #include <sstream>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs_types.h"

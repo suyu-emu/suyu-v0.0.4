@@ -8,7 +8,7 @@
 #include <chrono>
 #include <memory>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/assert.h"
 #include "common/common_types.h"

@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/microprofile.h"
 #include "common/socket_types.h"

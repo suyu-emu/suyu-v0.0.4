@@ -13,7 +13,7 @@
 #include <QMenu>
 #include <QThreadPool>
 #include <QToolButton>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"

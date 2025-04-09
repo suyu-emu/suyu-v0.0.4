@@ -8,7 +8,7 @@
 
 #include <boost/container/static_vector.hpp>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"

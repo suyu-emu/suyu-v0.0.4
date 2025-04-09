@@ -3,7 +3,7 @@
 
 #include <random>
 #include <boost/asio.hpp>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/logging/log.h"
 #include "common/param_package.h"

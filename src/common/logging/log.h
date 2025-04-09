@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <string_view>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/logging/formatter.h"
 #include "common/logging/types.h"

@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <thread>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <nlohmann/json.hpp>
 
 #include "common/assert.h"

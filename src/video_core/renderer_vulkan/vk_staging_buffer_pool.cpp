@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/alignment.h"
 #include "common/assert.h"

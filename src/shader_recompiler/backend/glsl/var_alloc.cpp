@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "shader_recompiler/backend/glsl/var_alloc.h"
 #include "shader_recompiler/exception.h"

@@ -26,7 +26,7 @@
         "lz4",
         "nlohmann-json",
         "zlib",
-        "zstd"       
+        "zstd"
     ],
     "features": {
         "yuzu-tests": {
@@ -49,13 +49,9 @@
             "version": "3.3.1"
         },
         {
-            "name": "fmt",
-            "version": "10.1.1"
-        },
-        {
             "name": "boost-process",
             "version": "1.81.0"
         }
-      
+
     ]
 }

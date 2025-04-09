@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/polyfill_ranges.h"
 #include "shader_recompiler/exception.h"

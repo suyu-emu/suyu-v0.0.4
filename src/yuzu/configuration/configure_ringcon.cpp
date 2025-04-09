@@ -6,7 +6,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QTimer>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "configuration/qt_config.h"
 #include "hid_core/frontend/emulated_controller.h"

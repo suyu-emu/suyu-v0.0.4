@@ -5,7 +5,7 @@
 #include <optional>
 #include <random>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/assert.h"
 #include "common/tiny_mt.h"

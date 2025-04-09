@@ -5,7 +5,7 @@
 #include <mutex>
 #include <string>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/settings.h"

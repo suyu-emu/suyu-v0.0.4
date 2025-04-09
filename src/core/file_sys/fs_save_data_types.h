@@ -4,7 +4,7 @@
 #pragma once
 
 #include <array>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 

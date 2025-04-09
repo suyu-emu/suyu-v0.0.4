@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <array>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/polyfill_ranges.h"
 #include "shader_recompiler/frontend/ir/type.h"
@@ -103,7 +103,7 @@ struct fmt::formatter<Shader::IR::Opcode> {
         return ctx.begin();
     }
     template <typename FormatContext>
-    auto format(const Shader::IR::Opcode& op, FormatContext& ctx) {
+    auto format(const Shader::IR::Opcode& op, FormatContext& ctx) const {
         return fmt::format_to(ctx.out(), "{}", Shader::IR::NameOf(op));
     }
 };

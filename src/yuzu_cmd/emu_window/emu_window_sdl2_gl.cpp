@@ -8,7 +8,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <glad/glad.h>
 #include "common/logging/log.h"
 #include "common/scm_rev.h"

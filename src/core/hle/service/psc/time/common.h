@@ -5,7 +5,7 @@
 
 #include <array>
 #include <chrono>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/common_types.h"
 #include "common/intrusive_list.h"
@@ -167,7 +167,7 @@ constexpr inline Result GetSpanBetweenTimePoints(s64* out_seconds, const SteadyC
 template <>
 struct fmt::formatter<Service::PSC::Time::TimeType> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
-    auto format(Service::PSC::Time::TimeType type, FormatContext& ctx) {
+    auto format(Service::PSC::Time::TimeType type, FormatContext& ctx) const {
         const string_view name = [type] {
             using Service::PSC::Time::TimeType;
             switch (type) {
@@ -228,7 +228,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::LocationName> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::LocationName& name, FormatContext& ctx) const {
-        return formatter<string_view>::format(name.data(), ctx);
+        return fmt::formatter<string_view>::format(name.data(), ctx);
     }
 };
 
@@ -236,7 +236,7 @@ template <>
 struct fmt::formatter<Service::PSC::Time::RuleVersion> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::RuleVersion& version, FormatContext& ctx) const {
-        return formatter<string_view>::format(version.data(), ctx);
+        return fmt::formatter<string_view>::format(version.data(), ctx);
     }
 };
 

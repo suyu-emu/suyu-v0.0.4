@@ -11,7 +11,7 @@
 #include <string>
 
 #include <variant>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/crypto/partition_data_manager.h"

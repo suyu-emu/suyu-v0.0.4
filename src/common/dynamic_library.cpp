@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/dynamic_library.h"
 

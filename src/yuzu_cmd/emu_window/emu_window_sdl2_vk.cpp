@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/logging/log.h"
 #include "common/scm_rev.h"

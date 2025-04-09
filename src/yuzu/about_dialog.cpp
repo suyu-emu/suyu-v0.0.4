@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QIcon>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include "common/scm_rev.h"
 #include "ui_aboutdialog.h"
 #include "yuzu/about_dialog.h"

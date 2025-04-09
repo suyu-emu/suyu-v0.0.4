@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "yuzu/compatibility_list.h"
 
