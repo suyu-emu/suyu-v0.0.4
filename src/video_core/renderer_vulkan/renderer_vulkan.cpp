@@ -34,6 +34,7 @@
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
+#include "video_core/vulkan_common/hybrid_memory.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #ifdef __ANDROID__
@@ -123,12 +124,35 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                   PresentFiltersForAppletCapture),
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
                  scheduler),
+      hybrid_memory(std::make_unique<HybridMemory>(device, memory_allocator)),
       texture_manager(device, memory_allocator),
       shader_manager(device),
       applet_frame() {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
+    }
+
+    // Initialize HybridMemory system
+    if (Settings::values.use_gpu_memory_manager.GetValue()) {
+#if defined(__linux__) || defined(__ANDROID__)
+        try {
+            void* guest_memory_base = std::aligned_alloc(4096, 64 * 1024 * 1024);
+            if (guest_memory_base) {
+                try {
+                    hybrid_memory->InitializeGuestMemory(guest_memory_base, 64 * 1024 * 1024);
+                    LOG_INFO(Render_Vulkan, "HybridMemory initialized with {} MB of fault-managed memory", 64);
+                } catch (const std::exception& e) {
+                    std::free(guest_memory_base);
+                    throw;
+                }
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize HybridMemory: {}", e.what());
+        }
+#else
+        LOG_INFO(Render_Vulkan, "Fault-managed memory not supported on this platform");
+#endif
     }
 
     // Initialize enhanced shader compilation system
@@ -389,6 +413,35 @@ void RendererVulkan::RenderScreenshot(std::span<const Tegra::FramebufferConfig> 
         return;
     }
 
+    // If memory snapshots are enabled, take a snapshot with the screenshot
+    if (Settings::values.enable_memory_snapshots.GetValue() && hybrid_memory) {
+        try {
+            const auto now = std::chrono::system_clock::now();
+            const auto now_time_t = std::chrono::system_clock::to_time_t(now);
+            std::tm local_tm;
+#ifdef _WIN32
+            localtime_s(&local_tm, &now_time_t);
+#else
+            localtime_r(&now_time_t, &local_tm);
+#endif
+            char time_str[128];
+            std::strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", &local_tm);
+
+            std::string snapshot_path = fmt::format("snapshots/memory_snapshot_{}.bin", time_str);
+            hybrid_memory->SaveSnapshot(snapshot_path);
+
+            // Also save a differential snapshot if there's been a previous snapshot
+            if (Settings::values.use_gpu_memory_manager.GetValue()) {
+                std::string diff_path = fmt::format("snapshots/diff_snapshot_{}.bin", time_str);
+                hybrid_memory->SaveDifferentialSnapshot(diff_path);
+                hybrid_memory->ResetDirtyTracking();
+                LOG_INFO(Render_Vulkan, "Memory snapshots saved with screenshot");
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_Vulkan, "Failed to save memory snapshot: {}", e.what());
+        }
+    }
+
     const auto& layout{renderer_settings.screenshot_framebuffer_layout};
     const auto dst_buffer = RenderToBuffer(framebuffers, layout, VK_FORMAT_B8G8R8A8_UNORM,
                                            layout.width * layout.height * 4);
@@ -498,6 +551,23 @@ void RendererVulkan::InitializePlatformSpecific() {
 #else
     LOG_INFO(Render_Vulkan, "Platform-specific Vulkan initialization not implemented for this platform");
 #endif
+
+    // Create a compute buffer using the HybridMemory system if enabled
+    if (Settings::values.use_gpu_memory_manager.GetValue()) {
+        try {
+            // Create a small compute buffer for testing
+            const VkDeviceSize buffer_size = 1 * 1024 * 1024; // 1 MB
+            ComputeBuffer compute_buffer = hybrid_memory->CreateComputeBuffer(
+                buffer_size,
+                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                MemoryUsage::DeviceLocal);
+
+            LOG_INFO(Render_Vulkan, "Successfully created compute buffer using HybridMemory");
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_Vulkan, "Failed to create compute buffer: {}", e.what());
+        }
+    }
 }
 
 } // namespace Vulkan

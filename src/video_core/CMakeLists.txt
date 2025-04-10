@@ -307,6 +307,8 @@ add_library(video_core STATIC
     vulkan_common/vulkan_library.h
     vulkan_common/vulkan_memory_allocator.cpp
     vulkan_common/vulkan_memory_allocator.h
+    vulkan_common/hybrid_memory.cpp
+    vulkan_common/hybrid_memory.h
     vulkan_common/vulkan_surface.cpp
     vulkan_common/vulkan_surface.h
     vulkan_common/vulkan_wrapper.cpp

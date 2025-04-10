@@ -23,6 +23,7 @@
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
+#include "video_core/vulkan_common/hybrid_memory.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Core::Memory {
@@ -98,6 +99,9 @@ private:
     BlitScreen blit_applet;
     RasterizerVulkan rasterizer;
     std::optional<TurboMode> turbo_mode;
+
+    // HybridMemory for advanced memory management
+    std::unique_ptr<HybridMemory> hybrid_memory;
 
     // Enhanced texture and shader management
     TextureManager texture_manager;
