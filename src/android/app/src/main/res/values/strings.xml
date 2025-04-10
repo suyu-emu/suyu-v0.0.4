@@ -230,6 +230,10 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- Graphics settings strings -->
+    <string name="enable_frame_skipping">Enable Frame Skipping</string>
+    <string name="enable_frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames.</string>
+    <string name="enable_frame_interpolation">Enable Frame Interpolation</string>
+    <string name="enable_frame_interpolation_description">Toggle frame interpolation to improve visual smoothness by generating intermediate frames.</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>

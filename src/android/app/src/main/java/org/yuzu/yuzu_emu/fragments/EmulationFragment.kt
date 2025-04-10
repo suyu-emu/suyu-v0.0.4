@@ -534,10 +534,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     // Calculate used memory
                     val usedMegs = (mi.totalMem - mi.availMem) / 1048576L // Convert bytes to megabytes
 
+                    val actualFps = perfStats[FPS]
+                    val enableFrameInterpolation = BooleanSetting.ENABLE_FRAME_INTERPOLATION.getBoolean()
+                    val generatedFpsText = if (enableFrameInterpolation) {
+                        val generatedFps = actualFps * 2
+                        String.format("(Generated: %.1f)", generatedFps)
+                    } else {
+                        ""
+                    }
                     if (_binding != null) {
                           binding.showFpsText.text = String.format(
-                            "%.1f FPS • %d MB • %s/%s",
-                            perfStats[FPS], usedMegs, cpuBackend, gpuDriver
+                            "%.1f %s FPS • %d MB • %s/%s",
+                            actualFps, generatedFpsText, usedMegs, cpuBackend, gpuDriver
                         )
                     }
                     perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 800)

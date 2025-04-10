@@ -54,6 +54,10 @@ public:
     }
 
 private:
+    void InterpolateFrames(Frame* prev_frame, Frame* curr_frame);
+    Frame* previous_frame = nullptr;  // Store the previous frame for interpolation
+    VkCommandBuffer BeginSingleTimeCommands();
+    void EndSingleTimeCommands(VkCommandBuffer command_buffer);
     void Report() const;
 
     vk::Buffer RenderToBuffer(std::span<const Tegra::FramebufferConfig> framebuffers,

@@ -26,7 +26,13 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
-    SHOW_THERMAL_OVERLAY("show_thermal_overlay");
+    SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
+        ENABLE_FRAME_INTERPOLATION("enable_frame_interpolation"),
+    ENABLE_FRAME_SKIPPING("enable_frame_skipping"),
+    CORE_USE_MULTI_CORE("use_multi_core");
+
+    external fun isFrameSkippingEnabled(): Boolean
+    external fun isFrameInterpolationEnabled(): Boolean
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

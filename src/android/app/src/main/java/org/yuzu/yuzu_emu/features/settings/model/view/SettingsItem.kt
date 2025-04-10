@@ -172,6 +172,56 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
+              val enableInterpolationSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.ENABLE_FRAME_INTERPOLATION.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    BooleanSetting.ENABLE_FRAME_INTERPOLATION.getBoolean(needsGlobal)
+
+                override fun setBoolean(value: Boolean) =
+                    BooleanSetting.ENABLE_FRAME_INTERPOLATION.setBoolean(value)
+
+                override val defaultValue = BooleanSetting.ENABLE_FRAME_INTERPOLATION.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.ENABLE_FRAME_INTERPOLATION.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.ENABLE_FRAME_INTERPOLATION.reset()
+            }
+
+            val enableFrameSkippingSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.ENABLE_FRAME_SKIPPING.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    BooleanSetting.ENABLE_FRAME_SKIPPING.getBoolean(needsGlobal)
+
+                override fun setBoolean(value: Boolean) =
+                    BooleanSetting.ENABLE_FRAME_SKIPPING.setBoolean(value)
+
+                override val defaultValue = BooleanSetting.ENABLE_FRAME_SKIPPING.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.ENABLE_FRAME_SKIPPING.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.ENABLE_FRAME_SKIPPING.reset()
+            }
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_FRAME_INTERPOLATION,
+                    titleId = R.string.enable_frame_interpolation,
+                    descriptionId = R.string.enable_frame_interpolation_description
+                )
+            )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_FRAME_SKIPPING,
+                    titleId = R.string.enable_frame_skipping,
+                    descriptionId = R.string.enable_frame_skipping_description
+                )
+            )
+
             put(
                 SwitchSetting(
                     dockedModeSetting,

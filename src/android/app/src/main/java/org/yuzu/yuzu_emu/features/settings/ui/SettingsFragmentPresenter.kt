@@ -169,6 +169,8 @@ class SettingsFragmentPresenter(
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
+            add(BooleanSetting.ENABLE_FRAME_INTERPOLATION.key)
+            add(BooleanSetting.ENABLE_FRAME_SKIPPING.key)
             add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)
