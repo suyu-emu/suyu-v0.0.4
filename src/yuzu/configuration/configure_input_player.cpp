@@ -1183,7 +1183,7 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
 
     // List of all the widgets that will be hidden by any of the following layouts that need
     // "unhidden" after the controller type changes
-    const std::array<QWidget*, 14> layout_show = {
+    const std::array<QWidget*, 19> layout_show = {
         ui->buttonShoulderButtonsSLSRLeft,
         ui->buttonShoulderButtonsSLSRRight,
         ui->horizontalSpacerShoulderButtonsWidget,
@@ -1191,11 +1191,16 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
         ui->horizontalSpacerShoulderButtonsWidget3,
         ui->horizontalSpacerShoulderButtonsWidget4,
         ui->buttonShoulderButtonsLeft,
-        ui->buttonMiscButtonsMinusScreenshot,
+        ui->buttonMiscButtonsMinusGroup,
         ui->bottomLeft,
+        ui->LStick,
+        ui->Dpad,
         ui->buttonShoulderButtonsRight,
-        ui->buttonMiscButtonsPlusHome,
+        ui->buttonMiscButtonsPlusGroup,
+        ui->buttonMiscButtonsHomeGroup,
         ui->bottomRight,
+        ui->faceButtons,
+        ui->RStick,
         ui->buttonMiscButtonsMinusGroup,
         ui->buttonMiscButtonsScreenshotGroup,
     };
@@ -1213,6 +1218,7 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
             ui->buttonShoulderButtonsSLSRRight,
             ui->horizontalSpacerShoulderButtonsWidget2,
             ui->horizontalSpacerShoulderButtonsWidget4,
+            ui->buttonMiscButtonsScreenshotGroup,
         };
         break;
     case Core::HID::NpadStyleIndex::JoyconLeft:
@@ -1221,15 +1227,23 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
             ui->horizontalSpacerShoulderButtonsWidget2,
             ui->horizontalSpacerShoulderButtonsWidget3,
             ui->buttonShoulderButtonsRight,
-            ui->buttonMiscButtonsPlusHome,
-            ui->bottomRight,
+            ui->buttonMiscButtonsPlusGroup,
+            ui->buttonMiscButtonsHomeGroup,
+            ui->faceButtons,
+            ui->RStick,
+            ui->buttonMiscButtonsScreenshotGroup,
         };
         break;
     case Core::HID::NpadStyleIndex::JoyconRight:
         layout_hidden = {
-            ui->buttonShoulderButtonsSLSRLeft,          ui->horizontalSpacerShoulderButtonsWidget,
-            ui->horizontalSpacerShoulderButtonsWidget4, ui->buttonShoulderButtonsLeft,
-            ui->buttonMiscButtonsMinusScreenshot,       ui->bottomLeft,
+            ui->buttonShoulderButtonsSLSRLeft,
+            ui->horizontalSpacerShoulderButtonsWidget,
+            ui->horizontalSpacerShoulderButtonsWidget4,
+            ui->buttonShoulderButtonsLeft,
+            ui->buttonMiscButtonsMinusGroup,
+            ui->LStick,
+            ui->Dpad,
+            ui->buttonMiscButtonsScreenshotGroup,
         };
         break;
     case Core::HID::NpadStyleIndex::GameCube:
@@ -1239,6 +1253,13 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
             ui->horizontalSpacerShoulderButtonsWidget2,
             ui->horizontalSpacerShoulderButtonsWidget4,
             ui->buttonMiscButtonsMinusGroup,
+            ui->buttonMiscButtonsScreenshotGroup,
+        };
+        break;
+    case Core::HID::NpadStyleIndex::JoyconDual:
+        layout_hidden = {
+            ui->buttonShoulderButtonsSLSRLeft,
+            ui->buttonShoulderButtonsSLSRRight,
             ui->buttonMiscButtonsScreenshotGroup,
         };
         break;

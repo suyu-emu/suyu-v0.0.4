@@ -18,7 +18,7 @@
     <normaloff>:/img/yuzu.ico</normaloff>:/img/yuzu.ico</iconset>
   </property>
   <property name="tabShape">
-   <enum>QTabWidget::Rounded</enum>
+   <enum>QTabWidget::TabShape::Rounded</enum>
   </property>
   <property name="dockNestingEnabled">
    <bool>true</bool>
@@ -45,7 +45,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -257,8 +257,11 @@
    <property name="text">
     <string>Con&amp;figure...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+,</string>
+   </property>
    <property name="menuRole">
-    <enum>QAction::PreferencesRole</enum>
+    <enum>QAction::MenuRole::PreferencesRole</enum>
    </property>
   </action>
   <action name="action_Display_Dock_Widget_Headers">
@@ -423,7 +426,7 @@
     <string>&amp;Configure TAS...</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="action_Configure_Current_Game">
@@ -434,7 +437,7 @@
     <string>Configure C&amp;urrent Game...</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="action_TAS_Start">
