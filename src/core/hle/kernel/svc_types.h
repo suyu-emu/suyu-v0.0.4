@@ -156,7 +156,6 @@ enum class InfoType : u32 {
 
     MesosphereMeta = 65000,
     MesosphereCurrentProcess = 65001,
-    SystemResourceSize = 0x1C,
 };
 
 enum class BreakReason : u32 {
