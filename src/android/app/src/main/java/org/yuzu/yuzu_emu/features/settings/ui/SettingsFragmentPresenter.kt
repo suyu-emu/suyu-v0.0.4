@@ -159,6 +159,7 @@ class SettingsFragmentPresenter(
             add(StringSetting.DEVICE_NAME.key)
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
+            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)

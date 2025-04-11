@@ -206,6 +206,25 @@ abstract class SettingsItem(
                 override fun reset() = BooleanSetting.ENABLE_FRAME_SKIPPING.reset()
             }
 
+            val syncCoreSpeedSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.CORE_SYNC_CORE_SPEED.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean {
+                    return BooleanSetting.CORE_SYNC_CORE_SPEED.getBoolean(needsGlobal)
+                 }
+
+                override fun setBoolean(value: Boolean) {
+                    BooleanSetting.CORE_SYNC_CORE_SPEED.setBoolean(value)
+                 }
+
+                override val defaultValue = BooleanSetting.CORE_SYNC_CORE_SPEED.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.CORE_SYNC_CORE_SPEED.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.CORE_SYNC_CORE_SPEED.reset()
+             }
+
             put(
                 SwitchSetting(
                     BooleanSetting.ENABLE_FRAME_INTERPOLATION,
@@ -229,6 +248,14 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_docked_mode_description
                 )
             )
+
+            put(
+                 SwitchSetting(
+                     syncCoreSpeedSetting,
+                     titleId = R.string.use_sync_core,
+                     descriptionId = R.string.use_sync_core_description
+                 )
+             )
 
             put(
                 SingleChoiceSetting(

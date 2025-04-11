@@ -217,6 +217,10 @@
     <string name="cpu_accuracy">CPU accuracy</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <!-- Use Sync Core -->
+     <string name="use_sync_core">Synchronize Core Speed</string>
+     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the games actual speed.</string>
+
     <!-- System settings strings -->
     <string name="device_name">Device name</string>
     <string name="use_docked_mode">Docked Mode</string>

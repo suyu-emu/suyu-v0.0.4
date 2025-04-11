@@ -71,6 +71,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
               "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
               "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
               "maximum your PC can reach."));
+    INSERT(Settings, sync_core_speed, tr("Synchronize Core Speed"),
+            tr("Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).\n"
+                 "Compatibility varies by game; many (especially older ones) may not respond well.\n"
+               "Can help reduce stuttering at lower framerates."));
 
     // Cpu
     INSERT(Settings, cpu_accuracy, tr("Accuracy:"),

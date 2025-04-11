@@ -10,6 +10,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     CPU_DEBUG_MODE("cpu_debug_mode"),
     FASTMEM("cpuopt_fastmem"),
     FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives"),
+    CORE_SYNC_CORE_SPEED("sync_core_speed"),
     RENDERER_USE_SPEED_LIMIT("use_speed_limit"),
     USE_DOCKED_MODE("use_docked_mode"),
     RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache"),
@@ -27,9 +28,8 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
     SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
-        ENABLE_FRAME_INTERPOLATION("enable_frame_interpolation"),
-    ENABLE_FRAME_SKIPPING("enable_frame_skipping"),
-    CORE_USE_MULTI_CORE("use_multi_core");
+    ENABLE_FRAME_INTERPOLATION("enable_frame_interpolation"),
+    ENABLE_FRAME_SKIPPING("enable_frame_skipping");
 
     external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean
