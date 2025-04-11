@@ -173,37 +173,37 @@ abstract class SettingsItem(
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
               val enableInterpolationSetting = object : AbstractBooleanSetting {
-                override val key = BooleanSetting.ENABLE_FRAME_INTERPOLATION.key
+                override val key = BooleanSetting.FRAME_INTERPOLATION.key
 
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
-                    BooleanSetting.ENABLE_FRAME_INTERPOLATION.getBoolean(needsGlobal)
+                    BooleanSetting.FRAME_INTERPOLATION.getBoolean(needsGlobal)
 
                 override fun setBoolean(value: Boolean) =
-                    BooleanSetting.ENABLE_FRAME_INTERPOLATION.setBoolean(value)
+                    BooleanSetting.FRAME_INTERPOLATION.setBoolean(value)
 
-                override val defaultValue = BooleanSetting.ENABLE_FRAME_INTERPOLATION.defaultValue
+                override val defaultValue = BooleanSetting.FRAME_INTERPOLATION.defaultValue
 
                 override fun getValueAsString(needsGlobal: Boolean): String =
-                    BooleanSetting.ENABLE_FRAME_INTERPOLATION.getValueAsString(needsGlobal)
+                    BooleanSetting.FRAME_INTERPOLATION.getValueAsString(needsGlobal)
 
-                override fun reset() = BooleanSetting.ENABLE_FRAME_INTERPOLATION.reset()
+                override fun reset() = BooleanSetting.FRAME_INTERPOLATION.reset()
             }
 
             val enableFrameSkippingSetting = object : AbstractBooleanSetting {
-                override val key = BooleanSetting.ENABLE_FRAME_SKIPPING.key
+                override val key = BooleanSetting.FRAME_SKIPPING.key
 
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
-                    BooleanSetting.ENABLE_FRAME_SKIPPING.getBoolean(needsGlobal)
+                    BooleanSetting.FRAME_SKIPPING.getBoolean(needsGlobal)
 
                 override fun setBoolean(value: Boolean) =
-                    BooleanSetting.ENABLE_FRAME_SKIPPING.setBoolean(value)
+                    BooleanSetting.FRAME_SKIPPING.setBoolean(value)
 
-                override val defaultValue = BooleanSetting.ENABLE_FRAME_SKIPPING.defaultValue
+                override val defaultValue = BooleanSetting.FRAME_SKIPPING.defaultValue
 
                 override fun getValueAsString(needsGlobal: Boolean): String =
-                    BooleanSetting.ENABLE_FRAME_SKIPPING.getValueAsString(needsGlobal)
+                    BooleanSetting.FRAME_SKIPPING.getValueAsString(needsGlobal)
 
-                override fun reset() = BooleanSetting.ENABLE_FRAME_SKIPPING.reset()
+                override fun reset() = BooleanSetting.FRAME_SKIPPING.reset()
             }
 
             val syncCoreSpeedSetting = object : AbstractBooleanSetting {
@@ -227,17 +227,17 @@ abstract class SettingsItem(
 
             put(
                 SwitchSetting(
-                    BooleanSetting.ENABLE_FRAME_INTERPOLATION,
-                    titleId = R.string.enable_frame_interpolation,
-                    descriptionId = R.string.enable_frame_interpolation_description
+                    BooleanSetting.FRAME_INTERPOLATION,
+                    titleId = R.string.frame_interpolation,
+                    descriptionId = R.string.frame_interpolation_description
                 )
             )
 
             put(
                 SwitchSetting(
-                    BooleanSetting.ENABLE_FRAME_SKIPPING,
-                    titleId = R.string.enable_frame_skipping,
-                    descriptionId = R.string.enable_frame_skipping_description
+                    BooleanSetting.FRAME_SKIPPING,
+                    titleId = R.string.frame_skipping,
+                    descriptionId = R.string.frame_skipping_description
                 )
             )
 

@@ -28,8 +28,8 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
     SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
-    ENABLE_FRAME_INTERPOLATION("enable_frame_interpolation"),
-    ENABLE_FRAME_SKIPPING("enable_frame_skipping");
+    FRAME_INTERPOLATION("frame_interpolation"),
+    FRAME_SKIPPING("frame_skipping");
 
     external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean

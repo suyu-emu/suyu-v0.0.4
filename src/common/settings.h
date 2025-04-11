@@ -273,10 +273,12 @@ struct Values {
         "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
+    #ifdef __ANDROID__
     SwitchableSetting<bool> enable_frame_interpolation{linkage, true, "enable_frame_interpolation", Category::Renderer,
                                         Specialization::RuntimeList};
     SwitchableSetting<bool> enable_frame_skipping{linkage, true, "enable_frame_skipping", Category::Renderer,
                                                    Specialization::RuntimeList};
+    #endif
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{

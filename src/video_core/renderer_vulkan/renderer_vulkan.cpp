@@ -141,8 +141,8 @@ RendererVulkan::~RendererVulkan() {
 #ifdef __ANDROID__
 class BooleanSetting {
     public:
-        static BooleanSetting ENABLE_FRAME_SKIPPING;
-        static BooleanSetting ENABLE_FRAME_INTERPOLATION;
+        static BooleanSetting FRAME_SKIPPING;
+        static BooleanSetting FRAME_INTERPOLATION;
         explicit BooleanSetting(bool initial_value = false) : value(initial_value) {}
 
         [[nodiscard]] bool getBoolean() const {
@@ -158,17 +158,17 @@ class BooleanSetting {
     };
 
     // Initialize static members
-    BooleanSetting BooleanSetting::ENABLE_FRAME_SKIPPING(false);
-    BooleanSetting BooleanSetting::ENABLE_FRAME_INTERPOLATION(false);
+    BooleanSetting BooleanSetting::FRAME_SKIPPING(false);
+    BooleanSetting BooleanSetting::FRAME_INTERPOLATION(false);
 
     extern "C" JNIEXPORT jboolean JNICALL
     Java_org_uzuy_uzuy_1emu_features_settings_model_BooleanSetting_isFrameSkippingEnabled(JNIEnv* env, jobject /* this */) {
-        return static_cast<jboolean>(BooleanSetting::ENABLE_FRAME_SKIPPING.getBoolean());
+        return static_cast<jboolean>(BooleanSetting::FRAME_SKIPPING.getBoolean());
     }
 
     extern "C" JNIEXPORT jboolean JNICALL
     Java_org_uzuy_uzuy_1emu_features_settings_model_BooleanSetting_isFrameInterpolationEnabled(JNIEnv* env, jobject /* this */) {
-        return static_cast<jboolean>(BooleanSetting::ENABLE_FRAME_INTERPOLATION.getBoolean());
+        return static_cast<jboolean>(BooleanSetting::FRAME_INTERPOLATION.getBoolean());
     }
 
     void RendererVulkan::InterpolateFrames(Frame* prev_frame, Frame* interpolated_frame) {
@@ -186,8 +186,8 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     static int target_fps = 60; // Target FPS (30 or 60)
     int frame_skip_threshold = 1;
 
-    bool enable_frame_skipping = BooleanSetting::ENABLE_FRAME_SKIPPING.getBoolean();
-    bool enable_frame_interpolation = BooleanSetting::ENABLE_FRAME_INTERPOLATION.getBoolean();
+    bool frame_skipping = BooleanSetting::FRAME_SKIPPING.getBoolean();
+    bool frame_interpolation = BooleanSetting::FRAME_INTERPOLATION.getBoolean();
     #endif
 
     if (framebuffers.empty()) {
@@ -195,13 +195,13 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     }
 
     #ifdef __ANDROID__
-    if (enable_frame_skipping) {
+    if (frame_skipping) {
         frame_skip_threshold = (target_fps == 30) ? 2 : 2;
     }
 
     frame_counter++;
     if (frame_counter % frame_skip_threshold != 0) {
-        if (enable_frame_interpolation && previous_frame) {
+        if (frame_interpolation && previous_frame) {
             Frame* interpolated_frame = present_manager.GetRenderFrame();
             InterpolateFrames(previous_frame, interpolated_frame);
             blit_swapchain.DrawToFrame(rasterizer, interpolated_frame, framebuffers,

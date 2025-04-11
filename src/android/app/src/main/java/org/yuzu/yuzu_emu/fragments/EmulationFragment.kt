@@ -535,7 +535,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     val usedMegs = (mi.totalMem - mi.availMem) / 1048576L // Convert bytes to megabytes
 
                     val actualFps = perfStats[FPS]
-                    val enableFrameInterpolation = BooleanSetting.ENABLE_FRAME_INTERPOLATION.getBoolean()
+                    val enableFrameInterpolation = BooleanSetting.FRAME_INTERPOLATION.getBoolean()
                     val generatedFpsText = if (enableFrameInterpolation) {
                         val generatedFps = actualFps * 2
                         String.format("(Generated: %.1f)", generatedFps)
