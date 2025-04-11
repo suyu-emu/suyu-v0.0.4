@@ -18,6 +18,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_ANTI_ALIASING("anti_aliasing"),
     RENDERER_SCREEN_LAYOUT("screen_layout"),
     RENDERER_ASPECT_RATIO("aspect_ratio"),
+    RENDERER_OPTIMIZE_SPIRV_OUTPUT("optimize_spirv_output"),
     AUDIO_OUTPUT_ENGINE("output_engine"),
     MAX_ANISOTROPY("max_anisotropy"),
     THEME("theme"),
