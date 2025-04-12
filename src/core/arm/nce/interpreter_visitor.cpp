@@ -7,6 +7,13 @@
 
 namespace Core {
 
+namespace {
+// Prefetch tuning parameters
+constexpr size_t CACHE_LINE_SIZE = 64;
+constexpr size_t PREFETCH_STRIDE = 128; // 2 cache lines ahead
+constexpr size_t SIMD_PREFETCH_THRESHOLD = 32; // Bytes
+} // namespace
+
 template <u32 BitSize>
 u64 SignExtendToLong(u64 value) {
     u64 mask = 1ULL << (BitSize - 1);
@@ -168,15 +175,15 @@ bool InterpreterVisitor::Ordered(size_t size, bool L, bool o0, Reg Rn, Reg Rt) {
     const auto memop = L ? MemOp::Load : MemOp::Store;
     const size_t elsize = 8 << size;
     const size_t datasize = elsize;
-
-    // Operation
     const size_t dbytes = datasize / 8;
 
-    u64 address;
-    if (Rn == Reg::SP) {
-        address = this->GetSp();
+    u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
+
+    // Conservative prefetch for atomic ops
+    if (memop == MemOp::Load) {
+        __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 1);
     } else {
-        address = this->GetReg(Rn);
+        __builtin_prefetch(reinterpret_cast<const void*>(address), 1, 1);
     }
 
     switch (memop) {
@@ -197,7 +204,6 @@ bool InterpreterVisitor::Ordered(size_t size, bool L, bool o0, Reg Rn, Reg Rt) {
     default:
         UNREACHABLE();
     }
-
     return true;
 }
 
@@ -407,13 +413,11 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
     MemOp memop;
     bool signed_ = false;
     size_t regsize = 0;
-
     const size_t datasize = 8 << scale;
 
     if (opc.Bit<1>() == 0) {
         memop = opc.Bit<0>() ? MemOp::Load : MemOp::Store;
         regsize = size == 0b11 ? 64 : 32;
-        signed_ = false;
     } else if (size == 0b11) {
         memop = MemOp::Prefetch;
         ASSERT(!opc.Bit<0>());
@@ -424,34 +428,22 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         signed_ = true;
     }
 
-    if ((memop == MemOp::Load || memop == MemOp::Store) && wback && Rn == Rt && Rn != Reg::R31) {
-        // Unpredictable instruction
-        return false;
-    }
-
-    alignas(8) u64 address;
-    if (Rn == Reg::SP) {
-        address = this->GetSp();
-    } else {
-        address = this->GetReg(Rn);
-    }
-
-    if (!postindex) {
+    u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
+    if (!postindex)
         address += offset;
-    }
 
-    //const bool is_aligned = (address % 8) == 0;
-
+    // Optimized prefetch for loads
     if (memop == MemOp::Load) {
-        const size_t CACHE_LINE_SIZE = 64;
-        if ((address % 16) == 0) {
-            __builtin_prefetch((void*)address, 0, 3);
-            __builtin_prefetch((void*)(address + CACHE_LINE_SIZE), 0, 3);
-            if (datasize >= 32) { // Now datasize is in scope
-                __builtin_prefetch((void*)(address + CACHE_LINE_SIZE * 2), 0, 2);
+        const size_t access_size = datasize / 8;
+        const bool is_aligned = (address % access_size) == 0;
+
+        if (is_aligned) {
+            __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 3);
+            if (access_size >= 8 && access_size <= 32) {
+                __builtin_prefetch(reinterpret_cast<const void*>(address + PREFETCH_STRIDE), 0, 3);
             }
-        } else if ((address % 8) == 0) {
-            __builtin_prefetch((void*)address, 0, 2);
+        } else {
+            __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 1);
         }
     }
 
@@ -472,21 +464,17 @@ bool InterpreterVisitor::RegisterImmediate(bool wback, bool postindex, size_t sc
         break;
     }
     case MemOp::Prefetch:
-        // this->Prefetch(address, Rt)
         break;
     }
 
     if (wback) {
-        if (postindex) {
+        if (postindex)
             address += offset;
-        }
-        if (Rn == Reg::SP) {
+        if (Rn == Reg::SP)
             this->SetSp(address);
-        } else {
+        else
             this->SetReg(Rn, address);
-        }
     }
-
     return true;
 }
 
@@ -521,28 +509,16 @@ bool InterpreterVisitor::STURx_LDURx(Imm<2> size, Imm<2> opc, Imm<9> imm9, Reg R
 bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale, u64 offset,
                                        MemOp memop, Reg Rn, Vec Vt) {
     const size_t datasize = 8 << scale;
-
-    u64 address;
-    if (Rn == Reg::SP) {
-        address = this->GetSp();
-    } else {
-        address = this->GetReg(Rn);
-    }
-
-    if (!postindex) {
+    u64 address = (Rn == Reg::SP) ? this->GetSp() : this->GetReg(Rn);
+    if (!postindex)
         address += offset;
-    }
 
-    // Enhanced prefetching for SIMD loads
+    // Aggressive prefetch for SIMD
     if (memop == MemOp::Load) {
-        if ((address % 32) == 0) {
-            // Aggressive prefetch for well-aligned SIMD operations
-            __builtin_prefetch((void*)address, 0, 3);
-            __builtin_prefetch((void*)(address + 32), 0, 3);
-            __builtin_prefetch((void*)(address + 64), 0, 2);
-        } else if ((address % 16) == 0) {
-            __builtin_prefetch((void*)address, 0, 3);
-            __builtin_prefetch((void*)(address + datasize), 0, 2);
+        __builtin_prefetch(reinterpret_cast<const void*>(address), 0, 3);
+        __builtin_prefetch(reinterpret_cast<const void*>(address + CACHE_LINE_SIZE), 0, 3);
+        if (datasize >= SIMD_PREFETCH_THRESHOLD) {
+            __builtin_prefetch(reinterpret_cast<const void*>(address + PREFETCH_STRIDE), 0, 3);
         }
     }
 
@@ -563,17 +539,13 @@ bool InterpreterVisitor::SIMDImmediate(bool wback, bool postindex, size_t scale,
     }
 
     if (wback) {
-        if (postindex) {
+        if (postindex)
             address += offset;
-        }
-
-        if (Rn == Reg::SP) {
+        if (Rn == Reg::SP)
             this->SetSp(address);
-        } else {
+        else
             this->SetReg(Rn, address);
-        }
     }
-
     return true;
 }
 
@@ -820,30 +792,22 @@ bool InterpreterVisitor::LDR_reg_fpsimd(Imm<2> size, Imm<1> opc_1, Reg Rm, Imm<3
 
 std::optional<u64> MatchAndExecuteOneInstruction(Core::Memory::Memory& memory, mcontext_t* context,
                                                  fpsimd_context* fpsimd_context) {
-    // Construct the interpreter.
     std::span<u64, 31> regs(reinterpret_cast<u64*>(context->regs), 31);
     std::span<u128, 32> vregs(reinterpret_cast<u128*>(fpsimd_context->vregs), 32);
     u64& sp = *reinterpret_cast<u64*>(&context->sp);
     const u64& pc = *reinterpret_cast<u64*>(&context->pc);
 
     InterpreterVisitor visitor(memory, regs, vregs, sp, pc);
-
-    // Read the instruction at the program counter.
     u32 instruction = memory.Read32(pc);
     bool was_executed = false;
 
-    // Interpret the instruction.
     if (auto decoder = Dynarmic::A64::Decode<VisitorBase>(instruction)) {
         was_executed = decoder->get().call(visitor, instruction);
     } else {
         LOG_ERROR(Core_ARM, "Unallocated encoding: {:#x}", instruction);
     }
 
-    if (was_executed) {
-        return pc + 4;
-    }
-
-    return std::nullopt;
+    return was_executed ? std::optional<u64>(pc + 4) : std::nullopt;
 }
 
 } // namespace Core
