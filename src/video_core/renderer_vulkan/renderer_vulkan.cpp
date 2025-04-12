@@ -184,11 +184,17 @@ class BooleanSetting {
         };
 
         // Check if we need to recreate the destination frame
-        bool needs_recreation = true;
-        if (interpolated_frame->image_view) {
-            // Get image extent from framebuffer layout since we can't query it directly
-            needs_recreation = (framebuffer_layout.width / 2 != dst_extent.width) ||
-                              (framebuffer_layout.height / 2 != dst_extent.height);
+        bool needs_recreation = false;  // Only recreate when necessary
+        if (!interpolated_frame->image_view) {
+            needs_recreation = true;  // Need to create initially
+        } else {
+            // Check if dimensions have changed
+            if (interpolated_frame->framebuffer) {
+                needs_recreation = (framebuffer_layout.width / 2 != dst_extent.width) ||
+                                  (framebuffer_layout.height / 2 != dst_extent.height);
+            } else {
+                needs_recreation = true;
+            }
         }
 
         if (needs_recreation) {
@@ -227,7 +233,7 @@ class BooleanSetting {
             cmdbuf.BlitImage(
                 *prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                blit_region, VK_FILTER_LINEAR
+                blit_region, VK_FILTER_NEAREST
             );
 
             // Transition back to general layout
