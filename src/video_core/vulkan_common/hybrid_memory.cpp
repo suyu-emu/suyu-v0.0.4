@@ -15,6 +15,8 @@
 #include <sys/syscall.h>
 #include <linux/userfaultfd.h>
 #include <sys/ioctl.h>
+#elif defined(_WIN32)
+#include <windows.h>
 #endif
 
 namespace Vulkan {
@@ -72,8 +74,136 @@ void PredictiveReuseManager::ClearHistory() {
     current_timestamp = 0;
 }
 
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
+void FaultManagedAllocator::Touch(size_t addr) {
+    lru.remove(addr);
+    lru.push_front(addr);
+    dirty_set.insert(addr);
+}
+
+void FaultManagedAllocator::EnforceLimit() {
+    while (lru.size() > MaxPages) {
+        size_t evict = lru.back();
+        lru.pop_back();
+
+        auto it = page_map.find(evict);
+        if (it != page_map.end()) {
+            if (dirty_set.count(evict)) {
+                // Compress and store dirty page before evicting
+                std::vector<u8> compressed((u8*)it->second, (u8*)it->second + PageSize);
+                compressed_store[evict] = std::move(compressed);
+                dirty_set.erase(evict);
+            }
+
 #if defined(__linux__) || defined(__ANDROID__)
+            munmap(it->second, PageSize);
+#elif defined(_WIN32)
+            VirtualFree(it->second, 0, MEM_RELEASE);
+#endif
+            page_map.erase(it);
+        }
+    }
+}
+
+void* FaultManagedAllocator::GetOrAlloc(size_t addr) {
+    std::lock_guard<std::mutex> guard(lock);
+
+    if (page_map.count(addr)) {
+        Touch(addr);
+        return page_map[addr];
+    }
+
+#if defined(__linux__) || defined(__ANDROID__)
+    void* mem = mmap(nullptr, PageSize, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+    if (mem == MAP_FAILED) {
+        LOG_ERROR(Render_Vulkan, "Failed to mmap memory for fault handler");
+        return nullptr;
+    }
+#elif defined(_WIN32)
+    void* mem = VirtualAlloc(nullptr, PageSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!mem) {
+        LOG_ERROR(Render_Vulkan, "Failed to VirtualAlloc memory for fault handler");
+        return nullptr;
+    }
+#endif
+
+    if (compressed_store.count(addr)) {
+        // Decompress stored page data
+        std::memcpy(mem, compressed_store[addr].data(), compressed_store[addr].size());
+        compressed_store.erase(addr);
+    } else {
+        std::memset(mem, 0, PageSize);
+    }
+
+    page_map[addr] = mem;
+    lru.push_front(addr);
+    dirty_set.insert(addr);
+    EnforceLimit();
+
+    return mem;
+}
+
+#if defined(_WIN32)
+// Static member initialization
+FaultManagedAllocator* FaultManagedAllocator::current_instance = nullptr;
+
+LONG WINAPI FaultManagedAllocator::VectoredExceptionHandler(PEXCEPTION_POINTERS exception_info) {
+    // Only handle access violations (page faults)
+    if (exception_info->ExceptionRecord->ExceptionCode != EXCEPTION_ACCESS_VIOLATION) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    if (!current_instance) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    // Get the faulting address - use ULONG_PTR for Windows
+    const ULONG_PTR fault_addr = static_cast<ULONG_PTR>(exception_info->ExceptionRecord->ExceptionInformation[1]);
+    const ULONG_PTR base_addr = reinterpret_cast<ULONG_PTR>(current_instance->base_address);
+
+    // Check if the address is within our managed range
+    if (fault_addr < base_addr ||
+        fault_addr >= (base_addr + static_cast<ULONG_PTR>(current_instance->memory_size))) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    // Calculate the base address of the page
+    const ULONG_PTR page_addr = fault_addr & ~(static_cast<ULONG_PTR>(PageSize) - 1);
+    const size_t relative_addr = static_cast<size_t>(page_addr - base_addr);
+
+    // Handle the fault by allocating memory
+    void* page = current_instance->GetOrAlloc(relative_addr);
+    if (!page) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    // Copy the page data to the faulting address
+    DWORD old_protect;
+    void* target_addr = reinterpret_cast<void*>(page_addr);
+
+    // Make the target page writable
+    if (VirtualProtect(target_addr, PageSize, PAGE_READWRITE, &old_protect)) {
+        std::memcpy(target_addr, page, PageSize);
+        // Restore original protection
+        VirtualProtect(target_addr, PageSize, old_protect, &old_protect);
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void FaultManagedAllocator::ExceptionHandlerThread() {
+    while (running) {
+        // Sleep to avoid busy waiting
+        Sleep(10);
+    }
+}
+#endif
+
 void FaultManagedAllocator::Initialize(void* base, size_t size) {
+#if defined(__linux__) || defined(__ANDROID__)
     uffd = syscall(SYS_userfaultfd, O_CLOEXEC | O_NONBLOCK);
     if (uffd < 0) {
         LOG_ERROR(Render_Vulkan, "Failed to create userfaultfd, fault handling disabled");
@@ -97,66 +227,28 @@ void FaultManagedAllocator::Initialize(void* base, size_t size) {
 
     running = true;
     fault_handler = std::thread(&FaultManagedAllocator::FaultThread, this);
+#elif defined(_WIN32)
+    // Setup Windows memory for fault handling
+    base_address = base;
+    memory_size = size;
+
+    // Reserve memory range but don't commit it yet - it will be demand-paged
+    DWORD oldProtect;
+    VirtualProtect(base, size, PAGE_NOACCESS, &oldProtect);
+
+    // Install a vectored exception handler
+    current_instance = this;
+    AddVectoredExceptionHandler(1, VectoredExceptionHandler);
+
+    running = true;
+    exception_handler = std::thread(&FaultManagedAllocator::ExceptionHandlerThread, this);
+
+    LOG_INFO(Render_Vulkan, "Windows fault-managed memory initialized at {:p}, size: {}",
+             base, size);
+#endif
 }
 
-void FaultManagedAllocator::Touch(size_t addr) {
-    lru.remove(addr);
-    lru.push_front(addr);
-    dirty_set.insert(addr);
-}
-
-void FaultManagedAllocator::EnforceLimit() {
-    while (lru.size() > MaxPages) {
-        size_t evict = lru.back();
-        lru.pop_back();
-
-        auto it = page_map.find(evict);
-        if (it != page_map.end()) {
-            if (dirty_set.count(evict)) {
-                // Compress and store dirty page before evicting
-                std::vector<u8> compressed((u8*)it->second, (u8*)it->second + PageSize);
-                compressed_store[evict] = std::move(compressed);
-                dirty_set.erase(evict);
-            }
-
-            munmap(it->second, PageSize);
-            page_map.erase(it);
-        }
-    }
-}
-
-void* FaultManagedAllocator::GetOrAlloc(size_t addr) {
-    std::lock_guard<std::mutex> guard(lock);
-
-    if (page_map.count(addr)) {
-        Touch(addr);
-        return page_map[addr];
-    }
-
-    void* mem = mmap(nullptr, PageSize, PROT_READ | PROT_WRITE,
-                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-    if (mem == MAP_FAILED) {
-        LOG_ERROR(Render_Vulkan, "Failed to mmap memory for fault handler");
-        return nullptr;
-    }
-
-    if (compressed_store.count(addr)) {
-        // Decompress stored page data
-        std::memcpy(mem, compressed_store[addr].data(), compressed_store[addr].size());
-        compressed_store.erase(addr);
-    } else {
-        std::memset(mem, 0, PageSize);
-    }
-
-    page_map[addr] = mem;
-    lru.push_front(addr);
-    dirty_set.insert(addr);
-    EnforceLimit();
-
-    return mem;
-}
-
+#if defined(__linux__) || defined(__ANDROID__)
 void FaultManagedAllocator::FaultThread() {
     struct pollfd pfd = { uffd, POLLIN, 0 };
 
@@ -183,6 +275,7 @@ void FaultManagedAllocator::FaultThread() {
         }
     }
 }
+#endif
 
 void* FaultManagedAllocator::Translate(size_t addr) {
     std::lock_guard<std::mutex> guard(lock);
@@ -244,6 +337,7 @@ void FaultManagedAllocator::ClearDirtySet() {
 FaultManagedAllocator::~FaultManagedAllocator() {
     running = false;
 
+#if defined(__linux__) || defined(__ANDROID__)
     if (fault_handler.joinable()) {
         fault_handler.join();
     }
@@ -255,8 +349,27 @@ FaultManagedAllocator::~FaultManagedAllocator() {
     if (uffd != -1) {
         close(uffd);
     }
+#elif defined(_WIN32)
+    if (exception_handler.joinable()) {
+        exception_handler.join();
+    }
+
+    // Remove the vectored exception handler
+    RemoveVectoredExceptionHandler(VectoredExceptionHandler);
+    current_instance = nullptr;
+
+    for (auto& [addr, mem] : page_map) {
+        VirtualFree(mem, 0, MEM_RELEASE);
+    }
+
+    // Free the base memory if needed
+    if (base_address) {
+        VirtualFree(base_address, 0, MEM_RELEASE);
+        base_address = nullptr;
+    }
+#endif
 }
-#endif // defined(__linux__) || defined(__ANDROID__)
+#endif // defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
 
 HybridMemory::HybridMemory(const Device& device_, MemoryAllocator& allocator, size_t reuse_history)
     : device(device_), memory_allocator(allocator), reuse_manager(reuse_history) {
@@ -265,7 +378,7 @@ HybridMemory::HybridMemory(const Device& device_, MemoryAllocator& allocator, si
 HybridMemory::~HybridMemory() = default;
 
 void HybridMemory::InitializeGuestMemory(void* base, size_t size) {
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
     fmaa.Initialize(base, size);
     LOG_INFO(Render_Vulkan, "Initialized fault-managed guest memory at {:p}, size: {}",
              base, size);
@@ -275,7 +388,7 @@ void HybridMemory::InitializeGuestMemory(void* base, size_t size) {
 }
 
 void* HybridMemory::TranslateAddress(size_t addr) {
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
     return fmaa.Translate(addr);
 #else
     return nullptr;
@@ -308,7 +421,7 @@ ComputeBuffer HybridMemory::CreateComputeBuffer(VkDeviceSize size, VkBufferUsage
 }
 
 void HybridMemory::SaveSnapshot(const std::string& path) {
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
     fmaa.SaveSnapshot(path);
 #else
     LOG_ERROR(Render_Vulkan, "Memory snapshots not supported on this platform");
@@ -316,7 +429,7 @@ void HybridMemory::SaveSnapshot(const std::string& path) {
 }
 
 void HybridMemory::SaveDifferentialSnapshot(const std::string& path) {
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
     fmaa.SaveDifferentialSnapshot(path);
 #else
     LOG_ERROR(Render_Vulkan, "Differential memory snapshots not supported on this platform");
@@ -324,7 +437,7 @@ void HybridMemory::SaveDifferentialSnapshot(const std::string& path) {
 }
 
 void HybridMemory::ResetDirtyTracking() {
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
     fmaa.ClearDirtySet();
 #endif
 }

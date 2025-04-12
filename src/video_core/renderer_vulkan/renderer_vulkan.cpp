@@ -9,6 +9,8 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <filesystem>
 
 #include <fmt/ranges.h>
 
@@ -135,15 +137,37 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
 
     // Initialize HybridMemory system
     if (Settings::values.use_gpu_memory_manager.GetValue()) {
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
         try {
-            void* guest_memory_base = std::aligned_alloc(4096, 64 * 1024 * 1024);
-            if (guest_memory_base) {
+            // Define memory size with explicit types to avoid conversion warnings
+            constexpr size_t memory_size_mb = 64;
+            constexpr size_t memory_size_bytes = memory_size_mb * 1024 * 1024;
+
+            void* guest_memory_base = nullptr;
+#if defined(_WIN32)
+            // On Windows, use VirtualAlloc to reserve (but not commit) memory
+            const SIZE_T win_size = static_cast<SIZE_T>(memory_size_bytes);
+            LPVOID result = VirtualAlloc(nullptr, win_size, MEM_RESERVE, PAGE_NOACCESS);
+            if (result != nullptr) {
+                guest_memory_base = result;
+            }
+#else
+            // On Linux/Android, use aligned_alloc
+            guest_memory_base = std::aligned_alloc(4096, memory_size_bytes);
+#endif
+            if (guest_memory_base != nullptr) {
                 try {
-                    hybrid_memory->InitializeGuestMemory(guest_memory_base, 64 * 1024 * 1024);
-                    LOG_INFO(Render_Vulkan, "HybridMemory initialized with {} MB of fault-managed memory", 64);
-                } catch (const std::exception& e) {
+                    hybrid_memory->InitializeGuestMemory(guest_memory_base, memory_size_bytes);
+                    LOG_INFO(Render_Vulkan, "HybridMemory initialized with {} MB of fault-managed memory", memory_size_mb);
+                } catch (const std::exception&) {
+#if defined(_WIN32)
+                    if (guest_memory_base != nullptr) {
+                        const LPVOID win_ptr = static_cast<LPVOID>(guest_memory_base);
+                        VirtualFree(win_ptr, 0, MEM_RELEASE);
+                    }
+#else
                     std::free(guest_memory_base);
+#endif
                     throw;
                 }
             }
@@ -167,10 +191,10 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
 
         // Add paths to common shaders that should be preloaded
         // These will be compiled in parallel for faster startup
-        if (std::filesystem::exists(shader_dir)) {
-            try {
+        try {
+            if (std::filesystem::exists(shader_dir)) {
                 for (const auto& entry : std::filesystem::directory_iterator(shader_dir)) {
-                    if (entry.path().extension() == ".spv") {
+                    if (entry.is_regular_file() && entry.path().extension() == ".spv") {
                         common_shaders.push_back(entry.path().string());
                     }
                 }
@@ -179,11 +203,11 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                     LOG_INFO(Render_Vulkan, "Preloading {} common shaders", common_shaders.size());
                     shader_manager.PreloadShaders(common_shaders);
                 }
-            } catch (const std::exception& e) {
-                LOG_ERROR(Render_Vulkan, "Error during shader preloading: {}", e.what());
+            } else {
+                LOG_INFO(Render_Vulkan, "Shader directory not found at {}", shader_dir);
             }
-        } else {
-            LOG_INFO(Render_Vulkan, "Shader directory not found at {}", shader_dir);
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_Vulkan, "Error during shader preloading: {}", e.what());
         }
     }
 

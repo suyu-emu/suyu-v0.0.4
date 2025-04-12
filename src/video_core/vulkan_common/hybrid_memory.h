@@ -10,6 +10,9 @@
 #include <mutex>
 #include <atomic>
 #include <functional>
+#include <list>
+#include <set>
+#include <map>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -46,7 +49,7 @@ private:
     mutable std::mutex mutex;
 };
 
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
 class FaultManagedAllocator {
 public:
     static constexpr size_t PageSize = 0x1000;
@@ -65,14 +68,26 @@ private:
     std::set<size_t> dirty_set;
     std::unordered_map<size_t, std::vector<u8>> compressed_store;
     std::mutex lock;
+
+#if defined(__linux__) || defined(__ANDROID__)
     int uffd = -1;
     std::atomic<bool> running{false};
     std::thread fault_handler;
+    void FaultThread();
+#elif defined(_WIN32)
+    void* base_address = nullptr;
+    size_t memory_size = 0;
+    HANDLE exception_port = nullptr;
+    std::atomic<bool> running{false};
+    std::thread exception_handler;
+    void ExceptionHandlerThread();
+    static LONG WINAPI VectoredExceptionHandler(PEXCEPTION_POINTERS exception_info);
+    static FaultManagedAllocator* current_instance;
+#endif
 
     void Touch(size_t addr);
     void EnforceLimit();
     void* GetOrAlloc(size_t addr);
-    void FaultThread();
 };
 #endif
 
@@ -95,7 +110,7 @@ private:
     MemoryAllocator& memory_allocator;
     PredictiveReuseManager reuse_manager;
 
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
     FaultManagedAllocator fmaa;
 #endif
 };
