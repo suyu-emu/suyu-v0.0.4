@@ -13,7 +13,7 @@
   <br>
 </h1>
 
-<h4 align="center"><b>Eden</b> is the world's most popular, open-source, Nintendo Switch emulator forked from Yuzu emulator — started by the former Citron developer Camille LeVay and the Eden team</a>.
+<h4 align="center"><b>Eden</b> is the world's most popular, open-source, Nintendo Switch emulator forked from Yuzu emulator — started by the former Citron developer Camille LeVey and the Eden team</a>.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
