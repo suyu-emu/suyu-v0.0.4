@@ -13,6 +13,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <thread>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_device.h"

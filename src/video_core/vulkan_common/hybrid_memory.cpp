@@ -15,6 +15,7 @@
 #include <sys/syscall.h>
 #include <linux/userfaultfd.h>
 #include <sys/ioctl.h>
+#include <fcntl.h>
 #elif defined(_WIN32)
 #include <windows.h>
 #endif
@@ -263,8 +264,8 @@ void FaultManagedAllocator::FaultThread() {
 
                 if (page) {
                     struct uffdio_copy copy = {
-                        .src = (uintptr_t)page,
                         .dst = (uintptr_t)addr,
+                        .src = (uintptr_t)page,
                         .len = PageSize,
                         .mode = 0
                     };
