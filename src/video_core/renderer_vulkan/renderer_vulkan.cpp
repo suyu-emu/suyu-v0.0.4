@@ -172,13 +172,70 @@ class BooleanSetting {
     }
 
     void RendererVulkan::InterpolateFrames(Frame* prev_frame, Frame* interpolated_frame) {
-        if (prev_frame && interpolated_frame) {
-            *interpolated_frame = std::move(*prev_frame);  // Use move assignment to avoid copy issues
-
-            // TODO: Implement actual interpolation logic here
+        if (!prev_frame || !interpolated_frame || !prev_frame->image || !interpolated_frame->image) {
+            return;
         }
+
+        const auto& framebuffer_layout = render_window.GetFramebufferLayout();
+        // Fixed aggressive downscale (50%)
+        VkExtent2D dst_extent{
+            .width = framebuffer_layout.width / 2,
+            .height = framebuffer_layout.height / 2
+        };
+
+        // Check if we need to recreate the destination frame
+        bool needs_recreation = true;
+        if (interpolated_frame->image_view) {
+            // Get image extent from framebuffer layout since we can't query it directly
+            needs_recreation = (framebuffer_layout.width / 2 != dst_extent.width) ||
+                              (framebuffer_layout.height / 2 != dst_extent.height);
+        }
+
+        if (needs_recreation) {
+            interpolated_frame->image = CreateWrappedImage(memory_allocator, dst_extent, swapchain.GetImageViewFormat());
+            interpolated_frame->image_view = CreateWrappedImageView(device, interpolated_frame->image, swapchain.GetImageViewFormat());
+            interpolated_frame->framebuffer = blit_swapchain.CreateFramebuffer(
+                Layout::FramebufferLayout{dst_extent.width, dst_extent.height},
+                *interpolated_frame->image_view,
+                swapchain.GetImageViewFormat());
+        }
+
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([&](vk::CommandBuffer cmdbuf) {
+            // Transition images to transfer layouts
+            TransitionImageLayout(cmdbuf, *prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+            TransitionImageLayout(cmdbuf, *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+            // Perform the downscale blit
+            VkImageBlit blit_region{};
+            blit_region.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+            blit_region.srcOffsets[0] = {0, 0, 0};
+            blit_region.srcOffsets[1] = {
+                static_cast<int32_t>(framebuffer_layout.width),
+                static_cast<int32_t>(framebuffer_layout.height),
+                1
+            };
+            blit_region.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+            blit_region.dstOffsets[0] = {0, 0, 0};
+            blit_region.dstOffsets[1] = {
+                static_cast<int32_t>(dst_extent.width),
+                static_cast<int32_t>(dst_extent.height),
+                1
+            };
+
+            // Using the wrapper's BlitImage with proper parameters
+            cmdbuf.BlitImage(
+                *prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                blit_region, VK_FILTER_LINEAR
+            );
+
+            // Transition back to general layout
+            TransitionImageLayout(cmdbuf, *prev_frame->image, VK_IMAGE_LAYOUT_GENERAL);
+            TransitionImageLayout(cmdbuf, *interpolated_frame->image, VK_IMAGE_LAYOUT_GENERAL);
+        });
     }
-    #endif
+#endif
 
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
     #ifdef __ANDROID__
