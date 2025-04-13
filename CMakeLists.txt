@@ -643,9 +643,9 @@ endif()
 if(ENABLE_QT AND UNIX AND NOT APPLE)
     install(FILES "dist/org.yuzu_emu.yuzu.desktop"
             DESTINATION "share/applications")
-    install(FILES "dist/yuzu.svg"
+    install(FILES "dist/eden.svg"
             DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "org.yuzu_emu.yuzu.svg")
+            RENAME "org.yuzu_emu.eden.svg")
     install(FILES "dist/org.yuzu_emu.yuzu.xml"
             DESTINATION "share/mime/packages")
     install(FILES "dist/org.yuzu_emu.yuzu.metainfo.xml"

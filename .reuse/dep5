@@ -12,11 +12,11 @@ Files: dist/english_plurals/*
 Copyright: yuzu Emulator Project
 License: GPL-2.0-or-later
 
-Files: dist/qt_themes/default/icons/256x256/yuzu.png
+Files: dist/qt_themes/default/icons/256x256/eden.png
        dist/yuzu.bmp
        dist/yuzu.icns
-       dist/yuzu.ico
-       dist/yuzu.svg
+       dist/eden.ico
+       dist/eden.svg
 Copyright: yuzu Emulator Project
 License: GPL-2.0-or-later
 
