@@ -36,7 +36,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="../../dist/qt_themes/default/default.qrc">:/icons/default/256x256/yuzu.png</pixmap>
+          <pixmap resource="../../dist/qt_themes/default/default.qrc">:/icons/default/256x256/eden.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>

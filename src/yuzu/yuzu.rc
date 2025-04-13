@@ -11,7 +11,7 @@
 // remains consistent on all systems.
 // QT requires that the default application icon is named IDI_ICON1
 
-IDI_ICON1               ICON                    "../../dist/yuzu.ico"
+IDI_ICON1               ICON                    "../../dist/eden.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
