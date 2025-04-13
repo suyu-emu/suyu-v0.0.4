@@ -7,7 +7,7 @@
 
 <h1 align="center">
   <br>
-  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="https://git.eden-emu.dev/eden-emu/eden/raw/commit/6ed4bcea0ddb70fe95cb03547eee8e5e70325859/dist/yuzu.svg" alt="Eden" width="200"></a>
+  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
   <br>
   <b>Eden</b>
   <br>
@@ -37,7 +37,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 
 The emulator is capable of running most commercial games at full speed, provided you meet the necessary hardware requirements.
 
-For a list of games yuzu supports, please be patient as this will come eventually.
+For a list of games Eden supports, please be patient as this will come eventually.
 
 Check out our [website](W.I.P) for the latest news on exciting features, monthly progress reports, and more!
 
@@ -48,7 +48,6 @@ Most of the development happens on our git. It's also where [our central reposit
 If you want to contribute we are open to new devs and prs, please make sure your work is of a high standard and you have properly documented it.
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
 
-If you want to contribute to the user interface translation project, please check out the [yuzu project on transifex](https://www.transifex.com/yuzu-emulator/yuzu). We centralize translation work there, and periodically upstream translations.
 
 ## Building
 
