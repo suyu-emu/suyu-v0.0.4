@@ -24,7 +24,7 @@ cmake .. -G Ninja \
     -DUSE_DISCORD_PRESENCE=ON \
     -DYUZU_USE_BUNDLED_VCPKG=ON \
 	"${EXTRA_CMAKE_FLAGS[@]}"
-ninja
+ninja -j4
 if [ -d "bin/Release" ]; then
   strip -s bin/Release/*
 else
