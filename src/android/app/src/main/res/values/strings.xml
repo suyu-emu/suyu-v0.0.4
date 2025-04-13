@@ -258,6 +258,9 @@
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
+    <string name="nvdec_emulation">NVDEC Emulation</string>
+    <string name="nvdec_emulation_description">Specifies how videos should be decoded. It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos). In most cases, GPU decoding provides the best performance.</string>
+    <string name="shader_backend">Shader Backend</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -361,6 +364,8 @@
     <string name="reset_mapping_description">Are you sure that you want to reset all mappings for this controller to default? This cannot be undone.</string>
 
     <!-- Miscellaneous -->
+    <string name="eden_veil">Eden’s Veil</string>
+    <string name="eden_veil_description">Beyond default</string>
     <string name="slider_default">Default</string>
     <string name="ini_saved">Saved settings</string>
     <string name="gameid_saved">Saved settings for %1$s</string>
@@ -571,10 +576,43 @@
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">None</string>
 
+    <!-- Shader Backend -->
+     <string name="shader_backend_glsl">GLSL</string>
+     <string name="shader_backend_glasm">GLASM</string>
+     <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- NVDEC Emulation -->
+     <string name="nvdec_emulation_cpu">CPU</string>
+     <string name="nvdec_emulation_gpu">GPU</string>
+     <string name="nvdec_emulation_none">None</string>
+
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">High</string>
     <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC Decoding Method</string>
+    <string name="accelerate_astc_description">Choose ASTC decoding method: CPU (slow but safe), GPU (fast, recommended), or Async CPU (no stutter but may glitch).</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU Asynchronously</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC Recompression Method</string>
+    <string name="astc_recompression_description">Low-end Android GPUs often lack ASTC support, forcing emulators to decompress textures to RGBA8. This option recompresses RGBA8 to BC1/BC3, saving VRAM but reducing quality.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Uncompressed</string>
+    <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
+    <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM Usage Mode</string>
+    <string name="vram_usage_conservative">Conservative</string>
+    <string name="vram_usage_aggressive">Aggressive</string>
 
     <!-- Resolutions -->
     <string name="resolution_half">0.5X (360p/540p)</string>

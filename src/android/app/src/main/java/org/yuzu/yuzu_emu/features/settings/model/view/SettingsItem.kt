@@ -291,6 +291,46 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.RENDERER_SHADER_BACKEND,
+                    titleId = R.string.shader_backend,
+                    choicesId = R.array.rendererShaderNames,
+                    valuesId = R.array.rendererShaderValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_NVDEC_EMULATION,
+                    titleId = R.string.nvdec_emulation,
+                    choicesId = R.array.rendererNvdecNames,
+                    valuesId = R.array.rendererNvdecValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                IntSetting.RENDERER_ASTC_DECODE_METHOD,
+                titleId = R.string.accelerate_astc,
+                choicesId = R.array.astcDecodingMethodNames,
+                valuesId = R.array.astcDecodingMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                IntSetting.RENDERER_ASTC_RECOMPRESSION,
+                titleId = R.string.astc_recompression,
+                choicesId = R.array.astcRecompressionMethodNames,
+                valuesId = R.array.astcRecompressionMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_VRAM_USAGE_MODE,
+                    titleId = R.string.vram_usage_mode,
+                    choicesId = R.array.vramUsageMethodNames,
+                    valuesId = R.array.vramUsageMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.RENDERER_RESOLUTION,
                     titleId = R.string.renderer_resolution,
                     choicesId = R.array.rendererResolutionNames,

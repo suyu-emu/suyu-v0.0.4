@@ -23,7 +23,8 @@ object Settings {
         SECTION_INPUT_PLAYER_SEVEN,
         SECTION_INPUT_PLAYER_EIGHT,
         SECTION_THEME(R.string.preferences_theme),
-        SECTION_DEBUG(R.string.preferences_debug);
+        SECTION_DEBUG(R.string.preferences_debug),
+        SECTION_EDEN_VEIL(R.string.eden_veil);
     }
 
     fun getPlayerString(player: Int): String =
