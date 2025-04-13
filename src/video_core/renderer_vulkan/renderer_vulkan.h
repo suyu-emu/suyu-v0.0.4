@@ -58,6 +58,9 @@ public:
         return device.GetDriverName();
     }
 
+    void FixMSAADepthStencil(VkCommandBuffer cmd_buffer, const Framebuffer& framebuffer);
+    void ResolveMSAA(VkCommandBuffer cmd_buffer, const Framebuffer& framebuffer);
+
     // Enhanced platform-specific initialization
     void InitializePlatformSpecific();
 

@@ -517,6 +517,79 @@ void RendererVulkan::RenderAppletCaptureLayer(
                             CaptureFormat);
 }
 
+void RendererVulkan::FixMSAADepthStencil(VkCommandBuffer cmd_buffer, const Framebuffer& framebuffer) {
+    if (framebuffer.Samples() == VK_SAMPLE_COUNT_1_BIT) {
+        return;
+    }
+
+    // Use the scheduler's command buffer wrapper
+    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
+        // Find the depth/stencil image in the framebuffer's attachments
+        for (u32 i = 0; i < framebuffer.NumImages(); ++i) {
+            if (framebuffer.HasAspectDepthBit() && (framebuffer.ImageRanges()[i].aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)) {
+                VkImageMemoryBarrier barrier{
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                    .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                    .oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .image = framebuffer.Images()[i],
+                    .subresourceRange = framebuffer.ImageRanges()[i]
+                };
+
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                                      VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                      0, nullptr, nullptr, barrier);
+                break;
+            }
+        }
+    });
+}
+
+void RendererVulkan::ResolveMSAA(VkCommandBuffer cmd_buffer, const Framebuffer& framebuffer) {
+    if (framebuffer.Samples() == VK_SAMPLE_COUNT_1_BIT) {
+        return;
+    }
+
+    // Use the scheduler's command buffer wrapper
+    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
+        // Find color attachments
+        for (u32 i = 0; i < framebuffer.NumColorBuffers(); ++i) {
+            if (framebuffer.HasAspectColorBit(i)) {
+                VkImageResolve resolve_region{
+                    .srcSubresource{
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .mipLevel = 0,
+                        .baseArrayLayer = 0,
+                        .layerCount = 1,
+                    },
+                    .srcOffset = {0, 0, 0},
+                    .dstSubresource{
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .mipLevel = 0,
+                        .baseArrayLayer = 0,
+                        .layerCount = 1,
+                    },
+                    .dstOffset = {0, 0, 0},
+                    .extent{
+                        .width = framebuffer.RenderArea().width,
+                        .height = framebuffer.RenderArea().height,
+                        .depth = 1
+                    }
+                };
+
+                cmdbuf.ResolveImage(
+                    framebuffer.Images()[i], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    framebuffer.Images()[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    resolve_region
+                );
+            }
+        }
+    });
+}
+
 bool RendererVulkan::HandleVulkanError(VkResult result, const std::string& operation) {
     if (result == VK_SUCCESS) {
         return true;
