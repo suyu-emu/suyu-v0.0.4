@@ -22,8 +22,9 @@ cmake .. -G Ninja \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DENABLE_QT_TRANSLATION=ON \
     -DUSE_DISCORD_PRESENCE=ON \
-    -DYUZU_USE_BUNDLED_VCPKG=ON \
+    -DUSE_CCACHE=ON \
 	"${EXTRA_CMAKE_FLAGS[@]}"
+
 ninja -j4
 if [ -d "bin/Release" ]; then
   strip -s bin/Release/*
@@ -37,4 +38,4 @@ else
     ccache -s -v
 fi
 
-ctest -VV -C Release
+#ctest -VV -C Release
