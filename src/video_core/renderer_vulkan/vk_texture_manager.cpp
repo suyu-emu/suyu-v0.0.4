@@ -116,9 +116,9 @@ vk::Image TextureManager::LoadTexture(const std::string& texture_path) {
 
 vk::Image TextureManager::CreateDefaultTexture() {
     // Create a small default texture (1x1 pixel) to use as a fallback
-    const VkExtent2D extent{1, 1};
+//    const VkExtent2D extent{1, 1};
 
-    // Create image
+/*     // Create image
     const VkImageCreateInfo image_ci{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -135,7 +135,7 @@ vk::Image TextureManager::CreateDefaultTexture() {
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    };
+    }; */
 
     // TODO: create an actual VkImage [ZEP]
     LOG_INFO(Render_Vulkan, "Created default fallback texture");
