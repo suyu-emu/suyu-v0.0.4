@@ -26,6 +26,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     OVERLAY_OPACITY("control_opacity"),
     LOCK_DRAWER("lock_drawer"),
     VERTICAL_ALIGNMENT("vertical_alignment"),
+    PERF_OVERLAY_POSITION("perf_overlay_position"),
     FSR_SHARPENING_SLIDER("fsr_sharpening_slider");
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)

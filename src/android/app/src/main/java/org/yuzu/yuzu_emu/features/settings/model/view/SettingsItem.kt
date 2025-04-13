@@ -221,6 +221,71 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_PERFORMANCE_OVERLAY,
+                    R.string.enable_stats_overlay_,
+                    descriptionId = R.string.stats_overlay_options_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.OVERLAY_BACKGROUND,
+                    R.string.overlay_background,
+                    descriptionId = R.string.overlay_background_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.PERF_OVERLAY_POSITION,
+                    titleId = R.string.overlay_position,
+                    descriptionId = R.string.overlay_position_description,
+                    choicesId = R.array.statsPosition,
+                    valuesId = R.array.staticThemeValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_FPS,
+                    R.string.show_fps,
+                    descriptionId = R.string.show_fps_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_FRAMETIME,
+                    R.string.show_frametime,
+                    descriptionId = R.string.show_frametime_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SPEED,
+                    R.string.show_speed,
+                    descriptionId = R.string.show_speed_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_APP_RAM_USAGE,
+                    R.string.show_app_ram_usage,
+                    descriptionId = R.string.show_app_ram_usage_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SYSTEM_RAM_USAGE,
+                    R.string.show_system_ram_usage,
+                    descriptionId = R.string.show_system_ram_usage_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_BAT_TEMPERATURE,
+                    R.string.show_bat_temperature,
+                    descriptionId = R.string.show_bat_temperature_description
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_VSYNC,
                     titleId = R.string.renderer_vsync,

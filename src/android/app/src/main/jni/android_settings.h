@@ -66,9 +66,23 @@ struct Values {
     Settings::Setting<bool> haptic_feedback{linkage, true, "haptic_feedback",
                                             Settings::Category::Overlay};
     Settings::Setting<bool> show_performance_overlay{linkage, true, "show_performance_overlay",
-                                                     Settings::Category::Overlay};
-    Settings::Setting<bool> show_thermal_overlay{linkage, false, "show_thermal_overlay",
-                                                 Settings::Category::Overlay};
+                                                     Settings::Category::Overlay, Settings::Specialization::Paired, true , true};
+    Settings::Setting<bool> overlay_background{linkage, false, "overlay_background",
+                                               Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<s32> perf_overlay_position{linkage, 0, "perf_overlay_position",
+                                                 Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_fps{linkage, true, "show_fps",
+                                     Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_frame_time{linkage, false, "show_frame_time",
+                                           Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_speed{linkage, true, "show_speed",
+                                       Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_app_ram_usage{linkage, false, "show_app_ram_usage",
+                                               Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_system_ram_usage{linkage, false, "show_system_ram_usage",
+                                                  Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_bat_temperature{linkage, false, "show_bat_temperature",
+                                                 Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
     Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
                                                Settings::Category::Overlay};
     Settings::Setting<bool> touchscreen{linkage, true, "touchscreen", Settings::Category::Overlay};
