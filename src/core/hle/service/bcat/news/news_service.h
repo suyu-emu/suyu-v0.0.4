@@ -18,6 +18,8 @@ public:
     ~INewsService() override;
 
 private:
+    Result PostLocalNews(InBuffer<BufferAttr_HipcAutoSelect> buffer_data);
+
     Result GetSubscriptionStatus(Out<u32> out_status, InBuffer<BufferAttr_HipcPointer> buffer_data);
 
     Result IsSystemUpdateRequired(Out<bool> out_is_system_update_required);

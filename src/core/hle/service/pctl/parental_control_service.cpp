@@ -79,7 +79,7 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1453, D<&IParentalControlService::IsPlayTimerEnabled>, "IsPlayTimerEnabled"},
         {1454, nullptr, "GetPlayTimerRemainingTime"},
         {1455, D<&IParentalControlService::IsRestrictedByPlayTimer>, "IsRestrictedByPlayTimer"},
-        {1456, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"},
+        {1456, D<&IParentalControlService::GetPlayTimerSettingsOld>, "GetPlayTimerSettingsOld"},
         {1457, D<&IParentalControlService::GetPlayTimerEventToRequestSuspension>, "GetPlayTimerEventToRequestSuspension"},
         {1458, D<&IParentalControlService::IsPlayTimerAlarmDisabled>, "IsPlayTimerAlarmDisabled"},
         {1471, nullptr, "NotifyWrongPinCodeInputManyTimes"},
@@ -122,8 +122,7 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {2014, nullptr, "FinishSynchronizeParentalControlSettings"},
         {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
         {2016, nullptr, "RequestUpdateExemptionListAsync"},
-        {145601, nullptr, "GetPlayTimerSettingsVer2"}, // 18.0.0+
-        {195101, nullptr, "SetPlayTimerSettingsForDebugVer2"} // 18.0.0+
+        {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"} // 18.0.0+
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -374,6 +373,13 @@ Result IParentalControlService::IsPlayTimerEnabled(Out<bool> out_is_play_timer_e
 Result IParentalControlService::IsRestrictedByPlayTimer(Out<bool> out_is_restricted_by_play_timer) {
     *out_is_restricted_by_play_timer = false;
     LOG_WARNING(Service_PCTL, "(STUBBED) called, restricted={}", *out_is_restricted_by_play_timer);
+    R_SUCCEED();
+}
+
+Result IParentalControlService::GetPlayTimerSettingsOld(
+    Out<PlayTimerSettings> out_play_timer_settings) {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    *out_play_timer_settings = {};
     R_SUCCEED();
 }
 

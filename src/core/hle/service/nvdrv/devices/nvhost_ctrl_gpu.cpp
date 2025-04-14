@@ -71,6 +71,12 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
         case 0x6:
             return WrapFixedInlOut(this, &nvhost_ctrl_gpu::GetTPCMasks3, input, output,
                                    inline_output);
+        case 0x13:
+            LOG_DEBUG(Service_NVDRV, "(STUBBED) called.");
+
+            // TODO (jarrodnorwell)
+
+            return NvResult::NotImplemented;
         default:
             break;
         }
@@ -78,7 +84,8 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
     default:
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}, group={:01X}, command={:01X}", command.raw,
+                      command.group, command.cmd);
     return NvResult::NotImplemented;
 }
 

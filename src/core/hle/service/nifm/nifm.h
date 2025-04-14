@@ -38,8 +38,10 @@ private:
     void IsEthernetCommunicationEnabled(HLERequestContext& ctx);
     void IsAnyInternetRequestAccepted(HLERequestContext& ctx);
     void IsAnyForegroundRequestAccepted(HLERequestContext& ctx);
+    void GetSsidListVersion(HLERequestContext& ctx);
     void ConfirmSystemAvailability(HLERequestContext& ctx);
     void SetBackgroundRequestEnabled(HLERequestContext& ctx);
+    void GetCurrentAccessPoint(HLERequestContext& ctx);
 
     Network::RoomNetwork& network;
 };

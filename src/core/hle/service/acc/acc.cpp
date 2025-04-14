@@ -99,6 +99,7 @@ public:
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
+            {143, D<&IManagerForSystemService::GetNetworkServiceLicenseCacheEx>, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
             {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
@@ -120,6 +121,14 @@ private:
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         *out_account_id = account_id.Hash();
         R_SUCCEED();
+    }
+
+    Result GetNetworkServiceLicenseCacheEx() {
+        LOG_DEBUG(Service_ACC, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        R_RETURN(ResultUnknown);
     }
 
     Common::UUID account_id;
@@ -318,30 +327,73 @@ public:
     explicit IProfileCommon(Core::System& system_, const char* name, bool editor_commands,
                             Common::UUID user_id_, ProfileManager& profile_manager_)
         : ServiceFramework{system_, name}, profile_manager{profile_manager_}, user_id{user_id_} {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IProfileCommon::Get, "Get"},
             {1, &IProfileCommon::GetBase, "GetBase"},
             {10, &IProfileCommon::GetImageSize, "GetImageSize"},
             {11, &IProfileCommon::LoadImage, "LoadImage"},
-            {20, nullptr, "GetLargeImageSize"}, // 18.0.0+
-            {21, nullptr, "LoadLargeImage"},    // 18.0.0+
-            {30, nullptr, "GetImageId"}         // 18.0.0+
+            {20, &IProfileCommon::Unknown20, "Unknown20"},
+            {21, &IProfileCommon::Unknown21, "Unknown21"},
+            {30, &IProfileCommon::Unknown30, "Unknown30"}
         };
-
+        // clang-format on
         RegisterHandlers(functions);
 
         if (editor_commands) {
+            // clang-format off
             static const FunctionInfo editor_functions[] = {
                 {100, &IProfileCommon::Store, "Store"},
                 {101, &IProfileCommon::StoreWithImage, "StoreWithImage"},
-                {110, nullptr, "StoreWithLargeImage"} // 18.0.0+
+                {110, &IProfileCommon::Unknown110, "Unknown110"}
             };
+            // clang-format on
 
             RegisterHandlers(editor_functions);
         }
     }
 
 protected:
+    void Unknown20(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_ACC, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+        // inbytes: 0x0, outbytes: 0x4
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void Unknown21(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_ACC, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+        // buffers: [0x6], inbytes: 0x0, outbytes: 0x4
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void Unknown30(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_ACC, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+        // inbytes: 0x0, outbytes: 0x10
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void Unknown110(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_ACC, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+        // buffer_entry_sizes: [0x80, 0x0], buffers: [0x19, 0x5], inbytes: 0x38, outbytes: 0x0
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
     void Get(HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "called user_id=0x{}", user_id.RawString());
         ProfileBase profile_base{};
@@ -1020,6 +1072,29 @@ void Module::Interface::StoreSaveDataThumbnail(HLERequestContext& ctx, const Com
     rb.Push(ResultSuccess);
 }
 
+void Module::Interface::TrySelectUserWithoutInteractionDeprecated(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_ACC, "called");
+    // A u8 is passed into this function which we can safely ignore. It's to determine if we have
+    // access to use the network or not by the looks of it
+    IPC::ResponseBuilder rb{ctx, 6};
+    if (profile_manager->GetUserCount() != 1) {
+        rb.Push(ResultSuccess);
+        rb.PushRaw(Common::InvalidUUID);
+        return;
+    }
+
+    const auto user_list = profile_manager->GetAllUsers();
+    if (std::ranges::all_of(user_list, [](const auto& user) { return user.IsInvalid(); })) {
+        rb.Push(ResultUnknown); // TODO(ogniK): Find the correct error code
+        rb.PushRaw(Common::InvalidUUID);
+        return;
+    }
+
+    // Select the first user we have
+    rb.Push(ResultSuccess);
+    rb.PushRaw(profile_manager->GetUser(0)->uuid);
+}
+
 void Module::Interface::TrySelectUserWithoutInteraction(HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
     // A u8 is passed into this function which we can safely ignore. It's to determine if we have
@@ -1046,8 +1121,8 @@ void Module::Interface::TrySelectUserWithoutInteraction(HLERequestContext& ctx) 
 Module::Interface::Interface(std::shared_ptr<Module> module_,
                              std::shared_ptr<ProfileManager> profile_manager_,
                              Core::System& system_, const char* name)
-    : ServiceFramework{system_, name}, module{std::move(module_)}, profile_manager{std::move(
-                                                                       profile_manager_)} {}
+    : ServiceFramework{system_, name}, module{std::move(module_)},
+      profile_manager{std::move(profile_manager_)} {}
 
 Module::Interface::~Interface() = default;
 

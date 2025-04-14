@@ -49,6 +49,7 @@ private:
     Result SetSpeakerAutoMuteEnabled(bool is_speaker_auto_mute_enabled);
     Result IsSpeakerAutoMuteEnabled(Out<bool> out_is_speaker_auto_mute_enabled);
     Result AcquireTargetNotification(OutCopyHandle<Kernel::KReadableEvent> out_notification_event);
+    Result Unknown5000(Out<SharedPointer<IAudioController>> out_audio_controller);
 
     KernelHelpers::ServiceContext service_context;
 

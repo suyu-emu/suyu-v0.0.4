@@ -25,7 +25,7 @@ public:
             {5, C<&INpnsSystem::GetReceiveEvent>, "GetReceiveEvent"},
             {6, nullptr, "ListenUndelivered"},
             {7, nullptr, "GetStateChangeEvent"},
-            {8, nullptr, "ListenToByName"}, // 18.0.0+
+            {8, C<&INpnsSystem::ListenToByName>, "ListenToByName"},
             {11, nullptr, "SubscribeTopic"},
             {12, nullptr, "UnsubscribeTopic"},
             {13, nullptr, "QueryIsTopicExist"},
@@ -57,10 +57,10 @@ public:
             {51, nullptr, "DeleteDigitalTwinKeyValue"}, // 18.0.0+
             {101, nullptr, "Suspend"},
             {102, nullptr, "Resume"},
-            {103, nullptr, "GetState"},
+            {103, C<&INpnsSystem::GetState>, "GetState"},
             {104, nullptr, "GetStatistics"},
             {105, nullptr, "GetPlayReportRequestEvent"},
-            {106, nullptr, "GetLastNotifiedTime"}, // 18.0.0+
+            {106, C<&INpnsSystem::GetLastNotifiedTime>, "GetLastNotifiedTime"}, // 18.0.0+
             {107, nullptr, "SetLastNotifiedTime"}, // 18.0.0+
             {111, nullptr, "GetJid"},
             {112, nullptr, "CreateJid"},
@@ -74,7 +74,7 @@ public:
             {154, nullptr, "CreateTokenAsync"},
             {155, nullptr, "CreateTokenAsyncWithApplicationId"},
             {156, nullptr, "CreateTokenWithNameAsync"}, // 18.0.0+
-            {161, nullptr, "GetRequestChangeStateCancelEvent"},
+            {161, C<&INpnsSystem::GetRequestChangeStateCancelEvent>, "GetRequestChangeStateCancelEvent"}, // 10.0.0+
             {162, nullptr, "RequestChangeStateForceTimedWithCancelEvent"},
             {201, nullptr, "RequestChangeStateForceTimed"},
             {202, nullptr, "RequestChangeStateForceAsync"},
@@ -90,27 +90,62 @@ public:
         RegisterHandlers(functions);
 
         get_receive_event = service_context.CreateEvent("npns:s:GetReceiveEvent");
+        get_request_change_state_cancel_event =
+            service_context.CreateEvent("npns:s:GetRequestChangeStateCancelEvent");
     }
 
     ~INpnsSystem() override {
         service_context.CloseEvent(get_receive_event);
+        service_context.CloseEvent(get_request_change_state_cancel_event);
     }
 
 private:
     Result ListenTo(u32 program_id) {
-        LOG_WARNING(Service_AM, "(STUBBED) called, program_id={}", program_id);
+        LOG_WARNING(Service_NPNS, "(STUBBED) called, program_id={}", program_id);
         R_SUCCEED();
     }
 
     Result GetReceiveEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
-        LOG_WARNING(Service_AM, "(STUBBED) called");
+        LOG_WARNING(Service_NPNS, "(STUBBED) called");
 
         *out_event = &get_receive_event->GetReadableEvent();
         R_SUCCEED();
     }
 
+    Result ListenToByName() {
+        LOG_DEBUG(Service_NPNS, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        R_SUCCEED();
+    }
+
+    Result GetState(Out<u32> out_state) {
+        LOG_WARNING(Service_NPNS, "(STUBBED) called");
+        *out_state = 0;
+        R_SUCCEED();
+    }
+
+    Result GetLastNotifiedTime(Out<s64> out_last_notified_time) {
+        LOG_WARNING(Service_NPNS, "(STUBBED) called");
+
+        *out_last_notified_time = 0;
+        R_SUCCEED();
+    }
+
+    Result GetRequestChangeStateCancelEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
+        LOG_DEBUG(Service_NPNS, "(STUBBED) called.");
+
+        // TODO (jarrodnorwell)
+
+        *out_event = &get_request_change_state_cancel_event->GetReadableEvent();
+
+        R_SUCCEED();
+    }
+
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* get_receive_event;
+    Kernel::KEvent* get_request_change_state_cancel_event;
 };
 
 class INpnsUser final : public ServiceFramework<INpnsUser> {

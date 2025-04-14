@@ -30,6 +30,7 @@ public:
         void InitializeApplicationInfoRestricted(HLERequestContext& ctx);
         void GetBaasAccountManagerForApplication(HLERequestContext& ctx);
         void IsUserRegistrationRequestPermitted(HLERequestContext& ctx);
+        void TrySelectUserWithoutInteractionDeprecated(HLERequestContext& ctx);
         void TrySelectUserWithoutInteraction(HLERequestContext& ctx);
         void IsUserAccountSwitchLocked(HLERequestContext& ctx);
         void InitializeApplicationInfoV2(HLERequestContext& ctx);

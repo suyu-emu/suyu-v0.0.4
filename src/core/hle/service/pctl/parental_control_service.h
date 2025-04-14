@@ -46,13 +46,14 @@ private:
     Result StopPlayTimer();
     Result IsPlayTimerEnabled(Out<bool> out_is_play_timer_enabled);
     Result IsRestrictedByPlayTimer(Out<bool> out_is_restricted_by_play_timer);
-    Result GetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings);
+    Result GetPlayTimerSettingsOld(Out<PlayTimerSettings> out_play_timer_settings);
     Result GetPlayTimerEventToRequestSuspension(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result IsPlayTimerAlarmDisabled(Out<bool> out_play_timer_alarm_disabled);
     Result GetUnlinkedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result GetStereoVisionRestriction(Out<bool> out_stereo_vision_restriction);
     Result SetStereoVisionRestriction(bool stereo_vision_restriction);
     Result ResetConfirmedStereoVisionPermission();
+    Result GetPlayTimerSettings(Out<PlayTimerSettings> out_play_timer_settings);
 
     struct States {
         u64 current_tid{};
