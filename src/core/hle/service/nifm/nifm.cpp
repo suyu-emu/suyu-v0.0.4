@@ -583,6 +583,16 @@ void IGeneralService::IsAnyForegroundRequestAccepted(HLERequestContext& ctx) {
     rb.Push<u8>(is_accepted);
 }
 
+void IGeneralService::GetSsidListVersion(HLERequestContext& ctx) {
+    LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+    constexpr u32 ssid_list_version = 0;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(ssid_list_version);
+}
+
 void IGeneralService::ConfirmSystemAvailability(HLERequestContext& ctx) {
     LOG_DEBUG(Service_NIFM, "(STUBBED) called.");
 
@@ -596,6 +606,37 @@ void IGeneralService::SetBackgroundRequestEnabled(HLERequestContext& ctx) {
     LOG_WARNING(Service_NIFM, "(STUBBED) called.");
 
     // TODO (jarrodnorwell)
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IGeneralService::GetCurrentAccessPoint(HLERequestContext& ctx) {
+    LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+    struct AccessPointInfo {
+        u8 ssid_length{};
+        std::array<char, 0x20> ssid{};
+        u8 unknown_1{};
+        u8 unknown_2{};
+        u8 unknown_3{};
+        std::array<char, 0x41> passphrase{};
+    };
+    static_assert(sizeof(AccessPointInfo) == 0x65, "AccessPointInfo has incorrect size.");
+
+    const auto net_iface = Network::GetSelectedNetworkInterface();
+    AccessPointInfo access_point_info{};
+
+    if (net_iface) {
+        const std::string ssid = "yuzu Network";
+        access_point_info.ssid_length = static_cast<u8>(ssid.size());
+        std::memcpy(access_point_info.ssid.data(), ssid.c_str(), ssid.size());
+
+        const std::string passphrase = "yuzupassword";
+        std::memcpy(access_point_info.passphrase.data(), passphrase.c_str(), passphrase.size());
+    }
+
+    ctx.WriteBuffer(access_point_info);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -628,7 +669,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {22, &IGeneralService::IsAnyForegroundRequestAccepted, "IsAnyForegroundRequestAccepted"},
         {23, nullptr, "PutToSleep"},
         {24, nullptr, "WakeUp"},
-        {25, nullptr, "GetSsidListVersion"},
+        {25, &IGeneralService::GetSsidListVersion, "GetSsidListVersion"},
         {26, nullptr, "SetExclusiveClient"},
         {27, nullptr, "GetDefaultIpSetting"},
         {28, nullptr, "SetDefaultIpSetting"},
@@ -639,7 +680,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {33, &IGeneralService::ConfirmSystemAvailability, "ConfirmSystemAvailability"}, // 2.0.0+
         {34, &IGeneralService::SetBackgroundRequestEnabled, "SetBackgroundRequestEnabled"}, // 4.0.0+
         {35, nullptr, "GetScanData"},
-        {36, nullptr, "GetCurrentAccessPoint"},
+        {36, &IGeneralService::GetCurrentAccessPoint, "GetCurrentAccessPoint"},
         {37, nullptr, "Shutdown"},
         {38, nullptr, "GetAllowedChannels"},
         {39, nullptr, "NotifyApplicationSuspended"},

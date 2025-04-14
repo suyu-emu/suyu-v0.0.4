@@ -9,7 +9,7 @@ namespace Service::News {
 INewsService::INewsService(Core::System& system_) : ServiceFramework{system_, "INewsService"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {10100, nullptr, "PostLocalNews"},
+        {10100, D<&INewsService::PostLocalNews>, "PostLocalNews"},
         {20100, nullptr, "SetPassphrase"},
         {30100, D<&INewsService::GetSubscriptionStatus>, "GetSubscriptionStatus"},
         {30101, nullptr, "GetTopicList"},
@@ -35,6 +35,12 @@ INewsService::INewsService(Core::System& system_) : ServiceFramework{system_, "I
 }
 
 INewsService::~INewsService() = default;
+
+Result INewsService::PostLocalNews(InBuffer<BufferAttr_HipcAutoSelect> buffer_data) {
+    LOG_WARNING(Service_BCAT, "(STUBBED) called, buffer_size={}", buffer_data.size());
+
+    R_SUCCEED();
+}
 
 Result INewsService::GetSubscriptionStatus(Out<u32> out_status,
                                            InBuffer<BufferAttr_HipcPointer> buffer_data) {
