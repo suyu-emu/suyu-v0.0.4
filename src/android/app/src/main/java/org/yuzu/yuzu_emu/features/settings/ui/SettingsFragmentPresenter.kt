@@ -88,6 +88,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_ROOT -> addConfigSettings(sl)
             MenuTag.SECTION_SYSTEM -> addSystemSettings(sl)
             MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
+            MenuTag.SECTION_PERFORMANCE_STATS -> addPerfomanceOverlaySettings(sl)
             MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
             MenuTag.SECTION_INPUT -> addInputSettings(sl)
             MenuTag.SECTION_INPUT_PLAYER_ONE -> addInputPlayer(sl, 0)
@@ -128,6 +129,15 @@ class SettingsFragmentPresenter(
                     menuKey = MenuTag.SECTION_RENDERER
                 )
             )
+            if (!NativeConfig.isPerGameConfigLoaded())
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.stats_overlay_options,
+                        descriptionId = R.string.stats_overlay_options_description,
+                        iconId = R.drawable.ic_frames,
+                        menuKey = MenuTag.SECTION_PERFORMANCE_STATS
+                    )
+                )
             add(
                 SubmenuSetting(
                     titleId = R.string.preferences_audio,
@@ -275,6 +285,23 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
         }
+    }
+
+    private fun addPerfomanceOverlaySettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(HeaderSetting(R.string.stats_overlay_customization))
+            add(BooleanSetting.SHOW_PERFORMANCE_OVERLAY.key)
+            add(BooleanSetting.OVERLAY_BACKGROUND.key)
+            add(IntSetting.PERF_OVERLAY_POSITION.key)
+            add(HeaderSetting(R.string.stats_overlay_items))
+            add(BooleanSetting.SHOW_FPS.key)
+            add(BooleanSetting.SHOW_FRAMETIME.key)
+            add(BooleanSetting.SHOW_SPEED.key)
+            add(BooleanSetting.SHOW_APP_RAM_USAGE.key)
+            add(BooleanSetting.SHOW_SYSTEM_RAM_USAGE.key)
+            add(BooleanSetting.SHOW_BAT_TEMPERATURE.key)
+        }
+
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {

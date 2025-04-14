@@ -12,6 +12,7 @@ object Settings {
         SECTION_ROOT(R.string.advanced_settings),
         SECTION_SYSTEM(R.string.preferences_system),
         SECTION_RENDERER(R.string.preferences_graphics),
+        SECTION_PERFORMANCE_STATS(R.string.show_stats_overlay),
         SECTION_AUDIO(R.string.preferences_audio),
         SECTION_INPUT(R.string.preferences_controls),
         SECTION_INPUT_PLAYER_ONE,
@@ -33,6 +34,7 @@ object Settings {
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_SHOULD_SHOW_PRE_ALPHA_WARNING = "ShouldShowPreAlphaWarning"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
+    const val SECTION_STATS_OVERLAY = "Stats Overlay"
 
     // Deprecated input overlay preference keys
     const val PREF_CONTROL_SCALE = "controlScale"

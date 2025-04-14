@@ -31,9 +31,16 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
     FRAME_INTERPOLATION("frame_interpolation"),
     FRAME_SKIPPING("frame_skipping");
-
     external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean
+    SHOW_FPS("show_fps"),
+    SHOW_FRAMETIME("show_frame_time"),
+    SHOW_SPEED("show_speed"),
+    SHOW_APP_RAM_USAGE("show_app_ram_usage"),
+    SHOW_SYSTEM_RAM_USAGE("show_system_ram_usage"),
+    SHOW_BAT_TEMPERATURE("show_bat_temperature"),
+    OVERLAY_BACKGROUND("overlay_background"),;
+
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

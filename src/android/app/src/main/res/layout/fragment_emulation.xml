@@ -140,15 +140,13 @@
             android:id="@+id/overlay_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginHorizontal="20dp"
-            android:fitsSystemWindows="true">
+            android:fitsSystemWindows="false">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/show_fps_text"
+                android:id="@+id/show_stats_overlay_text"
                 style="@style/TextAppearance.Material3.BodySmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
                 android:clickable="false"
                 android:focusable="false"
                 android:textColor="@android:color/white"
