@@ -184,7 +184,7 @@ Result IAudioController::Unknown5000(Out<SharedPointer<IAudioController>> out_au
     LOG_DEBUG(Audio, "Creating duplicate audio controller interface");
 
     // Return a new reference to this controller instance
-    *out_audio_controller = SharedFrom(this);
+    *out_audio_controller = std::static_pointer_cast<IAudioController>(shared_from_this());
 
     R_SUCCEED();
 }
