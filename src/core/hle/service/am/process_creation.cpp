@@ -60,29 +60,24 @@ std::unique_ptr<Process> CreateProcessImpl(std::unique_ptr<Loader::AppLoader>& o
 } // Anonymous namespace
 
 std::unique_ptr<Process> CreateProcess(Core::System& system, u64 program_id,
-                                       u8 minimum_key_generation, u8 maximum_key_generation) {
-    // Attempt to load program NCA.
-    FileSys::VirtualFile nca_raw{};
+                                      u8 minimum_key_generation, u8 maximum_key_generation) {
+    FileSys::VirtualFile nca_raw = system.GetContentProviderUnion()
+        .GetEntryRaw(program_id, FileSys::ContentRecordType::Program);
 
-    // Get the program NCA from storage.
-    auto& storage = system.GetContentProviderUnion();
-    nca_raw = storage.GetEntryRaw(program_id, FileSys::ContentRecordType::Program);
-
-    // Ensure we retrieved a program NCA.
     if (!nca_raw) {
         return nullptr;
     }
 
-    // Ensure we have a suitable version.
-    if (minimum_key_generation > 0) {
-        FileSys::NCA nca(nca_raw);
-        if (nca.GetStatus() == Loader::ResultStatus::Success &&
-            (nca.GetKeyGeneration() < minimum_key_generation ||
-             nca.GetKeyGeneration() > maximum_key_generation)) {
-            LOG_WARNING(Service_LDR, "Skipping program {:016X} with generation {}", program_id,
-                        nca.GetKeyGeneration());
-            return nullptr;
-        }
+    FileSys::NCA nca(nca_raw);
+    if (nca.GetStatus() != Loader::ResultStatus::Success) {
+        return nullptr;
+    }
+
+    u8 current_gen = nca.GetKeyGeneration();
+    if (minimum_key_generation > 0 && (current_gen < minimum_key_generation ||
+                                      current_gen > maximum_key_generation)) {
+        LOG_WARNING(Service_LDR, "Program {:016X} has unsupported generation {}. "
+                   "Attempting to load anyway...", program_id, current_gen);
     }
 
     std::unique_ptr<Loader::AppLoader> loader;
