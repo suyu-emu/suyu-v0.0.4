@@ -1,0 +1,11 @@
+#! /bin/bash
+
+cd "$APPDIR"
+
+if [ -d /usr/lib/$(uname -m)-linux-gnu/qt5 ] || [ -d /usr/lib/qt ]; then
+    # System-wide Qt5
+    exec ./yuzu.sh "$@"
+else
+    # Bundled Qt5
+    exec ./yuzu-bqt.sh "$@"
+fi

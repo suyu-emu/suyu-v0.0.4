@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+set -e
+declare INSTALLABLES=`find build -type d -exec test -e '{}/cmake_install.cmake' ';' -print`
+set +e
+
 GITDATE="$(git show -s --date=short --format='%ad' | sed 's/-//g')"
 GITREV="$(git show -s --format='%h')"
 ARTIFACTS_DIR="$PWD/artifacts"
@@ -43,6 +47,10 @@ create_appimage() {
   mkdir -p "${app_dir}/usr/share/icons/hicolor/scalable/apps"
   mkdir -p "${app_dir}/usr/optional/libstdc++"
   mkdir -p "${app_dir}/usr/optional/libgcc_s"
+
+  echo "Copying libraries..."
+
+  for i in $INSTALLABLES; do cmake --install $i --prefix ${app_dir}/usr; done
 
   if [ -d "build/bin/Release" ]; then
     cp "build/bin/Release/${binary_name}" "${app_dir}/usr/bin/" || echo "${binary_name} not found for AppDir"
