@@ -1,128 +1,120 @@
-#!/bin/bash -ex
+#!/bin/sh
 
-set -e
-declare INSTALLABLES=`find build -type d -exec test -e '{}/cmake_install.cmake' ';' -print`
-set +e
+# This script assumes you're in the source directory
+set -ex
 
-GITDATE="$(git show -s --date=short --format='%ad' | sed 's/-//g')"
-GITREV="$(git show -s --format='%h')"
-ARTIFACTS_DIR="$PWD/artifacts"
-mkdir -p "${ARTIFACTS_DIR}/"
+export APPIMAGE_EXTRACT_AND_RUN=1
+export ARCH="$(uname -m)"
 
-if [ "$1" == "master" ]; then
-  RELEASE_NAME="mainline"
-else
-  RELEASE_NAME="$1"
+LIB4BN="https://raw.githubusercontent.com/VHSgunzo/sharun/refs/heads/main/lib4bin"
+URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-$ARCH"
+
+if [ "$ARCH" = 'x86_64' ]; then
+	if [ "$1" = 'v3' ]; then
+		ARCH="${ARCH}_v3"
+	fi
 fi
 
-BASE_NAME="eden-linux"
-REV_NAME="${BASE_NAME}-${GITDATE}-${GITREV}"
-ARCHIVE_NAME="${REV_NAME}.tar.xz"
-COMPRESSION_FLAGS="-cJvf"
+#if [ "$DEVEL" = 'true' ]; then
+#    YUZU_TAG="$(git rev-parse --short HEAD)"
+#    echo "Making nightly \"$YUZU_TAG\" build"
+#    VERSION="$YUZU_TAG"
+#else
+#    YUZU_TAG=$(git describe --tags)
+#    echo "Making stable \"$YUZU_TAG\" build"
+#    git checkout "$YUZU_TAG"
+#    VERSION="$(echo "$YUZU_TAG" | awk -F'-' '{print $1}')"
+#fi
 
-if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ]; then
-  DIR_NAME="${BASE_NAME}-${RELEASE_NAME}"
-else
-  DIR_NAME="${REV_NAME}-${RELEASE_NAME}"
-fi
+# TODO: use real tags
+YUZU_TAG="0.0.0"
 
-mkdir -p "$DIR_NAME"
+# NOW MAKE APPIMAGE
+mkdir -p ./AppDir
+cd ./AppDir
 
-
-cp LICENSE.txt "$DIR_NAME/" || echo "LICENSE.txt not found"
-cp README.md "$DIR_NAME/" || echo "README.md not found"
-
-create_appimage() {
-  local binary_name="$1"
-  local display_name="$2"
-  local needs_qt="$3"
-  local app_dir="build/AppDir-${binary_name}"
-  local appimage_output="${binary_name}.AppImage"
-
-  echo "Creating AppImage for ${binary_name}..."
-
-  mkdir -p "${app_dir}/usr/bin"
-  mkdir -p "${app_dir}/usr/lib"
-  mkdir -p "${app_dir}/usr/share/applications"
-  mkdir -p "${app_dir}/usr/share/icons/hicolor/scalable/apps"
-  mkdir -p "${app_dir}/usr/optional/libstdc++"
-  mkdir -p "${app_dir}/usr/optional/libgcc_s"
-
-  echo "Copying libraries..."
-
-  for i in $INSTALLABLES; do cmake --install $i --prefix ${app_dir}/usr; done
-
-  if [ -d "build/bin/Release" ]; then
-    cp "build/bin/Release/${binary_name}" "${app_dir}/usr/bin/" || echo "${binary_name} not found for AppDir"
-  else
-    cp "build/bin/${binary_name}" "${app_dir}/usr/bin/" || echo "${binary_name} not found for AppDir"
-  fi
-
-  strip -s "${app_dir}/usr/bin/${binary_name}"
-
-  cat > "${app_dir}/org.yuzu_emu.${binary_name}.desktop" << EOL
+cat > org.eden_emu.eden.desktop << EOL
 [Desktop Entry]
 Type=Application
-Name=${display_name}
-Icon=org.yuzu_emu.${binary_name}
-Exec=${binary_name}
+Name=Eden
+Icon=org.eden_emu.eden
+Exec=eden
 Categories=Game;Emulator;
 EOL
 
-  cp "${app_dir}/org.yuzu_emu.${binary_name}.desktop" "${app_dir}/usr/share/applications/"
+cp ../dist/eden.svg ./org.eden_emu.eden.svg
 
-  cp "dist/eden.svg" "${app_dir}/org.yuzu_emu.${binary_name}.svg"
-  cp "dist/eden.svg" "${app_dir}/usr/share/icons/hicolor/scalable/apps/org.yuzu_emu.${binary_name}.svg"
+ln -sf ./org.eden_emu.eden.svg.svg ./.DirIcon
 
-  cd build
-  wget -nc https://raw.githubusercontent.com/eden-emulator/ext-linux-bin/main/appimage/deploy-linux.sh || echo "Failed to download deploy script"
-  wget -nc https://raw.githubusercontent.com/eden-emulator/AppImageKit-checkrt/old/AppRun.sh || echo "Failed to download AppRun script"
-  wget -nc https://github.com/eden-emulator/ext-linux-bin/raw/main/appimage/exec-x86_64.so || echo "Failed to download exec wrapper"
-  chmod +x deploy-linux.sh
+if [ "$DEVEL" = 'true' ]; then
+	sed -i 's|Name=Eden|Name=Eden Nightly|' ./org.eden_emu.eden.desktop
+	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
+fi
 
-  cd ..
-  if [ "$needs_qt" = "true" ]; then
-    echo "Deploying with Qt dependencies for ${binary_name}..."
-    DEPLOY_QT=1 build/deploy-linux.sh "${app_dir}/usr/bin/${binary_name}" "${app_dir}"
-  else
-    echo "Deploying without Qt dependencies for ${binary_name}..."
-    build/deploy-linux.sh "${app_dir}/usr/bin/${binary_name}" "${app_dir}"
-  fi
+# Bundle all libs
+wget --retry-connrefused --tries=30 "$LIB4BN" -O ./lib4bin
+chmod +x ./lib4bin
+xvfb-run -a -- ./lib4bin -p -v -e -s -k \
+	../build/bin/eden* \
+	/usr/lib/libGLX* \
+	/usr/lib/libGL.so* \
+	/usr/lib/libEGL* \
+	/usr/lib/dri/* \
+	/usr/lib/vdpau/* \
+	/usr/lib/libvulkan* \
+	/usr/lib/libXss.so* \
+	/usr/lib/libdecor-0.so* \
+	/usr/lib/libgamemode.so* \
+	/usr/lib/qt6/plugins/audio/* \
+	/usr/lib/qt6/plugins/bearer/* \
+	/usr/lib/qt6/plugins/imageformats/* \
+	/usr/lib/qt6/plugins/iconengines/* \
+	/usr/lib/qt6/plugins/platforms/* \
+	/usr/lib/qt6/plugins/platformthemes/* \
+	/usr/lib/qt6/plugins/platforminputcontexts/* \
+	/usr/lib/qt6/plugins/styles/* \
+	/usr/lib/qt6/plugins/xcbglintegrations/* \
+	/usr/lib/qt6/plugins/wayland-*/* \
+	/usr/lib/pulseaudio/* \
+	/usr/lib/pipewire-0.3/* \
+	/usr/lib/spa-0.2/*/* \
+	/usr/lib/alsa-lib/*
 
-  cp --dereference /usr/lib/x86_64-linux-gnu/libstdc++.so.6 "${app_dir}/usr/optional/libstdc++/libstdc++.so.6" || true
-  cp --dereference /lib/x86_64-linux-gnu/libgcc_s.so.1 "${app_dir}/usr/optional/libgcc_s/libgcc_s.so.1" || true
+# Prepare sharun
+if [ "$ARCH" = 'aarch64' ]; then
+	# allow the host vulkan to be used for aarch64 given the sed situation
+	echo 'SHARUN_ALLOW_SYS_VKICD=1' > ./.env
+fi
 
-  cp build/exec-x86_64.so "${app_dir}/usr/optional/exec.so" || true
-  cp build/AppRun.sh "${app_dir}/AppRun"
-  chmod +x "${app_dir}/AppRun"
+wget https://github.com/VHSgunzo/sharun/releases/download/v0.6.3/sharun-x86_64 -O sharun
+chmod a+x sharun
 
-  find "${app_dir}" -type f -regex '.*libwayland-client\.so.*' -delete -print || true
+ln -f ./sharun ./AppRun
+./sharun -g
 
-  cd build
+# turn appdir into appimage
+cd ..
+wget -q "$URUNTIME" -O ./uruntime
+chmod +x ./uruntime
 
-  if [ ! -f "appimagetool-x86_64.AppImage" ]; then
-    wget -nc https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-    chmod +x appimagetool-x86_64.AppImage
-  fi
+#Add udpate info to runtime
+echo "Adding update information \"$UPINFO\" to runtime..."
+./uruntime --appimage-addupdinfo "$UPINFO"
 
-  if ! ./appimagetool-x86_64.AppImage --version; then
-    echo "FUSE not available, using extract and run mode"
-    export APPIMAGE_EXTRACT_AND_RUN=1
-  fi
+echo "Generating AppImage..."
+./uruntime --appimage-mkdwarfs -f \
+	--set-owner 0 --set-group 0 \
+	--no-history --no-create-timestamp \
+	--categorize=hotness --hotness-list=.ci/eden.dwfsprof \
+	--compression zstd:level=22 -S26 -B32 \
+	--header uruntime \
+	-i ./AppDir -o Eden-"$VERSION"-"$ARCH".AppImage
 
-  echo "Generating AppImage: ${appimage_output}"
-  ./appimagetool-x86_64.AppImage "AppDir-${binary_name}" "${appimage_output}" || echo "AppImage generation failed for ${binary_name}"
+echo "Generating zsync file..."
+zsyncmake *.AppImage -u *.AppImage
+echo "All Done!"
 
-  cp "${appimage_output}" "../${DIR_NAME}/" || echo "AppImage not copied to DIR_NAME for ${binary_name}"
-  cp "${appimage_output}" "../${ARTIFACTS_DIR}/" || echo "AppImage not copied to artifacts for ${binary_name}"
-  cd ..
-}
+# Cleanup
 
-create_appimage "eden" "Eden" "true"
-create_appimage "eden-cli" "Eden-CLI" "false"
-create_appimage "eden-room" "Eden-Room" "false"
-
-tar $COMPRESSION_FLAGS "$ARCHIVE_NAME" "$DIR_NAME"
-mv "$ARCHIVE_NAME" "${ARTIFACTS_DIR}/"
-
-ls -la "${ARTIFACTS_DIR}/"
+rm -rf AppDir
+rm uruntime
