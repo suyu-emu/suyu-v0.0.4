@@ -38,6 +38,7 @@
 #include "sdl_config.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_gl.h"
+#include "suyu_cmd/emu_window/emu_window_sdl2_mtl.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_null.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_vk.h"
 #include "video_core/renderer_base.h"
@@ -384,6 +385,9 @@ int main(int argc, char** argv) {
         break;
     case Settings::RendererBackend::Vulkan:
         emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
+        break;
+    case Settings::RendererBackend::Metal:
+        emu_window = std::make_unique<EmuWindow_SDL2_MTL>(&input_subsystem, system, fullscreen);
         break;
     case Settings::RendererBackend::Null:
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);

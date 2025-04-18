@@ -12,7 +12,7 @@ function(create_resource file output filename)
     file(WRITE "${PROJECT_BINARY_DIR}/dist/${output}" "const unsigned char ${filename}[] = {${filedata}};\nconst unsigned ${filename}_size = sizeof(${filename});\n")
 endfunction()
 
-if (SUZU_CMD)
+if (SUYU_CMD)  # Corrected variable name from SUZU_CMD to SUYU_CMD
     add_executable(suyu-cmd
         emu_window/emu_window_sdl2.cpp
         emu_window/emu_window_sdl2.h
@@ -22,6 +22,8 @@ if (SUZU_CMD)
         emu_window/emu_window_sdl2_null.h
         emu_window/emu_window_sdl2_vk.cpp
         emu_window/emu_window_sdl2_vk.h
+        emu_window/emu_window_sdl2_mtl.cpp  # Added Metal support from metal-dev
+        emu_window/emu_window_sdl2_mtl.h     # Added Metal support from metal-dev
         precompiled_headers.h
         sdl_config.cpp
         sdl_config.h
@@ -41,8 +43,12 @@ if (SUZU_CMD)
 
     target_link_libraries(suyu-cmd PRIVATE SDL2::SDL2 Vulkan::Headers)
 
-    if(UNIX AND NOT APPLE)
-        install(TARGETS suyu-cmd)
+    if(UNIX)
+        if (APPLE)
+            target_link_libraries(suyu-cmd PRIVATE metal-cpp)  # Metal support for macOS
+        else()
+            install(TARGETS suyu-cmd)
+        endif()
     endif()
 
     if(WIN32)
@@ -52,7 +58,7 @@ if (SUZU_CMD)
         elseif(MINGW)
             set_target_properties(suyu-cmd PROPERTIES LINK_FLAGS_RELEASE "-Wl,--subsystem,windows")
         endif()
-        target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
+        target_link_libraries(suyu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)  # Fixed typo: yuzu-cmd -> suyu-cmd
     endif()
 
     if (MSVC)
