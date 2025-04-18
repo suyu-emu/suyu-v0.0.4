@@ -24,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/optimized_rasterizer.h"
 
 namespace Core {
 class System;
@@ -73,7 +74,7 @@ private:
     Scheduler& scheduler;
 };
 
-class RasterizerVulkan final : public VideoCore::RasterizerInterface,
+class RasterizerVulkan final : public VideoCore::OptimizedRasterizer,
                                protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
