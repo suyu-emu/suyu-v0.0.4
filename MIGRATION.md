@@ -22,4 +22,4 @@ There is also `~/.cache/yuzu`, which you can safely delete. Suyu will build a fr
 Depending on your setup, you may want to substitute those base paths for `$XDG_DATA_HOME` and `$XDG_CONFIG_HOME` respectively.
 
 ## Android
-TBD
+Install suyu without uninstalling yuzu. After that, use an file managing application to manually move saves and roms accross from yuzu to suyu by going into each directory and finding the relevant folders.
