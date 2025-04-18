@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -208,6 +208,7 @@ private:
     size_t m_mapped_unsafe_physical_memory{};
     size_t m_mapped_insecure_memory{};
     size_t m_mapped_ipc_server_memory{};
+    size_t m_alias_region_extra_size{};
     mutable KLightLock m_general_lock;
     mutable KLightLock m_map_physical_memory_lock;
     KLightLock m_device_map_lock;
@@ -441,7 +442,7 @@ private:
                             Svc::MemoryState state) const;
 
     Result AllocateAndMapPagesImpl(PageLinkedList* page_list, KProcessAddress address,
-                                   size_t num_pages, KMemoryPermission perm);
+                                   size_t num_pages, KPageProperties& perm);
     Result MapPageGroupImpl(PageLinkedList* page_list, KProcessAddress address,
                             const KPageGroup& pg, const KPageProperties properties, bool reuse_ll);
 
@@ -681,6 +682,9 @@ public:
     }
     size_t GetAliasRegionSize() const {
         return m_alias_region_end - m_alias_region_start;
+    }
+    size_t GetReservedRegionExtraSize() const {
+        return m_alias_region_extra_size;
     }
     size_t GetStackRegionSize() const {
         return m_stack_region_end - m_stack_region_start;

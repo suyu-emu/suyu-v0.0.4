@@ -47,53 +47,6 @@ bool ShouldCreateGuestApplet(AppletId applet_id) {
     return true;
 }
 
-AppletProgramId AppletIdToProgramId(AppletId applet_id) {
-    switch (applet_id) {
-    case AppletId::OverlayDisplay:
-        return AppletProgramId::OverlayDisplay;
-    case AppletId::QLaunch:
-        return AppletProgramId::QLaunch;
-    case AppletId::Starter:
-        return AppletProgramId::Starter;
-    case AppletId::Auth:
-        return AppletProgramId::Auth;
-    case AppletId::Cabinet:
-        return AppletProgramId::Cabinet;
-    case AppletId::Controller:
-        return AppletProgramId::Controller;
-    case AppletId::DataErase:
-        return AppletProgramId::DataErase;
-    case AppletId::Error:
-        return AppletProgramId::Error;
-    case AppletId::NetConnect:
-        return AppletProgramId::NetConnect;
-    case AppletId::ProfileSelect:
-        return AppletProgramId::ProfileSelect;
-    case AppletId::SoftwareKeyboard:
-        return AppletProgramId::SoftwareKeyboard;
-    case AppletId::MiiEdit:
-        return AppletProgramId::MiiEdit;
-    case AppletId::Web:
-        return AppletProgramId::Web;
-    case AppletId::Shop:
-        return AppletProgramId::Shop;
-    case AppletId::PhotoViewer:
-        return AppletProgramId::PhotoViewer;
-    case AppletId::Settings:
-        return AppletProgramId::Settings;
-    case AppletId::OfflineWeb:
-        return AppletProgramId::OfflineWeb;
-    case AppletId::LoginShare:
-        return AppletProgramId::LoginShare;
-    case AppletId::WebAuth:
-        return AppletProgramId::WebAuth;
-    case AppletId::MyPage:
-        return AppletProgramId::MyPage;
-    default:
-        return static_cast<AppletProgramId>(0);
-    }
-}
-
 std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
                                                           WindowSystem& window_system,
                                                           std::shared_ptr<Applet> caller_applet,
@@ -162,6 +115,53 @@ std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& syste
 }
 
 } // namespace
+
+AppletProgramId AppletIdToProgramId(AppletId applet_id) {
+    switch (applet_id) {
+    case AppletId::OverlayDisplay:
+        return AppletProgramId::OverlayDisplay;
+    case AppletId::QLaunch:
+        return AppletProgramId::QLaunch;
+    case AppletId::Starter:
+        return AppletProgramId::Starter;
+    case AppletId::Auth:
+        return AppletProgramId::Auth;
+    case AppletId::Cabinet:
+        return AppletProgramId::Cabinet;
+    case AppletId::Controller:
+        return AppletProgramId::Controller;
+    case AppletId::DataErase:
+        return AppletProgramId::DataErase;
+    case AppletId::Error:
+        return AppletProgramId::Error;
+    case AppletId::NetConnect:
+        return AppletProgramId::NetConnect;
+    case AppletId::ProfileSelect:
+        return AppletProgramId::ProfileSelect;
+    case AppletId::SoftwareKeyboard:
+        return AppletProgramId::SoftwareKeyboard;
+    case AppletId::MiiEdit:
+        return AppletProgramId::MiiEdit;
+    case AppletId::Web:
+        return AppletProgramId::Web;
+    case AppletId::Shop:
+        return AppletProgramId::Shop;
+    case AppletId::PhotoViewer:
+        return AppletProgramId::PhotoViewer;
+    case AppletId::Settings:
+        return AppletProgramId::Settings;
+    case AppletId::OfflineWeb:
+        return AppletProgramId::OfflineWeb;
+    case AppletId::LoginShare:
+        return AppletProgramId::LoginShare;
+    case AppletId::WebAuth:
+        return AppletProgramId::WebAuth;
+    case AppletId::MyPage:
+        return AppletProgramId::MyPage;
+    default:
+        return static_cast<AppletProgramId>(0);
+    }
+}
 
 ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet,
                                              WindowSystem& window_system)

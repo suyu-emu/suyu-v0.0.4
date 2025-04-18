@@ -580,6 +580,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                                    VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
+    // Mesa RadV drivers still have broken extendedDynamicState3ColorBlendEquation support.
     if (extensions.extended_dynamic_state3 && is_radv) {
         LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
@@ -594,6 +595,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
+    // AMD still has broken extendedDynamicState3ColorBlendEquation on RDNA3.
+    // TODO: distinguis RDNA3 from other uArchs.
     if (extensions.extended_dynamic_state3 && is_amd_driver) {
         LOG_WARNING(Render_Vulkan,
                     "AMD drivers have broken extendedDynamicState3ColorBlendEquation");
@@ -1361,6 +1364,7 @@ void Device::CollectToolingInfo() {
         LOG_INFO(Render_Vulkan, "Attached debugging tool: {}", name);
         has_renderdoc = has_renderdoc || name == "RenderDoc";
         has_nsight_graphics = has_nsight_graphics || name == "NVIDIA Nsight Graphics";
+        has_radeon_gpu_profiler = has_radeon_gpu_profiler || name == "Radeon GPU Profiler";
     }
 }
 

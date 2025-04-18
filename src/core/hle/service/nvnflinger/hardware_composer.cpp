@@ -1,8 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <optional>
 #include <boost/container/small_vector.hpp>
+#include <optional>
 
+#include "common/common_types.h"
 #include "common/microprofile.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"

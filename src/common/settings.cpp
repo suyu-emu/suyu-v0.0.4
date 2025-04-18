@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <version>
@@ -67,6 +67,7 @@ SWITCHABLE(u8, true);
 // Used in UISettings
 // TODO see if we can move this to uisettings.cpp
 SWITCHABLE(ConfirmStop, true);
+SWITCHABLE(DarkModeState, true);
 
 #undef SETTING
 #undef SWITCHABLE

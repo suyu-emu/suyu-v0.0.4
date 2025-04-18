@@ -148,10 +148,12 @@ bool ParseFilterRule(Filter& instance, Iterator begin, Iterator end) {
     SUB(Render, Software)                                                                          \
     SUB(Render, OpenGL)                                                                            \
     SUB(Render, Vulkan)                                                                            \
+    SUB(Render, Metal)                                                                             \
     CLS(Shader)                                                                                    \
     SUB(Shader, SPIRV)                                                                             \
     SUB(Shader, GLASM)                                                                             \
     SUB(Shader, GLSL)                                                                              \
+    SUB(Shader, MSL)                                                                               \
     CLS(Audio)                                                                                     \
     SUB(Audio, DSP)                                                                                \
     SUB(Audio, Sink)                                                                               \
@@ -171,6 +173,7 @@ const char* GetLogClassName(Class log_class) {
 #define SUB(x, y)                                                                                  \
     case Class::x##_##y:                                                                           \
         return #x "." #y;
+        // return #x "_" #y;
         ALL_LOG_CLASSES()
 #undef CLS
 #undef SUB

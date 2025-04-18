@@ -6,12 +6,14 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_null/renderer_null.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
+#ifdef __APPLE__
+#include "video_core/renderer_metal/renderer_metal.h"
+#endif
 #include "video_core/video_core.h"
 
 namespace {
@@ -19,16 +21,23 @@ namespace {
 std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
     Core::System& system, Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
     std::unique_ptr<Core::Frontend::GraphicsContext> context) {
-    auto& telemetry_session = system.TelemetrySession();
     auto& device_memory = system.Host1x().MemoryManager();
 
     switch (Settings::values.renderer_backend.GetValue()) {
+#ifdef __APPLE__
+    case Settings::RendererBackend::Metal:
+        return std::make_unique<Metal::RendererMetal>(emu_window, device_memory, gpu,
+                                                      std::move(context));
+#else
+        // openGL, not supported on Apple so not bothering to include if macos
     case Settings::RendererBackend::OpenGL:
-        return std::make_unique<OpenGL::RendererOpenGL>(telemetry_session, emu_window,
-                                                        device_memory, gpu, std::move(context));
+        return std::make_unique<OpenGL::RendererOpenGL>(emu_window, device_memory, gpu,
+                                                        std::move(context));
+#endif
+        // common renderers
     case Settings::RendererBackend::Vulkan:
-        return std::make_unique<Vulkan::RendererVulkan>(telemetry_session, emu_window,
-                                                        device_memory, gpu, std::move(context));
+        return std::make_unique<Vulkan::RendererVulkan>(emu_window, device_memory, gpu,
+                                                        std::move(context));
     case Settings::RendererBackend::Null:
         return std::make_unique<Null::RendererNull>(emu_window, gpu, std::move(context));
     default:

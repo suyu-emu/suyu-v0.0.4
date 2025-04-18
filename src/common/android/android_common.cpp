@@ -54,6 +54,14 @@ jobject ToJInteger(JNIEnv* env, s32 value) {
     return env->NewObject(GetIntegerClass(), GetIntegerConstructor(), value);
 }
 
+s64 GetJLong(JNIEnv* env, jobject jlong) {
+    return env->GetLongField(jlong, GetIntegerValueField());
+}
+
+jobject ToJLong(JNIEnv* env, s64 value) {
+    return env->NewObject(GetLongClass(), GetLongConstructor(), value);
+}
+
 bool GetJBoolean(JNIEnv* env, jobject jboolean) {
     return env->GetBooleanField(jboolean, GetBooleanValueField());
 }

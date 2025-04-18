@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: 2014 Citra Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
 #include <iostream>
 #include <memory>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <thread>
 
@@ -19,23 +20,25 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/string_util.h"
-#include "common/telemetry.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/content_archive.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs/vfs_real.h"
 #include "core/hle/service/am/applet_manager.h"
+#include "core/hle/service/am/service/library_applet_creator.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-#include "core/telemetry_session.h"
 #include "frontend_common/config.h"
 #include "input_common/main.h"
 #include "network/network.h"
 #include "sdl_config.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_gl.h"
+#include "suyu_cmd/emu_window/emu_window_sdl2_mtl.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_null.h"
 #include "suyu_cmd/emu_window/emu_window_sdl2_vk.h"
 #include "video_core/renderer_base.h"
@@ -70,7 +73,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
-              << " [options] <filename>\n"
+              << " [options]\n"
                  "-c, --config          Load the specified configuration file\n"
                  "-f, --fullscreen      Start in fullscreen mode\n"
                  "-g, --game            File path of the game to load\n"
@@ -79,7 +82,13 @@ static void PrintHelp(const char* argv0) {
                  " Nickname, password, address and port for multiplayer\n"
                  "-p, --program         Pass following string as arguments to executable\n"
                  "-u, --user            Select a specific user profile from 0 to 7\n"
-                 "-v, --version         Output version information and exit\n";
+                 "-v, --version         Output version information and exit\n"
+                 "-l, "
+                 "--applet-params="
+                 "\"program_id,applet_id,applet_type,launch_type,prog_index,prev_prog_index\"\n"
+                 "                      Numerical parameters for launching an applet. If no\n"
+                 "                      game is provided, then the applet will launch off of\n"
+                 "                      the applet_id.\n";
 }
 
 static void PrintVersion() {
@@ -214,6 +223,7 @@ int main(int argc, char** argv) {
 
     bool use_multiplayer = false;
     bool fullscreen = false;
+    Service::AM::FrontendAppletParameters load_parameters{};
     std::string nickname{};
     std::string password{};
     std::string address{};
@@ -225,6 +235,7 @@ int main(int argc, char** argv) {
         {"fullscreen", no_argument, 0, 'f'},
         {"help", no_argument, 0, 'h'},
         {"game", required_argument, 0, 'g'},
+        {"applet-params", optional_argument, 0, 'l'},
         {"multiplayer", required_argument, 0, 'm'},
         {"program", optional_argument, 0, 'p'},
         {"user", required_argument, 0, 'u'},
@@ -234,7 +245,7 @@ int main(int argc, char** argv) {
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "g:fhvp::c:u:", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "g:fhvp::c:u:l::", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'c':
@@ -250,6 +261,27 @@ int main(int argc, char** argv) {
             case 'g': {
                 const std::string str_arg(optarg);
                 filepath = str_arg;
+                break;
+            }
+            case 'l': {
+                std::string str_arg(argv[optind++]);
+                str_arg.append(",0"); // FALLBACK: if string is partially completed ("1234,3")
+                                      // this will set all those unset to 0. otherwise we get
+                                      // all 3s.
+                std::stringstream stream(str_arg);
+                std::string sub;
+                std::getline(stream, sub, ',');
+                load_parameters.program_id = std::stoull(sub);
+                std::getline(stream, sub, ',');
+                load_parameters.applet_id = static_cast<Service::AM::AppletId>(std::stoul(sub));
+                std::getline(stream, sub, ',');
+                load_parameters.applet_type = static_cast<Service::AM::AppletType>(std::stoi(sub));
+                std::getline(stream, sub, ',');
+                load_parameters.launch_type = static_cast<Service::AM::LaunchType>(std::stoi(sub));
+                std::getline(stream, sub, ',');
+                load_parameters.program_index = std::stoi(sub);
+                std::getline(stream, sub, ',');
+                load_parameters.previous_program_index = std::stoi(sub);
                 break;
             }
             case 'm': {
@@ -333,7 +365,7 @@ int main(int argc, char** argv) {
 
     Common::ConfigureNvidiaEnvironmentFlags();
 
-    if (filepath.empty()) {
+    if (filepath.empty() && !static_cast<u32>(load_parameters.applet_id)) {
         LOG_CRITICAL(Frontend, "Failed to load ROM: No ROM specified");
         return -1;
     }
@@ -354,6 +386,9 @@ int main(int argc, char** argv) {
     case Settings::RendererBackend::Vulkan:
         emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem, system, fullscreen);
         break;
+    case Settings::RendererBackend::Metal:
+        emu_window = std::make_unique<EmuWindow_SDL2_MTL>(&input_subsystem, system, fullscreen);
+        break;
     case Settings::RendererBackend::Null:
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);
         break;
@@ -369,9 +404,27 @@ int main(int argc, char** argv) {
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
     system.GetUserChannel().clear();
 
-    Service::AM::FrontendAppletParameters load_parameters{
-        .applet_id = Service::AM::AppletId::Application,
-    };
+    if (static_cast<u32>(load_parameters.applet_id)) {
+        // code below based off of suyu/main.cpp : GMainWindow::OnHomeMenu()
+        Service::AM::AppletProgramId applet_prog_id =
+            Service::AM::AppletIdToProgramId(load_parameters.applet_id);
+        auto sysnand = system.GetFileSystemController().GetSystemNANDContents();
+        if (!sysnand) {
+            LOG_CRITICAL(Frontend, "Failed to load applet: Firmware not installed.");
+            return -1;
+        }
+
+        auto user_applet_nca = sysnand->GetEntry(static_cast<u64>(applet_prog_id),
+                                                 FileSys::ContentRecordType::Program);
+        if (!user_applet_nca) {
+            LOG_CRITICAL(Frontend, "Failed to load applet: applet cannot be found.");
+            return -1;
+        }
+        if (filepath.empty())
+            filepath = user_applet_nca->GetFullPath();
+    } else {
+        load_parameters.applet_id = Service::AM::AppletId::Application;
+    }
     const Core::SystemResultStatus load_result{system.Load(*emu_window, filepath, load_parameters)};
 
     switch (load_result) {
@@ -402,8 +455,6 @@ int main(int argc, char** argv) {
         }
         break;
     }
-
-    system.TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "SDL");
 
     if (use_multiplayer) {
         if (auto member = system.GetRoomNetwork().GetRoomMember().lock()) {

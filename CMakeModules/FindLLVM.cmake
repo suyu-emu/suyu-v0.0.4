@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Alexandre Bouvier <contact@amb.tf>
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 

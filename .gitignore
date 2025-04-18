@@ -4,6 +4,7 @@
 # Build directory
 [Bb]uild*/
 doc-build/
+cmake-build*/
 
 # Generated source files
 src/common/scm_rev.cpp
@@ -37,3 +38,8 @@ CMakeSettings.json
 # Windows global filetypes
 Thumbs.db
 
+# Local Gitlab CI Runner
+.gitlab-ci-local/
+
+# clangd compile_commands.json
+compile_commands.json

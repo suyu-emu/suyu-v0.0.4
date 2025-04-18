@@ -53,7 +53,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1, D<&FSP_SRV::SetCurrentProcess>, "SetCurrentProcess"},
         {2, nullptr, "OpenDataFileSystemByCurrentProcess"},
         {7, D<&FSP_SRV::OpenFileSystemWithPatch>, "OpenFileSystemWithPatch"},
-        {8, nullptr, "OpenFileSystemWithId"},
+        {8, nullptr, "OpenFileSystemWithIdObsolete"}, // 16.0.0+, OpenFileSystemWithId 2.0.0-15.0.1
         {9, nullptr, "OpenDataFileSystemByApplicationId"},
         {11, nullptr, "OpenBisFileSystem"},
         {12, nullptr, "OpenBisStorage"},
@@ -67,7 +67,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {24, nullptr, "RegisterSaveDataFileSystemAtomicDeletion"},
         {25, nullptr, "DeleteSaveDataFileSystemBySaveDataSpaceId"},
         {26, nullptr, "FormatSdCardDryRun"},
-        {27, nullptr, "IsExFatSupported"},
+        {27, D<&FSP_SRV::IsExFatSupported>, "IsExFatSupported"},
         {28, nullptr, "DeleteSaveDataFileSystemBySaveDataAttribute"},
         {30, nullptr, "OpenGameCardStorage"},
         {31, nullptr, "OpenGameCardFileSystem"},
@@ -169,6 +169,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1018, nullptr, "SetDebugOption"},
         {1019, nullptr, "UnsetDebugOption"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
+        {1101, nullptr, "OverrideSaveDataTransferKeyForTest"}, // 18.0.0+
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
         {1200, D<&FSP_SRV::OpenMultiCommitManager>, "OpenMultiCommitManager"},
         {1300, nullptr, "OpenBisWiper"},
@@ -233,6 +234,14 @@ Result FSP_SRV::CreateSaveDataFileSystem(FileSys::SaveDataCreationInfo save_crea
     FileSys::VirtualDir save_data_dir{};
     R_RETURN(save_data_controller->CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::User,
                                                   save_struct));
+}
+
+Result FSP_SRV::IsExFatSupported(Out<bool> out_is_supported) {
+    LOG_WARNING(Service_FS, "(STUBBED) called");
+
+    *out_is_supported = true;
+
+    R_SUCCEED();
 }
 
 Result FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(

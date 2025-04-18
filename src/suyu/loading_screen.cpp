@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <unordered_map>
@@ -31,23 +31,22 @@ constexpr char PROGRESSBAR_STYLE_BUILD[] = R"(
 QProgressBar {
   background-color: black;
   border: 2px solid white;
-  border-radius: 4px;
+  border-radius: 10px;
   padding: 2px;
 }
 QProgressBar::chunk {
-  background-color: #ff3c28;
-  width: 1px;
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(98, 160, 234, 255), stop:1 rgba(237, 51, 59, 255));
+  border-radius: 6px;
 })";
 
 constexpr char PROGRESSBAR_STYLE_COMPLETE[] = R"(
 QProgressBar {
-  background-color: #0ab9e6;
+  background-color: black;
   border: 2px solid white;
-  border-radius: 4px;
-  padding: 2px;
+  border-radius: 10px;
+  padding: 4px;
 }
 QProgressBar::chunk {
-  background-color: #ff3c28;
 })";
 
 LoadingScreen::LoadingScreen(QWidget* parent)
@@ -99,7 +98,7 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
 #ifdef SUYU_QT_MOVIE_MISSING
         QPixmap map;
         map.loadFromData(buffer.data(), buffer.size());
-        ui->banner->setPixmap(map);
+        setPixmap(map);
 #else
         backing_mem = std::make_unique<QByteArray>(reinterpret_cast<char*>(buffer.data()),
                                                    static_cast<int>(buffer.size()));
@@ -116,6 +115,8 @@ void LoadingScreen::Prepare(Loader::AppLoader& loader) {
         map.loadFromData(buffer.data(), static_cast<uint>(buffer.size()));
         ui->logo->setPixmap(map);
     }
+    ui->logo->setVisible(false);
+    ui->banner->setVisible(false);
 
     slow_shader_compile_start = false;
     OnLoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);

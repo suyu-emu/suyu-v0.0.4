@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fmt/format.h>
@@ -61,7 +61,7 @@ std::vector<std::string> InputProfiles::GetInputProfileNames() {
 
     auto it = map_profiles.cbegin();
     while (it != map_profiles.cend()) {
-        const auto& [profile_name, config] = *it;
+        const auto& [profile_name, _] = *it;
         if (!ProfileExistsInFilesystem(profile_name)) {
             it = map_profiles.erase(it);
             continue;

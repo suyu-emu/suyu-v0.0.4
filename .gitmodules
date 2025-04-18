@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2014 Citra Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 [submodule "enet"]
@@ -7,21 +9,24 @@
 [submodule "cubeb"]
 	path = externals/cubeb
 	url = https://github.com/mozilla/cubeb.git
+[submodule "dynarmic"]
+	path = externals/dynarmic
+	url = https://git.suyu.dev/suyu/dynarmic.git
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
 [submodule "discord-rpc"]
 	path = externals/discord-rpc
-	url = https://gitlab.com/suyu-emu/discord-rpc.git
+	url = https://git.suyu.dev/suyu/discord-rpc.git
 [submodule "Vulkan-Headers"]
 	path = externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "sirit"]
 	path = externals/sirit
-	url = https://gitlab.com/suyu-emu/sirit.git
+	url = https://git.suyu.dev/suyu/sirit.git
 [submodule "mbedtls"]
 	path = externals/mbedtls
-	url = https://gitlab.com/suyu-emu/mbedtls.git
+	url = https://git.suyu.dev/suyu/mbedtls.git
 [submodule "xbyak"]
 	path = externals/xbyak
 	url = https://github.com/herumi/xbyak.git
@@ -54,7 +59,7 @@
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "breakpad"]
 	path = externals/breakpad
-	url = https://gitlab.com/suyu-emu/breakpad.git
+	url = https://git.suyu.dev/suyu/breakpad.git
 [submodule "simpleini"]
 	path = externals/simpleini
 	url = https://github.com/brofield/simpleini.git
@@ -64,7 +69,6 @@
 [submodule "Vulkan-Utility-Libraries"]
 	path = externals/Vulkan-Utility-Libraries
 	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
-[submodule "externals/dynarmic"]
-	path = externals/dynarmic
-	url = https://gitlab.com/suyu-emu/dynarmic.git
-	branch = stable
+[submodule "externals/SPIRV-Tools"]
+	path = externals/SPIRV-Tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git

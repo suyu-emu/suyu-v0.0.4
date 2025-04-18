@@ -117,7 +117,9 @@ std::vector<std::shared_ptr<NCA>> NSP::GetNCAsCollapsed() const {
     if (extracted)
         LOG_WARNING(Service_FS, "called on an NSP that is of type extracted.");
     std::vector<std::shared_ptr<NCA>> out;
+    out.reserve(ncas.size());
     for (const auto& map : ncas) {
+        out.reserve(map.second.size());
         for (const auto& inner_map : map.second)
             out.push_back(inner_map.second);
     }

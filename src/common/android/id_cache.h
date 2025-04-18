@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -80,6 +80,10 @@ jfieldID GetDoubleValueField();
 jclass GetIntegerClass();
 jmethodID GetIntegerConstructor();
 jfieldID GetIntegerValueField();
+
+jclass GetLongClass();
+jmethodID GetLongConstructor();
+jfieldID GetLongValueField();
 
 jclass GetBooleanClass();
 jmethodID GetBooleanConstructor();

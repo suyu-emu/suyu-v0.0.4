@@ -15,7 +15,11 @@
 #define VK_USE_PLATFORM_WAYLAND_KHR
 #endif
 
+#ifdef __APPLE__
+#include <MoltenVK/mvk_vulkan.h>
+#else
 #include <vulkan/vulkan.h>
+#endif
 
 // Sanitize macros
 #undef CreateEvent

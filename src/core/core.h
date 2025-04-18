@@ -14,6 +14,7 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
+#include "libretro.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -122,7 +123,6 @@ class GPUDirtyMemoryManager;
 class PerfStats;
 class Reporter;
 class SpeedLimiter;
-class TelemetrySession;
 
 struct PerfStatsResults;
 
@@ -139,6 +139,25 @@ enum class SystemResultStatus : u32 {
     ErrorVideoCore,      ///< Error in the video core
     ErrorUnknown,        ///< Any other error
     ErrorLoader,         ///< The base for loader errors (too many to repeat)
+};
+
+class LibretroWrapper {
+public:
+    LibretroWrapper();
+    ~LibretroWrapper();
+
+    bool LoadCore(const std::string& core_path);
+    bool LoadGame(const std::string& game_path);
+    void Run();
+    void Reset();
+    void Unload();
+
+    // Implement other libretro API functions as needed
+
+private:
+    void* core_handle;
+    retro_game_info game_info;
+    // Add other necessary libretro-related members
 };
 
 class System {
@@ -217,12 +236,6 @@ public:
      * @returns True if the emulated system is powered on, otherwise false.
      */
     [[nodiscard]] bool IsPoweredOn() const;
-
-    /// Gets a reference to the telemetry session for this emulation session.
-    [[nodiscard]] Core::TelemetrySession& TelemetrySession();
-
-    /// Gets a reference to the telemetry session for this emulation session.
-    [[nodiscard]] const Core::TelemetrySession& TelemetrySession() const;
 
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule(u32 core_index);
@@ -463,9 +476,17 @@ public:
     /// Applies any changes to settings to this core instance.
     void ApplySettings();
 
+    // New methods for libretro support
+    bool LoadLibretroCore(const std::string& core_path);
+    bool LoadLibretroGame(const std::string& game_path);
+    void RunLibretroCore();
+    void ResetLibretroCore();
+    void UnloadLibretroCore();
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
+    std::unique_ptr<LibretroWrapper> libretro_wrapper;
 };
 
 } // namespace Core

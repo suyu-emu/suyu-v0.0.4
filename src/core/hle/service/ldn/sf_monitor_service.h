@@ -20,7 +20,8 @@ public:
 
 private:
     Result Initialize(Out<u32> out_value);
-    Result GetGroupInfo(OutLargeData<GroupInfo, BufferAttr_HipcAutoSelect> out_group_info);
+    Result GetGroupInfo(GroupInfo in_group_info,
+                        OutLargeData<GroupInfo, BufferAttr_HipcAutoSelect> out_group_info);
 };
 
 } // namespace Service::LDN

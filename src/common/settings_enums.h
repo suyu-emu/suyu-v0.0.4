@@ -124,7 +124,7 @@ ENUM(VSyncMode, Immediate, Mailbox, Fifo, FifoRelaxed);
 
 ENUM(VramUsageMode, Conservative, Aggressive);
 
-ENUM(RendererBackend, OpenGL, Vulkan, Null);
+ENUM(RendererBackend, OpenGL, Vulkan, Metal, Null);
 
 ENUM(ShaderBackend, Glsl, Glasm, SpirV);
 
@@ -134,7 +134,7 @@ ENUM(CpuBackend, Dynarmic, Nce);
 
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 
-ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb);
+ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_12Gb);
 
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
 
@@ -145,7 +145,7 @@ ENUM(NvdecEmulation, Off, Cpu, Gpu);
 ENUM(ResolutionSetup, Res1_2X, Res3_4X, Res1X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X,
      Res8X);
 
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, MaxEnum);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, Area, MaxEnum);
 
 ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 
@@ -154,6 +154,8 @@ ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, R32_9, Stretch);
 ENUM(ConsoleMode, Handheld, Docked);
 
 ENUM(AppletMode, HLE, LLE);
+
+ENUM(DarkModeState, Off, On, Auto);
 
 template <typename Type>
 inline std::string CanonicalizeEnum(Type id) {

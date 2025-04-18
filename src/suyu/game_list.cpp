@@ -1,9 +1,9 @@
-// SPDX-FileCopyrightText: 2015 Citra Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // Modified by palfaiate on <2024/03/07>
+// Reverted palfaiate's changes on <2024/03/25> -Nine-Ball
 
-#include <regex>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -384,6 +384,17 @@ GameList::~GameList() {
     UnloadController();
 }
 
+void GameList::ClearList() {
+    // Clear all items
+    item_model->setRowCount(0);
+
+    // Notify a reload is pending
+    UISettings::values.is_game_list_reload_pending.exchange(true);
+    UISettings::values.is_game_list_reload_pending.notify_all();
+
+    // Load stuff back up
+}
+
 void GameList::SetFilterFocus() {
     if (tree_view->model()->rowCount() > 0) {
         search_field->setFocus();
@@ -411,6 +422,10 @@ void GameList::AddDirEntry(GameListDir* entry_items) {
 
 void GameList::AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent) {
     parent->appendRow(entry_items);
+}
+
+void GameList::AddRootEntry(const QList<QStandardItem*>& entry_items) {
+    item_model->invisibleRootItem()->appendRow(entry_items);
 }
 
 void GameList::ValidateEntry(const QModelIndex& item) {
@@ -468,7 +483,9 @@ bool GameList::IsEmpty() const {
 void GameList::DonePopulating(const QStringList& watch_list) {
     emit ShowList(!IsEmpty());
 
-    item_model->invisibleRootItem()->appendRow(new GameListAddDir());
+    if (UISettings::values.show_folders_in_list) {
+        item_model->invisibleRootItem()->appendRow(new GameListAddDir());
+    }
 
     // Add favorites row
     item_model->invisibleRootItem()->insertRow(0, new GameListFavorites());
@@ -485,6 +502,7 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     if (!watch_dirs.isEmpty()) {
         watcher->removePaths(watch_dirs);
     }
+
     // Workaround: Add the watch paths in chunks to allow the gui to refresh
     // This prevents the UI from stalling when a large number of watch paths are added
     // Also artificially caps the watcher to a certain number of directories
@@ -563,6 +581,9 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     remove_menu->addSeparator();
     QAction* remove_shader_cache = remove_menu->addAction(tr("Remove All Pipeline Caches"));
     QAction* remove_all_content = remove_menu->addAction(tr("Remove All Installed Contents"));
+    QMenu* dump_romfs_menu = context_menu.addMenu(tr("Dump RomFS"));
+    QAction* dump_romfs = dump_romfs_menu->addAction(tr("Dump RomFS"));
+    QAction* dump_romfs_sdmc = dump_romfs_menu->addAction(tr("Dump RomFS to SDMC"));
     QAction* verify_integrity = context_menu.addAction(tr("Verify Integrity"));
     QAction* copy_tid = context_menu.addAction(tr("Copy Title ID to Clipboard"));
     QAction* navigate_to_gamedb_entry = context_menu.addAction(tr("Navigate to GameDB entry"));
@@ -629,6 +650,12 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
             [this, program_id]() { emit RemovePlayTimeRequested(program_id); });
     connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
         emit RemoveFileRequested(program_id, GameListRemoveTarget::CacheStorage, path);
+    });
+    connect(dump_romfs, &QAction::triggered, [this, program_id, path]() {
+        emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::Normal);
+    });
+    connect(dump_romfs_sdmc, &QAction::triggered, [this, program_id, path]() {
+        emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::SDMC);
     });
     connect(verify_integrity, &QAction::triggered,
             [this, path]() { emit VerifyIntegrityRequested(path); });
@@ -886,22 +913,43 @@ void GameList::ToggleFavorite(u64 program_id) {
 void GameList::AddFavorite(u64 program_id) {
     auto* favorites_row = item_model->item(0);
 
-    for (int i = 1; i < item_model->rowCount() - 1; i++) {
-        const auto* folder = item_model->item(i);
-        for (int j = 0; j < folder->rowCount(); j++) {
-            if (folder->child(j)->data(GameListItemPath::ProgramIdRole).toULongLong() ==
-                program_id) {
-                QList<QStandardItem*> list;
-                for (int k = 0; k < COLUMN_COUNT; k++) {
-                    list.append(folder->child(j, k)->clone());
-                }
-                list[0]->setData(folder->child(j)->data(GameListItem::SortRole),
-                                 GameListItem::SortRole);
-                list[0]->setText(folder->child(j)->data(Qt::DisplayRole).toString());
+    if (UISettings::values.show_folders_in_list) {
+        for (int i = 0; i < item_model->rowCount(); i++) {
+            const auto* folder = item_model->item(i);
+            for (int j = 0; j < folder->rowCount(); j++) {
+                if (folder->child(j)->data(GameListItemPath::ProgramIdRole).toULongLong() ==
+                    program_id) {
+                    QList<QStandardItem*> list;
+                    for (int k = 0; k < COLUMN_COUNT; k++) {
+                        list.append(folder->child(j, k)->clone());
+                    }
+                    list[0]->setData(folder->child(j)->data(GameListItem::SortRole),
+                                     GameListItem::SortRole);
+                    list[0]->setText(folder->child(j)->data(Qt::DisplayRole).toString());
 
-                favorites_row->appendRow(list);
-                return;
+                    favorites_row->appendRow(list);
+                    return;
+                }
             }
+        }
+        return;
+    } else {
+        for (int i = 0; i < item_model->rowCount(); i++) {
+            const auto* game = item_model->item(i);
+            if (game->data(GameListItemPath::ProgramIdRole).toULongLong() != program_id) {
+                continue;
+            }
+
+            QList<QStandardItem*> list;
+            for (int j = 0; j < COLUMN_COUNT; j++) {
+                list.append(item_model->item(i, j)->clone());
+            }
+
+            list[0]->setData(game->data(GameListItem::SortRole), GameListItem::SortRole);
+            list[0]->setText(game->data(Qt::DisplayRole).toString());
+
+            favorites_row->appendRow(list);
+            return;
         }
     }
 }

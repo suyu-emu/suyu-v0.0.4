@@ -49,6 +49,9 @@
       </property>
       <item alignment="Qt::AlignLeft|Qt::AlignTop">
        <widget class="QLabel" name="logo">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -78,7 +81,7 @@
           </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
-font: 75 20pt &quot;Arial&quot;;</string>
+font: 500 20pt &quot;Ubuntu&quot;;</string>
           </property>
           <property name="text">
            <string>Loading Shaders 387 / 1628</string>
@@ -96,19 +99,25 @@ font: 75 20pt &quot;Arial&quot;;</string>
           <property name="minimumSize">
            <size>
             <width>500</width>
-            <height>40</height>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>30</height>
            </size>
           </property>
           <property name="styleSheet">
            <string notr="true">QProgressBar {
-color: white;
+background-color: black;
 border: 2px solid white;
-outline-color: black;
-border-radius: 20px;
+border-radius: 10px;
+padding: 2px;
 }
 QProgressBar::chunk {
-background-color: white;
-border-radius: 15px;
+background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(98, 160, 234, 255), stop:1 rgba(237, 51, 59, 255));
+border-radius: 6px;
 }</string>
           </property>
           <property name="value">
@@ -129,7 +138,7 @@ border-radius: 15px;
           </property>
           <property name="styleSheet">
            <string notr="true">background-color: black; color: white;
-font: 75 15pt &quot;Arial&quot;;</string>
+font: 500 15pt &quot;Ubuntu&quot;;</string>
           </property>
           <property name="text">
            <string>Estimated Time 5m 4s</string>
@@ -140,6 +149,9 @@ font: 75 15pt &quot;Arial&quot;;</string>
       </item>
       <item alignment="Qt::AlignRight|Qt::AlignBottom">
        <widget class="QLabel" name="banner">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="styleSheet">
          <string notr="true">background-color: black;</string>
         </property>

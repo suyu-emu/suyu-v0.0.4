@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if (DEFINED ENV{AZURECIREPO})
@@ -136,8 +137,6 @@ add_library(common STATIC
     string_util.cpp
     string_util.h
     swap.h
-    telemetry.cpp
-    telemetry.h
     thread.cpp
     thread.h
     thread_queue_list.h
@@ -241,6 +240,15 @@ if (MSVC)
   )
 else()
   set_source_files_properties(stb.cpp PROPERTIES COMPILE_OPTIONS "-Wno-implicit-fallthrough;-Wno-missing-declarations;-Wno-missing-field-initializers")
+
+  # Get around GCC failing with intrinsics in Debug
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug")
+    set_property(
+      SOURCE stb.cpp
+      APPEND
+      PROPERTY COMPILE_OPTIONS ";-O2"
+    )
+  endif()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

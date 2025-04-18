@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// Modified by palfaiate on <2024/03/07>
 
 #pragma once
 
@@ -90,6 +90,7 @@ SWITCHABLE(u8, true);
 // Used in UISettings
 // TODO see if we can move this to uisettings.h
 SWITCHABLE(ConfirmStop, true);
+SWITCHABLE(DarkModeState, true);
 
 #undef SETTING
 #undef SWITCHABLE
@@ -197,7 +198,7 @@ struct Values {
     SwitchableSetting<MemoryLayout, true> memory_layout_mode{linkage,
                                                              MemoryLayout::Memory_4Gb,
                                                              MemoryLayout::Memory_4Gb,
-                                                             MemoryLayout::Memory_8Gb,
+                                                             MemoryLayout::Memory_12Gb,
                                                              "memory_layout_mode",
                                                              Category::Core};
     SwitchableSetting<bool> use_speed_limit{
@@ -212,6 +213,7 @@ struct Values {
                                              true,
                                              true,
                                              &use_speed_limit};
+    SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core, Specialization::Default};
 
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
@@ -277,6 +279,8 @@ struct Values {
                                          Specialization::RuntimeList};
 
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
+                                                  Category::Renderer};
+    SwitchableSetting<bool> optimize_spirv_output{linkage, false, "optimize_spirv_output",
                                                   Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
@@ -530,9 +534,9 @@ struct Values {
     Setting<bool> mouse_enabled{linkage, false, "mouse_enabled", Category::Controls};
 
     Setting<u8, true> mouse_panning_x_sensitivity{
-        linkage, 50, 1, 100, "mouse_panning_x_sensitivity", Category::Controls};
+        linkage, 50, 1, 200, "mouse_panning_x_sensitivity", Category::Controls};
     Setting<u8, true> mouse_panning_y_sensitivity{
-        linkage, 50, 1, 100, "mouse_panning_y_sensitivity", Category::Controls};
+        linkage, 50, 1, 200, "mouse_panning_y_sensitivity", Category::Controls};
     Setting<u8, true> mouse_panning_deadzone_counterweight{
         linkage, 20, 0, 100, "mouse_panning_deadzone_counterweight", Category::Controls};
     Setting<u8, true> mouse_panning_decay_strength{
@@ -604,6 +608,7 @@ struct Values {
 
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
+    Setting<bool> log_async{linkage, true, "log_async", Category::Miscellaneous};
     Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
 
     // Network
@@ -611,8 +616,7 @@ struct Values {
                                            Category::Network};
 
     // WebService
-    Setting<bool> enable_telemetry{linkage, false, "enable_telemetry", Category::WebService};
-    Setting<std::string> web_api_url{linkage, "http://74.113.97.71:3000", "web_api_url",
+    Setting<std::string> web_api_url{linkage, "https://suyu.dev", "web_api_url",
                                      Category::WebService};
     Setting<std::string> suyu_username{linkage, std::string(), "suyu_username",
                                        Category::WebService};

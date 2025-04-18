@@ -37,6 +37,7 @@ const static std::map<std::string, const std::map<const char*, const std::vector
 
 static void GenerateFiles(std::vector<VirtualFile>& directory,
                           const std::map<const char*, const std::vector<u8>>& files) {
+    directory.reserve(files.size());
     for (const auto& [filename, data] : files) {
         const auto data_copy{data};
         const std::string filename_copy{filename};
@@ -54,6 +55,7 @@ static std::vector<VirtualFile> GenerateZoneinfoFiles() {
 
 VirtualDir TimeZoneBinary() {
     std::vector<VirtualDir> america_sub_dirs;
+    america_sub_dirs.reserve(tzdb_america_dirs.size());
     for (const auto& [dir_name, files] : tzdb_america_dirs) {
         std::vector<VirtualFile> vfs_files;
         GenerateFiles(vfs_files, files);
@@ -62,6 +64,7 @@ VirtualDir TimeZoneBinary() {
     }
 
     std::vector<VirtualDir> zoneinfo_sub_dirs;
+    zoneinfo_sub_dirs.reserve(tzdb_zoneinfo_dirs.size());
     for (const auto& [dir_name, files] : tzdb_zoneinfo_dirs) {
         std::vector<VirtualFile> vfs_files;
         GenerateFiles(vfs_files, files);

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_subdirectory(host_shaders)
@@ -9,7 +9,7 @@ if(LIBVA_FOUND)
     list(APPEND FFmpeg_LIBRARIES ${LIBVA_LIBRARIES})
 endif()
 
-add_library(video_core STATIC
+set(sources
     buffer_cache/buffer_base.h
     buffer_cache/buffer_cache_base.h
     buffer_cache/buffer_cache.cpp
@@ -315,6 +315,97 @@ add_library(video_core STATIC
     vulkan_common/vulkan.h
 )
 
+if (APPLE)
+    list(REMOVE_ITEM sources
+        renderer_opengl/present/filters.cpp
+        renderer_opengl/present/filters.h
+        renderer_opengl/present/fsr.cpp
+        renderer_opengl/present/fsr.h
+        renderer_opengl/present/fxaa.cpp
+        renderer_opengl/present/fxaa.h
+        renderer_opengl/present/layer.cpp
+        renderer_opengl/present/layer.h
+        renderer_opengl/present/present_uniforms.h
+        renderer_opengl/present/smaa.cpp
+        renderer_opengl/present/smaa.h
+        renderer_opengl/present/util.h
+        renderer_opengl/present/window_adapt_pass.cpp
+        renderer_opengl/present/window_adapt_pass.h
+        renderer_opengl/blit_image.cpp
+        renderer_opengl/blit_image.h
+        renderer_opengl/gl_blit_screen.cpp
+        renderer_opengl/gl_blit_screen.h
+        renderer_opengl/gl_buffer_cache_base.cpp
+        renderer_opengl/gl_buffer_cache.cpp
+        renderer_opengl/gl_buffer_cache.h
+        renderer_opengl/gl_compute_pipeline.cpp
+        renderer_opengl/gl_compute_pipeline.h
+        renderer_opengl/gl_device.cpp
+        renderer_opengl/gl_device.h
+        renderer_opengl/gl_fence_manager.cpp
+        renderer_opengl/gl_fence_manager.h
+        renderer_opengl/gl_graphics_pipeline.cpp
+        renderer_opengl/gl_graphics_pipeline.h
+        renderer_opengl/gl_rasterizer.cpp
+        renderer_opengl/gl_rasterizer.h
+        renderer_opengl/gl_resource_manager.cpp
+        renderer_opengl/gl_resource_manager.h
+        renderer_opengl/gl_shader_cache.cpp
+        renderer_opengl/gl_shader_cache.h
+        renderer_opengl/gl_shader_manager.cpp
+        renderer_opengl/gl_shader_manager.h
+        renderer_opengl/gl_shader_context.h
+        renderer_opengl/gl_shader_util.cpp
+        renderer_opengl/gl_shader_util.h
+        renderer_opengl/gl_state_tracker.cpp
+        renderer_opengl/gl_state_tracker.h
+        renderer_opengl/gl_staging_buffer_pool.cpp
+        renderer_opengl/gl_staging_buffer_pool.h
+        renderer_opengl/gl_texture_cache.cpp
+        renderer_opengl/gl_texture_cache.h
+        renderer_opengl/gl_texture_cache_base.cpp
+        renderer_opengl/gl_query_cache.cpp
+        renderer_opengl/gl_query_cache.h
+        renderer_opengl/maxwell_to_gl.h
+        renderer_opengl/renderer_opengl.cpp
+        renderer_opengl/renderer_opengl.h
+        renderer_opengl/util_shaders.cpp
+        renderer_opengl/util_shaders.h
+    )
+
+    list(APPEND sources
+        renderer_metal/maxwell_to_mtl.cpp
+        renderer_metal/maxwell_to_mtl.h
+        renderer_metal/metal_cpp_impl.cpp
+        renderer_metal/mtl_buffer_cache.cpp
+        renderer_metal/mtl_buffer_cache.h
+        renderer_metal/mtl_buffer_cache_base.cpp
+        renderer_metal/mtl_command_recorder.cpp
+        renderer_metal/mtl_command_recorder.h
+        renderer_metal/mtl_compute_pipeline.cpp
+        renderer_metal/mtl_compute_pipeline.h
+        renderer_metal/mtl_device.cpp
+        renderer_metal/mtl_device.h
+        renderer_metal/mtl_graphics_pipeline.cpp
+        renderer_metal/mtl_graphics_pipeline.h
+        renderer_metal/mtl_pipeline_cache.cpp
+        renderer_metal/mtl_pipeline_cache.h
+        renderer_metal/mtl_rasterizer.cpp
+        renderer_metal/mtl_rasterizer.h
+        renderer_metal/mtl_staging_buffer_pool.cpp
+        renderer_metal/mtl_staging_buffer_pool.h
+        renderer_metal/mtl_swap_chain.cpp
+        renderer_metal/mtl_swap_chain.h
+        renderer_metal/mtl_texture_cache.cpp
+        renderer_metal/mtl_texture_cache.h
+        renderer_metal/mtl_texture_cache_base.cpp
+        renderer_metal/renderer_metal.cpp
+        renderer_metal/renderer_metal.h
+    )
+endif()
+
+add_library(video_core STATIC ${sources})
+
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PUBLIC glad shader_recompiler stb bc_decoder)
 
@@ -329,6 +420,10 @@ target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
 target_link_libraries(video_core PRIVATE sirit Vulkan::Headers Vulkan::UtilityHeaders GPUOpen::VulkanMemoryAllocator)
+
+if (APPLE)
+    target_link_libraries(video_core PRIVATE metal-cpp)
+endif()
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
@@ -347,7 +442,7 @@ if (MSVC)
         /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
     )
 else()
-    if (APPLE)
+    if (APPLE OR ARCHITECTURE_arm64)
         # error: declaration shadows a typedef in 'interval_base_set<SubType, DomainT, Compare, Interval, Alloc>'
         # error: implicit conversion loses integer precision: 'int' to 'boost::icl::bound_type' (aka 'unsigned char')
         target_compile_options(video_core PRIVATE -Wno-shadow -Wno-unused-local-typedef)
@@ -364,6 +459,11 @@ else()
 
     # VMA
     set_source_files_properties(vulkan_common/vma.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-unused-variable;-Wno-unused-parameter;-Wno-missing-field-initializers")
+
+    # Get around GCC failing with intrinsics in Debug
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_BUILD_TYPE MATCHES "Debug")
+        set_source_files_properties(host1x/vic.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+    endif()
 endif()
 
 if (ARCHITECTURE_x86_64)

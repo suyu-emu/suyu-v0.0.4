@@ -4,7 +4,8 @@
 # Download all pull requests as patches that match a specific label
 # Usage: python apply-patches-by-label.py <Label to Match>
 
-import json, requests, subprocess, sys, traceback
+import json, subprocess, sys, traceback
+from security import safe_requests
 
 tagline = sys.argv[2]
 
@@ -16,7 +17,7 @@ def check_individual(labels):
 
 def do_page(page):
     url = f"https://gitlab.com/suyu-emu/suyu/-/merge_requests?page={page}"
-    response = requests.get(url)
+    response = safe_requests.get(url)
     response.raise_for_status()
     if (response.ok):
         j = json.loads(response.content)

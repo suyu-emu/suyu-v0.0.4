@@ -4,11 +4,12 @@
 # Checks to see if the specified pull request # has the specified tag
 # Usage: python check-label-presence.py <Pull Request ID> <Name of Label>
 
-import requests, json, sys
+import json, sys
+from security import safe_requests
 
 try:
     url = 'https://gitlab.com/suyu-emu/suyu/-/issues/%s' % sys.argv[1]
-    response = requests.get(url)
+    response = safe_requests.get(url)
     if (response.ok):
         j = json.loads(response.content)
         for label in j["labels"]:

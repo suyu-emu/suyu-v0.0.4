@@ -1,6 +1,6 @@
 #!/bin/bash -ex
-
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Exit on error, rather than continuing with the rest of the script.
@@ -8,13 +8,15 @@ set -e
 
 ccache -s
 
+git submodule update --init --recursive
+
 mkdir build || true && cd build
 cmake .. \
       -DBoost_USE_STATIC_LIBS=ON \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DCMAKE_CXX_FLAGS="-march=x86-64-v2" \
-      -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++ \
-      -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc \
+      -DCMAKE_CXX_COMPILER=/usr/local/bin/g++ \
+      -DCMAKE_C_COMPILER=/usr/local/bin/gcc \
       -DCMAKE_INSTALL_PREFIX="/usr" \
       -DDISPLAY_VERSION=$1 \
       -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=OFF \
@@ -22,13 +24,13 @@ cmake .. \
       -DUSE_DISCORD_PRESENCE=ON \
       -DSUYU_ENABLE_COMPATIBILITY_REPORTING=${ENABLE_COMPATIBILITY_REPORTING:-"OFF"} \
       -DSUYU_USE_BUNDLED_FFMPEG=ON \
-      -DSUYU_ENABLE_LTO=ON \
+      -DSUYU_ENABLE_LTO=OFF \
       -DSUYU_CRASH_DUMPS=ON \
       -GNinja
 
 ninja
 
-ccache -s
+ccache -sv
 
 ctest -VV -C Release
 
@@ -49,9 +51,9 @@ DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/suyu-cmd AppDir/usr/bin/suyu-tester
 
 # Download tools needed to build an AppImage
-wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/deploy-linux.sh
-wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/exec-x86_64.so
-wget -nc https://gitlab.com/suyu-emu/AppImageKit-checkrt/-/raw/old/AppRun.sh
+wget -nc https://git.suyu.dev/suyu/ext-linux-bin/raw/branch/main/appimage/deploy-linux.sh
+wget -nc https://git.suyu.dev/suyu/ext-linux-bin/raw/branch/main/appimage/exec-x86_64.so
+wget -nc https://git.suyu.dev/suyu/AppImageKit-checkrt/raw/branch/gh-workflow/AppRun
 
 # Set executable bit
 chmod 755 \

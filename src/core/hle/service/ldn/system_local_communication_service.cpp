@@ -40,6 +40,13 @@ ISystemLocalCommunicationService::ISystemLocalCommunicationService(Core::System&
             {401, nullptr, "FinalizeSystem"},
             {402, nullptr, "SetOperationMode"},
             {403, C<&ISystemLocalCommunicationService::InitializeSystem2>, "InitializeSystem2"},
+            {500, nullptr, "EnableActionFrame"}, // 18.0.0+
+            {501, nullptr, "DisableActionFrame"}, // 18.0.0+
+            {502, nullptr, "SendActionFrame"}, // 18.0.0+
+            {503, nullptr, "RecvActionFrame"}, // 18.0.0+
+            {505, nullptr, "SetHomeChannel"}, // 18.0.0+
+            {600, nullptr, "SetTxPower"}, // 18.0.0+
+            {601, nullptr, "ResetTxPower"} // 18.0.0+
         };
     // clang-format on
 

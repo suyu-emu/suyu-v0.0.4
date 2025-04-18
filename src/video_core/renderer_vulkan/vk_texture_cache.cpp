@@ -136,7 +136,10 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     auto usage = ImageUsageFlags(format_info, info.format);
     if (is_3d) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
-        usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        // Force usage to be VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT only on MoltenVK
+        if (device.IsMoltenVK()) {
+            usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        }
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
@@ -164,8 +167,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
                                   const ImageInfo& info, std::span<const VkFormat> view_formats) {
-    const bool is_buffer = (info.type == ImageType::Buffer);
-    if (is_buffer) {
+    if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
     VkImageCreateInfo image_ci = MakeImageCreateInfo(device, info);
@@ -1404,7 +1406,7 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     if (runtime->device.HasDebuggingToolAttached()) {
         original_image.SetObjectNameEXT(VideoCommon::Name(*this).c_str());
     }
-    current_image = *original_image;
+    current_image = &Image::original_image;
     storage_image_views.resize(info.resources.levels);
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported() &&
         Settings::values.astc_recompression.GetValue() ==
@@ -1548,8 +1550,8 @@ VkImageView Image::StorageImageView(s32 level) noexcept {
     if (!view) {
         const auto format_info =
             MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, true, info.format);
-        view =
-            MakeStorageView(runtime->device.GetLogical(), level, current_image, format_info.format);
+        view = MakeStorageView(runtime->device.GetLogical(), level, *(this->*current_image),
+                               format_info.format);
     }
     return *view;
 }
@@ -1580,7 +1582,7 @@ bool Image::ScaleUp(bool ignore) {
                                  runtime->ViewFormats(info.format));
         ignore = false;
     }
-    current_image = *scaled_image;
+    current_image = &Image::scaled_image;
     if (ignore) {
         return true;
     }
@@ -1605,7 +1607,7 @@ bool Image::ScaleDown(bool ignore) {
     }
     ASSERT(info.type != ImageType::Linear);
     flags &= ~ImageFlagBits::Rescaled;
-    current_image = *original_image;
+    current_image = &Image::original_image;
     if (ignore) {
         return true;
     }
@@ -1724,7 +1726,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     const VkImageViewUsageCreateInfo image_view_usage{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
-        .usage = ImageUsageFlags(format_info, format),
+        .usage = image.UsageFlags(),
     };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

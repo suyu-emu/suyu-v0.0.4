@@ -174,10 +174,10 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
             widget->deleteLater();
         }
     }
-    for (const auto& [label, widget] : core_hold) {
+    for (const auto& [_, widget] : core_hold) {
         core_layout.addWidget(widget);
     }
-    for (const auto& [id, widget] : system_hold) {
+    for (const auto& [_, widget] : system_hold) {
         system_layout.addWidget(widget);
     }
 }
