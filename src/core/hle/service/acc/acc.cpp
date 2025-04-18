@@ -99,10 +99,11 @@ public:
             {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
             {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
             {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
+            {143, &IManagerForSystemService::GetNetworkServiceLicenseEx, "GetNetworkServiceLicenseCacheEx"}, // 15.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
-            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
-            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
-            {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
+            {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"}, // 15.0.0+
+            {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"}, // 16.0.0+
+            {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+ from dev
         };
         // clang-format on
 
@@ -119,6 +120,15 @@ private:
         LOG_WARNING(Service_ACC, "(STUBBED) called");
         *out_account_id = account_id.Hash();
         R_SUCCEED();
+    }
+
+    void GetNetworkServiceLicenseEx(HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        IPC::ResponseBuilder rb {ctx, 16};
+        rb.Push(ResultSuccess);
+        for (int i = 0; i < 16; i++) {
+            rb.Push(0x0);
+        }
     }
 
     Common::UUID account_id;

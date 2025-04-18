@@ -565,6 +565,10 @@ void IGeneralService::IsAnyForegroundRequestAccepted(HLERequestContext& ctx) {
     rb.Push<u8>(is_accepted);
 }
 
+void IGeneralService::ConfirmSystemAvailability(HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb {ctx, 0};
+    rb.Push(ResultSuccess);
+}
 IGeneralService::IGeneralService(Core::System& system_)
     : ServiceFramework{system_, "IGeneralService"}, network{system_.GetRoomNetwork()} {
     // clang-format off
@@ -600,7 +604,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {30, nullptr, "SetEthernetCommunicationEnabledForTest"},
         {31, nullptr, "GetTelemetorySystemEventReadableHandle"},
         {32, nullptr, "GetTelemetryInfo"},
-        {33, nullptr, "ConfirmSystemAvailability"},
+        {33, &IGeneralService::ConfirmSystemAvailability, "ConfirmSystemAvailability"},
         {34, nullptr, "SetBackgroundRequestEnabled"},
         {35, nullptr, "GetScanData"},
         {36, nullptr, "GetCurrentAccessPoint"},
