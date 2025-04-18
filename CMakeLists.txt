@@ -31,7 +31,7 @@ option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT6 "Allow usage of Qt6 to be attempted" OFF)
 set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries like C:/Qt/6.3.1/msvc2019_64/")
 
-option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
+option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" ON)
 CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
@@ -57,6 +57,8 @@ option(SUYU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 option(SUYU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 CMAKE_DEPENDENT_OPTION(SUYU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
+
+option(SUZU_CMD "Compile the -cmd executable (can disable if -cmd is unused)" ON)
 
 CMAKE_DEPENDENT_OPTION(SUYU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
@@ -703,10 +705,10 @@ if (SUYU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     find_program(MOLD mold)
 
     if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-        message(NOTICE "Selecting mold as linker")
+        message(STATUS "Selecting mold as linker")
         add_link_options("-fuse-ld=mold")
     elseif (LLD)
-        message(NOTICE "Selecting lld as linker")
+        message(STATUS "Selecting lld as linker")
         add_link_options("-fuse-ld=lld")
     endif()
 endif()

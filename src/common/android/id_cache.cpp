@@ -61,6 +61,10 @@ static jclass s_integer_class;
 static jmethodID s_integer_constructor;
 static jfieldID s_integer_value_field;
 
+static jclass s_long_class;
+static jmethodID s_long_constructor;
+static jfieldID s_long_value_field;
+
 static jclass s_boolean_class;
 static jmethodID s_boolean_constructor;
 static jfieldID s_boolean_value_field;
@@ -288,6 +292,18 @@ jfieldID GetIntegerValueField() {
     return s_integer_value_field;
 }
 
+jclass GetLongClass() {
+    return s_long_class;
+}
+
+jmethodID GetLongConstructor() {
+    return s_long_constructor;
+}
+
+jfieldID GetLongValueField() {
+    return s_long_value_field;
+}
+
 jclass GetBooleanClass() {
     return s_boolean_class;
 }
@@ -492,6 +508,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_integer_constructor = env->GetMethodID(int_class, "<init>", "(I)V");
     s_integer_value_field = env->GetFieldID(int_class, "value", "I");
     env->DeleteLocalRef(int_class);
+
+    const jclass long_class = env->FindClass("java/lang/Long");
+    s_long_class = reinterpret_cast<jclass>(env->NewGlobalRef(long_class));
+    s_long_constructor = env->GetMethodID(long_class, "<init>", "(J)V");
+    s_long_value_field = env->GetFieldID(long_class, "value", "J");
+    env->DeleteLocalRef(long_class);
 
     const jclass boolean_class = env->FindClass("java/lang/Boolean");
     s_boolean_class = reinterpret_cast<jclass>(env->NewGlobalRef(boolean_class));

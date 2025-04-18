@@ -445,6 +445,14 @@ void EmitIsHelperInvocation(EmitContext& ctx, IR::Inst& inst) {
     ctx.AddU1("{}=gl_HelperInvocation;", inst);
 }
 
+void EmitSR_WScaleFactorXY(EmitContext& ctx, IR::Inst& inst) {
+    LOG_WARNING(Shader, "(STUBBED) called");
+}
+
+void EmitSR_WScaleFactorZ(EmitContext& ctx, IR::Inst& inst) {
+    LOG_WARNING(Shader, "(STUBBED) called");
+}
+
 void EmitYDirection(EmitContext& ctx, IR::Inst& inst) {
     ctx.uses_y_direction = true;
     ctx.AddF32("{}=gl_FrontMaterial.ambient.a;", inst);

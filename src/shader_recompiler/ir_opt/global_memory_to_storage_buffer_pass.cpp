@@ -372,8 +372,8 @@ void CollectStorageBuffers(IR::Block& block, IR::Inst& inst, StorageInfo& info) 
     // avoid getting false positives
     static constexpr Bias nvn_bias{
         .index = 0,
-        .offset_begin = 0x110,
-        .offset_end = 0x610,
+        .offset_begin = 0x100,
+        .offset_end = 0x700,
         .alignment = 16,
     };
     // Track the low address of the instruction

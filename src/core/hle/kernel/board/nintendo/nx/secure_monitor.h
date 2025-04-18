@@ -9,6 +9,7 @@ enum MemorySize {
     MemorySize_4GB = 0,
     MemorySize_6GB = 1,
     MemorySize_8GB = 2,
+    MemorySize_12GB = 3,
 };
 
 enum MemoryArrangement {
@@ -18,6 +19,7 @@ enum MemoryArrangement {
     MemoryArrangement_6GB = 3,
     MemoryArrangement_6GBForAppletDev = 4,
     MemoryArrangement_8GB = 5,
+    MemoryArrangement_12GB = 6,
 };
 
 } // namespace Kernel::Board::Nintendo::Nx::Smc

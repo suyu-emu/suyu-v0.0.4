@@ -41,6 +41,7 @@ set(SHADER_FILES
     opengl_present_scaleforce.frag
     opengl_smaa.glsl
     pitch_unswizzle.comp
+    present_area.frag
     present_bicubic.frag
     present_gaussian.frag
     queries_prefix_scan_sum.comp

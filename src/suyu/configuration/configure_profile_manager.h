@@ -25,6 +25,7 @@ class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 class QVBoxLayout;
+class QListWidget;
 
 namespace Service::Account {
 class ProfileManager;
@@ -33,6 +34,26 @@ class ProfileManager;
 namespace Ui {
 class ConfigureProfileManager;
 }
+
+class ConfigureProfileManagerAvatarDialog : public QDialog {
+public:
+    explicit ConfigureProfileManagerAvatarDialog(QWidget* parent);
+    ~ConfigureProfileManagerAvatarDialog();
+
+    void LoadImages(const QVector<QPixmap>& avatar_images);
+    bool AreImagesLoaded() const;
+    QPixmap GetSelectedAvatar();
+
+private:
+    void SetBackgroundColor(const QColor& color);
+    QPixmap CreateAvatar(const QPixmap& avatar);
+    void RefreshAvatars();
+
+    QVector<QPixmap> avatar_image_store;
+    QListWidget* avatar_list;
+    QColor avatar_bg_color;
+    QPushButton* bg_color_button;
+};
 
 class ConfigureProfileManagerDeleteDialog : public QDialog {
 public:
@@ -71,13 +92,18 @@ private:
     void RenameUser();
     void ConfirmDeleteUser();
     void DeleteUser(const Common::UUID& uuid);
-    void SetUserImage();
+    void SetUserImage(const QImage& image);
+    void SelectImageFile();
+    void SelectFirmwareAvatar();
+    bool LoadAvatarData();
+    std::vector<uint8_t> DecompressYaz0(const FileSys::VirtualFile& file);
 
     QVBoxLayout* layout;
     QTreeView* tree_view;
     QStandardItemModel* item_model;
     QGraphicsScene* scene;
 
+    ConfigureProfileManagerAvatarDialog* avatar_dialog;
     ConfigureProfileManagerDeleteDialog* confirm_dialog;
 
     std::vector<QList<QStandardItem*>> list_items;

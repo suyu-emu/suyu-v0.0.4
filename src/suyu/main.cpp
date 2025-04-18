@@ -1424,7 +1424,7 @@ void GMainWindow::RestoreUIState() {
     ui->action_Show_Status_Bar->setChecked(UISettings::values.show_status_bar.GetValue());
     ui->action_Show_Folders_In_List->setChecked(UISettings::values.show_folders_in_list.GetValue());
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
-    Debugger::ToggleConsole();
+    DebuggerYuzu::ToggleConsole();
 }
 
 void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
@@ -1609,6 +1609,7 @@ void GMainWindow::UpdateMenuState() {
                                     ui->action_Load_Cabinet_Restorer,
                                     ui->action_Load_Cabinet_Formatter,
                                     ui->action_Load_Mii_Edit,
+                                    ui->action_Load_Home_Menu,
                                     ui->action_Open_Controller_Menu};
 
     for (QAction* action : running_actions) {
