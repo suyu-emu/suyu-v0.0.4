@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2025 Citron Emulator Project
+// SPDX-FileCopyrightText: 2025 suyu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 package dev.suyu.suyu_emu.features.settings.model
 
 import dev.suyu.suyu_emu.utils.NativeConfig
+
 
 enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     AUDIO_MUTED("audio_muted"),
@@ -17,6 +20,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
     RENDERER_DEBUG("debug"),
+    RENDERER_ENHANCED_SHADER_BUILDING("use_enhanced_shader_building"),
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
@@ -26,7 +30,9 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
-    SHOW_THERMAL_OVERLAY("show_thermal_overlay");
+    SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
+    SHOW_RAM_OVERLAY("show_ram_overlay"),
+    USE_AUTO_STUB("use_auto_stub");
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)
