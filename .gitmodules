@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2014 Citra Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 [submodule "enet"]
@@ -67,3 +69,6 @@
 [submodule "Vulkan-Utility-Libraries"]
 	path = externals/Vulkan-Utility-Libraries
 	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
+[submodule "externals/SPIRV-Tools"]
+	path = externals/SPIRV-Tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git

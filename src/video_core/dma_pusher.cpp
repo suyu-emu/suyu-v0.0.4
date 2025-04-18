@@ -14,7 +14,6 @@
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
-constexpr u32 ComputeInline = 0x6D;
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
@@ -77,13 +76,7 @@ bool DmaPusher::Step() {
             return true;
         }
 
-        // Push buffer non-empty, read a word
-        if (dma_state.method >= MacroRegistersStart) {
-            if (subchannels[dma_state.subchannel]) {
-                subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(
-                    dma_state.dma_get, command_list_header.size * sizeof(u32));
-            }
-        }
+        // Determine whether to use safe or unsafe processing
         const auto safe_process = [&] {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
                                           Tegra::Memory::GuestMemoryFlags::SafeRead>
@@ -91,6 +84,7 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
+
         const auto unsafe_process = [&] {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
                                           Tegra::Memory::GuestMemoryFlags::UnsafeRead>
@@ -98,19 +92,12 @@ bool DmaPusher::Step() {
                         &command_headers);
             ProcessCommands(headers);
         };
-        if (Settings::IsGPULevelHigh()) {
-            if (dma_state.method >= MacroRegistersStart) {
-                unsafe_process();
-                return true;
-            }
-            if (subchannel_type[dma_state.subchannel] == Engines::EngineTypes::KeplerCompute &&
-                dma_state.method == ComputeInline) {
-                unsafe_process();
-                return true;
-            }
+
+        if (Settings::IsGPULevelHigh() || (dma_state.method >= MacroRegistersStart)) {
             safe_process();
             return true;
         }
+
         unsafe_process();
     }
     return true;
