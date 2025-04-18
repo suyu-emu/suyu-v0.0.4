@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <thread>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <math.h>
 
 #include "common/param_package.h"
