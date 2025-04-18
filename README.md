@@ -5,7 +5,7 @@ SPDX-FileCopyrightText: 2025 CharlieDoesStuff
 SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
-**Note**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
+**Notes**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
 We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git and 
 This repo is currently based on Yuzu EA 4176 (with multiple commits borrowed from the Sudachi, Torzu, Ziunx, Citron/Uzuy and Nozomi projects) but the code will be "evolved" from the ground up to combat legal and performance related concerns.
