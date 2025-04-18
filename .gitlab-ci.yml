@@ -16,7 +16,6 @@ variables:
   CACHE_DIR: "$CI_PROJECT_DIR/ccache"
   CCACHE_DIR: $CACHE_DIR
 
-
 #CLANG FORMAT - CHECKS CODE FOR FORMATTING ISSUES
 clang-format:
   stage: format
@@ -38,14 +37,6 @@ build-linux:
   stage: build
   image: suyuemu/cibuild:linux-x64
   resource_group: linux-ci
-  cache:
-    key: "$CI_COMMIT_REF_NAME-ccache"
-    paths:
-      - $CACHE_DIR
-  before_script:
-    - mkdir -p $CACHE_DIR
-    - chmod -R 777 $CACHE_DIR
-    - ls -la $CACHE_DIR
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     GIT_SUBMODULE_DEPTH: 1
@@ -80,4 +71,3 @@ android:
   tags:
     - Android
     - Parallelized
-

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <libusb.h>
 
 #include "common/logging/log.h"

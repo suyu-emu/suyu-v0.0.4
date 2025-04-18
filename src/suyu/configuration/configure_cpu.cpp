@@ -79,7 +79,7 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
         }
     }
 
-    for (const auto& [label, widget] : unsafe_hold) {
+    for (const auto& [_, widget] : unsafe_hold) {
         unsafe_layout->addWidget(widget);
     }
 

@@ -45,7 +45,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -103,6 +103,14 @@
       <string>Reset Window Size to 720p</string>
      </property>
     </action>
+        <action name="action_Reset_Window_Size_800">
+     <property name="text">
+      <string>Reset Window Size to &amp;800p</string>
+     </property>
+     <property name="iconText">
+      <string>Reset Window Size to 800p</string>
+     </property>
+    </action>
     <action name="action_Reset_Window_Size_900">
      <property name="text">
       <string>Reset Window Size to &amp;900p</string>
@@ -124,7 +132,7 @@
     <addaction name="action_Display_Dock_Widget_Headers"/>
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
-    <addaction name="action_Show_Folders_In_List" />
+    <addaction name="action_Show_Folders_In_List"/>
     <addaction name="separator"/>
     <addaction name="menu_Reset_Window_Size"/>
     <addaction name="menu_View_Debugging"/>

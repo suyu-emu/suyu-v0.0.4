@@ -69,6 +69,7 @@ private:
     Result ReportVisibleError(ErrorCode error_code);
     Result ReportVisibleErrorWithErrorContext(
         ErrorCode error_code, InLargeData<ErrorContext, BufferAttr_HipcMapAlias> error_context);
+    Result UnpopInData();
     Result GetMainAppletApplicationDesiredLanguage(Out<u64> out_desired_language);
     Result GetCurrentApplicationId(Out<u64> out_application_id);
     Result GetMainAppletAvailableUsers(Out<bool> out_can_select_any_user, Out<s32> out_users_count,

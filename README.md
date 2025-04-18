@@ -1,13 +1,16 @@
 <!--
 SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 SPDX-FileCopyrightText: 2024 suyu Emulator Project
+SPDX-FileCopyrightText: 2025 CharlieDoesStuff
 SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
 **Note**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We're in need of developers. Please join our Discord server below if you want to contribute!
-This repo is based on Yuzu EA 4176.
+We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git and 
+This repo is currently based on Yuzu EA 4176 (with multiple commits borrowed from the Sudachi, Torzu, Ziunx, Citron/Uzuy and Nozomi projects) but the code will be "evolved" from the ground up to combat legal and performance related concerns.
+
+Our only website is suyu.dev so please be cautious when using other sites offering downloads for builds relating to suyu and other emulators.
 
 <hr />
 
@@ -19,13 +22,15 @@ This repo is based on Yuzu EA 4176.
   <br>
 </h1>
 
-<h4 align="center"><b>suyu</b> is the continuation of the world's most popular, open-source, Nintendo Switch emulator, yuzu.
+<h4 align="center"><b>suyu</b> was the continuation of the world's most popular, open-source Nintendo Switch emulator, yuzu, but is now something more.
 <br>
-It is written in C++ with portability in mind, and we're actively working on builds for Windows, Linux and Android.
+It is written in C++ with portability in mind, and we provide builds for Windows, Linux, Android and our own operating system: SuyuOS. MacOS is in development and iOS is being considered.
+
 </h4>
 
 <p align="center">
-  <a href="https://discord.gg/suyu">Discord</a> |
+  <a href="https://chat.suyu.dev">Chat</a> |
+  <a href="https://www.reddit.com/r/suyu/">Reddit</a> |
   <a href="#status">Status</a> |
   <a href="#development">Development</a> |
   <a href="#downloads">Downloads</a> |
@@ -38,6 +43,10 @@ It is written in C++ with portability in mind, and we're actively working on bui
 ## Hardware Requirements
 [Click here to see the Hardware Requirements](https://git.suyu.dev/suyu/suyu/wiki/Hardware-Requirements)
 
+## Migrating from yuzu
+
+See [MIGRATION.md](MIGRATION.md).
+
 ## Status
 
 We currently have builds over at the [Releases](https://git.suyu.dev/suyu/suyu/releases) page.
@@ -48,10 +57,10 @@ We currently have builds over at the [Releases](https://git.suyu.dev/suyu/suyu/r
 
 This project is completely free and open source, and anyone can contribute to help improve suyu.
 
-Most of the development happens on GitLab. For development discussion, please join us on [Discord](https://discord.gg/suyu).
+Most of the development happens on Git. For development discussion, please join us in our [Chat](https://chat.suyu.dev) or [Subreddit](reddit.com/r/suyu/), you can also contact a developer.
 
 If you want to contribute, please take a look at the [Contributor's Guide](https://git.suyu.dev/suyu/suyu/wiki/Contributing) and [Developer Information](https://git.suyu.dev/suyu/suyu/wiki/Developer-Information).
-You can also contact any of the developers on Discord to learn more about the current state of suyu.
+You can also contact any of the developers on the Chat to learn more about the current state of suyu.
 
 ## Downloads
 
@@ -59,25 +68,27 @@ You can also contact any of the developers on Discord to learn more about the cu
 * __Linux__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __macOS__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
 * __Android__: [Releases](https://git.suyu.dev/suyu/suyu/releases)
+###### We currently do not provide builds for iOS, however if you would like, you could try the experimental [Sudachi Emulator](https://sudachi.emuplace.app/) and it's bigger parent project: [Folium](https://apps.apple.com/us/app/folium/id6498623389).
 
-If you want daily builds then [Click here](https://git.suyu.dev/suyu/suyu/actions)
+If you want daily builds then [Click here](https://git.suyu.dev/suyu/suyu/actions).
 If you don't know how to download the daily builds then [Click here](https://git.suyu.dev/suyu/suyu/raw/branch/dev/img/daily-builds.png)
-Right now we only have daily builds for Linux and Android.
 
-We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases) If any website or person is claiming to have a build for suyu, take that with a grain of salt.
+We have official builds [here.](https://git.suyu.dev/suyu/suyu/releases)<br>If any website or person is claiming to have a build for suyu, take that with a grain of salt and let us know.
+
+For Multiplayer, we recommend using the "Yuzu Online" patch, install instructions can be found on Reddit and their Discord, although any online patches/hacks for Yuzu or any of it's forks should work fine with suyu.
 
 ## Building
 
 * __Windows__: [Windows Build](https://git.suyu.dev/suyu/suyu/wiki/Building-For-Windows)
 * __Linux__: [Linux Build](https://git.suyu.dev/suyu/suyu/wiki/Building-For-Linux)
 * __Android__: [Android Build](https://git.suyu.dev/suyu/suyu/wiki/Building-For-Android)
-* __macOS__: [macOS Build](https://git.suyu.dev/suyu/suyu/wiki/Building-for-macOS)
+* __MacOS__: [MacOS Build](https://git.suyu.dev/suyu/suyu/wiki/Building-for-macOS)
 
 
 
 ## Support
 
-If you have any questions, don't hesitate to ask us on [Discord](https://discord.gg/suyu). We don't bite!
+If you have any questions, don't hesitate to ask us in our [Chat](https://chat.suyu.dev) or [Subreddit](https://www.reddit.com/r/suyu/), make an issue or contact a developer. We don't bite!
 
 
 ## License

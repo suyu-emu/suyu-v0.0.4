@@ -14,5 +14,6 @@ std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat fra
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format);
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format);
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeArea(const Device& device, VkFormat frame_format);
 
 } // namespace Vulkan

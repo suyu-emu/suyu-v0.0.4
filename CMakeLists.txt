@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-FileCopyrightText: 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 cmake_minimum_required(VERSION 3.22)
@@ -31,7 +32,7 @@ option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT6 "Allow usage of Qt6 to be attempted" OFF)
 set(QT6_LOCATION "" CACHE PATH "Additional Location to search for Qt6 libraries like C:/Qt/6.3.1/msvc2019_64/")
 
-option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
+option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" ON)
 CMAKE_DEPENDENT_OPTION(SUYU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
@@ -39,6 +40,8 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(SUYU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
 option(SUYU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+
+option(SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
 
 option(SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 
@@ -57,6 +60,8 @@ option(SUYU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 option(SUYU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 CMAKE_DEPENDENT_OPTION(SUYU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
+
+option(SUZU_CMD "Compile the -cmd executable (can disable if -cmd is unused)" ON)
 
 CMAKE_DEPENDENT_OPTION(SUYU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
@@ -279,8 +284,6 @@ endif()
 # Configure C++ standard
 # ===========================
 
-# boost asio's concept usage doesn't play nicely with some compilers yet.
-add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
 if (MSVC)
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++20>)
 
@@ -318,6 +321,11 @@ endif()
 
 if (NOT SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     find_package(VulkanUtilityLibraries REQUIRED)
+endif()
+
+if (NOT SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
 endif()
 
 if (ENABLE_LIBUSB)
@@ -705,10 +713,10 @@ if (SUYU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     find_program(MOLD mold)
 
     if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-        message(NOTICE "Selecting mold as linker")
+        message(STATUS "Selecting mold as linker")
         add_link_options("-fuse-ld=mold")
     elseif (LLD)
-        message(NOTICE "Selecting lld as linker")
+        message(STATUS "Selecting lld as linker")
         add_link_options("-fuse-ld=lld")
     endif()
 endif()
@@ -732,14 +740,14 @@ endif()
 # https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 # https://www.freedesktop.org/software/appstream/docs/
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/org.suyu_emu.suyu.desktop"
+    install(FILES "dist/dev.suyu_emu.suyu.desktop"
             DESTINATION "share/applications")
     install(FILES "dist/suyu.svg"
             DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "org.suyu_emu.suyu.svg")
-    install(FILES "dist/org.suyu_emu.suyu.xml"
+            RENAME "dev.suyu_emu.suyu.svg")
+    install(FILES "dist/dev.suyu_emu.suyu.xml"
             DESTINATION "share/mime/packages")
-    install(FILES "dist/org.suyu_emu.suyu.metainfo.xml"
+    install(FILES "dist/dev.suyu_emu.suyu.metainfo.xml"
             DESTINATION "share/metainfo")
 endif()
 

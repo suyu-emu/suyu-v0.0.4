@@ -6,14 +6,14 @@
 # Exit on error, rather than continuing with the rest of the script.
 set -e
 
-ccache -sv
+ccache -s
+
+git submodule update --init --recursive
 
 mkdir build || true && cd build
 cmake .. \
       -DBoost_USE_STATIC_LIBS=ON \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-			-DSUYU_USE_PRECOMPILED_HEADERS=OFF \
-			-DDYNARMIC_USE_PRECOMPILED_HEADERS=OFF \
       -DCMAKE_CXX_FLAGS="-march=x86-64-v2" \
       -DCMAKE_CXX_COMPILER=/usr/local/bin/g++ \
       -DCMAKE_C_COMPILER=/usr/local/bin/gcc \
@@ -26,7 +26,6 @@ cmake .. \
       -DSUYU_USE_BUNDLED_FFMPEG=ON \
       -DSUYU_ENABLE_LTO=OFF \
       -DSUYU_CRASH_DUMPS=ON \
-      -DSUYU_USE_FASTER_LD=ON \
       -GNinja
 
 ninja
@@ -52,9 +51,9 @@ DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/suyu-cmd AppDir/usr/bin/suyu-tester
 
 # Download tools needed to build an AppImage
-wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/deploy-linux.sh
-wget -nc https://gitlab.com/suyu-emu/ext-linux-bin/-/raw/main/appimage/exec-x86_64.so
-wget -nc https://gitlab.com/suyu-emu/AppImageKit-checkrt/-/raw/old/AppRun.sh
+wget -nc https://git.suyu.dev/suyu/ext-linux-bin/raw/branch/main/appimage/deploy-linux.sh
+wget -nc https://git.suyu.dev/suyu/ext-linux-bin/raw/branch/main/appimage/exec-x86_64.so
+wget -nc https://git.suyu.dev/suyu/AppImageKit-checkrt/raw/branch/gh-workflow/AppRun
 
 # Set executable bit
 chmod 755 \

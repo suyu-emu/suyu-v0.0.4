@@ -69,7 +69,7 @@ void ConfigureApplets::Setup(const ConfigurationShared::Builder& builder) {
 
         applets_hold.emplace(setting->Id(), widget);
     }
-    for (const auto& [label, widget] : applets_hold) {
+    for (const auto& [_, widget] : applets_hold) {
         library_applets_layout.addWidget(widget);
     }
 }

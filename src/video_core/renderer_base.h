@@ -12,6 +12,7 @@
 #include "core/frontend/framebuffer_layout.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/optimized_rasterizer.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -44,6 +45,8 @@ public:
     virtual std::vector<u8> GetAppletCaptureBuffer() = 0;
 
     [[nodiscard]] virtual RasterizerInterface* ReadRasterizer() = 0;
+
+    [[nodiscard]] virtual OptimizedRasterizer* ReadOptimizedRasterizer() = 0;
 
     [[nodiscard]] virtual std::string GetDeviceVendor() const = 0;
 

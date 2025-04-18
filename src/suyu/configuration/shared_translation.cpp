@@ -1,4 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "suyu/configuration/shared_translation.h"
@@ -71,6 +73,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
               "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
               "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
               "maximum your PC can reach."));
+    INSERT(Settings, sync_core_speed, tr("Synchronize core speed"),
+           tr("Synchronizes CPU core speed to game's maximum rendering speed, which can be useful to "
+              "increase FPS without increasing the actual speed of the game (animations, physics, etc.)\n"
+              "It's up to each game if it plays well with this or not. Most games (specially original ones) "
+              "simply ignore this.\nThis can help play the game stutter-free at a lower framerate."));
 
     // Cpu
     INSERT(Settings, cpu_accuracy, tr("Accuracy:"),
@@ -143,6 +150,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            tr("Allows saving shaders to storage for faster loading on following game "
               "boots.\nDisabling "
               "it is only intended for debugging."));
+    INSERT(Settings, optimize_spirv_output, tr("Optimize SPIRV output shader"),
+           tr("Runs an additional optimization pass over generated SPIRV shaders.\n"
+              "Will increase time required for shader compilation.\nMay slightly improve "
+              "performance.\nThis feature is experimental."));
     INSERT(
         Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
         tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
@@ -166,9 +177,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "negatively affecting image quality."));
     INSERT(Settings, vram_usage_mode, tr("VRAM Usage Mode:"),
            tr("Selects whether the emulator should prefer to conserve memory or make maximum usage "
-              "of available video memory for performance. Has no effect on integrated graphics. "
+              "of available video memory for performance.\n"
               "Aggressive mode may severely impact the performance of other applications such as "
-              "recording software."));
+              "recording software.\n"
+              "Has no effect on integrated graphics."));
     INSERT(
         Settings, vsync_mode, tr("VSync Mode:"),
         tr("FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "
@@ -331,6 +343,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(RendererBackend, OpenGL, tr("OpenGL")),
 #endif
                               PAIR(RendererBackend, Vulkan, tr("Vulkan")),
+#ifdef __APPLE__
+                              PAIR(RendererBackend, Metal, tr("Metal")),
+#endif
                               PAIR(RendererBackend, Null, tr("Null")),
                           }});
     translations->insert(
@@ -393,6 +408,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(ScalingFilter, Gaussian, tr("Gaussian")),
                               PAIR(ScalingFilter, ScaleForce, tr("ScaleForce")),
                               PAIR(ScalingFilter, Fsr, tr("AMD FidelityFX™️ Super Resolution")),
+                              PAIR(ScalingFilter, Area, tr("Area")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::AntiAliasing>::Index(),
                           {
@@ -516,6 +532,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(MemoryLayout, Memory_4Gb, tr("4GB DRAM (Default)")),
                               PAIR(MemoryLayout, Memory_6Gb, tr("6GB DRAM (Unsafe)")),
                               PAIR(MemoryLayout, Memory_8Gb, tr("8GB DRAM (Unsafe)")),
+                              PAIR(MemoryLayout, Memory_12Gb, tr("12GB DRAM (Unsafe)")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::ConsoleMode>::Index(),
                           {

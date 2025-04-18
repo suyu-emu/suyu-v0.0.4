@@ -25,7 +25,7 @@ constexpr std::size_t GetMaximumOverheadSize(std::size_t size) {
 }
 
 constexpr std::size_t MainMemorySize = 4_GiB;
-constexpr std::size_t MainMemorySizeMax = 8_GiB;
+constexpr std::size_t MainMemorySizeMax = 12_GiB;
 
 constexpr std::size_t ReservedEarlyDramSize = 384_KiB;
 constexpr std::size_t DramPhysicalAddress = 0x80000000;

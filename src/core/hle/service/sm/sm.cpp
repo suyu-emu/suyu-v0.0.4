@@ -28,7 +28,7 @@ ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {
 }
 
 ServiceManager::~ServiceManager() {
-    for (auto& [name, port] : service_ports) {
+    for (auto& [_, port] : service_ports) {
         port->Close();
     }
 
