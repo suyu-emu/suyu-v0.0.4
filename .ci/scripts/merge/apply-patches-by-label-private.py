@@ -4,7 +4,8 @@
 # Download all pull requests as patches that match a specific label
 # Usage: python download-patches-by-label.py <Label to Match> <Root Path Folder to DL to>
 
-import requests, sys, json, shutil, subprocess, os, traceback
+import sys, json, shutil, subprocess, os, traceback
+from security import safe_requests
 
 org = os.getenv("PRIVATEMERGEORG", "suyu-emu")
 repo = os.getenv("PRIVATEMERGEREPO", "suyu-private")
@@ -17,7 +18,7 @@ TAG_NAME = sys.argv[2]
 
 def check_individual(repo_id, pr_id):
     url = 'https://%sdev.azure.com/%s/%s/_apis/git/repositories/%s/pullRequests/%s/labels?api-version=5.1-preview.1' % (user, org, repo, repo_id, pr_id)
-    response = requests.get(url)
+    response = safe_requests.get(url)
     if (response.ok):
         try:
             js = response.json()
@@ -34,7 +35,7 @@ def merge_pr(pn, ref):
 
 def main():
     url = 'https://%sdev.azure.com/%s/%s/_apis/git/pullrequests?api-version=5.1' % (user, org, repo)
-    response = requests.get(url)
+    response = safe_requests.get(url)
     if (response.ok):
         js = response.json()
         tagged_prs = filter(lambda pr: check_individual(pr['repository']['id'], pr['pullRequestId']), js['value'])
