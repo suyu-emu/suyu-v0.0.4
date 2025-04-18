@@ -1542,11 +1542,12 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Show_Folders_In_List, &GMainWindow::OnToggleFoldersInList);
 
     connect_menu(ui->action_Reset_Window_Size_720, &GMainWindow::ResetWindowSize720);
+    connect_menu(ui->action_Reset_Window_Size_800, &GMainWindow::ResetWindowSize800);
     connect_menu(ui->action_Reset_Window_Size_900, &GMainWindow::ResetWindowSize900);
     connect_menu(ui->action_Reset_Window_Size_1080, &GMainWindow::ResetWindowSize1080);
-    ui->menu_Reset_Window_Size->addActions({ui->action_Reset_Window_Size_720,
-                                            ui->action_Reset_Window_Size_900,
-                                            ui->action_Reset_Window_Size_1080});
+    ui->menu_Reset_Window_Size->addActions(
+        {ui->action_Reset_Window_Size_720, ui->action_Reset_Window_Size_800,
+         ui->action_Reset_Window_Size_900, ui->action_Reset_Window_Size_1080});
 
     // Multiplayer
     connect(ui->action_View_Lobby, &QAction::triggered, multiplayer_state,
@@ -3715,6 +3716,14 @@ void GMainWindow::ResetWindowSize(u32 width, u32 height) {
 
 void GMainWindow::ResetWindowSize720() {
     ResetWindowSize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
+}
+
+void GMainWindow::ResetWindowSize800() {
+    if (!ui->action_Single_Window_Mode->isChecked()) {
+        render_window->resize(1280, 800);
+    } else {
+        resize(1280, 800);
+    }
 }
 
 void GMainWindow::ResetWindowSize900() {
