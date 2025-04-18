@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-FileCopyrightText: 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 cmake_minimum_required(VERSION 3.22)
@@ -39,6 +40,8 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(SUYU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
 option(SUYU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+
+option(SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
 
 option(SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 
@@ -318,6 +321,11 @@ endif()
 
 if (NOT SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     find_package(VulkanUtilityLibraries REQUIRED)
+endif()
+
+if (NOT SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
 endif()
 
 if (ENABLE_LIBUSB)

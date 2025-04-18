@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Dynarmic has cmake_minimum_required(3.12) and we may want to override
@@ -158,6 +160,11 @@ endif()
 # Vulkan-Utility-Libraries
 if (SUYU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
     add_subdirectory(Vulkan-Utility-Libraries)
+endif()
+
+# SPIRV-Tools
+if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    add_subdirectory(SPIRV-Tools)
 endif()
 
 # TZDB (Time Zone Database)

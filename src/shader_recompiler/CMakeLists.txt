@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(shader_recompiler STATIC
@@ -242,7 +244,13 @@ add_library(shader_recompiler STATIC
     varying_state.h
 )
 
-target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit)
+if (SUYU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    set(SPIRV_TOOLS_LIBRARY SPIRV-Tools-opt)
+else()
+    set(SPIRV_TOOLS_LIBRARY SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)
+endif()
+
+target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit ${SPIRV_TOOLS_LIBRARY})
 
 if (MSVC)
     target_compile_options(shader_recompiler PRIVATE
