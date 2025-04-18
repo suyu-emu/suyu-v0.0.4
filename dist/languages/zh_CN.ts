@@ -783,8 +783,10 @@ This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but 
         <translation>VRAM 使用模式：</translation>
     </message>
     <message>
-        <location filename="../../src/suyu/configuration/shared_translation.cpp" line="168"/>
-        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance. Has no effect on integrated graphics. Aggressive mode may severely impact the performance of other applications such as recording software.</source>
+        <location filename="../../src/suzu/configuration/shared_translation.cpp" line="168"/>
+        <source>Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.
+Aggressive mode may severely impact the performance of other applications such as recording software.
+Has no effect on integrated graphics.</source>
         <translation>指定模拟器使用 VRAM 的方式。此选项对核芯显卡没有影响。
 保守模式：模拟器更倾向于节省 VRAM。
 激进模式：最大限度利用 VRAM 来提高性能。

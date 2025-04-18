@@ -459,8 +459,8 @@ int Java_dev_suyu_suyu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
         auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
-                                                   Common::Android::ToJDouble(env, max),
-                                                   Common::Android::ToJDouble(env, progress));
+                                                   Common::Android::ToJLong(env, max),
+                                                   Common::Android::ToJLong(env, progress));
         return Common::Android::GetJBoolean(env, jwasCancelled);
     };
 
@@ -525,6 +525,7 @@ jboolean JNICALL Java_dev_suyu_suyu_1emu_utils_GpuDriverHelper_supportsCustomDri
 
 jobjectArray Java_dev_suyu_suyu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
     JNIEnv* env, jobject j_obj, jobject j_surf, jstring j_hook_lib_dir) {
+#ifdef ARCHITECTURE_arm64
     const char* file_redirect_dir_{};
     int featureFlags{};
     std::string hook_lib_dir = Common::Android::GetJString(env, j_hook_lib_dir);
@@ -553,6 +554,11 @@ jobjectArray Java_dev_suyu_suyu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
     env->SetObjectArrayElement(j_driver_info, 1,
                                Common::Android::ToJString(env, device.GetDriverName()));
     return j_driver_info;
+#else
+    jobjectArray j_driver_info = env->NewObjectArray(
+        2, Common::Android::GetStringClass(), Common::Android::ToJString(env, "UNKNOWN"));
+    return j_driver_info;
+#endif
 }
 
 jboolean Java_dev_suyu_suyu_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclass clazz) {
@@ -785,8 +791,8 @@ jobjectArray Java_dev_suyu_suyu_1emu_NativeLibrary_verifyInstalledContents(JNIEn
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
         auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
-                                                   Common::Android::ToJDouble(env, max),
-                                                   Common::Android::ToJDouble(env, progress));
+                                                   Common::Android::ToJLong(env, max),
+                                                   Common::Android::ToJLong(env, progress));
         return Common::Android::GetJBoolean(env, jwasCancelled);
     };
 
@@ -808,8 +814,8 @@ jint Java_dev_suyu_suyu_1emu_NativeLibrary_verifyGameContents(JNIEnv* env, jobje
         jlambdaClass, "invoke", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     const auto callback = [env, jcallback, jlambdaInvokeMethod](size_t max, size_t progress) {
         auto jwasCancelled = env->CallObjectMethod(jcallback, jlambdaInvokeMethod,
-                                                   Common::Android::ToJDouble(env, max),
-                                                   Common::Android::ToJDouble(env, progress));
+                                                   Common::Android::ToJLong(env, max),
+                                                   Common::Android::ToJLong(env, progress));
         return Common::Android::GetJBoolean(env, jwasCancelled);
     };
     auto& session = EmulationSession::GetInstance();

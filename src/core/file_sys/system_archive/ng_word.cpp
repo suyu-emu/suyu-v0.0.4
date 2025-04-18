@@ -10,7 +10,7 @@ namespace FileSys::SystemArchive {
 
 namespace NgWord1Data {
 
-constexpr std::size_t NUMBER_WORD_TXT_FILES = 0x10;
+[[maybe_unused]] constexpr std::size_t NUMBER_WORD_TXT_FILES = 0x10;
 
 // Should this archive replacement mysteriously not work on a future game, consider updating.
 constexpr std::array<u8, 4> VERSION_DAT{0x0, 0x0, 0x0, 0x20}; // 11.0.1 System Version

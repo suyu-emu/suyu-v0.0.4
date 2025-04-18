@@ -20,6 +20,9 @@ jobject ToJDouble(JNIEnv* env, double value);
 s32 GetJInteger(JNIEnv* env, jobject jinteger);
 jobject ToJInteger(JNIEnv* env, s32 value);
 
+s64 GetJLong(JNIEnv* env, jobject jlong);
+jobject ToJLong(JNIEnv* env, s64 value);
+
 bool GetJBoolean(JNIEnv* env, jobject jboolean);
 jobject ToJBoolean(JNIEnv* env, bool value);
 
