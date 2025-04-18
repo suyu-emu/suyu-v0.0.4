@@ -11,7 +11,7 @@ BUILD_FLAVOR="mainline"
 
 BUILD_TYPE_LOWER="release"
 BUILD_TYPE_UPPER="Release"
-if [ "${GITHUB_REPOSITORY}" == "suyu-emu/suyu" ]; then
+if [ "${GITHUB_REPOSITORY}" == "suyu/suyu" ]; then
     BUILD_TYPE_LOWER="relWithDebInfo"
     BUILD_TYPE_UPPER="RelWithDebInfo"
 fi

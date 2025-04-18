@@ -23,4 +23,9 @@ void LoopProcess(Core::System& system) {
     ServerManager::RunServer(std::move(server_manager));
 }
 
+bool IsFirmwareVersionSupported(u32 version) {
+    // Add support for firmware version 18.0.0
+    return version <= 180000; // 18.0.0 = 180000
+}
+
 } // namespace Service::Set

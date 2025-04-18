@@ -40,6 +40,7 @@ static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map
     {Settings::ScalingFilter::ScaleForce,
      QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "ScaleForce"))},
     {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "FSR"))},
+    {Settings::ScalingFilter::Area, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Area"))},
 };
 
 static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map = {
@@ -56,6 +57,9 @@ static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map = {
 static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map = {
     {Settings::RendererBackend::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Vulkan"))},
     {Settings::RendererBackend::OpenGL, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL"))},
+#ifdef __APPLE__
+    {Settings::RendererBackend::Metal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Metal"))},
+#endif
     {Settings::RendererBackend::Null, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Null"))},
 };
 

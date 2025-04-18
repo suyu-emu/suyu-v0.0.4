@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
@@ -87,7 +87,7 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
     std::vector<PlayTimeElement> elements;
     elements.reserve(play_time_db.size());
 
-    for (auto& [program_id, play_time] : play_time_db) {
+    for (const auto& [program_id, play_time] : play_time_db) {
         if (program_id != 0) {
             elements.push_back(PlayTimeElement{program_id, play_time});
         }

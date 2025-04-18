@@ -9,6 +9,7 @@
 #include <thread>
 
 #include <boost/algorithm/string.hpp>
+#include <fmt/ranges.h>
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
@@ -481,6 +482,7 @@ void GDBStub::HandleQuery(std::string_view command) {
         // beginning of list
         const auto& threads = GetProcess()->GetThreadList();
         std::vector<std::string> thread_ids;
+        thread_ids.reserve(threads.size());
         for (const auto& thread : threads) {
             thread_ids.push_back(fmt::format("{:x}", thread.GetThreadId()));
         }

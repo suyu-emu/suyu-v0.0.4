@@ -63,11 +63,11 @@ void ServiceFrameworkBase::RegisterHandlersBaseTipc(const FunctionInfoBase* func
 void ServiceFrameworkBase::ReportUnimplementedFunction(HLERequestContext& ctx,
                                                        const FunctionInfoBase* info) {
     auto cmd_buf = ctx.CommandBuffer();
-    std::string function_name = info == nullptr ? fmt::format("{}", ctx.GetCommand()) : info->name;
+    std::string function_name = info == nullptr ? "<unknown>" : info->name;
 
     fmt::memory_buffer buf;
-    fmt::format_to(std::back_inserter(buf), "function '{}': port='{}' cmd_buf={{[0]=0x{:X}",
-                   function_name, service_name, cmd_buf[0]);
+    fmt::format_to(std::back_inserter(buf), "function '{}({})': port='{}' cmd_buf={{[0]=0x{:X}",
+                   ctx.GetCommand(), function_name, service_name, cmd_buf[0]);
     for (int i = 1; i <= 8; ++i) {
         fmt::format_to(std::back_inserter(buf), ", [{}]=0x{:X}", i, cmd_buf[i]);
     }

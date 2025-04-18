@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/glue/time/static.h"
@@ -15,6 +15,7 @@
 #endif
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"

@@ -24,7 +24,6 @@ using Common::SlotVector;
 using VideoCommon::ImageId;
 using VideoCommon::NUM_RT;
 using VideoCommon::Region2D;
-using VideoCommon::RenderTargets;
 using VideoCore::Surface::PixelFormat;
 
 class BlitImageHelper;
@@ -157,11 +156,15 @@ public:
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     [[nodiscard]] VkImage Handle() const noexcept {
-        return current_image;
+        return *(this->*current_image);
     }
 
     [[nodiscard]] VkImageAspectFlags AspectMask() const noexcept {
         return aspect_mask;
+    }
+
+    [[nodiscard]] VkImageUsageFlags UsageFlags() const noexcept {
+        return (this->*current_image).UsageFlags();
     }
 
     /// Returns true when the image is already initialized and mark it as initialized
@@ -186,11 +189,15 @@ private:
     TextureCacheRuntime* runtime{};
 
     vk::Image original_image;
+    vk::Image scaled_image;
+
+    // Use a pointer to field because it is relative, so that the object can be
+    // moved without breaking the reference.
+    vk::Image Image::*current_image{};
+
     std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
-    vk::Image scaled_image{};
-    VkImage current_image{};
 
     std::unique_ptr<Framebuffer> scale_framebuffer;
     std::unique_ptr<ImageView> scale_view;

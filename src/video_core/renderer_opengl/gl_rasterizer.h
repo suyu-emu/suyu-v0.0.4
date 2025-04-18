@@ -23,6 +23,7 @@
 #include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
+#include "video_core/optimized_rasterizer.h"
 
 namespace Core::Memory {
 class Memory;
@@ -72,8 +73,7 @@ private:
     TextureCache& texture_cache;
 };
 
-class RasterizerOpenGL : public VideoCore::RasterizerInterface,
-                         protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
+class RasterizerOpenGL : public VideoCore::OptimizedRasterizer {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Tegra::MaxwellDeviceMemoryManager& device_memory_,

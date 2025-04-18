@@ -40,3 +40,6 @@ Thumbs.db
 
 # Local Gitlab CI Runner
 .gitlab-ci-local/
+
+# clangd compile_commands.json
+compile_commands.json

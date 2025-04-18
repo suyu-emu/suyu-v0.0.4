@@ -10,6 +10,7 @@ namespace OpenGL {
 constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
+constexpr GLint ScreenSizeLocation = 1;
 
 struct ScreenRectVertex {
     constexpr ScreenRectVertex() = default;

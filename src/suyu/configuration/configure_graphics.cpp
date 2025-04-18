@@ -225,7 +225,7 @@ void ConfigureGraphics::PopulateVSyncModeSelection(bool use_setting) {
 
 void ConfigureGraphics::UpdateVsyncSetting() const {
     const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
-    if (backend == Settings::RendererBackend::Null) {
+    if (backend == Settings::RendererBackend::Null || vsync_mode_combobox_enum_map.empty()) {
         return;
     }
 
@@ -358,7 +358,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
         }
     }
 
-    for (const auto& [id, widget] : hold_graphics) {
+    for (const auto& [_, widget] : hold_graphics) {
         graphics_layout.addWidget(widget);
     }
 
@@ -466,6 +466,9 @@ void ConfigureGraphics::ApplyConfiguration() {
             Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
             Settings::values.vulkan_device.SetValue(vulkan_device_combobox->currentIndex());
             break;
+        case Settings::RendererBackend::Metal:
+            // TODO
+            break;
         case Settings::RendererBackend::Null:
             break;
         }
@@ -487,11 +490,8 @@ void ConfigureGraphics::RetranslateUI() {
 void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
     bg_color = color;
 
-    QPixmap pixmap(ui->bg_button->size());
-    pixmap.fill(bg_color);
-
-    const QIcon color_icon(pixmap);
-    ui->bg_button->setIcon(color_icon);
+    ui->bg_button->setStyleSheet(
+        QStringLiteral("background-color: %1; min-width: 80px;").arg(bg_color.name()));
 }
 
 void ConfigureGraphics::UpdateAPILayout() {

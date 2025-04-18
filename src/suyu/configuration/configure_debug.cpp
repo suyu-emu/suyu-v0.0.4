@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2016 Citra Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QDesktopServices>
@@ -73,6 +73,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_loop_safety_checks->setChecked(
         Settings::values.disable_shader_loop_safety_checks.GetValue());
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
+    ui->log_async->setChecked(Settings::values.log_async.GetValue());
     ui->perform_vulkan_check->setChecked(Settings::values.perform_vulkan_check.GetValue());
 
 #ifdef SUYU_USE_QT_WEB_ENGINE
@@ -111,10 +112,11 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.extended_logging = ui->extended_logging->isChecked();
     Settings::values.perform_vulkan_check = ui->perform_vulkan_check->isChecked();
     UISettings::values.disable_web_applet = ui->disable_web_applet->isChecked();
-    Debugger::ToggleConsole();
+    DebuggerYuzu::ToggleConsole();
     Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter.GetValue());
     Common::Log::SetGlobalFilter(filter);
+    Settings::values.log_async = ui->log_async->isChecked();
 }
 
 void ConfigureDebug::changeEvent(QEvent* event) {

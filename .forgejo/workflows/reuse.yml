@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+# SPDX-FileCopyrightText: 2024 suyu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Actions Documentation: https://forgejo.org/docs/next/user/actions/#list-of-tasks-in-a-repository
+
+name: suyu-ci
+
+on:
+  push:
+    branches: [ "dev" ]
+    tags: [ "*" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+#   transifex:
+#     runs-on: ubuntu-latest
+#     container: fijxu/build-environments:linux-transifex
+#     if: ${{ GITHUB_REPOSITORY == 'suyu/suyu' && !GITHUB_HEAD_REF }}
+#     steps:
+#       - uses: https://code.forgejo.org/actions/checkout@v3
+#         with:
+#           submodules: recursive
+#           fetch-depth: 0
+#       - name: Update Translation
+#         run: ./.ci/scripts/transifex/docker.sh
+#         env:
+#           TX_TOKEN: ${{ secrets.TRANSIFEX_API_TOKEN }}
+
+  reuse:
+    name: Check REUSE Specification
+    runs-on: docker
+    if: ${{ github.repository == 'suyu/suyu' }}
+    steps:
+    - uses: https://code.forgejo.org/actions/checkout@v3
+    - uses: https://github.com/fsfe/reuse-action@v1
+

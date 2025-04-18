@@ -63,7 +63,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
         {19, D<&ILibraryAppletSelfAccessor::GetDesirableKeyboardLayout>, "GetDesirableKeyboardLayout"},
         {20, nullptr, "PopExtraStorage"},
         {25, nullptr, "GetPopExtraStorageEvent"},
-        {30, nullptr, "UnpopInData"},
+        {30, D<&ILibraryAppletSelfAccessor::UnpopInData>, "UnpopInData"},
         {31, nullptr, "UnpopExtraStorage"},
         {40, nullptr, "GetIndirectLayerProducerHandle"},
         {50, D<&ILibraryAppletSelfAccessor::ReportVisibleError>, "ReportVisibleError"},
@@ -220,6 +220,11 @@ Result ILibraryAppletSelfAccessor::ReportVisibleErrorWithErrorContext(
     ErrorCode error_code, InLargeData<ErrorContext, BufferAttr_HipcMapAlias> error_context) {
     LOG_WARNING(Service_AM, "(STUBBED) called, error {}-{}", error_code.category,
                 error_code.number);
+    R_SUCCEED();
+}
+
+Result ILibraryAppletSelfAccessor::UnpopInData() {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
     R_SUCCEED();
 }
 

@@ -164,7 +164,7 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
         }
     }
 
-    for (const auto& [id, widget] : hold) {
+    for (const auto& [_, widget] : hold) {
         layout.addWidget(widget);
     }
 }

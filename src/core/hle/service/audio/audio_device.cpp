@@ -27,8 +27,15 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
         {10, D<&IAudioDevice::GetActiveAudioDeviceNameAuto>, "GetActiveAudioDeviceNameAuto"},
         {11, D<&IAudioDevice::QueryAudioDeviceInputEvent>, "QueryAudioDeviceInputEvent"},
         {12, D<&IAudioDevice::QueryAudioDeviceOutputEvent>, "QueryAudioDeviceOutputEvent"},
-        {13, D<&IAudioDevice::GetActiveAudioDeviceName>, "GetActiveAudioOutputDeviceName"},
-        {14, D<&IAudioDevice::ListAudioOutputDeviceName>, "ListAudioOutputDeviceName"},
+        {13, D<&IAudioDevice::GetActiveAudioDeviceName>,
+         "GetActiveAudioOutputDeviceName"},                                             // 13.0.0+
+        {14, D<&IAudioDevice::ListAudioOutputDeviceName>, "ListAudioOutputDeviceName"}, // 13.0.0+
+        {15, nullptr, "AcquireAudioInputDeviceNotification"},                           // 17.0.0+
+        {16, nullptr, "ReleaseAudioInputDeviceNotification"},                           // 17.0.0+
+        {17, nullptr, "AcquireAudioOutputDeviceNotification"},                          // 17.0.0+
+        {18, nullptr, "ReleaseAudioOutputDeviceNotification"},                          // 17.0.0+
+        {19, nullptr, "SetAudioDeviceOutputVolumeAutoTuneEnabled"},                     // 18.0.0+
+        {20, nullptr, "IsAudioDeviceOutputVolumeAutoTuneEnabled"}                       // 18.0.0+
     };
     RegisterHandlers(functions);
 

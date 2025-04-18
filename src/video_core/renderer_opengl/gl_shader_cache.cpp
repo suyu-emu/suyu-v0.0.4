@@ -1,4 +1,6 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <atomic>
@@ -537,7 +539,9 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
             break;
         case Settings::ShaderBackend::SpirV:
             ConvertLegacyToGeneric(program, runtime_info);
-            sources_spirv[stage_index] = EmitSPIRV(profile, runtime_info, program, binding);
+            sources_spirv[stage_index] =
+                EmitSPIRV(profile, runtime_info, program, binding,
+                          Settings::values.optimize_spirv_output.GetValue());
             break;
         }
         previous_program = &program;
@@ -596,7 +600,7 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
         code = EmitGLASM(profile, info, program);
         break;
     case Settings::ShaderBackend::SpirV:
-        code_spirv = EmitSPIRV(profile, program);
+        code_spirv = EmitSPIRV(profile, program, Settings::values.optimize_spirv_output.GetValue());
         break;
     }
 

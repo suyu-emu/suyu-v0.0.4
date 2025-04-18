@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2024 sudachi Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -28,6 +29,24 @@ enum class InputTopology {
     LinesAdjacency,
     Triangles,
     TrianglesAdjacency,
+};
+
+struct InputTopologyVertices {
+    static u32 vertices(InputTopology input_topology) {
+        switch (input_topology) {
+        case InputTopology::Lines:
+            return 2;
+        case InputTopology::LinesAdjacency:
+            return 4;
+        case InputTopology::Triangles:
+            return 3;
+        case InputTopology::TrianglesAdjacency:
+            return 6;
+        case InputTopology::Points:
+        default:
+            return 1;
+        }
+    }
 };
 
 enum class CompareFunction {

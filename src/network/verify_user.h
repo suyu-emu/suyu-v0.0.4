@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2018 Citra Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once

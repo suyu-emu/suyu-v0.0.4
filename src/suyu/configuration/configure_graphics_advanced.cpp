@@ -53,7 +53,7 @@ void ConfigureGraphicsAdvanced::Setup(const ConfigurationShared::Builder& builde
             checkbox_enable_compute_pipelines = widget;
         }
     }
-    for (const auto& [id, widget] : hold) {
+    for (const auto& [_, widget] : hold) {
         layout.addWidget(widget);
     }
 }

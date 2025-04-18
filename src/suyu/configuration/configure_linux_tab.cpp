@@ -50,7 +50,7 @@ void ConfigureLinuxTab::Setup(const ConfigurationShared::Builder& builder) {
         linux_hold.insert({setting->Id(), widget});
     }
 
-    for (const auto& [id, widget] : linux_hold) {
+    for (const auto& [_, widget] : linux_hold) {
         linux_layout.addWidget(widget);
     }
 }

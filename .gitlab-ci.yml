@@ -1,6 +1,21 @@
 stages:
   - format
   - build
+
+variables:
+  # https://docs.gitlab.com/ee/ci/runners/configure_runners.html
+  TRANSFER_METER_FREQUENCY: "2s"
+  ARTIFACT_COMPRESSION_LEVEL: "fast"
+  CACHE_COMPRESSION_LEVEL: "fastest"
+  CACHE_REQUEST_TIMEOUT: 5
+  # Use FASTZIP for faster compression in cache and artifacts (boolean)
+  # https://docs.gitlab.com/runner/configuration/feature-flags.html#available-feature-flags
+  FF_USE_FASTZIP: 1
+  
+  # Our Variables
+  CACHE_DIR: "$CI_PROJECT_DIR/ccache"
+  CCACHE_DIR: $CACHE_DIR
+
 #CLANG FORMAT - CHECKS CODE FOR FORMATTING ISSUES
 clang-format:
   stage: format
@@ -16,6 +31,7 @@ clang-format:
   #  - Windows
     - Parallelized
     - Format
+
 #LINUX BUILD - BUILDS LINUX APPIMAGE
 build-linux:
   stage: build
@@ -34,6 +50,7 @@ build-linux:
   tags:
     - Linux
     - Parallelized
+
 #ANDROID BUILD - BUILDS APK
 android:
   stage: build

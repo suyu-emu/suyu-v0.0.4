@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project & 2024 suyu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -15,6 +15,7 @@
 #define CONFIG_DIR "config"
 #define CRASH_DUMPS_DIR "crash_dumps"
 #define DUMP_DIR "dump"
+#define ICONS_DIR "icons"
 #define KEYS_DIR "keys"
 #define LOAD_DIR "load"
 #define LOG_DIR "log"
@@ -24,7 +25,7 @@
 #define SDMC_DIR "sdmc"
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"
-#define ICONS_DIR "icons"
+#define THEMES_DIR "qt_themes"
 
 // suyu-specific files
 

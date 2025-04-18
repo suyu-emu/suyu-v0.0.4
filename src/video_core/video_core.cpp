@@ -11,6 +11,9 @@
 #include "video_core/renderer_null/renderer_null.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
+#ifdef __APPLE__
+#include "video_core/renderer_metal/renderer_metal.h"
+#endif
 #include "video_core/video_core.h"
 
 namespace {
@@ -22,7 +25,9 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
 
     switch (Settings::values.renderer_backend.GetValue()) {
 #ifdef __APPLE__
-        // do nothing for now, include metal in here at later date.
+    case Settings::RendererBackend::Metal:
+        return std::make_unique<Metal::RendererMetal>(emu_window, device_memory, gpu,
+                                                      std::move(context));
 #else
         // openGL, not supported on Apple so not bothering to include if macos
     case Settings::RendererBackend::OpenGL:

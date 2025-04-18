@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-# SPDX-FileCopyrightText: 2019 yuzu Emulator Project & 2024 suyu Emulator Project
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 . .ci/scripts/common/pre-upload.sh
@@ -37,7 +37,7 @@ fi
 
 # Don't let AppImageLauncher ask to integrate EA
 if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ]; then
-    echo "X-AppImage-Integrate=false" >> AppDir/org.suyu_emu.suyu.desktop
+    echo "X-AppImage-Integrate=false" >> AppDir/dev.suyu_emu.suyu.desktop
 fi
 
 if [ "${RELEASE_NAME}" = "mainline" ]; then
