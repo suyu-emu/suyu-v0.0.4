@@ -172,6 +172,75 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
+              val enableInterpolationSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.FRAME_INTERPOLATION.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    BooleanSetting.FRAME_INTERPOLATION.getBoolean(needsGlobal)
+
+                override fun setBoolean(value: Boolean) =
+                    BooleanSetting.FRAME_INTERPOLATION.setBoolean(value)
+
+                override val defaultValue = BooleanSetting.FRAME_INTERPOLATION.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.FRAME_INTERPOLATION.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.FRAME_INTERPOLATION.reset()
+            }
+
+            val enableFrameSkippingSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.FRAME_SKIPPING.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    BooleanSetting.FRAME_SKIPPING.getBoolean(needsGlobal)
+
+                override fun setBoolean(value: Boolean) =
+                    BooleanSetting.FRAME_SKIPPING.setBoolean(value)
+
+                override val defaultValue = BooleanSetting.FRAME_SKIPPING.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.FRAME_SKIPPING.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.FRAME_SKIPPING.reset()
+            }
+
+            val syncCoreSpeedSetting = object : AbstractBooleanSetting {
+                override val key = BooleanSetting.CORE_SYNC_CORE_SPEED.key
+
+                override fun getBoolean(needsGlobal: Boolean): Boolean {
+                    return BooleanSetting.CORE_SYNC_CORE_SPEED.getBoolean(needsGlobal)
+                 }
+
+                override fun setBoolean(value: Boolean) {
+                    BooleanSetting.CORE_SYNC_CORE_SPEED.setBoolean(value)
+                 }
+
+                override val defaultValue = BooleanSetting.CORE_SYNC_CORE_SPEED.defaultValue
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.CORE_SYNC_CORE_SPEED.getValueAsString(needsGlobal)
+
+                override fun reset() = BooleanSetting.CORE_SYNC_CORE_SPEED.reset()
+             }
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.FRAME_INTERPOLATION,
+                    titleId = R.string.frame_interpolation,
+                    descriptionId = R.string.frame_interpolation_description
+                )
+            )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.FRAME_SKIPPING,
+                    titleId = R.string.frame_skipping,
+                    descriptionId = R.string.frame_skipping_description
+                )
+            )
+
             put(
                 SwitchSetting(
                     dockedModeSetting,
@@ -179,6 +248,14 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_docked_mode_description
                 )
             )
+
+            put(
+                 SwitchSetting(
+                     syncCoreSpeedSetting,
+                     titleId = R.string.use_sync_core,
+                     descriptionId = R.string.use_sync_core_description
+                 )
+             )
 
             put(
                 SingleChoiceSetting(
@@ -214,10 +291,115 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.RENDERER_SHADER_BACKEND,
+                    titleId = R.string.shader_backend,
+                    choicesId = R.array.rendererShaderNames,
+                    valuesId = R.array.rendererShaderValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_NVDEC_EMULATION,
+                    titleId = R.string.nvdec_emulation,
+                    choicesId = R.array.rendererNvdecNames,
+                    valuesId = R.array.rendererNvdecValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                IntSetting.RENDERER_ASTC_DECODE_METHOD,
+                titleId = R.string.accelerate_astc,
+                choicesId = R.array.astcDecodingMethodNames,
+                valuesId = R.array.astcDecodingMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                IntSetting.RENDERER_ASTC_RECOMPRESSION,
+                titleId = R.string.astc_recompression,
+                choicesId = R.array.astcRecompressionMethodNames,
+                valuesId = R.array.astcRecompressionMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_VRAM_USAGE_MODE,
+                    titleId = R.string.vram_usage_mode,
+                    choicesId = R.array.vramUsageMethodNames,
+                    valuesId = R.array.vramUsageMethodValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.RENDERER_RESOLUTION,
                     titleId = R.string.renderer_resolution,
                     choicesId = R.array.rendererResolutionNames,
                     valuesId = R.array.rendererResolutionValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_PERFORMANCE_OVERLAY,
+                    R.string.enable_stats_overlay_,
+                    descriptionId = R.string.stats_overlay_options_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.OVERLAY_BACKGROUND,
+                    R.string.overlay_background,
+                    descriptionId = R.string.overlay_background_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.PERF_OVERLAY_POSITION,
+                    titleId = R.string.overlay_position,
+                    descriptionId = R.string.overlay_position_description,
+                    choicesId = R.array.statsPosition,
+                    valuesId = R.array.staticThemeValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_FPS,
+                    R.string.show_fps,
+                    descriptionId = R.string.show_fps_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_FRAMETIME,
+                    R.string.show_frametime,
+                    descriptionId = R.string.show_frametime_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SPEED,
+                    R.string.show_speed,
+                    descriptionId = R.string.show_speed_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_APP_RAM_USAGE,
+                    R.string.show_app_ram_usage,
+                    descriptionId = R.string.show_app_ram_usage_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SYSTEM_RAM_USAGE,
+                    R.string.show_system_ram_usage,
+                    descriptionId = R.string.show_system_ram_usage_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_BAT_TEMPERATURE,
+                    R.string.show_bat_temperature,
+                    descriptionId = R.string.show_bat_temperature_description
                 )
             )
             put(
@@ -291,6 +473,15 @@ abstract class SettingsItem(
                     descriptionId = R.string.renderer_force_max_clock_description
                 )
             )
+            put(
+                 SingleChoiceSetting(
+                     IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
+                     titleId = R.string.renderer_optimize_spirv_output,
+                     descriptionId = 0,
+                     choicesId = R.array.optimizeSpirvOutputEntries,
+                     valuesId = R.array.optimizeSpirvOutputValues
+                 )
+             )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,

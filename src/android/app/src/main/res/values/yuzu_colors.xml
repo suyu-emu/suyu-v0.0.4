@@ -229,6 +229,7 @@
     <color name="yuzu_onErrorContainer">#410002</color>
     <color name="yuzu_shadow">#000000</color>
     <color name="yuzu_scrim">#000000</color>
+    <color name="yuzu_transparent_black">#80000000</color>
     <!-- Values used in dark mode but here are jsut white / black values-->
     <color name="yuzu_onPrimary_blue">#FFFFFF</color>
     <color name="yuzu_onSecondary_blue">#FFFFFF</color>

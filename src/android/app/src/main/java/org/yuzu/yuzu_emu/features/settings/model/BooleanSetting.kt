@@ -10,6 +10,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     CPU_DEBUG_MODE("cpu_debug_mode"),
     FASTMEM("cpuopt_fastmem"),
     FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives"),
+    CORE_SYNC_CORE_SPEED("sync_core_speed"),
     RENDERER_USE_SPEED_LIMIT("use_speed_limit"),
     USE_DOCKED_MODE("use_docked_mode"),
     RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache"),
@@ -17,6 +18,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
     RENDERER_DEBUG("debug"),
+    RENDERER_ENHANCED_SHADER_BUILDING("use_enhanced_shader_building"),
     PICTURE_IN_PICTURE("picture_in_picture"),
     USE_CUSTOM_RTC("custom_rtc_enabled"),
     BLACK_BACKGROUNDS("black_backgrounds"),
@@ -26,7 +28,19 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
-    SHOW_THERMAL_OVERLAY("show_thermal_overlay");
+    SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
+    FRAME_INTERPOLATION("frame_interpolation"),
+    FRAME_SKIPPING("frame_skipping"),
+    SHOW_FPS("show_fps"),
+    SHOW_FRAMETIME("show_frame_time"),
+    SHOW_SPEED("show_speed"),
+    SHOW_APP_RAM_USAGE("show_app_ram_usage"),
+    SHOW_SYSTEM_RAM_USAGE("show_system_ram_usage"),
+    SHOW_BAT_TEMPERATURE("show_bat_temperature"),
+    OVERLAY_BACKGROUND("overlay_background"),;
+    external fun isFrameSkippingEnabled(): Boolean
+    external fun isFrameInterpolationEnabled(): Boolean
+
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

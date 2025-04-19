@@ -1,0 +1,28 @@
+#version 450
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(binding = 0) uniform samplerBuffer astc_data;
+layout(binding = 1, rgba16f) uniform writeonly image2D output_image;
+
+// Note: This is a simplified version. Real ASTC HDR decompression is more complex
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(output_image);
+
+    if (pos.x >= size.x || pos.y >= size.y) {
+        return;
+    }
+
+    // Calculate block and pixel within block
+    ivec2 block = pos / 8; // Assuming 8x8 ASTC blocks
+    ivec2 pixel = pos % 8;
+
+    // Each ASTC block is 16 bytes
+    int block_index = block.y * (size.x / 8) + block.x;
+
+    // Simplified ASTC HDR decoding - you'll need to implement full ASTC decoding
+    vec4 color = texelFetch(astc_data, block_index * 8 + pixel.y * 8 + pixel.x);
+
+    imageStore(output_image, pos, color);
+}

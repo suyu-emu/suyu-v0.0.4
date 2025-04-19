@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <atomic>
@@ -608,9 +609,33 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
 }
 
 std::unique_ptr<ShaderWorker> ShaderCache::CreateWorkers() const {
-    return std::make_unique<ShaderWorker>(std::max(std::thread::hardware_concurrency(), 2U) - 1,
-                                          "GlShaderBuilder",
-                                          [this] { return Context{emu_window}; });
+    // Calculate optimal number of workers based on available CPU cores
+    // Leave at least 1 core for main thread and other operations
+    // Use more cores for more parallelism in shader compilation
+    const u32 num_worker_threads = std::max(std::thread::hardware_concurrency(), 2U);
+    const u32 optimal_workers = num_worker_threads <= 3 ?
+        num_worker_threads - 1 : // On dual/quad core, leave 1 core free
+        num_worker_threads - 2;  // On 6+ core systems, leave 2 cores free for other tasks
+
+    auto worker = std::make_unique<ShaderWorker>(
+        optimal_workers,
+        "GlShaderBuilder",
+        [this] {
+            auto context = Context{emu_window};
+
+            // Apply thread priority based on settings
+            // This allows users to control how aggressive shader compilation is
+            const int priority = Settings::values.shader_compilation_priority.GetValue();
+            if (priority != 0) {
+                Common::SetCurrentThreadPriority(
+                    priority > 0 ? Common::ThreadPriority::High : Common::ThreadPriority::Low);
+            }
+
+            return context;
+        }
+    );
+
+    return worker;
 }
 
 } // namespace OpenGL

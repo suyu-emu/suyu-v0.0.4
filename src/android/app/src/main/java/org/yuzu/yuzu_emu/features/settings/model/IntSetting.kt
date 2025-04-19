@@ -11,6 +11,11 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     REGION_INDEX("region_index"),
     LANGUAGE_INDEX("language_index"),
     RENDERER_BACKEND("backend"),
+    RENDERER_VRAM_USAGE_MODE("vram_usage_mode"),
+    RENDERER_SHADER_BACKEND("shader_backend"),
+    RENDERER_NVDEC_EMULATION("nvdec_emulation"),
+    RENDERER_ASTC_DECODE_METHOD("accelerate_astc"),
+    RENDERER_ASTC_RECOMPRESSION("astc_recompression"),
     RENDERER_ACCURACY("gpu_accuracy"),
     RENDERER_RESOLUTION("resolution_setup"),
     RENDERER_VSYNC("use_vsync"),
@@ -18,6 +23,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_ANTI_ALIASING("anti_aliasing"),
     RENDERER_SCREEN_LAYOUT("screen_layout"),
     RENDERER_ASPECT_RATIO("aspect_ratio"),
+    RENDERER_OPTIMIZE_SPIRV_OUTPUT("optimize_spirv_output"),
     AUDIO_OUTPUT_ENGINE("output_engine"),
     MAX_ANISOTROPY("max_anisotropy"),
     THEME("theme"),
@@ -26,6 +32,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     OVERLAY_OPACITY("control_opacity"),
     LOCK_DRAWER("lock_drawer"),
     VERTICAL_ALIGNMENT("vertical_alignment"),
+    PERF_OVERLAY_POSITION("perf_overlay_position"),
     FSR_SHARPENING_SLIDER("fsr_sharpening_slider");
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)

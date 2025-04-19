@@ -1,9 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <span>
+#include <mutex>
+#include <atomic>
+#include <string>
+#include <unordered_map>
 
 #include "video_core/texture_cache/texture_cache_base.h"
 
@@ -35,6 +40,22 @@ class Framebuffer;
 class RenderPassCache;
 class StagingBufferPool;
 class Scheduler;
+
+// Enhanced texture management for better error handling and thread safety
+class TextureCacheManager {
+public:
+    explicit TextureCacheManager();
+    ~TextureCacheManager();
+
+    VkImage GetTextureFromCache(const std::string& texture_path);
+    void ReloadTexture(const std::string& texture_path);
+    bool IsTextureLoadedCorrectly(VkImage texture);
+    void HandleTextureCache();
+
+private:
+    std::mutex texture_mutex;
+    std::unordered_map<std::string, VkImage> texture_cache;
+};
 
 class TextureCacheRuntime {
 public:
@@ -111,6 +132,15 @@ public:
 
     void BarrierFeedbackLoop();
 
+    bool IsFormatDitherable(VideoCore::Surface::PixelFormat format);
+    bool IsFormatScalable(VideoCore::Surface::PixelFormat format);
+
+    VkFormat GetSupportedFormat(VkFormat requested_format, VkFormatFeatureFlags required_features) const;
+
+    // Enhanced texture error handling
+    bool IsTextureLoadedCorrectly(VkImage texture);
+    void HandleTextureError(const std::string& texture_path);
+
     const Device& device;
     Scheduler& scheduler;
     MemoryAllocator& memory_allocator;
@@ -121,6 +151,9 @@ public:
     std::unique_ptr<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
+
+    // Enhanced texture management
+    TextureCacheManager texture_cache_manager;
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};

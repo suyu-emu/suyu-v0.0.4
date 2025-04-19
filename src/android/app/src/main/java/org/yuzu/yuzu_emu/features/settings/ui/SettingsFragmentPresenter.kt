@@ -88,6 +88,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_ROOT -> addConfigSettings(sl)
             MenuTag.SECTION_SYSTEM -> addSystemSettings(sl)
             MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
+            MenuTag.SECTION_PERFORMANCE_STATS -> addPerfomanceOverlaySettings(sl)
             MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
             MenuTag.SECTION_INPUT -> addInputSettings(sl)
             MenuTag.SECTION_INPUT_PLAYER_ONE -> addInputPlayer(sl, 0)
@@ -100,6 +101,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_INPUT_PLAYER_EIGHT -> addInputPlayer(sl, 7)
             MenuTag.SECTION_THEME -> addThemeSettings(sl)
             MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
+            MenuTag.SECTION_EDEN_VEIL -> addEdenVeilSettings(sl)
         }
         settingsList = sl
         adapter.submitList(settingsList) {
@@ -127,6 +129,15 @@ class SettingsFragmentPresenter(
                     menuKey = MenuTag.SECTION_RENDERER
                 )
             )
+            if (!NativeConfig.isPerGameConfigLoaded())
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.stats_overlay_options,
+                        descriptionId = R.string.stats_overlay_options_description,
+                        iconId = R.drawable.ic_frames,
+                        menuKey = MenuTag.SECTION_PERFORMANCE_STATS
+                    )
+                )
             add(
                 SubmenuSetting(
                     titleId = R.string.preferences_audio,
@@ -144,6 +155,14 @@ class SettingsFragmentPresenter(
                 )
             )
             add(
+                SubmenuSetting(
+                    titleId = R.string.eden_veil,
+                    descriptionId = R.string.eden_veil_description,
+                    iconId = R.drawable.ic_eden_veil,
+                    menuKey = MenuTag.SECTION_EDEN_VEIL
+                )
+            )
+            add(
                 RunnableSetting(
                     titleId = R.string.reset_to_default,
                     descriptionId = R.string.reset_to_default_description,
@@ -151,6 +170,87 @@ class SettingsFragmentPresenter(
                     iconId = R.drawable.ic_restore
                 ) { settingsViewModel.setShouldShowResetSettingsDialog(true) }
             )
+        }
+    }
+
+    private val InterpolationSetting = object : AbstractBooleanSetting {
+    override val key = BooleanSetting.FRAME_INTERPOLATION.key
+
+    override fun getBoolean(needsGlobal: Boolean): Boolean {
+        return BooleanSetting.FRAME_INTERPOLATION.getBoolean(needsGlobal)
+    }
+
+    override fun setBoolean(value: Boolean) {
+        BooleanSetting.FRAME_INTERPOLATION.setBoolean(value)
+    }
+
+    override val defaultValue = BooleanSetting.FRAME_INTERPOLATION.defaultValue
+
+    override fun getValueAsString(needsGlobal: Boolean): String =
+        BooleanSetting.FRAME_INTERPOLATION.getValueAsString(needsGlobal)
+
+    override fun reset() = BooleanSetting.FRAME_INTERPOLATION.reset()
+    }
+
+    private val syncCoreSpeedSetting = object : AbstractBooleanSetting {
+    override val key = BooleanSetting.CORE_SYNC_CORE_SPEED.key
+
+    override fun getBoolean(needsGlobal: Boolean): Boolean {
+        return BooleanSetting.CORE_SYNC_CORE_SPEED.getBoolean(needsGlobal)
+    }
+
+    override fun setBoolean(value: Boolean) {
+        BooleanSetting.CORE_SYNC_CORE_SPEED.setBoolean(value)
+    }
+
+    override val defaultValue = BooleanSetting.CORE_SYNC_CORE_SPEED.defaultValue
+
+    override fun getValueAsString(needsGlobal: Boolean): String =
+        BooleanSetting.CORE_SYNC_CORE_SPEED.getValueAsString(needsGlobal)
+
+    override fun reset() = BooleanSetting.CORE_SYNC_CORE_SPEED.reset()
+    }
+
+    private val frameSkippingSetting = object : AbstractBooleanSetting {
+        override val key = BooleanSetting.FRAME_SKIPPING.key
+
+        override fun getBoolean(needsGlobal: Boolean): Boolean {
+            return BooleanSetting.FRAME_SKIPPING.getBoolean(needsGlobal)
+    }
+
+        override fun setBoolean(value: Boolean) {
+            BooleanSetting.FRAME_SKIPPING.setBoolean(value)
+    }
+
+        override val defaultValue = BooleanSetting.FRAME_SKIPPING.defaultValue
+
+        override fun getValueAsString(needsGlobal: Boolean): String =
+            BooleanSetting.FRAME_SKIPPING.getValueAsString(needsGlobal)
+
+        override fun reset() = BooleanSetting.FRAME_SKIPPING.reset()
+    }
+
+    private fun addEdenVeilSubmenu(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(
+                SubmenuSetting(
+                    titleId = R.string.eden_veil,
+                    descriptionId = R.string.eden_veil_description,
+                    iconId = R.drawable.ic_code,
+                    menuKey = MenuTag.SECTION_EDEN_VEIL
+                )
+            )
+            addEdenVeilSettings(sl)
+
+            add(BooleanSetting.FRAME_INTERPOLATION.key)
+            add(BooleanSetting.FRAME_SKIPPING.key)
+            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
+            add(IntSetting.RENDERER_SHADER_BACKEND.key)
+            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
+            add(IntSetting.RENDERER_NVDEC_EMULATION.key)
+            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
+            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
+            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
         }
     }
 
@@ -185,6 +285,23 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
         }
+    }
+
+    private fun addPerfomanceOverlaySettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(HeaderSetting(R.string.stats_overlay_customization))
+            add(BooleanSetting.SHOW_PERFORMANCE_OVERLAY.key)
+            add(BooleanSetting.OVERLAY_BACKGROUND.key)
+            add(IntSetting.PERF_OVERLAY_POSITION.key)
+            add(HeaderSetting(R.string.stats_overlay_items))
+            add(BooleanSetting.SHOW_FPS.key)
+            add(BooleanSetting.SHOW_FRAMETIME.key)
+            add(BooleanSetting.SHOW_SPEED.key)
+            add(BooleanSetting.SHOW_APP_RAM_USAGE.key)
+            add(BooleanSetting.SHOW_SYSTEM_RAM_USAGE.key)
+            add(BooleanSetting.SHOW_BAT_TEMPERATURE.key)
+        }
+
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
@@ -338,7 +455,79 @@ class SettingsFragmentPresenter(
             override val isSaveable = true
         }
     }
-
+    private fun addEdenVeilSettings(sl: ArrayList<SettingsItem>) {
+    sl.apply {
+        add(
+            SwitchSetting(
+                InterpolationSetting,  // The interpolation setting object you've created
+                titleId = R.string.frame_interpolation,  // Use appropriate string resources for the title
+                descriptionId = R.string.frame_interpolation_description  // Description resource for the interpolation setting
+            )
+        )
+        add(
+            SwitchSetting(
+                frameSkippingSetting,
+                titleId = R.string.frame_skipping,
+                descriptionId = R.string.frame_skipping_description
+            )
+        )
+        add(
+            SwitchSetting(
+                syncCoreSpeedSetting,
+                titleId = R.string.use_sync_core,
+                descriptionId = R.string.use_sync_core_description
+            )
+        )
+        add(
+            SingleChoiceSetting(
+                IntSetting.RENDERER_SHADER_BACKEND,
+                titleId = R.string.shader_backend,
+                choicesId = R.array.rendererShaderNames,
+                valuesId = R.array.rendererShaderValues
+            )
+        )
+        add(
+            SingleChoiceSetting(
+                IntSetting.RENDERER_NVDEC_EMULATION,
+                titleId = R.string.nvdec_emulation,
+                choicesId = R.array.rendererNvdecNames,
+                valuesId = R.array.rendererNvdecValues
+            )
+        )
+        add(
+            SingleChoiceSetting(
+                IntSetting.RENDERER_ASTC_DECODE_METHOD,
+                titleId = R.string.accelerate_astc,
+                choicesId = R.array.astcDecodingMethodNames,
+                valuesId = R.array.astcDecodingMethodValues
+            )
+        )
+        add(
+            SingleChoiceSetting(
+                IntSetting.RENDERER_ASTC_RECOMPRESSION,
+                titleId = R.string.astc_recompression,
+                choicesId = R.array.astcRecompressionMethodNames,
+                valuesId = R.array.astcRecompressionMethodValues
+            )
+        )
+        add(
+            SingleChoiceSetting(
+                IntSetting.RENDERER_VRAM_USAGE_MODE,
+                titleId = R.string.vram_usage_mode,
+                choicesId = R.array.vramUsageMethodNames,
+                valuesId = R.array.vramUsageMethodValues
+                )
+            )
+            add(
+            SingleChoiceSetting(
+                IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
+                titleId = R.string.renderer_optimize_spirv_output,
+                choicesId = R.array.optimizeSpirvOutputEntries,
+                valuesId = R.array.optimizeSpirvOutputValues
+                )
+            )
+    }
+}
     private fun addInputPlayer(sl: ArrayList<SettingsItem>, playerIndex: Int) {
         sl.apply {
             val connectedSetting = object : AbstractBooleanSetting {

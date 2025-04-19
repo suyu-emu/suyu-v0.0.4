@@ -2,13 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menu_toggle_fps"
-        android:title="@string/emulation_fps_counter"
-        android:checkable="true" />
-
-    <item
-        android:id="@+id/thermal_indicator"
-        android:title="@string/emulation_thermal_indicator"
+        android:id="@+id/menu_show_stats_overlay"
+        android:title="@string/show_stats_overlay"
         android:checkable="true" />
 
     <item

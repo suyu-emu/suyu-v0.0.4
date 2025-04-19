@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -73,6 +74,7 @@ SWITCHABLE(NvdecEmulation, false);
 SWITCHABLE(Region, true);
 SWITCHABLE(RendererBackend, true);
 SWITCHABLE(ScalingFilter, false);
+SWITCHABLE(SpirvOptimizeMode, true);
 SWITCHABLE(ShaderBackend, true);
 SWITCHABLE(TimeZone, true);
 SETTING(VSyncMode, true);
@@ -210,6 +212,13 @@ struct Values {
                                              true,
                                              true,
                                              &use_speed_limit};
+    SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core, Specialization::Default};
+    //SwitchableSetting<bool> use_nce{linkage, true, "use_nce", Category::Core};
+    SwitchableSetting<bool> use_nce{linkage, true, "Use Native Code Execution", Category::Core};
+
+    // Memory
+    SwitchableSetting<bool> use_gpu_memory_manager{linkage, false, "Use GPU Memory Manager", Category::Core};
+    SwitchableSetting<bool> enable_memory_snapshots{linkage, false, "Enable Memory Snapshots", Category::Core};
 
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
@@ -250,7 +259,6 @@ struct Values {
                                               Category::CpuDebug};
     Setting<bool> cpuopt_ignore_memory_aborts{linkage, true, "cpuopt_ignore_memory_aborts",
                                               Category::CpuDebug};
-
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
                                                      Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{
@@ -273,9 +281,20 @@ struct Values {
         "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
-
+    #ifdef __ANDROID__
+    SwitchableSetting<bool> frame_interpolation{linkage, true, "frame_interpolation", Category::Renderer,
+                                        Specialization::RuntimeList};
+    SwitchableSetting<bool> frame_skipping{linkage, true, "frame_skipping", Category::Renderer,
+                                                   Specialization::RuntimeList};
+    #endif
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
+    SwitchableSetting<SpirvOptimizeMode, true> optimize_spirv_output{linkage,
+                                                                      SpirvOptimizeMode::OnLoad,
+                                                                      SpirvOptimizeMode::Never,
+                                                                      SpirvOptimizeMode::Always,
+                                                                      "optimize_spirv_output",
+                                                                      Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
@@ -617,11 +636,21 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
+
+    // Renderer Advanced Settings
+    SwitchableSetting<bool> use_enhanced_shader_building{linkage, false, "Enhanced Shader Building",
+                                                        Category::RendererAdvanced};
+
+    // Add a new setting for shader compilation priority
+        SwitchableSetting<int> shader_compilation_priority{linkage, 0, "Shader Compilation Priority",
+                                                      Category::RendererAdvanced};
 };
 
 extern Values values;
 
 void UpdateGPUAccuracy();
+// boold isGPULevelNormal();
+// TODO: ZEP
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
