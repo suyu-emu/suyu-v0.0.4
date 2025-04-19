@@ -364,7 +364,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
             });
 
     // We must register all custom types with the Qt Automoc system so that we are able to use
-    // it with signals/slots. In this case, QList falls under the umbrells of custom types.
+    // it with signals/slots. In this case, QList falls under the umbrella of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
     layout->setContentsMargins(0, 0, 0, 0);
@@ -375,12 +375,12 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     pre_alpha_warning->setText(
         tr("IMPORTANT: Eden is PRE-ALPHA SOFTWARE and is not meant to be used by or get shared to the public just yet;  "
            "Bugs and unfinished features are expected to be present at this stage."));
+    pre_alpha_warning->setWordWrap(true);
     pre_alpha_warning->setOpenExternalLinks(true);
     pre_alpha_warning->setStyleSheet(
         QString::fromStdString("color: black; font-weight: bold;"));
 
     warning_layout->addWidget(pre_alpha_warning);
-    warning_layout->addStretch();
     warning_layout->setContentsMargins(3, 3, 3, 3);
     warning_widget = new QWidget;
     warning_widget->setStyleSheet(QString::fromStdString("background-color: khaki;"));
