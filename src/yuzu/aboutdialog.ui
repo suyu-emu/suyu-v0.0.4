@@ -36,7 +36,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="../../dist/qt_themes/default/default.qrc">:/icons/default/256x256/yuzu.png</pixmap>
+          <pixmap resource="../../dist/qt_themes/default/default.qrc">:/icons/default/256x256/eden.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -144,7 +144,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
           </sizepolicy>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:7pt;&quot;&gt;&amp;quot;Nintendo Switch&amp;quot; is a trademark of Nintendo. yuzu is not affiliated with Nintendo in any way.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:7pt;&quot;&gt;&amp;quot;Nintendo Switch&amp;quot; is a trademark of Nintendo. eden is not affiliated with Nintendo in any way.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>

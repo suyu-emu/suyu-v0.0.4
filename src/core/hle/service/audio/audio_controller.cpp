@@ -179,6 +179,8 @@ Result IAudioController::AcquireTargetNotification(
     *out_notification_event = &notification_event->GetReadableEvent();
     R_SUCCEED();
 }
+Result IAudioController::Unknown5000(Out<SharedPointer<IAudioController>> out_audio_controller) {
+    LOG_DEBUG(Audio, "Creating duplicate audio controller interface");
 
 Result IAudioController::Unknown5000(Out<SharedPointer<IAudioController>> out_audio_controller) {
     LOG_DEBUG(Audio, "Creating duplicate audio controller interface");
@@ -188,5 +190,4 @@ Result IAudioController::Unknown5000(Out<SharedPointer<IAudioController>> out_au
 
     R_SUCCEED();
 }
-
 } // namespace Service::Audio

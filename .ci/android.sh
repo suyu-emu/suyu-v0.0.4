@@ -2,18 +2,16 @@
 
 export NDK_CCACHE=$(which ccache)
 
-if [ ! -z "${ANDROID_KEYSTORE_B64}" ]; then
-    export ANDROID_KEYSTORE_FILE="${GITHUB_WORKSPACE}/ks.jks"
-    base64 --decode <<< "${ANDROID_KEYSTORE_B64}" > "${ANDROID_KEYSTORE_FILE}"
-fi
+# keystore & pass are stored locally
+export ANDROID_KEYSTORE_FILE=~/android.keystore
+export ANDROID_KEYSTORE_PASS=`cat ~/android.pass`
+export ANDROID_KEY_ALIAS=`cat ~/android.alias`
+export ANDROID_HOME=/opt/android-sdk/
 
 cd src/android
 chmod +x ./gradlew
+
 ./gradlew assembleRelease
 ./gradlew bundleRelease
 
 ccache -s -v
-
-if [ ! -z "${ANDROID_KEYSTORE_B64}" ]; then
-    rm "${ANDROID_KEYSTORE_FILE}"
-fi

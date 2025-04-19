@@ -299,7 +299,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 # Enforce the search mode of non-required packages for better and shorter failure messages
 find_package(enet 1.3 MODULE)
-find_package(fmt 11 REQUIRED)
+find_package(fmt 10 REQUIRED)
 find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
@@ -643,9 +643,9 @@ endif()
 if(ENABLE_QT AND UNIX AND NOT APPLE)
     install(FILES "dist/org.yuzu_emu.yuzu.desktop"
             DESTINATION "share/applications")
-    install(FILES "dist/yuzu.svg"
+    install(FILES "dist/eden.svg"
             DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "org.yuzu_emu.yuzu.svg")
+            RENAME "org.yuzu_emu.eden.svg")
     install(FILES "dist/org.yuzu_emu.yuzu.xml"
             DESTINATION "share/mime/packages")
     install(FILES "dist/org.yuzu_emu.yuzu.metainfo.xml"
