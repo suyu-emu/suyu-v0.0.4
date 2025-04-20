@@ -4,7 +4,8 @@
 set -ex
 
 export APPIMAGE_EXTRACT_AND_RUN=1
-export ARCH="$(uname -m)"
+export BASE_ARCH="$(uname -m)"
+export ARCH="$BASE_ARCH"
 
 LIB4BN="https://raw.githubusercontent.com/VHSgunzo/sharun/refs/heads/main/lib4bin"
 URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-$ARCH"
@@ -27,7 +28,7 @@ fi
 #fi
 
 # TODO: use real tags
-YUZU_TAG="0.0.0"
+VERSION="0.0.0"
 
 # NOW MAKE APPIMAGE
 mkdir -p ./AppDir
@@ -51,34 +52,41 @@ if [ "$DEVEL" = 'true' ]; then
 	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
 fi
 
+LIBDIR="/usr/lib"
+# some distros are weird and use a subdir
+
+if [ ! -f "/usr/lib/libGL.so" ]
+then
+    LIBDIR="/usr/lib/${BASE_ARCH}-linux-gnu"
+fi
+
 # Bundle all libs
 wget --retry-connrefused --tries=30 "$LIB4BN" -O ./lib4bin
 chmod +x ./lib4bin
 xvfb-run -a -- ./lib4bin -p -v -e -s -k \
 	../build/bin/eden* \
-	/usr/lib/libGLX* \
-	/usr/lib/libGL.so* \
-	/usr/lib/libEGL* \
-	/usr/lib/dri/* \
-	/usr/lib/vdpau/* \
-	/usr/lib/libvulkan* \
-	/usr/lib/libXss.so* \
-	/usr/lib/libdecor-0.so* \
-	/usr/lib/libgamemode.so* \
-	/usr/lib/qt6/plugins/audio/* \
-	/usr/lib/qt6/plugins/bearer/* \
-	/usr/lib/qt6/plugins/imageformats/* \
-	/usr/lib/qt6/plugins/iconengines/* \
-	/usr/lib/qt6/plugins/platforms/* \
-	/usr/lib/qt6/plugins/platformthemes/* \
-	/usr/lib/qt6/plugins/platforminputcontexts/* \
-	/usr/lib/qt6/plugins/styles/* \
-	/usr/lib/qt6/plugins/xcbglintegrations/* \
-	/usr/lib/qt6/plugins/wayland-*/* \
-	/usr/lib/pulseaudio/* \
-	/usr/lib/pipewire-0.3/* \
-	/usr/lib/spa-0.2/*/* \
-	/usr/lib/alsa-lib/*
+	$LIBDIR/lib*GL*.so* \
+    $LIBDIR/libSDL2*.so* \
+	$LIBDIR/dri/* \
+	$LIBDIR/vdpau/* \
+	$LIBDIR/libvulkan* \
+	$LIBDIR/libXss.so* \
+	$LIBDIR/libdecor-0.so* \
+	$LIBDIR/libgamemode.so* \
+	$LIBDIR/qt6/plugins/audio/* \
+	$LIBDIR/qt6/plugins/bearer/* \
+	$LIBDIR/qt6/plugins/imageformats/* \
+	$LIBDIR/qt6/plugins/iconengines/* \
+	$LIBDIR/qt6/plugins/platforms/* \
+	$LIBDIR/qt6/plugins/platformthemes/* \
+	$LIBDIR/qt6/plugins/platforminputcontexts/* \
+	$LIBDIR/qt6/plugins/styles/* \
+	$LIBDIR/qt6/plugins/xcbglintegrations/* \
+	$LIBDIR/qt6/plugins/wayland-*/* \
+	$LIBDIR/pulseaudio/* \
+	$LIBDIR/pipewire-0.3/* \
+	$LIBDIR/spa-0.2/*/* \
+	$LIBDIR/alsa-lib/*
 
 # Prepare sharun
 if [ "$ARCH" = 'aarch64' ]; then
@@ -108,6 +116,7 @@ echo "Generating AppImage..."
 	--categorize=hotness --hotness-list=.ci/eden.dwfsprof \
 	--compression zstd:level=22 -S26 -B32 \
 	--header uruntime \
+    -N 4 \
 	-i ./AppDir -o Eden-"$VERSION"-"$ARCH".AppImage
 
 echo "Generating zsync file..."
