@@ -260,7 +260,7 @@ GraphicsPipeline::GraphicsPipeline(
         num_textures += Shader::NumDescriptors(info->texture_descriptors);
     }
 
-    // Track compilation start time for performance metrics
+           // Track compilation start time for performance metrics
     const auto start_time = std::chrono::high_resolution_clock::now();
 
     auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics, start_time] {
@@ -284,12 +284,12 @@ GraphicsPipeline::GraphicsPipeline(
         Validate();
         MakePipeline(render_pass);
 
-        // Performance measurement
+               // Performance measurement
         const auto end_time = std::chrono::high_resolution_clock::now();
         const auto compilation_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-            end_time - start_time).count();
+                                          end_time - start_time).count();
 
-        // Log shader compilation time for slow shaders to help diagnose performance issues
+               // Log shader compilation time for slow shaders to help diagnose performance issues
         if (compilation_time > 100) { // Only log very slow compilations
             LOG_DEBUG(Render_Vulkan, "Compiled graphics pipeline in {}ms", compilation_time);
         }
@@ -375,7 +375,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 views[view_index++] = {
                     .index = handle.first,
                     .blacklist = blacklist,
-                    .id = {},
+                    .id = {}
                 };
             }
         }};
@@ -650,14 +650,14 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .topology = input_assembly_topology,
         .primitiveRestartEnable =
-            dynamic.primitive_restart_enable != 0 &&
-                    ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                      device.IsTopologyListPrimitiveRestartSupported()) ||
-                     SupportsPrimitiveRestart(input_assembly_topology) ||
-                     (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                      device.IsPatchListPrimitiveRestartSupported()))
-                ? VK_TRUE
-                : VK_FALSE,
+        dynamic.primitive_restart_enable != 0 &&
+                ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                  device.IsTopologyListPrimitiveRestartSupported()) ||
+                 SupportsPrimitiveRestart(input_assembly_topology) ||
+                 (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                  device.IsPatchListPrimitiveRestartSupported()))
+            ? VK_TRUE
+            : VK_FALSE,
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
@@ -700,11 +700,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .depthClampEnable =
-            static_cast<VkBool32>(dynamic.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
+        static_cast<VkBool32>(dynamic.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
         .rasterizerDiscardEnable =
-            static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
+        static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode =
-            MaxwellToVK::PolygonMode(FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode)),
+        MaxwellToVK::PolygonMode(FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode)),
         .cullMode = static_cast<VkCullModeFlags>(
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
@@ -740,6 +740,12 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                                    ? VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT
                                    : VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT,
     };
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT depth_clip{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .flags = 0,
+        .depthClipEnable = VK_TRUE,
+    };
     if (IsLine(input_assembly_topology) && device.IsExtLineRasterizationSupported()) {
         line_state.pNext = std::exchange(rasterization_ci.pNext, &line_state);
     }
@@ -748,6 +754,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
     if (device.IsExtProvokingVertexSupported()) {
         provoking_vertex.pNext = std::exchange(rasterization_ci.pNext, &provoking_vertex);
+    }
+    if (device.IsExtDepthClipControlSupported()) {
+        depth_clip.pNext = std::exchange(rasterization_ci.pNext, &depth_clip);
     }
 
     const VkPipelineMultisampleStateCreateInfo multisample_ci{
@@ -814,7 +823,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .logicOp = static_cast<VkLogicOp>(dynamic.logic_op.Value()),
         .attachmentCount = static_cast<u32>(cb_attachments.size()),
         .pAttachments = cb_attachments.data(),
-        .blendConstants = {},
+        .blendConstants = {}
     };
     static_vector<VkDynamicState, 28> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,

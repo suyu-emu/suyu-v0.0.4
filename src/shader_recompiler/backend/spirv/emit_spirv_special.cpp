@@ -108,7 +108,7 @@ void EmitPrologue(EmitContext& ctx) {
                 ctx.OpStore(element_info.id, value);
                 element += num;
             }
-        }
+        }        
     }
     if (ctx.stage == Stage::VertexB || ctx.stage == Stage::Geometry) {
         SetFixedPipelinePointSize(ctx);

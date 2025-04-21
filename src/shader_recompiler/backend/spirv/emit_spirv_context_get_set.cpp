@@ -53,6 +53,15 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
             return OutputAccessChain(ctx, ctx.output_f32, info.id, index_id);
         }
     }
+
+    for (u32 i = 0; i < ctx.profile.max_user_clip_distances; ++i) {
+        if (!clip_distance_written.test(i)) {
+            const Id idx = ctx.Const(i);
+            const Id element = OutputAccessChain(ctx, ctx.output_f32, ctx.clip_distances, idx);
+            ctx.OpStore(element, ctx.Const(0.0f));
+        }
+    }
+
     switch (attr) {
     case IR::Attribute::PointSize:
         return ctx.output_point_size;
@@ -420,6 +429,14 @@ void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, Id value, [[maybe_un
     }
     if (Sirit::ValidId(output->type)) {
         value = ctx.OpBitcast(output->type, value);
+    }
+
+    static constexpr IR::Attribute cd0 = IR::Attribute::ClipDistance0;
+    static constexpr IR::Attribute cd7 = IR::Attribute::ClipDistance7;
+
+    if (attr >= cd0 && attr <= cd7) {
+        const u32 idx = (u32) attr - (u32) cd0;
+        clip_distance_written.set(idx);
     }
     ctx.OpStore(output->pointer, value);
 }
