@@ -285,6 +285,10 @@ if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
     add_definitions(-DHAS_NCE=1)
 endif()
 
+if (YUZU_LOG_BY_LINE)
+    add_definitions(-DYUZU_LOG_BY_LINE=1)
+endif()
+
 # Configure C++ standard
 # ===========================
 

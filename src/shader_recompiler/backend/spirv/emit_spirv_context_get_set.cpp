@@ -54,14 +54,6 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         }
     }
 
-    for (u32 i = 0; i < ctx.profile.max_user_clip_distances; ++i) {
-        if (!clip_distance_written.test(i)) {
-            const Id idx = ctx.Const(i);
-            const Id element = OutputAccessChain(ctx, ctx.output_f32, ctx.clip_distances, idx);
-            ctx.OpStore(element, ctx.Const(0.0f));
-        }
-    }
-
     switch (attr) {
     case IR::Attribute::PointSize:
         return ctx.output_point_size;
