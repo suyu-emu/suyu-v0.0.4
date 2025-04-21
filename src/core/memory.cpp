@@ -32,6 +32,46 @@ namespace Core::Memory {
 
 namespace {
 
+inline void FastMemcpy(void* dst, const void* src, std::size_t size) {
+    switch (size) {
+    case 1:
+        *static_cast<u8*>(dst) = *static_cast<const u8*>(src);
+        break;
+    case 2:
+        *static_cast<u16*>(dst) = *static_cast<const u16*>(src);
+        break;
+    case 4:
+        *static_cast<u32*>(dst) = *static_cast<const u32*>(src);
+        break;
+    case 8:
+        *static_cast<u64*>(dst) = *static_cast<const u64*>(src);
+        break;
+    default:
+        std::memcpy(dst, src, size);
+        break;
+    }
+}
+
+inline void FastMemset(void* dst, int value, std::size_t size) {
+    switch (size) {
+    case 1:
+        *static_cast<u8*>(dst) = static_cast<u8>(value);
+        break;
+    case 2:
+        *static_cast<u16*>(dst) = static_cast<u16>(value);
+        break;
+    case 4:
+        *static_cast<u32*>(dst) = static_cast<u32>(value);
+        break;
+    case 8:
+        *static_cast<u64*>(dst) = static_cast<u64>(value);
+        break;
+    default:
+        std::memset(dst, value, size);
+        break;
+    }
+}
+
 bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessAddress addr,
                           const std::size_t size) {
     const Common::ProcessAddress max_addr = 1ULL << table.GetAddressSpaceBits();
@@ -308,17 +348,17 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory,
                           "Unmapped ReadBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
                           GetInteger(current_vaddr), GetInteger(src_addr), size);
-                std::memset(dest_buffer, 0, copy_amount);
+               FastMemset(dest_buffer, 0, copy_amount);
             },
             [&](const std::size_t copy_amount, const u8* const src_ptr) {
-                std::memcpy(dest_buffer, src_ptr, copy_amount);
+                FastMemcpy(dest_buffer, src_ptr, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 const u8* const host_ptr) {
                 if constexpr (!UNSAFE) {
                     HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
                 }
-                std::memcpy(dest_buffer, host_ptr, copy_amount);
+                FastMemcpy(dest_buffer, host_ptr, copy_amount);
             },
             [&](const std::size_t copy_amount) {
                 dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
@@ -363,14 +403,14 @@ struct Memory::Impl {
                           GetInteger(current_vaddr), GetInteger(dest_addr), size);
             },
             [&](const std::size_t copy_amount, u8* const dest_ptr) {
-                std::memcpy(dest_ptr, src_buffer, copy_amount);
+                FastMemcpy(dest_ptr, src_buffer, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 if constexpr (!UNSAFE) {
                     HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
                 }
-                std::memcpy(host_ptr, src_buffer, copy_amount);
+                FastMemcpy(host_ptr, src_buffer, copy_amount);
             },
             [&](const std::size_t copy_amount) {
                 src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
@@ -397,12 +437,12 @@ struct Memory::Impl {
                           GetInteger(current_vaddr), GetInteger(dest_addr), size);
             },
             [](const std::size_t copy_amount, u8* const dest_ptr) {
-                std::memset(dest_ptr, 0, copy_amount);
+               FastMemset(dest_ptr, 0, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
-                std::memset(host_ptr, 0, copy_amount);
+               FastMemset(host_ptr, 0, copy_amount);
             },
             [](const std::size_t copy_amount) {});
     }
@@ -742,7 +782,7 @@ struct Memory::Impl {
             },
             [&]() { HandleRasterizerDownload(GetInteger(vaddr), sizeof(T)); });
         if (ptr) {
-            std::memcpy(&result, ptr, sizeof(T));
+            FastMemcpy(&result, ptr, sizeof(T));
         }
         return result;
     }
@@ -766,7 +806,7 @@ struct Memory::Impl {
             },
             [&]() { HandleRasterizerWrite(GetInteger(vaddr), sizeof(T)); });
         if (ptr) {
-            std::memcpy(ptr, &data, sizeof(T));
+            FastMemcpy(ptr, &data, sizeof(T));
         }
     }
 
