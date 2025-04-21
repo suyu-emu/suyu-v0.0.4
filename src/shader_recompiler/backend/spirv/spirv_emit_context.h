@@ -15,7 +15,7 @@
 
 namespace Shader::Backend::SPIRV {
 
-std::bitset<8> clip_distance_written;
+static std::bitset<8> clip_distance_written;
 
 using Sirit::Id;
 
