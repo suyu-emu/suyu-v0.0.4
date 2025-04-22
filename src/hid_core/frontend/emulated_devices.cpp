@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "hid_core/frontend/emulated_devices.h"
 #include "hid_core/frontend/input_converter.h"
