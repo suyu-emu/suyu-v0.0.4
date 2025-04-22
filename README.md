@@ -25,7 +25,7 @@ Our only website is suyu.dev so please be cautious when using other sites offeri
 
 <h4 align="center"><b>suyu</b> was the continuation of the world's most popular, open-source Nintendo Switch emulator, yuzu, but is now something more.
 <br>
-It is written in C++ with portability in mind, and we provide builds for Windows, Linux, Android and our own operating system: [SuyuOS](https://git.suyu.dev/suyu/suyu-os). MacOS is in development and iOS is being considered.
+It is written in C++ with portability in mind, and we provide builds for Windows, Linux, Android and our own operating system: SuyuOS. MacOS is in development and iOS is being considered.
 
 </h4>
 
