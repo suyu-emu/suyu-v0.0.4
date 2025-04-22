@@ -7,7 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 **Notes**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
-We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git and 
+We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git. 
+
 This repo is currently based on Yuzu EA 4176 (with multiple commits borrowed from the Sudachi, Torzu, Ziunx, Citron/Uzuy and Nozomi projects) but the code will be "evolved" from the ground up to combat legal and performance related concerns.
 
 Our only website is suyu.dev so please be cautious when using other sites offering downloads for builds relating to suyu and other emulators.
@@ -24,7 +25,7 @@ Our only website is suyu.dev so please be cautious when using other sites offeri
 
 <h4 align="center"><b>suyu</b> was the continuation of the world's most popular, open-source Nintendo Switch emulator, yuzu, but is now something more.
 <br>
-It is written in C++ with portability in mind, and we provide builds for Windows, Linux, Android and our own operating system: SuyuOS. MacOS is in development and iOS is being considered.
+It is written in C++ with portability in mind, and we provide builds for Windows, Linux, Android and our own operating system: [SuyuOS](https://git.suyu.dev/suyu/suyu-os). MacOS is in development and iOS is being considered.
 
 </h4>
 
