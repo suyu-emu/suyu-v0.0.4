@@ -121,7 +121,7 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
                 &ConfigureInput::UpdateAllInputDevices);
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputProfiles, this,
                 &ConfigureInput::UpdateAllInputProfiles, Qt::QueuedConnection);
-        connect(connected_controller_checkboxes[i], &QCheckBox::checkStateChanged, [this, i](int state) {
+        connect(connected_controller_checkboxes[i], &QCheckBox::stateChanged, [this, i](int state) {
             // Keep activated controllers synced with the "Connected Controllers" checkboxes
             player_controllers[i]->ConnectPlayer(state == Qt::Checked);
         });

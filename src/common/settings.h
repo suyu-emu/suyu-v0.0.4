@@ -201,7 +201,7 @@ struct Values {
                                                              "memory_layout_mode",
                                                              Category::Core};
     SwitchableSetting<bool> use_speed_limit{
-        linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, false, true};
+        linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, true, true};
     SwitchableSetting<u16, true> speed_limit{linkage,
                                              100,
                                              0,

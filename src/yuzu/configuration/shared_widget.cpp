@@ -759,6 +759,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     if (setting.Switchable() && Settings::IsConfiguringGlobal() && !runtime_lock) {
         enable &= setting.UsingGlobal();
     }
+
     this->setEnabled(enable);
 
     this->setToolTip(tooltip);
