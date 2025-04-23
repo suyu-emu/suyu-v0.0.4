@@ -483,16 +483,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm || is_turnip) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
     }
 
     if (is_qualcomm) {
-        must_emulate_scaled_formats = true;
+        must_emulate_scaled_formats = false;
 
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state");
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                               //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
@@ -522,11 +522,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_arm) {
-        must_emulate_scaled_formats = true;
+        must_emulate_scaled_formats = false;
 
         LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                               //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     if (is_nvidia) {
@@ -552,9 +552,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 21.2 have broken VK_EXT_extended_dynamic_state");
-            RemoveExtensionFeature(extensions.extended_dynamic_state,
-                                   features.extended_dynamic_state,
-                                   VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+            //RemoveExtensionFeature(extensions.extended_dynamic_state,
+                                   //features.extended_dynamic_state,
+                                   //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state2 && is_radv) {
