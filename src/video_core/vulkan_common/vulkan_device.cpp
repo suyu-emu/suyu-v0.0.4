@@ -1169,7 +1169,7 @@ void Device::RemoveUnsuitableExtensions() {
     extensions.extended_dynamic_state2 = features.extended_dynamic_state2.extendedDynamicState2;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
                                        features.extended_dynamic_state2,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME); **/
+                                       VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME); 
 
     // VK_EXT_extended_dynamic_state3
     dynamic_state3_blending =
