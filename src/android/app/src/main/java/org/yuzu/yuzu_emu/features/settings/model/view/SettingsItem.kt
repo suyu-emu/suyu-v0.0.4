@@ -17,6 +17,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
@@ -54,6 +55,13 @@ abstract class SettingsItem(
             // Can't change docked mode toggle when using handheld mode
             if (setting.key == BooleanSetting.USE_DOCKED_MODE.key) {
                 return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
+            }
+
+            if (setting.key == ByteSetting.RENDERER_DYNA_STATE.key) {
+                // Can't change on Mali GPU's otherwise no game loading for you
+                if (!GpuDriverHelper.supportsCustomDriverLoading()) {
+                    return false
+                }
             }
 
             // Can't edit settings that aren't saveable in per-game config even if they are switchable
@@ -118,6 +126,16 @@ abstract class SettingsItem(
                     descriptionId = R.string.frame_limit_enable_description
                 )
             )
+            put(
+                SliderSetting(
+                    ByteSetting.RENDERER_DYNA_STATE,
+                    titleId = R.string.dyna_state,
+                    descriptionId = R.string.dyna_state_description,
+                    min = 0,
+                    max = 3,
+                )
+            )
+
             put(
                 SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,
