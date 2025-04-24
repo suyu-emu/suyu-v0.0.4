@@ -55,11 +55,11 @@
     "overrides": [
         {
             "name": "catch2",
-            "version": "3.8.0"
+            "version": "3.4.0"
         },
         {
             "name": "fmt",
-            "version": "11.0.2"
+            "version": "10.1.1"
         }
     ]
 }
