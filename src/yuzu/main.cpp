@@ -205,7 +205,7 @@ enum class CalloutFlag : uint32_t {
  * so this tracks which games are bad in this regard.
  */
 static const QList<u64> bad_update_games{
-    72324500776771584   // Tears of the Kingdom
+    0x0100F2C0115B6000   // Tears of the Kingdom
 };
 
 const int GMainWindow::max_recent_files_item;
