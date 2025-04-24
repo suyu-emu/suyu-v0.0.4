@@ -427,12 +427,13 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                     device.GetMaxVertexInputBindings(), Maxwell::NumVertexArrays);
     }
 
+    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
     dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = Settings::values.use_dyna_state_1.GetValue(),
-        .has_extended_dynamic_state_2 = Settings::values.use_dyna_state_2.GetValue(),
-        .has_extended_dynamic_state_2_extra = Settings::values.use_dyna_state_2_extras.GetValue(),
-        .has_extended_dynamic_state_3_blend = Settings::values.use_dyna_state_3_blend.GetValue(),
-        .has_extended_dynamic_state_3_enables = Settings::values.use_dyna_state_3.GetValue(),
+        .has_extended_dynamic_state = dynamic_state > 0,
+        .has_extended_dynamic_state_2 = dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra = dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend = dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 }

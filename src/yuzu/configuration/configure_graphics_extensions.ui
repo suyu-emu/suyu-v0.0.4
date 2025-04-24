@@ -28,7 +28,7 @@
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>While all dynamic state extensions are recommended, some games or systems may not function with Dynamic State 3, or will perform far better with only State 1 or State 2 enabled.</string>
+           <string>While it's recommended to use state 3, some games may perform better on lower states. Additionally, some older devices and drivers will not work properly with state 3.</string>
           </property>
           <property name="wordWrap">
            <bool>true</bool>

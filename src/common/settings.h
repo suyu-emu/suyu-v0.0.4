@@ -445,16 +445,13 @@ struct Values {
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
-    SwitchableSetting<bool> use_dyna_state_1{linkage, true, "use_dyna_state_1",
-                                             Category::RendererExtensions};
-    SwitchableSetting<bool> use_dyna_state_2{linkage, true, "use_dyna_state_2",
-                                             Category::RendererExtensions};
-    SwitchableSetting<bool> use_dyna_state_2_extras{linkage, true, "use_dyna_state_2_extras",
-                                             Category::RendererExtensions};
-    SwitchableSetting<bool> use_dyna_state_3{linkage, false, "use_dyna_state_3",
-                                             Category::RendererExtensions};
-    SwitchableSetting<bool> use_dyna_state_3_blend{linkage, false, "use_dyna_state_3_blend",
-                                             Category::RendererExtensions};
+    SwitchableSetting<u8, true> dyna_state{linkage,
+                                     0,
+                                     0,
+                                     3,
+                                     "dyna_state",
+                                     Category::RendererExtensions,
+                                     Specialization::Scalar};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
