@@ -27,25 +27,25 @@ public:
     VulkanRaii() : handle{}, deleter{}, dispatch{} {}
 
     // Constructor with handle and deleter
-    VulkanRaii(T handle_, DeleterFunc deleter_, const Dispatch& dispatch_, const std::string& resource_name = "Vulkan resource")
+    VulkanRaii(T handle_, DeleterFunc deleter_, const Dispatch& dispatch_, const char* resource_name = "Vulkan resource")
         : handle{handle_}, deleter{std::move(deleter_)}, dispatch{dispatch_} {
         LOG_WARNING(Render_Vulkan, "RAII wrapper created for {}", resource_name);
     }
 
     // Move constructor
     VulkanRaii(VulkanRaii&& other) noexcept
-        : handle{other.handle}, deleter{std::move(other.deleter)}, dispatch{other.dispatch} {
-        other.handle = VK_NULL_HANDLE;
+        : handle{std::exchange(other.handle, VK_NULL_HANDLE)},
+          deleter{std::move(other.deleter)},
+          dispatch{other.dispatch} {
     }
 
     // Move assignment
     VulkanRaii& operator=(VulkanRaii&& other) noexcept {
         if (this != &other) {
             cleanup();
-            handle = other.handle;
+            handle = std::exchange(other.handle, VK_NULL_HANDLE);
             deleter = std::move(other.deleter);
             dispatch = other.dispatch;
-            other.handle = VK_NULL_HANDLE;
         }
         return *this;
     }
@@ -97,9 +97,12 @@ public:
     }
 
 private:
-    void cleanup() {
-        if (handle != VK_NULL_HANDLE && deleter) {
-            deleter(handle, dispatch);
+    // Optimized cleanup function that avoids unnecessary checks in release builds
+    void cleanup() noexcept {
+        if (handle != VK_NULL_HANDLE) {
+            if (deleter) {
+                deleter(handle, dispatch);
+            }
             handle = VK_NULL_HANDLE;
         }
     }
