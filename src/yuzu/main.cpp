@@ -88,6 +88,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QtConcurrent/QtConcurrent>
 
 #ifdef HAVE_SDL2
+#include <QCheckBox>
 #include <SDL.h> // For SDL ScreenSaver functions
 #endif
 
@@ -197,6 +198,14 @@ constexpr size_t CopyBufferSize = 1_MiB;
  */
 enum class CalloutFlag : uint32_t {
     DRDDeprecation = 0x2,
+};
+
+/**
+ * Some games perform worse or straight-up don't work with updates,
+ * so this tracks which games are bad in this regard.
+ */
+static const QList<u64> bad_update_games{
+    0x0100F2C0115B6000   // Tears of the Kingdom
 };
 
 const int GMainWindow::max_recent_files_item;
@@ -1778,6 +1787,56 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                                      std::make_unique<QtWebBrowser>(*this),               // Web Browser
                                  });
 
+    /** Game Updates check */
+
+    // yuzu's configuration doesn't actually support lists so this is a bit hacky
+    QSettings settings;
+    QStringList currentIgnored = settings.value("ignoredBadUpdates", {}).toStringList();
+
+    for (const u64 id : bad_update_games) {
+        const bool ignored = currentIgnored.contains(QString::number(id));
+
+        if (params.program_id == id && !ignored) {
+            QMessageBox *msg = new QMessageBox(this);
+            msg->setWindowTitle(tr("Game Updates Warning"));
+            msg->setIcon(QMessageBox::Warning);
+            msg->setText(tr("The game you are trying to launch is known to have performance or booting "
+                            "issues when updates are applied. It's recommended to disable any updates "
+                            "to this game before attempting to launch, or switch to an earlier update. "
+                            "If you don't have any updates installed or enabled, you can safely ignore "
+                            "this message.<br><br>Press \"OK\" to continue launching, or \"Cancel\" to "
+                            "cancel the launch."));
+
+            msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+
+            QCheckBox *dontShowAgain = new QCheckBox(msg);
+            dontShowAgain->setText(tr("Don't show again for this game"));
+            msg->setCheckBox(dontShowAgain);
+
+            int result = msg->exec();
+
+            // wtf
+            QMessageBox::ButtonRole role = msg->buttonRole(msg->button((QMessageBox::StandardButton) result));
+
+            switch (role) {
+
+                case QMessageBox::RejectRole:
+                    return false;
+
+                case QMessageBox::AcceptRole:
+                default:
+                    if (dontShowAgain->isChecked()) {
+                        currentIgnored << QString::number(params.program_id);
+
+                        settings.setValue("ignoredBadUpdates", currentIgnored);
+                        settings.sync();
+                    }
+                    break;
+            }
+        }
+    }
+
+    /** Exec */
     const Core::SystemResultStatus result{
         system->Load(*render_window, filename.toStdString(), params)};
 
@@ -4649,6 +4708,7 @@ void GMainWindow::UpdateStatusBar() {
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
+
     game_fps_label->setText(
                 tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) + tr(Settings::values.use_speed_limit ? " (Unlocked)" : ""));
 
@@ -5255,7 +5315,7 @@ int main(int argc, char* argv[]) {
     Common::ConfigureNvidiaEnvironmentFlags();
 
     // Init settings params
-    QCoreApplication::setOrganizationName(QStringLiteral("yuzu team"));
+    QCoreApplication::setOrganizationName(QStringLiteral("yuzu"));
     QCoreApplication::setApplicationName(QStringLiteral("eden"));
 
 #ifdef _WIN32
