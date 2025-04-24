@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <qnamespace.h>
 #include <QCheckBox>
+#include <QSlider>
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_graphics_extensions.h"
@@ -45,6 +46,11 @@ void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& buil
         }
 
         hold.emplace(setting->Id(), widget);
+
+        if (setting->Id() == Settings::values.dyna_state.Id()) {
+            widget->slider->setTickInterval(1);
+            widget->slider->setTickPosition(QSlider::TicksAbove);
+        }
     }
 
     for (const auto& [id, widget] : hold) {
