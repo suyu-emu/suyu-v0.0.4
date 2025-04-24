@@ -53,17 +53,16 @@ void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& buil
 
         hold.emplace(setting->Id(), widget);
 
-        if (setting->Id() == Settings::values.use_dyna_state_1.Id()) {
-            dyna_state_1_box = widget->checkbox;
-        } else if (setting->Id() == Settings::values.use_dyna_state_2.Id()) {
-            dyna_state_2_box = widget->checkbox;
-        } else if (setting->Id() == Settings::values.use_dyna_state_2_extras.Id()) {
-            dyna_state_2_extras_box = widget->checkbox;
-        } else if (setting->Id() == Settings::values.use_dyna_state_3.Id()) {
-            dyna_state_3_box = widget->checkbox;
-        } else if (setting->Id() == Settings::values.use_dyna_state_3_blend.Id()) {
-            dyna_state_3_blend_box = widget->checkbox;
-        }
+#define CHECKBOX(state) if (setting->Id() == Settings::values.use_dyna_state_##state.Id()) { \
+        dyna_state_##state##_box = widget->checkbox; \
+    } else
+
+        CHECKBOX(1)
+        CHECKBOX(2)
+        CHECKBOX(2_extras)
+        CHECKBOX(3)
+        CHECKBOX(3_blend)
+        {} // else
     }
 
     for (const auto& [id, widget] : hold) {
