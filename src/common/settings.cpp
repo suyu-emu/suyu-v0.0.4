@@ -206,6 +206,7 @@ const char* TranslateCategory(Category category) {
     case Category::Renderer:
     case Category::RendererAdvanced:
     case Category::RendererDebug:
+    case Category::RendererExtensions:
         return "Renderer";
     case Category::System:
     case Category::SystemAudio:

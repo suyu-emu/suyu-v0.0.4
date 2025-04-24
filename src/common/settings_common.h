@@ -21,6 +21,7 @@ enum class Category : u32 {
     Overlay,
     Renderer,
     RendererAdvanced,
+    RendererExtensions,
     RendererDebug,
     System,
     SystemAudio,

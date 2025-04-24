@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -427,11 +428,11 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
     }
 
     dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported(),
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported(),
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported(),
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported(),
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported(),
+        .has_extended_dynamic_state = Settings::values.use_dyna_state_1.GetValue(),
+        .has_extended_dynamic_state_2 = Settings::values.use_dyna_state_2.GetValue(),
+        .has_extended_dynamic_state_2_extra = Settings::values.use_dyna_state_2_extras.GetValue(),
+        .has_extended_dynamic_state_3_blend = Settings::values.use_dyna_state_3_blend.GetValue(),
+        .has_extended_dynamic_state_3_enables = Settings::values.use_dyna_state_3.GetValue(),
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 }

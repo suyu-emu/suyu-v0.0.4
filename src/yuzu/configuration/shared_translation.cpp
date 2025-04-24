@@ -230,6 +230,26 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, barrier_feedback_loops, tr("Barrier feedback loops"),
            tr("Improves rendering of transparency effects in specific games."));
 
+    INSERT(Settings, use_dyna_state_1, tr("Enable Extended Dynamic State 1"),
+           tr("Enables the VkExtendedDynamicState1 extension.\nThis setting may improve performance, "
+              "but may also cause games to break on some systems."));
+
+    INSERT(Settings, use_dyna_state_2, tr("Enable Extended Dynamic State 2"),
+           tr("Enables the VkExtendedDynamicState2 extension.\nThis setting may improve performance, "
+              "but may also cause games to break on some systems."));
+
+    INSERT(Settings, use_dyna_state_2_extras, tr("Enable Extended Dynamic State 2 Extras"),
+           tr("Enables the VkExtendedDynamicState2Extras extension.\nThis setting may improve performance, "
+              "but may also cause games to break on some systems."));
+
+    INSERT(Settings, use_dyna_state_3, tr("Enable Extended Dynamic State 3"),
+           tr("Enables the VkExtendedDynamicState3 extension.\nThis setting may improve performance, "
+              "but may also cause games to break on some systems."));
+
+    INSERT(Settings, use_dyna_state_3_blend, tr("Enable Extended Dynamic State 3 Blending"),
+           tr("Enables the VkExtendedDynamicState3Blending extension.\nThis setting may improve performance, "
+              "but may also cause games to break on some systems."));
+
     // Renderer (Debug)
 
     // System
