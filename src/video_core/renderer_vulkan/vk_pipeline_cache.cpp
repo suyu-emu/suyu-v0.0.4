@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -426,12 +427,13 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                     device.GetMaxVertexInputBindings(), Maxwell::NumVertexArrays);
     }
 
+    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
     dynamic_features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported(),
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported(),
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported(),
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported(),
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported(),
+        .has_extended_dynamic_state = dynamic_state > 0,
+        .has_extended_dynamic_state_2 = dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra = dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend = dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 }

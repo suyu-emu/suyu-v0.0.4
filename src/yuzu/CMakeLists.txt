@@ -231,6 +231,7 @@ add_executable(yuzu
     compatdb.h
     yuzu.qrc
     yuzu.rc
+    configuration/configure_graphics_extensions.h configuration/configure_graphics_extensions.cpp configuration/configure_graphics_extensions.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

@@ -471,6 +471,7 @@ class SettingsFragmentPresenter(
                 descriptionId = R.string.frame_skipping_description
             )
         )
+        add(ByteSetting.RENDERER_DYNA_STATE.key)
         add(
             SwitchSetting(
                 syncCoreSpeedSetting,

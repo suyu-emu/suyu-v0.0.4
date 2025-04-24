@@ -483,16 +483,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm || is_turnip) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
     }
 
     if (is_qualcomm) {
-        must_emulate_scaled_formats = true;
+        must_emulate_scaled_formats = false;
 
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state");
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                               //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
@@ -522,11 +522,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_arm) {
-        must_emulate_scaled_formats = true;
+        must_emulate_scaled_formats = false;
 
         LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                               //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     if (is_nvidia) {
@@ -552,9 +552,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 21.2 have broken VK_EXT_extended_dynamic_state");
-            RemoveExtensionFeature(extensions.extended_dynamic_state,
-                                   features.extended_dynamic_state,
-                                   VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+            //RemoveExtensionFeature(extensions.extended_dynamic_state,
+                                   //features.extended_dynamic_state,
+                                   //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state2 && is_radv) {
@@ -563,9 +563,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             LOG_WARNING(
                 Render_Vulkan,
                 "RADV versions older than 22.3.1 have broken VK_EXT_extended_dynamic_state2");
-            RemoveExtensionFeature(extensions.extended_dynamic_state2,
-                                   features.extended_dynamic_state2,
-                                   VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+           // RemoveExtensionFeature(extensions.extended_dynamic_state2,
+                           //        features.extended_dynamic_state2,
+                             //      VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state2 && is_qualcomm) {
@@ -575,32 +575,32 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             // Qualcomm Adreno 7xx drivers do not properly support extended_dynamic_state2.
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm Adreno 7xx drivers have broken VK_EXT_extended_dynamic_state2");
-            RemoveExtensionFeature(extensions.extended_dynamic_state2,
-                                   features.extended_dynamic_state2,
-                                   VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+            //RemoveExtensionFeature(extensions.extended_dynamic_state2,
+                                   //features.extended_dynamic_state2,
+                                   //VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state3 && is_radv) {
         LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
+        dynamic_state3_blending = true;
 
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
-            dynamic_state3_enables = false;
+            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = true;
+            dynamic_state3_enables = true;
         }
     }
     if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
+        dynamic_state3_blending = true;
     }
     if (extensions.vertex_input_dynamic_state && is_radv) {
         // TODO(ameerj): Blacklist only offending driver versions
@@ -610,18 +610,18 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (is_rdna2) {
             LOG_WARNING(Render_Vulkan,
                         "RADV has broken VK_EXT_vertex_input_dynamic_state on RDNA2 hardware");
-            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-                                   features.vertex_input_dynamic_state,
-                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+          //  RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                             //      features.vertex_input_dynamic_state,
+                               //    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm) {
         // Qualcomm drivers do not properly support vertex_input_dynamic_state.
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-                               features.vertex_input_dynamic_state,
-                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                             //  features.vertex_input_dynamic_state,
+                          //     VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     sets_per_pool = 64;
@@ -721,8 +721,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                  "Removing extendedDynamicState3 due to missing extendedDynamicState2");
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                                VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
+        dynamic_state3_blending = true;
+        dynamic_state3_enables = true;
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions),
@@ -1159,7 +1159,7 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
                                        VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
 
-    // VK_EXT_extended_dynamic_state
+   /* */ // VK_EXT_extended_dynamic_state
     extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
                                        features.extended_dynamic_state,
@@ -1169,7 +1169,7 @@ void Device::RemoveUnsuitableExtensions() {
     extensions.extended_dynamic_state2 = features.extended_dynamic_state2.extendedDynamicState2;
     RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
                                        features.extended_dynamic_state2,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+                                       VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME); 
 
     // VK_EXT_extended_dynamic_state3
     dynamic_state3_blending =
