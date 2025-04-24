@@ -6,6 +6,8 @@
 #include <cstring>
 #include <mutex>
 #include <span>
+#include <thread>
+#include <vector>
 
 #include "common/assert.h"
 #include "common/atomic_ops.h"
@@ -55,6 +57,30 @@ inline void FastMemcpy(void* dst, const void* src, std::size_t size) {
         dst_64[1] = src_64[1];
         break;
     }
+    case 32: {
+        // Optimize for 32-byte copy
+        const u64* src_64 = static_cast<const u64*>(src);
+        u64* dst_64 = static_cast<u64*>(dst);
+        dst_64[0] = src_64[0];
+        dst_64[1] = src_64[1];
+        dst_64[2] = src_64[2];
+        dst_64[3] = src_64[3];
+        break;
+    }
+    case 64: {
+        // Optimize for 64-byte copy
+        const u64* src_64 = static_cast<const u64*>(src);
+        u64* dst_64 = static_cast<u64*>(dst);
+        dst_64[0] = src_64[0];
+        dst_64[1] = src_64[1];
+        dst_64[2] = src_64[2];
+        dst_64[3] = src_64[3];
+        dst_64[4] = src_64[4];
+        dst_64[5] = src_64[5];
+        dst_64[6] = src_64[6];
+        dst_64[7] = src_64[7];
+        break;
+    }
     default:
         // For larger sizes, use standard memcpy which is usually optimized by the compiler
         std::memcpy(dst, src, size);
@@ -80,7 +106,7 @@ inline void FastMemset(void* dst, int value, std::size_t size) {
     case 16: {
         // Optimize for 16-byte fill (common case for SIMD registers)
         u64* dst_64 = static_cast<u64*>(dst);
-        const u64 val64 = static_cast<u64>(value) * 0x0101010101010101ULL;
+        const u64 val64 = static_cast<u8>(value) * 0x0101010101010101ULL;
         dst_64[0] = val64;
         dst_64[1] = val64;
         break;
@@ -119,7 +145,11 @@ bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessA
 // from outside classes. This also allows modification to the internals of the memory
 // subsystem without needing to rebuild all files that make use of the memory interface.
 struct Memory::Impl {
-    explicit Impl(Core::System& system_) : system{system_} {}
+    explicit Impl(Core::System& system_) : system{system_} {
+        // Initialize thread count based on available cores for parallel memory operations
+        const unsigned int hw_concurrency = std::thread::hardware_concurrency();
+        thread_count = std::max(2u, std::min(hw_concurrency, 8u)); // Limit to 8 threads max
+    }
 
     void SetCurrentPageTable(Kernel::KProcess& process) {
         current_page_table = &process.GetPageTable().GetImpl();
@@ -400,9 +430,53 @@ struct Memory::Impl {
             });
     }
 
+    bool ReadBlockParallel(const Common::ProcessAddress src_addr, void* dest_buffer,
+                          const std::size_t size) {
+        // Calculate chunk size based on thread count
+        const size_t chunk_size = (size + thread_count - 1) / thread_count;
+
+        // Create threads for parallel processing
+        std::vector<std::thread> threads;
+        threads.reserve(thread_count);
+
+        // Create a vector to store the results of each thread
+        std::vector<bool> results(thread_count, true);
+
+        // Split the work among threads
+        for (unsigned int i = 0; i < thread_count; ++i) {
+            const size_t offset = i * chunk_size;
+            if (offset >= size) {
+                break;
+            }
+
+            const size_t current_chunk_size = std::min(chunk_size, size - offset);
+            const Common::ProcessAddress current_addr = src_addr + offset;
+            void* current_dest = static_cast<u8*>(dest_buffer) + offset;
+
+            // Launch thread
+            threads.emplace_back([this, i, current_addr, current_dest, current_chunk_size, &results] {
+                results[i] = ReadBlockImpl<false>(current_addr, current_dest, current_chunk_size);
+            });
+        }
+
+        // Wait for all threads to complete
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        // Check if all operations succeeded
+        return std::all_of(results.begin(), results.end(), [](bool result) { return result; });
+    }
+
     bool ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
                    const std::size_t size) {
-        return ReadBlockImpl<false>(src_addr, dest_buffer, size);
+        // For small reads, use the regular implementation
+        if (size < PARALLEL_THRESHOLD) {
+            return ReadBlockImpl<false>(src_addr, dest_buffer, size);
+        }
+
+        // For large reads, use parallel implementation
+        return ReadBlockParallel(src_addr, dest_buffer, size);
     }
 
     bool ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
@@ -452,9 +526,53 @@ struct Memory::Impl {
             });
     }
 
+    bool WriteBlockParallel(const Common::ProcessAddress dest_addr, const void* src_buffer,
+                          const std::size_t size) {
+        // Calculate chunk size based on thread count
+        const size_t chunk_size = (size + thread_count - 1) / thread_count;
+
+        // Create threads for parallel processing
+        std::vector<std::thread> threads;
+        threads.reserve(thread_count);
+
+        // Create a vector to store the results of each thread
+        std::vector<bool> results(thread_count, true);
+
+        // Split the work among threads
+        for (unsigned int i = 0; i < thread_count; ++i) {
+            const size_t offset = i * chunk_size;
+            if (offset >= size) {
+                break;
+            }
+
+            const size_t current_chunk_size = std::min(chunk_size, size - offset);
+            const Common::ProcessAddress current_addr = dest_addr + offset;
+            const void* current_src = static_cast<const u8*>(src_buffer) + offset;
+
+            // Launch thread
+            threads.emplace_back([this, i, current_addr, current_src, current_chunk_size, &results] {
+                results[i] = WriteBlockImpl<false>(current_addr, current_src, current_chunk_size);
+            });
+        }
+
+        // Wait for all threads to complete
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        // Check if all operations succeeded
+        return std::all_of(results.begin(), results.end(), [](bool result) { return result; });
+    }
+
     bool WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
                     const std::size_t size) {
-        return WriteBlockImpl<false>(dest_addr, src_buffer, size);
+        // For small writes, use the regular implementation
+        if (size < PARALLEL_THRESHOLD) {
+            return WriteBlockImpl<false>(dest_addr, src_buffer, size);
+        }
+
+        // For large writes, use parallel implementation
+        return WriteBlockParallel(dest_addr, src_buffer, size);
     }
 
     bool WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
@@ -1071,6 +1189,12 @@ struct Memory::Impl {
     Core::System& system;
     Tegra::MaxwellDeviceMemoryManager* gpu_device_memory{};
     Common::PageTable* current_page_table = nullptr;
+
+    // Number of threads to use for parallel memory operations
+    unsigned int thread_count = 2;
+
+    // Minimum size in bytes for which parallel processing is beneficial
+    static constexpr size_t PARALLEL_THRESHOLD = 64 * 1024; // 64 KB
     std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES>
         rasterizer_read_areas{};
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};
