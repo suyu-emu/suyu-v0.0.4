@@ -106,11 +106,20 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
     : RendererBase(emu_window, std::move(context_)), device_memory(device_memory_), gpu(gpu_),
       library(OpenLibrary(context.get())),
+      // Create raw Vulkan instance first
       instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
-                              Settings::values.renderer_debug.GetValue())),
+                            Settings::values.renderer_debug.GetValue())),
+      // Now create RAII wrappers for the resources in the correct order
+      raii_instance(MakeInstance(instance, dld)),
+      // Create debug messenger if debug is enabled
       debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
-                                                      : vk::DebugUtilsMessenger{}),
+                                                    : vk::DebugUtilsMessenger{}),
+      raii_debug_messenger(Settings::values.renderer_debug
+                             ? MakeDebugUtilsMessenger(debug_messenger, instance, dld)
+                             : RaiiDebugUtilsMessenger{}),
+      // Create surface
       surface(CreateSurface(instance, render_window.GetWindowInfo())),
+      raii_surface(MakeSurface(surface, instance, dld)),
       device(CreateDevice(instance, dld, *surface)), memory_allocator(device), state_tracker(),
       scheduler(device, state_tracker),
       swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
