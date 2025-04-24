@@ -26,6 +26,16 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>While all dynamic state extensions are recommended, some games or systems may not function with Dynamic State 3, or will perform far better with only State 1 or State 2 enabled.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QWidget" name="populate_target" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="leftMargin">
