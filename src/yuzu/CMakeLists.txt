@@ -79,6 +79,9 @@ add_executable(yuzu
     configuration/configure_graphics_advanced.cpp
     configuration/configure_graphics_advanced.h
     configuration/configure_graphics_advanced.ui
+    configuration/configure_graphics_extensions.cpp
+    configuration/configure_graphics_extensions.h
+    configuration/configure_graphics_extensions.ui
     configuration/configure_hotkeys.cpp
     configuration/configure_hotkeys.h
     configuration/configure_hotkeys.ui
@@ -231,7 +234,6 @@ add_executable(yuzu
     compatdb.h
     yuzu.qrc
     yuzu.rc
-    configuration/configure_graphics_extensions.h configuration/configure_graphics_extensions.cpp configuration/configure_graphics_extensions.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")
