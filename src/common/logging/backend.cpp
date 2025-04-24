@@ -106,6 +106,11 @@ public:
 
         bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
 
+        // Option to log each line rather than 4k buffers
+#ifdef YUZU_LOG_BY_LINE
+        file->Flush();
+#endif
+
         using namespace Common::Literals;
         // Prevent logs from exceeding a set maximum size in the event that log entries are spammed.
         const auto write_limit = Settings::values.extended_logging.GetValue() ? 1_GiB : 100_MiB;
