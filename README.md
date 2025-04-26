@@ -49,9 +49,9 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Building
 
-* **Windows**: [Windows Building Guide](W.I.P)
-* **Linux**: [Linux Building Guide](W.I.P)
-* **Android**: [Android Building Guide](W.I.P)
+* **Windows**: [Windows Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Windows.-)
+* **Linux**: [Linux Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Linux.-)
+* **Android**: [Android Building Guide](https://git.eden-emu.dev/eden-emu/eden/wiki/Building-for-Android.-)
 
 ## Download
 
