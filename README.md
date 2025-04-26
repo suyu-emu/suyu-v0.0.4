@@ -4,6 +4,7 @@
 # SPDX-FileCopyrightText: 2025 EDEN Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 -->
+<!-- lang: en-GB -->
 
 <h1 align="center">
   <br>
@@ -13,15 +14,13 @@
   <br>
 </h1>
 
-<h4 align="center"><b>Eden</b> is the world's most popular, open-source, Nintendo Switch emulator forked from Yuzu emulator — started by the former Citron developer Camille LeVey and the Eden team</a>.
+<h4 align="center"><b>Eden</b> is the world's most popular open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
 <br>
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
 
 <p align="center">
-    </a>
-     Discord is not yet public.
-    </a>
+    Discord is not yet public.
 </p>
 
 <p align="center">
@@ -37,45 +36,42 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 
 The emulator is capable of running most commercial games at full speed, provided you meet the necessary hardware requirements.
 
-For a list of games Eden supports, please be patient as this will come eventually.
+A list of supported games will be available in future. Please be patient.
 
-Check out our [website](W.I.P) for the latest news on exciting features, monthly progress reports, and more!
+Check out our [website](https://eden-emu.dev) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
 
-Most of the development happens on our git. It's also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussion, please wait join us on [Discord](W.I.P) once it's public.
+Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please wait to join us on [Discord](W.I.P) once it is public.
 
-If you want to contribute we are open to new devs and prs, please make sure your work is of a high standard and you have properly documented it.
-You can also contact any of the developers on Discord in order to know about the current state of the emulator.
-
+If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented.
+You can also contact any of the developers on Discord to learn more about the current state of the emulator.
 
 ## Building
 
-* __Windows__: [Windows Building Guide](W.I.P)
-* __Linux__: [Linux Building Guide](W.I.P)
-* __Android__: [Android Building Guide](W.I.P)
+* **Windows**: [Windows Building Guide](W.I.P)
+* **Linux**: [Linux Building Guide](W.I.P)
+* **Android**: [Android Building Guide](W.I.P)
 
 ## Download
 
-You can download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases) once public.
-
+You will be able to download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases) once public.
 
 ## Support
 
-If you enjoy the project and want to support us financially, check out Camille's donations page!
+If you enjoy the project and would like to support us financially, please check out Camille's donations page!
 <br>
 <br>
-       Donations are not available yet.
-</a>
+Donations are not available yet.
 
-Any donations received will go towards things like:
+Any donations received will go towards things such as:
 * Switch consoles to explore and reverse-engineer the hardware
 * Switch games for testing, reverse-engineering, and implementing new features
 * Web hosting and infrastructure setup
-* Software licenses (e.g. Visual Studio, IDA Pro, etc.)
-* Additional hardware (e.g. GPUs as-needed to improve rendering support, other peripherals to add support for, etc.)
+* Software licences (e.g. Visual Studio, IDA Pro, etc.)
+* Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
 
-If you wish to support us a different way, please join our [Discord](W.I.P), once public, and talk to Camille.
+If you would prefer to support us in a different way, please join our [Discord](W.I.P), once public, and talk to Camille.
 
 ## License
 
