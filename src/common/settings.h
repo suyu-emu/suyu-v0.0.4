@@ -446,7 +446,7 @@ struct Values {
                                                    Category::RendererAdvanced};
 
     SwitchableSetting<u8, true> dyna_state{linkage,
-                                     0,
+                                     1,
                                      0,
                                      3,
                                      "dyna_state",

@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 export NDK_CCACHE=$(which ccache)
 

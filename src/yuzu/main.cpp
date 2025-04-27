@@ -4710,7 +4710,7 @@ void GMainWindow::UpdateStatusBar() {
     }
 
     game_fps_label->setText(
-                tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) + tr(Settings::values.use_speed_limit ? " (Unlocked)" : ""));
+                tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) + tr(Settings::values.use_speed_limit ? "" : " (Unlocked)"));
 
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 

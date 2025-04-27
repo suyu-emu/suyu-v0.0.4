@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <iostream>
 #include <span>
 
 #include <boost/container/small_vector.hpp>
@@ -740,12 +741,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                                    ? VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT
                                    : VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT,
     };
-    VkPipelineRasterizationDepthClipStateCreateInfoEXT depth_clip{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT,
-        .pNext = nullptr,
-        .flags = 0,
-        .depthClipEnable = VK_TRUE,
-    };
     if (IsLine(input_assembly_topology) && device.IsExtLineRasterizationSupported()) {
         line_state.pNext = std::exchange(rasterization_ci.pNext, &line_state);
     }
@@ -754,9 +749,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     }
     if (device.IsExtProvokingVertexSupported()) {
         provoking_vertex.pNext = std::exchange(rasterization_ci.pNext, &provoking_vertex);
-    }
-    if (device.IsExtDepthClipControlSupported()) {
-        depth_clip.pNext = std::exchange(rasterization_ci.pNext, &depth_clip);
     }
 
     const VkPipelineMultisampleStateCreateInfo multisample_ci{
@@ -825,12 +817,12 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 28> dynamic_states{
+    static_vector<VkDynamicState, 38> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
         VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-        VK_DYNAMIC_STATE_LINE_WIDTH,
+        VK_DYNAMIC_STATE_LINE_WIDTH,         VK_DYNAMIC_STATE_LINE_STIPPLE,
     };
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
@@ -864,6 +856,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
                 VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
                 VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+
+                // VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT,
             };
             dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
         }
@@ -871,10 +865,26 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             static constexpr std::array extended3{
                 VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
                 VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
+
+                // additional state3 extensions
+
+                // FIXME(crueter): conservative rasterization is totally broken
+                // VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT,
+                VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
+
+                VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
+
+                VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
+                VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
+                VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
+                VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT,
+                VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
+                VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
             };
             dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
         }
     }
+
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .pNext = nullptr,

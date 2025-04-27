@@ -28,7 +28,8 @@
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>While it's recommended to use state 3, some games may perform better on lower states. Additionally, some older devices and drivers will not work properly with state 3.</string>
+           <string>While it's recommended to use state 3, some games may perform better on lower states. Setting to 0 (disabled) may also break games.
+If your device doesn't support the selected state, the renderer will automatically disable the unsupported states.</string>
           </property>
           <property name="wordWrap">
            <bool>true</bool>

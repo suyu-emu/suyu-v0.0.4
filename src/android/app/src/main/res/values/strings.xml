@@ -293,7 +293,7 @@
     <string name="nvdec_emulation_description">Specifies how videos should be decoded. It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos). In most cases, GPU decoding provides the best performance.</string>
     <string name="shader_backend">Shader Backend</string>
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will generally improve performance, but may cause issues on certain games or devices\nDefault value is 0 for Disabled, The third value might not work properly on some devices</string>
+    <string name="dyna_state_description">Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will generally improve performance, but may cause issues on certain games or devices.\nSet to 0 to disable.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
