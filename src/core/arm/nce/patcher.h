@@ -61,7 +61,7 @@ private:
     void WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg);
 
 private:
-    static constexpr size_t CACHE_SIZE = 1024;  // Cache size for patch entries
+    static constexpr size_t CACHE_SIZE = 4096;  // Cache size for patch entries
     LRUCache<uintptr_t, PatchTextAddress> patch_cache{CACHE_SIZE};
 
     void BranchToPatch(uintptr_t module_dest) {
