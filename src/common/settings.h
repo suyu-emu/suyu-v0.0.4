@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2025 Citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -644,21 +643,11 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
-
-    // Renderer Advanced Settings
-    SwitchableSetting<bool> use_enhanced_shader_building{linkage, false, "Enhanced Shader Building",
-                                                        Category::RendererAdvanced};
-
-    // Add a new setting for shader compilation priority
-        SwitchableSetting<int> shader_compilation_priority{linkage, 0, "Shader Compilation Priority",
-                                                      Category::RendererAdvanced};
 };
 
 extern Values values;
 
 void UpdateGPUAccuracy();
-// boold isGPULevelNormal();
-// TODO: ZEP
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 

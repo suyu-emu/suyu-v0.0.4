@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -127,8 +126,6 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
                  scheduler),
       hybrid_memory(std::make_unique<HybridMemory>(device, memory_allocator)),
-      texture_manager(device, memory_allocator),
-      shader_manager(device),
       applet_frame() {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
@@ -178,41 +175,7 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
         LOG_INFO(Render_Vulkan, "Fault-managed memory not supported on this platform");
 #endif
     }
-
-    // Initialize enhanced shader compilation system
-    shader_manager.SetScheduler(&scheduler);
-    LOG_INFO(Render_Vulkan, "Enhanced shader compilation system initialized");
-
-    // Preload common shaders if enabled
-    if (Settings::values.use_asynchronous_shaders.GetValue()) {
-        // Use a simple shader directory path - can be updated to match Citron's actual path structure
-        const std::string shader_dir = "./shaders";
-        std::vector<std::string> common_shaders;
-
-        // Add paths to common shaders that should be preloaded
-        // These will be compiled in parallel for faster startup
-        try {
-            if (std::filesystem::exists(shader_dir)) {
-                for (const auto& entry : std::filesystem::directory_iterator(shader_dir)) {
-                    if (entry.is_regular_file() && entry.path().extension() == ".spv") {
-                        common_shaders.push_back(entry.path().string());
-                    }
-                }
-
-                if (!common_shaders.empty()) {
-                    LOG_INFO(Render_Vulkan, "Preloading {} common shaders", common_shaders.size());
-                    shader_manager.PreloadShaders(common_shaders);
-                }
-            } else {
-                LOG_INFO(Render_Vulkan, "Shader directory not found at {}", shader_dir);
-            }
-        } catch (const std::exception& e) {
-            LOG_ERROR(Render_Vulkan, "Error during shader preloading: {}", e.what());
-        }
-    }
-
     Report();
-    InitializePlatformSpecific();
 } catch (const vk::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
     throw std::runtime_error{fmt::format("Vulkan initialization error {}", exception.what())};
@@ -515,156 +478,6 @@ void RendererVulkan::RenderAppletCaptureLayer(
 
     blit_applet.DrawToFrame(rasterizer, &applet_frame, framebuffers, VideoCore::Capture::Layout, 1,
                             CaptureFormat);
-}
-
-void RendererVulkan::FixMSAADepthStencil(VkCommandBuffer cmd_buffer, const Framebuffer& framebuffer) {
-    if (framebuffer.Samples() == VK_SAMPLE_COUNT_1_BIT) {
-        return;
-    }
-
-    // Use the scheduler's command buffer wrapper
-    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-        // Find the depth/stencil image in the framebuffer's attachments
-        for (u32 i = 0; i < framebuffer.NumImages(); ++i) {
-            if (framebuffer.HasAspectDepthBit() && (framebuffer.ImageRanges()[i].aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)) {
-                VkImageMemoryBarrier barrier{
-                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                    .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-                    .oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                    .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                    .image = framebuffer.Images()[i],
-                    .subresourceRange = framebuffer.ImageRanges()[i]
-                };
-
-                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-                                      VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                      0, nullptr, nullptr, barrier);
-                break;
-            }
-        }
-    });
-}
-
-void RendererVulkan::ResolveMSAA(VkCommandBuffer cmd_buffer, const Framebuffer& framebuffer) {
-    if (framebuffer.Samples() == VK_SAMPLE_COUNT_1_BIT) {
-        return;
-    }
-
-    // Use the scheduler's command buffer wrapper
-    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-        // Find color attachments
-        for (u32 i = 0; i < framebuffer.NumColorBuffers(); ++i) {
-            if (framebuffer.HasAspectColorBit(i)) {
-                VkImageResolve resolve_region{
-                    .srcSubresource{
-                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                        .mipLevel = 0,
-                        .baseArrayLayer = 0,
-                        .layerCount = 1,
-                    },
-                    .srcOffset = {0, 0, 0},
-                    .dstSubresource{
-                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                        .mipLevel = 0,
-                        .baseArrayLayer = 0,
-                        .layerCount = 1,
-                    },
-                    .dstOffset = {0, 0, 0},
-                    .extent{
-                        .width = framebuffer.RenderArea().width,
-                        .height = framebuffer.RenderArea().height,
-                        .depth = 1
-                    }
-                };
-
-                cmdbuf.ResolveImage(
-                    framebuffer.Images()[i], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                    framebuffer.Images()[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                    resolve_region
-                );
-            }
-        }
-    });
-}
-
-bool RendererVulkan::HandleVulkanError(VkResult result, const std::string& operation) {
-    if (result == VK_SUCCESS) {
-        return true;
-    }
-
-    if (result == VK_ERROR_DEVICE_LOST) {
-        LOG_CRITICAL(Render_Vulkan, "Vulkan device lost during {}", operation);
-        RecoverFromError();
-        return false;
-    }
-
-    if (result == VK_ERROR_OUT_OF_DEVICE_MEMORY || result == VK_ERROR_OUT_OF_HOST_MEMORY) {
-        LOG_CRITICAL(Render_Vulkan, "Vulkan out of memory during {}", operation);
-        // Potential recovery: clear caches, reduce workload
-        texture_manager.CleanupTextureCache();
-        return false;
-    }
-
-    LOG_ERROR(Render_Vulkan, "Vulkan error during {}: {}", operation, result);
-    return false;
-}
-
-void RendererVulkan::RecoverFromError() {
-    LOG_INFO(Render_Vulkan, "Attempting to recover from Vulkan error");
-
-    // Wait for device to finish operations
-    void(device.GetLogical().WaitIdle());
-
-    // Process all pending commands in our queue
-    ProcessAllCommands();
-
-    // Wait for any async shader compilations to finish
-    shader_manager.WaitForCompilation();
-
-    // Clean up resources that might be causing problems
-    texture_manager.CleanupTextureCache();
-
-    // Reset command buffers and pipelines
-    scheduler.Flush();
-
-    LOG_INFO(Render_Vulkan, "Recovery attempt completed");
-}
-
-void RendererVulkan::InitializePlatformSpecific() {
-    LOG_INFO(Render_Vulkan, "Initializing platform-specific Vulkan components");
-
-#if defined(_WIN32) || defined(_WIN64)
-    LOG_INFO(Render_Vulkan, "Initializing Vulkan for Windows");
-    // Windows-specific initialization
-#elif defined(__linux__)
-    LOG_INFO(Render_Vulkan, "Initializing Vulkan for Linux");
-    // Linux-specific initialization
-#elif defined(__ANDROID__)
-    LOG_INFO(Render_Vulkan, "Initializing Vulkan for Android");
-    // Android-specific initialization
-#else
-    LOG_INFO(Render_Vulkan, "Platform-specific Vulkan initialization not implemented for this platform");
-#endif
-
-    // Create a compute buffer using the HybridMemory system if enabled
-    if (Settings::values.use_gpu_memory_manager.GetValue()) {
-        try {
-            // Create a small compute buffer for testing
-            const VkDeviceSize buffer_size = 1 * 1024 * 1024; // 1 MB
-            ComputeBuffer compute_buffer = hybrid_memory->CreateComputeBuffer(
-                buffer_size,
-                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                MemoryUsage::DeviceLocal);
-
-            LOG_INFO(Render_Vulkan, "Successfully created compute buffer using HybridMemory");
-        } catch (const std::exception& e) {
-            LOG_ERROR(Render_Vulkan, "Failed to create compute buffer: {}", e.what());
-        }
-    }
 }
 
 } // namespace Vulkan
