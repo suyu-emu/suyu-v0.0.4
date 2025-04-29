@@ -711,14 +711,36 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = true;
     }
 
-    // Scaled formats must be emulated if dynamic state is disabled
     if (Settings::values.dyna_state.GetValue() == 0) {
         must_emulate_scaled_formats = true;
         LOG_INFO(Render_Vulkan, "Dynamic state is disabled (dyna_state = 0), forcing scaled format emulation ON");
+    
+        // Remove all dynamic state 1-2 extensions and features
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+    
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+    
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    
+        // Disable extended dynamic state 3 features
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
+    
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
+    
+        LOG_INFO(Render_Vulkan, "Dynamic state extensions and features have been fully disabled");
     } else {
         must_emulate_scaled_formats = false;
         LOG_INFO(Render_Vulkan, "Dynamic state is enabled (dyna_state = 1-3), disabling scaled format emulation");
-    }
+    }    
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions),
                                  first_next, dld);
