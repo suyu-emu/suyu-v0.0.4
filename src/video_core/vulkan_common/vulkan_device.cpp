@@ -488,12 +488,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_qualcomm) {
-        must_emulate_scaled_formats = false;
-
-        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state");
-        //RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                               //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
         RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
@@ -528,14 +522,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
         }
 #endif
-    }
-
-    if (is_arm) {
-        must_emulate_scaled_formats = false;
-
-        LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
-        //RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                               //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     if (is_nvidia) {
