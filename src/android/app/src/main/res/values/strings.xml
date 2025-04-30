@@ -655,6 +655,10 @@
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
     <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
 
+    <!-- LRU Cache -->
+    <string name="use_lru_cache">Enable LRU Cache</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache for improved performance</string>
+
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>
     <string name="renderer_vsync_mailbox">Mailbox</string>

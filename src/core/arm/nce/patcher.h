@@ -10,6 +10,7 @@
 #include <oaknut/oaknut.hpp>
 
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_typed_address.h"
 #include "core/hle/kernel/physical_memory.h"
@@ -61,8 +62,8 @@ private:
     void WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg);
 
 private:
-    static constexpr size_t CACHE_SIZE = 1024;  // Cache size for patch entries
-    LRUCache<uintptr_t, PatchTextAddress> patch_cache{CACHE_SIZE};
+    static constexpr size_t CACHE_SIZE = 4096;  // Cache size for patch entries
+    LRUCache<uintptr_t, PatchTextAddress> patch_cache{CACHE_SIZE, Settings::values.lru_cache_enabled.GetValue()};
 
     void BranchToPatch(uintptr_t module_dest) {
         // Try to get existing patch entry from cache
