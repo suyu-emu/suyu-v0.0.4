@@ -80,15 +80,15 @@ private:
     // Keep original handles for compatibility with existing code
     vk::Instance instance;
     // RAII wrapper for instance
-    RaiiInstance raii_instance;
+    ManagedInstance managed_instance;
 
     vk::DebugUtilsMessenger debug_messenger;
     // RAII wrapper for debug messenger
-    RaiiDebugUtilsMessenger raii_debug_messenger;
+    ManagedDebugUtilsMessenger managed_debug_messenger;
 
     vk::SurfaceKHR surface;
     // RAII wrapper for surface
-    RaiiSurface raii_surface;
+    ManagedSurface managed_surface;
 
     Device device;
     MemoryAllocator memory_allocator;
