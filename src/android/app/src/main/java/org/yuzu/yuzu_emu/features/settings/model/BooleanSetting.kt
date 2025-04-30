@@ -13,6 +13,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     CORE_SYNC_CORE_SPEED("sync_core_speed"),
     RENDERER_USE_SPEED_LIMIT("use_speed_limit"),
     USE_DOCKED_MODE("use_docked_mode"),
+    USE_AUTO_STUB("use_auto_stub"),
     RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache"),
     RENDERER_FORCE_MAX_CLOCK("force_max_clock"),
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),

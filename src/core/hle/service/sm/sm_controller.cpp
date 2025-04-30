@@ -68,12 +68,45 @@ void Controller::CloneCurrentObjectEx(HLERequestContext& ctx) {
 }
 
 void Controller::QueryPointerBufferSize(HLERequestContext& ctx) {
-    LOG_WARNING(Service, "(STUBBED) called");
+    LOG_DEBUG(Service, "called");
+
+    auto* process = Kernel::GetCurrentProcessPointer(kernel);
+    ASSERT(process != nullptr);
+
+    u32 buffer_size = process->GetPointerBufferSize();
+    if (buffer_size > std::numeric_limits<u16>::max()) {
+        LOG_WARNING(Service, "Pointer buffer size exceeds u16 max, clamping");
+        buffer_size = std::numeric_limits<u16>::max();
+    }
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u16>(0x8000);
+    rb.Push<u16>(static_cast<u16>(buffer_size));
 }
+
+void Controller::SetPointerBufferSize(HLERequestContext& ctx) {
+    LOG_DEBUG(Service, "called");
+
+    auto* process = Kernel::GetCurrentProcessPointer(kernel);
+    ASSERT(process != nullptr);
+
+    IPC::RequestParser rp{ctx};
+
+    u32 requested_size = rp.PopRaw<u32>();
+
+    if (requested_size > std::numeric_limits<u16>::max()) {
+        LOG_WARNING(Service, "Requested pointer buffer size too large, clamping to 0xFFFF");
+        requested_size = std::numeric_limits<u16>::max();
+    }
+
+    process->SetPointerBufferSize(requested_size);
+
+    LOG_INFO(Service, "Pointer buffer size dynamically updated to {:#x} bytes by process", requested_size);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 
 // https://switchbrew.org/wiki/IPC_Marshalling
 Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcController"} {
@@ -83,6 +116,7 @@ Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcCo
         {2, &Controller::CloneCurrentObject, "CloneCurrentObject"},
         {3, &Controller::QueryPointerBufferSize, "QueryPointerBufferSize"},
         {4, &Controller::CloneCurrentObjectEx, "CloneCurrentObjectEx"},
+        {5, &Controller::SetPointerBufferSize, "SetPointerBufferSize"},
     };
     RegisterHandlers(functions);
 }

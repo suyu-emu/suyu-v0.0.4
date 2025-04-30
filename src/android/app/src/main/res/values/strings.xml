@@ -256,6 +256,8 @@
     <string name="device_name">Device name</string>
     <string name="use_docked_mode">Docked Mode</string>
     <string name="use_docked_mode_description">Increases resolution, decreasing performance. Handheld Mode is used when disabled, lowering resolution and increasing performance.</string>
+    <string name="use_auto_stub">Use Auto Stub</string>
+    <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
     <string name="emulated_region">Emulated region</string>
     <string name="emulated_language">Emulated language</string>
     <string name="select_rtc_date">Select RTC date</string>

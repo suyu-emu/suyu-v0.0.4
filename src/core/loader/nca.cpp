@@ -15,8 +15,19 @@
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nca.h"
 #include "mbedtls/sha256.h"
+#include "common/literals.h"
 
 namespace Loader {
+
+static u32 CalculatePointerBufferSize(size_t heap_size) {
+    if (heap_size > 1073741824) { // Games with 1 GiB
+        return 0x10000;
+    } else if (heap_size > 536870912) { // Games with 512 MiB
+        return 0xC000;
+    } else {
+        return 0x8000; // Default for all other games
+    }
+}
 
 AppLoader_NCA::AppLoader_NCA(FileSys::VirtualFile file_)
     : AppLoader(std::move(file_)), nca(std::make_unique<FileSys::NCA>(file)) {}
@@ -52,8 +63,6 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
     if (exefs == nullptr) {
         LOG_INFO(Loader, "No ExeFS found in NCA, looking for ExeFS from update");
 
-        // This NCA may be a sparse base of an installed title.
-        // Try to fetch the ExeFS from the installed update.
         const auto& installed = system.GetContentProvider();
         const auto update_nca = installed.GetEntry(FileSys::GetUpdateTitleID(nca->GetTitleId()),
                                                    FileSys::ContentRecordType::Program);
@@ -69,11 +78,37 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
 
     directory_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(exefs, true);
 
+    // Read heap size from main.npdm in ExeFS
+    u64 heap_size = 0;
+
+    if (exefs) {
+        const auto npdm_file = exefs->GetFile("main.npdm");
+        if (npdm_file) {
+            auto npdm_data = npdm_file->ReadAllBytes();
+            if (npdm_data.size() >= 0x30) {
+                heap_size = *reinterpret_cast<const u64*>(&npdm_data[0x28]);
+                LOG_INFO(Loader, "Read heap size {:#x} bytes from main.npdm", heap_size);
+            } else {
+                LOG_WARNING(Loader, "main.npdm too small to read heap size!");
+            }
+        } else {
+            LOG_WARNING(Loader, "No main.npdm found in ExeFS!");
+        }
+    }
+
+    // Set pointer buffer size based on heap size
+    process.SetPointerBufferSize(CalculatePointerBufferSize(heap_size));
+
+    // Load modules
     const auto load_result = directory_loader->Load(process, system);
     if (load_result.first != ResultStatus::Success) {
         return load_result;
     }
 
+    LOG_INFO(Loader, "Set pointer buffer size to {:#x} bytes for ProgramID {:#018x} (Heap size: {:#x})",
+             process.GetPointerBufferSize(), nca->GetTitleId(), heap_size);
+
+    // Register the process in the file system controller
     system.GetFileSystemController().RegisterProcess(
         process.GetProcessId(), nca->GetTitleId(),
         std::make_shared<FileSys::RomFSFactory>(*this, system.GetContentProvider(),

@@ -21,6 +21,7 @@
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/hybrid_memory.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/vulkan_common/vulkan_raii.h"
 
 namespace Core::Memory {
 class Memory;
@@ -76,9 +77,18 @@ private:
     std::shared_ptr<Common::DynamicLibrary> library;
     vk::InstanceDispatch dld;
 
+    // Keep original handles for compatibility with existing code
     vk::Instance instance;
+    // RAII wrapper for instance
+    ManagedInstance managed_instance;
+
     vk::DebugUtilsMessenger debug_messenger;
+    // RAII wrapper for debug messenger
+    ManagedDebugUtilsMessenger managed_debug_messenger;
+
     vk::SurfaceKHR surface;
+    // RAII wrapper for surface
+    ManagedSurface managed_surface;
 
     Device device;
     MemoryAllocator memory_allocator;

@@ -6,6 +6,8 @@
 #include <cstring>
 #include <mutex>
 #include <span>
+#include <thread>
+#include <vector>
 
 #include "common/assert.h"
 #include "common/atomic_ops.h"
@@ -32,6 +34,105 @@ namespace Core::Memory {
 
 namespace {
 
+inline void FastMemcpy(void* dst, const void* src, std::size_t size) {
+    // Fast path for small copies
+    switch (size) {
+    case 1:
+        *static_cast<u8*>(dst) = *static_cast<const u8*>(src);
+        break;
+    case 2:
+        *static_cast<u16*>(dst) = *static_cast<const u16*>(src);
+        break;
+    case 4:
+        *static_cast<u32*>(dst) = *static_cast<const u32*>(src);
+        break;
+    case 8:
+        *static_cast<u64*>(dst) = *static_cast<const u64*>(src);
+        break;
+    case 16: {
+        // Optimize for 16-byte copy (common case for SIMD registers)
+        const u64* src_64 = static_cast<const u64*>(src);
+        u64* dst_64 = static_cast<u64*>(dst);
+        dst_64[0] = src_64[0];
+        dst_64[1] = src_64[1];
+        break;
+    }
+    case 32: {
+        // Optimize for 32-byte copy
+        const u64* src_64 = static_cast<const u64*>(src);
+        u64* dst_64 = static_cast<u64*>(dst);
+        dst_64[0] = src_64[0];
+        dst_64[1] = src_64[1];
+        dst_64[2] = src_64[2];
+        dst_64[3] = src_64[3];
+        break;
+    }
+    case 64: {
+        // Optimize for 64-byte copy
+        const u64* src_64 = static_cast<const u64*>(src);
+        u64* dst_64 = static_cast<u64*>(dst);
+        dst_64[0] = src_64[0];
+        dst_64[1] = src_64[1];
+        dst_64[2] = src_64[2];
+        dst_64[3] = src_64[3];
+        dst_64[4] = src_64[4];
+        dst_64[5] = src_64[5];
+        dst_64[6] = src_64[6];
+        dst_64[7] = src_64[7];
+        break;
+    }
+    default:
+        // For larger sizes, use standard memcpy which is usually optimized by the compiler
+        std::memcpy(dst, src, size);
+        break;
+    }
+}
+
+inline void FastMemset(void* dst, int value, std::size_t size) {
+    // Fast path for small fills
+    switch (size) {
+    case 1:
+        *static_cast<u8*>(dst) = static_cast<u8>(value);
+        break;
+    case 2:
+        *static_cast<u16*>(dst) = static_cast<u16>(value);
+        break;
+    case 4:
+        *static_cast<u32*>(dst) = static_cast<u32>(value);
+        break;
+    case 8:
+        *static_cast<u64*>(dst) = static_cast<u64>(value);
+        break;
+    case 16: {
+        // Optimize for 16-byte fill (common case for SIMD registers)
+        u64* dst_64 = static_cast<u64*>(dst);
+        const u64 val64 = static_cast<u8>(value) * 0x0101010101010101ULL;
+        dst_64[0] = val64;
+        dst_64[1] = val64;
+        break;
+    }
+    default:
+        if (size <= 128 && value == 0) {
+            // Fast path for small zero-fills
+            u8* dst_bytes = static_cast<u8*>(dst);
+            for (std::size_t i = 0; i < size; i += 8) {
+                if (i + 8 <= size) {
+                    *reinterpret_cast<u64*>(dst_bytes + i) = 0;
+                } else {
+                    // Handle remaining bytes (less than 8)
+                    for (std::size_t j = i; j < size; j++) {
+                        dst_bytes[j] = 0;
+                    }
+                }
+            }
+        } else {
+            // For larger sizes, use standard memset which is usually optimized by the compiler
+            std::memset(dst, value, size);
+        }
+        break;
+    }
+}
+
 bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessAddress addr,
                           const std::size_t size) {
     const Common::ProcessAddress max_addr = 1ULL << table.GetAddressSpaceBits();
@@ -44,7 +145,11 @@ bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessA
 // from outside classes. This also allows modification to the internals of the memory
 // subsystem without needing to rebuild all files that make use of the memory interface.
 struct Memory::Impl {
-    explicit Impl(Core::System& system_) : system{system_} {}
+    explicit Impl(Core::System& system_) : system{system_} {
+        // Initialize thread count based on available cores for parallel memory operations
+        const unsigned int hw_concurrency = std::thread::hardware_concurrency();
+        thread_count = std::max(2u, std::min(hw_concurrency, 8u)); // Limit to 8 threads max
+    }
 
     void SetCurrentPageTable(Kernel::KProcess& process) {
         current_page_table = &process.GetPageTable().GetImpl();
@@ -308,26 +413,70 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory,
                           "Unmapped ReadBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
                           GetInteger(current_vaddr), GetInteger(src_addr), size);
-                std::memset(dest_buffer, 0, copy_amount);
+               FastMemset(dest_buffer, 0, copy_amount);
             },
             [&](const std::size_t copy_amount, const u8* const src_ptr) {
-                std::memcpy(dest_buffer, src_ptr, copy_amount);
+                FastMemcpy(dest_buffer, src_ptr, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 const u8* const host_ptr) {
                 if constexpr (!UNSAFE) {
                     HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
                 }
-                std::memcpy(dest_buffer, host_ptr, copy_amount);
+                FastMemcpy(dest_buffer, host_ptr, copy_amount);
             },
             [&](const std::size_t copy_amount) {
                 dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
             });
     }
 
+    bool ReadBlockParallel(const Common::ProcessAddress src_addr, void* dest_buffer,
+                          const std::size_t size) {
+        // Calculate chunk size based on thread count
+        const size_t chunk_size = (size + thread_count - 1) / thread_count;
+
+        // Create threads for parallel processing
+        std::vector<std::thread> threads;
+        threads.reserve(thread_count);
+
+        // Create a vector to store the results of each thread
+        std::vector<bool> results(thread_count, true);
+
+        // Split the work among threads
+        for (unsigned int i = 0; i < thread_count; ++i) {
+            const size_t offset = i * chunk_size;
+            if (offset >= size) {
+                break;
+            }
+
+            const size_t current_chunk_size = std::min(chunk_size, size - offset);
+            const Common::ProcessAddress current_addr = src_addr + offset;
+            void* current_dest = static_cast<u8*>(dest_buffer) + offset;
+
+            // Launch thread
+            threads.emplace_back([this, i, current_addr, current_dest, current_chunk_size, &results] {
+                results[i] = ReadBlockImpl<false>(current_addr, current_dest, current_chunk_size);
+            });
+        }
+
+        // Wait for all threads to complete
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        // Check if all operations succeeded
+        return std::all_of(results.begin(), results.end(), [](bool result) { return result; });
+    }
+
     bool ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
                    const std::size_t size) {
-        return ReadBlockImpl<false>(src_addr, dest_buffer, size);
+        // For small reads, use the regular implementation
+        if (size < PARALLEL_THRESHOLD) {
+            return ReadBlockImpl<false>(src_addr, dest_buffer, size);
+        }
+
+        // For large reads, use parallel implementation
+        return ReadBlockParallel(src_addr, dest_buffer, size);
     }
 
     bool ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
@@ -363,23 +512,67 @@ struct Memory::Impl {
                           GetInteger(current_vaddr), GetInteger(dest_addr), size);
             },
             [&](const std::size_t copy_amount, u8* const dest_ptr) {
-                std::memcpy(dest_ptr, src_buffer, copy_amount);
+                FastMemcpy(dest_ptr, src_buffer, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 if constexpr (!UNSAFE) {
                     HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
                 }
-                std::memcpy(host_ptr, src_buffer, copy_amount);
+                FastMemcpy(host_ptr, src_buffer, copy_amount);
             },
             [&](const std::size_t copy_amount) {
                 src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
             });
     }
 
+    bool WriteBlockParallel(const Common::ProcessAddress dest_addr, const void* src_buffer,
+                          const std::size_t size) {
+        // Calculate chunk size based on thread count
+        const size_t chunk_size = (size + thread_count - 1) / thread_count;
+
+        // Create threads for parallel processing
+        std::vector<std::thread> threads;
+        threads.reserve(thread_count);
+
+        // Create a vector to store the results of each thread
+        std::vector<bool> results(thread_count, true);
+
+        // Split the work among threads
+        for (unsigned int i = 0; i < thread_count; ++i) {
+            const size_t offset = i * chunk_size;
+            if (offset >= size) {
+                break;
+            }
+
+            const size_t current_chunk_size = std::min(chunk_size, size - offset);
+            const Common::ProcessAddress current_addr = dest_addr + offset;
+            const void* current_src = static_cast<const u8*>(src_buffer) + offset;
+
+            // Launch thread
+            threads.emplace_back([this, i, current_addr, current_src, current_chunk_size, &results] {
+                results[i] = WriteBlockImpl<false>(current_addr, current_src, current_chunk_size);
+            });
+        }
+
+        // Wait for all threads to complete
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        // Check if all operations succeeded
+        return std::all_of(results.begin(), results.end(), [](bool result) { return result; });
+    }
+
     bool WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
                     const std::size_t size) {
-        return WriteBlockImpl<false>(dest_addr, src_buffer, size);
+        // For small writes, use the regular implementation
+        if (size < PARALLEL_THRESHOLD) {
+            return WriteBlockImpl<false>(dest_addr, src_buffer, size);
+        }
+
+        // For large writes, use parallel implementation
+        return WriteBlockParallel(dest_addr, src_buffer, size);
     }
 
     bool WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
@@ -397,12 +590,12 @@ struct Memory::Impl {
                           GetInteger(current_vaddr), GetInteger(dest_addr), size);
             },
             [](const std::size_t copy_amount, u8* const dest_ptr) {
-                std::memset(dest_ptr, 0, copy_amount);
+               FastMemset(dest_ptr, 0, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
-                std::memset(host_ptr, 0, copy_amount);
+               FastMemset(host_ptr, 0, copy_amount);
             },
             [](const std::size_t copy_amount) {});
     }
@@ -733,16 +926,71 @@ struct Memory::Impl {
      */
     template <typename T>
     T Read(Common::ProcessAddress vaddr) {
+        // Fast path for aligned reads of common sizes
+        const u64 addr = GetInteger(vaddr);
+        if constexpr (std::is_same_v<T, u8> || std::is_same_v<T, s8>) {
+            // 8-bit reads are always aligned
+            const u8* const ptr = GetPointerImpl(
+                addr,
+                [addr]() {
+                    LOG_ERROR(HW_Memory, "Unmapped Read8 @ 0x{:016X}", addr);
+                },
+                [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
+            if (ptr) {
+                return static_cast<T>(*ptr);
+            }
+            return 0;
+        } else if constexpr (std::is_same_v<T, u16_le> || std::is_same_v<T, s16_le>) {
+            // Check alignment for 16-bit reads
+            if ((addr & 1) == 0) {
+                const u8* const ptr = GetPointerImpl(
+                    addr,
+                    [addr]() {
+                        LOG_ERROR(HW_Memory, "Unmapped Read16 @ 0x{:016X}", addr);
+                    },
+                    [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
+                if (ptr) {
+                    return static_cast<T>(*reinterpret_cast<const u16*>(ptr));
+                }
+            }
+        } else if constexpr (std::is_same_v<T, u32_le> || std::is_same_v<T, s32_le>) {
+            // Check alignment for 32-bit reads
+            if ((addr & 3) == 0) {
+                const u8* const ptr = GetPointerImpl(
+                    addr,
+                    [addr]() {
+                        LOG_ERROR(HW_Memory, "Unmapped Read32 @ 0x{:016X}", addr);
+                    },
+                    [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
+                if (ptr) {
+                    return static_cast<T>(*reinterpret_cast<const u32*>(ptr));
+                }
+            }
+        } else if constexpr (std::is_same_v<T, u64_le> || std::is_same_v<T, s64_le>) {
+            // Check alignment for 64-bit reads
+            if ((addr & 7) == 0) {
+                const u8* const ptr = GetPointerImpl(
+                    addr,
+                    [addr]() {
+                        LOG_ERROR(HW_Memory, "Unmapped Read64 @ 0x{:016X}", addr);
+                    },
+                    [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
+                if (ptr) {
+                    return static_cast<T>(*reinterpret_cast<const u64*>(ptr));
+                }
+            }
+        }
+
+        // Fall back to the general case for other types or unaligned access
         T result = 0;
         const u8* const ptr = GetPointerImpl(
-            GetInteger(vaddr),
-            [vaddr]() {
-                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8,
-                          GetInteger(vaddr));
+            addr,
+            [addr]() {
+                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, addr);
             },
-            [&]() { HandleRasterizerDownload(GetInteger(vaddr), sizeof(T)); });
+            [&]() { HandleRasterizerDownload(addr, sizeof(T)); });
         if (ptr) {
-            std::memcpy(&result, ptr, sizeof(T));
+            FastMemcpy(&result, ptr, sizeof(T));
         }
         return result;
     }
@@ -758,15 +1006,78 @@ struct Memory::Impl {
      */
     template <typename T>
     void Write(Common::ProcessAddress vaddr, const T data) {
+        // Fast path for aligned writes of common sizes
+        const u64 addr = GetInteger(vaddr);
+        if constexpr (std::is_same_v<T, u8> || std::is_same_v<T, s8>) {
+            // 8-bit writes are always aligned
+            u8* const ptr = GetPointerImpl(
+                addr,
+                [addr, data]() {
+                    LOG_ERROR(HW_Memory, "Unmapped Write8 @ 0x{:016X} = 0x{:02X}", addr,
+                              static_cast<u8>(data));
+                },
+                [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
+            if (ptr) {
+                *ptr = static_cast<u8>(data);
+            }
+            return;
+        } else if constexpr (std::is_same_v<T, u16_le> || std::is_same_v<T, s16_le>) {
+            // Check alignment for 16-bit writes
+            if ((addr & 1) == 0) {
+                u8* const ptr = GetPointerImpl(
+                    addr,
+                    [addr, data]() {
+                        LOG_ERROR(HW_Memory, "Unmapped Write16 @ 0x{:016X} = 0x{:04X}", addr,
+                                  static_cast<u16>(data));
+                    },
+                    [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
+                if (ptr) {
+                    *reinterpret_cast<u16*>(ptr) = static_cast<u16>(data);
+                    return;
+                }
+            }
+        } else if constexpr (std::is_same_v<T, u32_le> || std::is_same_v<T, s32_le>) {
+            // Check alignment for 32-bit writes
+            if ((addr & 3) == 0) {
+                u8* const ptr = GetPointerImpl(
+                    addr,
+                    [addr, data]() {
+                        LOG_ERROR(HW_Memory, "Unmapped Write32 @ 0x{:016X} = 0x{:08X}", addr,
+                                  static_cast<u32>(data));
+                    },
+                    [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
+                if (ptr) {
+                    *reinterpret_cast<u32*>(ptr) = static_cast<u32>(data);
+                    return;
+                }
+            }
+        } else if constexpr (std::is_same_v<T, u64_le> || std::is_same_v<T, s64_le>) {
+            // Check alignment for 64-bit writes
+            if ((addr & 7) == 0) {
+                u8* const ptr = GetPointerImpl(
+                    addr,
+                    [addr, data]() {
+                        LOG_ERROR(HW_Memory, "Unmapped Write64 @ 0x{:016X} = 0x{:016X}", addr,
+                                  static_cast<u64>(data));
+                    },
+                    [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
+                if (ptr) {
+                    *reinterpret_cast<u64*>(ptr) = static_cast<u64>(data);
+                    return;
+                }
+            }
+        }
+
+        // Fall back to the general case for other types or unaligned access
         u8* const ptr = GetPointerImpl(
-            GetInteger(vaddr),
-            [vaddr, data]() {
+            addr,
+            [addr, data]() {
                 LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8,
-                          GetInteger(vaddr), static_cast<u64>(data));
+                          addr, static_cast<u64>(data));
             },
-            [&]() { HandleRasterizerWrite(GetInteger(vaddr), sizeof(T)); });
+            [&]() { HandleRasterizerWrite(addr, sizeof(T)); });
         if (ptr) {
-            std::memcpy(ptr, &data, sizeof(T));
+            FastMemcpy(ptr, &data, sizeof(T));
         }
     }
 
@@ -878,6 +1189,12 @@ struct Memory::Impl {
     Core::System& system;
     Tegra::MaxwellDeviceMemoryManager* gpu_device_memory{};
     Common::PageTable* current_page_table = nullptr;
+
+    // Number of threads to use for parallel memory operations
+    unsigned int thread_count = 2;
+
+    // Minimum size in bytes for which parallel processing is beneficial
+    static constexpr size_t PARALLEL_THRESHOLD = 64 * 1024; // 64 KB
     std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES>
         rasterizer_read_areas{};
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};
