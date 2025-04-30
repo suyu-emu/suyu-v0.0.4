@@ -621,7 +621,7 @@ struct Values {
         linkage, false, "extended_logging", Category::Debugging, Specialization::Default, false};
     Setting<bool> use_debug_asserts{linkage, false, "use_debug_asserts", Category::Debugging};
     Setting<bool> use_auto_stub{
-        linkage, false, "use_auto_stub", Category::Debugging, Specialization::Default, false};
+        linkage, false, "use_auto_stub", Category::Debugging};
     Setting<bool> enable_all_controllers{linkage, false, "enable_all_controllers",
                                          Category::Debugging};
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};

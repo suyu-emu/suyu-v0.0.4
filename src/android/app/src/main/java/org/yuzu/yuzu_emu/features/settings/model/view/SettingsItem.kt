@@ -266,7 +266,13 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_docked_mode_description
                 )
             )
-
+            put(
+                 SwitchSetting(
+                     BooleanSetting.USE_AUTO_STUB,
+                     titleId = R.string.use_auto_stub,
+                     descriptionId = R.string.use_auto_stub_description
+                 )
+             )
             put(
                  SwitchSetting(
                      syncCoreSpeedSetting,
@@ -347,6 +353,7 @@ abstract class SettingsItem(
                     valuesId = R.array.vramUsageMethodValues
                 )
             )
+
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_RESOLUTION,
