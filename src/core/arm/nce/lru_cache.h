@@ -3,6 +3,7 @@
 #include <list>
 #include <unordered_map>
 #include <optional>
+#include "common/logging/log.h"
 
 template<typename KeyType, typename ValueType>
 class LRUCache {
@@ -15,6 +16,7 @@ private:
 public:
     explicit LRUCache(size_t capacity, bool enabled = true) : enabled(enabled), capacity(capacity) {
         cache_map.reserve(capacity);
+        LOG_WARNING(Core, "LRU Cache initialized with state: {}", enabled ? "enabled" : "disabled");
     }
 
     // Returns pointer to value if found, nullptr otherwise
@@ -67,6 +69,7 @@ public:
     // Enable or disable the LRU cache
     void setEnabled(bool state) {
         enabled = state;
+        LOG_WARNING(Core, "LRU Cache state changed to: {}", state ? "enabled" : "disabled");
         if (!enabled) {
             clear();
         }

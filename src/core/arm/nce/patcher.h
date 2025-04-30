@@ -66,16 +66,25 @@ private:
     LRUCache<uintptr_t, PatchTextAddress> patch_cache{CACHE_SIZE, Settings::values.lru_cache_enabled.GetValue()};
 
     void BranchToPatch(uintptr_t module_dest) {
-        // Try to get existing patch entry from cache
-        if (auto* cached_patch = patch_cache.get(module_dest)) {
-            curr_patch->m_branch_to_patch_relocations.push_back({c.offset(), *cached_patch});
-            return;
-        }
+        if (patch_cache.isEnabled()) {
+            LOG_DEBUG(Core_ARM, "LRU cache lookup for address {:#x}", module_dest);
+            // Try to get existing patch entry from cache
+            if (auto* cached_patch = patch_cache.get(module_dest)) {
+                LOG_DEBUG(Core_ARM, "LRU cache hit for address {:#x}", module_dest);
+                curr_patch->m_branch_to_patch_relocations.push_back({c.offset(), *cached_patch});
+                return;
+            }
+            LOG_DEBUG(Core_ARM, "LRU cache miss for address {:#x}, creating new patch", module_dest);
 
-        // If not in cache, create new entry and cache it
-        const auto patch_addr = c.offset();
-        curr_patch->m_branch_to_patch_relocations.push_back({patch_addr, module_dest});
-        patch_cache.put(module_dest, patch_addr);
+            // If not in cache, create new entry and cache it
+            const auto patch_addr = c.offset();
+            curr_patch->m_branch_to_patch_relocations.push_back({patch_addr, module_dest});
+            patch_cache.put(module_dest, patch_addr);
+        } else {
+            LOG_DEBUG(Core_ARM, "LRU cache disabled - creating direct patch for address {:#x}", module_dest);
+            // LRU disabled - use pre-LRU approach
+            curr_patch->m_branch_to_patch_relocations.push_back({c.offset(), module_dest});
+        }
     }
 
     void BranchToModule(uintptr_t module_dest) {
