@@ -251,6 +251,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
             add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
             add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
+            add(BooleanSetting.USE_LRU_CACHE.key)
         }
     }
 
@@ -470,6 +471,13 @@ class SettingsFragmentPresenter(
                 frameSkippingSetting,
                 titleId = R.string.frame_skipping,
                 descriptionId = R.string.frame_skipping_description
+            )
+        )
+        add(
+            SwitchSetting(
+            BooleanSetting.USE_LRU_CACHE,
+            titleId = R.string.use_lru_cache,
+            descriptionId = R.string.use_lru_cache_description
             )
         )
         add(ByteSetting.RENDERER_DYNA_STATE.key)

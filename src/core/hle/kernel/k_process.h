@@ -243,10 +243,10 @@ public:
     u32 GetPointerBufferSize() const {
         return m_pointer_buffer_size;
     }
-    
+
     void SetPointerBufferSize(u32 size) {
         m_pointer_buffer_size = size;
-    }    
+    }
 
     Result Terminate();
 

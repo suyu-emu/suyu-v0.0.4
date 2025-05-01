@@ -23,6 +23,8 @@ constexpr size_t MaxRelativeBranch = 128_MiB;
 constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
 Patcher::Patcher() : c(m_patch_instructions) {
+    LOG_WARNING(Core_ARM, "Patcher initialized with LRU cache {}",
+        patch_cache.isEnabled() ? "enabled" : "disabled");
     // The first word of the patch section is always a branch to the first instruction of the
     // module.
     c.dw(0);

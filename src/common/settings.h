@@ -218,6 +218,7 @@ struct Values {
     // Memory
     SwitchableSetting<bool> use_gpu_memory_manager{linkage, false, "Use GPU Memory Manager", Category::Core};
     SwitchableSetting<bool> enable_memory_snapshots{linkage, false, "Enable Memory Snapshots", Category::Core};
+    SwitchableSetting<bool> lru_cache_enabled{linkage, true, "use_lru_cache", Category::System};
 
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
