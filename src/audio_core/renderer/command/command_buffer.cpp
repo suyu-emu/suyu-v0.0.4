@@ -21,12 +21,15 @@ namespace AudioCore::Renderer {
 template <typename T, CommandId Id>
 T& CommandBuffer::GenerateStart(const s32 node_id) {
     if (size + sizeof(T) >= command_list.size_bytes()) {
-        LOG_ERROR(
-            Service_Audio,
-            "Attempting to write commands beyond the end of allocated command buffer memory!");
+        LOG_ERROR(Service_Audio,
+            "CommandBuffer OVERFLOW: size={} + {} > capacity={}",
+            size_, sizeof(T), command_list.size_bytes());
         UNREACHABLE();
     }
 
+    LOG_TRACE(Service_Audio,
+        "GenerateStart: CmdId={} node={} curSize={} → newSize={}",
+        static_cast<int>(Id), node_id, size_, size_ + sizeof(T));
     auto& cmd{*std::construct_at<T>(reinterpret_cast<T*>(&command_list[size]))};
 
     cmd.magic = CommandMagic;
@@ -44,6 +47,11 @@ void CommandBuffer::GenerateEnd(T& cmd) {
     estimated_process_time += cmd.estimated_process_time;
     size += sizeof(T);
     count++;
+
+    // Trace completion: how many commands & bytes are now committed
+    LOG_TRACE(Service_Audio,
+          "GenerateEnd<{}>: totalCmds={} totalBytes={} estTime={}",
+          static_cast<int>(cmd.type), count, size, estimated_process_time);
 }
 
 void CommandBuffer::GeneratePcmInt16Version1Command(const s32 node_id,

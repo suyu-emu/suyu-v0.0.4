@@ -7,7 +7,7 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "common/common_types.h"
+#include "common/common_types.h"              
 
 namespace AudioCore {
 /**
@@ -35,13 +35,14 @@ public:
             auto current{buffer + offset};
             auto aligned_buffer{Common::AlignUp(current, alignment)};
             if (aligned_buffer + byte_size <= buffer + size) {
+                LOG_DEBUG(Service_Audio,
+                    "Workbuffer Allocate: T={} count={} align={} → ptr=0x{:X} offset=0x{:X}",
+                    typeid(T).name(), count, alignment, aligned_buffer, offset);
                 out = aligned_buffer;
                 offset = byte_size - buffer + aligned_buffer;
             } else {
-                LOG_ERROR(
-                    Service_Audio,
-                    "Allocated buffer was too small to hold new alloc.\nAllocator size={:08X}, "
-                    "offset={:08X}.\nAttempting to allocate {:08X} with alignment={:02X}",
+                LOG_ERROR(Service_Audio,
+                    "Workbuffer OVERFLOW: size=0x{:X} offset=0x{:X} need=0x{:X} align=0x{:X}",
                     size, offset, byte_size, alignment);
                 count = 0;
             }
