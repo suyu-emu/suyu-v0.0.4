@@ -138,6 +138,14 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
     }
+
+    // Release ownership from the old instance and surface
+    instance.release();
+    surface.release();
+    if (Settings::values.renderer_debug) {
+        debug_messenger.release();
+    }
+
     Report();
 } catch (const vk::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
