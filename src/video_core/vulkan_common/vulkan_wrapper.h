@@ -430,6 +430,15 @@ public:
         return handle != nullptr;
     }
 
+    /**
+     * Releases ownership of the managed handle.
+     * The caller is responsible for managing the lifetime of the returned handle.
+     * The Handle object becomes invalid after this call.
+     */
+    Type release() noexcept {
+        return std::exchange(handle, nullptr);
+    }
+
 protected:
     Type handle = nullptr;
     OwnerType owner = nullptr;
@@ -499,6 +508,15 @@ public:
     /// Returns true when there's a held object.
     operator bool() const noexcept {
         return handle != nullptr;
+    }
+
+    /**
+     * Releases ownership of the managed handle.
+     * The caller is responsible for managing the lifetime of the returned handle.
+     * The Handle object becomes invalid after this call.
+     */
+    Type release() noexcept {
+        return std::exchange(handle, nullptr);
     }
 
 protected:

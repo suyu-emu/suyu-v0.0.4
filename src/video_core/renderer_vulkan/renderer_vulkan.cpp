@@ -120,12 +120,13 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
       // Create surface
       surface(CreateSurface(instance, render_window.GetWindowInfo())),
       managed_surface(MakeManagedSurface(surface, instance, dld)),
-      device(CreateDevice(instance, dld, *surface)), memory_allocator(device), state_tracker(),
+      device(CreateDevice(instance, dld, *surface)),
+      memory_allocator(device), state_tracker(),
       scheduler(device, state_tracker),
       swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
                 render_window.GetFramebufferLayout().height),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
-                      surface),
+                      *surface),
       blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler,
                      PresentFiltersForDisplay),
       blit_capture(device_memory, device, memory_allocator, present_manager, scheduler,
@@ -136,9 +137,17 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                  scheduler),
       hybrid_memory(std::make_unique<HybridMemory>(device, memory_allocator)),
       applet_frame() {
-    if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
+
+   if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
+    }
+
+    // Release ownership from the old instance and surface
+    instance.release();
+    surface.release();
+    if (Settings::values.renderer_debug) {
+        debug_messenger.release();
     }
 
     // Initialize HybridMemory system

@@ -10,6 +10,7 @@
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -94,14 +95,14 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
 
 } // Anonymous namespace
 
-PresentManager::PresentManager(const vk::Instance& instance_,
-                               Core::Frontend::EmuWindow& render_window_, const Device& device_,
-                               MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
-                               Swapchain& swapchain_, vk::SurfaceKHR& surface_)
+PresentManager::PresentManager(const vk::Instance& instance_, Core::Frontend::EmuWindow& render_window_,
+                               const Device& device_, MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
+                               Swapchain& swapchain_, VkSurfaceKHR_T* surface_handle_)
     : instance{instance_}, render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, scheduler{scheduler_}, swapchain{swapchain_},
-      surface{surface_}, blit_supported{CanBlitToSwapchain(device.GetPhysical(),
-                                                           swapchain.GetImageViewFormat())},
+      surface_handle{surface_handle_},
+      blit_supported{CanBlitToSwapchain(device.GetPhysical(),
+                                        swapchain.GetImageViewFormat())},
       use_present_thread{Settings::values.async_presentation.GetValue()} {
     SetImageCount();
 
@@ -288,7 +289,7 @@ void PresentManager::PresentThread(std::stop_token token) {
 }
 
 void PresentManager::RecreateSwapchain(Frame* frame) {
-    swapchain.Create(*surface, frame->width, frame->height);
+    swapchain.Create(surface_handle, frame->width, frame->height); // Pass raw pointer
     SetImageCount();
 }
 
@@ -306,7 +307,6 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
         try {
             // Recreate surface and swapchain if needed.
             if (requires_recreation) {
-                surface = CreateSurface(instance, render_window.GetWindowInfo());
                 RecreateSwapchain(frame);
             }
 
