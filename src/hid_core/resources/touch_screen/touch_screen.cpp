@@ -82,9 +82,9 @@ Result TouchScreen::SetTouchScreenMagnification(f32 point1_x, f32 point1_y, f32 
     return ResultSuccess;
 }
 
-Result TouchScreen::SetTouchScreenResolution(u32 width, u32 height, u64 aruid) {
+Result TouchScreen::SetTouchScreenOutputRanges(u32 width, u32 height, u64 aruid) {
     std::scoped_lock lock{mutex};
-    return touch_resource->SetTouchScreenResolution(width, height, aruid);
+    return touch_resource->SetTouchScreenOutputRanges(width, height, aruid);
 }
 
 Result TouchScreen::SetTouchScreenConfiguration(
