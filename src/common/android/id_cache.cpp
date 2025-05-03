@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <jni.h>
 
 #include "applets/software_keyboard.h"
@@ -8,6 +11,9 @@
 #include "common/assert.h"
 #include "common/fs/fs_android.h"
 #include "video_core/rasterizer_interface.h"
+#include "common/android/multiplayer/multiplayer.h"
+#include <network/network.h>
+
 
 static JavaVM* s_java_vm;
 static jclass s_native_library_class;
@@ -88,6 +94,9 @@ static jmethodID s_yuzu_input_device_get_supports_vibration;
 static jmethodID s_yuzu_input_device_vibrate;
 static jmethodID s_yuzu_input_device_get_axes;
 static jmethodID s_yuzu_input_device_has_keys;
+static jmethodID s_add_netplay_message;
+static jmethodID s_clear_chat;
+
 
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
@@ -388,6 +397,15 @@ jmethodID GetYuzuDeviceHasKeys() {
     return s_yuzu_input_device_has_keys;
 }
 
+jmethodID GetAddNetPlayMessage() {
+    return s_add_netplay_message;
+}
+
+jmethodID ClearChat() {
+    return s_clear_chat;
+}
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -547,6 +565,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_yuzu_input_device_has_keys =
         env->GetMethodID(yuzu_input_device_interface, "hasKeys", "([I)[Z");
     env->DeleteLocalRef(yuzu_input_device_interface);
+    s_add_netplay_message = env->GetStaticMethodID(s_native_library_class, "addNetPlayMessage",
+        "(ILjava/lang/String;)V");
+    s_clear_chat = env->GetStaticMethodID(s_native_library_class, "clearChat", "()V");
+
 
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
@@ -582,6 +604,8 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);
+
+    NetworkShutdown();
 }
 
 #ifdef __cplusplus

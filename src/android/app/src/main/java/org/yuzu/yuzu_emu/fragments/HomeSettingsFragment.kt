@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+
 package org.yuzu.yuzu_emu.fragments
 
 import android.Manifest
@@ -116,6 +120,16 @@ class HomeSettingsFragment : Fragment() {
                     R.string.custom_driver_not_supported,
                     R.string.custom_driver_not_supported_description,
                     driverViewModel.selectedDriverTitle
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.multiplayer,
+                    R.string.multiplayer_description,
+                    R.drawable.ic_two_users,
+                    {
+                        val action = mainActivity.displayMultiplayerDialog()
+                    },
                 )
             )
             add(

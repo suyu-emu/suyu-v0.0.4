@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <string>
@@ -19,7 +22,7 @@ jobject ToJDouble(JNIEnv* env, double value);
 
 s32 GetJInteger(JNIEnv* env, jobject jinteger);
 jobject ToJInteger(JNIEnv* env, s32 value);
-
+jobjectArray ToJStringArray(JNIEnv* env, const std::vector<std::string>& strs);
 bool GetJBoolean(JNIEnv* env, jobject jboolean);
 jobject ToJBoolean(JNIEnv* env, bool value);
 

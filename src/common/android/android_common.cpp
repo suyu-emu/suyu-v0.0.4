@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "android_common.h"
 
 #include <string>
@@ -32,6 +35,15 @@ jstring ToJString(JNIEnv* env, std::string_view str) {
     const std::u16string converted_string = Common::UTF8ToUTF16(str);
     return env->NewString(reinterpret_cast<const jchar*>(converted_string.data()),
                           static_cast<jint>(converted_string.size()));
+}
+
+jobjectArray ToJStringArray(JNIEnv* env, const std::vector<std::string>& strs) {
+    jobjectArray array =
+            env->NewObjectArray(static_cast<jsize>(strs.size()), env->FindClass("java/lang/String"), env->NewStringUTF(""));
+    for (std::size_t i = 0; i < strs.size(); ++i) {
+        env->SetObjectArrayElement(array, static_cast<jsize>(i), ToJString(env, strs[i]));
+    }
+    return array;
 }
 
 jstring ToJString(JNIEnv* env, std::u16string_view str) {

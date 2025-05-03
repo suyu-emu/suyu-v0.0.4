@@ -187,6 +187,8 @@ if(ANDROID)
             android/android_common.h
             android/id_cache.cpp
             android/id_cache.h
+            android/multiplayer/multiplayer.cpp
+            android/multiplayer/multiplayer.h
             android/applets/software_keyboard.cpp
             android/applets/software_keyboard.h
     )

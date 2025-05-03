@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -200,7 +204,6 @@ int main(int argc, char** argv) {
     u64 preferred_game_id = 0;
     u32 port = Network::DefaultRoomPort;
     u32 max_members = 16;
-    bool enable_yuzu_mods = false;
 
     static struct option long_options[] = {
         {"room-name", required_argument, 0, 'n'},
@@ -267,9 +270,6 @@ int main(int argc, char** argv) {
                 break;
             case 'l':
                 log_file.assign(optarg);
-                break;
-            case 'e':
-                enable_yuzu_mods = true;
                 break;
             case 'h':
                 PrintHelp(argv[0]);
@@ -338,10 +338,6 @@ int main(int argc, char** argv) {
             Settings::values.yuzu_token = token;
         }
     }
-    if (!announce && enable_yuzu_mods) {
-        enable_yuzu_mods = false;
-        LOG_INFO(Network, "Can not enable yuzu Moderators for private rooms");
-    }
 
     // Load the ban list
     Network::Room::BanList ban_list;
@@ -370,7 +366,7 @@ int main(int argc, char** argv) {
                                                               .id = preferred_game_id};
         if (!room->Create(room_name, room_description, bind_address, static_cast<u16>(port),
                           password, max_members, username, preferred_game_info,
-                          std::move(verify_backend), ban_list, enable_yuzu_mods)) {
+                          std::move(verify_backend), ban_list)) {
             LOG_INFO(Network, "Failed to create room: ");
             return -1;
         }

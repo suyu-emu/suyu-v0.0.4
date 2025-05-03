@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+
 package org.yuzu.yuzu_emu.fragments
 
 import android.annotation.SuppressLint
@@ -278,6 +282,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     binding.root.findNavController().navigate(action)
                     true
                 }
+
+
+                R.id.menu_multiplayer -> {
+                    emulationActivity?.displayMultiplayerDialog()
+                    true
+                }
+
 
                 R.id.menu_controls -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(

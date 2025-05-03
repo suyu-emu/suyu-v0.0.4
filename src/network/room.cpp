@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+
 #include <algorithm>
 #include <atomic>
 #include <iomanip>
@@ -355,7 +359,14 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
         std::lock_guard lock(verify_uid_mutex);
         uid = verify_uid;
     }
-    member.user_data = verify_backend->LoadUserData(uid, token);
+
+    if (verify_backend != nullptr)
+     member.user_data = verify_backend->LoadUserData(uid, token);
+
+    if (nickname == room_information.host_username) {
+        member.user_data.moderator = true;
+        LOG_INFO(Network, "User {} is a moderator", std::string(room_information.host_username));
+    }
 
     std::string ip;
     {
@@ -574,8 +585,7 @@ bool Room::RoomImpl::HasModPermission(const ENetPeer* client) const {
     if (sending_member == members.end()) {
         return false;
     }
-    if (room_information.enable_yuzu_mods &&
-        sending_member->user_data.moderator) { // Community moderator
+    if (sending_member->user_data.moderator) { // Community moderator
 
         return true;
     }
@@ -1047,7 +1057,7 @@ bool Room::Create(const std::string& name, const std::string& description,
                   const u32 max_connections, const std::string& host_username,
                   const GameInfo preferred_game,
                   std::unique_ptr<VerifyUser::Backend> verify_backend,
-                  const Room::BanList& ban_list, bool enable_yuzu_mods) {
+                  const Room::BanList& ban_list) {
     ENetAddress address;
     address.host = ENET_HOST_ANY;
     if (!server_address.empty()) {
@@ -1069,7 +1079,6 @@ bool Room::Create(const std::string& name, const std::string& description,
     room_impl->room_information.port = server_port;
     room_impl->room_information.preferred_game = preferred_game;
     room_impl->room_information.host_username = host_username;
-    room_impl->room_information.enable_yuzu_mods = enable_yuzu_mods;
     room_impl->password = password;
     room_impl->verify_backend = std::move(verify_backend);
     room_impl->username_ban_list = ban_list.first;

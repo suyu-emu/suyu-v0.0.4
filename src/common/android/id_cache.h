@@ -1,10 +1,14 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <future>
 #include <jni.h>
+#include <network/network.h>
 
 #include "video_core/rasterizer_interface.h"
 
@@ -108,5 +112,8 @@ jmethodID GetYuzuDeviceGetSupportsVibration();
 jmethodID GetYuzuDeviceVibrate();
 jmethodID GetYuzuDeviceGetAxes();
 jmethodID GetYuzuDeviceHasKeys();
+jmethodID GetAddNetPlayMessage();
+jmethodID ClearChat();
+
 
 } // namespace Common::Android

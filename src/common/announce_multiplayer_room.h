@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <array>
@@ -35,7 +38,6 @@ struct RoomInformation {
     u16 port;                  ///< The port of this room
     GameInfo preferred_game;   ///< Game to advertise that you want to play
     std::string host_username; ///< Forum username of the host
-    bool enable_yuzu_mods;     ///< Allow yuzu Moderators to moderate on this room
 };
 
 struct Room {

@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+
 package org.yuzu.yuzu_emu.ui.main
 
 import android.content.Intent
@@ -31,6 +35,7 @@ import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
+import org.yuzu.yuzu_emu.dialogs.NetPlayDialog
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
 import org.yuzu.yuzu_emu.fragments.ProgressDialogFragment
@@ -70,6 +75,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         ThemeHelper.ThemeChangeListener(this)
         ThemeHelper.setTheme(this)
+        NativeLibrary.netPlayInit()
 
         super.onCreate(savedInstanceState)
 
@@ -162,7 +168,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
     }
 
-
+    fun displayMultiplayerDialog() {
+        val dialog = NetPlayDialog(this)
+        dialog.show()
+    }
 
     private fun checkKeys() {
         if (!NativeLibrary.areKeysPresent()) {
