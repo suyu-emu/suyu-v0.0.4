@@ -50,16 +50,19 @@ public:
             {20102, nullptr, "GetFriendDetailedInfo"},
             {20103, nullptr, "SyncFriendList"},
             {20104, &IFriendService::RequestSyncFriendList, "RequestSyncFriendList"},
+            {20107, nullptr, "GetFriendDetailedInfoV2"}, // 20.0.0+
             {20110, nullptr, "LoadFriendSetting"},
             {20200, &IFriendService::GetReceivedFriendRequestCount, "GetReceivedFriendRequestCount"},
-            {20201, nullptr, "GetFriendRequestList"},
+            {20201, nullptr, "GetFriendRequestListV1"}, // 20.0.0+ (1.0.0-19.0.1 GetFriendRequestList)
+            {20202, nullptr, "GetFriendRequestListV2"}, // 20.0.0+
             {20300, nullptr, "GetFriendCandidateList"},
             {20301, nullptr, "GetNintendoNetworkIdInfo"},
             {20302, nullptr, "GetSnsAccountLinkage"},
             {20303, nullptr, "GetSnsAccountProfile"},
             {20304, nullptr, "GetSnsAccountFriendList"},
-            {20400, nullptr, "GetBlockedUserList"},
+            {20400, nullptr, "GetBlockedUserListV1"}, // 20.0.0+ (1.0.0-19.0.1 GetBlockedUserList)
             {20401, nullptr, "SyncBlockedUserList"},
+            {20402, nullptr, "GetBlockedUserListV2"}, // 20.0.0+
             {20500, nullptr, "GetProfileExtraList"},
             {20501, nullptr, "GetRelationship"},
             {20600, &IFriendService::GetUserPresenceView, "GetUserPresenceView"},
@@ -78,7 +81,7 @@ public:
             {30120, nullptr, "ChangeFriendFavoriteFlag"},
             {30121, nullptr, "ChangeFriendOnlineNotificationFlag"},
             {30200, nullptr, "SendFriendRequest"},
-            {30201, nullptr, "SendFriendRequestWithApplicationInfo"},
+            {30201, nullptr, "SendFriendRequestWithApplicationInfoV1"}, // 20.0.0+ (1.0.0-19.0.1 SendFriendRequestWithApplicationInfo)
             {30202, nullptr, "CancelFriendRequest"},
             {30203, nullptr, "AcceptFriendRequest"},
             {30204, nullptr, "RejectFriendRequest"},
@@ -91,11 +94,13 @@ public:
             {30215, nullptr, "SendFriendRequestWithExternalApplicationCatalogId"},
             {30216, nullptr, "ResendFacedFriendRequest"},
             {30217, nullptr, "SendFriendRequestWithNintendoNetworkIdInfo"},
+            {30218, nullptr, "SendFriendRequestWithApplicationInfoV2"}, // 20.0.0+
             {30300, nullptr, "GetSnsAccountLinkPageUrl"},
             {30301, nullptr, "UnlinkSnsAccount"},
             {30400, nullptr, "BlockUser"},
-            {30401, nullptr, "BlockUserWithApplicationInfo"},
+            {30401, nullptr, "BlockUserWithApplicationInfoV1"}, // 20.0.0+ (1.0.0-19.0.1 BlockUserWithApplicationInfo)
             {30402, nullptr, "UnblockUser"},
+            {30403, nullptr, "BlockUserWithApplicationInfoV2"}, // 20.0.0+
             {30500, nullptr, "GetProfileExtraFromFriendCode"},
             {30700, nullptr, "DeletePlayHistory"},
             {30810, nullptr, "ChangePresencePermission"},

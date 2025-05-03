@@ -42,6 +42,9 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {191, nullptr, "ActivateOpenContextHolder"},
         {401, nullptr, "GetPinCodeLength"}, // 18.0.0+
         {402, nullptr, "GetPinCode"}, // 18.0.0+
+        {403, nullptr, "GetPinCodeParity"}, // 20.0.0+
+        {404, nullptr, "VerifyPinCode"}, // 20.0.0+
+        {405, nullptr, "IsPinCodeVerificationForbidden"}, // 20.0.0+
         {997, nullptr, "DebugInvalidateTokenCacheForUser"},
         {998, nullptr, "DebugSetUserStateClose"},
         {999, nullptr, "DebugSetUserStateOpen"},

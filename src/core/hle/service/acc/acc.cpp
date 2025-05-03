@@ -104,7 +104,9 @@ public:
             {160, nullptr, "RequiresUpdateNetworkServiceAccountIdTokenCache"},
             {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
             {170, nullptr, "CreateDeviceHistoryRequest"}, // 17.0.0+
-            {180, nullptr, "GetRequestForNintendoAccountReauthentication"} // 18.0.0+
+            {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
+            {181, nullptr, "CreateProcedureToReauthenticateNintendoAccount"}, // 20.0.0+
+            {182, nullptr, "ResumeProcedureToReauthenticateNintendoAccount"}, // 20.0.0+
         };
         // clang-format on
 
@@ -194,6 +196,12 @@ public:
             {161, nullptr, "RequireReauthenticationOfNetworkServiceAccount"},
             {170, nullptr, "CreateDeviceHistoryRequest"}, // 17.0.0+
             {180, nullptr, "GetRequestForNintendoAccountReauthentication"}, // 18.0.0+
+            {181, nullptr, "CreateProcedureToReauthenticateNintendoAccount"}, // 20.0.0+
+            {182, nullptr, "ResumeProcedureToReauthenticateNintendoAccount"}, // 20.0.0+
+            {183, nullptr, "GetNintendoAccountReauthenticationRequest"}, // 20.0.0+
+            {190, nullptr, "GetDeviceMigrationInfo"}, // 20.0.0+
+            {191, nullptr, "CheckDeviceMigrationAvailabilityAsync"}, // 20.0.0+
+            {192, nullptr, "StartDeviceMigrationAsync"}, // 20.0.0+
             {200, nullptr, "IsRegistered"},
             {201, nullptr, "RegisterAsync"},
             {202, nullptr, "UnregisterAsync"},
@@ -301,6 +309,11 @@ public:
             {101, nullptr, "IsNetworkServiceAccountReplaced"},
             {199, nullptr, "GetUrlForIntroductionOfExtraMembership"}, // 2.0.0 - 5.1.0
             {200, nullptr, "ApplyAsyncWithAuthorizedToken"},
+            {210, nullptr, "IsProfileAvailable"}, // 17.0.0+
+            {220, nullptr, "RegisterUserAsyncWithoutProfile"}, // 17.0.0+
+            {221, nullptr, "RegisterUserWithProfileAsync"}, // 17.0.0+
+            {230, nullptr, "RegisterUserWithLargeImageProfileAsync"}, // 18.0.0+
+            {240, nullptr, "RegisterUserWithReauthenticationAsync"}, // 20.0.0+
         };
         // clang-format on
 
@@ -755,7 +768,8 @@ public:
             {210, nullptr, "IsProfileAvailable"}, // 17.0.0+
             {220, nullptr, "RegisterUserAsyncWithoutProfile"}, // 17.0.0+
             {221, nullptr, "RegisterUserWithProfileAsync"}, // 17.0.0+
-            {230, nullptr, "RegisterUserWithLargeImageProfileAsync"} // 18.0.0+
+            {230, nullptr, "RegisterUserWithLargeImageProfileAsync"}, // 18.0.0+
+            {240, nullptr, "RegisterUserWithReauthenticationAsync"}, // 20.0.0+
         };
         // clang-format on
 

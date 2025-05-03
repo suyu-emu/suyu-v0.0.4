@@ -67,6 +67,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {328, nullptr, "AttachAbstractedPadToNpad"},
         {329, nullptr, "DetachAbstractedPadAll"},
         {330, nullptr, "CheckAbstractedPadConnection"},
+        {333, nullptr, "SetNpadUserSpgApplet"}, // 20.0.0+
+        {334, nullptr, "AcquireUniquePadButtonStateChangedEventHandle"}, // 20.0.0+
         {500, nullptr, "SetAppletResourceUserId"},
         {501, &IHidSystemServer::RegisterAppletResourceUserId, "RegisterAppletResourceUserId"},
         {502, &IHidSystemServer::UnregisterAppletResourceUserId, "UnregisterAppletResourceUserId"},
@@ -96,9 +98,12 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {547, nullptr, "GetAllowedBluetoothLinksCount"},
         {548, &IHidSystemServer::GetRegisteredDevices, "GetRegisteredDevices"},
         {549, nullptr, "GetConnectableRegisteredDevices"},
+        {551, nullptr, "GetRegisteredDevicesForControllerSupport"}, // 20.0.0+
         {700, nullptr, "ActivateUniquePad"},
         {702, &IHidSystemServer::AcquireUniquePadConnectionEventHandle, "AcquireUniquePadConnectionEventHandle"},
         {703, &IHidSystemServer::GetUniquePadIds, "GetUniquePadIds"},
+        {711, nullptr, "AcquireUniquePadConnectionOnHandheldForNsEventHandle"}, // 20.0.0+
+        {712, nullptr, "GetUniquePadColor12"}, // 20.0.0+
         {751, &IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle, "AcquireJoyDetachOnBluetoothOffEventHandle"},
         {800, nullptr, "ListSixAxisSensorHandles"},
         {801, nullptr, "IsSixAxisSensorUserCalibrationSupported"},
@@ -143,6 +148,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1009, nullptr, "AcquireAudioControlEventHandle"},
         {1010, nullptr, "GetAudioControlStates"},
         {1011, nullptr, "DeactivateAudioControl"},
+        {1012, nullptr, "GetFirmwareVersionStringForUserSupportPage"}, // 20.0.0+
         {1050, nullptr, "IsSixAxisSensorAccurateUserCalibrationSupported"},
         {1051, nullptr, "StartSixAxisSensorAccurateUserCalibration"},
         {1052, nullptr, "CancelSixAxisSensorAccurateUserCalibration"},
@@ -221,6 +227,12 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1289, nullptr, "SetButtonConfigStorageFull"},
         {1290, nullptr, "DeleteButtonConfigStorageRight"},
         {1291, nullptr, "DeleteButtonConfigStorageRight"},
+        {1308, nullptr, "SetButtonConfigVisible"}, // 18.0.0+
+        {1309, nullptr, "IsButtonConfigVisible"}, // 18.0.0+
+        {1320, nullptr, "WakeTouchScreenUp"}, // 17.0.0+
+        {1321, nullptr, "PutTouchScreenToSleep"}, // 17.0.0+
+        {1322, nullptr, "AcquireTouchScreenAsyncWakeCompletedEvent"}, // 20.0.0+
+        {1420, nullptr, "GetAppletResourceProperty"}, // 19.0.0+
     };
     // clang-format on
 

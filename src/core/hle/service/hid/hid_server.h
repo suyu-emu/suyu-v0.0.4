@@ -258,7 +258,7 @@ private:
                                        ClientAppletResourceUserId aruid);
     Result IsFirmwareUpdateNeededForNotification(Out<bool> out_is_firmware_update_needed,
                                                  s32 unknown, ClientAppletResourceUserId aruid);
-    Result SetTouchScreenResolution(u32 width, u32 height, ClientAppletResourceUserId aruid);
+    Result SetTouchScreenOutputRanges(u32 width, u32 height, ClientAppletResourceUserId aruid);
 
     std::shared_ptr<ResourceManager> resource_manager;
     std::shared_ptr<HidFirmwareSettings> firmware_settings;

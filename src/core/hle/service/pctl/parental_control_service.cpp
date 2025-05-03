@@ -35,6 +35,8 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1016, nullptr, "ConfirmShowNewsPermission"},
         {1017, D<&IParentalControlService::EndFreeCommunication>, "EndFreeCommunication"},
         {1018, D<&IParentalControlService::IsFreeCommunicationAvailable>, "IsFreeCommunicationAvailable"},
+        {1019, nullptr, "ConfirmLaunchApplicationPermission"}, // 20.0.0+
+        {1020, nullptr, "ConfirmLaunchSharedApplicationPermission"}, // 20.0.0+
         {1031, D<&IParentalControlService::IsRestrictionEnabled>, "IsRestrictionEnabled"},
         {1032, D<&IParentalControlService::GetSafetyLevel>, "GetSafetyLevel"},
         {1033, nullptr, "SetSafetyLevel"},
@@ -49,9 +51,11 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1044, nullptr, "GetFreeCommunicationApplicationList"},
         {1045, nullptr, "UpdateFreeCommunicationApplicationList"},
         {1046, nullptr, "DisableFeaturesForReset"},
-        {1047, nullptr, "NotifyApplicationDownloadStarted"},
+        {1047, nullptr, "NotifyApplicationDownloadStartedOld"}, // 20.0.0+ (3.0.0-19.0.1 NotifyApplicationDownloadStarted)
         {1048, nullptr, "NotifyNetworkProfileCreated"},
         {1049, nullptr, "ResetFreeCommunicationApplicationList"},
+        {1050, nullptr, "AddToFreeCommunicationApplicationList"}, // 20.0.0+
+        {1051, nullptr, "NotifyApplicationDownloadStarted"}, // 20.0.0+
         {1061, D<&IParentalControlService::ConfirmStereoVisionRestrictionConfigurable>, "ConfirmStereoVisionRestrictionConfigurable"},
         {1062, D<&IParentalControlService::GetStereoVisionRestriction>, "GetStereoVisionRestriction"},
         {1063, D<&IParentalControlService::SetStereoVisionRestriction>, "SetStereoVisionRestriction"},
@@ -82,11 +86,13 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1456, D<&IParentalControlService::GetPlayTimerSettingsOld>, "GetPlayTimerSettingsOld"},
         {1457, D<&IParentalControlService::GetPlayTimerEventToRequestSuspension>, "GetPlayTimerEventToRequestSuspension"},
         {1458, D<&IParentalControlService::IsPlayTimerAlarmDisabled>, "IsPlayTimerAlarmDisabled"},
+        {1459, nullptr, "GetPlayTimerRemainingTimeDisplayInfo"}, // 20.0.0+
         {1471, nullptr, "NotifyWrongPinCodeInputManyTimes"},
         {1472, nullptr, "CancelNetworkRequest"},
         {1473, D<&IParentalControlService::GetUnlinkedEvent>, "GetUnlinkedEvent"},
         {1474, nullptr, "ClearUnlinkedEvent"},
         {1475, nullptr, "GetExtendedPlayTimerEvent"}, // 18.0.0+
+        {1501, nullptr, "SetTimerEventEnabled"}, // 20.0.0+
         {1601, nullptr, "DisableAllFeatures"},
         {1602, nullptr, "PostEnableAllFeatures"},
         {1603, nullptr, "IsAllFeaturesDisabled"},
@@ -106,6 +112,9 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1955, nullptr, "GetBedtimeAlarmTime"}, // 18.0.0+
         {1956, nullptr, "GetBedtimeAlarmTimeHour"}, // 18.0.0+
         {1957, nullptr, "GetBedtimeAlarmTimeMinute"}, // 18.0.0+
+        {1958, nullptr, "GetBedtimeAlarmResetTimeHour"}, // 20.0.0+
+        {1959, nullptr, "GetBedtimeAlarmResetTimeMinute"}, // 20.0.0+
+        {1960, nullptr, "GetExtraPlayingTimeForDebug"}, // 20.0.0+
         {2001, nullptr, "RequestPairingAsync"},
         {2002, nullptr, "FinishRequestPairing"},
         {2003, nullptr, "AuthorizePairingAsync"},
@@ -122,6 +131,15 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {2014, nullptr, "FinishSynchronizeParentalControlSettings"},
         {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
         {2016, nullptr, "RequestUpdateExemptionListAsync"},
+        {2021, nullptr, "RequestCopyPairingAsync"}, // 20.0.0+
+        {2022, nullptr, "FinishRequestCopyPairing"}, // 20.0.0+
+        {2023, nullptr, "IsFromPairingActiveDevice"}, // 20.0.0+
+        {3001, nullptr, "GetErrorContextChangedEvent"}, // 20.0.0+
+        {9401, nullptr, "GetEvents"}, // 20.0.0+
+        {9402, nullptr, "GetEventsWithJson"}, // 20.0.0+
+        {9403, nullptr, "RequestPostEvents"}, // 20.0.0+
+        {9404, nullptr, "GetPostEventInterval"}, // 20.0.0+
+        {9405, nullptr, "SetPostEventInterval"}, // 20.0.0+
         {145601, D<&IParentalControlService::GetPlayTimerSettings>, "GetPlayTimerSettings"} // 18.0.0+
     };
     // clang-format on

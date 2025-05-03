@@ -76,6 +76,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {34, D<&FSP_SRV::GetCacheStorageSize>, "GetCacheStorageSize"},
         {35, nullptr, "CreateSaveDataFileSystemByHashSalt"},
         {36, nullptr, "OpenHostFileSystemWithOption"},
+        {38, nullptr, "DetachSdCard"}, // 20.0.0+
         {51, D<&FSP_SRV::OpenSaveDataFileSystem>, "OpenSaveDataFileSystem"},
         {52, D<&FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId>, "OpenSaveDataFileSystemBySystemSaveDataId"},
         {53, D<&FSP_SRV::OpenReadOnlySaveDataFileSystem>, "OpenReadOnlySaveDataFileSystem"},
@@ -117,6 +118,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {400, nullptr, "OpenDeviceOperator"},
         {500, nullptr, "OpenSdCardDetectionEventNotifier"},
         {501, nullptr, "OpenGameCardDetectionEventNotifier"},
+        {502, nullptr, "OpenSdCardAwakenReadyEventNotifier"}, // 20.0.0+
         {510, nullptr, "OpenSystemDataUpdateEventNotifier"},
         {511, nullptr, "NotifySystemDataUpdateEvent"},
         {520, nullptr, "SimulateGameCardDetectionEvent"},

@@ -333,6 +333,8 @@ public:
             {15, nullptr, "LoadImage"},
             {16, nullptr, "AddOrUpdateImage"},
             {17, nullptr, "DeleteImages"},
+            {19, nullptr, "ClearHeaderForMigration"}, // 20.0.0+
+            {20, nullptr, "SaveHeaderForMigration"}, // 20.0.0+
             {100, nullptr, "DeleteFile"},
             {101, nullptr, "DestroyFile"},
             {102, nullptr, "ImportFile"},

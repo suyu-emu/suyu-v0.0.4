@@ -300,6 +300,18 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {208, nullptr, "SetHearingProtectionSafeguardFlag"},
         {209, nullptr, "GetHearingProtectionSafeguardRemainingTime"},
         {210, nullptr, "SetHearingProtectionSafeguardRemainingTime"},
+        {221, nullptr, "GetForceMonauralOutputFlag"}, //17.0.0+
+        {222, nullptr, "SetForceMonauralOutputFlag"}, //17.0.0+
+        {251, nullptr, "GetAccountIdentificationSettings"}, //18.0.0+
+        {252, nullptr, "SetAccountIdentificationSettings"}, //18.0.0+
+        {264, nullptr, "GetVphymDirtyFlags"}, // 20.0.0+
+        {282, nullptr, "ConvertToProductModel"}, // 20.0.0+
+        {283, nullptr, "ConvertToProductModelName"}, // 20.0.0+
+        {289, nullptr, "GetDefaultAccountIdentificationFlagSet"}, // 20.0.0+
+        {300, nullptr, "AcquirePushNotificationDirtyFlagEventHandle"}, // 20.0.0+
+        {301, nullptr, "GetPushNotificationDirtyFlags"}, // 20.0.0+
+        {306, nullptr, "GetPinCodeReregistrationGuideAccounts"}, // 20.0.0+
+        {307, nullptr, "SetPinCodeReregistrationGuideAccounts"}, // 20.0.0+
     };
     // clang-format on
 
