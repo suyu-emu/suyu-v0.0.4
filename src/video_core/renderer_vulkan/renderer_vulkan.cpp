@@ -8,6 +8,8 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <filesystem>
 
 #include <fmt/ranges.h>
 
@@ -33,6 +35,7 @@
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
+#include "video_core/vulkan_common/hybrid_memory.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #ifdef __ANDROID__
@@ -132,11 +135,63 @@ RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
                   PresentFiltersForAppletCapture),
       rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
                  scheduler),
+      hybrid_memory(std::make_unique<HybridMemory>(device, memory_allocator)),
       applet_frame() {
 
    if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
+    }
+
+    // Release ownership from the old instance and surface
+    instance.release();
+    surface.release();
+    if (Settings::values.renderer_debug) {
+        debug_messenger.release();
+    }
+
+    // Initialize HybridMemory system
+    if (Settings::values.use_gpu_memory_manager.GetValue()) {
+#if defined(__linux__) || defined(__ANDROID__) || defined(_WIN32)
+        try {
+            // Define memory size with explicit types to avoid conversion warnings
+            constexpr size_t memory_size_mb = 64;
+            constexpr size_t memory_size_bytes = memory_size_mb * 1024 * 1024;
+
+            void* guest_memory_base = nullptr;
+#if defined(_WIN32)
+            // On Windows, use VirtualAlloc to reserve (but not commit) memory
+            const SIZE_T win_size = static_cast<SIZE_T>(memory_size_bytes);
+            LPVOID result = VirtualAlloc(nullptr, win_size, MEM_RESERVE, PAGE_NOACCESS);
+            if (result != nullptr) {
+                guest_memory_base = result;
+            }
+#else
+            // On Linux/Android, use aligned_alloc
+            guest_memory_base = std::aligned_alloc(4096, memory_size_bytes);
+#endif
+            if (guest_memory_base != nullptr) {
+                try {
+                    hybrid_memory->InitializeGuestMemory(guest_memory_base, memory_size_bytes);
+                    LOG_INFO(Render_Vulkan, "HybridMemory initialized with {} MB of fault-managed memory", memory_size_mb);
+                } catch (const std::exception&) {
+#if defined(_WIN32)
+                    if (guest_memory_base != nullptr) {
+                        const LPVOID win_ptr = static_cast<LPVOID>(guest_memory_base);
+                        VirtualFree(win_ptr, 0, MEM_RELEASE);
+                    }
+#else
+                    std::free(guest_memory_base);
+#endif
+                    throw;
+                }
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize HybridMemory: {}", e.what());
+        }
+#else
+        LOG_INFO(Render_Vulkan, "Fault-managed memory not supported on this platform");
+#endif
     }
     Report();
 } catch (const vk::Exception& exception) {
@@ -361,6 +416,35 @@ vk::Buffer RendererVulkan::RenderToBuffer(std::span<const Tegra::FramebufferConf
 void RendererVulkan::RenderScreenshot(std::span<const Tegra::FramebufferConfig> framebuffers) {
     if (!renderer_settings.screenshot_requested) {
         return;
+    }
+
+    // If memory snapshots are enabled, take a snapshot with the screenshot
+    if (Settings::values.enable_memory_snapshots.GetValue() && hybrid_memory) {
+        try {
+            const auto now = std::chrono::system_clock::now();
+            const auto now_time_t = std::chrono::system_clock::to_time_t(now);
+            std::tm local_tm;
+#ifdef _WIN32
+            localtime_s(&local_tm, &now_time_t);
+#else
+            localtime_r(&now_time_t, &local_tm);
+#endif
+            char time_str[128];
+            std::strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", &local_tm);
+
+            std::string snapshot_path = fmt::format("snapshots/memory_snapshot_{}.bin", time_str);
+            hybrid_memory->SaveSnapshot(snapshot_path);
+
+            // Also save a differential snapshot if there's been a previous snapshot
+            if (Settings::values.use_gpu_memory_manager.GetValue()) {
+                std::string diff_path = fmt::format("snapshots/diff_snapshot_{}.bin", time_str);
+                hybrid_memory->SaveDifferentialSnapshot(diff_path);
+                hybrid_memory->ResetDirtyTracking();
+                LOG_INFO(Render_Vulkan, "Memory snapshots saved with screenshot");
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR(Render_Vulkan, "Failed to save memory snapshot: {}", e.what());
+        }
     }
 
     const auto& layout{renderer_settings.screenshot_framebuffer_layout};
