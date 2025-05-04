@@ -19,7 +19,6 @@
 #include "video_core/renderer_vulkan/vk_turbo_mode.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
-#include "video_core/vulkan_common/hybrid_memory.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/vulkan_common/vulkan_raii.h"
 
@@ -101,9 +100,6 @@ private:
     BlitScreen blit_applet;
     RasterizerVulkan rasterizer;
     std::optional<TurboMode> turbo_mode;
-
-    // HybridMemory for advanced memory management
-    std::unique_ptr<HybridMemory> hybrid_memory;
 
     Frame applet_frame;
 };
