@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 citron Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
@@ -14,7 +15,7 @@
 class FakeCemuhookServer {
 public:
     FakeCemuhookServer()
-        : socket(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)) {}
+        : socket(io_context, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)) {}
 
     ~FakeCemuhookServer() {
         is_running = false;
@@ -82,7 +83,7 @@ public:
     }
 
 private:
-    boost::asio::io_service io_service;
+    boost::asio::io_context io_context;
     boost::asio::ip::udp::socket socket;
     std::array<u8, InputCommon::CemuhookUDP::MAX_PACKET_SIZE> send_buffer;
     std::array<u8, InputCommon::CemuhookUDP::MAX_PACKET_SIZE> receive_buffer;
