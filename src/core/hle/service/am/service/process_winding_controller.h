@@ -21,7 +21,7 @@ private:
     Result GetLaunchReason(Out<AppletProcessLaunchReason> out_launch_reason);
     Result OpenCallingLibraryApplet(
         Out<SharedPointer<ILibraryAppletAccessor>> out_calling_library_applet);
-
+    Result PushContext();
     const std::shared_ptr<Applet> m_applet;
 };
 

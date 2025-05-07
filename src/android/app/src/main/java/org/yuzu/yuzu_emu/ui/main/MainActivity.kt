@@ -376,7 +376,31 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 messageToShow
             }.show(supportFragmentManager, ProgressDialogFragment.TAG)
         }
-
+    fun uninstallFirmware() {
+        val firmwarePath = File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
+        ProgressDialogFragment.newInstance(
+            this,
+            R.string.firmware_uninstalling
+        ) { progressCallback, _ ->
+            var messageToShow: Any
+            try {
+                // Ensure the firmware directory exists before attempting to delete
+                if (firmwarePath.exists()) {
+                    firmwarePath.deleteRecursively()
+                    // Optionally reinitialize the system or perform other necessary steps
+                    NativeLibrary.initializeSystem(true)
+                    homeViewModel.setCheckKeys(true)
+                    messageToShow = getString(R.string.firmware_uninstalled_success)
+                } else {
+                    messageToShow = getString(R.string.firmware_uninstalled_failure)
+                }
+            } catch (e: Exception) {
+                Log.error("[MainActivity] Firmware uninstall failed - ${e.message}")
+                messageToShow = getString(R.string.fatal_error)
+            }
+            messageToShow
+        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+    }
     val getAmiiboKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
             if (result == null) {

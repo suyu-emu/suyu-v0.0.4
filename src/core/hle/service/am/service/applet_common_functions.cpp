@@ -32,6 +32,11 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {91, nullptr, "OpenNamedChannelAsChild"},
         {100, nullptr, "SetApplicationCoreUsageMode"},
         {300, D<&IAppletCommonFunctions::GetCurrentApplicationId>, "GetCurrentApplicationId"},
+        {310, nullptr, "IsSystemAppletHomeMenu"}, //19.0.0+
+        {311, nullptr, "Unknown311"},
+        {320, nullptr, "SetGpuTimeSliceBoost"}, //19.0.0+
+        {321, nullptr, "SetGpuTimeSliceBoostDueToApplication"}, //19.0.0+
+        {350, nullptr, "Unknown350"},
     };
     // clang-format on
 

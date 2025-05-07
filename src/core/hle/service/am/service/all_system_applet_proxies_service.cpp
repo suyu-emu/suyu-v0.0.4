@@ -18,6 +18,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxy"},
+        {110, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxyForDebug>, "OpenSystemAppletProxyForDebug"},
         {200, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld>, "OpenLibraryAppletProxyOld"},
         {201, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxy>, "OpenLibraryAppletProxy"},
         {300, nullptr, "OpenOverlayAppletProxy"},
@@ -25,6 +26,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
         {410, nullptr, "GetSystemAppletControllerForDebug"},
         {450, D<&IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions>, "GetSystemProcessCommonFunctions"}, // 19.0.0+
+        {460, nullptr, "Unknown460"},
         {1000, nullptr, "GetDebugFunctions"},
     };
     // clang-format on
@@ -47,6 +49,26 @@ Result IAllSystemAppletProxiesService::OpenSystemAppletProxy(
         UNIMPLEMENTED();
         R_THROW(ResultUnknown);
     }
+}
+
+Result IAllSystemAppletProxiesService::OpenSystemAppletProxyForDebug(
+    Out<SharedPointer<ISystemAppletProxy>> out_proxy, ClientProcessId pid) {
+    LOG_DEBUG(Service_AM, "OpenSystemAppletProxyForDebug called");
+
+    auto process = system.ApplicationProcess();
+    if (!process) {
+        LOG_ERROR(Service_AM, "No application process available");
+        R_THROW(ResultUnknown);
+    }
+
+    if (const auto applet = GetAppletFromProcessId(pid)) {
+        *out_proxy = std::make_shared<ISystemAppletProxy>(
+            system, applet, process, m_window_system);
+        R_SUCCEED();
+    }
+
+    LOG_ERROR(Service_AM, "Applet not found for pid={}", pid.pid);
+    R_THROW(ResultUnknown);
 }
 
 Result IAllSystemAppletProxiesService::OpenLibraryAppletProxy(

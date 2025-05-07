@@ -143,6 +143,11 @@
     <string name="firmware_installed_success">Firmware installed successfully</string>
     <string name="firmware_installed_failure">Firmware installation failed</string>
     <string name="firmware_installed_failure_description">Make sure the firmware nca files are at the root of the zip and try again.</string>
+    <string name="uninstall_firmware">Uninstall firmware</string>
+    <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
+    <string name="firmware_uninstalling">Uninstalling firmware</string>
+    <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
+    <string name="firmware_uninstalled_failure">Firmware uninstallation failed</string>
     <string name="share_log">Share debug logs</string>
     <string name="share_log_description">Share eden\'s log file to debug issues</string>
     <string name="share_log_missing">No log file found</string>

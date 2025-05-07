@@ -50,6 +50,10 @@ private:
         OutArray<u8, BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_image,
         OutArray<u8, BufferAttr_HipcMapAlias> out_buffer);
 
+    Result GetAlbumAccessResultForDebug();
+
+    Result SetAlbumAccessResultForDebug();
+
     Result TranslateResult(Result in_result);
 
     std::shared_ptr<AlbumManager> manager = nullptr;

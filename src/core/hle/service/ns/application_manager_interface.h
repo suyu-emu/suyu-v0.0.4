@@ -48,6 +48,9 @@ public:
     Result IsApplicationUpdateRequested(Out<bool> out_update_required, Out<u32> out_update_version,
                                         u64 application_id);
     Result CheckApplicationLaunchVersion(u64 application_id);
+    Result Unknown4022(Out<u32> out_unknown);
+    Result Unknown4023(Out<u32> out_unknown);
+    Result Unknown4088();
     Result GetApplicationTerminateResult(Out<Result> out_result, u64 application_id);
 
 private:
