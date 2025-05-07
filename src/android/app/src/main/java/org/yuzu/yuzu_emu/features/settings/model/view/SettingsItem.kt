@@ -324,6 +324,7 @@ abstract class SettingsItem(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_SHADER_BACKEND,
                     titleId = R.string.shader_backend,
+                    descriptionId = R.string.shader_backend_description,
                     choicesId = R.array.rendererShaderNames,
                     valuesId = R.array.rendererShaderValues
                 )
@@ -356,6 +357,7 @@ abstract class SettingsItem(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_VRAM_USAGE_MODE,
                     titleId = R.string.vram_usage_mode,
+                    descriptionId = R.string.vram_usage_mode_description,
                     choicesId = R.array.vramUsageMethodNames,
                     valuesId = R.array.vramUsageMethodValues
                 )

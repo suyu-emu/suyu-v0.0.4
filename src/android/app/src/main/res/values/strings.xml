@@ -210,7 +210,7 @@
     <string name="about_app_description">An open-source Switch emulator</string>
     <string name="contributors">Contributors</string>
     <string name="contributors_description">Contributors who made eden for Android possible</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
+    <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
     <string name="licenses_description">Projects that make eden for Android possible</string>
     <string name="build">Build</string>
     <string name="user_data">User data</string>
@@ -223,9 +223,9 @@
     <string name="user_data_import_success">User data imported successfully</string>
     <string name="user_data_export_cancelled">Export cancelled</string>
     <string name="user_data_import_failed_description">Make sure the user data folders are at the root of the zip folder and contain a config file at config/config.ini and try again.</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
+    <string name="support_link">https://discord.gg/Xa3ssgxrY7</string>
+    <string name="website_link">https://bixthefin.github.io//</string>
+    <string name="github_link">https://git.eden-emu.dev/eden-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">Early Access</string>
@@ -267,10 +267,10 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- Graphics settings strings -->
-    <string name="frame_skipping">Frame Skipping</string>
+    <string name="frame_skipping">WIP: Frameskip</string>
     <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames.</string>
-    <string name="frame_interpolation">Frame Interpolation</string>
-    <string name="frame_interpolation_description">Toggle frame interpolation to improve visual smoothness by generating intermediate frames.</string>
+    <string name="frame_interpolation">Enhanced Frame Pacing</string>
+    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutter during gameplay</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
@@ -292,10 +292,12 @@
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
     <string name="nvdec_emulation">NVDEC Emulation</string>
-    <string name="nvdec_emulation_description">Specifies how videos should be decoded. It can either use the CPU or the GPU for decoding, or perform no decoding at all (black screen on videos). In most cases, GPU decoding provides the best performance.</string>
+    <string name="nvdec_emulation_description">Select how video decoding (NVDEC) is handled during cutscenes and intros.</string>
     <string name="shader_backend">Shader Backend</string>
+    <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will generally improve performance, but may cause issues on certain games or devices.\nSet to 0 to disable.</string>
+    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage.
+These features may have repercussions on the device\'s temperature, some GPUs belonging to the older A6XX line may not react properly. Disabled by default to use Yuzu emulated formats, risk-free core functions 1 - 2, for higher-end devices select  3.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -700,7 +702,7 @@
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC Decoding Method</string>
-    <string name="accelerate_astc_description">Choose ASTC decoding method: CPU (slow but safe), GPU (fast, recommended), or Async CPU (no stutter but may glitch).</string>
+    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering.</string>
 
     <!-- ASTC Decoding Method Choices -->
     <string name="accelerate_astc_cpu">CPU</string>
@@ -709,7 +711,7 @@
 
     <!-- ASTC Recompression Method -->
     <string name="astc_recompression">ASTC Recompression Method</string>
-    <string name="astc_recompression_description">Low-end Android GPUs often lack ASTC support, forcing emulators to decompress textures to RGBA8. This option recompresses RGBA8 to BC1/BC3, saving VRAM but reducing quality.</string>
+    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance.</string>
 
     <!-- ASTC Recompression Method Choices -->
     <string name="astc_recompression_uncompressed">Uncompressed</string>
@@ -718,6 +720,7 @@
 
     <!-- ASTC Recompression Method Choices -->
     <string name="vram_usage_mode">VRAM Usage Mode</string>
+    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
     <string name="vram_usage_conservative">Conservative</string>
     <string name="vram_usage_aggressive">Aggressive</string>
 
