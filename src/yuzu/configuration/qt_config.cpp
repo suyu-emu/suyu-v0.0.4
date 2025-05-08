@@ -46,6 +46,7 @@ const std::array<int, 2> QtConfig::default_ringcon_analogs{{
 
 QtConfig::QtConfig(const std::string& config_name, const ConfigType config_type)
     : Config(config_type) {
+
     Initialize(config_name);
     if (config_type != ConfigType::InputProfile) {
         ReadQtValues();

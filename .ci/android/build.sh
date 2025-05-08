@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# SPDX-FileCopyrightText: 2025 eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 export NDK_CCACHE=$(which ccache)
 
 # keystore & pass are stored locally

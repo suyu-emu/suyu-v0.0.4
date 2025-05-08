@@ -232,6 +232,9 @@ add_executable(yuzu
     vk_device_info.h
     compatdb.cpp
     compatdb.h
+    user_data_migration.cpp
+    user_data_migration.h
+
     yuzu.qrc
     yuzu.rc
 )

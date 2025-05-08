@@ -21,7 +21,7 @@ ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
 
     connect(ui->open_log_button, &QPushButton::clicked, []() {
         const auto path =
-            QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::LogDir));
+            QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
     });
 

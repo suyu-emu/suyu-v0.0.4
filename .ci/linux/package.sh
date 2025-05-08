@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2025 eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # This script assumes you're in the source directory
 set -ex
 
@@ -113,7 +116,7 @@ echo "Generating AppImage..."
 ./uruntime --appimage-mkdwarfs -f \
 	--set-owner 0 --set-group 0 \
 	--no-history --no-create-timestamp \
-	--categorize=hotness --hotness-list=.ci/eden.dwfsprof \
+	--categorize=hotness --hotness-list=.ci/linux/eden.dwfsprof \
 	--compression zstd:level=22 -S26 -B32 \
 	--header uruntime \
     -N 4 \

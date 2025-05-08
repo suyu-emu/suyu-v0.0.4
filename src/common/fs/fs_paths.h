@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 // yuzu data directories
 
-#define YUZU_DIR "yuzu"
+#define EDEN_DIR "eden"
 #define PORTABLE_DIR "user"
 
 // Sub-directories contained within a yuzu data directory
@@ -25,6 +28,10 @@
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"
 #define ICONS_DIR "icons"
+#define CITRON_DIR "citron"
+#define SUDACHI_DIR "sudachi"
+#define YUZU_DIR "yuzu"
+#define SUYU_DIR "suyu"
 
 // yuzu-specific files
 

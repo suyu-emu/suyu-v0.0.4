@@ -664,7 +664,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_submitInlineKeyboardInput(JNIEnv* env
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* env,
                                                                         jobject instance) {
-    const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
+    const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
     auto vfs_nand_dir = EmulationSession::GetInstance().System().GetFilesystem()->OpenDirectory(
         Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
@@ -836,7 +836,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
     const auto user_id = manager.GetUser(static_cast<std::size_t>(0));
     ASSERT(user_id);
 
-    const auto nandDir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
+    const auto nandDir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
     auto vfsNandDir = system.GetFilesystem()->OpenDirectory(Common::FS::PathToUTF8String(nandDir),
                                                             FileSys::OpenMode::Read);
 

@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 #include <unordered_map>
 
@@ -56,10 +60,10 @@ namespace fs = std::filesystem;
 
 /**
  * The PathManagerImpl is a singleton allowing to manage the mapping of
- * YuzuPath enums to real filesystem paths.
- * This class provides 2 functions: GetYuzuPathImpl and SetYuzuPathImpl.
- * These are used by GetYuzuPath and SetYuzuPath respectively to get or modify
- * the path mapped by the YuzuPath enum.
+ * EdenPath enums to real filesystem paths.
+ * This class provides 2 functions: GetEdenPathImpl and SetEdenPathImpl.
+ * These are used by GetEdenPath and SetEdenPath respectively to get or modify
+ * the path mapped by the EdenPath enum.
  */
 class PathManagerImpl {
 public:
@@ -75,62 +79,99 @@ public:
     PathManagerImpl(PathManagerImpl&&) = delete;
     PathManagerImpl& operator=(PathManagerImpl&&) = delete;
 
-    [[nodiscard]] const fs::path& GetYuzuPathImpl(YuzuPath yuzu_path) {
-        return yuzu_paths.at(yuzu_path);
+    [[nodiscard]] const fs::path& GetEdenPathImpl(EdenPath eden_path) {
+        return eden_paths.at(eden_path);
     }
 
-    void SetYuzuPathImpl(YuzuPath yuzu_path, const fs::path& new_path) {
-        yuzu_paths.insert_or_assign(yuzu_path, new_path);
+    [[nodiscard]] const fs::path& GetLegacyPathImpl(LegacyPath legacy_path) {
+        return legacy_paths.at(legacy_path);
     }
 
-    void Reinitialize(fs::path yuzu_path = {}) {
-        fs::path yuzu_path_cache;
-        fs::path yuzu_path_config;
+    void CreateEdenPaths() {
+        std::for_each(eden_paths.begin(), eden_paths.end(), [](auto &path) {
+            void(FS::CreateDir(path.second));
+        });
+    }
+
+    void SetEdenPathImpl(EdenPath eden_path, const fs::path& new_path) {
+        eden_paths.insert_or_assign(eden_path, new_path);
+    }
+
+    void SetLegacyPathImpl(LegacyPath legacy_path, const fs::path& new_path) {
+        legacy_paths.insert_or_assign(legacy_path, new_path);
+    }
+
+    void Reinitialize(fs::path eden_path = {}) {
+        fs::path eden_path_cache;
+        fs::path eden_path_config;
 
 #ifdef _WIN32
 #ifdef YUZU_ENABLE_PORTABLE
-        yuzu_path = GetExeDirectory() / PORTABLE_DIR;
+        eden_path = GetExeDirectory() / PORTABLE_DIR;
 #endif
-        if (!IsDir(yuzu_path)) {
-            yuzu_path = GetAppDataRoamingDirectory() / YUZU_DIR;
+        if (!IsDir(eden_path)) {
+            eden_path = GetAppDataRoamingDirectory() / EDEN_DIR;
         }
 
-        yuzu_path_cache = yuzu_path / CACHE_DIR;
-        yuzu_path_config = yuzu_path / CONFIG_DIR;
+        eden_path_cache = eden_path / CACHE_DIR;
+        eden_path_config = eden_path / CONFIG_DIR;
+
+#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(LegacyPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
+        GenerateLegacyPath(LegacyPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
+        GenerateLegacyPath(LegacyPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
+
+        LEGACY_PATH(Citron, CITRON)
+        LEGACY_PATH(Sudachi, SUDACHI)
+        LEGACY_PATH(Yuzu, YUZU)
+        LEGACY_PATH(Suyu, SUYU)
+#undef LEGACY_PATH
+
 #elif ANDROID
-        ASSERT(!yuzu_path.empty());
-        yuzu_path_cache = yuzu_path / CACHE_DIR;
-        yuzu_path_config = yuzu_path / CONFIG_DIR;
+        ASSERT(!eden_path.empty());
+        eden_path_cache = eden_path / CACHE_DIR;
+        eden_path_config = eden_path / CONFIG_DIR;
 #else
 #ifdef YUZU_ENABLE_PORTABLE
-        yuzu_path = GetCurrentDir() / PORTABLE_DIR;
+        eden_path = GetCurrentDir() / PORTABLE_DIR;
 #endif
-        if (Exists(yuzu_path) && IsDir(yuzu_path)) {
-            yuzu_path_cache = yuzu_path / CACHE_DIR;
-            yuzu_path_config = yuzu_path / CONFIG_DIR;
+        if (Exists(eden_path) && IsDir(eden_path)) {
+            eden_path_cache = eden_path / CACHE_DIR;
+            eden_path_config = eden_path / CONFIG_DIR;
         } else {
-            yuzu_path = GetDataDirectory("XDG_DATA_HOME") / YUZU_DIR;
-            yuzu_path_cache = GetDataDirectory("XDG_CACHE_HOME") / YUZU_DIR;
-            yuzu_path_config = GetDataDirectory("XDG_CONFIG_HOME") / YUZU_DIR;
+            eden_path = GetDataDirectory("XDG_DATA_HOME") / EDEN_DIR;
+            eden_path_cache = GetDataDirectory("XDG_CACHE_HOME") / EDEN_DIR;
+            eden_path_config = GetDataDirectory("XDG_CONFIG_HOME") / EDEN_DIR;
         }
+
+#define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(LegacyPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
+        GenerateLegacyPath(LegacyPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
+        GenerateLegacyPath(LegacyPath::titleName##CacheDir, GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
+
+        LEGACY_PATH(Citron, CITRON)
+        LEGACY_PATH(Sudachi, SUDACHI)
+        LEGACY_PATH(Yuzu, YUZU)
+        LEGACY_PATH(Suyu, SUYU)
+
+#undef LEGACY_PATH
+
 #endif
 
-        GenerateYuzuPath(YuzuPath::YuzuDir, yuzu_path);
-        GenerateYuzuPath(YuzuPath::AmiiboDir, yuzu_path / AMIIBO_DIR);
-        GenerateYuzuPath(YuzuPath::CacheDir, yuzu_path_cache);
-        GenerateYuzuPath(YuzuPath::ConfigDir, yuzu_path_config);
-        GenerateYuzuPath(YuzuPath::CrashDumpsDir, yuzu_path / CRASH_DUMPS_DIR);
-        GenerateYuzuPath(YuzuPath::DumpDir, yuzu_path / DUMP_DIR);
-        GenerateYuzuPath(YuzuPath::KeysDir, yuzu_path / KEYS_DIR);
-        GenerateYuzuPath(YuzuPath::LoadDir, yuzu_path / LOAD_DIR);
-        GenerateYuzuPath(YuzuPath::LogDir, yuzu_path / LOG_DIR);
-        GenerateYuzuPath(YuzuPath::NANDDir, yuzu_path / NAND_DIR);
-        GenerateYuzuPath(YuzuPath::PlayTimeDir, yuzu_path / PLAY_TIME_DIR);
-        GenerateYuzuPath(YuzuPath::ScreenshotsDir, yuzu_path / SCREENSHOTS_DIR);
-        GenerateYuzuPath(YuzuPath::SDMCDir, yuzu_path / SDMC_DIR);
-        GenerateYuzuPath(YuzuPath::ShaderDir, yuzu_path / SHADER_DIR);
-        GenerateYuzuPath(YuzuPath::TASDir, yuzu_path / TAS_DIR);
-        GenerateYuzuPath(YuzuPath::IconsDir, yuzu_path / ICONS_DIR);
+        GenerateEdenPath(EdenPath::EdenDir, eden_path);
+        GenerateEdenPath(EdenPath::AmiiboDir, eden_path / AMIIBO_DIR);
+        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
+        GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
+        GenerateEdenPath(EdenPath::CrashDumpsDir, eden_path / CRASH_DUMPS_DIR);
+        GenerateEdenPath(EdenPath::DumpDir, eden_path / DUMP_DIR);
+        GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
+        GenerateEdenPath(EdenPath::LoadDir, eden_path / LOAD_DIR);
+        GenerateEdenPath(EdenPath::LogDir, eden_path / LOG_DIR);
+        GenerateEdenPath(EdenPath::NANDDir, eden_path / NAND_DIR);
+        GenerateEdenPath(EdenPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
+        GenerateEdenPath(EdenPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
+        GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
+        GenerateEdenPath(EdenPath::ShaderDir, eden_path / SHADER_DIR);
+        GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
+        GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
     }
 
 private:
@@ -140,13 +181,17 @@ private:
 
     ~PathManagerImpl() = default;
 
-    void GenerateYuzuPath(YuzuPath yuzu_path, const fs::path& new_path) {
-        void(FS::CreateDir(new_path));
-
-        SetYuzuPathImpl(yuzu_path, new_path);
+    void GenerateEdenPath(EdenPath eden_path, const fs::path& new_path) {
+        // Defer path creation
+        SetEdenPathImpl(eden_path, new_path);
     }
 
-    std::unordered_map<YuzuPath, fs::path> yuzu_paths;
+    void GenerateLegacyPath(LegacyPath legacy_path, const fs::path& new_path) {
+        SetLegacyPathImpl(legacy_path, new_path);
+    }
+
+    std::unordered_map<EdenPath, fs::path> eden_paths;
+    std::unordered_map<LegacyPath, fs::path> legacy_paths;
 };
 
 bool ValidatePath(const fs::path& path) {
@@ -230,22 +275,35 @@ void SetAppDirectory(const std::string& app_directory) {
     PathManagerImpl::GetInstance().Reinitialize(app_directory);
 }
 
-const fs::path& GetYuzuPath(YuzuPath yuzu_path) {
-    return PathManagerImpl::GetInstance().GetYuzuPathImpl(yuzu_path);
+const fs::path& GetEdenPath(EdenPath eden_path) {
+    return PathManagerImpl::GetInstance().GetEdenPathImpl(eden_path);
 }
 
-std::string GetYuzuPathString(YuzuPath yuzu_path) {
-    return PathToUTF8String(GetYuzuPath(yuzu_path));
+const std::filesystem::path& GetLegacyPath(LegacyPath legacy_path) {
+    return PathManagerImpl::GetInstance().GetLegacyPathImpl(legacy_path);
 }
 
-void SetYuzuPath(YuzuPath yuzu_path, const fs::path& new_path) {
+std::string GetEdenPathString(EdenPath eden_path) {
+    return PathToUTF8String(GetEdenPath(eden_path));
+}
+
+std::string GetLegacyPathString(LegacyPath legacy_path) {
+    return PathToUTF8String(GetLegacyPath(legacy_path));
+}
+
+void SetEdenPath(EdenPath eden_path, const fs::path& new_path) {
     if (!FS::IsDir(new_path)) {
         LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory",
                   PathToUTF8String(new_path));
         return;
     }
 
-    PathManagerImpl::GetInstance().SetYuzuPathImpl(yuzu_path, new_path);
+    PathManagerImpl::GetInstance().SetEdenPathImpl(eden_path, new_path);
+}
+
+void CreateEdenPaths()
+{
+    PathManagerImpl::GetInstance().CreateEdenPaths();
 }
 
 #ifdef _WIN32

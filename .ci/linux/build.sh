@@ -1,5 +1,8 @@
 #!/bin/bash -ex
 
+# SPDX-FileCopyrightText: 2025 eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 export ARCH="$(uname -m)"
 
 if [ "$ARCH" = 'x86_64' ]; then

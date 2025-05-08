@@ -44,7 +44,7 @@ bool IsProfileNameValid(std::string_view profile_name) {
 }
 
 bool ProfileExistsInFilesystem(std::string_view profile_name) {
-    return Common::FS::Exists(Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "input" /
+    return Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "input" /
                               fmt::format("{}.ini", profile_name));
 }
 
@@ -304,7 +304,7 @@ void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_loadInputProfiles(JNIEnv
                                                                           jobject j_obj) {
     map_profiles.clear();
     const auto input_profile_loc =
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "input";
+        Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "input";
 
     if (Common::FS::IsDir(input_profile_loc)) {
         Common::FS::IterateDirEntries(

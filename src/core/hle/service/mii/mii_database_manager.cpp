@@ -22,9 +22,9 @@ DatabaseManager::DatabaseManager() {}
 Result DatabaseManager::MountSaveData() {
     if (!is_save_data_mounted) {
         system_save_dir =
-            Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000030";
+            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000030";
         if (is_test_db) {
-            system_save_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
+            system_save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
                               "system/save/8000000000000031";
         }
 

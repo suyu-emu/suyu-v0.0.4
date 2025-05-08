@@ -62,7 +62,7 @@ if (MSVC)
 
         # Warnings
         /W4
-        /WX
+        /WX-
 
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4189 # 'identifier': local variable is initialized but not referenced

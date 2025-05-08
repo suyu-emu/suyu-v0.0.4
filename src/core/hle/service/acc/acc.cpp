@@ -36,7 +36,7 @@ namespace Service::Account {
 constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
 static std::filesystem::path GetImagePath(const Common::UUID& uuid) {
-    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
+    return Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
            fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 }
 

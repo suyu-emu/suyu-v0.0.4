@@ -211,7 +211,7 @@ static const QList<u64> bad_update_games{
 const int GMainWindow::max_recent_files_item;
 
 static void RemoveCachedContents() {
-    const auto cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir);
+    const auto cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
     const auto offline_fonts = cache_dir / "fonts";
     const auto offline_manual = cache_dir / "offline_web_applet_manual";
     const auto offline_legal_information = cache_dir / "offline_web_applet_legal_information";
@@ -301,15 +301,20 @@ bool GMainWindow::CheckDarkMode() {
 #endif // __unix__
 }
 
-GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulkan)
+GMainWindow::GMainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
-      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, config{std::move(config_)},
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
+      user_data_migrator{this},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
+    Common::FS::CreateEdenPaths();
+    this->config = std::make_unique<QtConfig>();
 #ifdef __unix__
     SetupSigInterrupts();
     SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
 #endif
+    UISettings::RestoreWindowState(config);
+
     system->Initialize();
 
     Common::Log::Initialize();
@@ -2322,7 +2327,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     switch (target) {
     case GameListOpenTarget::SaveData: {
         open_target = tr("Save Data");
-        const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
+        const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
         auto vfs_nand_dir =
                 vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
@@ -2378,7 +2383,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     }
     case GameListOpenTarget::ModData: {
         open_target = tr("Mod Data");
-        path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::LoadDir) /
+        path = Common::FS::GetEdenPath(Common::FS::EdenPath::LoadDir) /
                 fmt::format("{:016X}", program_id);
         break;
     }
@@ -2400,7 +2405,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 }
 
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
-    const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
     const auto shader_cache_folder_path{shader_cache_dir / fmt::format("{:016x}", program_id)};
     if (!Common::FS::CreateDirs(shader_cache_folder_path)) {
         QMessageBox::warning(this, tr("Error Opening Transferable Shader Cache"),
@@ -2519,7 +2524,7 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
         RemoveAddOnContent(program_id, type);
         break;
     }
-    Common::FS::RemoveDirRecursively(Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+    Common::FS::RemoveDirRecursively(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
                                      "game_list");
     game_list->PopulateAsync(UISettings::values.game_dirs);
 }
@@ -2625,7 +2630,7 @@ void GMainWindow::RemoveTransferableShaderCache(u64 program_id, GameListRemoveTa
             return "";
         }
     }();
-    const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
     const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
     const auto target_file = shader_cache_folder_path / target_file_name;
 
@@ -2646,7 +2651,7 @@ void GMainWindow::RemoveTransferableShaderCache(u64 program_id, GameListRemoveTa
 void GMainWindow::RemoveVulkanDriverPipelineCache(u64 program_id) {
     static constexpr std::string_view target_file_name = "vulkan_pipelines.bin";
 
-    const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
     const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
     const auto target_file = shader_cache_folder_path / target_file_name;
 
@@ -2660,7 +2665,7 @@ void GMainWindow::RemoveVulkanDriverPipelineCache(u64 program_id) {
 }
 
 void GMainWindow::RemoveAllTransferableShaderCaches(u64 program_id) {
-    const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
     const auto program_shader_cache_dir = shader_cache_dir / fmt::format("{:016x}", program_id);
 
     if (!Common::FS::Exists(program_shader_cache_dir)) {
@@ -2683,7 +2688,7 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& g
             program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
                             : fmt::format("{:016X}.ini", program_id);
     const auto custom_config_file_path =
-            Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "custom" / config_file_name;
+            Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
@@ -2701,7 +2706,7 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& g
 }
 
 void GMainWindow::RemoveCacheStorage(u64 program_id) {
-    const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
+    const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
     auto vfs_nand_dir =
             vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
@@ -2759,8 +2764,8 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     const auto base_romfs = base_nca->GetRomFS();
     const auto dump_dir =
             target == DumpRomFSTarget::Normal
-            ? Common::FS::GetYuzuPath(Common::FS::YuzuPath::DumpDir)
-            : Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir) / "atmosphere" / "contents";
+            ? Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)
+            : Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "atmosphere" / "contents";
     const auto romfs_dir = fmt::format("{:016X}/romfs", title_id);
 
     const auto path = Common::FS::PathToUTF8String(dump_dir / romfs_dir);
@@ -3018,7 +3023,7 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     // Get path to Yuzu icons directory & icon extension
     std::string ico_extension = "png";
 #if defined(_WIN32)
-    out_icon_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::IconsDir);
+    out_icon_path = Common::FS::GetEdenPath(Common::FS::EdenPath::IconsDir);
     ico_extension = "ico";
 #elif defined(__linux__) || defined(__FreeBSD__)
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
@@ -3141,13 +3146,13 @@ void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
     std::filesystem::path fs_path;
     if (directory == QStringLiteral("SDMC")) {
         fs_path =
-                Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir) / "Nintendo/Contents/registered";
+                Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "Nintendo/Contents/registered";
     } else if (directory == QStringLiteral("UserNAND")) {
         fs_path =
-                Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "user/Contents/registered";
+                Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/Contents/registered";
     } else if (directory == QStringLiteral("SysNAND")) {
         fs_path =
-                Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/Contents/registered";
+                Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/Contents/registered";
     } else {
         fs_path = directory.toStdString();
     }
@@ -3373,7 +3378,7 @@ void GMainWindow::OnMenuInstallToNAND() {
                                     : tr("%n file(s) failed to install\n", "", failed_files.size()));
 
     QMessageBox::information(this, tr("Install Results"), install_results);
-    Common::FS::RemoveDirRecursively(Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+    Common::FS::RemoveDirRecursively(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
                                      "game_list");
     game_list->PopulateAsync(UISettings::values.game_dirs);
     ui->action_Install_File_NAND->setEnabled(true);
@@ -3791,11 +3796,11 @@ void GMainWindow::OnConfigure() {
             LOG_WARNING(Frontend, "Failed to remove configuration file");
         }
         if (!Common::FS::RemoveDirContentsRecursively(
-                    Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "custom")) {
+                    Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom")) {
             LOG_WARNING(Frontend, "Failed to remove custom configuration files");
         }
         if (!Common::FS::RemoveDirRecursively(
-                    Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "game_list")) {
+                    Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
             LOG_WARNING(Frontend, "Failed to remove game metadata cache files");
         }
 
@@ -4151,7 +4156,7 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 
 void GMainWindow::OnOpenYuzuFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-                                  QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::YuzuDir))));
+                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::EdenDir))));
 }
 
 void GMainWindow::OnVerifyInstalledContents() {
@@ -4366,7 +4371,7 @@ void GMainWindow::OnInstallDecryptionKeys() {
         return;
     }
 
-    const auto yuzu_keys_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::KeysDir);
+    const auto yuzu_keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
     for (auto key_file : source_key_files) {
         std::filesystem::path destination_key_file = yuzu_keys_dir / key_file.filename();
         if (!std::filesystem::copy_file(key_file, destination_key_file,
@@ -4542,7 +4547,7 @@ void GMainWindow::OnCaptureScreenshot() {
 
     const u64 title_id = system->GetApplicationProcessProgramID();
     const auto screenshot_path =
-            QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir));
+            QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::ScreenshotsDir));
     const auto date =
             QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"));
     QString filename = QStringLiteral("%1/%2_%3.png")
@@ -4570,7 +4575,7 @@ void GMainWindow::OnCaptureScreenshot() {
 
 // TODO: Written 2020-10-01: Remove per-game config migration code when it is irrelevant
 void GMainWindow::MigrateConfigFiles() {
-    const auto config_dir_fs_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir);
+    const auto config_dir_fs_path = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
     const QDir config_dir =
             QDir(QString::fromStdString(Common::FS::PathToUTF8String(config_dir_fs_path)));
     const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
@@ -5289,8 +5294,6 @@ static void SetHighDPIAttributes() {
 }
 
 int main(int argc, char* argv[]) {
-    std::unique_ptr<QtConfig> config = std::make_unique<QtConfig>();
-    UISettings::RestoreWindowState(config);
     bool has_broken_vulkan = false;
     bool is_child = false;
     if (CheckEnvVars(&is_child)) {
@@ -5315,7 +5318,7 @@ int main(int argc, char* argv[]) {
     Common::ConfigureNvidiaEnvironmentFlags();
 
     // Init settings params
-    QCoreApplication::setOrganizationName(QStringLiteral("yuzu"));
+    QCoreApplication::setOrganizationName(QStringLiteral("eden"));
     QCoreApplication::setApplicationName(QStringLiteral("eden"));
 
 #ifdef _WIN32
@@ -5340,7 +5343,7 @@ int main(int argc, char* argv[]) {
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.
-    QGuiApplication::setDesktopFileName(QStringLiteral("org.yuzu_emu.yuzu"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("org.eden_emu.eden"));
 #endif
 
     SetHighDPIAttributes();
@@ -5374,7 +5377,7 @@ int main(int argc, char* argv[]) {
     // generating shaders
     setlocale(LC_ALL, "C");
 
-    GMainWindow main_window{std::move(config), has_broken_vulkan};
+    GMainWindow main_window{has_broken_vulkan};
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 

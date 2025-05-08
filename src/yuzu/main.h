@@ -18,6 +18,7 @@
 #include "configuration/qt_config.h"
 #include "frontend_common/content_manager.h"
 #include "input_common/drivers/tas_input.h"
+#include "user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
 #include "yuzu/util/controller_navigation.h"
@@ -167,7 +168,7 @@ class GMainWindow : public QMainWindow {
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
-    explicit GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulkan);
+    explicit GMainWindow(bool has_broken_vulkan);
     ~GMainWindow() override;
 
     bool DropAction(QDropEvent* event);
@@ -508,6 +509,7 @@ private:
     QSlider* volume_slider = nullptr;
     QTimer status_bar_update_timer;
 
+    UserDataMigrator user_data_migrator;
     std::unique_ptr<QtConfig> config;
 
     // Whether emulation is currently running in yuzu.

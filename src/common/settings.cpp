@@ -131,11 +131,11 @@ void LogSettings() {
             log_setting(name, setting->Canonicalize());
         }
     }
-    log_path("DataStorage_CacheDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir));
-    log_path("DataStorage_ConfigDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir));
-    log_path("DataStorage_LoadDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::LoadDir));
-    log_path("DataStorage_NANDDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir));
-    log_path("DataStorage_SDMCDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir));
+    log_path("DataStorage_CacheDir", Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir));
+    log_path("DataStorage_ConfigDir", Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir));
+    log_path("DataStorage_LoadDir", Common::FS::GetEdenPath(Common::FS::EdenPath::LoadDir));
+    log_path("DataStorage_NANDDir", Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir));
+    log_path("DataStorage_SDMCDir", Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir));
 }
 
 void UpdateGPUAccuracy() {
