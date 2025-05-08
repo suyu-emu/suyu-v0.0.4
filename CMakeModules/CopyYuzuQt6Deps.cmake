@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2024 Citron HomeBrew Emulator Project
 # SPDX-FileCopyrightText: 2024 kleidis
 
 function(copy_yuzu_Qt6_deps target_dir)
@@ -25,12 +24,12 @@ function(copy_yuzu_Qt6_deps target_dir)
             Qt6Widgets$<$<CONFIG:Debug>:d>.*
             Qt6Network$<$<CONFIG:Debug>:d>.*
         )
-        if (CITRON_USE_QT_MULTIMEDIA)
+        if (YUZU_USE_QT_MULTIMEDIA)
             windows_copy_files(${target_dir} ${Qt6_DLL_DIR} ${DLL_DEST}
                 Qt6Multimedia$<$<CONFIG:Debug>:d>.*
             )
         endif()
-        if (CITRON_USE_QT_WEB_ENGINE)
+        if (YUZU_USE_QT_WEB_ENGINE)
             windows_copy_files(${target_dir} ${Qt6_DLL_DIR} ${DLL_DEST}
                 Qt6WebEngineCore$<$<CONFIG:Debug>:d>.*
                 Qt6WebEngineWidgets$<$<CONFIG:Debug>:d>.*

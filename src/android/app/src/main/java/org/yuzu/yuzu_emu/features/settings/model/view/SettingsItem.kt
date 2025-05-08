@@ -275,13 +275,6 @@ abstract class SettingsItem(
             )
             put(
                  SwitchSetting(
-                     BooleanSetting.USE_AUTO_STUB,
-                     titleId = R.string.use_auto_stub,
-                     descriptionId = R.string.use_auto_stub_description
-                 )
-             )
-            put(
-                 SwitchSetting(
                      syncCoreSpeedSetting,
                      titleId = R.string.use_sync_core,
                      descriptionId = R.string.use_sync_core_description
@@ -570,6 +563,13 @@ abstract class SettingsItem(
                     descriptionId = R.string.renderer_debug_description
                 )
             )
+            put(
+                 SwitchSetting(
+                     BooleanSetting.USE_AUTO_STUB,
+                     titleId = R.string.use_auto_stub,
+                     descriptionId = R.string.use_auto_stub_description
+                 )
+             )
             put(
                 SwitchSetting(
                     BooleanSetting.CPU_DEBUG_MODE,

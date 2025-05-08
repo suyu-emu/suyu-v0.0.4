@@ -692,7 +692,6 @@ These features may have repercussions on the device\'s temperature, some GPUs be
 
     <!-- Shader Backend -->
      <string name="shader_backend_glsl">GLSL</string>
-     <string name="shader_backend_glasm">GLASM</string>
      <string name="shader_backend_spirv">SPIR-V</string>
 
     <!-- NVDEC Emulation -->
@@ -739,7 +738,7 @@ These features may have repercussions on the device\'s temperature, some GPUs be
 
     <!-- LRU Cache -->
     <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache for improved performance</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache for improved performance, some games have issue with it, e.g TOTK 1.2.1</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>

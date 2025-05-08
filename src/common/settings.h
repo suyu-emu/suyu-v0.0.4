@@ -216,7 +216,9 @@ struct Values {
     SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core, Specialization::Default};
 
     // Memory
+    #ifdef ANDROID
     SwitchableSetting<bool> lru_cache_enabled{linkage, true, "use_lru_cache", Category::System};
+    #endif
 
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{linkage,

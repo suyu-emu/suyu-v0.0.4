@@ -261,7 +261,6 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)
-            add(BooleanSetting.USE_AUTO_STUB.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)
             add(BooleanSetting.USE_CUSTOM_RTC.key)
@@ -1198,6 +1197,7 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.cpu))
             add(IntSetting.CPU_BACKEND.key)
             add(IntSetting.CPU_ACCURACY.key)
+            add(BooleanSetting.USE_AUTO_STUB.key)
             add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)
         }
