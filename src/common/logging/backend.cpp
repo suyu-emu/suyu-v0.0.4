@@ -88,8 +88,8 @@ public:
         auto old_filename = filename;
         old_filename += ".old.txt";
 
-        // Existence checks are done within the functions themselves.
-        // We don't particularly care if these succeed or not.
+               // Existence checks are done within the functions themselves.
+               // We don't particularly care if these succeed or not.
         static_cast<void>(FS::RemoveFile(old_filename));
         static_cast<void>(FS::RenameFile(filename, old_filename));
 
@@ -106,10 +106,10 @@ public:
 
         bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
 
-        // Option to log each line rather than 4k buffers
-#ifdef YUZU_LOG_BY_LINE
-        file->Flush();
-#endif
+               // Option to log each line rather than 4k buffers
+        if (Settings::values.log_flush_lines.GetValue()) {
+            file->Flush();
+        }
 
         using namespace Common::Literals;
         // Prevent logs from exceeding a set maximum size in the event that log entries are spammed.

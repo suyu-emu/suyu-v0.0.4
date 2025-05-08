@@ -73,8 +73,6 @@ option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
 
-option(YUZU_LOG_BY_LINE "Flush log data by the line rather than 4KB buffers" OFF)
-
 option(YUZU_ENABLE_PORTABLE "Allow yuzu to enable portable mode if a user folder is found in the CWD" ON)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
@@ -285,10 +283,6 @@ endif()
 if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
     set(HAS_NCE 1)
     add_definitions(-DHAS_NCE=1)
-endif()
-
-if (YUZU_LOG_BY_LINE)
-    add_definitions(-DYUZU_LOG_BY_LINE=1)
 endif()
 
 # Configure C++ standard
