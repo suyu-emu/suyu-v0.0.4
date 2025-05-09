@@ -57,13 +57,6 @@ abstract class SettingsItem(
                 return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
             }
 
-            if (setting.key == ByteSetting.RENDERER_DYNA_STATE.key) {
-                // Can't change on Mali GPU's otherwise no game loading for you
-                if (!GpuDriverHelper.supportsCustomDriverLoading()) {
-                    return false
-                }
-            }
-
             // Can't edit settings that aren't saveable in per-game config even if they are switchable
             if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
                 return false
@@ -139,10 +132,30 @@ abstract class SettingsItem(
                     titleId = R.string.dyna_state,
                     descriptionId = R.string.dyna_state_description,
                     min = 0,
-                    max = 3,
+                    max = 2,
                 )
             )
-
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_DYNA_STATE3,
+                    titleId = R.string.dyna_state3,
+                    descriptionId = R.string.dyna_state3_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_PROVOKING_VERTEX,
+                    titleId = R.string.provoking_vertex,
+                    descriptionId = R.string.provoking_vertex_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_DESCRIPTOR_INDEXING,
+                    titleId = R.string.descriptor_indexing,
+                    descriptionId = R.string.descriptor_indexing_description
+                )
+            )
             put(
                 SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,

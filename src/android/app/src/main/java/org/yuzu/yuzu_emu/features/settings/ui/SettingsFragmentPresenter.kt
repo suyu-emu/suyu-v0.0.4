@@ -479,7 +479,12 @@ class SettingsFragmentPresenter(
             descriptionId = R.string.use_lru_cache_description
             )
         )
+
         add(ByteSetting.RENDERER_DYNA_STATE.key)
+        add(BooleanSetting.RENDERER_DYNA_STATE3.key)
+        add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
+        add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
+
         add(
             SwitchSetting(
                 syncCoreSpeedSetting,

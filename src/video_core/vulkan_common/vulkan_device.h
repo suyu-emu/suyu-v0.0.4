@@ -84,7 +84,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
-    EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)
+    EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)                                              \
+    EXTENSION(EXT, DESCRIPTOR_INDEXING, descriptor_indexing)
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
@@ -402,6 +403,11 @@ public:
     /// Returns true if the device supports VK_NV_viewport_array2.
     bool IsNvViewportArray2Supported() const {
         return extensions.viewport_array2;
+    }
+
+    /// Returns true if the device supporst VK_EXT_DESCRIPTOR_INDEXING
+    bool isExtDescriptorIndexingSupported() const {
+        return extensions.descriptor_indexing;
     }
 
     /// Returns true if the device supports VK_NV_geometry_shader_passthrough.

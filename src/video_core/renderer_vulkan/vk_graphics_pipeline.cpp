@@ -235,6 +235,7 @@ ConfigureFuncPtr ConfigureFunc(const std::array<vk::ShaderModule, NUM_STAGES>& m
 }
 } // Anonymous namespace
 
+// TODO(crueter): This is the worst-formatted code I have EVER seen
 GraphicsPipeline::GraphicsPipeline(
     Scheduler& scheduler_, BufferCache& buffer_cache_, TextureCache& texture_cache_,
     vk::PipelineCache& pipeline_cache_, VideoCore::ShaderNotify* shader_notify,
@@ -263,9 +264,11 @@ GraphicsPipeline::GraphicsPipeline(
         DescriptorLayoutBuilder builder{MakeBuilder(device, stage_infos)};
         uses_push_descriptor = builder.CanUsePushDescriptor();
         descriptor_set_layout = builder.CreateDescriptorSetLayout(uses_push_descriptor);
+
         if (!uses_push_descriptor) {
             descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, stage_infos);
         }
+
         const VkDescriptorSetLayout set_layout{*descriptor_set_layout};
         pipeline_layout = builder.CreatePipelineLayout(set_layout);
         descriptor_update_template =
@@ -716,13 +719,14 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                                    ? VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT
                                    : VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT,
     };
+
     if (IsLine(input_assembly_topology) && device.IsExtLineRasterizationSupported()) {
         line_state.pNext = std::exchange(rasterization_ci.pNext, &line_state);
     }
     if (device.IsExtConservativeRasterizationSupported()) {
         conservative_raster.pNext = std::exchange(rasterization_ci.pNext, &conservative_raster);
     }
-    if (device.IsExtProvokingVertexSupported()) {
+    if (device.IsExtProvokingVertexSupported() && Settings::values.provoking_vertex.GetValue()) {
         provoking_vertex.pNext = std::exchange(rasterization_ci.pNext, &provoking_vertex);
     }
 
@@ -803,7 +807,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-            VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
+          //VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT, //Disabled for VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
@@ -897,6 +901,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (device.IsKhrPipelineExecutablePropertiesEnabled()) {
         flags |= VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;
     }
+
     pipeline = device.GetLogical().CreateGraphicsPipeline(
         {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
