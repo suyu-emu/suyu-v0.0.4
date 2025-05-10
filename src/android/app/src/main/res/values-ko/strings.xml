@@ -40,11 +40,11 @@
     <string name="eden_veil">에덴의 장막</string>
     <string name="eden_veil_description">기본값을 넘어서</string>
     <string name="frame_skipping">작업 중: 프레임 스킵</string>
-    <string name="frame_skipping_description">프레임 스킵을 활성화하여 렌더링되는 프레임 수를 줄이고 성능을 개선합니다.</string>
+    <string name="frame_skipping_description">렌더링되는 프레임 수를 줄여 성능을 향상시키기 위해 프레임 스킵을 전환합니다. 이 기능은 현재 개발 중이며 향후 출시 버전에서 활성화될 예정입니다.</string>
     <string name="frame_interpolation">향상된 프레임 페이싱</string>
     <string name="frame_interpolation_description">프레임 간 타이밍을 동기화하여 부드럽고 일관된 프레임 전달을 보장하며, 끊김과 불균일한 애니메이션을 줄입니다. 프레임 타이밍 불안정이나 게임 플레이 중 미세 끊김이 발생하는 게임에 이상적입니다.</string>
     <string name="use_lru_cache">LRU 캐시 사용</string>
-    <string name="use_lru_cache_description">성능 향상을 위해 LRU(Least Recently Used) 캐시를 활성화 또는 비활성화합니다. TOTK 1.2.1 등 일부 게임에서 문제가 발생할 수 있습니다.</string>
+    <string name="use_lru_cache_description">LRU 캐시(최근 사용되지 않은 항목)를 활성화 또는 비활성화하여 CPU 사용량을 절약하고 성능을 향상시킵니다. 일부 게임(특히 TotK 1.2.1)에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
     <string name="dyna_state">확장 동적 상태</string>
     <string name="dyna_state_description">Vulkan 기능을 활성화하여 파이프라인 생성 시 성능, 렌더링을 개선하고 리소스를 절약하면서 CPU/GPU 사용량을 낮게 유지합니다. 이러한 확장 기능은 장치 온도를 높일 수 있으며, 이전 A6XX 라인의 GPU는 제대로 반응하지 않을 수 있습니다. Yuzu 에뮬레이션 형식을 사용하려면 0으로 설정하세요.</string>
     <string name="dyna_state3">EDS3 + 정점 입력 동적 상태</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">일부 게임에서 조명과 버텍스 처리를 개선합니다. Vulkan 1.0+ GPU에서만 지원됩니다.</string>
     <string name="descriptor_indexing">디스크립터 인덱싱</string>
     <string name="descriptor_indexing_description">텍스처 및 버퍼 처리와 Maxwell 변환 레이어를 개선합니다. 일부 Vulkan 1.1 GPU 및 모든 Vulkan 1.2+ GPU에서 지원됩니다.</string>
+    <string name="use_fast_gpu_time">빠른 GPU 시간 사용</string>
+    <string name="use_fast_gpu_time_description">대부분의 게임을 최고 네이티브 해상도로 강제 실행합니다. 이 옵션은 불안정하여 문제를 일으킬 수 있습니다.</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC 디코딩 방법</string>
-    <string name="accelerate_astc_description">ASTC 압축 텍스처 디코딩 방식 선택</string>
+    <string name="accelerate_astc_description">ASTC 압축 텍스처의 디코딩 방식을 선택하세요: CPU (느림, 안전), GPU (빠름, 권장), 또는 CPU 비동기 (끊김 없음, 문제 발생 가능)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU 비동기</string>
 
     <!-- ASTC Recompression Method -->
     <string name="astc_recompression">ASTC 재압축 방법</string>
-    <string name="astc_recompression_description">ASTC 텍스처 재압축 방식 선택</string>
+    <string name="astc_recompression_description">ASTC 텍스처의 재압축 방식을 선택하여 호환성과 성능을 향상시킵니다. 이 옵션을 활성화하면 VRAM을 절약할 수 있지만 텍스처 품질이 저하될 수 있습니다.</string>
     <string name="astc_recompression_uncompressed">비압축</string>
     <string name="astc_recompression_bc1">BC1 (저화질)</string>
     <string name="astc_recompression_bc3">BC3 (중화질)</string>
@@ -97,6 +99,7 @@
 
     <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">SPIRV 출력 최적화</string>
+    <string name="renderer_optimize_spirv_output_description">컴파일된 셰이더를 최적화하여 GPU 효율성을 향상시킵니다.</string>
     <string name="never">안 함</string>
     <string name="on_load">로드 시</string>
     <string name="always">항상</string>

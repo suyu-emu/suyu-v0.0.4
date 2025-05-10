@@ -40,11 +40,11 @@
     <string name="eden_veil">עדן וייל</string>
     <string name="eden_veil_description">מעבר לברירת המחדל</string>
     <string name="frame_skipping">בעבודה: דילוג פריימים</string>
-    <string name="frame_skipping_description">הפעלת דילוג פריימים לשיפור ביצועים על ידי הפחתת מספר הפריימים המרונדרים.</string>
+    <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
     <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
     <string name="use_lru_cache">הפעלת מטמון LRU</string>
-    <string name="use_lru_cache_description">הפעלה או כיבוי של מטמון LRU (Least Recently Used) לשיפור ביצועים. חלק מהמשחקים עשויים להתקשות עם זה, כמו TOTK 1.2.1.</string>
+    <string name="use_lru_cache_description">הפעל או השבת את מטמון LRU (Least Recently Used), המשפר ביצועים על ידי חיסכון בשימוש במעבד. חלק מהמשחקים נתקלים בבעיות עם זה, במיוחד TotK 1.2.1, אז השבת אם המשחק לא נטען או קורס אקראית.</string>
     <string name="dyna_state">מצב דינמי מורחב</string>
     <string name="dyna_state_description">מאפשר תכונות Vulkan לשיפור ביצועים, רינדור וחיסכון במשאבים תוך שמירה על שימוש נמוך ב-CPU/GPU. הרחבות אלו עשויות להעלות את טמפ` המכשיר, וכרטיסי מסך מסדרת A6XX הישנים יותר עשויים לא להגיב כראוי. הגדר ל-0 כדי להשתמש בפורמטים המדומים של Yuzu.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
     <string name="descriptor_indexing">אינדוקס תיאורים</string>
     <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">השתמש בזמן GPU מהיר</string>
+    <string name="use_fast_gpu_time_description">מאלץ את רוב המשחקים לרוץ ברזולוציה המקורית הגבוהה ביותר שלהם. אפשרות זו עלולה לגרום לבעיות.</string>
 
     <!-- שיטת פענוח ASTC -->
     <string name="accelerate_astc">שיטת פענוח ASTC</string>
-    <string name="accelerate_astc_description">בחר כיצד לפענח טקסטורות ASTC</string>
+    <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
     <string name="accelerate_astc_cpu">מעבד</string>
     <string name="accelerate_astc_gpu">כרטיס מסך</string>
     <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
 
     <!-- שיטת דחיסת ASTC מחדש -->
     <string name="astc_recompression">שיטת דחיסת ASTC</string>
-    <string name="astc_recompression_description">בחר כיצד לדחוס מחדש טקסטורות ASTC</string>
+    <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
     <string name="astc_recompression_uncompressed">לא דחוס</string>
     <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
     <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
@@ -97,6 +99,7 @@
 
     <!-- אופטימיזציית SPIRV -->
     <string name="renderer_optimize_spirv_output">אופטימיזציית SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
     <string name="never">לעולם לא</string>
     <string name="on_load">בטעינה</string>
     <string name="always">תמיד</string>

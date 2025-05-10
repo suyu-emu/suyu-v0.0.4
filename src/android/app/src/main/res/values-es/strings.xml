@@ -40,11 +40,11 @@
     <string name="eden_veil">Velo de Edén</string>
     <string name="eden_veil_description">Más allá de lo predeterminado</string>
     <string name="frame_skipping">WIP: Salto de fotogramas</string>
-    <string name="frame_skipping_description">Activa el salto de fotogramas para mejorar el rendimiento reduciendo el número de fotogramas renderizados.</string>
+    <string name="frame_skipping_description">Activa o desactiva el salto de fotogramas para mejorar el rendimiento reduciendo el número de fotogramas renderizados. Esta función está en desarrollo y se habilitará en futuras versiones.</string>
     <string name="frame_interpolation">Sincronización de fotogramas mejorada</string>
     <string name="frame_interpolation_description">Garantiza una reproducción suave y consistente de fotogramas sincronizando sus tiempos, reduciendo el tartamudeo y animaciones irregulares. Ideal para juegos con problemas de sincronización de fotogramas o microtartamudeos.</string>
     <string name="use_lru_cache">Habilitar caché LRU</string>
-    <string name="use_lru_cache_description">Activa o desactiva la caché LRU (Least Recently Used) para mejorar el rendimiento. Algunos juegos pueden tener problemas, ej. TOTK 1.2.1.</string>
+    <string name="use_lru_cache_description">Activa o desactiva la caché LRU (menos usados recientemente), aumentando el rendimiento al ahorrar uso de CPU. Algunos juegos tienen problemas con ella, especialmente TotK 1.2.1, así que desactívala si el juego no arranca o se cierra aleatoriamente.</string>
     <string name="dyna_state">Estado dinámico extendido</string>
     <string name="dyna_state_description">Habilita funciones Vulkan para mejorar rendimiento, renderizado y ahorrar recursos en creación de pipelines manteniendo bajo uso de CPU/GPU. Estas extensiones pueden aumentar la temperatura del dispositivo y GPUs antiguas de serie A6XX podrían no responder correctamente. Establecer en 0 para usar formatos emulados de Yuzu.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Mejora iluminación y manejo de vértices en ciertos juegos. Solo compatible con GPUs Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexación de descriptores</string>
     <string name="descriptor_indexing_description">Mejora el manejo de texturas y buffers, así como la capa de traducción Maxwell. Compatible con algunas GPUs Vulkan 1.1 y todas Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Usar tiempo rápido de GPU</string>
+    <string name="use_fast_gpu_time_description">Fuerza a la mayoría de juegos a ejecutarse en su resolución nativa más alta. Esta opción es inestable y puede causar problemas.</string>
 
     <!-- Método de decodificación ASTC -->
     <string name="accelerate_astc">Método de decodificación ASTC</string>
-    <string name="accelerate_astc_description">Elegir cómo se decodifican texturas ASTC</string>
+    <string name="accelerate_astc_description">Elige cómo se decodifican las texturas comprimidas ASTC para el renderizado: CPU (lento, seguro), GPU (rápido, recomendado) o CPU Async (sin tartamudeos, puede causar problemas)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asíncrono</string>
 
     <!-- Método de recompresión ASTC -->
     <string name="astc_recompression">Método de recompresión ASTC</string>
-    <string name="astc_recompression_description">Elegir cómo se recomprimen texturas ASTC</string>
+    <string name="astc_recompression_description">Elige cómo se recomprimen las texturas ASTC para mejorar la compatibilidad y el rendimiento. Habilitar esta opción ahorra VRAM pero puede reducir la calidad de las texturas.</string>
     <string name="astc_recompression_uncompressed">Sin compresión</string>
     <string name="astc_recompression_bc1">BC1 (baja calidad)</string>
     <string name="astc_recompression_bc3">BC3 (calidad media)</string>
@@ -97,6 +99,7 @@
 
     <!-- Optimizar salida SPIRV -->
     <string name="renderer_optimize_spirv_output">Optimizar salida SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Optimiza el sombreador compilado para mejorar la eficiencia de la GPU.</string>
     <string name="never">Nunca</string>
     <string name="on_load">Al cargar</string>
     <string name="always">Siempre</string>

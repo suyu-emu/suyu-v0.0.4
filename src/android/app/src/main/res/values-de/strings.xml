@@ -40,11 +40,11 @@
     <string name="eden_veil">Edens Schleier</string>
     <string name="eden_veil_description">Jenseits der Standardeinstellungen</string>
     <string name="frame_skipping">WIP: Frame Skipping</string>
-    <string name="frame_skipping_description">Aktivieren Sie Frame Skipping, um die Leistung zu verbessern, indem die Anzahl der gerenderten Frames reduziert wird.</string>
+    <string name="frame_skipping_description">Aktivieren Sie Frame Skipping, um die Leistung durch Reduzierung der gerenderten Frames zu verbessern. Diese Funktion wird noch entwickelt und in zukünftigen Versionen verfügbar sein.</string>
     <string name="frame_interpolation">Erweiterte Frame-Synchronisation</string>
     <string name="frame_interpolation_description">Sorgt für eine gleichmäßige und konsistente Frame-Wiedergabe durch Synchronisierung der Frame-Zeiten, was Ruckeln und ungleichmäßige Animationen reduziert. Ideal für Spiele, die unter instabilen Frame-Zeiten oder Mikrorucklern leiden.</string>
     <string name="use_lru_cache">LRU-Cache aktivieren</string>
-    <string name="use_lru_cache_description">Aktiviert oder deaktiviert den LRU-Cache (Least Recently Used) für eine bessere Leistung. Einige Spiele können Probleme damit haben, z.B. TOTK 1.2.1.</string>
+    <string name="use_lru_cache_description">Aktivieren oder deaktivieren Sie den LRU-Cache (Least Recently Used), um die Leistung durch Reduzierung der CPU-Auslastung zu verbessern. Einige Spiele haben Probleme damit, insbesondere TotK 1.2.1, deaktivieren Sie ihn also, wenn das Spiel nicht startet oder zufällig abstürzt.</string>
     <string name="dyna_state">Erweiterter dynamischer Status</string>
     <string name="dyna_state_description">Aktiviert Vulkan-Funktionen zur Verbesserung der Leistung, des Renderings und zur Ressourceneinsparung bei der Pipeline-Erstellung, während die CPU/GPU-Auslastung niedrig bleibt. Diese Erweiterungen können die Gerätetemperatur erhöhen, und ältere GPUs der A6XX-Serie reagieren möglicherweise nicht korrekt. Auf 0 setzen, um emulierte Yuzu-Formate zu verwenden.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Verbessert die Beleuchtung und die Vertex-Verarbeitung in einigen Spielen. Wird nur von GPUs mit Vulkan 1.0+ unterstützt.</string>
     <string name="descriptor_indexing">Deskriptor-Indizierung</string>
     <string name="descriptor_indexing_description">Verbessert die Textur- und Puffer-Verarbeitung sowie die Maxwell-Übersetzungsschicht. Wird von einigen Vulkan 1.1-GPUs und allen Vulkan 1.2+-GPUs unterstützt.</string>
+    <string name="use_fast_gpu_time">Schnelle GPU-Zeit verwenden</string>
+    <string name="use_fast_gpu_time_description">Erzwingt bei den meisten Spielen die höchste native Auflösung. Diese Option ist experimentell und kann Probleme verursachen.</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC-Decodierung</string>
-    <string name="accelerate_astc_description">Methode zur Dekodierung von ASTC-Texturen</string>
+    <string name="accelerate_astc_description">Wählen Sie aus, wie ASTC-komprimierte Texturen für das Rendering decodiert werden: CPU (langsam, sicher), GPU (schnell, empfohlen) oder CPU Async (kein Ruckeln, kann Probleme verursachen)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU Asynchron</string>
 
     <!-- ASTC Recompression Method -->
     <string name="astc_recompression">ASTC-Neukompression</string>
-    <string name="astc_recompression_description">Methode zur Neukompression von ASTC-Texturen</string>
+    <string name="astc_recompression_description">Wählen Sie, wie ASTC-Texturen neu komprimiert werden, um die Kompatibilität und Leistung zu verbessern. Diese Option spart VRAM, kann aber die Texturqualität verringern.</string>
     <string name="astc_recompression_uncompressed">Unkomprimiert</string>
     <string name="astc_recompression_bc1">BC1 (Niedrige Qualität)</string>
     <string name="astc_recompression_bc3">BC3 (Mittlere Qualität)</string>
@@ -97,6 +99,7 @@
 
     <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">SPIRV-Optimierung</string>
+    <string name="renderer_optimize_spirv_output_description">Optimiert den kompilierten Shader, um die GPU-Effizienz zu verbessern.</string>
     <string name="never">Nie</string>
     <string name="on_load">Beim Laden</string>
     <string name="always">Immer</string>

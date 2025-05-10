@@ -40,11 +40,11 @@
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">超越默认</string>
     <string name="frame_skipping">开发中：跳帧</string>
-    <string name="frame_skipping_description">启用跳帧可通过减少渲染帧数来提高性能。</string>
+    <string name="frame_skipping_description">启用或禁用跳帧以减少渲染帧数，提高性能。此功能仍在开发中，将在未来版本中启用。</string>
     <string name="frame_interpolation">增强帧同步</string>
     <string name="frame_interpolation_description">通过同步帧间时间确保流畅一致的帧交付，减少卡顿和不均匀动画。适合存在帧时间不稳定或游戏过程中出现微卡顿的游戏。</string>
     <string name="use_lru_cache">启用LRU缓存</string>
-    <string name="use_lru_cache_description">启用或禁用LRU（最近最少使用）缓存以提高性能，部分游戏可能存在问题，例如TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">启用或禁用LRU（最近最少使用）缓存，通过节省CPU使用来提高性能。某些游戏（尤其是TotK 1.2.1）可能存在问题，如果游戏无法启动或随机崩溃，请禁用它。</string>
     <string name="dyna_state">扩展动态状态</string>
     <string name="dyna_state_description">启用Vulkan功能以在保持低CPU/GPU使用率的同时提高性能、渲染效果并节省管道创建资源。这些扩展可能会提高设备温度，较旧的A6XX系列GPU可能无法正确响应。设置为0可使用Yuzu模拟格式。</string>
     <string name="dyna_state3">EDS3 + 顶点输入动态状态</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">改善某些游戏中的光照和顶点处理。仅支持Vulkan 1.0+ GPU。</string>
     <string name="descriptor_indexing">描述符索引</string>
     <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
+    <string name="use_fast_gpu_time">使用快速GPU时间</string>
+    <string name="use_fast_gpu_time_description">强制大多数游戏以最高原生分辨率运行。此选项不稳定，可能导致问题。</string>
 
     <!-- ASTC解码方式 -->
     <string name="accelerate_astc">ASTC解码方式</string>
-    <string name="accelerate_astc_description">选择ASTC纹理的解码方式</string>
+    <string name="accelerate_astc_description">选择ASTC压缩纹理的解码方式：CPU（慢速、安全）、GPU（快速、推荐）或CPU异步（无卡顿，可能导致问题）</string>
     <string name="accelerate_astc_cpu">CPU解码</string>
     <string name="accelerate_astc_gpu">GPU解码</string>
     <string name="accelerate_astc_async">CPU异步解码</string>
 
     <!-- ASTC重压缩方式 -->
     <string name="astc_recompression">ASTC重压缩方式</string>
-    <string name="astc_recompression_description">选择ASTC纹理的重压缩方式</string>
+    <string name="astc_recompression_description">选择ASTC纹理的重新压缩方式以提高兼容性和性能。启用此选项可节省VRAM，但可能会降低纹理质量。</string>
     <string name="astc_recompression_uncompressed">不压缩</string>
     <string name="astc_recompression_bc1">BC1(低质量)</string>
     <string name="astc_recompression_bc3">BC3(中等质量)</string>
@@ -97,6 +99,7 @@
 
     <!-- SPIRV优化 -->
     <string name="renderer_optimize_spirv_output">SPIRV优化</string>
+    <string name="renderer_optimize_spirv_output_description">优化编译后的着色器以提高GPU效率。</string>
     <string name="never">从不</string>
     <string name="on_load">加载时</string>
     <string name="always">总是</string>

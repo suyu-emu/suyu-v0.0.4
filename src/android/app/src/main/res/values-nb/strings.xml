@@ -40,11 +40,11 @@
     <string name="eden_veil">Edens slør</string>
     <string name="eden_veil_description">Forbi standardinnstillinger</string>
     <string name="frame_skipping">WIP: Hoppe over bilder</string>
-    <string name="frame_skipping_description">Aktiver hopping over bilder for å forbedre ytelsen ved å redusere antall renderte bilder.</string>
+    <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
     <string name="frame_interpolation">Avansert bildevindu-synkronisering</string>
     <string name="frame_interpolation_description">Sikrer jevn og konsekvent bildelevering ved å synkronisere tiden mellom bilder, noe som reduserer hakking og ujevn animasjon. Ideelt for spill som opplever ustabil bildetid eller mikro-hakk under spilling.</string>
     <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
-    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager (Least Recently Used) for bedre ytelse, noen spill kan ha problemer, f.eks. TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager (Least Recently Used), som forbedrer ytelsen ved å spare CPU-bruk. Noen spill har problemer med dette, spesielt TotK 1.2.1, så deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
     <string name="dyna_state_description">Aktiverer Vulkan-funksjoner for å forbedre ytelse, rendering og spare ressurser ved pipeline-opprettelse samtidig som CPU/GPU-bruken holdes lav. Disse utvidelsene kan øke enhetstemperaturen, og eldre A6XX-serien GPU-er kan reagere unormalt. Sett til 0 for å bruke Yuzus emulerte formater.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Forbedrer belysning og vertexhåndtering i enkelte spill. Støttes kun på Vulkan 1.0+ GPU-er.</string>
     <string name="descriptor_indexing">Beskrivelsesindeksering</string>
     <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
+    <string name="use_fast_gpu_time">Bruk rask GPU-tid</string>
+    <string name="use_fast_gpu_time_description">Tvinger de fleste spill til å kjøre i høyeste oppløsning. Dette alternativet er ustabilt og kan forårsake problemer.</string>
 
     <!-- ASTC-dekoding -->
     <string name="accelerate_astc">ASTC-dekoding</string>
-    <string name="accelerate_astc_description">Velg hvordan ASTC-teksturer dekodes</string>
+    <string name="accelerate_astc_description">Velg hvordan ASTC-komprimerte teksturer skal dekodes for rendering: CPU (tregt, sikkert), GPU (raskt, anbefalt) eller CPU Async (ingen stuttering, kan forårsake problemer)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asynkront</string>
 
     <!-- ASTC-komprimering -->
     <string name="astc_recompression">ASTC-komprimering</string>
-    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres</string>
+    <string name="astc_recompression_description">Velg hvordan ASTC-teksturer komprimeres på nytt for å forbedre kompatibilitet og ytelse. Å aktivere dette alternativet sparer VRAM, men kan redusere teksturkvaliteten.</string>
     <string name="astc_recompression_uncompressed">Ukomprimert</string>
     <string name="astc_recompression_bc1">BC1 (lav kvalitet)</string>
     <string name="astc_recompression_bc3">BC3 (middels kvalitet)</string>
@@ -97,6 +99,7 @@
 
     <!-- SPIRV-optimalisering -->
     <string name="renderer_optimize_spirv_output">Optimaliser SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Optimaliserer den kompilerte shaderen for å forbedre GPU-effektiviteten.</string>
     <string name="never">Aldri</string>
     <string name="on_load">Ved lasting</string>
     <string name="always">Alltid</string>

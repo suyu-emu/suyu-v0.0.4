@@ -40,11 +40,11 @@
     <string name="eden_veil">Eden Fátyla</string>
     <string name="eden_veil_description">Az alapértelmezett túl</string>
     <string name="frame_skipping">Folyamatban: Képkihagyás</string>
-    <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével.</string>
+    <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
     <string name="frame_interpolation">Továbbfejlesztett Képkocka-időzítés</string>
     <string name="frame_interpolation_description">Biztosítja a képkockák sima és egyenletes kézbesítését azok időzítésének szinkronizálásával, csökkentve a megakadásokat és egyenetlen animációkat. Ideális azokhoz a játékokhoz, amelyek képkocka-időzítési instabilitást vagy mikro-reccsenést tapasztalnak játék közben.</string>
     <string name="use_lru_cache">LRU gyorsítótár engedélyezése</string>
-    <string name="use_lru_cache_description">Engedélyezi vagy letiltja a LRU (Least Recently Used) gyorsítótárt a teljesítmény javításához, néhány játékkal problémák lehetnek, pl. TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">Engedélyezze vagy tiltsa le az LRU gyorsítótárat (Least Recently Used), amely a CPU használatának csökkentésével növeli a teljesítményt. Néhány játékkal problémák adódhatnak, különösen a TotK 1.2.1 esetében, ezért tiltsa le, ha a játék nem indul el vagy véletlenszerűen összeomlik.</string>
     <string name="dyna_state">Kiterjesztett Dinamikus Állapot</string>
     <string name="dyna_state_description">Engedélyezi a Vulkan funkciókat a teljesítmény, a renderelés javításához és erőforrások megtakarításához a pipeline létrehozásánál, miközben alacsony CPU/GPU használatot tart fenn. Ezek a kiterjesztések növelhetik az eszköz hőmérsékletét, és a régebbi A6XX sorozatú GPU-k nem feltétlenül reagálnak megfelelően. Állítsa 0-ra a Yuzu által emulált formátumok használatához.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Javítja a világítást és a csúcskezelést bizonyos játékokban. Csak Vulkan 1.0+ GPU-kon támogatott.</string>
     <string name="descriptor_indexing">Deskriptor Indexelés</string>
     <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
+    <string name="use_fast_gpu_time">Gyors GPU idő használata</string>
+    <string name="use_fast_gpu_time_description">A legtöbb játékot a natív felbontásukon futtatja. Ez az opció instabil és problémákat okozhat.</string>
 
     <!-- ASTC Dekódolási Módszer -->
     <string name="accelerate_astc">ASTC dekódolási módszer</string>
-    <string name="accelerate_astc_description">ASTC textúrák dekódolásának módja</string>
+    <string name="accelerate_astc_description">Válassza ki, hogyan legyenek dekódolva az ASTC tömörített textúrák a rendereléshez: CPU (lassú, biztonságos), GPU (gyors, ajánlott) vagy CPU Async (nincs megakadás, de problémákat okozhat)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU aszinkron</string>
 
     <!-- ASTC Újratömörítési Módszer -->
     <string name="astc_recompression">ASTC újratömörítési módszer</string>
-    <string name="astc_recompression_description">ASTC textúrák újratömörítésének módja</string>
+    <string name="astc_recompression_description">Válassza ki, hogyan történik az ASTC textúrák újratömörítése a kompatibilitás és a teljesítmény javításáért. Ez az opció VRAM-ot takarít meg, de csökkentheti a textúra minőségét.</string>
     <string name="astc_recompression_uncompressed">Tömörítetlen</string>
     <string name="astc_recompression_bc1">BC1 (alacsony minőség)</string>
     <string name="astc_recompression_bc3">BC3 (közepes minőség)</string>
@@ -97,6 +99,7 @@
 
     <!-- SPIRV optimalizálás -->
     <string name="renderer_optimize_spirv_output">SPIRV optimalizálás</string>
+    <string name="renderer_optimize_spirv_output_description">Optimalizálja a lefordított shadert a GPU hatékonyságának javításáért.</string>
     <string name="never">Soha</string>
     <string name="on_load">Betöltéskor</string>
     <string name="always">Mindig</string>

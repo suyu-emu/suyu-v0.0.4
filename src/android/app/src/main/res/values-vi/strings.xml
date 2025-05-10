@@ -40,11 +40,11 @@
     <string name="eden_veil">Màn Eden</string>
     <string name="eden_veil_description">Vượt xa mặc định</string>
     <string name="frame_skipping">WIP: Bỏ qua khung hình</string>
-    <string name="frame_skipping_description">Bật bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất.</string>
+    <string name="frame_skipping_description">Bật hoặc tắt bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất. Tính năng này đang được phát triển và sẽ được kích hoạt trong các bản phát hành tương lai.</string>
     <string name="frame_interpolation">Đồng bộ khung hình nâng cao</string>
     <string name="frame_interpolation_description">Đảm bảo cung cấp khung hình mượt mà và ổn định bằng cách đồng bộ hóa thời gian giữa các khung hình, giảm giật lag và hoạt ảnh không đồng đều. Lý tưởng cho các trò chơi gặp vấn đề về thời gian khung hình không ổn định hoặc giật lag nhẹ trong khi chơi.</string>
     <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
-    <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU (Least Recently Used) để cải thiện hiệu suất, một số trò chơi có thể gặp vấn đề, ví dụ TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU (ít được sử dụng gần đây nhất), tăng hiệu suất bằng cách tiết kiệm sử dụng CPU. Một số trò chơi có vấn đề với nó, đặc biệt là TotK 1.2.1, vì vậy hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
     <string name="dyna_state_description">Kích hoạt các tính năng Vulkan để cải thiện hiệu suất, kết xuất và tiết kiệm tài nguyên khi tạo pipeline trong khi vẫn duy trì mức sử dụng CPU/GPU thấp. Các tiện ích mở rộng này có thể làm tăng nhiệt độ thiết bị và GPU dòng A6XX cũ hơn có thể không phản ứng đúng cách. Đặt thành 0 để sử dụng định dạng mô phỏng của Yuzu.</string>
     <string name="dyna_state3">EDS3 + Trạng thái động đầu vào đỉnh</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Cải thiện ánh sáng và xử lý đỉnh trong một số trò chơi. Chỉ được hỗ trợ trên GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Lập chỉ mục bộ mô tả</string>
     <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Sử dụng thời gian GPU nhanh</string>
+    <string name="use_fast_gpu_time_description">Buộc hầu hết các trò chơi chạy ở độ phân giải gốc cao nhất. Tùy chọn này có thể gây ra sự cố.</string>
 
     <!-- Phương thức giải mã ASTC -->
     <string name="accelerate_astc">Phương thức giải mã ASTC</string>
-    <string name="accelerate_astc_description">Chọn cách giải mã texture ASTC</string>
+    <string name="accelerate_astc_description">Chọn cách giải mã texture nén ASTC để kết xuất: CPU (chậm, an toàn), GPU (nhanh, khuyên dùng) hoặc CPU Async (không giật, có thể gây ra sự cố)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU bất đồng bộ</string>
 
     <!-- Phương thức nén lại ASTC -->
     <string name="astc_recompression">Phương thức nén lại ASTC</string>
-    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC</string>
+    <string name="astc_recompression_description">Chọn cách nén lại texture ASTC để cải thiện khả năng tương thích và hiệu suất. Bật tùy chọn này tiết kiệm VRAM nhưng có thể làm giảm chất lượng texture.</string>
     <string name="astc_recompression_uncompressed">Không nén</string>
     <string name="astc_recompression_bc1">BC1 (Chất lượng thấp)</string>
     <string name="astc_recompression_bc3">BC3 (Chất lượng trung bình)</string>
@@ -97,6 +99,7 @@
 
     <!-- Tối ưu SPIRV -->
     <string name="renderer_optimize_spirv_output">Tối ưu SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
     <string name="never">Không</string>
     <string name="on_load">Khi tải</string>
     <string name="always">Luôn</string>

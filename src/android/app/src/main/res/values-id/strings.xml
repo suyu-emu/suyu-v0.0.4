@@ -40,11 +40,11 @@
     <string name="eden_veil">Eden`s Veil</string>
     <string name="eden_veil_description">Melampaui default</string>
     <string name="frame_skipping">WIP: Loncatan Frame</string>
-    <string name="frame_skipping_description">Aktifkan loncatan frame untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender.</string>
+    <string name="frame_skipping_description">Aktifkan atau nonaktifkan frame skipping untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender. Fitur ini masih dalam pengembangan dan akan diaktifkan di rilis mendatang.</string>
     <string name="frame_interpolation">Penyelarasan Frame Tingkat Lanjut</string>
     <string name="frame_interpolation_description">Memastikan pengiriman frame yang halus dan konsisten dengan menyinkronkan waktu antar frame, mengurangi stuttering dan animasi tidak rata. Ideal untuk game yang mengalami ketidakstabilan waktu frame atau micro-stutter selama gameplay.</string>
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
-    <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU (Least Recently Used) untuk meningkatkan performa, beberapa game mungkin bermasalah, contoh TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU (Least Recently Used), meningkatkan performa dengan menghemat penggunaan CPU. Beberapa game memiliki masalah dengannya, terutama TotK 1.2.1, jadi nonaktifkan jika game tidak mau boot atau sering crash.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
     <string name="dyna_state_description">Mengaktifkan fitur Vulkan untuk meningkatkan performa, rendering, dan menghemat sumber daya saat pembuatan pipeline sambil mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU seri A6XX lama mungkin tidak merespons dengan benar. Setel ke 0 untuk menggunakan format emulasi Yuzu.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Meningkatkan pencahayaan dan penanganan vertex di beberapa game. Hanya didukung di GPU Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Pengindeks Deskriptor</string>
     <string name="descriptor_indexing_description">Meningkatkan penanganan tekstur dan buffer, serta lapisan terjemahan Maxwell. Didukung oleh beberapa GPU Vulkan 1.1 dan semua GPU Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Gunakan Waktu GPU Cepat</string>
+    <string name="use_fast_gpu_time_description">Memaksa sebagian besar game berjalan pada resolusi asli tertinggi. Opsi ini mungkin menyebabkan masalah.</string>
 
     <!-- Metode Dekoding ASTC -->
     <string name="accelerate_astc">Metode Dekoding ASTC</string>
-    <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering.</string>
+    <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU Secara Asinkron</string>
 
     <!-- Metode Rekompresi ASTC -->
     <string name="astc_recompression">Metode Rekompresi ASTC</string>
-    <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa.</string>
+    <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa. Mengaktifkan opsi ini menghemat VRAM tetapi dapat menurunkan kualitas tekstur.</string>
     <string name="astc_recompression_uncompressed">Tidak Dikompresi</string>
     <string name="astc_recompression_bc1">BC1 (Kualitas Rendah)</string>
     <string name="astc_recompression_bc3">BC3 (Kualitas Menengah)</string>
@@ -97,6 +99,7 @@
 
     <!-- Optimalkan Output SPIRV -->
     <string name="renderer_optimize_spirv_output">Optimalkan Output SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
     <string name="never">Tidak Pernah</string>
     <string name="on_load">Saat Memuat</string>
     <string name="always">Selalu</string>

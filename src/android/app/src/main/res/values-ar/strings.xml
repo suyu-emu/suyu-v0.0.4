@@ -39,11 +39,11 @@
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ما بعد الافتراضي</string>
     <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
-    <string name="frame_skipping_description">قم بتبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة.</string>
+    <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
-    <string name="use_lru_cache_description">قم بتمكين أو تعطيل ذاكرة التخزين المؤقت LRU (الأقل استخدامًا مؤخرًا) لتحسين الأداء، بعض الألعاب قد تواجه مشاكل معها، مثل TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">تمكين أو تعطيل ذاكرة التخزين المؤقت الأقل استخدامًا (LRU)، مما يزيد الأداء عن طريق توفير استخدام وحدة المعالجة المركزية. بعض الألعاب بها مشاكل معها، خاصة TotK 1.2.1، لذا قم بتعطيلها إذا لم يتم تشغيل اللعبة أو تعطلت بشكل عشوائي.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="dyna_state_description">يُمكّن ميزات فولكان لتحسين الأداء، التقديم، وتوفير الموارد أثناء إنشاء خطوط المعالجة مع الحفاظ على استهلاك أقل لوحدة المعالجة المركزية/وحدة معالجة الرسومات. قد تزيد هذه الامتدادات من درجة حرارة الجهاز، وقد لا تتفاعل وحدات معالجة الرسومات القديمة من سلسلة A6XX بشكل صحيح. اضبط على 0 لاستخدام تنسيقات Yuzu المحاكاة.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -60,17 +60,19 @@
     <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
     <string name="descriptor_indexing">فهرسة الواصفات</string>
     <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
+    <string name="use_fast_gpu_time">استخدام وقت GPU السريع</string>
+    <string name="use_fast_gpu_time_description">يجبر معظم الألعاب على العمل بأعلى دقة أصلية. هذا الخيار غير مثبت وقد يسبب مشاكل.</string>
 
     <!-- طرق فك ضغط ASTC -->
     <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
-    <string name="accelerate_astc_description">اختيار طريقة فك ضغط textures</string>
+    <string name="accelerate_astc_description">اختر كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
     <string name="accelerate_astc_cpu">وحدة المعالجة المركزية</string>
     <string name="accelerate_astc_gpu">وحدة المعالجة الرسومية</string>
     <string name="accelerate_astc_async">وحدة المعالجة المركزية غير المتزامنة</string>
 
     <!-- طرق إعادة ضغط ASTC -->
     <string name="astc_recompression">طريقة إعادة ضغط ASTC</string>
-    <string name="astc_recompression_description">اختيار طريقة إعادة ضغط textures</string>
+<string name="astc_recompression_description">اختر كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
     <string name="astc_recompression_uncompressed">غير مضغوط</string>
     <string name="astc_recompression_bc1">BC1 (جودة منخفضة)</string>
     <string name="astc_recompression_bc3">BC3 (جودة متوسطة)</string>
@@ -96,6 +98,7 @@
 
     <!-- تحسين SPIRV -->
     <string name="renderer_optimize_spirv_output">تحسين SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">يحسن الشادر المترجم لزيادة كفاءة GPU.</string>
     <string name="never">أبداً</string>
     <string name="on_load">عند التحميل</string>
     <string name="always">دائماً</string>

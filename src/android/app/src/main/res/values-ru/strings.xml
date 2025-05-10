@@ -40,11 +40,11 @@
     <string name="eden_veil">Покров Эдема</string>
     <string name="eden_veil_description">За пределами стандартных настроек</string>
     <string name="frame_skipping">В разработке: Пропуск кадров</string>
-    <string name="frame_skipping_description">Включите пропуск кадров для повышения производительности за счет уменьшения количества отрисовываемых кадров.</string>
+    <string name="frame_skipping_description">Включите или отключите пропуск кадров для повышения производительности за счет уменьшения количества отображаемых кадров. Эта функция находится в разработке и будет включена в будущих версиях.</string>
     <string name="frame_interpolation">Улучшенная синхронизация кадров</string>
     <string name="frame_interpolation_description">Обеспечивает плавную и стабильную подачу кадров за счет синхронизации их времени, уменьшая подтормаживания и неравномерную анимацию. Идеально для игр с нестабильным временем кадров или микро-подтормаживаниями во время игры.</string>
     <string name="use_lru_cache">Включить LRU-кеш</string>
-    <string name="use_lru_cache_description">Включите или отключите LRU-кеш (Least Recently Used) для повышения производительности. Некоторые игры могут иметь проблемы, например TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">Включите или отключите кэш LRU (наименее недавно использованный), что повышает производительность за счет экономии использования ЦП. Некоторые игры имеют проблемы с ним, особенно TotK 1.2.1, поэтому отключите, если игра не запускается или случайно вылетает.</string>
     <string name="dyna_state">Расширенное динамическое состояние</string>
     <string name="dyna_state_description">Включает функции Vulkan для улучшения производительности, рендеринга и экономии ресурсов при создании конвейеров, сохраняя низкое использование CPU/GPU. Эти расширения могут повысить температуру устройства, а старые GPU серии A6XX могут работать некорректно. Установите 0 для использования эмулируемых форматов Yuzu.</string>
     <string name="dyna_state3">EDS3 + Динамическое состояние ввода вершин</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только GPU с Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Индексирование дескрипторов</string>
     <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми GPU Vulkan 1.1 и всеми GPU Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Использовать быстрое время GPU</string>
+    <string name="use_fast_gpu_time_description">Заставляет большинство игр работать в максимальном нативном разрешении. Эта опция может вызывать проблемы.</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодирования ASTC</string>
-    <string name="accelerate_astc_description">Способ декодирования текстур ASTC</string>
+    <string name="accelerate_astc_description">Выберите способ декодирования сжатых текстур ASTC для рендеринга: CPU (медленно, безопасно), GPU (быстро, рекомендуется) или CPU Async (без заиканий, могут возникнуть проблемы)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU (асинхронно)</string>
 
     <!-- ASTC Recompression Method -->
     <string name="astc_recompression">Метод пережатия ASTC</string>
-    <string name="astc_recompression_description">Способ пережатия текстур ASTC</string>
+    <string name="astc_recompression_description">Выберите способ пересжатия текстур ASTC для улучшения совместимости и производительности. Включение этой опции экономит VRAM, но может снизить качество текстур.</string>
     <string name="astc_recompression_uncompressed">Без сжатия</string>
     <string name="astc_recompression_bc1">BC1 (низкое качество)</string>
     <string name="astc_recompression_bc3">BC3 (среднее качество)</string>
@@ -97,6 +99,7 @@
 
     <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">Оптимизация SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Оптимизирует скомпилированный шейдер для повышения эффективности GPU.</string>
     <string name="never">Никогда</string>
     <string name="on_load">При загрузке</string>
     <string name="always">Всегда</string>
@@ -331,7 +334,7 @@
     <string name="applets_description">Запуск системных апплетов на установленной прошивке</string>
     <string name="applets_error_firmware">Прошивка не установлена</string>
     <string name="applets_error_applet">Апплет недоступен</string>
-    <string name="applets_error_description"><![CDATA[Пожалуйста, убедитесь, что ваш<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> установлены и попробуйте еще раз.]]></string>
+    <string name="applets_error_description"><![CDATA[Пожалуйста, убедитесь, что ваш <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> установлены и попробуйте еще раз.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Просмотрите изображения, сохраненные в папке скриншотов пользователя, с помощью системного просмотрщика фотографий.</string>
     <string name="mii_edit_applet">Mii редактор</string>

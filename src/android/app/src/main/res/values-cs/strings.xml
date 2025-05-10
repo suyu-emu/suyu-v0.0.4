@@ -39,11 +39,11 @@
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Mimo výchozí</string>
     <string name="frame_skipping">WIP: Přeskočení snímků</string>
-    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslovaných snímků.</string>
+    <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
     <string name="use_lru_cache">Povolit LRU mezipaměť</string>
-    <string name="use_lru_cache_description">Povolení nebo zakázání mezipaměti LRU (Least Recently Used) pro lepší výkon. Některé hry s ní mohou mít problémy, např. TOTK 1.2.1.</string>
+    <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU (Least Recently Used), což zvýší výkon snížením zatížení CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, proto ji deaktivujte, pokud hra nespustí nebo náhodně padá.</string>
     <string name="dyna_state">Rozšířený dynamický stav</string>
     <string name="dyna_state_description">Umožňuje funkce Vulkan pro lepší výkon, vykreslování a úsporu zdrojů při vytváření grafických pipeline při zachování nižšího využití CPU/GPU. Tato rozšíření mohou zvýšit teplotu zařízení a starší GPU řady A6XX nemusí reagovat správně. Nastavte na 0 pro použití emulovaných formátů Yuzu.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -60,17 +60,19 @@
     <string name="provoking_vertex_description">Zlepšuje osvětlení a zpracování vertexů v některých hrách. Podporováno pouze na GPU s Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Indexování deskriptorů</string>
     <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Použít rychlý čas GPU</string>
+    <string name="use_fast_gpu_time_description">Nutí většinu her běžet v jejich nativním rozlišení. Tato volba je nestabilní a může způsobovat problémy.</string>
 
     <!-- Metoda dekódování ASTC -->
     <string name="accelerate_astc">Metoda dekódování ASTC</string>
-    <string name="accelerate_astc_description">Způsob dekódování textur ASTC</string>
+    <string name="accelerate_astc_description">Vyberte způsob dekódování textur komprimovaných pomocí ASTC pro vykreslování: CPU (pomalé, bezpečné), GPU (rychlé, doporučené) nebo CPU Async (žádné zasekávání, ale mohou nastat problémy)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asynchronně</string>
 
     <!-- Metoda rekomprese ASTC -->
     <string name="astc_recompression">Metoda rekomprese ASTC</string>
-    <string name="astc_recompression_description">Způsob rekomprese textur ASTC</string>
+<string name="astc_recompression_description">Vyberte způsob rekomprese textur ASTC pro zlepšení kompatibility a výkonu. Zapnutí této volby ušetří VRAM, ale může snížit kvalitu textur.</string>
     <string name="astc_recompression_uncompressed">Nekomprimované</string>
     <string name="astc_recompression_bc1">BC1 (nízká kvalita)</string>
     <string name="astc_recompression_bc3">BC3 (střední kvalita)</string>
@@ -96,6 +98,7 @@
 
     <!-- Optimalizace SPIRV výstupu -->
     <string name="renderer_optimize_spirv_output">Optimalizovat SPIRV výstup</string>
+    <string name="renderer_optimize_spirv_output_description">Optimalizuje zkompilovaný shader pro zvýšení efektivity GPU.</string>
     <string name="never">Nikdy</string>
     <string name="on_load">Při načtení</string>
     <string name="always">Vždy</string>

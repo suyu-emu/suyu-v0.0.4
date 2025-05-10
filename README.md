@@ -38,7 +38,7 @@ The emulator is capable of running most commercial games at full speed, provided
 
 A list of supported games will be available in future. Please be patient.
 
-Check out our [website](https://eden-emu.dev) for the latest news on exciting features, monthly progress reports, and more!
+Check out our [website](https://eden-emulator.github.io) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
 

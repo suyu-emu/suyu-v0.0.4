@@ -40,11 +40,11 @@
     <string name="eden_veil">Покривало Едему</string>
     <string name="eden_veil_description">Поза стандартними налаштуваннями</string>
     <string name="frame_skipping">В розробці: Пропуск кадрів</string>
-    <string name="frame_skipping_description">Увімкніть пропуск кадрів для покращення продуктивності шляхом зменшення кількості візуалізованих кадрів.</string>
+    <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
     <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
     <string name="use_lru_cache">Увімкнути LRU-кеш</string>
-    <string name="use_lru_cache_description">Увімкніть або вимкніть LRU-кеш (Least Recently Used) для покращення продуктивності. Деякі ігри можуть мати проблеми, наприклад TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU (найменш нещодавно використаний), що підвищує продуктивність за рахунок економії використання CPU. Деякі ігри мають проблеми з ним, особливо TotK 1.2.1, тому вимкніть, якщо гра не запускається або випадково вилітає.</string>
     <string name="dyna_state">Розширений динамічний стан</string>
     <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, рендерингу та економії ресурсів під час створення конвеєрів, зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Встановіть 0 для використання емульованих форматів Yuzu.</string>
     <string name="dyna_state3">EDS3 + Динамічний стан вводу вершин</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">Покращує освітлення та обробку вершин у деяких іграх. Підтримується лише GPU з Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Використовувати швидкий час GPU</string>
+    <string name="use_fast_gpu_time_description">Змушує більшість ігор працювати у максимальній рідній роздільній здатності. Ця опція може спричиняти проблеми.</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодування ASTC</string>
-    <string name="accelerate_astc_description">Спосіб обробки текстур ASTC</string>
+    <string name="accelerate_astc_description">Виберіть спосіб декодування стиснених текстур ASTC для рендерингу: CPU (повільно, безпечно), GPU (швидко, рекомендовано) або CPU Async (без затримок, можуть виникнути проблеми)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">Асинхронно CPU</string>
 
     <!-- ASTC Recompression Method -->
     <string name="astc_recompression">Метод перестиснення ASTC</string>
-    <string name="astc_recompression_description">Спосіб оптимізації текстур</string>
+    <string name="astc_recompression_description">Виберіть спосіб перестиснення текстур ASTC для покращення сумісності та продуктивності. Увімкнення цієї опції зберігає VRAM, але може знизити якість текстур.</string>
     <string name="astc_recompression_uncompressed">Без стиснення</string>
     <string name="astc_recompression_bc1">BC1 (низька якість)</string>
     <string name="astc_recompression_bc3">BC3 (середня якість)</string>
@@ -97,6 +99,7 @@
 
     <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">Оптимізація SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">Оптимізує скомпільований шейдер для покращення ефективності GPU.</string>
     <string name="never">Ніколи</string>
     <string name="on_load">При завантаженні</string>
     <string name="always">Завжди</string>

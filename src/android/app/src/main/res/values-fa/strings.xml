@@ -40,11 +40,11 @@
     <string name="eden_veil">پرده عدن</string>
     <string name="eden_veil_description">فراتر از پیش‌فرض</string>
     <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
-    <string name="frame_skipping_description">فعال کردن رد کردن فریم‌ها برای بهبود عملکرد با کاهش تعداد فریم‌های رندر شده</string>
+    <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
     <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
     <string name="use_lru_cache">فعال‌سازی حافظه نهان LRU</string>
-    <string name="use_lru_cache_description">حافظه نهان LRU (کمترین استفاده اخیر) را برای بهبود عملکرد فعال یا غیرفعال کنید. برخی بازی‌ها مانند TOTK 1.2.1 ممکن است با آن مشکل داشته باشند</string>
+    <string name="use_lru_cache_description">فعال یا غیرفعال کردن کش LRU (کمترین اخیراً استفاده شده)، که با کاهش استفاده از CPU عملکرد را افزایش می‌دهد. برخی بازی‌ها با آن مشکل دارند، به ویژه TotK 1.2.1، بنابراین اگر بازی اجرا نشد یا به صورت تصادفی کرش کرد، آن را غیرفعال کنید.</string>
     <string name="dyna_state">حالت پویای گسترده</string>
     <string name="dyna_state_description">قابلیت‌های ولکان را برای بهبود عملکرد، رندرینگ و صرفه‌جویی در منابع هنگام ایجاد خط لوله فعال می‌کند در حالی که مصرف CPU/GPU پایین حفظ می‌شود. این افزونه‌ها ممکن است دمای دستگاه را افزایش دهند و کارت‌های گرافیک سری قدیمی A6XX ممکن است واکنش مناسبی نشان ندهند. برای استفاده از فرمت‌های شبیه‌سازی شده یوزو روی 0 تنظیم کنید</string>
     <string name="dyna_state3">EDS3 + حالت پویای ورودی رأس</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">نورپردازی و مدیریت رأس را در برخی بازی‌ها بهبود می‌بخشد. فقط در کارت‌های گرافیک با پشتیبانی از ولکان 1.0+ قابل استفاده است</string>
     <string name="descriptor_indexing">نمایه‌سازی توصیفگر</string>
     <string name="descriptor_indexing_description">مدیریت بافت‌ها و بافرها و همچنین لایه ترجمه ماکسول را بهبود می‌بخشد. توسط برخی کارت‌های گرافیک ولکان 1.1 و تمام کارت‌های گرافیک ولکان 1.2+ پشتیبانی می‌شود</string>
+    <string name="use_fast_gpu_time">استفاده از زمان سریع GPU</string>
+    <string name="use_fast_gpu_time_description">باعث می‌شود بیشتر بازی‌ها با بالاترین رزولوشن اصلی اجرا شوند. این گزینه ممکن است مشکلاتی ایجاد کند.</string>
 
     <!-- روش رمزگشایی ASTC -->
     <string name="accelerate_astc">روش رمزگشایی ASTC</string>
-    <string name="accelerate_astc_description">انتخاب روش رمزگشایی بافت‌های فشرده ASTC</string>
+    <string name="accelerate_astc_description">انتخاب کنید که بافت‌های فشرده‌شده با ASTC چگونه برای رندرینگ رمزگشایی شوند: CPU (کند، ایمن)، GPU (سریع، توصیه‌شده) یا CPU Async (بدون مکث، ممکن است مشکلاتی ایجاد کند)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU ناهمگام</string>
 
     <!-- روش فشرده‌سازی مجدد ASTC -->
     <string name="astc_recompression">روش فشرده‌سازی مجدد ASTC</string>
-    <string name="astc_recompression_description">انتخاب روش فشرده‌سازی مجدد بافت‌های ASTC</string>
+    <string name="astc_recompression_description">انتخاب کنید که بافت‌های ASTC چگونه فشرده‌سازی مجدد شوند تا سازگاری و عملکرد بهبود یابد. فعال کردن این گزینه VRAM را ذخیره می‌کند اما ممکن است کیفیت بافت را کاهش دهد.</string>
     <string name="astc_recompression_uncompressed">فشرده‌نشده</string>
     <string name="astc_recompression_bc1">BC1 (کیفیت پایین)</string>
     <string name="astc_recompression_bc3">BC3 (کیفیت متوسط)</string>
@@ -97,6 +99,7 @@
 
     <!-- بهینه‌سازی خروجی SPIRV -->
     <string name="renderer_optimize_spirv_output">بهینه‌سازی خروجی SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">شیدر کامپایل شده را برای بهبود کارایی GPU بهینه‌سازی می‌کند.</string>
     <string name="never">هرگز</string>
     <string name="on_load">در هنگام بارگذاری</string>
     <string name="always">همیشه</string>

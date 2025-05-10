@@ -40,11 +40,11 @@
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ما بعد الافتراضي</string>
     <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
-    <string name="frame_skipping_description">قم بتبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة.</string>
+    <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
-    <string name="use_lru_cache_description">قم بتمكين أو تعطيل ذاكرة التخزين المؤقت LRU (الأقل استخدامًا مؤخرًا) لتحسين الأداء، بعض الألعاب قد تواجه مشاكل معها، مثل TOTK 1.2.1</string>
+    <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU (کەمترین بەکارهێنراوی دوایی)، کارایی زیاد دەکات بە هەڵگرتنی بەکارهێنانی CPU. هەندێک یاری کێشەییان هەیە لەگەڵیدا، بەتایبەتی TotK 1.2.1، بۆیە ئەگەر یاریەکە نەکەوتەوە یان بە هەڕەمەکی داخرا، ناچالاکی بکە.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="dyna_state_description">يُمكّن ميزات فولكان لتحسين الأداء، التقديم، وتوفير الموارد أثناء إنشاء خطوط المعالجة مع الحفاظ على استهلاك أقل لوحدة المعالجة المركزية/وحدة معالجة الرسومات. قد تزيد هذه الامتدادات من درجة حرارة الجهاز، وقد لا تتفاعل وحدات معالجة الرسومات القديمة من سلسلة A6XX بشكل صحيح. اضبط على 0 لاستخدام تنسيقات Yuzu المحاكاة.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -61,17 +61,19 @@
     <string name="provoking_vertex_description">يحسن الإضاءة ومعالجة الرؤوس في بعض الألعاب. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.0+.</string>
     <string name="descriptor_indexing">فهرسة الواصفات</string>
     <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
+    <string name="use_fast_gpu_time">بەکارهێنانی کاتی GPU خێرا</string>
+    <string name="use_fast_gpu_time_description">زۆربەی یارییەکان بەرزی ڕەزولوشنی ڕەسەنی خۆیان دادەمەزرێنێت. ئەم هەڵبژاردە هەڵەیە و لەوانەیە کێشە دروست بکات.</string>
 
     <!-- ڕێگای دیکۆدکردنی ASTC -->
     <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
-    <string name="accelerate_astc_description">هەڵبژاردنی ڕێگای دیکۆدکردنی تێکستەرەکانی ASTC</string>
+    <string name="accelerate_astc_description">هەڵبژێرە چۆن تێکستوورە پەستووکراوەکانی ASTC دەکرێنەوە بۆ ڕێندرکردن: CPU (هێواش، سەلامەت)، GPU (خێرا، پێشنیارکراو)، یان CPU Async (بێ ستەتەر، لەوانەیە کێشە دروست بکات)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPUی ناڕێک</string>
 
     <!-- ڕێگای پێکهێنانەوەی ASTC -->
     <string name="astc_recompression">ڕێگای پێکهێنانەوەی ASTC</string>
-    <string name="astc_recompression_description">هەڵبژاردنی ڕێگای پێکهێنانەوەی تێکستەرەکانی ASTC</string>
+    <string name="astc_recompression_description">هەڵبژێرە چۆن تێکستوورەکانی ASTC پەستوو دەکرێنەوە بۆ باشترکردنی گونجاندن و کارایی. چالاککردنی ئەم هەڵبژاردە VRAM هەڵدەگرێت بەڵام لەوانەیە کەمکردنەوەی کوالێتی تێکستوور بکات.</string>
     <string name="astc_recompression_uncompressed">پێکهێنەنەوە</string>
     <string name="astc_recompression_bc1">BC1 (کوالیتی نزم)</string>
     <string name="astc_recompression_bc3">BC3 (کوالیتی مامناوەند)</string>
@@ -97,6 +99,7 @@
 
     <!-- باشترکردنی دەرچوونی SPIRV -->
     <string name="renderer_optimize_spirv_output">باشترکردنی دەرچوونی SPIRV</string>
+    <string name="renderer_optimize_spirv_output_description">شێیدەرە کۆمپایلکراوەکان باش دەکات بۆ باشترکردنی کارایی GPU.</string>
     <string name="never">هەرگیز</string>
     <string name="on_load">لەسەر بارکردن</string>
     <string name="always">هەمیشە</string>
