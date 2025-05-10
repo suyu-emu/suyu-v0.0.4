@@ -44,7 +44,7 @@
     <string name="frame_interpolation">Synchronisation avancée des frames</string>
     <string name="frame_interpolation_description">Assure une diffusion fluide et régulière des frames en synchronisant leur timing, réduisant ainsi les saccades et les animations irrégulières. Idéal pour les jeux souffrant d`instabilité de timing des frames ou de micro-saccades pendant le jeu.</string>
     <string name="use_lru_cache">Activer le cache LRU</string>
-    <string name="use_lru_cache_description">Activez ou désactivez le cache LRU (Least Recently Used), ce qui améliore les performances en réduisant l'utilisation du CPU. Certains jeux ont des problèmes avec, notamment TotK 1.2.1, désactivez-le donc si le jeu ne démarre pas ou plante aléatoirement.</string>
+    <string name="use_lru_cache_description">Activez ou désactivez le cache LRU (Least Recently Used), ce qui améliore les performances en réduisant l\'utilisation du CPU. Certains jeux ont des problèmes avec, notamment TotK 1.2.1, désactivez-le donc si le jeu ne démarre pas ou plante aléatoirement.</string>
     <string name="dyna_state">État dynamique étendu</string>
     <string name="dyna_state_description">Active les fonctionnalités Vulkan pour améliorer les performances, le rendu et économiser les ressources lors de la création de pipelines tout en maintenant une faible utilisation CPU/GPU. Ces extensions peuvent augmenter la température de l`appareil, et les GPU plus anciens de la série A6XX peuvent ne pas réagir correctement. Réglez sur 0 pour utiliser les formats émulés de Yuzu.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
