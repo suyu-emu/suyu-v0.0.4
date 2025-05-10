@@ -21,7 +21,14 @@ private:
         Suyu,
     };
 
+    enum class MigrationStrategy {
+        Copy,
+        Move,
+        Link,
+    };
+
     void ShowMigrationPrompt(QMainWindow* main_window);
     void ShowMigrationCancelledMessage(QMainWindow* main_window);
-    void MigrateUserData(QMainWindow* main_window, const LegacyEmu selected_legacy_emu, const bool clear_shader_cache);
+    void MigrateUserData(QMainWindow* main_window, const LegacyEmu selected_legacy_emu,
+                         const bool clear_shader_cache, const MigrationStrategy strategy);
 };

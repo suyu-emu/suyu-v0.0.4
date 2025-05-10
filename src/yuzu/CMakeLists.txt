@@ -237,6 +237,7 @@ add_executable(yuzu
 
     yuzu.qrc
     yuzu.rc
+    migration_dialog.h migration_dialog.cpp
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

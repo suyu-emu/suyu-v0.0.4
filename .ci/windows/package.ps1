@@ -22,8 +22,9 @@ if ($debug -eq "yes") {
 		Move-Item $BUILD_PDB $ARTIFACTS_DIR/ -ErrorAction SilentlyContinue
 	}
 } else {
-	Get-ChildItem "build/$target/bin/" -Recurse -Filter "*.pdb" | Remove-Item -Force -ErrorAction SilentlyContinue
+    Remove-Item -Force "$RELEASE_DIST\*.pdb"
 }
+
 
 Copy-Item "build/$target/bin/Release/*" -Destination "$RELEASE_DIST" -Recurse -ErrorAction SilentlyContinue
 if (-not $?) {
