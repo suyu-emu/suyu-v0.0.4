@@ -456,92 +456,30 @@ class SettingsFragmentPresenter(
             override val isSaveable = true
         }
     }
+
     private fun addEdenVeilSettings(sl: ArrayList<SettingsItem>) {
-    sl.apply {
-        add(
-            SwitchSetting(
-                InterpolationSetting,  // The interpolation setting object you've created
-                titleId = R.string.frame_interpolation,  // Use appropriate string resources for the title
-                descriptionId = R.string.frame_interpolation_description  // Description resource for the interpolation setting
-            )
-        )
-        add(
-            SwitchSetting(
-                frameSkippingSetting,
-                titleId = R.string.frame_skipping,
-                descriptionId = R.string.frame_skipping_description
-            )
-        )
-        add(
-            SwitchSetting(
-            BooleanSetting.USE_LRU_CACHE,
-            titleId = R.string.use_lru_cache,
-            descriptionId = R.string.use_lru_cache_description
-            )
-        )
+        sl.apply {
+            add(BooleanSetting.FRAME_INTERPOLATION.key)
+            add(BooleanSetting.FRAME_SKIPPING.key)
+            add(BooleanSetting.USE_LRU_CACHE.key)
+            add(BooleanSetting.RENDERER_FAST_GPU.key)
 
-        add(ByteSetting.RENDERER_DYNA_STATE.key)
-        add(BooleanSetting.RENDERER_DYNA_STATE3.key)
-        add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
-        add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
+            add(ByteSetting.RENDERER_DYNA_STATE.key)
 
-        add(
-            SwitchSetting(
-                syncCoreSpeedSetting,
-                titleId = R.string.use_sync_core,
-                descriptionId = R.string.use_sync_core_description
-            )
-        )
-        add(
-            SingleChoiceSetting(
-                IntSetting.RENDERER_SHADER_BACKEND,
-                titleId = R.string.shader_backend,
-                choicesId = R.array.rendererShaderNames,
-                valuesId = R.array.rendererShaderValues
-            )
-        )
-        add(
-            SingleChoiceSetting(
-                IntSetting.RENDERER_NVDEC_EMULATION,
-                titleId = R.string.nvdec_emulation,
-                choicesId = R.array.rendererNvdecNames,
-                valuesId = R.array.rendererNvdecValues
-            )
-        )
-        add(
-            SingleChoiceSetting(
-                IntSetting.RENDERER_ASTC_DECODE_METHOD,
-                titleId = R.string.accelerate_astc,
-                choicesId = R.array.astcDecodingMethodNames,
-                valuesId = R.array.astcDecodingMethodValues
-            )
-        )
-        add(
-            SingleChoiceSetting(
-                IntSetting.RENDERER_ASTC_RECOMPRESSION,
-                titleId = R.string.astc_recompression,
-                choicesId = R.array.astcRecompressionMethodNames,
-                valuesId = R.array.astcRecompressionMethodValues
-            )
-        )
-        add(
-            SingleChoiceSetting(
-                IntSetting.RENDERER_VRAM_USAGE_MODE,
-                titleId = R.string.vram_usage_mode,
-                choicesId = R.array.vramUsageMethodNames,
-                valuesId = R.array.vramUsageMethodValues
-                )
-            )
-            add(
-            SingleChoiceSetting(
-                IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
-                titleId = R.string.renderer_optimize_spirv_output,
-                choicesId = R.array.optimizeSpirvOutputEntries,
-                valuesId = R.array.optimizeSpirvOutputValues
-                )
-            )
+            add(BooleanSetting.RENDERER_DYNA_STATE3.key)
+            add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
+            add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
+
+            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
+
+            add(IntSetting.RENDERER_SHADER_BACKEND.key)
+            add(IntSetting.RENDERER_NVDEC_EMULATION.key)
+            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
+            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
+            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
+            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
+        }
     }
-}
     private fun addInputPlayer(sl: ArrayList<SettingsItem>, playerIndex: Int) {
         sl.apply {
             val connectedSetting = object : AbstractBooleanSetting {

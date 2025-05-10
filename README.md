@@ -42,7 +42,7 @@ Check out our [website](https://eden-emu.dev) for the latest news on exciting fe
 
 ## Development
 
-Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please wait to join us on [Discord](W.I.P) once it is public.
+Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/ynGGJAN4Rx).
 
 If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented.
 You can also contact any of the developers on Discord to learn more about the current state of the emulator.
@@ -55,23 +55,21 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Download
 
-You will be able to download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases) once public.
+You will be able to download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases), or with MEGA links provided on Discord.
 
 ## Support
 
-If you enjoy the project and would like to support us financially, please check out Camille's donations page!
-<br>
-<br>
-Donations are not available yet.
+If you enjoy the project and would like to support us financially, please check out our developers' donation pages!
+- [crueter/Camille](https://liberapay.com/crueter)
 
 Any donations received will go towards things such as:
 * Switch consoles to explore and reverse-engineer the hardware
 * Switch games for testing, reverse-engineering, and implementing new features
 * Web hosting and infrastructure setup
-* Software licences (e.g. Visual Studio, IDA Pro, etc.)
 * Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
+* CI Infrastructure
 
-If you would prefer to support us in a different way, please join our [Discord](W.I.P), once public, and talk to Camille.
+If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/ynGGJAN4Rx), once public, and talk to Camille.
 
 ## License
 

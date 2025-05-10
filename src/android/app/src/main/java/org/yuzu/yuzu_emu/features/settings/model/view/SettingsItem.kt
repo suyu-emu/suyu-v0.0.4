@@ -52,6 +52,10 @@ abstract class SettingsItem(
 
     val isEditable: Boolean
         get() {
+            if (setting.key == BooleanSetting.FRAME_SKIPPING.key) {
+                // disabled for now
+                return false
+            }
             // Can't change docked mode toggle when using handheld mode
             if (setting.key == BooleanSetting.USE_DOCKED_MODE.key) {
                 return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
@@ -210,58 +214,6 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
-              val enableInterpolationSetting = object : AbstractBooleanSetting {
-                override val key = BooleanSetting.FRAME_INTERPOLATION.key
-
-                override fun getBoolean(needsGlobal: Boolean): Boolean =
-                    BooleanSetting.FRAME_INTERPOLATION.getBoolean(needsGlobal)
-
-                override fun setBoolean(value: Boolean) =
-                    BooleanSetting.FRAME_INTERPOLATION.setBoolean(value)
-
-                override val defaultValue = BooleanSetting.FRAME_INTERPOLATION.defaultValue
-
-                override fun getValueAsString(needsGlobal: Boolean): String =
-                    BooleanSetting.FRAME_INTERPOLATION.getValueAsString(needsGlobal)
-
-                override fun reset() = BooleanSetting.FRAME_INTERPOLATION.reset()
-            }
-
-            val enableFrameSkippingSetting = object : AbstractBooleanSetting {
-                override val key = BooleanSetting.FRAME_SKIPPING.key
-
-                override fun getBoolean(needsGlobal: Boolean): Boolean =
-                    BooleanSetting.FRAME_SKIPPING.getBoolean(needsGlobal)
-
-                override fun setBoolean(value: Boolean) =
-                    BooleanSetting.FRAME_SKIPPING.setBoolean(value)
-
-                override val defaultValue = BooleanSetting.FRAME_SKIPPING.defaultValue
-
-                override fun getValueAsString(needsGlobal: Boolean): String =
-                    BooleanSetting.FRAME_SKIPPING.getValueAsString(needsGlobal)
-
-                override fun reset() = BooleanSetting.FRAME_SKIPPING.reset()
-            }
-
-            val syncCoreSpeedSetting = object : AbstractBooleanSetting {
-                override val key = BooleanSetting.CORE_SYNC_CORE_SPEED.key
-
-                override fun getBoolean(needsGlobal: Boolean): Boolean {
-                    return BooleanSetting.CORE_SYNC_CORE_SPEED.getBoolean(needsGlobal)
-                 }
-
-                override fun setBoolean(value: Boolean) {
-                    BooleanSetting.CORE_SYNC_CORE_SPEED.setBoolean(value)
-                 }
-
-                override val defaultValue = BooleanSetting.CORE_SYNC_CORE_SPEED.defaultValue
-
-                override fun getValueAsString(needsGlobal: Boolean): String =
-                    BooleanSetting.CORE_SYNC_CORE_SPEED.getValueAsString(needsGlobal)
-
-                override fun reset() = BooleanSetting.CORE_SYNC_CORE_SPEED.reset()
-             }
 
             put(
                 SwitchSetting(
@@ -288,7 +240,7 @@ abstract class SettingsItem(
             )
             put(
                  SwitchSetting(
-                     syncCoreSpeedSetting,
+                     BooleanSetting.CORE_SYNC_CORE_SPEED,
                      titleId = R.string.use_sync_core,
                      descriptionId = R.string.use_sync_core_description
                  )
@@ -339,24 +291,27 @@ abstract class SettingsItem(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_NVDEC_EMULATION,
                     titleId = R.string.nvdec_emulation,
+                    descriptionId = R.string.nvdec_emulation_description,
                     choicesId = R.array.rendererNvdecNames,
                     valuesId = R.array.rendererNvdecValues
                 )
             )
             put(
                 SingleChoiceSetting(
-                IntSetting.RENDERER_ASTC_DECODE_METHOD,
-                titleId = R.string.accelerate_astc,
-                choicesId = R.array.astcDecodingMethodNames,
-                valuesId = R.array.astcDecodingMethodValues
+                    IntSetting.RENDERER_ASTC_DECODE_METHOD,
+                    titleId = R.string.accelerate_astc,
+                    descriptionId = R.string.accelerate_astc_description,
+                    choicesId = R.array.astcDecodingMethodNames,
+                    valuesId = R.array.astcDecodingMethodValues
                 )
             )
             put(
                 SingleChoiceSetting(
-                IntSetting.RENDERER_ASTC_RECOMPRESSION,
-                titleId = R.string.astc_recompression,
-                choicesId = R.array.astcRecompressionMethodNames,
-                valuesId = R.array.astcRecompressionMethodValues
+                    IntSetting.RENDERER_ASTC_RECOMPRESSION,
+                    titleId = R.string.astc_recompression,
+                    descriptionId = R.string.astc_recompression_description,
+                    choicesId = R.array.astcRecompressionMethodNames,
+                    valuesId = R.array.astcRecompressionMethodValues
                 )
             )
             put(
@@ -517,7 +472,7 @@ abstract class SettingsItem(
                  SingleChoiceSetting(
                      IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
                      titleId = R.string.renderer_optimize_spirv_output,
-                     descriptionId = 0,
+                     descriptionId = R.string.renderer_optimize_spirv_output_description,
                      choicesId = R.array.optimizeSpirvOutputEntries,
                      valuesId = R.array.optimizeSpirvOutputValues
                  )
@@ -527,6 +482,13 @@ abstract class SettingsItem(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     titleId = R.string.renderer_asynchronous_shaders,
                     descriptionId = R.string.renderer_asynchronous_shaders_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_FAST_GPU,
+                    titleId = R.string.use_fast_gpu_time,
+                    descriptionId = R.string.use_fast_gpu_time_description
                 )
             )
             put(

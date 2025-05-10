@@ -42,14 +42,10 @@
     <!-- Eden`s Veil -->
     <string name="eden_veil">Eden’s Veil</string>
     <string name="eden_veil_description">Beyond default</string>
-    <string name="frame_skipping">WIP: Frameskip</string>
-    <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames.</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
-    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutter during gameplay</string>
-    <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache for improved performance, some games have issue with it, e.g TOTK 1.2.1</string>
+    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Yuzu emulated formats.</string>
+    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Improves performance on newer devices. Only supported on Vulkan 1.3+ GPUs.</string>
     <string name="use_sync_core">Synchronize Core Speed</string>
@@ -65,26 +61,6 @@
     <string name="descriptor_indexing">Descriptor Indexing</string>
     <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
 
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC Decoding Method</string>
-    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering.</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU Asynchronously</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC Recompression Method</string>
-    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance.</string>
-    <string name="astc_recompression_uncompressed">Uncompressed</string>
-    <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
-    <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
-
-    <!-- VRAM Usage Mode -->
-    <string name="vram_usage_mode">VRAM Usage Mode</string>
-    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
-    <string name="vram_usage_conservative">Conservative</string>
-    <string name="vram_usage_aggressive">Aggressive</string>
-
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
     <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
@@ -99,7 +75,6 @@
     <string name="nvdec_emulation_none">None</string>
 
     <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
     <string name="never">Never</string>
     <string name="on_load">On Load</string>
     <string name="always">Always</string>
@@ -397,6 +372,8 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- Graphics settings strings -->
+    <string name="frame_skipping">WIP: Frameskip</string>
+    <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames. This feature is still being worked on and will be enabled in future releases.</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
@@ -408,8 +385,12 @@
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
+    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
+    <string name="renderer_optimize_spirv_output_description">Optimizes compiled shader to improve GPU efficiency.</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, reducing stutter but may introduce glitches.</string>
+    <string name="use_fast_gpu_time">Use Fast GPU Time</string>
+    <string name="use_fast_gpu_time_description">Forces most games to run at their highest native resolution. This option is hacky and may cause issues.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
     <string name="use_disk_shader_cache">Disk shader cache</string>
@@ -734,6 +715,30 @@
     <string name="renderer_accuracy_high">High</string>
     <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
 
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC Decoding Method</string>
+    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering: CPU (slow, safe), GPU (fast, recommended), or CPU Async (no stutters, may cause issues)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU Asynchronously</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC Recompression Method</string>
+    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance. Enabling this option saves VRAM but may lower texture quality.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Uncompressed</string>
+    <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
+    <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">VRAM Usage Mode</string>
+    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
+    <string name="vram_usage_conservative">Conservative</string>
+    <string name="vram_usage_aggressive">Aggressive</string>
+
     <!-- Resolutions -->
     <string name="resolution_half">0.5X (360p/540p)</string>
     <string name="resolution_three_quarter">0.75X (540p/810p)</string>
@@ -741,6 +746,10 @@
     <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
     <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
+
+    <!-- LRU Cache -->
+    <string name="use_lru_cache">Enable LRU Cache</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issue with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>

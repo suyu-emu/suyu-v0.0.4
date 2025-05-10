@@ -565,8 +565,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         var fpsText = String.format("FPS: %.1f", actualFps)
 
                         if (enableFrameInterpolation) {
-                            val interpolatedFps = actualFps * 2
-                            fpsText += String.format(" (Interp: %.1f)", interpolatedFps)
+                            fpsText += ("(Enhanced)")
                         }
 
                         if (enableFrameSkipping) {
