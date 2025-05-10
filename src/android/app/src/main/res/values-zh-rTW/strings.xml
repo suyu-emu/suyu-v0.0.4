@@ -6,9 +6,187 @@
     <string name="notice_notification_channel_description">發生錯誤時顯示通知。</string>
     <string name="notification_permission_not_granted">未授予通知權限！</string>
 
+    <!-- Stats Overlay settings -->
+    <string name="show_stats_overlay">顯示效能統計疊加層</string>
+    <string name="stats_overlay_customization">自訂</string>
+    <string name="stats_overlay_items">可見項目</string>
+    <string name="stats_overlay_options">疊加層</string>
+    <string name="enable_stats_overlay_">啟用效能統計疊加層</string>
+    <string name="stats_overlay_options_description">設定疊加層中顯示的資訊</string>
+    <string name="show_fps">顯示FPS</string>
+    <string name="show_fps_description">顯示當前幀率</string>
+    <string name="show_frametime">顯示幀時間</string>
+    <string name="show_frametime_description">顯示當前幀時間</string>
+    <string name="show_speed">顯示速度</string>
+    <string name="show_speed_description">顯示當前模擬速度百分比</string>
+    <string name="show_app_ram_usage">顯示應用記憶體用量</string>
+    <string name="show_app_ram_usage_description">顯示模擬器使用的記憶體量</string>
+    <string name="show_system_ram_usage">顯示系統記憶體用量</string>
+    <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
+    <string name="show_bat_temperature">顯示電池溫度</string>
+    <string name="show_bat_temperature_description">顯示當前電池溫度（攝氏/華氏）</string>
+    <string name="overlay_position">疊加層位置</string>
+    <string name="overlay_position_description">選擇疊加層在畫面上的顯示位置</string>
+    <string name="overlay_position_top_left">左上</string>
+    <string name="overlay_position_top_right">右上</string>
+    <string name="overlay_position_bottom_left">左下</string>
+    <string name="overlay_position_bottom_right">右下</string>
+    <string name="overlay_position_center_top">頂部居中</string>
+    <string name="overlay_position_center_bottom">底部居中</string>
+    <string name="overlay_background">疊加層背景</string>
+    <string name="overlay_background_description">為疊加層添加背景以提高可讀性</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">伊甸之幕</string>
+    <string name="eden_veil_description">超越預設</string>
+    <string name="frame_skipping">開發中：跳幀</string>
+    <string name="frame_skipping_description">啟用跳幀可通過減少渲染幀數來提高效能。</string>
+    <string name="frame_interpolation">增強幀同步</string>
+    <string name="frame_interpolation_description">通過同步幀間時間確保流暢一致的幀交付，減少卡頓和不均勻動畫。適合存在幀時間不穩定或遊戲過程中出現微卡頓的遊戲。</string>
+    <string name="use_lru_cache">啟用LRU快取</string>
+    <string name="use_lru_cache_description">啟用或停用LRU（最近最少使用）快取以提高效能，部分遊戲可能存在問題，例如TOTK 1.2.1</string>
+    <string name="dyna_state">擴展動態狀態</string>
+    <string name="dyna_state_description">啟用Vulkan功能以在保持低CPU/GPU使用率的同時提高效能、渲染效果並節省管線建立資源。這些擴充可能會提高裝置溫度，較舊的A6XX系列GPU可能無法正確響應。設為0可使用Yuzu模擬格式。</string>
+    <string name="dyna_state3">EDS3 + 頂點輸入動態狀態</string>
+    <string name="dyna_state3_description">提高新裝置上的效能。僅支援Vulkan 1.3+ GPU。</string>
+    <string name="use_sync_core">同步核心速度</string>
+    <string name="use_sync_core_description">將核心時脈速度同步到最大速度百分比以提高效能，而不改變遊戲實際速度。</string>
+    <string name="use_auto_stub">使用自動存根</string>
+    <string name="use_auto_stub_description">自動補全缺失的服務和功能。可提高相容性但可能導致崩潰和穩定性問題。</string>
+    <string name="uninstall_firmware">解除安裝韌體</string>
+    <string name="uninstall_firmware_description">解除安裝韌體將從裝置中刪除它並可能影響遊戲相容性。</string>
+    <string name="firmware_uninstalling">正在解除安裝韌體...</string>
+    <string name="firmware_uninstalled_success">韌體解除安裝成功</string>
+    <string name="provoking_vertex">引發頂點</string>
+    <string name="provoking_vertex_description">改善某些遊戲中的光照和頂點處理。僅支援Vulkan 1.0+ GPU。</string>
+    <string name="descriptor_indexing">描述符索引</string>
+    <string name="descriptor_indexing_description">改進紋理和緩衝區處理以及Maxwell轉換層。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支援。</string>
+
+    <!-- ASTC解碼方式 -->
+    <string name="accelerate_astc">ASTC解碼方式</string>
+    <string name="accelerate_astc_description">選擇ASTC紋理的解碼方式</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU非同步</string>
+
+    <!-- ASTC重新壓縮方式 -->
+    <string name="astc_recompression">ASTC重新壓縮方式</string>
+    <string name="astc_recompression_description">選擇ASTC紋理的重新壓縮方式</string>
+    <string name="astc_recompression_uncompressed">未壓縮</string>
+    <string name="astc_recompression_bc1">BC1（低品質）</string>
+    <string name="astc_recompression_bc3">BC3（中品質）</string>
+
+    <!-- VRAM使用模式 -->
+    <string name="vram_usage_mode">VRAM使用模式</string>
+    <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
+    <string name="vram_usage_conservative">保守</string>
+    <string name="vram_usage_aggressive">積極</string>
+
+    <!-- 著色器後端 -->
+    <string name="shader_backend">著色器後端</string>
+    <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- NVDEC模擬 -->
+    <string name="nvdec_emulation">NVDEC模擬</string>
+    <string name="nvdec_emulation_description">選擇影片解碼（NVDEC）的處理方式</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">無</string>
+
+    <!-- 優化SPIRV輸出 -->
+    <string name="renderer_optimize_spirv_output">優化SPIRV輸出</string>
+    <string name="never">永不</string>
+    <string name="on_load">載入時</string>
+    <string name="always">總是</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">多人連線</string>
+    <string name="multiplayer_description">建立或加入房間以進行多人遊戲</string>
+    <string name="multiplayer_room_title">房間：%1$s</string>
+    <string name="multiplayer_console_id">主機ID: %1$s</string>
+    <string name="multiplayer_create_room">建立</string>
+    <string name="multiplayer_join_room">加入</string>
+    <string name="multiplayer_username">使用者名稱</string>
+    <string name="multiplayer_ip_address">IP位址</string>
+    <string name="multiplayer_ip_port">埠號</string>
+    <string name="multiplayer_create_room_success">房間建立成功！</string>
+    <string name="multiplayer_join_room_success">成功加入房間！</string>
+    <string name="multiplayer_create_room_failed">房間建立失敗！</string>
+    <string name="multiplayer_join_room_failed">加入房間失敗！</string>
+    <string name="multiplayer_input_invalid">無效的位址或名稱過短！</string>
+    <string name="multiplayer_port_invalid">無效的埠號！</string>
+    <string name="multiplayer_exit_room">離開房間</string>
+    <string name="multiplayer_network_error">網路錯誤</string>
+    <string name="multiplayer_lost_connection">連線中斷</string>
+    <string name="multiplayer_name_collision">名稱衝突</string>
+    <string name="multiplayer_mac_collision">MAC衝突</string>
+    <string name="multiplayer_console_id_collision">主機ID衝突</string>
+    <string name="multiplayer_wrong_version">版本不符</string>
+    <string name="multiplayer_wrong_password">密碼錯誤</string>
+    <string name="multiplayer_could_not_connect">無法連線</string>
+    <string name="multiplayer_room_is_full">房間已滿</string>
+    <string name="multiplayer_host_banned">主機已封鎖</string>
+    <string name="multiplayer_permission_denied">權限不足</string>
+    <string name="multiplayer_no_such_user">無此使用者</string>
+    <string name="multiplayer_already_in_room">已在房間中</string>
+    <string name="multiplayer_create_room_error">房間建立錯誤</string>
+    <string name="multiplayer_host_kicked">主機已踢出</string>
+    <string name="multiplayer_unknown_error">未知錯誤</string>
+    <string name="multiplayer_room_uninitialized">房間未初始化</string>
+    <string name="multiplayer_room_idle">房間閒置</string>
+    <string name="multiplayer_room_joining">加入中</string>
+    <string name="multiplayer_room_joined">已加入</string>
+    <string name="multiplayer_room_moderator">房間管理員</string>
+    <string name="multiplayer_member_join">%1$s 已加入</string>
+    <string name="multiplayer_member_leave">%1$s 已離開</string>
+    <string name="multiplayer_member_kicked">%1$s 已踢出</string>
+    <string name="multiplayer_member_banned">%1$s 已封鎖</string>
+    <string name="multiplayer_address_unbanned">位址已解封</string>
+    <string name="multiplayer_kick_member">踢出成員</string>
+    <string name="multiplayer_chat_input_hint">輸入訊息……</string>
+    <string name="multiplayer_password">密碼</string>
+    <string name="original_button_text">加入</string>
+    <string name="disabled_button_text">加入中...</string>
+    <string name="multiplayer_room_name">房間名稱</string>
+    <string name="multiplayer_room_name_invalid">房間名稱需為3-20字元</string>
+    <string name="multiplayer_max_players">最大玩家數（16）</string>
+    <string name="multiplayer_max_players_value">最大玩家數：%d</string>
+    <string name="multiplayer_chat">聊天</string>
+    <string name="multiplayer_more_options">更多選項</string>
+    <string name="multiplayer_ip_copied">IP位址已複製</string>
+    <string name="multiplayer_server_address">伺服器位址</string>
+    <string name="chat">聊天</string>
+    <string name="type_message">輸入訊息……</string>
+    <string name="send">傳送</string>
+    <string name="send_message">傳送訊息</string>
+    <string name="multiplayer_moderation">管理</string>
+    <string name="multiplayer_moderation_title">封鎖名單</string>
+    <string name="multiplayer_no_bans">無封鎖使用者</string>
+    <string name="multiplayer_unban_title">解除封鎖</string>
+    <string name="multiplayer_unban">解除</string>
+    <string name="multiplayer_unban_message">確定解除封鎖 %1$?</string>
+    <string name="multiplayer_ban">封鎖使用者</string>
+    <string name="emulation_multiplayer">多人連線</string>
+    <string name="cancel">取消</string>
+    <string name="ok">確定</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">主題色彩</string>
+    <string name="violet">紫色（預設）</string>
+    <string name="blue">藍色</string>
+    <string name="cyan">青色</string>
+    <string name="red">紅色</string>
+    <string name="green">綠色</string>
+    <string name="yellow">黃色</string>
+    <string name="orange">橘色</string>
+    <string name="pink">粉紅色</string>
+    <string name="gray">灰色</string>
+
     <!-- Setup strings -->
     <string name="welcome">歡迎！</string>
-    <string name="welcome_description">瞭解如何設定 &lt;b>yuzu&lt;/b> 並進入模擬。</string>
+    <string name="welcome_description">瞭解如何設定 &lt;b>Eden&lt;/b> 並進入模擬。</string>
     <string name="get_started">開始使用</string>
     <string name="keys">金鑰</string>
     <string name="keys_description">使用下方的按鈕選取您的 &lt;b>prod.keys&lt;/b> 檔案。</string>
@@ -25,6 +203,15 @@
     <string name="step_complete">完成！</string>
 
     <!-- Home strings -->
+    <string name="alphabetical">依字母</string>
+    <string name="view_list">列表</string>
+    <string name="view_grid">網格</string>
+    <string name="folder">資料夾</string>
+    <string name="pre_alpha_warning_title">預覽版軟體</string>
+    <string name="pre_alpha_warning_description">警告：此版本不應公開分享或展示。此為預覽版軟體，可能存在錯誤與未完成功能。\n若您未經授權取得此版本，強烈建議立即解除安裝</string>
+    <string name="dont_show_again">不再顯示</string>
+    <string name="pre_alpha_warning">預覽版軟體，非公開使用版本</string>
+    <string name="add_directory_success">遊戲目錄新增成功</string>
     <string name="home_games">遊戲</string>
     <string name="home_search">搜尋</string>
     <string name="home_settings">設定</string>
@@ -32,10 +219,9 @@
     <string name="search_and_filter_games">搜尋並篩選遊戲</string>
     <string name="select_games_folder">選取遊戲資料夾</string>
     <string name="manage_game_folders">管理遊戲資料夾</string>
-    <string name="select_games_folder_description">允許 yuzu 填入遊戲清單</string>
+    <string name="select_games_folder_description">允許 Eden 填入遊戲清單</string>
     <string name="add_games_warning">跳過選取遊戲資料夾？</string>
     <string name="add_games_warning_description">如果資料夾未選取，遊戲將不會顯示在遊戲清單。</string>
-    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">搜尋遊戲</string>
     <string name="search_settings">搜尋設定</string>
     <string name="games_dir_selected">遊戲目錄已選取</string>
@@ -43,12 +229,11 @@
     <string name="install_prod_keys_description">需要解密零售遊戲</string>
     <string name="install_prod_keys_warning">跳過新增金鑰？</string>
     <string name="install_prod_keys_warning_description">模擬零售遊戲需要有效的金鑰，若要繼續，將僅有自製遊戲應用程式可以運作。</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">使用下方的按鈕授予通知權限。</string>
     <string name="give_permission">授予權限</string>
     <string name="notification_warning">跳過授予通知權限？</string>
-    <string name="notification_warning_description">yuzu 將無法通知您重要資訊。</string>
+    <string name="notification_warning_description">Eden 將無法通知您重要資訊。</string>
     <string name="permission_denied">權限遭拒</string>
     <string name="permission_denied_description">您曾多次拒絕了權限要求，現在您需要在系統設定中手動授予權限。</string>
     <string name="about">關於</string>
@@ -64,7 +249,6 @@
     <string name="install_prod_keys_failure_extension_description">驗證您的金鑰檔案是否具有 .keys 副檔名並再試一次。</string>
     <string name="install_amiibo_keys_failure_extension_description">驗證您的金鑰檔案是否具有 .bin 副檔名並再試一次。</string>
     <string name="invalid_keys_error">無效的加密金鑰</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">選取的檔案不正確或已損毀，請重新傾印您的金鑰。</string>
     <string name="gpu_driver_manager">GPU 驅動程式管理員</string>
     <string name="install_gpu_driver">安裝 GPU 驅動程式</string>
@@ -76,11 +260,11 @@
     <string name="search_recently_added">最近新增</string>
     <string name="search_retail">零售</string>
     <string name="search_homebrew">自製遊戲</string>
-    <string name="open_user_folder">開啟 yuzu 資料夾</string>
-    <string name="open_user_folder_description">管理 yuzu 的內部檔案</string>
+    <string name="open_user_folder">開啟 Eden 資料夾</string>
+    <string name="open_user_folder_description">管理 Eden 的內部檔案</string>
     <string name="theme_and_color_description">修改應用程式外觀</string>
     <string name="no_file_manager">找不到檔案管理員</string>
-    <string name="notification_no_directory_link">無法開啟 yuzu 目錄</string>
+    <string name="notification_no_directory_link">無法開啟 Eden 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
     <string name="manage_save_data">管理儲存資料</string>
     <string name="manage_save_data_description">已找到儲存資料，請選取下方的選項。</string>
@@ -101,7 +285,7 @@
     <string name="firmware_installed_failure">韌體安裝失敗</string>
     <string name="firmware_installed_failure_description">請確保韌體 nca 檔案位於 zip 壓縮檔的根目錄，然後再試一次。</string>
     <string name="share_log">分享偵錯記錄</string>
-    <string name="share_log_description">分享 yuzu 的記錄檔以便對相關問題進行偵錯</string>
+    <string name="share_log_description">分享 Eden 的記錄檔以便對相關問題進行偵錯</string>
     <string name="share_log_missing">找不到記錄檔</string>
     <string name="install_game_content">安裝遊戲內容</string>
     <string name="install_game_content_description">安裝遊戲更新或 DLC</string>
@@ -114,10 +298,9 @@
     <string name="install_game_content_success">遊戲內容已成功安裝</string>
     <string name="install_game_content_success_install">%1$d 安裝成功</string>
     <string name="install_game_content_success_overwrite">%1$d 覆寫成功</string>
-    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">不支援自訂的驅動程式</string>
     <string name="custom_driver_not_supported_description">此裝置不支援自訂的驅動程式。\n請以後再來查看是否已新增支援！</string>
-    <string name="manage_yuzu_data">管理 yuzu 資料</string>
+    <string name="manage_yuzu_data">管理 Eden 資料</string>
     <string name="manage_yuzu_data_description">匯入/匯出韌體、金鑰、使用者資料及其他項目！</string>
     <string name="share_save_file">分享儲存檔案</string>
     <string name="export_save_failed">無法匯出儲存檔案</string>
@@ -137,7 +320,6 @@
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
-    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">小程式啟動器</string>
@@ -162,27 +344,22 @@
     <string name="copied_to_clipboard">已複製到剪貼簿</string>
     <string name="about_app_description">一個開放原始碼的 Switch 模擬器</string>
     <string name="contributors">參與者</string>
-    <string name="contributors_description">使用來自 yuzu 團隊的 \u2764 製作</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
-    <string name="licenses_description">這些專案使 yuzu Android 版成為可能</string>
+    <string name="contributors_description">使用來自 Eden 團隊的 \u2764 製作</string>
+    <string name="licenses_description">這些專案使 Eden Android 版成為可能</string>
     <string name="build">組建</string>
     <string name="user_data">使用者資料</string>
     <string name="user_data_description">匯入/匯出所有應用程式資料。\n\n匯入使用者資料時，現有的使用者資料將被刪除！</string>
     <string name="exporting_user_data">正在匯出使用者資料…</string>
     <string name="importing_user_data">正在匯入使用者資料…</string>
     <string name="import_user_data">匯入使用者資料</string>
-    <string name="invalid_yuzu_backup">無效的 yuzu 備份</string>
+    <string name="invalid_yuzu_backup">無效的 Eden 備份</string>
     <string name="user_data_export_success">使用者資料匯出成功</string>
     <string name="user_data_import_success">使用者資料匯入成功</string>
     <string name="user_data_export_cancelled">匯出已取消</string>
     <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">搶先體驗</string>
-    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
     <string name="early_access_benefits">搶先體驗權益</string>
     <string name="cutting_edge_features">最新功能</string>
     <string name="early_access_updates">搶先版更新</string>

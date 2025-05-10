@@ -6,9 +6,187 @@
     <string name="notice_notification_channel_description">وقتی مشکلی پیش می‌آید در اعلان‌ها نشان می‌دهد.</string>
     <string name="notification_permission_not_granted">مجوز اعلان داده نشده!</string>
 
+    <!-- Stats Overlay settings -->
+    <string name="show_stats_overlay">نمایش آمار عملکرد</string>
+    <string name="stats_overlay_customization">سفارشی‌سازی</string>
+    <string name="stats_overlay_items">نمایش</string>
+    <string name="stats_overlay_options">اورلی</string>
+    <string name="enable_stats_overlay_">فعال‌سازی آمار عملکرد</string>
+    <string name="stats_overlay_options_description">تنظیم اطلاعات نمایش‌داده‌شده در اورلی آمار عملکرد</string>
+    <string name="show_fps">نمایش FPS</string>
+    <string name="show_fps_description">نمایش فریم در ثانیه</string>
+    <string name="show_frametime">نمایش زمان فریم</string>
+    <string name="show_frametime_description">نمایش زمان هر فریم</string>
+    <string name="show_speed">نمایش سرعت</string>
+    <string name="show_speed_description">نمایش درصد سرعت شبیه‌سازی</string>
+    <string name="show_app_ram_usage">نمایش مصرف رم برنامه</string>
+    <string name="show_app_ram_usage_description">نمایش میزان رم استفاده‌شده توسط شبیه‌ساز</string>
+    <string name="show_system_ram_usage">نمایش مصرف رم سیستم</string>
+    <string name="show_system_ram_usage_description">نمایش میزان رم استفاده‌شده توسط سیستم</string>
+    <string name="show_bat_temperature">نمایش دمای باتری</string>
+    <string name="show_bat_temperature_description">نمایش دمای باتری به سانتی‌گراد و فارنهایت</string>
+    <string name="overlay_position">موقعیت اورلی</string>
+    <string name="overlay_position_description">انتخاب محل نمایش اورلی آمار عملکرد روی صفحه</string>
+    <string name="overlay_position_top_left">بالا چپ</string>
+    <string name="overlay_position_top_right">بالا راست</string>
+    <string name="overlay_position_bottom_left">پایین چپ</string>
+    <string name="overlay_position_bottom_right">پایین راست</string>
+    <string name="overlay_position_center_top">مرکز بالا</string>
+    <string name="overlay_position_center_bottom">مرکز پایین</string>
+    <string name="overlay_background">پس‌زمینه اورلی</string>
+    <string name="overlay_background_description">افزودن پس‌زمینه برای خوانایی بهتر</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">پرده عدن</string>
+    <string name="eden_veil_description">فراتر از پیش‌فرض</string>
+    <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
+    <string name="frame_skipping_description">فعال کردن رد کردن فریم‌ها برای بهبود عملکرد با کاهش تعداد فریم‌های رندر شده</string>
+    <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
+    <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
+    <string name="use_lru_cache">فعال‌سازی حافظه نهان LRU</string>
+    <string name="use_lru_cache_description">حافظه نهان LRU (کمترین استفاده اخیر) را برای بهبود عملکرد فعال یا غیرفعال کنید. برخی بازی‌ها مانند TOTK 1.2.1 ممکن است با آن مشکل داشته باشند</string>
+    <string name="dyna_state">حالت پویای گسترده</string>
+    <string name="dyna_state_description">قابلیت‌های ولکان را برای بهبود عملکرد، رندرینگ و صرفه‌جویی در منابع هنگام ایجاد خط لوله فعال می‌کند در حالی که مصرف CPU/GPU پایین حفظ می‌شود. این افزونه‌ها ممکن است دمای دستگاه را افزایش دهند و کارت‌های گرافیک سری قدیمی A6XX ممکن است واکنش مناسبی نشان ندهند. برای استفاده از فرمت‌های شبیه‌سازی شده یوزو روی 0 تنظیم کنید</string>
+    <string name="dyna_state3">EDS3 + حالت پویای ورودی رأس</string>
+    <string name="dyna_state3_description">عملکرد را در دستگاه‌های جدیدتر بهبود می‌بخشد. فقط در کارت‌های گرافیک با پشتیبانی از ولکان 1.3+ قابل استفاده است</string>
+    <string name="use_sync_core">همگام‌سازی سرعت هسته</string>
+    <string name="use_sync_core_description">سرعت تیک هسته را با حداکثر درصد سرعت همگام می‌کند تا عملکرد بهبود یابد بدون آنکه سرعت واقعی بازی تغییر کند</string>
+    <string name="use_auto_stub">استفاده از استاب خودکار</string>
+    <string name="use_auto_stub_description">به طور خودکار سرویس‌ها و توابع از دست رفته را استاب می‌کند. این ممکن است سازگاری را بهبود بخشد اما می‌تواند باعث کرش و مشکلات پایداری شود</string>
+    <string name="uninstall_firmware">حذف فرمور</string>
+    <string name="uninstall_firmware_description">حذف فرمور آن را از دستگاه پاک می‌کند و ممکن است بر سازگاری بازی‌ها تأثیر بگذارد</string>
+    <string name="firmware_uninstalling">در حال حذف فرمور</string>
+    <string name="firmware_uninstalled_success">فرمور با موفقیت حذف شد</string>
+    <string name="provoking_vertex">رأس تحریک‌کننده</string>
+    <string name="provoking_vertex_description">نورپردازی و مدیریت رأس را در برخی بازی‌ها بهبود می‌بخشد. فقط در کارت‌های گرافیک با پشتیبانی از ولکان 1.0+ قابل استفاده است</string>
+    <string name="descriptor_indexing">نمایه‌سازی توصیفگر</string>
+    <string name="descriptor_indexing_description">مدیریت بافت‌ها و بافرها و همچنین لایه ترجمه ماکسول را بهبود می‌بخشد. توسط برخی کارت‌های گرافیک ولکان 1.1 و تمام کارت‌های گرافیک ولکان 1.2+ پشتیبانی می‌شود</string>
+
+    <!-- روش رمزگشایی ASTC -->
+    <string name="accelerate_astc">روش رمزگشایی ASTC</string>
+    <string name="accelerate_astc_description">انتخاب روش رمزگشایی بافت‌های فشرده ASTC</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU ناهمگام</string>
+
+    <!-- روش فشرده‌سازی مجدد ASTC -->
+    <string name="astc_recompression">روش فشرده‌سازی مجدد ASTC</string>
+    <string name="astc_recompression_description">انتخاب روش فشرده‌سازی مجدد بافت‌های ASTC</string>
+    <string name="astc_recompression_uncompressed">فشرده‌نشده</string>
+    <string name="astc_recompression_bc1">BC1 (کیفیت پایین)</string>
+    <string name="astc_recompression_bc3">BC3 (کیفیت متوسط)</string>
+
+    <!-- حالت استفاده از VRAM -->
+    <string name="vram_usage_mode">حالت استفاده از VRAM</string>
+    <string name="vram_usage_mode_description">کنترل نحوه تخصیص و آزادسازی حافظه GPU</string>
+    <string name="vram_usage_conservative">محافظه‌کارانه</string>
+    <string name="vram_usage_aggressive">تهاجمی</string>
+
+    <!-- بک‌اند شیدر -->
+    <string name="shader_backend">بک‌اند شیدر</string>
+    <string name="shader_backend_description">انتخاب روش کامپایل و ترجمه شیدرها</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- شبیه‌سازی NVDEC -->
+    <string name="nvdec_emulation">شبیه‌سازی NVDEC</string>
+    <string name="nvdec_emulation_description">انتخاب روش پردازش ویدیو (NVDEC)</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">هیچ‌کدام</string>
+
+    <!-- بهینه‌سازی خروجی SPIRV -->
+    <string name="renderer_optimize_spirv_output">بهینه‌سازی خروجی SPIRV</string>
+    <string name="never">هرگز</string>
+    <string name="on_load">در هنگام بارگذاری</string>
+    <string name="always">همیشه</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">چندنفره</string>
+    <string name="multiplayer_description">اتاق بازی بسازید یا به یکی بپیوندید</string>
+    <string name="multiplayer_room_title">اتاق: %1$s</string>
+    <string name="multiplayer_console_id">شناسه کنسول: %1$s</string>
+    <string name="multiplayer_create_room">ایجاد</string>
+    <string name="multiplayer_join_room">پیوستن</string>
+    <string name="multiplayer_username">نام کاربری</string>
+    <string name="multiplayer_ip_address">آدرس IP</string>
+    <string name="multiplayer_ip_port">پورت</string>
+    <string name="multiplayer_create_room_success">اتاق با موفقیت ایجاد شد!</string>
+    <string name="multiplayer_join_room_success">با موفقیت به اتاق پیوستید!</string>
+    <string name="multiplayer_create_room_failed">ایجاد اتاق ناموفق بود!</string>
+    <string name="multiplayer_join_room_failed">پیوستن به اتاق ناموفق بود!</string>
+    <string name="multiplayer_input_invalid">آدرس نامعتبر یا نام کوتاه است!</string>
+    <string name="multiplayer_port_invalid">پورت نامعتبر است!</string>
+    <string name="multiplayer_exit_room">خروج از اتاق</string>
+    <string name="multiplayer_network_error">خطای شبکه</string>
+    <string name="multiplayer_lost_connection">اتصال قطع شد</string>
+    <string name="multiplayer_name_collision">تکراری بودن نام</string>
+    <string name="multiplayer_mac_collision">تکراری بودن MAC</string>
+    <string name="multiplayer_console_id_collision">تکراری بودن شناسه کنسول</string>
+    <string name="multiplayer_wrong_version">نسخه نادرست</string>
+    <string name="multiplayer_wrong_password">رمز نادرست</string>
+    <string name="multiplayer_could_not_connect">اتصال ناموفق</string>
+    <string name="multiplayer_room_is_full">اتاق پر است</string>
+    <string name="multiplayer_host_banned">میزبان مسدود شده</string>
+    <string name="multiplayer_permission_denied">دسترسی رد شد</string>
+    <string name="multiplayer_no_such_user">کاربر یافت نشد</string>
+    <string name="multiplayer_already_in_room">قبلاً در اتاق هستید</string>
+    <string name="multiplayer_create_room_error">خطا در ایجاد اتاق</string>
+    <string name="multiplayer_host_kicked">میزبان اخراج شد</string>
+    <string name="multiplayer_unknown_error">خطای ناشناخته</string>
+    <string name="multiplayer_room_uninitialized">اتاق راه‌اندازی نشده</string>
+    <string name="multiplayer_room_idle">اتاق غیرفعال</string>
+    <string name="multiplayer_room_joining">در حال پیوستن</string>
+    <string name="multiplayer_room_joined">اتاق پیوسته</string>
+    <string name="multiplayer_room_moderator">مدیر اتاق</string>
+    <string name="multiplayer_member_join">%1$s پیوست</string>
+    <string name="multiplayer_member_leave">%1$s خارج شد</string>
+    <string name="multiplayer_member_kicked">%1$s اخراج شد</string>
+    <string name="multiplayer_member_banned">%1$s مسدود شد</string>
+    <string name="multiplayer_address_unbanned">آدرس آزاد شد</string>
+    <string name="multiplayer_kick_member">اخراج</string>
+    <string name="multiplayer_chat_input_hint">ارسال پیام...</string>
+    <string name="multiplayer_password">رمز عبور</string>
+    <string name="original_button_text">پیوستن</string>
+    <string name="disabled_button_text">در حال پیوستن...</string>
+    <string name="multiplayer_room_name">نام اتاق</string>
+    <string name="multiplayer_room_name_invalid">نام اتاق باید بین 3 تا 20 کاراکتر باشد</string>
+    <string name="multiplayer_max_players">حداکثر بازیکنان (16)</string>
+    <string name="multiplayer_max_players_value">حداکثر بازیکنان: %d</string>
+    <string name="multiplayer_chat">چت</string>
+    <string name="multiplayer_more_options">گزینه‌های بیشتر</string>
+    <string name="multiplayer_ip_copied">آدرس IP کپی شد</string>
+    <string name="multiplayer_server_address">آدرس سرور</string>
+    <string name="chat">چت</string>
+    <string name="type_message">نوشتن پیام...</string>
+    <string name="send">ارسال</string>
+    <string name="send_message">ارسال پیام</string>
+    <string name="multiplayer_moderation">مدیریت</string>
+    <string name="multiplayer_moderation_title">لیست مسدودها</string>
+    <string name="multiplayer_no_bans">هیچ کاربر مسدود شده‌ای وجود ندارد</string>
+    <string name="multiplayer_unban_title">آزادسازی کاربر</string>
+    <string name="multiplayer_unban">آزاد کردن</string>
+    <string name="multiplayer_unban_message">آیا از آزاد کردن %1$s مطمئن هستید؟</string>
+    <string name="multiplayer_ban">مسدود کردن کاربر</string>
+    <string name="emulation_multiplayer">چندنفره</string>
+    <string name="cancel">انصراف</string>
+    <string name="ok">تایید</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">رنگ تم</string>
+    <string name="violet">بنفش (پیش‌فرض)</string>
+    <string name="blue">آبی</string>
+    <string name="cyan">فیروزه‌ای</string>
+    <string name="red">قرمز</string>
+    <string name="green">سبز</string>
+    <string name="yellow">زرد</string>
+    <string name="orange">نارنجی</string>
+    <string name="pink">صورتی</string>
+    <string name="gray">خاکستری</string>
+
     <!-- Setup strings -->
     <string name="welcome">خوش آمدید!</string>
-    <string name="welcome_description">نحوه راه اندازی &lt;b>yuzu&lt;/b> و شبیه سازی را بیاموزید.</string>
+    <string name="welcome_description">نحوه راه اندازی &lt;b>Eden&lt;/b> و شبیه سازی را بیاموزید.</string>
     <string name="get_started">شروع کنید</string>
     <string name="keys">کلیدها</string>
     <string name="keys_description">فایل &lt;b>prod.keys&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
@@ -25,6 +203,15 @@
     <string name="step_complete">تکمیل شد!</string>
 
     <!-- Home strings -->
+    <string name="alphabetical">الفبایی</string>
+    <string name="view_list">لیست</string>
+    <string name="view_grid">گرید</string>
+    <string name="folder">پوشه</string>
+    <string name="pre_alpha_warning_title">نرم‌افزار پیش‌آلفا</string>
+    <string name="pre_alpha_warning_description">هشدار: این نسخه برای استفاده عمومی نیست. ممکن است دارای اشکالات باشد.</string>
+    <string name="dont_show_again">عدم نمایش مجدد</string>
+    <string name="pre_alpha_warning">نرم‌افزار پیش‌آلفا؛ برای استفاده عمومی نیست</string>
+    <string name="add_directory_success">پوشه بازی با موفقیت اضافه شد</string>
     <string name="home_games">بازی‌ها</string>
     <string name="home_search">جستجو</string>
     <string name="home_settings">تنظیمات</string>
@@ -32,10 +219,9 @@
     <string name="search_and_filter_games">جستجو و فیلتر کردن بازی‌ها</string>
     <string name="select_games_folder">پوشه بازی‌ها را انتخاب کنید</string>
     <string name="manage_game_folders">مدیریت پوشه‌های بازی</string>
-    <string name="select_games_folder_description">به yuzu اجازه می دهد تا لیست باز‌ی‌ها را پر کند</string>
+    <string name="select_games_folder_description">به Eden اجازه می دهد تا لیست باز‌ی‌ها را پر کند</string>
     <string name="add_games_warning">از انتخاب پوشه بازی رد می‌شوید؟</string>
     <string name="add_games_warning_description">اگر پوشه‌ای انتخاب نشده باشد، بازی‌ها در لیست بازی‌ها نمایش داده نمی‌شوند.</string>
-    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">جستجو در بازی‌ها</string>
     <string name="search_settings">جستجو در تنظیمات</string>
     <string name="games_dir_selected">پوشه بازی‌ها انتخاب شد</string>
@@ -43,12 +229,11 @@
     <string name="install_prod_keys_description">برای رمزگشایی بازی‌های فروشگاهی مورد نیاز است</string>
     <string name="install_prod_keys_warning">افزودن کلیدها را رد می‌کنید؟</string>
     <string name="install_prod_keys_warning_description">کلیدهای معتبر برای شبیه‌سازی بازی‌های فروشگاهی مورد نیاز است. اگر ادامه دهید، فقط برنامه‌های سیستم ریزکامپیوتری کار خواهند کرد.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">اعلان‌ها</string>
     <string name="notifications_description">مجوز اعلان را با دکمه زیر اعطا کنید.</string>
     <string name="give_permission">اجازه بدهید</string>
     <string name="notification_warning">دادن مجوز اعلان را رد می‌کنید؟</string>
-    <string name="notification_warning_description">yuzu نمی‌تواند شما را از اطلاعات مهم مطلع کند.</string>
+    <string name="notification_warning_description">Eden نمی‌تواند شما را از اطلاعات مهم مطلع کند.</string>
     <string name="permission_denied">دسترسی داده نشد</string>
     <string name="permission_denied_description">شما بارها این دسترسی را رد کردید و اکنون باید آن را به صورت دستی در تنظیمات سیستم اعطا کنید.</string>
     <string name="about">درباره</string>
@@ -64,7 +249,6 @@
     <string name="install_prod_keys_failure_extension_description">بررسی کنید که فایل کلیدهای شما دارای پسوند keys. باشد و دوباره امتحان کنید.</string>
     <string name="install_amiibo_keys_failure_extension_description">بررسی کنید که فایل کلیدهای شما دارای پسوند bin. باشد و دوباره امتحان کنید.</string>
     <string name="invalid_keys_error">کلیدهای رمزگذاری نامعتبر</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">فایل انتخابی نادرست یا خراب است. لطفا کلیدهای خود را دوباره استخراج کنید.</string>
     <string name="gpu_driver_manager">مدیریت درایور پردازنده گرافیکی</string>
     <string name="install_gpu_driver">نصب درایور پردازنده گرافیکی</string>
@@ -76,11 +260,11 @@
     <string name="search_recently_added">به تازگی اضافه شده‌ها</string>
     <string name="search_retail">فروشگاهی</string>
     <string name="search_homebrew">ریزکامپیوتری</string>
-    <string name="open_user_folder">باز کردن پوشه yuzu</string>
-    <string name="open_user_folder_description">مدیریت فایل‌های داخلی yuzu</string>
+    <string name="open_user_folder">باز کردن پوشه Eden</string>
+    <string name="open_user_folder_description">مدیریت فایل‌های داخلی Eden</string>
     <string name="theme_and_color_description">تغییر ظاهر برنامه</string>
     <string name="no_file_manager">هیچ برنامه مدیریت فایلی پیدا نشد</string>
-    <string name="notification_no_directory_link">پوشه yuzu باز نشد</string>
+    <string name="notification_no_directory_link">پوشه Eden باز نشد</string>
     <string name="notification_no_directory_link_description">لطفاً پوشه کاربری را با استفاده از پنل کناری برنامه مدیریت فایل به صورت دستی پیدا کنید.</string>
     <string name="manage_save_data">مدیریت ذخیره داده‌ها</string>
     <string name="manage_save_data_description">ذخیره داده یافت شد. لطفاً یکی از گزینه‌های زیر را انتخاب کنید.</string>
@@ -101,7 +285,7 @@
     <string name="firmware_installed_failure">نصب ثابت‌افزار ناموفق بود</string>
     <string name="firmware_installed_failure_description">مطمئن شوید که فایل‌های nca ثابت‌افزار در ریشه فایل فشرده هستند و دوباره امتحان کنید.</string>
     <string name="share_log">اشتراک گزارش اشکال زدایی</string>
-    <string name="share_log_description">فایل گزارش yuzu را برای رفع اشکال به اشتراک بگذارید</string>
+    <string name="share_log_description">فایل گزارش Eden را برای رفع اشکال به اشتراک بگذارید</string>
     <string name="share_log_missing">هیچ فایل گزارشی یافت نشد</string>
     <string name="install_game_content">نصب محتوای بازی</string>
     <string name="install_game_content_description">آپدیت های بازی یا DLC را نصب کنید</string>
@@ -114,10 +298,9 @@
     <string name="install_game_content_success">محتوا(های) بازی با موفقیت نصب شد</string>
     <string name="install_game_content_success_install">%1$dبا موفقیت نصب شد</string>
     <string name="install_game_content_success_overwrite">%1$dبا موفقیت بازنویسی شد</string>
-    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">درایورهای سفارشی پشتیبانی نمی‌شوند</string>
     <string name="custom_driver_not_supported_description">بارگیری درایور سفارشی در حال حاضر برای این دستگاه پشتیبانی نمی‌شود.\nاین گزینه را دوباره در آینده بررسی کنید تا ببینید آیا پشتیبانی اضافه شده است یا خیر!</string>
-    <string name="manage_yuzu_data">مدیریت داده‌های yuzu</string>
+    <string name="manage_yuzu_data">مدیریت داده‌های Eden</string>
     <string name="manage_yuzu_data_description">وارد کردن/صادر کردن ثابت‌افزار، کلیدها، داده‌های کاربر، و موارد دیگر!</string>
     <string name="share_save_file">اشتراک گذاری فایل ذخیره</string>
     <string name="export_save_failed">ذخیره صادر نشد</string>
@@ -139,7 +322,6 @@
     <string name="verify_installed_content_description">تمام محتوای نصب شده را از نظر خرابی بررسی می‌کند</string>
     <string name="keys_missing">کلیدهای رمزگذاری وجود ندارند</string>
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
-    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">اجراکننده برنامک</string>
@@ -164,27 +346,22 @@
     <string name="copied_to_clipboard">در کلیپ‌بورد کپی شد</string>
     <string name="about_app_description">یک شبیه‌ساز سوئیچ منبع باز</string>
     <string name="contributors">مشارکت کنندگان</string>
-    <string name="contributors_description">Made with \u2764 from the yuzu team</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
-    <string name="licenses_description">پروژه‌هایی که yuzu را برای اندروید ممکن می‌سازند</string>
+    <string name="contributors_description">Made with \u2764 from the Eden team</string>
+    <string name="licenses_description">پروژه‌هایی که Eden را برای اندروید ممکن می‌سازند</string>
     <string name="build">ساخت</string>
     <string name="user_data">داده کاربر</string>
     <string name="user_data_description">همه داده‌های برنامه را وارد/صادر کنید.\n\nهنگام وارد کردن داده‌های کاربر، همه داده‌های کاربر موجود حذف خواهند شد!</string>
     <string name="exporting_user_data">در حال صادر کردن داده‌های کاربر...</string>
     <string name="importing_user_data">در حال وارد کردن داده‌های کاربر...</string>
     <string name="import_user_data">وارد کردن داده کاربر</string>
-    <string name="invalid_yuzu_backup">پشتیبان نامعتبر yuzu</string>
+    <string name="invalid_yuzu_backup">پشتیبان نامعتبر Eden</string>
     <string name="user_data_export_success">داده‌های کاربر با موفقیت صادر شد</string>
     <string name="user_data_import_success">داده‌های کاربر با موفقیت وارد شد</string>
     <string name="user_data_export_cancelled">صدور لغو شد</string>
     <string name="user_data_import_failed_description">مطمئن شوید که پوشه‌های داده کاربر در ریشه پوشه zip و حاوی یک فایل پیکربندی در config/config.ini هستند سپس دوباره امتحان کنید.</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">دسترسی زودهنگام</string>
-    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
     <string name="early_access_benefits">مزایای دسترسی زودهنگام</string>
     <string name="cutting_edge_features">ویژگی‌های پیشرفته</string>
     <string name="early_access_updates">دسترسی زودهنگام به بروزرسانی‌ها</string>

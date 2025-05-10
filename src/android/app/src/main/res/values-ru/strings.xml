@@ -6,9 +6,187 @@
     <string name="notice_notification_channel_description">Показывать уведомления, когда что-то пошло не так</string>
     <string name="notification_permission_not_granted">Вы не предоставили разрешение на уведомления!</string>
 
+    <!-- Stats Overlay settings -->
+    <string name="show_stats_overlay">Показать оверлей статистики</string>
+    <string name="stats_overlay_customization">Настройки</string>
+    <string name="stats_overlay_items">Видимость</string>
+    <string name="stats_overlay_options">Оверлей</string>
+    <string name="enable_stats_overlay_">Включить оверлей статистики</string>
+    <string name="stats_overlay_options_description">Настройка отображаемой информации в оверлее</string>
+    <string name="show_fps">Показать FPS</string>
+    <string name="show_fps_description">Текущее количество кадров в секунду</string>
+    <string name="show_frametime">Показать Frametime</string>
+    <string name="show_frametime_description">Текущее время кадра</string>
+    <string name="show_speed">Показать скорость</string>
+    <string name="show_speed_description">Текущая скорость эмуляции в %</string>
+    <string name="show_app_ram_usage">Показать RAM эмулятора</string>
+    <string name="show_app_ram_usage_description">Использование RAM эмулятором</string>
+    <string name="show_system_ram_usage">Показать RAM системы</string>
+    <string name="show_system_ram_usage_description">Использование RAM системой</string>
+    <string name="show_bat_temperature">Показать температуру батареи</string>
+    <string name="show_bat_temperature_description">Текущая температура батареи (°C/°F)</string>
+    <string name="overlay_position">Позиция оверлея</string>
+    <string name="overlay_position_description">Расположение оверлея на экране</string>
+    <string name="overlay_position_top_left">Сверху слева</string>
+    <string name="overlay_position_top_right">Сверху справа</string>
+    <string name="overlay_position_bottom_left">Снизу слева</string>
+    <string name="overlay_position_bottom_right">Снизу справа</string>
+    <string name="overlay_position_center_top">По центру сверху</string>
+    <string name="overlay_position_center_bottom">По центру снизу</string>
+    <string name="overlay_background">Фон оверлея</string>
+    <string name="overlay_background_description">Фон для улучшения читаемости</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">Покров Эдема</string>
+    <string name="eden_veil_description">За пределами стандартных настроек</string>
+    <string name="frame_skipping">В разработке: Пропуск кадров</string>
+    <string name="frame_skipping_description">Включите пропуск кадров для повышения производительности за счет уменьшения количества отрисовываемых кадров.</string>
+    <string name="frame_interpolation">Улучшенная синхронизация кадров</string>
+    <string name="frame_interpolation_description">Обеспечивает плавную и стабильную подачу кадров за счет синхронизации их времени, уменьшая подтормаживания и неравномерную анимацию. Идеально для игр с нестабильным временем кадров или микро-подтормаживаниями во время игры.</string>
+    <string name="use_lru_cache">Включить LRU-кеш</string>
+    <string name="use_lru_cache_description">Включите или отключите LRU-кеш (Least Recently Used) для повышения производительности. Некоторые игры могут иметь проблемы, например TOTK 1.2.1</string>
+    <string name="dyna_state">Расширенное динамическое состояние</string>
+    <string name="dyna_state_description">Включает функции Vulkan для улучшения производительности, рендеринга и экономии ресурсов при создании конвейеров, сохраняя низкое использование CPU/GPU. Эти расширения могут повысить температуру устройства, а старые GPU серии A6XX могут работать некорректно. Установите 0 для использования эмулируемых форматов Yuzu.</string>
+    <string name="dyna_state3">EDS3 + Динамическое состояние ввода вершин</string>
+    <string name="dyna_state3_description">Улучшает производительность на новых устройствах. Поддерживается только GPU с Vulkan 1.3+.</string>
+    <string name="use_sync_core">Синхронизация скорости ядра</string>
+    <string name="use_sync_core_description">Синхронизирует скорость тактов ядра с максимальным процентом скорости для повышения производительности без изменения фактической скорости игры.</string>
+    <string name="use_auto_stub">Использовать Auto Stub</string>
+    <string name="use_auto_stub_description">Автоматически заглушает отсутствующие сервисы и функции. Может улучшить совместимость, но вызывать сбои и проблемы стабильности.</string>
+    <string name="uninstall_firmware">Удалить прошивку</string>
+    <string name="uninstall_firmware_description">Удаление прошивки сотрет ее с устройства и может повлиять на совместимость игр.</string>
+    <string name="firmware_uninstalling">Удаление прошивки...</string>
+    <string name="firmware_uninstalled_success">Прошивка успешно удалена</string>
+    <string name="provoking_vertex">Определяющая вершина</string>
+    <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только GPU с Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Индексирование дескрипторов</string>
+    <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми GPU Vulkan 1.1 и всеми GPU Vulkan 1.2+.</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">Метод декодирования ASTC</string>
+    <string name="accelerate_astc_description">Способ декодирования текстур ASTC</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU (асинхронно)</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Метод пережатия ASTC</string>
+    <string name="astc_recompression_description">Способ пережатия текстур ASTC</string>
+    <string name="astc_recompression_uncompressed">Без сжатия</string>
+    <string name="astc_recompression_bc1">BC1 (низкое качество)</string>
+    <string name="astc_recompression_bc3">BC3 (среднее качество)</string>
+
+    <!-- VRAM Usage Mode -->
+    <string name="vram_usage_mode">Режим VRAM</string>
+    <string name="vram_usage_mode_description">Стратегия управления видеопамятью</string>
+    <string name="vram_usage_conservative">Консервативный</string>
+    <string name="vram_usage_aggressive">Агрессивный</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">Шейдерный бэкенд</string>
+    <string name="shader_backend_description">Метод компиляции шейдеров</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">Эмуляция NVDEC</string>
+    <string name="nvdec_emulation_description">Обработка видео (ролики, интро)</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">Отключено</string>
+
+    <!-- Optimize SPIRV output -->
+    <string name="renderer_optimize_spirv_output">Оптимизация SPIRV</string>
+    <string name="never">Никогда</string>
+    <string name="on_load">При загрузке</string>
+    <string name="always">Всегда</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Мультиплеер</string>
+    <string name="multiplayer_description">Создание или подключение к комнате</string>
+    <string name="multiplayer_room_title">Комната: %1$s</string>
+    <string name="multiplayer_console_id">ID консоли: %1$s</string>
+    <string name="multiplayer_create_room">Создать</string>
+    <string name="multiplayer_join_room">Подключиться</string>
+    <string name="multiplayer_username">Имя пользователя</string>
+    <string name="multiplayer_ip_address">IP-адрес</string>
+    <string name="multiplayer_ip_port">Порт</string>
+    <string name="multiplayer_create_room_success">Комната создана</string>
+    <string name="multiplayer_join_room_success">Подключение успешно</string>
+    <string name="multiplayer_create_room_failed">Ошибка создания</string>
+    <string name="multiplayer_join_room_failed">Ошибка подключения</string>
+    <string name="multiplayer_input_invalid">Неверный адрес или имя</string>
+    <string name="multiplayer_port_invalid">Неверный порт</string>
+    <string name="multiplayer_exit_room">Выйти</string>
+    <string name="multiplayer_network_error">Ошибка сети</string>
+    <string name="multiplayer_lost_connection">Разрыв соединения</string>
+    <string name="multiplayer_name_collision">Имя занято</string>
+    <string name="multiplayer_mac_collision">MAC-адрес занят</string>
+    <string name="multiplayer_console_id_collision">ID консоли занят</string>
+    <string name="multiplayer_wrong_version">Неверная версия</string>
+    <string name="multiplayer_wrong_password">Неверный пароль</string>
+    <string name="multiplayer_could_not_connect">Не удалось подключиться</string>
+    <string name="multiplayer_room_is_full">Комната заполнена</string>
+    <string name="multiplayer_host_banned">Хост забанен</string>
+    <string name="multiplayer_permission_denied">Доступ запрещен</string>
+    <string name="multiplayer_no_such_user">Пользователь не найден</string>
+    <string name="multiplayer_already_in_room">Уже в комнате</string>
+    <string name="multiplayer_create_room_error">Ошибка создания комнаты</string>
+    <string name="multiplayer_host_kicked">Хост кикнут</string>
+    <string name="multiplayer_unknown_error">Неизвестная ошибка</string>
+    <string name="multiplayer_room_uninitialized">Комната не инициализирована</string>
+    <string name="multiplayer_room_idle">Комната бездействует</string>
+    <string name="multiplayer_room_joining">Подключение...</string>
+    <string name="multiplayer_room_joined">Подключено</string>
+    <string name="multiplayer_room_moderator">Модератор</string>
+    <string name="multiplayer_member_join">%1$s присоединился</string>
+    <string name="multiplayer_member_leave">%1$s вышел</string>
+    <string name="multiplayer_member_kicked">%1$s кикнут</string>
+    <string name="multiplayer_member_banned">%1$s забанен</string>
+    <string name="multiplayer_address_unbanned">Разбан адреса</string>
+    <string name="multiplayer_kick_member">Кикнуть</string>
+    <string name="multiplayer_chat_input_hint">Сообщение...</string>
+    <string name="multiplayer_password">Пароль</string>
+    <string name="original_button_text">Подключиться</string>
+    <string name="disabled_button_text">Подключение...</string>
+    <string name="multiplayer_room_name">Название комнаты</string>
+    <string name="multiplayer_room_name_invalid">Название: 3-20 символов</string>
+    <string name="multiplayer_max_players">Макс. игроков (16)</string>
+    <string name="multiplayer_max_players_value">Макс. игроков: %d</string>
+    <string name="multiplayer_chat">Чат</string>
+    <string name="multiplayer_more_options">Дополнительно</string>
+    <string name="multiplayer_ip_copied">IP скопирован</string>
+    <string name="multiplayer_server_address">Адрес сервера</string>
+    <string name="chat">Чат</string>
+    <string name="type_message">Сообщение...</string>
+    <string name="send">Отправить</string>
+    <string name="send_message">Отправить</string>
+    <string name="multiplayer_moderation">Модерация</string>
+    <string name="multiplayer_moderation_title">Бан-лист</string>
+    <string name="multiplayer_no_bans">Нет банов</string>
+    <string name="multiplayer_unban_title">Разбан</string>
+    <string name="multiplayer_unban">Разбанить</string>
+    <string name="multiplayer_unban_message">Разбанить %1$s?</string>
+    <string name="multiplayer_ban">Забанить</string>
+    <string name="emulation_multiplayer">Мультиплеер</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">ОК</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Цвет темы</string>
+    <string name="violet">Фиолетовый (По умолчанию)</string>
+    <string name="blue">Синий</string>
+    <string name="cyan">Циановый</string>
+    <string name="red">Красный</string>
+    <string name="green">Зелёный</string>
+    <string name="yellow">Жёлтый</string>
+    <string name="orange">Оранжевый</string>
+    <string name="pink">Розовый</string>
+    <string name="gray">Серый</string>
+
     <!-- Setup strings -->
     <string name="welcome">Добро пожаловать!</string>
-    <string name="welcome_description">Узнайте, как настроить &lt;b>yuzu&lt;/b> и перейти прямиком к эмуляции.</string>
+    <string name="welcome_description">Узнайте, как настроить &lt;b>Eden&lt;/b> и перейти прямиком к эмуляции.</string>
     <string name="get_started">Начать</string>
     <string name="keys">Ключи</string>
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
@@ -25,6 +203,14 @@
     <string name="step_complete">Выполнено!</string>
 
     <!-- Home strings -->
+    <string name="alphabetical">По алфавиту</string>
+    <string name="view_list">Список</string>
+    <string name="view_grid">Сетка</string>
+    <string name="folder">Папка</string>
+    <string name="pre_alpha_warning_title">Пре-альфа версия</string>
+    <string name="pre_alpha_warning_description">ВНИМАНИЕ: Эта версия не предназначена для публичного использования. Возможны ошибки и неполные функции.</string>
+    <string name="dont_show_again">Не показывать снова</string>
+    <string name="pre_alpha_warning">ПРЕ-АЛЬФА ВЕРСИЯ; НЕ ДЛЯ ПУБЛИКИ</string>
     <string name="home_games">Игры</string>
     <string name="home_search">Поиск</string>
     <string name="home_settings">Настройки</string>
@@ -32,10 +218,9 @@
     <string name="search_and_filter_games">Поиск и фильтрация игр</string>
     <string name="select_games_folder">Выберите папку с играми</string>
     <string name="manage_game_folders">Управление папками</string>
-    <string name="select_games_folder_description">Позволяет yuzu заполнить список игр</string>
+    <string name="select_games_folder_description">Позволяет Eden заполнить список игр</string>
     <string name="add_games_warning">Пропустить выбор папки с играми?</string>
     <string name="add_games_warning_description">Игры не будут отображаться в списке Игры, если папка не выбрана.</string>
-    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Найти игры</string>
     <string name="search_settings">Настройки поиска</string>
     <string name="games_dir_selected">Выбрана папка с играми</string>
@@ -43,12 +228,11 @@
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
     <string name="install_prod_keys_warning">Пропустить добавление ключей?</string>
     <string name="install_prod_keys_warning_description">Для эмуляции розничных игр требуются действительные ключи. Если вы продолжите, будут работать только homebrew приложения.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">Уведомления</string>
     <string name="notifications_description">Предоставьте разрешение уведомлений с помощью кнопки ниже.</string>
     <string name="give_permission">Предоставить разрешение</string>
     <string name="notification_warning">Пропустить предоставление разрешения уведомлений?</string>
-    <string name="notification_warning_description">yuzu не сможет уведомлять вас о важной информации.</string>
+    <string name="notification_warning_description">Eden не сможет уведомлять вас о важной информации.</string>
     <string name="permission_denied">Разрешение отказано</string>
     <string name="permission_denied_description">Вы слишком часто отклоняли это разрешение, и теперь вам нужно будет вручную предоставить его в настройках системы.</string>
     <string name="about">О нас</string>
@@ -64,7 +248,6 @@
     <string name="install_prod_keys_failure_extension_description">Убедитесь, что файл ключей имеет расширение .keys, и повторите попытку.</string>
     <string name="install_amiibo_keys_failure_extension_description">Убедитесь, что файл ключей имеет расширение .bin, и повторите попытку.</string>
     <string name="invalid_keys_error">Неверные ключи шифрования</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Выбранный файл неверен или поврежден. Пожалуйста, пере-дампите ваши ключи.</string>
     <string name="gpu_driver_manager">Менеджер драйверов ГП</string>
     <string name="install_gpu_driver">Установить драйвер ГП</string>
@@ -76,11 +259,11 @@
     <string name="search_recently_added">Недавно добавлено</string>
     <string name="search_retail">Розничные</string>
     <string name="search_homebrew">Homebrew</string>
-    <string name="open_user_folder">Открыть папку yuzu</string>
-    <string name="open_user_folder_description">Управление внутренними файлами yuzu</string>
+    <string name="open_user_folder">Открыть папку Eden</string>
+    <string name="open_user_folder_description">Управление внутренними файлами Eden</string>
     <string name="theme_and_color_description">Изменение внешнего вида приложения</string>
     <string name="no_file_manager">Не найден файловый менеджер</string>
-    <string name="notification_no_directory_link">Не удалось открыть папку yuzu</string>
+    <string name="notification_no_directory_link">Не удалось открыть папку Eden</string>
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
     <string name="manage_save_data">Управление данными сохранений</string>
     <string name="manage_save_data_description">Найдено данные сохранений. Пожалуйста, выберите вариант ниже.</string>
@@ -101,7 +284,7 @@
     <string name="firmware_installed_failure">Не удалось установить прошивку</string>
     <string name="firmware_installed_failure_description">Убедитесь что файлы прошивки nca находятся в корне zip-архива и повторите попытку.</string>
     <string name="share_log">Поделиться журналом отладки</string>
-    <string name="share_log_description">Поделиться журналом отладки yuzu для устранения проблем</string>
+    <string name="share_log_description">Поделиться журналом отладки Eden для устранения проблем</string>
     <string name="share_log_missing">Файл журнала не найден</string>
     <string name="install_game_content">Установить игровой контент</string>
     <string name="install_game_content_description">Установить обновления игры или дополнений</string>
@@ -114,11 +297,9 @@
     <string name="install_game_content_success">Игровой контент успешно установлен</string>
     <string name="install_game_content_success_install">%1$d Успешно установлено</string>
     <string name="install_game_content_success_overwrite">%1$d Успешно перезаписано</string>
-    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Пользовательские драйверы не поддерживаются</string>
-    <string name="custom_driver_not_supported_description">Загрузка пользовательского драйвера в настоящее время не поддерживается для этого устройства.\nПроверьте этот параметр еще раз в будущем чтобы узнать была ли добавлена ​​поддержка!
- </string>
-    <string name="manage_yuzu_data">Управление данными yuzu</string>
+    <string name="custom_driver_not_supported_description">Загрузка пользовательского драйвера в настоящее время не поддерживается для этого устройства.\nПроверьте этот параметр еще раз в будущем чтобы узнать была ли добавлена ​​поддержка!</string>
+    <string name="manage_yuzu_data">Управление данными Eden</string>
     <string name="manage_yuzu_data_description">Импортируйте/экспортируйте прошивку, ключи, пользовательские данные и многое другое!</string>
     <string name="share_save_file">Поделиться файлом сохранения</string>
     <string name="export_save_failed">Не удалось экспортировать сохранение</string>
@@ -144,7 +325,6 @@
     <string name="verify_installed_content_description">Проверяет весь установленный контент на наличие повреждений</string>
     <string name="keys_missing">Отсутствуют ключи шифрования</string>
     <string name="keys_missing_description">Прошивка и розничные игры не могут быть расшифрованы</string>
-    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Запуск апплета</string>
@@ -169,27 +349,22 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="about_app_description">Эмулятор Switch с открытым исходным кодом</string>
     <string name="contributors">Контрибьюторы</string>
-    <string name="contributors_description">Сделано с \u2764 от команды yuzu</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
-    <string name="licenses_description">Проекты, которые сделали yuzu для Android возможным</string>
+    <string name="contributors_description">Сделано с \u2764 от команды Eden</string>
+    <string name="licenses_description">Проекты, которые сделали Eden для Android возможным</string>
     <string name="build">Сборка</string>
     <string name="user_data">Данные пользователя</string>
     <string name="user_data_description">Импортируйте/экспортируйте все данные приложения.\n\nПри импорте пользовательских данных все существующие пользовательские данные будут удалены!</string>
     <string name="exporting_user_data">Экспорт пользовательских данных…</string>
     <string name="importing_user_data">Импорт пользовательских данных…</string>
     <string name="import_user_data">Импортировать пользовательские данные</string>
-    <string name="invalid_yuzu_backup">Неверная резервная копия yuzu</string>
+    <string name="invalid_yuzu_backup">Неверная резервная копия Eden</string>
     <string name="user_data_export_success">Пользовательские данные успешно экспортированы</string>
     <string name="user_data_import_success">Пользовательские данные успешно импортированы</string>
     <string name="user_data_export_cancelled">Экспорт отменен</string>
     <string name="user_data_import_failed_description">Убедитесь что папки пользовательских данных находятся в корне zip-папки и содержат файл конфигурации config/config.ini и повторите попытку.</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">Ранний доступ</string>
-    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
     <string name="early_access_benefits">Преимущества раннего доступа</string>
     <string name="cutting_edge_features">Новейшие возможности</string>
     <string name="early_access_updates">Ранний доступ к обновлениям</string>

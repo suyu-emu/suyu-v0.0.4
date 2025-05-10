@@ -6,9 +6,187 @@
     <string name="notice_notification_channel_description">Pokaż powiadomienie gdy coś pójdzie źle</string>
     <string name="notification_permission_not_granted">Nie zezwolono na powiadomienia!</string>
 
+    <!-- Stats Overlay settings -->
+    <string name="show_stats_overlay">Pokaż nakładkę statystyk wydajności</string>
+    <string name="stats_overlay_customization">Dostosowanie</string>
+    <string name="stats_overlay_items">Widoczność</string>
+    <string name="stats_overlay_options">Nakładka</string>
+    <string name="enable_stats_overlay_">Włącz nakładkę statystyk wydajności</string>
+    <string name="stats_overlay_options_description">Konfiguruj informacje wyświetlane w nakładce statystyk wydajności</string>
+    <string name="show_fps">Pokaż FPS</string>
+    <string name="show_fps_description">Wyświetla liczbę klatek na sekundę</string>
+    <string name="show_frametime">Pokaż czas klatki</string>
+    <string name="show_frametime_description">Wyświetla czas renderowania klatki</string>
+    <string name="show_speed">Pokaż prędkość</string>
+    <string name="show_speed_description">Wyświetla procentową prędkość emulacji</string>
+    <string name="show_app_ram_usage">Pokaż użycie RAM aplikacji</string>
+    <string name="show_app_ram_usage_description">Wyświetla ilość RAM używanego przez emulator</string>
+    <string name="show_system_ram_usage">Pokaż użycie RAM systemu</string>
+    <string name="show_system_ram_usage_description">Wyświetla ilość RAM używanego przez system</string>
+    <string name="show_bat_temperature">Pokaż temperaturę baterii</string>
+    <string name="show_bat_temperature_description">Wyświetla temperaturę baterii w °C i °F</string>
+    <string name="overlay_position">Pozycja nakładki</string>
+    <string name="overlay_position_description">Wybierz miejsce wyświetlania nakładki statystyk na ekranie</string>
+    <string name="overlay_position_top_left">Lewy górny</string>
+    <string name="overlay_position_top_right">Prawy górny</string>
+    <string name="overlay_position_bottom_left">Lewy dolny</string>
+    <string name="overlay_position_bottom_right">Prawy dolny</string>
+    <string name="overlay_position_center_top">Góra środka</string>
+    <string name="overlay_position_center_bottom">Dół środka</string>
+    <string name="overlay_background">Tło nakładki</string>
+    <string name="overlay_background_description">Dodaje tło za nakładką dla lepszej czytelności</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">Zasłona Edenu</string>
+    <string name="eden_veil_description">Ponad domyślne</string>
+    <string name="frame_skipping">WIP: Pomijanie klatek</string>
+    <string name="frame_skipping_description">Włącz pomijanie klatek, aby poprawić wydajność poprzez zmniejszenie liczby renderowanych klatek.</string>
+    <string name="frame_interpolation">Zaawansowana synchronizacja klatek</string>
+    <string name="frame_interpolation_description">Zapewnia płynne i spójne wyświetlanie klatek poprzez synchronizację ich czasu, redukując zacinanie i nierówną animację. Idealne dla gier z niestabilnym czasem klatek lub mikro-zacinaniem podczas rozgrywki.</string>
+    <string name="use_lru_cache">Włącz pamięć podręczną LRU</string>
+    <string name="use_lru_cache_description">Włącza lub wyłącza pamięć podręczną LRU (Least Recently Used) w celu poprawy wydajności, niektóre gry mogą mieć problemy, np. TOTK 1.2.1</string>
+    <string name="dyna_state">Rozszerzony stan dynamiczny</string>
+    <string name="dyna_state_description">Włącza funkcje Vulkan w celu poprawy wydajności, renderowania i oszczędzania zasobów podczas tworzenia potoku, utrzymując niskie użycie CPU/GPU. Te rozszerzenia mogą zwiększać temperaturę urządzenia, a starsze GPU z serii A6XX mogą nie reagować prawidłowo. Ustaw na 0, aby używać formatów emulowanych przez Yuzu.</string>
+    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
+    <string name="dyna_state3_description">Poprawia wydajność na nowszych urządzeniach. Obsługiwane tylko przez GPU Vulkan 1.3+.</string>
+    <string name="use_sync_core">Synchronizuj prędkość rdzenia</string>
+    <string name="use_sync_core_description">Synchronizuje prędkość rdzenia z maksymalnym procentem prędkości, aby poprawić wydajność bez zmiany rzeczywistej prędkości gry.</string>
+    <string name="use_auto_stub">Użyj Auto Stub</string>
+    <string name="use_auto_stub_description">Automatycznie uzupełnia brakujące usługi i funkcje. Może poprawić kompatybilność, ale powodować awarie i problemy ze stabilnością.</string>
+    <string name="uninstall_firmware">Odinstaluj firmware</string>
+    <string name="uninstall_firmware_description">Odinstalowanie firmware usunie go z urządzenia i może wpłynąć na kompatybilność gier.</string>
+    <string name="firmware_uninstalling">Odinstalowywanie firmware...</string>
+    <string name="firmware_uninstalled_success">Firmware odinstalowany pomyślnie</string>
+    <string name="provoking_vertex">Wierzchołek prowokujący</string>
+    <string name="provoking_vertex_description">Poprawia oświetlenie i obsługę wierzchołków w niektórych grach. Obsługiwane tylko przez GPU Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">Indeksowanie deskryptorów</string>
+    <string name="descriptor_indexing_description">Poprawia obsługę tekstur i buforów oraz warstwę tłumaczenia Maxwell. Obsługiwane przez niektóre GPU Vulkan 1.1 i wszystkie GPU Vulkan 1.2+.</string>
+
+    <!-- Metoda dekodowania ASTC -->
+    <string name="accelerate_astc">Metoda dekodowania ASTC</string>
+    <string name="accelerate_astc_description">Wybierz metodę dekodowania tekstur ASTC.</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU asynchronicznie</string>
+
+    <!-- Metoda rekompresji ASTC -->
+    <string name="astc_recompression">Metoda rekompresji ASTC</string>
+    <string name="astc_recompression_description">Wybierz metodę rekompresji tekstur ASTC.</string>
+    <string name="astc_recompression_uncompressed">Bez kompresji</string>
+    <string name="astc_recompression_bc1">BC1 (niska jakość)</string>
+    <string name="astc_recompression_bc3">BC3 (średnia jakość)</string>
+
+    <!-- Tryb użycia VRAM -->
+    <string name="vram_usage_mode">Tryb użycia VRAM</string>
+    <string name="vram_usage_mode_description">Kontroluj alokację i zwalnianie pamięci GPU.</string>
+    <string name="vram_usage_conservative">Oszczędny</string>
+    <string name="vram_usage_aggressive">Agresywny</string>
+
+    <!-- Backend shaderów -->
+    <string name="shader_backend">Backend shaderów</string>
+    <string name="shader_backend_description">Wybierz metodę kompilacji shaderów.</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- Emulacja NVDEC -->
+    <string name="nvdec_emulation">Emulacja NVDEC</string>
+    <string name="nvdec_emulation_description">Wybierz metodę dekodowania wideo (NVDEC).</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">Brak</string>
+
+    <!-- Optymalizacja SPIRV -->
+    <string name="renderer_optimize_spirv_output">Optymalizuj SPIRV</string>
+    <string name="never">Nigdy</string>
+    <string name="on_load">Podczas ładowania</string>
+    <string name="always">Zawsze</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Multiplayer</string>
+    <string name="multiplayer_description">Hostuj lub dołącz do pokoju gry</string>
+    <string name="multiplayer_room_title">Pokój: %1$s</string>
+    <string name="multiplayer_console_id">ID konsoli: %1$s</string>
+    <string name="multiplayer_create_room">Utwórz</string>
+    <string name="multiplayer_join_room">Dołącz</string>
+    <string name="multiplayer_username">Nazwa użytkownika</string>
+    <string name="multiplayer_ip_address">Adres IP</string>
+    <string name="multiplayer_ip_port">Port</string>
+    <string name="multiplayer_create_room_success">Pokój utworzony pomyślnie!</string>
+    <string name="multiplayer_join_room_success">Dołączono do pokoju!</string>
+    <string name="multiplayer_create_room_failed">Błąd tworzenia pokoju!</string>
+    <string name="multiplayer_join_room_failed">Błąd dołączania do pokoju!</string>
+    <string name="multiplayer_input_invalid">Nieprawidłowy adres lub nazwa!</string>
+    <string name="multiplayer_port_invalid">Nieprawidłowy port!</string>
+    <string name="multiplayer_exit_room">Opuść pokój</string>
+    <string name="multiplayer_network_error">Błąd sieci</string>
+    <string name="multiplayer_lost_connection">Utracono połączenie</string>
+    <string name="multiplayer_name_collision">Konflikt nazw</string>
+    <string name="multiplayer_mac_collision">Konflikt MAC</string>
+    <string name="multiplayer_console_id_collision">Konflikt ID konsoli</string>
+    <string name="multiplayer_wrong_version">Nieprawidłowa wersja</string>
+    <string name="multiplayer_wrong_password">Nieprawidłowe hasło</string>
+    <string name="multiplayer_could_not_connect">Brak połączenia</string>
+    <string name="multiplayer_room_is_full">Pokój pełny</string>
+    <string name="multiplayer_host_banned">Host zbanowany</string>
+    <string name="multiplayer_permission_denied">Brak uprawnień</string>
+    <string name="multiplayer_no_such_user">Brak użytkownika</string>
+    <string name="multiplayer_already_in_room">Już w pokoju</string>
+    <string name="multiplayer_create_room_error">Błąd tworzenia pokoju</string>
+    <string name="multiplayer_host_kicked">Host wyrzucony</string>
+    <string name="multiplayer_unknown_error">Nieznany błąd</string>
+    <string name="multiplayer_room_uninitialized">Pokój niezainicjowany</string>
+    <string name="multiplayer_room_idle">Pokój nieaktywny</string>
+    <string name="multiplayer_room_joining">Dołączanie do pokoju</string>
+    <string name="multiplayer_room_joined">Dołączono do pokoju</string>
+    <string name="multiplayer_room_moderator">Moderator pokoju</string>
+    <string name="multiplayer_member_join">%1$s dołączył</string>
+    <string name="multiplayer_member_leave">%1$s opuścił</string>
+    <string name="multiplayer_member_kicked">%1$s wyrzucony</string>
+    <string name="multiplayer_member_banned">%1$s zbanowany</string>
+    <string name="multiplayer_address_unbanned">Adres odbanowany</string>
+    <string name="multiplayer_kick_member">Wyrzuć</string>
+    <string name="multiplayer_chat_input_hint">Wyślij wiadomość…</string>
+    <string name="multiplayer_password">Hasło</string>
+    <string name="original_button_text">Dołącz</string>
+    <string name="disabled_button_text">Dołączanie…</string>
+    <string name="multiplayer_room_name">Nazwa pokoju</string>
+    <string name="multiplayer_room_name_invalid">Nazwa pokoju musi mieć 3-20 znaków</string>
+    <string name="multiplayer_max_players">Maks. graczy (16)</string>
+    <string name="multiplayer_max_players_value">Maks. graczy: %d</string>
+    <string name="multiplayer_chat">Czat</string>
+    <string name="multiplayer_more_options">Więcej opcji</string>
+    <string name="multiplayer_ip_copied">IP skopiowane</string>
+    <string name="multiplayer_server_address">Adres serwera</string>
+    <string name="chat">Czat</string>
+    <string name="type_message">Wpisz wiadomość…</string>
+    <string name="send">Wyślij</string>
+    <string name="send_message">Wyślij wiadomość</string>
+    <string name="multiplayer_moderation">Moderacja</string>
+    <string name="multiplayer_moderation_title">Lista banów</string>
+    <string name="multiplayer_no_bans">Brak zbanowanych</string>
+    <string name="multiplayer_unban_title">Odbanuj użytkownika</string>
+    <string name="multiplayer_unban">Odbanuj</string>
+    <string name="multiplayer_unban_message">Odbanować %1$s?</string>
+    <string name="multiplayer_ban">Zbanuj użytkownika</string>
+    <string name="emulation_multiplayer">Multiplayer</string>
+    <string name="cancel">Anuluj</string>
+    <string name="ok">OK</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Kolor motywu</string>
+    <string name="violet">Fioletowy (Domyślny)</string>
+    <string name="blue">Niebieski</string>
+    <string name="cyan">Cyjan</string>
+    <string name="red">Czerwony</string>
+    <string name="green">Zielony</string>
+    <string name="yellow">Żółty</string>
+    <string name="orange">Pomarańczowy</string>
+    <string name="pink">Różowy</string>
+    <string name="gray">Szary</string>
+
     <!-- Setup strings -->
     <string name="welcome">Witaj!</string>
-    <string name="welcome_description">Zobacz jak skonfigurować &lt;b>yuzu&lt;/b> i wskocz w świat emulacji.</string>
+    <string name="welcome_description">Zobacz jak skonfigurować &lt;b>Eden&lt;/b> i wskocz w świat emulacji.</string>
     <string name="get_started">Zaczynamy</string>
     <string name="keys">Klucze</string>
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
@@ -23,28 +201,35 @@
     <string name="add_games">Dodaj gry</string>
     <string name="add_games_description">Wybierz folder zawierający Twoje gry</string>
     <!-- Home strings -->
+    <string name="alphabetical">Alfabetycznie</string>
+    <string name="view_list">Lista</string>
+    <string name="view_grid">Siatka</string>
+    <string name="folder">Folder</string>
+    <string name="pre_alpha_warning_title">Oprogramowanie w fazie pre-alfa</string>
+    <string name="pre_alpha_warning_description">UWAGA: Ta wersja nie jest przeznaczona do publicznego udostępniania. Może zawierać błędy i niekompletne funkcje.\nJeśli masz do niej nieautoryzowany dostęp, zaleca się natychmiastową deinstalację.</string>
+    <string name="dont_show_again">Nie pokazuj ponownie</string>
+    <string name="pre_alpha_warning">OPROGRAMOWANIE PRE-ALFA; NIE PRZEZNACZONE DO PUBLICZNEGO UŻYTKU</string>
+    <string name="add_directory_success">Pomyślnie dodano nowy katalog gier</string>
     <string name="home_games">Gry</string>
     <string name="home_search">Szukaj</string>
     <string name="home_settings">Ustawienia</string>
     <string name="empty_gamelist">Nie znaleziono plików, lub nie wybrano jeszcze katalogu zawierającego gry.</string>
     <string name="search_and_filter_games">Szukaj i filtruj gry</string>
     <string name="select_games_folder">Wybierz folder z grami</string>
-    <string name="select_games_folder_description">Pozwala yuzu wygenerować listę gier</string>
+    <string name="select_games_folder_description">Pozwala Eden wygenerować listę gier</string>
     <string name="add_games_warning">Pominąć wybór folderu z grami?</string>
     <string name="add_games_warning_description">Aby pokazać listę gier wybierz katalog zawierający gry.</string>
-    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Szukaj gier</string>
     <string name="games_dir_selected">Wybrano katalog gier</string>
     <string name="install_prod_keys">Instaluj klucze prod.keys</string>
     <string name="install_prod_keys_description">Wymagane aby poprawnie odczytać sklepowe gry</string>
     <string name="install_prod_keys_warning">Pominąć dodawanie kluczy?</string>
     <string name="install_prod_keys_warning_description">Poprawne klucze są wymagane aby emulować sklepowe gry. Jeśli przejdziesz dalej, jedynie homebrew będą działać.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">Powiadomienia</string>
     <string name="notifications_description">Nadaj uprawnienia dostępu do powiadomień. </string>
     <string name="give_permission">Nadaj uprawnienia</string>
     <string name="notification_warning">Pominąć nadanie uprawnień powiadomień?</string>
-    <string name="notification_warning_description">yuzu nie będzie mógł powiadamiać Cię o ważnych informacjach.</string>
+    <string name="notification_warning_description">Eden nie będzie mógł powiadamiać Cię o ważnych informacjach.</string>
     <string name="permission_denied">Odmowa dostępu</string>
     <string name="permission_denied_description">Odmówiłeś dostępu do powiadomień zbyt wiele razy, teraz musisz przyznać je w ustawieniach systemowych Androida.</string>
     <string name="about">O aplikacji</string>
@@ -60,7 +245,6 @@
     <string name="install_prod_keys_failure_extension_description">Upewnij się że twoje klucze mają rozszerzenie .keys i spróbuj ponownie.</string>
     <string name="install_amiibo_keys_failure_extension_description">Upewnij się że twoje klucze mają rozszerzenie .bin i spróbuj ponownie.</string>
     <string name="invalid_keys_error">Niepoprawne klucze</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Wybrany plik jest niepoprawny lub uszkodzony. Zrzuć ponownie swoje klucze.</string>
     <string name="install_gpu_driver">Zainstaluj sterownik GPU</string>
     <string name="install_gpu_driver_description">Użyj alternatywnych sterowników aby potencjalnie zwiększyć wydajność i naprawić błędy</string>
@@ -70,7 +254,7 @@
     <string name="search_recently_added">Ostatnio dodane</string>
     <string name="search_retail">Sklepowe</string>
     <string name="search_homebrew">Homebrew</string>
-    <string name="open_user_folder">Otwórz folder yuzu</string>
+    <string name="open_user_folder">Otwórz folder Eden</string>
     <string name="open_user_folder_description">Zarządzaj plikami emulatora</string>
     <string name="theme_and_color_description">Personalizuj wygląd aplikacji</string>
     <string name="no_file_manager">Nie znaleziono menedżera plików</string>
@@ -90,29 +274,22 @@
     <string name="firmware_installed_success">Zainstalowano pomyślnie</string>
     <string name="firmware_installed_failure">Błąd podczas instalacji firmware</string>
     <string name="share_log">Udostępnij logi debugowania</string>
-    <string name="share_log_description">Podziel się logami yuzu, pomoże to twórcom w poprawie działania emulatora</string>
+    <string name="share_log_description">Podziel się logami Eden, pomoże to twórcom w poprawie działania emulatora</string>
     <string name="share_log_missing">Nie znaleziono plików logów</string>
     <string name="install_game_content">Zainstaluj zawartość gry</string>
     <string name="install_game_content_description">Zainstaluj aktualizację gry lub dodatek DLC</string>
-    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
-    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>
     <string name="copied_to_clipboard">Skopiowano do schowka</string>
     <string name="about_app_description">Otwarto-źródłowy emulator konsoli Switch</string>
     <string name="contributors">Współtwórcy</string>
-    <string name="contributors_description">Stworzone z \u2764 przez zespół yuzu</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
-    <string name="licenses_description">Projekty dzięki którym yuzu mógł zostać stworzony</string>
+    <string name="contributors_description">Stworzone z \u2764 przez zespół Eden</string>
+    <string name="licenses_description">Projekty dzięki którym Eden mógł zostać stworzony</string>
     <string name="build">Wersja</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">Wczesny dostęp</string>
-    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
     <string name="early_access_benefits">Korzyści z wcześniejszego dostępu</string>
     <string name="cutting_edge_features">Nowatorskie funkcje</string>
     <string name="early_access_updates">Częste aktualizacje</string>

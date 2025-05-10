@@ -6,9 +6,187 @@
     <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
 
+    <!-- Stats Overlay settings -->
+    <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
+    <string name="stats_overlay_customization">התאמה אישית</string>
+    <string name="stats_overlay_items">נראות</string>
+    <string name="stats_overlay_options">שכבה</string>
+    <string name="enable_stats_overlay_">הפעל סטטיסטיקות ביצועים</string>
+    <string name="stats_overlay_options_description">הגדר אילו פרטים יוצגו בשכבת הסטטיסטיקות</string>
+    <string name="show_fps">הצג FPS</string>
+    <string name="show_fps_description">מציג מספר פריימים לשנייה</string>
+    <string name="show_frametime">הצג זמן פריים</string>
+    <string name="show_frametime_description">מציג את זמן העיבוד לפריים</string>
+    <string name="show_speed">הצג מהירות</string>
+    <string name="show_speed_description">מציג את אחוז מהירות האמולציה</string>
+    <string name="show_app_ram_usage">הצג שימוש זיכרון</string>
+    <string name="show_app_ram_usage_description">מציג את כמות הזיכרון בשימוש על ידי האמולטור</string>
+    <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
+    <string name="show_system_ram_usage_description">מציג את כמות הזיכרון בשימוש על ידי המערכת</string>
+    <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
+    <string name="show_bat_temperature_description">מציג טמפרטורת סוללה במעלות צלזיוס ופרנהייט</string>
+    <string name="overlay_position">מיקום שכבה</string>
+    <string name="overlay_position_description">בחר היכן להציג את שכבת הסטטיסטיקות על המסך</string>
+    <string name="overlay_position_top_left">פינה עליונה שמאלית</string>
+    <string name="overlay_position_top_right">פינה עליונה ימנית</string>
+    <string name="overlay_position_bottom_left">פינה תחתונה שמאלית</string>
+    <string name="overlay_position_bottom_right">פינה תחתונה ימנית</string>
+    <string name="overlay_position_center_top">מרכז עליון</string>
+    <string name="overlay_position_center_bottom">מרכז תחתון</string>
+    <string name="overlay_background">רקע שכבה</string>
+    <string name="overlay_background_description">מוסיף רקע לשכבה לקריאה נוחה יותר</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">עדן וייל</string>
+    <string name="eden_veil_description">מעבר לברירת המחדל</string>
+    <string name="frame_skipping">בעבודה: דילוג פריימים</string>
+    <string name="frame_skipping_description">הפעלת דילוג פריימים לשיפור ביצועים על ידי הפחתת מספר הפריימים המרונדרים.</string>
+    <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
+    <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
+    <string name="use_lru_cache">הפעלת מטמון LRU</string>
+    <string name="use_lru_cache_description">הפעלה או כיבוי של מטמון LRU (Least Recently Used) לשיפור ביצועים. חלק מהמשחקים עשויים להתקשות עם זה, כמו TOTK 1.2.1.</string>
+    <string name="dyna_state">מצב דינמי מורחב</string>
+    <string name="dyna_state_description">מאפשר תכונות Vulkan לשיפור ביצועים, רינדור וחיסכון במשאבים תוך שמירה על שימוש נמוך ב-CPU/GPU. הרחבות אלו עשויות להעלות את טמפ` המכשיר, וכרטיסי מסך מסדרת A6XX הישנים יותר עשויים לא להגיב כראוי. הגדר ל-0 כדי להשתמש בפורמטים המדומים של Yuzu.</string>
+    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
+    <string name="dyna_state3_description">משפר ביצועים במכשירים חדשים יותר. נתמך רק בכרטיסי מסך עם Vulkan 1.3+.</string>
+    <string name="use_sync_core">סנכרון מהירות ליבה</string>
+    <string name="use_sync_core_description">מסנכרן את מהירות הליבה לאחוז המהירות המקסימלי כדי לשפר ביצועים ללא שינוי במהירות המשחק בפועל.</string>
+    <string name="use_auto_stub">שימוש ב-Auto Stub</string>
+    <string name="use_auto_stub_description">משלים אוטומטית שירותים ופונקציות חסרים. עשוי לשפר תאימות אך עלול לגרום לקריסות ובעיות יציבות.</string>
+    <string name="uninstall_firmware">הסרת קושחה</string>
+    <string name="uninstall_firmware_description">הסרת הקושחה תמחק אותה מהמכשיר ועלולה להשפיע על תאימות משחקים.</string>
+    <string name="firmware_uninstalling">מסיר קושחה...</string>
+    <string name="firmware_uninstalled_success">הקושחה הוסרה בהצלחה</string>
+    <string name="provoking_vertex">קודקוד מעורר</string>
+    <string name="provoking_vertex_description">משפר תאורה וטיפול בקודקודים במשחקים מסוימים. נתמך רק בכרטיסי מסך עם Vulkan 1.0+.</string>
+    <string name="descriptor_indexing">אינדוקס תיאורים</string>
+    <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
+
+    <!-- שיטת פענוח ASTC -->
+    <string name="accelerate_astc">שיטת פענוח ASTC</string>
+    <string name="accelerate_astc_description">בחר כיצד לפענח טקסטורות ASTC</string>
+    <string name="accelerate_astc_cpu">מעבד</string>
+    <string name="accelerate_astc_gpu">כרטיס מסך</string>
+    <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
+
+    <!-- שיטת דחיסת ASTC מחדש -->
+    <string name="astc_recompression">שיטת דחיסת ASTC</string>
+    <string name="astc_recompression_description">בחר כיצד לדחוס מחדש טקסטורות ASTC</string>
+    <string name="astc_recompression_uncompressed">לא דחוס</string>
+    <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
+    <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
+
+    <!-- מצב שימוש ב-VRAM -->
+    <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
+    <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
+    <string name="vram_usage_conservative">שמרני</string>
+    <string name="vram_usage_aggressive">אגרסיבי</string>
+
+    <!-- מנוע שיידרים -->
+    <string name="shader_backend">מנוע שיידרים</string>
+    <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- אמולציית NVDEC -->
+    <string name="nvdec_emulation">אמולציית NVDEC</string>
+    <string name="nvdec_emulation_description">בחר כיצד לטפל בפענוח וידאו</string>
+    <string name="nvdec_emulation_cpu">מעבד</string>
+    <string name="nvdec_emulation_gpu">כרטיס מסך</string>
+    <string name="nvdec_emulation_none">ללא</string>
+
+    <!-- אופטימיזציית SPIRV -->
+    <string name="renderer_optimize_spirv_output">אופטימיזציית SPIRV</string>
+    <string name="never">לעולם לא</string>
+    <string name="on_load">בטעינה</string>
+    <string name="always">תמיד</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">מרובה משתתפים</string>
+    <string name="multiplayer_description">ארח או הצטרף לחדר משחק</string>
+    <string name="multiplayer_room_title">חדר: %1$s</string>
+    <string name="multiplayer_console_id">מזהה קונסולה: %1$s</string>
+    <string name="multiplayer_create_room">צור</string>
+    <string name="multiplayer_join_room">הצטרף</string>
+    <string name="multiplayer_username">שם משתמש</string>
+    <string name="multiplayer_ip_address">כתובת IP</string>
+    <string name="multiplayer_ip_port">פורט</string>
+    <string name="multiplayer_create_room_success">החדר נוצר בהצלחה!</string>
+    <string name="multiplayer_join_room_success">הצטרפת לחדר בהצלחה!</string>
+    <string name="multiplayer_create_room_failed">יצירת חדר נכשלה!</string>
+    <string name="multiplayer_join_room_failed">הצטרפות לחדר נכשלה!</string>
+    <string name="multiplayer_input_invalid">כתובת לא תקינה או שם קצר מדי!</string>
+    <string name="multiplayer_port_invalid">פורט לא תקין!</string>
+    <string name="multiplayer_exit_room">צא מהחדר</string>
+    <string name="multiplayer_network_error">שגיאת רשת</string>
+    <string name="multiplayer_lost_connection">החיבור אבד</string>
+    <string name="multiplayer_name_collision">שם תפוס</string>
+    <string name="multiplayer_mac_collision">MAC תפוס</string>
+    <string name="multiplayer_console_id_collision">מזהה קונסולה תפוס</string>
+    <string name="multiplayer_wrong_version">גרסה לא תואמת</string>
+    <string name="multiplayer_wrong_password">סיסמה שגויה</string>
+    <string name="multiplayer_could_not_connect">לא ניתן להתחבר</string>
+    <string name="multiplayer_room_is_full">החדר מלא</string>
+    <string name="multiplayer_host_banned">מארח חסום</string>
+    <string name="multiplayer_permission_denied">הרשאה נדחתה</string>
+    <string name="multiplayer_no_such_user">משתמש לא קיים</string>
+    <string name="multiplayer_already_in_room">כבר בחדר</string>
+    <string name="multiplayer_create_room_error">שגיאה ביצירת חדר</string>
+    <string name="multiplayer_host_kicked">מארח הוסר</string>
+    <string name="multiplayer_unknown_error">שגיאה לא ידועה</string>
+    <string name="multiplayer_room_uninitialized">חדר לא מאותחל</string>
+    <string name="multiplayer_room_idle">חדר במצב המתנה</string>
+    <string name="multiplayer_room_joining">מצטרף לחדר</string>
+    <string name="multiplayer_room_joined">הצטרף לחדר</string>
+    <string name="multiplayer_room_moderator">מנהל חדר</string>
+    <string name="multiplayer_member_join">%1$s הצטרף</string>
+    <string name="multiplayer_member_leave">%1$s עזב</string>
+    <string name="multiplayer_member_kicked">%1$s הוסר</string>
+    <string name="multiplayer_member_banned">%1$s חסום</string>
+    <string name="multiplayer_address_unbanned">כתובת שוחררה מחסימה</string>
+    <string name="multiplayer_kick_member">הסר משתמש</string>
+    <string name="multiplayer_chat_input_hint">שלח הודעה...</string>
+    <string name="multiplayer_password">סיסמה</string>
+    <string name="original_button_text">הצטרף</string>
+    <string name="disabled_button_text">מצטרף...</string>
+    <string name="multiplayer_room_name">שם חדר</string>
+    <string name="multiplayer_room_name_invalid">שם חדר חייב להיות בין 3-20 תווים</string>
+    <string name="multiplayer_max_players">משתמשים מרביים (16)</string>
+    <string name="multiplayer_max_players_value">משתמשים מרביים: %d</string>
+    <string name="multiplayer_chat">צ\'אט</string>
+    <string name="multiplayer_more_options">אפשרויות נוספות</string>
+    <string name="multiplayer_ip_copied">כתובת IP הועתקה</string>
+    <string name="multiplayer_server_address">כתובת שרת</string>
+    <string name="chat">צ\'אט</string>
+    <string name="type_message">הקלד הודעה...</string>
+    <string name="send">שלח</string>
+    <string name="send_message">שלח הודעה</string>
+    <string name="multiplayer_moderation">ניהול</string>
+    <string name="multiplayer_moderation_title">רשימת חסומים</string>
+    <string name="multiplayer_no_bans">אין משתמשים חסומים</string>
+    <string name="multiplayer_unban_title">שחרור חסימה</string>
+    <string name="multiplayer_unban">שחרר</string>
+    <string name="multiplayer_unban_message">לשחרר את %1$s מחסימה?</string>
+    <string name="multiplayer_ban">חסום משתמש</string>
+    <string name="emulation_multiplayer">מרובה משתתפים</string>
+    <string name="cancel">ביטול</string>
+    <string name="ok">אישור</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">צבע ערכת עיצוב</string>
+    <string name="violet">סגול (ברירת מחדל)</string>
+    <string name="blue">כחול</string>
+    <string name="cyan">טורקיז</string>
+    <string name="red">אדום</string>
+    <string name="green">ירוק</string>
+    <string name="yellow">צהוב</string>
+    <string name="orange">כתום</string>
+    <string name="pink">ורוד</string>
+    <string name="gray">אפור</string>
+
     <!-- Setup strings -->
     <string name="welcome">ברוכים הבאים!</string>
-    <string name="welcome_description">למד איך להפעיל &lt;b>yuzu&lt;/b> וקפוץ ישר לאמולציה.</string>
+    <string name="welcome_description">למד איך להפעיל &lt;b>Eden&lt;/b> וקפוץ ישר לאמולציה.</string>
     <string name="get_started">כדי להתחיל</string>
     <string name="keys">מפתחות</string>
     <string name="keys_description">בחר את קובץ ה &lt;b>prod.keys&lt;/b> שלך עם הכפתור למטה.</string>
@@ -25,6 +203,15 @@
     <string name="step_complete">הושלם!</string>
 
     <!-- Home strings -->
+    <string name="alphabetical">אלפביתי</string>
+    <string name="view_list">רשימה</string>
+    <string name="view_grid">רשת</string>
+    <string name="folder">תיקייה</string>
+    <string name="pre_alpha_warning_title">תוכנת טרום-אלפא</string>
+    <string name="pre_alpha_warning_description">אזהרה: גרסה זו אינה מיועדת לשימוש ציבורי. התוכנה בשלבי פיתוח מוקדמים ועלולה להכיל באגים.</string>
+    <string name="dont_show_again">אל תציג שוב</string>
+    <string name="pre_alpha_warning">תוכנת טרום-אלפא - לא לשימוש ציבורי</string>
+    <string name="add_directory_success">תיקיית משחקים נוספה בהצלחה</string>
     <string name="home_games">משחקים</string>
     <string name="home_search">חפש</string>
     <string name="home_settings">הגדרות</string>
@@ -32,10 +219,9 @@
     <string name="search_and_filter_games">חפש וסנן משחקים</string>
     <string name="select_games_folder">בחר תיקיית משחקים</string>
     <string name="manage_game_folders">נהל את תיקיית המשחקים</string>
-    <string name="select_games_folder_description">אפשר ל yuzu  לאכלס את רשימת המשחקים</string>
+    <string name="select_games_folder_description">אפשר ל Eden  לאכלס את רשימת המשחקים</string>
     <string name="add_games_warning">לדלג על בחירת תיקיית המשחקים?</string>
     <string name="add_games_warning_description">משחקים לא יוצגו ברשימת המשחקים  אם לנבחרה תיקיית משחקים.</string>
-    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">חפש משחקים</string>
     <string name="search_settings">חפש בהגדרות</string>
     <string name="games_dir_selected">ספריית משחקים נבחרה</string>
@@ -43,12 +229,11 @@
     <string name="install_prod_keys_description">הכרחי בכדי לפענח משחקים</string>
     <string name="install_prod_keys_warning">לדלג על הוספת מפתחות?</string>
     <string name="install_prod_keys_warning_description">מפתחות חוקיים הכרחיים כדי לשחק במשחקים. רק אפליקציות פירטיות יפעלו אם תמשיך.</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">התראות</string>
     <string name="notifications_description">תן גישה להתראות עם הכפתור למטה.</string>
     <string name="give_permission">תן הרשאה</string>
     <string name="notification_warning">דלג על מתן הרשאה להתראות?</string>
-    <string name="notification_warning_description">yuzu  לא יוכל להתריע לך על מידע חשוב.</string>
+    <string name="notification_warning_description">Eden  לא יוכל להתריע לך על מידע חשוב.</string>
     <string name="permission_denied">הרשאה נדחתה</string>
     <string name="permission_denied_description">את/ה דיחת את ההרשאה יותר מדי פעמים ועכשיו את/ה צריך/ה לתת גישה באופן ידני בהגדרות.</string>
     <string name="about">אודות</string>
@@ -64,7 +249,6 @@
     <string name="install_prod_keys_failure_extension_description">ודא שלקובץ המפתחות שלך יש סיומת של key. ונסה/י שוב.</string>
     <string name="install_amiibo_keys_failure_extension_description">ודא/י שלקובץ המפתחות שלך יש סיומת של bin. ונסה/י שוב.</string>
     <string name="invalid_keys_error">מפתחות הצפנה לא חוקיים</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">קבוץ שנבחר מושחת או לא נכון. בבקשה הוצא מחדש את המפתחות שלך.</string>
     <string name="gpu_driver_manager">מנהל הדרייברים של המעבד הגרפי</string>
     <string name="install_gpu_driver">התקן דרייבר למעבד הגרפי</string>
@@ -76,11 +260,11 @@
     <string name="search_recently_added">הוסף לאחרונה</string>
     <string name="search_retail">קמעונאי</string>
     <string name="search_homebrew">Homebrew</string>
-    <string name="open_user_folder">פתח את תיקיית yuzu </string>
-    <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של yuzu</string>
+    <string name="open_user_folder">פתח את תיקיית Eden </string>
+    <string name="open_user_folder_description">נה ל את הקבצים הפנימיין של Eden</string>
     <string name="theme_and_color_description">ערוך את נראות האפליקציה</string>
     <string name="no_file_manager">לא נמצא מנהל קבצים</string>
-    <string name="notification_no_directory_link">לא יכול לפתוח את ספריית yuzu</string>
+    <string name="notification_no_directory_link">לא יכול לפתוח את ספריית Eden</string>
     <string name="notification_no_directory_link_description">בבקשה מקם את תיקיית המשתמש בפנל הצידי של מנהל הקבצים באופן ידני.</string>
     <string name="manage_save_data">נהל  מידע שמור</string>
     <string name="manage_save_data_description">מידע שמור לא נמצא. בבקשה בחר/י אופציה מלמטה</string>
@@ -101,7 +285,7 @@
     <string name="firmware_installed_failure">התקנת ה frimware  נכשלה</string>
     <string name="firmware_installed_failure_description">ודא שקבצי ה firmware nca נמצאים בשורש ה zip ונסה שוב.</string>
     <string name="share_log">שתף  את יומני הרישום של מיפוי הבאגים</string>
-    <string name="share_log_description">שתף את קובץ יומני הרישום של yuzu בכדי לתקן בעיות</string>
+    <string name="share_log_description">שתף את קובץ יומני הרישום של Eden בכדי לתקן בעיות</string>
     <string name="share_log_missing">לא נמצא קובץ יומן רישום</string>
     <string name="install_game_content">התקן תוכן משחק</string>
     <string name="install_game_content_description">התקן עדכוני משחק או DLC</string>
@@ -114,10 +298,9 @@
     <string name="install_game_content_success">תוכן (או תכני) המשחק הותקנו בהצלחה</string>
     <string name="install_game_content_success_install">%1$d הותקן בהצלחה</string>
     <string name="install_game_content_success_overwrite">%1$d נדרס/נכתב מעל בהצלחה</string>
-    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">דרייברים מותאמים אישית לא נתמכים</string>
     <string name="custom_driver_not_supported_description">הטענת דרייבים מותאמים אישית לא נתמך כרגע על מכשיר זה. \nבבקשה בדוק אופציה זו בעתיד בכדי לראות אם נוספה תמיכה!</string>
-    <string name="manage_yuzu_data">נהל את המידע של yuzu</string>
+    <string name="manage_yuzu_data">נהל את המידע של Eden</string>
     <string name="manage_yuzu_data_description">יבא/יצא firmware, keys, מידע של משתמש ועוד!</string>
     <string name="share_save_file">שתף קובץ שמירה</string>
     <string name="export_save_failed">נכשל בייצוא שמירה</string>
@@ -126,7 +309,6 @@
     <string name="add_game_folder">הוסף תיקיית משחקים</string>
     <string name="folder_already_added">התיקייה הזו נוספה כבר!</string>
     <string name="game_folder_properties">מאפייני תיקיית משחקים</string>
-    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">משגר Applet</string>
@@ -151,27 +333,22 @@
     <string name="copied_to_clipboard">הועתק ללוח</string>
     <string name="about_app_description">אמולטור Switch עם קוד פתוח</string>
     <string name="contributors">תורמים</string>
-    <string name="contributors_description">נוצר עם \u2764 מקבוצת yuzu</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
-    <string name="licenses_description">פרוייקטים שהופכים את yuzu ל Android אפשרי</string>
+    <string name="contributors_description">נוצר עם \u2764 מקבוצת Eden</string>
+    <string name="licenses_description">פרוייקטים שהופכים את Eden ל Android אפשרי</string>
     <string name="build">גרסה</string>
     <string name="user_data">נתוני משתמש</string>
     <string name="user_data_description">יבא/יצא את כל נתוני האפליקציה.\n\nכאשר מייבאים את נתוני המשתמש, כל נתוני המשתמש הקיימים ימחקו!</string>
     <string name="exporting_user_data">מייצא נתוני משתמש...</string>
     <string name="importing_user_data">מייבא נתוני משתמש...</string>
     <string name="import_user_data">יבא נתוני משתמש</string>
-    <string name="invalid_yuzu_backup">גיבוי yuzu לא חוקי</string>
+    <string name="invalid_yuzu_backup">גיבוי Eden לא חוקי</string>
     <string name="user_data_export_success">נתוני משתמש יוצאו בהצלחה</string>
     <string name="user_data_import_success">נתוני משתמש יובאו בהצלחה</string>
     <string name="user_data_export_cancelled">ייצוא בוטל</string>
     <string name="user_data_import_failed_description">ודא שנתוני המשתמש נמצאים בשורש קובץ ה zip ושהוא מכיל קובץ סידור ב config/config.ini ונסה שוב.</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">גישה מוקדמת</string>
-    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
     <string name="early_access_benefits">יתרונות של גישה מקודמת</string>
     <string name="cutting_edge_features">תכונות חותכות קצה</string>
     <string name="early_access_updates">גישה מוקדמת לעדכונים</string>

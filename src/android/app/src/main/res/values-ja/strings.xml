@@ -6,9 +6,187 @@
     <string name="notice_notification_channel_description">問題の発生時に通知を表示します。</string>
     <string name="notification_permission_not_granted">通知が許可されていません!</string>
 
+    <!-- Stats Overlay settings -->
+    <string name="show_stats_overlay">パフォーマンス統計オーバーレイを表示</string>
+    <string name="stats_overlay_customization">カスタマイズ</string>
+    <string name="stats_overlay_items">表示項目</string>
+    <string name="stats_overlay_options">オーバーレイ</string>
+    <string name="enable_stats_overlay_">パフォーマンス統計オーバーレイを有効化</string>
+    <string name="stats_overlay_options_description">オーバーレイに表示する情報を設定</string>
+    <string name="show_fps">FPS表示</string>
+    <string name="show_fps_description">現在のフレームレートを表示</string>
+    <string name="show_frametime">フレーム時間表示</string>
+    <string name="show_frametime_description">現在のフレーム時間を表示</string>
+    <string name="show_speed">速度表示</string>
+    <string name="show_speed_description">現在のエミュレーション速度を表示</string>
+    <string name="show_app_ram_usage">アプリRAM使用量</string>
+    <string name="show_app_ram_usage_description">エミュレータのRAM使用量を表示</string>
+    <string name="show_system_ram_usage">システムRAM使用量</string>
+    <string name="show_system_ram_usage_description">システムのRAM使用量を表示</string>
+    <string name="show_bat_temperature">バッテリー温度</string>
+    <string name="show_bat_temperature_description">バッテリー温度を表示（℃/℉）</string>
+    <string name="overlay_position">オーバーレイ位置</string>
+    <string name="overlay_position_description">オーバーレイの表示位置を設定</string>
+    <string name="overlay_position_top_left">左上</string>
+    <string name="overlay_position_top_right">右上</string>
+    <string name="overlay_position_bottom_left">左下</string>
+    <string name="overlay_position_bottom_right">右下</string>
+    <string name="overlay_position_center_top">中央上</string>
+    <string name="overlay_position_center_bottom">中央下</string>
+    <string name="overlay_background">オーバーレイ背景</string>
+    <string name="overlay_background_description">オーバーレイの背景を表示</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">エデンのベール</string>
+    <string name="eden_veil_description">デフォルトを超えて</string>
+    <string name="frame_skipping">WIP: フレームスキップ</string>
+    <string name="frame_skipping_description">フレームスキップを有効にすると、レンダリングするフレーム数を減らしてパフォーマンスを向上させます。</string>
+    <string name="frame_interpolation">高度なフレーム同期</string>
+    <string name="frame_interpolation_description">フレーム間のタイミングを同期させることで、スムーズで一貫したフレーム配信を確保し、カクつきや不均一なアニメーションを軽減します。フレームタイミングの不安定さやマイクロスタッターが発生するゲームに最適です。</string>
+    <string name="use_lru_cache">LRUキャッシュを有効化</string>
+    <string name="use_lru_cache_description">パフォーマンス向上のためLRU（Least Recently Used）キャッシュを有効または無効にします。TOTK 1.2.1など一部のゲームで問題が発生する可能性があります</string>
+    <string name="dyna_state">拡張ダイナミックステート</string>
+    <string name="dyna_state_description">Vulkan機能を有効にしてパフォーマンスとレンダリングを向上させ、パイプライン作成時のリソースを節約しながらCPU/GPU使用率を低く保ちます。これらの拡張機能はデバイスの温度を上昇させる可能性があり、古いA6XXシリーズのGPUでは正しく反応しない場合があります。Yuzuのエミュレート形式を使用するには0に設定します。</string>
+    <string name="dyna_state3">EDS3 + 頂点入力動的状態</string>
+    <string name="dyna_state3_description">新しいデバイスでパフォーマンスを向上させます。Vulkan 1.3+ GPUでのみサポートされています。</string>
+    <string name="use_sync_core">コア速度の同期</string>
+    <string name="use_sync_core_description">コアの動作速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変更することなくパフォーマンスを向上させます。</string>
+    <string name="use_auto_stub">自動スタブを使用</string>
+    <string name="use_auto_stub_description">不足しているサービスや機能を自動的にスタブします。互換性が向上する可能性がありますが、クラッシュや安定性の問題を引き起こす可能性があります。</string>
+    <string name="uninstall_firmware">ファームウェアをアンインストール</string>
+    <string name="uninstall_firmware_description">ファームウェアをアンインストールするとデバイスから削除され、ゲームの互換性に影響する可能性があります。</string>
+    <string name="firmware_uninstalling">ファームウェアをアンインストール中...</string>
+    <string name="firmware_uninstalled_success">ファームウェアのアンインストールが成功しました</string>
+    <string name="provoking_vertex">プロボーキング頂点</string>
+    <string name="provoking_vertex_description">特定のゲームで照明と頂点処理を改善します。Vulkan 1.0+ GPUでのみサポートされています。</string>
+    <string name="descriptor_indexing">ディスクリプタインデキシング</string>
+    <string name="descriptor_indexing_description">テクスチャとバッファの処理、およびMaxwell翻訳レイヤーを改善します。一部のVulkan 1.1 GPUとすべてのVulkan 1.2+ GPUでサポートされています。</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTCデコード方法</string>
+    <string name="accelerate_astc_description">ASTCテクスチャのデコード方法</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU非同期</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC再圧縮方法</string>
+    <string name="astc_recompression_description">ASTCテクスチャの再圧縮方法</string>
+    <string name="astc_recompression_uncompressed">非圧縮</string>
+    <string name="astc_recompression_bc1">BC1（低品質）</string>
+    <string name="astc_recompression_bc3">BC3（中品質）</string>
+
+    <!-- VRAM Usage Mode -->
+    <string name="vram_usage_mode">VRAM使用モード</string>
+    <string name="vram_usage_mode_description">VRAMの使用効率を設定</string>
+    <string name="vram_usage_conservative">保守的</string>
+    <string name="vram_usage_aggressive">積極的</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">シェーダーバックエンド</string>
+    <string name="shader_backend_description">シェーダーのコンパイル方法</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">NVDECエミュレーション</string>
+    <string name="nvdec_emulation_description">ビデオデコード方法</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">無効</string>
+
+    <!-- Optimize SPIRV output -->
+    <string name="renderer_optimize_spirv_output">SPIRV最適化</string>
+    <string name="never">無効</string>
+    <string name="on_load">ロード時</string>
+    <string name="always">常に</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">マルチプレイヤー</string>
+    <string name="multiplayer_description">オンラインでマルチプレイ</string>
+    <string name="multiplayer_room_title">ルーム: %1$s</string>
+    <string name="multiplayer_console_id">コンソールID：%1$s</string>
+    <string name="multiplayer_create_room">作成</string>
+    <string name="multiplayer_join_room">参加</string>
+    <string name="multiplayer_username">ユーザー名</string>
+    <string name="multiplayer_ip_address">IPアドレス</string>
+    <string name="multiplayer_ip_port">ポート</string>
+    <string name="multiplayer_create_room_success">ルーム作成成功</string>
+    <string name="multiplayer_join_room_success">参加成功</string>
+    <string name="multiplayer_create_room_failed">ルーム作成失敗</string>
+    <string name="multiplayer_join_room_failed">参加失敗</string>
+    <string name="multiplayer_input_invalid">無効な入力</string>
+    <string name="multiplayer_port_invalid">無効なポート</string>
+    <string name="multiplayer_exit_room">退出</string>
+    <string name="multiplayer_network_error">ネットワークエラー</string>
+    <string name="multiplayer_lost_connection">接続切断</string>
+    <string name="multiplayer_name_collision">名前重複</string>
+    <string name="multiplayer_mac_collision">MAC重複</string>
+    <string name="multiplayer_console_id_collision">コンソールID重複</string>
+    <string name="multiplayer_wrong_version">バージョン不一致</string>
+    <string name="multiplayer_wrong_password">パスワード誤り</string>
+    <string name="multiplayer_could_not_connect">接続不可</string>
+    <string name="multiplayer_room_is_full">ルーム満員</string>
+    <string name="multiplayer_host_banned">ホストBAN</string>
+    <string name="multiplayer_permission_denied">権限不足</string>
+    <string name="multiplayer_no_such_user">ユーザー不在</string>
+    <string name="multiplayer_already_in_room">既に参加中</string>
+    <string name="multiplayer_create_room_error">ルーム作成エラー</string>
+    <string name="multiplayer_host_kicked">ホスト退出</string>
+    <string name="multiplayer_unknown_error">不明なエラー</string>
+    <string name="multiplayer_room_uninitialized">ルーム未初期化</string>
+    <string name="multiplayer_room_idle">ルーム待機中</string>
+    <string name="multiplayer_room_joining">参加中</string>
+    <string name="multiplayer_room_joined">参加済み</string>
+    <string name="multiplayer_room_moderator">モデレーター</string>
+    <string name="multiplayer_member_join">%1$sが参加</string>
+    <string name="multiplayer_member_leave">%1$sが退出</string>
+    <string name="multiplayer_member_kicked">%1$sをキック</string>
+    <string name="multiplayer_member_banned">%1$sをBAN</string>
+    <string name="multiplayer_address_unbanned">BAN解除</string>
+    <string name="multiplayer_kick_member">キック</string>
+    <string name="multiplayer_chat_input_hint">メッセージを送信……</string>
+    <string name="multiplayer_password">パスワード</string>
+    <string name="original_button_text">参加</string>
+    <string name="disabled_button_text">参加中...</string>
+    <string name="multiplayer_room_name">ルーム名</string>
+    <string name="multiplayer_room_name_invalid">ルーム名は3-20文字</string>
+    <string name="multiplayer_max_players">最大人数 (16)</string>
+    <string name="multiplayer_max_players_value">最大人数: %d</string>
+    <string name="multiplayer_chat">チャット</string>
+    <string name="multiplayer_more_options">詳細設定</string>
+    <string name="multiplayer_ip_copied">IPコピー済み</string>
+    <string name="multiplayer_server_address">サーバーアドレス</string>
+    <string name="chat">チャット</string>
+    <string name="type_message">メッセージ入力……</string>
+    <string name="send">送信</string>
+    <string name="send_message">メッセージ送信</string>
+    <string name="multiplayer_moderation">管理</string>
+    <string name="multiplayer_moderation_title">BANリスト</string>
+    <string name="multiplayer_no_bans">BANユーザー無し</string>
+    <string name="multiplayer_unban_title">BAN解除</string>
+    <string name="multiplayer_unban">解除</string>
+    <string name="multiplayer_unban_message">%1$sをBAN解除しますか？</string>
+    <string name="multiplayer_ban">BAN</string>
+    <string name="emulation_multiplayer">マルチプレイヤー</string>
+    <string name="cancel">キャンセル</string>
+    <string name="ok">OK</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">テーマカラー</string>
+    <string name="violet">紫（デフォルト）</string>
+    <string name="blue">青</string>
+    <string name="cyan">シアン</string>
+    <string name="red">赤</string>
+    <string name="green">緑</string>
+    <string name="yellow">黄</string>
+    <string name="orange">オレンジ</string>
+    <string name="pink">ピンク</string>
+    <string name="gray">グレー</string>
+
     <!-- Setup strings -->
     <string name="welcome">ようこそ!</string>
-    <string name="welcome_description">&lt;b>yuzu&lt;/b> のセットアップ方法を学び、エミュレーションに飛び込みましょう。</string>
+    <string name="welcome_description">&lt;b>Eden&lt;/b> のセットアップ方法を学び、エミュレーションに飛び込みましょう。</string>
     <string name="get_started">はじめる</string>
     <string name="keys">キー</string>
     <string name="keys_description">下のボタンから &lt;b>prod.keys&lt;/b> ファイルを選択してください。</string>
@@ -25,16 +203,24 @@
     <string name="step_complete">完了!</string>
 
     <!-- Home strings -->
+    <string name="alphabetical">アルファベット順</string>
+    <string name="view_list">リスト表示</string>
+    <string name="view_grid">グリッド表示</string>
+    <string name="folder">フォルダ</string>
+    <string name="pre_alpha_warning_title">プレアルファ版</string>
+    <string name="pre_alpha_warning_description">警告: このビルドは公開用ではありません。プレアルファ段階でバグや未実装機能が含まれます。\n不正に入手した場合は直ちにアンインストールしてください</string>
+    <string name="dont_show_again">再表示しない</string>
+    <string name="pre_alpha_warning">プレアルファ版 - 一般公開用ではありません</string>
+    <string name="add_directory_success">ゲームディレクトリを追加しました</string>
     <string name="home_games">ゲーム</string>
     <string name="home_search">検索</string>
     <string name="home_settings">設定</string>
     <string name="empty_gamelist">ファイルが存在しないかゲームフォルダが選択されていません。</string>
     <string name="search_and_filter_games">ゲームの検索と絞り込み</string>
     <string name="select_games_folder">ゲームフォルダ</string>
-    <string name="select_games_folder_description">ゲームをyuzuのゲームリストに追加します</string>
+    <string name="select_games_folder_description">ゲームをEdenのゲームリストに追加します</string>
     <string name="add_games_warning">ゲームフォルダの選択をスキップしますか?</string>
     <string name="add_games_warning_description">フォルダを選択しないと、ゲームがリストに表示されません。</string>
-    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">ゲームを検索</string>
     <string name="search_settings">設定を検索</string>
     <string name="games_dir_selected">フォルダを選択しました</string>
@@ -42,12 +228,11 @@
     <string name="install_prod_keys_description">製品版ゲームの復号化に必要です</string>
     <string name="install_prod_keys_warning">キーの追加をスキップしますか？</string>
     <string name="install_prod_keys_warning_description">製品版ゲームのエミュレーションには、有効なキーが必要です。続行すると自作アプリしか機能しません。</string>
-    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">下のボタンで通知を許可してください。</string>
     <string name="give_permission">許可</string>
     <string name="notification_warning">通知の許可をスキップしますか？</string>
-    <string name="notification_warning_description">yuzuは重要なお知らせを通知できません。</string>
+    <string name="notification_warning_description">Edenは重要なお知らせを通知できません。</string>
     <string name="permission_denied">権限が拒否されました</string>
     <string name="permission_denied_description">この権限を複数回拒否したため、設定から手動で許可する必要があります。</string>
     <string name="about">情報</string>
@@ -63,7 +248,6 @@
     <string name="install_prod_keys_failure_extension_description">キーの拡張子が.keysであることを確認し、再度お試しください。</string>
     <string name="install_amiibo_keys_failure_extension_description">キーの拡張子が.binであることを確認し、再度お試しください。</string>
     <string name="invalid_keys_error">暗号化キーが無効</string>
-    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">ファイルが間違っているか破損しています。キーを再ダンプしてください。</string>
     <string name="gpu_driver_manager">GPUドライバーの管理</string>
     <string name="install_gpu_driver">GPUドライバー</string>
@@ -75,11 +259,11 @@
     <string name="search_recently_added">最近追加された</string>
     <string name="search_retail">製品版</string>
     <string name="search_homebrew">自作</string>
-    <string name="open_user_folder">yuzu フォルダを開く</string>
-    <string name="open_user_folder_description">yuzu内部のファイルを管理します</string>
+    <string name="open_user_folder">Eden フォルダを開く</string>
+    <string name="open_user_folder_description">Eden内部のファイルを管理します</string>
     <string name="theme_and_color_description">アプリの見た目を変更</string>
     <string name="no_file_manager">ファイルマネージャーが見つかりませんでした</string>
-    <string name="notification_no_directory_link">yuzuのディレクトリを開けません</string>
+    <string name="notification_no_directory_link">Edenのディレクトリを開けません</string>
     <string name="notification_no_directory_link_description">ファイルマネージャのサイドパネルでユーザーフォルダを手動で探してください。</string>
     <string name="manage_save_data">セーブデータ</string>
     <string name="manage_save_data_description">セーブデータが見つかりました。操作を選択してください。</string>
@@ -97,7 +281,7 @@
     <string name="firmware_installed_success">インストールが完了しました</string>
     <string name="firmware_installed_failure">インストール失敗</string>
     <string name="share_log">デバッグログ</string>
-    <string name="share_log_description">yuzuのログファイルを共有して問題をデバッグします</string>
+    <string name="share_log_description">Edenのログファイルを共有して問題をデバッグします</string>
     <string name="share_log_missing">ログが見つかりません</string>
     <string name="install_game_content">追加コンテンツ</string>
     <string name="install_game_content_description">更新データやDLCをインストールします</string>
@@ -107,11 +291,9 @@
     <string name="install_game_content_success">ゲームコンテンツのインストールに成功しました</string>
     <string name="install_game_content_success_install">%1$d のインストールに成功しました</string>
     <string name="install_game_content_success_overwrite">%1$d の上書きに成功しました</string>
-    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">カスタムドライバはサポートされていません</string>
-    <string name="manage_yuzu_data">yuzu データを管理</string>
+    <string name="manage_yuzu_data">Eden データを管理</string>
     <string name="share_save_file">セーブファイルを共有</string>
-    <string name="keys_missing_help">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
 
     <string name="applets_error_firmware">ファームウェア未インストール</string>
     <string name="album_applet">アルバム</string>
@@ -121,9 +303,8 @@
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="about_app_description">オープンソースのSwitchエミュレータ</string>
     <string name="contributors">貢献者</string>
-    <string name="contributors_description">yuzuチームの\u2764で作られた</string>
-    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
-    <string name="licenses_description">yuzu for Androidの作成を可能にしたプロジェクト</string>
+    <string name="contributors_description">Edenチームの\u2764で作られた</string>
+    <string name="licenses_description">Eden for Androidの作成を可能にしたプロジェクト</string>
     <string name="build">ビルド</string>
     <string name="user_data">ユーザデータ</string>
     <string name="exporting_user_data">ユーザデータをエクスポート中...</string>
@@ -132,13 +313,9 @@
     <string name="user_data_export_success">ユーザデータのエクスポートに成功しました</string>
     <string name="user_data_import_success">ユーザデータのインポートに成功しました</string>
     <string name="user_data_export_cancelled">エクスポートをキャンセルしました</string>
-    <string name="support_link">https://discord.gg/u77vRWY</string>
-    <string name="website_link">https://yuzu-emu.org/</string>
-    <string name="github_link">https://github.com/yuzu-emu</string>
 
     <!-- Early access upgrade strings -->
     <string name="early_access">早期アクセス</string>
-    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
     <string name="early_access_benefits">早期アクセスのメリット</string>
     <string name="cutting_edge_features">最先端の機能</string>
     <string name="early_access_updates">アップデートへの早期アクセス</string>

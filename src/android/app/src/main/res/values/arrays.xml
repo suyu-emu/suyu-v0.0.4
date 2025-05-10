@@ -357,15 +357,15 @@
     </integer-array>
 
     <string-array name="staticThemeNames">
-        <item>Violet (Default)</item>
-        <item>Blue</item>
-        <item>Cyan</item>
-        <item>Red</item>
-        <item>Green</item>
-        <item>Yellow</item>
-        <item>Orange</item>
-        <item>Pink</item>
-        <item>Gray</item>
+        <item>@string/violet</item>
+        <item>@string/blue</item>
+        <item>@string/cyan</item>
+        <item>@string/red</item>
+        <item>@string/green</item>
+        <item>@string/yellow</item>
+        <item>@string/orange</item>
+        <item>@string/pink</item>
+        <item>@string/gray</item>
     </string-array>
     <integer-array name="staticThemeValues">
         <item>0</item>

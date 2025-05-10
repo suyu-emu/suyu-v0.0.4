@@ -39,6 +39,141 @@
     <string name="overlay_background">Overlay Background</string>
     <string name="overlay_background_description">Adds a background behind the overlay for easier reading</string>
 
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">Eden’s Veil</string>
+    <string name="eden_veil_description">Beyond default</string>
+    <string name="frame_skipping">WIP: Frameskip</string>
+    <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames.</string>
+    <string name="frame_interpolation">Enhanced Frame Pacing</string>
+    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutter during gameplay</string>
+    <string name="use_lru_cache">Enable LRU Cache</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache for improved performance, some games have issue with it, e.g TOTK 1.2.1</string>
+    <string name="dyna_state">Extended Dynamic State</string>
+    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Yuzu emulated formats.</string>
+    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
+    <string name="dyna_state3_description">Improves performance on newer devices. Only supported on Vulkan 1.3+ GPUs.</string>
+    <string name="use_sync_core">Synchronize Core Speed</string>
+    <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the games actual speed.</string>
+    <string name="use_auto_stub">Use Auto Stub</string>
+    <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
+    <string name="uninstall_firmware">Uninstall firmware</string>
+    <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
+    <string name="firmware_uninstalling">Uninstalling firmware</string>
+    <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
+    <string name="provoking_vertex">Provoking Vertex</string>
+    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
+    <string name="descriptor_indexing">Descriptor Indexing</string>
+    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">ASTC Decoding Method</string>
+    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering.</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+    <string name="accelerate_astc_async">CPU Asynchronously</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">ASTC Recompression Method</string>
+    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance.</string>
+    <string name="astc_recompression_uncompressed">Uncompressed</string>
+    <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
+    <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
+
+    <!-- VRAM Usage Mode -->
+    <string name="vram_usage_mode">VRAM Usage Mode</string>
+    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
+    <string name="vram_usage_conservative">Conservative</string>
+    <string name="vram_usage_aggressive">Aggressive</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">Shader Backend</string>
+    <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_spirv">SPIR-V</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">NVDEC Emulation</string>
+    <string name="nvdec_emulation_description">Select how video decoding (NVDEC) is handled during cutscenes and intros.</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_none">None</string>
+
+    <!-- Optimize SPIRV output -->
+    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
+    <string name="never">Never</string>
+    <string name="on_load">On Load</string>
+    <string name="always">Always</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Multiplayer</string>
+    <string name="multiplayer_description">Host your own game room or join an existing one to play with people</string>
+    <string name="multiplayer_room_title">Room: %1$s</string>
+    <string name="multiplayer_console_id">Console ID: %1$s</string>
+    <string name="multiplayer_create_room">Create</string>
+    <string name="multiplayer_join_room">Join</string>
+    <string name="multiplayer_username">Username</string>
+    <string name="multiplayer_ip_address">IP Address</string>
+    <string name="multiplayer_ip_port">Port</string>
+    <string name="multiplayer_create_room_success">Room created successfully!</string>
+    <string name="multiplayer_join_room_success">Join the room successfully!</string>
+    <string name="multiplayer_create_room_failed">Failed to create room!</string>
+    <string name="multiplayer_join_room_failed">Failed to join room!</string>
+    <string name="multiplayer_input_invalid">Invalid address or name is too short!</string>
+    <string name="multiplayer_port_invalid">Invalid port!</string>
+    <string name="multiplayer_exit_room">Exit Room</string>
+    <string name="multiplayer_network_error">Network error</string>
+    <string name="multiplayer_lost_connection">Lost connection</string>
+    <string name="multiplayer_name_collision">Name collision</string>
+    <string name="multiplayer_mac_collision">Mac collision</string>
+    <string name="multiplayer_console_id_collision">Console ID collision</string>
+    <string name="multiplayer_wrong_version">Wrong version</string>
+    <string name="multiplayer_wrong_password">Wrong password</string>
+    <string name="multiplayer_could_not_connect">Could not connect</string>
+    <string name="multiplayer_room_is_full">Room is full</string>
+    <string name="multiplayer_host_banned">Host banned</string>
+    <string name="multiplayer_permission_denied">Permission denied</string>
+    <string name="multiplayer_no_such_user">No such user</string>
+    <string name="multiplayer_already_in_room">Already in room</string>
+    <string name="multiplayer_create_room_error">Create room error</string>
+    <string name="multiplayer_host_kicked">Host kicked</string>
+    <string name="multiplayer_unknown_error">unknown error</string>
+    <string name="multiplayer_room_uninitialized">Room uninitialized</string>
+    <string name="multiplayer_room_idle">Room idle</string>
+    <string name="multiplayer_room_joining">Room joining</string>
+    <string name="multiplayer_room_joined">Room joined</string>
+    <string name="multiplayer_room_moderator">Room moderator</string>
+    <string name="multiplayer_member_join">%1$s joined</string>
+    <string name="multiplayer_member_leave">%1$s left</string>
+    <string name="multiplayer_member_kicked">%1$s kicked</string>
+    <string name="multiplayer_member_banned">%1$s banned</string>
+    <string name="multiplayer_address_unbanned">address unbanned</string>
+    <string name="multiplayer_kick_member">Kick Out</string>
+    <string name="multiplayer_chat_input_hint">Send messages……</string>
+    <string name="multiplayer_password">Password</string>
+    <string name="original_button_text">Join</string>
+    <string name="disabled_button_text">Joining...</string>
+    <string name="multiplayer_room_name">Room Name</string>
+    <string name="multiplayer_room_name_invalid">Room name must be between 3 and 20 characters</string>
+    <string name="multiplayer_max_players">Max Players (16)</string>
+    <string name="multiplayer_max_players_value">Max Players: %d</string>
+    <string name="multiplayer_chat">Chat</string>
+    <string name="multiplayer_more_options">More Options</string>
+    <string name="multiplayer_ip_copied">IP Address copied to clipboard</string>
+    <string name="multiplayer_server_address">Server Address</string>
+    <string name="chat">Chat</string>
+    <string name="type_message">Type message……</string>
+    <string name="send">Send</string>
+    <string name="send_message">Send Message</string>
+    <string name="multiplayer_moderation">Moderation</string>
+    <string name="multiplayer_moderation_title">Ban List</string>
+    <string name="multiplayer_no_bans">No banned users</string>
+    <string name="multiplayer_unban_title">Unban User</string>
+    <string name="multiplayer_unban">Unban</string>
+    <string name="multiplayer_unban_message">Are you sure you want to unban %1$s?</string>
+    <string name="multiplayer_ban">Ban User</string>
+    <string name="emulation_multiplayer">Multiplayer</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
@@ -143,10 +278,6 @@
     <string name="firmware_installed_success">Firmware installed successfully</string>
     <string name="firmware_installed_failure">Firmware installation failed</string>
     <string name="firmware_installed_failure_description">Make sure the firmware nca files are at the root of the zip and try again.</string>
-    <string name="uninstall_firmware">Uninstall firmware</string>
-    <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
-    <string name="firmware_uninstalling">Uninstalling firmware</string>
-    <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
     <string name="firmware_uninstalled_failure">Firmware uninstallation failed</string>
     <string name="share_log">Share debug logs</string>
     <string name="share_log_description">Share eden\'s log file to debug issues</string>
@@ -253,16 +384,10 @@
     <string name="cpu_accuracy">CPU accuracy</string>
     <string name="value_with_units">%1$s%2$s</string>
 
-    <!-- Use Sync Core -->
-     <string name="use_sync_core">Synchronize Core Speed</string>
-     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the games actual speed.</string>
-
     <!-- System settings strings -->
     <string name="device_name">Device name</string>
     <string name="use_docked_mode">Docked Mode</string>
     <string name="use_docked_mode_description">Increases resolution, decreasing performance. Handheld Mode is used when disabled, lowering resolution and increasing performance.</string>
-    <string name="use_auto_stub">Use Auto Stub</string>
-    <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
     <string name="emulated_region">Emulated region</string>
     <string name="emulated_language">Emulated language</string>
     <string name="select_rtc_date">Select RTC date</string>
@@ -272,10 +397,6 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- Graphics settings strings -->
-    <string name="frame_skipping">WIP: Frameskip</string>
-    <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames.</string>
-    <string name="frame_interpolation">Enhanced Frame Pacing</string>
-    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutter during gameplay</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
@@ -287,7 +408,6 @@
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
-    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, reducing stutter but may introduce glitches.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
@@ -296,19 +416,6 @@
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
-    <string name="nvdec_emulation">NVDEC Emulation</string>
-    <string name="nvdec_emulation_description">Select how video decoding (NVDEC) is handled during cutscenes and intros.</string>
-    <string name="shader_backend">Shader Backend</string>
-    <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
-    <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage.
-These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Yuzu emulated formats.</string>
-    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
-    <string name="dyna_state3_description">Improves performance on newer devices. Only supported on Vulkan 1.3+ GPUs.</string>
-    <string name="provoking_vertex">Provoking Vertex</string>
-    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
-    <string name="descriptor_indexing">Descriptor Indexing</string>
-    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -412,8 +519,6 @@ These extensions may increase device temperature, and GPUs belonging to the olde
     <string name="reset_mapping_description">Are you sure that you want to reset all mappings for this controller to default? This cannot be undone.</string>
 
     <!-- Miscellaneous -->
-    <string name="eden_veil">Eden’s Veil</string>
-    <string name="eden_veil_description">Beyond default</string>
     <string name="slider_default">Default</string>
     <string name="ini_saved">Saved settings</string>
     <string name="gameid_saved">Saved settings for %1$s</string>
@@ -481,78 +586,6 @@ These extensions may increase device temperature, and GPUs belonging to the olde
     <string name="preferences_theme">Theme and color</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
-
-
-    <!-- Multiplayer -->
-    <string name="multiplayer">Multiplayer</string>
-    <string name="multiplayer_description">Host your own game room or join an existing one to play with people</string>
-    <string name="multiplayer_room_title">Room: %1$s</string>
-    <string name="multiplayer_console_id">Console ID：%1$s</string>
-    <string name="multiplayer_create_room">Create</string>
-    <string name="multiplayer_join_room">Join</string>
-    <string name="multiplayer_username">Username</string>
-    <string name="multiplayer_ip_address">IP Address</string>
-    <string name="multiplayer_ip_port">Port</string>
-    <string name="multiplayer_create_room_success">Room created successfully!</string>
-    <string name="multiplayer_join_room_success">Join the room successfully!</string>
-    <string name="multiplayer_create_room_failed">Failed to create room!</string>
-    <string name="multiplayer_join_room_failed">Failed to join room!</string>
-    <string name="multiplayer_input_invalid">Invalid address or name is too short!</string>
-    <string name="multiplayer_port_invalid">Invalid port!</string>
-    <string name="multiplayer_exit_room">Exit Room</string>
-    <string name="multiplayer_network_error">Network error</string>
-    <string name="multiplayer_lost_connection">Lost connection</string>
-    <string name="multiplayer_name_collision">Name collision</string>
-    <string name="multiplayer_mac_collision">Mac collision</string>
-    <string name="multiplayer_console_id_collision">Console ID collision</string>
-    <string name="multiplayer_wrong_version">Wrong version</string>
-    <string name="multiplayer_wrong_password">Wrong password</string>
-    <string name="multiplayer_could_not_connect">Could not connect</string>
-    <string name="multiplayer_room_is_full">Room is full</string>
-    <string name="multiplayer_host_banned">Host banned</string>
-    <string name="multiplayer_permission_denied">Permission denied</string>
-    <string name="multiplayer_no_such_user">No such user</string>
-    <string name="multiplayer_already_in_room">Already in room</string>
-    <string name="multiplayer_create_room_error">Create room error</string>
-    <string name="multiplayer_host_kicked">Host kicked</string>
-    <string name="multiplayer_unknown_error">unknown error</string>
-    <string name="multiplayer_room_uninitialized">Room uninitialized</string>
-    <string name="multiplayer_room_idle">Room idle</string>
-    <string name="multiplayer_room_joining">Room joining</string>
-    <string name="multiplayer_room_joined">Room joined</string>
-    <string name="multiplayer_room_moderator">Room moderator</string>
-    <string name="multiplayer_member_join">%1$s joined</string>
-    <string name="multiplayer_member_leave">%1$s left</string>
-    <string name="multiplayer_member_kicked">%1$s kicked</string>
-    <string name="multiplayer_member_banned">%1$s banned</string>
-    <string name="multiplayer_address_unbanned">address unbanned</string>
-    <string name="multiplayer_kick_member">Kick Out</string>
-    <string name="multiplayer_chat_input_hint">Send messages……</string>
-    <string name="multiplayer_password">Password</string>
-    <string name="original_button_text">Join</string>
-    <string name="disabled_button_text">Joining...</string>
-    <string name="multiplayer_room_name">Room Name</string>
-    <string name="multiplayer_room_name_invalid">Room name must be between 3 and 20 characters</string>
-    <string name="multiplayer_max_players">Max Players (16)</string>
-    <string name="multiplayer_max_players_value">Max Players: %d</string>
-    <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">More Options</string>
-    <string name="multiplayer_ip_copied">IP Address copied to clipboard</string>
-    <string name="multiplayer_server_address">Server Address</string>
-    <string name="chat">Chat</string>
-    <string name="type_message">Type message……</string>
-    <string name="send">Send</string>
-    <string name="send_message">Send Message</string>
-    <string name="multiplayer_moderation">Moderation</string>
-    <string name="multiplayer_moderation_title">Ban List</string>
-    <string name="multiplayer_no_bans">No banned users</string>
-    <string name="multiplayer_unban_title">Unban User</string>
-    <string name="multiplayer_unban">Unban</string>
-    <string name="multiplayer_unban_message">Are you sure you want to unban %1$s?</string>
-    <string name="multiplayer_ban">Ban User</string>
-    <string name="emulation_multiplayer">Multiplayer</string>
-    <string name="cancel">Cancel</string>
-    <string name="ok">Ok</string>
 
     <!-- Game properties -->
     <string name="info">Info</string>
@@ -696,43 +729,10 @@ These extensions may increase device temperature, and GPUs belonging to the olde
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">None</string>
 
-    <!-- Shader Backend -->
-     <string name="shader_backend_glsl">GLSL</string>
-     <string name="shader_backend_spirv">SPIR-V</string>
-
-    <!-- NVDEC Emulation -->
-     <string name="nvdec_emulation_cpu">CPU</string>
-     <string name="nvdec_emulation_gpu">GPU</string>
-     <string name="nvdec_emulation_none">None</string>
-
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">High</string>
     <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
-
-    <!-- ASTC Decoding Method -->
-    <string name="accelerate_astc">ASTC Decoding Method</string>
-    <string name="accelerate_astc_description">Pick how ASTC-compressed textures are decoded for rendering.</string>
-
-    <!-- ASTC Decoding Method Choices -->
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU Asynchronously</string>
-
-    <!-- ASTC Recompression Method -->
-    <string name="astc_recompression">ASTC Recompression Method</string>
-    <string name="astc_recompression_description">Choose how ASTC textures are recompressed to improve compatibility and performance.</string>
-
-    <!-- ASTC Recompression Method Choices -->
-    <string name="astc_recompression_uncompressed">Uncompressed</string>
-    <string name="astc_recompression_bc1">BC1 (Low Quality)</string>
-    <string name="astc_recompression_bc3">BC3 (Medium Quality)</string>
-
-    <!-- ASTC Recompression Method Choices -->
-    <string name="vram_usage_mode">VRAM Usage Mode</string>
-    <string name="vram_usage_mode_description">Control how aggressively the emulator allocates and frees GPU memory.</string>
-    <string name="vram_usage_conservative">Conservative</string>
-    <string name="vram_usage_aggressive">Aggressive</string>
 
     <!-- Resolutions -->
     <string name="resolution_half">0.5X (360p/540p)</string>
@@ -741,10 +741,6 @@ These extensions may increase device temperature, and GPUs belonging to the olde
     <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
     <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
-
-    <!-- LRU Cache -->
-    <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache for improved performance, some games have issue with it, e.g TOTK 1.2.1</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>
@@ -828,6 +824,15 @@ These extensions may increase device temperature, and GPUs belonging to the olde
 
     <!-- Static Themes -->
     <string name="static_theme_color">Theme Color</string>
+    <string name="violet">Violet (Default)</string>
+    <string name="blue">Blue</string>
+    <string name="cyan">Cyan</string>
+    <string name="red">Red</string>
+    <string name="green">Green</string>
+    <string name="yellow">Yellow</string>
+    <string name="orange">Orange</string>
+    <string name="pink">Pink</string>
+    <string name="gray">Gray</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>
@@ -842,11 +847,6 @@ These extensions may increase device temperature, and GPUs belonging to the olde
     <string name="top">Top</string>
     <string name="center">Center</string>
     <string name="bottom">Bottom</string>
-
-    <!-- Optimize SPIRV output -->
-    <string name="never">Never</string>
-    <string name="on_load">On Load</string>
-    <string name="always">Always</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>
