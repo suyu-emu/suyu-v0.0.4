@@ -20,7 +20,11 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 </h4>
 
 <p align="center">
-    Discord is not yet public.
+    </a>
+    <a href="https://discord.gg/kXAmGCXBGD">
+        <img src="https://img.shields.io/discord/1317386222229917696?color=5865F2&label=Eden&logo=discord&logoColor=white"
+            alt="Discord">
+    </a>
 </p>
 
 <p align="center">
@@ -55,7 +59,7 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Download
 
-You will be able to download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases), or with MEGA links provided on Discord.
+You will be able to download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases), or with MEGA and Archive links provided on Discord.
 
 ## Support
 
@@ -69,7 +73,7 @@ Any donations received will go towards things such as:
 * Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
 * CI Infrastructure
 
-If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/ynGGJAN4Rx), once public, and talk to Camille.
+If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/ynGGJAN4Rx), once public, and talk to Camille or any of our other developers.
 
 ## License
 
