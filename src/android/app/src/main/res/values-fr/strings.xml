@@ -40,7 +40,7 @@
     <string name="eden_veil">Voile d`Éden</string>
     <string name="eden_veil_description">Au-delà des paramètres par défaut</string>
     <string name="frame_skipping">WIP: Saut de frames</string>
-    <string name="frame_skipping_description">Activez ou désactivez le saut d'images pour améliorer les performances en réduisant le nombre d'images affichées. Cette fonctionnalité est en cours de développement et sera activée dans les futures versions.</string>
+    <string name="frame_skipping_description">Activez ou désactivez le saut d\'images pour améliorer les performances en réduisant le nombre d\'images affichées. Cette fonctionnalité est en cours de développement et sera activée dans les futures versions.</string>
     <string name="frame_interpolation">Synchronisation avancée des frames</string>
     <string name="frame_interpolation_description">Assure une diffusion fluide et régulière des frames en synchronisant leur timing, réduisant ainsi les saccades et les animations irrégulières. Idéal pour les jeux souffrant d`instabilité de timing des frames ou de micro-saccades pendant le jeu.</string>
     <string name="use_lru_cache">Activer le cache LRU</string>
@@ -99,7 +99,7 @@
 
     <!-- SPIRV -->
     <string name="renderer_optimize_spirv_output">Optimiser SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Optimise le shader compilé pour améliorer l'efficacité du GPU.</string>
+    <string name="renderer_optimize_spirv_output_description">Optimise le shader compilé pour améliorer l\'efficacité du GPU.</string>
     <string name="never">Jamais</string>
     <string name="on_load">Au chargement</string>
     <string name="always">Toujours</string>

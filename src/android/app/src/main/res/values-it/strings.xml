@@ -44,7 +44,7 @@
     <string name="frame_interpolation">Sincronizzazione avanzata fotogrammi</string>
     <string name="frame_interpolation_description">Garantisce una consegna fluida e costante dei fotogrammi sincronizzandone i tempi, riducendo scatti e animazioni irregolari. Ideale per giochi che presentano instabilità nei tempi dei fotogrammi o micro-scatti durante il gameplay.</string>
     <string name="use_lru_cache">Abilita cache LRU</string>
-    <string name="use_lru_cache_description">Abilita o disabilita la cache LRU (Least Recently Used), aumentando le prestazioni risparmiando l'utilizzo della CPU. Alcuni giochi hanno problemi con essa, in particolare TotK 1.2.1, quindi disabilitala se il gioco non si avvia o si blocca casualmente.</string>
+    <string name="use_lru_cache_description">Abilita o disabilita la cache LRU (Least Recently Used), aumentando le prestazioni risparmiando l\'utilizzo della CPU. Alcuni giochi hanno problemi con essa, in particolare TotK 1.2.1, quindi disabilitala se il gioco non si avvia o si blocca casualmente.</string>
     <string name="dyna_state">Stato dinamico esteso</string>
     <string name="dyna_state_description">Abilita funzionalità Vulkan per migliorare prestazioni, rendering e risparmiare risorse durante la creazione della pipeline mantenendo un basso utilizzo di CPU/GPU. Queste estensioni possono aumentare la temperatura del dispositivo e le GPU più vecchie della serie A6XX potrebbero non rispondere correttamente. Imposta su 0 per usare i formati emulati da Yuzu.</string>
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
@@ -99,7 +99,7 @@
 
     <!-- Ottimizzazione SPIRV -->
     <string name="renderer_optimize_spirv_output">Ottimizza output SPIRV</string>
-    <string name="renderer_optimize_spirv_output_description">Ottimizza lo shader compilato per migliorare l'efficienza della GPU.</string>
+    <string name="renderer_optimize_spirv_output_description">Ottimizza lo shader compilato per migliorare l\'efficienza della GPU.</string>
     <string name="never">Mai</string>
     <string name="on_load">Al caricamento</string>
     <string name="always">Sempre</string>
