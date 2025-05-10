@@ -19,19 +19,10 @@ if [ "$ARCH" = 'x86_64' ]; then
 	fi
 fi
 
-#if [ "$DEVEL" = 'true' ]; then
-#    YUZU_TAG="$(git rev-parse --short HEAD)"
-#    echo "Making nightly \"$YUZU_TAG\" build"
-#    VERSION="$YUZU_TAG"
-#else
-#    YUZU_TAG=$(git describe --tags)
-#    echo "Making stable \"$YUZU_TAG\" build"
-#    git checkout "$YUZU_TAG"
-#    VERSION="$(echo "$YUZU_TAG" | awk -F'-' '{print $1}')"
-#fi
-
-# TODO: use real tags
-VERSION="0.0.0"
+EDEN_TAG=$(git describe --tags --abbrev=0)
+echo "Making stable \"$EDEN_TAG\" build"
+git checkout "$EDEN_TAG"
+VERSION="$(echo "$EDEN_TAG")"
 
 # NOW MAKE APPIMAGE
 mkdir -p ./AppDir
