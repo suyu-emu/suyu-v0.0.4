@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">未授予通知权限！</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(增强)</string>
+    <string name="skipping_fps_suffix">(跳过)</string>
+    <string name="system_info_label">系统:</string>
     <string name="show_stats_overlay">显示性能统计悬浮窗</string>
     <string name="stats_overlay_customization">自定义</string>
     <string name="stats_overlay_items">显示项</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">显示速度</string>
     <string name="show_speed_description">显示当前模拟速度百分比</string>
     <string name="show_app_ram_usage">显示应用内存占用</string>
-    <string name="show_app_ram_usage_description">显示模拟器内存使用量</string>
+    <string name="show_app_ram_usage_description">显示模拟器正在使用的内存量</string>
     <string name="show_system_ram_usage">显示系统内存占用</string>
-    <string name="show_system_ram_usage_description">显示系统内存使用量</string>
+    <string name="show_system_ram_usage_description">显示系统使用的内存量</string>
     <string name="show_bat_temperature">显示电池温度</string>
     <string name="show_bat_temperature_description">显示当前电池温度(℃/℉)</string>
     <string name="overlay_position">悬浮窗位置</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + 顶点输入动态状态</string>
     <string name="dyna_state3_description">提高新设备上的性能。仅支持Vulkan 1.3+ GPU。</string>
     <string name="use_sync_core">同步核心速度</string>
-    <string name="use_sync_core_description">将核心时钟速度同步到最大速度百分比以提高性能，而不改变游戏实际速度。</string>
+    <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>
     <string name="use_auto_stub">使用自动存根</string>
     <string name="use_auto_stub_description">自动补全缺失的服务和功能。可提高兼容性但可能导致崩溃和稳定性问题。</string>
     <string name="uninstall_firmware">卸载固件</string>
@@ -87,8 +90,9 @@
     <!-- 着色器后端 -->
     <string name="shader_backend">着色器后端</string>
     <string name="shader_backend_description">选择着色器编译方式</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">通用</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC模拟 -->
     <string name="nvdec_emulation">NVDEC模拟</string>
@@ -405,7 +409,7 @@
     <string name="renderer_force_max_clock">强制最大时钟 (仅限 Adreno)</string>
     <string name="renderer_force_max_clock_description">强制 GPU 以最大时钟运行 (仍被温控限制)。</string>
     <string name="renderer_asynchronous_shaders">使用异步着色器</string>
-    <string name="renderer_asynchronous_shaders_description">异步编译着色器，减少卡顿，但可能引入故障。</string>
+    <string name="renderer_asynchronous_shaders_description">异步编译着色器。这可能会减少卡顿，但也可能会导致图形错误。</string>
     <string name="renderer_reactive_flushing">启用反应性刷新</string>
     <string name="renderer_reactive_flushing_description">牺牲性能，提高某些游戏的渲染精度。</string>
     <string name="use_disk_shader_cache">磁盘着色器缓存</string>

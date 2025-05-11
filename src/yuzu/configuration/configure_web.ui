@@ -22,13 +22,13 @@
      <item>
       <widget class="QGroupBox" name="groupBoxWebConfig">
        <property name="title">
-        <string>yuzu Web Service</string>
+        <string>eden Web Service</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayoutYuzuWebService">
         <item>
          <widget class="QLabel" name="web_credentials_disclaimer">
           <property name="text">
-           <string>By providing your username and token, you agree to allow yuzu to collect additional usage data, which may include user identifying information.</string>
+           <string>By providing your username and token, you agree to allow eden to collect additional usage data, which may include user identifying information.</string>
           </property>
          </widget>
         </item>

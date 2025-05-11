@@ -439,7 +439,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
         QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
                              tr("Vulkan initialization failed during boot.<br><br>Click <a "
-                                "href='https://yuzu-emu.org/wiki/faq/"
+                                "href='https://eden-emulator.github.io/wiki/faq/"
                                 "#yuzu-starts-with-the-error-broken-vulkan-installation-detected'>"
                                 "here for instructions to fix the issue</a>."));
 
@@ -1592,6 +1592,7 @@ void GMainWindow::ConnectMenuEvents() {
 
     // Help
     connect_menu(ui->action_Open_yuzu_Folder, &GMainWindow::OnOpenYuzuFolder);
+    connect_menu(ui->action_Discord, &GMainWindow::OnOpenDiscord);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_Install_Firmware, &GMainWindow::OnInstallFirmware);
     connect_menu(ui->action_Install_Keys, &GMainWindow::OnInstallDecryptionKeys);
@@ -1806,11 +1807,11 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
             msg->setWindowTitle(tr("Game Updates Warning"));
             msg->setIcon(QMessageBox::Warning);
             msg->setText(tr("The game you are trying to launch is known to have performance or booting "
-                            "issues when updates are applied. It's recommended to disable any updates "
-                            "to this game before attempting to launch, or switch to an earlier update. "
-                            "If you don't have any updates installed or enabled, you can safely ignore "
-                            "this message.<br><br>Press \"OK\" to continue launching, or \"Cancel\" to "
-                            "cancel the launch."));
+                            "issues when updates are applied. Please try increasing the memory layout to "
+                            "6GB or 8GB if any issues occur.<br><br>Press \"OK\" to continue launching, or "
+                            "\"Cancel\" to cancel the launch."));
+
+            // TODO: TMP: Recommends more memory for TotK.
 
             msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
@@ -1859,7 +1860,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                        "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
                        "NSP. Deconstructed ROM directories lack icons, metadata, and update "
                        "support.<br><br>For an explanation of the various Switch formats eden supports, <a "
-                       "href='https://yuzu-emu.org/wiki/overview-of-switch-game-formats'>check out our "
+                       "href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'>check out our "
                        "wiki</a>. This message will not be shown again."));
     }
 
@@ -1877,7 +1878,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                            "This is usually caused by outdated GPU drivers, including integrated ones. "
                            "Please see the log for more details. "
                            "For more information on accessing the log, please see the following page: "
-                           "<a href='https://yuzu-emu.org/help/reference/log-files/'>"
+                           "<a href='https://eden-emulator.github.io/help/reference/log-files/'>"
                            "How to Upload the Log File</a>. "));
             break;
         default:
@@ -2882,7 +2883,7 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         directory = it->second.second;
     }
 
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://yuzu-emu.org/game/") + directory));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://eden-emulator.github.io/game/") + directory));
 }
 
 bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
@@ -3040,8 +3041,8 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     }
 
     // Create icon file path
-    out_icon_path /= (program_id == 0 ? fmt::format("yuzu-{}.{}", game_file_name, ico_extension)
-                                      : fmt::format("yuzu-{:016X}.{}", program_id, ico_extension));
+    out_icon_path /= (program_id == 0 ? fmt::format("eden-{}.{}", game_file_name, ico_extension)
+                                      : fmt::format("eden-{:016X}.{}", program_id, ico_extension));
     return true;
 }
 
@@ -3596,8 +3597,8 @@ void GMainWindow::OnMenuReportCompatibility() {
     } else {
         QMessageBox::critical(
                     this, tr("Missing yuzu Account"),
-                    tr("In order to submit a game compatibility test case, you must link your yuzu "
-                       "account.<br><br/>To link your yuzu account, go to Emulation &gt; Configuration "
+                    tr("In order to submit a game compatibility test case, you must link your eden "
+                       "account.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
                        "&gt; "
                        "Web."));
     }
@@ -3621,11 +3622,16 @@ void GMainWindow::OnOpenModsPage() {
 }
 
 void GMainWindow::OnOpenQuickstartGuide() {
-    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/help/quickstart/")));
+    OpenURL(QUrl(QStringLiteral("https://yuzu-mirror.github.io/help/quickstart/")));
 }
 
 void GMainWindow::OnOpenFAQ() {
-    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/wiki/faq/")));
+    OpenURL(QUrl(QStringLiteral("https://eden-emulator.github.io/")));
+}
+
+void GMainWindow::OnOpenDiscord()
+{
+    OpenURL(QUrl(QStringLiteral("https://discord.gg/edenemu")));
 }
 
 void GMainWindow::ToggleFullscreen() {
@@ -4199,7 +4205,7 @@ void GMainWindow::OnInstallFirmware() {
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::information(
                     this, tr("Keys not installed"),
-                    tr("Install decryption keys and restart yuzu before attempting to install firmware."));
+                    tr("Install decryption keys and restart eden before attempting to install firmware."));
         return;
     }
 

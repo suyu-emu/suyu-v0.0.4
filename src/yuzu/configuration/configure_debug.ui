@@ -424,7 +424,7 @@
          <item row="6" column="0">
           <widget class="QCheckBox" name="use_auto_stub">
            <property name="text">
-            <string>Enable Auto-Stub**</string>
+            <string>Enable Auto-Stub</string>
            </property>
           </widget>
          </item>
@@ -553,7 +553,7 @@
        </font>
       </property>
       <property name="text">
-       <string>**This will be reset automatically when yuzu closes.</string>
+       <string>**This will be reset automatically when eden closes.</string>
       </property>
       <property name="indent">
        <number>20</number>

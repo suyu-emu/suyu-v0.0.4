@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Varslingstillatelse ikke gitt!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Forbedret)</string>
+    <string name="skipping_fps_suffix">(Hopp)</string>
+    <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Vis ytelsesstatistikkoverlay</string>
     <string name="stats_overlay_customization">Tilpasning</string>
     <string name="stats_overlay_items">Synlighet</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">Vis hastighet</string>
     <string name="show_speed_description">Vis emuleringshastighet i prosent</string>
     <string name="show_app_ram_usage">Vis appminnebruk</string>
-    <string name="show_app_ram_usage_description">Vis RAM-bruk av emulatoren</string>
+    <string name="show_app_ram_usage_description">Vis hvor mye RAM emulatoren bruker</string>
     <string name="show_system_ram_usage">Vis systemminnebruk</string>
-    <string name="show_system_ram_usage_description">Vis systemets RAM-bruk</string>
+    <string name="show_system_ram_usage_description">Vis hvor mye RAM systemet bruker</string>
     <string name="show_bat_temperature">Vis batteritemperatur</string>
     <string name="show_bat_temperature_description">Vis batteritemperatur i Celsius og Fahrenheit</string>
     <string name="overlay_position">Overlayposisjon</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Forbedrer ytelsen på nyere enheter. Støttes kun på Vulkan 1.3+ GPU-er.</string>
     <string name="use_sync_core">Synkroniser kjernespeed</string>
-    <string name="use_sync_core_description">Synkroniser kjernetaktfrekvensen til maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
+    <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
     <string name="use_auto_stub">Bruk Auto Stub</string>
     <string name="use_auto_stub_description">Automatisk stubber manglende tjenester og funksjoner. Kan forbedre kompatibilitet, men kan forårsake krasj og stabilitetsproblemer.</string>
     <string name="uninstall_firmware">Avinstaller firmware</string>
@@ -87,8 +90,9 @@
     <!-- Shader-backend -->
     <string name="shader_backend">Shader-backend</string>
     <string name="shader_backend_description">Velg hvordan shadere kompileres</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Universell</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC-emulering -->
     <string name="nvdec_emulation">NVDEC-emulering</string>
@@ -328,7 +332,7 @@
     <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
     <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
     <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
-    <string name="renderer_asynchronous_shaders_description">Kompilerer shaders asynkront, noe som reduserer hakking, men kan føre til feil.</string>
+    <string name="renderer_asynchronous_shaders_description">Kompilerer shadere asynkront. Dette kan redusere rykk, men kan også forårsake grafiske feil.</string>
     <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
     <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
     <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>

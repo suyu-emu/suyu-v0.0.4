@@ -6,6 +6,9 @@
     <string name="notification_permission_not_granted">Oznámení nejsou oprávněna!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Vylepšený)</string>
+    <string name="skipping_fps_suffix">(Přeskakování)</string>
+    <string name="system_info_label">Systém:</string>
     <string name="show_stats_overlay">Zobrazit překryv statistik výkonu</string>
     <string name="stats_overlay_customization">Přizpůsobení</string>
     <string name="stats_overlay_items">Viditelnost</string>
@@ -19,9 +22,9 @@
     <string name="show_speed">Zobrazit rychlost</string>
     <string name="show_speed_description">Aktuální rychlost emulace v procentech</string>
     <string name="show_app_ram_usage">Zobrazit využití RAM aplikace</string>
-    <string name="show_app_ram_usage_description">Množství RAM používané emulátorem</string>
+    <string name="show_app_ram_usage_description">Zobrazit množství RAM, které emulátor používá</string>
     <string name="show_system_ram_usage">Zobrazit využití systémové RAM</string>
-    <string name="show_system_ram_usage_description">Množství RAM používané systémem</string>
+    <string name="show_system_ram_usage_description">Zobrazit množství RAM využívané systémem</string>
     <string name="show_bat_temperature">Zobrazit teplotu baterie</string>
     <string name="show_bat_temperature_description">Aktuální teplota baterie ve °C a °F</string>
     <string name="overlay_position">Pozice překryvu</string>
@@ -49,7 +52,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Zlepšuje výkon na novějších zařízeních. Podporováno pouze na GPU s Vulkan 1.3+.</string>
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
-    <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximální procentuální rychlostí pro lepší výkon bez změny skutečné rychlosti hry.</string>
+    <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
     <string name="use_auto_stub">Použít automatický stub</string>
     <string name="use_auto_stub_description">Automaticky doplňuje chybějící služby a funkce. Může zlepšit kompatibilitu, ale také způsobit pády a problémy se stabilitou.</string>
     <string name="uninstall_firmware">Odinstalovat firmware</string>
@@ -86,8 +89,9 @@
     <!-- Backend shaderů -->
     <string name="shader_backend">Backend shaderů</string>
     <string name="shader_backend_description">Způsob kompilace shaderů</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Univerzální</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- Emulace NVDEC -->
     <string name="nvdec_emulation">Emulace NVDEC</string>
@@ -292,16 +296,43 @@
 
     <!-- General settings strings -->
     <string name="frame_limit_enable">Omezit rychlost</string>
-    <string name="cpu_accuracy">CPU přesnost</string>
+    <string name="frame_limit_enable_description">Omezení emulační rychlosti</string>
+    <string name="frame_limit_slider">Procento omezení</string>
+    <string name="frame_limit_slider_description">Procento normální rychlosti</string>
+    <string name="cpu_backend">CPU backend</string>
+    <string name="cpu_accuracy">Přesnost CPU</string>
+    <string name="value_with_units">%1$s%2$s</string>
+    <string name="device_name">Název zařízení</string>
+    <string name="use_docked_mode">Docked režim</string>
+    <string name="use_docked_mode_description">Větší rozlišení, menší výkon</string>
     <string name="emulated_region">Emulovaná oblast</string>
     <string name="emulated_language">Emulovaný jazyk</string>
+    <string name="select_rtc_date">Vybrat datum RTC</string>
+    <string name="select_rtc_time">Vybrat čas RTC</string>
     <string name="use_custom_rtc">Vlastní RTC</string>
+    <string name="use_custom_rtc_description">Vlastní nastavení času</string>
+    <string name="set_custom_rtc">Nastavit vlastní RTC</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Úroveň přesnosti</string>
+    <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>
     <string name="renderer_screen_layout">Orientace</string>
     <string name="renderer_aspect_ratio">Poměr stran</string>
+    <string name="renderer_scaling_filter">Filtr přizpůsobení</string>
+    <string name="fsr_sharpness">Ostrost FSR</string>
+    <string name="fsr_sharpness_description">Nastavení ostrosti pro FSR</string>
+    <string name="renderer_anti_aliasing">Anti-aliasing</string>
+    <string name="renderer_force_max_clock">Maximální takt (Adreno)</string>
+    <string name="renderer_force_max_clock_description">Maximální výkon GPU</string>
+    <string name="renderer_asynchronous_shaders">Asynchronní shadery</string>
+    <string name="renderer_asynchronous_shaders_description">Kompiluje stínovače asynchronně. Může to snížit trhání, ale také způsobit grafické chyby.</string>
+    <string name="renderer_reactive_flushing">Reaktivní flushing</string>
+    <string name="renderer_reactive_flushing_description">Zlepšení přesnosti vykreslování</string>
+    <string name="use_disk_shader_cache">Shader cache na disku</string>
+    <string name="use_disk_shader_cache_description">Snížení trhání ukládáním shaderů</string>
+    <string name="anisotropic_filtering">Anizotropní filtrování</string>
+    <string name="anisotropic_filtering_description">Zlepšení kvality textur</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

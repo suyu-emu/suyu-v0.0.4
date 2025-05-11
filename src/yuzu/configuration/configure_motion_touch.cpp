@@ -85,7 +85,7 @@ ConfigureMotionTouch::ConfigureMotionTouch(QWidget* parent,
     ui->udp_learn_more->setOpenExternalLinks(true);
     ui->udp_learn_more->setText(
         tr("<a "
-           "href='https://yuzu-emu.org/wiki/"
+           "href='https://eden-emulator.github.io/wiki/"
            "using-a-controller-or-android-phone-for-motion-or-touch-input'><span "
            "style=\"text-decoration: underline; color:#039be5;\">Learn More</span></a>"));
 

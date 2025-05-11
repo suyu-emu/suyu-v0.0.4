@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(משופר)</string>
+    <string name="skipping_fps_suffix">(דילוג)</string>
+    <string name="system_info_label">מערכת:</string>
     <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
     <string name="stats_overlay_customization">התאמה אישית</string>
     <string name="stats_overlay_items">נראות</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">הצג מהירות</string>
     <string name="show_speed_description">מציג את אחוז מהירות האמולציה</string>
     <string name="show_app_ram_usage">הצג שימוש זיכרון</string>
-    <string name="show_app_ram_usage_description">מציג את כמות הזיכרון בשימוש על ידי האמולטור</string>
+    <string name="show_app_ram_usage_description">הצג את כמות ה-RAM שהאמולטור משתמש בה</string>
     <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
-    <string name="show_system_ram_usage_description">מציג את כמות הזיכרון בשימוש על ידי המערכת</string>
+    <string name="show_system_ram_usage_description">הצג את כמות ה-RAM שבה המערכת משתמשת</string>
     <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
     <string name="show_bat_temperature_description">מציג טמפרטורת סוללה במעלות צלזיוס ופרנהייט</string>
     <string name="overlay_position">מיקום שכבה</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">משפר ביצועים במכשירים חדשים יותר. נתמך רק בכרטיסי מסך עם Vulkan 1.3+.</string>
     <string name="use_sync_core">סנכרון מהירות ליבה</string>
-    <string name="use_sync_core_description">מסנכרן את מהירות הליבה לאחוז המהירות המקסימלי כדי לשפר ביצועים ללא שינוי במהירות המשחק בפועל.</string>
+    <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
     <string name="use_auto_stub">שימוש ב-Auto Stub</string>
     <string name="use_auto_stub_description">משלים אוטומטית שירותים ופונקציות חסרים. עשוי לשפר תאימות אך עלול לגרום לקריסות ובעיות יציבות.</string>
     <string name="uninstall_firmware">הסרת קושחה</string>
@@ -87,8 +90,9 @@
     <!-- מנוע שיידרים -->
     <string name="shader_backend">מנוע שיידרים</string>
     <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">אוניברסלי</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- אמולציית NVDEC -->
     <string name="nvdec_emulation">אמולציית NVDEC</string>
@@ -391,7 +395,7 @@
     <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
     <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
     <string name="renderer_asynchronous_shaders">השתמש בשיידרים אסינכרונים</string>
-    <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים בצורה אסנכרונית, מפחית תקיעות אך עלול לגרום לבעיות גרפיות.</string>
+    <string name="renderer_asynchronous_shaders_description">מקמפל שיידרים באופן אסינכרוני. זה עשוי להפחית קפיצות אך גם עלול לגרום לתקלות גרפיות.</string>
     <string name="renderer_reactive_flushing">השתמש בהבהוב תגובתי</string>
     <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
     <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>

@@ -565,11 +565,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         var fpsText = String.format("FPS: %.1f", actualFps)
 
                         if (enableFrameInterpolation) {
-                            fpsText += ("(Enhanced)")
+                            fpsText += " " + getString(R.string.enhanced_fps_suffix)
                         }
 
                         if (enableFrameSkipping) {
-                            fpsText += " [Skipping]"
+                            fpsText += " " + getString(R.string.skipping_fps_suffix)
                         }
 
                         sb.append(fpsText)

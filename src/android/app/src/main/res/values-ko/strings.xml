@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">알림 권한이 부여되지 않았습니다!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(향상됨)</string>
+    <string name="skipping_fps_suffix">(건너뜀)</string>
+    <string name="system_info_label">시스템:</string>
     <string name="show_stats_overlay">성능 통계 오버레이 표시</string>
     <string name="stats_overlay_customization">사용자 지정</string>
     <string name="stats_overlay_items">표시 항목</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + 정점 입력 동적 상태</string>
     <string name="dyna_state3_description">최신 기기에서 성능을 향상시킵니다. Vulkan 1.3+ GPU에서만 지원됩니다.</string>
     <string name="use_sync_core">코어 속도 동기화</string>
-    <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율로 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 개선합니다.</string>
+    <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
     <string name="use_auto_stub">자동 스텁 사용</string>
     <string name="use_auto_stub_description">누락된 서비스와 기능을 자동으로 스텁합니다. 호환성을 개선할 수 있지만 충돌과 안정성 문제를 일으킬 수 있습니다.</string>
     <string name="uninstall_firmware">펌웨어 제거</string>
@@ -87,9 +90,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">셰이더 백엔드</string>
     <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
-
+    <string name="shader_backend_glsl">범용</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC 에뮬레이션</string>
     <string name="nvdec_emulation_description">비디오 디코딩 처리 방식 선택</string>
@@ -402,7 +405,7 @@
     <string name="renderer_force_max_clock">최대 클럭 강제 설정 (아드레노 전용)</string>
     <string name="renderer_force_max_clock_description">GPU가 가능한 최대 클럭으로 실행되도록 강제합니다 (열 제약 조건은 여전히 적용됩니다).</string>
     <string name="renderer_asynchronous_shaders">비동기 셰이더 사용</string>
-    <string name="renderer_asynchronous_shaders_description">셰이더를 비동기식으로 컴파일하여 끊김 현상을 줄이지만 글리치가 발생할 수 있습니다.</string>
+    <string name="renderer_asynchronous_shaders_description">셰이더를 비동기적으로 컴파일합니다. 이로 인해 끊김 현상이 줄어들 수 있지만 그래픽 오류가 발생할 수도 있습니다.</string>
     <string name="renderer_reactive_flushing">반응형 플러싱 사용</string>
     <string name="renderer_reactive_flushing_description">일부 게임에서 성능 저하를 감수하고 렌더링 정확도를 향상합니다.</string>
     <string name="use_disk_shader_cache">디스크 셰이더 캐시</string>

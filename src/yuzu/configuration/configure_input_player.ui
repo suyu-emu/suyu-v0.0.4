@@ -1364,55 +1364,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="buttonMiscButtonsPlusGroup">
-               <property name="title">
-                <string>Plus</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignCenter</set>
-               </property>
-               <layout class="QVBoxLayout" name="buttonMiscPlusVerticalLayout">
-                <property name="spacing">
-                 <number>3</number>
-                </property>
-                <property name="leftMargin">
-                 <number>3</number>
-                </property>
-                <property name="topMargin">
-                 <number>3</number>
-                </property>
-                <property name="rightMargin">
-                 <number>3</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>3</number>
-                </property>
-                <item>
-                 <widget class="QPushButton" name="buttonPlus">
-                  <property name="minimumSize">
-                   <size>
-                    <width>70</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>68</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">min-width: 68px;</string>
-                  </property>
-                  <property name="text">
-                   <string>Plus</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
               <widget class="QGroupBox" name="buttonMiscButtonsMinusGroup">
                <property name="title">
                 <string>Minus</string>
@@ -1455,6 +1406,55 @@
                   </property>
                   <property name="text">
                    <string>Minus</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="buttonMiscButtonsPlusGroup">
+               <property name="title">
+                <string>Plus</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+               <layout class="QVBoxLayout" name="buttonMiscPlusVerticalLayout">
+                <property name="spacing">
+                 <number>3</number>
+                </property>
+                <property name="leftMargin">
+                 <number>3</number>
+                </property>
+                <property name="topMargin">
+                 <number>3</number>
+                </property>
+                <property name="rightMargin">
+                 <number>3</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>3</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="buttonPlus">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>68</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">min-width: 68px;</string>
+                  </property>
+                  <property name="text">
+                   <string>Plus</string>
                   </property>
                  </widget>
                 </item>

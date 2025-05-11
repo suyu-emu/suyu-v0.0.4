@@ -28,21 +28,22 @@ VERSION="$(echo "$EDEN_TAG")"
 mkdir -p ./AppDir
 cd ./AppDir
 
-cat > org.eden_emu.eden.desktop << EOL
+cat > eden.desktop << EOL
 [Desktop Entry]
 Type=Application
 Name=Eden
-Icon=org.eden_emu.eden
+Icon=eden
+StartupWMClass=eden
 Exec=eden
 Categories=Game;Emulator;
 EOL
 
-cp ../dist/eden.svg ./org.eden_emu.eden.svg
+cp ../dist/eden.svg ./eden.svg
 
-ln -sf ./org.eden_emu.eden.svg.svg ./.DirIcon
+ln -sf ./eden.svg ./.DirIcon
 
 if [ "$DEVEL" = 'true' ]; then
-	sed -i 's|Name=Eden|Name=Eden Nightly|' ./org.eden_emu.eden.desktop
+	sed -i 's|Name=Eden|Name=Eden Nightly|' ./eden.desktop
 	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
 fi
 

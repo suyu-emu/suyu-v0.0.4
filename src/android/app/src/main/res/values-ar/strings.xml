@@ -6,6 +6,9 @@
     <string name="notification_permission_not_granted">لم يتم منح إذن الإشعار</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(مُحسَّن)</string>
+    <string name="skipping_fps_suffix">(تخطي)</string>
+    <string name="system_info_label">النظام:</string>
     <string name="show_stats_overlay">عرض إحصائيات الأداء</string>
     <string name="stats_overlay_customization">تخصيص</string>
     <string name="stats_overlay_items">الرؤية</string>
@@ -19,9 +22,9 @@
     <string name="show_speed">عرض السرعة</string>
     <string name="show_speed_description">عرض نسبة سرعة المحاكاة</string>
     <string name="show_app_ram_usage">عرض استخدام ذاكرة التطبيق</string>
-    <string name="show_app_ram_usage_description">عرض كمية الذاكرة المستخدمة من قبل المحاكي</string>
+    <string name="show_app_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي التي يستخدمها المحاكي</string>
     <string name="show_system_ram_usage">عرض استخدام ذاكرة النظام</string>
-    <string name="show_system_ram_usage_description">عرض كمية الذاكرة المستخدمة من قبل النظام</string>
+    <string name="show_system_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي المستخدمة من قبل النظام</string>
     <string name="show_bat_temperature">عرض درجة حرارة البطارية</string>
     <string name="show_bat_temperature_description">عرض درجة حرارة البطارية الحالية</string>
     <string name="overlay_position">موضع العرض</string>
@@ -49,7 +52,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">يحسن الأداء على الأجهزة الأحدث. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.3+.</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
-    <string name="use_sync_core_description">قم بمزامنة سرعة النواة مع النسبة المئوية القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
+    <string name="use_sync_core_description">مزامنة سرعة النواة مع النسبة القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>
     <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
     <string name="uninstall_firmware">إزالة البرنامج الثابت</string>
@@ -86,8 +89,9 @@
     <!-- خلفية Shader -->
     <string name="shader_backend">خلفية Shader</string>
     <string name="shader_backend_description">اختيار طريقة ترجمة Shaders</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">عام</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- محاكاة NVDEC -->
     <string name="nvdec_emulation">محاكاة NVDEC</string>
@@ -373,7 +377,7 @@
     <string name="renderer_aspect_ratio">تناسب الابعاد</string>
     <string name="renderer_anti_aliasing">طريقة مكافحة التعرج</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
-    <string name="renderer_asynchronous_shaders_description">يجمع التظليل بشكل غير متزامن، مما يقلل من التأتأة ولكنه قد يؤدي إلى حدوث بعض الأخطاء.</string>
+    <string name="renderer_asynchronous_shaders_description">تجميع الظلال بشكل غير متزامن. قد يقلل هذا من التقطع ولكنه قد يتسبب أيضًا في حدوث أخطاء.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">تحسين دقة العرض في بعض الألعاب على حساب الأداء</string>
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>

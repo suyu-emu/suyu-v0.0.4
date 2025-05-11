@@ -223,10 +223,12 @@ void EmuWindow_SDL2::WaitEvent() {
     const u32 current_time = SDL_GetTicks();
     if (current_time > last_time + 2000) {
         const auto results = system.GetAndResetPerfStats();
-        const auto title =
-            fmt::format("yuzu {} | {}-{} | FPS: {:.0f} ({:.0f}%)", Common::g_build_fullname,
-                        Common::g_scm_branch, Common::g_scm_desc, results.average_game_fps,
-                        results.emulation_speed * 100.0);
+        const auto title = fmt::format("eden {} | {}-{} | FPS: {:.0f} ({:.0f}%)",
+                                       Common::g_build_fullname,
+                                       Common::g_scm_branch,
+                                       Common::g_scm_desc,
+                                       results.average_game_fps,
+                                       results.emulation_speed * 100.0);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }
@@ -236,7 +238,7 @@ void EmuWindow_SDL2::WaitEvent() {
 void EmuWindow_SDL2::SetWindowIcon() {
     SDL_RWops* const yuzu_icon_stream = SDL_RWFromConstMem((void*)yuzu_icon, yuzu_icon_size);
     if (yuzu_icon_stream == nullptr) {
-        LOG_WARNING(Frontend, "Failed to create yuzu icon stream.");
+        LOG_WARNING(Frontend, "Failed to create eden icon stream.");
         return;
     }
     SDL_Surface* const window_icon = SDL_LoadBMP_RW(yuzu_icon_stream, 1);

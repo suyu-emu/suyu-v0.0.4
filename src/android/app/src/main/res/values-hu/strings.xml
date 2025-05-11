@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Nincs engedély az értesítés megjelenítéséhez!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Továbbfejlesztett)</string>
+    <string name="skipping_fps_suffix">(Kihagyás)</string>
+    <string name="system_info_label">Rendszer:</string>
     <string name="show_stats_overlay">Teljesítmény statisztikák megjelenítése</string>
     <string name="stats_overlay_customization">Testreszabás</string>
     <string name="stats_overlay_items">Láthatóság</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">Sebesség mutatása</string>
     <string name="show_speed_description">Emulációs sebesség százalékban</string>
     <string name="show_app_ram_usage">Alkalmazás RAM-használat</string>
-    <string name="show_app_ram_usage_description">Az emulátor által használt RAM</string>
+    <string name="show_app_ram_usage_description">Az emulátor által használt RAM mennyiségének megjelenítése</string>
     <string name="show_system_ram_usage">Rendszer RAM-használat</string>
-    <string name="show_system_ram_usage_description">A rendszer által használt RAM</string>
+    <string name="show_system_ram_usage_description">A rendszer által használt RAM mennyiségének megjelenítése</string>
     <string name="show_bat_temperature">Akkumulátor hőmérséklet</string>
     <string name="show_bat_temperature_description">Aktuális hőmérséklet Celsiusban és Fahrenheitben</string>
     <string name="overlay_position">Overlay pozíció</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Javítja a teljesítményt újabb eszközökön. Csak Vulkan 1.3+ GPU-kon támogatott.</string>
     <string name="use_sync_core">Magsebesség szinkronizálása</string>
-    <string name="use_sync_core_description">Szinkronizálja a magsebességet a maximális sebesség százalékához a teljesítmény javításához anélkül, hogy megváltoztatná a játék tényleges sebességét.</string>
+    <string name="use_sync_core_description">A mag sebességének szinkronizálása a maximális sebesség százalékával a teljesítmény javítása érdekében a játék tényleges sebességének megváltoztatása nélkül.</string>
     <string name="use_auto_stub">Automatikus Stub használata</string>
     <string name="use_auto_stub_description">Automatusan kiegészíti a hiányzó szolgáltatásokat és funkciókat. Növelheti a kompatibilitást, de összeomlásokat és stabilitási problémákat okozhat.</string>
     <string name="uninstall_firmware">Firmware eltávolítása</string>
@@ -87,8 +90,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Shader backend</string>
     <string name="shader_backend_description">Shaderek fordításának módja</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Univerzális</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC Emuláció -->
     <string name="nvdec_emulation">NVDEC emuláció</string>
@@ -404,7 +408,7 @@
     <string name="renderer_force_max_clock">Maximum órajel kényszerítése (csak Adreno)</string>
     <string name="renderer_force_max_clock_description">Kényszeríti a GPU-t a lehető legnagyobb órajelen működésre (a hőmérséklet korlátozások továbbra is érvényben maradnak).</string>
     <string name="renderer_asynchronous_shaders">Aszinkron árnyékolók használata</string>
-    <string name="renderer_asynchronous_shaders_description">Aszinkron módon fordítja az árnyékolókat, ami csökkenti az akadozást, de hibákat okozhat.</string>
+    <string name="renderer_asynchronous_shaders_description">A shaderek aszinkron fordítása. Csökkentheti a belassulásokat, de hibákat is okozhat.</string>
     <string name="renderer_reactive_flushing">Reaktív ürítés használata</string>
     <string name="renderer_reactive_flushing_description">Javítja a renderelési pontosságot néhány játékban a teljesítmény rovására.</string>
     <string name="use_disk_shader_cache">Lemez árnyékoló gyorsítótár</string>

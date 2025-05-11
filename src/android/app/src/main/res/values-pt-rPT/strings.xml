@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Permissões de notificação não permitidas </string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Melhorado)</string>
+    <string name="skipping_fps_suffix">(Saltar)</string>
+    <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostrar Overlay de Desempenho</string>
     <string name="stats_overlay_customization">Personalização</string>
     <string name="stats_overlay_items">Visibilidade</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">Mostrar Velocidade</string>
     <string name="show_speed_description">Exibir percentual de velocidade</string>
     <string name="show_app_ram_usage">Mostrar RAM do App</string>
-    <string name="show_app_ram_usage_description">Exibir uso de RAM pelo emulador</string>
+    <string name="show_app_ram_usage_description">Mostrar a quantidade de RAM que o emulador está a utilizar</string>
     <string name="show_system_ram_usage">Mostrar RAM do Sistema</string>
-    <string name="show_system_ram_usage_description">Exibir uso de RAM pelo sistema</string>
+    <string name="show_system_ram_usage_description">Mostrar a quantidade de RAM utilizada pelo sistema</string>
     <string name="show_bat_temperature">Mostrar Temp. Bateria</string>
     <string name="show_bat_temperature_description">Exibir temperatura em Celsius/Fahrenheit</string>
     <string name="overlay_position">Posição do Overlay</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Melhora o desempenho em dispositivos mais recentes. Suportado apenas em GPUs Vulkan 1.3+.</string>
     <string name="use_sync_core">Sincronizar velocidade do núcleo</string>
-    <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a percentagem máxima para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
+    <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a percentagem máxima de velocidade para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
     <string name="use_auto_stub">Usar Auto Stub</string>
     <string name="use_auto_stub_description">Preenche automaticamente serviços e funções em falta. Pode melhorar a compatibilidade mas causar crashes e problemas de estabilidade.</string>
     <string name="uninstall_firmware">Desinstalar firmware</string>
@@ -87,8 +90,9 @@
     <!-- Backend de Shader -->
     <string name="shader_backend">Backend de Shader</string>
     <string name="shader_backend_description">Método de compilação de shaders.</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Universal</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- Emulação NVDEC -->
     <string name="nvdec_emulation">Emulação NVDEC</string>
@@ -410,7 +414,7 @@
     <string name="renderer_force_max_clock">Força velocidade máxima (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Força o GPU a correr à velocidade máxima (restrições térmicas serão aplicadas)</string>
     <string name="renderer_asynchronous_shaders">Usa shaders assíncronos </string>
-    <string name="renderer_asynchronous_shaders_description">Compila os shaders de forma assíncrona, reduzindo travamentos, mas pode apresentar problemas.</string>
+    <string name="renderer_asynchronous_shaders_description">Compila shaders de forma assíncrona. Isto pode reduzir engasgadelas, mas também pode introduzir falhas gráficas.</string>
     <string name="renderer_reactive_flushing">Usar flushing reativo</string>
     <string name="renderer_reactive_flushing_description">Melhora a precisão da renderização em alguns jogos ao custo de desempenho.</string>
     <string name="use_disk_shader_cache">Cache de shaders em disco</string>

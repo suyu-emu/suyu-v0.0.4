@@ -66,7 +66,7 @@ void ConfigureWeb::RetranslateUI() {
            "color:#039be5;\">Sign up</span></a>"));
 
     ui->web_token_info_link->setText(
-        tr("<a href='https://yuzu-emu.org/wiki/yuzu-web-service/'><span style=\"text-decoration: "
+        tr("<a href='https://eden-emulator.github.io/wiki/yuzu-web-service/'><span style=\"text-decoration: "
            "underline; color:#039be5;\">What is my token?</span></a>"));
 }
 

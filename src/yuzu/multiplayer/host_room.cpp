@@ -58,7 +58,7 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     ui->username->setText(
         QString::fromStdString(UISettings::values.multiplayer_room_nickname.GetValue()));
     if (ui->username->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
-        // Use yuzu Web Service user name as nickname by default
+        // Use eden Web Service user name as nickname by default
         ui->username->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
     }
     ui->room_name->setText(
@@ -184,7 +184,7 @@ void HostRoomWindow::Host() {
                     QMessageBox::warning(
                         this, tr("Error"),
                         tr("Failed to announce the room to the public lobby. In order to host a "
-                           "room publicly, you must have a valid yuzu account configured in "
+                           "room publicly, you must have a valid eden account configured in "
                            "Emulation -> Configure -> Web. If you do not want to publish a room in "
                            "the public lobby, then select Unlisted instead.\nDebug Message: ") +
                             QString::fromStdString(result.result_string),

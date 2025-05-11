@@ -196,11 +196,11 @@ struct Values {
     SwitchableSetting<MemoryLayout, true> memory_layout_mode{linkage,
                                                              MemoryLayout::Memory_4Gb,
                                                              MemoryLayout::Memory_4Gb,
-                                                             MemoryLayout::Memory_8Gb,
+                                                             MemoryLayout::Memory_12Gb,
                                                              "memory_layout_mode",
                                                              Category::Core,
                                                              Specialization::Default,
-                                                             false};
+                                                             true};
     SwitchableSetting<bool> use_speed_limit{
                                             linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, true, true};
     SwitchableSetting<u16, true> speed_limit{linkage,
@@ -447,9 +447,9 @@ struct Values {
 
     SwitchableSetting<u8, true> dyna_state{linkage,
 #ifdef ANDROID
-                                           0,
+                                           2,
 #else
-                                           1,
+                                           2,
 #endif
                                            0,
                                            2,
@@ -457,9 +457,9 @@ struct Values {
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
-    SwitchableSetting<bool> dyna_state3{linkage, false, "dyna_state3", Category::RendererExtensions};
-    SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
-    SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
+    SwitchableSetting<bool> dyna_state3{linkage, true, "dyna_state3", Category::RendererExtensions};
+    SwitchableSetting<bool> provoking_vertex{linkage, true, "provoking_vertex", Category::RendererExtensions};
+    SwitchableSetting<bool> descriptor_indexing{linkage, true, "descriptor_indexing", Category::RendererExtensions};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
@@ -640,6 +640,10 @@ struct Values {
     Setting<bool> log_flush_lines{linkage, false, "flush_lines", Category::Miscellaneous};
     Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};
+    Setting<bool> hide_pre_alpha_warning{linkage,
+                                         false,
+                                         "hide_pre_alpha_warning",
+                                         Category::Miscellaneous};
 
     // Network
     Setting<std::string> network_interface{linkage, std::string(), "network_interface",

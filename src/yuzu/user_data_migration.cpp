@@ -14,15 +14,17 @@
 #include "migration_dialog.h"
 
 // Needs to be included at the end due to https://bugreports.qt.io/browse/QTBUG-73263
+#include <QApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
+#include <QProgressDialog>
 #include <QRadioButton>
+#include <QThread>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-UserDataMigrator::UserDataMigrator(
-    QMainWindow *main_window)
+UserDataMigrator::UserDataMigrator(QMainWindow *main_window)
 {
     // NOTE: Logging is not initialized yet, do not produce logs here.
 
@@ -34,8 +36,7 @@ UserDataMigrator::UserDataMigrator(
     }
 }
 
-void UserDataMigrator::ShowMigrationPrompt(
-    QMainWindow *main_window)
+void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
 {
     namespace fs = std::filesystem;
 
@@ -90,15 +91,15 @@ void UserDataMigrator::ShowMigrationPrompt(
     // Reflection would make this code 10x better
     // but for now... MACRO MADNESS!!!!
     QMap<QString, bool> found;
-    QMap<QString, LegacyEmu> legacyMap;
+    QMap<QString, MigrationWorker::LegacyEmu> legacyMap;
     QMap<QString, QAbstractButton *> buttonMap;
 
 #define EMU_MAP(name) \
     const bool name##_found = fs::is_directory( \
         Common::FS::GetLegacyPath(Common::FS::LegacyPath::name##Dir)); \
-        legacyMap[main_window->tr(#name)] = LegacyEmu::name; \
-        found[main_window->tr(#name)] = name##_found; \
-        if (name##_found) \
+    legacyMap[main_window->tr(#name)] = MigrationWorker::LegacyEmu::name; \
+    found[main_window->tr(#name)] = name##_found; \
+    if (name##_found) \
         any_found = true;
 
     EMU_MAP(Citron)
@@ -118,7 +119,15 @@ void UserDataMigrator::ShowMigrationPrompt(
             if (!iter.value())
                 continue;
 
-            buttonMap[iter.key()] = migration_prompt.addButton(iter.key());
+            QAbstractButton *button = migration_prompt.addButton(iter.key());
+            // TMP: disable citron
+            if (iter.key() == main_window->tr("Citron")) {
+                button->setEnabled(false);
+                button->setToolTip(
+                    main_window->tr("Citron migration is known to cause issues. It's recommended "
+                                    "to manually set up your data again."));
+            }
+            buttonMap[iter.key()] = button;
             promptText.append(main_window->tr("\n- %1").arg(iter.key()));
         }
 
@@ -129,13 +138,13 @@ void UserDataMigrator::ShowMigrationPrompt(
 
         migration_prompt.exec();
 
-        MigrationStrategy strategy;
+        MigrationWorker::MigrationStrategy strategy;
         if (link->isChecked()) {
-            strategy = MigrationStrategy::Link;
+            strategy = MigrationWorker::MigrationStrategy::Link;
         } else if (clear_old->isChecked()) {
-            strategy = MigrationStrategy::Move;
+            strategy = MigrationWorker::MigrationStrategy::Move;
         } else {
-            strategy = MigrationStrategy::Copy;
+            strategy = MigrationWorker::MigrationStrategy::Copy;
         }
 
         QMapIterator buttonIter(buttonMap);
@@ -159,8 +168,7 @@ void UserDataMigrator::ShowMigrationPrompt(
         return;
 }
 
-void UserDataMigrator::ShowMigrationCancelledMessage(
-    QMainWindow *main_window)
+void UserDataMigrator::ShowMigrationCancelledMessage(QMainWindow *main_window)
 {
     QMessageBox::information(main_window,
                              main_window->tr("Migration"),
@@ -173,107 +181,38 @@ void UserDataMigrator::ShowMigrationCancelledMessage(
                              QMessageBox::Ok);
 }
 
-void UserDataMigrator::MigrateUserData(
-    QMainWindow *main_window,
-    const LegacyEmu selected_legacy_emu,
-    const bool clear_shader_cache,
-    const MigrationStrategy strategy)
+void UserDataMigrator::MigrateUserData(QMainWindow *main_window,
+                                       const MigrationWorker::LegacyEmu selected_legacy_emu,
+                                       const bool clear_shader_cache,
+                                       const MigrationWorker::MigrationStrategy strategy)
 {
-    namespace fs = std::filesystem;
-    const auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
+    // Create a dialog to let the user know it's migrating, some users noted confusion.
+    QProgressDialog *progress = new QProgressDialog(main_window);
+    progress->setWindowTitle(main_window->tr("Migrating"));
+    progress->setLabelText(main_window->tr("Migrating, this may take a while..."));
+    progress->setRange(0, 0);
+    progress->setCancelButton(nullptr);
+    progress->setWindowModality(Qt::WindowModality::ApplicationModal);
 
-    QString success_text = main_window->tr("Data was migrated successfully.");
+    QThread *thread = new QThread(main_window);
+    MigrationWorker *worker = new MigrationWorker(selected_legacy_emu, clear_shader_cache, strategy);
+    worker->moveToThread(thread);
 
-    std::string legacy_user_dir;
-    std::string legacy_config_dir;
-    std::string legacy_cache_dir;
+    thread->connect(thread, &QThread::started, worker, &MigrationWorker::process);
 
-#define LEGACY_EMU(emu) \
-case LegacyEmu::emu: \
-        legacy_user_dir = Common::FS::GetLegacyPath(Common::FS::LegacyPath::emu##Dir).string(); \
-        legacy_config_dir = Common::FS::GetLegacyPath(Common::FS::LegacyPath::emu##ConfigDir) \
-              .string(); \
-        legacy_cache_dir = Common::FS::GetLegacyPath(Common::FS::LegacyPath::emu##CacheDir) \
-              .string(); \
-        break;
+    thread->connect(worker, &MigrationWorker::finished, progress, [=](const QString &success_text) {
+        progress->close();
+        QMessageBox::information(main_window,
+                                 main_window->tr("Migration"),
+                                 success_text,
+                                 QMessageBox::Ok);
 
-    switch (selected_legacy_emu) {
-        LEGACY_EMU(Citron)
-        LEGACY_EMU(Sudachi)
-        LEGACY_EMU(Yuzu)
-        LEGACY_EMU(Suyu)
-    }
+        thread->quit();
+    });
 
-#undef LEGACY_EMU
+    thread->connect(worker, &MigrationWorker::finished, worker, &QObject::deleteLater);
+    thread->connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 
-    fs::path eden_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
-    fs::path config_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    fs::path cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
-    fs::path shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
-
-    fs::remove_all(eden_dir);
-
-    switch (strategy) {
-    case MigrationStrategy::Link:
-        // Create symlinks/directory junctions if requested
-        fs::create_directory_symlink(legacy_user_dir, eden_dir);
-
-// Windows doesn't need any more links, because cache and config
-// are already children of the root directory
-#ifndef WIN32
-        if (fs::is_directory(legacy_config_dir)) {
-            fs::create_directory_symlink(legacy_config_dir, config_dir);
-        }
-
-        if (fs::is_directory(legacy_cache_dir)) {
-            fs::create_directory_symlink(legacy_cache_dir, cache_dir);
-        }
-#endif
-        break;
-    case MigrationStrategy::Move:
-        // Rename directories if deletion is requested (achieves the same result)
-        fs::rename(legacy_user_dir, eden_dir);
-
-// Windows doesn't need any more renames, because cache and config
-// are already children of the root directory
-#ifndef WIN32
-        if (fs::is_directory(legacy_config_dir)) {
-            fs::rename(legacy_config_dir, config_dir);
-        }
-
-        if (fs::is_directory(legacy_cache_dir)) {
-            fs::rename(legacy_cache_dir, cache_dir);
-        }
-#endif
-        break;
-    case MigrationStrategy::Copy:
-    default:
-        // Default behavior: copy
-        fs::copy(legacy_user_dir, eden_dir, copy_options);
-
-        if (fs::is_directory(legacy_config_dir)) {
-            fs::copy(legacy_config_dir, config_dir, copy_options);
-        }
-
-        if (fs::is_directory(legacy_cache_dir)) {
-            fs::copy(legacy_cache_dir, cache_dir, copy_options);
-        }
-
-        success_text.append(
-            main_window->tr("\n\nIf you wish to clean up the files which were left in the old "
-                            "data location, you can do so by deleting the following directory:\n"
-                            "%1").arg(QString::fromStdString(legacy_user_dir)));
-        break;
-    }
-
-    // Delete and re-create shader dir
-    if (clear_shader_cache) {
-        fs::remove_all(shader_dir);
-        fs::create_directory(shader_dir);
-    }
-
-    QMessageBox::information(main_window,
-                             main_window->tr("Migration"),
-                             success_text,
-                             QMessageBox::Ok);
+    thread->start();
+    progress->exec();
 }

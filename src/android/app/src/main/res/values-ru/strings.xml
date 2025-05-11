@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Вы не предоставили разрешение на уведомления!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Улучшенный)</string>
+    <string name="skipping_fps_suffix">(Пропуск)</string>
+    <string name="system_info_label">Система:</string>
     <string name="show_stats_overlay">Показать оверлей статистики</string>
     <string name="stats_overlay_customization">Настройки</string>
     <string name="stats_overlay_items">Видимость</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">Показать скорость</string>
     <string name="show_speed_description">Текущая скорость эмуляции в %</string>
     <string name="show_app_ram_usage">Показать RAM эмулятора</string>
-    <string name="show_app_ram_usage_description">Использование RAM эмулятором</string>
+    <string name="show_app_ram_usage_description">Показать объем оперативной памяти, используемой эмулятором</string>
     <string name="show_system_ram_usage">Показать RAM системы</string>
-    <string name="show_system_ram_usage_description">Использование RAM системой</string>
+    <string name="show_system_ram_usage_description">Показать объем оперативной памяти, используемой системой</string>
     <string name="show_bat_temperature">Показать температуру батареи</string>
     <string name="show_bat_temperature_description">Текущая температура батареи (°C/°F)</string>
     <string name="overlay_position">Позиция оверлея</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + Динамическое состояние ввода вершин</string>
     <string name="dyna_state3_description">Улучшает производительность на новых устройствах. Поддерживается только GPU с Vulkan 1.3+.</string>
     <string name="use_sync_core">Синхронизация скорости ядра</string>
-    <string name="use_sync_core_description">Синхронизирует скорость тактов ядра с максимальным процентом скорости для повышения производительности без изменения фактической скорости игры.</string>
+    <string name="use_sync_core_description">Синхронизирует скорость ядра с максимальным процентом скорости для улучшения производительности без изменения фактической скорости игры.</string>
     <string name="use_auto_stub">Использовать Auto Stub</string>
     <string name="use_auto_stub_description">Автоматически заглушает отсутствующие сервисы и функции. Может улучшить совместимость, но вызывать сбои и проблемы стабильности.</string>
     <string name="uninstall_firmware">Удалить прошивку</string>
@@ -87,8 +90,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Шейдерный бэкенд</string>
     <string name="shader_backend_description">Метод компиляции шейдеров</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Универсальный</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Эмуляция NVDEC</string>
@@ -411,7 +415,7 @@
     <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
     <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
     <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
-    <string name="renderer_asynchronous_shaders_description">Компиляция шейдеров происходит асинхронно, что уменьшает зависания, но может привести к появлению багов.</string>
+    <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно. Это может уменьшить подтормаживания, но также может вызвать графические артефакты.</string>
     <string name="renderer_reactive_flushing">Реактивная очистка</string>
     <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
     <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>

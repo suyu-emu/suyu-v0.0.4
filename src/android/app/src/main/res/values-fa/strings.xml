@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">مجوز اعلان داده نشده!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(بهبودیافته)</string>
+    <string name="skipping_fps_suffix">(رد کردن)</string>
+    <string name="system_info_label">سیستم:</string>
     <string name="show_stats_overlay">نمایش آمار عملکرد</string>
     <string name="stats_overlay_customization">سفارشی‌سازی</string>
     <string name="stats_overlay_items">نمایش</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">نمایش سرعت</string>
     <string name="show_speed_description">نمایش درصد سرعت شبیه‌سازی</string>
     <string name="show_app_ram_usage">نمایش مصرف رم برنامه</string>
-    <string name="show_app_ram_usage_description">نمایش میزان رم استفاده‌شده توسط شبیه‌ساز</string>
+    <string name="show_app_ram_usage_description">نمایش میزان رم مورد استفاده شبیه‌ساز</string>
     <string name="show_system_ram_usage">نمایش مصرف رم سیستم</string>
-    <string name="show_system_ram_usage_description">نمایش میزان رم استفاده‌شده توسط سیستم</string>
+    <string name="show_system_ram_usage_description">نمایش میزان رم استفاده شده توسط سیستم</string>
     <string name="show_bat_temperature">نمایش دمای باتری</string>
     <string name="show_bat_temperature_description">نمایش دمای باتری به سانتی‌گراد و فارنهایت</string>
     <string name="overlay_position">موقعیت اورلی</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + حالت پویای ورودی رأس</string>
     <string name="dyna_state3_description">عملکرد را در دستگاه‌های جدیدتر بهبود می‌بخشد. فقط در کارت‌های گرافیک با پشتیبانی از ولکان 1.3+ قابل استفاده است</string>
     <string name="use_sync_core">همگام‌سازی سرعت هسته</string>
-    <string name="use_sync_core_description">سرعت تیک هسته را با حداکثر درصد سرعت همگام می‌کند تا عملکرد بهبود یابد بدون آنکه سرعت واقعی بازی تغییر کند</string>
+    <string name="use_sync_core_description">همگام‌سازی سرعت هسته با حداکثر درصد سرعت برای بهبود عملکرد بدون تغییر سرعت واقعی بازی.</string>
     <string name="use_auto_stub">استفاده از استاب خودکار</string>
     <string name="use_auto_stub_description">به طور خودکار سرویس‌ها و توابع از دست رفته را استاب می‌کند. این ممکن است سازگاری را بهبود بخشد اما می‌تواند باعث کرش و مشکلات پایداری شود</string>
     <string name="uninstall_firmware">حذف فرمور</string>
@@ -87,8 +90,9 @@
     <!-- بک‌اند شیدر -->
     <string name="shader_backend">بک‌اند شیدر</string>
     <string name="shader_backend_description">انتخاب روش کامپایل و ترجمه شیدرها</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">همه‌کاره</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- شبیه‌سازی NVDEC -->
     <string name="nvdec_emulation">شبیه‌سازی NVDEC</string>
@@ -408,7 +412,7 @@
     <string name="renderer_force_max_clock">اجبار به حداکثر فرکانس (فقط برای Adreno)</string>
     <string name="renderer_force_max_clock_description">پردازنده گرافیکی را مجبور می‌کند تا با بیشترین فرکانس کار کند (محدودیت‌های حرارتی همچنان اعمال خواهند شد).</string>
     <string name="renderer_asynchronous_shaders">استفاده از سایه‌زن‌های ناهمزمان</string>
-    <string name="renderer_asynchronous_shaders_description">سایه‌زن‌ها را به صورت ناهمزمان کامپایل می کند، لکنت را کاهش می‌دهد اما ممکن است اشکالاتی ایجاد کند.</string>
+    <string name="renderer_asynchronous_shaders_description">کامپایل شیدرها به صورت ناهمزمان. این ممکن است باعث کاهش مکث شود اما ممکن است مشکلات گرافیکی نیز ایجاد کند.</string>
     <string name="renderer_reactive_flushing">استفاده از فلاش کردن واکنشی</string>
     <string name="renderer_reactive_flushing_description">دقت تفسیر تصاویر را در برخی از بازی‌ها به قیمت عملکرد بهبود می‌بخشد.</string>
     <string name="use_disk_shader_cache">ذخیره سایه‌زنی‌ها در حافظه</string>

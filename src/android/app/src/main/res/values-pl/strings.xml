@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Nie zezwolono na powiadomienia!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Ulepszony)</string>
+    <string name="skipping_fps_suffix">(Pomijanie)</string>
+    <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Pokaż nakładkę statystyk wydajności</string>
     <string name="stats_overlay_customization">Dostosowanie</string>
     <string name="stats_overlay_items">Widoczność</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">Pokaż prędkość</string>
     <string name="show_speed_description">Wyświetla procentową prędkość emulacji</string>
     <string name="show_app_ram_usage">Pokaż użycie RAM aplikacji</string>
-    <string name="show_app_ram_usage_description">Wyświetla ilość RAM używanego przez emulator</string>
+    <string name="show_app_ram_usage_description">Wyświetl ilość pamięci RAM używanej przez emulator</string>
     <string name="show_system_ram_usage">Pokaż użycie RAM systemu</string>
-    <string name="show_system_ram_usage_description">Wyświetla ilość RAM używanego przez system</string>
+    <string name="show_system_ram_usage_description">Wyświetl ilość pamięci RAM używanej przez system</string>
     <string name="show_bat_temperature">Pokaż temperaturę baterii</string>
     <string name="show_bat_temperature_description">Wyświetla temperaturę baterii w °C i °F</string>
     <string name="overlay_position">Pozycja nakładki</string>
@@ -87,8 +90,9 @@
     <!-- Backend shaderów -->
     <string name="shader_backend">Backend shaderów</string>
     <string name="shader_backend_description">Wybierz metodę kompilacji shaderów.</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Uniwersalny</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- Emulacja NVDEC -->
     <string name="nvdec_emulation">Emulacja NVDEC</string>
@@ -328,7 +332,7 @@
     <string name="renderer_force_max_clock">Maksymalne taktowanie GPU (układy Adreno)</string>
     <string name="renderer_force_max_clock_description">Wymusza uruchomienie maksymalnego taktowania układu graficznego (zabezpieczenia termiczne będą dalej aktywne).</string>
     <string name="renderer_asynchronous_shaders">Wyłącz synchronizację shaderów</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiluj oświetlenie bez synchronizacji, poprawi wydajność ale może powodować błędy.</string>
+    <string name="renderer_asynchronous_shaders_description">Kompiluje shadery asynchronicznie. Może to zmniejszyć zacinanie, ale może też powodować błędy graficzne.</string>
     <string name="renderer_reactive_flushing">Użyj spłukiwania reaktywnego - reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
     <string name="use_disk_shader_cache">Pamięć podręczna shaderów</string>

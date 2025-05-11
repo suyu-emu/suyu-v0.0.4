@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Permission de notification non accordée !</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Amélioré)</string>
+    <string name="skipping_fps_suffix">(Saut)</string>
+    <string name="system_info_label">Système:</string>
     <string name="show_stats_overlay">Afficher les stats de performance</string>
     <string name="stats_overlay_customization">Personnalisation</string>
     <string name="stats_overlay_items">Visibilité</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">Afficher vitesse</string>
     <string name="show_speed_description">Afficher la vitesse d`émulation</string>
     <string name="show_app_ram_usage">RAM app</string>
-    <string name="show_app_ram_usage_description">Afficher la RAM utilisée par l`émulateur</string>
+    <string name="show_app_ram_usage_description">Afficher la quantité de RAM utilisée par l\'émulateur</string>
     <string name="show_system_ram_usage">RAM système</string>
-    <string name="show_system_ram_usage_description">Afficher la RAM système utilisée</string>
+    <string name="show_system_ram_usage_description">Afficher la quantité de RAM utilisée par le système</string>
     <string name="show_bat_temperature">Temp. batterie</string>
     <string name="show_bat_temperature_description">Afficher la température de la batterie</string>
     <string name="overlay_position">Position overlay</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Améliore les performances sur les appareils récents. Pris en charge uniquement par les GPU Vulkan 1.3+.</string>
     <string name="use_sync_core">Synchroniser la vitesse du cœur</string>
-    <string name="use_sync_core_description">Synchronise la vitesse de base avec le pourcentage de vitesse maximal pour améliorer les performances sans altérer la vitesse réelle du jeu.</string>
+    <string name="use_sync_core_description">Synchronise la vitesse du cœur avec le pourcentage de vitesse maximal pour améliorer les performances sans modifier la vitesse réelle du jeu.</string>
     <string name="use_auto_stub">Utiliser le stub automatique</string>
     <string name="use_auto_stub_description">Comble automatiquement les services et fonctions manquants. Peut améliorer la compatibilité mais peut provoquer des plantages et des problèmes de stabilité.</string>
     <string name="uninstall_firmware">Désinstaller le firmware</string>
@@ -87,8 +90,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Backend shader</string>
     <string name="shader_backend_description">Méthode de compilation</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Universel</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC -->
     <string name="nvdec_emulation">Émulation NVDEC</string>
@@ -410,7 +414,7 @@
     <string name="renderer_force_max_clock">Forcer les fréquences maximales (Adreno uniquement)</string>
     <string name="renderer_force_max_clock_description">Forcer le GPU à fonctionner à ses fréquences maximales possibles (les contraintes thermiques seront toujours appliquées).</string>
     <string name="renderer_asynchronous_shaders">Utiliser les shaders asynchrones</string>
-    <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone, réduisant les saccades mais pouvant entraîner des problèmes visuels.</string>
+    <string name="renderer_asynchronous_shaders_description">Compile les shaders de manière asynchrone. Cela peut réduire les saccades mais peut aussi provoquer des problèmes graphiques.</string>
     <string name="renderer_reactive_flushing">Utiliser le vidage réactif</string>
     <string name="renderer_reactive_flushing_description">Améliore la précision du rendu dans certains jeux au détriment des performances.</string>
     <string name="use_disk_shader_cache">Utiliser les shader cache</string>

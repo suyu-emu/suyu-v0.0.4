@@ -30,7 +30,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textAlignment="viewStart"
             android:layout_marginEnd="4dp"
-            android:text="System Info:" />
+            android:text="@string/system_info_label" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/cpu_backend"

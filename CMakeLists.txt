@@ -105,13 +105,13 @@ if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
         file(DOWNLOAD "${vvl_base_url}/${vvl_version}/android-binaries-${vvl_version}-android.zip"
             "${vvl_zip_file}" SHOW_PROGRESS)
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${vvl_zip_file}"
-                        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
     endif()
 
     # Copy the arm64 binary to src/android/app/main/jniLibs
     set(vvl_lib_path "${CMAKE_CURRENT_SOURCE_DIR}/src/android/app/src/main/jniLibs/arm64-v8a/")
     file(COPY "${CMAKE_BINARY_DIR}/externals/android-binaries-${vvl_version}/arm64-v8a/libVkLayer_khronos_validation.so"
-            DESTINATION "${vvl_lib_path}")
+        DESTINATION "${vvl_lib_path}")
 endif()
 
 if (ANDROID)
@@ -209,7 +209,7 @@ function(check_submodules_present)
         string(REGEX REPLACE "path *= *" "" module ${module})
         if (NOT EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
             message(FATAL_ERROR "Git submodule ${module} not found. "
-                    "Please run: \ngit submodule update --init --recursive")
+                "Please run: \ngit submodule update --init --recursive")
         endif()
     endforeach()
 endfunction()
@@ -218,12 +218,12 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND YUZU_CHECK_SUBMODULES)
     check_submodules_present()
 endif()
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
-               ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
-               COPYONLY)
+    ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
+    COPYONLY)
 if (EXISTS ${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json)
     configure_file("${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json"
-                   "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json"
-                   COPYONLY)
+        "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json"
+        COPYONLY)
 endif()
 if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
     message(STATUS "Downloading compatibility list for yuzu...")
@@ -431,34 +431,34 @@ if (ENABLE_QT)
 endif()
 
 function(set_yuzu_qt_components)
-# Best practice is to ask for all components at once, so they are from the same version
-set(YUZU_QT_COMPONENTS2 Core Widgets Concurrent)
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-list(APPEND YUZU_QT_COMPONENTS2 DBus)
-endif()
-if (YUZU_USE_QT_MULTIMEDIA)
-list(APPEND YUZU_QT_COMPONENTS2 Multimedia)
+    # Best practice is to ask for all components at once, so they are from the same version
+    set(YUZU_QT_COMPONENTS2 Core Widgets Concurrent)
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        list(APPEND YUZU_QT_COMPONENTS2 DBus)
+    endif()
+    if (YUZU_USE_QT_MULTIMEDIA)
+        list(APPEND YUZU_QT_COMPONENTS2 Multimedia)
     endif()
     if (YUZU_USE_QT_WEB_ENGINE)
-    list(APPEND YUZU_QT_COMPONENTS2 WebEngineCore WebEngineWidgets)
+        list(APPEND YUZU_QT_COMPONENTS2 WebEngineCore WebEngineWidgets)
     endif()
     if (ENABLE_QT_TRANSLATION)
-    list(APPEND YUZU_QT_COMPONENTS2 LinguistTools)
+        list(APPEND YUZU_QT_COMPONENTS2 LinguistTools)
     endif()
     if (USE_DISCORD_PRESENCE)
-    list(APPEND YUZU_QT_COMPONENTS2 Network)
+        list(APPEND YUZU_QT_COMPONENTS2 Network)
     endif()
     set(YUZU_QT_COMPONENTS ${YUZU_QT_COMPONENTS2} PARENT_SCOPE)
-    endfunction(set_yuzu_qt_components)
+endfunction(set_yuzu_qt_components)
 
-    # List of all FFmpeg components required
-    set(FFmpeg_COMPONENTS
+# List of all FFmpeg components required
+set(FFmpeg_COMPONENTS
     avcodec
     avfilter
     avutil
     swscale)
 
-    if (UNIX AND NOT APPLE AND NOT ANDROID)
+if (UNIX AND NOT APPLE AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBVA libva)
 endif()
@@ -468,12 +468,12 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
 endif()
 
 if(ENABLE_QT)
-        set_yuzu_qt_components()
-        find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
-        set(QT_MAJOR_VERSION 6)
-        # Qt6 sets cxx_std_17 and we need to undo that
-        set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
-    endif()
+    set_yuzu_qt_components()
+    find_package(Qt6 REQUIRED COMPONENTS ${YUZU_QT_COMPONENTS})
+    set(QT_MAJOR_VERSION 6)
+    # Qt6 sets cxx_std_17 and we need to undo that
+    set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_FEATURES "")
+endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
     set(BREAKPAD_VER "breakpad-c89f9dd")
@@ -517,7 +517,7 @@ endif()
 set(CLANG_FORMAT_POSTFIX "-15")
 find_program(CLANG_FORMAT
     NAMES clang-format${CLANG_FORMAT_POSTFIX}
-          clang-format
+    clang-format
     PATHS ${PROJECT_BINARY_DIR}/externals)
 # if find_program doesn't find it, try to download from externals
 if (NOT CLANG_FORMAT)
@@ -642,12 +642,12 @@ endif()
 # https://www.freedesktop.org/software/appstream/docs/
 if(ENABLE_QT AND UNIX AND NOT APPLE)
     install(FILES "dist/org.yuzu_emu.yuzu.desktop"
-            DESTINATION "share/applications")
+        DESTINATION "share/applications")
     install(FILES "dist/eden.svg"
-            DESTINATION "share/icons/hicolor/scalable/apps"
-            RENAME "org.yuzu_emu.eden.svg")
+        DESTINATION "share/icons/hicolor/scalable/apps"
+        RENAME "org.yuzu_emu.eden.svg")
     install(FILES "dist/org.yuzu_emu.yuzu.xml"
-            DESTINATION "share/mime/packages")
+        DESTINATION "share/mime/packages")
     install(FILES "dist/org.yuzu_emu.yuzu.metainfo.xml"
-            DESTINATION "share/metainfo")
+        DESTINATION "share/metainfo")
 endif()

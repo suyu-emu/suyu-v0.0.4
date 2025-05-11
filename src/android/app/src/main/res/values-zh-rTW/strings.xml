@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">未授予通知權限！</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(增強)</string>
+    <string name="skipping_fps_suffix">(跳過)</string>
+    <string name="system_info_label">系統:</string>
     <string name="show_stats_overlay">顯示效能統計疊加層</string>
     <string name="stats_overlay_customization">自訂</string>
     <string name="stats_overlay_items">可見項目</string>
@@ -20,7 +23,7 @@
     <string name="show_speed">顯示速度</string>
     <string name="show_speed_description">顯示當前模擬速度百分比</string>
     <string name="show_app_ram_usage">顯示應用記憶體用量</string>
-    <string name="show_app_ram_usage_description">顯示模擬器使用的記憶體量</string>
+    <string name="show_app_ram_usage_description">顯示模擬器正在使用的記憶體量</string>
     <string name="show_system_ram_usage">顯示系統記憶體用量</string>
     <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
     <string name="show_bat_temperature">顯示電池溫度</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + 頂點輸入動態狀態</string>
     <string name="dyna_state3_description">提高新裝置上的效能。僅支援Vulkan 1.3+ GPU。</string>
     <string name="use_sync_core">同步核心速度</string>
-    <string name="use_sync_core_description">將核心時脈速度同步到最大速度百分比以提高效能，而不改變遊戲實際速度。</string>
+    <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
     <string name="use_auto_stub">使用自動存根</string>
     <string name="use_auto_stub_description">自動補全缺失的服務和功能。可提高相容性但可能導致崩潰和穩定性問題。</string>
     <string name="uninstall_firmware">解除安裝韌體</string>
@@ -87,8 +90,9 @@
     <!-- 著色器後端 -->
     <string name="shader_backend">著色器後端</string>
     <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">通用</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- NVDEC模擬 -->
     <string name="nvdec_emulation">NVDEC模擬</string>
@@ -406,7 +410,7 @@
     <string name="renderer_force_max_clock">強制最大時脈 (僅 Adreno)</string>
     <string name="renderer_force_max_clock_description">強制 GPU 以最大可能時脈執行 (熱溫限制仍被套用)。</string>
     <string name="renderer_asynchronous_shaders">使用非同步著色器</string>
-    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器，將會減少間斷，但可能會引入故障。</string>
+    <string name="renderer_asynchronous_shaders_description">非同步編譯著色器。這可能會減少卡頓，但也可能導致圖形錯誤。</string>
     <string name="renderer_reactive_flushing">使用重新啟用排清</string>
     <string name="renderer_reactive_flushing_description">犧牲效能，以改善部分遊戲的轉譯準確度。</string>
     <string name="use_disk_shader_cache">磁碟著色器快取</string>

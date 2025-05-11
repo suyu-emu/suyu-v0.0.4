@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(پێشکەوتوو)</string>
+    <string name="skipping_fps_suffix">(بازدان)</string>
+    <string name="system_info_label">سیستەم:</string>
     <string name="show_stats_overlay">پیشاندانی ستاتیستی کارایی</string>
     <string name="stats_overlay_customization">خۆڕێکخستن</string>
     <string name="stats_overlay_items">دیاربوون</string>
@@ -20,9 +23,9 @@
     <string name="show_speed">نیشاندانی خێرایی</string>
     <string name="show_speed_description">نیشاندانی خێرایی ئیمولەیشن بە ڕێژە</string>
     <string name="show_app_ram_usage">نیشاندانی بەکارهێنانی RAMی ئەپ</string>
-    <string name="show_app_ram_usage_description">نیشاندانی بەکارهێنانی RAM لەلایەن ئیمولەیتەر</string>
+    <string name="show_app_ram_usage_description">نیشاندانی بڕی RAM کە ئێمولاتۆر بەکاردەهێنێت</string>
     <string name="show_system_ram_usage">نیشاندانی بەکارهێنانی RAMی سیستەم</string>
-    <string name="show_system_ram_usage_description">نیشاندانی بەکارهێنانی RAM لەلایەن سیستەم</string>
+    <string name="show_system_ram_usage_description">نیشاندانی بڕی RAM کە سیستم بەکاردەهێنێت</string>
     <string name="show_bat_temperature">نیشاندانی پلەی گەرمی بەتری</string>
     <string name="show_bat_temperature_description">نیشاندانی پلەی گەرمی بەتری بە سەدی و فارینهایت</string>
     <string name="overlay_position">شوێنی ئاوێرە</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">يحسن الأداء على الأجهزة الأحدث. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.3+.</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
-    <string name="use_sync_core_description">قم بمزامنة سرعة النواة مع النسبة المئوية القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
+    <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>
     <string name="use_auto_stub_description">يقوم تلقائيًا بإضافة خدمات ووظائف ناقصة. قد يحسن التوافق ولكنه قد يتسبب في تعطل المشغل ومشاكل في الاستقرار.</string>
     <string name="uninstall_firmware">إزالة البرنامج الثابت</string>
@@ -87,8 +90,9 @@
     <!-- شادەر باکند -->
     <string name="shader_backend">شادەر باکند</string>
     <string name="shader_backend_description">هەڵبژاردنی ڕێگای پێکهێنانی شادەر</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">گشتی</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- ئیمولەیشنی NVDEC -->
     <string name="nvdec_emulation">ئیمولەیشنی NVDEC</string>
@@ -328,7 +332,7 @@
     <string name="renderer_force_max_clock">ناچاریکردن بۆ زۆرترین کاتژمێر (تەنها ئەدرینۆ)</string>
     <string name="renderer_force_max_clock_description">GPU ناچار دەکات بە زۆرترین کاتژمێر کاربکات (هێشتا سنووردارکردنی گەرمی جێبەجێ دەکرێت).</string>
     <string name="renderer_asynchronous_shaders">بەکارهێنانی سێبەری ناهاوسەنگ</string>
-    <string name="renderer_asynchronous_shaders_description">سێبەرەکان بە شێوەیەکی ناهاوسەنگ کۆدەکاتەوە، پچڕپچڕی کەمدەکاتەوە بەڵام لەوانەیە گلێچ دروستکا.</string>
+    <string name="renderer_asynchronous_shaders_description">کۆمپایلکردنی شادەرەکان بەشێوەی ناڕێک. ئەمە ڕەنگە کەمکردنەوەی ستەتەر بکات بەڵام لەوانەیە هەڵەش دروست بکات.</string>
     <string name="renderer_reactive_flushing">بەکارهێنانی بەرپێچدەرەوە</string>
     <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
     <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>

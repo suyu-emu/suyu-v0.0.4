@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -99,52 +102,91 @@ Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dl
 }
 
 RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& emu_window,
-                               Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
-                               std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
-    : RendererBase(emu_window, std::move(context_)), device_memory(device_memory_), gpu(gpu_),
-      library(OpenLibrary(context.get())),
-      // Create raw Vulkan instance first
-      instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
-                            Settings::values.renderer_debug.GetValue())),
-      // Now create RAII wrappers for the resources in the correct order
-      managed_instance(MakeManagedInstance(instance, dld)),
-      // Create debug messenger if debug is enabled
-      debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
-                                                    : vk::DebugUtilsMessenger{}),
-      managed_debug_messenger(Settings::values.renderer_debug
-                             ? MakeManagedDebugUtilsMessenger(debug_messenger, instance, dld)
-                             : ManagedDebugUtilsMessenger{}),
-      // Create surface
-      surface(CreateSurface(instance, render_window.GetWindowInfo())),
-      managed_surface(MakeManagedSurface(surface, instance, dld)),
-      device(CreateDevice(instance, dld, *surface)),
-      memory_allocator(device), state_tracker(),
-      scheduler(device, state_tracker),
-      swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
-                render_window.GetFramebufferLayout().height),
-      present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
-                      *surface),
-      blit_swapchain(device_memory, device, memory_allocator, present_manager, scheduler,
-                     PresentFiltersForDisplay),
-      blit_capture(device_memory, device, memory_allocator, present_manager, scheduler,
-                   PresentFiltersForDisplay),
-      blit_applet(device_memory, device, memory_allocator, present_manager, scheduler,
-                  PresentFiltersForAppletCapture),
-      rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
-                 scheduler),
-      applet_frame() {
+                               Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                               Tegra::GPU& gpu_,
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context_)
+try
+    : RendererBase(emu_window, std::move(context_))
+    , device_memory(device_memory_)
+    , gpu(gpu_)
+    , library(OpenLibrary(context.get()))
+    ,
+    // Create raw Vulkan instance first
+    instance(CreateInstance(*library,
+                            dld,
+                            VK_API_VERSION_1_1,
+                            render_window.GetWindowInfo().type,
+                            Settings::values.renderer_debug.GetValue()))
+    ,
+    // Now create RAII wrappers for the resources in the correct order
+    managed_instance(MakeManagedInstance(instance, dld))
+    ,
+    // Create debug messenger if debug is enabled
+    debug_messenger(Settings::values.renderer_debug ? CreateDebugUtilsCallback(instance)
+                                                    : vk::DebugUtilsMessenger{})
+    , managed_debug_messenger(Settings::values.renderer_debug
+                                  ? MakeManagedDebugUtilsMessenger(debug_messenger, instance, dld)
+                                  : ManagedDebugUtilsMessenger{})
+    ,
+    // Create surface
+    surface(CreateSurface(instance, render_window.GetWindowInfo()))
+    , managed_surface(MakeManagedSurface(surface, instance, dld))
+    , device(CreateDevice(instance, dld, *surface))
+    , memory_allocator(device)
+    , state_tracker()
+    , scheduler(device, state_tracker)
+    , swapchain(*surface,
+                device,
+                scheduler,
+                render_window.GetFramebufferLayout().width,
+                render_window.GetFramebufferLayout().height)
+    , present_manager(instance,
+                      render_window,
+                      device,
+                      memory_allocator,
+                      scheduler,
+                      swapchain,
+#ifdef ANDROID
+                      surface)
+    ,
+#else
+                      *surface)
+    ,
+#endif
+    blit_swapchain(device_memory,
+                   device,
+                   memory_allocator,
+                   present_manager,
+                   scheduler,
+                   PresentFiltersForDisplay)
+    , blit_capture(device_memory,
+                   device,
+                   memory_allocator,
+                   present_manager,
+                   scheduler,
+                   PresentFiltersForDisplay)
+    , blit_applet(device_memory,
+                  device,
+                  memory_allocator,
+                  present_manager,
+                  scheduler,
+                  PresentFiltersForAppletCapture)
+    , rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker, scheduler)
+    , applet_frame() {
 
-   if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
+    if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
     }
 
+#ifndef ANDROID
     // Release ownership from the old instance and surface
     instance.release();
     surface.release();
     if (Settings::values.renderer_debug) {
         debug_messenger.release();
     }
+#endif
 
     Report();
 } catch (const vk::Exception& exception) {

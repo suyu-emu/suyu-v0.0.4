@@ -90,7 +90,7 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(InputCommon::InputSubsystem* input_subsyste
     }
     SDL_GL_SetSwapInterval(0);
 
-    std::string window_title = fmt::format("yuzu {} | {}-{}", Common::g_build_fullname,
+    std::string window_title = fmt::format("eden {} | {}-{}", Common::g_build_fullname,
                                            Common::g_scm_branch, Common::g_scm_desc);
     render_window =
         SDL_CreateWindow(window_title.c_str(),

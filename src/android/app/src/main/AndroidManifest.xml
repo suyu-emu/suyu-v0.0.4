@@ -29,7 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
         android:banner="@drawable/tv_banner"
         android:fullBackupContent="@xml/data_extraction_rules"
         android:dataExtractionRules="@xml/data_extraction_rules_api_31"
-        android:enableOnBackInvokedCallback="false">
+        android:enableOnBackInvokedCallback="true">
 
         <meta-data android:name="android.game_mode_config"
             android:resource="@xml/game_mode_config" />
@@ -44,6 +44,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.GAME" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>

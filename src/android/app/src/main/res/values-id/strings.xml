@@ -7,6 +7,9 @@
     <string name="notification_permission_not_granted">Izin notifikasi tidak diberikan!</string>
 
     <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Ditingkatkan)</string>
+    <string name="skipping_fps_suffix">(Melewatkan)</string>
+    <string name="system_info_label">Sistem:</string>
     <string name="show_stats_overlay">Tampilkan Overlay Statistik Performa</string>
     <string name="stats_overlay_customization">Kustomisasi</string>
     <string name="stats_overlay_items">Visibilitas</string>
@@ -20,7 +23,7 @@
     <string name="show_speed">Tampilkan Kecepatan</string>
     <string name="show_speed_description">Tampilkan persentase kecepatan emulasi saat ini</string>
     <string name="show_app_ram_usage">Tampilkan Penggunaan RAM Aplikasi</string>
-    <string name="show_app_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh emulator</string>
+    <string name="show_app_ram_usage_description">Tampilkan jumlah RAM yang digunakan emulator</string>
     <string name="show_system_ram_usage">Tampilkan Penggunaan RAM Sistem</string>
     <string name="show_system_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh sistem</string>
     <string name="show_bat_temperature">Tampilkan Suhu Baterai</string>
@@ -50,7 +53,7 @@
     <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
     <string name="dyna_state3_description">Meningkatkan performa di perangkat baru. Hanya didukung di GPU Vulkan 1.3+.</string>
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
-    <string name="use_sync_core_description">Sinkronkan kecepatan inti ke persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan aktual game.</string>
+    <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
     <string name="use_auto_stub">Gunakan Auto Stub</string>
     <string name="use_auto_stub_description">Otomatis menyediakan layanan dan fungsi yang hilang. Dapat meningkatkan kompatibilitas tetapi mungkin menyebabkan crash dan masalah stabilitas.</string>
     <string name="uninstall_firmware">Copot Firmware</string>
@@ -87,8 +90,9 @@
     <!-- Backend Shader -->
     <string name="shader_backend">Backend Shader</string>
     <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
-    <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_spirv">SPIR-V</string>
+    <string name="shader_backend_glsl">Universal</string>
+    <string name="shader_backend_glasm">Mali</string>
+    <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
     <!-- Emulasi NVDEC -->
     <string name="nvdec_emulation">Emulasi NVDEC</string>
@@ -404,7 +408,7 @@
     <string name="renderer_force_max_clock">Paksa jam maximum (hanya untuk Adreno)</string>
     <string name="renderer_force_max_clock_description">Memaksa GPU untuk berjalan pada kecepatan maksimum yang mungkin (batasan termal masih akan diterapkan).</string>
     <string name="renderer_asynchronous_shaders">Gunakan shader asinkron</string>
-    <string name="renderer_asynchronous_shaders_description">Mengompilasi shader secara asinkron mengurangi Tutup Paksa tetapi dapat menimbulkan gangguan.</string>
+    <string name="renderer_asynchronous_shaders_description">Kompilasi shader secara asinkron. Ini dapat mengurangi lag tetapi juga dapat menyebabkan glitch.</string>
     <string name="renderer_reactive_flushing">Gunakan reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Meningkatkan akurasi rendering dalam beberapa permainan dengan mengorbankan performa.</string>
     <string name="use_disk_shader_cache">Cache shader disk</string>

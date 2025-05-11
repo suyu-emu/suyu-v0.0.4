@@ -23,7 +23,7 @@
       </size>
      </property>
      <property name="text">
-      <string>Warning: The settings in this page affect the inner workings of yuzu's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</string>
+      <string>Warning: The settings in this page affect the inner workings of eden's emulated touchscreen. Changing them may result in undesirable behavior, such as the touchscreen partially or not working. You should only use this page if you know what you are doing.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

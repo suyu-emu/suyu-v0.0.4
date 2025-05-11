@@ -8,27 +8,17 @@
 #pragma once
 
 #include <QMainWindow>
+#include "migration_worker.h"
 
 class UserDataMigrator {
 public:
     UserDataMigrator(QMainWindow* main_window);
 
 private:
-    enum class LegacyEmu {
-        Citron,
-        Sudachi,
-        Yuzu,
-        Suyu,
-    };
-
-    enum class MigrationStrategy {
-        Copy,
-        Move,
-        Link,
-    };
-
     void ShowMigrationPrompt(QMainWindow* main_window);
     void ShowMigrationCancelledMessage(QMainWindow* main_window);
-    void MigrateUserData(QMainWindow* main_window, const LegacyEmu selected_legacy_emu,
-                         const bool clear_shader_cache, const MigrationStrategy strategy);
+    void MigrateUserData(QMainWindow* main_window,
+                         const MigrationWorker::LegacyEmu selected_legacy_emu,
+                         const bool clear_shader_cache,
+                         const MigrationWorker::MigrationStrategy strategy);
 };

@@ -2656,7 +2656,7 @@
                    <item row="2" column="0">
                      <widget class="QCheckBox" name="enable_raw_input">
                        <property name="toolTip">
-                         <string>Requires restarting yuzu</string>
+                         <string>Requires restarting eden</string>
                        </property>
                        <property name="minimumSize">
                          <size>
@@ -2698,7 +2698,7 @@
                    <item row="5" column="0">
                       <widget class="QCheckBox" name="enable_joycon_driver">
                        <property name="toolTip">
-                         <string>Requires restarting yuzu</string>
+                         <string>Requires restarting eden</string>
                        </property>
                        <property name="minimumSize">
                          <size>
@@ -2714,7 +2714,7 @@
                    <item row="6" column="0">
                       <widget class="QCheckBox" name="enable_procon_driver">
                        <property name="toolTip">
-                         <string>Requires restarting yuzu</string>
+                         <string>Requires restarting eden</string>
                        </property>
                        <property name="minimumSize">
                          <size>

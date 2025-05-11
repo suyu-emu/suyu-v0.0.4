@@ -188,6 +188,7 @@
     <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
+    <addaction name="action_Discord"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -482,6 +483,11 @@
   <action name="action_Load_Home_Menu">
    <property name="text">
     <string>Open Home Menu</string>
+   </property>
+  </action>
+  <action name="action_Discord">
+   <property name="text">
+    <string>&amp;Discord</string>
    </property>
   </action>
  </widget>

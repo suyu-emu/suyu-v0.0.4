@@ -289,10 +289,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Ui General
     INSERT(UISettings, select_user_on_boot, tr("Prompt for user on game boot"),
-           tr("Ask to select a user profile on each boot, useful if multiple people use yuzu on "
+           tr("Ask to select a user profile on each boot, useful if multiple people use eden on "
               "the same PC."));
     INSERT(UISettings, pause_when_in_background, tr("Pause emulation when in background"),
-           tr("This setting pauses yuzu when focusing other windows."));
+           tr("This setting pauses eden when focusing other windows."));
     INSERT(UISettings, confirm_before_stopping, tr("Confirm before stopping emulation"),
            tr("This setting overrides game prompts asking to confirm stopping the game.\nEnabling "
               "it bypasses such prompts and directly exits the emulation."));
@@ -544,7 +544,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                           {
                               PAIR(MemoryLayout, Memory_4Gb, tr("4GB DRAM (Default)")),
                               PAIR(MemoryLayout, Memory_6Gb, tr("6GB DRAM (Unsafe)")),
-                              PAIR(MemoryLayout, Memory_8Gb, tr("8GB DRAM (Unsafe)")),
+                              PAIR(MemoryLayout, Memory_8Gb, tr("8GB DRAM")),
+                              PAIR(MemoryLayout, Memory_10Gb, tr("10GB DRAM (Unsafe)")),
+                              PAIR(MemoryLayout, Memory_12Gb, tr("12GB DRAM (Unsafe)")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::ConsoleMode>::Index(),
                           {
