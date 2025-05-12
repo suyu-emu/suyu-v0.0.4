@@ -301,6 +301,10 @@ public:
             {101, nullptr, "IsNetworkServiceAccountReplaced"},
             {199, nullptr, "GetUrlForIntroductionOfExtraMembership"}, // 2.0.0 - 5.1.0
             {200, nullptr, "ApplyAsyncWithAuthorizedToken"},
+            {210, nullptr, "IsProfileAvailable"}, // 17.0.0+
+            {220, nullptr, "RegisterUserAsyncWithoutProfile"}, // 17.0.0+
+            {221, nullptr, "RegisterUserWithProfileAsync"}, // 17.0.0+
+            {230, nullptr, "RegisterUserWithLargeImageProfileAsync"}, // 18.0.0+
         };
         // clang-format on
 

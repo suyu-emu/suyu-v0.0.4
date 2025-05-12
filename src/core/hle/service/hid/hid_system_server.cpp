@@ -221,6 +221,11 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1289, nullptr, "SetButtonConfigStorageFull"},
         {1290, nullptr, "DeleteButtonConfigStorageRight"},
         {1291, nullptr, "DeleteButtonConfigStorageRight"},
+        {1308, nullptr, "SetButtonConfigVisible"}, // 18.0.0+
+        {1309, nullptr, "IsButtonConfigVisible"}, // 18.0.0+
+        {1320, nullptr, "WakeTouchScreenUp"}, // 17.0.0+
+        {1321, nullptr, "PutTouchScreenToSleep"}, // 17.0.0+
+        {1420, nullptr, "GetAppletResourceProperty"}, // 19.0.0+
     };
     // clang-format on
 
