@@ -27,7 +27,6 @@ private:
     Result OpenSystemAppletProxy(Out<SharedPointer<ISystemAppletProxy>> out_system_applet_proxy,
                                  ClientProcessId pid,
                                  InCopyHandle<Kernel::KProcess> process_handle);
-    Result OpenSystemAppletProxyForDebug(Out<SharedPointer<ISystemAppletProxy>> out_proxy, ClientProcessId pid);
     Result OpenLibraryAppletProxy(Out<SharedPointer<ILibraryAppletProxy>> out_library_applet_proxy,
                                   ClientProcessId pid,
                                   InCopyHandle<Kernel::KProcess> process_handle,

@@ -30,8 +30,6 @@ public:
             {10, nullptr, "CreateReportWithAttachments"},
             {11, C<&ErrorReportContext::CreateReportV1>, "CreateReportV1"},
             {12, C<&ErrorReportContext::CreateReport>, "CreateReport"},
-            {13, nullptr, "SubmitAttachmentWithLz4Compression"}, // 20.0.0+
-            {14, nullptr, "CreateReportWithSpecifiedReprotId"}, // 20.0.0+
             {20, nullptr, "RegisterRunningApplet"},
             {21, nullptr, "UnregisterRunningApplet"},
             {22, nullptr, "UpdateAppletSuspendedDuration"},

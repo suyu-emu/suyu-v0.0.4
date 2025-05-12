@@ -692,15 +692,9 @@ IGeneralService::IGeneralService(Core::System& system_)
         {45, nullptr, "IsNetworkEmulationFeatureEnabled"}, // 18.0.0+
         {46, nullptr, "SelectActiveNetworkEmulationProfileIdForDebug"}, // 18.0.0+
         {47, nullptr, "GetActiveNetworkEmulationProfileId"}, // 18.0.0+
-        {48, nullptr, "ResetActiveNetworkEmulationProfileId"}, // 20.0.0+
         {50, nullptr, "IsRewriteFeatureEnabled"}, // 18.0.0+
         {51, nullptr, "CreateRewriteRule"}, // 18.0.0+
-        {52, nullptr, "DestroyRewriteRule"}, // 18.0.0+
-        {53, nullptr, "IsActiveNetworkEmulationProfileIdSelected"}, // 20.0.0+
-        {54, nullptr, "SelectDefaultNetworkEmulationProfileId"}, // 20.0.0+
-        {55, nullptr, "GetDefaultNetworkEmulationProfileId"}, // 20.0.0+
-        {56, nullptr, "GetNetworkEmulationProfile"}, // 20.0.0+
-        {57, nullptr, "SetWowlTcpKeepAliveTimeout"}, // 20.0.0+
+        {52, nullptr, "DestroyRewriteRule"} // 18.0.0+
     };
     // clang-format on
 

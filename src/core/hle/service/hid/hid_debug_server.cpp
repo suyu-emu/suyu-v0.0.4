@@ -86,8 +86,6 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {209, nullptr, "GetAvailableFirmwareVersionForRevert"},
         {210, nullptr, "IsFirmwareUpdatingDevice"},
         {211, nullptr, "StartFirmwareUpdateIndividual"},
-        {212, nullptr, "GetDetailFirmwareVersion"}, // 19.0.0+
-        {213, nullptr, "GetFirmwareVersionStringForDevMenu"}, // 20.0.0+
         {215, nullptr, "SetUsbFirmwareForceUpdateEnabled"},
         {216, nullptr, "SetAllKuinaDevicesToFirmwareUpdateMode"},
         {221, nullptr, "UpdateControllerColor"},
@@ -121,7 +119,6 @@ IHidDebugServer::IHidDebugServer(Core::System& system_, std::shared_ptr<Resource
         {249, nullptr, "ConnectUniquePad"},
         {250, nullptr, "IsVirtual"},
         {251, nullptr, "GetAnalogStickModuleParam"},
-        {253, nullptr, "ClearStorageForShipment"}, //19.0.0+
         {301, nullptr, "GetAbstractedPadHandles"},
         {302, nullptr, "GetAbstractedPadState"},
         {303, nullptr, "GetAbstractedPadsState"},

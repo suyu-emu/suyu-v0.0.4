@@ -62,7 +62,6 @@ private:
     Result GetAccumulatedSuspendedTickChangedEvent(OutCopyHandle<Kernel::KReadableEvent> out_event);
     Result SetAlbumImageTakenNotificationEnabled(bool enabled);
     Result SaveCurrentScreenshot(Capture::AlbumReportOption album_report_option);
-    Result Unknown230();
     Result SetRecordVolumeMuted(bool muted);
 
     Kernel::KProcess* const m_process;

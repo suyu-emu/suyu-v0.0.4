@@ -53,8 +53,6 @@ IAlbumAccessorService::IAlbumAccessorService(Core::System& system_,
         {8021, nullptr, "GetAlbumEntryFromApplicationAlbumEntryAruid"},
         {10011, nullptr, "SetInternalErrorConversionEnabled"},
         {50000, nullptr, "LoadMakerNoteInfoForDebug"},
-        {50011, C<&IAlbumAccessorService::GetAlbumAccessResultForDebug>, "GetAlbumAccessResultForDebug"},
-        {50012, C<&IAlbumAccessorService::SetAlbumAccessResultForDebug>, "SetAlbumAccessResultForDebug"},
         {60002, nullptr, "OpenAccessorSession"},
     };
     // clang-format on
@@ -139,15 +137,6 @@ Result IAlbumAccessorService::LoadAlbumScreenShotThumbnailImageEx1(
     R_RETURN(TranslateResult(result));
 }
 
-Result IAlbumAccessorService::GetAlbumAccessResultForDebug() {
-    LOG_DEBUG(Service_Capture, "(STUBBED) called.");
-    R_SUCCEED();
-}
-
-Result IAlbumAccessorService::SetAlbumAccessResultForDebug() {
-    LOG_DEBUG(Service_Capture, "(STUBBED) called.");
-    R_SUCCEED();
-}
 Result IAlbumAccessorService::TranslateResult(Result in_result) {
     if (in_result.IsSuccess()) {
         return in_result;

@@ -296,7 +296,7 @@ void TouchResource::SetTouchScreenMagnification(f32 point1_x, f32 point1_y, f32 
     };
 }
 
-Result TouchResource::SetTouchScreenOutputRanges(u32 width, u32 height, u64 aruid) {
+Result TouchResource::SetTouchScreenResolution(u32 width, u32 height, u64 aruid) {
     std::scoped_lock lock{*shared_mutex};
 
     for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; aruid_index++) {

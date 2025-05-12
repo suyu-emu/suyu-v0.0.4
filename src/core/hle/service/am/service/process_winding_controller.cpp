@@ -15,7 +15,7 @@ IProcessWindingController::IProcessWindingController(Core::System& system_,
     static const FunctionInfo functions[] = {
         {0, D<&IProcessWindingController::GetLaunchReason>, "GetLaunchReason"},
         {11, D<&IProcessWindingController::OpenCallingLibraryApplet>, "OpenCallingLibraryApplet"},
-        {21, D<&IProcessWindingController::PushContext>, "PushContext"},
+        {21, nullptr, "PushContext"},
         {22, nullptr, "PopContext"},
         {23, nullptr, "CancelWindingReservation"},
         {30, nullptr, "WindAndDoReserved"},
@@ -48,11 +48,6 @@ Result IProcessWindingController::OpenCallingLibraryApplet(
 
     *out_calling_library_applet = std::make_shared<ILibraryAppletAccessor>(
         system, m_applet->caller_applet_broker, caller_applet);
-    R_SUCCEED();
-}
-
-Result IProcessWindingController::PushContext() {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
     R_SUCCEED();
 }
 

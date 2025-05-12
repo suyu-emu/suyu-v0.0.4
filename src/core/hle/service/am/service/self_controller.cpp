@@ -67,7 +67,6 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {110, nullptr, "SetApplicationAlbumUserData"},
         {120, D<&ISelfController::SaveCurrentScreenshot>, "SaveCurrentScreenshot"},
         {130, D<&ISelfController::SetRecordVolumeMuted>, "SetRecordVolumeMuted"},
-        {230, D<&ISelfController::Unknown230>, "Unknown230"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
@@ -393,10 +392,6 @@ Result ISelfController::SaveCurrentScreenshot(Capture::AlbumReportOption album_r
         screenshot_service->CaptureAndSaveScreenshot(album_report_option);
     }
 
-    R_SUCCEED();
-}
-Result ISelfController::Unknown230() {
-    LOG_WARNING(Service_AM, "(STUBBED) called - function 230 (0xE6)");
     R_SUCCEED();
 }
 

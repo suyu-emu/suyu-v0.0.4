@@ -303,9 +303,6 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {3013, nullptr, "IsGameCardEnabled"},
         {3014, nullptr, "IsLocalContentShareEnabled"},
         {3050, nullptr, "ListAssignELicenseTaskResult"},
-        {4022, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4022"},
-        {4023, D<&IApplicationManagerInterface::Unknown4023>, "Unknown4023"},
-        {4088, D<&IApplicationManagerInterface::Unknown4088>, "Unknown4088"},
         {9999, nullptr, "GetApplicationCertificate"},
     };
     // clang-format on
@@ -509,23 +506,6 @@ Result IApplicationManagerInterface::IsApplicationUpdateRequested(Out<bool> out_
 
 Result IApplicationManagerInterface::CheckApplicationLaunchVersion(u64 application_id) {
     LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::Unknown4022(Out<u32> out_unknown) {
-    LOG_WARNING(Service_NS, "(STUBBED) Unknown4022 called");
-    *out_unknown = 0;
-    R_SUCCEED();
-}
-
-Result IApplicationManagerInterface::Unknown4023(Out<u32> out_unknown) {
-    LOG_WARNING(Service_NS, "(STUBBED) Unknown4022 called");
-
-    *out_unknown = 0;
-    R_SUCCEED();
-}
-Result IApplicationManagerInterface::Unknown4088() {
-    LOG_WARNING(Service_NS, "(STUBBED) Unknown4088 called");
     R_SUCCEED();
 }
 

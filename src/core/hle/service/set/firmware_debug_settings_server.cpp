@@ -18,7 +18,6 @@ IFirmwareDebugSettingsServer::IFirmwareDebugSettingsServer(Core::System& system_
         {21, nullptr, "SetAllowedSslHosts"},
         {22, nullptr, "SetHostFsMountPoint"},
         {23, nullptr, "SetMemoryUsageRateFlag"},
-        {24, nullptr, "CommitSettings"}, // 20.0.0+
     };
     // clang-format on
 

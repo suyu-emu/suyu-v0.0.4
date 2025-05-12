@@ -116,7 +116,6 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {134, C<&IHidServer::SetNpadAnalogStickUseCenterClamp>, "SetNpadAnalogStickUseCenterClamp"},
         {135, C<&IHidServer::SetNpadCaptureButtonAssignment>, "SetNpadCaptureButtonAssignment"},
         {136, C<&IHidServer::ClearNpadCaptureButtonAssignment>, "ClearNpadCaptureButtonAssignment"},
-        {137, nullptr, "SetNpadGcAnalogStick8bitRawValue"}, // 20.0.0+
         {200, C<&IHidServer::GetVibrationDeviceInfo>, "GetVibrationDeviceInfo"},
         {201, C<&IHidServer::SendVibrationValue>, "SendVibrationValue"},
         {202, C<&IHidServer::GetActualVibrationValue>, "GetActualVibrationValue"},
@@ -184,8 +183,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {1001, C<&IHidServer::GetNpadCommunicationMode>, "GetNpadCommunicationMode"},
         {1002, C<&IHidServer::SetTouchScreenConfiguration>, "SetTouchScreenConfiguration"},
         {1003, C<&IHidServer::IsFirmwareUpdateNeededForNotification>, "IsFirmwareUpdateNeededForNotification"},
-        {1004, C<&IHidServer::SetTouchScreenOutputRanges>, "SetTouchScreenOutputRanges"}, // 20.0.0+ (17.0.0-19.0.1 SetTouchScreenResolution)
-        {1005, nullptr, "EnableNxTouchScreenEmulationForTouchEnter"}, // 20.0.0+
+        {1004, C<&IHidServer::SetTouchScreenResolution>, "SetTouchScreenResolution"},
         {2000, nullptr, "ActivateDigitizer"},
     };
     // clang-format on
@@ -1434,12 +1432,12 @@ Result IHidServer::IsFirmwareUpdateNeededForNotification(Out<bool> out_is_firmwa
     R_SUCCEED();
 }
 
-Result IHidServer::SetTouchScreenOutputRanges(u32 width, u32 height,
+Result IHidServer::SetTouchScreenResolution(u32 width, u32 height,
                                             ClientAppletResourceUserId aruid) {
     LOG_INFO(Service_HID, "called, width={}, height={}, applet_resource_user_id={}", width, height,
              aruid.pid);
 
-    GetResourceManager()->GetTouchScreen()->SetTouchScreenOutputRanges(width, height, aruid.pid);
+    GetResourceManager()->GetTouchScreen()->SetTouchScreenResolution(width, height, aruid.pid);
     R_SUCCEED();
 }
 

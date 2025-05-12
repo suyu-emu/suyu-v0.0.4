@@ -106,8 +106,6 @@ public:
             {33, nullptr, "ExportKeyingMaterial"},
             {34, nullptr, "SetIoTimeout"},
             {35, nullptr, "GetIoTimeout"},
-            {36, nullptr, "GetSessionTicket"}, // 20.0.0+
-            {37, nullptr, "SetSessionTicket"}, // 20.0.0+
         };
         // clang-format on
 
