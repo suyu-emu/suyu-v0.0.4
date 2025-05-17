@@ -12,8 +12,10 @@
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Enhanced)</string>
     <string name="skipping_fps_suffix">(Skipping)</string>
+    <string name="shaders_prefix">Building</string>
+    <string name="shaders_suffix">Shader(s)</string>
     <string name="system_info_label">System:</string>
-    <string name="show_stats_overlay">ShoW Performance Stats Overlay</string>
+    <string name="show_stats_overlay">Show Performance Stats Overlay</string>
     <string name="stats_overlay_customization">Customization</string>
     <string name="stats_overlay_items">Visibility</string>
     <string name="stats_overlay_options">Overlay</string>
@@ -31,6 +33,8 @@
     <string name="show_system_ram_usage_description">Display the amount of RAM used by the system</string>
     <string name="show_bat_temperature">Show Battery Temperature</string>
     <string name="show_bat_temperature_description">Display current Battery temperature in Celsius and Fahrenheit</string>
+    <string name="show_shaders_building">Show Shaders Building</string>
+    <string name="show_shaders_building_description">Display current number of shaders being built</string>
     <string name="overlay_position">Overlay Position</string>
     <string name="overlay_position_description">Choose where the performance stats overlay is displayed on the screen</string>
     <string name="overlay_position_top_left">Top Left</string>
@@ -48,9 +52,9 @@
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats.</string>
-    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
-    <string name="dyna_state3_description">Improves performance on newer devices. Only supported on Vulkan 1.3+ GPUs.</string>
+    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats. Setting 3 will only work on new devices.</string>
+    <string name="vertex_input">VertexInputDynamicState</string>
+    <string name="vertex_input_description">Improves performance on newer devices. Only supported on Vulkan 1.3+ GPUs.</string>
     <string name="use_sync_core">Synchronize Core Speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
     <string name="use_auto_stub">Use Auto Stub</string>
@@ -361,12 +365,16 @@
     <string name="frame_limit_slider_description">Specifies the percentage to limit emulation speed. 100% is the normal speed. Values higher or lower will increase or decrease the speed limit.</string>
     <string name="cpu_backend">CPU backend</string>
     <string name="cpu_accuracy">CPU accuracy</string>
+    <string name="flush_by_line">Flush debug logs by line</string>
+    <string name="flush_by_line_description">Flushes debugging logs on each line written, making debugging easier in cases of crashing or freezing.</string>
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
     <string name="device_name">Device name</string>
     <string name="use_docked_mode">Docked Mode</string>
     <string name="use_docked_mode_description">Increases resolution, decreasing performance. Handheld Mode is used when disabled, lowering resolution and increasing performance.</string>
+    <string name="memory_layout">Memory Layout</string>
+    <string name="memory_layout_description">Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less.</string>
     <string name="emulated_region">Emulated region</string>
     <string name="emulated_language">Emulated language</string>
     <string name="select_rtc_date">Select RTC date</string>
@@ -411,6 +419,7 @@
     <string name="renderer_debug">Graphics debugging</string>
     <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
     <string name="fastmem">Fastmem</string>
+    <string name="log">Logging</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Output engine</string>
@@ -679,6 +688,11 @@
     <string name="region_china">China</string>
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Taiwan</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Recommended)</string>
+    <string name="memory_6gb">6GB (Unsafe)</string>
+    <string name="memory_8gb">8GB (Unsafe)</string>
 
     <!-- Language Names -->
     <string name="language_japanese" translatable="false">日本語</string>

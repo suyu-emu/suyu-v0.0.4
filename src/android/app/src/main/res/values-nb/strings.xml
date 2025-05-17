@@ -50,8 +50,8 @@
     <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager (Least Recently Used), som forbedrer ytelsen ved å spare CPU-bruk. Noen spill har problemer med dette, spesielt TotK 1.2.1, så deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
     <string name="dyna_state_description">Aktiverer Vulkan-funksjoner for å forbedre ytelse, rendering og spare ressurser ved pipeline-opprettelse samtidig som CPU/GPU-bruken holdes lav. Disse utvidelsene kan øke enhetstemperaturen, og eldre A6XX-serien GPU-er kan reagere unormalt. Sett til 0 for å bruke Yuzus emulerte formater.</string>
-    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
-    <string name="dyna_state3_description">Forbedrer ytelsen på nyere enheter. Støttes kun på Vulkan 1.3+ GPU-er.</string>
+    <string name="vertex_input">VertexInputDynamicState</string>
+    <string name="vertex_input_description">Forbedrer ytelsen på nyere enheter. Støttes kun på Vulkan 1.3+ GPU-er.</string>
     <string name="use_sync_core">Synkroniser kjernespeed</string>
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
     <string name="use_auto_stub">Bruk Auto Stub</string>

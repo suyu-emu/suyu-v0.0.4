@@ -144,6 +144,10 @@ private:
     static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
 
     static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
+    static constexpr u64 NEEDS_D24[] = {
+        0x1006A800016E000ULL,  // SSBU
+        0x0100E95004038000ULL, // XC2
+    };
 
     template <typename Func>
     void PrepareDraw(bool is_indexed, Func&&);

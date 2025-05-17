@@ -452,12 +452,15 @@ struct Values {
                                            2,
 #endif
                                            0,
-                                           2,
+                                           3,
                                            "dyna_state",
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
-    SwitchableSetting<bool> dyna_state3{linkage, true, "dyna_state3", Category::RendererExtensions};
+    SwitchableSetting<bool> vertex_input{linkage,
+                                         false,
+                                         "vertex_input",
+                                         Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, true, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, true, "descriptor_indexing", Category::RendererExtensions};
 

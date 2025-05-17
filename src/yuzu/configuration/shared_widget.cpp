@@ -71,7 +71,7 @@ QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* paren
 
     QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_LineEditClearButton));
-    QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(), parent);
+    QPushButton* restore_button = new QPushButton(*icon, QString(), parent);
     restore_button->setObjectName(QStringLiteral("RestoreButton%1").arg(restore_button_count));
     restore_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
@@ -731,10 +731,10 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
             return std::pair{translations.at(id).first, translations.at(id).second};
         }
         LOG_WARNING(Frontend, "Translation table lacks entry for \"{}\"", setting_label);
-        return std::pair{QString::fromStdString(setting_label), QStringLiteral()};
+        return std::pair{QString::fromStdString(setting_label), QString()};
     }();
 
-    if (label == QStringLiteral()) {
+    if (label == QString()) {
         LOG_DEBUG(Frontend, "Translation table has empty entry for \"{}\", skipping...",
                   setting.GetLabel());
         return;

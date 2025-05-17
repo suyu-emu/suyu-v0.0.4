@@ -50,8 +50,8 @@
     <string name="use_lru_cache_description">启用或禁用LRU（最近最少使用）缓存，通过节省CPU使用来提高性能。某些游戏（尤其是TotK 1.2.1）可能存在问题，如果游戏无法启动或随机崩溃，请禁用它。</string>
     <string name="dyna_state">扩展动态状态</string>
     <string name="dyna_state_description">启用Vulkan功能以在保持低CPU/GPU使用率的同时提高性能、渲染效果并节省管道创建资源。这些扩展可能会提高设备温度，较旧的A6XX系列GPU可能无法正确响应。设置为0可使用Yuzu模拟格式。</string>
-    <string name="dyna_state3">EDS3 + 顶点输入动态状态</string>
-    <string name="dyna_state3_description">提高新设备上的性能。仅支持Vulkan 1.3+ GPU。</string>
+    <string name="vertex_input">顶点输入动态状态</string>
+    <string name="vertex_input_description">提高新设备上的性能。仅支持Vulkan 1.3+ GPU。</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>
     <string name="use_auto_stub">使用自动存根</string>

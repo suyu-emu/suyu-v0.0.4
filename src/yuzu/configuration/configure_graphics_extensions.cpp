@@ -30,12 +30,11 @@ ConfigureGraphicsExtensions::~ConfigureGraphicsExtensions() = default;
 
 void ConfigureGraphicsExtensions::SetConfiguration() {}
 
-void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& builder) {
+void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& builder)
+{
     auto& layout = *ui->populate_target->layout();
     std::map<u32, QWidget*> hold{}; // A map will sort the data for us
 
-    QSlider *dyna_state = nullptr;
-    QCheckBox *dyna_state3 = nullptr;
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererExtensions]) {
         ConfigurationShared::Widget* widget = builder.BuildWidget(setting, apply_funcs);
@@ -53,22 +52,14 @@ void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& buil
         if (setting->Id() == Settings::values.dyna_state.Id()) {
             widget->slider->setTickInterval(1);
             widget->slider->setTickPosition(QSlider::TicksAbove);
-            dyna_state = widget->slider;
-        } else if (setting->Id() == Settings::values.dyna_state3.Id()) {
-            dyna_state3 = widget->checkbox;
+        } else if (setting->Id() == Settings::values.vertex_input.Id()) {
+            // widget->checkbox->setDisabled(true);
         }
     }
 
     for (const auto& [id, widget] : hold) {
         layout.addWidget(widget);
     }
-
-    connect(dyna_state, &QSlider::sliderMoved, this, [dyna_state3](int value) {
-        dyna_state3->setEnabled(value == 2);
-        if (value < 2) {
-            dyna_state3->setChecked(false);
-        }
-    });
 }
 
 void ConfigureGraphicsExtensions::ApplyConfiguration() {

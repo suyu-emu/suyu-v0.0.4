@@ -803,6 +803,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
         VK_DYNAMIC_STATE_LINE_WIDTH,         VK_DYNAMIC_STATE_LINE_STIPPLE,
     };
+    if (key.state.dynamic_vertex_input) {
+        dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
+    }
     if (key.state.extended_dynamic_state) {
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
@@ -815,9 +818,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_STENCIL_OP_EXT,
         };
-        if (key.state.dynamic_vertex_input) {
-            dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
-        }
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
         if (key.state.extended_dynamic_state_2) {
             static constexpr std::array extended2{

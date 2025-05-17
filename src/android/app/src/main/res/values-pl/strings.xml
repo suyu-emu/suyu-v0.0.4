@@ -50,8 +50,8 @@
     <string name="use_lru_cache_description">Włącz lub wyłącz pamięć podręczną LRU (najrzadziej używane), zwiększając wydajność poprzez oszczędzanie użycia procesora. Niektóre gry mają z nią problemy, szczególnie TotK 1.2.1, więc wyłącz, jeśli gra się nie uruchamia lub losowo się zawiesza.</string>
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>
     <string name="dyna_state_description">Włącza funkcje Vulkan w celu poprawy wydajności, renderowania i oszczędzania zasobów podczas tworzenia potoku, utrzymując niskie użycie CPU/GPU. Te rozszerzenia mogą zwiększać temperaturę urządzenia, a starsze GPU z serii A6XX mogą nie reagować prawidłowo. Ustaw na 0, aby używać formatów emulowanych przez Yuzu.</string>
-    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
-    <string name="dyna_state3_description">Poprawia wydajność na nowszych urządzeniach. Obsługiwane tylko przez GPU Vulkan 1.3+.</string>
+    <string name="vertex_input">VertexInputDynamicState</string>
+    <string name="vertex_input_description">Poprawia wydajność na nowszych urządzeniach. Obsługiwane tylko przez GPU Vulkan 1.3+.</string>
     <string name="use_sync_core">Synchronizuj prędkość rdzenia</string>
     <string name="use_sync_core_description">Synchronizuje prędkość rdzenia z maksymalnym procentem prędkości, aby poprawić wydajność bez zmiany rzeczywistej prędkości gry.</string>
     <string name="use_auto_stub">Użyj Auto Stub</string>

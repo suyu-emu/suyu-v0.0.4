@@ -39,26 +39,34 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)
 
 // Define all features which may be used by the implementation and require an extension here.
-#define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
-    FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
-    FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
-    FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
-    FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
-    FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
-    FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3)         \
-    FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4)                                       \
-    FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8)                               \
-    FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization)                        \
-    FEATURE(EXT, PrimitiveTopologyListRestart, PRIMITIVE_TOPOLOGY_LIST_RESTART,                    \
-            primitive_topology_list_restart)                                                       \
-    FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex)                              \
-    FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2)                                           \
-    FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback)                        \
-    FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state)  \
-    FEATURE(KHR, PipelineExecutableProperties, PIPELINE_EXECUTABLE_PROPERTIES,                     \
-            pipeline_executable_properties)                                                        \
-    FEATURE(KHR, WorkgroupMemoryExplicitLayout, WORKGROUP_MEMORY_EXPLICIT_LAYOUT,                  \
+#define FOR_EACH_VK_FEATURE_EXT(FEATURE) \
+    FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color) \
+    FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control) \
+    FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control) \
+    FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state) \
+    FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2) \
+    FEATURE(EXT, ExtendedDynamicState3, EXTENDED_DYNAMIC_STATE_3, extended_dynamic_state3) \
+    FEATURE(EXT, 4444Formats, 4444_FORMATS, format_a4b4g4r4) \
+    FEATURE(EXT, IndexTypeUint8, INDEX_TYPE_UINT8, index_type_uint8) \
+    FEATURE(EXT, LineRasterization, LINE_RASTERIZATION, line_rasterization) \
+    FEATURE(EXT, \
+            PrimitiveTopologyListRestart, \
+            PRIMITIVE_TOPOLOGY_LIST_RESTART, \
+            primitive_topology_list_restart) \
+    FEATURE(EXT, ProvokingVertex, PROVOKING_VERTEX, provoking_vertex) \
+    FEATURE(EXT, Robustness2, ROBUSTNESS_2, robustness2) \
+    FEATURE(EXT, TransformFeedback, TRANSFORM_FEEDBACK, transform_feedback) \
+    FEATURE(EXT, VertexInputDynamicState, VERTEX_INPUT_DYNAMIC_STATE, vertex_input_dynamic_state) \
+    FEATURE(KHR, \
+            PipelineExecutableProperties, \
+            PIPELINE_EXECUTABLE_PROPERTIES, \
+            pipeline_executable_properties) \
+    FEATURE(KHR, \
+            WorkgroupMemoryExplicitLayout, \
+            WORKGROUP_MEMORY_EXPLICIT_LAYOUT, \
             workgroup_memory_explicit_layout)
+
+// TODO(alekpop): descriptor index is incomplete and needs fix.
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
@@ -149,24 +157,24 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE_NAME(variable_pointer, variablePointersStorageBuffer)
 
 // Define features where the absence of the feature may result in a degraded experience.
-#define FOR_EACH_VK_RECOMMENDED_FEATURE(FEATURE_NAME)                                              \
-    FEATURE_NAME(custom_border_color, customBorderColors)                                          \
-    FEATURE_NAME(depth_bias_control, depthBiasControl)                                             \
-    FEATURE_NAME(depth_bias_control, leastRepresentableValueForceUnormRepresentation)              \
-    FEATURE_NAME(depth_bias_control, depthBiasExact)                                               \
-    FEATURE_NAME(extended_dynamic_state, extendedDynamicState)                                     \
-    FEATURE_NAME(format_a4b4g4r4, formatA4B4G4R4)                                                  \
-    FEATURE_NAME(index_type_uint8, indexTypeUint8)                                                 \
-    FEATURE_NAME(primitive_topology_list_restart, primitiveTopologyListRestart)                    \
-    FEATURE_NAME(provoking_vertex, provokingVertexLast)                                            \
-    FEATURE_NAME(robustness2, nullDescriptor)                                                      \
-    FEATURE_NAME(robustness2, robustBufferAccess2)                                                 \
-    FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
-    FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
-    FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
-    FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
-    FEATURE_NAME(transform_feedback, transformFeedback)                                            \
-    FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
+#define FOR_EACH_VK_RECOMMENDED_FEATURE(FEATURE_NAME) \
+    FEATURE_NAME(custom_border_color, customBorderColors) \
+    FEATURE_NAME(depth_bias_control, depthBiasControl) \
+    FEATURE_NAME(depth_bias_control, leastRepresentableValueForceUnormRepresentation) \
+    FEATURE_NAME(depth_bias_control, depthBiasExact) \
+    FEATURE_NAME(extended_dynamic_state, extendedDynamicState) \
+    FEATURE_NAME(format_a4b4g4r4, formatA4B4G4R4) \
+    FEATURE_NAME(index_type_uint8, indexTypeUint8) \
+    FEATURE_NAME(primitive_topology_list_restart, primitiveTopologyListRestart) \
+    FEATURE_NAME(provoking_vertex, provokingVertexLast) \
+    FEATURE_NAME(robustness2, nullDescriptor) \
+    FEATURE_NAME(robustness2, robustBufferAccess2) \
+    FEATURE_NAME(robustness2, robustImageAccess2) \
+    FEATURE_NAME(shader_float16_int8, shaderFloat16) \
+    FEATURE_NAME(shader_float16_int8, shaderInt8) \
+    FEATURE_NAME(timeline_semaphore, timelineSemaphore) \
+    FEATURE_NAME(transform_feedback, transformFeedback) \
+    FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout) \
     FEATURE_NAME(vertex_input_dynamic_state, vertexInputDynamicState)
 
 namespace Vulkan {

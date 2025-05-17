@@ -459,6 +459,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &diagnostics_nv;
     }
 
+    // TODO(alekpop): impl is incomplete, needs the settings to be assigned.
     VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT,
         .pNext = use_diagnostics_nv ? static_cast<void*>(&diagnostics_nv) : static_cast<void*>(&features2),
@@ -491,17 +492,20 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
+    // TODO(alekpop): many things here are still applying and need to be changed to match the real behaviors.
+
     if (is_qualcomm || is_turnip) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
-        //RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-        //VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.custom_border_color,
+                               features.custom_border_color,
+                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
     }
 
     if (is_qualcomm) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
-        //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+        RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // Patch the driver to enable BCn textures.
@@ -535,7 +539,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         } else if (arch <= NvidiaArchitecture::Arch_Volta) {
             if (nv_major_version < 527) {
                 LOG_WARNING(Render_Vulkan, "Volta and older have broken VK_KHR_push_descriptor");
-                //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+                RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
             }
         }
         if (nv_major_version >= 510) {
@@ -543,15 +547,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             cant_blit_msaa = true;
         }
     }
+
     if (extensions.extended_dynamic_state && is_radv) {
         // Mask driver version variant
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 21, 2, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 21.2 have broken VK_EXT_extended_dynamic_state");
-            //RemoveExtensionFeature(extensions.extended_dynamic_state,
-            //features.extended_dynamic_state,
-            //VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.extended_dynamic_state,
+                                   features.extended_dynamic_state,
+                                   VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state2 && is_radv) {
@@ -560,9 +565,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             LOG_WARNING(
                 Render_Vulkan,
                 "RADV versions older than 22.3.1 have broken VK_EXT_extended_dynamic_state2");
-            // RemoveExtensionFeature(extensions.extended_dynamic_state2,
-            //        features.extended_dynamic_state2,
-            //      VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.extended_dynamic_state2,
+                                   features.extended_dynamic_state2,
+                                   VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state2 && is_qualcomm) {
@@ -572,53 +577,54 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             // Qualcomm Adreno 7xx drivers do not properly support extended_dynamic_state2.
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm Adreno 7xx drivers have broken VK_EXT_extended_dynamic_state2");
-            //RemoveExtensionFeature(extensions.extended_dynamic_state2,
-            //features.extended_dynamic_state2,
-            //VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.extended_dynamic_state2,
+                                   features.extended_dynamic_state2,
+                                   VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
     if (extensions.extended_dynamic_state3 && is_radv) {
         LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
-        dynamic_state3_blending = true;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
 
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
             LOG_WARNING(Render_Vulkan,
                         "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
-            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = true;
-            dynamic_state3_enables = true;
+            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
+            dynamic_state3_enables = false;
         }
     }
     if (extensions.extended_dynamic_state3 && (is_amd_driver || driver_id == VK_DRIVER_ID_SAMSUNG_PROPRIETARY)) {
         // AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation
         LOG_WARNING(Render_Vulkan,
                     "AMD and Samsung drivers have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = true;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = true;
-        dynamic_state3_blending = true;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
     }
     if (extensions.vertex_input_dynamic_state && is_radv) {
-        // TODO(ameerj): Blacklist only offending driver versions
-        // TODO(ameerj): Confirm if RDNA1 is affected
+        // TODO(alekpop): Blacklist only offending driver versions
+        // NOTE(alekpop): It still affects the latest RADV.
+        // TODO(alekpop): Confirm if RDNA1 is affected
         const bool is_rdna2 =
             supported_extensions.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
         if (is_rdna2) {
             LOG_WARNING(Render_Vulkan,
                         "RADV has broken VK_EXT_vertex_input_dynamic_state on RDNA2 hardware");
-            //  RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //      features.vertex_input_dynamic_state,
-            //    VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm) {
         // Qualcomm drivers do not properly support vertex_input_dynamic_state.
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
-        //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-        //  features.vertex_input_dynamic_state,
-        //     VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                               features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     sets_per_pool = 64;
@@ -652,9 +658,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(27, 20, 100, 0)) {
             LOG_WARNING(Render_Vulkan, "Intel has broken VK_EXT_vertex_input_dynamic_state");
-            //RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-            //features.vertex_input_dynamic_state,
-            //VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                                   features.vertex_input_dynamic_state,
+                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
     if (features.shader_float16_int8.shaderFloat16 && is_intel_windows) {
@@ -681,14 +687,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             // mesa/mesa/-/commit/ff91c5ca42bc80aa411cb3fd8f550aa6fdd16bdc
             LOG_WARNING(Render_Vulkan,
                         "ANV drivers 22.3.0 to 23.1.0 have broken VK_KHR_push_descriptor");
-            //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+            RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
     } else if (extensions.push_descriptor && is_nvidia) {
         const auto arch = GetNvidiaArch();
         if (arch <= NvidiaArchitecture::Arch_Pascal) {
             LOG_WARNING(Render_Vulkan,
                         "Pascal and older architectures have broken VK_KHR_push_descriptor");
-            //RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+            RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
     }
 
@@ -722,33 +728,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = true;
     }
 
-    if (Settings::values.dyna_state.GetValue() == 0) {
-        must_emulate_scaled_formats = true;
-        LOG_INFO(Render_Vulkan, "Dynamic state is disabled (dyna_state = 0), forcing scaled format emulation ON");
-
-        // Disable dynamic state 1-3 and all extensions
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-                            VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state,
-                            VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-        dynamic_state3_blending = false;
-        dynamic_state3_enables = false;
-
-        LOG_INFO(Render_Vulkan, "All dynamic state extensions and features have been disabled");
-    } else {
-        must_emulate_scaled_formats = false;
-        LOG_INFO(Render_Vulkan, "Dynamic state is enabled (dyna_state = 1-3), disabling scaled format emulation");
-    }
+    must_emulate_scaled_formats = !Settings::values.dyna_state.GetValue();
+    LOG_INFO(Render_Vulkan, "Scaled format emulation: {}", must_emulate_scaled_formats);
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions),
                                  first_next, dld);
@@ -1206,85 +1187,120 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,
                                        VK_EXT_DEPTH_CLIP_CONTROL_EXTENSION_NAME);
 
-    /* */ // VK_EXT_extended_dynamic_state
-    extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
-    RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
-                                       features.extended_dynamic_state,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+    int dynamic_state = Settings::values.dyna_state.GetValue();
+
+    // VK_EXT_extended_dynamic_state
+    if (dynamic_state < 1) {
+        extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
+        RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
+                                           features.extended_dynamic_state,
+                                           VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.extended_dynamic_state,
+                               features.extended_dynamic_state,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+    }
 
     // VK_EXT_extended_dynamic_state2
-    extensions.extended_dynamic_state2 = features.extended_dynamic_state2.extendedDynamicState2;
-    RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
-                                       features.extended_dynamic_state2,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+    if (dynamic_state < 2) {
+        extensions.extended_dynamic_state2 = features.extended_dynamic_state2.extendedDynamicState2;
+        RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
+                                           features.extended_dynamic_state2,
+                                           VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.extended_dynamic_state2,
+                               features.extended_dynamic_state2,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+    }
 
     // VK_EXT_extended_dynamic_state3
-    dynamic_state3_blending =
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable &&
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation &&
-        features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
-    dynamic_state3_enables =
-        features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable &&
-        features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
+    if (dynamic_state < 3) {
+        dynamic_state3_blending
+            = features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable
+              && features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation
+              && features.extended_dynamic_state3.extendedDynamicState3ColorWriteMask;
+        dynamic_state3_enables
+            = features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable
+              && features.extended_dynamic_state3.extendedDynamicState3LogicOpEnable;
 
-    extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
-    dynamic_state3_blending = dynamic_state3_blending && extensions.extended_dynamic_state3;
-    dynamic_state3_enables = dynamic_state3_enables && extensions.extended_dynamic_state3;
-    RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
-                                       features.extended_dynamic_state3,
-                                       VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-
+        extensions.extended_dynamic_state3 = dynamic_state3_blending || dynamic_state3_enables;
+        dynamic_state3_blending = dynamic_state3_blending && extensions.extended_dynamic_state3;
+        dynamic_state3_enables = dynamic_state3_enables && extensions.extended_dynamic_state3;
+        RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state3,
+                                           features.extended_dynamic_state3,
+                                           VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.extended_dynamic_state3,
+                               features.extended_dynamic_state3,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    }
     // VK_EXT_provoking_vertex
-    extensions.provoking_vertex =
-        features.provoking_vertex.provokingVertexLast &&
-        features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
-    // RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex, features.provoking_vertex,
-    //                                    VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
+    if (Settings::values.provoking_vertex.GetValue()) {
+        extensions.provoking_vertex = features.provoking_vertex.provokingVertexLast
+                                      && features.provoking_vertex
+                                             .transformFeedbackPreservesProvokingVertex;
+        RemoveExtensionFeatureIfUnsuitable(extensions.provoking_vertex,
+                                           features.provoking_vertex,
+                                           VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.provoking_vertex,
+                               features.provoking_vertex,
+                               VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
+    }
 
     // VK_KHR_shader_atomic_int64
-    extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
-                                     features.shader_atomic_int64.shaderSharedInt64Atomics;
-    RemoveExtensionFeatureIfUnsuitable(extensions.shader_atomic_int64, features.shader_atomic_int64,
+    extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics
+                                     && features.shader_atomic_int64.shaderSharedInt64Atomics;
+    RemoveExtensionFeatureIfUnsuitable(extensions.shader_atomic_int64,
+                                       features.shader_atomic_int64,
                                        VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
 
     // VK_EXT_shader_demote_to_helper_invocation
-    extensions.shader_demote_to_helper_invocation =
-        features.shader_demote_to_helper_invocation.shaderDemoteToHelperInvocation;
+    extensions.shader_demote_to_helper_invocation = features.shader_demote_to_helper_invocation
+                                                        .shaderDemoteToHelperInvocation;
     RemoveExtensionFeatureIfUnsuitable(extensions.shader_demote_to_helper_invocation,
                                        features.shader_demote_to_helper_invocation,
                                        VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME);
 
     // VK_EXT_subgroup_size_control
-    extensions.subgroup_size_control =
-        features.subgroup_size_control.subgroupSizeControl &&
-        properties.subgroup_size_control.minSubgroupSize <= GuestWarpSize &&
-        properties.subgroup_size_control.maxSubgroupSize >= GuestWarpSize;
+    extensions.subgroup_size_control = features.subgroup_size_control.subgroupSizeControl
+                                       && properties.subgroup_size_control.minSubgroupSize
+                                              <= GuestWarpSize
+                                       && properties.subgroup_size_control.maxSubgroupSize
+                                              >= GuestWarpSize;
     RemoveExtensionFeatureIfUnsuitable(extensions.subgroup_size_control,
                                        features.subgroup_size_control,
                                        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME);
 
     // VK_EXT_transform_feedback
-    extensions.transform_feedback =
-        features.transform_feedback.transformFeedback &&
-        features.transform_feedback.geometryStreams &&
-        properties.transform_feedback.maxTransformFeedbackStreams >= 4 &&
-        properties.transform_feedback.maxTransformFeedbackBuffers > 0 &&
-        properties.transform_feedback.transformFeedbackQueries &&
-        properties.transform_feedback.transformFeedbackDraw;
-    RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback, features.transform_feedback,
+    extensions.transform_feedback = features.transform_feedback.transformFeedback
+                                    && features.transform_feedback.geometryStreams
+                                    && properties.transform_feedback.maxTransformFeedbackStreams
+                                           >= 4
+                                    && properties.transform_feedback.maxTransformFeedbackBuffers > 0
+                                    && properties.transform_feedback.transformFeedbackQueries
+                                    && properties.transform_feedback.transformFeedbackDraw;
+    RemoveExtensionFeatureIfUnsuitable(extensions.transform_feedback,
+                                       features.transform_feedback,
                                        VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
 
     // VK_EXT_vertex_input_dynamic_state
-    extensions.vertex_input_dynamic_state =
-        features.vertex_input_dynamic_state.vertexInputDynamicState;
-    //RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
-    //features.vertex_input_dynamic_state,
-    //VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    if (Settings::values.vertex_input.GetValue()) {
+        extensions.vertex_input_dynamic_state = features.vertex_input_dynamic_state
+                                                    .vertexInputDynamicState;
+        RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
+                                           features.vertex_input_dynamic_state,
+                                           VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    } else {
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                               features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+    }
 
     // VK_KHR_pipeline_executable_properties
     if (Settings::values.renderer_shader_feedback.GetValue()) {
-        extensions.pipeline_executable_properties =
-            features.pipeline_executable_properties.pipelineExecutableInfo;
+        extensions.pipeline_executable_properties = features.pipeline_executable_properties
+                                                        .pipelineExecutableInfo;
         RemoveExtensionFeatureIfUnsuitable(extensions.pipeline_executable_properties,
                                            features.pipeline_executable_properties,
                                            VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME);
@@ -1295,12 +1311,12 @@ void Device::RemoveUnsuitableExtensions() {
     }
 
     // VK_KHR_workgroup_memory_explicit_layout
-    extensions.workgroup_memory_explicit_layout =
-        features.features.shaderInt16 &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
+    extensions.workgroup_memory_explicit_layout
+        = features.features.shaderInt16
+          && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout
+          && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess
+          && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess
+          && features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,
                                        VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME);

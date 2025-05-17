@@ -50,8 +50,8 @@
     <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU (کەمترین بەکارهێنراوی دوایی)، کارایی زیاد دەکات بە هەڵگرتنی بەکارهێنانی CPU. هەندێک یاری کێشەییان هەیە لەگەڵیدا، بەتایبەتی TotK 1.2.1، بۆیە ئەگەر یاریەکە نەکەوتەوە یان بە هەڕەمەکی داخرا، ناچالاکی بکە.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
     <string name="dyna_state_description">يُمكّن ميزات فولكان لتحسين الأداء، التقديم، وتوفير الموارد أثناء إنشاء خطوط المعالجة مع الحفاظ على استهلاك أقل لوحدة المعالجة المركزية/وحدة معالجة الرسومات. قد تزيد هذه الامتدادات من درجة حرارة الجهاز، وقد لا تتفاعل وحدات معالجة الرسومات القديمة من سلسلة A6XX بشكل صحيح. اضبط على 0 لاستخدام تنسيقات Yuzu المحاكاة.</string>
-    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
-    <string name="dyna_state3_description">يحسن الأداء على الأجهزة الأحدث. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.3+.</string>
+    <string name="vertex_input">VertexInputDynamicState</string>
+    <string name="vertex_input_description">يحسن الأداء على الأجهزة الأحدث. مدعوم فقط على وحدات معالجة الرسومات التي تدعم فولكان 1.3+.</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>

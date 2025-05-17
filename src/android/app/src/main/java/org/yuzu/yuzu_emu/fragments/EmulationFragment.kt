@@ -64,6 +64,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationOrientation
 import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationVerticalAlignment
+import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.EmulationViewModel
@@ -399,7 +400,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 emulationState.updateSurface()
 
                 // Setup overlays
-                updateshowStatsOvelray()
+                updateShowStatsOverlay()
 
                 // Re update binding when the specs values get initialized properly
                 binding.inGameMenu.getHeaderView(0).apply {
@@ -532,7 +533,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
     @SuppressLint("DefaultLocale")
-    private fun updateshowStatsOvelray() {
+    private fun updateShowStatsOverlay() {
         val showOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
         binding.showStatsOverlayText.apply {
             setTextColor(
@@ -587,10 +588,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     if (BooleanSetting.SHOW_SPEED.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
                         if (sb.isNotEmpty()) sb.append(" | ")
+                        // TODO(alekpop): this is broken on android only. it uses the clock timer but it should not.
                         sb.append(
                             String.format(
-                                "Speed: %d%%",
-                                (perfStats[SPEED] * 100.0 + 0.5).toInt()
+                                "Speed: %d%% / %d%%",
+                                (perfStats[SPEED] * 100.0 + 0.5).toInt(),
+                                ShortSetting.RENDERER_SPEED_LIMIT.getShort(NativeConfig.isPerGameConfigLoaded())
                             )
                         )
                     }
@@ -617,6 +620,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         val batteryTemp = getBatteryTemperature()
                         val tempF = celsiusToFahrenheit(batteryTemp)
                         sb.append(String.format("%.1f°C/%.1f°F", batteryTemp, tempF))
+                    }
+
+                    val shadersBuilding = NativeLibrary.getShadersBuilding()
+
+                    if (BooleanSetting.SHOW_SHADERS_BUILDING.getBoolean(NativeConfig.isPerGameConfigLoaded()) && shadersBuilding != 0) {
+                        if (sb.isNotEmpty()) sb.append(" | ")
+
+                        val prefix = getString(R.string.shaders_prefix)
+                        val suffix = getString(R.string.shaders_suffix)
+                        sb.append(String.format("$prefix %d $suffix", shadersBuilding))
                     }
 
                     if (BooleanSetting.OVERLAY_BACKGROUND.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
@@ -849,7 +862,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_show_stats_overlay -> {
                     it.isChecked = !it.isChecked
                     BooleanSetting.SHOW_PERFORMANCE_OVERLAY.setBoolean(it.isChecked)
-                    updateshowStatsOvelray()
+                    updateShowStatsOverlay()
                     true
                 }
                 R.id.menu_edit_overlay -> {

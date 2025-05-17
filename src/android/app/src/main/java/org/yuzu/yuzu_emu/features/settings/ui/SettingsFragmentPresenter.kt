@@ -241,17 +241,6 @@ class SettingsFragmentPresenter(
                 )
             )
             addEdenVeilSettings(sl)
-
-            add(BooleanSetting.FRAME_INTERPOLATION.key)
-            add(BooleanSetting.FRAME_SKIPPING.key)
-            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
-            add(IntSetting.RENDERER_SHADER_BACKEND.key)
-            add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
-            add(IntSetting.RENDERER_NVDEC_EMULATION.key)
-            add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
-            add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
-            add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
-            add(BooleanSetting.USE_LRU_CACHE.key)
         }
     }
 
@@ -261,6 +250,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)
+            add(IntSetting.MEMORY_LAYOUT.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)
             add(BooleanSetting.USE_CUSTOM_RTC.key)
@@ -301,6 +291,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SHOW_APP_RAM_USAGE.key)
             add(BooleanSetting.SHOW_SYSTEM_RAM_USAGE.key)
             add(BooleanSetting.SHOW_BAT_TEMPERATURE.key)
+            add(BooleanSetting.SHOW_SHADERS_BUILDING.key)
         }
 
     }
@@ -466,7 +457,7 @@ class SettingsFragmentPresenter(
 
             add(ByteSetting.RENDERER_DYNA_STATE.key)
 
-            add(BooleanSetting.RENDERER_DYNA_STATE3.key)
+            add(BooleanSetting.RENDERER_VERTEX_INPUT.key)
             add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
             add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
 
@@ -1143,6 +1134,9 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.USE_AUTO_STUB.key)
             add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)
+
+            add(HeaderSetting(R.string.log))
+            add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
         }
     }
 }

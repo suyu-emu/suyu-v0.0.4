@@ -49,8 +49,8 @@
     <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU (Least Recently Used), což zvýší výkon snížením zatížení CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, proto ji deaktivujte, pokud hra nespustí nebo náhodně padá.</string>
     <string name="dyna_state">Rozšířený dynamický stav</string>
     <string name="dyna_state_description">Umožňuje funkce Vulkan pro lepší výkon, vykreslování a úsporu zdrojů při vytváření grafických pipeline při zachování nižšího využití CPU/GPU. Tato rozšíření mohou zvýšit teplotu zařízení a starší GPU řady A6XX nemusí reagovat správně. Nastavte na 0 pro použití emulovaných formátů Yuzu.</string>
-    <string name="dyna_state3">EDS3 + VertexInputDynamicState</string>
-    <string name="dyna_state3_description">Zlepšuje výkon na novějších zařízeních. Podporováno pouze na GPU s Vulkan 1.3+.</string>
+    <string name="vertex_input">VertexInputDynamicState</string>
+    <string name="vertex_input_description">Zlepšuje výkon na novějších zařízeních. Podporováno pouze na GPU s Vulkan 1.3+.</string>
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
     <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
     <string name="use_auto_stub">Použít automatický stub</string>

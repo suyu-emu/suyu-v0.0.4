@@ -27,31 +27,30 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     // A setting can be ignored by giving it a blank name
 
     // Applets
-    INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QStringLiteral());
-    INSERT(Settings, controller_applet_mode, tr("Controller configuration"), QStringLiteral());
-    INSERT(Settings, data_erase_applet_mode, tr("Data erase"), QStringLiteral());
-    INSERT(Settings, error_applet_mode, tr("Error"), QStringLiteral());
-    INSERT(Settings, net_connect_applet_mode, tr("Net connect"), QStringLiteral());
-    INSERT(Settings, player_select_applet_mode, tr("Player select"), QStringLiteral());
-    INSERT(Settings, swkbd_applet_mode, tr("Software keyboard"), QStringLiteral());
-    INSERT(Settings, mii_edit_applet_mode, tr("Mii Edit"), QStringLiteral());
-    INSERT(Settings, web_applet_mode, tr("Online web"), QStringLiteral());
-    INSERT(Settings, shop_applet_mode, tr("Shop"), QStringLiteral());
-    INSERT(Settings, photo_viewer_applet_mode, tr("Photo viewer"), QStringLiteral());
-    INSERT(Settings, offline_web_applet_mode, tr("Offline web"), QStringLiteral());
-    INSERT(Settings, login_share_applet_mode, tr("Login share"), QStringLiteral());
-    INSERT(Settings, wifi_web_auth_applet_mode, tr("Wifi web auth"), QStringLiteral());
-    INSERT(Settings, my_page_applet_mode, tr("My page"), QStringLiteral());
+    INSERT(Settings, cabinet_applet_mode, tr("Amiibo editor"), QString());
+    INSERT(Settings, controller_applet_mode, tr("Controller configuration"), QString());
+    INSERT(Settings, data_erase_applet_mode, tr("Data erase"), QString());
+    INSERT(Settings, error_applet_mode, tr("Error"), QString());
+    INSERT(Settings, net_connect_applet_mode, tr("Net connect"), QString());
+    INSERT(Settings, player_select_applet_mode, tr("Player select"), QString());
+    INSERT(Settings, swkbd_applet_mode, tr("Software keyboard"), QString());
+    INSERT(Settings, mii_edit_applet_mode, tr("Mii Edit"), QString());
+    INSERT(Settings, web_applet_mode, tr("Online web"), QString());
+    INSERT(Settings, shop_applet_mode, tr("Shop"), QString());
+    INSERT(Settings, photo_viewer_applet_mode, tr("Photo viewer"), QString());
+    INSERT(Settings, offline_web_applet_mode, tr("Offline web"), QString());
+    INSERT(Settings, login_share_applet_mode, tr("Login share"), QString());
+    INSERT(Settings, wifi_web_auth_applet_mode, tr("Wifi web auth"), QString());
+    INSERT(Settings, my_page_applet_mode, tr("My page"), QString());
 
     // Audio
-    INSERT(Settings, sink_id, tr("Output Engine:"), QStringLiteral());
-    INSERT(Settings, audio_output_device_id, tr("Output Device:"), QStringLiteral());
-    INSERT(Settings, audio_input_device_id, tr("Input Device:"), QStringLiteral());
-    INSERT(Settings, audio_muted, tr("Mute audio"), QStringLiteral());
-    INSERT(Settings, volume, tr("Volume:"), QStringLiteral());
-    INSERT(Settings, dump_audio_commands, QStringLiteral(), QStringLiteral());
-    INSERT(UISettings, mute_when_in_background, tr("Mute audio when in background"),
-           QStringLiteral());
+    INSERT(Settings, sink_id, tr("Output Engine:"), QString());
+    INSERT(Settings, audio_output_device_id, tr("Output Device:"), QString());
+    INSERT(Settings, audio_input_device_id, tr("Input Device:"), QString());
+    INSERT(Settings, audio_muted, tr("Mute audio"), QString());
+    INSERT(Settings, volume, tr("Volume:"), QString());
+    INSERT(Settings, dump_audio_commands, QString(), QString());
+    INSERT(UISettings, mute_when_in_background, tr("Mute audio when in background"), QString());
 
     // Core
     INSERT(
@@ -65,7 +64,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "to let big texture mods fit in emulated RAM.\nEnabling it will increase memory "
            "use. It is not recommended to enable unless a specific game with a texture mod needs "
            "it."));
-    INSERT(Settings, use_speed_limit, QStringLiteral(), QStringLiteral());
+    INSERT(Settings, use_speed_limit, QString(), QString());
     INSERT(Settings, speed_limit, tr("Limit Speed Percent"),
            tr("Controls the game's maximum rendering speed, but it’s up to each game if it runs "
               "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
@@ -80,7 +79,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, cpu_accuracy, tr("Accuracy:"),
            tr("This setting controls the accuracy of the emulated CPU.\nDon't change this unless "
               "you know what you are doing."));
-    INSERT(Settings, cpu_backend, tr("Backend:"), QStringLiteral());
+    INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
     // Cpu Debug
 
@@ -127,7 +126,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            tr("Forces the game to render at a different resolution.\nHigher resolutions require "
               "much more VRAM and bandwidth.\n"
               "Options lower than 1X can cause rendering issues."));
-    INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QStringLiteral());
+    INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QString());
     INSERT(Settings, fsr_sharpening_slider, tr("FSR Sharpness:"),
            tr("Determines how sharpened the image will look while using FSR’s dynamic contrast."));
     INSERT(Settings, anti_aliasing, tr("Anti-Aliasing Method:"),
@@ -184,9 +183,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "a slow down.\nMailbox can have lower latency than FIFO and does not tear but may drop "
            "frames.\nImmediate (no synchronization) just presents whatever is available and can "
            "exhibit tearing."));
-    INSERT(Settings, bg_red, QStringLiteral(), QStringLiteral());
-    INSERT(Settings, bg_green, QStringLiteral(), QStringLiteral());
-    INSERT(Settings, bg_blue, QStringLiteral(), QStringLiteral());
+    INSERT(Settings, bg_red, QString(), QString());
+    INSERT(Settings, bg_green, QString(), QString());
+    INSERT(Settings, bg_blue, QString(), QString());
 
     // Renderer (Advanced Graphics)
     INSERT(Settings, async_presentation, tr("Enable asynchronous presentation (Vulkan only)"),
@@ -235,17 +234,23 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            tr("Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will generally improve "
               "performance, but may cause issues on certain games or devices."));
 
-    INSERT(Settings, dyna_state3, tr("EDS3 + Vertex Input"),
-           tr("Enables the VkExtendedDynamicState3 and VkVertexInputDynamicState extensions.\n"
-              "Only Vulkan 1.3+ devices support these extensions, and will generally see improved performance."));
+    INSERT(Settings,
+           vertex_input,
+           tr("VertexInputDynamicState"),
+           tr("Enables the VkVertexInputDynamicState extension.\n"
+              "Only Vulkan 1.3+ devices support this extension, and will generally see improved "
+              "performance."));
 
     INSERT(Settings, provoking_vertex, tr("Provoking Vertex"),
            tr("Improves lighting and vertex handling in certain games.\n"
               "Only Vulkan 1.0+ devices support this extension."));
 
-    INSERT(Settings, descriptor_indexing, tr("Descriptor Indexing"),
+    INSERT(Settings,
+           descriptor_indexing,
+           tr("Descriptor Indexing"),
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
-              "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
+              "Some Vulkan 1.1+ and all 1.2+ devices support this extension.\n"
+              "This extension is incomplete. Use with caution."));
 
     // Renderer (Debug)
 
@@ -253,12 +258,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, rng_seed, tr("RNG Seed"),
            tr("Controls the seed of the random number generator.\nMainly used for speedrunning "
               "purposes."));
-    INSERT(Settings, rng_seed_enabled, QStringLiteral(), QStringLiteral());
+    INSERT(Settings, rng_seed_enabled, QString(), QString());
     INSERT(Settings, device_name, tr("Device Name"), tr("The name of the emulated Switch."));
     INSERT(Settings, custom_rtc, tr("Custom RTC Date:"),
            tr("This option allows to change the emulated clock of the Switch.\n"
               "Can be used to manipulate time in games."));
-    INSERT(Settings, custom_rtc_enabled, QStringLiteral(), QStringLiteral());
+    INSERT(Settings, custom_rtc_enabled, QString(), QString());
     INSERT(Settings, custom_rtc_offset, QStringLiteral(" "),
            QStringLiteral("The number of seconds from the current unix time"));
     INSERT(Settings, language_index, tr("Language:"),
@@ -266,12 +271,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, region_index, tr("Region:"), tr("The region of the emulated Switch."));
     INSERT(Settings, time_zone_index, tr("Time Zone:"),
            tr("The time zone of the emulated Switch."));
-    INSERT(Settings, sound_index, tr("Sound Output Mode:"), QStringLiteral());
+    INSERT(Settings, sound_index, tr("Sound Output Mode:"), QString());
     INSERT(Settings, use_docked_mode, tr("Console Mode:"),
            tr("Selects if the console is emulated in Docked or Handheld mode.\nGames will change "
               "their resolution, details and supported controllers and depending on this setting.\n"
               "Setting to Handheld can help improve performance for low end systems."));
-    INSERT(Settings, current_user, QStringLiteral(), QStringLiteral());
+    INSERT(Settings, current_user, QString(), QString());
 
     // Controls
 
@@ -303,7 +308,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
               "attempts to open the controller applet, it is immediately closed."));
 
     // Linux
-    INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QStringLiteral());
+    INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QString());
 
     // Ui Debugging
 

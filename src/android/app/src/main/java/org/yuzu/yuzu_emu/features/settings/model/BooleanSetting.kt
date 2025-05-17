@@ -20,7 +20,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_FAST_GPU("use_fast_gpu_time"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
     RENDERER_DEBUG("debug"),
-    RENDERER_DYNA_STATE3("dyna_state3"),
+    RENDERER_VERTEX_INPUT("vertex_input"),
     RENDERER_PROVOKING_VERTEX("provoking_vertex"),
     RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),
     PICTURE_IN_PICTURE("picture_in_picture"),
@@ -41,11 +41,13 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_APP_RAM_USAGE("show_app_ram_usage"),
     SHOW_SYSTEM_RAM_USAGE("show_system_ram_usage"),
     SHOW_BAT_TEMPERATURE("show_bat_temperature"),
+    SHOW_SHADERS_BUILDING("show_shaders_building"),
     OVERLAY_BACKGROUND("overlay_background"),
-    USE_LRU_CACHE("use_lru_cache"),;
+    DEBUG_FLUSH_BY_LINE("flush_lines"),
+    USE_LRU_CACHE("use_lru_cache");
+
     external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean
-
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

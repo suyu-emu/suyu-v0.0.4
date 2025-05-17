@@ -50,8 +50,8 @@
     <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU (ít được sử dụng gần đây nhất), tăng hiệu suất bằng cách tiết kiệm sử dụng CPU. Một số trò chơi có vấn đề với nó, đặc biệt là TotK 1.2.1, vì vậy hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
     <string name="dyna_state_description">Kích hoạt các tính năng Vulkan để cải thiện hiệu suất, kết xuất và tiết kiệm tài nguyên khi tạo pipeline trong khi vẫn duy trì mức sử dụng CPU/GPU thấp. Các tiện ích mở rộng này có thể làm tăng nhiệt độ thiết bị và GPU dòng A6XX cũ hơn có thể không phản ứng đúng cách. Đặt thành 0 để sử dụng định dạng mô phỏng của Yuzu.</string>
-    <string name="dyna_state3">EDS3 + Trạng thái động đầu vào đỉnh</string>
-    <string name="dyna_state3_description">Cải thiện hiệu suất trên các thiết bị mới hơn. Chỉ được hỗ trợ trên GPU Vulkan 1.3+.</string>
+    <string name="vertex_input">Trạng thái động đầu vào đỉnh</string>
+    <string name="vertex_input_description">Cải thiện hiệu suất trên các thiết bị mới hơn. Chỉ được hỗ trợ trên GPU Vulkan 1.3+.</string>
     <string name="use_sync_core">Đồng bộ tốc độ lõi</string>
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>
     <string name="use_auto_stub">Sử dụng Auto Stub</string>

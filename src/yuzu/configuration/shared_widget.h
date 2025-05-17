@@ -46,7 +46,7 @@ enum class RequestType {
 
 constexpr float default_multiplier{1.f};
 constexpr float default_float_multiplier{100.f};
-static const QString default_suffix = QStringLiteral();
+static const QString default_suffix = QString();
 
 class Widget : public QWidget {
     Q_OBJECT
