@@ -491,6 +491,12 @@ public:
         // Intersect the range with our address space.
         AdjustMap(&virtual_offset, &length);
 
+        // Skip if length is zero after adjustment
+        if (length == 0) {
+            LOG_DEBUG(HW_Memory, "Skipping zero-length mapping at virtual_offset={}", virtual_offset);
+            return;
+        }
+
         // We are removing a placeholder.
         free_manager.AllocateBlock(virtual_base + virtual_offset, length);
 
@@ -520,13 +526,21 @@ public:
         // Intersect the range with our address space.
         AdjustMap(&virtual_offset, &length);
 
+        // Skip if length is zero after adjustment
+        if (length == 0) {
+            return;
+        }
+
         // Merge with any adjacent placeholder mappings.
         auto [merged_pointer, merged_size] =
             free_manager.FreeBlock(virtual_base + virtual_offset, length);
 
-        void* ret = mmap(merged_pointer, merged_size, PROT_NONE,
-                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        // Only attempt to mmap if we have a valid pointer and size
+        if (merged_pointer != nullptr && merged_size > 0) {
+            void* ret = mmap(merged_pointer, merged_size, PROT_NONE,
+                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+            ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        }
     }
 
     void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
@@ -576,19 +590,26 @@ public:
 private:
     /// Release all resources in the object
     void Release() {
+        // Make sure we release resources in the correct order
+        // First clear the free region manager to avoid any dangling references
+        free_manager.Clear();
+
         if (virtual_map_base != MAP_FAILED) {
             int ret = munmap(virtual_map_base, virtual_size);
             ASSERT_MSG(ret == 0, "munmap failed: {}", strerror(errno));
+            virtual_map_base = reinterpret_cast<u8*>(MAP_FAILED);
         }
 
         if (backing_base != MAP_FAILED) {
             int ret = munmap(backing_base, backing_size);
             ASSERT_MSG(ret == 0, "munmap failed: {}", strerror(errno));
+            backing_base = reinterpret_cast<u8*>(MAP_FAILED);
         }
 
         if (fd != -1) {
             int ret = close(fd);
             ASSERT_MSG(ret == 0, "close failed: {}", strerror(errno));
+            fd = -1;
         }
     }
 
@@ -686,8 +707,10 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
     ASSERT(virtual_offset + length <= virtual_size);
     ASSERT(host_offset + length <= backing_size);
     if (length == 0 || !virtual_base || !impl) {
+        LOG_ERROR(HW_Memory, "Invalid mapping operation: virtual_base or impl is null");
         return;
     }
+    LOG_INFO(HW_Memory, "Mapping memory: virtual_offset={}, host_offset={}, length={}", virtual_offset, host_offset, length);
     impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
 }
 
@@ -696,8 +719,10 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap)
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
     if (length == 0 || !virtual_base || !impl) {
+        LOG_ERROR(HW_Memory, "Invalid unmapping operation: virtual_base or impl is null");
         return;
     }
+    LOG_INFO(HW_Memory, "Unmapping memory: virtual_offset={}, length={}", virtual_offset, length);
     impl->Unmap(virtual_offset + virtual_base_offset, length);
 }
 
