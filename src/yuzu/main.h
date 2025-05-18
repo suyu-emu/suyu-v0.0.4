@@ -401,6 +401,10 @@ private slots:
     void OnMiiEdit();
     void OnOpenControllerMenu();
     void OnHomeMenu();
+    void OnInitialSetup();
+    void OnCreateHomeMenuDesktopShortcut();
+    void OnCreateHomeMenuApplicationMenuShortcut();
+    void OnCreateHomeMenuShortcut(GameListShortcutTarget target);
     void OnCaptureScreenshot();
     void OnCheckFirmwareDecryption();
     void OnLanguageChanged(const QString& locale);

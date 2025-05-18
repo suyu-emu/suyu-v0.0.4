@@ -165,6 +165,13 @@
      <addaction name="separator"/>
      <addaction name="action_Configure_Tas"/>
     </widget>
+    <widget class="QMenu" name="menu_Create_Shortcuts">
+     <property name="title">
+      <string>&amp;Create Home Menu Shortcut</string>
+     </property>
+     <addaction name="action_Desktop"/>
+     <addaction name="action_Application_Menu"/>
+    </widget>
     <addaction name="action_Install_Keys"/>
     <addaction name="action_Install_Firmware"/>
     <addaction name="action_Verify_installed_contents"/>
@@ -174,6 +181,8 @@
     <addaction name="action_Load_Mii_Edit"/>
     <addaction name="action_Open_Controller_Menu"/>
     <addaction name="action_Load_Home_Menu"/>
+    <addaction name="action_Open_Setup"/>
+    <addaction name="menu_Create_Shortcuts"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
     <addaction name="menuTAS"/>
@@ -488,6 +497,24 @@
   <action name="action_Discord">
    <property name="text">
     <string>&amp;Discord</string>
+   </property>
+  </action>
+  <action name="action_Open_Setup">
+   <property name="text">
+    <string>Open &amp;Setup</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="action_Desktop">
+   <property name="text">
+    <string>&amp;Desktop</string>
+   </property>
+  </action>
+  <action name="action_Application_Menu">
+   <property name="text">
+    <string>&amp;Application Menu</string>
    </property>
   </action>
  </widget>

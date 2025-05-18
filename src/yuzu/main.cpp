@@ -481,6 +481,8 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     }
 
     QString game_path;
+    bool should_launch_qlaunch = false;
+    bool should_launch_setup = false;
     bool has_gamepath = false;
     bool is_fullscreen = false;
 
@@ -549,6 +551,11 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
             game_path = args[++i];
             has_gamepath = true;
         }
+
+        if (args[i] == QStringLiteral("-qlaunch"))
+            should_launch_qlaunch = true;
+        if (args[i] == QStringLiteral("-setup"))
+            should_launch_setup = true;
     }
 
     // Override fullscreen setting if gamepath or argument is provided
@@ -556,8 +563,16 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
         ui->action_Fullscreen->setChecked(is_fullscreen);
     }
 
-    if (!game_path.isEmpty()) {
-        BootGame(game_path, ApplicationAppletParameters());
+    if (should_launch_setup) {
+        OnInitialSetup();
+    } else {
+        if (!game_path.isEmpty()) {
+            BootGame(game_path, ApplicationAppletParameters());
+        } else {
+            if (should_launch_qlaunch) {
+                OnHomeMenu();
+            }
+        }
     }
 }
 
@@ -1582,6 +1597,9 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Load_Mii_Edit, &GMainWindow::OnMiiEdit);
     connect_menu(ui->action_Open_Controller_Menu, &GMainWindow::OnOpenControllerMenu);
     connect_menu(ui->action_Load_Home_Menu, &GMainWindow::OnHomeMenu);
+    connect_menu(ui->action_Open_Setup, &GMainWindow::OnInitialSetup);
+    connect_menu(ui->action_Desktop, &GMainWindow::OnCreateHomeMenuDesktopShortcut);
+    connect_menu(ui->action_Application_Menu, &GMainWindow::OnCreateHomeMenuApplicationMenuShortcut);
     connect_menu(ui->action_Capture_Screenshot, &GMainWindow::OnCaptureScreenshot);
 
     // TAS
@@ -1826,18 +1844,18 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
 
             switch (role) {
 
-                case QMessageBox::RejectRole:
-                    return false;
+            case QMessageBox::RejectRole:
+                return false;
 
-                case QMessageBox::AcceptRole:
-                default:
-                    if (dontShowAgain->isChecked()) {
-                        currentIgnored << QString::number(params.program_id);
+            case QMessageBox::AcceptRole:
+            default:
+                if (dontShowAgain->isChecked()) {
+                    currentIgnored << QString::number(params.program_id);
 
-                        settings.setValue("ignoredBadUpdates", currentIgnored);
-                        settings.sync();
-                    }
-                    break;
+                    settings.setValue("ignoredBadUpdates", currentIgnored);
+                    settings.sync();
+                }
+                break;
             }
         }
     }
@@ -4544,6 +4562,145 @@ void GMainWindow::OnHomeMenu() {
     const auto filename = QString::fromStdString((qlaunch_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
     BootGame(filename, LibraryAppletParameters(QLaunchId, Service::AM::AppletId::QLaunch));
+}
+
+void GMainWindow::OnInitialSetup()
+{
+    constexpr u64 Starter = static_cast<u64>(Service::AM::AppletProgramId::Starter);
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use Starter."));
+        return;
+    }
+
+    auto qlaunch_nca = bis_system->GetEntry(Starter, FileSys::ContentRecordType::Program);
+    if (!qlaunch_nca) {
+        QMessageBox::warning(this, tr("Starter Applet"),
+                             tr("Starter is not available. Please reinstall firmware."));
+        return;
+    }
+
+    system->GetFrontendAppletHolder().SetCurrentAppletId(Service::AM::AppletId::Starter);
+
+    const auto filename = QString::fromStdString((qlaunch_nca->GetFullPath()));
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
+    BootGame(filename, LibraryAppletParameters(Starter, Service::AM::AppletId::Starter));
+}
+
+void GMainWindow::OnCreateHomeMenuDesktopShortcut()
+{
+    OnCreateHomeMenuShortcut(GameListShortcutTarget::Desktop);
+}
+
+void GMainWindow::OnCreateHomeMenuApplicationMenuShortcut()
+{
+    OnCreateHomeMenuShortcut(GameListShortcutTarget::Applications);
+}
+
+void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
+{
+    // Get path to yuzu executable
+    const QStringList args = QApplication::arguments();
+    std::filesystem::path yuzu_command = args[0].toStdString();
+    // If relative path, make it an absolute path
+    if (yuzu_command.c_str()[0] == '.') {
+        yuzu_command = Common::FS::GetCurrentDir() / yuzu_command;
+    }
+    // Shortcut path
+    std::filesystem::path shortcut_path{};
+    if (target == GameListShortcutTarget::Desktop) {
+        shortcut_path =
+                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
+    } else if (target == GameListShortcutTarget::Applications) {
+        shortcut_path =
+                QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
+    }
+
+    if (!std::filesystem::exists(shortcut_path)) {
+        GMainWindow::CreateShortcutMessagesGUI(
+                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
+                    QString::fromStdString(shortcut_path.generic_string()));
+        LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
+        return;
+    }
+
+    constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use the home menu."));
+        return;
+    }
+
+    auto qlaunch_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
+    if (!qlaunch_nca) {
+        QMessageBox::warning(this, tr("Home Menu Applet"),
+                             tr("Home Menu is not available. Please reinstall firmware."));
+        return;
+    }
+
+    const std::string game_title = "QLaunch";
+    const QString qt_game_title = tr("QLaunch");
+
+    auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
+    const auto game_path = QString::fromStdString((qlaunch_applet_nca->GetFullPath()));
+
+    const FileSys::PatchManager pm{static_cast<u64>(Service::AM::AppletProgramId::QLaunch), system->GetFileSystemController(),
+                system->GetContentProvider()};
+    const auto control = pm.GetControlMetadata();
+    const auto loader =
+            Loader::GetLoader(*system, vfs->OpenFile(game_path.toStdString(), FileSys::OpenMode::Read));
+
+    // Get icon from game file
+    std::vector<u8> icon_image_file{};
+    if (control.second != nullptr) {
+        icon_image_file = control.second->ReadAllBytes();
+    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
+        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path.toStdString());
+    }
+    QImage icon_data =
+            QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
+    std::filesystem::path out_icon_path;
+    if (GMainWindow::MakeShortcutIcoPath(QLaunchId, game_title, out_icon_path)) {
+        if (!SaveIconToFile(out_icon_path, icon_data)) {
+            LOG_ERROR(Frontend, "Could not write icon to file");
+        }
+    }
+
+#if defined(__linux__)
+    // Special case for AppImages
+    // Warn once if we are making a shortcut to a volatile AppImage
+    const std::string appimage_ending =
+            std::string(Common::g_scm_rev).substr(0, 9).append(".AppImage");
+    if (yuzu_command.string().ends_with(appimage_ending) &&
+            !UISettings::values.shortcut_already_warned) {
+        if (GMainWindow::CreateShortcutMessagesGUI(
+                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qt_game_title)) {
+            return;
+        }
+        UISettings::values.shortcut_already_warned = true;
+    }
+#endif // __linux__
+
+    // Create shortcut
+    std::string arguments = "-qlaunch";
+    if (GMainWindow::CreateShortcutMessagesGUI(
+                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
+        arguments = "-f " + arguments;
+    }
+    const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
+    const std::string categories = "Game;Emulator;Qt;";
+    const std::string keywords = "Switch;Nintendo;";
+
+    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, yuzu_command,
+                                        arguments, categories, keywords, game_title)) {
+        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
+                                               qt_game_title);
+        return;
+    }
+    GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
+                                           qt_game_title);
 }
 
 void GMainWindow::OnCaptureScreenshot() {
