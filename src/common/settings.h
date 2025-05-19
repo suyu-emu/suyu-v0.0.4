@@ -633,6 +633,7 @@ struct Values {
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
     Setting<bool> log_flush_lines{linkage, false, "flush_lines", Category::Miscellaneous};
+    Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};
     Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};
     Setting<bool> hide_pre_alpha_warning{linkage,

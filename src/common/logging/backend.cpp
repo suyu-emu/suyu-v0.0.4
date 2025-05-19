@@ -4,8 +4,10 @@
 #include <atomic>
 #include <chrono>
 #include <climits>
+#include <regex>
 #include <thread>
 
+#include <boost/algorithm/string/replace.hpp>
 #include <fmt/ranges.h>
 
 #ifdef _WIN32
@@ -104,9 +106,21 @@ public:
             return;
         }
 
-        bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
+        auto message = FormatLogMessage(entry).append(1, '\n');
 
-               // Option to log each line rather than 4k buffers
+#ifndef ANDROID
+        if (Settings::values.censor_username.GetValue()) {
+            char* username = getenv("USER");
+            if (!username) {
+                username = getenv("USERNAME");
+            }
+            boost::replace_all(message, username, "user");
+        }
+#endif
+
+        bytes_written += file->WriteString(message);
+
+        // Option to log each line rather than 4k buffers
         if (Settings::values.log_flush_lines.GetValue()) {
             file->Flush();
         }
