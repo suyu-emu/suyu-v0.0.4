@@ -1,9 +1,13 @@
 # SPDX-FileCopyrightText: 2017 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-add_executable(yuzu-room
+# SPDX-FileCopyrightText: 2025 eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+add_library(yuzu-room STATIC EXCLUDE_FROM_ALL
     precompiled_headers.h
     yuzu_room.cpp
+    yuzu_room.h
     yuzu_room.rc
 )
 
@@ -26,7 +30,5 @@ endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu-room PRIVATE precompiled_headers.h)
 endif()
-
-set_target_properties(yuzu-room PROPERTIES OUTPUT_NAME "eden-room")
 
 create_target_directory_groups(yuzu-room)

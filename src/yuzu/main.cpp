@@ -52,6 +52,10 @@
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/util/controller_navigation.h"
 
+#ifdef YUZU_ROOM
+#include "dedicated_room/yuzu_room.h"
+#endif
+
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
 static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(
@@ -5457,6 +5461,20 @@ static void SetHighDPIAttributes() {
 }
 
 int main(int argc, char* argv[]) {
+#if YUZU_ROOM
+    bool launch_room = false;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--room") == 0) {
+            launch_room = true;
+        }
+    }
+
+    if (launch_room) {
+        LaunchRoom(argc, argv, true);
+        return 0;
+    }
+#endif
+
     bool has_broken_vulkan = false;
     bool is_child = false;
     if (CheckEnvVars(&is_child)) {
@@ -5520,6 +5538,7 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
     QApplication app(argc, argv);
+
 
 #ifdef _WIN32
     OverrideWindowsFont();

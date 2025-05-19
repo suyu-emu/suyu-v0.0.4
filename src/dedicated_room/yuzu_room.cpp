@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: 2025 eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <chrono>
 #include <fstream>
@@ -46,6 +48,8 @@
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
+
+#include "yuzu_room.h"
 
 static void PrintHelp(const char* argv0) {
     LOG_INFO(Network,
@@ -186,10 +190,16 @@ static void InitializeLogging(const std::string& log_file) {
 }
 
 /// Application entry point
-int main(int argc, char** argv) {
+void LaunchRoom(int argc, char** argv, bool called_by_option)
+{
     Common::DetachedTasks detached_tasks;
     int option_index = 0;
     char* endarg;
+
+    char* new_argv0 = argv[0];
+    if (called_by_option) {
+        strncat(new_argv0, " --room", 8);
+    }
 
     std::string room_name;
     std::string room_description;
@@ -205,6 +215,7 @@ int main(int argc, char** argv) {
     u32 port = Network::DefaultRoomPort;
     u32 max_members = 16;
 
+    // TODO(alekpop): Implement this into main executable, for --room and a few others.
     static struct option long_options[] = {
         {"room-name", required_argument, 0, 'n'},
         {"room-description", required_argument, 0, 'd'},
@@ -222,14 +233,15 @@ int main(int argc, char** argv) {
         {"enable-yuzu-mods", no_argument, 0, 'e'},
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'v'},
+        // Entry option
+        {"room", 0, 0, 0},
         {0, 0, 0, 0},
     };
 
     InitializeLogging(log_file);
 
     while (optind < argc) {
-        int arg =
-            getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'n':
@@ -273,10 +285,10 @@ int main(int argc, char** argv) {
                 break;
             case 'h':
                 PrintHelp(argv[0]);
-                return 0;
+                std::exit(0);
             case 'v':
                 PrintVersion();
-                return 0;
+                std::exit(0);
             }
         }
     }
@@ -284,12 +296,12 @@ int main(int argc, char** argv) {
     if (room_name.empty()) {
         LOG_ERROR(Network, "Room name is empty!");
         PrintHelp(argv[0]);
-        return -1;
+        std::exit(-1);
     }
     if (preferred_game.empty()) {
         LOG_ERROR(Network, "Preferred game is empty!");
         PrintHelp(argv[0]);
-        return -1;
+        std::exit(-1);
     }
     if (preferred_game_id == 0) {
         LOG_ERROR(Network,
@@ -297,10 +309,11 @@ int main(int argc, char** argv) {
                   "room.\nSet with --preferred-game-id id");
     }
     if (max_members > Network::MaxConcurrentConnections || max_members < 2) {
-        LOG_ERROR(Network, "max_members needs to be in the range 2 - {}!",
+        LOG_ERROR(Network,
+                  "max_members needs to be in the range 2 - {}!",
                   Network::MaxConcurrentConnections);
         PrintHelp(argv[0]);
-        return -1;
+        std::exit(-1);
     }
     if (bind_address.empty()) {
         LOG_INFO(Network, "Bind address is empty: defaulting to 0.0.0.0");
@@ -308,11 +321,12 @@ int main(int argc, char** argv) {
     if (port > UINT16_MAX) {
         LOG_ERROR(Network, "Port needs to be in the range 0 - 65535!");
         PrintHelp(argv[0]);
-        return -1;
+        std::exit(-1);
     }
     if (ban_list_file.empty()) {
-        LOG_ERROR(Network, "Ban list file not set!\nThis should get set to load and save room ban "
-                           "list.\nSet with --ban-list-file <file>");
+        LOG_ERROR(Network,
+                  "Ban list file not set!\nThis should get set to load and save room ban "
+                  "list.\nSet with --ban-list-file <file>");
     }
     bool announce = true;
     if (token.empty() && announce) {
@@ -368,7 +382,7 @@ int main(int argc, char** argv) {
                           password, max_members, username, preferred_game_info,
                           std::move(verify_backend), ban_list)) {
             LOG_INFO(Network, "Failed to create room: ");
-            return -1;
+            std::exit(-1);
         }
         LOG_INFO(Network, "Room is open. Close with Q+Enter...");
         auto announce_session = std::make_unique<Core::AnnounceMultiplayerSession>(network);
@@ -395,5 +409,5 @@ int main(int argc, char** argv) {
     }
     network.Shutdown();
     detached_tasks.WaitForAllTasks();
-    return 0;
+    std::exit(0);
 }

@@ -484,4 +484,8 @@ if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu PRIVATE precompiled_headers.h)
 endif()
 
+if (YUZU_ROOM)
+    target_link_libraries(yuzu PRIVATE yuzu-room)
+endif()
+
 create_target_directory_groups(yuzu)
