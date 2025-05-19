@@ -167,11 +167,6 @@ object NativeLibrary {
     external fun getPerfStats(): DoubleArray
 
     /**
-     * Returns the number of shaders being built
-     */
-    external fun getShadersBuilding(): Int
-
-    /**
      * Returns the current CPU backend.
      */
     external fun getCpuBackend(): String

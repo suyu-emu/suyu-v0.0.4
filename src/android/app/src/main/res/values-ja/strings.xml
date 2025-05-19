@@ -50,8 +50,6 @@
     <string name="use_lru_cache_description">LRUキャッシュ（最近最も使われていない）を有効または無効にし、CPU使用率を節約してパフォーマンスを向上させます。一部のゲーム（特にTotK 1.2.1）で問題が発生する可能性があるため、ゲームが起動しないかランダムにクラッシュする場合は無効にしてください。</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
     <string name="dyna_state_description">Vulkan機能を有効にしてパフォーマンスとレンダリングを向上させ、パイプライン作成時のリソースを節約しながらCPU/GPU使用率を低く保ちます。これらの拡張機能はデバイスの温度を上昇させる可能性があり、古いA6XXシリーズのGPUでは正しく反応しない場合があります。Yuzuのエミュレート形式を使用するには0に設定します。</string>
-    <string name="vertex_input">頂点入力動的状態</string>
-    <string name="vertex_input_description">新しいデバイスでパフォーマンスを向上させます。Vulkan 1.3+ GPUでのみサポートされています。</string>
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
     <string name="use_auto_stub">自動スタブを使用</string>

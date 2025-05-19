@@ -30,8 +30,7 @@ ConfigureGraphicsExtensions::~ConfigureGraphicsExtensions() = default;
 
 void ConfigureGraphicsExtensions::SetConfiguration() {}
 
-void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& builder)
-{
+void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& builder) {
     auto& layout = *ui->populate_target->layout();
     std::map<u32, QWidget*> hold{}; // A map will sort the data for us
 
@@ -52,8 +51,6 @@ void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& buil
         if (setting->Id() == Settings::values.dyna_state.Id()) {
             widget->slider->setTickInterval(1);
             widget->slider->setTickPosition(QSlider::TicksAbove);
-        } else if (setting->Id() == Settings::values.vertex_input.Id()) {
-            // widget->checkbox->setDisabled(true);
         }
     }
 

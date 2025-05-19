@@ -446,21 +446,13 @@ struct Values {
                                                    Category::RendererAdvanced};
 
     SwitchableSetting<u8, true> dyna_state{linkage,
-#ifdef ANDROID
-                                           2,
-#else
-                                           2,
-#endif
+                                           0,
                                            0,
                                            3,
                                            "dyna_state",
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
-    SwitchableSetting<bool> vertex_input{linkage,
-                                         false,
-                                         "vertex_input",
-                                         Category::RendererExtensions};
     SwitchableSetting<bool> provoking_vertex{linkage, true, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, true, "descriptor_indexing", Category::RendererExtensions};
 

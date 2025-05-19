@@ -50,8 +50,6 @@
     <string name="use_lru_cache_description">LRU 캐시(최근 사용되지 않은 항목)를 활성화 또는 비활성화하여 CPU 사용량을 절약하고 성능을 향상시킵니다. 일부 게임(특히 TotK 1.2.1)에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
     <string name="dyna_state">확장 동적 상태</string>
     <string name="dyna_state_description">Vulkan 기능을 활성화하여 파이프라인 생성 시 성능, 렌더링을 개선하고 리소스를 절약하면서 CPU/GPU 사용량을 낮게 유지합니다. 이러한 확장 기능은 장치 온도를 높일 수 있으며, 이전 A6XX 라인의 GPU는 제대로 반응하지 않을 수 있습니다. Yuzu 에뮬레이션 형식을 사용하려면 0으로 설정하세요.</string>
-    <string name="vertex_input">정점 입력 동적 상태</string>
-    <string name="vertex_input_description">최신 기기에서 성능을 향상시킵니다. Vulkan 1.3+ GPU에서만 지원됩니다.</string>
     <string name="use_sync_core">코어 속도 동기화</string>
     <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
     <string name="use_auto_stub">자동 스텁 사용</string>

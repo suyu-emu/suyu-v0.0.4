@@ -50,8 +50,6 @@
     <string name="use_lru_cache_description">Activa o desactiva la caché LRU (menos usados recientemente), aumentando el rendimiento al ahorrar uso de CPU. Algunos juegos tienen problemas con ella, especialmente TotK 1.2.1, así que desactívala si el juego no arranca o se cierra aleatoriamente.</string>
     <string name="dyna_state">Estado dinámico extendido</string>
     <string name="dyna_state_description">Habilita funciones Vulkan para mejorar rendimiento, renderizado y ahorrar recursos en creación de pipelines manteniendo bajo uso de CPU/GPU. Estas extensiones pueden aumentar la temperatura del dispositivo y GPUs antiguas de serie A6XX podrían no responder correctamente. Establecer en 0 para usar formatos emulados de Yuzu.</string>
-    <string name="vertex_input">VertexInputDynamicState</string>
-    <string name="vertex_input_description">Mejora el rendimiento en dispositivos nuevos. Solo compatible con GPUs Vulkan 1.3+.</string>
     <string name="use_sync_core">Sincronizar velocidad del núcleo</string>
     <string name="use_sync_core_description">Sincroniza la velocidad del núcleo con el porcentaje máximo de velocidad para mejorar el rendimiento sin alterar la velocidad real del juego.</string>
     <string name="use_auto_stub">Usar Auto Stub</string>

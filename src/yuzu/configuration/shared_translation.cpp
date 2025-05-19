@@ -234,23 +234,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            tr("Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will generally improve "
               "performance, but may cause issues on certain games or devices."));
 
-    INSERT(Settings,
-           vertex_input,
-           tr("VertexInputDynamicState"),
-           tr("Enables the VkVertexInputDynamicState extension.\n"
-              "Only Vulkan 1.3+ devices support this extension, and will generally see improved "
-              "performance."));
-
     INSERT(Settings, provoking_vertex, tr("Provoking Vertex"),
            tr("Improves lighting and vertex handling in certain games.\n"
               "Only Vulkan 1.0+ devices support this extension."));
 
-    INSERT(Settings,
-           descriptor_indexing,
-           tr("Descriptor Indexing"),
+    INSERT(Settings, descriptor_indexing, tr("Descriptor Indexing"),
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
-              "Some Vulkan 1.1+ and all 1.2+ devices support this extension.\n"
-              "This extension is incomplete. Use with caution."));
+              "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
 
     // Renderer (Debug)
 
