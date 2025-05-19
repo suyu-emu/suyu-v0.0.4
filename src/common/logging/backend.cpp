@@ -4,10 +4,9 @@
 #include <atomic>
 #include <chrono>
 #include <climits>
-#include <mutex>
 #include <thread>
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #ifdef _WIN32
 #include <windows.h> // For OutputDebugStringW
@@ -89,8 +88,8 @@ public:
         auto old_filename = filename;
         old_filename += ".old.txt";
 
-        // Existence checks are done within the functions themselves.
-        // We don't particularly care if these succeed or not.
+               // Existence checks are done within the functions themselves.
+               // We don't particularly care if these succeed or not.
         static_cast<void>(FS::RemoveFile(old_filename));
         static_cast<void>(FS::RenameFile(filename, old_filename));
 
@@ -106,6 +105,11 @@ public:
         }
 
         bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
+
+               // Option to log each line rather than 4k buffers
+        if (Settings::values.log_flush_lines.GetValue()) {
+            file->Flush();
+        }
 
         using namespace Common::Literals;
         // Prevent logs from exceeding a set maximum size in the event that log entries are spammed.
@@ -196,7 +200,7 @@ public:
             return;
         }
         using namespace Common::FS;
-        const auto& log_dir = GetSuyuPath(SuyuPath::LogDir);
+        const auto& log_dir = GetEdenPath(EdenPath::LogDir);
         void(CreateDir(log_dir));
         Filter filter;
         filter.ParseFilterString(Settings::values.log_filter.GetValue());
@@ -232,15 +236,8 @@ public:
         if (!filter.CheckMessage(log_class, log_level)) {
             return;
         }
-
-        auto entry =
-            CreateEntry(log_class, log_level, filename, line_num, function, std::move(message));
-        if (Settings::values.log_async) {
-            message_queue.EmplaceWait(entry);
-        } else {
-            std::scoped_lock l{sync_mutex};
-            ForEachBackend([&entry](Backend& backend) { backend.Write(entry); });
-        }
+        message_queue.EmplaceWait(
+            CreateEntry(log_class, log_level, filename, line_num, function, std::move(message)));
     }
 
 private:
@@ -321,7 +318,6 @@ private:
 #endif
 
     MPSCQueue<Entry> message_queue{};
-    std::mutex sync_mutex;
     std::chrono::steady_clock::time_point time_origin{std::chrono::steady_clock::now()};
     std::jthread backend_thread;
 };
@@ -354,11 +350,9 @@ void SetColorConsoleBackendEnabled(bool enabled) {
 void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename,
                        unsigned int line_num, const char* function, fmt::string_view format,
                        const fmt::format_args& args) {
-    if (initialization_in_progress_suppress_logging) {
-        return;
+    if (!initialization_in_progress_suppress_logging) {
+        Impl::Instance().PushEntry(log_class, log_level, filename, line_num, function,
+                                   fmt::vformat(format, args));
     }
-
-    Impl::Instance().PushEntry(log_class, log_level, filename, line_num, function,
-                               fmt::vformat(format, args));
 }
 } // namespace Common::Log
