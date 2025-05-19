@@ -119,7 +119,7 @@ private:
     std::array<AruidData, AruidIndexMax> data{};
     std::array<SharedMemoryHolder, AruidIndexMax> shared_memory_holder{};
     s32 ref_counter{};
-    u64 active_vibration_aruid;
+    u64 active_vibration_aruid = 0;
 
     Core::System& system;
 };

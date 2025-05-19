@@ -108,7 +108,7 @@ private:
     Common::Vec2<float> last_mouse_change;
     Common::Vec3<float> last_motion_change;
     Common::Vec2<int> wheel_position;
-    bool button_pressed;
+    bool button_pressed = false;
     std::jthread update_thread;
 };
 
