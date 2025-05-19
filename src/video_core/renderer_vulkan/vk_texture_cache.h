@@ -82,7 +82,8 @@ public:
     }
 
     bool CanUploadMSAA() const noexcept {
-        return msaa_copy_pass.operator bool();
+        // TODO: Implement buffer to MSAA uploads
+        return false;
     }
 
     void AccelerateImageUpload(Image&, const StagingBufferRef&,

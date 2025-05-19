@@ -76,37 +76,32 @@ private:
     std::shared_ptr<Common::DynamicLibrary> library;
     vk::InstanceDispatch dld;
 
-    // Order of member variables determines destruction order (reverse of declaration)
-    // Critical Vulkan resources should be declared in proper dependency order
-
-    // Base Vulkan instance, debugging, and surface
+    // Keep original handles for compatibility with existing code
     vk::Instance instance;
+    // RAII wrapper for instance
+    ManagedInstance managed_instance;
+
     vk::DebugUtilsMessenger debug_messenger;
+    // RAII wrapper for debug messenger
+    ManagedDebugUtilsMessenger managed_debug_messenger;
+
     vk::SurfaceKHR surface;
-    
-    // Device and core resources
+    // RAII wrapper for surface
+    ManagedSurface managed_surface;
+
     Device device;
     MemoryAllocator memory_allocator;
     StateTracker state_tracker;
     Scheduler scheduler;
     Swapchain swapchain;
     PresentManager present_manager;
-
-    // Rendering components
     BlitScreen blit_swapchain;
     BlitScreen blit_capture;
     BlitScreen blit_applet;
     RasterizerVulkan rasterizer;
-
-    // Optional components
     std::optional<TurboMode> turbo_mode;
+
     Frame applet_frame;
-    
-    // RAII wrappers - must be destroyed before their raw handles
-    // so they are declared after to be destroyed first
-    ManagedInstance managed_instance;
-    ManagedDebugUtilsMessenger managed_debug_messenger;
-    ManagedSurface managed_surface;
 };
 
 } // namespace Vulkan
