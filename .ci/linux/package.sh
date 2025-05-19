@@ -21,7 +21,6 @@ fi
 
 EDEN_TAG=$(git describe --tags --abbrev=0)
 echo "Making stable \"$EDEN_TAG\" build"
-git checkout "$EDEN_TAG"
 VERSION="$(echo "$EDEN_TAG")"
 
 # NOW MAKE APPIMAGE

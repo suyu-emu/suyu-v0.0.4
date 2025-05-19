@@ -1190,7 +1190,7 @@ void Device::RemoveUnsuitableExtensions() {
     int dynamic_state = Settings::values.dyna_state.GetValue();
 
     // VK_EXT_extended_dynamic_state
-    if (dynamic_state < 1) {
+    if (dynamic_state > 0) {
         extensions.extended_dynamic_state = features.extended_dynamic_state.extendedDynamicState;
         RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state,
                                            features.extended_dynamic_state,
@@ -1202,7 +1202,7 @@ void Device::RemoveUnsuitableExtensions() {
     }
 
     // VK_EXT_extended_dynamic_state2
-    if (dynamic_state < 2) {
+    if (dynamic_state > 1) {
         extensions.extended_dynamic_state2 = features.extended_dynamic_state2.extendedDynamicState2;
         RemoveExtensionFeatureIfUnsuitable(extensions.extended_dynamic_state2,
                                            features.extended_dynamic_state2,
@@ -1214,7 +1214,7 @@ void Device::RemoveUnsuitableExtensions() {
     }
 
     // VK_EXT_extended_dynamic_state3
-    if (dynamic_state < 3) {
+    if (dynamic_state > 2) {
         dynamic_state3_blending
             = features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable
               && features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation
