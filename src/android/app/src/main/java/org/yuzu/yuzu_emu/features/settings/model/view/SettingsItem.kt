@@ -579,6 +579,16 @@ abstract class SettingsItem(
                 override fun reset() = setBoolean(defaultValue)
             }
             put(SwitchSetting(fastmem, R.string.fastmem))
+
+            // Applet Settings
+            put(
+                SingleChoiceSetting(
+                    IntSetting.SWKBD_APPLET,
+                    titleId = R.string.swkbd_applet,
+                    choicesId = R.array.appletEntries,
+                    valuesId = R.array.appletValues
+                )
+            )
         }
     }
 }
