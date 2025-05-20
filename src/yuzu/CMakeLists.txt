@@ -450,14 +450,14 @@ if(UNIX AND NOT APPLE)
     install(TARGETS yuzu)
 endif()
 
-if (WIN32 AND USE_SYSTEM_QT AND QT_VERSION VERSION_GREATER_EQUAL 6)
+if (WIN32 AND NOT YUZU_USE_BUNDLED_QT AND QT_VERSION VERSION_GREATER_EQUAL 6)
     set(YUZU_EXE_DIR "$<TARGET_FILE_DIR:yuzu>")
     add_custom_command(TARGET yuzu POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} "${YUZU_EXE_DIR}/eden.exe" --dir "${YUZU_EXE_DIR}" --libdir "${YUZU_EXE_DIR}" --plugindir "${YUZU_EXE_DIR}/plugins" --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-translations --verbose 0)
 endif()
 
-if (NOT USE_SYSTEM_QT)
-    include(CopyYuzuQt6Deps)
-    copy_yuzu_Qt6_deps(yuzu)
+if (YUZU_USE_BUNDLED_QT)
+	include(CopyYuzuQt6Deps)
+	copy_yuzu_Qt6_deps(yuzu)
 endif()
 
 if (ENABLE_SDL2)

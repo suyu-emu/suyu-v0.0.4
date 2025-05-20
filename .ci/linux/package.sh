@@ -3,12 +3,16 @@
 # SPDX-FileCopyrightText: 2025 eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# TODO: create a lighter version based on pflyly's script
+
 # This script assumes you're in the source directory
 set -ex
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 export BASE_ARCH="$(uname -m)"
 export ARCH="$BASE_ARCH"
+
+export BUILDDIR="$2"
 
 LIB4BN="https://raw.githubusercontent.com/VHSgunzo/sharun/refs/heads/main/lib4bin"
 URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-$ARCH"
@@ -19,9 +23,14 @@ if [ "$ARCH" = 'x86_64' ]; then
 	fi
 fi
 
+if [ "$BUILDDIR" = '' ]
+then
+	BUILDDIR=build
+fi
+
 EDEN_TAG=$(git describe --tags --abbrev=0)
 echo "Making stable \"$EDEN_TAG\" build"
-git checkout "$EDEN_TAG"
+# git checkout "$EDEN_TAG"
 VERSION="$(echo "$EDEN_TAG")"
 
 # NOW MAKE APPIMAGE
@@ -42,10 +51,13 @@ cp ../dist/eden.svg ./eden.svg
 
 ln -sf ./eden.svg ./.DirIcon
 
-if [ "$DEVEL" = 'true' ]; then
-	sed -i 's|Name=Eden|Name=Eden Nightly|' ./eden.desktop
-	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
-fi
+# TODO(crueter): Nightly
+# if [ "$DEVEL" = 'true' ]; then
+# 	sed -i 's|Name=Eden|Name=Eden Nightly|' ./eden.desktop
+# 	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
+# fi
+
+UPINFO='gh-releases-zsync|eden-emulator|Releases|latest|*.AppImage.zsync'
 
 LIBDIR="/usr/lib"
 # some distros are weird and use a subdir
@@ -59,7 +71,7 @@ fi
 wget --retry-connrefused --tries=30 "$LIB4BN" -O ./lib4bin
 chmod +x ./lib4bin
 xvfb-run -a -- ./lib4bin -p -v -e -s -k \
-	../build/bin/eden* \
+	../$BUILDDIR/bin/eden* \
 	$LIBDIR/lib*GL*.so* \
     $LIBDIR/libSDL2*.so* \
 	$LIBDIR/dri/* \

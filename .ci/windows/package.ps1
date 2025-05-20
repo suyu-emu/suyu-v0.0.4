@@ -12,31 +12,29 @@ $ARTIFACTS_DIR = "artifacts"
 New-Item -ItemType Directory -Path $ARTIFACTS_DIR -Force
 New-Item -ItemType Directory -Path $RELEASE_DIST -Force
 
+Copy-Item -Path "build/$target/bin/*" -Destination "$RELEASE_DIST" -Recurse -ErrorAction SilentlyContinue -Force
+
 if ($debug -eq "yes") {
 	mkdir -p pdb
-	$BUILD_PDB = "eden-windows-msvc-$GITDATE-$GITREV-debugsymbols.zip"
-	Get-ChildItem "build/$target/bin/" -Recurse -Filter "*.pdb" | Copy-Item -destination .\pdb -ErrorAction SilentlyContinue
-
+	Get-ChildItem -Path "$RELEASE_DIST" -Filter "*.pdb" -Recurse | Move-Item -Destination .\pdb -ErrorAction SilentlyContinue -Force
+	
 	if (Test-Path -Path ".\pdb\*.pdb") {
+		$BUILD_PDB = "eden-windows-msvc-$GITDATE-$GITREV-debugsymbols.zip"
 		7z a -tzip $BUILD_PDB .\pdb\*.pdb
-		Move-Item $BUILD_PDB $ARTIFACTS_DIR/ -ErrorAction SilentlyContinue
+		Move-Item -Path $BUILD_PDB -Destination $ARTIFACTS_DIR/ -ErrorAction SilentlyContinue -Force
 	}
-} else {
-    Remove-Item -Force "$RELEASE_DIST\*.pdb"
 }
 
-
-Copy-Item "build/$target/bin/Release/*" -Destination "$RELEASE_DIST" -Recurse -ErrorAction SilentlyContinue
-if (-not $?) {
-	# Try without Release subfolder if that doesn't exist
-	Copy-Item "build/$target/bin/*" -Destination "$RELEASE_DIST" -Recurse -ErrorAction SilentlyContinue
+if ($debug -ne "yes") {
+	Remove-Item "$RELEASE_DIST\*.pdb" -Recurse -ErrorAction SilentlyContinue -Force
 }
 
+Move-Item -Path "$RELEASE_DIST\Release\*" -Destination "$RELEASE_DIST" -ErrorAction SilentlyContinue -Force
+Remove-Item "$RELEASE_DIST\Release" -ErrorAction SilentlyContinue -Force
 
 $BUILD_ZIP = "eden-windows-msvc-$GITDATE-$GITREV.zip"
-
 7z a -tzip $BUILD_ZIP $RELEASE_DIST\*
+Move-Item -Path $BUILD_ZIP -Destination $ARTIFACTS_DIR/ -ErrorAction SilentlyContinue -Force
 
-Move-Item $BUILD_ZIP $ARTIFACTS_DIR/ -Force #-ErrorAction SilentlyContinue
 Copy-Item "LICENSE*" -Destination "$RELEASE_DIST" -ErrorAction SilentlyContinue
 Copy-Item "README*" -Destination "$RELEASE_DIST" -ErrorAction SilentlyContinue

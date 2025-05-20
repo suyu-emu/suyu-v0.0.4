@@ -72,7 +72,7 @@ function(determine_qt_parameters target host_out type_out arch_out arch_path_out
                 elseif ("x86_64" IN_LIST ARCHITECTURE)
                     set(arch_path "msvc2022_64")
                 else()
-                    message(FATAL_ERROR "Unsupported bundled Qt architecture. Enable USE_SYSTEM_QT and provide your own.")
+                    message(FATAL_ERROR "Unsupported bundled Qt architecture. Disable YUZU_USE_BUNDLED_QT and provide your own.")
                 endif()
                 set(arch "win64_${arch_path}")
 
@@ -83,7 +83,7 @@ function(determine_qt_parameters target host_out type_out arch_out arch_path_out
                 endif()
                 set(host_arch "win64_${host_arch_path}")
             else()
-                message(FATAL_ERROR "Unsupported bundled Qt toolchain. Enable USE_SYSTEM_QT and provide your own.")
+                message(FATAL_ERROR "Unsupported bundled Qt toolchain. Disable YUZU_USE_BUNDLED_QT and provide your own.")
             endif()
         endif()
     elseif (APPLE)

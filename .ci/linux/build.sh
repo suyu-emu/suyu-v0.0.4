@@ -25,7 +25,7 @@ if [ -z "$NPROC" ]; then
 fi
 
 if [ "$TARGET" = "appimage" ]; then
-    export EXTRA_CMAKE_FLAGS=(-DYUZU_CMD=OFF -DYUZU_ROOM_STANDALONE=OFF)
+    export EXTRA_CMAKE_FLAGS=(-DCMAKE_INSTALL_PREFIX=/usr)
     # Bundle required QT wayland libraries
     export EXTRA_QT_PLUGINS="waylandcompositor"
     export EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so"
@@ -34,35 +34,37 @@ else
     export EXTRA_CMAKE_FLAGS=(-DYUZU_USE_PRECOMPILED_HEADERS=OFF)
 fi
 
-if [ "$GITHUB_REF_TYPE" == "tag" ]; then
-	export EXTRA_CMAKE_FLAGS=($EXTRA_CMAKE_FLAGS -DENABLE_QT_UPDATE_CHECKER=ON)
-fi
+# TODO(crueter): update checker
+# if [ "$GITHUB_REF_TYPE" == "tag" ]; then
+# 	export EXTRA_CMAKE_FLAGS=($EXTRA_CMAKE_FLAGS -DENABLE_QT_UPDATE_CHECKER=ON)
+# fi
 
 mkdir -p build && cd build
 cmake .. -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-    -DENABLE_QT_TRANSLATION=ON \
+	-DENABLE_QT_TRANSLATION=ON \
     -DUSE_DISCORD_PRESENCE=ON \
-    -DUSE_CCACHE=ON \
     -DCMAKE_CXX_FLAGS="$ARCH_FLAGS" \
     -DCMAKE_C_FLAGS="$ARCH_FLAGS" \
     -DYUZU_USE_BUNDLED_VCPKG=OFF \
     -DYUZU_USE_BUNDLED_QT=OFF \
-    -DUSE_SYSTEM_QT=ON \
     -DYUZU_USE_BUNDLED_FFMPEG=OFF \
     -DYUZU_USE_BUNDLED_SDL2=OFF \
     -DYUZU_USE_EXTERNAL_SDL2=ON \
     -DYUZU_TESTS=OFF \
+<<<<<<< HEAD
     -DYUZU_USE_LLVM_DEMANGLE=OFF \
     -DYUZU_USE_QT_MULTIMEDIA=OFF \
     -DYUZU_USE_QT_WEB_ENGINE=OFF \
     -DENABLE_QT_TRANSLATION=ON \
     -DUSE_DISCORD_PRESENCE=OFF \
     -DYUZU_USE_FASTER_LD=OFF \
+=======
+    -DYUZU_USE_QT_MULTIMEDIA=ON \
+    -DYUZU_USE_QT_WEB_ENGINE=ON \
+    -DYUZU_USE_FASTER_LD=ON \
+>>>>>>> cmake-qt-fix
     -DYUZU_ENABLE_LTO=ON \
-    -DCMAKE_LINKER=/usr/bin/mold \
 	"${EXTRA_CMAKE_FLAGS[@]}"
 
 ninja -j${NPROC}
@@ -72,11 +74,3 @@ if [ -d "bin/Release" ]; then
 else
   strip -s bin/*
 fi
-
-if [ "$TARGET" = "appimage" ]; then
-    ccache -s
-else
-    ccache -s -v
-fi
-
-#ctest -VV -C Release

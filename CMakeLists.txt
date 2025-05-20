@@ -368,11 +368,6 @@ if (UNIX AND NOT APPLE)
     find_package(gamemode 1.7 MODULE)
 endif()
 
-# Please consider this as a stub
-if(ENABLE_QT6 AND Qt6_LOCATION)
-    list(APPEND CMAKE_PREFIX_PATH "${Qt6_LOCATION}")
-endif()
-
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
 if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
@@ -405,8 +400,14 @@ endif()
 add_subdirectory(externals)
 
 if (ENABLE_QT)
-    if (NOT USE_SYSTEM_QT)
+    if (YUZU_USE_BUNDLED_QT)
         download_qt(6.8.3)
+    else()
+        message(STATUS "Using system Qt")
+        if (NOT Qt6_DIR)
+            set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries like C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
+        endif()
+		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
     find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
@@ -433,6 +434,7 @@ if (ENABLE_QT)
     if (NOT DEFINED QT_HOST_PATH)
         set(QT_HOST_PATH "${QT_TARGET_PATH}")
     endif()
+
     message(STATUS "Using target Qt at ${QT_TARGET_PATH}")
     message(STATUS "Using host Qt at ${QT_HOST_PATH}")
 endif()
@@ -648,13 +650,15 @@ endif()
 # https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 # https://www.freedesktop.org/software/appstream/docs/
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/org.yuzu_emu.yuzu.desktop"
+    install(FILES "dist/eden.desktop"
         DESTINATION "share/applications")
     install(FILES "dist/eden.svg"
         DESTINATION "share/icons/hicolor/scalable/apps"
-        RENAME "org.yuzu_emu.eden.svg")
-    install(FILES "dist/org.yuzu_emu.yuzu.xml"
+        RENAME "eden.svg")
+
+    # TODO: these files need to be updated.
+    install(FILES "dist/eden.xml"
         DESTINATION "share/mime/packages")
-    install(FILES "dist/org.yuzu_emu.yuzu.metainfo.xml"
+    install(FILES "dist/eden.metainfo.xml"
         DESTINATION "share/metainfo")
 endif()
