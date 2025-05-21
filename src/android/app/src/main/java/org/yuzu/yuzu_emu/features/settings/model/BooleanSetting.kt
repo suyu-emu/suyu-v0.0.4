@@ -33,16 +33,18 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     TOUCHSCREEN("touchscreen"),
     SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
     FRAME_INTERPOLATION("frame_interpolation"),
-    FRAME_SKIPPING("frame_skipping"),
+//    FRAME_SKIPPING("frame_skipping"),
     SHOW_FPS("show_fps"),
     SHOW_FRAMETIME("show_frame_time"),
-    SHOW_SPEED("show_speed"),
     SHOW_APP_RAM_USAGE("show_app_ram_usage"),
     SHOW_SYSTEM_RAM_USAGE("show_system_ram_usage"),
     SHOW_BAT_TEMPERATURE("show_bat_temperature"),
+    SHOW_SHADERS_BUILDING("show_shaders_building"),
     OVERLAY_BACKGROUND("overlay_background"),
+    DONT_SHOW_EDEN_VEIL_WARNING("dont_show_eden_veil_warning"),
+    DEBUG_FLUSH_BY_LINE("flush_lines"),
     USE_LRU_CACHE("use_lru_cache"),;
-    external fun isFrameSkippingEnabled(): Boolean
+//    external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean
 
 

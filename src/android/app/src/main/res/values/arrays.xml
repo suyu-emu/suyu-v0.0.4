@@ -21,6 +21,18 @@
         <item>1</item>
     </integer-array>
 
+    <string-array name="memoryNames">
+        <item>@string/memory_4gb</item>
+        <item>@string/memory_6gb</item>
+        <item>@string/memory_8gb</item>
+    </string-array>
+
+    <integer-array name="memoryValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="languageNames">
         <item>@string/language_brazilian_portuguese</item>
         <item>@string/language_british_english</item>

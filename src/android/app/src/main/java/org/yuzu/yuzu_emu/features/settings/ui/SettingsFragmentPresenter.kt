@@ -4,6 +4,8 @@
 package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.AlertDialog
 import android.os.Build
 import android.widget.Toast
 import androidx.preference.PreferenceManager
@@ -29,11 +31,14 @@ import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import androidx.core.content.edit
+import androidx.fragment.app.FragmentActivity
+import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 
 class SettingsFragmentPresenter(
     private val settingsViewModel: SettingsViewModel,
     private val adapter: SettingsAdapter,
-    private var menuTag: MenuTag
+    private var menuTag: MenuTag,
+    private var activity: FragmentActivity?
 ) {
     private var settingsList = ArrayList<SettingsItem>()
 
@@ -66,7 +71,7 @@ class SettingsFragmentPresenter(
     }
 
     // Allows you to show/hide abstract settings based on the paired setting key
-    fun ArrayList<SettingsItem>.addAbstract(item: SettingsItem) {
+    private fun ArrayList<SettingsItem>.addAbstract(item: SettingsItem) {
         val pairedSettingKey = item.setting.pairedSettingKey
         if (pairedSettingKey.isNotEmpty()) {
             val pairedSettingsItem =
@@ -78,6 +83,9 @@ class SettingsFragmentPresenter(
     }
 
     fun onViewCreated() {
+        if (menuTag == MenuTag.SECTION_EDEN_VEIL) {
+            showEdenVeilWarningDialog()
+        }
         loadSettingsList()
     }
 
@@ -224,10 +232,10 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.stats_overlay_items))
             add(BooleanSetting.SHOW_FPS.key)
             add(BooleanSetting.SHOW_FRAMETIME.key)
-            add(BooleanSetting.SHOW_SPEED.key)
             add(BooleanSetting.SHOW_APP_RAM_USAGE.key)
             add(BooleanSetting.SHOW_SYSTEM_RAM_USAGE.key)
             add(BooleanSetting.SHOW_BAT_TEMPERATURE.key)
+            add(BooleanSetting.SHOW_SHADERS_BUILDING.key)
         }
 
     }
@@ -387,24 +395,25 @@ class SettingsFragmentPresenter(
     // TODO(alekpop): sort these into headers.
     private fun addEdenVeilSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            add(BooleanSetting.FRAME_INTERPOLATION.key)
-            add(BooleanSetting.FRAME_SKIPPING.key)
-            add(BooleanSetting.USE_LRU_CACHE.key)
-            add(BooleanSetting.RENDERER_FAST_GPU.key)
-
+            add(HeaderSetting(R.string.veil_extensions))
             add(ByteSetting.RENDERER_DYNA_STATE.key)
-
             add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
             add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
 
-            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
-
+            add(HeaderSetting(R.string.veil_renderer))
+            add(BooleanSetting.FRAME_INTERPOLATION.key)
+            add(BooleanSetting.RENDERER_FAST_GPU.key)
             add(IntSetting.RENDERER_SHADER_BACKEND.key)
             add(IntSetting.RENDERER_NVDEC_EMULATION.key)
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
             add(IntSetting.RENDERER_ASTC_RECOMPRESSION.key)
             add(IntSetting.RENDERER_VRAM_USAGE_MODE.key)
             add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
+
+            add(HeaderSetting(R.string.veil_misc))
+            add(BooleanSetting.USE_LRU_CACHE.key)
+            add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
+            add(IntSetting.MEMORY_LAYOUT.key)
         }
     }
 
@@ -1076,6 +1085,28 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.USE_AUTO_STUB.key)
             add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)
+
+            add(HeaderSetting(R.string.log))
+            add(BooleanSetting.DEBUG_FLUSH_BY_LINE.key)
+        }
+    }
+
+    fun showEdenVeilWarningDialog() {
+        val shouldDisplayVeilWarning = !BooleanSetting.DONT_SHOW_EDEN_VEIL_WARNING.getBoolean()
+        if (shouldDisplayVeilWarning) {
+            activity?.let {
+                MessageDialogFragment.newInstance(
+                    it,
+                    titleId = R.string.eden_veil_warning_title,
+                    descriptionId = R.string.eden_veil_warning_description,
+                    positiveButtonTitleId = R.string.dont_show_again,
+                    negativeButtonTitleId = R.string.close,
+                    showNegativeButton = true,
+                    positiveAction = {
+                        BooleanSetting.DONT_SHOW_EDEN_VEIL_WARNING.setBoolean(true)
+                    }
+                ).show(it.supportFragmentManager, MessageDialogFragment.TAG)
+            }
         }
     }
 }

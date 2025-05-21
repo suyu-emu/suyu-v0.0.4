@@ -8,7 +8,6 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Nâng cao)</string>
-    <string name="skipping_fps_suffix">(Bỏ qua)</string>
     <string name="system_info_label">Hệ thống:</string>
     <string name="show_stats_overlay">Hiển thị thống kê hiệu suất</string>
     <string name="stats_overlay_customization">Tùy chỉnh</string>

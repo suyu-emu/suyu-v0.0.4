@@ -202,7 +202,7 @@ RendererVulkan::~RendererVulkan() {
 #ifdef __ANDROID__
 class BooleanSetting {
     public:
-        static BooleanSetting FRAME_SKIPPING;
+//        static BooleanSetting FRAME_SKIPPING;
         static BooleanSetting FRAME_INTERPOLATION;
         explicit BooleanSetting(bool initial_value = false) : value(initial_value) {}
 
@@ -219,13 +219,13 @@ class BooleanSetting {
     };
 
     // Initialize static members
-    BooleanSetting BooleanSetting::FRAME_SKIPPING(false);
+//    BooleanSetting BooleanSetting::FRAME_SKIPPING(false);
     BooleanSetting BooleanSetting::FRAME_INTERPOLATION(false);
 
-    extern "C" JNIEXPORT jboolean JNICALL
-    Java_org_uzuy_uzuy_1emu_features_settings_model_BooleanSetting_isFrameSkippingEnabled(JNIEnv* env, jobject /* this */) {
-        return static_cast<jboolean>(BooleanSetting::FRAME_SKIPPING.getBoolean());
-    }
+//    extern "C" JNIEXPORT jboolean JNICALL
+//    Java_org_uzuy_uzuy_1emu_features_settings_model_BooleanSetting_isFrameSkippingEnabled(JNIEnv* env, jobject /* this */) {
+//        return static_cast<jboolean>(BooleanSetting::FRAME_SKIPPING.getBoolean());
+//    }
 
     extern "C" JNIEXPORT jboolean JNICALL
     Java_org_uzuy_uzuy_1emu_features_settings_model_BooleanSetting_isFrameInterpolationEnabled(JNIEnv* env, jobject /* this */) {
@@ -310,7 +310,7 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
     static int target_fps = 60; // Target FPS (30 or 60)
     int frame_skip_threshold = 1;
 
-    bool frame_skipping = BooleanSetting::FRAME_SKIPPING.getBoolean();
+    bool frame_skipping = false; //BooleanSetting::FRAME_SKIPPING.getBoolean();
     bool frame_interpolation = BooleanSetting::FRAME_INTERPOLATION.getBoolean();
     #endif
 

@@ -79,18 +79,20 @@ struct Values {
                                      Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
     Settings::Setting<bool> show_frame_time{linkage, false, "show_frame_time",
                                            Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
-    Settings::Setting<bool> show_speed{linkage, true, "show_speed",
-                                       Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
     Settings::Setting<bool> show_app_ram_usage{linkage, false, "show_app_ram_usage",
                                                Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
     Settings::Setting<bool> show_system_ram_usage{linkage, false, "show_system_ram_usage",
                                                   Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
     Settings::Setting<bool> show_bat_temperature{linkage, false, "show_bat_temperature",
                                                  Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
+    Settings::Setting<bool> show_shaders_building{linkage, true, "show_shaders_building",
+                                                 Settings::Category::Overlay, Settings::Specialization::Default, true , true, &show_performance_overlay};
     Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
                                                Settings::Category::Overlay};
     Settings::Setting<bool> touchscreen{linkage, true, "touchscreen", Settings::Category::Overlay};
     Settings::Setting<s32> lock_drawer{linkage, false, "lock_drawer", Settings::Category::Overlay};
+
+    Settings::Setting<bool> dont_show_eden_veil_warning{linkage, false, "dont_show_eden_veil_warning", Settings::Category::Miscellaneous};
 };
 
 extern Values values;

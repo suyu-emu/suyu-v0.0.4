@@ -67,6 +67,7 @@
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
+#include "video_core/shader_notify.h"
 
 #define jconst [[maybe_unused]] const auto
 #define jauto [[maybe_unused]] auto
@@ -156,6 +157,12 @@ bool EmulationSession::IsPaused() const {
 const Core::PerfStatsResults& EmulationSession::PerfStats() {
     m_perf_stats = m_system.GetAndResetPerfStats();
     return m_perf_stats;
+}
+
+int EmulationSession::ShadersBuilding() {
+    auto& shader_notify = m_system.GPU().ShaderNotify();
+    m_shaders_building = shader_notify.ShadersBuilding();
+    return m_shaders_building;
 }
 
 void EmulationSession::SurfaceChanged() {
@@ -608,6 +615,16 @@ jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPerfStats(JNIEnv* env, jcl
     }
 
     return j_stats;
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_getShadersBuilding(JNIEnv* env, jclass clazz) {
+    jint j_shaders = 0;
+
+    if (EmulationSession::GetInstance().IsRunning()) {
+        j_shaders = EmulationSession::GetInstance().ShadersBuilding();
+    }
+
+    return j_shaders;
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuBackend(JNIEnv* env, jclass clazz) {

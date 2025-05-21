@@ -21,6 +21,6 @@ CALL cmake -S . -B build\%chain% ^
 -DYUZU_ENABLE_LTO=ON ^
 -G "Ninja" ^
 -DYUZU_TESTS=OFF ^
--DQt6_DIR=C:\Qt\%qt_ver%\msvc2022_64 
+-DQt6_DIR=C:\Qt\%qt_ver%\msvc2022_64
 
 CALL cmake --build build\%chain%

@@ -8,7 +8,6 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(향상됨)</string>
-    <string name="skipping_fps_suffix">(건너뜀)</string>
     <string name="system_info_label">시스템:</string>
     <string name="show_stats_overlay">성능 통계 오버레이 표시</string>
     <string name="stats_overlay_customization">사용자 지정</string>

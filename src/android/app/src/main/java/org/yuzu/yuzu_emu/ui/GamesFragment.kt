@@ -12,10 +12,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.ImageButton
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -43,6 +46,7 @@ import org.yuzu.yuzu_emu.utils.collect
 import java.util.Locale
 import androidx.core.content.edit
 import androidx.core.view.updateLayoutParams
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -58,7 +62,8 @@ class GamesFragment : Fragment() {
     private val homeViewModel: HomeViewModel by activityViewModels()
     private lateinit var gameAdapter: GameAdapter
 
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+    private val preferences =
+        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
     private lateinit var mainActivity: MainActivity
     private val getGamesDirectory =
@@ -151,8 +156,13 @@ class GamesFragment : Fragment() {
             getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
         }
 
-    setInsets()
-    addPreAlphaBanner()
+        setInsets()
+        val shouldDisplayPreAlphaBanner =
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_BANNER, true)
+        if (shouldDisplayPreAlphaBanner) {
+            addPreAlphaBanner()
+        }
     }
 
     val applyGridGamesBinding = {
@@ -260,7 +270,44 @@ class GamesFragment : Fragment() {
             )
             gravity = Gravity.CENTER
         }
+
+        val closeButton = ImageButton(requireContext()).apply {
+            id = "pre_alpha_close_button".hashCode()
+            layoutParams = ConstraintLayout.LayoutParams(
+                resources.getDimensionPixelSize(R.dimen.spacing_large),
+                resources.getDimensionPixelSize(R.dimen.spacing_large)
+            ).apply {
+                startToStart = "pre_alpha_banner".hashCode()
+                topToTop = "pre_alpha_banner".hashCode()
+                bottomToBottom = "pre_alpha_banner".hashCode()
+                marginStart = resources.getDimensionPixelSize(R.dimen.spacing_large) * 2
+                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_small)
+            }
+            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            setColorFilter(
+                MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorOnError
+                )
+            )
+            setBackgroundColor(Color.Transparent.toArgb())
+            setOnClickListener {
+                PreferenceManager.getDefaultSharedPreferences(requireContext())
+                    .edit() {
+                        putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_BANNER, false)
+                    }
+                binding.root.removeView(preAlphaBanner)
+                binding.root.removeView(this)
+
+                binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    topToBottom = R.id.frame_search
+                }
+            }
+        }
+
         binding.root.addView(preAlphaBanner)
+        binding.root.addView(closeButton)
+
         binding.swipeRefresh.updateLayoutParams<ConstraintLayout.LayoutParams> {
             topToBottom = preAlphaBanner.id
         }
@@ -284,12 +331,14 @@ class GamesFragment : Fragment() {
                     item.isChecked = true
                     true
                 }
+
                 R.id.view_list -> {
                     preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_LIST) }
                     applyGridGamesBinding()
                     item.isChecked = true
                     true
                 }
+
                 else -> false
             }
         }
@@ -394,7 +443,7 @@ class GamesFragment : Fragment() {
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
-                resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
+            resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
             val isLandscape =
                 resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -418,7 +467,7 @@ class GamesFragment : Fragment() {
             binding.noticeText.updatePadding(bottom = spacingNavigation)
             binding.header.updatePadding(top = cutoutInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_large) + if (isLandscape) barInsets.top else 0)
             binding.gridGames.updatePadding(
-                top =  resources.getDimensionPixelSize(R.dimen.spacing_med)
+                top = resources.getDimensionPixelSize(R.dimen.spacing_med)
             )
 
             val mlpFab = binding.addDirectory.layoutParams as ViewGroup.MarginLayoutParams

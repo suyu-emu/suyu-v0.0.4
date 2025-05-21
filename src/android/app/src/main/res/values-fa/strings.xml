@@ -8,7 +8,6 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(بهبودیافته)</string>
-    <string name="skipping_fps_suffix">(رد کردن)</string>
     <string name="system_info_label">سیستم:</string>
     <string name="show_stats_overlay">نمایش آمار عملکرد</string>
     <string name="stats_overlay_customization">سفارشی‌سازی</string>

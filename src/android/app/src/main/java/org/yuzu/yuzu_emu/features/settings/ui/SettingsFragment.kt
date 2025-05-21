@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -15,15 +16,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
 import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.utils.ViewUtils.updateMargins
-import org.yuzu.yuzu_emu.utils.collect
+import org.yuzu.yuzu_emu.utils.*
 
 class SettingsFragment : Fragment() {
     private lateinit var presenter: SettingsFragmentPresenter
@@ -66,7 +69,8 @@ class SettingsFragment : Fragment() {
         presenter = SettingsFragmentPresenter(
             settingsViewModel,
             settingsAdapter!!,
-            args.menuTag
+            args.menuTag,
+            activity
         )
 
         binding.toolbarSettingsLayout.title = if (args.menuTag == Settings.MenuTag.SECTION_ROOT &&
@@ -86,6 +90,7 @@ class SettingsFragment : Fragment() {
                 else -> getString(args.menuTag.titleId)
             }
         }
+
         binding.listSettings.apply {
             adapter = settingsAdapter
             layoutManager = LinearLayoutManager(requireContext())

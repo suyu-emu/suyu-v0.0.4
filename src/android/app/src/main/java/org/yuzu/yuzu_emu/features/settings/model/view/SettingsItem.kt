@@ -52,10 +52,6 @@ abstract class SettingsItem(
 
     val isEditable: Boolean
         get() {
-            if (setting.key == BooleanSetting.FRAME_SKIPPING.key) {
-                // disabled for now
-                return false
-            }
             // Can't change docked mode toggle when using handheld mode
             if (setting.key == BooleanSetting.USE_DOCKED_MODE.key) {
                 return NativeInput.getStyleIndex(0) != NpadStyleIndex.Handheld
@@ -136,7 +132,7 @@ abstract class SettingsItem(
                     titleId = R.string.dyna_state,
                     descriptionId = R.string.dyna_state_description,
                     min = 0,
-                    max = 2,
+                    max = 3,
                 )
             )
             put(
@@ -186,6 +182,13 @@ abstract class SettingsItem(
                     descriptionId = R.string.picture_in_picture_description
                 )
             )
+            put(
+                SwitchSetting(
+                    BooleanSetting.DEBUG_FLUSH_BY_LINE,
+                    titleId = R.string.flush_by_line,
+                    descriptionId = R.string.flush_by_line_description
+                )
+            )
 
             val dockedModeSetting = object : AbstractBooleanSetting {
                 override val key = BooleanSetting.USE_DOCKED_MODE.key
@@ -216,19 +219,28 @@ abstract class SettingsItem(
                 )
             )
 
-            put(
-                SwitchSetting(
-                    BooleanSetting.FRAME_SKIPPING,
-                    titleId = R.string.frame_skipping,
-                    descriptionId = R.string.frame_skipping_description
-                )
-            )
+//            put(
+//                SwitchSetting(
+//                    BooleanSetting.FRAME_SKIPPING,
+//                    titleId = R.string.frame_skipping,
+//                    descriptionId = R.string.frame_skipping_description
+//                )
+//            )
 
             put(
                 SwitchSetting(
                     dockedModeSetting,
                     titleId = R.string.use_docked_mode,
                     descriptionId = R.string.use_docked_mode_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.MEMORY_LAYOUT,
+                    titleId = R.string.memory_layout,
+                    descriptionId = R.string.memory_layout_description,
+                    choicesId = R.array.memoryNames,
+                    valuesId = R.array.memoryValues
                 )
             )
             put(
@@ -364,13 +376,6 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
-                    BooleanSetting.SHOW_SPEED,
-                    R.string.show_speed,
-                    descriptionId = R.string.show_speed_description
-                )
-            )
-            put(
-                SwitchSetting(
                     BooleanSetting.SHOW_APP_RAM_USAGE,
                     R.string.show_app_ram_usage,
                     descriptionId = R.string.show_app_ram_usage_description
@@ -388,6 +393,13 @@ abstract class SettingsItem(
                     BooleanSetting.SHOW_BAT_TEMPERATURE,
                     R.string.show_bat_temperature,
                     descriptionId = R.string.show_bat_temperature_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SHADERS_BUILDING,
+                    R.string.show_shaders_building,
+                    descriptionId = R.string.show_shaders_building_description
                 )
             )
             put(

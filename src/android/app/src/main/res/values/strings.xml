@@ -11,9 +11,10 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Enhanced)</string>
-    <string name="skipping_fps_suffix">(Skipping)</string>
+    <string name="shaders_prefix">Building</string>
+    <string name="shaders_suffix">Shader(s)</string>
     <string name="system_info_label">System:</string>
-    <string name="show_stats_overlay">ShoW Performance Stats Overlay</string>
+    <string name="show_stats_overlay">Show Performance Stats Overlay</string>
     <string name="stats_overlay_customization">Customization</string>
     <string name="stats_overlay_items">Visibility</string>
     <string name="stats_overlay_options">Overlay</string>
@@ -31,6 +32,8 @@
     <string name="show_system_ram_usage_description">Display the amount of RAM used by the system</string>
     <string name="show_bat_temperature">Show Battery Temperature</string>
     <string name="show_bat_temperature_description">Display current Battery temperature in Celsius and Fahrenheit</string>
+    <string name="show_shaders_building">Show Shaders Building</string>
+    <string name="show_shaders_building_description">Display current number of shaders being built</string>
     <string name="overlay_position">Overlay Position</string>
     <string name="overlay_position_description">Choose where the performance stats overlay is displayed on the screen</string>
     <string name="overlay_position_top_left">Top Left</string>
@@ -44,23 +47,35 @@
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Eden’s Veil</string>
-    <string name="eden_veil_description">Beyond default</string>
-    <string name="frame_interpolation">Enhanced Frame Pacing</string>
-    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
+    <string name="eden_veil_description">Experimental settings to improve performance and capability. These settings may cause black screens or other game issues.</string>
+    <string name="eden_veil_warning_title">Experimental Settings</string>
+    <string name="eden_veil_warning_description">The settings contained within Eden\'s Veil are highly experimental and may cause issues. If your game does not boot, disable any extensions and change Extended Dynamic State to 0.</string>
+
+    <string name="veil_extensions">GPU Extensions</string>
     <string name="dyna_state">Extended Dynamic State</string>
     <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats.</string>
-    <string name="use_sync_core">Synchronize Core Speed</string>
-    <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
+    <string name="provoking_vertex">Provoking Vertex</string>
+    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
+    <string name="descriptor_indexing">Descriptor Indexing</string>
+    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
+
+    <string name="veil_renderer">Renderer</string>
+    <string name="frame_interpolation">Enhanced Frame Pacing</string>
+    <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="use_auto_stub">Use Auto Stub</string>
     <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
     <string name="uninstall_firmware">Uninstall firmware</string>
     <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
     <string name="firmware_uninstalling">Uninstalling firmware</string>
     <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
-    <string name="provoking_vertex">Provoking Vertex</string>
-    <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
-    <string name="descriptor_indexing">Descriptor Indexing</string>
-    <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
+
+    <string name="veil_misc">Miscellaneous</string>
+    <string name="use_sync_core">Synchronize Core Speed</string>
+    <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
+    <string name="use_lru_cache">Enable LRU Cache</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issue with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
+    <string name="memory_layout">Memory Layout</string>
+    <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less.</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
@@ -404,11 +419,17 @@
     <string name="cpu">CPU</string>
     <string name="cpu_debug_mode">CPU Debugging</string>
     <string name="cpu_debug_mode_description">Puts the CPU in a slow debugging mode.</string>
+
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Graphics debugging</string>
     <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
     <string name="fastmem">Fastmem</string>
+
+    <string name="log">Logging</string>
+    <string name="flush_by_line">Flush debug logs by line</string>
+    <string name="flush_by_line_description">Flushes debugging logs on each line written, making debugging easier in cases of crashing or freezing.</string>
+
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Output engine</string>
@@ -678,6 +699,11 @@
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Taiwan</string>
 
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4GB (Recommended)</string>
+    <string name="memory_6gb">6GB (Unsafe)</string>
+    <string name="memory_8gb">8GB (Unsafe)</string>
+
     <!-- Language Names -->
     <string name="language_japanese" translatable="false">日本語</string>
     <string name="language_english" translatable="false">English</string>
@@ -748,10 +774,6 @@
     <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
     <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
-
-    <!-- LRU Cache -->
-    <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issue with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Immediate (Off)</string>
