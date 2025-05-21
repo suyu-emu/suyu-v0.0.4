@@ -1141,6 +1141,9 @@ void MicroProfileShutdown()
     MicroProfileWebServerStop();
     MicroProfileStopContextSwitchTrace();
     MicroProfileGpuShutdown();
+    for (uint32_t i = 0; i < S.nNumLogs; ++i) {
+        delete S.Pool[i];
+    }
 }
 
 #ifdef MICROPROFILE_IOS
