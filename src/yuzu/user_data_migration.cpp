@@ -120,13 +120,7 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
                 continue;
 
             QAbstractButton *button = migration_prompt.addButton(iter.key());
-            // TMP: disable citron
-            if (iter.key() == main_window->tr("Citron")) {
-                button->setEnabled(false);
-                button->setToolTip(
-                    main_window->tr("Citron migration is known to cause issues. It's recommended "
-                                    "to manually set up your data again."));
-            }
+
             buttonMap[iter.key()] = button;
             promptText.append(main_window->tr("\n- %1").arg(iter.key()));
         }

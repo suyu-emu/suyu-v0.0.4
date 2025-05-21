@@ -611,7 +611,7 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
         shortcut_menu->addAction(tr("Add to Applications Menu"));
 #endif
     context_menu.addSeparator();
-    QAction* properties = context_menu.addAction(tr("Properties"));
+    QAction* properties = context_menu.addAction(tr("Configure Game"));
 
     favorite->setVisible(program_id != 0);
     favorite->setCheckable(true);
