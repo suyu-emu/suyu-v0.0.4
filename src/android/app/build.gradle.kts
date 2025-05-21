@@ -147,11 +147,6 @@ android {
             isDefault = true
             dimension = "version"
         }
-
-        create("ea") {
-            dimension = "version"
-            applicationIdSuffix = ".ea"
-        }
     }
 
     externalNativeBuild {
