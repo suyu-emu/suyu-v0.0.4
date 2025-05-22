@@ -1,12 +1,15 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
 #include <mutex>
-#include <thread>
 
 #include <boost/asio.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION > 108300 && !defined(_WINDOWS) && !defined(ANDROID)
+#include <boost/process/v1/async_pipe.hpp>
+#else
 #include <boost/process/async_pipe.hpp>
+#endif
 
 #include "common/logging/log.h"
 #include "common/polyfill_thread.h"
@@ -326,7 +329,11 @@ private:
 
     struct ConnectionState {
         boost::asio::ip::tcp::socket client_socket;
+#if BOOST_VERSION > 108300 && !defined(_WINDOWS) && !defined(ANDROID)
+        boost::process::v1::async_pipe signal_pipe;
+#else
         boost::process::async_pipe signal_pipe;
+#endif
 
         SignalInfo info;
         Kernel::KScopedAutoObject<Kernel::KThread> active_thread;
