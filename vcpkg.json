@@ -1,65 +1,73 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "name": "suyu",
-    "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
-    "version": "1.0",
-    "dependencies": [
-        "boost-algorithm",
-        "boost-asio",
-        "boost-bind",
-        "boost-config",
-        "boost-container",
-        "boost-context",
-        "boost-crc",
-        "boost-functional",
-        "boost-heap",
-        "boost-icl",
-        "boost-intrusive",
-        "boost-mpl",
-        "boost-process",
-        "boost-range",
-        "boost-spirit",
-        "boost-test",
-        "boost-timer",
-        "boost-variant",
-        "fmt",
-        "lz4",
-        "nlohmann-json",
-        "zlib",
-        "zstd"
-    ],
-    "features": {
-        "suyu-tests": {
-            "description": "Compile tests",
-            "dependencies": [ "catch2" ]
-        },
-        "web-service": {
-            "description": "Enable web services (telemetry, etc.)",
-            "dependencies": [
-                {
-                    "name": "openssl",
-                    "platform": "windows"
-                }
-            ]
-        },
-        "android": {
-            "description": "Enable Android dependencies",
-            "dependencies": [
-                {
-                    "name": "oboe",
-                    "platform": "android"
-                }
-            ]
-        }
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "suyu",
+  "builtin-baseline": "f4f5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3", // Latest vcpkg commit as of May 2025
+  "version": "1.0",
+  "dependencies": [
+    "boost-algorithm",
+    "boost-asio",
+    "boost-bind",
+    "boost-config",
+    "boost-container",
+    "boost-context",
+    "boost-crc",
+    "boost-functional",
+    "boost-heap",
+    "boost-icl",
+    "boost-intrusive",
+    "boost-mpl",
+    "boost-process",
+    "boost-range",
+    "boost-spirit",
+    "boost-test",
+    "boost-timer",
+    "boost-variant",
+    "fmt",
+    "lz4",
+    "nlohmann-json",
+    "zlib",
+    "zstd"
+  ],
+  "features": {
+    "suyu-tests": {
+      "description": "Compile tests",
+      "dependencies": [ "catch2" ]
     },
-    "overrides": [
+    "web-service": {
+      "description": "Enable web services (telemetry, etc.)",
+      "dependencies": [
         {
-            "name": "catch2",
-            "version": "3.4.0"
-        },
-        {
-            "name": "fmt",
-            "version": "10.1.1"
+          "name": "openssl",
+          "platform": "windows"
         }
-    ]
+      ]
+    },
+    "android": {
+      "description": "Enable Android dependencies",
+      "dependencies": [
+        {
+          "name": "oboe",
+          "platform": "android"
+        }
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "name": "catch2",
+      "version": "3.4.0"
+    },
+    {
+      "name": "fmt",
+      "version": "10.1.1"
+    },
+    {
+      "name": "boost-context",
+      "version": "1.85.0"
+    },
+    {
+      "name": "boost-coroutine",
+      "version": "1.85.0"
+    }
+  ]
 }
