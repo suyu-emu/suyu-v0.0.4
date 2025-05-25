@@ -16,10 +16,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" android:required="false" />
-    <uses-permission android:name="com.miui.powerkeeper.permission.SEND_OPTIMIZE" android:required="false" />
-    <uses-permission android:name="com.asus.gamecenter.permission.GAMETUNER" android:required="false" />
-    <uses-permission android:name="com.oneplus.gamespace.permission.OPGAME" android:required="false" />
 
     <application
         android:name="org.yuzu.yuzu_emu.YuzuApplication"
@@ -35,28 +31,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
         android:dataExtractionRules="@xml/data_extraction_rules_api_31"
         android:enableOnBackInvokedCallback="true">
 
-        <meta-data android:name="com.samsung.android.gamehub" android:value="true" />
-        <meta-data android:name="com.samsung.android.gamehub.pkgname" android:value="org.yuzu.yuzu_emu" />
-        <meta-data android:name="com.samsung.android.game.gos" android:value="true" />
-        <meta-data android:name="com.miui.powerkeeper.gamebooster" android:value="true" />
-        <meta-data android:name="com.xiaomi.gamecenter.sdk.service.enabled" android:value="true" />
-        <meta-data android:name="com.asus.gamecenter.gamebooster" android:value="true" />
-        <meta-data android:name="com.oneplus.gamespace.gamebooster" android:value="true" />
-        <meta-data android:name="android.game_mode_config" android:resource="@xml/game_mode_config" />
+        <meta-data
+            android:name="com.samsung.android.gamehub"
+            android:value="true" />
 
+        <meta-data
+            android:name="android.game_mode_config"
+            android:resource="@xml/game_mode_config" />
+            
         <activity
             android:name="org.yuzu.yuzu_emu.ui.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Yuzu.Splash.Main">
+
+            <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.GAME" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.miui.gamecenter.GAME_BOOSTER_LAUNCH" />
-                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
@@ -72,17 +66,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.nfc.action.TECH_DISCOVERED" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/octet-stream" />
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/octet-stream" android:scheme="content"/>
+                <data
+                    android:mimeType="application/octet-stream"
+                    android:scheme="content"/>
             </intent-filter>
-            <meta-data android:name="android.nfc.action.TECH_DISCOVERED" android:resource="@xml/nfc_tech_filter" />
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/nfc_tech_filter" />
         </activity>
 
         <provider
@@ -97,4 +98,5 @@ SPDX-License-Identifier: GPL-3.0-or-later
         </provider>
 
     </application>
+
 </manifest>
