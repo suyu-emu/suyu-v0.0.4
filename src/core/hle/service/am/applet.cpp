@@ -30,13 +30,12 @@ void Applet::UpdateSuspensionStateLocked(bool force_message) {
     const bool curr_activity_runnable = lifecycle_manager.IsRunnable();
     const bool prev_activity_runnable = is_activity_runnable;
     const bool was_changed = curr_activity_runnable != prev_activity_runnable;
-
+	
     if (was_changed) {
         if (curr_activity_runnable) {
             process->Suspend(false);
         } else {
             process->Suspend(true);
-            lifecycle_manager.RequestResumeNotification();
         }
 
         is_activity_runnable = curr_activity_runnable;
@@ -49,6 +48,7 @@ void Applet::UpdateSuspensionStateLocked(bool force_message) {
 
     // Signal if the focus state was changed or the process state was changed.
     if (lifecycle_manager.UpdateRequestedFocusState() || was_changed || force_message) {
+		lifecycle_manager.RequestResumeNotification();
         lifecycle_manager.SignalSystemEventIfNeeded();
     }
 }
