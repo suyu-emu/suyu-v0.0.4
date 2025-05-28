@@ -141,6 +141,7 @@ struct Values {
                                       true,
                                       true};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
+    Setting<bool> check_for_updates{linkage, true, "check_for_updates", Category::UiGeneral};
 
     // Discord RPC
     Setting<bool> enable_discord_presence{linkage, false, "enable_discord_presence", Category::Ui};

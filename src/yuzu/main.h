@@ -13,7 +13,6 @@
 #include <QTimer>
 #include <QTranslator>
 
-#include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
 #include "configuration/qt_config.h"
 #include "frontend_common/content_manager.h"
@@ -21,12 +20,17 @@
 #include "user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
-#include "yuzu/util/controller_navigation.h"
 
 #ifdef __unix__
+#include <QDBusObjectPath>
 #include <QVariant>
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QtDBus>
+#endif
+
+#ifdef ENABLE_QT_UPDATE_CHECKER
+#include <QFuture>
+#include <QFutureWatcher>
 #endif
 
 class QtConfig;
@@ -414,6 +418,10 @@ private slots:
     void OnEmulationStopped();
     void OnEmulationStopTimeExpired();
 
+#ifdef ENABLE_QT_UPDATE_CHECKER
+    void OnEmulatorUpdateAvailable();
+#endif
+
 private:
     QString GetGameListErrorRemoving(InstalledEntryType type) const;
     void RemoveBaseContent(u64 program_id, InstalledEntryType type);
@@ -482,6 +490,11 @@ private:
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
     std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
+
+#ifdef ENABLE_QT_UPDATE_CHECKER
+    QFuture<QString> update_future;
+    QFutureWatcher<QString> update_watcher;
+#endif
 
     MultiplayerState* multiplayer_state = nullptr;
 

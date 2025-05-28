@@ -34,10 +34,9 @@ else
     export EXTRA_CMAKE_FLAGS=(-DYUZU_USE_PRECOMPILED_HEADERS=OFF)
 fi
 
-# TODO(crueter): update checker
-# if [ "$GITHUB_REF_TYPE" == "tag" ]; then
-# 	export EXTRA_CMAKE_FLAGS=($EXTRA_CMAKE_FLAGS -DENABLE_QT_UPDATE_CHECKER=ON)
-# fi
+if [ "$RELEASE" == "1" ]; then
+    export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DENABLE_QT_UPDATE_CHECKER=ON)
+fi
 
 mkdir -p build && cd build
 cmake .. -G Ninja \

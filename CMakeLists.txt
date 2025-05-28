@@ -34,9 +34,11 @@ cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID"
 
 option(ENABLE_OPENGL "Enable OpenGL" ON)
 mark_as_advanced(FORCE ENABLE_OPENGL)
-option(ENABLE_QT "Enable the Qt frontend" ON)
 
+option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
+option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
+
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
@@ -353,6 +355,9 @@ endif()
 
 if (ENABLE_WEB_SERVICE)
     find_package(cpp-jwt 1.4 CONFIG)
+endif()
+
+if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
 endif()
 

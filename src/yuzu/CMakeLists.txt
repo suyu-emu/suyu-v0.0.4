@@ -266,6 +266,12 @@ file(GLOB COMPAT_LIST
 file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
+if (ENABLE_QT_UPDATE_CHECKER)
+    target_link_libraries(yuzu PRIVATE httplib::httplib)
+    target_sources(yuzu PRIVATE update_checker.cpp)
+    target_compile_definitions(yuzu PUBLIC ENABLE_QT_UPDATE_CHECKER)
+endif()
+
 if (ENABLE_QT_TRANSLATION)
     set(YUZU_QT_LANGUAGES "${PROJECT_SOURCE_DIR}/dist/languages" CACHE PATH "Path to the translation bundle for the Qt frontend")
     option(GENERATE_QT_TRANSLATION "Generate en.ts as the translation source file" OFF)

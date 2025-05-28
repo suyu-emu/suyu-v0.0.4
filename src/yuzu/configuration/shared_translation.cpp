@@ -296,6 +296,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(UISettings, controller_applet_disabled, tr("Disable controller applet"),
            tr("Forcibly disables the use of the controller applet by guests.\nWhen a guest "
               "attempts to open the controller applet, it is immediately closed."));
+    INSERT(UISettings,
+           check_for_updates,
+           tr("Check for updates"),
+           tr("Whether or not to check for updates upon startup."));
 
     // Linux
     INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QString());

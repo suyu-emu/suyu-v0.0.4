@@ -52,6 +52,10 @@
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/util/controller_navigation.h"
 
+#ifdef ENABLE_QT_UPDATE_CHECKER
+#include "yuzu/update_checker.h"
+#endif
+
 #ifdef YUZU_ROOM
 #include "dedicated_room/yuzu_room.h"
 #endif
@@ -313,6 +317,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
     Common::FS::CreateEdenPaths();
     this->config = std::make_unique<QtConfig>();
+
 #ifdef __unix__
     SetupSigInterrupts();
     SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
@@ -409,6 +414,27 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     UpdateWindowTitle();
 
     show();
+
+#ifdef ENABLE_QT_UPDATE_CHECKER
+    if (UISettings::values.check_for_updates) {
+        update_future = QtConcurrent::run([]() -> QString {
+            const bool is_prerelease =
+                    ((strstr(Common::g_build_fullname, "pre-alpha") != NULL) ||
+                     (strstr(Common::g_build_fullname, "alpha") != NULL) ||
+                     (strstr(Common::g_build_fullname, "beta") != NULL) ||
+                     (strstr(Common::g_build_fullname, "rc") != NULL));
+            const std::optional<std::string> latest_release_tag =
+                UpdateChecker::GetLatestRelease(is_prerelease);
+            if (latest_release_tag && latest_release_tag.value() != Common::g_build_fullname) {
+                return QString::fromStdString(latest_release_tag.value());
+            }
+            return QString{};
+        });
+        QObject::connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
+                         &GMainWindow::OnEmulatorUpdateAvailable);
+        update_watcher.setFuture(update_future);
+    }
+#endif
 
     system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system->RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
@@ -4766,6 +4792,28 @@ void GMainWindow::MigrateConfigFiles() {
         }
     }
 }
+
+#ifdef ENABLE_QT_UPDATE_CHECKER
+void GMainWindow::OnEmulatorUpdateAvailable() {
+    QString version_string = update_future.result();
+    if (version_string.isEmpty())
+        return;
+
+    QMessageBox update_prompt(this);
+    update_prompt.setWindowTitle(tr("Update Available"));
+    update_prompt.setIcon(QMessageBox::Information);
+    update_prompt.addButton(QMessageBox::Yes);
+    update_prompt.addButton(QMessageBox::Ignore);
+    update_prompt.setText(tr("Update %1 for Eden is available.\nWould you like to download it?")
+                              .arg(version_string));
+    update_prompt.exec();
+    if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
+        QDesktopServices::openUrl(
+            QUrl(QString::fromStdString("https://github.com/eden-emulator/Releases/releases/tag/") +
+                 version_string));
+    }
+}
+#endif
 
 void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
                                     std::string_view gpu_vendor) {
