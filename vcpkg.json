@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "suyu",
-  "builtin-baseline": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3",
+  "builtin-baseline": "ce613c41372b23b1f51333815feb3edd87ef8a8b",
   "version": "1.0",
   "dependencies": [
     "boost-algorithm",
