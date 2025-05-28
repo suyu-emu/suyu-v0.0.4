@@ -60,14 +60,6 @@
     {
       "name": "fmt",
       "version": "10.1.1"
-    },
-    {
-      "name": "boost-context",
-      "version": "1.84.0"
-    },
-    {
-      "name": "boost-coroutine",
-      "version": "1.84.0"
     }
   ]
 }
