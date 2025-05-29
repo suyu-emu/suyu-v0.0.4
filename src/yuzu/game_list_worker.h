@@ -14,6 +14,8 @@
 #include <QString>
 
 #include "common/thread.h"
+#include "core/file_sys/registered_cache.h"
+#include "uisettings.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 
@@ -22,6 +24,7 @@ class System;
 }
 
 class GameList;
+class GameListDir;
 class QStandardItem;
 
 namespace FileSys {
@@ -42,7 +45,8 @@ public:
                             QVector<UISettings::GameDir>& game_dirs_,
                             const CompatibilityList& compatibility_list_,
                             const PlayTime::PlayTimeManager& play_time_manager_,
-                            Core::System& system_);
+                            Core::System& system_,
+                            const bool cached = true);
     ~GameListWorker() override;
 
     /// Starts the processing of directory tree information.
@@ -91,4 +95,6 @@ private:
     Common::Event processing_completed;
 
     Core::System& system;
+
+    const bool cached;
 };

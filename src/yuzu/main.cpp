@@ -449,7 +449,8 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     OnCheckFirmwareDecryption();
 
     game_list->LoadCompatibilityList();
-    game_list->PopulateAsync(UISettings::values.game_dirs);
+    // force reload on first load to ensure add-ons get updated
+    game_list->PopulateAsync(UISettings::values.game_dirs, false);
 
     // make sure menubar has the arrow cursor instead of inheriting from this
     ui->menubar->setCursor(QCursor());
@@ -508,6 +509,10 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     QStringList args = QApplication::arguments();
 
     if (args.size() < 2) {
+        // Some moron added a race condition to the status bar
+        // so now we have to make this completely unnecessary call
+        // to prevent the UI from blowing up.
+        UpdateUITheme();
         return;
     }
 
@@ -1296,6 +1301,15 @@ void GMainWindow::InitializeWidgets() {
         renderer_status_button->repaint();
     });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
+
+    // Setup Refresh Button
+    refresh_button = new QPushButton();
+    refresh_button->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
+    refresh_button->setObjectName(QStringLiteral("RefreshButton"));
+    refresh_button->setFocusPolicy(Qt::NoFocus);
+    connect(refresh_button, &QPushButton::clicked, this, &GMainWindow::OnGameListRefresh);
+
+    statusBar()->insertPermanentWidget(0, refresh_button);
 
     statusBar()->setVisible(true);
     setStyleSheet(QStringLiteral("QStatusBar::item{border: none;}"));
@@ -2108,6 +2122,7 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     }
     status_bar_update_timer.start(500);
     renderer_status_button->setDisabled(true);
+    refresh_button->setDisabled(true);
 
     if (UISettings::values.hide_mouse || Settings::values.mouse_panning) {
         render_window->installEventFilter(render_window);
@@ -2280,6 +2295,7 @@ void GMainWindow::OnEmulationStopped() {
     game_fps_label->setVisible(false);
     emu_frametime_label->setVisible(false);
     renderer_status_button->setEnabled(!UISettings::values.has_broken_vulkan);
+    refresh_button->setEnabled(true);
 
     if (!firmware_label->text().isEmpty()) {
         firmware_label->setVisible(true);
@@ -4386,6 +4402,12 @@ void GMainWindow::OnToggleFilterBar() {
 
 void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
+}
+
+void GMainWindow::OnGameListRefresh()
+{
+    // force reload add-ons etc
+    game_list->ForceRefreshGameDirectory();
 }
 
 void GMainWindow::OnAlbum() {

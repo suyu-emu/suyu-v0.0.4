@@ -191,12 +191,17 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
     return out;
 }
 
-QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::string& name,
-                                        const std::size_t size, const std::vector<u8>& icon,
-                                        Loader::AppLoader& loader, u64 program_id,
+QList<QStandardItem*> MakeGameListEntry(const std::string& path,
+                                        const std::string& name,
+                                        const std::size_t size,
+                                        const std::vector<u8>& icon,
+                                        Loader::AppLoader& loader,
+                                        u64 program_id,
                                         const CompatibilityList& compatibility_list,
                                         const PlayTime::PlayTimeManager& play_time_manager,
-                                        const FileSys::PatchManager& patch) {
+                                        const FileSys::PatchManager& patch,
+                                        const bool cached)
+{
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
     // The game list uses this as compatibility number for untested games
@@ -217,10 +222,17 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
         new GameListItemPlayTime(play_time_manager.GetPlayTime(program_id)),
     };
 
-    const auto patch_versions = GetGameListCachedObject(
-        fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
-            return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
-        });
+    QString patch_versions;
+
+    if (cached) {
+        patch_versions = GetGameListCachedObject(
+            fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
+                return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
+            });
+    } else {
+        patch_versions = FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
+    }
+
     list.insert(2, new GameListItem(patch_versions));
 
     return list;
@@ -232,10 +244,16 @@ GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs_,
                                QVector<UISettings::GameDir>& game_dirs_,
                                const CompatibilityList& compatibility_list_,
                                const PlayTime::PlayTimeManager& play_time_manager_,
-                               Core::System& system_)
-    : vfs{std::move(vfs_)}, provider{provider_}, game_dirs{game_dirs_},
-      compatibility_list{compatibility_list_}, play_time_manager{play_time_manager_}, system{
-                                                                                          system_} {
+                               Core::System& system_,
+                               const bool cached_)
+    : vfs{std::move(vfs_)}
+    , provider{provider_}
+    , game_dirs{game_dirs_}
+    , compatibility_list{compatibility_list_}
+    , play_time_manager{play_time_manager_}
+    , system{system_}
+    , cached{cached_}
+{
     // We want the game list to manage our lifetime.
     setAutoDelete(false);
 }
@@ -323,13 +341,22 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
 
         const PatchManager patch{program_id, system.GetFileSystemController(),
                                  system.GetContentProvider()};
+        LOG_INFO(Frontend, "PatchManager initiated for id {:X}", program_id);
         const auto control = cache.GetEntry(game.title_id, ContentRecordType::Control);
         if (control != nullptr) {
             GetMetadataFromControlNCA(patch, *control, icon, name);
         }
 
-        auto entry = MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
-                                       program_id, compatibility_list, play_time_manager, patch);
+        auto entry = MakeGameListEntry(file->GetFullPath(),
+                                       name,
+                                       file->GetSize(),
+                                       icon,
+                                       *loader,
+                                       program_id,
+                                       compatibility_list,
+                                       play_time_manager,
+                                       patch,
+                                       cached);
         RecordEvent([=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
     }
 }
@@ -404,9 +431,16 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         const FileSys::PatchManager patch{id, system.GetFileSystemController(),
                                                           system.GetContentProvider()};
 
-                        auto entry = MakeGameListEntry(
-                            physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
-                            id, compatibility_list, play_time_manager, patch);
+                        auto entry = MakeGameListEntry(physical_name,
+                                                       name,
+                                                       Common::FS::GetSize(physical_name),
+                                                       icon,
+                                                       *loader,
+                                                       id,
+                                                       compatibility_list,
+                                                       play_time_manager,
+                                                       patch,
+                                                       cached);
 
                         RecordEvent(
                             [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
@@ -421,9 +455,16 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                     const FileSys::PatchManager patch{program_id, system.GetFileSystemController(),
                                                       system.GetContentProvider()};
 
-                    auto entry = MakeGameListEntry(
-                        physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
-                        program_id, compatibility_list, play_time_manager, patch);
+                    auto entry = MakeGameListEntry(physical_name,
+                                                   name,
+                                                   Common::FS::GetSize(physical_name),
+                                                   icon,
+                                                   *loader,
+                                                   program_id,
+                                                   compatibility_list,
+                                                   play_time_manager,
+                                                   patch,
+                                                   cached);
 
                     RecordEvent(
                         [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });

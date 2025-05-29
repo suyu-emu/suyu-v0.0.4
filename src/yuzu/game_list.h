@@ -94,7 +94,7 @@ public:
     bool IsEmpty() const;
 
     void LoadCompatibilityList();
-    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
+    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs, const bool cached = true);
 
     void SaveInterfaceLayout();
     void LoadInterfaceLayout();
@@ -105,6 +105,10 @@ public:
     void UnloadController();
 
     static const QStringList supported_file_extensions;
+
+public slots:
+    void ForceRefreshGameDirectory();
+    void RefreshGameDirectory();
 
 signals:
     void BootGame(const QString& game_path, StartGameType type);
@@ -146,8 +150,6 @@ private:
 
 private:
     void ValidateEntry(const QModelIndex& item);
-
-    void RefreshGameDirectory();
 
     void ToggleFavorite(u64 program_id);
     void AddFavorite(u64 program_id);

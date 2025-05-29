@@ -854,7 +854,8 @@ QStandardItemModel* GameList::GetModel() const {
     return item_model;
 }
 
-void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
+void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs, const bool cached)
+{
     tree_view->setEnabled(false);
 
     // Update the columns in case UISettings has changed
@@ -871,8 +872,13 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     item_model->removeRows(0, item_model->rowCount());
     search_field->clear();
 
-    current_worker = std::make_unique<GameListWorker>(vfs, provider, game_dirs, compatibility_list,
-                                                      play_time_manager, system);
+    current_worker = std::make_unique<GameListWorker>(vfs,
+                                                      provider,
+                                                      game_dirs,
+                                                      compatibility_list,
+                                                      play_time_manager,
+                                                      system,
+                                                      cached);
 
     // Get events from the worker as data becomes available
     connect(current_worker.get(), &GameListWorker::DataAvailable, this, &GameList::WorkerEvent,
@@ -901,7 +907,16 @@ const QStringList GameList::supported_file_extensions = {
     QStringLiteral("nso"), QStringLiteral("nro"), QStringLiteral("nca"),
     QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
 
-void GameList::RefreshGameDirectory() {
+void GameList::ForceRefreshGameDirectory()
+{
+    if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
+        LOG_INFO(Frontend, "Force-reloading game list per user request.");
+        PopulateAsync(UISettings::values.game_dirs, false);
+    }
+}
+
+void GameList::RefreshGameDirectory()
+{
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
         PopulateAsync(UISettings::values.game_dirs);
