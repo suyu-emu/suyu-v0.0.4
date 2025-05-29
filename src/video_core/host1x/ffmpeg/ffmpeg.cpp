@@ -37,7 +37,6 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_VAAPI,
     AV_HWDEVICE_TYPE_VDPAU,
 #endif
-    // last resort for Linux Flatpak (w/ NVIDIA)
     AV_HWDEVICE_TYPE_VULKAN,
 };
 
@@ -108,8 +107,7 @@ bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceTyp
                       av_hwdevice_get_type_name(type));
             break;
         }
-        if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) != 0 &&
-            config->device_type == type) {
+        if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
             LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
             *out_pix_fmt = config->pix_fmt;
             return true;
