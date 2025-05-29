@@ -192,13 +192,18 @@ u64 CoreTiming::GetClockTicks() const {
          fres = Common::WallClock::CPUTickToCNTPCT(cpu_ticks);
      }
 
+     if (Settings::values.use_fast_cpu_time) {
+         fres = (u64) ((double) fres
+                       * (1.7 + 0.3 * (u32) Settings::values.fast_cpu_time.GetValue()));
+     }
+
      if (Settings::values.sync_core_speed.GetValue()) {
          const double ticks = static_cast<double>(fres);
          const double speed_limit = static_cast<double>(Settings::values.speed_limit.GetValue())*0.01;
          return static_cast<u64>(ticks/speed_limit);
      } else {
          return fres;
-    }
+     }
 }
 
 u64 CoreTiming::GetGPUTicks() const {

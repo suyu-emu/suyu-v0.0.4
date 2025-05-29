@@ -3,10 +3,6 @@
 
 #include "yuzu/configuration/shared_translation.h"
 
-#include <map>
-#include <memory>
-#include <tuple>
-#include <utility>
 #include <QCoreApplication>
 #include <QWidget>
 #include "common/settings.h"
@@ -14,14 +10,19 @@
 #include "common/settings_setting.h"
 #include "common/time_zone.h"
 #include "yuzu/uisettings.h"
+#include <map>
+#include <memory>
+#include <tuple>
+#include <utility>
 
 namespace ConfigurationShared {
 
-std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
+std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
+{
     std::unique_ptr<TranslationMap> translations = std::make_unique<TranslationMap>();
     const auto& tr = [parent](const char* text) -> QString { return parent->tr(text); };
 
-#define INSERT(SETTINGS, ID, NAME, TOOLTIP)                                                        \
+#define INSERT(SETTINGS, ID, NAME, TOOLTIP) \
     translations->insert(std::pair{SETTINGS::values.ID.Id(), std::pair{(NAME), (TOOLTIP)}})
 
     // A setting can be ignored by giving it a blank name
@@ -54,110 +55,166 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Core
     INSERT(
-        Settings, use_multi_core, tr("Multicore CPU Emulation"),
+        Settings,
+        use_multi_core,
+        tr("Multicore CPU Emulation"),
         tr("This option increases CPU emulation thread use from 1 to the Switch’s maximum of 4.\n"
            "This is mainly a debug option and shouldn’t be disabled."));
     INSERT(
-        Settings, memory_layout_mode, tr("Memory Layout"),
+        Settings,
+        memory_layout_mode,
+        tr("Memory Layout"),
         tr("Increases the amount of emulated RAM from the stock 4GB of the retail Switch to the "
            "developer kit's 8/6GB.\nIt’s doesn’t improve stability or performance and is intended "
            "to let big texture mods fit in emulated RAM.\nEnabling it will increase memory "
            "use. It is not recommended to enable unless a specific game with a texture mod needs "
            "it."));
     INSERT(Settings, use_speed_limit, QString(), QString());
-    INSERT(Settings, speed_limit, tr("Limit Speed Percent"),
+    INSERT(Settings,
+           speed_limit,
+           tr("Limit Speed Percent"),
            tr("Controls the game's maximum rendering speed, but it’s up to each game if it runs "
               "faster or not.\n200% for a 30 FPS game is 60 FPS, and for a "
               "60 FPS game it will be 120 FPS.\nDisabling it means unlocking the framerate to the "
               "maximum your PC can reach."));
-    INSERT(Settings, sync_core_speed, tr("Synchronize Core Speed"),
-            tr("Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS without affecting game speed (animations, physics, etc.).\n"
-                 "Compatibility varies by game; many (especially older ones) may not respond well.\n"
-               "Can help reduce stuttering at lower framerates."));
+    INSERT(Settings,
+           sync_core_speed,
+           tr("Synchronize Core Speed"),
+           tr("Synchronizes CPU core speed with the game's maximum rendering speed to boost FPS "
+              "without affecting game speed (animations, physics, etc.).\n"
+              "Compatibility varies by game; many (especially older ones) may not respond well.\n"
+              "Can help reduce stuttering at lower framerates."));
 
     // Cpu
-    INSERT(Settings, cpu_accuracy, tr("Accuracy:"),
+    INSERT(Settings,
+           cpu_accuracy,
+           tr("Accuracy:"),
            tr("This setting controls the accuracy of the emulated CPU.\nDon't change this unless "
               "you know what you are doing."));
+    INSERT(Settings, cpu_backend, tr("Backend:"), QString());
+
+    INSERT(Settings, use_fast_cpu_time, QString(), QString());
+    INSERT(Settings,
+           fast_cpu_time,
+           tr("Fast CPU Time"),
+           tr("Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, "
+              "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the Switch's highest native "
+              "clock, or Fast (2000MHz) to run at 2x clock."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
     // Cpu Debug
 
     // Cpu Unsafe
     INSERT(
-        Settings, cpuopt_unsafe_unfuse_fma,
+        Settings,
+        cpuopt_unsafe_unfuse_fma,
         tr("Unfuse FMA (improve performance on CPUs without FMA)"),
         tr("This option improves speed by reducing accuracy of fused-multiply-add instructions on "
            "CPUs without native FMA support."));
     INSERT(
-        Settings, cpuopt_unsafe_reduce_fp_error, tr("Faster FRSQRTE and FRECPE"),
+        Settings,
+        cpuopt_unsafe_reduce_fp_error,
+        tr("Faster FRSQRTE and FRECPE"),
         tr("This option improves the speed of some approximate floating-point functions by using "
            "less accurate native approximations."));
-    INSERT(Settings, cpuopt_unsafe_ignore_standard_fpcr,
+    INSERT(Settings,
+           cpuopt_unsafe_ignore_standard_fpcr,
            tr("Faster ASIMD instructions (32 bits only)"),
            tr("This option improves the speed of 32 bits ASIMD floating-point functions by running "
               "with incorrect rounding modes."));
-    INSERT(Settings, cpuopt_unsafe_inaccurate_nan, tr("Inaccurate NaN handling"),
+    INSERT(Settings,
+           cpuopt_unsafe_inaccurate_nan,
+           tr("Inaccurate NaN handling"),
            tr("This option improves speed by removing NaN checking.\nPlease note this also reduces "
               "accuracy of certain floating-point instructions."));
-    INSERT(Settings, cpuopt_unsafe_fastmem_check, tr("Disable address space checks"),
+    INSERT(Settings,
+           cpuopt_unsafe_fastmem_check,
+           tr("Disable address space checks"),
            tr("This option improves speed by eliminating a safety check before every memory "
               "read/write in guest.\nDisabling it may allow a game to read/write the emulator's "
               "memory."));
     INSERT(
-        Settings, cpuopt_unsafe_ignore_global_monitor, tr("Ignore global monitor"),
+        Settings,
+        cpuopt_unsafe_ignore_global_monitor,
+        tr("Ignore global monitor"),
         tr("This option improves speed by relying only on the semantics of cmpxchg to ensure "
            "safety of exclusive access instructions.\nPlease note this may result in deadlocks and "
            "other race conditions."));
 
     // Renderer
     INSERT(
-        Settings, renderer_backend, tr("API:"),
+        Settings,
+        renderer_backend,
+        tr("API:"),
         tr("Switches between the available graphics APIs.\nVulkan is recommended in most cases."));
-    INSERT(Settings, vulkan_device, tr("Device:"),
+    INSERT(Settings,
+           vulkan_device,
+           tr("Device:"),
            tr("This setting selects the GPU to use with the Vulkan backend."));
-    INSERT(Settings, shader_backend, tr("Shader Backend:"),
+    INSERT(Settings,
+           shader_backend,
+           tr("Shader Backend:"),
            tr("The shader backend to use for the OpenGL renderer.\nGLSL is the fastest in "
               "performance and the best in rendering accuracy.\n"
               "GLASM is a deprecated NVIDIA-only backend that offers much better shader building "
               "performance at the cost of FPS and rendering accuracy.\n"
               "SPIR-V compiles the fastest, but yields poor results on most GPU drivers."));
-    INSERT(Settings, resolution_setup, tr("Resolution:"),
+    INSERT(Settings,
+           resolution_setup,
+           tr("Resolution:"),
            tr("Forces the game to render at a different resolution.\nHigher resolutions require "
               "much more VRAM and bandwidth.\n"
               "Options lower than 1X can cause rendering issues."));
     INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QString());
-    INSERT(Settings, fsr_sharpening_slider, tr("FSR Sharpness:"),
+    INSERT(Settings,
+           fsr_sharpening_slider,
+           tr("FSR Sharpness:"),
            tr("Determines how sharpened the image will look while using FSR’s dynamic contrast."));
-    INSERT(Settings, anti_aliasing, tr("Anti-Aliasing Method:"),
+    INSERT(Settings,
+           anti_aliasing,
+           tr("Anti-Aliasing Method:"),
            tr("The anti-aliasing method to use.\nSMAA offers the best quality.\nFXAA has a "
               "lower performance impact and can produce a better and more stable picture under "
               "very low resolutions."));
-    INSERT(Settings, fullscreen_mode, tr("Fullscreen Mode:"),
+    INSERT(Settings,
+           fullscreen_mode,
+           tr("Fullscreen Mode:"),
            tr("The method used to render the window in fullscreen.\nBorderless offers the best "
               "compatibility with the on-screen keyboard that some games request for "
               "input.\nExclusive "
               "fullscreen may offer better performance and better Freesync/Gsync support."));
-    INSERT(Settings, aspect_ratio, tr("Aspect Ratio:"),
+    INSERT(Settings,
+           aspect_ratio,
+           tr("Aspect Ratio:"),
            tr("Stretches the game to fit the specified aspect ratio.\nSwitch games only support "
               "16:9, so custom game mods are required to get other ratios.\nAlso controls the "
               "aspect ratio of captured screenshots."));
-    INSERT(Settings, use_disk_shader_cache, tr("Use disk pipeline cache"),
+    INSERT(Settings,
+           use_disk_shader_cache,
+           tr("Use disk pipeline cache"),
            tr("Allows saving shaders to storage for faster loading on following game "
               "boots.\nDisabling "
               "it is only intended for debugging."));
-    INSERT(Settings, optimize_spirv_output, tr("Optimize SPIRV output shader"),
-            tr("Runs an additional optimization pass over generated SPIRV shaders.\n"
-                 "Will increase time required for shader compilation.\nMay slightly improve "
-                 "performance.\nThis feature is experimental."));
+    INSERT(Settings,
+           optimize_spirv_output,
+           tr("Optimize SPIRV output shader"),
+           tr("Runs an additional optimization pass over generated SPIRV shaders.\n"
+              "Will increase time required for shader compilation.\nMay slightly improve "
+              "performance.\nThis feature is experimental."));
     INSERT(
-        Settings, use_asynchronous_gpu_emulation, tr("Use asynchronous GPU emulation"),
+        Settings,
+        use_asynchronous_gpu_emulation,
+        tr("Use asynchronous GPU emulation"),
         tr("Uses an extra CPU thread for rendering.\nThis option should always remain enabled."));
-    INSERT(Settings, nvdec_emulation, tr("NVDEC emulation:"),
+    INSERT(Settings,
+           nvdec_emulation,
+           tr("NVDEC emulation:"),
            tr("Specifies how videos should be decoded.\nIt can either use the CPU or the GPU for "
               "decoding, or perform no decoding at all (black screen on videos).\n"
               "In most cases, GPU decoding provides the best performance."));
-    INSERT(Settings, accelerate_astc, tr("ASTC Decoding Method:"),
+    INSERT(Settings,
+           accelerate_astc,
+           tr("ASTC Decoding Method:"),
            tr("This option controls how ASTC textures should be decoded.\n"
               "CPU: Use the CPU for decoding, slowest but safest method.\n"
               "GPU: Use the GPU's compute shaders to decode ASTC textures, recommended for most "
@@ -166,18 +223,24 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
               "eliminates ASTC decoding\nstuttering at the cost of rendering issues while the "
               "texture is being decoded."));
     INSERT(
-        Settings, astc_recompression, tr("ASTC Recompression Method:"),
+        Settings,
+        astc_recompression,
+        tr("ASTC Recompression Method:"),
         tr("Almost all desktop and laptop dedicated GPUs lack support for ASTC textures, forcing "
            "the emulator to decompress to an intermediate format any card supports, RGBA8.\n"
            "This option recompresses RGBA8 to either the BC1 or BC3 format, saving VRAM but "
            "negatively affecting image quality."));
-    INSERT(Settings, vram_usage_mode, tr("VRAM Usage Mode:"),
+    INSERT(Settings,
+           vram_usage_mode,
+           tr("VRAM Usage Mode:"),
            tr("Selects whether the emulator should prefer to conserve memory or make maximum usage "
               "of available video memory for performance. Has no effect on integrated graphics. "
               "Aggressive mode may severely impact the performance of other applications such as "
               "recording software."));
     INSERT(
-        Settings, vsync_mode, tr("VSync Mode:"),
+        Settings,
+        vsync_mode,
+        tr("VSync Mode:"),
         tr("FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "
            "refresh rate.\nFIFO Relaxed is similar to FIFO but allows tearing as it recovers from "
            "a slow down.\nMailbox can have lower latency than FIFO and does not tear but may drop "
@@ -188,81 +251,121 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, bg_blue, QString(), QString());
 
     // Renderer (Advanced Graphics)
-    INSERT(Settings, async_presentation, tr("Enable asynchronous presentation (Vulkan only)"),
+    INSERT(Settings,
+           async_presentation,
+           tr("Enable asynchronous presentation (Vulkan only)"),
            tr("Slightly improves performance by moving presentation to a separate CPU thread."));
     INSERT(
-        Settings, renderer_force_max_clock, tr("Force maximum clocks (Vulkan only)"),
+        Settings,
+        renderer_force_max_clock,
+        tr("Force maximum clocks (Vulkan only)"),
         tr("Runs work in the background while waiting for graphics commands to keep the GPU from "
            "lowering its clock speed."));
-    INSERT(Settings, max_anisotropy, tr("Anisotropic Filtering:"),
+    INSERT(Settings,
+           max_anisotropy,
+           tr("Anisotropic Filtering:"),
            tr("Controls the quality of texture rendering at oblique angles.\nIt’s a light setting "
               "and safe to set at 16x on most GPUs."));
-    INSERT(Settings, gpu_accuracy, tr("Accuracy Level:"),
+    INSERT(Settings,
+           gpu_accuracy,
+           tr("Accuracy Level:"),
            tr("GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
               "required for some.\nParticles tend to only render correctly with High "
               "accuracy.\nExtreme should only be used for debugging.\nThis option can "
               "be changed while playing.\nSome games may require booting on high to render "
               "properly."));
-    INSERT(Settings, use_asynchronous_shaders, tr("Use asynchronous shader building (Hack)"),
+    INSERT(Settings,
+           use_asynchronous_shaders,
+           tr("Use asynchronous shader building (Hack)"),
            tr("Enables asynchronous shader compilation, which may reduce shader stutter.\nThis "
               "feature "
               "is experimental."));
-    INSERT(Settings, use_fast_gpu_time, tr("Use Fast GPU Time (Hack)"),
-           tr("Enables Fast GPU Time. This option will force most games to run at their highest "
-              "native resolution."));
-    INSERT(Settings, use_vulkan_driver_pipeline_cache, tr("Use Vulkan pipeline cache"),
+    INSERT(Settings, use_fast_gpu_time, QString(), QString());
+    INSERT(Settings,
+           fast_gpu_time,
+           tr("Fast GPU Time (Hack)"),
+           tr("Overclocks the emulated GPU to increase dynamic resolution and render "
+              "distance.\nUse 128 for maximal performance and 512 for maximal graphics fidelity."));
+
+    INSERT(Settings,
+           use_vulkan_driver_pipeline_cache,
+           tr("Use Vulkan pipeline cache"),
            tr("Enables GPU vendor-specific pipeline cache.\nThis option can improve shader loading "
               "time significantly in cases where the Vulkan driver does not store pipeline cache "
               "files internally."));
     INSERT(
-        Settings, enable_compute_pipelines, tr("Enable Compute Pipelines (Intel Vulkan Only)"),
+        Settings,
+        enable_compute_pipelines,
+        tr("Enable Compute Pipelines (Intel Vulkan Only)"),
         tr("Enable compute pipelines, required by some games.\nThis setting only exists for Intel "
            "proprietary drivers, and may crash if enabled.\nCompute pipelines are always enabled "
            "on all other drivers."));
     INSERT(
-        Settings, use_reactive_flushing, tr("Enable Reactive Flushing"),
+        Settings,
+        use_reactive_flushing,
+        tr("Enable Reactive Flushing"),
         tr("Uses reactive flushing instead of predictive flushing, allowing more accurate memory "
            "syncing."));
-    INSERT(Settings, use_video_framerate, tr("Sync to framerate of video playback"),
+    INSERT(Settings,
+           use_video_framerate,
+           tr("Sync to framerate of video playback"),
            tr("Run the game at normal speed during video playback, even when the framerate is "
               "unlocked."));
-    INSERT(Settings, barrier_feedback_loops, tr("Barrier feedback loops"),
+    INSERT(Settings,
+           barrier_feedback_loops,
+           tr("Barrier feedback loops"),
            tr("Improves rendering of transparency effects in specific games."));
 
     // Renderer (Extensions)
-    INSERT(Settings, dyna_state, tr("Extended Dynamic State"),
-           tr("Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will generally improve "
+    INSERT(Settings,
+           dyna_state,
+           tr("Extended Dynamic State"),
+           tr("Enables the VkExtendedDynamicState* extensions.\nHigher dynamic states will "
+              "generally improve "
               "performance, but may cause issues on certain games or devices."));
 
-    INSERT(Settings, provoking_vertex, tr("Provoking Vertex"),
+    INSERT(Settings,
+           provoking_vertex,
+           tr("Provoking Vertex"),
            tr("Improves lighting and vertex handling in certain games.\n"
               "Only Vulkan 1.0+ devices support this extension."));
 
-    INSERT(Settings, descriptor_indexing, tr("Descriptor Indexing"),
+    INSERT(Settings,
+           descriptor_indexing,
+           tr("Descriptor Indexing"),
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
 
     // Renderer (Debug)
 
     // System
-    INSERT(Settings, rng_seed, tr("RNG Seed"),
+    INSERT(Settings,
+           rng_seed,
+           tr("RNG Seed"),
            tr("Controls the seed of the random number generator.\nMainly used for speedrunning "
               "purposes."));
     INSERT(Settings, rng_seed_enabled, QString(), QString());
     INSERT(Settings, device_name, tr("Device Name"), tr("The name of the emulated Switch."));
-    INSERT(Settings, custom_rtc, tr("Custom RTC Date:"),
+    INSERT(Settings,
+           custom_rtc,
+           tr("Custom RTC Date:"),
            tr("This option allows to change the emulated clock of the Switch.\n"
               "Can be used to manipulate time in games."));
     INSERT(Settings, custom_rtc_enabled, QString(), QString());
-    INSERT(Settings, custom_rtc_offset, QStringLiteral(" "),
+    INSERT(Settings,
+           custom_rtc_offset,
+           QStringLiteral(" "),
            QStringLiteral("The number of seconds from the current unix time"));
-    INSERT(Settings, language_index, tr("Language:"),
+    INSERT(Settings,
+           language_index,
+           tr("Language:"),
            tr("Note: this can be overridden when region setting is auto-select"));
     INSERT(Settings, region_index, tr("Region:"), tr("The region of the emulated Switch."));
-    INSERT(Settings, time_zone_index, tr("Time Zone:"),
-           tr("The time zone of the emulated Switch."));
+    INSERT(Settings, time_zone_index, tr("Time Zone:"), tr("The time zone of the emulated Switch."));
     INSERT(Settings, sound_index, tr("Sound Output Mode:"), QString());
-    INSERT(Settings, use_docked_mode, tr("Console Mode:"),
+    INSERT(Settings,
+           use_docked_mode,
+           tr("Console Mode:"),
            tr("Selects if the console is emulated in Docked or Handheld mode.\nGames will change "
               "their resolution, details and supported controllers and depending on this setting.\n"
               "Setting to Handheld can help improve performance for low end systems."));
@@ -283,17 +386,27 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     // Ui
 
     // Ui General
-    INSERT(UISettings, select_user_on_boot, tr("Prompt for user on game boot"),
+    INSERT(UISettings,
+           select_user_on_boot,
+           tr("Prompt for user on game boot"),
            tr("Ask to select a user profile on each boot, useful if multiple people use eden on "
               "the same PC."));
-    INSERT(UISettings, pause_when_in_background, tr("Pause emulation when in background"),
+    INSERT(UISettings,
+           pause_when_in_background,
+           tr("Pause emulation when in background"),
            tr("This setting pauses eden when focusing other windows."));
-    INSERT(UISettings, confirm_before_stopping, tr("Confirm before stopping emulation"),
+    INSERT(UISettings,
+           confirm_before_stopping,
+           tr("Confirm before stopping emulation"),
            tr("This setting overrides game prompts asking to confirm stopping the game.\nEnabling "
               "it bypasses such prompts and directly exits the emulation."));
-    INSERT(UISettings, hide_mouse, tr("Hide mouse on inactivity"),
+    INSERT(UISettings,
+           hide_mouse,
+           tr("Hide mouse on inactivity"),
            tr("This setting hides the mouse after 2.5s of inactivity."));
-    INSERT(UISettings, controller_applet_disabled, tr("Disable controller applet"),
+    INSERT(UISettings,
+           controller_applet_disabled,
+           tr("Disable controller applet"),
            tr("Forcibly disables the use of the controller applet by guests.\nWhen a guest "
               "attempts to open the controller applet, it is immediately closed."));
     INSERT(UISettings,
@@ -315,9 +428,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     return translations;
 }
 
-std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
-    std::unique_ptr<ComboboxTranslationMap> translations =
-        std::make_unique<ComboboxTranslationMap>();
+std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
+{
+    std::unique_ptr<ComboboxTranslationMap> translations = std::make_unique<ComboboxTranslationMap>();
     const auto& tr = [&](const char* text, const char* context = "") {
         return parent->tr(text, context);
     };
@@ -331,11 +444,11 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(AppletMode, LLE, tr("Real applet")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::SpirvOptimizeMode>::Index(),
-                           {
-                               PAIR(SpirvOptimizeMode, Never, tr("Never")),
-                               PAIR(SpirvOptimizeMode, OnLoad, tr("On Load")),
-                               PAIR(SpirvOptimizeMode, Always, tr("Always")),
-                           }});
+                          {
+                              PAIR(SpirvOptimizeMode, Never, tr("Never")),
+                              PAIR(SpirvOptimizeMode, OnLoad, tr("On Load")),
+                              PAIR(SpirvOptimizeMode, Always, tr("Always")),
+                          }});
     translations->insert({Settings::EnumMetadata<Settings::AstcDecodeMode>::Index(),
                           {
                               PAIR(AstcDecodeMode, Cpu, tr("CPU")),
@@ -552,6 +665,11 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(ConsoleMode, Docked, tr("Docked")),
                               PAIR(ConsoleMode, Handheld, tr("Handheld")),
                           }});
+    translations->insert({Settings::EnumMetadata<Settings::CpuClock>::Index(),
+                          {
+                              PAIR(CpuClock, Boost, tr("Boost (1700MHz")),
+                              PAIR(CpuClock, Fast, tr("Fast (2000MHz)")),
+                          }});
     translations->insert(
         {Settings::EnumMetadata<Settings::ConfirmStop>::Index(),
          {
@@ -559,6 +677,12 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
              PAIR(ConfirmStop, Ask_Based_On_Game, tr("Only if game specifies not to stop")),
              PAIR(ConfirmStop, Ask_Never, tr("Never ask")),
          }});
+    translations->insert({Settings::EnumMetadata<Settings::GpuOverclock>::Index(),
+                          {
+                              PAIR(GpuOverclock, Low, tr("Low (128)")),
+                              PAIR(GpuOverclock, Medium, tr("Medium (256)")),
+                              PAIR(GpuOverclock, High, tr("High (512)")),
+                          }});
 
 #undef PAIR
 #undef CTX_PAIR

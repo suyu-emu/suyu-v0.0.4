@@ -403,6 +403,7 @@ class SettingsFragmentPresenter(
             add(HeaderSetting(R.string.veil_renderer))
             add(BooleanSetting.FRAME_INTERPOLATION.key)
             add(BooleanSetting.RENDERER_FAST_GPU.key)
+            add(IntSetting.FAST_GPU_TIME.key)
             add(IntSetting.RENDERER_SHADER_BACKEND.key)
             add(IntSetting.RENDERER_NVDEC_EMULATION.key)
             add(IntSetting.RENDERER_ASTC_DECODE_METHOD.key)
@@ -411,6 +412,8 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT.key)
 
             add(HeaderSetting(R.string.veil_misc))
+            add(BooleanSetting.USE_FAST_CPU_TIME.key)
+            add(IntSetting.FAST_CPU_TIME.key)
             add(BooleanSetting.USE_LRU_CACHE.key)
             add(BooleanSetting.CORE_SYNC_CORE_SPEED.key)
             add(IntSetting.MEMORY_LAYOUT.key)

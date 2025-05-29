@@ -497,6 +497,31 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.FAST_GPU_TIME,
+                    titleId = R.string.fast_gpu_time,
+                    descriptionId = R.string.fast_gpu_time_description,
+                    choicesId = R.array.gpuEntries,
+                    valuesId = R.array.gpuValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.USE_FAST_CPU_TIME,
+                    titleId = R.string.use_fast_cpu_time,
+                    descriptionId = R.string.use_fast_cpu_time_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.FAST_CPU_TIME,
+                    titleId = R.string.fast_cpu_time,
+                    descriptionId = R.string.fast_cpu_time_description,
+                    choicesId = R.array.clockNames,
+                    valuesId = R.array.clockValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
                     titleId = R.string.renderer_reactive_flushing,

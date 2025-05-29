@@ -27,7 +27,7 @@
        <property name="title">
         <string>General</string>
        </property>
-       <layout class="QVBoxLayout">
+       <layout class="QVBoxLayout" name="general_layout">
         <item>
          <widget class="QWidget" name="widget_accuracy" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -61,6 +61,9 @@
      </item>
      <item>
       <widget class="QGroupBox" name="backend_group">
+       <property name="visible">
+        <bool>false</bool>
+       </property>
        <property name="title">
         <string>CPU Backend</string>
        </property>
@@ -84,9 +87,6 @@
          </widget>
         </item>
        </layout>
-       <property name="visible">
-        <bool>false</bool>
-       </property>
       </widget>
      </item>
      <item>
@@ -129,10 +129,10 @@
      <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
+        <enum>QSizePolicy::Policy::Expanding</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>

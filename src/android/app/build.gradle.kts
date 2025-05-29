@@ -170,7 +170,7 @@ android {
                     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
                 )
 
-                abiFilters("arm64-v8a", "x86_64")
+                abiFilters("arm64-v8a")
             }
         }
     }

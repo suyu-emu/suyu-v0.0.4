@@ -33,6 +33,18 @@
         <item>2</item>
     </integer-array>
 
+    <string-array name="clockNames">
+        <item>@string/clock_base</item>
+        <item>@string/clock_boost</item>
+        <item>@string/clock_fast</item>
+    </string-array>
+
+    <integer-array name="clockValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="languageNames">
         <item>@string/language_brazilian_portuguese</item>
         <item>@string/language_british_english</item>
@@ -440,5 +452,17 @@
     <integer-array name="appletValues">
         <item>0</item>
         <item>1</item>
+    </integer-array>
+
+    <string-array name="gpuEntries">
+        <item>@string/gpu_low</item>
+        <item>@string/gpu_medium</item>
+        <item>@string/gpu_high</item>
+    </string-array>
+
+    <integer-array name="gpuValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </integer-array>
 </resources>

@@ -238,6 +238,23 @@ struct Values {
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
                                                       "cpu_accuracy",    Category::Cpu};
+
+    SwitchableSetting<bool> use_fast_cpu_time{linkage,
+                                              false,
+                                              "use_fast_cpu_time",
+                                              Category::Cpu,
+                                              Specialization::Paired,
+                                              true,
+                                              true};
+    SwitchableSetting<CpuClock> fast_cpu_time{linkage,
+                                              CpuClock::Boost,
+                                              "fast_cpu_time",
+                                              Category::Cpu,
+                                              Specialization::Default,
+                                              true,
+                                              true,
+                                              &use_fast_cpu_time};
+
     SwitchableSetting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::CpuDebug};
 
     Setting<bool> cpuopt_page_tables{linkage, true, "cpuopt_page_tables", Category::CpuDebug};
@@ -428,9 +445,23 @@ struct Values {
                                                   Category::RendererAdvanced};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
-    SwitchableSetting<bool> use_fast_gpu_time{
-                                              linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, Specialization::Default,
-                                              true,    true};
+    SwitchableSetting<bool> use_fast_gpu_time{linkage,
+                                              true,
+                                              "use_fast_gpu_time",
+                                              Category::RendererAdvanced,
+                                              Specialization::Paired,
+                                              true,
+                                              true};
+
+    SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
+                                                  GpuOverclock::Medium,
+                                                  "fast_gpu_time",
+                                                  Category::RendererAdvanced,
+                                                  Specialization::Default,
+                                                  true,
+                                                  true,
+                                                  &use_fast_gpu_time};
+
     SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{linkage,
                                                              true,
                                                              "use_vulkan_driver_pipeline_cache",

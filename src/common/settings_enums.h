@@ -134,6 +134,8 @@ ENUM(CpuBackend, Dynarmic, Nce);
 
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 
+ENUM(CpuClock, Boost, Fast)
+
 ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb, Memory_10Gb, Memory_12Gb);
 
 ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
@@ -156,6 +158,8 @@ ENUM(ConsoleMode, Handheld, Docked);
 ENUM(AppletMode, HLE, LLE);
 
 ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
+
+ENUM(GpuOverclock, Low, Medium, High)
 
 template <typename Type>
 inline std::string CanonicalizeEnum(Type id) {

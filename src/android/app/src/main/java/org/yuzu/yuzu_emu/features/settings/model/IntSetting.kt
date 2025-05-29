@@ -35,6 +35,9 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     PERF_OVERLAY_POSITION("perf_overlay_position"),
     MEMORY_LAYOUT("memory_layout_mode"),
     FSR_SHARPENING_SLIDER("fsr_sharpening_slider"),
+    FAST_CPU_TIME("fast_cpu_time"),
+    FAST_GPU_TIME("fast_gpu_time"),
+
     CABINET_APPLET("cabinet_applet_mode"),
     CONTROLLER_APPLET("controller_applet_mode"),
     DATA_ERASE_APPLET("data_erase_applet_mode"),

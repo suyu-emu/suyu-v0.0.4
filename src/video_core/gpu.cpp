@@ -200,7 +200,10 @@ struct GPU::Impl {
         u64 gpu_tick = system.CoreTiming().GetGPUTicks();
 
         if (Settings::values.use_fast_gpu_time.GetValue()) {
-            gpu_tick /= 256;
+            gpu_tick /= (u64) (128
+                               * std::pow(2,
+                                          static_cast<u32>(
+                                              Settings::values.fast_gpu_time.GetValue())));
         }
 
         return gpu_tick;
