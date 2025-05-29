@@ -97,6 +97,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 
 #ifdef HAVE_SDL2
 #include <QCheckBox>
+#include <QStringLiteral>
 #include <SDL.h> // For SDL ScreenSaver functions
 #endif
 
@@ -424,7 +425,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
                      (strstr(Common::g_build_fullname, "beta") != NULL) ||
                      (strstr(Common::g_build_fullname, "rc") != NULL));
             const std::optional<std::string> latest_release_tag =
-                UpdateChecker::GetLatestRelease(is_prerelease);
+                    UpdateChecker::GetLatestRelease(is_prerelease);
             if (latest_release_tag && latest_release_tag.value() != Common::g_build_fullname) {
                 return QString::fromStdString(latest_release_tag.value());
             }
@@ -3096,99 +3097,10 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
 
 void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                            GameListShortcutTarget target) {
-    // Get path to yuzu executable
-    const QStringList args = QApplication::arguments();
-    std::filesystem::path yuzu_command = args[0].toStdString();
-    // If relative path, make it an absolute path
-    if (yuzu_command.c_str()[0] == '.') {
-        yuzu_command = Common::FS::GetCurrentDir() / yuzu_command;
-    }
-    // Shortcut path
-    std::filesystem::path shortcut_path{};
-    if (target == GameListShortcutTarget::Desktop) {
-        shortcut_path =
-                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
-    } else if (target == GameListShortcutTarget::Applications) {
-        shortcut_path =
-                QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
-    }
-
-    if (!std::filesystem::exists(shortcut_path)) {
-        GMainWindow::CreateShortcutMessagesGUI(
-                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-                    QString::fromStdString(shortcut_path.generic_string()));
-        LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
-        return;
-    }
-
-    // Get title from game file
-    const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
-                system->GetContentProvider()};
-    const auto control = pm.GetControlMetadata();
-    const auto loader =
-            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
-    std::string game_title = fmt::format("{:016X}", program_id);
-    if (control.first != nullptr) {
-        game_title = control.first->GetApplicationName();
-    } else {
-        loader->ReadTitle(game_title);
-    }
-    // Delete illegal characters from title
-    const std::string illegal_chars = "<>:\"/\\|?*.";
-    for (auto it = game_title.rbegin(); it != game_title.rend(); ++it) {
-        if (illegal_chars.find(*it) != std::string::npos) {
-            game_title.erase(it.base() - 1);
-        }
-    }
-    const QString qt_game_title = QString::fromStdString(game_title);
-    // Get icon from game file
-    std::vector<u8> icon_image_file{};
-    if (control.second != nullptr) {
-        icon_image_file = control.second->ReadAllBytes();
-    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
-        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
-    }
-    QImage icon_data =
-            QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
-    std::filesystem::path out_icon_path;
-    if (GMainWindow::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
-        if (!SaveIconToFile(out_icon_path, icon_data)) {
-            LOG_ERROR(Frontend, "Could not write icon to file");
-        }
-    }
-
-#if defined(__linux__)
-    // Special case for AppImages
-    // Warn once if we are making a shortcut to a volatile AppImage
-    const std::string appimage_ending =
-            std::string(Common::g_scm_rev).substr(0, 9).append(".AppImage");
-    if (yuzu_command.string().ends_with(appimage_ending) &&
-            !UISettings::values.shortcut_already_warned) {
-        if (GMainWindow::CreateShortcutMessagesGUI(
-                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qt_game_title)) {
-            return;
-        }
-        UISettings::values.shortcut_already_warned = true;
-    }
-#endif // __linux__
     // Create shortcut
     std::string arguments = fmt::format("-g \"{:s}\"", game_path);
-    if (GMainWindow::CreateShortcutMessagesGUI(
-                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
-        arguments = "-f " + arguments;
-    }
-    const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
-    const std::string categories = "Game;Emulator;Qt;";
-    const std::string keywords = "Switch;Nintendo;";
 
-    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, yuzu_command,
-                                        arguments, categories, keywords, game_title)) {
-        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
-                                               qt_game_title);
-        return;
-    }
-    GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-                                           qt_game_title);
+    CreateShortcut(game_path, program_id, "", target, arguments, true);
 }
 
 void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
@@ -4628,16 +4540,28 @@ void GMainWindow::OnCreateHomeMenuApplicationMenuShortcut()
     OnCreateHomeMenuShortcut(GameListShortcutTarget::Applications);
 }
 
-void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
+std::filesystem::path GMainWindow::GetEdenCommand()
 {
-    // Get path to yuzu executable
-    const QStringList args = QApplication::arguments();
-    std::filesystem::path yuzu_command = args[0].toStdString();
-    // If relative path, make it an absolute path
-    if (yuzu_command.c_str()[0] == '.') {
-        yuzu_command = Common::FS::GetCurrentDir() / yuzu_command;
+    std::filesystem::path command;
+
+    QString appimage = QString::fromLocal8Bit(getenv("APPIMAGE"));
+    if (!appimage.isEmpty()) {
+        command = std::filesystem::path{appimage.toStdString()};
+    } else {
+        const QStringList args = QApplication::arguments();
+        command = args[0].toStdString();
     }
-    // Shortcut path
+
+    // If relative path, make it an absolute path
+    if (command.c_str()[0] == '.') {
+        command = Common::FS::GetCurrentDir() / command;
+    }
+
+    return command;
+}
+
+std::filesystem::path GMainWindow::GetShortcutPath(GameListShortcutTarget target)
+{
     std::filesystem::path shortcut_path{};
     if (target == GameListShortcutTarget::Desktop) {
         shortcut_path =
@@ -4647,6 +4571,16 @@ void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
                 QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
     }
 
+    return shortcut_path;
+}
+
+void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program_id, const std::string& game_title_, GameListShortcutTarget target, std::string arguments_, const bool needs_title) {
+    // Get path to yuzu executable
+    std::filesystem::path command = GetEdenCommand();
+
+    // Shortcut path
+    std::filesystem::path shortcut_path = GetShortcutPath(target);
+
     if (!std::filesystem::exists(shortcut_path)) {
         GMainWindow::CreateShortcutMessagesGUI(
                     this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
@@ -4655,11 +4589,89 @@ void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
         return;
     }
 
+    const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
+                system->GetContentProvider()};
+    const auto control = pm.GetControlMetadata();
+    const auto loader =
+            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+
+    std::string game_title{game_title_};
+
+    // Delete illegal characters from title
+    if (needs_title) {
+        game_title = fmt::format("{:016X}", program_id);
+        if (control.first != nullptr) {
+            game_title = control.first->GetApplicationName();
+        } else {
+            loader->ReadTitle(game_title);
+        }
+    }
+
+    const std::string illegal_chars = "<>:\"/\\|?*.";
+    for (auto it = game_title.rbegin(); it != game_title.rend(); ++it) {
+        if (illegal_chars.find(*it) != std::string::npos) {
+            game_title.erase(it.base() - 1);
+        }
+    }
+
+    const QString qgame_title = QString::fromStdString(game_title);
+
+    // Get icon from game file
+    std::vector<u8> icon_image_file{};
+    if (control.second != nullptr) {
+        icon_image_file = control.second->ReadAllBytes();
+    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
+        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
+    }
+
+    QImage icon_data =
+            QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
+    std::filesystem::path out_icon_path;
+    if (GMainWindow::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
+        if (!SaveIconToFile(out_icon_path, icon_data)) {
+            LOG_ERROR(Frontend, "Could not write icon to file");
+        }
+    }
+
+#if defined(__linux__)
+    // Special case for AppImages
+    // Warn once if we are making a shortcut to a volatile AppImage
+    if (command.string().ends_with(".AppImage") && !UISettings::values.shortcut_already_warned) {
+        if (!GMainWindow::CreateShortcutMessagesGUI(
+                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qgame_title)) {
+            return;
+        }
+        UISettings::values.shortcut_already_warned = true;
+    }
+#endif // __linux__
+
+    // Create shortcut
+    std::string arguments{arguments_};
+    if (GMainWindow::CreateShortcutMessagesGUI(
+                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qgame_title)) {
+        arguments = "-f " + arguments;
+    }
+    const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
+    const std::string categories = "Game;Emulator;Qt;";
+    const std::string keywords = "Switch;Nintendo;";
+
+    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
+                                        arguments, categories, keywords, game_title)) {
+        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
+                                               qgame_title);
+        return;
+    }
+    GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
+                                           qgame_title);
+}
+
+void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
+{
     constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the home menu."));
+                             tr("Please install firmware to use the home menu."));
         return;
     }
 
@@ -4670,67 +4682,10 @@ void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
         return;
     }
 
-    const std::string game_title = "QLaunch";
-    const QString qt_game_title = tr("QLaunch");
-
     auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
-    const auto game_path = QString::fromStdString((qlaunch_applet_nca->GetFullPath()));
+    const auto game_path = qlaunch_applet_nca->GetFullPath();
 
-    const FileSys::PatchManager pm{static_cast<u64>(Service::AM::AppletProgramId::QLaunch), system->GetFileSystemController(),
-                system->GetContentProvider()};
-    const auto control = pm.GetControlMetadata();
-    const auto loader =
-            Loader::GetLoader(*system, vfs->OpenFile(game_path.toStdString(), FileSys::OpenMode::Read));
-
-    // Get icon from game file
-    std::vector<u8> icon_image_file{};
-    if (control.second != nullptr) {
-        icon_image_file = control.second->ReadAllBytes();
-    } else if (loader->ReadIcon(icon_image_file) != Loader::ResultStatus::Success) {
-        LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path.toStdString());
-    }
-    QImage icon_data =
-            QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
-    std::filesystem::path out_icon_path;
-    if (GMainWindow::MakeShortcutIcoPath(QLaunchId, game_title, out_icon_path)) {
-        if (!SaveIconToFile(out_icon_path, icon_data)) {
-            LOG_ERROR(Frontend, "Could not write icon to file");
-        }
-    }
-
-#if defined(__linux__)
-    // Special case for AppImages
-    // Warn once if we are making a shortcut to a volatile AppImage
-    const std::string appimage_ending =
-            std::string(Common::g_scm_rev).substr(0, 9).append(".AppImage");
-    if (yuzu_command.string().ends_with(appimage_ending) &&
-            !UISettings::values.shortcut_already_warned) {
-        if (GMainWindow::CreateShortcutMessagesGUI(
-                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qt_game_title)) {
-            return;
-        }
-        UISettings::values.shortcut_already_warned = true;
-    }
-#endif // __linux__
-
-    // Create shortcut
-    std::string arguments = "-qlaunch";
-    if (GMainWindow::CreateShortcutMessagesGUI(
-                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
-        arguments = "-f " + arguments;
-    }
-    const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
-    const std::string categories = "Game;Emulator;Qt;";
-    const std::string keywords = "Switch;Nintendo;";
-
-    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, yuzu_command,
-                                        arguments, categories, keywords, game_title)) {
-        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
-                                               qt_game_title);
-        return;
-    }
-    GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-                                           qt_game_title);
+    CreateShortcut(game_path, QLaunchId, "Switch Home Menu", target, "-qlaunch", false);
 }
 
 void GMainWindow::OnCaptureScreenshot() {
@@ -4805,12 +4760,12 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
     update_prompt.setText(tr("Update %1 for Eden is available.\nWould you like to download it?")
-                              .arg(version_string));
+                          .arg(version_string));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
         QDesktopServices::openUrl(
-            QUrl(QString::fromStdString("https://github.com/eden-emulator/Releases/releases/tag/") +
-                 version_string));
+                    QUrl(QString::fromStdString("https://github.com/eden-emulator/Releases/releases/tag/") +
+                         version_string));
     }
 }
 #endif
@@ -5572,7 +5527,7 @@ int main(int argc, char* argv[]) {
 
     // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
     // suffix.
-    QGuiApplication::setDesktopFileName(QStringLiteral("org.eden_emu.eden"));
+    QGuiApplication::setDesktopFileName(QStringLiteral("eden"));
 #endif
 
     SetHighDPIAttributes();
@@ -5586,7 +5541,6 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
     QApplication app(argc, argv);
-
 
 #ifdef _WIN32
     OverrideWindowsFont();

@@ -178,6 +178,8 @@ public:
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
 
+    std::filesystem::path GetShortcutPath(GameListShortcutTarget target);
+
 signals:
 
     /**
@@ -592,6 +594,15 @@ private:
     QSocketNotifier* sig_interrupt_notifier;
     static std::array<int, 3> sig_interrupt_fds;
 #endif
+
+    std::filesystem::path GetEdenCommand();
+
+    void CreateShortcut(const std::string& game_path,
+                        const u64 program_id,
+                        const std::string& game_title,
+                        GameListShortcutTarget target,
+                        std::string arguments,
+                        const bool needs_title);
 
 protected:
     void dropEvent(QDropEvent* event) override;
