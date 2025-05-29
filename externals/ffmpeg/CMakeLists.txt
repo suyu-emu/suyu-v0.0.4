@@ -32,6 +32,7 @@ if (NOT WIN32 AND NOT ANDROID)
     endif()
 
     unset(FFmpeg_LIBRARIES CACHE)
+
     foreach(COMPONENT ${FFmpeg_COMPONENTS})
         set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
         set(FFmpeg_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")

@@ -43,7 +43,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSV
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
-option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
+option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "ON")
 
 option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 
@@ -402,6 +402,13 @@ if (ENABLE_SDL2)
     endif()
 endif()
 
+# List of all FFmpeg components required
+set(FFmpeg_COMPONENTS
+    avcodec
+    avfilter
+    avutil
+    swscale)
+
 add_subdirectory(externals)
 
 if (ENABLE_QT)
@@ -464,13 +471,6 @@ function(set_yuzu_qt_components)
     endif()
     set(YUZU_QT_COMPONENTS ${YUZU_QT_COMPONENTS2} PARENT_SCOPE)
 endfunction(set_yuzu_qt_components)
-
-# List of all FFmpeg components required
-set(FFmpeg_COMPONENTS
-    avcodec
-    avfilter
-    avutil
-    swscale)
 
 if (UNIX AND NOT APPLE AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
