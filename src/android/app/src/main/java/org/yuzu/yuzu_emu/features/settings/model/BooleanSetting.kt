@@ -41,7 +41,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_BAT_TEMPERATURE("show_bat_temperature"),
     SHOW_SHADERS_BUILDING("show_shaders_building"),
     OVERLAY_BACKGROUND("overlay_background"),
-    DONT_SHOW_EDEN_VEIL_WARNING("dont_show_eden_veil_warning"),
     DEBUG_FLUSH_BY_LINE("flush_lines"),
     USE_LRU_CACHE("use_lru_cache"),;
 //    external fun isFrameSkippingEnabled(): Boolean

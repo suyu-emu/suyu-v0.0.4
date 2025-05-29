@@ -1092,7 +1092,10 @@ class SettingsFragmentPresenter(
     }
 
     fun showEdenVeilWarningDialog() {
-        val shouldDisplayVeilWarning = !BooleanSetting.DONT_SHOW_EDEN_VEIL_WARNING.getBoolean()
+        val shouldDisplayVeilWarning =
+            PreferenceManager.getDefaultSharedPreferences(activity!!.applicationContext)
+                .getBoolean(Settings.PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG, true)
+
         if (shouldDisplayVeilWarning) {
             activity?.let {
                 MessageDialogFragment.newInstance(
@@ -1103,7 +1106,10 @@ class SettingsFragmentPresenter(
                     negativeButtonTitleId = R.string.close,
                     showNegativeButton = true,
                     positiveAction = {
-                        BooleanSetting.DONT_SHOW_EDEN_VEIL_WARNING.setBoolean(true)
+                        PreferenceManager.getDefaultSharedPreferences(activity!!.applicationContext)
+                            .edit() {
+                                putBoolean(Settings.PREF_SHOULD_SHOW_EDENS_VEIL_DIALOG, false)
+                            }
                     }
                 ).show(it.supportFragmentManager, MessageDialogFragment.TAG)
             }
