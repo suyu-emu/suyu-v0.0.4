@@ -101,7 +101,7 @@ ISettingsServer::ISettingsServer(Core::System& system_) : ServiceFramework{syste
         {9, C<&ISettingsServer::GetKeyCodeMap2>, "GetKeyCodeMap2"},
         {10, nullptr, "GetFirmwareVersionForDebug"},
         {11, C<&ISettingsServer::GetDeviceNickName>, "GetDeviceNickName"},
-        {12, &ISettingsServer::GetKeyCodeMapByPort, "GetKeyCodeMapByPort"},
+        {12, C<&ISettingsServer::GetKeyCodeMapByPort>, "GetKeyCodeMapByPort"},
     };
     // clang-format on
 
@@ -240,37 +240,27 @@ Result ISettingsServer::GetDeviceNickName(
     R_SUCCEED();
 }
 
-void ISettingsServer::GetKeyCodeMapByPort(HLERequestContext& ctx) {
-    IPC::RequestParser rp(ctx);
-    const auto port_id = rp.Pop<u32>();
-    const auto buffer_size = rp.Pop<u64>();
+Result ISettingsServer::GetKeyCodeMapByPort(OutLargeData<KeyCodeMap, BufferAttr_HipcMapAlias> out_key_code_map, u32 port) {
+    LOG_DEBUG(Service_SET, "called, port={}", port);
 
-    static constexpr std::array<u8, 0x40> DEFAULT_MAPPING = {
-        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-        0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
-        0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-        0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20,
-        0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
-        0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30,
-        0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
-        0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40
-    };
+    // Similar to other key code map functions, just pass through to the main implementation
+    R_UNLESS(out_key_code_map != nullptr, ResultNullPointer);
 
-    if (buffer_size < DEFAULT_MAPPING.size()) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Result(static_cast<u32>(-0x3F81))); // Buffer too small
-        return;
+    const auto language_code =
+        available_language_codes[static_cast<s32>(Settings::values.language_index.GetValue())];
+    const auto key_code =
+        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
+                     [=](const auto& element) { return element.first == language_code; });
+
+    if (key_code == language_to_layout.cend()) {
+        LOG_ERROR(Service_SET,
+                  "Could not find keyboard layout for language index {}, defaulting to English us",
+                  Settings::values.language_index.GetValue());
+        *out_key_code_map = KeyCodeMapEnglishUsInternational;
+        R_SUCCEED();
     }
 
-    if (port_id > 7) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Result(static_cast<u32>(-0x3F82))); // Invalid port
-        return;
-    }
-
-    ctx.WriteBuffer(DEFAULT_MAPPING);
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    R_RETURN(GetKeyCodeMapImpl(*out_key_code_map, key_code->second, key_code->first));
 }
 
 } // namespace Service::Set

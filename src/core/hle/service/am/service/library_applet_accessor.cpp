@@ -61,12 +61,6 @@ Result ILibraryAppletAccessor::IsCompleted(Out<bool> out_is_completed) {
 Result ILibraryAppletAccessor::GetResult() {
     LOG_DEBUG(Service_AM, "called");
     std::scoped_lock lk{m_applet->lock};
-	if (auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
-        caller_applet->UpdateSuspensionStateLocked(true);
-    } else {
-		LOG_ERROR(Service_AM, "No caller applet available");
-        R_THROW(ResultUnknown);
-    }
     R_RETURN(m_applet->terminate_result);
 }
 
