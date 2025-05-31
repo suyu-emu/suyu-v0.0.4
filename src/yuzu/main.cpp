@@ -1407,6 +1407,8 @@ void GMainWindow::InitializeHotkeys() {
                        QStringLiteral("Multiplayer Direct Connect to Room"));
     LinkActionShortcut(ui->action_Show_Room, QStringLiteral("Multiplayer Show Current Room"));
     LinkActionShortcut(ui->action_Leave_Room, QStringLiteral("Multiplayer Leave Room"));
+    LinkActionShortcut(ui->action_Configure, QStringLiteral("Configure"));
+    LinkActionShortcut(ui->action_Configure_Current_Game, QStringLiteral("Configure Current Game"));
 
     static const QString main_window = QStringLiteral("Main Window");
     const auto connect_shortcut = [&]<typename Fn>(const QString& action_name, const Fn& function) {

@@ -176,6 +176,7 @@
     </integer-array>
 
     <string-array name="rendererResolutionNames">
+        <item>@string/resolution_quarter</item>
         <item>@string/resolution_half</item>
         <item>@string/resolution_three_quarter</item>
         <item>@string/resolution_one</item>
@@ -198,6 +199,7 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>6</item>
     </integer-array>
 
     <integer-array name="rendererVSyncValues">
