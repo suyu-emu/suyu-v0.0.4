@@ -1,0 +1,61 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  Windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: microsoft/setup-msbuild@v2
+    - name: Build
+      run: |
+        nuget restore vcproj\SimpleIni.sln
+        msbuild vcproj\SimpleIni.sln /p:Configuration=Release
+    - name: Run tests
+      run: |
+        cd tests
+        ..\vcproj\x64\Release\tests.exe
+
+
+  Ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install requirements
+      run: sudo apt install libgtest-dev cmake
+    - uses: actions/checkout@v3
+    - run: make all && make test
+
+    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
+      run: |
+        cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+        cmake --build build
+        ctest --verbose --test-dir build
+    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
+      run: |
+        cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+        cmake --build build-system-gtest
+        ctest --verbose --test-dir build-system-gtest
+
+  MacOS:
+    runs-on: macos-latest
+    steps:
+    - name: Install requirements
+      run: brew install googletest cmake
+    - uses: actions/checkout@v3
+    - run: make all && make test
+
+    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
+      run: |
+        cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+        cmake --build build
+        ctest --verbose --test-dir build
+    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
+      run: |
+        cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+        cmake --build build-system-gtest
+        ctest --verbose --test-dir build-system-gtest

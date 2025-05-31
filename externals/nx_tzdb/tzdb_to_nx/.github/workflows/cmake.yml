@@ -1,0 +1,52 @@
+name: CMake
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    strategy:
+      matrix:
+        platform: [ubuntu-latest,macos-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        echo "nx_tzdb_dir=$(grep NX_TZDB_DIR ${{github.workspace}}/build/CMakeCache.txt | sed 's/.*=//g')" > "$GITHUB_ENV"
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target x80e
+      
+    - name: Package
+      run: |
+        mkdir -p ${{github.workspace}}/artifacts
+        cp -Rv ${{ env.nx_tzdb_dir }} ${{github.workspace}}/artifacts/
+        
+    - name: Version
+      run: |
+        echo "nx_version=$(cat ${{ env.nx_tzdb_dir }}/version.txt)" > "$GITHUB_ENV"
+      
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.nx_version }}_${{ matrix.platform }}
+        path: artifacts/nx
