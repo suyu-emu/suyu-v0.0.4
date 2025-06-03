@@ -25,6 +25,7 @@
     "cpp-httplib",
     "cpp-jwt",
     "cubeb",
+    "dynarmic",
     "enet",
     "fmt",
     "libusb",
@@ -32,6 +33,7 @@
     "lz4",
     "nlohmann-json",
     "opus",
+    "renderdoc-api",
     "simpleini",
     "stb",
     "vulkan-memory-allocator",
@@ -75,6 +77,10 @@
     {
       "name": "fmt",
       "version": "10.1.1"
+    },
+    {
+      "name": "llvm",
+      "version": "17.0.6"
     }
   ]
 }
