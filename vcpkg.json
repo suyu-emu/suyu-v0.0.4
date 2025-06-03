@@ -46,8 +46,7 @@
       "description": "Compile tests",
       "dependencies": [
         {
-          "name": "catch2", 
-          "features": ["core"] 
+          "name": "catch2"
         }
       ]
     },
