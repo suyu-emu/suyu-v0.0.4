@@ -22,16 +22,34 @@
     "boost-test",
     "boost-timer",
     "boost-variant",
+    "cpp-httplib",
+    "cpp-jwt",
+    "cubeb",
+    "dynarmic",
+    "enet",
     "fmt",
+    "libusb",
+    "llvm",
     "lz4",
     "nlohmann-json",
+    "opus",
+    "renderdoc-api",
+    "simpleini",
+    "stb",
+    "vulkan-memory-allocator",
+    "xbyak",
     "zlib",
     "zstd"
   ],
   "features": {
     "suyu-tests": {
       "description": "Compile tests",
-      "dependencies": ["catch2"]
+      "dependencies": [
+        {
+          "name": "catch2", 
+          "features": ["core"] 
+        }
+      ]
     },
     "web-service": {
       "description": "Enable web services (telemetry, etc.)",
