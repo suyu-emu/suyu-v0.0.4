@@ -26,6 +26,8 @@
     <string name="show_system_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي المستخدمة من قبل النظام</string>
     <string name="show_bat_temperature">عرض درجة حرارة البطارية</string>
     <string name="show_bat_temperature_description">عرض درجة حرارة البطارية الحالية</string>
+    <string name="show_shaders_building">عرض بناء الشادرات</string>
+    <string name="show_shaders_building_description">عرض العدد الحالي للشادرات التي يتم بناؤها</string>
     <string name="overlay_position">موضع العرض</string>
     <string name="overlay_position_description">اختيار مكان عرض الإحصائيات على الشاشة</string>
     <string name="overlay_position_top_left">أعلى اليسار</string>
@@ -39,7 +41,9 @@
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">حجاب عدن</string>
-    <string name="eden_veil_description">ما بعد الافتراضي</string>
+    <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>
+    <string name="eden_veil_warning_title">إعدادات تجريبية</string>
+    <string name="eden_veil_warning_description">الإعدادات الموجودة في إيدن فيل تجريبية للغاية وقد تسبب مشاكل. إذا لم يتم تشغيل لعبتك، قم بتعطيل أي ملحقات وقم بتغيير الحالة الديناميكية الممتدة إلى 0.</string>
     <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
     <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
@@ -62,6 +66,29 @@
     <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
     <string name="use_fast_gpu_time">استخدام وقت GPU السريع</string>
     <string name="use_fast_gpu_time_description">يجبر معظم الألعاب على العمل بأعلى دقة أصلية. هذا الخيار غير مثبت وقد يسبب مشاكل.</string>
+    <string name="fast_gpu_time">عامل زيادة سرعة GPU</string>
+    <string name="fast_gpu_time_description">استخدم 128 لأقصى أداء و512 لأقصى دقة رسومية.</string>
+    <string name="use_fast_cpu_time">وقت CPU سريع</string>
+    <string name="use_fast_cpu_time_description">يجبر وحدة المعالجة المركزية المحاكاة على العمل بسرعة أعلى، مما يقلل من بعض محددات معدل الإطارات. هذا الخيار غير مستقر وقد يسبب مشاكل، وقد يرى المستخدمون بأجهزة أضعف انخفاضًا في الأداء.</string>
+    <string name="fast_cpu_time">سرعة CPU</string>
+    <string name="fast_cpu_time_description">استخدم Boost (1700MHz) للتشغيل بأعلى سرعة أصلية لـ Switch، أو Fast (2000MHz) للتشغيل بضعف السرعة.</string>
+    <string name="memory_layout">تخطيط الذاكرة</string>
+    <string name="memory_layout_description">(تجريبي) تغيير تخطيط الذاكرة المحاكاة. هذا الإعداد لن يزيد الأداء، ولكن قد يساعد في الألعاب التي تستخدم دقة عالية عبر التعديلات. لا تستخدم على الهواتف التي تحتوي على 8 جيجابايت من الذاكرة العشوائية أو أقل.</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4 جيجابايت (موصى به)</string>
+    <string name="memory_6gb">6 جيجابايت (غير آمن)</string>
+    <string name="memory_8gb">8 جيجابايت (غير آمن)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">أساسي (1000MHz)</string>
+    <string name="clock_boost">زيادة (1700MHz)</string>
+    <string name="clock_fast">سريع (2000MHz)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">منخفض (128)</string>
+    <string name="gpu_medium">متوسط (256)</string>
+    <string name="gpu_high">مرتفع (512)</string>
 
     <!-- طرق فك ضغط ASTC -->
     <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
@@ -309,6 +336,8 @@
     <string name="no_save_data_found">لم يتم العثور على بيانات الحفظ</string>
 
     <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">تشغيل التطبيقات من الشاشة الرئيسية للنظام</string>
     <string name="applets">قائمة التطبيقات المصغرة</string>
     <string name="applets_description">قم بتشغيل تطبيقات النظام باستخدام فيرموير المثبت</string>
     <string name="applets_error_firmware">فيرموير غير مثبت</string>
@@ -387,6 +416,10 @@
     <string name="renderer_debug">تصحيح الأخطاء الرسومية</string>
     <string name="renderer_debug_description">يضبط واجهة برمجة تطبيقات الرسومات على وضع تصحيح الأخطاء البطيء.</string>
     <string name="fastmem">Fastmem</string>
+
+    <string name="log">التسجيل</string>
+    <string name="flush_by_line">تفريغ سجلات التصحيح حسب السطر</string>
+    <string name="flush_by_line_description">يفرغ سجلات التصحيح عند كتابة كل سطر، مما يجعل التصحيح أسهل في حالات التوقف أو التجميد.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">محرك الإخراج</string>
@@ -641,6 +674,15 @@
     <string name="play">تشغيل</string>
     <string name="mute">كتم</string>
     <string name="unmute">إلغاء الكتم</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">التطبيقات الصغيرة</string>
+    <string name="applets_menu_description">(قيد العمل) تغيير واجهات التطبيقات الصغيرة والإعدادات</string>
+
+    <string name="applet_hle">واجهة مخصصة</string>
+    <string name="applet_lle">تطبيق حقيقي</string>
+
+    <string name="swkbd_applet">لوحة المفاتيح البرمجية</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">التراخيص</string>

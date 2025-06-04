@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Ez a szoftver Nintendo Switch játékkonzolhoz készült játékokat futtat. Nem tartalmaz játékokat vagy kulcsokat. .&lt;br /&gt;&lt;br /&gt;Mielőtt hozzákezdenél, kérjük, válaszd ki a <![CDATA[<b>prod.keys</b>]]> fájl helyét a készülék tárhelyén&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Tudj meg többet</a>]]></string>
+    <string name="app_disclaimer">Ez a szoftver Nintendo Switch játékkonzolhoz készült játékokat futtat. Nem tartalmaz játékokat vagy kulcsokat. .&lt;br /&gt;&lt;br /&gt;Mielőtt hozzákezdenél, kérjük, válaszd ki a <![CDATA[<b>prod.keys</b>]]> fájl helyét a készülék tárhelyén&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Tudj meg többet</a>]]></string>
     <string name="notice_notification_channel_name">Megjegyzések és hibák</string>
     <string name="notice_notification_channel_description">Értesítések megjelenítése, ha valami rosszul sül el.</string>
     <string name="notification_permission_not_granted">Nincs engedély az értesítés megjelenítéséhez!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">Középen lent</string>
     <string name="overlay_background">Overlay háttér</string>
     <string name="overlay_background_description">Háttér hozzáadása az overlayhez</string>
+    <string name="show_shaders_building">Shader-építés megjelenítése</string>
+    <string name="show_shaders_building_description">Megjeleníti az éppen épülő shaderek aktuális számát</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Eden Fátyla</string>
-    <string name="eden_veil_description">Az alapértelmezett túl</string>
+    <string name="eden_veil_description">Kísérleti beállítások a teljesítmény és képesség javításához. Ezek a beállítások fekete képernyőket vagy más játékproblémákat okozhatnak.</string>
+    <string name="eden_veil_warning_title">Kísérleti beállítások</string>
+    <string name="eden_veil_warning_description">Az Eden\'s Veil-ben található beállítások nagyon kísérletiek és problémákat okozhatnak. Ha a játékod nem indul, tiltsd le az összes kiterjesztést és állítsd az Extended Dynamic State értékét 0-ra.</string>
     <string name="frame_skipping">Folyamatban: Képkihagyás</string>
     <string name="frame_skipping_description">Kapcsolja be a képkihagyást a teljesítmény javításához a renderelt képkockák számának csökkentésével. Ez a funkció még fejlesztés alatt áll, és a jövőbeli kiadásokban lesz elérhető.</string>
     <string name="frame_interpolation">Továbbfejlesztett Képkocka-időzítés</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">Javítja a textúrák és pufferek kezelését, valamint a Maxwell fordítási réteget. Néhány Vulkan 1.1 GPU és minden Vulkan 1.2+ GPU támogatja.</string>
     <string name="use_fast_gpu_time">Gyors GPU idő használata</string>
     <string name="use_fast_gpu_time_description">A legtöbb játékot a natív felbontásukon futtatja. Ez az opció instabil és problémákat okozhat.</string>
+    <string name="fast_gpu_time">GPU túlóra faktor</string>
+    <string name="fast_gpu_time_description">Használj 128-at a maximális teljesítményért és 512-t a maximális grafikai minőségért.</string>
+    <string name="gpu_low">Alacsony (128)</string>
+    <string name="gpu_medium">Közepes (256)</string>
+    <string name="gpu_high">Magas (512)</string>
+    <string name="use_fast_cpu_time">Gyors CPU idő</string>
+    <string name="use_fast_cpu_time_description">Kényszeríti az emulált CPU-t, hogy magasabb órajelen fusson, csökkentve bizonyos FPS korlátozókat. Ez az opció instabil és problémákat okozhat, és gyengébb CPU-k csökkentett teljesítményt tapasztalhatnak.</string>
+    <string name="fast_cpu_time">CPU órajel</string>
+    <string name="fast_cpu_time_description">Használd a Boost (1700MHz) opciót a Switch legmagasabb natív órajelén való futáshoz, vagy a Fast (2000MHz) opciót a dupla órajelen való futáshoz.</string>
+    <string name="memory_layout">Memórialayout</string>
+    <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
+    <string name="memory_4gb">4GB (Ajánlott)</string>
+    <string name="memory_6gb">6GB (Nem biztonságos)</string>
+    <string name="memory_8gb">8GB (Nem biztonságos)</string>
+
+    <string name="clock_base">Alap (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Gyors (2000MHz)</string>
 
     <!-- ASTC Dekódolási Módszer -->
     <string name="accelerate_astc">ASTC dekódolási módszer</string>
@@ -326,11 +348,13 @@
     <string name="keys_missing_description">A Firmware és a kiskereskedelmi (retail) játékok nem dekódolhatók</string>
 
     <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Alkalmazások indítása a rendszer kezdőképernyőjéről</string>
     <string name="applets">Applet indító</string>
     <string name="applets_description">Rendszer appletek indítása a telepített firmware-rel</string>
     <string name="applets_error_firmware">Firmware nincs telepítve</string>
     <string name="applets_error_applet">Applet nem elérhető</string>
-    <string name="applets_error_description"><![CDATA[Kérjük, győződj meg róla, hogy a <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl és a <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> telepítve van, majd próbáld újra.]]></string>
+    <string name="applets_error_description"><![CDATA[Kérjük, győződj meg róla, hogy a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl és a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> telepítve van, majd próbáld újra.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Képernyőképek megtekintése a rendszer fényképnézegetőjével</string>
     <string name="mii_edit_applet">Mii szerkesztés</string>
@@ -421,6 +445,11 @@
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Grafikai hibakeresés</string>
     <string name="renderer_debug_description">Lassú hibakereső módba állítja a grafikus API-t .</string>
+
+    <string name="log">Naplózás</string>
+    <string name="flush_by_line">Hibakeresési naplók soronkénti kiürítése</string>
+    <string name="flush_by_line_description">Kiüríti a hibakeresési naplókat minden írt sor után, megkönnyítve a hibakeresést összeomlás vagy fagyás esetén.</string>
+
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Kimeneti motor</string>
     <string name="audio_volume">Hangerő</string>
@@ -627,7 +656,7 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM titkosítva</string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Győződj meg róla, hogy a <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl telepítve van, hogy a játékok visszafejthetők legyenek.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Győződj meg róla, hogy a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl telepítve van, hogy a játékok visszafejthetők legyenek.]]></string>
     <string name="loader_error_video_core">Hiba lépett fel a videómag inicializása során</string>
     <string name="loader_error_video_core_description">Ezt általában egy nem kompatibilis GPU illesztő okozza. Egyéni GPU illesztőprogram telepítése megoldhatja a problémát.</string>
     <string name="loader_error_invalid_format">Nem sikerült betölteni a ROM-ot</string>
@@ -800,6 +829,15 @@
     <string name="top">Felül</string>
     <string name="center">Középen</string>
     <string name="bottom">Alul</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Appletek</string>
+    <string name="applets_menu_description">(Folyamatban) Applet frontendek és beállítások módosítása</string>
+
+    <string name="applet_hle">Egyéni frontend</string>
+    <string name="applet_lle">Valódi applet</string>
+
+    <string name="swkbd_applet">Szoftveres billentyűzet</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenszek</string>

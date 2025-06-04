@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">此软件可以运行 Nintendo Switch 游戏，但不包含任何游戏和密钥文件。&lt;br /&gt;&lt;br /&gt;在开始前，请找到放置于设备存储中的 <![CDATA[<b> prod.keys </b>]]> 文件。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">了解更多</a>]]></string>
+    <string name="app_disclaimer">此软件可以运行 Nintendo Switch 游戏，但不包含任何游戏和密钥文件。&lt;br /&gt;&lt;br /&gt;在开始前，请找到放置于设备存储中的 <![CDATA[<b> prod.keys </b>]]> 文件。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">了解更多</a>]]></string>
     <string name="notice_notification_channel_name">通知及错误提醒</string>
     <string name="notice_notification_channel_description">当发生错误时显示通知。</string>
     <string name="notification_permission_not_granted">未授予通知权限！</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">底部居中</string>
     <string name="overlay_background">悬浮窗背景</string>
     <string name="overlay_background_description">为悬浮窗添加背景以提高可读性</string>
+    <string name="show_shaders_building">显示着色器构建</string>
+    <string name="show_shaders_building_description">显示当前正在构建的着色器数量</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">伊甸之幕</string>
-    <string name="eden_veil_description">超越默认</string>
+    <string name="eden_veil_description">实验性设置以提高性能和能力。这些设置可能会导致黑屏或其他游戏问题。</string>
+    <string name="eden_veil_warning_title">实验性设置</string>
+    <string name="eden_veil_warning_description">Eden\'s Veil 中的设置是高度实验性的，可能会导致问题。如果您的游戏无法启动，请禁用所有扩展并将 Extended Dynamic State 更改为 0。</string>
     <string name="frame_skipping">开发中：跳帧</string>
     <string name="frame_skipping_description">启用或禁用跳帧以减少渲染帧数，提高性能。此功能仍在开发中，将在未来版本中启用。</string>
     <string name="frame_interpolation">增强帧同步</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">改进纹理和缓冲区处理以及Maxwell转换层。部分Vulkan 1.1 GPU和所有Vulkan 1.2+ GPU支持。</string>
     <string name="use_fast_gpu_time">使用快速GPU时间</string>
     <string name="use_fast_gpu_time_description">强制大多数游戏以最高原生分辨率运行。此选项不稳定，可能导致问题。</string>
+    <string name="fast_gpu_time">GPU 超频系数</string>
+    <string name="fast_gpu_time_description">使用 128 以获得最大性能，使用 512 以获得最大图形保真度。</string>
+    <string name="gpu_low">低 (128)</string>
+    <string name="gpu_medium">中 (256)</string>
+    <string name="gpu_high">高 (512)</string>
+    <string name="use_fast_cpu_time">快速 CPU 时间</string>
+    <string name="use_fast_cpu_time_description">强制模拟 CPU 以更高的时钟速度运行，减少某些 FPS 限制器。此选项不稳定，可能会导致问题，较弱的 CPU 可能会看到性能下降。</string>
+    <string name="fast_cpu_time">CPU 时钟</string>
+    <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生时钟速度运行，或 Fast (2000MHz) 以双倍时钟速度运行。</string>
+    <string name="memory_layout">内存布局</string>
+    <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
+    <string name="memory_4gb">4GB (推荐)</string>
+    <string name="memory_6gb">6GB (不安全)</string>
+    <string name="memory_8gb">8GB (不安全)</string>
+
+    <string name="clock_base">基础 (1000MHz)</string>
+    <string name="clock_boost">加速 (1700MHz)</string>
+    <string name="clock_fast">快速 (2000MHz)</string>
 
     <!-- ASTC解码方式 -->
     <string name="accelerate_astc">ASTC解码方式</string>
@@ -325,11 +347,13 @@
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
 
     <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">从系统主屏幕启动应用程序</string>
     <string name="applets">小程序启动器</string>
     <string name="applets_description">使用已安装的固件启动系统小程序</string>
     <string name="applets_error_firmware">未安装固件</string>
     <string name="applets_error_applet">小程序不可用</string>
-    <string name="applets_error_description"><![CDATA[请确保 <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件和<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">固件</a>已安装，然后再试一次。]]></string>
+    <string name="applets_error_description"><![CDATA[请确保 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件和<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装，然后再试一次。]]></string>
     <string name="album_applet">相册</string>
     <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -423,6 +447,10 @@
     <string name="renderer_debug">图形调试</string>
     <string name="renderer_debug_description">将图形 API 设置为较慢的调试模式。</string>
     <string name="fastmem">Fastmem 内存访问</string>
+
+    <string name="log">日志记录</string>
+    <string name="flush_by_line">按行刷新调试日志</string>
+    <string name="flush_by_line_description">在每行写入时刷新调试日志，使在崩溃或冻结时调试更容易。</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">输出引擎</string>
@@ -634,8 +662,8 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">游戏卡带</a>或<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">已安装的游戏</a>。]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[请确保 <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件已安装，使得游戏可以被解密。]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">游戏卡带</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">已安装的游戏</a>。]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[请确保 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件已安装，使得游戏可以被解密。]]></string>
     <string name="loader_error_video_core">初始化视频核心时发生错误</string>
     <string name="loader_error_video_core_description">这通常由不兼容的 GPU 驱动程序造成，安装自定义 GPU 驱动程序可能解决此问题。</string>
     <string name="loader_error_invalid_format">无法载入 ROM</string>
@@ -813,6 +841,15 @@
     <string name="top">顶部</string>
     <string name="center">居中</string>
     <string name="bottom">底部</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">小程序</string>
+    <string name="applets_menu_description">(开发中) 更改小程序前端和设置</string>
+
+    <string name="applet_hle">自定义前端</string>
+    <string name="applet_lle">真实小程序</string>
+
+    <string name="swkbd_applet">软件键盘</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">许可证</string>

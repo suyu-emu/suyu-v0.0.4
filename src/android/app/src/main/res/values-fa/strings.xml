@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">مرکز پایین</string>
     <string name="overlay_background">پس‌زمینه اورلی</string>
     <string name="overlay_background_description">افزودن پس‌زمینه برای خوانایی بهتر</string>
+    <string name="show_shaders_building">نمایش ساخت شیدرها</string>
+    <string name="show_shaders_building_description">تعداد فعلی شیدرهای در حال ساخت را نمایش می‌دهد</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">پرده عدن</string>
-    <string name="eden_veil_description">فراتر از پیش‌فرض</string>
+    <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
+    <string name="eden_veil_warning_title">تنظیمات آزمایشی</string>
+    <string name="eden_veil_warning_description">تنظیمات موجود در Eden\'s Veil بسیار آزمایشی هستند و ممکن است باعث مشکلات شوند. اگر بازی شما بوت نمی‌شود، همه افزونه‌ها را غیرفعال کنید و Extended Dynamic State را روی 0 تنظیم کنید.</string>
     <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
     <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">مدیریت بافت‌ها و بافرها و همچنین لایه ترجمه ماکسول را بهبود می‌بخشد. توسط برخی کارت‌های گرافیک ولکان 1.1 و تمام کارت‌های گرافیک ولکان 1.2+ پشتیبانی می‌شود</string>
     <string name="use_fast_gpu_time">استفاده از زمان سریع GPU</string>
     <string name="use_fast_gpu_time_description">باعث می‌شود بیشتر بازی‌ها با بالاترین رزولوشن اصلی اجرا شوند. این گزینه ممکن است مشکلاتی ایجاد کند.</string>
+    <string name="fast_gpu_time">فاکتور اورکلاک GPU</string>
+    <string name="fast_gpu_time_description">برای حداکثر عملکرد از 128 و برای حداکثر وفاداری گرافیکی از 512 استفاده کنید.</string>
+    <string name="gpu_low">پایین (128)</string>
+    <string name="gpu_medium">متوسط (256)</string>
+    <string name="gpu_high">بالا (512)</string>
+    <string name="use_fast_cpu_time">زمان CPU سریع</string>
+    <string name="use_fast_cpu_time_description">CPU شبیه‌سازی شده را مجبور می‌کند با سرعت کلاک بالاتر کار کند، که برخی محدودکننده‌های FPS را کاهش می‌دهد. این گزینه ناپایدار است و ممکن است باعث مشکلات شود و CPUهای ضعیف‌تر ممکن است کاهش عملکرد را تجربه کنند.</string>
+    <string name="fast_cpu_time">سرعت کلاک CPU</string>
+    <string name="fast_cpu_time_description">از Boost (1700MHz) برای کار با بالاترین سرعت کلاک بومی سوئیچ یا Fast (2000MHz) برای کار با دو برابر سرعت استفاده کنید.</string>
+    <string name="memory_layout">چیدمان حافظه</string>
+    <string name="memory_layout_description">(آزمایشی) چیدمان حافظه شبیه‌سازی شده را تغییر می‌دهد. این تنظیم عملکرد را افزایش نمی‌دهد، اما ممکن است به بازی‌هایی که از رزولوشن بالا با استفاده از مادها استفاده می‌کنند کمک کند. در تلفن‌های با 8 گیگابایت رم یا کمتر استفاده نشود.</string>
+    <string name="memory_4gb">4 گیگابایت (توصیه شده)</string>
+    <string name="memory_6gb">6 گیگابایت (ناامن)</string>
+    <string name="memory_8gb">8 گیگابایت (ناامن)</string>
+
+    <string name="clock_base">پایه (1000MHz)</string>
+    <string name="clock_boost">تقویت (1700MHz)</string>
+    <string name="clock_fast">سریع (2000MHz)</string>
 
     <!-- روش رمزگشایی ASTC -->
     <string name="accelerate_astc">روش رمزگشایی ASTC</string>
@@ -328,11 +350,13 @@
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
 
     <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">راه‌اندازی برنامه‌ها از صفحه اصلی سیستم</string>
     <string name="applets">اجراکننده برنامک</string>
     <string name="applets_description">برنامک‌های سیستم را با استفاده از ثابت‌افزار نصب شده راه اندازی کنید</string>
     <string name="applets_error_firmware">ثابت‌افزار نصب نیست</string>
     <string name="applets_error_applet">برنامک در دسترس نیست</string>
-    <string name="applets_error_description"><![CDATA[لطفاً مطمئن شوید که فایل <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">ثابت‌افزار</a> شما نصب شده است و دوباره امتحان کنید.]]></string>
+    <string name="applets_error_description"><![CDATA[لطفاً مطمئن شوید که فایل <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">ثابت‌افزار</a> شما نصب شده است و دوباره امتحان کنید.]]></string>
     <string name="album_applet">آلبوم</string>
     <string name="album_applet_description">تصاویر ذخیره شده در پوشه اسکرین شات‌های کاربر را با نمایشگر عکس سیستم مشاهده کنید</string>
     <string name="mii_edit_applet">ویرایش Mii</string>
@@ -426,6 +450,10 @@
     <string name="renderer_debug">اشکال‌زدایی پردازنده گرافیکی</string>
     <string name="renderer_debug_description">رابط گرافیکی را روی حالت اشکال‌زدایی کندتر تنظیم می‌کند.</string>
     <string name="fastmem">دسترسی سریع حافظه</string>
+
+    <string name="log">ثبت وقایع</string>
+    <string name="flush_by_line">خالی کردن گزارش‌های اشکال‌زدایی خط به خط</string>
+    <string name="flush_by_line_description">گزارش‌های اشکال‌زدایی را در هر خط نوشته شده خالی می‌کند، که اشکال‌زدایی را در صورت کرش یا یخ‌زدن آسان‌تر می‌کند.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">موتور خروجی</string>
@@ -589,7 +617,7 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">رام شما رمزگذاری شده است</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[لطفاً راهنماها را دنبال کنید تا <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">کارتیج‌های بازی</a> یا <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">عناوین نصب شده</a> خود را استخراج کنید.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[لطفاً راهنماها را دنبال کنید تا <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">کارتیج‌های بازی</a> یا <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">عناوین نصب شده</a> خود را استخراج کنید.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[لطفاً مطمئن شوید که فایل prod.keys شما نصب شده است تا بازی‌ها رمزگشایی شوند.]]></string>
     <string name="loader_error_video_core">در راه‌اندازی اولیه هسته ویدیو خطایی رخ داد</string>
     <string name="loader_error_video_core_description">این مورد معمولاً توسط یک درایور گرافیکی ناسازگار ایجاد می‌شود. نصب درایور گرافیکی سفارشی ممکن است این مشکل را حل کند.</string>
@@ -768,6 +796,15 @@
     <string name="top">بالا</string>
     <string name="center">وسط</string>
     <string name="bottom">پایین</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">برنامه‌ک‌ها</string>
+    <string name="applets_menu_description">(در حال توسعه) تغییر فرانت‌اندها و تنظیمات برنامه‌ک‌ها</string>
+
+    <string name="applet_hle">فرانت‌اند سفارشی</string>
+    <string name="applet_lle">برنامه‌ک واقعی</string>
+
+    <string name="swkbd_applet">صفحه کلید نرم‌افزاری</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">مجوزها</string>

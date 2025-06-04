@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">התוכנה תריץ משחקים לקונסולת ה Nintendo Switch. אף משחק או קבצים בעלי זכויות יוצרים נכללים.&lt;br /&gt;&lt;br /&gt; לפני שאת/ה מתחיל בבקשה מצא את קובץ <![CDATA[<b>prod.keys</b>]]> על המכשיר.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">קרא עוד</a>]]></string>
+    <string name="app_disclaimer">התוכנה תריץ משחקים לקונסולת ה Nintendo Switch. אף משחק או קבצים בעלי זכויות יוצרים נכללים.&lt;br /&gt;&lt;br /&gt; לפני שאת/ה מתחיל בבקשה מצא את קובץ <![CDATA[<b>prod.keys</b>]]> על המכשיר.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">קרא עוד</a>]]></string>
     <string name="notice_notification_channel_name">התראות ותקלות</string>
     <string name="notice_notification_channel_description">מציג התראות כאשר משהו הולך לא כשורה.</string>
     <string name="notification_permission_not_granted">הרשאות התראות לא ניתנה!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">מרכז תחתון</string>
     <string name="overlay_background">רקע שכבה</string>
     <string name="overlay_background_description">מוסיף רקע לשכבה לקריאה נוחה יותר</string>
+    <string name="show_shaders_building">הצג בניית שיידרים</string>
+    <string name="show_shaders_building_description">מציג את מספר השיידרים שנבנים כרגע</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">עדן וייל</string>
-    <string name="eden_veil_description">מעבר לברירת המחדל</string>
+    <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
+    <string name="eden_veil_warning_title">הגדרות ניסיוניות</string>
+    <string name="eden_veil_warning_description">ההגדרות הכלולות ב-Eden\'s Veil הן ניסיוניות מאוד ועלולות לגרום לבעיות. אם המשחק שלך לא נטען, השבת כל הרחבות ושנה את Extended Dynamic State ל-0.</string>
     <string name="frame_skipping">בעבודה: דילוג פריימים</string>
     <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
@@ -63,6 +67,25 @@
     <string name="descriptor_indexing_description">משפר טיפול במרקמים ומאגרים, כמו גם בשכבת התרגום של Maxwell. נתמך בחלק מכרטיסי ה-Vulkan 1.1 ובכל כרטיסי ה-Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">השתמש בזמן GPU מהיר</string>
     <string name="use_fast_gpu_time_description">מאלץ את רוב המשחקים לרוץ ברזולוציה המקורית הגבוהה ביותר שלהם. אפשרות זו עלולה לגרום לבעיות.</string>
+
+    <string name="fast_gpu_time">גורם אובר-קלוק ל-GPU</string>
+    <string name="fast_gpu_time_description">השתמש ב-128 לביצועים מקסימליים וב-512 לנאמנות גרפית מקסימלית.</string>
+    <string name="gpu_low">נמוך (128)</string>
+    <string name="gpu_medium">בינוני (256)</string>
+    <string name="gpu_high">גבוה (512)</string>
+    <string name="use_fast_cpu_time">זמן CPU מהיר</string>
+    <string name="use_fast_cpu_time_description">מכריח את ה-CPU המדומה לפעול במהירות שעון גבוהה יותר, מה שמפחית חלק ממגבילי ה-FPS. אפשרות זו אינה יציבה ועלולה לגרום לבעיות, ומעבדים חלשים יותר עשויים לראות ירידה בביצועים.</string>
+    <string name="fast_cpu_time">מהירות שעון CPU</string>
+    <string name="fast_cpu_time_description">השתמש ב-Boost (1700MHz) כדי לפעול במהירות השעון הגבוהה ביותר של ה-Switch, או Fast (2000MHz) כדי לפעול במהירות כפולה.</string>
+    <string name="memory_layout">מבנה זיכרון</string>
+    <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
+    <string name="memory_4gb">4GB (מומלץ)</string>
+    <string name="memory_6gb">6GB (לא בטוח)</string>
+    <string name="memory_8gb">8GB (לא בטוח)</string>
+
+    <string name="clock_base">בסיס (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">מהיר (2000MHz)</string>
 
     <!-- שיטת פענוח ASTC -->
     <string name="accelerate_astc">שיטת פענוח ASTC</string>
@@ -315,11 +338,13 @@
     <string name="game_folder_properties">מאפייני תיקיית משחקים</string>
 
     <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">הפעלת יישומים ממסך הבית של המערכת</string>
     <string name="applets">משגר Applet</string>
     <string name="applets_description">מערכת שיגור Applet משתמשת בתוכנה המותקנת</string>
     <string name="applets_error_firmware">ה Firmware לא מותקן</string>
     <string name="applets_error_applet">Applet לא זמין</string>
-    <string name="applets_error_description"><![CDATA[בבקשה וודא שקבצי ה - <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>ו <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a>שלך מותקנים ונסה שוב.]]></string>
+    <string name="applets_error_description"><![CDATA[בבקשה וודא שקבצי ה - <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>ו <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>שלך מותקנים ונסה שוב.]]></string>
     <string name="album_applet">אלבום</string>
     <string name="album_applet_description">צפה בתמונות השמורות בתיקיית צילומי המסך של המשתמש בעזרת מציג התמונות של המערכת</string>
     <string name="mii_edit_applet">עורך Mii</string>
@@ -406,6 +431,10 @@
     <string name="renderer_debug">דיבאגינג בגרפיקה</string>
     <string name="renderer_debug_description">קובע את ממשק התוכנה של הגרפיקות למצב דיבאגינג איטי.</string>
     <string name="fastmem">Fastmem</string>
+
+    <string name="log">רישום</string>
+    <string name="flush_by_line">רוקן יומני ניפוי שגיאות לפי שורה</string>
+    <string name="flush_by_line_description">מרוקן יומני ניפוי שגיאות בכל שורה שנכתבת, מה שמקל על ניפוי שגיאות במקרים של קריסה או קיפאון.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">מנוע פלט</string>
@@ -504,8 +533,8 @@
     <string name="verify_success">אימות  התקינות הצליח!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">המשחק שלך מוצפן</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[אנא עקוב אחרי המדריכים כדי לבצע redump של <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">כרטיסי המשחק</a>או <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">הכותרות המותקנות</a> שלך.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[אנא וודא שקובץ ה-<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> מותקן כך שניתן יהיה לפענח משחקים.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[אנא עקוב אחרי המדריכים כדי לבצע redump של <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">כרטיסי המשחק</a>או <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">הכותרות המותקנות</a> שלך.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[אנא וודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> מותקן כך שניתן יהיה לפענח משחקים.]]></string>
     <string name="loader_error_video_core">התרחשה בעיה באתחול של ליבת הווידאו</string>
     <string name="loader_error_video_core_description">זה בדרך כלל נגרם על ידי דרייבר לא מתאים עבור המעבד הגרפי. התקנת דרייבר אשר מתאים למעבד הגרפי יכול לפתור את הבעיה הזו.</string>
     <string name="loader_error_invalid_format">אין אפשרות לטעון את המשחק</string>
@@ -666,6 +695,15 @@
     <string name="play">שחק</string>
     <string name="mute">השתק</string>
     <string name="unmute">בטל השתקה</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">אפלטים</string>
+    <string name="applets_menu_description">(בעבודה) שנה את ממשקי המשתמש וההגדרות של האפלטים</string>
+
+    <string name="applet_hle">ממשק מותאם אישית</string>
+    <string name="applet_lle">אפלט אמיתי</string>
+
+    <string name="swkbd_applet">מקלדת תוכנה</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">רישיונות</string>

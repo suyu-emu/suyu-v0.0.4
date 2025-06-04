@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Phần mềm này sẽ chạy trò chơi cho máy chơi game Nintendo Switch. Không có game titles hoặc keys được bao gồm.&lt;br /&gt;&lt;br /&gt;Trước khi bạn bắt đầu, hãy tìm file <![CDATA[<b> prod.keys </b>]]> trên bộ nhớ thiết bị của bạn.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Tìm hiểu thêm</a>]]></string>
+    <string name="app_disclaimer">Phần mềm này sẽ chạy trò chơi cho máy chơi game Nintendo Switch. Không có game titles hoặc keys được bao gồm.&lt;br /&gt;&lt;br /&gt;Trước khi bạn bắt đầu, hãy tìm file <![CDATA[<b> prod.keys </b>]]> trên bộ nhớ thiết bị của bạn.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Tìm hiểu thêm</a>]]></string>
     <string name="notice_notification_channel_name">Thông báo và lỗi</string>
     <string name="notice_notification_channel_description">Hiển thị thông báo khi có sự cố xảy ra</string>
     <string name="notification_permission_not_granted">Ứng dụng không được cấp quyền thông báo!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">Giữa dưới</string>
     <string name="overlay_background">Nền overlay</string>
     <string name="overlay_background_description">Thêm nền để dễ đọc</string>
+    <string name="show_shaders_building">Hiển thị xây dựng shader</string>
+    <string name="show_shaders_building_description">Hiển thị số lượng shader đang được xây dựng hiện tại</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Màn Eden</string>
-    <string name="eden_veil_description">Vượt xa mặc định</string>
+    <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>
+    <string name="eden_veil_warning_title">Cài đặt thử nghiệm</string>
+    <string name="eden_veil_warning_description">Các cài đặt trong Eden\'s Veil rất thử nghiệm và có thể gây ra sự cố. Nếu trò chơi của bạn không khởi động, hãy tắt tất cả các tiện ích mở rộng và thay đổi Extended Dynamic State thành 0.</string>
     <string name="frame_skipping">WIP: Bỏ qua khung hình</string>
     <string name="frame_skipping_description">Bật hoặc tắt bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất. Tính năng này đang được phát triển và sẽ được kích hoạt trong các bản phát hành tương lai.</string>
     <string name="frame_interpolation">Đồng bộ khung hình nâng cao</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">Cải thiện xử lý kết cấu và bộ đệm, cũng như lớp dịch Maxwell. Được hỗ trợ bởi một số GPU Vulkan 1.1 và tất cả GPU Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Sử dụng thời gian GPU nhanh</string>
     <string name="use_fast_gpu_time_description">Buộc hầu hết các trò chơi chạy ở độ phân giải gốc cao nhất. Tùy chọn này có thể gây ra sự cố.</string>
+    <string name="fast_gpu_time">Hệ số ép xung GPU</string>
+    <string name="fast_gpu_time_description">Sử dụng 128 để có hiệu suất tối đa và 512 để có độ trung thực đồ họa tối đa.</string>
+    <string name="gpu_low">Thấp (128)</string>
+    <string name="gpu_medium">Trung bình (256)</string>
+    <string name="gpu_high">Cao (512)</string>
+    <string name="use_fast_cpu_time">Thời gian CPU nhanh</string>
+    <string name="use_fast_cpu_time_description">Buộc CPU mô phỏng chạy ở tốc độ xung nhịp cao hơn, giảm một số giới hạn FPS. Tùy chọn này không ổn định và có thể gây ra sự cố, và CPU yếu hơn có thể thấy hiệu suất giảm.</string>
+    <string name="fast_cpu_time">Tốc độ xung nhịp CPU</string>
+    <string name="fast_cpu_time_description">Sử dụng Boost (1700MHz) để chạy ở tốc độ xung nhịp gốc cao nhất của Switch hoặc Fast (2000MHz) để chạy ở tốc độ gấp đôi.</string>
+    <string name="memory_layout">Bố cục bộ nhớ</string>
+    <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
+    <string name="memory_4gb">4GB (Được đề xuất)</string>
+    <string name="memory_6gb">6GB (Không an toàn)</string>
+    <string name="memory_8gb">8GB (Không an toàn)</string>
+
+    <string name="clock_base">Cơ bản (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Nhanh (2000MHz)</string>
 
     <!-- Phương thức giải mã ASTC -->
     <string name="accelerate_astc">Phương thức giải mã ASTC</string>
@@ -283,6 +305,26 @@
     <string name="install_game_content">Cài đặt nội dung game</string>
     <string name="install_game_content_description">Cài đặt cập nhật game hoặc DLC</string>
 
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Khởi chạy ứng dụng từ màn hình chính hệ thống</string>
+    <string name="applets">Trình khởi chạy applet</string>
+    <string name="applets_description">Khởi chạy applet hệ thống</string>
+    <string name="applets_error_firmware">Chưa cài firmware</string>
+    <string name="applets_error_applet">Applet không khả dụng</string>
+    <string name="applets_error_description"><![CDATA[Đảm bảo đã cài <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> và <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Xem ảnh trong thư mục chụp màn hình</string>
+    <string name="mii_edit_applet">Chỉnh sửa Mii</string>
+    <string name="mii_edit_applet_description">Xem và chỉnh sửa Mii</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Quản lý dữ liệu amiibo</string>
+    <string name="cabinet_launcher">Trình khởi chạy</string>
+    <string name="cabinet_nickname_and_owner">Biệt danh và chủ sở hữu</string>
+    <string name="cabinet_game_data_eraser">Xóa dữ liệu game</string>
+    <string name="cabinet_restorer">Khôi phục</string>
+    <string name="cabinet_formatter">Định dạng</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia không có thật</string>
     <string name="copied_to_clipboard">Đã sao chép vào bộ nhớ tạm</string>
@@ -334,14 +376,29 @@
     <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác hiển thị trong một số trò chơi nhưng đồng thời giảm hiệu suất chơi.</string>
     <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
     <string name="use_disk_shader_cache_description">Giảm tình trạng giật lag bằng cách lưu trữ và tải các shader được tạo ra nội bộ.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">Chế độ gỡ lỗi CPU</string>
+    <string name="cpu_debug_mode_description">Đặt CPU vào chế độ gỡ lỗi chậm.</string>
+
+    <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Gỡ lỗi đồ hoạ</string>
     <string name="renderer_debug_description">Đặt API đồ họa vào chế độ gỡ lỗi chậm.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">Ghi nhật ký</string>
+    <string name="flush_by_line">Xả nhật ký gỡ lỗi theo dòng</string>
+    <string name="flush_by_line_description">Xả nhật ký gỡ lỗi trên mỗi dòng được viết, giúp gỡ lỗi dễ dàng hơn trong trường hợp bị treo hoặc sập.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Công cụ xuất âm thanh</string>
     <string name="audio_volume">Âm lượng</string>
     <string name="audio_volume_description">Xác định âm lượng của đầu ra âm thanh.</string>
 
+    <!-- Input strings -->
+    <string name="buttons">Nút</string>
     <string name="button_a">A</string>
     <string name="button_b">B</string>
     <string name="button_x">X</string>
@@ -438,7 +495,7 @@
     <string name="verify_failure">Kiểm tra tính toàn vẹn thất bại!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM của bạn đã bị mã hoá</string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Vui lòng đảm bảo file <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> đã được cài đặt để game có thể được giải mã.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Vui lòng đảm bảo file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> đã được cài đặt để game có thể được giải mã.]]></string>
     <string name="loader_error_video_core">Đã xảy ra lỗi khi khởi tạo lõi video</string>
     <string name="loader_error_video_core_description">Việc này thường do driver GPU không tương thích. Cài đặt một driver GPU tùy chỉnh có thể giải quyết vấn đề này.</string>
     <string name="loader_error_invalid_format">Không thể tải ROM</string>
@@ -574,6 +631,15 @@
 
     <string name="mute">Tắt tiếng</string>
     <string name="unmute">Bật tiếng</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Applet</string>
+    <string name="applets_menu_description">(Đang phát triển) Thay đổi giao diện và cài đặt applet</string>
+
+    <string name="applet_hle">Giao diện tùy chỉnh</string>
+    <string name="applet_lle">Applet thực</string>
+
+    <string name="swkbd_applet">Bàn phím phần mềm</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Giấy phép</string>

@@ -36,10 +36,14 @@
     <string name="overlay_position_center_bottom">Dole uprostřed</string>
     <string name="overlay_background">Pozadí překryvu</string>
     <string name="overlay_background_description">Přidá pozadí pro lepší čitelnost</string>
+    <string name="show_shaders_building">Zobrazit vytváření shaderů</string>
+    <string name="show_shaders_building_description">Zobrazuje aktuální počet vytvářených shaderů</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Edenův závoj</string>
-    <string name="eden_veil_description">Mimo výchozí</string>
+    <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
+    <string name="eden_veil_warning_title">Experimentální nastavení</string>
+    <string name="eden_veil_warning_description">Nastavení v Eden\'s Veil jsou vysoce experimentální a mohou způsobit problémy. Pokud se vaše hra nespustí, deaktivujte všechna rozšíření a nastavte Extended Dynamic State na 0.</string>
     <string name="frame_skipping">WIP: Přeskočení snímků</string>
     <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
@@ -62,6 +66,24 @@
     <string name="descriptor_indexing_description">Zlepšuje zpracování textur a bufferů, stejně jako Maxwell překladovou vrstvu. Podporováno některými GPU s Vulkan 1.1 a všemi GPU s Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Použít rychlý čas GPU</string>
     <string name="use_fast_gpu_time_description">Nutí většinu her běžet v jejich nativním rozlišení. Tato volba je nestabilní a může způsobovat problémy.</string>
+    <string name="fast_gpu_time">Faktor přetaktování GPU</string>
+    <string name="fast_gpu_time_description">Použijte 128 pro maximální výkon a 512 pro maximální věrnost grafiky.</string>
+    <string name="gpu_low">Nízké (128)</string>
+    <string name="gpu_medium">Střední (256)</string>
+    <string name="gpu_high">Vysoké (512)</string>
+    <string name="use_fast_cpu_time">Rychlý čas CPU</string>
+    <string name="use_fast_cpu_time_description">Nutí emulované CPU běžet na vyšší frekvenci, čímž snižuje některé limity FPS. Tato volba je nestabilní a může způsobit problémy a slabší CPU mohou mít snížený výkon.</string>
+    <string name="fast_cpu_time">Taktování CPU</string>
+    <string name="fast_cpu_time_description">Použijte Boost (1700MHz) pro běh na nejvyšším nativním taktu Switch nebo Fast (2000MHz) pro běh na dvojnásobném taktu.</string>
+    <string name="memory_layout">Rozložení paměti</string>
+    <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
+    <string name="memory_4gb">4GB (Doporučeno)</string>
+    <string name="memory_6gb">6GB (Nebezpečné)</string>
+    <string name="memory_8gb">8GB (Nebezpečné)</string>
+
+    <string name="clock_base">Základní (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Rychlé (2000MHz)</string>
 
     <!-- Metoda dekódování ASTC -->
     <string name="accelerate_astc">Metoda dekódování ASTC</string>
@@ -267,8 +289,26 @@
     <string name="game_folders">Složky s hrami</string>
     <string name="folder_already_added">Tato složka byla již přidána!</string>
     <string name="game_folder_properties">Vlastnosti složky s hrami</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Spouštění aplikací z domovské obrazovky</string>
+    <string name="applets">Spouštěč apletů</string>
+    <string name="applets_description">Spouštění systémových apletů</string>
+    <string name="applets_error_firmware">Firmware není nainstalován</string>
+    <string name="applets_error_applet">Aplet není dostupný</string>
+    <string name="applets_error_description"><![CDATA[Ovněřte instalaci <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> a <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>.]]></string>
+    <string name="album_applet">Album</string>
     <string name="album_applet_description">Zobrazovat obrázky uložené v uživatelské složce se snímky obrazovky pomocí systémového prohlížeče fotografií</string>
+    <string name="mii_edit_applet">Editor Mii</string>
+    <string name="mii_edit_applet_description">Úprava Mii postav</string>
+    <string name="cabinet_applet">Kabinet</string>
+    <string name="cabinet_applet_description">Správa dat Amiibo</string>
+    <string name="cabinet_launcher">Spouštěč kabinetu</string>
     <string name="cabinet_nickname_and_owner">Nastavení přezdívky a vlastníka</string>
+    <string name="cabinet_game_data_eraser">Mazání herních dat</string>
+    <string name="cabinet_restorer">Obnovovač</string>
+    <string name="cabinet_formatter">Formátovač</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia není skutečná</string>
@@ -333,7 +373,17 @@
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">Ladění CPU</string>
+    <string name="cpu_debug_mode_description">Pomalý ladící režim</string>
+    <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
+    <string name="renderer_debug">Ladění grafiky</string>
+    <string name="renderer_debug_description">Pomalý ladící režim</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">Protokolování</string>
+    <string name="flush_by_line">Vypisovat ladicí záznamy po řádcích</string>
+    <string name="flush_by_line_description">Vypisuje ladicí záznamy po každém napsaném řádku, což usnadňuje ladění v případě pádu nebo zamrznutí.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Výstupní engine</string>
@@ -477,11 +527,30 @@
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Černá pozadí</string>
+    <string name="use_black_backgrounds_description">Použít černá pozadí v tmavém režimu</string>
 
     <!-- Picture-In-Picture -->
     <string name="picture_in_picture">Obraz v obraze</string>
+    <string name="picture_in_picture_description">Minimalizace při pozadí</string>
+    <string name="pause">Pauza</string>
+    <string name="play">Přehrát</string>
     <string name="mute">Ztlumit</string>
-    <string name="unmute">Vypnout ztlumení</string>
+    <string name="unmute">Zrušit ztlumení</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Vertikální zarovnání</string>
+    <string name="top">Nahoru</string>
+    <string name="center">Na střed</string>
+    <string name="bottom">Dolů</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Aplety</string>
+    <string name="applets_menu_description">(Ve vývoji) Změna frontendů a nastavení apletů</string>
+
+    <string name="applet_hle">Vlastní frontend</string>
+    <string name="applet_lle">Skutečný aplet</string>
+
+    <string name="swkbd_applet">Softwarová klávesnice</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licence</string>

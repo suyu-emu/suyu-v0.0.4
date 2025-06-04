@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">To oprogramowanie umożliwia uruchomienie gier z konsoli Nintendo Switch. Nie zawiera gier ani wymaganych kluczy.&lt;br /&gt;&lt;br /&gt;Zanim zaczniesz, wybierz plik kluczy <![CDATA[<b> prod.keys </b>]]> z katalogu w pamięci masowej.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Dowiedz się więcej</a>]]></string>
+    <string name="app_disclaimer">To oprogramowanie umożliwia uruchomienie gier z konsoli Nintendo Switch. Nie zawiera gier ani wymaganych kluczy.&lt;br /&gt;&lt;br /&gt;Zanim zaczniesz, wybierz plik kluczy <![CDATA[<b> prod.keys </b>]]> z katalogu w pamięci masowej.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Dowiedz się więcej</a>]]></string>
     <string name="notice_notification_channel_name">Powiadomienia błędy</string>
     <string name="notice_notification_channel_description">Pokaż powiadomienie gdy coś pójdzie źle</string>
     <string name="notification_permission_not_granted">Nie zezwolono na powiadomienia!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">Dół środka</string>
     <string name="overlay_background">Tło nakładki</string>
     <string name="overlay_background_description">Dodaje tło za nakładką dla lepszej czytelności</string>
+    <string name="show_shaders_building">Pokaż budowanie shaderów</string>
+    <string name="show_shaders_building_description">Wyświetla aktualną liczbę budowanych shaderów</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Zasłona Edenu</string>
-    <string name="eden_veil_description">Ponad domyślne</string>
+    <string name="eden_veil_description">Eksperymentalne ustawienia poprawiające wydajność i możliwości. Te ustawienia mogą powodować czarne ekrany lub inne problemy z grą.</string>
+    <string name="eden_veil_warning_title">Ustawienia eksperymentalne</string>
+    <string name="eden_veil_warning_description">Ustawienia zawarte w Eden\'s Veil są wysoce eksperymentalne i mogą powodować problemy. Jeśli gra się nie uruchamia, wyłącz wszystkie rozszerzenia i zmień Extended Dynamic State na 0.</string>
     <string name="frame_skipping">WIP: Pomijanie klatek</string>
     <string name="frame_skipping_description">Włącz lub wyłącz pomijanie klatek, aby poprawić wydajność poprzez zmniejszenie liczby renderowanych klatek. Ta funkcja jest wciąż w fazie rozwoju i zostanie włączona w przyszłych wersjach.</string>
     <string name="frame_interpolation">Zaawansowana synchronizacja klatek</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">Poprawia obsługę tekstur i buforów oraz warstwę tłumaczenia Maxwell. Obsługiwane przez niektóre GPU Vulkan 1.1 i wszystkie GPU Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Użyj szybkiego czasu GPU</string>
     <string name="use_fast_gpu_time_description">Wymusza na większości gier działanie w najwyższej natywnej rozdzielczości. Ta opcja może powodować problemy.</string>
+    <string name="fast_gpu_time">Współczynnik overclockingu GPU</string>
+    <string name="fast_gpu_time_description">Użyj 128 dla maksymalnej wydajności i 512 dla maksymalnej wierności graficznej.</string>
+    <string name="gpu_low">Niskie (128)</string>
+    <string name="gpu_medium">Średnie (256)</string>
+    <string name="gpu_high">Wysokie (512)</string>
+    <string name="use_fast_cpu_time">Szybki czas CPU</string>
+    <string name="use_fast_cpu_time_description">Wymusza działanie emulowanego procesora z wyższą częstotliwością taktowania, zmniejszając niektóre ograniczenia FPS. Ta opcja jest niestabilna i może powodować problemy, a słabsze procesory mogą doświadczyć zmniejszonej wydajności.</string>
+    <string name="fast_cpu_time">Taktowanie CPU</string>
+    <string name="fast_cpu_time_description">Użyj Boost (1700MHz), aby działać z najwyższą natywną częstotliwością Switcha, lub Fast (2000MHz), aby działać z podwójną częstotliwością.</string>
+    <string name="memory_layout">Układ pamięci</string>
+    <string name="memory_layout_description">(EKSPERYMENTALNY) Zmienia emulowany układ pamięci. To ustawienie nie zwiększa wydajności, ale może pomóc w grach wykorzystujących wysokie rozdzielczości poprzez mody. Nie używaj na telefonach z 8GB RAM lub mniej.</string>
+    <string name="memory_4gb">4GB (Zalecane)</string>
+    <string name="memory_6gb">6GB (Niebezpieczne)</string>
+    <string name="memory_8gb">8GB (Niebezpieczne)</string>
+
+    <string name="clock_base">Podstawowe (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Szybkie (2000MHz)</string>
 
     <!-- Metoda dekodowania ASTC -->
     <string name="accelerate_astc">Metoda dekodowania ASTC</string>
@@ -283,6 +305,26 @@
     <string name="install_game_content">Zainstaluj zawartość gry</string>
     <string name="install_game_content_description">Zainstaluj aktualizację gry lub dodatek DLC</string>
 
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Uruchamianie aplikacji z ekranu głównego systemu</string>
+    <string name="applets">Aplety</string>
+    <string name="applets_description">Uruchamia aplety systemowe.</string>
+    <string name="applets_error_firmware">Brak firmware</string>
+    <string name="applets_error_applet">Aplet niedostępny</string>
+    <string name="applets_error_description"><![CDATA[Upewnij się, że masz zainstalowane <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> i <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>.]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Przeglądaj zrzuty ekranu.</string>
+    <string name="mii_edit_applet">Edytor Mii</string>
+    <string name="mii_edit_applet_description">Edytuj Mii.</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Zarządzaj danymi Amiibo.</string>
+    <string name="cabinet_launcher">Cabinet</string>
+    <string name="cabinet_nickname_and_owner">Nazwa i właściciel</string>
+    <string name="cabinet_game_data_eraser">Usuwanie danych</string>
+    <string name="cabinet_restorer">Przywracanie</string>
+    <string name="cabinet_formatter">Formatowanie</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>
     <string name="copied_to_clipboard">Skopiowano do schowka</string>
@@ -334,14 +376,28 @@
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
     <string name="use_disk_shader_cache">Pamięć podręczna shaderów</string>
     <string name="use_disk_shader_cache_description">Zmniejsza przycięcia przez przechowywanie gotowych wygenerowanych plików oświetlenia w pamięci urządzenia.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">Debugowanie CPU</string>
+    <string name="cpu_debug_mode_description">Włącza wolny tryb debugowania.</string>
+    <string name="gpu">GPU</string>
     <string name="renderer_api">Interfejs graficzny</string>
     <string name="renderer_debug">Debugowanie grafiki</string>
     <string name="renderer_debug_description">Kiedy włączone, interfejs graficzny korzysta z wolnego trybu debugowania błędów.</string>
+    <string name="fastmem">Fastmem</string>
+
+    <string name="log">Rejestrowanie</string>
+    <string name="flush_by_line">Opróżniaj dzienniki debugowania linia po linii</string>
+    <string name="flush_by_line_description">Opróżnia dzienniki debugowania po każdej napisanej linii, ułatwiając debugowanie w przypadku awarii lub zawieszenia.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Silnik dźwięku</string>
     <string name="audio_volume">Głośność</string>
     <string name="audio_volume_description">Ustala poziom głośności wyjścia dźwięku.</string>
 
+    <!-- Input strings -->
+    <string name="buttons">Przyciski</string>
     <string name="button_a">A</string>
     <string name="button_b">B</string>
     <string name="button_x">X</string>
@@ -434,7 +490,7 @@
     <string name="add_ons">Dodatki</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Twój ROM jest zakodowany</string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Upewnij się że plik kluczy <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> jest zainstalowany aby gry mogły zostać odczytane.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Upewnij się że plik kluczy <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> jest zainstalowany aby gry mogły zostać odczytane.]]></string>
     <string name="loader_error_video_core">Błąd inicjacji podsystemu graficznego</string>
     <string name="loader_error_video_core_description">Zazwyczaj spowodowane niekompatybilnym sterownikiem GPU, instalacja niestandardowego sterownika może rozwiązać ten problem.</string>
     <string name="loader_error_invalid_format">Nie można wczytać pliku ROM</string>
@@ -567,6 +623,15 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Czarne tła</string>
     <string name="use_black_backgrounds_description">Kiedy używany ciemny motyw, tła zostają zastąpione czernią.</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Aplety</string>
+    <string name="applets_menu_description">(W trakcie pracy) Zmień frontendy apletów i ustawienia</string>
+
+    <string name="applet_hle">Niestandardowy frontend</string>
+    <string name="applet_lle">Prawdziwy aplet</string>
+
+    <string name="swkbd_applet">Klawiatura programowa</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licencje</string>

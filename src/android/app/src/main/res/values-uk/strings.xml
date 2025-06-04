@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Це програмне забезпечення дозволяє запускати ігри для ігрової консолі Nintendo Switch. Ми не надаємо самі ігри або ключі.&lt;br /&gt;&lt;br /&gt;Перед початком роботи знайдіть ваш файл <![CDATA[<b> prod.keys </b>]]> у сховищі пристрою.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Дізнатися більше</a>]]></string>
+    <string name="app_disclaimer">Це програмне забезпечення дозволяє запускати ігри для ігрової консолі Nintendo Switch. Ми не надаємо самі ігри або ключі.&lt;br /&gt;&lt;br /&gt;Перед початком роботи знайдіть ваш файл <![CDATA[<b> prod.keys </b>]]> у сховищі пристрою.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Дізнатися більше</a>]]></string>
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
     <string name="notice_notification_channel_description">Показувати сповіщення, коли щось пішло не так</string>
     <string name="notification_permission_not_granted">Ви не надали дозвіл сповіщень!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">По центру внизу</string>
     <string name="overlay_background">Фон накладання</string>
     <string name="overlay_background_description">Додати фон для кращої читабельності</string>
+    <string name="show_shaders_building">Показати побудову шейдерів</string>
+    <string name="show_shaders_building_description">Відображає поточну кількість шейдерів, які будуються</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Покривало Едему</string>
-    <string name="eden_veil_description">Поза стандартними налаштуваннями</string>
+    <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та можливостей. Ці налаштування можуть спричинити чорні екрани або інші проблеми в грі.</string>
+    <string name="eden_veil_warning_title">Експериментальні налаштування</string>
+    <string name="eden_veil_warning_description">Налаштування в Eden\'s Veil є дуже експериментальними і можуть спричинити проблеми. Якщо ваша гра не запускається, вимкніть усі розширення та змініть Extended Dynamic State на 0.</string>
     <string name="frame_skipping">В розробці: Пропуск кадрів</string>
     <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Використовувати швидкий час GPU</string>
     <string name="use_fast_gpu_time_description">Змушує більшість ігор працювати у максимальній рідній роздільній здатності. Ця опція може спричиняти проблеми.</string>
+    <string name="fast_gpu_time">Фактор розгону GPU</string>
+    <string name="fast_gpu_time_description">Використовуйте 128 для максимальної продуктивності та 512 для максимальної графічної точності.</string>
+    <string name="gpu_low">Низький (128)</string>
+    <string name="gpu_medium">Середній (256)</string>
+    <string name="gpu_high">Високий (512)</string>
+    <string name="use_fast_cpu_time">Швидкий час CPU</string>
+    <string name="use_fast_cpu_time_description">Змушує емульований процесор працювати на вищій тактовій частоті, зменшуючи деякі обмежувачі FPS. Ця опція нестабільна і може спричинити проблеми, а слабші процесори можуть мати знижену продуктивність.</string>
+    <string name="fast_cpu_time">Тактова частота CPU</string>
+    <string name="fast_cpu_time_description">Використовуйте Boost (1700MHz) для роботи на максимальній нативній частоті Switch або Fast (2000MHz) для роботи на подвійній частоті.</string>
+    <string name="memory_layout">Розподіл пам\'яті</string>
+    <string name="memory_layout_description">(ЕКСПЕРИМЕНТАЛЬНО) Змінює емульований розподіл пам\'яті. Це налаштування не підвищує продуктивність, але може допомогти в іграх, які використовують високу роздільну здатність через моди. Не використовуйте на телефонах з 8 ГБ ОЗУ або менше.</string>
+    <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
+    <string name="memory_6gb">6 ГБ (Небезпечно)</string>
+    <string name="memory_8gb">8 ГБ (Небезпечно)</string>
+
+    <string name="clock_base">Базова (1000MHz)</string>
+    <string name="clock_boost">Розгін (1700MHz)</string>
+    <string name="clock_fast">Швидка (2000MHz)</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодування ASTC</string>
@@ -270,6 +292,26 @@
     <string name="import_saves">Імпорт</string>
     <string name="export_saves">Експорт</string>
 
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Запуск додатків з домашнього екрану системи</string>
+    <string name="applets">Аплети</string>
+    <string name="applets_description">Запуск системних аплетів за допомогою прошивки.</string>
+    <string name="applets_error_firmware">Прошивка не встановлена</string>
+    <string name="applets_error_applet">Аплет недоступний</string>
+    <string name="applets_error_description"><![CDATA[Переконайтеся, що файл <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> та <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> встановлені.]]></string>
+    <string name="album_applet">Альбом</string>
+    <string name="album_applet_description">Перегляд зображень у папці скріншотів.</string>
+    <string name="mii_edit_applet">Редактор Mii</string>
+    <string name="mii_edit_applet_description">Перегляд та редагування Mii.</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Редагування даних amiibo.</string>
+    <string name="cabinet_launcher">Cabinet Launcher</string>
+    <string name="cabinet_nickname_and_owner">Налаштування нікнейму та власника</string>
+    <string name="cabinet_game_data_eraser">Видалення даних гри</string>
+    <string name="cabinet_restorer">Відновлення</string>
+    <string name="cabinet_formatter">Форматування</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia не існує</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
@@ -328,12 +370,28 @@
     <string name="use_disk_shader_cache_description">Зменшує затримки шляхом збереження шейдерів.</string>
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
     <string name="anisotropic_filtering_description">Покращує якість текстур під кутом.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">ЦП</string>
+    <string name="cpu_debug_mode">Налагодження ЦП</string>
+    <string name="cpu_debug_mode_description">Уповільнює ЦП для налагодження.</string>
+    <string name="gpu">ГП</string>
     <string name="renderer_api">API</string>
+    <string name="renderer_debug">Налагодження графіки</string>
+    <string name="renderer_debug_description">Уповільнює графічний API для налагодження.</string>
+    <string name="fastmem">Швидка пам\'ять</string>
+
+    <string name="log">Логування</string>
+    <string name="flush_by_line">Скидати логи налагодження по рядках</string>
+    <string name="flush_by_line_description">Скидає логи налагодження після кожного написаного рядка, полегшуючи налагодження у випадках збоїв або зависань.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Двигун аудіо</string>
     <string name="audio_volume">Гучність</string>
     <string name="audio_volume_description">Вказує гучність аудіовиходу.</string>
 
+    <!-- Input strings -->
+    <string name="buttons">Кнопки</string>
     <string name="button_a">A</string>
     <string name="button_b">B</string>
     <string name="button_x">X</string>
@@ -422,7 +480,7 @@
     <string name="add_ons">Доповнення</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
     <string name="loader_error_video_core">Сталася помилка під час ініціалізації відеоядра.</string>
     <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером ГП. Встановлення користувацького драйвера ГП може вирішити цю проблему.</string>
     <string name="loader_error_invalid_format">Не вдалося запустити ROM</string>
@@ -522,9 +580,33 @@
     <string name="multiplier_eight">8x</string>
     <string name="multiplier_sixteen">16x</string>
 
-    <string name="use_black_backgrounds_description">У разі використання темної теми застосовуйте чорне тло.</string>
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Чорний фон</string>
+    <string name="use_black_backgrounds_description">Використовувати чорний фон у темній темі.</string>
 
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Картинка в картинці</string>
+    <string name="picture_in_picture_description">Згортати вікно при переході у фон.</string>
+    <string name="pause">Пауза</string>
+    <string name="play">Грати</string>
     <string name="mute">Вимкнути звук</string>
     <string name="unmute">Увімкнути звук</string>
 
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Вертикальне вирівнювання</string>
+    <string name="top">Вгорі</string>
+    <string name="center">По центру</string>
+    <string name="bottom">Унизу</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Аплети</string>
+    <string name="applets_menu_description">(В роботі) Змінити інтерфейси та налаштування аплетів</string>
+
+    <string name="applet_hle">Спеціалізований інтерфейс</string>
+    <string name="applet_lle">Справжній аплет</string>
+
+    <string name="swkbd_applet">Програмна клавіатура</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Ліцензії</string>
     </resources>

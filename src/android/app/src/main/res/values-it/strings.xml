@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Questo software permette di giocare ai giochi della console Nintendo Switch. Nessun gioco o chiave è inclusa.&lt;br /&gt;&lt;br /&gt;Prima di iniziare, perfavore individua il file <![CDATA[<b>prod.keys </b>]]> nella memoria del tuo dispositivo.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Scopri di più</a>]]></string>
+    <string name="app_disclaimer">Questo software permette di giocare ai giochi della console Nintendo Switch. Nessun gioco o chiave è inclusa.&lt;br /&gt;&lt;br /&gt;Prima di iniziare, perfavore individua il file <![CDATA[<b>prod.keys </b>]]> nella memoria del tuo dispositivo.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Scopri di più</a>]]></string>
     <string name="notice_notification_channel_name">Avvisi ed errori</string>
     <string name="notice_notification_channel_description">Mostra le notifiche quando qualcosa va storto.</string>
     <string name="notification_permission_not_granted">Autorizzazione di notifica non concessa!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">Centro basso</string>
     <string name="overlay_background">Sfondo overlay</string>
     <string name="overlay_background_description">Aggiungi sfondo per migliorare la leggibilità</string>
+    <string name="show_shaders_building">Mostra costruzione shader</string>
+    <string name="show_shaders_building_description">Mostra il numero corrente di shader in costruzione</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Velo di Eden</string>
-    <string name="eden_veil_description">Oltre le impostazioni predefinite</string>
+    <string name="eden_veil_description">Impostazioni sperimentali per migliorare prestazioni e capacità. Queste impostazioni possono causare schermate nere o altri problemi di gioco.</string>
+    <string name="eden_veil_warning_title">Impostazioni sperimentali</string>
+    <string name="eden_veil_warning_description">Le impostazioni contenute in Eden\'s Veil sono altamente sperimentali e possono causare problemi. Se il tuo gioco non si avvia, disabilita tutte le estensioni e imposta Extended Dynamic State su 0.</string>
     <string name="frame_skipping">WIP: Salto fotogrammi</string>
     <string name="frame_skipping_description">Attiva o disattiva il salto dei fotogrammi per migliorare le prestazioni riducendo il numero di fotogrammi renderizzati. Questa funzionalità è ancora in sviluppo e verrà abilitata nelle versioni future.</string>
     <string name="frame_interpolation">Sincronizzazione avanzata fotogrammi</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">Migliora la gestione di texture e buffer, nonché il livello di traduzione Maxwell. Supportato da alcune GPU Vulkan 1.1 e tutte le GPU Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Usa tempo GPU veloce</string>
     <string name="use_fast_gpu_time_description">Forza la maggior parte dei giochi a funzionare alla massima risoluzione nativa. Questa opzione è instabile e può causare problemi.</string>
+    <string name="fast_gpu_time">Fattore di overclock GPU</string>
+    <string name="fast_gpu_time_description">Usa 128 per prestazioni massime e 512 per fedeltà grafica massima.</string>
+    <string name="gpu_low">Basso (128)</string>
+    <string name="gpu_medium">Medio (256)</string>
+    <string name="gpu_high">Alto (512)</string>
+    <string name="use_fast_cpu_time">Tempo CPU veloce</string>
+    <string name="use_fast_cpu_time_description">Forza la CPU emulata a funzionare a una frequenza più alta, riducendo alcuni limitatori di FPS. Questa opzione è instabile e può causare problemi, e CPU più deboli potrebbero vedere prestazioni ridotte.</string>
+    <string name="fast_cpu_time">Frequenza CPU</string>
+    <string name="fast_cpu_time_description">Usa Boost (1700MHz) per funzionare alla massima frequenza nativa dello Switch, o Fast (2000MHz) per funzionare al doppio della frequenza.</string>
+    <string name="memory_layout">Layout della memoria</string>
+    <string name="memory_layout_description">(SPERIMENTALE) Cambia il layout della memoria emulata. Questa impostazione non aumenta le prestazioni, ma può aiutare nei giochi che utilizzano alte risoluzioni tramite mod. Non usare su telefoni con 8GB di RAM o meno.</string>
+    <string name="memory_4gb">4GB (Consigliato)</string>
+    <string name="memory_6gb">6GB (Non sicuro)</string>
+    <string name="memory_8gb">8GB (Non sicuro)</string>
+
+    <string name="clock_base">Base (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Veloce (2000MHz)</string>
 
     <!-- Metodo decodifica ASTC -->
     <string name="accelerate_astc">Metodo decodifica ASTC</string>
@@ -318,11 +340,13 @@
     <string name="verify_installed_content_description">Verifica l\'integrità di tutti i contenuti installati.</string>
 
     <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Avvia applicazioni dalla schermata principale del sistema</string>
     <string name="applets">Avvia applet</string>
     <string name="applets_description">Avvia applet di sistema usando il firmware installato</string>
     <string name="applets_error_firmware">Firmware non installato</string>
     <string name="applets_error_applet">Applet non disponibile</string>
-    <string name="applets_error_description"><![CDATA[Assicurati che il file <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e il <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-system-firmware\">firmware</a> siano installati e riprova.]]></string>
+    <string name="applets_error_description"><![CDATA[Assicurati che il file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e il <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> siano installati e riprova.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Visualizza le immagini salvate nella cartella screenshots dell\'utente con il visualizzatore immagini di sistema</string>
     <string name="mii_edit_applet">Modifica Mii</string>
@@ -412,6 +436,10 @@
     <string name="renderer_debug">Debug GPU</string>
     <string name="renderer_debug_description">Imposta l\'API grafica in uno stato dedicato al Debugging. Impatta di molto sulle performance.</string>
     <string name="fastmem">Fastmem</string>
+
+    <string name="log">Registrazione</string>
+    <string name="flush_by_line">Svuota i log di debug per riga</string>
+    <string name="flush_by_line_description">Svuota i log di debug su ogni riga scritta, facilitando il debug in caso di crash o blocco.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_output_engine">Motore di Output</string>
@@ -543,8 +571,8 @@
     <string name="verify_no_result_description">L\'integrità dei contenuti non è stata validata</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">La tua ROM è criptata</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Segui la nostra guida per fare il <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\">dump delle tue cartucce di gioco</a>oppure <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\">dei titoli già installati</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Per favore assicurati che il file <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> sia installato in modo che i giochi possano essere decrittati.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Segui la nostra guida per fare il <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">dump delle tue cartucce di gioco</a>oppure <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">dei titoli già installati</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Per favore assicurati che il file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> sia installato in modo che i giochi possano essere decrittati.]]></string>
     <string name="loader_error_video_core">È stato riscontrato un errore nell\'inizializzazione del core video</string>
     <string name="loader_error_video_core_description">Questo è causato solitamente dal driver incompatibile di una GPU. L\'installazione di driver GPU personalizzati potrebbe risolvere questo problema.</string>
     <string name="loader_error_invalid_format">Impossibile caricare la ROM</string>
@@ -701,6 +729,15 @@
     <string name="play">Gioca</string>
     <string name="mute">Silenzia</string>
     <string name="unmute">Riattiva</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Applet</string>
+    <string name="applets_menu_description">(In lavorazione) Cambia frontend e impostazioni degli applet</string>
+
+    <string name="applet_hle">Frontend personalizzato</string>
+    <string name="applet_lle">Applet reale</string>
+
+    <string name="swkbd_applet">Tastiera software</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenze</string>

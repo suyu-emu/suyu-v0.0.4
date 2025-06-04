@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Denne programvaren vil kjøre spill for Nintendo Switch-spillkonsollen. Ingen spilltitler eller nøkler er inkludert.&lt;br /&gt;&lt;br /&gt;Før du begynner, må du finne <![CDATA[<b> prod.keys </b>]]> filen din på enhetslagringen.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Lær mer</a>]]></string>
+    <string name="app_disclaimer">Denne programvaren vil kjøre spill for Nintendo Switch-spillkonsollen. Ingen spilltitler eller nøkler er inkludert.&lt;br /&gt;&lt;br /&gt;Før du begynner, må du finne <![CDATA[<b> prod.keys </b>]]> filen din på enhetslagringen.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Lær mer</a>]]></string>
     <string name="notice_notification_channel_name">Merknader og feil</string>
     <string name="notice_notification_channel_description">Viser varsler når noe går galt.</string>
     <string name="notification_permission_not_granted">Varslingstillatelse ikke gitt!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">Midt på bunnen</string>
     <string name="overlay_background">Overlaybakgrunn</string>
     <string name="overlay_background_description">Legg til bakgrunn for bedre lesbarhet</string>
+    <string name="show_shaders_building">Vis bygging av shadere</string>
+    <string name="show_shaders_building_description">Viser nåværende antall shadere som bygges</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Edens slør</string>
-    <string name="eden_veil_description">Forbi standardinnstillinger</string>
+    <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
+    <string name="eden_veil_warning_title">Eksperimentelle innstillinger</string>
+    <string name="eden_veil_warning_description">Innstillingene i Eden\'s Veil er svært eksperimentelle og kan forårsake problemer. Hvis spillet ditt ikke starter, deaktiver alle utvidelser og endre Extended Dynamic State til 0.</string>
     <string name="frame_skipping">WIP: Hoppe over bilder</string>
     <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
     <string name="frame_interpolation">Avansert bildevindu-synkronisering</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">Forbedrer tekstur- og bufferhåndtering, samt Maxwell-oversettelseslaget. Støttes av noen Vulkan 1.1 GPU-er og alle Vulkan 1.2+ GPU-er.</string>
     <string name="use_fast_gpu_time">Bruk rask GPU-tid</string>
     <string name="use_fast_gpu_time_description">Tvinger de fleste spill til å kjøre i høyeste oppløsning. Dette alternativet er ustabilt og kan forårsake problemer.</string>
+    <string name="fast_gpu_time">GPU-overklokkingsfaktor</string>
+    <string name="fast_gpu_time_description">Bruk 128 for maksimal ytelse og 512 for maksimal grafikkvalitet.</string>
+    <string name="gpu_low">Lav (128)</string>
+    <string name="gpu_medium">Middels (256)</string>
+    <string name="gpu_high">Høy (512)</string>
+    <string name="use_fast_cpu_time">Rask CPU-tid</string>
+    <string name="use_fast_cpu_time_description">Tvinger den emulerte CPU-en til å kjøre med høyere klokkehastighet, noe som reduserer visse FPS-begrensninger. Dette alternativet er ustabilt og kan forårsake problemer, og svakere CPU-er kan oppleve redusert ytelse.</string>
+    <string name="fast_cpu_time">CPU-klokkehastighet</string>
+    <string name="fast_cpu_time_description">Bruk Boost (1700MHz) for å kjøre med Switch\'s høyeste native klokkehastighet, eller Fast (2000MHz) for å kjøre med dobbel hastighet.</string>
+    <string name="memory_layout">Minneoppsett</string>
+    <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
+    <string name="memory_4gb">4GB (Anbefalt)</string>
+    <string name="memory_6gb">6GB (Usikkert)</string>
+    <string name="memory_8gb">8GB (Usikkert)</string>
+
+    <string name="clock_base">Grunnleggende (1000MHz)</string>
+    <string name="clock_boost">Boost (1700MHz)</string>
+    <string name="clock_fast">Rask (2000MHz)</string>
 
     <!-- ASTC-dekoding -->
     <string name="accelerate_astc">ASTC-dekoding</string>
@@ -283,6 +305,26 @@
     <string name="install_game_content">Installer spillinnhold</string>
     <string name="install_game_content_description">Installer spilloppdateringer eller DLC</string>
 
+    <!-- Applet-lanseringsstrenger -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">Start applikasjoner fra systemets hjemmeskjerm</string>
+    <string name="applets">Applet-lanserer</string>
+    <string name="applets_description">Start systemapplets</string>
+    <string name="applets_error_firmware">Firmware mangler</string>
+    <string name="applets_error_applet">Applet utilgjengelig</string>
+    <string name="applets_error_description"><![CDATA[Sørg for at <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> og <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> er installert]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">Vis bilder i systemets fotovisning</string>
+    <string name="mii_edit_applet">Mii-redigering</string>
+    <string name="mii_edit_applet_description">Vis og rediger Miis</string>
+    <string name="cabinet_applet">Kabinet</string>
+    <string name="cabinet_applet_description">Administrer amiibo-data</string>
+    <string name="cabinet_launcher">Kabinet-lanserer</string>
+    <string name="cabinet_nickname_and_owner">Kallenavn og eier</string>
+    <string name="cabinet_game_data_eraser">Slett spilldata</string>
+    <string name="cabinet_restorer">Gjenoppretter</string>
+    <string name="cabinet_formatter">Formatter</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia er ikke ekte</string>
     <string name="copied_to_clipboard">Kopiert til utklippstavlen</string>
@@ -334,14 +376,28 @@
     <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
     <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
     <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">CPU-feilsøking</string>
+    <string name="cpu_debug_mode_description">Setter CPU i feilsøkingsmodus</string>
+    <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
-    <string name="renderer_debug">Feilsøking av grafikk</string>
-    <string name="renderer_debug_description">Setter grafikk-API-et til en langsom feilsøkingsmodus.</string>
-    <string name="audio_volume">Volum</string>
-    <string name="audio_volume_description">Angir volumet på lydutgangen.</string>
+    <string name="renderer_debug">Grafikkfeilsøking</string>
+    <string name="renderer_debug_description">Setter grafikk-API i feilsøkingsmodus</string>
+    <string name="fastmem">Raskt minne</string>
 
+    <string name="log">Logging</string>
+    <string name="flush_by_line">Tøm feilsøkingslogger per linje</string>
+    <string name="flush_by_line_description">Tømmer feilsøkingslogger for hver linje som skrives, noe som gjør feilsøking enklere ved krasj eller frysing.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Lydmotor</string>
+    <string name="audio_volume">Volum</string>
+    <string name="audio_volume_description">Angir lydvolum</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Knapper</string>
     <string name="button_a">A</string>
     <string name="button_b">B</string>
     <string name="button_x">X</string>
@@ -436,7 +492,7 @@
     <string name="verify_failure">Integritetsverifisering mislyktes!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-en din er kryptert</string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
     <string name="loader_error_video_core">Det oppstod en feil ved initialisering av videokjernen</string>
     <string name="loader_error_video_core_description">Dette skyldes vanligvis en inkompatibel GPU-driver. Installering av en tilpasset GPU-driver kan løse problemet.</string>
     <string name="loader_error_invalid_format">Kunne ikke laste inn ROM</string>
@@ -570,8 +626,28 @@
     <string name="use_black_backgrounds">Svart bakgrunn</string>
     <string name="use_black_backgrounds_description">Bruk svart bakgrunn når du bruker det mørke temaet.</string>
 
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Bilde-i-bilde</string>
+    <string name="picture_in_picture_description">Minimer vindu i bakgrunnen</string>
+    <string name="pause">Pause</string>
+    <string name="play">Spill</string>
     <string name="mute">Lydløs</string>
-    <string name="unmute">Slå på lyden</string>
+    <string name="unmute">Lyd på</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Vertikal justering</string>
+    <string name="top">Topp</string>
+    <string name="center">Midt</string>
+    <string name="bottom">Bunn</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Applets</string>
+    <string name="applets_menu_description">(Under arbeid) Endre applet-frontender og innstillinger</string>
+
+    <string name="applet_hle">Egendefinert frontend</string>
+    <string name="applet_lle">Ekte applet</string>
+
+    <string name="swkbd_applet">Programvare-tastatur</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Lisenser</string>

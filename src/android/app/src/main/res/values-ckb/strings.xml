@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">ئەم نەرمەکاڵایە یارییەکانی کۆنسۆلی نینتێندۆ سویچ کارپێدەکات. هیچ ناونیشانێکی یاری و کلیلی تێدا نییە..&lt;br /&gt;&lt;br /&gt;پێش ئەوەی دەست پێ بکەیت، تکایە شوێنی فایلی <![CDATA[<b> prod.keys </b>]]> دیاریبکە لە نێو کۆگای ئامێرەکەت.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">زیاتر فێربە</a>]]></string>
+    <string name="app_disclaimer">ئەم نەرمەکاڵایە یارییەکانی کۆنسۆلی نینتێندۆ سویچ کارپێدەکات. هیچ ناونیشانێکی یاری و کلیلی تێدا نییە..&lt;br /&gt;&lt;br /&gt;پێش ئەوەی دەست پێ بکەیت، تکایە شوێنی فایلی <![CDATA[<b> prod.keys </b>]]> دیاریبکە لە نێو کۆگای ئامێرەکەت.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">زیاتر فێربە</a>]]></string>
     <string name="notice_notification_channel_name">ئاگاداری و هەڵەکان</string>
     <string name="notice_notification_channel_description">ئاگادارکردنەوەکان پیشان دەدات کاتێک شتێک بە هەڵەدا دەچێت.</string>
     <string name="notification_permission_not_granted">مۆڵەتی ئاگادارکردنەوە نەدراوە!</string>
@@ -37,10 +37,14 @@
     <string name="overlay_position_center_bottom">ناوەڕاستی خوارەوە</string>
     <string name="overlay_background">پاشبنەمای ئاوێرە</string>
     <string name="overlay_background_description">پاشبنەمای ئاوێرە بۆ خوێندنەوەی ئاسانتر</string>
+    <string name="show_shaders_building">پیشاندانی دروستکردنی شادەرەکان</string>
+    <string name="show_shaders_building_description">ژمارەی ئێستای شادەرەکانی کە دروست دەکرێن پیشان بدە</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">حجاب عدن</string>
-    <string name="eden_veil_description">ما بعد الافتراضي</string>
+    <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
+    <string name="eden_veil_warning_title">ڕێکخستنە تاقیکارییەکان</string>
+    <string name="eden_veil_warning_description">ڕێکخستنەکانی ناو ئیدین ڤێڵ زۆر تاقیکارین و لەوانەیە کێشە دروست بکەن. ئەگەر یاریەکەت نەگەشتە ناوەوە، هەموو زیادکراوەکان ناچالاک بکە و گۆڕینی دۆخی داینامیکی درێژکراو بۆ 0.</string>
     <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
     <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
@@ -63,6 +67,24 @@
     <string name="descriptor_indexing_description">يحسن معالجة القوام والمخازن المؤقتة، بالإضافة إلى طبقة ترجمة ماكسويل. مدعوم من قبل بعض وحدات معالجة الرسومات التي تدعم فولكان 1.1 وجميع وحدات معالجة الرسومات التي تدعم فولكان 1.2+.</string>
     <string name="use_fast_gpu_time">بەکارهێنانی کاتی GPU خێرا</string>
     <string name="use_fast_gpu_time_description">زۆربەی یارییەکان بەرزی ڕەزولوشنی ڕەسەنی خۆیان دادەمەزرێنێت. ئەم هەڵبژاردە هەڵەیە و لەوانەیە کێشە دروست بکات.</string>
+    <string name="fast_gpu_time">فاکتۆری خێراکردنی GPU</string>
+    <string name="fast_gpu_time_description">128 بەکاربهێنە بۆ باشترین کارایی و 512 بۆ باشترین وردی گرافیک.</string>
+    <string name="gpu_low">نزم (128)</string>
+    <string name="gpu_medium">ناوەند (256)</string>
+    <string name="gpu_high">بەرز (512)</string>
+    <string name="use_fast_cpu_time">کاتی CPU خێرا</string>
+    <string name="use_fast_cpu_time_description">CPUی شبیهسازیکراو بە زۆرکردنی کاتژمێر وادەکات بە خێرایی زیاتر کاربکات، ئەمەش هەندێک لە سنووردارکەرانی FPS کەم دەکاتەوە. ئەم هەڵبژاردە هەڵە و لەوانەیە کێشە دروست بکات، و لەوانەیە کەسی بە CPUی بێهێز کارایی کەمتر ببینێت.</string>
+    <string name="fast_cpu_time">کاتژمێری CPU</string>
+    <string name="fast_cpu_time_description">Boost (1700MHz) بەکاربهێنە بۆ کارکردن بە بەرزترین کاتژمێری نەیتیڤی سوویچ، یان Fast (2000MHz) بۆ کارکردن بە دوو هێندەی کاتژمێر.</string>
+    <string name="memory_layout">ڕێکخستنی بیرگە</string>
+    <string name="memory_layout_description">(تاقیکاری) گۆڕینی ڕێکخستنی بیرگەی شبیهسازیکراو. ئەم ڕێکخستنە کارایی زیاد ناکات، بەڵام لەوانەیە یارمەتی یارییەکان بدات کە بەرزی ڕێزۆلۆشن بەکاردهێنن بە هۆی مۆدەکان. لەسەر مۆبایلەکانی کە 8GB یان کەمتر RAMیان هەیە بەکارمەهێنە.</string>
+    <string name="memory_4gb">4GB (پێشنیارکراو)</string>
+    <string name="memory_6gb">6GB (نائاسایش)</string>
+    <string name="memory_8gb">8GB (نائاسایش)</string>
+
+    <string name="clock_base">بنەڕەتی (1000MHz)</string>
+    <string name="clock_boost">زۆرکردن (1700MHz)</string>
+    <string name="clock_fast">خێرا (2000MHz)</string>
 
     <!-- ڕێگای دیکۆدکردنی ASTC -->
     <string name="accelerate_astc">ڕێگای دیکۆدکردنی ASTC</string>
@@ -283,6 +305,26 @@
     <string name="install_game_content">دامەزراندنی ناوەڕۆکی یاری</string>
     <string name="install_game_content_description">دامەزراندنی نوێکاری یارییەکان یان DLC</string>
 
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Qlaunch</string>
+    <string name="qlaunch_description">ئەپەکان لە شاشەی سەرەکی سیستەم دەستپێبکە</string>
+    <string name="applets">دەستپێکەری ئەپلێت</string>
+    <string name="applets_description">ئەپلێتی سیستەم دەستپێبکە بە بەکارهێنانی پتەوواڵای دامەزراو</string>
+    <string name="applets_error_firmware">پتەوواڵا دامەزراو نییە</string>
+    <string name="applets_error_applet">ئەپلێت بەردەست نییە</string>
+    <string name="applets_error_description"><![CDATA[تکایە دڵنیابە لە بوونی فایلی <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> و <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">پتەوواڵا</a> و دووبارە هەوڵبدەرەوە.]]></string>
+    <string name="album_applet">ئەلبوم</string>
+    <string name="album_applet_description">وێنەکان لە فۆڵدەری وێنەی بەکارهێنەر ببینە</string>
+    <string name="mii_edit_applet">دەستکاریی Mii</string>
+    <string name="mii_edit_applet_description">Miiەکان بینە و دەستکاری بکە</string>
+    <string name="cabinet_applet">کابینەت</string>
+    <string name="cabinet_applet_description">داتای سەر amiibo دەستکاری یان بسڕەوە</string>
+    <string name="cabinet_launcher">دەستپێکەری کابینەت</string>
+    <string name="cabinet_nickname_and_owner">ڕێکخستنی نازناو و خاوەن</string>
+    <string name="cabinet_game_data_eraser">سڕینەوەی داتای یاری</string>
+    <string name="cabinet_restorer">پاشکەوتکەر</string>
+    <string name="cabinet_formatter">ڕێکخەر</string>
+
     <!-- About screen strings -->
     <string name="gaia_is_not_real">گایا ڕاستەقینە نییە</string>
     <string name="copied_to_clipboard">کۆپی کرا بۆ تەختەی نووسین</string>
@@ -334,14 +376,28 @@
     <string name="renderer_reactive_flushing_description">وردی ڕێندەرکردن لە هەندێک یاریدا باشتر دەکات لەسەر تێچووی کارایی.</string>
     <string name="use_disk_shader_cache">بیرگەخێرای سێبەری دیسک</string>
     <string name="use_disk_shader_cache_description">پچڕپچڕی کەمدەکاتەوە بە هەڵگرتن و بارکردنی سێبەری دروستکراو لە ناوخۆدا.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
-    <string name="renderer_api">API گرافیک</string>
+    <string name="cpu_debug_mode">چاککردنەوەی CPU</string>
+    <string name="cpu_debug_mode_description">CPU لە دۆخی چاککردنەوەی هێواش دادەنێت.</string>
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
     <string name="renderer_debug">چاککردنەوەی گرافیک</string>
-    <string name="renderer_debug_description">API ی گرافیکەکان ڕێکدەخات بۆ دۆخی چاککردنی خاو.</string>
-    <string name="audio_volume">قەبارەی دەنگی</string>
-    <string name="audio_volume_description">دیاریکردنی قەبارەی دەنگی دەرچووی بیستۆک و بزوێنەری دەنگی دەرەکی.</string>
+    <string name="renderer_debug_description">API ی گرافیکەکان لە دۆخی چاککردنەوەی هێواش دادەنێت.</string>
+    <string name="fastmem">Fastmem</string>
 
+    <string name="log">تۆمارکردن</string>
+    <string name="flush_by_line">خاوکردنەوەی تۆمارەکانی دیباگ بە هێڵ</string>
+    <string name="flush_by_line_description">تۆمارەکانی دیباگ لە هەر هێڵێکدا دەنوسرێت خاو دەکاتەوە، ئەمە وا دەکات دیباگکردن ئاسانتر بێت لە کاتی کرشکردن یان پێکەنین.</string>
+
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">بزوێنری دەرچوونی دەنگ</string>
+    <string name="audio_volume">دەنگ</string>
+    <string name="audio_volume_description">قەبارەی دەنگی دەرچوون دیاری دەکات.</string>
+
+    <!-- Input strings -->
     <string name="button_a">A</string>
     <string name="button_b">B</string>
     <string name="button_x">X</string>
@@ -426,7 +482,7 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ڕۆمەکەت کۆدکراوە</string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[تکایە دڵنیابەوە لەدامەزراوی <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> فایلەکەت بۆ ئەوەی بتوانرێت یارییەکان کۆد بکرێنەوە.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[تکایە دڵنیابەوە لەدامەزراوی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> فایلەکەت بۆ ئەوەی بتوانرێت یارییەکان کۆد بکرێنەوە.]]></string>
     <string name="loader_error_video_core">هەڵەیەک لە دەستپێکردنی ناوەکی ڤیدیۆکەدا ڕوویدا</string>
     <string name="loader_error_video_core_description">ئەمەش بەزۆری بەهۆی وەگەڕخەرێکی ناتەبای GPU ەوەیە. دامەزراندنی وەگەڕخەری GPU ی تایبەتمەندکراو لەوانەیە ئەم کێشەیە چارەسەر بکات.</string>
     <string name="loader_error_invalid_format">ناتوانرێت ڕۆم باربکرێت</string>
@@ -559,6 +615,29 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">پاشبنەمای ڕەش</string>
     <string name="use_black_backgrounds_description">لە کاتی بەکارهێنانی ڕووکاری تاریکدا، پاشبنەمای ڕەش دادەنێ.</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">وێنە لە ناو وێنە</string>
+    <string name="picture_in_picture_description">پەنجەرە بچووک دەکاتەوە کاتێک لە پاشبنەیە.</string>
+    <string name="pause">وەستان</string>
+    <string name="play">یاریکردن</string>
+    <string name="mute">بێدەنگ</string>
+    <string name="unmute">لادانی بێدەنگی</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">ڕێکخستنی ستوونی</string>
+    <string name="top">سەرەوە</string>
+    <string name="center">ناوەند</string>
+    <string name="bottom">خوارەوە</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">ئەپلێتەکان</string>
+    <string name="applets_menu_description">(کار دەکرێت) گۆڕینی فرۆنتێندەکانی ئەپلێت و ڕێکخستنەکان</string>
+
+    <string name="applet_hle">فرۆنتێندی خوازراو</string>
+    <string name="applet_lle">ئەپلێتی ڕاستەقینە</string>
+
+    <string name="swkbd_applet">کلیلەبۆردی نەرمەکاڵا</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">مۆڵەتەکان</string>
