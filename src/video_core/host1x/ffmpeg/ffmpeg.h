@@ -22,7 +22,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
 #ifndef ANDROID
-#include <libavcodec/codec.h>
+#include <libavcodec/codec_internal.h>
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -106,7 +106,11 @@ public:
     }
 
     bool IsInterlaced() const {
-        return m_frame->interlaced_frame != 0;
+#if defined(FF_API_INTERLACED_FRAME) || LIBAVUTIL_VERSION_MAJOR >= 59
+        return m_frame->flags & AV_FRAME_FLAG_INTERLACED;
+#else
+        return m_frame->interlaced_frame;
+#endif
     }
 
     bool IsHardwareDecoded() const {
