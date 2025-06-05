@@ -454,6 +454,7 @@ class GamesFragment : Fragment() {
 
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
+            val topInsets = barInsets.top + cutoutInsets.top
             val mlpSwipe = binding.swipeRefresh.layoutParams as ViewGroup.MarginLayoutParams
             if (view.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR) {
                 mlpSwipe.leftMargin = leftInsets
@@ -463,6 +464,12 @@ class GamesFragment : Fragment() {
                 mlpSwipe.rightMargin = rightInsets
             }
             binding.swipeRefresh.layoutParams = mlpSwipe
+
+            val mlpHeader = binding.header.layoutParams as ViewGroup.MarginLayoutParams
+            mlpHeader.leftMargin += leftInsets
+            mlpHeader.rightMargin += rightInsets
+            mlpHeader.topMargin += if (!isLandscape) topInsets else 0
+            binding.header.layoutParams = mlpHeader
 
             binding.noticeText.updatePadding(bottom = spacingNavigation)
             binding.header.updatePadding(top = cutoutInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_large) + if (isLandscape) barInsets.top else 0)
