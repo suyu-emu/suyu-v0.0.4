@@ -420,13 +420,13 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     if (UISettings::values.check_for_updates) {
         update_future = QtConcurrent::run([]() -> QString {
             const bool is_prerelease =
-                    ((strstr(Common::g_build_fullname, "pre-alpha") != NULL) ||
-                     (strstr(Common::g_build_fullname, "alpha") != NULL) ||
-                     (strstr(Common::g_build_fullname, "beta") != NULL) ||
-                     (strstr(Common::g_build_fullname, "rc") != NULL));
+                    ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
+                     (strstr(Common::g_build_version, "alpha") != NULL) ||
+                     (strstr(Common::g_build_version, "beta") != NULL) ||
+                     (strstr(Common::g_build_version, "rc") != NULL));
             const std::optional<std::string> latest_release_tag =
                     UpdateChecker::GetLatestRelease(is_prerelease);
-            if (latest_release_tag && latest_release_tag.value() != Common::g_build_fullname) {
+            if (latest_release_tag && latest_release_tag.value() != Common::g_build_version) {
                 return QString::fromStdString(latest_release_tag.value());
             }
             return QString{};
@@ -4796,11 +4796,16 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
 
 void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
                                     std::string_view gpu_vendor) {
-    const auto branch_name = std::string(Common::g_scm_branch);
-    const auto description = std::string(Common::g_scm_desc);
+    const auto description = std::string(Common::g_build_version);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto yuzu_title = fmt::format("eden | {}-{}", branch_name, description);
+    std::string yuzu_title;
+    if (Common::g_is_dev_build) {
+        yuzu_title = fmt::format("eden Nightly | {}-{}", description, build_id);
+    } else {
+        yuzu_title = fmt::format("eden | {}", description);
+    }
+
     const auto override_title =
             fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto window_title = override_title.empty() ? yuzu_title : override_title;

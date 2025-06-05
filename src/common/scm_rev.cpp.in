@@ -17,6 +17,7 @@
 #define BUILD_ID "@BUILD_ID@"
 #define TITLE_BAR_FORMAT_IDLE "@TITLE_BAR_FORMAT_IDLE@"
 #define TITLE_BAR_FORMAT_RUNNING "@TITLE_BAR_FORMAT_RUNNING@"
+#define IS_DEV_BUILD @IS_DEV_BUILD@
 
 namespace Common {
 
@@ -30,6 +31,7 @@ const char g_build_version[] = BUILD_VERSION;
 const char g_build_id[] = BUILD_ID;
 const char g_title_bar_format_idle[] = TITLE_BAR_FORMAT_IDLE;
 const char g_title_bar_format_running[] = TITLE_BAR_FORMAT_RUNNING;
+const bool g_is_dev_build = IS_DEV_BUILD;
 
 /// Anonymizes SCM data
 /// This is quite weak. But better than nothing.

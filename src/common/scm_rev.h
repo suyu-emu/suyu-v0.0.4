@@ -16,5 +16,6 @@ extern const char g_build_id[];
 extern const char g_title_bar_format_idle[];
 extern const char g_title_bar_format_running[];
 extern const char g_shader_cache_version[];
+extern const bool g_is_dev_build;
 
 } // namespace Common
