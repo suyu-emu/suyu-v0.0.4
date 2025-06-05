@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <array>
 #include <future>
 #include <QColor>
@@ -27,8 +30,7 @@
 
 class ChatMessage {
 public:
-    explicit ChatMessage(const Network::ChatEntry& chat, Network::RoomNetwork& room_network,
-                         QTime ts = {}) {
+    explicit ChatMessage(const Network::ChatEntry& chat, QTime ts = {}) {
         /// Convert the time to their default locale defined format
         QLocale locale;
         timestamp = locale.toString(ts.isValid() ? ts : QTime::currentTime(), QLocale::ShortFormat);
@@ -38,7 +40,7 @@ public:
 
         // Check for user pings
         QString cur_nickname, cur_username;
-        if (auto room = room_network.GetRoomMember().lock()) {
+        if (auto room = Network::GetRoomMember().lock()) {
             cur_nickname = QString::fromStdString(room->GetNickname());
             cur_username = QString::fromStdString(room->GetUsername());
         }
@@ -202,10 +204,9 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
 
 ChatRoom::~ChatRoom() = default;
 
-void ChatRoom::Initialize(Network::RoomNetwork* room_network_) {
-    room_network = room_network_;
+void ChatRoom::Initialize() {
     // setup the callbacks for network updates
-    if (auto member = room_network->GetRoomMember().lock()) {
+    if (auto member = Network::GetRoomMember().lock()) {
         member->BindOnChatMessageReceived(
             [this](const Network::ChatEntry& chat) { emit ChatReceived(chat); });
         member->BindOnStatusMessageReceived(
@@ -239,7 +240,7 @@ void ChatRoom::AppendChatMessage(const QString& msg) {
 }
 
 void ChatRoom::SendModerationRequest(Network::RoomMessageTypes type, const std::string& nickname) {
-    if (auto room = room_network->GetRoomMember().lock()) {
+    if (auto room = Network::GetRoomMember().lock()) {
         auto members = room->GetMemberInformation();
         auto it = std::find_if(members.begin(), members.end(),
                                [&nickname](const Network::RoomMember::MemberInformation& member) {
@@ -259,7 +260,7 @@ bool ChatRoom::ValidateMessage(const std::string& msg) {
 
 void ChatRoom::OnRoomUpdate(const Network::RoomInformation& info) {
     // TODO(B3N30): change title
-    if (auto room_member = room_network->GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         SetPlayerList(room_member->GetMemberInformation());
     }
 }
@@ -278,7 +279,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
     if (!ValidateMessage(chat.message)) {
         return;
     }
-    if (auto room = room_network->GetRoomMember().lock()) {
+    if (auto room = Network::GetRoomMember().lock()) {
         // get the id of the player
         auto members = room->GetMemberInformation();
         auto it = std::find_if(members.begin(), members.end(),
@@ -296,7 +297,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
             return;
         }
         auto player = std::distance(members.begin(), it);
-        ChatMessage m(chat, *room_network);
+        ChatMessage m(chat);
         if (m.ContainsPing()) {
             emit UserPinged();
         }
@@ -335,7 +336,7 @@ void ChatRoom::OnStatusMessageReceive(const Network::StatusMessageEntry& status_
 }
 
 void ChatRoom::OnSendChat() {
-    if (auto room_member = room_network->GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (!room_member->IsConnected()) {
             return;
         }
@@ -357,7 +358,7 @@ void ChatRoom::OnSendChat() {
             LOG_INFO(Network, "Cannot find self in the player list when sending a message.");
         }
         auto player = std::distance(members.begin(), it);
-        ChatMessage m(chat, *room_network);
+        ChatMessage m(chat);
         room_member->SendChatMessage(message);
         AppendChatMessage(m.GetPlayerChatMessage(player));
         ui->chat_message->clear();
@@ -451,7 +452,7 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
     }
 
     std::string cur_nickname;
-    if (auto room = room_network->GetRoomMember().lock()) {
+    if (auto room = Network::GetRoomMember().lock()) {
         cur_nickname = room->GetNickname();
     }
 

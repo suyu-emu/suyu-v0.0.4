@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -404,7 +407,7 @@ int main(int argc, char** argv) {
     }
 
     if (use_multiplayer) {
-        if (auto member = system.GetRoomNetwork().GetRoomMember().lock()) {
+        if (auto member = Network::GetRoomMember().lock()) {
             member->BindOnChatMessageReceived(OnMessageReceived);
             member->BindOnStatusMessageReceived(OnStatusMessageReceived);
             member->BindOnStateChanged(OnStateChanged);

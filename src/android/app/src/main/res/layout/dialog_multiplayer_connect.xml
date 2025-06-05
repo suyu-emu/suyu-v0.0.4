@@ -28,7 +28,7 @@
 
         <ImageView
             android:layout_width="140dp"
-            android:layout_height="140dp"
+            android:layout_height="114dp"
             android:layout_gravity="center"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="24dp"
@@ -38,19 +38,45 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="horizontal">
+
+            <Space
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_lobby_browser"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="175dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/multiplayer_public_room"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_search" />
+
+            <Space
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_join"
-                style="@style/Widget.Material3.Button.TonalButton"
+                style="@style/Widget.Material3.Button.ElevatedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/multiplayer_join_room"
-                app:icon="@drawable/ic_install"
-                app:cornerRadius="16dp" />
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_install" />
 
             <Space
                 android:layout_width="16dp"
@@ -58,13 +84,13 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_create"
-                style="@style/Widget.Material3.Button"
+                style="@style/Widget.Material3.Button.ElevatedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/multiplayer_create_room"
-                app:icon="@drawable/ic_add"
-                app:cornerRadius="16dp" />
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_add" />
 
         </LinearLayout>
 

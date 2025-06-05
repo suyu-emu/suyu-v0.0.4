@@ -1,16 +1,14 @@
-// Copyright 2024 Mandarine Project
-// Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
-
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 
 package org.yuzu.yuzu_emu.network
 
 import android.app.Activity
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.format.Formatter
@@ -19,10 +17,27 @@ import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.dialogs.ChatMessage
+import java.net.Inet4Address
 
 object NetPlayManager {
-    external fun netPlayCreateRoom(ipAddress: String, port: Int, username: String, password: String, roomName: String, maxPlayers: Int): Int
-    external fun netPlayJoinRoom(ipAddress: String, port: Int, username: String, password: String): Int
+    external fun netPlayCreateRoom(
+        ipAddress: String,
+        port: Int,
+        username: String,
+        preferredGameName: String,
+        preferredGameId: Long,
+        password: String,
+        roomName: String,
+        maxPlayers: Int
+    ): Int
+
+    external fun netPlayJoinRoom(
+        ipAddress: String,
+        port: Int,
+        username: String,
+        password: String
+    ): Int
+
     external fun netPlayRoomInfo(): Array<String>
     external fun netPlayIsJoined(): Boolean
     external fun netPlayIsHostedRoom(): Boolean
@@ -33,6 +48,28 @@ object NetPlayManager {
     external fun netPlayGetBanList(): Array<String>
     external fun netPlayBanUser(username: String)
     external fun netPlayUnbanUser(username: String)
+    external fun netPlayGetPublicRooms(): Array<String>
+
+    data class RoomInfo(
+        val name: String,
+        val hasPassword: Boolean,
+        val maxPlayers: Int,
+        val ip: String,
+        val port: Int,
+        val description: String,
+        val owner: String,
+        val preferredGameId: Long,
+        val preferredGameName: String,
+        val members: MutableList<RoomMember> = mutableListOf()
+    )
+
+    data class RoomMember(
+        val username: String,
+        val nickname: String,
+        val gameId: Long,
+        val gameName: String
+    )
+
 
     private var messageListener: ((Int, String) -> Unit)? = null
     private var adapterRefreshListener: ((Int, String) -> Unit)? = null
@@ -41,11 +78,57 @@ object NetPlayManager {
         messageListener = listener
     }
 
+    fun getPublicRooms(): List<RoomInfo> {
+        val roomData = netPlayGetPublicRooms()
+        val rooms = mutableMapOf<String, RoomInfo>()
+
+        for (data in roomData) {
+            val parts = data.split("|")
+
+            if (parts[0] == "MEMBER" && parts.size >= 6) {
+                val roomName = parts[1]
+                val member = RoomMember(
+                    username = parts[2],
+                    nickname = parts[3],
+                    gameId = parts[4].toLongOrNull() ?: 0L,
+                    gameName = parts[5]
+                )
+                rooms[roomName]?.members?.add(member)
+            } else if (parts.size >= 9) {
+                val roomInfo = RoomInfo(
+                    name = parts[0],
+                    hasPassword = parts[1] == "1",
+                    maxPlayers = parts[2].toIntOrNull() ?: 0,
+                    ip = parts[3],
+                    port = parts[4].toIntOrNull() ?: 0,
+                    description = parts[5],
+                    owner = parts[6],
+                    preferredGameId = parts[7].toLongOrNull() ?: 0L,
+                    preferredGameName = parts[8]
+                )
+                rooms[roomInfo.name] = roomInfo
+            }
+        }
+
+        return rooms.values.toList()
+    }
+
+    fun refreshRoomListAsync(callback: (List<RoomInfo>) -> Unit) {
+        Thread {
+            val rooms = getPublicRooms()
+
+            Handler(Looper.getMainLooper()).post {
+                callback(rooms)
+            }
+        }.start()
+    }
+
     fun setOnAdapterRefreshListener(listener: (Int, String) -> Unit) {
         adapterRefreshListener = listener
     }
 
-    fun getUsername(activity: Context): String {        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+    fun getUsername(activity: Context): String {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
         val name = "Eden${(Math.random() * 100).toInt()}"
         return prefs.getString("NetPlayUsername", name) ?: name
     }
@@ -103,31 +186,36 @@ object NetPlayManager {
                 if (parts.size == 2) {
                     val nickname = parts[0].trim()
                     val chatMessage = parts[1].trim()
-                    addChatMessage(ChatMessage(
-                        nickname = nickname,
-                        username = "",
-                        message = chatMessage
-                    ))
+                    addChatMessage(
+                        ChatMessage(
+                            nickname = nickname,
+                            username = "",
+                            message = chatMessage
+                        )
+                    )
                 }
             }
+
             NetPlayStatus.MEMBER_JOIN,
             NetPlayStatus.MEMBER_LEAVE,
             NetPlayStatus.MEMBER_KICKED,
             NetPlayStatus.MEMBER_BANNED -> {
-                addChatMessage(ChatMessage(
-                    nickname = "System",
-                    username = "",
-                    message = message
-                ))
+                addChatMessage(
+                    ChatMessage(
+                        nickname = "System",
+                        username = "",
+                        message = message
+                    )
+                )
             }
         }
 
 
-            Handler(Looper.getMainLooper()).post {
-                if (!isChatOpen) {
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                }
+        Handler(Looper.getMainLooper()).post {
+            if (!isChatOpen) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
+        }
 
 
         messageListener?.invoke(type, msg)
@@ -159,34 +247,59 @@ object NetPlayManager {
             NetPlayStatus.ROOM_MODERATOR -> context.getString(R.string.multiplayer_room_moderator)
             NetPlayStatus.MEMBER_JOIN -> context.getString(R.string.multiplayer_member_join, msg)
             NetPlayStatus.MEMBER_LEAVE -> context.getString(R.string.multiplayer_member_leave, msg)
-            NetPlayStatus.MEMBER_KICKED -> context.getString(R.string.multiplayer_member_kicked, msg)
-            NetPlayStatus.MEMBER_BANNED -> context.getString(R.string.multiplayer_member_banned, msg)
+            NetPlayStatus.MEMBER_KICKED -> context.getString(
+                R.string.multiplayer_member_kicked,
+                msg
+            )
+
+            NetPlayStatus.MEMBER_BANNED -> context.getString(
+                R.string.multiplayer_member_banned,
+                msg
+            )
+
             NetPlayStatus.ADDRESS_UNBANNED -> context.getString(R.string.multiplayer_address_unbanned)
             NetPlayStatus.CHAT_MESSAGE -> msg
             else -> ""
         }
     }
 
-    fun getIpAddressByWifi(activity: Activity): String {
-        var ipAddress = 0
-        val wifiManager = activity.getSystemService(WifiManager::class.java)
-        val wifiInfo = wifiManager.connectionInfo
-        if (wifiInfo != null) {
-            ipAddress = wifiInfo.ipAddress
-        }
+    fun isConnectedToWifi(activity: Activity): Boolean {
+        val connectivityManager = activity.getSystemService(ConnectivityManager::class.java)
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+    }
 
-        if (ipAddress == 0) {
-            val dhcpInfo = wifiManager.dhcpInfo
-            if (dhcpInfo != null) {
-                ipAddress = dhcpInfo.ipAddress
+    fun getIpAddressByWifi(activity: Activity): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // For Android 12 (API 31) and above
+            val connectivityManager = activity.getSystemService(ConnectivityManager::class.java)
+            val network = connectivityManager.activeNetwork
+            val capabilities = connectivityManager.getNetworkCapabilities(network)
+
+            if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+                val linkProperties = connectivityManager.getLinkProperties(network)
+                linkProperties?.linkAddresses?.firstOrNull { it.address is Inet4Address }?.let {
+                    return it.address.hostAddress ?: "192.168.0.1"
+                }
             }
         }
 
-        return if (ipAddress == 0) {
-            "192.168.0.1"
-        } else {
-            Formatter.formatIpAddress(ipAddress)
+        // For Android 11 (API 30) and below
+        try {
+            val connectivityManager = activity.getSystemService(ConnectivityManager::class.java)
+            val network = connectivityManager.activeNetwork
+            if (network != null) {
+                val linkProperties = connectivityManager.getLinkProperties(network)
+                linkProperties?.linkAddresses?.firstOrNull { it.address is Inet4Address }?.let {
+                    return it.address.hostAddress ?: "192.168.0.1"
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+
+        return "192.168.0.1"
     }
 
     fun getBanList(): List<String> {

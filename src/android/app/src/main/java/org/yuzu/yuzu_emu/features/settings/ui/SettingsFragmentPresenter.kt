@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.features.settings.ui
@@ -200,6 +200,10 @@ class SettingsFragmentPresenter(
             add(IntSetting.LANGUAGE_INDEX.key)
             add(BooleanSetting.USE_CUSTOM_RTC.key)
             add(LongSetting.CUSTOM_RTC.key)
+
+            // TODO(alekpop): Add functionality
+//            add(HeaderSetting(R.string.network))
+//            add(StringSetting.WEB_TOKEN.key)
         }
     }
 

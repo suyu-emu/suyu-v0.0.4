@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <chrono>
 #include <thread>
 
@@ -18,7 +21,7 @@
 
 namespace Network {
 
-ProxySocket::ProxySocket(RoomNetwork& room_network_) noexcept : room_network{room_network_} {}
+ProxySocket::ProxySocket() noexcept {}
 
 ProxySocket::~ProxySocket() {
     if (fd == INVALID_SOCKET) {
@@ -187,7 +190,7 @@ std::pair<s32, Errno> ProxySocket::Send(std::span<const u8> message, int flags) 
 }
 
 void ProxySocket::SendPacket(ProxyPacket& packet) {
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             packet.data = Common::Compression::CompressDataZSTDDefault(packet.data.data(),
                                                                        packet.data.size());
@@ -205,7 +208,7 @@ std::pair<s32, Errno> ProxySocket::SendTo(u32 flags, std::span<const u8> message
         return {static_cast<s32>(message.size()), Errno::SUCCESS};
     }
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (!room_member->IsConnected()) {
             return {static_cast<s32>(message.size()), Errno::SUCCESS};
         }
@@ -222,7 +225,7 @@ std::pair<s32, Errno> ProxySocket::SendTo(u32 flags, std::span<const u8> message
     // If the ip is all zeroes (INADDR_ANY) or if it matches the hosts ip address,
     // replace it with a "fake" routing address
     if (std::all_of(ip.begin(), ip.end(), [](u8 i) { return i == 0; }) || (ipv4 && ipv4 == ip)) {
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             packet.local_endpoint.ip = room_member->GetFakeIpAddress();
         }
     }

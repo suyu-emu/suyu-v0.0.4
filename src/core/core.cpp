@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <array>
@@ -111,7 +111,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
+        : kernel{system}, fs_controller{system}, hid_core{}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
     u64 program_id;
@@ -421,7 +421,7 @@ struct System::Impl {
         }
 
         LoadOverrides(program_id);
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
             game_info.id = params.program_id;
@@ -466,7 +466,7 @@ struct System::Impl {
         stop_event = {};
         Network::RestartSocketOperations();
 
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             Network::GameInfo game_info{};
             room_member->SendGameInfo(game_info);
         }
@@ -520,7 +520,6 @@ struct System::Impl {
     std::unique_ptr<Core::DeviceMemory> device_memory;
     std::unique_ptr<AudioCore::AudioCore> audio_core;
     Core::HID::HIDCore hid_core;
-    Network::RoomNetwork room_network;
 
     CpuManager cpu_manager;
     std::atomic_bool is_powered_on{};
@@ -977,14 +976,6 @@ Core::Debugger& System::GetDebugger() {
 
 const Core::Debugger& System::GetDebugger() const {
     return *impl->debugger;
-}
-
-Network::RoomNetwork& System::GetRoomNetwork() {
-    return impl->room_network;
-}
-
-const Network::RoomNetwork& System::GetRoomNetwork() const {
-    return impl->room_network;
 }
 
 Tools::RenderdocAPI& System::GetRenderdocAPI() {

@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <memory>
 
 #include "core/core.h"
@@ -22,7 +25,7 @@ namespace Service::LDN {
 IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& system_)
     : ServiceFramework{system_, "IUserLocalCommunicationService"},
       service_context{system, "IUserLocalCommunicationService"},
-      room_network{system_.GetRoomNetwork()}, lan_discovery{room_network} {
+      lan_discovery{} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, C<&IUserLocalCommunicationService::GetState>, "GetState"},
@@ -65,7 +68,7 @@ IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& sys
 
 IUserLocalCommunicationService::~IUserLocalCommunicationService() {
     if (is_initialized) {
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             room_member->Unbind(ldn_packet_received);
         }
     }
@@ -103,7 +106,7 @@ Result IUserLocalCommunicationService::GetIpv4Address(Out<Ipv4Address> out_curre
     *out_subnet_mask = {Network::TranslateIPv4(network_interface->subnet_mask)};
 
     // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             *out_current_address = room_member->GetFakeIpAddress();
         }
@@ -280,7 +283,7 @@ Result IUserLocalCommunicationService::Initialize(ClientProcessId aruid) {
     const auto network_interface = Network::GetSelectedNetworkInterface();
     R_UNLESS(network_interface, ResultAirplaneModeEnabled);
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         ldn_packet_received = room_member->BindOnLdnPacketReceived(
             [this](const Network::LDNPacket& packet) { OnLDNPacketReceived(packet); });
     } else {
@@ -295,7 +298,7 @@ Result IUserLocalCommunicationService::Initialize(ClientProcessId aruid) {
 
 Result IUserLocalCommunicationService::Finalize() {
     LOG_INFO(Service_LDN, "called");
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         room_member->Unbind(ldn_packet_received);
     }
 

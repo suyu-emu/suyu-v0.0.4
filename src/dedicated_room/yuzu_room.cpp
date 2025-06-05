@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// SPDX-FileCopyrightText: 2025 eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <chrono>
@@ -55,22 +55,22 @@ static void PrintHelp(const char* argv0) {
     LOG_INFO(Network,
              "Usage: {}"
              " [options] <filename>\n"
-             "--room-name         The name of the room\n"
-             "--room-description  The room description\n"
-             "--bind-address      The bind address for the room\n"
-             "--port              The port used for the room\n"
-             "--max_members       The maximum number of players for this room\n"
-             "--password          The password for the room\n"
-             "--preferred-game    The preferred game for this room\n"
-             "--preferred-game-id The preferred game-id for this room\n"
-             "--username          The username used for announce\n"
-             "--token             The token used for announce\n"
-             "--web-api-url       yuzu Web API url\n"
-             "--ban-list-file     The file for storing the room ban list\n"
-             "--log-file          The file for storing the room log\n"
-             "--enable-yuzu-mods Allow yuzu Community Moderators to moderate on your room\n"
-             "-h, --help          Display this help and exit\n"
-             "-v, --version       Output version information and exit\n",
+             "-n, --room-name         The name of the room\n"
+             "-d, --room-description  The room description\n"
+             "-s, --bind-address      The bind address for the room\n"
+             "-p, --port              The port used for the room\n"
+             "-m, --max-members       The maximum number of players for this room\n"
+             "-w, --password          The password for the room\n"
+             "-g, --preferred-game    The preferred game for this room\n"
+             "-i, --preferred-game-id The preferred game-id for this room\n"
+             "-u, --username          The username used for announce\n"
+             "-t, --token             The token used for announce\n"
+             "-a, --web-api-url       yuzu Web API url\n"
+             "-b, --ban-list-file     The file for storing the room ban list\n"
+             "-l, --log-file          The file for storing the room log\n"
+             "-e, --enable-mods       Allow Community Moderators to moderate on your room\n"
+             "-h, --help              Display this help and exit\n"
+             "-v, --version           Output version information and exit\n",
              argv0);
 }
 
@@ -209,19 +209,18 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
     std::string token;
     std::string web_api_url;
     std::string ban_list_file;
-    std::string log_file = "yuzu-room.log";
+    std::string log_file = "eden-room.log";
     std::string bind_address;
     u64 preferred_game_id = 0;
     u32 port = Network::DefaultRoomPort;
     u32 max_members = 16;
 
-    // TODO(alekpop): Implement this into main executable, for --room and a few others.
     static struct option long_options[] = {
         {"room-name", required_argument, 0, 'n'},
         {"room-description", required_argument, 0, 'd'},
         {"bind-address", required_argument, 0, 's'},
         {"port", required_argument, 0, 'p'},
-        {"max_members", required_argument, 0, 'm'},
+        {"max-members", required_argument, 0, 'm'},
         {"password", required_argument, 0, 'w'},
         {"preferred-game", required_argument, 0, 'g'},
         {"preferred-game-id", required_argument, 0, 'i'},
@@ -230,7 +229,7 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         {"web-api-url", required_argument, 0, 'a'},
         {"ban-list-file", required_argument, 0, 'b'},
         {"log-file", required_argument, 0, 'l'},
-        {"enable-yuzu-mods", no_argument, 0, 'e'},
+        {"enable-mods", no_argument, 0, 'e'},
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'v'},
         // Entry option
@@ -243,7 +242,9 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
     while (optind < argc) {
         int arg = getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
         if (arg != -1) {
-            switch (static_cast<char>(arg)) {
+            char carg = static_cast<char>(arg);
+
+            switch (carg) {
             case 'n':
                 room_name.assign(optarg);
                 break;
@@ -289,6 +290,8 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
             case 'v':
                 PrintVersion();
                 std::exit(0);
+            default:
+                break;
             }
         }
     }
@@ -373,9 +376,8 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }
 
-    Network::RoomNetwork network{};
-    network.Init();
-    if (auto room = network.GetRoom().lock()) {
+    Network::Init();
+    if (auto room = Network::GetRoom().lock()) {
         AnnounceMultiplayerRoom::GameInfo preferred_game_info{.name = preferred_game,
                                                               .id = preferred_game_id};
         if (!room->Create(room_name, room_description, bind_address, static_cast<u16>(port),
@@ -385,7 +387,7 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
             std::exit(-1);
         }
         LOG_INFO(Network, "Room is open. Close with Q+Enter...");
-        auto announce_session = std::make_unique<Core::AnnounceMultiplayerSession>(network);
+        auto announce_session = std::make_unique<Core::AnnounceMultiplayerSession>();
         if (announce) {
             announce_session->Start();
         }
@@ -407,7 +409,7 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         }
         room->Destroy();
     }
-    network.Shutdown();
+    Network::Shutdown();
     detached_tasks.WaitForAllTasks();
     std::exit(0);
 }

@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <array>
@@ -47,7 +50,7 @@ class LANDiscovery {
 public:
     using LanEventFunc = std::function<void()>;
 
-    LANDiscovery(Network::RoomNetwork& room_network_);
+    LANDiscovery();
     ~LANDiscovery();
 
     State GetState() const;
@@ -127,7 +130,5 @@ protected:
     std::optional<Ipv4Address> host_ip;
 
     LanEventFunc lan_event;
-
-    Network::RoomNetwork& room_network;
 };
 } // namespace Service::LDN

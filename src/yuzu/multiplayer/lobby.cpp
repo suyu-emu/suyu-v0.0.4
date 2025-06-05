@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <QInputDialog>
 #include <QList>
 #include <QtConcurrent/QtConcurrentRun>
@@ -28,8 +31,7 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
              std::shared_ptr<Core::AnnounceMultiplayerSession> session, Core::System& system_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
       ui(std::make_unique<Ui::Lobby>()),
-      announce_multiplayer_session(session), system{system_}, room_network{
-                                                                  system.GetRoomNetwork()} {
+      announce_multiplayer_session(session), system{system_} {
     ui->setupUi(this);
 
     // setup the watcher for background connections
@@ -146,7 +148,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
         }
     }
 
-    if (const auto member = room_network.GetRoomMember().lock()) {
+    if (const auto member = Network::GetRoomMember().lock()) {
         // Prevent the user from trying to join a room while they are already joining.
         if (member->GetState() == Network::RoomMember::State::Joining) {
             return;
@@ -184,7 +186,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
         proxy->data(connection_index, LobbyItemHost::HostVerifyUIDRole).toString().toStdString();
 
     // attempt to connect in a different thread
-    QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_uid, this] {
+    QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_uid] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
         if (!Settings::values.yuzu_username.GetValue().empty() &&
@@ -200,7 +202,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
             }
         }
 #endif
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             room_member->Join(nickname, ip.c_str(), port, 0, Network::NoPreferredIP, password,
                               token);
         }

@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <QAction>
 #include <QApplication>
 #include <QIcon>
@@ -22,8 +25,8 @@
 MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model_,
                                    QAction* leave_room_, QAction* show_room_, Core::System& system_)
     : QWidget(parent), game_list_model(game_list_model_), leave_room(leave_room_),
-      show_room(show_room_), system{system_}, room_network{system.GetRoomNetwork()} {
-    if (auto member = room_network.GetRoomMember().lock()) {
+      show_room(show_room_), system{system_} {
+    if (auto member = Network::GetRoomMember().lock()) {
         // register the network structs to use in slots and signals
         state_callback_handle = member->BindOnStateChanged(
             [this](const Network::RoomMember::State& state) { emit NetworkStateChanged(state); });
@@ -37,7 +40,7 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
     qRegisterMetaType<Network::RoomMember::State>();
     qRegisterMetaType<Network::RoomMember::Error>();
     qRegisterMetaType<WebService::WebResult>();
-    announce_multiplayer_session = std::make_shared<Core::AnnounceMultiplayerSession>(room_network);
+    announce_multiplayer_session = std::make_shared<Core::AnnounceMultiplayerSession>();
     announce_multiplayer_session->BindErrorCallback(
         [this](const WebService::WebResult& result) { emit AnnounceFailed(result); });
     connect(this, &MultiplayerState::AnnounceFailed, this, &MultiplayerState::OnAnnounceFailed);
@@ -62,13 +65,13 @@ MultiplayerState::~MultiplayerState() = default;
 
 void MultiplayerState::Close() {
     if (state_callback_handle) {
-        if (auto member = room_network.GetRoomMember().lock()) {
+        if (auto member = Network::GetRoomMember().lock()) {
             member->Unbind(state_callback_handle);
         }
     }
 
     if (error_callback_handle) {
-        if (auto member = room_network.GetRoomMember().lock()) {
+        if (auto member = Network::GetRoomMember().lock()) {
             member->Unbind(error_callback_handle);
         }
     }
@@ -256,9 +259,9 @@ void MultiplayerState::OnCreateRoom() {
 bool MultiplayerState::OnCloseRoom() {
     if (!NetworkMessage::WarnCloseRoom())
         return false;
-    if (auto room = room_network.GetRoom().lock()) {
+    if (auto room = Network::GetRoom().lock()) {
         // if you are in a room, leave it
-        if (auto member = room_network.GetRoomMember().lock()) {
+        if (auto member = Network::GetRoomMember().lock()) {
             member->Leave();
             LOG_DEBUG(Frontend, "Left the room (as a client)");
         }
@@ -292,10 +295,10 @@ void MultiplayerState::HideNotification() {
 }
 
 void MultiplayerState::OnOpenNetworkRoom() {
-    if (auto member = room_network.GetRoomMember().lock()) {
+    if (auto member = Network::GetRoomMember().lock()) {
         if (member->IsConnected()) {
             if (client_room == nullptr) {
-                client_room = new ClientRoomWindow(this, room_network);
+                client_room = new ClientRoomWindow(this);
                 connect(client_room, &ClientRoomWindow::ShowNotification, this,
                         &MultiplayerState::ShowNotification);
             }

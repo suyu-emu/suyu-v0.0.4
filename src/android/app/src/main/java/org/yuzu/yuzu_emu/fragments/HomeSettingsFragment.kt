@@ -1,9 +1,5 @@
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 
 package org.yuzu.yuzu_emu.fragments
 
@@ -128,7 +124,7 @@ class HomeSettingsFragment : Fragment() {
                     R.string.multiplayer_description,
                     R.drawable.ic_two_users,
                     {
-                        val action = mainActivity.displayMultiplayerDialog()
+                        mainActivity.displayMultiplayerDialog()
                     },
                 )
             )

@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <future>
 #include <QColor>
 #include <QImage>
@@ -18,14 +21,14 @@
 #include "yuzu/multiplayer/moderation_dialog.h"
 #include "yuzu/multiplayer/state.h"
 
-ClientRoomWindow::ClientRoomWindow(QWidget* parent, Network::RoomNetwork& room_network_)
+ClientRoomWindow::ClientRoomWindow(QWidget* parent)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::ClientRoom>()), room_network{room_network_} {
+      ui(std::make_unique<Ui::ClientRoom>()) {
     ui->setupUi(this);
-    ui->chat->Initialize(&room_network);
+    ui->chat->Initialize();
 
     // setup the callbacks for network updates
-    if (auto member = room_network.GetRoomMember().lock()) {
+    if (auto member = Network::GetRoomMember().lock()) {
         member->BindOnRoomInformationChanged(
             [this](const Network::RoomInformation& info) { emit RoomInformationChanged(info); });
         member->BindOnStateChanged(
@@ -44,7 +47,7 @@ ClientRoomWindow::ClientRoomWindow(QWidget* parent, Network::RoomNetwork& room_n
     ui->disconnect->setDefault(false);
     ui->disconnect->setAutoDefault(false);
     connect(ui->moderation, &QPushButton::clicked, [this] {
-        ModerationDialog dialog(room_network, this);
+        ModerationDialog dialog(this);
         dialog.exec();
     });
     ui->moderation->setDefault(false);
@@ -90,7 +93,7 @@ void ClientRoomWindow::Disconnect() {
 }
 
 void ClientRoomWindow::UpdateView() {
-    if (auto member = room_network.GetRoomMember().lock()) {
+    if (auto member = Network::GetRoomMember().lock()) {
         if (member->IsConnected()) {
             ui->chat->Enable();
             ui->disconnect->setEnabled(true);

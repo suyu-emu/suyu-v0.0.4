@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <array>
 #include <memory>
 #include <utility>
@@ -508,9 +511,9 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
 
     LOG_INFO(Service, "New socket fd={}", fd);
 
-    auto room_member = room_network.GetRoomMember().lock();
+    auto room_member = Network::GetRoomMember().lock();
     if (room_member && room_member->IsConnected()) {
-        descriptor.socket = std::make_shared<Network::ProxySocket>(room_network);
+        descriptor.socket = std::make_shared<Network::ProxySocket>();
     } else {
         descriptor.socket = std::make_shared<Network::Socket>();
     }
@@ -970,7 +973,7 @@ void BSD::OnProxyPacketReceived(const Network::ProxyPacket& packet) {
 }
 
 BSD::BSD(Core::System& system_, const char* name)
-    : ServiceFramework{system_, name}, room_network{system_.GetRoomNetwork()} {
+    : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &BSD::RegisterClient, "RegisterClient"},
@@ -1012,7 +1015,7 @@ BSD::BSD(Core::System& system_, const char* name)
 
     RegisterHandlers(functions);
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         proxy_packet_received = room_member->BindOnProxyPacketReceived(
             [this](const Network::ProxyPacket& packet) { OnProxyPacketReceived(packet); });
     } else {
@@ -1021,7 +1024,7 @@ BSD::BSD(Core::System& system_, const char* name)
 }
 
 BSD::~BSD() {
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         room_member->Unbind(proxy_packet_received);
     }
 }

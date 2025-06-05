@@ -9,30 +9,30 @@
 #include "yuzu/configuration/configure_web.h"
 #include "yuzu/uisettings.h"
 
-static constexpr char token_delimiter{':'};
+// static constexpr char token_delimiter{':'};
 
-static std::string GenerateDisplayToken(const std::string& username, const std::string& token) {
-    if (username.empty() || token.empty()) {
-        return {};
-    }
+// static std::string GenerateDisplayToken(const std::string& username, const std::string& token) {
+//     if (username.empty() || token.empty()) {
+//         return {};
+//     }
 
-    const std::string unencoded_display_token{username + token_delimiter + token};
-    QByteArray b{unencoded_display_token.c_str()};
-    QByteArray b64 = b.toBase64();
-    return b64.toStdString();
-}
+//     const std::string unencoded_display_token{username + token_delimiter + token};
+//     QByteArray b{unencoded_display_token.c_str()};
+//     QByteArray b64 = b.toBase64();
+//     return b64.toStdString();
+// }
 
-static std::string UsernameFromDisplayToken(const std::string& display_token) {
-    const std::string unencoded_display_token{
-        QByteArray::fromBase64(display_token.c_str()).toStdString()};
-    return unencoded_display_token.substr(0, unencoded_display_token.find(token_delimiter));
-}
+// static std::string UsernameFromDisplayToken(const std::string& display_token) {
+//     const std::string unencoded_display_token{
+//         QByteArray::fromBase64(display_token.c_str()).toStdString()};
+//     return unencoded_display_token.substr(0, unencoded_display_token.find(token_delimiter));
+// }
 
-static std::string TokenFromDisplayToken(const std::string& display_token) {
-    const std::string unencoded_display_token{
-        QByteArray::fromBase64(display_token.c_str()).toStdString()};
-    return unencoded_display_token.substr(unencoded_display_token.find(token_delimiter) + 1);
-}
+// static std::string TokenFromDisplayToken(const std::string& display_token) {
+//     const std::string unencoded_display_token{
+//         QByteArray::fromBase64(display_token.c_str()).toStdString()};
+//     return unencoded_display_token.substr(unencoded_display_token.find(token_delimiter) + 1);
+// }
 
 ConfigureWeb::ConfigureWeb(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()) {
@@ -66,7 +66,7 @@ void ConfigureWeb::RetranslateUI() {
            "color:#039be5;\">Sign up</span></a>"));
 
     ui->web_token_info_link->setText(
-        tr("<a href='https://eden-emulator.github.io/wiki/yuzu-web-service/'><span style=\"text-decoration: "
+        tr("<a href='https://evilperson1337.notion.site/Hosting-a-Room-Inside-of-Eden-20457c2edaf680108abac6215a79acdb'><span style=\"text-decoration: "
            "underline; color:#039be5;\">What is my token?</span></a>"));
 }
 
@@ -76,14 +76,10 @@ void ConfigureWeb::SetConfiguration() {
     ui->web_signup_link->setOpenExternalLinks(true);
     ui->web_token_info_link->setOpenExternalLinks(true);
 
-    if (Settings::values.yuzu_username.GetValue().empty()) {
-        ui->username->setText(tr("Unspecified"));
-    } else {
-        ui->username->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
-    }
-
-    ui->edit_token->setText(QString::fromStdString(GenerateDisplayToken(
-        Settings::values.yuzu_username.GetValue(), Settings::values.yuzu_token.GetValue())));
+    ui->edit_username->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
+    ui->edit_token->setText(QString::fromStdString(Settings::values.yuzu_token.GetValue()));
+    // ui->edit_token->setText(QString::fromStdString(GenerateDisplayToken(
+    //     Settings::values.yuzu_username.GetValue(), Settings::values.yuzu_token.GetValue())));
 
     // Connect after setting the values, to avoid calling OnLoginChanged now
     connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
@@ -95,15 +91,8 @@ void ConfigureWeb::SetConfiguration() {
 
 void ConfigureWeb::ApplyConfiguration() {
     UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
-    if (user_verified) {
-        Settings::values.yuzu_username =
-            UsernameFromDisplayToken(ui->edit_token->text().toStdString());
-        Settings::values.yuzu_token = TokenFromDisplayToken(ui->edit_token->text().toStdString());
-    } else {
-        QMessageBox::warning(
-            this, tr("Token not verified"),
-            tr("Token was not verified. The change to your token has not been saved."));
-    }
+    Settings::values.yuzu_username = ui->edit_username->text().toStdString();
+    Settings::values.yuzu_token = ui->edit_token->text().toStdString();
 }
 
 void ConfigureWeb::OnLoginChanged() {
@@ -124,30 +113,34 @@ void ConfigureWeb::OnLoginChanged() {
 }
 
 void ConfigureWeb::VerifyLogin() {
-    ui->button_verify_login->setDisabled(true);
-    ui->button_verify_login->setText(tr("Verifying..."));
-    ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("sync")).pixmap(16));
-    ui->label_token_verified->setToolTip(tr("Verifying..."));
+    QMessageBox::warning(this,
+                         tr("Warning"),
+                         tr("Verification is currently nonfunctional, instead generate a random "
+                            "48-character string with only lowercase a-z."));
+    // ui->button_verify_login->setDisabled(true);
+    // ui->button_verify_login->setText(tr("Verifying..."));
+    // ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("sync")).pixmap(16));
+    // ui->label_token_verified->setToolTip(tr("Verifying..."));
 }
 
 void ConfigureWeb::OnLoginVerified() {
-    ui->button_verify_login->setEnabled(true);
-    ui->button_verify_login->setText(tr("Verify"));
-    if (verify_watcher.result()) {
-        user_verified = true;
+    // ui->button_verify_login->setEnabled(true);
+    // ui->button_verify_login->setText(tr("Verify"));
+    // if (verify_watcher.result()) {
+    //     user_verified = true;
 
-        ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("checked")).pixmap(16));
-        ui->label_token_verified->setToolTip(tr("Verified", "Tooltip"));
-        ui->username->setText(
-            QString::fromStdString(UsernameFromDisplayToken(ui->edit_token->text().toStdString())));
-    } else {
-        ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("failed")).pixmap(16));
-        ui->label_token_verified->setToolTip(tr("Verification failed", "Tooltip"));
-        ui->username->setText(tr("Unspecified"));
-        QMessageBox::critical(this, tr("Verification failed"),
-                              tr("Verification failed. Check that you have entered your token "
-                                 "correctly, and that your internet connection is working."));
-    }
+    //     ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("checked")).pixmap(16));
+    //     ui->label_token_verified->setToolTip(tr("Verified", "Tooltip"));
+    //     ui->username->setText(
+    //         QString::fromStdString(UsernameFromDisplayToken(ui->edit_token->text().toStdString())));
+    // } else {
+    //     ui->label_token_verified->setPixmap(QIcon::fromTheme(QStringLiteral("failed")).pixmap(16));
+    //     ui->label_token_verified->setToolTip(tr("Verification failed", "Tooltip"));
+    //     ui->username->setText(tr("Unspecified"));
+    //     QMessageBox::critical(this, tr("Verification failed"),
+    //                           tr("Verification failed. Check that you have entered your token "
+    //                              "correctly, and that your internet connection is working."));
+    // }
 }
 
 void ConfigureWeb::SetWebServiceConfigEnabled(bool enabled) {

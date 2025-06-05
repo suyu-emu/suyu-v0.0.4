@@ -1,4 +1,7 @@
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import android.annotation.SuppressLint
@@ -162,7 +165,7 @@ android {
                 arguments(
                     "-DENABLE_QT=0", // Don't use QT
                     "-DENABLE_SDL2=0", // Don't use SDL
-                    "-DENABLE_WEB_SERVICE=0", // Don't use telemetry
+                    "-DENABLE_WEB_SERVICE=1", // Enable web service
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DYUZU_USE_BUNDLED_VCPKG=ON",
                     "-DYUZU_USE_BUNDLED_FFMPEG=ON",
@@ -176,9 +179,9 @@ android {
     }
 }
 
-tasks.create<Delete>("ktlintReset") {
-    delete(File(buildDir.path + File.separator + "intermediates/ktLint"))
-}
+tasks.register<Delete>("ktlintReset", fun Delete.() {
+    delete(File(layout.buildDirectory.toString() + File.separator + "intermediates/ktLint"))
+})
 
 val showFormatHelp = {
     logger.lifecycle(

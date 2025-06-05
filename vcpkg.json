@@ -38,8 +38,7 @@
             "description": "Enable web services (telemetry, etc.)",
             "dependencies": [
                 {
-                    "name": "openssl",
-                    "platform": "windows"
+                    "name": "openssl"
                 }
             ]
         }

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -68,11 +68,16 @@
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/shader_notify.h"
+#include "network/announce_multiplayer_session.h"
 
 #define jconst [[maybe_unused]] const auto
 #define jauto [[maybe_unused]] auto
 
 static EmulationSession s_instance;
+
+//Abdroid Multiplayer which can be initialized with parameters
+std::unique_ptr<AndroidMultiplayer> multiplayer{nullptr};
+std::shared_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
 
 EmulationSession::EmulationSession() {
     m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
@@ -916,12 +921,33 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, jobje
     return ContentManager::AreKeysPresent();
 }
 
+JNIEXPORT void JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_initMultiplayer(
+        JNIEnv* env, [[maybe_unused]] jobject obj) {
+    if (multiplayer) {
+        return;
+    }
+
+    announce_multiplayer_session = std::make_shared<Core::AnnounceMultiplayerSession>();
+
+    multiplayer = std::make_unique<AndroidMultiplayer>(s_instance.System(), announce_multiplayer_session);
+    multiplayer->NetworkInit();
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetPublicRooms(
+        JNIEnv *env, [[maybe_unused]] jobject obj) {
+    return Common::Android::ToJStringArray(env, multiplayer->NetPlayGetPublicRooms());
+}
+
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayCreateRoom(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port,
-        jstring username, jstring password, jstring room_name, jint max_players) {
+        jstring username, jstring preferredGameName, jlong preferredGameId, jstring password,
+        jstring room_name, jint max_players) {
     return static_cast<jint>(
-            NetPlayCreateRoom(Common::Android::GetJString(env, ipaddress), port,
-                              Common::Android::GetJString(env, username), Common::Android::GetJString(env, password),
+            multiplayer->NetPlayCreateRoom(Common::Android::GetJString(env, ipaddress), port,
+                              Common::Android::GetJString(env, username), Common::Android::GetJString(env, preferredGameName),
+                              preferredGameId,Common::Android::GetJString(env, password),
                               Common::Android::GetJString(env, room_name), max_players));
 }
 
@@ -929,70 +955,63 @@ JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayJoi
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port,
         jstring username, jstring password) {
     return static_cast<jint>(
-            NetPlayJoinRoom(Common::Android::GetJString(env, ipaddress), port,
+            multiplayer->NetPlayJoinRoom(Common::Android::GetJString(env, ipaddress), port,
                             Common::Android::GetJString(env, username), Common::Android::GetJString(env, password)));
 }
 
 JNIEXPORT jobjectArray JNICALL
 Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayRoomInfo(
         JNIEnv* env, [[maybe_unused]] jobject obj) {
-    return Common::Android::ToJStringArray(env, NetPlayRoomInfo());
+    return Common::Android::ToJStringArray(env, multiplayer->NetPlayRoomInfo());
 }
 
 JNIEXPORT jboolean JNICALL
 Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsJoined(
         [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
-    return NetPlayIsJoined();
+    return multiplayer->NetPlayIsJoined();
 }
 
 JNIEXPORT jboolean JNICALL
 Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsHostedRoom(
         [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
-    return NetPlayIsHostedRoom();
+    return multiplayer->NetPlayIsHostedRoom();
 }
 
 JNIEXPORT void JNICALL
 Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlaySendMessage(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring msg) {
-    NetPlaySendMessage(Common::Android::GetJString(env, msg));
+    multiplayer->NetPlaySendMessage(Common::Android::GetJString(env, msg));
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayKickUser(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
-    NetPlayKickUser(Common::Android::GetJString(env, username));
+    multiplayer->NetPlayKickUser(Common::Android::GetJString(env, username));
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayLeaveRoom(
         [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
-    NetPlayLeaveRoom();
+    multiplayer->NetPlayLeaveRoom();
 }
 
 JNIEXPORT jboolean JNICALL
 Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayIsModerator(
         [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
-    return NetPlayIsModerator();
+    return multiplayer->NetPlayIsModerator();
 }
 
 JNIEXPORT jobjectArray JNICALL
 Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetBanList(
         JNIEnv* env, [[maybe_unused]] jobject obj) {
-    return Common::Android::ToJStringArray(env, NetPlayGetBanList());
+    return Common::Android::ToJStringArray(env, multiplayer->NetPlayGetBanList());
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayBanUser(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
-    NetPlayBanUser(Common::Android::GetJString(env, username));
+    multiplayer->NetPlayBanUser(Common::Android::GetJString(env, username));
 }
 
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayUnbanUser(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
-    NetPlayUnbanUser(Common::Android::GetJString(env, username));
+    multiplayer->NetPlayUnbanUser(Common::Android::GetJString(env, username));
 }
-
-JNIEXPORT void JNICALL
-Java_org_yuzu_yuzu_1emu_NativeLibrary_netPlayInit(
-        JNIEnv* env, [[maybe_unused]] jobject obj) {
-    NetworkInit(&EmulationSession::GetInstance().System().GetRoomNetwork());
-}
-
 } // extern "C"

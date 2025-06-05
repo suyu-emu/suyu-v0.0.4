@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <QComboBox>
 #include <QFuture>
 #include <QIntValidator>
@@ -24,8 +27,7 @@ enum class ConnectionType : u8 { TraversalServer, IP };
 
 DirectConnectWindow::DirectConnectWindow(Core::System& system_, QWidget* parent)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::DirectConnect>()), system{system_}, room_network{
-                                                                      system.GetRoomNetwork()} {
+      ui(std::make_unique<Ui::DirectConnect>()), system{system_} {
 
     ui->setupUi(this);
 
@@ -71,7 +73,7 @@ void DirectConnectWindow::Connect() {
             return;
         }
     }
-    if (const auto member = room_network.GetRoomMember().lock()) {
+    if (const auto member = Network::GetRoomMember().lock()) {
         // Prevent the user from trying to join a room while they are already joining.
         if (member->GetState() == Network::RoomMember::State::Joining) {
             return;
@@ -104,7 +106,7 @@ void DirectConnectWindow::Connect() {
 
     // attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([&] {
-        if (auto room_member = room_network.GetRoomMember().lock()) {
+        if (auto room_member = Network::GetRoomMember().lock()) {
             auto port = UISettings::values.multiplayer_port.GetValue();
             room_member->Join(ui->nickname->text().toStdString(),
                               ui->ip->text().toStdString().c_str(), port, 0, Network::NoPreferredIP,
@@ -129,7 +131,7 @@ void DirectConnectWindow::EndConnecting() {
 void DirectConnectWindow::OnConnection() {
     EndConnecting();
 
-    if (auto room_member = room_network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             close();
         }

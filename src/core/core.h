@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <cstddef>
@@ -102,10 +105,6 @@ class CoreTiming;
 
 namespace Core::HID {
 class HIDCore;
-}
-
-namespace Network {
-class RoomNetwork;
 }
 
 namespace Tools {
@@ -379,12 +378,6 @@ public:
 
     [[nodiscard]] Core::Debugger& GetDebugger();
     [[nodiscard]] const Core::Debugger& GetDebugger() const;
-
-    /// Gets a mutable reference to the Room Network.
-    [[nodiscard]] Network::RoomNetwork& GetRoomNetwork();
-
-    /// Gets an immutable reference to the Room Network.
-    [[nodiscard]] const Network::RoomNetwork& GetRoomNetwork() const;
 
     [[nodiscard]] Tools::RenderdocAPI& GetRenderdocAPI();
 

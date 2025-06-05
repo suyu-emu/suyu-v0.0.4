@@ -1,16 +1,15 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include "core/hle/service/service.h"
 
 namespace Core {
 class System;
-}
-
-namespace Network {
-class RoomNetwork;
 }
 
 namespace Service::NIFM {
@@ -42,8 +41,6 @@ private:
     void ConfirmSystemAvailability(HLERequestContext& ctx);
     void SetBackgroundRequestEnabled(HLERequestContext& ctx);
     void GetCurrentAccessPoint(HLERequestContext& ctx);
-
-    Network::RoomNetwork& network;
 };
 
 } // namespace Service::NIFM

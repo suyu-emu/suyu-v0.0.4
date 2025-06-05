@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -406,7 +409,7 @@ void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
     }();
 
     // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             network_profile_data.ip_setting_data.ip_address_setting.ip_address =
                 room_member->GetFakeIpAddress();
@@ -454,7 +457,7 @@ void IGeneralService::GetCurrentIpAddress(HLERequestContext& ctx) {
     }
 
     // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             ipv4 = room_member->GetFakeIpAddress();
         }
@@ -513,7 +516,7 @@ void IGeneralService::GetCurrentIpConfigInfo(HLERequestContext& ctx) {
     }();
 
     // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = network.GetRoomMember().lock()) {
+    if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             ip_config_info.ip_address_setting.ip_address = room_member->GetFakeIpAddress();
         }
@@ -643,7 +646,7 @@ void IGeneralService::GetCurrentAccessPoint(HLERequestContext& ctx) {
 }
 
 IGeneralService::IGeneralService(Core::System& system_)
-    : ServiceFramework{system_, "IGeneralService"}, network{system_.GetRoomNetwork()} {
+    : ServiceFramework{system_, "IGeneralService"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, &IGeneralService::GetClientId, "GetClientId"},

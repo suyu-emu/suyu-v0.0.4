@@ -399,6 +399,11 @@
     <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
     <string name="set_custom_rtc">Set custom RTC</string>
 
+    <!-- Network settings strings -->
+    <string name="web_token">Web Token</string>
+    <string name="web_token_description">Web token used for creating public lobbies. It is a 48-character string containing only lowercase a-z.</string>
+    <string name="network">Network</string>
+
     <!-- Graphics settings strings -->
     <string name="frame_skipping">WIP: Frameskip</string>
     <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames. This feature is still being worked on and will be enabled in future releases.</string>

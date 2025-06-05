@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <atomic>
@@ -15,7 +18,6 @@
 
 namespace Network {
 class Room;
-class RoomNetwork;
 } // namespace Network
 
 namespace Core {
@@ -28,7 +30,8 @@ namespace Core {
 class AnnounceMultiplayerSession {
 public:
     using CallbackHandle = std::shared_ptr<std::function<void(const WebService::WebResult&)>>;
-    AnnounceMultiplayerSession(Network::RoomNetwork& room_network_);
+
+    AnnounceMultiplayerSession();
     ~AnnounceMultiplayerSession();
 
     /**
@@ -91,8 +94,6 @@ private:
     std::unique_ptr<AnnounceMultiplayerRoom::Backend> backend;
 
     std::atomic_bool registered = false; ///< Whether the room has been registered
-
-    Network::RoomNetwork& room_network;
 };
 
 } // namespace Core

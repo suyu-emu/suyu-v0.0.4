@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <QWidget>
@@ -105,7 +108,6 @@ private:
 
     bool show_notification = false;
     Core::System& system;
-    Network::RoomNetwork& room_network;
 };
 
 Q_DECLARE_METATYPE(WebService::WebResult);

@@ -1,12 +1,9 @@
-// Copyright 2024 Mandarine Project
-// Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
-
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.dialogs
 
+import android.annotation.SuppressLint
 import android.content.Context
 import org.yuzu.yuzu_emu.R
 import android.content.res.Configuration
@@ -16,6 +13,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,10 +30,13 @@ import org.yuzu.yuzu_emu.databinding.ItemButtonNetplayBinding
 import org.yuzu.yuzu_emu.databinding.ItemTextNetplayBinding
 import org.yuzu.yuzu_emu.utils.CompatUtils
 import org.yuzu.yuzu_emu.network.NetPlayManager
+import org.yuzu.yuzu_emu.utils.GameHelper
 
 class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var adapter: NetPlayAdapter
 
+    private val gameNameList: MutableList<Array<String>> = mutableListOf()
+    private val gameIdList: MutableList<Array<Long>> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,12 +72,27 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             else -> {
                 DialogMultiplayerConnectBinding.inflate(layoutInflater).apply {
                     setContentView(root)
+                    for (game in GameHelper.cachedGameList) {
+                        val gameName = game.title
+                        if (gameNameList.none { it[0] == gameName }) {
+                            gameNameList.add(arrayOf(gameName))
+                        }
+
+                        val gameId = game.programId.toLong()
+                        if (gameIdList.none { it[0] == gameId }) {
+                            gameIdList.add(arrayOf(gameId))
+                        }
+                    }
                     btnCreate.setOnClickListener {
                         showNetPlayInputDialog(true)
                         dismiss()
                     }
                     btnJoin.setOnClickListener {
                         showNetPlayInputDialog(false)
+                        dismiss()
+                    }
+                    btnLobbyBrowser.setOnClickListener {
+                        LobbyBrowser(context).show()
                         dismiss()
                     }
                 }
@@ -208,10 +224,11 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         override fun getItemCount() = netPlayItems.size
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun refreshAdapterItems() {
         val handler = Handler(Looper.getMainLooper())
 
-        NetPlayManager.setOnAdapterRefreshListener() { type, msg ->
+        NetPlayManager.setOnAdapterRefreshListener() { _, _ ->
             handler.post {
                 adapter.netPlayItems.clear()
                 adapter.loadMultiplayerMenu()
@@ -244,6 +261,17 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         binding.ipPort.setText(NetPlayManager.getRoomPort(activity))
         binding.username.setText(NetPlayManager.getUsername(activity))
 
+        binding.dropdownPreferredGameName.apply {
+            setAdapter(
+                ArrayAdapter(
+                    activity,
+                    R.layout.dropdown_item,
+                    gameNameList.map { it[0] }
+                )
+            )
+        }
+
+        binding.preferredGameName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.roomName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.maxPlayersContainer.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.maxPlayersLabel.text = context.getString(R.string.multiplayer_max_players_value, binding.maxPlayers.value.toInt())
@@ -259,6 +287,8 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             val ipAddress = binding.ipAddress.text.toString()
             val username = binding.username.text.toString()
             val portStr = binding.ipPort.text.toString()
+            val preferredGameName = binding.dropdownPreferredGameName.text.toString()
+            val preferredGameId = gameIdList[gameNameList.indexOfFirst { it[0] == preferredGameName }][0]
             val password = binding.password.text.toString()
             val port = portStr.toIntOrNull() ?: run {
                 Toast.makeText(activity, R.string.multiplayer_port_invalid, Toast.LENGTH_LONG).show()
@@ -276,6 +306,13 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 return@setOnClickListener
             }
 
+            if (isCreateRoom && preferredGameName.isEmpty()) {
+                Toast.makeText(activity, R.string.multiplayer_preferred_game_name_invalid, Toast.LENGTH_LONG).show();
+                binding.btnConfirm.isEnabled = false
+                binding.btnConfirm.text = activity.getString(R.string.original_button_text)
+                return@setOnClickListener
+            }
+
             if (ipAddress.length < 7 || username.length < 5) {
                 Toast.makeText(activity, R.string.multiplayer_input_invalid, Toast.LENGTH_LONG).show()
                 binding.btnConfirm.isEnabled = true
@@ -283,7 +320,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             } else {
                 Handler(Looper.getMainLooper()).post {
                     val result = if (isCreateRoom) {
-                        NetPlayManager.netPlayCreateRoom(ipAddress, port, username, password, roomName, maxPlayers)
+                        NetPlayManager.netPlayCreateRoom(ipAddress, port, username, preferredGameName, preferredGameId, password, roomName, maxPlayers)
                     } else {
                         NetPlayManager.netPlayJoinRoom(ipAddress, port, username, password)
                     }

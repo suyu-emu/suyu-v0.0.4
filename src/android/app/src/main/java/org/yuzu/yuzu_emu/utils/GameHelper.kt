@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package org.yuzu.yuzu_emu.utils
 
 import android.content.SharedPreferences
@@ -13,10 +16,14 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
+import androidx.core.content.edit
+import androidx.core.net.toUri
 
 object GameHelper {
     private const val KEY_OLD_GAME_PATH = "game_path"
     const val KEY_GAMES = "Games"
+
+    var cachedGameList = mutableListOf<Game>()
 
     private lateinit var preferences: SharedPreferences
 
@@ -29,7 +36,7 @@ object GameHelper {
         val oldGamesDir = preferences.getString(KEY_OLD_GAME_PATH, "") ?: ""
         if (oldGamesDir.isNotEmpty()) {
             gameDirs.add(GameDir(oldGamesDir, true))
-            preferences.edit().remove(KEY_OLD_GAME_PATH).apply()
+            preferences.edit() { remove(KEY_OLD_GAME_PATH) }
         }
         gameDirs.addAll(NativeConfig.getGameDirs())
 
@@ -44,7 +51,7 @@ object GameHelper {
 
         val badDirs = mutableListOf<Int>()
         gameDirs.forEachIndexed { index: Int, gameDir: GameDir ->
-            val gameDirUri = Uri.parse(gameDir.uriString)
+            val gameDirUri = gameDir.uriString.toUri()
             val isValid = FileUtil.isTreeUriValid(gameDirUri)
             if (isValid) {
                 addGamesRecursive(
@@ -72,11 +79,12 @@ object GameHelper {
         games.forEach {
             serializedGames.add(Json.encodeToString(it))
         }
-        preferences.edit()
-            .remove(KEY_GAMES)
-            .putStringSet(KEY_GAMES, serializedGames)
-            .apply()
+        preferences.edit() {
+            remove(KEY_GAMES)
+                .putStringSet(KEY_GAMES, serializedGames)
+        }
 
+        cachedGameList = games.toMutableList()
         return games.toList()
     }
 

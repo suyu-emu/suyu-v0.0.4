@@ -274,6 +274,13 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_custom_rtc_description
                 )
             )
+            put(
+                StringInputSetting(
+                    StringSetting.WEB_TOKEN,
+                    titleId = R.string.web_token,
+                    descriptionId = R.string.web_token_description
+                )
+            )
             put(DateTimeSetting(LongSetting.CUSTOM_RTC, titleId = R.string.set_custom_rtc))
             put(
                 SingleChoiceSetting(

@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <memory>
@@ -19,7 +22,7 @@ class ModerationDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ModerationDialog(Network::RoomNetwork& room_network_, QWidget* parent = nullptr);
+    explicit ModerationDialog(QWidget* parent = nullptr);
     ~ModerationDialog();
 
 signals:
@@ -36,8 +39,6 @@ private:
     QStandardItemModel* model;
     Network::RoomMember::CallbackHandle<Network::StatusMessageEntry> callback_handle_status_message;
     Network::RoomMember::CallbackHandle<Network::Room::BanList> callback_handle_ban_list;
-
-    Network::RoomNetwork& room_network;
 };
 
 Q_DECLARE_METATYPE(Network::Room::BanList);

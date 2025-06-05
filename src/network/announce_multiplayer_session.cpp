@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <chrono>
 #include <future>
 #include <vector>
@@ -19,8 +22,7 @@ namespace Core {
 // Time between room is announced to web_service
 static constexpr std::chrono::seconds announce_time_interval(15);
 
-AnnounceMultiplayerSession::AnnounceMultiplayerSession(Network::RoomNetwork& room_network_)
-    : room_network{room_network_} {
+AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
 #ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
                                                      Settings::values.yuzu_username.GetValue(),
@@ -31,7 +33,7 @@ AnnounceMultiplayerSession::AnnounceMultiplayerSession(Network::RoomNetwork& roo
 }
 
 WebService::WebResult AnnounceMultiplayerSession::Register() {
-    auto room = room_network.GetRoom().lock();
+    auto room = Network::GetRoom().lock();
     if (!room) {
         return WebService::WebResult{WebService::WebResult::Code::LibError,
                                      "Network is not initialized", ""};
@@ -120,7 +122,7 @@ void AnnounceMultiplayerSession::AnnounceMultiplayerLoop() {
     std::future<WebService::WebResult> future;
     while (!shutdown_event.WaitUntil(update_time)) {
         update_time += announce_time_interval;
-        auto room = room_network.GetRoom().lock();
+        auto room = Network::GetRoom().lock();
         if (!room) {
             break;
         }

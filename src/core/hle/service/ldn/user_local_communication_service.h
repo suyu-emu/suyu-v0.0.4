@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include "core/hle/service/cmif_types.h"
@@ -11,10 +14,6 @@
 
 namespace Core {
 class System;
-}
-
-namespace Network {
-class RoomNetwork;
 }
 
 namespace Service::LDN {
@@ -91,7 +90,6 @@ private:
 
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* state_change_event;
-    Network::RoomNetwork& room_network;
     LANDiscovery lan_discovery;
 
     // Callback identifier for the OnLDNPacketReceived event.

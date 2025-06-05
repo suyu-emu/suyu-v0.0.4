@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cinttypes>
@@ -351,7 +351,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     play_time_manager = std::make_unique<PlayTime::PlayTimeManager>(system->GetProfileManager());
 
-    system->GetRoomNetwork().Init();
+    Network::Init();
 
     RegisterMetaTypes();
 
@@ -5183,7 +5183,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     render_window->close();
     multiplayer_state->Close();
     system->HIDCore().UnloadInputDevices();
-    system->GetRoomNetwork().Shutdown();
+    Network::Shutdown();
 
     QWidget::closeEvent(event);
 }

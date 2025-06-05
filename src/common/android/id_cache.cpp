@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <jni.h>
@@ -94,9 +94,9 @@ static jmethodID s_yuzu_input_device_get_supports_vibration;
 static jmethodID s_yuzu_input_device_vibrate;
 static jmethodID s_yuzu_input_device_get_axes;
 static jmethodID s_yuzu_input_device_has_keys;
+
 static jmethodID s_add_netplay_message;
 static jmethodID s_clear_chat;
-
 
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
@@ -405,7 +405,6 @@ jmethodID ClearChat() {
     return s_clear_chat;
 }
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -605,7 +604,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);
 
-    NetworkShutdown();
+    AndroidMultiplayer::NetworkShutdown();
 }
 
 #ifdef __cplusplus
