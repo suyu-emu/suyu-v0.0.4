@@ -455,7 +455,7 @@ class GamesFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
             val mlpSwipe = binding.swipeRefresh.layoutParams as ViewGroup.MarginLayoutParams
-            if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+            if (view.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR) {
                 mlpSwipe.leftMargin = leftInsets
                 mlpSwipe.rightMargin = rightInsets
             } else {

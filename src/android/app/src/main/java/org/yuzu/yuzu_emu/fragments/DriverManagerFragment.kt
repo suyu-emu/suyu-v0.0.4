@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -15,6 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +25,8 @@ import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.DriverAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
 import org.yuzu.yuzu_emu.model.DriverViewModel
@@ -103,6 +107,10 @@ class DriverManagerFragment : Fragment() {
             getDriver.launch(arrayOf("application/zip"))
         }
 
+        binding.buttonFetch.setOnClickListener {
+            binding.root.findNavController().navigate(R.id.action_driverManagerFragment_to_driverFetcherFragment)
+        }
+
         binding.listDrivers.apply {
             layoutManager = GridLayoutManager(
                 requireContext(),
@@ -112,6 +120,10 @@ class DriverManagerFragment : Fragment() {
         }
 
         setInsets()
+
+        if (!GpuDriverHelper.supportsCustomDriverLoading()) {
+            showDriverWarningDialog()
+        }
     }
 
     override fun onDestroy() {
@@ -134,6 +146,12 @@ class DriverManagerFragment : Fragment() {
 
             val fabSpacing = resources.getDimensionPixelSize(R.dimen.spacing_fab)
             binding.buttonInstall.updateMargins(
+                left = leftInsets + fabSpacing,
+                right = rightInsets + fabSpacing,
+                bottom = barInsets.bottom + fabSpacing
+            )
+
+            binding.buttonFetch.updateMargins(
                 left = leftInsets + fabSpacing,
                 right = rightInsets + fabSpacing,
                 bottom = barInsets.bottom + fabSpacing
@@ -195,4 +213,26 @@ class DriverManagerFragment : Fragment() {
                 return@newInstance Any()
             }.show(childFragmentManager, ProgressDialogFragment.TAG)
         }
+
+    fun showDriverWarningDialog() {
+        val shouldDisplayGpuWarning =
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getBoolean(Settings.PREF_SHOULD_SHOW_DRIVER_WARNING, true)
+        if (shouldDisplayGpuWarning) {
+            MessageDialogFragment.newInstance(
+                activity,
+                titleId = R.string.unsupported_gpu,
+                descriptionId = R.string.unsupported_gpu_warning,
+                positiveButtonTitleId = R.string.dont_show_again,
+                negativeButtonTitleId = R.string.close,
+                showNegativeButton = true,
+                positiveAction = {
+                    PreferenceManager.getDefaultSharedPreferences(requireContext())
+                        .edit() {
+                            putBoolean(Settings.PREF_SHOULD_SHOW_DRIVER_WARNING, false)
+                        }
+                }
+            ).show(requireActivity().supportFragmentManager, MessageDialogFragment.TAG)
+        }
+    }
 }

@@ -385,17 +385,6 @@
     <string name="user_data_export_cancelled">已取消导出数据</string>
     <string name="user_data_import_failed_description">请确保用户数据文件夹位于 zip 压缩包的根目录，并在 config/config.ini 路径中包含配置文件，然后重试。</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">抢先体验</string>
-    <string name="early_access_benefits">抢先体验的权益</string>
-    <string name="cutting_edge_features">最新功能</string>
-    <string name="early_access_updates">抢先更新</string>
-    <string name="no_manual_installation">无需手动安装</string>
-    <string name="prioritized_support">优先支持</string>
-    <string name="helping_game_preservation">帮助保留游玩历史</string>
-    <string name="our_eternal_gratitude">我们真诚的感激</string>
-    <string name="are_you_interested">您对此感兴趣吗？</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">运行速度限制</string>
     <string name="frame_limit_enable_description">将运行速度限制为正常速度的指定百分比。</string>

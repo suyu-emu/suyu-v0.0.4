@@ -326,10 +326,6 @@
     <string name="user_data_import_success">Uživatelská data byla úspěšně importována.</string>
     <string name="user_data_export_cancelled">Export zrušen</string>
 
-    <string name="no_manual_installation">Žádná manuální instalace</string>
-    <string name="prioritized_support">Prioritní podpora</string>
-    <string name="our_eternal_gratitude">Naše věčná vděčnost</string>
-    <string name="are_you_interested">Máte zájem?</string>
 
     <!-- General settings strings -->
     <string name="frame_limit_enable">Omezit rychlost</string>

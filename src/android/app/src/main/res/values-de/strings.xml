@@ -358,17 +358,6 @@ Wirklich fortfahren?</string>
     <string name="user_data_import_success">Nutzerdaten erfolgreich importiert</string>
     <string name="user_data_export_cancelled">Export abgebrochen</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Early Access</string>
-    <string name="early_access_benefits">Early Access Vorteile</string>
-    <string name="cutting_edge_features">Neueste Features</string>
-    <string name="early_access_updates">Früherer Zugriff auf Updates</string>
-    <string name="no_manual_installation">Keine manuelle Installation</string>
-    <string name="prioritized_support">Priorisierte Unterstützung</string>
-    <string name="helping_game_preservation">Beitrag zur Erhaltung der Spiele</string>
-    <string name="our_eternal_gratitude">Unsere ewige Dankbarkeit</string>
-    <string name="are_you_interested">Bist du interessiert?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Limitierte Geschwindigkeit</string>
     <string name="frame_limit_enable_description">Limitiert die Geschwindigkeit auf einen von dir festgelegten Prozentsatz.</string>

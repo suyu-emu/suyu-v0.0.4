@@ -388,17 +388,6 @@
     <string name="user_data_export_cancelled">صدور لغو شد</string>
     <string name="user_data_import_failed_description">مطمئن شوید که پوشه‌های داده کاربر در ریشه پوشه zip و حاوی یک فایل پیکربندی در config/config.ini هستند سپس دوباره امتحان کنید.</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">دسترسی زودهنگام</string>
-    <string name="early_access_benefits">مزایای دسترسی زودهنگام</string>
-    <string name="cutting_edge_features">ویژگی‌های پیشرفته</string>
-    <string name="early_access_updates">دسترسی زودهنگام به بروزرسانی‌ها</string>
-    <string name="no_manual_installation">بدون نصب دستی</string>
-    <string name="prioritized_support">پشتیبانی اولویت بندی شده</string>
-    <string name="helping_game_preservation">کمک به حفظ بازی</string>
-    <string name="our_eternal_gratitude">سپاس ابدی ما</string>
-    <string name="are_you_interested">مشتاق هستید؟</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">محدودیت سرعت</string>
     <string name="frame_limit_enable_description">سرعت شبیه‌سازی را به درصد مشخصی از سرعت عادی محدود می‌کند.</string>

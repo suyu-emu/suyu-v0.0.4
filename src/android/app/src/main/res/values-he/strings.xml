@@ -376,17 +376,6 @@
     <string name="user_data_export_cancelled">ייצוא בוטל</string>
     <string name="user_data_import_failed_description">ודא שנתוני המשתמש נמצאים בשורש קובץ ה zip ושהוא מכיל קובץ סידור ב config/config.ini ונסה שוב.</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">גישה מוקדמת</string>
-    <string name="early_access_benefits">יתרונות של גישה מקודמת</string>
-    <string name="cutting_edge_features">תכונות חותכות קצה</string>
-    <string name="early_access_updates">גישה מוקדמת לעדכונים</string>
-    <string name="no_manual_installation">ללא התקנה ידנית</string>
-    <string name="prioritized_support">תמיכה בעדיפות</string>
-    <string name="helping_game_preservation">עוזר בשמירת משחקים</string>
-    <string name="our_eternal_gratitude">התודה האינסופית שלנו</string>
-    <string name="are_you_interested">אתה מעוניין?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">הגבל מהירות</string>
     <string name="frame_limit_enable_description">מגביל את מהירות האמולציה לאחוז מהירות המבוקש מהמהירות הרגילה.</string>

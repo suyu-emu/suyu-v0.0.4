@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.Deflater
 import java.util.zip.ZipOutputStream
 import kotlin.IllegalStateException
+import androidx.core.net.toUri
 
 object FileUtil {
     const val PATH_TREE = "tree"
@@ -195,6 +196,10 @@ object FileUtil {
      * @return String display name
      */
     fun getFilename(uri: Uri): String {
+        if (uri.scheme == "file") {
+            return uri.lastPathSegment?.takeIf { it.isNotEmpty() } ?: throw IOException("Invalid file URI: $uri")
+        }
+
         val resolver = YuzuApplication.appContext.contentResolver
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_DISPLAY_NAME
@@ -236,7 +241,7 @@ object FileUtil {
         var size: Long = 0
         var c: Cursor? = null
         try {
-            val mUri = Uri.parse(path)
+            val mUri = path.toUri()
             c = resolver.query(mUri, columns, null, null, null)
             c!!.moveToNext()
             size = c.getLong(0)

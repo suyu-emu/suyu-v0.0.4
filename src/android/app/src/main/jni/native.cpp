@@ -567,6 +567,30 @@ jobjectArray Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getSystemDriverInfo(
     return j_driver_info;
 }
 
+jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv *env, jobject j_obj, jobject j_surf, jstring j_hook_lib_dir) {
+    const char* file_redirect_dir_{};
+    int featureFlags{};
+    std::string hook_lib_dir = Common::Android::GetJString(env, j_hook_lib_dir);
+    auto handle = adrenotools_open_libvulkan(RTLD_NOW, featureFlags, nullptr, hook_lib_dir.c_str(),
+                                             nullptr, nullptr, file_redirect_dir_, nullptr);
+    auto driver_library = std::make_shared<Common::DynamicLibrary>(handle);
+    InputCommon::InputSubsystem input_subsystem;
+    auto window =
+            std::make_unique<EmuWindow_Android>(ANativeWindow_fromSurface(env, j_surf), driver_library);
+
+    Vulkan::vk::InstanceDispatch dld;
+    Vulkan::vk::Instance vk_instance = Vulkan::CreateInstance(
+            *driver_library, dld, VK_API_VERSION_1_1, Core::Frontend::WindowSystemType::Android);
+
+    auto surface = Vulkan::CreateSurface(vk_instance, window->GetWindowInfo());
+
+    auto device = Vulkan::CreateDevice(vk_instance, dld, *surface);
+
+    const std::string model_name{device.GetModelName()};
+
+    return Common::Android::ToJString(env, model_name);
+}
+
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclass clazz) {
     Core::Crypto::KeyManager::Instance().ReloadKeys();
     return static_cast<jboolean>(Core::Crypto::KeyManager::Instance().AreKeysLoaded());

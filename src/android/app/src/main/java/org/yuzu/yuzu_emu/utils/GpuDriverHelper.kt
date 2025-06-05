@@ -202,6 +202,11 @@ object GpuDriverHelper {
         hookLibPath: String = GpuDriverHelper.hookLibPath!!
     ): Array<String>?
 
+    external fun getGpuModel(
+        surface: Surface = Surface(SurfaceTexture(true)),
+        hookLibPath: String = GpuDriverHelper.hookLibPath!!
+    ): String?
+
     // Parse the custom driver metadata to retrieve the name.
     val installedCustomDriverData: GpuDriverMetadata
         get() = GpuDriverMetadata(File(driverInstallationPath + META_JSON_FILENAME))

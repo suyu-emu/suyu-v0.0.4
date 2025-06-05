@@ -334,17 +334,6 @@
     <string name="licenses_description">Các dự án làm cho Eden trên Android trở thành điều có thể</string>
     <string name="build">Dựng</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Early Access</string>
-    <string name="early_access_benefits">Lợi ích của Early Access</string>
-    <string name="cutting_edge_features">Tính năng tiên tiến</string>
-    <string name="early_access_updates">Truy cập sớm vào cập nhật</string>
-    <string name="no_manual_installation">Không có cài đặt thủ công</string>
-    <string name="prioritized_support">Ưu tiên hỗ trợ</string>
-    <string name="helping_game_preservation">Hỗ trợ bảo tồn trò chơi</string>
-    <string name="our_eternal_gratitude">Sự biết ơn vô hạn của chúng tôi</string>
-    <string name="are_you_interested">Bạn có thấy thú vị không?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Giới hạn tốc độ</string>
     <string name="frame_limit_enable_description">Giới hạn tốc độ giả lập ở một phần trăm cụ thể của tốc độ bình thường.</string>

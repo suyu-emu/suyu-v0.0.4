@@ -334,17 +334,6 @@
     <string name="licenses_description">Projekty dzięki którym Eden mógł zostać stworzony</string>
     <string name="build">Wersja</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Wczesny dostęp</string>
-    <string name="early_access_benefits">Korzyści z wcześniejszego dostępu</string>
-    <string name="cutting_edge_features">Nowatorskie funkcje</string>
-    <string name="early_access_updates">Częste aktualizacje</string>
-    <string name="no_manual_installation">Automatyczne aktualizacje</string>
-    <string name="prioritized_support">Priorytetowe wsparcie</string>
-    <string name="helping_game_preservation">Pomoc w problemach z grami</string>
-    <string name="our_eternal_gratitude">Nasza wdzięczność</string>
-    <string name="are_you_interested">Jesteś zainteresowany?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Limit szybkość</string>
     <string name="frame_limit_enable_description">Włącz, aby ustawić procentowy limit szybkości emulacji</string>

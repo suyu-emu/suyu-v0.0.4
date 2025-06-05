@@ -365,17 +365,6 @@
     <string name="user_data_import_success">تم استيراد بيانات المستخدم بنجاح</string>
     <string name="user_data_export_cancelled">تم إلغاء التصدير</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">الوصول المبكر</string>
-    <string name="early_access_benefits">مزايا الوصول المبكر</string>
-    <string name="cutting_edge_features">ميزات متطورة</string>
-    <string name="early_access_updates">الوصول المبكر إلى التحديثات</string>
-    <string name="no_manual_installation">لا يوجد التثبيت اليدوي</string>
-    <string name="prioritized_support">الدعم ذو الأولوية</string>
-    <string name="helping_game_preservation">المساعدة في الحفاظ على اللعبة</string>
-    <string name="our_eternal_gratitude">امتناننا الأبدي</string>
-    <string name="are_you_interested">هل انت مهتم؟</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">الحد من السرعة</string>
     <string name="frame_limit_enable_description">يحد من سرعة المحاكاة بنسبة محددة من السرعة العادية</string>

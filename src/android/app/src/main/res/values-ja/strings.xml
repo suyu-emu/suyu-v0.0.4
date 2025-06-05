@@ -357,17 +357,6 @@
     <string name="user_data_import_success">ユーザデータのインポートに成功しました</string>
     <string name="user_data_export_cancelled">エクスポートをキャンセルしました</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">早期アクセス</string>
-    <string name="early_access_benefits">早期アクセスのメリット</string>
-    <string name="cutting_edge_features">最先端の機能</string>
-    <string name="early_access_updates">アップデートへの早期アクセス</string>
-    <string name="no_manual_installation">手動インストールが不要</string>
-    <string name="prioritized_support">優先サポート</string>
-    <string name="helping_game_preservation">ゲームの保存に貢献</string>
-    <string name="our_eternal_gratitude">私たちから永遠の感謝</string>
-    <string name="are_you_interested">興味がありますか？</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">エミュレーション速度を制限</string>
     <string name="frame_limit_enable_description">エミュレーション速度を指定した割合に制限します。</string>

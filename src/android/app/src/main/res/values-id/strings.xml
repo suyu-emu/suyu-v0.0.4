@@ -386,17 +386,6 @@
     <string name="user_data_export_cancelled">Ekspor Dibatalkan</string>
     <string name="user_data_import_failed_description">Pastikan folder data pengguna berada di akar folder zip dan berisi file konfigurasi di config/config.ini dan coba lagi.</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Akses lebih awal</string>
-    <string name="early_access_benefits">Manfaat Akses Awal</string>
-    <string name="cutting_edge_features">Fitur-fitur yang paling baru</string>
-    <string name="early_access_updates">Akses lebih awal untuk pembaruan</string>
-    <string name="no_manual_installation">Tidak ada instalasi manual</string>
-    <string name="prioritized_support">Dukungan yang diprioritaskan</string>
-    <string name="helping_game_preservation">Membantu pemeliharaan game</string>
-    <string name="our_eternal_gratitude">Ucapan terima kasih kami yang tak terhingga</string>
-    <string name="are_you_interested">Apa kamu tertarik?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Batas kecepatan</string>
     <string name="frame_limit_enable_description">Membatasi kecepatan emulasi ke persentase tertentu dari kecepatan normal</string>

@@ -334,17 +334,6 @@
     <string name="licenses_description">Prosjekter som gjør Eden for Android mulig</string>
     <string name="build">Bygg</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Tidlig tilgang</string>
-    <string name="early_access_benefits">Fordeler ved tidlig tilgang</string>
-    <string name="cutting_edge_features">Avanserte funksjoner</string>
-    <string name="early_access_updates">Tidlig tilgang til oppdateringer</string>
-    <string name="no_manual_installation">Ingen manuell installasjon</string>
-    <string name="prioritized_support">Prioritert støtte</string>
-    <string name="helping_game_preservation">Bidra til bevaring av spill</string>
-    <string name="our_eternal_gratitude">Vår evige takknemlighet</string>
-    <string name="are_you_interested">Er du interessert?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Begrense hastigheten</string>
     <string name="frame_limit_enable_description">Begrenser emuleringshastigheten til en spesifisert prosentandel av normal hastighet.</string>

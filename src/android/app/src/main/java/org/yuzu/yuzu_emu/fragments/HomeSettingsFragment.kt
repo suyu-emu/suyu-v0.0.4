@@ -116,7 +116,7 @@ class HomeSettingsFragment : Fragment() {
                             .actionHomeSettingsFragmentToDriverManagerFragment(null)
                         binding.root.findNavController().navigate(action)
                     },
-                    { GpuDriverHelper.supportsCustomDriverLoading() },
+                    {true},
                     R.string.custom_driver_not_supported,
                     R.string.custom_driver_not_supported_description,
                     driverViewModel.selectedDriverTitle

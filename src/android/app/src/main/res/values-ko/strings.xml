@@ -385,17 +385,6 @@
     <string name="user_data_export_cancelled">내보내기 취소됨</string>
     <string name="user_data_import_failed_description">유저 데이터 폴더가 ZIP 폴더의 루트 디렉토리에 위치하고 config/config.ini 구성 파일이 있는지 확인하고 다시 시도하세요.</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">앞서 해보기</string>
-    <string name="early_access_benefits">앞서 해보기 혜택</string>
-    <string name="cutting_edge_features">최신 기능</string>
-    <string name="early_access_updates">업데이트 미리 체험</string>
-    <string name="no_manual_installation">수동 설치 불필요</string>
-    <string name="prioritized_support">우선 지원</string>
-    <string name="helping_game_preservation">게임 보존 지원</string>
-    <string name="our_eternal_gratitude">우리의 영원한 감사의 마음</string>
-    <string name="are_you_interested">관심 있으세요?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">속도 제한</string>
     <string name="frame_limit_enable_description">에뮬레이션 속도를 정상 속도의 지정된 비율로 제한합니다.</string>

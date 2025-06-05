@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home_navigation"
     app:startDestination="@id/gamesFragment">
 
@@ -111,6 +112,9 @@
             app:argType="org.yuzu.yuzu_emu.model.Game"
             app:nullable="true"
             android:defaultValue="@null" />
+        <action
+            android:id="@+id/action_driverManagerFragment_to_driverFetcherFragment"
+            app:destination="@id/driverFetcherFragment" />
     </fragment>
     <fragment
         android:id="@+id/appletLauncherFragment"
@@ -164,5 +168,10 @@
             android:name="game"
             app:argType="org.yuzu.yuzu_emu.model.Game" />
     </fragment>
+    <fragment
+        android:id="@+id/driverFetcherFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.DriverFetcherFragment"
+        android:label="fragment_driver_fetcher"
+        tools:layout="@layout/fragment_driver_fetcher" />
 
 </navigation>

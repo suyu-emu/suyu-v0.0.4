@@ -378,17 +378,6 @@
     <string name="user_data_export_cancelled">Esportazione annullata</string>
     <string name="user_data_import_failed_description">Assicurati che la cartella dei Dati dell\'utente stiano nella radice del file.zip e che sia presente una cartella config in config/config.ini, poi, riprova.</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Accesso Anticipato</string>
-    <string name="early_access_benefits">Vantaggi dell\'accesso anticipato</string>
-    <string name="cutting_edge_features">Funzionalità all\'avanguardia</string>
-    <string name="early_access_updates">Accesso anticipato agli aggiornamenti</string>
-    <string name="no_manual_installation">Non installare manualmente.</string>
-    <string name="prioritized_support">Supporto prioritario</string>
-    <string name="helping_game_preservation">Aiuta a preservare il gioco</string>
-    <string name="our_eternal_gratitude">La nostra gratitudine eterna</string>
-    <string name="are_you_interested">Sei interessato?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Limita velocità</string>
     <string name="frame_limit_enable_description">Limita la velocità dell\'emulazione a una specifica percentuale della velocità normale.</string>

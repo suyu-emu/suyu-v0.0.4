@@ -391,17 +391,6 @@
     <string name="user_data_export_cancelled">Экспорт отменен</string>
     <string name="user_data_import_failed_description">Убедитесь что папки пользовательских данных находятся в корне zip-папки и содержат файл конфигурации config/config.ini и повторите попытку.</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Ранний доступ</string>
-    <string name="early_access_benefits">Преимущества раннего доступа</string>
-    <string name="cutting_edge_features">Новейшие возможности</string>
-    <string name="early_access_updates">Ранний доступ к обновлениям</string>
-    <string name="no_manual_installation">Без ручной установки</string>
-    <string name="prioritized_support">Приоритетная поддержка</string>
-    <string name="helping_game_preservation">Помощь в презервации игр</string>
-    <string name="our_eternal_gratitude">Наша бесконечная благодарность</string>
-    <string name="are_you_interested">Вы заинтересованы?</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">Ограничить скорость</string>
     <string name="frame_limit_enable_description">Ограничивает скорость эмуляции указанным процентом от нормальной скорости.</string>

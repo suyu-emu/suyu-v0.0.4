@@ -391,17 +391,6 @@
     <string name="user_data_export_cancelled">匯出已取消</string>
     <string name="user_data_import_failed_description">請確保使用者資料夾位於 zip 壓縮檔的根目錄，並在 config/config.ini 路徑中包含組態檔案，並再試一次。</string>
 
-    <!-- Early access upgrade strings -->
-    <string name="early_access">搶先體驗</string>
-    <string name="early_access_benefits">搶先體驗權益</string>
-    <string name="cutting_edge_features">最新功能</string>
-    <string name="early_access_updates">搶先版更新</string>
-    <string name="no_manual_installation">無需手動安裝</string>
-    <string name="prioritized_support">優先支援</string>
-    <string name="helping_game_preservation">協助遊戲保留</string>
-    <string name="our_eternal_gratitude">我們永遠的感激</string>
-    <string name="are_you_interested">您仍感興趣嗎？</string>
-
     <!-- General settings strings -->
     <string name="frame_limit_enable">限制速度</string>
     <string name="frame_limit_enable_description">將模擬速度限制在標準速度的指定百分比。</string>
