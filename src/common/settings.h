@@ -47,6 +47,7 @@ struct ResolutionScalingInfo {
 
 #ifndef CANNOT_EXPLICITLY_INSTANTIATE
 // Instantiate the classes elsewhere (settings.cpp) to reduce compiler/linker work
+// TODO(crueter): Move new enums here
 #define SETTING(TYPE, RANGED) extern template class Setting<TYPE, RANGED>
 #define SWITCHABLE(TYPE, RANGED) extern template class SwitchableSetting<TYPE, RANGED>
 
@@ -446,7 +447,7 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_fast_gpu_time{linkage,
-                                              true,
+                                              false,
                                               "use_fast_gpu_time",
                                               Category::RendererAdvanced,
                                               Specialization::Paired,
@@ -454,7 +455,7 @@ struct Values {
                                               true};
 
     SwitchableSetting<GpuOverclock> fast_gpu_time{linkage,
-                                                  GpuOverclock::Medium,
+                                                  GpuOverclock::Low,
                                                   "fast_gpu_time",
                                                   Category::RendererAdvanced,
                                                   Specialization::Default,
@@ -484,8 +485,8 @@ struct Values {
                                            Category::RendererExtensions,
                                            Specialization::Scalar};
 
-    SwitchableSetting<bool> provoking_vertex{linkage, true, "provoking_vertex", Category::RendererExtensions};
-    SwitchableSetting<bool> descriptor_indexing{linkage, true, "descriptor_indexing", Category::RendererExtensions};
+    SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
+    SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
