@@ -52,6 +52,11 @@ class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
     private val binding get() = _binding!!
 
+    private var originalHeaderTopMargin: Int? = null
+    private var originalHeaderBottomMargin: Int? = null
+    private var originalHeaderRightMargin: Int? = null
+    private var originalHeaderLeftMargin: Int? = null
+
     companion object {
         private const val SEARCH_TEXT = "SearchText"
         private const val PREF_VIEW_TYPE = "GamesViewType"
@@ -455,6 +460,8 @@ class GamesFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
             val topInsets = barInsets.top + cutoutInsets.top
+            val bottomInsets = barInsets.bottom + cutoutInsets.bottom
+
             val mlpSwipe = binding.swipeRefresh.layoutParams as ViewGroup.MarginLayoutParams
             if (view.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR) {
                 mlpSwipe.leftMargin = leftInsets
@@ -466,9 +473,20 @@ class GamesFragment : Fragment() {
             binding.swipeRefresh.layoutParams = mlpSwipe
 
             val mlpHeader = binding.header.layoutParams as ViewGroup.MarginLayoutParams
-            mlpHeader.leftMargin += leftInsets
-            mlpHeader.rightMargin += rightInsets
-            mlpHeader.topMargin += if (!isLandscape) topInsets else 0
+
+            // Store original margins only once
+            if (originalHeaderTopMargin == null) {
+                originalHeaderTopMargin = mlpHeader.topMargin
+                originalHeaderBottomMargin = mlpHeader.bottomMargin
+                originalHeaderRightMargin = mlpHeader.rightMargin
+                originalHeaderLeftMargin = mlpHeader.leftMargin
+            }
+
+            // Always set margin as original + insets
+            mlpHeader.leftMargin = (originalHeaderLeftMargin ?: 0) + leftInsets
+            mlpHeader.rightMargin = (originalHeaderRightMargin ?: 0) + rightInsets
+            mlpHeader.topMargin = (originalHeaderTopMargin ?: 0) + if (!isLandscape) topInsets else 0
+            mlpHeader.bottomMargin = (originalHeaderBottomMargin ?: 0) + if (!isLandscape) bottomInsets else 0
             binding.header.layoutParams = mlpHeader
 
             binding.noticeText.updatePadding(bottom = spacingNavigation)
