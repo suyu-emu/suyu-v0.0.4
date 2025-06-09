@@ -218,7 +218,7 @@ struct Values {
 
     // Memory
     #ifdef ANDROID
-    SwitchableSetting<bool> lru_cache_enabled{linkage, true, "use_lru_cache", Category::System};
+    SwitchableSetting<bool> lru_cache_enabled{linkage, false, "use_lru_cache", Category::System};
     #endif
 
     // Cpu
