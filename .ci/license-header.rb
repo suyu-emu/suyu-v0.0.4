@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 license_header = <<~EOF
-      // SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project / Eden Emulator Project
+      // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
       // SPDX-License-Identifier: GPL-3.0-or-later
       EOF
 
