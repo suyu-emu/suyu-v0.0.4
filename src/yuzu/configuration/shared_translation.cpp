@@ -668,7 +668,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                           }});
     translations->insert({Settings::EnumMetadata<Settings::CpuClock>::Index(),
                           {
-                              PAIR(CpuClock, Boost, tr("Boost (1700MHz")),
+                              PAIR(CpuClock, Boost, tr("Boost (1700MHz)")),
                               PAIR(CpuClock, Fast, tr("Fast (2000MHz)")),
                           }});
     translations->insert(
