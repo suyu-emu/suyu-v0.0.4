@@ -34,7 +34,6 @@
     </integer-array>
 
     <string-array name="clockNames">
-        <item>@string/clock_base</item>
         <item>@string/clock_boost</item>
         <item>@string/clock_fast</item>
     </string-array>
@@ -42,7 +41,6 @@
     <integer-array name="clockValues">
         <item>0</item>
         <item>1</item>
-        <item>2</item>
     </integer-array>
 
     <string-array name="languageNames">
