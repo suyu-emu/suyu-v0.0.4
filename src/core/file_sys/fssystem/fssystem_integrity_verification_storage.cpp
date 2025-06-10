@@ -1,18 +1,26 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/alignment.h"
 #include "core/file_sys/fssystem/fssystem_integrity_verification_storage.h"
+#include "common/alignment.h"
 
 namespace FileSys {
 
-constexpr inline u32 ILog2(u32 val) {
+constexpr inline u32 ILog2(u32 val)
+{
     ASSERT(val > 0);
     return static_cast<u32>((sizeof(u32) * 8) - 1 - std::countl_zero<u32>(val));
 }
 
-void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s64 verif_block_size,
-                                              s64 upper_layer_verif_block_size, bool is_real_data) {
+void IntegrityVerificationStorage::Initialize(VirtualFile hs,
+                                              VirtualFile ds,
+                                              s64 verif_block_size,
+                                              s64 upper_layer_verif_block_size,
+                                              bool is_real_data)
+{
     // Validate preconditions.
     ASSERT(verif_block_size >= HashSize);
 
@@ -32,22 +40,28 @@ void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s6
     ASSERT(m_upper_layer_verification_block_size == 1ll << m_upper_layer_verification_block_order);
 
     // Validate sizes.
-    {
+    if (m_data_storage != nullptr) {
         s64 hash_size = m_hash_storage->GetSize();
         s64 data_size = m_data_storage->GetSize();
         ASSERT(((hash_size / HashSize) * m_verification_block_size) >= data_size);
+    } else {
+        LOG_ERROR(Loader,
+                  "Failed to initialize integrity verification store. Game, update, or DLC may not "
+                  "work.");
     }
 
     // Set data.
     m_is_real_data = is_real_data;
 }
 
-void IntegrityVerificationStorage::Finalize() {
+void IntegrityVerificationStorage::Finalize()
+{
     m_hash_storage = VirtualFile();
     m_data_storage = VirtualFile();
 }
 
-size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset) const {
+size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset) const
+{
     // Succeed if zero size.
     if (size == 0) {
         return size;
@@ -56,7 +70,13 @@ size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset
     // Validate arguments.
     ASSERT(buffer != nullptr);
 
-    // Validate the offset.
+    if (m_data_storage == nullptr) {
+        LOG_ERROR(Loader,
+                  "Integrity verification store failed read operation. Game, update or DLC may not "
+                  "work.");
+        return 0;
+    }
+
     s64 data_size = m_data_storage->GetSize();
     ASSERT(offset <= static_cast<size_t>(data_size));
 
@@ -84,7 +104,8 @@ size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset
     return m_data_storage->Read(buffer, read_size, offset);
 }
 
-size_t IntegrityVerificationStorage::GetSize() const {
+size_t IntegrityVerificationStorage::GetSize() const
+{
     return m_data_storage->GetSize();
 }
 
