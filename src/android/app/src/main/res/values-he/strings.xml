@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">פינה תחתונה ימנית</string>
     <string name="overlay_position_center_top">מרכז עליון</string>
     <string name="overlay_position_center_bottom">מרכז תחתון</string>
-    <string name="overlay_background">רקע שכבה</string>
-    <string name="overlay_background_description">מוסיף רקע לשכבה לקריאה נוחה יותר</string>
+    <string name="perf_overlay_background">רקע שכבה</string>
+    <string name="perf_overlay_background_description">מוסיף רקע לשכבה לקריאה נוחה יותר</string>
     <string name="show_shaders_building">הצג בניית שיידרים</string>
     <string name="show_shaders_building_description">מציג את מספר השיידרים שנבנים כרגע</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">הצג מידע על המכשיר</string>
+    <string name="enable_soc_overlay">הפעל הצגת מידע על המכשיר</string>
+    <string name="soc_overlay_options">הצגת מידע על המכשיר</string>
+    <string name="soc_overlay_options_description">הגדר אילו פרטים יוצגו בהצגת המידע על המכשיר</string>
+
+    <string name="show_device_model">הצג דגם מכשיר</string>
+    <string name="show_device_model_description">הצג את דגם המכשיר המארח</string>
+    <string name="show_gpu_model">הצג דגם GPU</string>
+    <string name="show_gpu_model_description">הצג את דגם ה-GPU המארח</string>
+    <string name="show_soc_model">הצג דגם SoC</string>
+    <string name="show_soc_model_description">הצג את דגם ה-SoC המארח</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">הרחבות GPU</string>
+    <string name="veil_renderer">רנדרר</string>
+    <string name="veil_misc">שונות</string>
     <string name="eden_veil">עדן וייל</string>
     <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
     <string name="eden_veil_warning_title">הגדרות ניסיוניות</string>
@@ -129,75 +145,93 @@
     <string name="always">תמיד</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">מרובה משתתפים</string>
-    <string name="multiplayer_description">ארח או הצטרף לחדר משחק</string>
+    <string name="multiplayer">משחק מרובה משתתפים</string>
+    <string name="multiplayer_description">צור חדר משחק משלך או הצטרף לחדר קיים כדי לשחק עם אחרים</string>
     <string name="multiplayer_room_title">חדר: %1$s</string>
     <string name="multiplayer_console_id">מזהה קונסולה: %1$s</string>
     <string name="multiplayer_create_room">צור</string>
     <string name="multiplayer_join_room">הצטרף</string>
+    <string name="multiplayer_public_room">עיין בחדרים ציבוריים</string>
     <string name="multiplayer_username">שם משתמש</string>
     <string name="multiplayer_ip_address">כתובת IP</string>
     <string name="multiplayer_ip_port">פורט</string>
     <string name="multiplayer_create_room_success">החדר נוצר בהצלחה!</string>
     <string name="multiplayer_join_room_success">הצטרפת לחדר בהצלחה!</string>
-    <string name="multiplayer_create_room_failed">יצירת חדר נכשלה!</string>
+    <string name="multiplayer_create_room_failed">יצירת החדר נכשלה!</string>
     <string name="multiplayer_join_room_failed">הצטרפות לחדר נכשלה!</string>
     <string name="multiplayer_input_invalid">כתובת לא תקינה או שם קצר מדי!</string>
     <string name="multiplayer_port_invalid">פורט לא תקין!</string>
     <string name="multiplayer_exit_room">צא מהחדר</string>
     <string name="multiplayer_network_error">שגיאת רשת</string>
     <string name="multiplayer_lost_connection">החיבור אבד</string>
-    <string name="multiplayer_name_collision">שם תפוס</string>
-    <string name="multiplayer_mac_collision">MAC תפוס</string>
-    <string name="multiplayer_console_id_collision">מזהה קונסולה תפוס</string>
-    <string name="multiplayer_wrong_version">גרסה לא תואמת</string>
+    <string name="multiplayer_name_collision">התנגשות שמות</string>
+    <string name="multiplayer_mac_collision">התנגשות MAC</string>
+    <string name="multiplayer_console_id_collision">התנגשות מזהה קונסולה</string>
+    <string name="multiplayer_wrong_version">גרסה שגויה</string>
     <string name="multiplayer_wrong_password">סיסמה שגויה</string>
     <string name="multiplayer_could_not_connect">לא ניתן להתחבר</string>
     <string name="multiplayer_room_is_full">החדר מלא</string>
     <string name="multiplayer_host_banned">מארח חסום</string>
     <string name="multiplayer_permission_denied">הרשאה נדחתה</string>
-    <string name="multiplayer_no_such_user">משתמש לא קיים</string>
+    <string name="multiplayer_no_such_user">אין משתמש כזה</string>
     <string name="multiplayer_already_in_room">כבר בחדר</string>
     <string name="multiplayer_create_room_error">שגיאה ביצירת חדר</string>
     <string name="multiplayer_host_kicked">מארח הוסר</string>
     <string name="multiplayer_unknown_error">שגיאה לא ידועה</string>
-    <string name="multiplayer_room_uninitialized">חדר לא מאותחל</string>
-    <string name="multiplayer_room_idle">חדר במצב המתנה</string>
+    <string name="multiplayer_room_uninitialized">החדר לא אותחל</string>
+    <string name="multiplayer_room_idle">החדר במצב המתנה</string>
     <string name="multiplayer_room_joining">מצטרף לחדר</string>
     <string name="multiplayer_room_joined">הצטרף לחדר</string>
     <string name="multiplayer_room_moderator">מנהל חדר</string>
     <string name="multiplayer_member_join">%1$s הצטרף</string>
     <string name="multiplayer_member_leave">%1$s עזב</string>
     <string name="multiplayer_member_kicked">%1$s הוסר</string>
-    <string name="multiplayer_member_banned">%1$s חסום</string>
+    <string name="multiplayer_member_banned">%1$s נחסם</string>
     <string name="multiplayer_address_unbanned">כתובת שוחררה מחסימה</string>
-    <string name="multiplayer_kick_member">הסר משתמש</string>
-    <string name="multiplayer_chat_input_hint">שלח הודעה...</string>
+    <string name="multiplayer_kick_member">הסר</string>
+    <string name="multiplayer_chat_input_hint">שלח הודעה…</string>
     <string name="multiplayer_password">סיסמה</string>
     <string name="original_button_text">הצטרף</string>
     <string name="disabled_button_text">מצטרף...</string>
-    <string name="multiplayer_room_name">שם חדר</string>
-    <string name="multiplayer_room_name_invalid">שם חדר חייב להיות בין 3-20 תווים</string>
-    <string name="multiplayer_max_players">משתמשים מרביים (16)</string>
-    <string name="multiplayer_max_players_value">משתמשים מרביים: %d</string>
+    <string name="multiplayer_room_name">שם החדר</string>
+    <string name="multiplayer_room_name_invalid">שם החדר חייב להיות בין 3 ל-20 תווים</string>
+    <string name="multiplayer_max_players">משתתפים מקסימליים (16)</string>
+    <string name="multiplayer_max_players_value">משתתפים מקסימליים: %d</string>
     <string name="multiplayer_chat">צ\'אט</string>
     <string name="multiplayer_more_options">אפשרויות נוספות</string>
-    <string name="multiplayer_ip_copied">כתובת IP הועתקה</string>
-    <string name="multiplayer_server_address">כתובת שרת</string>
+    <string name="multiplayer_ip_copied">כתובת IP הועתקה ללוח</string>
+    <string name="multiplayer_server_address">כתובת השרת</string>
     <string name="chat">צ\'אט</string>
-    <string name="type_message">הקלד הודעה...</string>
+    <string name="type_message">הקלד הודעה…</string>
     <string name="send">שלח</string>
     <string name="send_message">שלח הודעה</string>
     <string name="multiplayer_moderation">ניהול</string>
     <string name="multiplayer_moderation_title">רשימת חסומים</string>
     <string name="multiplayer_no_bans">אין משתמשים חסומים</string>
-    <string name="multiplayer_unban_title">שחרור חסימה</string>
-    <string name="multiplayer_unban">שחרר</string>
-    <string name="multiplayer_unban_message">לשחרר את %1$s מחסימה?</string>
+    <string name="multiplayer_unban_title">שחרור משתמש מחסימה</string>
+    <string name="multiplayer_unban">שחרר מחסימה</string>
+    <string name="multiplayer_unban_message">האם אתה בטוח שברצונך לשחרר את %1$s מחסימה?</string>
     <string name="multiplayer_ban">חסום משתמש</string>
-    <string name="emulation_multiplayer">מרובה משתתפים</string>
+    <string name="multiplayer_room_browser">חדרים ציבוריים</string>
+    <string name="multiplayer_no_rooms_found">לא נמצאו חדרים ציבוריים</string>
+    <string name="multiplayer_password_required">נדרשת סיסמה</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">משחק</string>
+    <string name="multiplayer_no_game_info">כל משחק</string>
+    <string name="multiplayer_password_protected">חדר מוגן בסיסמה</string>
+    <string name="multiplayer_hide_full_rooms">הסתר חדרים מלאים</string>
+    <string name="multiplayer_hide_empty_rooms">הסתר חדרים ריקים</string>
+    <string name="multiplayer_tap_refresh_to_check_again">הקש על רענן כדי לבדוק שוב</string>
+    <string name="multiplayer_search_public_lobbies">חפש חדרים…</string>
+    <string name="emulation_multiplayer">משחק מרובה משתתפים</string>
+    <string name="multiplayer_game_name">משחקים מועדפים</string>
+    <string name="multiplayer_preferred_game_name">משחק מועדף</string>
+    <string name="multiplayer_no_game">לא נמצאו משחקים</string>
+    <string name="multiplayer_preferred_game_name_invalid">עליך לבחור משחק מועדף כדי לארח חדר.</string>
     <string name="cancel">ביטול</string>
     <string name="ok">אישור</string>
+    <string name="refresh">רענן</string>
+    <string name="room_list">רשימת חדרים</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">צבע ערכת עיצוב</string>
@@ -385,6 +419,8 @@
     <string name="cpu_accuracy">דיוק המעבד</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <!-- System settings strings -->
+    <string name="device_name">שם מכשיר</string>
     <string name="use_docked_mode">מצב עגינה</string>
     <string name="use_docked_mode_description">מעלה את הרזולוציה, פוגע בביצועים. משתמש במצב נייד כאשר מנוטרל, מפחית את הרזולוציה ומעלה את הביצועים.</string>
     <string name="emulated_region">אזור אמולציה</string>
@@ -394,6 +430,11 @@
     <string name="use_custom_rtc">RTC מותאם אישית</string>
     <string name="use_custom_rtc_description">מאפשר לך לקבוע שעון זמן אמת נפרד משעון המערכת שלך.</string>
     <string name="set_custom_rtc">קבע RTC מותאם אישית</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">אסימון אינטרנט</string>
+    <string name="web_token_description">אסימון אינטרנט המשמש ליצירת חדרים ציבוריים. זהו מחרוזת של 48 תווים המכילה רק אותיות קטנות a-z.</string>
+    <string name="network">רשת</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">רמת דיוק</string>
@@ -499,6 +540,33 @@
     <string name="driver_already_installed">הדרייבר כבר מותקן</string>
     <string name="system_gpu_driver">דרייבר של המעבד הגרפי של המערכת</string>
     <string name="installing_driver">מתקין דרייבר...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">מאחזר מנהלי התקן GPU</string>
+    <string name="fetch">אחזר</string>
+    <string name="fetch_error">שגיאה במהלך האחזור</string>
+    <string name="check_connection">בדוק את החיבור שלך ונסה שוב.</string>
+    <string name="show_releases">הצג גרסאות</string>
+    <string name="view_full_release_notes">הערות גרסה</string>
+    <string name="failed_to_fetch">אחזור נכשל</string>
+    <string name="error_during_fetch">שגיאה במהלך האחזור</string>
+    <string name="toggle_release_notes">החלף הערות גרסה</string>
+    <string name="downloads">הורדות</string>
+    <string name="show_downloads">הצג הורדות</string>
+    <string name="hide_downloads">הסתר הורדות</string>
+    <string name="failed_cache_dir">תיקיית מטמון לא זמינה</string>
+    <string name="empty_response_body">גוף תגובה ריק</string>
+    <string name="successfully_installed">%1$s הותקן בהצלחה</string>
+    <string name="driver_failed_title">התקנת מנהל התקן נכשלה</string>
+    <string name="failed_install_driver">התקנת מנהל התקן %1$s נכשלה, האם המערכת שלך תומכת בו?</string>
+    <string name="driver_empty">מנהל ההתקן שהורד ריק, בדוק את החיבור לאינטרנט</string>
+    <string name="downloading">מוריד…</string>
+    <string name="installing">מתקין…</string>
+    <string name="latest">האחרון</string>
+    <string name="recommended_driver">מנהל התקן מומלץ:</string>
+    <string name="gpu_model">דגם GPU:</string>
+    <string name="unsupported_gpu">GPU לא נתמך</string>
+    <string name="unsupported_gpu_warning">ה-GPU שלך אינו תומך בהזרקת מנהל התקן. לא מומלץ להגדיר מנהלי התקן מותאמים אישית.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">הגדרות</string>

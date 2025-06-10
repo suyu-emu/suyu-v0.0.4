@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">Nederst til høyre</string>
     <string name="overlay_position_center_top">Midt på toppen</string>
     <string name="overlay_position_center_bottom">Midt på bunnen</string>
-    <string name="overlay_background">Overlaybakgrunn</string>
-    <string name="overlay_background_description">Legg til bakgrunn for bedre lesbarhet</string>
+    <string name="perf_overlay_background">Overlaybakgrunn</string>
+    <string name="perf_overlay_background_description">Legg til bakgrunn for bedre lesbarhet</string>
     <string name="show_shaders_building">Vis bygging av shadere</string>
     <string name="show_shaders_building_description">Viser nåværende antall shadere som bygges</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Vis enhetsinformasjon</string>
+    <string name="enable_soc_overlay">Aktiver enhetsoverlegg</string>
+    <string name="soc_overlay_options">Enhetsoverlegg</string>
+    <string name="soc_overlay_options_description">Konfigurer hvilken informasjon som vises i enhetsoverlegget</string>
+
+    <string name="show_device_model">Vis enhetsmodell</string>
+    <string name="show_device_model_description">Vis vertsenhetens modell</string>
+    <string name="show_gpu_model">Vis GPU-modell</string>
+    <string name="show_gpu_model_description">Vis verts-GPUens modell</string>
+    <string name="show_soc_model">Vis SoC-modell</string>
+    <string name="show_soc_model_description">Vis verts-SoCens modell</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">GPU-utvidelser</string>
+    <string name="veil_renderer">Renderer</string>
+    <string name="veil_misc">Diverse</string>
     <string name="eden_veil">Edens slør</string>
     <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
     <string name="eden_veil_warning_title">Eksperimentelle innstillinger</string>
@@ -128,36 +144,37 @@
     <string name="always">Alltid</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">Multiplayer</string>
-    <string name="multiplayer_description">Lag eller bli med i et spillrom</string>
+    <string name="multiplayer">Flerspiller</string>
+    <string name="multiplayer_description">Lag ditt eget spillrom eller bli med i et eksisterende for å spille med andre</string>
     <string name="multiplayer_room_title">Rom: %1$s</string>
     <string name="multiplayer_console_id">Konsoll-ID: %1$s</string>
     <string name="multiplayer_create_room">Opprett</string>
     <string name="multiplayer_join_room">Bli med</string>
+    <string name="multiplayer_public_room">Bla gjennom offentlige rom</string>
     <string name="multiplayer_username">Brukernavn</string>
     <string name="multiplayer_ip_address">IP-adresse</string>
     <string name="multiplayer_ip_port">Port</string>
-    <string name="multiplayer_create_room_success">Rom opprettet</string>
-    <string name="multiplayer_join_room_success">Ble med i rom</string>
-    <string name="multiplayer_create_room_failed">Kunne ikke opprette rom</string>
-    <string name="multiplayer_join_room_failed">Kunne ikke bli med</string>
-    <string name="multiplayer_input_invalid">Ugyldig adresse eller navn</string>
-    <string name="multiplayer_port_invalid">Ugyldig port</string>
+    <string name="multiplayer_create_room_success">Rom opprettet!</string>
+    <string name="multiplayer_join_room_success">Ble med i rommet!</string>
+    <string name="multiplayer_create_room_failed">Kunne ikke opprette rom!</string>
+    <string name="multiplayer_join_room_failed">Kunne ikke bli med i rommet!</string>
+    <string name="multiplayer_input_invalid">Ugyldig adresse eller navn er for kort!</string>
+    <string name="multiplayer_port_invalid">Ugyldig port!</string>
     <string name="multiplayer_exit_room">Forlat rom</string>
     <string name="multiplayer_network_error">Nettverksfeil</string>
-    <string name="multiplayer_lost_connection">Tapt tilkobling</string>
-    <string name="multiplayer_name_collision">Navnkonflikt</string>
-    <string name="multiplayer_mac_collision">MAC-konflikt</string>
-    <string name="multiplayer_console_id_collision">Konsoll-ID-konflikt</string>
+    <string name="multiplayer_lost_connection">Mistet tilkobling</string>
+    <string name="multiplayer_name_collision">Navnekollisjon</string>
+    <string name="multiplayer_mac_collision">MAC-kollisjon</string>
+    <string name="multiplayer_console_id_collision">Konsoll-ID-kollisjon</string>
     <string name="multiplayer_wrong_version">Feil versjon</string>
     <string name="multiplayer_wrong_password">Feil passord</string>
     <string name="multiplayer_could_not_connect">Kunne ikke koble til</string>
     <string name="multiplayer_room_is_full">Rommet er fullt</string>
     <string name="multiplayer_host_banned">Vert utestengt</string>
-    <string name="multiplayer_permission_denied">Ingen tilgang</string>
-    <string name="multiplayer_no_such_user">Bruker finnes ikke</string>
-    <string name="multiplayer_already_in_room">Allerede i rom</string>
-    <string name="multiplayer_create_room_error">Feil ved oppretting</string>
+    <string name="multiplayer_permission_denied">Tilgang nektet</string>
+    <string name="multiplayer_no_such_user">Ingen slik bruker</string>
+    <string name="multiplayer_already_in_room">Allerede i rommet</string>
+    <string name="multiplayer_create_room_error">Feil ved oppretting av rom</string>
     <string name="multiplayer_host_kicked">Vert sparket</string>
     <string name="multiplayer_unknown_error">Ukjent feil</string>
     <string name="multiplayer_room_uninitialized">Rom ikke initialisert</string>
@@ -167,36 +184,53 @@
     <string name="multiplayer_room_moderator">Rommoderator</string>
     <string name="multiplayer_member_join">%1$s ble med</string>
     <string name="multiplayer_member_leave">%1$s forlot</string>
-    <string name="multiplayer_member_kicked">%1$s sparket</string>
-    <string name="multiplayer_member_banned">%1$s utestengt</string>
+    <string name="multiplayer_member_kicked">%1$s ble sparket</string>
+    <string name="multiplayer_member_banned">%1$s ble utestengt</string>
     <string name="multiplayer_address_unbanned">Adresse opphevet</string>
-    <string name="multiplayer_kick_member">Spark ut</string>
-    <string name="multiplayer_chat_input_hint">Send melding...</string>
+    <string name="multiplayer_kick_member">Spark</string>
+    <string name="multiplayer_chat_input_hint">Send melding…</string>
     <string name="multiplayer_password">Passord</string>
     <string name="original_button_text">Bli med</string>
-    <string name="disabled_button_text">Blir med...</string>
+    <string name="disabled_button_text">Bli med...</string>
     <string name="multiplayer_room_name">Romnavn</string>
-    <string name="multiplayer_room_name_invalid">Romnavn må være 3-20 tegn</string>
+    <string name="multiplayer_room_name_invalid">Romnavn må være mellom 3 og 20 tegn</string>
     <string name="multiplayer_max_players">Maks spillere (16)</string>
     <string name="multiplayer_max_players_value">Maks spillere: %d</string>
     <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">Flere valg</string>
-    <string name="multiplayer_ip_copied">IP kopiert</string>
+    <string name="multiplayer_more_options">Flere alternativer</string>
+    <string name="multiplayer_ip_copied">IP-adresse kopiert til utklippstavle</string>
     <string name="multiplayer_server_address">Serveradresse</string>
     <string name="chat">Chat</string>
-    <string name="type_message">Skriv melding...</string>
+    <string name="type_message">Skriv melding…</string>
     <string name="send">Send</string>
     <string name="send_message">Send melding</string>
     <string name="multiplayer_moderation">Moderasjon</string>
-    <string name="multiplayer_moderation_title">Utestengingsliste</string>
-    <string name="multiplayer_no_bans">Ingen utestengte</string>
+    <string name="multiplayer_moderation_title">Utestengelsesliste</string>
+    <string name="multiplayer_no_bans">Ingen utestengte brukere</string>
     <string name="multiplayer_unban_title">Opphev utestengelse</string>
     <string name="multiplayer_unban">Opphev</string>
-    <string name="multiplayer_unban_message">Opphev utestengelse for %1$s?</string>
-    <string name="multiplayer_ban">Utesteng</string>
-    <string name="emulation_multiplayer">Multiplayer</string>
+    <string name="multiplayer_unban_message">Er du sikker på at du vil oppheve utestengelsen for %1$s?</string>
+    <string name="multiplayer_ban">Utesteng bruker</string>
+    <string name="multiplayer_room_browser">Offentlige rom</string>
+    <string name="multiplayer_no_rooms_found">Ingen offentlige rom funnet</string>
+    <string name="multiplayer_password_required">Passord påkrevd</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Spill</string>
+    <string name="multiplayer_no_game_info">Hvilket som helst spill</string>
+    <string name="multiplayer_password_protected">Passordbeskyttet rom</string>
+    <string name="multiplayer_hide_full_rooms">Skjul fulle rom</string>
+    <string name="multiplayer_hide_empty_rooms">Skjul tomme rom</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Trykk på oppdater for å sjekke igjen</string>
+    <string name="multiplayer_search_public_lobbies">Søk i rom…</string>
+    <string name="emulation_multiplayer">Flerspiller</string>
+    <string name="multiplayer_game_name">Foretrukne spill</string>
+    <string name="multiplayer_preferred_game_name">Foretrukket spill</string>
+    <string name="multiplayer_no_game">Ingen spill funnet</string>
+    <string name="multiplayer_preferred_game_name_invalid">Du må velge et foretrukket spill for å være vert for et rom.</string>
     <string name="cancel">Avbryt</string>
     <string name="ok">OK</string>
+    <string name="refresh">Oppdater</string>
+    <string name="room_list">Romliste</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Temafarge</string>
@@ -340,6 +374,9 @@
     <string name="frame_limit_slider">Hastighetsbegrensning i prosent</string>
     <string name="frame_limit_slider_description">Angir prosentandelen som skal begrense emuleringshastigheten. 100 % er normal hastighet. Høyere eller lavere verdier vil øke eller redusere hastighetsgrensen.</string>
     <string name="cpu_accuracy">CPU-nøyaktighet</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Enhetsnavn</string>
     <string name="use_docked_mode">Dokket modus</string>
     <string name="use_docked_mode_description">Øker oppløsningen, men reduserer ytelsen. Håndholdt modus brukes når den er deaktivert, noe som reduserer oppløsningen og øker ytelsen.</string>
     <string name="emulated_region">Emulert region</string>
@@ -349,6 +386,11 @@
     <string name="use_custom_rtc">Tilpasset Sannhetstidsklokke</string>
     <string name="use_custom_rtc_description">Gjør det mulig å stille inn en egendefinert sanntidsklokke separat fra den gjeldende systemtiden.</string>
     <string name="set_custom_rtc">Angi tilpasset RTC</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Nett-token</string>
+    <string name="web_token_description">Nett-token som brukes til å opprette offentlige rom. Det er en 48-tegns streng som kun inneholder små bokstaver a-z.</string>
+    <string name="network">Nettverk</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
@@ -461,6 +503,33 @@
     <string name="select_gpu_driver_use_default">Bruk av standard GPU-driver</string>
     <string name="system_gpu_driver">Systemets GPU-driver</string>
     <string name="installing_driver">Installerer driver...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">GPU-driverhenting</string>
+    <string name="fetch">Hent</string>
+    <string name="fetch_error">Feil under henting</string>
+    <string name="check_connection">Sjekk tilkoblingen din og prøv på nytt.</string>
+    <string name="show_releases">Vis utgivelser</string>
+    <string name="view_full_release_notes">Versjonsnotater</string>
+    <string name="failed_to_fetch">Kunne ikke hente</string>
+    <string name="error_during_fetch">Feil under henting</string>
+    <string name="toggle_release_notes">Veksle versjonsnotater</string>
+    <string name="downloads">Nedlastinger</string>
+    <string name="show_downloads">Vis nedlastinger</string>
+    <string name="hide_downloads">Skjul nedlastinger</string>
+    <string name="failed_cache_dir">Mellomlager-mappen er ikke tilgjengelig</string>
+    <string name="empty_response_body">Tom respons</string>
+    <string name="successfully_installed">%1$s ble installert</string>
+    <string name="driver_failed_title">Driverinstallasjon mislyktes</string>
+    <string name="failed_install_driver">Kunne ikke installere %1$s-driveren, støtter systemet ditt den?</string>
+    <string name="driver_empty">Den nedlastede driveren er tom, sjekk internettilkoblingen din</string>
+    <string name="downloading">Laster ned…</string>
+    <string name="installing">Installerer…</string>
+    <string name="latest">Siste</string>
+    <string name="recommended_driver">Anbefalt driver:</string>
+    <string name="gpu_model">GPU-modell:</string>
+    <string name="unsupported_gpu">Ustøttet GPU</string>
+    <string name="unsupported_gpu_warning">GPU-en din støtter ikke driverinjeksjon. Det anbefales ikke å sette egendefinerte drivere.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Innstillinger</string>

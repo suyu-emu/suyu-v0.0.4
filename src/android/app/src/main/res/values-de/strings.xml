@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">Unten rechts</string>
     <string name="overlay_position_center_top">Mitte oben</string>
     <string name="overlay_position_center_bottom">Mitte unten</string>
-    <string name="overlay_background">Overlay-Hintergrund</string>
-    <string name="overlay_background_description">Hintergrund für bessere Lesbarkeit</string>
+    <string name="perf_overlay_background">Overlay-Hintergrund</string>
+    <string name="perf_overlay_background_description">Hintergrund für bessere Lesbarkeit</string>
     <string name="show_shaders_building">Shader-Bau anzeigen</string>
     <string name="show_shaders_building_description">Aktuelle Anzahl der erstellten Shader anzeigen</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Geräteinfo-Overlay anzeigen</string>
+    <string name="enable_soc_overlay">Geräte-Overlay aktivieren</string>
+    <string name="soc_overlay_options">Geräte-Overlay</string>
+    <string name="soc_overlay_options_description">Konfigurieren Sie, welche Informationen im Geräte-Overlay angezeigt werden</string>
+
+    <string name="show_device_model">Gerätemodell anzeigen</string>
+    <string name="show_device_model_description">Modell des Host-Geräts anzeigen</string>
+    <string name="show_gpu_model">GPU-Modell anzeigen</string>
+    <string name="show_gpu_model_description">Modell der Host-GPU anzeigen</string>
+    <string name="show_soc_model">SoC-Modell anzeigen</string>
+    <string name="show_soc_model_description">Modell des Host-SoC anzeigen</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">GPU-Erweiterungen</string>
+    <string name="veil_renderer">Renderer</string>
+    <string name="veil_misc">Verschiedenes</string>
     <string name="eden_veil">Edens Schleier</string>
     <string name="eden_veil_description">Experimentelle Einstellungen zur Verbesserung der Leistung und Funktionalität. Diese Einstellungen können schwarze Bildschirme oder andere Spielprobleme verursachen.</string>
     <string name="eden_veil_warning_title">Experimentelle Einstellungen</string>
@@ -128,60 +144,61 @@
     <string name="always">Immer</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">Multiplayer</string>
-    <string name="multiplayer_description">Spiele mit anderen online</string>
+    <string name="multiplayer">Mehrspieler</string>
+    <string name="multiplayer_description">Erstellen Sie Ihren eigenen Spielraum oder treten Sie einem bestehenden bei, um mit anderen zu spielen</string>
     <string name="multiplayer_room_title">Raum: %1$s</string>
     <string name="multiplayer_console_id">Konsole-ID: %1$s</string>
     <string name="multiplayer_create_room">Erstellen</string>
     <string name="multiplayer_join_room">Beitreten</string>
+    <string name="multiplayer_public_room">Öffentliche Räume durchsuchen</string>
     <string name="multiplayer_username">Benutzername</string>
     <string name="multiplayer_ip_address">IP-Adresse</string>
     <string name="multiplayer_ip_port">Port</string>
-    <string name="multiplayer_create_room_success">Raum erstellt</string>
-    <string name="multiplayer_join_room_success">Beitritt erfolgreich</string>
-    <string name="multiplayer_create_room_failed">Fehler beim Erstellen</string>
-    <string name="multiplayer_join_room_failed">Fehler beim Beitreten</string>
-    <string name="multiplayer_input_invalid">Ungültige Eingabe</string>
-    <string name="multiplayer_port_invalid">Ungültiger Port</string>
+    <string name="multiplayer_create_room_success">Raum erfolgreich erstellt!</string>
+    <string name="multiplayer_join_room_success">Erfolgreich dem Raum beigetreten!</string>
+    <string name="multiplayer_create_room_failed">Raumerstellung fehlgeschlagen!</string>
+    <string name="multiplayer_join_room_failed">Beitritt zum Raum fehlgeschlagen!</string>
+    <string name="multiplayer_input_invalid">Ungültige Adresse oder Name zu kurz!</string>
+    <string name="multiplayer_port_invalid">Ungültiger Port!</string>
     <string name="multiplayer_exit_room">Raum verlassen</string>
     <string name="multiplayer_network_error">Netzwerkfehler</string>
     <string name="multiplayer_lost_connection">Verbindung verloren</string>
-    <string name="multiplayer_name_collision">Name existiert bereits</string>
-    <string name="multiplayer_mac_collision">MAC-Kollision</string>
-    <string name="multiplayer_console_id_collision">Konsole-ID-Kollision</string>
+    <string name="multiplayer_name_collision">Namenskonflikt</string>
+    <string name="multiplayer_mac_collision">MAC-Konflikt</string>
+    <string name="multiplayer_console_id_collision">Konsole-ID-Konflikt</string>
     <string name="multiplayer_wrong_version">Falsche Version</string>
     <string name="multiplayer_wrong_password">Falsches Passwort</string>
     <string name="multiplayer_could_not_connect">Verbindung fehlgeschlagen</string>
-    <string name="multiplayer_room_is_full">Raum voll</string>
-    <string name="multiplayer_host_banned">Gebannt</string>
+    <string name="multiplayer_room_is_full">Raum ist voll</string>
+    <string name="multiplayer_host_banned">Host gebannt</string>
     <string name="multiplayer_permission_denied">Zugriff verweigert</string>
-    <string name="multiplayer_no_such_user">Benutzer unbekannt</string>
+    <string name="multiplayer_no_such_user">Benutzer existiert nicht</string>
     <string name="multiplayer_already_in_room">Bereits im Raum</string>
-    <string name="multiplayer_create_room_error">Raumerstellungsfehler</string>
-    <string name="multiplayer_host_kicked">Gekickt</string>
+    <string name="multiplayer_create_room_error">Fehler beim Erstellen des Raums</string>
+    <string name="multiplayer_host_kicked">Host gekickt</string>
     <string name="multiplayer_unknown_error">Unbekannter Fehler</string>
     <string name="multiplayer_room_uninitialized">Raum nicht initialisiert</string>
     <string name="multiplayer_room_idle">Raum inaktiv</string>
-    <string name="multiplayer_room_joining">Beitritt läuft</string>
-    <string name="multiplayer_room_joined">Beigetreten</string>
-    <string name="multiplayer_room_moderator">Moderator</string>
-    <string name="multiplayer_member_join">%1$s beigetreten</string>
-    <string name="multiplayer_member_leave">%1$s verlassen</string>
-    <string name="multiplayer_member_kicked">%1$s gekickt</string>
-    <string name="multiplayer_member_banned">%1$s gebannt</string>
-    <string name="multiplayer_address_unbanned">Entbannt</string>
+    <string name="multiplayer_room_joining">Raum beitreten</string>
+    <string name="multiplayer_room_joined">Raum beigetreten</string>
+    <string name="multiplayer_room_moderator">Raummoderator</string>
+    <string name="multiplayer_member_join">%1$s ist beigetreten</string>
+    <string name="multiplayer_member_leave">%1$s hat verlassen</string>
+    <string name="multiplayer_member_kicked">%1$s wurde gekickt</string>
+    <string name="multiplayer_member_banned">%1$s wurde gebannt</string>
+    <string name="multiplayer_address_unbanned">Adresse entbannt</string>
     <string name="multiplayer_kick_member">Kicken</string>
     <string name="multiplayer_chat_input_hint">Nachricht senden…</string>
     <string name="multiplayer_password">Passwort</string>
     <string name="original_button_text">Beitreten</string>
-    <string name="disabled_button_text">Beitritt läuft…</string>
+    <string name="disabled_button_text">Beitritt läuft...</string>
     <string name="multiplayer_room_name">Raumname</string>
-    <string name="multiplayer_room_name_invalid">Name: 3-20 Zeichen</string>
-    <string name="multiplayer_max_players">Max Spieler (16)</string>
-    <string name="multiplayer_max_players_value">Max Spieler: %d</string>
+    <string name="multiplayer_room_name_invalid">Raumname muss zwischen 3 und 20 Zeichen lang sein</string>
+    <string name="multiplayer_max_players">Max. Spieler (16)</string>
+    <string name="multiplayer_max_players_value">Max. Spieler: %d</string>
     <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">Mehr Optionen</string>
-    <string name="multiplayer_ip_copied">IP kopiert</string>
+    <string name="multiplayer_more_options">Weitere Optionen</string>
+    <string name="multiplayer_ip_copied">IP-Adresse in die Zwischenablage kopiert</string>
     <string name="multiplayer_server_address">Serveradresse</string>
     <string name="chat">Chat</string>
     <string name="type_message">Nachricht eingeben…</string>
@@ -189,16 +206,33 @@
     <string name="send_message">Nachricht senden</string>
     <string name="multiplayer_moderation">Moderation</string>
     <string name="multiplayer_moderation_title">Bannliste</string>
-    <string name="multiplayer_no_bans">Keine Banns</string>
-    <string name="multiplayer_unban_title">Entbannen</string>
+    <string name="multiplayer_no_bans">Keine gebannten Benutzer</string>
+    <string name="multiplayer_unban_title">Benutzer entbannen</string>
     <string name="multiplayer_unban">Entbannen</string>
-    <string name="multiplayer_unban_message">%1$s entbannen?</string>
-    <string name="multiplayer_ban">Bannen</string>
-    <string name="emulation_multiplayer">Multiplayer</string>
+    <string name="multiplayer_unban_message">Sind Sie sicher, dass Sie %1$s entbannen möchten?</string>
+    <string name="multiplayer_ban">Benutzer bannen</string>
+    <string name="multiplayer_room_browser">Öffentliche Räume</string>
+    <string name="multiplayer_no_rooms_found">Keine öffentlichen Räume gefunden</string>
+    <string name="multiplayer_password_required">Passwort erforderlich</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Spiel</string>
+    <string name="multiplayer_no_game_info">Beliebiges Spiel</string>
+    <string name="multiplayer_password_protected">Passwortgeschützter Raum</string>
+    <string name="multiplayer_hide_full_rooms">Volle Räume ausblenden</string>
+    <string name="multiplayer_hide_empty_rooms">Leere Räume ausblenden</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Zum erneuten Prüfen aktualisieren</string>
+    <string name="multiplayer_search_public_lobbies">Räume suchen…</string>
+    <string name="emulation_multiplayer">Mehrspieler</string>
+    <string name="multiplayer_game_name">Bevorzugte Spiele</string>
+    <string name="multiplayer_preferred_game_name">Bevorzugtes Spiel</string>
+    <string name="multiplayer_no_game">Keine Spiele gefunden</string>
+    <string name="multiplayer_preferred_game_name_invalid">Sie müssen ein bevorzugtes Spiel auswählen, um einen Raum zu hosten.</string>
     <string name="cancel">Abbrechen</string>
     <string name="ok">OK</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="room_list">Raumliste</string>
 
-        <!-- Static Themes -->
+    <!-- Static Themes -->
     <string name="static_theme_color">Designfarbe</string>
     <string name="violet">Violett (Standard)</string>
     <string name="blue">Blau</string>
@@ -364,6 +398,9 @@ Wirklich fortfahren?</string>
     <string name="frame_limit_slider">Geschwindkeitsbegrenzung in Prozent</string>
     <string name="frame_limit_slider_description">Gibt die prozentuale Geschwindigkeit der Emulation an. 100% sind normal. Werte darüber oder drunter werden die Geschwindigkeit entsprechend verändern.</string>
     <string name="cpu_accuracy">CPU-Genauigkeit</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Gerätename</string>
     <string name="use_docked_mode">Gedockter Modus</string>
     <string name="use_docked_mode_description">Der Gedockte-Modus erhöht die Auflösung, verringert aber die Leistung.
 Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die Leistung.</string>
@@ -372,6 +409,12 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="select_rtc_date">RTC-Datum auswählen</string>
     <string name="select_rtc_time">RTC-Zeit auswählen</string>
     <string name="use_custom_rtc">Benutzerdefinierte Echtzeituhr</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Web-Token</string>
+    <string name="web_token_description">Web-Token zum Erstellen öffentlicher Räume. Es handelt sich um eine 48-stellige Zeichenfolge, die nur Kleinbuchstaben a-z enthält.</string>
+    <string name="network">Netzwerk</string>
+
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Genauigkeitsstufe</string>
     <string name="renderer_resolution">Auflösung (Handheld/Gedockt)</string>
@@ -501,6 +544,33 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="driver_already_installed">Treiber bereits installiert</string>
     <string name="system_gpu_driver">System GPU-Treiber</string>
     <string name="installing_driver">Treiber wird installiert...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">GPU-Treiber-Hersteller</string>
+    <string name="fetch">Abrufen</string>
+    <string name="fetch_error">Fehler beim Abrufen</string>
+    <string name="check_connection">Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
+    <string name="show_releases">Versionen anzeigen</string>
+    <string name="view_full_release_notes">Versionshinweise</string>
+    <string name="failed_to_fetch">Abruf fehlgeschlagen</string>
+    <string name="error_during_fetch">Fehler beim Abrufen</string>
+    <string name="toggle_release_notes">Versionshinweise umschalten</string>
+    <string name="downloads">Downloads</string>
+    <string name="show_downloads">Downloads anzeigen</string>
+    <string name="hide_downloads">Downloads ausblenden</string>
+    <string name="failed_cache_dir">Cache-Verzeichnis nicht verfügbar</string>
+    <string name="empty_response_body">Leere Antwort</string>
+    <string name="successfully_installed">%1$s erfolgreich installiert</string>
+    <string name="driver_failed_title">Treiberinstallation fehlgeschlagen</string>
+    <string name="failed_install_driver">Installation des %1$s-Treibers fehlgeschlagen, unterstützt Ihr System ihn?</string>
+    <string name="driver_empty">Heruntergeladener Treiber ist leer, überprüfen Sie Ihre Internetverbindung</string>
+    <string name="downloading">Wird heruntergeladen…</string>
+    <string name="installing">Wird installiert…</string>
+    <string name="latest">Neueste</string>
+    <string name="recommended_driver">Empfohlener Treiber:</string>
+    <string name="gpu_model">GPU-Modell:</string>
+    <string name="unsupported_gpu">Nicht unterstützte GPU</string>
+    <string name="unsupported_gpu_warning">Ihre GPU unterstützt keine Treiberinjektion. Das Festlegen benutzerdefinierter Treiber wird nicht empfohlen.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Einstellungen</string>

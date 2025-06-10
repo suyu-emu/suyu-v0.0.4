@@ -155,11 +155,10 @@
                 tools:ignore="RtlHardcoded" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/show_thermals_text"
+                android:id="@+id/show_soc_overlay_text"
                 style="@style/TextAppearance.Material3.BodySmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
                 android:clickable="false"
                 android:focusable="false"
                 android:textColor="@android:color/white"

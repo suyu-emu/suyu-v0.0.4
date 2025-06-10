@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">Внизу праворуч</string>
     <string name="overlay_position_center_top">По центру вгорі</string>
     <string name="overlay_position_center_bottom">По центру внизу</string>
-    <string name="overlay_background">Фон накладання</string>
-    <string name="overlay_background_description">Додати фон для кращої читабельності</string>
+    <string name="perf_overlay_background">Фон накладання</string>
+    <string name="perf_overlay_background_description">Додати фон для кращої читабельності</string>
     <string name="show_shaders_building">Показати побудову шейдерів</string>
     <string name="show_shaders_building_description">Відображає поточну кількість шейдерів, які будуються</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Показати накладання інформації про пристрій</string>
+    <string name="enable_soc_overlay">Увімкнути накладання пристрою</string>
+    <string name="soc_overlay_options">Накладання пристрою</string>
+    <string name="soc_overlay_options_description">Налаштувати, яка інформація відображається в накладанні пристрою</string>
+
+    <string name="show_device_model">Показати модель пристрою</string>
+    <string name="show_device_model_description">Відобразити модель головного пристрою</string>
+    <string name="show_gpu_model">Показати модель GPU</string>
+    <string name="show_gpu_model_description">Відобразити модель головної GPU</string>
+    <string name="show_soc_model">Показати модель SoC</string>
+    <string name="show_soc_model_description">Відобразити модель головного SoC</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">Розширення GPU</string>
+    <string name="veil_renderer">Рендерер</string>
+    <string name="veil_misc">Інше</string>
     <string name="eden_veil">Покривало Едему</string>
     <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та можливостей. Ці налаштування можуть спричинити чорні екрани або інші проблеми в грі.</string>
     <string name="eden_veil_warning_title">Експериментальні налаштування</string>
@@ -129,26 +145,27 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">Мультиплеєр</string>
-    <string name="multiplayer_description">Створення або приєднання до кімнати</string>
+    <string name="multiplayer_description">Створіть власну ігрову кімнату або приєднайтеся до існуючої, щоб грати з іншими</string>
     <string name="multiplayer_room_title">Кімната: %1$s</string>
     <string name="multiplayer_console_id">ID консолі: %1$s</string>
     <string name="multiplayer_create_room">Створити</string>
     <string name="multiplayer_join_room">Приєднатися</string>
-    <string name="multiplayer_username">Ім`я</string>
+    <string name="multiplayer_public_room">Огляд публічних кімнат</string>
+    <string name="multiplayer_username">Ім\'я користувача</string>
     <string name="multiplayer_ip_address">IP-адреса</string>
     <string name="multiplayer_ip_port">Порт</string>
-    <string name="multiplayer_create_room_success">Кімнату створено</string>
-    <string name="multiplayer_join_room_success">Приєднано до кімнати</string>
-    <string name="multiplayer_create_room_failed">Помилка створення</string>
-    <string name="multiplayer_join_room_failed">Помилка приєднання</string>
-    <string name="multiplayer_input_invalid">Невірні дані</string>
-    <string name="multiplayer_port_invalid">Невірний порт</string>
-    <string name="multiplayer_exit_room">Вийти</string>
+    <string name="multiplayer_create_room_success">Кімнату успішно створено!</string>
+    <string name="multiplayer_join_room_success">Успішно приєдналися до кімнати!</string>
+    <string name="multiplayer_create_room_failed">Не вдалося створити кімнату!</string>
+    <string name="multiplayer_join_room_failed">Не вдалося приєднатися до кімнати!</string>
+    <string name="multiplayer_input_invalid">Невірна адреса або ім\'я занадто коротке!</string>
+    <string name="multiplayer_port_invalid">Невірний порт!</string>
+    <string name="multiplayer_exit_room">Вийти з кімнати</string>
     <string name="multiplayer_network_error">Помилка мережі</string>
-    <string name="multiplayer_lost_connection">З`єднання втрачено</string>
-    <string name="multiplayer_name_collision">Ім`я вже використовується</string>
-    <string name="multiplayer_mac_collision">MAC-адреса вже використовується</string>
-    <string name="multiplayer_console_id_collision">ID консолі вже використовується</string>
+    <string name="multiplayer_lost_connection">Втрачено з\'єднання</string>
+    <string name="multiplayer_name_collision">Конфлікт імен</string>
+    <string name="multiplayer_mac_collision">Конфлікт MAC</string>
+    <string name="multiplayer_console_id_collision">Конфлікт ID консолі</string>
     <string name="multiplayer_wrong_version">Невірна версія</string>
     <string name="multiplayer_wrong_password">Невірний пароль</string>
     <string name="multiplayer_could_not_connect">Не вдалося підключитися</string>
@@ -157,46 +174,63 @@
     <string name="multiplayer_permission_denied">Доступ заборонено</string>
     <string name="multiplayer_no_such_user">Користувача не знайдено</string>
     <string name="multiplayer_already_in_room">Вже в кімнаті</string>
-    <string name="multiplayer_create_room_error">Помилка створення</string>
-    <string name="multiplayer_host_kicked">Хост видалив</string>
+    <string name="multiplayer_create_room_error">Помилка створення кімнати</string>
+    <string name="multiplayer_host_kicked">Хост виключений</string>
     <string name="multiplayer_unknown_error">Невідома помилка</string>
-    <string name="multiplayer_room_uninitialized">Кімнату не ініціалізовано</string>
+    <string name="multiplayer_room_uninitialized">Кімната не ініціалізована</string>
     <string name="multiplayer_room_idle">Кімната бездіяльна</string>
-    <string name="multiplayer_room_joining">Приєднання...</string>
-    <string name="multiplayer_room_joined">Приєднано</string>
-    <string name="multiplayer_room_moderator">Модератор</string>
+    <string name="multiplayer_room_joining">Приєднання до кімнати</string>
+    <string name="multiplayer_room_joined">Приєдналися до кімнати</string>
+    <string name="multiplayer_room_moderator">Модератор кімнати</string>
     <string name="multiplayer_member_join">%1$s приєднався</string>
     <string name="multiplayer_member_leave">%1$s вийшов</string>
-    <string name="multiplayer_member_kicked">%1$s видалено</string>
-    <string name="multiplayer_member_banned">%1$s заблоковано</string>
-    <string name="multiplayer_address_unbanned">Розблоковано</string>
-    <string name="multiplayer_kick_member">Вигнати</string>
-    <string name="multiplayer_chat_input_hint">Повідомлення...</string>
+    <string name="multiplayer_member_kicked">%1$s виключений</string>
+    <string name="multiplayer_member_banned">%1$s заблокований</string>
+    <string name="multiplayer_address_unbanned">Адресу розблоковано</string>
+    <string name="multiplayer_kick_member">Виключити</string>
+    <string name="multiplayer_chat_input_hint">Надіслати повідомлення…</string>
     <string name="multiplayer_password">Пароль</string>
     <string name="original_button_text">Приєднатися</string>
     <string name="disabled_button_text">Приєднання...</string>
     <string name="multiplayer_room_name">Назва кімнати</string>
-    <string name="multiplayer_room_name_invalid">Невірна назва</string>
+    <string name="multiplayer_room_name_invalid">Назва кімнати має бути від 3 до 20 символів</string>
     <string name="multiplayer_max_players">Макс. гравців (16)</string>
     <string name="multiplayer_max_players_value">Макс. гравців: %d</string>
     <string name="multiplayer_chat">Чат</string>
-    <string name="multiplayer_more_options">Додатково</string>
-    <string name="multiplayer_ip_copied">IP скопійовано</string>
+    <string name="multiplayer_more_options">Додаткові налаштування</string>
+    <string name="multiplayer_ip_copied">IP-адресу скопійовано в буфер обміну</string>
     <string name="multiplayer_server_address">Адреса сервера</string>
     <string name="chat">Чат</string>
-    <string name="type_message">Повідомлення...</string>
+    <string name="type_message">Введіть повідомлення…</string>
     <string name="send">Надіслати</string>
-    <string name="send_message">Надіслати</string>
+    <string name="send_message">Надіслати повідомлення</string>
     <string name="multiplayer_moderation">Модерація</string>
-    <string name="multiplayer_moderation_title">Заблоковані</string>
-    <string name="multiplayer_no_bans">Немає блокувань</string>
-    <string name="multiplayer_unban_title">Розблокувати</string>
+    <string name="multiplayer_moderation_title">Список блокувань</string>
+    <string name="multiplayer_no_bans">Немає заблокованих користувачів</string>
+    <string name="multiplayer_unban_title">Розблокувати користувача</string>
     <string name="multiplayer_unban">Розблокувати</string>
-    <string name="multiplayer_unban_message">Розблокувати %1$s?</string>
-    <string name="multiplayer_ban">Заблокувати</string>
+    <string name="multiplayer_unban_message">Ви впевнені, що хочете розблокувати %1$s?</string>
+    <string name="multiplayer_ban">Заблокувати користувача</string>
+    <string name="multiplayer_room_browser">Публічні кімнати</string>
+    <string name="multiplayer_no_rooms_found">Публічні кімнати не знайдено</string>
+    <string name="multiplayer_password_required">Потрібен пароль</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Гра</string>
+    <string name="multiplayer_no_game_info">Будь-яка гра</string>
+    <string name="multiplayer_password_protected">Кімната захищена паролем</string>
+    <string name="multiplayer_hide_full_rooms">Приховати заповнені кімнати</string>
+    <string name="multiplayer_hide_empty_rooms">Приховати порожні кімнати</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Натисніть оновити для повторної перевірки</string>
+    <string name="multiplayer_search_public_lobbies">Пошук кімнат…</string>
     <string name="emulation_multiplayer">Мультиплеєр</string>
+    <string name="multiplayer_game_name">Улюблені ігри</string>
+    <string name="multiplayer_preferred_game_name">Улюблена гра</string>
+    <string name="multiplayer_no_game">Ігри не знайдено</string>
+    <string name="multiplayer_preferred_game_name_invalid">Для створення кімнати необхідно обрати улюблену гру.</string>
     <string name="cancel">Скасувати</string>
-    <string name="ok">OK</string>
+    <string name="ok">ОК</string>
+    <string name="refresh">Оновити</string>
+    <string name="room_list">Список кімнат</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Колір теми</string>
@@ -328,7 +362,7 @@
     <string name="cpu_accuracy">Точність ЦП</string>
     <string name="value_with_units">%1$s%2$s</string>
 
-    <!-- Системні налаштування -->
+    <!-- System settings strings -->
     <string name="device_name">Назва пристрою</string>
     <string name="use_docked_mode">Режим док-станції</string>
     <string name="use_docked_mode_description">Збільшує роздільну здатність, знижуючи продуктивність. У портативному режимі роздільна здатність нижча, а продуктивність вища.</string>
@@ -339,6 +373,12 @@
     <string name="use_custom_rtc">Свій RTC</string>
     <string name="use_custom_rtc_description">Дозволяє встановити власний час, відмінний від системного.</string>
     <string name="set_custom_rtc">Встановити RTC</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Веб-токен</string>
+    <string name="web_token_description">Веб-токен, що використовується для створення публічних кімнат. Це рядок із 48 символів, що містить лише малі літери a-z.</string>
+    <string name="network">Мережа</string>
+
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Рівень точності</string>
     <string name="renderer_resolution">Роздільна здатність (Портативний/Док)</string>
@@ -451,6 +491,33 @@
     <string name="select_gpu_driver_use_default">Використовується стандартний драйвер ГП</string>
     <string name="system_gpu_driver">Системний драйвер ГП</string>
     <string name="installing_driver">Встановлення драйвера...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">Отримання драйверів GPU</string>
+    <string name="fetch">Отримати</string>
+    <string name="fetch_error">Помилка під час отримання</string>
+    <string name="check_connection">Перевірте з\'єднання та спробуйте ще раз.</string>
+    <string name="show_releases">Показати релізи</string>
+    <string name="view_full_release_notes">Примітки до випуску</string>
+    <string name="failed_to_fetch">Не вдалося отримати</string>
+    <string name="error_during_fetch">Помилка під час отримання</string>
+    <string name="toggle_release_notes">Перемкнути примітки до випуску</string>
+    <string name="downloads">Завантаження</string>
+    <string name="show_downloads">Показати завантаження</string>
+    <string name="hide_downloads">Приховати завантаження</string>
+    <string name="failed_cache_dir">Директорія кешу недоступна</string>
+    <string name="empty_response_body">Порожня відповідь</string>
+    <string name="successfully_installed">%1$s успішно встановлено</string>
+    <string name="driver_failed_title">Помилка встановлення драйвера</string>
+    <string name="failed_install_driver">Не вдалося встановити драйвер %1$s, чи підтримує його ваша система?</string>
+    <string name="driver_empty">Завантажений драйвер порожній, перевірте підключення до інтернету</string>
+    <string name="downloading">Завантаження…</string>
+    <string name="installing">Встановлення…</string>
+    <string name="latest">Останній</string>
+    <string name="recommended_driver">Рекомендований драйвер:</string>
+    <string name="gpu_model">Модель GPU:</string>
+    <string name="unsupported_gpu">GPU не підтримується</string>
+    <string name="unsupported_gpu_warning">Ваш GPU не підтримує заміну драйверів. Встановлення сторонніх драйверів не рекомендується.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Налаштування</string>

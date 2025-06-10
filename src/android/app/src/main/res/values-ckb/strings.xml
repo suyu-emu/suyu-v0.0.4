@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">خوارەوە ڕاست</string>
     <string name="overlay_position_center_top">ناوەڕاستی سەرەوە</string>
     <string name="overlay_position_center_bottom">ناوەڕاستی خوارەوە</string>
-    <string name="overlay_background">پاشبنەمای ئاوێرە</string>
-    <string name="overlay_background_description">پاشبنەمای ئاوێرە بۆ خوێندنەوەی ئاسانتر</string>
+    <string name="perf_overlay_background">پاشبنەمای ئاوێرە</string>
+    <string name="perf_overlay_background_description">پاشبنەمای ئاوێرە بۆ خوێندنەوەی ئاسانتر</string>
     <string name="show_shaders_building">پیشاندانی دروستکردنی شادەرەکان</string>
     <string name="show_shaders_building_description">ژمارەی ئێستای شادەرەکانی کە دروست دەکرێن پیشان بدە</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">نیشاندانی زانیاری ئامێر</string>
+    <string name="enable_soc_overlay">چالاکردنی ئامێر</string>
+    <string name="soc_overlay_options">ئامێر</string>
+    <string name="soc_overlay_options_description">ڕێکخستنی زانیارییەکانی نیشاندراو لە ئامێرەکە</string>
+
+    <string name="show_device_model">نیشاندانی مۆدێلی ئامێر</string>
+    <string name="show_device_model_description">نیشاندانی مۆدێلی ئامێری میواندار</string>
+    <string name="show_gpu_model">نیشاندانی مۆدێلی GPU</string>
+    <string name="show_gpu_model_description">نیشاندانی مۆدێلی GPUی میواندار</string>
+    <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>
+    <string name="show_soc_model_description">نیشاندانی مۆدێلی SoCی میواندار</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">پاشکۆکانی GPU</string>
+    <string name="veil_renderer">رێندرەر</string>
+    <string name="veil_misc">جۆراوجۆر</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
     <string name="eden_veil_warning_title">ڕێکخستنە تاقیکارییەکان</string>
@@ -128,75 +144,93 @@
     <string name="always">هەمیشە</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">فرە یاریکەر</string>
-    <string name="multiplayer_description">خۆڕێکخستنی ژوور یان بەشداریکردن لە ژوورێک</string>
+    <string name="multiplayer">فرە یاریزان</string>
+    <string name="multiplayer_description">ژووری یاری خۆت دروست بکە یان بچۆ ژوورێکی تر بۆ یاریکردن لەگەڵ خەڵک</string>
     <string name="multiplayer_room_title">ژوور: %1$s</string>
-    <string name="multiplayer_console_id">IDی کۆنسۆڵ: %1$s</string>
+    <string name="multiplayer_console_id">ناسنامەی کۆنسۆڵ: %1$s</string>
     <string name="multiplayer_create_room">دروستکردن</string>
     <string name="multiplayer_join_room">بەشداریکردن</string>
+    <string name="multiplayer_public_room">گەڕان بۆ ژوورە گشتییەکان</string>
     <string name="multiplayer_username">ناوی بەکارهێنەر</string>
     <string name="multiplayer_ip_address">ناونیشانی IP</string>
     <string name="multiplayer_ip_port">پۆرت</string>
     <string name="multiplayer_create_room_success">ژوور بە سەرکەوتوویی دروستکرا!</string>
-    <string name="multiplayer_join_room_success">بە سەرکەوتوویی بەشداریکرا!</string>
+    <string name="multiplayer_join_room_success">بە سەرکەوتوویی بەژوور کرا!</string>
     <string name="multiplayer_create_room_failed">دروستکردنی ژوور شکستی هێنا!</string>
-    <string name="multiplayer_join_room_failed">بەشداریکردن شکستی هێنا!</string>
+    <string name="multiplayer_join_room_failed">بەژووربوون شکستی هێنا!</string>
     <string name="multiplayer_input_invalid">ناونیشانی نادروست یان ناو زۆر کورتە!</string>
     <string name="multiplayer_port_invalid">پۆرتی نادروست!</string>
     <string name="multiplayer_exit_room">دەرچوون لە ژوور</string>
     <string name="multiplayer_network_error">هەڵەی تۆڕ</string>
-    <string name="multiplayer_lost_connection">پێوەندی لەدەستچوو</string>
-    <string name="multiplayer_name_collision">ناوی دووبارە</string>
-    <string name="multiplayer_mac_collision">MACی دووبارە</string>
-    <string name="multiplayer_console_id_collision">IDی کۆنسۆڵی دووبارە</string>
+    <string name="multiplayer_lost_connection">پەیوەندی لەدەستچوو</string>
+    <string name="multiplayer_name_collision">هاوتای ناو</string>
+    <string name="multiplayer_mac_collision">هاوتای MAC</string>
+    <string name="multiplayer_console_id_collision">هاوتای ناسنامەی کۆنسۆڵ</string>
     <string name="multiplayer_wrong_version">وەشانی هەڵە</string>
     <string name="multiplayer_wrong_password">تێپەڕەوشەی هەڵە</string>
     <string name="multiplayer_could_not_connect">نەتوانرا پەیوەندی بکرێت</string>
     <string name="multiplayer_room_is_full">ژوور پڕە</string>
-    <string name="multiplayer_host_banned">هاست ڕێگەپێدراو نییە</string>
-    <string name="multiplayer_permission_denied">ڕێگەپێدراو نییە</string>
-    <string name="multiplayer_no_such_user">بەکارهێنەر بوونی نییە</string>
+    <string name="multiplayer_host_banned">میواندار قەدەغەکراوە</string>
+    <string name="multiplayer_permission_denied">ڕێگەپێنەدراو</string>
+    <string name="multiplayer_no_such_user">ئەو بەکارهێنەرە نییە</string>
     <string name="multiplayer_already_in_room">پێشتر لە ژوورە</string>
-    <string name="multiplayer_create_room_error">هەڵەی دروستکردنی ژوور</string>
-    <string name="multiplayer_host_kicked">هاست لابرا</string>
-    <string name="multiplayer_unknown_error">هەڵەی نەزانراو</string>
+    <string name="multiplayer_create_room_error">هەڵە لە دروستکردنی ژوور</string>
+    <string name="multiplayer_host_kicked">میواندار دەرکرا</string>
+    <string name="multiplayer_unknown_error">هەڵەی نەناسراو</string>
     <string name="multiplayer_room_uninitialized">ژوور ڕێکنەخراوە</string>
     <string name="multiplayer_room_idle">ژوور بێکارە</string>
-    <string name="multiplayer_room_joining">لە پڕۆسەی بەشداریکردن</string>
-    <string name="multiplayer_room_joined">بەشداریکرا</string>
-    <string name="multiplayer_room_moderator">چاودێر</string>
-    <string name="multiplayer_member_join">%1$s بەشداریکرد</string>
-    <string name="multiplayer_member_leave">%1$s جێهێشت</string>
-    <string name="multiplayer_member_kicked">%1$s لابرا</string>
-    <string name="multiplayer_member_banned">%1$s ڕێگەپێدراو نییە</string>
-    <string name="multiplayer_address_unbanned">ناونیشان ڕێگەپێدراوە</string>
-    <string name="multiplayer_kick_member">لابردن</string>
-    <string name="multiplayer_chat_input_hint">ناردنی نامە...</string>
+    <string name="multiplayer_room_joining">لە بەژووربووندایە</string>
+    <string name="multiplayer_room_joined">بەژوور کرا</string>
+    <string name="multiplayer_room_moderator">چاودێری ژوور</string>
+    <string name="multiplayer_member_join">%1$s بەژوور بوو</string>
+    <string name="multiplayer_member_leave">%1$s ژووری بەجێهێشت</string>
+    <string name="multiplayer_member_kicked">%1$s دەرکرا</string>
+    <string name="multiplayer_member_banned">%1$s قەدەغەکرا</string>
+    <string name="multiplayer_address_unbanned">ناونیشان لە قەدەغەکردن دەرکرا</string>
+    <string name="multiplayer_kick_member">دەرکردن</string>
+    <string name="multiplayer_chat_input_hint">ناردنی پەیام...</string>
     <string name="multiplayer_password">تێپەڕەوشە</string>
     <string name="original_button_text">بەشداریکردن</string>
-    <string name="disabled_button_text">لە پڕۆسەی بەشداریکردن...</string>
+    <string name="disabled_button_text">لە بەژووربووندایە...</string>
     <string name="multiplayer_room_name">ناوی ژوور</string>
-    <string name="multiplayer_room_name_invalid">ناوی ژوور دەبێت لەنێوان ٣ بۆ ٢٠ پیت بێت</string>
-    <string name="multiplayer_max_players">زۆرترین یاریکەر (١٦)</string>
-    <string name="multiplayer_max_players_value">زۆرترین یاریکەر: %d</string>
-    <string name="multiplayer_chat">چات</string>
-    <string name="multiplayer_more_options">هەڵبژاردنی زیاتر</string>
-    <string name="multiplayer_ip_copied">ناونیشانی IP کۆپی کراوە</string>
+    <string name="multiplayer_room_name_invalid">ناوی ژوور دەبێت لە نێوان 3 بۆ 20 پیت بێت</string>
+    <string name="multiplayer_max_players">زۆرترین یاریزان (16)</string>
+    <string name="multiplayer_max_players_value">زۆرترین یاریزان: %d</string>
+    <string name="multiplayer_chat">گفتوگۆ</string>
+    <string name="multiplayer_more_options">هەڵبژاردەی زیاتر</string>
+    <string name="multiplayer_ip_copied">ناونیشانی IP کۆپی کراوە بۆ کلیپبۆرد</string>
     <string name="multiplayer_server_address">ناونیشانی سێرڤەر</string>
-    <string name="chat">چات</string>
-    <string name="type_message">نووسینی نامە...</string>
+    <string name="chat">گفتوگۆ</string>
+    <string name="type_message">پەیام بنووسە...</string>
     <string name="send">ناردن</string>
-    <string name="send_message">ناردنی نامە</string>
+    <string name="send_message">ناردنی پەیام</string>
     <string name="multiplayer_moderation">چاودێری</string>
-    <string name="multiplayer_moderation_title">لیستی ڕێگەپێدراوەکان</string>
-    <string name="multiplayer_no_bans">هیچ بەکارهێنەرێک ڕێگەپێدراو نییە</string>
-    <string name="multiplayer_unban_title">لابردنی ڕێگەپێدان</string>
-    <string name="multiplayer_unban">لابردنی ڕێگەپێدان</string>
-    <string name="multiplayer_unban_message">دڵنیای لە لابردنی ڕێگەپێدانی %1$s?</string>
-    <string name="multiplayer_ban">ڕێگەپێدان</string>
-    <string name="emulation_multiplayer">فرە یاریکەر</string>
+    <string name="multiplayer_moderation_title">لیستی قەدەغەکردن</string>
+    <string name="multiplayer_no_bans">هیچ بەکارهێنەرێک قەدەغە نەکراوە</string>
+    <string name="multiplayer_unban_title">لابردنی قەدەغە لە بەکارهێنەر</string>
+    <string name="multiplayer_unban">لابردنی قەدەغە</string>
+    <string name="multiplayer_unban_message">دڵنیایت لە ئەوەی دەتەوێت قەدەغە لە %1$s لابەری؟</string>
+    <string name="multiplayer_ban">قەدەغەکردنی بەکارهێنەر</string>
+    <string name="multiplayer_room_browser">ژوورە گشتییەکان</string>
+    <string name="multiplayer_no_rooms_found">هیچ ژوورێکی گشتی نەدۆزرایەوە</string>
+    <string name="multiplayer_password_required">تێپەڕەوشە پێویستە</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">یاری</string>
+    <string name="multiplayer_no_game_info">هەر یارییەک</string>
+    <string name="multiplayer_password_protected">ژوور بە تێپەڕەوشە پارێزراوە</string>
+    <string name="multiplayer_hide_full_rooms">شاردنەوەی ژوورە پڕەکان</string>
+    <string name="multiplayer_hide_empty_rooms">شاردنەوەی ژوورە بەتاڵەکان</string>
+    <string name="multiplayer_tap_refresh_to_check_again">بیپەڕێنەوە بۆ پشکنینەوە</string>
+    <string name="multiplayer_search_public_lobbies">گەڕان بۆ ژوورەکان...</string>
+    <string name="emulation_multiplayer">فرە یاریزان</string>
+    <string name="multiplayer_game_name">یارییە پەسەندکراوەکان</string>
+    <string name="multiplayer_preferred_game_name">یاریی پەسەندکراو</string>
+    <string name="multiplayer_no_game">هیچ یارییەک نەدۆزرایەوە</string>
+    <string name="multiplayer_preferred_game_name_invalid">پێویستە یارییەکی پەسەندکراو هەڵبژێریت بۆ میوانداریکردنی ژوور.</string>
     <string name="cancel">پاشگەزبوونەوە</string>
     <string name="ok">باشە</string>
+    <string name="refresh">نوێکردنەوە</string>
+    <string name="room_list">لیستی ژوورەکان</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">ڕەنگی پۆل</string>
@@ -340,6 +374,9 @@
     <string name="frame_limit_slider">سنووردارکردنی لەسەدای خێرایی</string>
     <string name="frame_limit_slider_description">ڕێژەی سەدی دیاری دەکات بۆ سنووردارکردنی خێرایی ئیمولەیشن. 100% خێرایی ئاساییە. بەهایی بەرزتر یان نزمتر دەبێتە هۆی زیاد یان کەمکردنەوەی سنووری خێرایی.</string>
     <string name="cpu_accuracy">وردی CPU</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">ناوی ئامێر</string>
     <string name="use_docked_mode">دۆخی دۆککراو</string>
     <string name="use_docked_mode_description">ڕوونی زیاد دەکات، کارایی کەم دەکاتەوە. دۆخی دەستی بەکاردێت کاتێک لەکاردەخرێت، ئەمەش ڕوونی دادەبەزێنێت و کارایی زیاد دەکات.</string>
     <string name="emulated_region">ناوچەی ئیمولەیشن</string>
@@ -349,6 +386,11 @@
     <string name="use_custom_rtc">RTCی تایبەتمەند</string>
     <string name="use_custom_rtc_description">ڕێگەت پێدەدات کاتژمێرێکی کاتی ڕاستەقینەی تایبەتمەند دابنێیت کە جیاوازە لە کاتی ئێستای سیستەمەکەت.</string>
     <string name="set_custom_rtc">دانانی RTCی تایبەتمەند</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">نیشانەی وێب</string>
+    <string name="web_token_description">نیشانەی وێب بۆ دروستکردنی ژوورە گشتییەکان. زنجیرەیەکی 48 پیتییە تەنها پیتی a-z بچووک لەخۆدەگرێت.</string>
+    <string name="network">تۆڕ</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">ئاستی وردبینی</string>
@@ -457,6 +499,33 @@
     <string name="select_gpu_driver_use_default">بەکارهێنانی وەگەڕخەری GPU ی بنەڕەت</string>
     <string name="system_gpu_driver">وەگەڕخەری GPU ی سیستەم</string>
     <string name="installing_driver">دامەزراندنی وەگەڕخەر...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">هێنەری درایڤەری GPU</string>
+    <string name="fetch">هێنان</string>
+    <string name="fetch_error">هەڵە لە کاتی هێنان</string>
+    <string name="check_connection">پەیوەندییەکەت پشکنە و دووبارە هەوڵبدە.</string>
+    <string name="show_releases">پیشاندانی وەشانەکان</string>
+    <string name="view_full_release_notes">تێبینییەکانی وەشان</string>
+    <string name="failed_to_fetch">هێنان شکستی هێنا</string>
+    <string name="error_during_fetch">هەڵە لە کاتی هێنان</string>
+    <string name="toggle_release_notes">گۆڕینی تێبینییەکانی وەشان</string>
+    <string name="downloads">داگرتنەکان</string>
+    <string name="show_downloads">پیشاندانی داگرتنەکان</string>
+    <string name="hide_downloads">شاردنەوەی داگرتنەکان</string>
+    <string name="failed_cache_dir">دایری کاش بەردەست نییە</string>
+    <string name="empty_response_body">ناوەڕۆکی وەڵام بەتاڵە</string>
+    <string name="successfully_installed">%1$s بە سەرکەوتوویی دامەزرا</string>
+    <string name="driver_failed_title">دامەزراندنی درایڤەر شکستی هێنا</string>
+    <string name="failed_install_driver">دامەزراندنی درایڤەری %1$s شکستی هێنا، سیستەمەکەت پشتگیری دەکات؟</string>
+    <string name="driver_empty">درایڤەری داگرتوو بەتاڵە، پەیوەندییەکەت بە ئینتەرنێت پشکنە</string>
+    <string name="downloading">لە داگرتندایە...</string>
+    <string name="installing">لە دامەزراندن...</string>
+    <string name="latest">نوێترین</string>
+    <string name="recommended_driver">درایڤەری پێشنیارکراو:</string>
+    <string name="gpu_model">مۆدێلی GPU:</string>
+    <string name="unsupported_gpu">GPU پشتگیری نەکراوە</string>
+    <string name="unsupported_gpu_warning">GPUی تۆ پشتگیری لە درایڤەری تایبەت ناکات. پێشنیار ناکرێت درایڤەری تایبەت دابنێیت.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">ڕێکخستنەکان</string>

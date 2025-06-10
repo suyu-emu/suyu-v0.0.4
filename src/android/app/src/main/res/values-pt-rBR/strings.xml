@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">Canto inferior direito</string>
     <string name="overlay_position_center_top">Centro superior</string>
     <string name="overlay_position_center_bottom">Centro inferior</string>
-    <string name="overlay_background">Fundo da sobreposição</string>
-    <string name="overlay_background_description">Adiciona um fundo para melhorar a legibilidade</string>
+    <string name="perf_overlay_background">Fundo da sobreposição</string>
+    <string name="perf_overlay_background_description">Adiciona um fundo para melhorar a legibilidade</string>
     <string name="show_shaders_building">Mostrar construção de shaders</string>
     <string name="show_shaders_building_description">Exibe o número atual de shaders sendo construídos</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Mostrar sobreposição de informações do dispositivo</string>
+    <string name="enable_soc_overlay">Ativar sobreposição do dispositivo</string>
+    <string name="soc_overlay_options">Sobreposição do dispositivo</string>
+    <string name="soc_overlay_options_description">Configurar quais informações são mostradas na sobreposição do dispositivo</string>
+
+    <string name="show_device_model">Mostrar modelo do dispositivo</string>
+    <string name="show_device_model_description">Exibir o modelo do dispositivo host</string>
+    <string name="show_gpu_model">Mostrar modelo da GPU</string>
+    <string name="show_gpu_model_description">Exibir o modelo da GPU host</string>
+    <string name="show_soc_model">Mostrar modelo do SoC</string>
+    <string name="show_soc_model_description">Exibir o modelo do SoC host</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">Extensões da GPU</string>
+    <string name="veil_renderer">Renderizador</string>
+    <string name="veil_misc">Diversos</string>
     <string name="eden_veil">Véu do Éden</string>
     <string name="eden_veil_description">Configurações experimentais para melhorar desempenho e capacidade. Essas configurações podem causar telas pretas ou outros problemas no jogo.</string>
     <string name="eden_veil_warning_title">Configurações experimentais</string>
@@ -129,62 +145,63 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">Multijogador</string>
-    <string name="multiplayer_description">Crie ou entre em salas para jogar com outros</string>
+    <string name="multiplayer_description">Crie sua própria sala de jogo ou entre em uma existente para jogar com outras pessoas</string>
     <string name="multiplayer_room_title">Sala: %1$s</string>
     <string name="multiplayer_console_id">ID do console: %1$s</string>
     <string name="multiplayer_create_room">Criar</string>
     <string name="multiplayer_join_room">Entrar</string>
+    <string name="multiplayer_public_room">Navegar por salas públicas</string>
     <string name="multiplayer_username">Nome de usuário</string>
     <string name="multiplayer_ip_address">Endereço IP</string>
     <string name="multiplayer_ip_port">Porta</string>
-    <string name="multiplayer_create_room_success">Sala criada</string>
-    <string name="multiplayer_join_room_success">Entrou na sala</string>
-    <string name="multiplayer_create_room_failed">Falha ao criar sala</string>
-    <string name="multiplayer_join_room_failed">Falha ao entrar</string>
-    <string name="multiplayer_input_invalid">Endereço ou nome inválido</string>
-    <string name="multiplayer_port_invalid">Porta inválida</string>
+    <string name="multiplayer_create_room_success">Sala criada com sucesso!</string>
+    <string name="multiplayer_join_room_success">Entrou na sala com sucesso!</string>
+    <string name="multiplayer_create_room_failed">Falha ao criar sala!</string>
+    <string name="multiplayer_join_room_failed">Falha ao entrar na sala!</string>
+    <string name="multiplayer_input_invalid">Endereço inválido ou nome muito curto!</string>
+    <string name="multiplayer_port_invalid">Porta inválida!</string>
     <string name="multiplayer_exit_room">Sair da sala</string>
     <string name="multiplayer_network_error">Erro de rede</string>
     <string name="multiplayer_lost_connection">Conexão perdida</string>
-    <string name="multiplayer_name_collision">Nome em uso</string>
-    <string name="multiplayer_mac_collision">MAC em uso</string>
-    <string name="multiplayer_console_id_collision">ID do console em uso</string>
+    <string name="multiplayer_name_collision">Conflito de nomes</string>
+    <string name="multiplayer_mac_collision">Conflito de MAC</string>
+    <string name="multiplayer_console_id_collision">Conflito de ID do console</string>
     <string name="multiplayer_wrong_version">Versão incorreta</string>
     <string name="multiplayer_wrong_password">Senha incorreta</string>
-    <string name="multiplayer_could_not_connect">Falha na conexão</string>
-    <string name="multiplayer_room_is_full">Sala cheia</string>
+    <string name="multiplayer_could_not_connect">Não foi possível conectar</string>
+    <string name="multiplayer_room_is_full">Sala está cheia</string>
     <string name="multiplayer_host_banned">Host banido</string>
     <string name="multiplayer_permission_denied">Permissão negada</string>
     <string name="multiplayer_no_such_user">Usuário não encontrado</string>
     <string name="multiplayer_already_in_room">Já está na sala</string>
     <string name="multiplayer_create_room_error">Erro ao criar sala</string>
-    <string name="multiplayer_host_kicked">Host removido</string>
+    <string name="multiplayer_host_kicked">Host expulso</string>
     <string name="multiplayer_unknown_error">Erro desconhecido</string>
     <string name="multiplayer_room_uninitialized">Sala não inicializada</string>
-    <string name="multiplayer_room_idle">Sala inativa</string>
+    <string name="multiplayer_room_idle">Sala ociosa</string>
     <string name="multiplayer_room_joining">Entrando na sala</string>
-    <string name="multiplayer_room_joined">Na sala</string>
-    <string name="multiplayer_room_moderator">Moderador</string>
+    <string name="multiplayer_room_joined">Entrou na sala</string>
+    <string name="multiplayer_room_moderator">Moderador da sala</string>
     <string name="multiplayer_member_join">%1$s entrou</string>
     <string name="multiplayer_member_leave">%1$s saiu</string>
-    <string name="multiplayer_member_kicked">%1$s removido</string>
-    <string name="multiplayer_member_banned">%1$s banido</string>
+    <string name="multiplayer_member_kicked">%1$s foi expulso</string>
+    <string name="multiplayer_member_banned">%1$s foi banido</string>
     <string name="multiplayer_address_unbanned">Endereço desbanido</string>
-    <string name="multiplayer_kick_member">Remover</string>
-    <string name="multiplayer_chat_input_hint">Enviar mensagem...</string>
+    <string name="multiplayer_kick_member">Expulsar</string>
+    <string name="multiplayer_chat_input_hint">Enviar mensagem…</string>
     <string name="multiplayer_password">Senha</string>
     <string name="original_button_text">Entrar</string>
     <string name="disabled_button_text">Entrando...</string>
     <string name="multiplayer_room_name">Nome da sala</string>
-    <string name="multiplayer_room_name_invalid">Nome deve ter 3 a 20 caracteres</string>
-    <string name="multiplayer_max_players">Máx. jogadores (16)</string>
-    <string name="multiplayer_max_players_value">Máx. jogadores: %d</string>
+    <string name="multiplayer_room_name_invalid">O nome da sala deve ter entre 3 e 20 caracteres</string>
+    <string name="multiplayer_max_players">Jogadores máx. (16)</string>
+    <string name="multiplayer_max_players_value">Jogadores máx.: %d</string>
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Mais opções</string>
-    <string name="multiplayer_ip_copied">IP copiado</string>
+    <string name="multiplayer_ip_copied">Endereço IP copiado para a área de transferência</string>
     <string name="multiplayer_server_address">Endereço do servidor</string>
     <string name="chat">Chat</string>
-    <string name="type_message">Digite uma mensagem...</string>
+    <string name="type_message">Digite uma mensagem…</string>
     <string name="send">Enviar</string>
     <string name="send_message">Enviar mensagem</string>
     <string name="multiplayer_moderation">Moderação</string>
@@ -192,11 +209,28 @@
     <string name="multiplayer_no_bans">Nenhum usuário banido</string>
     <string name="multiplayer_unban_title">Desbanir usuário</string>
     <string name="multiplayer_unban">Desbanir</string>
-    <string name="multiplayer_unban_message">Desbanir %1$s?</string>
+    <string name="multiplayer_unban_message">Tem certeza que deseja desbanir %1$s?</string>
     <string name="multiplayer_ban">Banir usuário</string>
+    <string name="multiplayer_room_browser">Salas públicas</string>
+    <string name="multiplayer_no_rooms_found">Nenhuma sala pública encontrada</string>
+    <string name="multiplayer_password_required">Senha necessária</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Jogo</string>
+    <string name="multiplayer_no_game_info">Qualquer jogo</string>
+    <string name="multiplayer_password_protected">Sala protegida por senha</string>
+    <string name="multiplayer_hide_full_rooms">Ocultar salas cheias</string>
+    <string name="multiplayer_hide_empty_rooms">Ocultar salas vazias</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Toque em atualizar para verificar novamente</string>
+    <string name="multiplayer_search_public_lobbies">Buscar salas…</string>
     <string name="emulation_multiplayer">Multijogador</string>
+    <string name="multiplayer_game_name">Jogos preferidos</string>
+    <string name="multiplayer_preferred_game_name">Jogo preferido</string>
+    <string name="multiplayer_no_game">Nenhum jogo encontrado</string>
+    <string name="multiplayer_preferred_game_name_invalid">Você deve escolher um jogo preferido para criar uma sala.</string>
     <string name="cancel">Cancelar</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
+    <string name="refresh">Atualizar</string>
+    <string name="room_list">Lista de salas</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Cor do tema</string>
@@ -411,6 +445,11 @@
     <string name="use_custom_rtc_description">Permite a você configurar um relógio em tempo real separado do relógio do seu dispositivo.</string>
     <string name="set_custom_rtc">Definir um relógio em tempo real personalizado</string>
 
+    <!-- Network settings strings -->
+    <string name="web_token">Token web</string>
+    <string name="web_token_description">Token web usado para criar salas públicas. É uma string de 48 caracteres contendo apenas letras minúsculas a-z.</string>
+    <string name="network">Rede</string>
+
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Nível de precisão</string>
     <string name="renderer_resolution">Resolução (Portátil/Modo TV)</string>
@@ -590,6 +629,33 @@ uma tentativa de mapeamento automático</string>
     <string name="driver_already_installed">Driver já instalado</string>
     <string name="system_gpu_driver">Driver padrão da GPU</string>
     <string name="installing_driver">Instalando driver...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">Obtentor de drivers GPU</string>
+    <string name="fetch">Obter</string>
+    <string name="fetch_error">Erro ao obter</string>
+    <string name="check_connection">Verifique sua conexão e tente novamente.</string>
+    <string name="show_releases">Mostrar versões</string>
+    <string name="view_full_release_notes">Notas de versão</string>
+    <string name="failed_to_fetch">Falha ao obter</string>
+    <string name="error_during_fetch">Erro durante a obtenção</string>
+    <string name="toggle_release_notes">Alternar notas de versão</string>
+    <string name="downloads">Downloads</string>
+    <string name="show_downloads">Mostrar downloads</string>
+    <string name="hide_downloads">Ocultar downloads</string>
+    <string name="failed_cache_dir">Diretório de cache indisponível</string>
+    <string name="empty_response_body">Corpo de resposta vazio</string>
+    <string name="successfully_installed">%1$s instalado com sucesso</string>
+    <string name="driver_failed_title">Falha na instalação do driver</string>
+    <string name="failed_install_driver">Falha ao instalar o driver %1$s, seu sistema é compatível?</string>
+    <string name="driver_empty">O driver baixado está vazio, verifique sua conexão com a internet</string>
+    <string name="downloading">Baixando…</string>
+    <string name="installing">Instalando…</string>
+    <string name="latest">Mais recente</string>
+    <string name="recommended_driver">Driver recomendado:</string>
+    <string name="gpu_model">Modelo GPU:</string>
+    <string name="unsupported_gpu">GPU não suportada</string>
+    <string name="unsupported_gpu_warning">Sua GPU não suporta injeção de driver. Não é recomendado definir drivers personalizados.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Configurações</string>

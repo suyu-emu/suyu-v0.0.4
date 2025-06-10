@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">Dưới phải</string>
     <string name="overlay_position_center_top">Giữa trên</string>
     <string name="overlay_position_center_bottom">Giữa dưới</string>
-    <string name="overlay_background">Nền overlay</string>
-    <string name="overlay_background_description">Thêm nền để dễ đọc</string>
+    <string name="perf_overlay_background">Nền overlay</string>
+    <string name="perf_overlay_background_description">Thêm nền để dễ đọc</string>
     <string name="show_shaders_building">Hiển thị xây dựng shader</string>
     <string name="show_shaders_building_description">Hiển thị số lượng shader đang được xây dựng hiện tại</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Hiển thị thông tin thiết bị</string>
+    <string name="enable_soc_overlay">Bật lớp phủ thiết bị</string>
+    <string name="soc_overlay_options">Lớp phủ thiết bị</string>
+    <string name="soc_overlay_options_description">Cấu hình thông tin hiển thị trong lớp phủ thiết bị</string>
+
+    <string name="show_device_model">Hiển thị model thiết bị</string>
+    <string name="show_device_model_description">Hiển thị model thiết bị chủ</string>
+    <string name="show_gpu_model">Hiển thị model GPU</string>
+    <string name="show_gpu_model_description">Hiển thị model GPU chủ</string>
+    <string name="show_soc_model">Hiển thị model SoC</string>
+    <string name="show_soc_model_description">Hiển thị model SoC chủ</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">Tiện ích mở rộng GPU</string>
+    <string name="veil_renderer">Trình kết xuất</string>
+    <string name="veil_misc">Khác</string>
     <string name="eden_veil">Màn Eden</string>
     <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>
     <string name="eden_veil_warning_title">Cài đặt thử nghiệm</string>
@@ -128,75 +144,93 @@
     <string name="always">Luôn</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">Đa người chơi</string>
-    <string name="multiplayer_description">Tạo hoặc tham gia phòng chơi</string>
+    <string name="multiplayer">Nhiều người chơi</string>
+    <string name="multiplayer_description">Tạo phòng chơi của riêng bạn hoặc tham gia phòng có sẵn để chơi với người khác</string>
     <string name="multiplayer_room_title">Phòng: %1$s</string>
-    <string name="multiplayer_console_id">ID máy: %1$s</string>
+    <string name="multiplayer_console_id">ID máy chơi game: %1$s</string>
     <string name="multiplayer_create_room">Tạo</string>
     <string name="multiplayer_join_room">Tham gia</string>
+    <string name="multiplayer_public_room">Duyệt phòng công khai</string>
     <string name="multiplayer_username">Tên người dùng</string>
     <string name="multiplayer_ip_address">Địa chỉ IP</string>
     <string name="multiplayer_ip_port">Cổng</string>
     <string name="multiplayer_create_room_success">Tạo phòng thành công!</string>
     <string name="multiplayer_join_room_success">Tham gia phòng thành công!</string>
-    <string name="multiplayer_create_room_failed">Lỗi tạo phòng!</string>
-    <string name="multiplayer_join_room_failed">Lỗi tham gia phòng!</string>
-    <string name="multiplayer_input_invalid">Địa chỉ hoặc tên không hợp lệ!</string>
+    <string name="multiplayer_create_room_failed">Tạo phòng thất bại!</string>
+    <string name="multiplayer_join_room_failed">Tham gia phòng thất bại!</string>
+    <string name="multiplayer_input_invalid">Địa chỉ không hợp lệ hoặc tên quá ngắn!</string>
     <string name="multiplayer_port_invalid">Cổng không hợp lệ!</string>
-    <string name="multiplayer_exit_room">Thoát phòng</string>
+    <string name="multiplayer_exit_room">Rời phòng</string>
     <string name="multiplayer_network_error">Lỗi mạng</string>
     <string name="multiplayer_lost_connection">Mất kết nối</string>
-    <string name="multiplayer_name_collision">Trùng tên</string>
-    <string name="multiplayer_mac_collision">Trùng MAC</string>
-    <string name="multiplayer_console_id_collision">Trùng ID máy</string>
+    <string name="multiplayer_name_collision">Xung đột tên</string>
+    <string name="multiplayer_mac_collision">Xung đột MAC</string>
+    <string name="multiplayer_console_id_collision">Xung đột ID máy chơi game</string>
     <string name="multiplayer_wrong_version">Sai phiên bản</string>
     <string name="multiplayer_wrong_password">Sai mật khẩu</string>
     <string name="multiplayer_could_not_connect">Không thể kết nối</string>
-    <string name="multiplayer_room_is_full">Phòng đầy</string>
+    <string name="multiplayer_room_is_full">Phòng đã đầy</string>
     <string name="multiplayer_host_banned">Host bị cấm</string>
     <string name="multiplayer_permission_denied">Từ chối quyền</string>
-    <string name="multiplayer_no_such_user">Không có người dùng</string>
-    <string name="multiplayer_already_in_room">Đã trong phòng</string>
+    <string name="multiplayer_no_such_user">Không tìm thấy người dùng</string>
+    <string name="multiplayer_already_in_room">Đã ở trong phòng</string>
     <string name="multiplayer_create_room_error">Lỗi tạo phòng</string>
     <string name="multiplayer_host_kicked">Host bị đá</string>
     <string name="multiplayer_unknown_error">Lỗi không xác định</string>
     <string name="multiplayer_room_uninitialized">Phòng chưa khởi tạo</string>
-    <string name="multiplayer_room_idle">Phòng trống</string>
-    <string name="multiplayer_room_joining">Đang tham gia</string>
-    <string name="multiplayer_room_joined">Đã tham gia</string>
-    <string name="multiplayer_room_moderator">Quản lý phòng</string>
+    <string name="multiplayer_room_idle">Phòng không hoạt động</string>
+    <string name="multiplayer_room_joining">Đang tham gia phòng</string>
+    <string name="multiplayer_room_joined">Đã tham gia phòng</string>
+    <string name="multiplayer_room_moderator">Người kiểm duyệt phòng</string>
     <string name="multiplayer_member_join">%1$s đã tham gia</string>
-    <string name="multiplayer_member_leave">%1$s đã rời</string>
+    <string name="multiplayer_member_leave">%1$s đã rời đi</string>
     <string name="multiplayer_member_kicked">%1$s bị đá</string>
     <string name="multiplayer_member_banned">%1$s bị cấm</string>
-    <string name="multiplayer_address_unbanned">Đã bỏ cấm địa chỉ</string>
-    <string name="multiplayer_kick_member">Đá thành viên</string>
-    <string name="multiplayer_chat_input_hint">Nhập tin nhắn...</string>
+    <string name="multiplayer_address_unbanned">Địa chỉ được bỏ cấm</string>
+    <string name="multiplayer_kick_member">Đá</string>
+    <string name="multiplayer_chat_input_hint">Gửi tin nhắn…</string>
     <string name="multiplayer_password">Mật khẩu</string>
     <string name="original_button_text">Tham gia</string>
     <string name="disabled_button_text">Đang tham gia...</string>
     <string name="multiplayer_room_name">Tên phòng</string>
-    <string name="multiplayer_room_name_invalid">Tên phòng từ 3-20 ký tự</string>
-    <string name="multiplayer_max_players">Tối đa (16)</string>
-    <string name="multiplayer_max_players_value">Tối đa: %d</string>
-    <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">Tùy chọn khác</string>
-    <string name="multiplayer_ip_copied">Đã sao chép IP</string>
+    <string name="multiplayer_room_name_invalid">Tên phòng phải từ 3 đến 20 ký tự</string>
+    <string name="multiplayer_max_players">Số người chơi tối đa (16)</string>
+    <string name="multiplayer_max_players_value">Số người chơi tối đa: %d</string>
+    <string name="multiplayer_chat">Trò chuyện</string>
+    <string name="multiplayer_more_options">Thêm tùy chọn</string>
+    <string name="multiplayer_ip_copied">Đã sao chép địa chỉ IP vào bộ nhớ tạm</string>
     <string name="multiplayer_server_address">Địa chỉ máy chủ</string>
-    <string name="chat">Chat</string>
-    <string name="type_message">Nhập tin nhắn...</string>
+    <string name="chat">Trò chuyện</string>
+    <string name="type_message">Nhập tin nhắn…</string>
     <string name="send">Gửi</string>
     <string name="send_message">Gửi tin nhắn</string>
-    <string name="multiplayer_moderation">Quản lý</string>
+    <string name="multiplayer_moderation">Kiểm duyệt</string>
     <string name="multiplayer_moderation_title">Danh sách cấm</string>
-    <string name="multiplayer_no_bans">Không có người bị cấm</string>
-    <string name="multiplayer_unban_title">Bỏ cấm</string>
+    <string name="multiplayer_no_bans">Không có người dùng bị cấm</string>
+    <string name="multiplayer_unban_title">Bỏ cấm người dùng</string>
     <string name="multiplayer_unban">Bỏ cấm</string>
-    <string name="multiplayer_unban_message">Bỏ cấm %1$s?</string>
+    <string name="multiplayer_unban_message">Bạn có chắc muốn bỏ cấm %1$s không?</string>
     <string name="multiplayer_ban">Cấm người dùng</string>
-    <string name="emulation_multiplayer">Đa người chơi</string>
+    <string name="multiplayer_room_browser">Phòng công khai</string>
+    <string name="multiplayer_no_rooms_found">Không tìm thấy phòng công khai</string>
+    <string name="multiplayer_password_required">Yêu cầu mật khẩu</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Trò chơi</string>
+    <string name="multiplayer_no_game_info">Bất kỳ trò chơi nào</string>
+    <string name="multiplayer_password_protected">Phòng được bảo vệ bằng mật khẩu</string>
+    <string name="multiplayer_hide_full_rooms">Ẩn phòng đầy</string>
+    <string name="multiplayer_hide_empty_rooms">Ẩn phòng trống</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Nhấn làm mới để kiểm tra lại</string>
+    <string name="multiplayer_search_public_lobbies">Tìm phòng…</string>
+    <string name="emulation_multiplayer">Nhiều người chơi</string>
+    <string name="multiplayer_game_name">Trò chơi ưa thích</string>
+    <string name="multiplayer_preferred_game_name">Trò chơi ưa thích</string>
+    <string name="multiplayer_no_game">Không tìm thấy trò chơi</string>
+    <string name="multiplayer_preferred_game_name_invalid">Bạn phải chọn trò chơi ưa thích để tạo phòng.</string>
     <string name="cancel">Hủy</string>
     <string name="ok">OK</string>
+    <string name="refresh">Làm mới</string>
+    <string name="room_list">Danh sách phòng</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Màu giao diện</string>
@@ -340,6 +374,9 @@
     <string name="frame_limit_slider">Giới hạn phần trăm tốc độ</string>
     <string name="frame_limit_slider_description">Xác định phần trăm để giới hạn tốc độ giả lập. 100% là tốc độ bình thường. Giá trị cao hơn hoặc thấp hơn sẽ tăng hoặc giảm giới hạn tốc độ.</string>
     <string name="cpu_accuracy">Độ chính xác CPU</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Tên thiết bị</string>
     <string name="use_docked_mode">Chế độ Docked</string>
     <string name="use_docked_mode_description">Tăng độ phân giải, giảm hiệu suất. Chế độ Handheld được sử dụng khi tắt, giảm độ phân giải và tăng hiệu suất.</string>
     <string name="emulated_region">Khu vực giả lập</string>
@@ -349,6 +386,11 @@
     <string name="use_custom_rtc">RTC tuỳ chỉnh</string>
     <string name="use_custom_rtc_description">Cho phép bạn thiết lập một đồng hồ thời gian thực tùy chỉnh riêng biệt so với thời gian hệ thống hiện tại.</string>
     <string name="set_custom_rtc">Thiết lập RTC tùy chỉnh</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Token web</string>
+    <string name="web_token_description">Token web dùng để tạo phòng công khai. Đây là chuỗi 48 ký tự chỉ chứa chữ thường a-z.</string>
+    <string name="network">Mạng</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Mức độ chính xác</string>
@@ -464,6 +506,33 @@
     <string name="select_gpu_driver_use_default">Dùng driver GPU mặc định</string>
     <string name="system_gpu_driver">Driver GPU hệ thống</string>
     <string name="installing_driver">Đang cài đặt driver...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">Trình tải trình điều khiển GPU</string>
+    <string name="fetch">Tải</string>
+    <string name="fetch_error">Lỗi khi tải</string>
+    <string name="check_connection">Kiểm tra kết nối và thử lại.</string>
+    <string name="show_releases">Hiển thị bản phát hành</string>
+    <string name="view_full_release_notes">Ghi chú phát hành</string>
+    <string name="failed_to_fetch">Tải thất bại</string>
+    <string name="error_during_fetch">Lỗi khi tải</string>
+    <string name="toggle_release_notes">Chuyển đổi ghi chú phát hành</string>
+    <string name="downloads">Tải xuống</string>
+    <string name="show_downloads">Hiển thị tải xuống</string>
+    <string name="hide_downloads">Ẩn tải xuống</string>
+    <string name="failed_cache_dir">Thư mục bộ nhớ đệm không khả dụng</string>
+    <string name="empty_response_body">Phản hồi trống</string>
+    <string name="successfully_installed">%1$s đã cài đặt thành công</string>
+    <string name="driver_failed_title">Cài đặt trình điều khiển thất bại</string>
+    <string name="failed_install_driver">Không thể cài đặt trình điều khiển %1$s, hệ thống của bạn có hỗ trợ không?</string>
+    <string name="driver_empty">Trình điều khiển đã tải trống, kiểm tra kết nối internet</string>
+    <string name="downloading">Đang tải xuống…</string>
+    <string name="installing">Đang cài đặt…</string>
+    <string name="latest">Mới nhất</string>
+    <string name="recommended_driver">Trình điều khiển đề xuất:</string>
+    <string name="gpu_model">Model GPU:</string>
+    <string name="unsupported_gpu">GPU không được hỗ trợ</string>
+    <string name="unsupported_gpu_warning">GPU của bạn không hỗ trợ tiêm trình điều khiển. Không nên đặt trình điều khiển tùy chỉnh.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Cài đặt</string>

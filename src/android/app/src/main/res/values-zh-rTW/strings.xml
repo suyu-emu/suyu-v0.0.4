@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">右下</string>
     <string name="overlay_position_center_top">頂部居中</string>
     <string name="overlay_position_center_bottom">底部居中</string>
-    <string name="overlay_background">疊加層背景</string>
-    <string name="overlay_background_description">為疊加層添加背景以提高可讀性</string>
+    <string name="perf_overlay_background">疊加層背景</string>
+    <string name="perf_overlay_background_description">為疊加層添加背景以提高可讀性</string>
     <string name="show_shaders_building">顯示著色器構建</string>
     <string name="show_shaders_building_description">顯示當前正在構建的著色器數量</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">顯示裝置資訊浮層</string>
+    <string name="enable_soc_overlay">啟用裝置浮層</string>
+    <string name="soc_overlay_options">裝置浮層</string>
+    <string name="soc_overlay_options_description">設定裝置浮層中顯示的資訊</string>
+
+    <string name="show_device_model">顯示裝置型號</string>
+    <string name="show_device_model_description">顯示主機裝置型號</string>
+    <string name="show_gpu_model">顯示GPU型號</string>
+    <string name="show_gpu_model_description">顯示主機GPU型號</string>
+    <string name="show_soc_model">顯示SoC型號</string>
+    <string name="show_soc_model_description">顯示主機SoC型號</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">GPU擴充功能</string>
+    <string name="veil_renderer">渲染器</string>
+    <string name="veil_misc">其他</string>
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">實驗性設定以提高效能和能力。這些設定可能會導致黑屏或其他遊戲問題。</string>
     <string name="eden_veil_warning_title">實驗性設定</string>
@@ -133,60 +149,61 @@
     <string name="always">總是</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">多人連線</string>
-    <string name="multiplayer_description">建立或加入房間以進行多人遊戲</string>
-    <string name="multiplayer_room_title">房間：%1$s</string>
-    <string name="multiplayer_console_id">主機ID: %1$s</string>
+    <string name="multiplayer">多人遊戲</string>
+    <string name="multiplayer_description">建立自己的遊戲房間或加入現有房間與他人一起遊玩</string>
+    <string name="multiplayer_room_title">房間: %1$s</string>
+    <string name="multiplayer_console_id">主機ID：%1$s</string>
     <string name="multiplayer_create_room">建立</string>
     <string name="multiplayer_join_room">加入</string>
+    <string name="multiplayer_public_room">瀏覽公開房間</string>
     <string name="multiplayer_username">使用者名稱</string>
     <string name="multiplayer_ip_address">IP位址</string>
-    <string name="multiplayer_ip_port">埠號</string>
+    <string name="multiplayer_ip_port">通訊埠</string>
     <string name="multiplayer_create_room_success">房間建立成功！</string>
     <string name="multiplayer_join_room_success">成功加入房間！</string>
-    <string name="multiplayer_create_room_failed">房間建立失敗！</string>
+    <string name="multiplayer_create_room_failed">建立房間失敗！</string>
     <string name="multiplayer_join_room_failed">加入房間失敗！</string>
-    <string name="multiplayer_input_invalid">無效的位址或名稱過短！</string>
-    <string name="multiplayer_port_invalid">無效的埠號！</string>
+    <string name="multiplayer_input_invalid">無效的地址或名稱太短！</string>
+    <string name="multiplayer_port_invalid">無效的通訊埠！</string>
     <string name="multiplayer_exit_room">離開房間</string>
     <string name="multiplayer_network_error">網路錯誤</string>
     <string name="multiplayer_lost_connection">連線中斷</string>
     <string name="multiplayer_name_collision">名稱衝突</string>
-    <string name="multiplayer_mac_collision">MAC衝突</string>
+    <string name="multiplayer_mac_collision">MAC位址衝突</string>
     <string name="multiplayer_console_id_collision">主機ID衝突</string>
     <string name="multiplayer_wrong_version">版本不符</string>
     <string name="multiplayer_wrong_password">密碼錯誤</string>
-    <string name="multiplayer_could_not_connect">無法連線</string>
+    <string name="multiplayer_could_not_connect">無法連接</string>
     <string name="multiplayer_room_is_full">房間已滿</string>
-    <string name="multiplayer_host_banned">主機已封鎖</string>
+    <string name="multiplayer_host_banned">主機已被封鎖</string>
     <string name="multiplayer_permission_denied">權限不足</string>
     <string name="multiplayer_no_such_user">無此使用者</string>
     <string name="multiplayer_already_in_room">已在房間中</string>
-    <string name="multiplayer_create_room_error">房間建立錯誤</string>
-    <string name="multiplayer_host_kicked">主機已踢出</string>
+    <string name="multiplayer_create_room_error">建立房間錯誤</string>
+    <string name="multiplayer_host_kicked">主機已被踢出</string>
     <string name="multiplayer_unknown_error">未知錯誤</string>
     <string name="multiplayer_room_uninitialized">房間未初始化</string>
-    <string name="multiplayer_room_idle">房間閒置</string>
-    <string name="multiplayer_room_joining">加入中</string>
-    <string name="multiplayer_room_joined">已加入</string>
+    <string name="multiplayer_room_idle">房間閒置中</string>
+    <string name="multiplayer_room_joining">正在加入房間</string>
+    <string name="multiplayer_room_joined">已加入房間</string>
     <string name="multiplayer_room_moderator">房間管理員</string>
     <string name="multiplayer_member_join">%1$s 已加入</string>
     <string name="multiplayer_member_leave">%1$s 已離開</string>
-    <string name="multiplayer_member_kicked">%1$s 已踢出</string>
-    <string name="multiplayer_member_banned">%1$s 已封鎖</string>
-    <string name="multiplayer_address_unbanned">位址已解封</string>
+    <string name="multiplayer_member_kicked">%1$s 已被踢出</string>
+    <string name="multiplayer_member_banned">%1$s 已被封鎖</string>
+    <string name="multiplayer_address_unbanned">位址已解除封鎖</string>
     <string name="multiplayer_kick_member">踢出成員</string>
-    <string name="multiplayer_chat_input_hint">輸入訊息……</string>
+    <string name="multiplayer_chat_input_hint">傳送訊息……</string>
     <string name="multiplayer_password">密碼</string>
     <string name="original_button_text">加入</string>
     <string name="disabled_button_text">加入中...</string>
     <string name="multiplayer_room_name">房間名稱</string>
-    <string name="multiplayer_room_name_invalid">房間名稱需為3-20字元</string>
-    <string name="multiplayer_max_players">最大玩家數（16）</string>
-    <string name="multiplayer_max_players_value">最大玩家數：%d</string>
+    <string name="multiplayer_room_name_invalid">房間名稱必須介於3到20個字元之間</string>
+    <string name="multiplayer_max_players">最大玩家數 (16)</string>
+    <string name="multiplayer_max_players_value">最大玩家數: %d</string>
     <string name="multiplayer_chat">聊天</string>
     <string name="multiplayer_more_options">更多選項</string>
-    <string name="multiplayer_ip_copied">IP位址已複製</string>
+    <string name="multiplayer_ip_copied">IP位址已複製到剪貼簿</string>
     <string name="multiplayer_server_address">伺服器位址</string>
     <string name="chat">聊天</string>
     <string name="type_message">輸入訊息……</string>
@@ -194,14 +211,31 @@
     <string name="send_message">傳送訊息</string>
     <string name="multiplayer_moderation">管理</string>
     <string name="multiplayer_moderation_title">封鎖名單</string>
-    <string name="multiplayer_no_bans">無封鎖使用者</string>
-    <string name="multiplayer_unban_title">解除封鎖</string>
-    <string name="multiplayer_unban">解除</string>
-    <string name="multiplayer_unban_message">確定解除封鎖 %1$?</string>
+    <string name="multiplayer_no_bans">無被封鎖的使用者</string>
+    <string name="multiplayer_unban_title">解除封鎖使用者</string>
+    <string name="multiplayer_unban">解除封鎖</string>
+    <string name="multiplayer_unban_message">確定要解除封鎖 %1$s 嗎？</string>
     <string name="multiplayer_ban">封鎖使用者</string>
-    <string name="emulation_multiplayer">多人連線</string>
+    <string name="multiplayer_room_browser">公開房間</string>
+    <string name="multiplayer_no_rooms_found">找不到公開房間</string>
+    <string name="multiplayer_password_required">需要密碼</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">遊戲</string>
+    <string name="multiplayer_no_game_info">任意遊戲</string>
+    <string name="multiplayer_password_protected">密碼保護房間</string>
+    <string name="multiplayer_hide_full_rooms">隱藏已滿房間</string>
+    <string name="multiplayer_hide_empty_rooms">隱藏空房間</string>
+    <string name="multiplayer_tap_refresh_to_check_again">點擊刷新重新檢查</string>
+    <string name="multiplayer_search_public_lobbies">搜尋大廳…</string>
+    <string name="emulation_multiplayer">多人遊戲</string>
+    <string name="multiplayer_game_name">偏好遊戲</string>
+    <string name="multiplayer_preferred_game_name">偏好遊戲</string>
+    <string name="multiplayer_no_game">找不到遊戲</string>
+    <string name="multiplayer_preferred_game_name_invalid">您必須選擇一個偏好遊戲才能建立房間。</string>
     <string name="cancel">取消</string>
     <string name="ok">確定</string>
+    <string name="refresh">刷新</string>
+    <string name="room_list">房間列表</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">主題色彩</string>
@@ -412,6 +446,11 @@
     <string name="use_custom_rtc_description">允許您設定與您的目前系統時間相互獨立的自訂即時時鐘。</string>
     <string name="set_custom_rtc">設定自訂 RTC</string>
 
+    <!-- Network settings strings -->
+    <string name="web_token">網路令牌</string>
+    <string name="web_token_description">用於建立公開大廳的網路令牌。它是由48個小寫字母a-z組成的字串。</string>
+    <string name="network">網路</string>
+
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">準確度層級</string>
     <string name="renderer_resolution">解析度 (手提/底座)</string>
@@ -590,6 +629,33 @@
     <string name="driver_already_installed">驅動程式已安裝</string>
     <string name="system_gpu_driver">系統 GPU 驅動程式</string>
     <string name="installing_driver">正在安裝驅動程式…</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">GPU驅動程式下載器</string>
+    <string name="fetch">獲取</string>
+    <string name="fetch_error">獲取時發生錯誤</string>
+    <string name="check_connection">請檢查您的連線並重試。</string>
+    <string name="show_releases">顯示版本</string>
+    <string name="view_full_release_notes">版本說明</string>
+    <string name="failed_to_fetch">獲取失敗</string>
+    <string name="error_during_fetch">獲取過程中發生錯誤</string>
+    <string name="toggle_release_notes">切換版本說明</string>
+    <string name="downloads">下載</string>
+    <string name="show_downloads">顯示下載</string>
+    <string name="hide_downloads">隱藏下載</string>
+    <string name="failed_cache_dir">快取目錄不可用</string>
+    <string name="empty_response_body">空回應內容</string>
+    <string name="successfully_installed">%1$s 安裝成功</string>
+    <string name="driver_failed_title">驅動程式安裝失敗</string>
+    <string name="failed_install_driver">無法安裝 %1$s 驅動程式，您的系統支援此驅動程式嗎？</string>
+    <string name="driver_empty">下載的驅動程式為空，請檢查您的網路</string>
+    <string name="downloading">下載中…</string>
+    <string name="installing">安裝中…</string>
+    <string name="latest">最新</string>
+    <string name="recommended_driver">推薦驅動程式：</string>
+    <string name="gpu_model">GPU型號：</string>
+    <string name="unsupported_gpu">不支援的GPU</string>
+    <string name="unsupported_gpu_warning">您的GPU不支援驅動程式注入。不建議嘗試設定自訂驅動程式。</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">設定</string>

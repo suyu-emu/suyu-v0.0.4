@@ -36,10 +36,26 @@
     <string name="overlay_position_bottom_right">أسفل اليمين</string>
     <string name="overlay_position_center_top">منتصف الأعلى</string>
     <string name="overlay_position_center_bottom">منتصف الأسفل</string>
-    <string name="overlay_background">خلفية العرض</string>
-    <string name="overlay_background_description">إضافة خلفية لعرض الإحصائيات لسهولة القراءة</string>
+    <string name="perf_overlay_background">خلفية العرض</string>
+    <string name="perf_overlay_background_description">إضافة خلفية لعرض الإحصائيات لسهولة القراءة</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">عرض تراكب معلومات الجهاز</string>
+    <string name="enable_soc_overlay">تمكين تراكب الجهاز</string>
+    <string name="soc_overlay_options">تراكب الجهاز</string>
+    <string name="soc_overlay_options_description">تكوين المعلومات المعروضة في تراكب الجهاز</string>
+
+    <string name="show_device_model">عرض طراز الجهاز</string>
+    <string name="show_device_model_description">عرض طراز الجهاز المضيف</string>
+    <string name="show_gpu_model">عرض طراز GPU</string>
+    <string name="show_gpu_model_description">عرض طراز GPU المضيف</string>
+    <string name="show_soc_model">عرض طراز SoC</string>
+    <string name="show_soc_model_description">عرض طراز SoC المضيف</string>
 
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">امتدادات GPU</string>
+    <string name="veil_renderer">العارض</string>
+    <string name="veil_misc">متنوع</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>
     <string name="eden_veil_warning_title">إعدادات تجريبية</string>
@@ -132,75 +148,93 @@
     <string name="always">دائماً</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">اللعب الجماعي</string>
-    <string name="multiplayer_description">إنشاء غرفة أو الانضمام إلى واحدة</string>
+    <string name="multiplayer">متعدد اللاعبين</string>
+    <string name="multiplayer_description">استضافة غرفة لعبة أو الانضمام إلى غرفة موجودة للعب مع الآخرين</string>
     <string name="multiplayer_room_title">الغرفة: %1$s</string>
-    <string name="multiplayer_console_id">معرف الجهاز: %1$s</string>
+    <string name="multiplayer_console_id">معرف الكونسول: %1$s</string>
     <string name="multiplayer_create_room">إنشاء</string>
     <string name="multiplayer_join_room">انضمام</string>
+    <string name="multiplayer_public_room">تصفح الغرف العامة</string>
     <string name="multiplayer_username">اسم المستخدم</string>
     <string name="multiplayer_ip_address">عنوان IP</string>
     <string name="multiplayer_ip_port">المنفذ</string>
-    <string name="multiplayer_create_room_success">تم إنشاء الغرفة!</string>
-    <string name="multiplayer_join_room_success">تم الانضمام!</string>
-    <string name="multiplayer_create_room_failed">فشل الإنشاء!</string>
-    <string name="multiplayer_join_room_failed">فشل الانضمام!</string>
-    <string name="multiplayer_input_invalid">عنوان أو اسم غير صالح!</string>
+    <string name="multiplayer_create_room_success">تم إنشاء الغرفة بنجاح!</string>
+    <string name="multiplayer_join_room_success">تم الانضمام إلى الغرفة بنجاح!</string>
+    <string name="multiplayer_create_room_failed">فشل في إنشاء الغرفة!</string>
+    <string name="multiplayer_join_room_failed">فشل في الانضمام إلى الغرفة!</string>
+    <string name="multiplayer_input_invalid">عنوان غير صالح أو الاسم قصير جدًا!</string>
     <string name="multiplayer_port_invalid">منفذ غير صالح!</string>
     <string name="multiplayer_exit_room">مغادرة الغرفة</string>
     <string name="multiplayer_network_error">خطأ في الشبكة</string>
     <string name="multiplayer_lost_connection">فقدان الاتصال</string>
-    <string name="multiplayer_name_collision">تعارض أسماء</string>
-    <string name="multiplayer_mac_collision">تعارض MAC</string>
-    <string name="multiplayer_console_id_collision">تعارض معرف الجهاز</string>
+    <string name="multiplayer_name_collision">تعارض في الأسماء</string>
+    <string name="multiplayer_mac_collision">تعارض في MAC</string>
+    <string name="multiplayer_console_id_collision">تعارض في معرف الكونسول</string>
     <string name="multiplayer_wrong_version">إصدار خاطئ</string>
     <string name="multiplayer_wrong_password">كلمة مرور خاطئة</string>
     <string name="multiplayer_could_not_connect">تعذر الاتصال</string>
     <string name="multiplayer_room_is_full">الغرفة ممتلئة</string>
     <string name="multiplayer_host_banned">المضيف محظور</string>
-    <string name="multiplayer_permission_denied">رفض الإذن</string>
-    <string name="multiplayer_no_such_user">مستخدم غير موجود</string>
-    <string name="multiplayer_already_in_room">مستخدم موجود بالفعل</string>
-    <string name="multiplayer_create_room_error">خطأ في الإنشاء</string>
-    <string name="multiplayer_host_kicked">طرد المضيف</string>
+    <string name="multiplayer_permission_denied">تم رفض الإذن</string>
+    <string name="multiplayer_no_such_user">لا يوجد مثل هذا المستخدم</string>
+    <string name="multiplayer_already_in_room">موجود بالفعل في الغرفة</string>
+    <string name="multiplayer_create_room_error">خطأ في إنشاء الغرفة</string>
+    <string name="multiplayer_host_kicked">تم طرد المضيف</string>
     <string name="multiplayer_unknown_error">خطأ غير معروف</string>
-    <string name="multiplayer_room_uninitialized">غرفة غير مهيأة</string>
-    <string name="multiplayer_room_idle">غرفة خاملة</string>
-    <string name="multiplayer_room_joining">جاري الانضمام</string>
-    <string name="multiplayer_room_joined">تم الانضمام</string>
+    <string name="multiplayer_room_uninitialized">لم يتم تهيئة الغرفة</string>
+    <string name="multiplayer_room_idle">الغرفة خاملة</string>
+    <string name="multiplayer_room_joining">جارٍ الانضمام إلى الغرفة</string>
+    <string name="multiplayer_room_joined">تم الانضمام إلى الغرفة</string>
     <string name="multiplayer_room_moderator">مشرف الغرفة</string>
     <string name="multiplayer_member_join">%1$s انضم</string>
     <string name="multiplayer_member_leave">%1$s غادر</string>
-    <string name="multiplayer_member_kicked">%1$s طرد</string>
-    <string name="multiplayer_member_banned">%1$s حظر</string>
-    <string name="multiplayer_address_unbanned">رفع الحظر</string>
+    <string name="multiplayer_member_kicked">%1$s تم طرده</string>
+    <string name="multiplayer_member_banned">%1$s تم حظره</string>
+    <string name="multiplayer_address_unbanned">تم إلغاء حظر العنوان</string>
     <string name="multiplayer_kick_member">طرد</string>
-    <string name="multiplayer_chat_input_hint">إرسال رسالة...</string>
+    <string name="multiplayer_chat_input_hint">إرسال رسائل...</string>
     <string name="multiplayer_password">كلمة المرور</string>
     <string name="original_button_text">انضمام</string>
-    <string name="disabled_button_text">جاري الانضمام...</string>
+    <string name="disabled_button_text">جارٍ الانضمام...</string>
     <string name="multiplayer_room_name">اسم الغرفة</string>
-    <string name="multiplayer_room_name_invalid">الاسم يجب أن يكون بين 3 و20 حرفاً</string>
-    <string name="multiplayer_max_players">الحد الأقصى (16)</string>
-    <string name="multiplayer_max_players_value">الحد الأقصى: %d</string>
+    <string name="multiplayer_room_name_invalid">يجب أن يكون اسم الغرفة بين 3 و20 حرفًا</string>
+    <string name="multiplayer_max_players">الحد الأقصى للاعبين (16)</string>
+    <string name="multiplayer_max_players_value">الحد الأقصى للاعبين: %d</string>
     <string name="multiplayer_chat">الدردشة</string>
-    <string name="multiplayer_more_options">المزيد</string>
-    <string name="multiplayer_ip_copied">تم نسخ عنوان IP</string>
+    <string name="multiplayer_more_options">خيارات إضافية</string>
+    <string name="multiplayer_ip_copied">تم نسخ عنوان IP إلى الحافظة</string>
     <string name="multiplayer_server_address">عنوان الخادم</string>
     <string name="chat">الدردشة</string>
     <string name="type_message">اكتب رسالة...</string>
     <string name="send">إرسال</string>
     <string name="send_message">إرسال رسالة</string>
-    <string name="multiplayer_moderation">الإدارة</string>
+    <string name="multiplayer_moderation">الإشراف</string>
     <string name="multiplayer_moderation_title">قائمة الحظر</string>
-    <string name="multiplayer_no_bans">لا يوجد مستخدمين محظورين</string>
-    <string name="multiplayer_unban_title">رفع الحظر</string>
-    <string name="multiplayer_unban">رفع الحظر</string>
-    <string name="multiplayer_unban_message">هل تريد رفع الحظر عن %1$s؟</string>
-    <string name="multiplayer_ban">حظر</string>
-    <string name="emulation_multiplayer">اللعب الجماعي</string>
+    <string name="multiplayer_no_bans">لا يوجد مستخدمون محظورون</string>
+    <string name="multiplayer_unban_title">إلغاء حظر المستخدم</string>
+    <string name="multiplayer_unban">إلغاء الحظر</string>
+    <string name="multiplayer_unban_message">هل أنت متأكد أنك تريد إلغاء حظر %1$s؟</string>
+    <string name="multiplayer_ban">حظر المستخدم</string>
+    <string name="multiplayer_room_browser">الغرف العامة</string>
+    <string name="multiplayer_no_rooms_found">لم يتم العثور على غرف عامة</string>
+    <string name="multiplayer_password_required">كلمة المرور مطلوبة</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">اللعبة</string>
+    <string name="multiplayer_no_game_info">أي لعبة</string>
+    <string name="multiplayer_password_protected">غرفة محمية بكلمة مرور</string>
+    <string name="multiplayer_hide_full_rooms">إخفاء الغرف الممتلئة</string>
+    <string name="multiplayer_hide_empty_rooms">إخفاء الغرف الفارغة</string>
+    <string name="multiplayer_tap_refresh_to_check_again">اضغط على تحديث للتحقق مرة أخرى</string>
+    <string name="multiplayer_search_public_lobbies">البحث في الغرف...</string>
+    <string name="emulation_multiplayer">متعدد اللاعبين</string>
+    <string name="multiplayer_game_name">الألعاب المفضلة</string>
+    <string name="multiplayer_preferred_game_name">اللعبة المفضلة</string>
+    <string name="multiplayer_no_game">لم يتم العثور على ألعاب</string>
+    <string name="multiplayer_preferred_game_name_invalid">يجب اختيار لعبة مفضلة لاستضافة غرفة.</string>
     <string name="cancel">إلغاء</string>
     <string name="ok">موافق</string>
+    <string name="refresh">تحديث</string>
+    <string name="room_list">قائمة الغرف</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">لون السمة</string>
@@ -374,6 +408,7 @@
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
+    <string name="device_name">اسم الجهاز</string>
     <string name="use_docked_mode">وضع الإرساء</string>
     <string name="use_docked_mode_description">زيادة الدقة، وانخفاض الأداء. يتم استخدام الوضع المحمول عند تعطيله، مما يؤدي إلى خفض الدقة وزيادة الأداء.</string>
     <string name="emulated_region">المنطقة التي تمت محاكاتها</string>
@@ -383,6 +418,11 @@
     <string name="use_custom_rtc">ساعة مخصصة في الوقت الحقيقي</string>
     <string name="use_custom_rtc_description">يسمح لك بتعيين ساعة مخصصة في الوقت الفعلي منفصلة عن وقت النظام الحالي لديك</string>
     <string name="set_custom_rtc">تعيين ساعة مخصصة في الوقت الحقيقي</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">رمز الويب</string>
+    <string name="web_token_description">رمز الويب المستخدم لإنشاء غرف عامة. وهو سلسلة من 48 حرفًا تحتوي فقط على أحرف صغيرة من a-z.</string>
+    <string name="network">الشبكة</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">مستوى الدقة</string>
@@ -449,6 +489,7 @@
     <string name="custom">مخصص</string>
     <string name="notice">إشعار</string>
     <string name="import_complete">اكتمل الاستيراد</string>
+
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPU حدد برنامج تشغيل</string>
     <string name="select_gpu_driver_title">الحالي الخاص بك؟ GPU هل ترغب في استبدال برنامج تشغيل</string>
@@ -460,7 +501,34 @@
     <string name="system_gpu_driver">تعريف معالج الرسومات الخاص بالنظام</string>
     <string name="installing_driver">جاري تثبيت برنامج التشغيل…</string>
 
+    <!-- GPU driver fetcher -->
+    <string name="fetch_error">خطأ أثناء الجلب</string>
+    <string name="check_connection">تحقق من اتصالك وحاول مرة أخرى.</string>
+    <string name="show_releases">عرض الإصدارات</string>
+    <string name="view_full_release_notes">ملاحظات الإصدار</string>
+    <string name="failed_to_fetch">فشل في الجلب</string>
+    <string name="error_during_fetch">خطأ أثناء الجلب</string>
+    <string name="toggle_release_notes">تبديل ملاحظات الإصدار</string>
+    <string name="downloads">التحميلات</string>
+    <string name="show_downloads">عرض التحميلات</string>
+    <string name="hide_downloads">إخفاء التحميلات</string>
+    <string name="failed_cache_dir">دليل الذاكرة المؤقتة غير متاح</string>
+    <string name="empty_response_body">نص الاستجابة فارغ</string>
+    <string name="successfully_installed">تم تثبيت %1$s بنجاح</string>
+    <string name="driver_failed_title">فشل تثبيت برنامج التشغيل</string>
+    <string name="failed_install_driver">فشل تثبيت برنامج تشغيل %1$s، هل نظامك يدعمه؟</string>
+    <string name="driver_empty">برنامج التشغيل الذي تم تنزيله فارغ، تحقق من اتصالك بالإنترنت</string>
+    <string name="downloading">جارٍ التنزيل...</string>
+    <string name="installing">جارٍ التثبيت...</string>
+    <string name="latest">الأحدث</string>
+    <string name="recommended_driver">برنامج التشغيل الموصى به:</string>
+    <string name="gpu_model">طراز GPU:</string>
+    <string name="unsupported_gpu">GPU غير مدعوم</string>
+    <string name="unsupported_gpu_warning">GPU الخاص بك لا يدعم حقن برنامج التشغيل. لا يُنصح بمحاولة تعيين برامج تشغيل مخصصة.</string>
+
     <!-- Preferences Screen -->
+    <string name="gpu_driver_fetcher">جلب برامج تشغيل GPU</string>
+    <string name="fetch">جلب</string>
     <string name="preferences_settings">إعدادات</string>
     <string name="preferences_general">عام</string>
     <string name="preferences_system">النظام</string>

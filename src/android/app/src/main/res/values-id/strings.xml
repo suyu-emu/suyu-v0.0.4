@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">Kanan Bawah</string>
     <string name="overlay_position_center_top">Tengah Atas</string>
     <string name="overlay_position_center_bottom">Tengah Bawah</string>
-    <string name="overlay_background">Latar Belakang Overlay</string>
-    <string name="overlay_background_description">Tambahkan latar belakang di belakang overlay untuk memudahkan pembacaan</string>
+    <string name="perf_overlay_background">Latar Belakang Overlay</string>
+    <string name="perf_overlay_background_description">Tambahkan latar belakang di belakang overlay untuk memudahkan pembacaan</string>
     <string name="show_shaders_building">Tampilkan Pembuatan Shader</string>
     <string name="show_shaders_building_description">Menampilkan jumlah shader yang sedang dibuat saat ini</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Tampilkan Overlay Info Perangkat</string>
+    <string name="enable_soc_overlay">Aktifkan Overlay Perangkat</string>
+    <string name="soc_overlay_options">Overlay Perangkat</string>
+    <string name="soc_overlay_options_description">Konfigurasi informasi yang ditampilkan di overlay perangkat</string>
+
+    <string name="show_device_model">Tampilkan Model Perangkat</string>
+    <string name="show_device_model_description">Tampilkan model perangkat host</string>
+    <string name="show_gpu_model">Tampilkan Model GPU</string>
+    <string name="show_gpu_model_description">Tampilkan model GPU host</string>
+    <string name="show_soc_model">Tampilkan Model SoC</string>
+    <string name="show_soc_model_description">Tampilkan model SoC host</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">Ekstensi GPU</string>
+    <string name="veil_renderer">Renderer</string>
+    <string name="veil_misc">Lain-lain</string>
     <string name="eden_veil">Eden`s Veil</string>
     <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>
     <string name="eden_veil_warning_title">Pengaturan Eksperimental</string>
@@ -128,12 +144,13 @@
     <string name="always">Selalu</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">Multiplayer</string>
-    <string name="multiplayer_description">Host ruang game Anda sendiri atau bergabung dengan yang sudah ada untuk bermain dengan orang lain</string>
+    <string name="multiplayer">Multipemain</string>
+    <string name="multiplayer_description">Buat ruang permainan sendiri atau bergabung dengan yang sudah ada untuk bermain dengan orang lain</string>
     <string name="multiplayer_room_title">Ruang: %1$s</string>
     <string name="multiplayer_console_id">ID Konsol: %1$s</string>
     <string name="multiplayer_create_room">Buat</string>
     <string name="multiplayer_join_room">Gabung</string>
+    <string name="multiplayer_public_room">Jelajahi Ruang Publik</string>
     <string name="multiplayer_username">Nama Pengguna</string>
     <string name="multiplayer_ip_address">Alamat IP</string>
     <string name="multiplayer_ip_port">Port</string>
@@ -143,23 +160,23 @@
     <string name="multiplayer_join_room_failed">Gagal bergabung dengan ruang!</string>
     <string name="multiplayer_input_invalid">Alamat tidak valid atau nama terlalu pendek!</string>
     <string name="multiplayer_port_invalid">Port tidak valid!</string>
-    <string name="multiplayer_exit_room">Keluar Ruang</string>
-    <string name="multiplayer_network_error">Error jaringan</string>
+    <string name="multiplayer_exit_room">Keluar dari Ruang</string>
+    <string name="multiplayer_network_error">Kesalahan jaringan</string>
     <string name="multiplayer_lost_connection">Koneksi terputus</string>
-    <string name="multiplayer_name_collision">Nama sudah digunakan</string>
-    <string name="multiplayer_mac_collision">MAC sudah digunakan</string>
-    <string name="multiplayer_console_id_collision">ID Konsol sudah digunakan</string>
+    <string name="multiplayer_name_collision">Tabrakan nama</string>
+    <string name="multiplayer_mac_collision">Tabrakan MAC</string>
+    <string name="multiplayer_console_id_collision">Tabrakan ID Konsol</string>
     <string name="multiplayer_wrong_version">Versi salah</string>
-    <string name="multiplayer_wrong_password">Password salah</string>
+    <string name="multiplayer_wrong_password">Kata sandi salah</string>
     <string name="multiplayer_could_not_connect">Tidak dapat terhubung</string>
-    <string name="multiplayer_room_is_full">Ruang penuh</string>
-    <string name="multiplayer_host_banned">Host dilarang</string>
+    <string name="multiplayer_room_is_full">Ruang sudah penuh</string>
+    <string name="multiplayer_host_banned">Host diblokir</string>
     <string name="multiplayer_permission_denied">Izin ditolak</string>
-    <string name="multiplayer_no_such_user">Pengguna tidak ditemukan</string>
-    <string name="multiplayer_already_in_room">Sudah dalam ruang</string>
-    <string name="multiplayer_create_room_error">Error membuat ruang</string>
-    <string name="multiplayer_host_kicked">Host di-kick</string>
-    <string name="multiplayer_unknown_error">Error tidak diketahui</string>
+    <string name="multiplayer_no_such_user">Tidak ada pengguna tersebut</string>
+    <string name="multiplayer_already_in_room">Sudah berada di ruang</string>
+    <string name="multiplayer_create_room_error">Kesalahan membuat ruang</string>
+    <string name="multiplayer_host_kicked">Host dikeluarkan</string>
+    <string name="multiplayer_unknown_error">Kesalahan tidak diketahui</string>
     <string name="multiplayer_room_uninitialized">Ruang tidak diinisialisasi</string>
     <string name="multiplayer_room_idle">Ruang menganggur</string>
     <string name="multiplayer_room_joining">Bergabung dengan ruang</string>
@@ -167,36 +184,53 @@
     <string name="multiplayer_room_moderator">Moderator ruang</string>
     <string name="multiplayer_member_join">%1$s bergabung</string>
     <string name="multiplayer_member_leave">%1$s keluar</string>
-    <string name="multiplayer_member_kicked">%1$s di-kick</string>
-    <string name="multiplayer_member_banned">%1$s dilarang</string>
-    <string name="multiplayer_address_unbanned">Alamat diizinkan</string>
-    <string name="multiplayer_kick_member">Kick Anggota</string>
-    <string name="multiplayer_chat_input_hint">Kirim pesan……</string>
-    <string name="multiplayer_password">Password</string>
+    <string name="multiplayer_member_kicked">%1$s dikeluarkan</string>
+    <string name="multiplayer_member_banned">%1$s diblokir</string>
+    <string name="multiplayer_address_unbanned">Alamat tidak diblokir</string>
+    <string name="multiplayer_kick_member">Keluarkan</string>
+    <string name="multiplayer_chat_input_hint">Kirim pesan…</string>
+    <string name="multiplayer_password">Kata sandi</string>
     <string name="original_button_text">Gabung</string>
     <string name="disabled_button_text">Bergabung...</string>
     <string name="multiplayer_room_name">Nama Ruang</string>
-    <string name="multiplayer_room_name_invalid">Nama ruang harus antara 3 dan 20 karakter</string>
-    <string name="multiplayer_max_players">Maks Pemain (16)</string>
-    <string name="multiplayer_max_players_value">Maks Pemain: %d</string>
-    <string name="multiplayer_chat">Chat</string>
+    <string name="multiplayer_room_name_invalid">Nama ruang harus antara 3 hingga 20 karakter</string>
+    <string name="multiplayer_max_players">Pemain Maks (16)</string>
+    <string name="multiplayer_max_players_value">Pemain Maks: %d</string>
+    <string name="multiplayer_chat">Obrolan</string>
     <string name="multiplayer_more_options">Opsi Lainnya</string>
     <string name="multiplayer_ip_copied">Alamat IP disalin ke clipboard</string>
     <string name="multiplayer_server_address">Alamat Server</string>
-    <string name="chat">Chat</string>
-    <string name="type_message">Ketik pesan……</string>
+    <string name="chat">Obrolan</string>
+    <string name="type_message">Ketik pesan…</string>
     <string name="send">Kirim</string>
     <string name="send_message">Kirim Pesan</string>
     <string name="multiplayer_moderation">Moderasi</string>
-    <string name="multiplayer_moderation_title">Daftar Larangan</string>
-    <string name="multiplayer_no_bans">Tidak ada pengguna yang dilarang</string>
-    <string name="multiplayer_unban_title">Izinkan Pengguna</string>
-    <string name="multiplayer_unban">Izinkan</string>
-    <string name="multiplayer_unban_message">Anda yakin ingin mengizinkan %1$s?</string>
-    <string name="multiplayer_ban">Larang Pengguna</string>
-    <string name="emulation_multiplayer">Multiplayer</string>
+    <string name="multiplayer_moderation_title">Daftar Blokir</string>
+    <string name="multiplayer_no_bans">Tidak ada pengguna yang diblokir</string>
+    <string name="multiplayer_unban_title">Buka Blokir Pengguna</string>
+    <string name="multiplayer_unban">Buka Blokir</string>
+    <string name="multiplayer_unban_message">Apakah Anda yakin ingin membuka blokir %1$s?</string>
+    <string name="multiplayer_ban">Blokir Pengguna</string>
+    <string name="multiplayer_room_browser">Ruang Publik</string>
+    <string name="multiplayer_no_rooms_found">Tidak ada ruang publik yang ditemukan</string>
+    <string name="multiplayer_password_required">Kata sandi diperlukan</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Game</string>
+    <string name="multiplayer_no_game_info">Game Apa Saja</string>
+    <string name="multiplayer_password_protected">Ruang dilindungi kata sandi</string>
+    <string name="multiplayer_hide_full_rooms">Sembunyikan Ruang Penuh</string>
+    <string name="multiplayer_hide_empty_rooms">Sembunyikan Ruang Kosong</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Ketuk segarkan untuk memeriksa lagi</string>
+    <string name="multiplayer_search_public_lobbies">Cari Ruang…</string>
+    <string name="emulation_multiplayer">Multipemain</string>
+    <string name="multiplayer_game_name">Game Favorit</string>
+    <string name="multiplayer_preferred_game_name">Game Pilihan</string>
+    <string name="multiplayer_no_game">Tidak ada game yang ditemukan</string>
+    <string name="multiplayer_preferred_game_name_invalid">Anda harus memilih Game Pilihan untuk membuat ruang.</string>
     <string name="cancel">Batal</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
+    <string name="refresh">Segarkan</string>
+    <string name="room_list">Daftar Ruang</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Warna Tema</string>
@@ -395,6 +429,8 @@
     <string name="cpu_accuracy">Akurasi CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
+    <!-- System settings strings -->
+    <string name="device_name">Nama perangkat</string>
     <string name="use_docked_mode">Mode Docked</string>
     <string name="use_docked_mode_description">Meningkatkan resolusi, menurunkan performa. Mode Handled digunakan saat dinonaktifkan, menurunkan resolusi dan meningkatkan performa</string>
     <string name="emulated_region">Wilayah yang diemulasikan</string>
@@ -404,6 +440,11 @@
     <string name="use_custom_rtc">RTC Kustom</string>
     <string name="use_custom_rtc_description">Memungkinkan Anda untuk mengatur jam waktu nyata kustom yang terpisah dari waktu sistem saat ini Anda.</string>
     <string name="set_custom_rtc">Setel RTC Kustom</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Token Web</string>
+    <string name="web_token_description">Token web digunakan untuk membuat ruang publik. Ini adalah string 48 karakter yang hanya berisi huruf kecil a-z.</string>
+    <string name="network">Jaringan</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Tingkatan Akurasi</string>
@@ -533,6 +574,33 @@
     <string name="driver_already_installed">Driver sudah terpasang</string>
     <string name="system_gpu_driver">Driver GPU sistem</string>
     <string name="installing_driver">Memasang driver...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">Pengambil Driver GPU</string>
+    <string name="fetch">Ambil</string>
+    <string name="fetch_error">Kesalahan saat Mengambil</string>
+    <string name="check_connection">Periksa koneksi Anda dan coba lagi.</string>
+    <string name="show_releases">Tampilkan Rilis</string>
+    <string name="view_full_release_notes">Catatan Rilis</string>
+    <string name="failed_to_fetch">Gagal Mengambil</string>
+    <string name="error_during_fetch">Kesalahan saat Mengambil</string>
+    <string name="toggle_release_notes">Alihkan Catatan Rilis</string>
+    <string name="downloads">Unduhan</string>
+    <string name="show_downloads">Tampilkan Unduhan</string>
+    <string name="hide_downloads">Sembunyikan Unduhan</string>
+    <string name="failed_cache_dir">Direktori cache tidak tersedia</string>
+    <string name="empty_response_body">Isi respons kosong</string>
+    <string name="successfully_installed">%1$s Berhasil Diinstal</string>
+    <string name="driver_failed_title">Gagal Menginstal Driver</string>
+    <string name="failed_install_driver">Gagal menginstal driver %1$s, apakah sistem Anda mendukungnya?</string>
+    <string name="driver_empty">Driver yang diunduh kosong, periksa koneksi internet Anda</string>
+    <string name="downloading">Mengunduh…</string>
+    <string name="installing">Menginstal…</string>
+    <string name="latest">Terbaru</string>
+    <string name="recommended_driver">Driver yang Direkomendasikan:</string>
+    <string name="gpu_model">Model GPU:</string>
+    <string name="unsupported_gpu">GPU Tidak Didukung</string>
+    <string name="unsupported_gpu_warning">GPU Anda tidak mendukung injeksi driver. Tidak disarankan untuk mengatur driver kustom.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Pengaturan</string>

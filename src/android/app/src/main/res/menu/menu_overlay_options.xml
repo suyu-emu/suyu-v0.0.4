@@ -7,6 +7,11 @@
         android:checkable="true" />
 
     <item
+        android:id="@+id/menu_show_soc_overlay"
+        android:title="@string/show_soc_overlay"
+        android:checkable="true" />
+
+    <item
         android:id="@+id/menu_edit_overlay"
         android:title="@string/emulation_touch_overlay_edit" />
 

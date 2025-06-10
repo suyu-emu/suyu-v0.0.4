@@ -97,6 +97,7 @@ class SettingsFragmentPresenter(
             MenuTag.SECTION_SYSTEM -> addSystemSettings(sl)
             MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
             MenuTag.SECTION_PERFORMANCE_STATS -> addPerformanceOverlaySettings(sl)
+            MenuTag.SECTION_SOC_OVERLAY -> addSocOverlaySettings(sl)
             MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
             MenuTag.SECTION_INPUT -> addInputSettings(sl)
             MenuTag.SECTION_INPUT_PLAYER_ONE -> addInputPlayer(sl, 0)
@@ -138,7 +139,7 @@ class SettingsFragmentPresenter(
                     menuKey = MenuTag.SECTION_RENDERER
                 )
             )
-            if (!NativeConfig.isPerGameConfigLoaded())
+            if (!NativeConfig.isPerGameConfigLoaded()) {
                 add(
                     SubmenuSetting(
                         titleId = R.string.stats_overlay_options,
@@ -147,6 +148,16 @@ class SettingsFragmentPresenter(
                         menuKey = MenuTag.SECTION_PERFORMANCE_STATS
                     )
                 )
+
+                add(
+                    SubmenuSetting(
+                        titleId = R.string.soc_overlay_options,
+                        descriptionId = R.string.soc_overlay_options_description,
+                        iconId = R.drawable.ic_system,
+                        menuKey = MenuTag.SECTION_SOC_OVERLAY
+                    )
+                )
+            }
             add(
                 SubmenuSetting(
                     titleId = R.string.preferences_audio,
@@ -231,8 +242,9 @@ class SettingsFragmentPresenter(
         sl.apply {
             add(HeaderSetting(R.string.stats_overlay_customization))
             add(BooleanSetting.SHOW_PERFORMANCE_OVERLAY.key)
-            add(BooleanSetting.OVERLAY_BACKGROUND.key)
+            add(BooleanSetting.PERF_OVERLAY_BACKGROUND.key)
             add(IntSetting.PERF_OVERLAY_POSITION.key)
+
             add(HeaderSetting(R.string.stats_overlay_items))
             add(BooleanSetting.SHOW_FPS.key)
             add(BooleanSetting.SHOW_FRAMETIME.key)
@@ -241,7 +253,24 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.SHOW_BAT_TEMPERATURE.key)
             add(BooleanSetting.SHOW_SHADERS_BUILDING.key)
         }
+    }
 
+    private fun addSocOverlaySettings(sl: ArrayList<SettingsItem>) {
+        sl.apply {
+            add(HeaderSetting(R.string.stats_overlay_customization))
+            add(BooleanSetting.SHOW_SOC_OVERLAY.key)
+            add(BooleanSetting.SOC_OVERLAY_BACKGROUND.key)
+            add(IntSetting.SOC_OVERLAY_POSITION.key)
+
+            add(HeaderSetting(R.string.stats_overlay_items))
+            add(BooleanSetting.SHOW_DEVICE_MODEL.key)
+            add(BooleanSetting.SHOW_GPU_MODEL.key)
+
+            // the Build.SOC_MODEL API is 31+ only
+            if (Build.VERSION.SDK_INT >= 31) {
+                add(BooleanSetting.SHOW_SOC_MODEL.key)
+            }
+        }
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {

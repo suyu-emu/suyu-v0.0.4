@@ -29,19 +29,28 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     JOYSTICK_REL_CENTER("joystick_rel_center"),
     DPAD_SLIDE("dpad_slide"),
     HAPTIC_FEEDBACK("haptic_feedback"),
-    SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
-    SHOW_THERMAL_OVERLAY("show_thermal_overlay"),
+
+    SHOW_SOC_OVERLAY("show_soc_overlay"),
+    SHOW_DEVICE_MODEL("show_device_model"),
+    SHOW_GPU_MODEL("show_gpu_model"),
+    SHOW_SOC_MODEL("show_soc_model"),
+
+    SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
+
     FRAME_INTERPOLATION("frame_interpolation"),
 //    FRAME_SKIPPING("frame_skipping"),
+
+    PERF_OVERLAY_BACKGROUND("perf_overlay_background"),
+    SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
+
     SHOW_FPS("show_fps"),
     SHOW_FRAMETIME("show_frame_time"),
     SHOW_APP_RAM_USAGE("show_app_ram_usage"),
     SHOW_SYSTEM_RAM_USAGE("show_system_ram_usage"),
     SHOW_BAT_TEMPERATURE("show_bat_temperature"),
     SHOW_SHADERS_BUILDING("show_shaders_building"),
-    OVERLAY_BACKGROUND("overlay_background"),
     DEBUG_FLUSH_BY_LINE("flush_lines"),
     USE_LRU_CACHE("use_lru_cache"),;
 //    external fun isFrameSkippingEnabled(): Boolean

@@ -35,12 +35,28 @@
     <string name="overlay_position_bottom_right">右下</string>
     <string name="overlay_position_center_top">中央上</string>
     <string name="overlay_position_center_bottom">中央下</string>
-    <string name="overlay_background">オーバーレイ背景</string>
-    <string name="overlay_background_description">オーバーレイの背景を表示</string>
+    <string name="perf_overlay_background">オーバーレイ背景</string>
+    <string name="perf_overlay_background_description">オーバーレイの背景を表示</string>
     <string name="show_shaders_building">シェーダーのビルドを表示</string>
     <string name="show_shaders_building_description">現在ビルド中のシェーダー数を表示</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">デバイス情報オーバーレイを表示</string>
+    <string name="enable_soc_overlay">デバイスオーバーレイを有効化</string>
+    <string name="soc_overlay_options">デバイスオーバーレイ</string>
+    <string name="soc_overlay_options_description">デバイスオーバーレイに表示する情報を設定</string>
+
+    <string name="show_device_model">デバイスモデルを表示</string>
+    <string name="show_device_model_description">ホストデバイスのモデルを表示</string>
+    <string name="show_gpu_model">GPUモデルを表示</string>
+    <string name="show_gpu_model_description">ホストGPUのモデルを表示</string>
+    <string name="show_soc_model">SoCモデルを表示</string>
+    <string name="show_soc_model_description">ホストSoCのモデルを表示</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">GPU拡張機能</string>
+    <string name="veil_renderer">レンダラー</string>
+    <string name="veil_misc">その他</string>
     <string name="eden_veil">エデンのベール</string>
     <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。これらの設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
     <string name="eden_veil_warning_title">実験的設定</string>
@@ -129,74 +145,92 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">マルチプレイヤー</string>
-    <string name="multiplayer_description">オンラインでマルチプレイ</string>
+    <string name="multiplayer_description">自分でゲームルームを作成するか、既存のルームに参加して他の人とプレイ</string>
     <string name="multiplayer_room_title">ルーム: %1$s</string>
-    <string name="multiplayer_console_id">コンソールID：%1$s</string>
+    <string name="multiplayer_console_id">コンソールID: %1$s</string>
     <string name="multiplayer_create_room">作成</string>
     <string name="multiplayer_join_room">参加</string>
+    <string name="multiplayer_public_room">公開ルームを閲覧</string>
     <string name="multiplayer_username">ユーザー名</string>
     <string name="multiplayer_ip_address">IPアドレス</string>
     <string name="multiplayer_ip_port">ポート</string>
-    <string name="multiplayer_create_room_success">ルーム作成成功</string>
-    <string name="multiplayer_join_room_success">参加成功</string>
-    <string name="multiplayer_create_room_failed">ルーム作成失敗</string>
-    <string name="multiplayer_join_room_failed">参加失敗</string>
-    <string name="multiplayer_input_invalid">無効な入力</string>
-    <string name="multiplayer_port_invalid">無効なポート</string>
-    <string name="multiplayer_exit_room">退出</string>
+    <string name="multiplayer_create_room_success">ルームの作成に成功しました!</string>
+    <string name="multiplayer_join_room_success">ルームに参加しました!</string>
+    <string name="multiplayer_create_room_failed">ルームの作成に失敗しました!</string>
+    <string name="multiplayer_join_room_failed">ルームへの参加に失敗しました!</string>
+    <string name="multiplayer_input_invalid">無効なアドレスまたは名前が短すぎます!</string>
+    <string name="multiplayer_port_invalid">無効なポート!</string>
+    <string name="multiplayer_exit_room">ルームを退出</string>
     <string name="multiplayer_network_error">ネットワークエラー</string>
-    <string name="multiplayer_lost_connection">接続切断</string>
-    <string name="multiplayer_name_collision">名前重複</string>
-    <string name="multiplayer_mac_collision">MAC重複</string>
-    <string name="multiplayer_console_id_collision">コンソールID重複</string>
-    <string name="multiplayer_wrong_version">バージョン不一致</string>
-    <string name="multiplayer_wrong_password">パスワード誤り</string>
-    <string name="multiplayer_could_not_connect">接続不可</string>
-    <string name="multiplayer_room_is_full">ルーム満員</string>
-    <string name="multiplayer_host_banned">ホストBAN</string>
-    <string name="multiplayer_permission_denied">権限不足</string>
-    <string name="multiplayer_no_such_user">ユーザー不在</string>
-    <string name="multiplayer_already_in_room">既に参加中</string>
+    <string name="multiplayer_lost_connection">接続が切断されました</string>
+    <string name="multiplayer_name_collision">名前の衝突</string>
+    <string name="multiplayer_mac_collision">MACアドレスの衝突</string>
+    <string name="multiplayer_console_id_collision">コンソールIDの衝突</string>
+    <string name="multiplayer_wrong_version">バージョンが異なります</string>
+    <string name="multiplayer_wrong_password">パスワードが間違っています</string>
+    <string name="multiplayer_could_not_connect">接続できませんでした</string>
+    <string name="multiplayer_room_is_full">ルームが満員です</string>
+    <string name="multiplayer_host_banned">ホストが禁止されました</string>
+    <string name="multiplayer_permission_denied">権限が拒否されました</string>
+    <string name="multiplayer_no_such_user">ユーザーが存在しません</string>
+    <string name="multiplayer_already_in_room">既にルームに参加しています</string>
     <string name="multiplayer_create_room_error">ルーム作成エラー</string>
-    <string name="multiplayer_host_kicked">ホスト退出</string>
+    <string name="multiplayer_host_kicked">ホストがキックされました</string>
     <string name="multiplayer_unknown_error">不明なエラー</string>
-    <string name="multiplayer_room_uninitialized">ルーム未初期化</string>
-    <string name="multiplayer_room_idle">ルーム待機中</string>
-    <string name="multiplayer_room_joining">参加中</string>
-    <string name="multiplayer_room_joined">参加済み</string>
-    <string name="multiplayer_room_moderator">モデレーター</string>
-    <string name="multiplayer_member_join">%1$sが参加</string>
-    <string name="multiplayer_member_leave">%1$sが退出</string>
-    <string name="multiplayer_member_kicked">%1$sをキック</string>
-    <string name="multiplayer_member_banned">%1$sをBAN</string>
-    <string name="multiplayer_address_unbanned">BAN解除</string>
+    <string name="multiplayer_room_uninitialized">ルームが初期化されていません</string>
+    <string name="multiplayer_room_idle">ルームがアイドル状態です</string>
+    <string name="multiplayer_room_joining">ルームに参加中</string>
+    <string name="multiplayer_room_joined">ルームに参加しました</string>
+    <string name="multiplayer_room_moderator">ルームモデレーター</string>
+    <string name="multiplayer_member_join">%1$sが参加しました</string>
+    <string name="multiplayer_member_leave">%1$sが退出しました</string>
+    <string name="multiplayer_member_kicked">%1$sがキックされました</string>
+    <string name="multiplayer_member_banned">%1$sが禁止されました</string>
+    <string name="multiplayer_address_unbanned">アドレスの禁止が解除されました</string>
     <string name="multiplayer_kick_member">キック</string>
-    <string name="multiplayer_chat_input_hint">メッセージを送信……</string>
+    <string name="multiplayer_chat_input_hint">メッセージを送信…</string>
     <string name="multiplayer_password">パスワード</string>
     <string name="original_button_text">参加</string>
     <string name="disabled_button_text">参加中...</string>
     <string name="multiplayer_room_name">ルーム名</string>
-    <string name="multiplayer_room_name_invalid">ルーム名は3-20文字</string>
-    <string name="multiplayer_max_players">最大人数 (16)</string>
-    <string name="multiplayer_max_players_value">最大人数: %d</string>
+    <string name="multiplayer_room_name_invalid">ルーム名は3〜20文字で入力してください</string>
+    <string name="multiplayer_max_players">最大プレイヤー数 (16)</string>
+    <string name="multiplayer_max_players_value">最大プレイヤー数: %d</string>
     <string name="multiplayer_chat">チャット</string>
-    <string name="multiplayer_more_options">詳細設定</string>
-    <string name="multiplayer_ip_copied">IPコピー済み</string>
+    <string name="multiplayer_more_options">その他のオプション</string>
+    <string name="multiplayer_ip_copied">IPアドレスをクリップボードにコピーしました</string>
     <string name="multiplayer_server_address">サーバーアドレス</string>
     <string name="chat">チャット</string>
-    <string name="type_message">メッセージ入力……</string>
+    <string name="type_message">メッセージを入力…</string>
     <string name="send">送信</string>
-    <string name="send_message">メッセージ送信</string>
-    <string name="multiplayer_moderation">管理</string>
-    <string name="multiplayer_moderation_title">BANリスト</string>
-    <string name="multiplayer_no_bans">BANユーザー無し</string>
-    <string name="multiplayer_unban_title">BAN解除</string>
-    <string name="multiplayer_unban">解除</string>
-    <string name="multiplayer_unban_message">%1$sをBAN解除しますか？</string>
-    <string name="multiplayer_ban">BAN</string>
+    <string name="send_message">メッセージを送信</string>
+    <string name="multiplayer_moderation">モデレーション</string>
+    <string name="multiplayer_moderation_title">禁止リスト</string>
+    <string name="multiplayer_no_bans">禁止されたユーザーはいません</string>
+    <string name="multiplayer_unban_title">ユーザーの禁止を解除</string>
+    <string name="multiplayer_unban">禁止解除</string>
+    <string name="multiplayer_unban_message">%1$sの禁止を解除しますか？</string>
+    <string name="multiplayer_ban">ユーザーを禁止</string>
+    <string name="multiplayer_room_browser">公開ルーム</string>
+    <string name="multiplayer_no_rooms_found">公開ルームが見つかりませんでした</string>
+    <string name="multiplayer_password_required">パスワードが必要です</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">ゲーム</string>
+    <string name="multiplayer_no_game_info">任意のゲーム</string>
+    <string name="multiplayer_password_protected">パスワードで保護されたルーム</string>
+    <string name="multiplayer_hide_full_rooms">満員のルームを非表示</string>
+    <string name="multiplayer_hide_empty_rooms">空のルームを非表示</string>
+    <string name="multiplayer_tap_refresh_to_check_again">再確認するには更新をタップ</string>
+    <string name="multiplayer_search_public_lobbies">ルームを検索…</string>
     <string name="emulation_multiplayer">マルチプレイヤー</string>
+    <string name="multiplayer_game_name">お気に入りのゲーム</string>
+    <string name="multiplayer_preferred_game_name">優先ゲーム</string>
+    <string name="multiplayer_no_game">ゲームが見つかりません</string>
+    <string name="multiplayer_preferred_game_name_invalid">ルームを作成するには優先ゲームを選択する必要があります。</string>
     <string name="cancel">キャンセル</string>
     <string name="ok">OK</string>
+    <string name="refresh">更新</string>
+    <string name="room_list">ルーム一覧</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">テーマカラー</string>
@@ -364,6 +398,9 @@
     <string name="frame_limit_slider_description">エミュレーション速度を制限するパーセンテージを指定します。100%は通常速度です。値の増減で速度も増減します。</string>
     <string name="cpu_backend">CPUバックエンド</string>
     <string name="cpu_accuracy">CPU精度</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">デバイス名</string>
     <string name="use_docked_mode">TVモード</string>
     <string name="use_docked_mode_description">高解像度、低パフォーマンス。無効時には携帯モードが使用されます（低解像度、高パフォーマンス）。</string>
     <string name="emulated_region">地域</string>
@@ -373,6 +410,11 @@
     <string name="use_custom_rtc">カスタム RTC</string>
     <string name="use_custom_rtc_description">現在のシステム時間とは別に、任意のリアルタイムクロックを設定できます。</string>
     <string name="set_custom_rtc">カスタムRTCを設定</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">ウェブトークン</string>
+    <string name="web_token_description">公開ルームを作成するために使用されるウェブトークン。a-zの小文字のみを含む48文字の文字列です。</string>
+    <string name="network">ネットワーク</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">精度</string>
@@ -489,6 +531,33 @@
     <string name="select_gpu_driver_use_default">デフォルトのドライバを使用します</string>
     <string name="system_gpu_driver">システムのGPUドライバ</string>
     <string name="installing_driver">インストール中…</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">GPUドライバーフェッチャー</string>
+    <string name="fetch">取得</string>
+    <string name="fetch_error">取得中にエラーが発生しました</string>
+    <string name="check_connection">接続を確認して再試行してください。</string>
+    <string name="show_releases">リリースを表示</string>
+    <string name="view_full_release_notes">リリースノート</string>
+    <string name="failed_to_fetch">取得に失敗しました</string>
+    <string name="error_during_fetch">取得中にエラーが発生しました</string>
+    <string name="toggle_release_notes">リリースノートを切り替え</string>
+    <string name="downloads">ダウンロード</string>
+    <string name="show_downloads">ダウンロードを表示</string>
+    <string name="hide_downloads">ダウンロードを非表示</string>
+    <string name="failed_cache_dir">キャッシュディレクトリが利用できません</string>
+    <string name="empty_response_body">空のレスポンスボディ</string>
+    <string name="successfully_installed">%1$sのインストールに成功しました</string>
+    <string name="driver_failed_title">ドライバーのインストールに失敗しました</string>
+    <string name="failed_install_driver">%1$sドライバーのインストールに失敗しました、システムがサポートしていますか？</string>
+    <string name="driver_empty">ダウンロードしたドライバーが空です、インターネット接続を確認してください</string>
+    <string name="downloading">ダウンロード中…</string>
+    <string name="installing">インストール中…</string>
+    <string name="latest">最新</string>
+    <string name="recommended_driver">推奨ドライバー:</string>
+    <string name="gpu_model">GPUモデル:</string>
+    <string name="unsupported_gpu">サポートされていないGPU</string>
+    <string name="unsupported_gpu_warning">あなたのGPUはドライバーインジェクションをサポートしていません。カスタムドライバーの設定は推奨されません。</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">設定</string>

@@ -344,6 +344,7 @@ abstract class SettingsItem(
                     valuesId = R.array.rendererResolutionValues
                 )
             )
+
             put(
                 SwitchSetting(
                     BooleanSetting.SHOW_PERFORMANCE_OVERLAY,
@@ -353,9 +354,9 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
-                    BooleanSetting.OVERLAY_BACKGROUND,
-                    R.string.overlay_background,
-                    descriptionId = R.string.overlay_background_description
+                    BooleanSetting.PERF_OVERLAY_BACKGROUND,
+                    R.string.perf_overlay_background,
+                    descriptionId = R.string.perf_overlay_background_description
                 )
             )
             put(
@@ -367,6 +368,7 @@ abstract class SettingsItem(
                     valuesId = R.array.staticThemeValues
                 )
             )
+
             put(
                 SwitchSetting(
                     BooleanSetting.SHOW_FPS,
@@ -409,6 +411,53 @@ abstract class SettingsItem(
                     descriptionId = R.string.show_shaders_building_description
                 )
             )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SOC_OVERLAY,
+                    R.string.enable_soc_overlay,
+                    descriptionId = R.string.soc_overlay_options_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SOC_OVERLAY_BACKGROUND,
+                    R.string.perf_overlay_background,
+                    descriptionId = R.string.perf_overlay_background_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.SOC_OVERLAY_POSITION,
+                    titleId = R.string.overlay_position,
+                    descriptionId = R.string.overlay_position_description,
+                    choicesId = R.array.statsPosition,
+                    valuesId = R.array.staticThemeValues
+                )
+            )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_DEVICE_MODEL,
+                    titleId = R.string.show_device_model,
+                    descriptionId = R.string.show_device_model_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_GPU_MODEL,
+                    titleId = R.string.show_gpu_model,
+                    descriptionId = R.string.show_gpu_model_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_SOC_MODEL,
+                    titleId = R.string.show_soc_model,
+                    descriptionId = R.string.show_soc_model_description
+                )
+            )
+
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_VSYNC,

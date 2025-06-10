@@ -17,7 +17,7 @@
     <string name="show_stats_overlay">Show Performance Stats Overlay</string>
     <string name="stats_overlay_customization">Customization</string>
     <string name="stats_overlay_items">Visibility</string>
-    <string name="stats_overlay_options">Overlay</string>
+    <string name="stats_overlay_options">Performance Overlay</string>
     <string name="enable_stats_overlay_">Enable Performance Stats Overlay</string>
     <string name="stats_overlay_options_description">Configure what information is shown in the performance stats overlay</string>
     <string name="show_fps">Show FPS</string>
@@ -35,15 +35,28 @@
     <string name="show_shaders_building">Show Shaders Building</string>
     <string name="show_shaders_building_description">Display current number of shaders being built</string>
     <string name="overlay_position">Overlay Position</string>
-    <string name="overlay_position_description">Choose where the performance stats overlay is displayed on the screen</string>
+    <string name="overlay_position_description">Choose where the overlay is displayed on the screen</string>
     <string name="overlay_position_top_left">Top Left</string>
     <string name="overlay_position_top_right">Top Right</string>
     <string name="overlay_position_bottom_left">Bottom Left</string>
     <string name="overlay_position_bottom_right">Bottom Right</string>
     <string name="overlay_position_center_top">Center Top</string>
     <string name="overlay_position_center_bottom">Center Bottom</string>
-    <string name="overlay_background">Overlay Background</string>
-    <string name="overlay_background_description">Adds a background behind the overlay for easier reading</string>
+    <string name="perf_overlay_background">Overlay Background</string>
+    <string name="perf_overlay_background_description">Adds a background behind the overlay for easier reading</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Show Device Info Overlay</string>
+    <string name="enable_soc_overlay">Enable Device Overlay</string>
+    <string name="soc_overlay_options">Device Overlay</string>
+    <string name="soc_overlay_options_description">Configure what information is shown in the device overlay</string>
+
+    <string name="show_device_model">Show Device Model</string>
+    <string name="show_device_model_description">Display the host device model</string>
+    <string name="show_gpu_model">Show GPU Model</string>
+    <string name="show_gpu_model_description">Display the host GPU model</string>
+    <string name="show_soc_model">Show SoC Model</string>
+    <string name="show_soc_model_description">Display the host SoC model</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Eden’s Veil</string>

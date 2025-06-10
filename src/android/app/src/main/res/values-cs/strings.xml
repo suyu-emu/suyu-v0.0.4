@@ -34,12 +34,28 @@
     <string name="overlay_position_bottom_right">Vpravo dole</string>
     <string name="overlay_position_center_top">Nahoře uprostřed</string>
     <string name="overlay_position_center_bottom">Dole uprostřed</string>
-    <string name="overlay_background">Pozadí překryvu</string>
-    <string name="overlay_background_description">Přidá pozadí pro lepší čitelnost</string>
+    <string name="perf_overlay_background">Pozadí překryvu</string>
+    <string name="perf_overlay_background_description">Přidá pozadí pro lepší čitelnost</string>
     <string name="show_shaders_building">Zobrazit vytváření shaderů</string>
     <string name="show_shaders_building_description">Zobrazuje aktuální počet vytvářených shaderů</string>
 
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Zobrazit překryv informací o zařízení</string>
+    <string name="enable_soc_overlay">Povolit překryv zařízení</string>
+    <string name="soc_overlay_options">Překryv zařízení</string>
+    <string name="soc_overlay_options_description">Konfigurovat, jaké informace se zobrazí v překryvu zařízení</string>
+
+    <string name="show_device_model">Zobrazit model zařízení</string>
+    <string name="show_device_model_description">Zobrazit model hostitelského zařízení</string>
+    <string name="show_gpu_model">Zobrazit model GPU</string>
+    <string name="show_gpu_model_description">Zobrazit model hostitelské GPU</string>
+    <string name="show_soc_model">Zobrazit model SoC</string>
+    <string name="show_soc_model_description">Zobrazit model hostitelského SoC</string>
+
     <!-- Eden`s Veil -->
+    <string name="veil_extensions">Rozšíření GPU</string>
+    <string name="veil_renderer">Renderer</string>
+    <string name="veil_misc">Různé</string>
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
     <string name="eden_veil_warning_title">Experimentální nastavení</string>
@@ -128,20 +144,21 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">Multiplayer</string>
-    <string name="multiplayer_description">Hostování nebo připojení k herní místnosti</string>
+    <string name="multiplayer_description">Vytvořte si vlastní herní místnost nebo se připojte k existující, abyste mohli hrát s ostatními</string>
     <string name="multiplayer_room_title">Místnost: %1$s</string>
     <string name="multiplayer_console_id">ID konzole: %1$s</string>
     <string name="multiplayer_create_room">Vytvořit</string>
-    <string name="multiplayer_join_room">Připojit</string>
+    <string name="multiplayer_join_room">Připojit se</string>
+    <string name="multiplayer_public_room">Procházet veřejné místnosti</string>
     <string name="multiplayer_username">Uživatelské jméno</string>
     <string name="multiplayer_ip_address">IP adresa</string>
     <string name="multiplayer_ip_port">Port</string>
-    <string name="multiplayer_create_room_success">Místnost vytvořena</string>
-    <string name="multiplayer_join_room_success">Úspěšné připojení</string>
-    <string name="multiplayer_create_room_failed">Chyba při vytváření</string>
-    <string name="multiplayer_join_room_failed">Chyba při připojování</string>
-    <string name="multiplayer_input_invalid">Neplatná adresa nebo jméno</string>
-    <string name="multiplayer_port_invalid">Neplatný port</string>
+    <string name="multiplayer_create_room_success">Místnost úspěšně vytvořena!</string>
+    <string name="multiplayer_join_room_success">Úspěšně připojeno k místnosti!</string>
+    <string name="multiplayer_create_room_failed">Nepodařilo se vytvořit místnost!</string>
+    <string name="multiplayer_join_room_failed">Nepodařilo se připojit k místnosti!</string>
+    <string name="multiplayer_input_invalid">Neplatná adresa nebo jméno je příliš krátké!</string>
+    <string name="multiplayer_port_invalid">Neplatný port!</string>
     <string name="multiplayer_exit_room">Opustit místnost</string>
     <string name="multiplayer_network_error">Chyba sítě</string>
     <string name="multiplayer_lost_connection">Ztraceno připojení</string>
@@ -150,52 +167,69 @@
     <string name="multiplayer_console_id_collision">Kolize ID konzole</string>
     <string name="multiplayer_wrong_version">Nesprávná verze</string>
     <string name="multiplayer_wrong_password">Nesprávné heslo</string>
-    <string name="multiplayer_could_not_connect">Nelze připojit</string>
+    <string name="multiplayer_could_not_connect">Nepodařilo se připojit</string>
     <string name="multiplayer_room_is_full">Místnost je plná</string>
-    <string name="multiplayer_host_banned">Host zabanován</string>
+    <string name="multiplayer_host_banned">Hostitel zablokován</string>
     <string name="multiplayer_permission_denied">Přístup odepřen</string>
     <string name="multiplayer_no_such_user">Uživatel neexistuje</string>
     <string name="multiplayer_already_in_room">Již v místnosti</string>
-    <string name="multiplayer_create_room_error">Chyba vytváření</string>
-    <string name="multiplayer_host_kicked">Host vyhozen</string>
+    <string name="multiplayer_create_room_error">Chyba při vytváření místnosti</string>
+    <string name="multiplayer_host_kicked">Hostitel vyhozen</string>
     <string name="multiplayer_unknown_error">Neznámá chyba</string>
-    <string name="multiplayer_room_uninitialized">Místnost neinicializována</string>
+    <string name="multiplayer_room_uninitialized">Místnost není inicializována</string>
     <string name="multiplayer_room_idle">Místnost nečinná</string>
-    <string name="multiplayer_room_joining">Připojování</string>
-    <string name="multiplayer_room_joined">Připojeno</string>
-    <string name="multiplayer_room_moderator">Moderátor</string>
-    <string name="multiplayer_member_join">%1$s připojen</string>
-    <string name="multiplayer_member_leave">%1$s opustil</string>
-    <string name="multiplayer_member_kicked">%1$s vyhozen</string>
-    <string name="multiplayer_member_banned">%1$s zabanován</string>
-    <string name="multiplayer_address_unbanned">Adresa odbanována</string>
+    <string name="multiplayer_room_joining">Připojování k místnosti</string>
+    <string name="multiplayer_room_joined">Připojeno k místnosti</string>
+    <string name="multiplayer_room_moderator">Moderátor místnosti</string>
+    <string name="multiplayer_member_join">%1$s se připojil</string>
+    <string name="multiplayer_member_leave">%1$s odešel</string>
+    <string name="multiplayer_member_kicked">%1$s byl vyhozen</string>
+    <string name="multiplayer_member_banned">%1$s byl zablokován</string>
+    <string name="multiplayer_address_unbanned">Adresa odblokována</string>
     <string name="multiplayer_kick_member">Vyhodit</string>
-    <string name="multiplayer_chat_input_hint">Zpráva…</string>
+    <string name="multiplayer_chat_input_hint">Poslat zprávu…</string>
     <string name="multiplayer_password">Heslo</string>
-    <string name="original_button_text">Připojit</string>
-    <string name="disabled_button_text">Připojování…</string>
+    <string name="original_button_text">Připojit se</string>
+    <string name="disabled_button_text">Připojování...</string>
     <string name="multiplayer_room_name">Název místnosti</string>
-    <string name="multiplayer_room_name_invalid">Název musí mít 3-20 znaků</string>
-    <string name="multiplayer_max_players">Max hráčů (16)</string>
-    <string name="multiplayer_max_players_value">Max hráčů: %d</string>
+    <string name="multiplayer_room_name_invalid">Název místnosti musí mít 3 až 20 znaků</string>
+    <string name="multiplayer_max_players">Maximální počet hráčů (16)</string>
+    <string name="multiplayer_max_players_value">Maximální počet hráčů: %d</string>
     <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">Více možností</string>
-    <string name="multiplayer_ip_copied">IP zkopírována</string>
+    <string name="multiplayer_more_options">Další možnosti</string>
+    <string name="multiplayer_ip_copied">IP adresa zkopírována do schránky</string>
     <string name="multiplayer_server_address">Adresa serveru</string>
     <string name="chat">Chat</string>
-    <string name="type_message">Zpráva…</string>
+    <string name="type_message">Napsat zprávu…</string>
     <string name="send">Odeslat</string>
     <string name="send_message">Odeslat zprávu</string>
     <string name="multiplayer_moderation">Moderace</string>
-    <string name="multiplayer_moderation_title">Seznam banů</string>
-    <string name="multiplayer_no_bans">Žádní zabanovaní uživatelé</string>
-    <string name="multiplayer_unban_title">Odbanovat uživatele</string>
-    <string name="multiplayer_unban">Odbanovat</string>
-    <string name="multiplayer_unban_message">Odbanovat %1$s?</string>
-    <string name="multiplayer_ban">Zabanovat uživatele</string>
+    <string name="multiplayer_moderation_title">Seznam zákazů</string>
+    <string name="multiplayer_no_bans">Žádní zablokovaní uživatelé</string>
+    <string name="multiplayer_unban_title">Odblokovat uživatele</string>
+    <string name="multiplayer_unban">Odblokovat</string>
+    <string name="multiplayer_unban_message">Opravdu chcete odblokovat %1$s?</string>
+    <string name="multiplayer_ban">Zablokovat uživatele</string>
+    <string name="multiplayer_room_browser">Veřejné místnosti</string>
+    <string name="multiplayer_no_rooms_found">Nenalezeny žádné veřejné místnosti</string>
+    <string name="multiplayer_password_required">Vyžadováno heslo</string>
+    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_game">Hra</string>
+    <string name="multiplayer_no_game_info">Jakákoli hra</string>
+    <string name="multiplayer_password_protected">Místnost chráněná heslem</string>
+    <string name="multiplayer_hide_full_rooms">Skrýt plné místnosti</string>
+    <string name="multiplayer_hide_empty_rooms">Skrýt prázdné místnosti</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Pro opětovnou kontrolu klepněte na obnovit</string>
+    <string name="multiplayer_search_public_lobbies">Hledat místnosti…</string>
     <string name="emulation_multiplayer">Multiplayer</string>
+    <string name="multiplayer_game_name">Preferované hry</string>
+    <string name="multiplayer_preferred_game_name">Preferovaná hra</string>
+    <string name="multiplayer_no_game">Nenalezeny žádné hry</string>
+    <string name="multiplayer_preferred_game_name_invalid">Pro hostování místnosti musíte vybrat preferovanou hru.</string>
     <string name="cancel">Zrušit</string>
     <string name="ok">OK</string>
+    <string name="refresh">Obnovit</string>
+    <string name="room_list">Seznam místností</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Barva motivu</string>
@@ -335,6 +369,8 @@
     <string name="cpu_backend">CPU backend</string>
     <string name="cpu_accuracy">Přesnost CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
     <string name="device_name">Název zařízení</string>
     <string name="use_docked_mode">Docked režim</string>
     <string name="use_docked_mode_description">Větší rozlišení, menší výkon</string>
@@ -345,6 +381,11 @@
     <string name="use_custom_rtc">Vlastní RTC</string>
     <string name="use_custom_rtc_description">Vlastní nastavení času</string>
     <string name="set_custom_rtc">Nastavit vlastní RTC</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Webový token</string>
+    <string name="web_token_description">Webový token používaný k vytváření veřejných místností. Jedná se o řetězec o délce 48 znaků obsahující pouze malá písmena a-z.</string>
+    <string name="network">Síť</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_accuracy">Úroveň přesnosti</string>
@@ -417,6 +458,33 @@
     <string name="driver_already_installed">Ovladač již nainstalován</string>
     <string name="system_gpu_driver">Systémový ovladač GPU</string>
     <string name="installing_driver">Instalování ovladače...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="gpu_driver_fetcher">Stahovač ovladačů GPU</string>
+    <string name="fetch">Stáhnout</string>
+    <string name="fetch_error">Chyba při stahování</string>
+    <string name="check_connection">Zkontrolujte připojení a zkuste to znovu.</string>
+    <string name="show_releases">Zobrazit verze</string>
+    <string name="view_full_release_notes">Poznámky k verzi</string>
+    <string name="failed_to_fetch">Nepodařilo se stáhnout</string>
+    <string name="error_during_fetch">Chyba při stahování</string>
+    <string name="toggle_release_notes">Přepnout poznámky k verzi</string>
+    <string name="downloads">Stažené soubory</string>
+    <string name="show_downloads">Zobrazit stažené soubory</string>
+    <string name="hide_downloads">Skrýt stažené soubory</string>
+    <string name="failed_cache_dir">Adresář mezipaměti není k dispozici</string>
+    <string name="empty_response_body">Prázdné tělo odpovědi</string>
+    <string name="successfully_installed">%1$s úspěšně nainstalován</string>
+    <string name="driver_failed_title">Instalace ovladače selhala</string>
+    <string name="failed_install_driver">Nepodařilo se nainstalovat ovladač %1$s, podporuje jej váš systém?</string>
+    <string name="driver_empty">Stažený ovladač je prázdný, zkontrolujte připojení k internetu</string>
+    <string name="downloading">Stahování…</string>
+    <string name="installing">Instalace…</string>
+    <string name="latest">Nejnovější</string>
+    <string name="recommended_driver">Doporučený ovladač:</string>
+    <string name="gpu_model">Model GPU:</string>
+    <string name="unsupported_gpu">Nepodporovaná GPU</string>
+    <string name="unsupported_gpu_warning">Vaše GPU nepodporuje vkládání ovladačů. Nastavení vlastních ovladačů se nedoporučuje.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Nastavení</string>
