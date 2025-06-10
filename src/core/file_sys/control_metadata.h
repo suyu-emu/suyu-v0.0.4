@@ -65,7 +65,24 @@ struct RawNACP {
     u64_le cache_storage_journal_size;
     u64_le cache_storage_data_and_journal_max_size;
     u16_le cache_storage_max_index;
-    INSERT_PADDING_BYTES(0xE76);
+    INSERT_PADDING_BYTES(0x8B);
+    u8 app_error_code_prefix;
+    INSERT_PADDING_BYTES(1);
+    u8 acd_index;
+    u8 apparent_platform;
+    INSERT_PADDING_BYTES(0x22F);
+    std::array<u8, 0x89> app_control_data_condition;
+    u8 initial_program_index;
+    INSERT_PADDING_BYTES(2);
+    u32_le accessible_program_index_flags;
+    u8 album_file_export;
+    INSERT_PADDING_BYTES(7);
+    std::array<u8, 0x80> save_data_certificate_bytes;
+    u8 has_ingame_voice_chat;
+    INSERT_PADDING_BYTES(3);
+    u32_le supported_extra_addon_content_flag;
+    INSERT_PADDING_BYTES(0x698);
+    std::array<u8, 0x400> platform_specific_region;
 };
 static_assert(sizeof(RawNACP) == 0x4000, "RawNACP has incorrect size.");
 
