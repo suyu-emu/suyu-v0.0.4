@@ -65,11 +65,12 @@ class DriverFetcherFragment : Fragment() {
 
     private val driverMap = listOf(
         IntRange(Integer.MIN_VALUE, 9) to "Unsupported",
-        IntRange(10, 99) to "KIMCHI Latest",
+        IntRange(10, 99) to "KIMCHI Latest", // Special case for Adreno Axx
         IntRange(100, 599) to "Unsupported",
         IntRange(600, 639) to "Mr. Purple EOL-24.3.4",
         IntRange(640, 699) to "Mr. Purple T19",
-        IntRange(700, 799) to "Mr. Purple T20", // TODO: Await T21 and update accordingly
+        IntRange(700, 710) to "KIMCHI 25.2.0_r5",
+        IntRange(711, 799) to "Mr. Purple T21",
         IntRange(800, 899) to "GameHub Adreno 8xx",
         IntRange(900, Int.MAX_VALUE) to "Unsupported",
     )
@@ -94,7 +95,6 @@ class DriverFetcherFragment : Fragment() {
         try {
             // special case for Axx GPUs (e.g. AYANEO Pocket S2)
             // driverMap has specific ranges for this
-            // needs to be fixed
             if (model.startsWith("A")) {
                 return model.substring(1).toInt()
             }
