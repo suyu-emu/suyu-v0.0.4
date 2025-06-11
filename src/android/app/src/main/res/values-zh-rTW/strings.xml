@@ -8,6 +8,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(增強)</string>
+    <string name="process_ram">進程記憶體: %1$d MB</string>
+    <string name="shaders_prefix">正在編譯</string>
+    <string name="shaders_suffix">著色器</string>
     <string name="system_info_label">系統:</string>
     <string name="show_stats_overlay">顯示效能統計疊加層</string>
     <string name="stats_overlay_customization">自訂</string>
@@ -68,7 +71,7 @@
     <string name="use_lru_cache">啟用LRU快取</string>
     <string name="use_lru_cache_description">啟用或停用LRU（最近最少使用）快取，通過節省CPU使用來提高效能。某些遊戲（尤其是TotK 1.2.1）可能存在問題，如果遊戲無法啟動或隨機崩潰，請停用它。</string>
     <string name="dyna_state">擴展動態狀態</string>
-    <string name="dyna_state_description">啟用Vulkan功能以在保持低CPU/GPU使用率的同時提高效能、渲染效果並節省管線建立資源。這些擴充可能會提高裝置溫度，較舊的A6XX系列GPU可能無法正確響應。設為0可使用Yuzu模擬格式。</string>
+    <string name="dyna_state_description">啟用Vulkan功能以提升效能、改善渲染並在創建管線時節省資源，同時保持較低的CPU/GPU使用率。這些擴充功能可能會提高設備溫度，且舊款A6XX系列的GPU可能無法正常運作。設為0以使用舊版模擬格式。</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
     <string name="use_auto_stub">使用自動存根</string>
@@ -101,47 +104,47 @@
     <string name="clock_base">基礎 (1000MHz)</string>
     <string name="clock_boost">加速 (1700MHz)</string>
     <string name="clock_fast">快速 (2000MHz)</string>
-    <!-- ASTC Decoding Method -->
+
     <!-- GPU overclock factors -->
     <string name="gpu_low">低 (128)</string>
     <string name="gpu_medium">中 (256)</string>
     <string name="gpu_high">高 (512)</string>
 
-    <!-- ASTC解碼方式 -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC解碼方式</string>
     <string name="accelerate_astc_description">選擇ASTC壓縮紋理的解碼方式：CPU（慢速、安全）、GPU（快速、推薦）或CPU非同步（無卡頓，可能導致問題）</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU非同步</string>
 
-    <!-- ASTC重新壓縮方式 -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">ASTC重新壓縮方式</string>
     <string name="astc_recompression_description">選擇ASTC紋理的重新壓縮方式以提高相容性和效能。啟用此選項可節省VRAM，但可能會降低紋理品質。</string>
     <string name="astc_recompression_uncompressed">未壓縮</string>
     <string name="astc_recompression_bc1">BC1（低品質）</string>
     <string name="astc_recompression_bc3">BC3（中品質）</string>
 
-    <!-- VRAM使用模式 -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">VRAM使用模式</string>
     <string name="vram_usage_mode_description">控制GPU記憶體的分配與釋放策略</string>
     <string name="vram_usage_conservative">保守</string>
     <string name="vram_usage_aggressive">積極</string>
 
-    <!-- 著色器後端 -->
+    <!-- Shader Backend -->
     <string name="shader_backend">著色器後端</string>
     <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
     <string name="shader_backend_glsl">通用</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- NVDEC模擬 -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模擬</string>
     <string name="nvdec_emulation_description">選擇影片解碼（NVDEC）的處理方式</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">無</string>
 
-    <!-- 優化SPIRV輸出 -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">優化SPIRV輸出</string>
     <string name="renderer_optimize_spirv_output_description">最佳化編譯後的著色器以提高GPU效率。</string>
     <string name="never">永不</string>
@@ -150,22 +153,23 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">多人遊戲</string>
-    <string name="multiplayer_description">建立自己的遊戲房間或加入現有房間與他人一起遊玩</string>
-    <string name="multiplayer_room_title">房間: %1$s</string>
+    <string name="multiplayer_description">建立自己的遊戲房間或加入現有房間與他人連線</string>
+    <string name="multiplayer_room_title">房間：%1$s</string>
     <string name="multiplayer_console_id">主機ID：%1$s</string>
     <string name="multiplayer_create_room">建立</string>
     <string name="multiplayer_join_room">加入</string>
     <string name="multiplayer_public_room">瀏覽公開房間</string>
     <string name="multiplayer_username">使用者名稱</string>
     <string name="multiplayer_ip_address">IP位址</string>
-    <string name="multiplayer_ip_port">通訊埠</string>
-    <string name="multiplayer_create_room_success">房間建立成功！</string>
-    <string name="multiplayer_join_room_success">成功加入房間！</string>
-    <string name="multiplayer_create_room_failed">建立房間失敗！</string>
-    <string name="multiplayer_join_room_failed">加入房間失敗！</string>
-    <string name="multiplayer_input_invalid">無效的地址或名稱太短！</string>
-    <string name="multiplayer_port_invalid">無效的通訊埠！</string>
-    <string name="multiplayer_exit_room">離開房間</string>
+    <string name="multiplayer_ip_port">埠號</string>
+    <string name="multiplayer_create_room_success">房間建立成功</string>
+    <string name="multiplayer_join_room_success">成功加入房間</string>
+    <string name="multiplayer_create_room_failed">房間建立失敗</string>
+    <string name="multiplayer_join_room_failed">加入房間失敗</string>
+    <string name="multiplayer_name_invalid">名稱過短</string>
+    <string name="multiplayer_address_invalid">位址無效</string>
+    <string name="multiplayer_port_invalid">埠號無效！</string>
+    <string name="multiplayer_exit_room">退出房間</string>
     <string name="multiplayer_network_error">網路錯誤</string>
     <string name="multiplayer_lost_connection">連線中斷</string>
     <string name="multiplayer_name_collision">名稱衝突</string>
@@ -177,61 +181,66 @@
     <string name="multiplayer_room_is_full">房間已滿</string>
     <string name="multiplayer_host_banned">主機已被封鎖</string>
     <string name="multiplayer_permission_denied">權限不足</string>
-    <string name="multiplayer_no_such_user">無此使用者</string>
+    <string name="multiplayer_no_such_user">使用者不存在</string>
     <string name="multiplayer_already_in_room">已在房間中</string>
-    <string name="multiplayer_create_room_error">建立房間錯誤</string>
-    <string name="multiplayer_host_kicked">主機已被踢出</string>
+    <string name="multiplayer_create_room_error">房間建立異常</string>
+    <string name="multiplayer_host_kicked">主機已踢出</string>
     <string name="multiplayer_unknown_error">未知錯誤</string>
     <string name="multiplayer_room_uninitialized">房間未初始化</string>
-    <string name="multiplayer_room_idle">房間閒置中</string>
+    <string name="multiplayer_room_idle">房間閒置</string>
     <string name="multiplayer_room_joining">正在加入房間</string>
     <string name="multiplayer_room_joined">已加入房間</string>
     <string name="multiplayer_room_moderator">房間管理員</string>
-    <string name="multiplayer_member_join">%1$s 已加入</string>
-    <string name="multiplayer_member_leave">%1$s 已離開</string>
-    <string name="multiplayer_member_kicked">%1$s 已被踢出</string>
-    <string name="multiplayer_member_banned">%1$s 已被封鎖</string>
-    <string name="multiplayer_address_unbanned">位址已解除封鎖</string>
+    <string name="multiplayer_member_join">%1$s 加入</string>
+    <string name="multiplayer_member_leave">%1$s 離開</string>
+    <string name="multiplayer_member_kicked">%1$s 被踢出</string>
+    <string name="multiplayer_member_banned">%1$s 被封鎖</string>
+    <string name="multiplayer_address_unbanned">位址已解封</string>
     <string name="multiplayer_kick_member">踢出成員</string>
-    <string name="multiplayer_chat_input_hint">傳送訊息……</string>
+    <string name="multiplayer_chat_input_hint">傳送訊息…</string>
     <string name="multiplayer_password">密碼</string>
-    <string name="original_button_text">加入</string>
-    <string name="disabled_button_text">加入中...</string>
+    <string name="multiplayer_joining">正在加入…</string>
+    <string name="multiplayer_creating">正在建立…</string>
     <string name="multiplayer_room_name">房間名稱</string>
-    <string name="multiplayer_room_name_invalid">房間名稱必須介於3到20個字元之間</string>
+    <string name="multiplayer_room_name_invalid">房間名稱需為3-20個字元</string>
     <string name="multiplayer_max_players">最大玩家數 (16)</string>
-    <string name="multiplayer_max_players_value">最大玩家數: %d</string>
+    <string name="multiplayer_max_players_value">最大玩家數：%d</string>
     <string name="multiplayer_chat">聊天</string>
     <string name="multiplayer_more_options">更多選項</string>
     <string name="multiplayer_ip_copied">IP位址已複製到剪貼簿</string>
     <string name="multiplayer_server_address">伺服器位址</string>
     <string name="chat">聊天</string>
-    <string name="type_message">輸入訊息……</string>
+    <string name="type_message">輸入訊息…</string>
     <string name="send">傳送</string>
     <string name="send_message">傳送訊息</string>
     <string name="multiplayer_moderation">管理</string>
     <string name="multiplayer_moderation_title">封鎖名單</string>
-    <string name="multiplayer_no_bans">無被封鎖的使用者</string>
-    <string name="multiplayer_unban_title">解除封鎖使用者</string>
-    <string name="multiplayer_unban">解除封鎖</string>
-    <string name="multiplayer_unban_message">確定要解除封鎖 %1$s 嗎？</string>
+    <string name="multiplayer_no_bans">無封鎖使用者</string>
+    <string name="multiplayer_unban_title">解除封鎖</string>
+    <string name="multiplayer_unban">解封</string>
+    <string name="multiplayer_unban_message">確定解除封鎖 %1$s 嗎？</string>
     <string name="multiplayer_ban">封鎖使用者</string>
     <string name="multiplayer_room_browser">公開房間</string>
-    <string name="multiplayer_no_rooms_found">找不到公開房間</string>
-    <string name="multiplayer_password_required">需要密碼</string>
-    <string name="multiplayer_player_count">: %1$d/%2$d</string>
+    <string name="multiplayer_no_rooms_found">未找到公開房間</string>
+    <string name="multiplayer_password_required">需輸入密碼</string>
+    <string name="multiplayer_player_count">：%1$d/%2$d</string>
     <string name="multiplayer_game">遊戲</string>
     <string name="multiplayer_no_game_info">任意遊戲</string>
     <string name="multiplayer_password_protected">密碼保護房間</string>
-    <string name="multiplayer_hide_full_rooms">隱藏已滿房間</string>
+    <string name="multiplayer_hide_full_rooms">隱藏滿員房間</string>
     <string name="multiplayer_hide_empty_rooms">隱藏空房間</string>
-    <string name="multiplayer_tap_refresh_to_check_again">點擊刷新重新檢查</string>
-    <string name="multiplayer_search_public_lobbies">搜尋大廳…</string>
-    <string name="emulation_multiplayer">多人遊戲</string>
+    <string name="multiplayer_tap_refresh_to_check_again">點擊刷新重試</string>
+    <string name="multiplayer_search_public_lobbies">搜尋房間…</string>
+    <string name="emulation_multiplayer">多人連線</string>
     <string name="multiplayer_game_name">偏好遊戲</string>
-    <string name="multiplayer_preferred_game_name">偏好遊戲</string>
-    <string name="multiplayer_no_game">找不到遊戲</string>
-    <string name="multiplayer_preferred_game_name_invalid">您必須選擇一個偏好遊戲才能建立房間。</string>
+    <string name="multiplayer_preferred_game_name">首選遊戲</string>
+    <string name="multiplayer_no_game">未找到遊戲</string>
+    <string name="multiplayer_preferred_game_name_invalid">建立房間需選擇首選遊戲</string>
+    <string name="multiplayer_room_name_error">長度需為3-20個字元</string>
+    <string name="multiplayer_required">必填</string>
+    <string name="multiplayer_ip_error">IP格式無效</string>
+    <string name="multiplayer_username_error">至少5個字元</string>
+    <string name="multiplayer_port_error">埠號需為1-65535</string>
     <string name="cancel">取消</string>
     <string name="ok">確定</string>
     <string name="refresh">刷新</string>

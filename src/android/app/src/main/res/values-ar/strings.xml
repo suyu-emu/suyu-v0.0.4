@@ -7,6 +7,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(مُحسَّن)</string>
+    <string name="process_ram">ذاكرة RAM للعملية: %1$d م.ب</string>
+    <string name="shaders_prefix">جاري بناء</string>
+    <string name="shaders_suffix">شادر(شادرات)</string>
     <string name="system_info_label">النظام:</string>
     <string name="show_stats_overlay">عرض إحصائيات الأداء</string>
     <string name="stats_overlay_customization">تخصيص</string>
@@ -67,7 +70,7 @@
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
     <string name="use_lru_cache_description">تمكين أو تعطيل ذاكرة التخزين المؤقت الأقل استخدامًا (LRU)، مما يزيد الأداء عن طريق توفير استخدام وحدة المعالجة المركزية. بعض الألعاب بها مشاكل معها، خاصة TotK 1.2.1، لذا قم بتعطيلها إذا لم يتم تشغيل اللعبة أو تعطلت بشكل عشوائي.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
-    <string name="dyna_state_description">يُمكّن ميزات فولكان لتحسين الأداء، التقديم، وتوفير الموارد أثناء إنشاء خطوط المعالجة مع الحفاظ على استهلاك أقل لوحدة المعالجة المركزية/وحدة معالجة الرسومات. قد تزيد هذه الامتدادات من درجة حرارة الجهاز، وقد لا تتفاعل وحدات معالجة الرسومات القديمة من سلسلة A6XX بشكل صحيح. اضبط على 0 لاستخدام تنسيقات Yuzu المحاكاة.</string>
+    <string name="dyna_state_description">يُمكّن ميزات فولكان لتحسين الأداء وعرض الرسومات وتوفير الموارد عند إنشاء خطوط المعالجة مع الحفاظ على استهلاك منخفض لوحدة المعالجة المركزية/وحدة معالجة الرسومات. قد تزيد هذه الامتدادات من درجة حرارة الجهاز، وقد لا تعمل وحدات معالجة الرسومات من سلسلة A6XX القديمة بشكل صحيح. اضبط على 0 لاستخدام الأشكال المحاكاة التقليدية.</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">مزامنة سرعة النواة مع النسبة القصوى للسرعة لتحسين الأداء دون تغيير السرعة الفعلية للعبة.</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>
@@ -106,41 +109,41 @@
     <string name="gpu_medium">متوسط (256)</string>
     <string name="gpu_high">مرتفع (512)</string>
 
-    <!-- طرق فك ضغط ASTC -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
     <string name="accelerate_astc_description">اختر كيفية فك ضغط نسيج ASTC للعرض: CPU (بطيء، آمن)، GPU (سريع، موصى به)، أو CPU Async (بدون توقف، قد يسبب مشاكل)</string>
     <string name="accelerate_astc_cpu">وحدة المعالجة المركزية</string>
     <string name="accelerate_astc_gpu">وحدة المعالجة الرسومية</string>
     <string name="accelerate_astc_async">وحدة المعالجة المركزية غير المتزامنة</string>
 
-    <!-- طرق إعادة ضغط ASTC -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">طريقة إعادة ضغط ASTC</string>
-<string name="astc_recompression_description">اختر كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
+    <string name="astc_recompression_description">اختر كيفية إعادة ضغط نسيج ASTC لتحسين التوافق والأداء. تمكين هذا الخيار يوفر VRAM ولكن قد يقلل من جودة النسيج.</string>
     <string name="astc_recompression_uncompressed">غير مضغوط</string>
     <string name="astc_recompression_bc1">BC1 (جودة منخفضة)</string>
     <string name="astc_recompression_bc3">BC3 (جودة متوسطة)</string>
 
-    <!-- وضع استخدام VRAM -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">وضع استخدام VRAM</string>
     <string name="vram_usage_mode_description">التحكم في إدارة ذاكرة GPU</string>
     <string name="vram_usage_conservative">محافظ</string>
     <string name="vram_usage_aggressive">عدواني</string>
 
-    <!-- خلفية Shader -->
+    <!-- Shader Backend -->
     <string name="shader_backend">خلفية Shader</string>
     <string name="shader_backend_description">اختيار طريقة ترجمة Shaders</string>
     <string name="shader_backend_glsl">عام</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- محاكاة NVDEC -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">محاكاة NVDEC</string>
     <string name="nvdec_emulation_description">اختيار طريقة معالجة الفيديو</string>
     <string name="nvdec_emulation_cpu">وحدة المعالجة المركزية</string>
     <string name="nvdec_emulation_gpu">وحدة المعالجة الرسومية</string>
     <string name="nvdec_emulation_none">لا شيء</string>
 
-    <!-- تحسين SPIRV -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">تحسين SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">يحسن الشادر المترجم لزيادة كفاءة GPU.</string>
     <string name="never">أبداً</string>
@@ -149,27 +152,28 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">متعدد اللاعبين</string>
-    <string name="multiplayer_description">استضافة غرفة لعبة أو الانضمام إلى غرفة موجودة للعب مع الآخرين</string>
+    <string name="multiplayer_description">استضف غرفة لعبتك الخاصة أو انضم إلى غرفة موجودة للعب مع الآخرين</string>
     <string name="multiplayer_room_title">الغرفة: %1$s</string>
     <string name="multiplayer_console_id">معرف الكونسول: %1$s</string>
     <string name="multiplayer_create_room">إنشاء</string>
-    <string name="multiplayer_join_room">انضمام</string>
+    <string name="multiplayer_join_room">انضم</string>
     <string name="multiplayer_public_room">تصفح الغرف العامة</string>
     <string name="multiplayer_username">اسم المستخدم</string>
     <string name="multiplayer_ip_address">عنوان IP</string>
     <string name="multiplayer_ip_port">المنفذ</string>
-    <string name="multiplayer_create_room_success">تم إنشاء الغرفة بنجاح!</string>
-    <string name="multiplayer_join_room_success">تم الانضمام إلى الغرفة بنجاح!</string>
-    <string name="multiplayer_create_room_failed">فشل في إنشاء الغرفة!</string>
-    <string name="multiplayer_join_room_failed">فشل في الانضمام إلى الغرفة!</string>
-    <string name="multiplayer_input_invalid">عنوان غير صالح أو الاسم قصير جدًا!</string>
+    <string name="multiplayer_create_room_success">تم إنشاء الغرفة بنجاح</string>
+    <string name="multiplayer_join_room_success">تم الانضمام إلى الغرفة بنجاح</string>
+    <string name="multiplayer_create_room_failed">فشل في إنشاء الغرفة</string>
+    <string name="multiplayer_join_room_failed">فشل في الانضمام إلى الغرفة</string>
+    <string name="multiplayer_name_invalid">الاسم قصير جدًا</string>
+    <string name="multiplayer_address_invalid">عنوان غير صالح</string>
     <string name="multiplayer_port_invalid">منفذ غير صالح!</string>
     <string name="multiplayer_exit_room">مغادرة الغرفة</string>
     <string name="multiplayer_network_error">خطأ في الشبكة</string>
     <string name="multiplayer_lost_connection">فقدان الاتصال</string>
-    <string name="multiplayer_name_collision">تعارض في الأسماء</string>
-    <string name="multiplayer_mac_collision">تعارض في MAC</string>
-    <string name="multiplayer_console_id_collision">تعارض في معرف الكونسول</string>
+    <string name="multiplayer_name_collision">تعارض في الاسم</string>
+    <string name="multiplayer_mac_collision">تعارض في عنوان MAC</string>
+    <string name="multiplayer_console_id_collision">تعارض في معرف الجهاز</string>
     <string name="multiplayer_wrong_version">إصدار خاطئ</string>
     <string name="multiplayer_wrong_password">كلمة مرور خاطئة</string>
     <string name="multiplayer_could_not_connect">تعذر الاتصال</string>
@@ -181,31 +185,31 @@
     <string name="multiplayer_create_room_error">خطأ في إنشاء الغرفة</string>
     <string name="multiplayer_host_kicked">تم طرد المضيف</string>
     <string name="multiplayer_unknown_error">خطأ غير معروف</string>
-    <string name="multiplayer_room_uninitialized">لم يتم تهيئة الغرفة</string>
+    <string name="multiplayer_room_uninitialized">الغرفة غير مهيأة</string>
     <string name="multiplayer_room_idle">الغرفة خاملة</string>
     <string name="multiplayer_room_joining">جارٍ الانضمام إلى الغرفة</string>
     <string name="multiplayer_room_joined">تم الانضمام إلى الغرفة</string>
     <string name="multiplayer_room_moderator">مشرف الغرفة</string>
     <string name="multiplayer_member_join">%1$s انضم</string>
     <string name="multiplayer_member_leave">%1$s غادر</string>
-    <string name="multiplayer_member_kicked">%1$s تم طرده</string>
-    <string name="multiplayer_member_banned">%1$s تم حظره</string>
+    <string name="multiplayer_member_kicked">%1$s طُرِد</string>
+    <string name="multiplayer_member_banned">%1$s حُظِر</string>
     <string name="multiplayer_address_unbanned">تم إلغاء حظر العنوان</string>
     <string name="multiplayer_kick_member">طرد</string>
-    <string name="multiplayer_chat_input_hint">إرسال رسائل...</string>
+    <string name="multiplayer_chat_input_hint">إرسال رسائل…</string>
     <string name="multiplayer_password">كلمة المرور</string>
-    <string name="original_button_text">انضمام</string>
-    <string name="disabled_button_text">جارٍ الانضمام...</string>
+    <string name="multiplayer_joining">جارٍ الانضمام…</string>
+    <string name="multiplayer_creating">جارٍ الإنشاء…</string>
     <string name="multiplayer_room_name">اسم الغرفة</string>
     <string name="multiplayer_room_name_invalid">يجب أن يكون اسم الغرفة بين 3 و20 حرفًا</string>
     <string name="multiplayer_max_players">الحد الأقصى للاعبين (16)</string>
     <string name="multiplayer_max_players_value">الحد الأقصى للاعبين: %d</string>
     <string name="multiplayer_chat">الدردشة</string>
-    <string name="multiplayer_more_options">خيارات إضافية</string>
+    <string name="multiplayer_more_options">المزيد من الخيارات</string>
     <string name="multiplayer_ip_copied">تم نسخ عنوان IP إلى الحافظة</string>
     <string name="multiplayer_server_address">عنوان الخادم</string>
     <string name="chat">الدردشة</string>
-    <string name="type_message">اكتب رسالة...</string>
+    <string name="type_message">اكتب رسالة…</string>
     <string name="send">إرسال</string>
     <string name="send_message">إرسال رسالة</string>
     <string name="multiplayer_moderation">الإشراف</string>
@@ -225,12 +229,17 @@
     <string name="multiplayer_hide_full_rooms">إخفاء الغرف الممتلئة</string>
     <string name="multiplayer_hide_empty_rooms">إخفاء الغرف الفارغة</string>
     <string name="multiplayer_tap_refresh_to_check_again">اضغط على تحديث للتحقق مرة أخرى</string>
-    <string name="multiplayer_search_public_lobbies">البحث في الغرف...</string>
+    <string name="multiplayer_search_public_lobbies">البحث في الغرف…</string>
     <string name="emulation_multiplayer">متعدد اللاعبين</string>
     <string name="multiplayer_game_name">الألعاب المفضلة</string>
     <string name="multiplayer_preferred_game_name">اللعبة المفضلة</string>
     <string name="multiplayer_no_game">لم يتم العثور على ألعاب</string>
     <string name="multiplayer_preferred_game_name_invalid">يجب اختيار لعبة مفضلة لاستضافة غرفة.</string>
+    <string name="multiplayer_room_name_error">يجب أن يكون بين 3 و20 حرفًا</string>
+    <string name="multiplayer_required">مطلوب</string>
+    <string name="multiplayer_ip_error">تنسيق IP غير صالح</string>
+    <string name="multiplayer_username_error">يجب أن يكون 5 أحرف على الأقل</string>
+    <string name="multiplayer_port_error">يجب أن يكون بين 1 و65535</string>
     <string name="cancel">إلغاء</string>
     <string name="ok">موافق</string>
     <string name="refresh">تحديث</string>

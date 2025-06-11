@@ -8,6 +8,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Ditingkatkan)</string>
+    <string name="process_ram">RAM Proses: %1$d MB</string>
+    <string name="shaders_prefix">Membangun</string>
+    <string name="shaders_suffix">Shader</string>
     <string name="system_info_label">Sistem:</string>
     <string name="show_stats_overlay">Tampilkan Overlay Statistik Performa</string>
     <string name="stats_overlay_customization">Kustomisasi</string>
@@ -68,7 +71,7 @@
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
     <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU (Least Recently Used), meningkatkan performa dengan menghemat penggunaan CPU. Beberapa game memiliki masalah dengannya, terutama TotK 1.2.1, jadi nonaktifkan jika game tidak mau boot atau sering crash.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
-    <string name="dyna_state_description">Mengaktifkan fitur Vulkan untuk meningkatkan performa, rendering, dan menghemat sumber daya saat pembuatan pipeline sambil mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU seri A6XX lama mungkin tidak merespons dengan benar. Setel ke 0 untuk menggunakan format emulasi Yuzu.</string>
+    <string name="dyna_state_description">Mengaktifkan fitur Vulkan untuk meningkatkan kinerja, rendering, dan menghemat sumber daya saat pembuatan pipeline dengan tetap mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU dari seri A6XX lama mungkin tidak berfungsi dengan baik. Setel ke 0 untuk menggunakan format emulasi lama.</string>
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
     <string name="use_auto_stub">Gunakan Auto Stub</string>
@@ -102,41 +105,41 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Cepat (2000MHz)</string>
 
-    <!-- Metode Dekoding ASTC -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Metode Dekoding ASTC</string>
     <string name="accelerate_astc_description">Pilih cara tekstur terkompresi ASTC didekode untuk rendering: CPU (lambat, aman), GPU (cepat, direkomendasikan), atau CPU Async (tanpa lag, mungkin menyebabkan masalah)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU Secara Asinkron</string>
 
-    <!-- Metode Rekompresi ASTC -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">Metode Rekompresi ASTC</string>
     <string name="astc_recompression_description">Pilih cara tekstur ASTC dikompresi ulang untuk meningkatkan kompatibilitas dan performa. Mengaktifkan opsi ini menghemat VRAM tetapi dapat menurunkan kualitas tekstur.</string>
     <string name="astc_recompression_uncompressed">Tidak Dikompresi</string>
     <string name="astc_recompression_bc1">BC1 (Kualitas Rendah)</string>
     <string name="astc_recompression_bc3">BC3 (Kualitas Menengah)</string>
 
-    <!-- Mode Penggunaan VRAM -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">Mode Penggunaan VRAM</string>
     <string name="vram_usage_mode_description">Kontrol seberapa agresif emulator mengalokasikan dan membebaskan memori GPU.</string>
     <string name="vram_usage_conservative">Konservatif</string>
     <string name="vram_usage_aggressive">Agresif</string>
 
-    <!-- Backend Shader -->
+    <!-- Shader Backend -->
     <string name="shader_backend">Backend Shader</string>
     <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
     <string name="shader_backend_glsl">Universal</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- Emulasi NVDEC -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulasi NVDEC</string>
     <string name="nvdec_emulation_description">Pilih cara decoding video (NVDEC) ditangani selama cutscene dan intro.</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tidak Ada</string>
 
-    <!-- Optimalkan Output SPIRV -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">Optimalkan Output SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
     <string name="never">Tidak Pernah</string>
@@ -158,7 +161,6 @@
     <string name="multiplayer_join_room_success">Berhasil bergabung dengan ruang!</string>
     <string name="multiplayer_create_room_failed">Gagal membuat ruang!</string>
     <string name="multiplayer_join_room_failed">Gagal bergabung dengan ruang!</string>
-    <string name="multiplayer_input_invalid">Alamat tidak valid atau nama terlalu pendek!</string>
     <string name="multiplayer_port_invalid">Port tidak valid!</string>
     <string name="multiplayer_exit_room">Keluar dari Ruang</string>
     <string name="multiplayer_network_error">Kesalahan jaringan</string>
@@ -184,14 +186,13 @@
     <string name="multiplayer_room_moderator">Moderator ruang</string>
     <string name="multiplayer_member_join">%1$s bergabung</string>
     <string name="multiplayer_member_leave">%1$s keluar</string>
-    <string name="multiplayer_member_kicked">%1$s dikeluarkan</string>
-    <string name="multiplayer_member_banned">%1$s diblokir</string>
-    <string name="multiplayer_address_unbanned">Alamat tidak diblokir</string>
-    <string name="multiplayer_kick_member">Keluarkan</string>
+    <string name="multiplayer_member_kicked">%1$s di-kick</string>
+    <string name="multiplayer_member_banned">%1$s dilarang</string>
+    <string name="multiplayer_address_unbanned">Alamat diizinkan</string>
+    <string name="multiplayer_kick_member">Kick Anggota</string>
     <string name="multiplayer_chat_input_hint">Kirim pesan…</string>
-    <string name="multiplayer_password">Kata sandi</string>
-    <string name="original_button_text">Gabung</string>
-    <string name="disabled_button_text">Bergabung...</string>
+    <string name="multiplayer_password">Password</string>
+    <string name="multiplayer_joining">Bergabung...</string>
     <string name="multiplayer_room_name">Nama Ruang</string>
     <string name="multiplayer_room_name_invalid">Nama ruang harus antara 3 hingga 20 karakter</string>
     <string name="multiplayer_max_players">Pemain Maks (16)</string>
@@ -200,7 +201,7 @@
     <string name="multiplayer_more_options">Opsi Lainnya</string>
     <string name="multiplayer_ip_copied">Alamat IP disalin ke clipboard</string>
     <string name="multiplayer_server_address">Alamat Server</string>
-    <string name="chat">Obrolan</string>
+    <string name="chat">Chat</string>
     <string name="type_message">Ketik pesan…</string>
     <string name="send">Kirim</string>
     <string name="send_message">Kirim Pesan</string>

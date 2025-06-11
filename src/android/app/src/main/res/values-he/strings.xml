@@ -8,6 +8,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(משופר)</string>
+    <string name="process_ram">זיכרון תהליך: %1$d MB</string>
+    <string name="shaders_prefix">בונה</string>
+    <string name="shaders_suffix">שיידר(ים)</string>
     <string name="system_info_label">מערכת:</string>
     <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
     <string name="stats_overlay_customization">התאמה אישית</string>
@@ -68,7 +71,7 @@
     <string name="use_lru_cache">הפעלת מטמון LRU</string>
     <string name="use_lru_cache_description">הפעל או השבת את מטמון LRU (Least Recently Used), המשפר ביצועים על ידי חיסכון בשימוש במעבד. חלק מהמשחקים נתקלים בבעיות עם זה, במיוחד TotK 1.2.1, אז השבת אם המשחק לא נטען או קורס אקראית.</string>
     <string name="dyna_state">מצב דינמי מורחב</string>
-    <string name="dyna_state_description">מאפשר תכונות Vulkan לשיפור ביצועים, רינדור וחיסכון במשאבים תוך שמירה על שימוש נמוך ב-CPU/GPU. הרחבות אלו עשויות להעלות את טמפ` המכשיר, וכרטיסי מסך מסדרת A6XX הישנים יותר עשויים לא להגיב כראוי. הגדר ל-0 כדי להשתמש בפורמטים המדומים של Yuzu.</string>
+    <string name="dyna_state_description">מאפשר תכונות Vulkan לשיפור ביצועים, רינדור וחיסכון במשאבים בעת יצירת צינור עיבוד תוך שמירה על שימוש נמוך ב-CPU/GPU. הרחבות אלו עשויות להעלות את טמפרטורת המכשיר, וייתכן שכרטיסי מסך מסדרת A6XX הישנה לא יגיבו כראוי. הגדר ל-0 כדי להשתמש בפורמטים מדומים מיושנים.</string>
     <string name="use_sync_core">סנכרון מהירות ליבה</string>
     <string name="use_sync_core_description">סנכרן את מהירות הליבה לאחוז המהירות המרבי כדי לשפר ביצועים מבלי לשנות את מהירות המשחק בפועל.</string>
     <string name="use_auto_stub">שימוש ב-Auto Stub</string>
@@ -103,41 +106,41 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">מהיר (2000MHz)</string>
 
-    <!-- שיטת פענוח ASTC -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">שיטת פענוח ASTC</string>
     <string name="accelerate_astc_description">בחר כיצד לפרק את הטקסטורות הדחוסות ב-ASTC עבור רינדור: CPU (איטי, בטוח), GPU (מהיר, מומלץ) או CPU Async (ללא קפיצות, עלול לגרום לבעיות)</string>
     <string name="accelerate_astc_cpu">מעבד</string>
     <string name="accelerate_astc_gpu">כרטיס מסך</string>
     <string name="accelerate_astc_async">מעבד (א-סינכרוני)</string>
 
-    <!-- שיטת דחיסת ASTC מחדש -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">שיטת דחיסת ASTC</string>
     <string name="astc_recompression_description">בחר כיצד דחיסה מחדש של טקסטורות ASTC משפרת תאימות וביצועים. הפעלת אפשרות זו חוסכת VRAM אך עלולה להוריד את איכות הטקסטורה.</string>
     <string name="astc_recompression_uncompressed">לא דחוס</string>
     <string name="astc_recompression_bc1">BC1 (איכות נמוכה)</string>
     <string name="astc_recompression_bc3">BC3 (איכות בינונית)</string>
 
-    <!-- מצב שימוש ב-VRAM -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">מצב שימוש ב-VRAM</string>
     <string name="vram_usage_mode_description">שליטה בקצב הקצאת ושחרור זיכרון GPU</string>
     <string name="vram_usage_conservative">שמרני</string>
     <string name="vram_usage_aggressive">אגרסיבי</string>
 
-    <!-- מנוע שיידרים -->
+    <!-- Shader Backend -->
     <string name="shader_backend">מנוע שיידרים</string>
     <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
     <string name="shader_backend_glsl">אוניברסלי</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- אמולציית NVDEC -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">אמולציית NVDEC</string>
     <string name="nvdec_emulation_description">בחר כיצד לטפל בפענוח וידאו</string>
     <string name="nvdec_emulation_cpu">מעבד</string>
     <string name="nvdec_emulation_gpu">כרטיס מסך</string>
     <string name="nvdec_emulation_none">ללא</string>
 
-    <!-- אופטימיזציית SPIRV -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">אופטימיזציית SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
     <string name="never">לעולם לא</string>
@@ -145,8 +148,8 @@
     <string name="always">תמיד</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">משחק מרובה משתתפים</string>
-    <string name="multiplayer_description">צור חדר משחק משלך או הצטרף לחדר קיים כדי לשחק עם אחרים</string>
+    <string name="multiplayer">רב־משתתפים</string>
+    <string name="multiplayer_description">ארח חדר משחק משלך או הצטרף לחדר קיים כדי לשחק עם אנשים</string>
     <string name="multiplayer_room_title">חדר: %1$s</string>
     <string name="multiplayer_console_id">מזהה קונסולה: %1$s</string>
     <string name="multiplayer_create_room">צור</string>
@@ -155,20 +158,21 @@
     <string name="multiplayer_username">שם משתמש</string>
     <string name="multiplayer_ip_address">כתובת IP</string>
     <string name="multiplayer_ip_port">פורט</string>
-    <string name="multiplayer_create_room_success">החדר נוצר בהצלחה!</string>
-    <string name="multiplayer_join_room_success">הצטרפת לחדר בהצלחה!</string>
-    <string name="multiplayer_create_room_failed">יצירת החדר נכשלה!</string>
-    <string name="multiplayer_join_room_failed">הצטרפות לחדר נכשלה!</string>
-    <string name="multiplayer_input_invalid">כתובת לא תקינה או שם קצר מדי!</string>
+    <string name="multiplayer_create_room_success">החדר נוצר בהצלחה</string>
+    <string name="multiplayer_join_room_success">הצטרפת לחדר בהצלחה</string>
+    <string name="multiplayer_create_room_failed">יצירת חדר נכשלה</string>
+    <string name="multiplayer_join_room_failed">הצטרפות לחדר נכשלה</string>
+    <string name="multiplayer_name_invalid">השם קצר מדי</string>
+    <string name="multiplayer_address_invalid">כתובת לא תקינה</string>
     <string name="multiplayer_port_invalid">פורט לא תקין!</string>
     <string name="multiplayer_exit_room">צא מהחדר</string>
     <string name="multiplayer_network_error">שגיאת רשת</string>
     <string name="multiplayer_lost_connection">החיבור אבד</string>
-    <string name="multiplayer_name_collision">התנגשות שמות</string>
-    <string name="multiplayer_mac_collision">התנגשות MAC</string>
-    <string name="multiplayer_console_id_collision">התנגשות מזהה קונסולה</string>
-    <string name="multiplayer_wrong_version">גרסה שגויה</string>
-    <string name="multiplayer_wrong_password">סיסמה שגויה</string>
+    <string name="multiplayer_name_collision">שם כבר קיים</string>
+    <string name="multiplayer_mac_collision">כתובת MAC כבר קיימת</string>
+    <string name="multiplayer_console_id_collision">מזהה קונסולה כבר קיים</string>
+    <string name="multiplayer_wrong_version">גרסה לא נכונה</string>
+    <string name="multiplayer_wrong_password">סיסמה לא נכונה</string>
     <string name="multiplayer_could_not_connect">לא ניתן להתחבר</string>
     <string name="multiplayer_room_is_full">החדר מלא</string>
     <string name="multiplayer_host_banned">מארח חסום</string>
@@ -178,25 +182,25 @@
     <string name="multiplayer_create_room_error">שגיאה ביצירת חדר</string>
     <string name="multiplayer_host_kicked">מארח הוסר</string>
     <string name="multiplayer_unknown_error">שגיאה לא ידועה</string>
-    <string name="multiplayer_room_uninitialized">החדר לא אותחל</string>
-    <string name="multiplayer_room_idle">החדר במצב המתנה</string>
-    <string name="multiplayer_room_joining">מצטרף לחדר</string>
-    <string name="multiplayer_room_joined">הצטרף לחדר</string>
+    <string name="multiplayer_room_uninitialized">חדר לא מאותחל</string>
+    <string name="multiplayer_room_idle">חדר לא פעיל</string>
+    <string name="multiplayer_room_joining">מצטרף לחדר...</string>
+    <string name="multiplayer_room_joined">הצטרפת לחדר</string>
     <string name="multiplayer_room_moderator">מנהל חדר</string>
     <string name="multiplayer_member_join">%1$s הצטרף</string>
     <string name="multiplayer_member_leave">%1$s עזב</string>
     <string name="multiplayer_member_kicked">%1$s הוסר</string>
     <string name="multiplayer_member_banned">%1$s נחסם</string>
-    <string name="multiplayer_address_unbanned">כתובת שוחררה מחסימה</string>
+    <string name="multiplayer_address_unbanned">כתובת שוחררה</string>
     <string name="multiplayer_kick_member">הסר</string>
-    <string name="multiplayer_chat_input_hint">שלח הודעה…</string>
+    <string name="multiplayer_chat_input_hint">שלח הודעה...</string>
     <string name="multiplayer_password">סיסמה</string>
-    <string name="original_button_text">הצטרף</string>
-    <string name="disabled_button_text">מצטרף...</string>
-    <string name="multiplayer_room_name">שם החדר</string>
-    <string name="multiplayer_room_name_invalid">שם החדר חייב להיות בין 3 ל-20 תווים</string>
-    <string name="multiplayer_max_players">משתתפים מקסימליים (16)</string>
-    <string name="multiplayer_max_players_value">משתתפים מקסימליים: %d</string>
+    <string name="multiplayer_joining">מצטרף...</string>
+    <string name="multiplayer_creating">יוצר...</string>
+    <string name="multiplayer_room_name">שם חדר</string>
+    <string name="multiplayer_room_name_invalid">שם חדר חייב להיות בין 3-20 תווים</string>
+    <string name="multiplayer_max_players">מקסימום שחקנים (16)</string>
+    <string name="multiplayer_max_players_value">מקסימום שחקנים: %d</string>
     <string name="multiplayer_chat">צ\'אט</string>
     <string name="multiplayer_more_options">אפשרויות נוספות</string>
     <string name="multiplayer_ip_copied">כתובת IP הועתקה ללוח</string>
@@ -208,9 +212,9 @@
     <string name="multiplayer_moderation">ניהול</string>
     <string name="multiplayer_moderation_title">רשימת חסומים</string>
     <string name="multiplayer_no_bans">אין משתמשים חסומים</string>
-    <string name="multiplayer_unban_title">שחרור משתמש מחסימה</string>
-    <string name="multiplayer_unban">שחרר מחסימה</string>
-    <string name="multiplayer_unban_message">האם אתה בטוח שברצונך לשחרר את %1$s מחסימה?</string>
+    <string name="multiplayer_unban_title">שחרור משתמש</string>
+    <string name="multiplayer_unban">שחרר</string>
+    <string name="multiplayer_unban_message">האם לשחרר את %1$s?</string>
     <string name="multiplayer_ban">חסום משתמש</string>
     <string name="multiplayer_room_browser">חדרים ציבוריים</string>
     <string name="multiplayer_no_rooms_found">לא נמצאו חדרים ציבוריים</string>
@@ -218,19 +222,24 @@
     <string name="multiplayer_player_count">: %1$d/%2$d</string>
     <string name="multiplayer_game">משחק</string>
     <string name="multiplayer_no_game_info">כל משחק</string>
-    <string name="multiplayer_password_protected">חדר מוגן בסיסמה</string>
+    <string name="multiplayer_password_protected">חדר עם סיסמה</string>
     <string name="multiplayer_hide_full_rooms">הסתר חדרים מלאים</string>
     <string name="multiplayer_hide_empty_rooms">הסתר חדרים ריקים</string>
-    <string name="multiplayer_tap_refresh_to_check_again">הקש על רענן כדי לבדוק שוב</string>
-    <string name="multiplayer_search_public_lobbies">חפש חדרים…</string>
-    <string name="emulation_multiplayer">משחק מרובה משתתפים</string>
+    <string name="multiplayer_tap_refresh_to_check_again">הקש לרענון לבדיקה מחדש</string>
+    <string name="multiplayer_search_public_lobbies">חפש חדרים...</string>
+    <string name="emulation_multiplayer">רב־משתתפים</string>
     <string name="multiplayer_game_name">משחקים מועדפים</string>
     <string name="multiplayer_preferred_game_name">משחק מועדף</string>
     <string name="multiplayer_no_game">לא נמצאו משחקים</string>
-    <string name="multiplayer_preferred_game_name_invalid">עליך לבחור משחק מועדף כדי לארח חדר.</string>
+    <string name="multiplayer_preferred_game_name_invalid">עליך לבחור משחק מועדף לאירוח חדר</string>
+    <string name="multiplayer_room_name_error">חייב להיות בין 3-20 תווים</string>
+    <string name="multiplayer_required">נדרש</string>
+    <string name="multiplayer_ip_error">פורמט IP לא תקין</string>
+    <string name="multiplayer_username_error">לפחות 5 תווים</string>
+    <string name="multiplayer_port_error">חייב להיות בין 1-65535</string>
     <string name="cancel">ביטול</string>
     <string name="ok">אישור</string>
-    <string name="refresh">רענן</string>
+    <string name="refresh">רענון</string>
     <string name="room_list">רשימת חדרים</string>
 
     <!-- Static Themes -->

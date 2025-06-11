@@ -8,6 +8,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Mejorado)</string>
+    <string name="process_ram">RAM de proceso: %1$d MB</string>
+    <string name="shaders_prefix">Compilando</string>
+    <string name="shaders_suffix">shader(s)</string>
     <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostrar superposición de estadísticas de rendimiento</string>
     <string name="stats_overlay_customization">Personalización</string>
@@ -68,7 +71,7 @@
     <string name="use_lru_cache">Habilitar caché LRU</string>
     <string name="use_lru_cache_description">Activa o desactiva la caché LRU (menos usados recientemente), aumentando el rendimiento al ahorrar uso de CPU. Algunos juegos tienen problemas con ella, especialmente TotK 1.2.1, así que desactívala si el juego no arranca o se cierra aleatoriamente.</string>
     <string name="dyna_state">Estado dinámico extendido</string>
-    <string name="dyna_state_description">Habilita funciones Vulkan para mejorar rendimiento, renderizado y ahorrar recursos en creación de pipelines manteniendo bajo uso de CPU/GPU. Estas extensiones pueden aumentar la temperatura del dispositivo y GPUs antiguas de serie A6XX podrían no responder correctamente. Establecer en 0 para usar formatos emulados de Yuzu.</string>
+    <string name="dyna_state_description">Habilita funciones de Vulkan para mejorar el rendimiento, el renderizado y ahorrar recursos en la creación de pipelines manteniendo un uso reducido de CPU/GPU. Estas extensiones pueden aumentar la temperatura del dispositivo, y las GPU de la antigua serie A6XX podrían no funcionar correctamente. Establecer en 0 para usar formatos emulados heredados.</string>
     <string name="use_sync_core">Sincronizar velocidad del núcleo</string>
     <string name="use_sync_core_description">Sincroniza la velocidad del núcleo con el porcentaje máximo de velocidad para mejorar el rendimiento sin alterar la velocidad real del juego.</string>
     <string name="use_auto_stub">Usar Auto Stub</string>
@@ -102,41 +105,41 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Rápido (2000MHz)</string>
 
-    <!-- Método de decodificación ASTC -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Método de decodificación ASTC</string>
     <string name="accelerate_astc_description">Elige cómo se decodifican las texturas comprimidas ASTC para el renderizado: CPU (lento, seguro), GPU (rápido, recomendado) o CPU Async (sin tartamudeos, puede causar problemas)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asíncrono</string>
 
-    <!-- Método de recompresión ASTC -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">Método de recompresión ASTC</string>
     <string name="astc_recompression_description">Elige cómo se recomprimen las texturas ASTC para mejorar la compatibilidad y el rendimiento. Habilitar esta opción ahorra VRAM pero puede reducir la calidad de las texturas.</string>
     <string name="astc_recompression_uncompressed">Sin compresión</string>
     <string name="astc_recompression_bc1">BC1 (baja calidad)</string>
     <string name="astc_recompression_bc3">BC3 (calidad media)</string>
 
-    <!-- Modo de uso de VRAM -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">Modo de uso de VRAM</string>
     <string name="vram_usage_mode_description">Controlar asignación de memoria GPU</string>
     <string name="vram_usage_conservative">Conservador</string>
     <string name="vram_usage_aggressive">Agresivo</string>
 
-    <!-- Backend de shaders -->
+    <!-- Shader Backend -->
     <string name="shader_backend">Backend de shaders</string>
     <string name="shader_backend_description">Elegir cómo se compilan shaders</string>
     <string name="shader_backend_glsl">Universal</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- Emulación NVDEC -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulación NVDEC</string>
     <string name="nvdec_emulation_description">Elegir cómo se maneja decodificación de video</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Ninguno</string>
 
-    <!-- Optimizar salida SPIRV -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">Optimizar salida SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">Optimiza el sombreador compilado para mejorar la eficiencia de la GPU.</string>
     <string name="never">Nunca</string>
@@ -144,93 +147,99 @@
     <string name="always">Siempre</string>
 
     <!-- Multiplayer -->
-    <string name="multiplayer">Multijugador</string>
-    <string name="multiplayer_description">Crea tu propia sala de juego o únete a una existente para jugar con otros</string>
-    <string name="multiplayer_room_title">Sala: %1$s</string>
-    <string name="multiplayer_console_id">ID de consola: %1$s</string>
-    <string name="multiplayer_create_room">Crear</string>
-    <string name="multiplayer_join_room">Unirse</string>
-    <string name="multiplayer_public_room">Explorar salas públicas</string>
-    <string name="multiplayer_username">Nombre de usuario</string>
-    <string name="multiplayer_ip_address">Dirección IP</string>
-    <string name="multiplayer_ip_port">Puerto</string>
-    <string name="multiplayer_create_room_success">¡Sala creada con éxito!</string>
-    <string name="multiplayer_join_room_success">¡Te has unido a la sala con éxito!</string>
-    <string name="multiplayer_create_room_failed">¡Error al crear la sala!</string>
-    <string name="multiplayer_join_room_failed">¡Error al unirse a la sala!</string>
-    <string name="multiplayer_input_invalid">¡Dirección inválida o nombre demasiado corto!</string>
-    <string name="multiplayer_port_invalid">¡Puerto inválido!</string>
-    <string name="multiplayer_exit_room">Salir de la sala</string>
-    <string name="multiplayer_network_error">Error de red</string>
-    <string name="multiplayer_lost_connection">Conexión perdida</string>
-    <string name="multiplayer_name_collision">Colisión de nombres</string>
-    <string name="multiplayer_mac_collision">Colisión de MAC</string>
-    <string name="multiplayer_console_id_collision">Colisión de ID de consola</string>
-    <string name="multiplayer_wrong_version">Versión incorrecta</string>
-    <string name="multiplayer_wrong_password">Contraseña incorrecta</string>
-    <string name="multiplayer_could_not_connect">No se pudo conectar</string>
-    <string name="multiplayer_room_is_full">La sala está llena</string>
-    <string name="multiplayer_host_banned">Anfitrión baneado</string>
-    <string name="multiplayer_permission_denied">Permiso denegado</string>
-    <string name="multiplayer_no_such_user">Usuario no encontrado</string>
-    <string name="multiplayer_already_in_room">Ya estás en la sala</string>
-    <string name="multiplayer_create_room_error">Error al crear la sala</string>
-    <string name="multiplayer_host_kicked">Anfitrión expulsado</string>
-    <string name="multiplayer_unknown_error">Error desconocido</string>
-    <string name="multiplayer_room_uninitialized">Sala no inicializada</string>
-    <string name="multiplayer_room_idle">Sala inactiva</string>
-    <string name="multiplayer_room_joining">Uniéndose a la sala</string>
-    <string name="multiplayer_room_joined">Unido a la sala</string>
-    <string name="multiplayer_room_moderator">Moderador de la sala</string>
-    <string name="multiplayer_member_join">%1$s se ha unido</string>
-    <string name="multiplayer_member_leave">%1$s ha salido</string>
-    <string name="multiplayer_member_kicked">%1$s ha sido expulsado</string>
-    <string name="multiplayer_member_banned">%1$s ha sido baneado</string>
-    <string name="multiplayer_address_unbanned">Dirección desbaneada</string>
-    <string name="multiplayer_kick_member">Expulsar</string>
-    <string name="multiplayer_chat_input_hint">Enviar mensaje…</string>
-    <string name="multiplayer_password">Contraseña</string>
-    <string name="original_button_text">Unirse</string>
-    <string name="disabled_button_text">Uniéndose...</string>
-    <string name="multiplayer_room_name">Nombre de la sala</string>
-    <string name="multiplayer_room_name_invalid">El nombre de la sala debe tener entre 3 y 20 caracteres</string>
-    <string name="multiplayer_max_players">Jugadores máx. (16)</string>
-    <string name="multiplayer_max_players_value">Jugadores máx.: %d</string>
-    <string name="multiplayer_chat">Chat</string>
-    <string name="multiplayer_more_options">Más opciones</string>
-    <string name="multiplayer_ip_copied">Dirección IP copiada al portapapeles</string>
-    <string name="multiplayer_server_address">Dirección del servidor</string>
-    <string name="chat">Chat</string>
-    <string name="type_message">Escribe un mensaje…</string>
-    <string name="send">Enviar</string>
-    <string name="send_message">Enviar mensaje</string>
-    <string name="multiplayer_moderation">Moderación</string>
-    <string name="multiplayer_moderation_title">Lista de baneos</string>
-    <string name="multiplayer_no_bans">No hay usuarios baneados</string>
-    <string name="multiplayer_unban_title">Desbanear usuario</string>
-    <string name="multiplayer_unban">Desbanear</string>
-    <string name="multiplayer_unban_message">¿Seguro que quieres desbanear a %1$s?</string>
-    <string name="multiplayer_ban">Banear usuario</string>
-    <string name="multiplayer_room_browser">Salas públicas</string>
-    <string name="multiplayer_no_rooms_found">No se encontraron salas públicas</string>
-    <string name="multiplayer_password_required">Contraseña requerida</string>
+    <string name="multiplayer">چند نفره</string>
+    <string name="multiplayer_description">اتاق بازی خود را میزبانی کنید یا به یک اتاق موجود بپیوندید</string>
+    <string name="multiplayer_room_title">اتاق: %1$s</string>
+    <string name="multiplayer_console_id">شناسه کنسول: %1$s</string>
+    <string name="multiplayer_create_room">ایجاد</string>
+    <string name="multiplayer_join_room">عضویت</string>
+    <string name="multiplayer_public_room">مرور اتاق‌های عمومی</string>
+    <string name="multiplayer_username">نام کاربری</string>
+    <string name="multiplayer_ip_address">آدرس IP</string>
+    <string name="multiplayer_ip_port">پورت</string>
+    <string name="multiplayer_create_room_success">اتاق با موفقیت ایجاد شد</string>
+    <string name="multiplayer_join_room_success">با موفقیت به اتاق پیوستید</string>
+    <string name="multiplayer_create_room_failed">خطا در ایجاد اتاق</string>
+    <string name="multiplayer_join_room_failed">خطا در پیوستن به اتاق</string>
+    <string name="multiplayer_name_invalid">نام خیلی کوتاه است</string>
+    <string name="multiplayer_address_invalid">آدرس نامعتبر</string>
+    <string name="multiplayer_port_invalid">پورت نامعتبر!</string>
+    <string name="multiplayer_exit_room">خروج از اتاق</string>
+    <string name="multiplayer_network_error">خطای شبکه</string>
+    <string name="multiplayer_lost_connection">اتصال قطع شد</string>
+    <string name="multiplayer_name_collision">تضاد نام</string>
+    <string name="multiplayer_mac_collision">تضاد آدرس MAC</string>
+    <string name="multiplayer_console_id_collision">تضاد شناسه کنسول</string>
+    <string name="multiplayer_wrong_version">نسخه نادرست</string>
+    <string name="multiplayer_wrong_password">رمز عبور نادرست</string>
+    <string name="multiplayer_could_not_connect">اتصال برقرار نشد</string>
+    <string name="multiplayer_room_is_full">اتاق پر است</string>
+    <string name="multiplayer_host_banned">میزبان مسدود شده</string>
+    <string name="multiplayer_permission_denied">دسترسی رد شد</string>
+    <string name="multiplayer_no_such_user">کاربری وجود ندارد</string>
+    <string name="multiplayer_already_in_room">قبلاً در اتاق هستید</string>
+    <string name="multiplayer_create_room_error">خطا در ایجاد اتاق</string>
+    <string name="multiplayer_host_kicked">میزبان اخراج شد</string>
+    <string name="multiplayer_unknown_error">خطای ناشناخته</string>
+    <string name="multiplayer_room_uninitialized">اتاق راه‌اندازی نشده</string>
+    <string name="multiplayer_room_idle">اتاق بیکار</string>
+    <string name="multiplayer_room_joining">در حال پیوستن...</string>
+    <string name="multiplayer_room_joined">به اتاق پیوستید</string>
+    <string name="multiplayer_room_moderator">ناظر اتاق</string>
+    <string name="multiplayer_member_join">%1$s پیوست</string>
+    <string name="multiplayer_member_leave">%1$s ترک کرد</string>
+    <string name="multiplayer_member_kicked">%1$s اخراج شد</string>
+    <string name="multiplayer_member_banned">%1$s مسدود شد</string>
+    <string name="multiplayer_address_unbanned">آدرس آزاد شد</string>
+    <string name="multiplayer_kick_member">اخراج</string>
+    <string name="multiplayer_chat_input_hint">ارسال پیام...</string>
+    <string name="multiplayer_password">رمز عبور</string>
+    <string name="multiplayer_joining">در حال پیوستن...</string>
+    <string name="multiplayer_creating">در حال ایجاد...</string>
+    <string name="multiplayer_room_name">نام اتاق</string>
+    <string name="multiplayer_room_name_invalid">نام اتاق باید بین 3 تا 20 کاراکتر باشد</string>
+    <string name="multiplayer_max_players">حداکثر بازیکنان (16)</string>
+    <string name="multiplayer_max_players_value">حداکثر بازیکنان: %d</string>
+    <string name="multiplayer_chat">چت</string>
+    <string name="multiplayer_more_options">گزینه‌های بیشتر</string>
+    <string name="multiplayer_ip_copied">آدرس IP کپی شد</string>
+    <string name="multiplayer_server_address">آدرس سرور</string>
+    <string name="chat">چت</string>
+    <string name="type_message">پیام بنویسید...</string>
+    <string name="send">ارسال</string>
+    <string name="send_message">ارسال پیام</string>
+    <string name="multiplayer_moderation">مدیریت</string>
+    <string name="multiplayer_moderation_title">لیست مسدودها</string>
+    <string name="multiplayer_no_bans">کاربر مسدود شده‌ای وجود ندارد</string>
+    <string name="multiplayer_unban_title">آزاد کردن کاربر</string>
+    <string name="multiplayer_unban">آزاد کردن</string>
+    <string name="multiplayer_unban_message">آیا می‌خواهید %1$s را آزاد کنید؟</string>
+    <string name="multiplayer_ban">مسدود کردن کاربر</string>
+    <string name="multiplayer_room_browser">اتاق‌های عمومی</string>
+    <string name="multiplayer_no_rooms_found">اتاق عمومی یافت نشد</string>
+    <string name="multiplayer_password_required">رمز عبور لازم است</string>
     <string name="multiplayer_player_count">: %1$d/%2$d</string>
-    <string name="multiplayer_game">Juego</string>
-    <string name="multiplayer_no_game_info">Cualquier juego</string>
-    <string name="multiplayer_password_protected">Sala protegida con contraseña</string>
-    <string name="multiplayer_hide_full_rooms">Ocultar salas llenas</string>
-    <string name="multiplayer_hide_empty_rooms">Ocultar salas vacías</string>
-    <string name="multiplayer_tap_refresh_to_check_again">Toca actualizar para comprobar de nuevo</string>
-    <string name="multiplayer_search_public_lobbies">Buscar salas…</string>
-    <string name="emulation_multiplayer">Multijugador</string>
-    <string name="multiplayer_game_name">Juegos preferidos</string>
-    <string name="multiplayer_preferred_game_name">Juego preferido</string>
-    <string name="multiplayer_no_game">No se encontraron juegos</string>
-    <string name="multiplayer_preferred_game_name_invalid">Debes elegir un juego preferido para crear una sala.</string>
-    <string name="cancel">Cancelar</string>
-    <string name="ok">Aceptar</string>
-    <string name="refresh">Actualizar</string>
-    <string name="room_list">Lista de salas</string>
+    <string name="multiplayer_game">بازی</string>
+    <string name="multiplayer_no_game_info">هر بازی</string>
+    <string name="multiplayer_password_protected">اتاق با رمز عبور</string>
+    <string name="multiplayer_hide_full_rooms">پنهان کردن اتاق‌های پر</string>
+    <string name="multiplayer_hide_empty_rooms">پنهان کردن اتاق‌های خالی</string>
+    <string name="multiplayer_tap_refresh_to_check_again">برای بررسی مجدد لمس کنید</string>
+    <string name="multiplayer_search_public_lobbies">جستجوی اتاق‌ها...</string>
+    <string name="emulation_multiplayer">چند نفره</string>
+    <string name="multiplayer_game_name">بازی‌های ترجیحی</string>
+    <string name="multiplayer_preferred_game_name">بازی ترجیحی</string>
+    <string name="multiplayer_no_game">بازی یافت نشد</string>
+    <string name="multiplayer_preferred_game_name_invalid">برای میزبانی اتاق باید یک بازی ترجیحی انتخاب کنید</string>
+    <string name="multiplayer_room_name_error">باید بین 3 تا 20 کاراکتر باشد</string>
+    <string name="multiplayer_required">الزامی</string>
+    <string name="multiplayer_ip_error">فرمت IP نامعتبر</string>
+    <string name="multiplayer_username_error">حداقل 5 کاراکتر</string>
+    <string name="multiplayer_port_error">باید بین 1 تا 65535 باشد</string>
+    <string name="cancel">انصراف</string>
+    <string name="ok">تایید</string>
+    <string name="refresh">تازه‌سازی</string>
+    <string name="room_list">لیست اتاق‌ها</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Color del tema</string>

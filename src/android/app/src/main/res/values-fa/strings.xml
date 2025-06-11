@@ -8,6 +8,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(بهبودیافته)</string>
+    <string name="process_ram">حافظه فرآیند: %1$d مگابایت</string>
+    <string name="shaders_prefix">در حال ساخت</string>
+    <string name="shaders_suffix">شیدر(ها)</string>
     <string name="system_info_label">سیستم:</string>
     <string name="show_stats_overlay">نمایش آمار عملکرد</string>
     <string name="stats_overlay_customization">سفارشی‌سازی</string>
@@ -68,7 +71,7 @@
     <string name="use_lru_cache">فعال‌سازی حافظه نهان LRU</string>
     <string name="use_lru_cache_description">فعال یا غیرفعال کردن کش LRU (کمترین اخیراً استفاده شده)، که با کاهش استفاده از CPU عملکرد را افزایش می‌دهد. برخی بازی‌ها با آن مشکل دارند، به ویژه TotK 1.2.1، بنابراین اگر بازی اجرا نشد یا به صورت تصادفی کرش کرد، آن را غیرفعال کنید.</string>
     <string name="dyna_state">حالت پویای گسترده</string>
-    <string name="dyna_state_description">قابلیت‌های ولکان را برای بهبود عملکرد، رندرینگ و صرفه‌جویی در منابع هنگام ایجاد خط لوله فعال می‌کند در حالی که مصرف CPU/GPU پایین حفظ می‌شود. این افزونه‌ها ممکن است دمای دستگاه را افزایش دهند و کارت‌های گرافیک سری قدیمی A6XX ممکن است واکنش مناسبی نشان ندهند. برای استفاده از فرمت‌های شبیه‌سازی شده یوزو روی 0 تنظیم کنید</string>
+    <string name="dyna_state_description">قابلیت‌های ولکان را برای بهبود عملکرد، رندرینگ و صرفه‌جویی در منابع هنگام ایجاد خط لوله فعال می‌کند، در حالی که استفاده از CPU/GPU پایین نگه داشته می‌شود. این افزونه‌ها ممکن است دمای دستگاه را افزایش دهند و کارت‌های گرافیک سری قدیمی A6XX ممکن است به درستی کار نکنند. برای استفاده از فرمت‌های شبیه‌سازی شده قدیمی، مقدار را روی 0 تنظیم کنید.</string>
     <string name="use_sync_core">همگام‌سازی سرعت هسته</string>
     <string name="use_sync_core_description">همگام‌سازی سرعت هسته با حداکثر درصد سرعت برای بهبود عملکرد بدون تغییر سرعت واقعی بازی.</string>
     <string name="use_auto_stub">استفاده از استاب خودکار</string>
@@ -102,41 +105,41 @@
     <string name="clock_boost">تقویت (1700MHz)</string>
     <string name="clock_fast">سریع (2000MHz)</string>
 
-    <!-- روش رمزگشایی ASTC -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">روش رمزگشایی ASTC</string>
     <string name="accelerate_astc_description">انتخاب کنید که بافت‌های فشرده‌شده با ASTC چگونه برای رندرینگ رمزگشایی شوند: CPU (کند، ایمن)، GPU (سریع، توصیه‌شده) یا CPU Async (بدون مکث، ممکن است مشکلاتی ایجاد کند)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU ناهمگام</string>
 
-    <!-- روش فشرده‌سازی مجدد ASTC -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">روش فشرده‌سازی مجدد ASTC</string>
     <string name="astc_recompression_description">انتخاب کنید که بافت‌های ASTC چگونه فشرده‌سازی مجدد شوند تا سازگاری و عملکرد بهبود یابد. فعال کردن این گزینه VRAM را ذخیره می‌کند اما ممکن است کیفیت بافت را کاهش دهد.</string>
     <string name="astc_recompression_uncompressed">فشرده‌نشده</string>
     <string name="astc_recompression_bc1">BC1 (کیفیت پایین)</string>
     <string name="astc_recompression_bc3">BC3 (کیفیت متوسط)</string>
 
-    <!-- حالت استفاده از VRAM -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">حالت استفاده از VRAM</string>
     <string name="vram_usage_mode_description">کنترل نحوه تخصیص و آزادسازی حافظه GPU</string>
     <string name="vram_usage_conservative">محافظه‌کارانه</string>
     <string name="vram_usage_aggressive">تهاجمی</string>
 
-    <!-- بک‌اند شیدر -->
+    <!-- Shader Backend -->
     <string name="shader_backend">بک‌اند شیدر</string>
     <string name="shader_backend_description">انتخاب روش کامپایل و ترجمه شیدرها</string>
     <string name="shader_backend_glsl">همه‌کاره</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- شبیه‌سازی NVDEC -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">شبیه‌سازی NVDEC</string>
     <string name="nvdec_emulation_description">انتخاب روش پردازش ویدیو (NVDEC)</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">هیچ‌کدام</string>
 
-    <!-- بهینه‌سازی خروجی SPIRV -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">بهینه‌سازی خروجی SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">شیدر کامپایل شده را برای بهبود کارایی GPU بهینه‌سازی می‌کند.</string>
     <string name="never">هرگز</string>
@@ -155,11 +158,10 @@
     <string name="multiplayer_ip_address">آدرس IP</string>
     <string name="multiplayer_ip_port">پورت</string>
     <string name="multiplayer_create_room_success">اتاق با موفقیت ایجاد شد!</string>
-    <string name="multiplayer_join_room_success">عضویت در اتاق با موفقیت انجام شد!</string>
-    <string name="multiplayer_create_room_failed">خطا در ایجاد اتاق!</string>
-    <string name="multiplayer_join_room_failed">خطا در عضویت به اتاق!</string>
-    <string name="multiplayer_input_invalid">آدرس نامعتبر یا نام خیلی کوتاه!</string>
-    <string name="multiplayer_port_invalid">پورت نامعتبر!</string>
+    <string name="multiplayer_join_room_success">با موفقیت به اتاق پیوستید!</string>
+    <string name="multiplayer_create_room_failed">ایجاد اتاق ناموفق بود!</string>
+    <string name="multiplayer_join_room_failed">پیوستن به اتاق ناموفق بود!</string>
+    <string name="multiplayer_port_invalid">پورت نامعتبر است!</string>
     <string name="multiplayer_exit_room">خروج از اتاق</string>
     <string name="multiplayer_network_error">خطای شبکه</string>
     <string name="multiplayer_lost_connection">اتصال قطع شد</string>
@@ -190,8 +192,7 @@
     <string name="multiplayer_kick_member">اخراج</string>
     <string name="multiplayer_chat_input_hint">ارسال پیام…</string>
     <string name="multiplayer_password">رمز عبور</string>
-    <string name="original_button_text">عضویت</string>
-    <string name="disabled_button_text">در حال عضویت...</string>
+    <string name="multiplayer_joining">در حال پیوستن...</string>
     <string name="multiplayer_room_name">نام اتاق</string>
     <string name="multiplayer_room_name_invalid">نام اتاق باید بین 3 تا 20 کاراکتر باشد</string>
     <string name="multiplayer_max_players">حداکثر بازیکنان (16)</string>

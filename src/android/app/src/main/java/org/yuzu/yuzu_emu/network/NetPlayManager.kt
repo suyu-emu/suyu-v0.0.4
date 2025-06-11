@@ -7,15 +7,13 @@ import android.app.Activity
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.text.format.Formatter
 import android.widget.Toast
 import androidx.preference.PreferenceManager
-import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.dialogs.ChatMessage
 import java.net.Inet4Address
 
@@ -213,6 +211,7 @@ object NetPlayManager {
 
         Handler(Looper.getMainLooper()).post {
             if (!isChatOpen) {
+                // TODO(alekpop, crueter): Improve this, potentially a drawer at the top?
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }

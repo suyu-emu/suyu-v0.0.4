@@ -8,6 +8,9 @@
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Migliorato)</string>
+    <string name="process_ram">RAM processo: %1$d MB</string>
+    <string name="shaders_prefix">Compilazione</string>
+    <string name="shaders_suffix">shader</string>
     <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostra overlay prestazioni</string>
     <string name="stats_overlay_customization">Personalizzazione</string>
@@ -68,7 +71,7 @@
     <string name="use_lru_cache">Abilita cache LRU</string>
     <string name="use_lru_cache_description">Abilita o disabilita la cache LRU (Least Recently Used), aumentando le prestazioni risparmiando l\'utilizzo della CPU. Alcuni giochi hanno problemi con essa, in particolare TotK 1.2.1, quindi disabilitala se il gioco non si avvia o si blocca casualmente.</string>
     <string name="dyna_state">Stato dinamico esteso</string>
-    <string name="dyna_state_description">Abilita funzionalità Vulkan per migliorare prestazioni, rendering e risparmiare risorse durante la creazione della pipeline mantenendo un basso utilizzo di CPU/GPU. Queste estensioni possono aumentare la temperatura del dispositivo e le GPU più vecchie della serie A6XX potrebbero non rispondere correttamente. Imposta su 0 per usare i formati emulati da Yuzu.</string>
+    <string name="dyna_state_description">Abilita le funzionalità Vulkan per migliorare le prestazioni, il rendering e risparmiare risorse nella creazione della pipeline mantenendo un basso utilizzo di CPU/GPU. Queste estensioni possono aumentare la temperatura del dispositivo e le GPU della vecchia serie A6XX potrebbero non funzionare correttamente. Imposta su 0 per utilizzare i formati emulati legacy.</string>
     <string name="use_sync_core">Sincronizza velocità core</string>
     <string name="use_sync_core_description">Sincronizza la velocità del core con la percentuale massima di velocità per migliorare le prestazioni senza alterare la velocità effettiva del gioco.</string>
     <string name="use_auto_stub">Usa Auto Stub</string>
@@ -102,41 +105,41 @@
     <string name="clock_boost">Boost (1700MHz)</string>
     <string name="clock_fast">Veloce (2000MHz)</string>
 
-    <!-- Metodo decodifica ASTC -->
+    <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Metodo decodifica ASTC</string>
     <string name="accelerate_astc_description">Scegli come decodificare le texture compresse ASTC per il rendering: CPU (lento, sicuro), GPU (veloce, consigliato) o CPU Async (senza stuttering, può causare problemi)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">CPU asincrona</string>
 
-    <!-- Metodo ricompressione ASTC -->
+    <!-- ASTC Recompression Method -->
     <string name="astc_recompression">Metodo ricompressione ASTC</string>
-<string name="astc_recompression_description">Scegli come ricomprimere le texture ASTC per migliorare compatibilità e prestazioni. Abilitare questa opzione salva VRAM ma può ridurre la qualità delle texture.</string>
+    <string name="astc_recompression_description">Scegli come ricomprimere le texture ASTC per migliorare compatibilità e prestazioni. Abilitare questa opzione salva VRAM ma può ridurre la qualità delle texture.</string>
     <string name="astc_recompression_uncompressed">Non compresso</string>
     <string name="astc_recompression_bc1">BC1 (bassa qualità)</string>
     <string name="astc_recompression_bc3">BC3 (media qualità)</string>
 
-    <!-- Modalità uso VRAM -->
+    <!-- VRAM Usage Mode -->
     <string name="vram_usage_mode">Modalità uso VRAM</string>
     <string name="vram_usage_mode_description">Controlla l`allocazione della memoria GPU</string>
     <string name="vram_usage_conservative">Conservativa</string>
     <string name="vram_usage_aggressive">Aggressiva</string>
 
-    <!-- Backend shader -->
+    <!-- Shader Backend -->
     <string name="shader_backend">Backend shader</string>
     <string name="shader_backend_description">Scegli come compilare gli shader</string>
     <string name="shader_backend_glsl">Universale</string>
     <string name="shader_backend_glasm">Mali</string>
     <string name="shader_backend_spirv">Adreno/Xclipse</string>
 
-    <!-- Emulazione NVDEC -->
+    <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulazione NVDEC</string>
     <string name="nvdec_emulation_description">Scegli come gestire la decodifica video</string>
     <string name="nvdec_emulation_cpu">CPU</string>
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Nessuna</string>
 
-    <!-- Ottimizzazione SPIRV -->
+    <!-- Optimize SPIRV output -->
     <string name="renderer_optimize_spirv_output">Ottimizza output SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">Ottimizza lo shader compilato per migliorare l\'efficienza della GPU.</string>
     <string name="never">Mai</string>
@@ -150,15 +153,16 @@
     <string name="multiplayer_console_id">ID console: %1$s</string>
     <string name="multiplayer_create_room">Crea</string>
     <string name="multiplayer_join_room">Unisciti</string>
-    <string name="multiplayer_public_room">Esplora stanze pubbliche</string>
+    <string name="multiplayer_public_room">Sfoglia stanze pubbliche</string>
     <string name="multiplayer_username">Nome utente</string>
     <string name="multiplayer_ip_address">Indirizzo IP</string>
     <string name="multiplayer_ip_port">Porta</string>
-    <string name="multiplayer_create_room_success">Stanza creata con successo!</string>
-    <string name="multiplayer_join_room_success">Unione alla stanza riuscita!</string>
-    <string name="multiplayer_create_room_failed">Creazione stanza fallita!</string>
-    <string name="multiplayer_join_room_failed">Unione alla stanza fallita!</string>
-    <string name="multiplayer_input_invalid">Indirizzo non valido o nome troppo corto!</string>
+    <string name="multiplayer_create_room_success">Stanza creata con successo</string>
+    <string name="multiplayer_join_room_success">Unione alla stanza riuscita</string>
+    <string name="multiplayer_create_room_failed">Creazione stanza fallita</string>
+    <string name="multiplayer_join_room_failed">Unione alla stanza fallita</string>
+    <string name="multiplayer_name_invalid">Nome troppo corto</string>
+    <string name="multiplayer_address_invalid">Indirizzo non valido</string>
     <string name="multiplayer_port_invalid">Porta non valida!</string>
     <string name="multiplayer_exit_room">Esci dalla stanza</string>
     <string name="multiplayer_network_error">Errore di rete</string>
@@ -172,14 +176,14 @@
     <string name="multiplayer_room_is_full">Stanza piena</string>
     <string name="multiplayer_host_banned">Host bannato</string>
     <string name="multiplayer_permission_denied">Permesso negato</string>
-    <string name="multiplayer_no_such_user">Nessun utente trovato</string>
+    <string name="multiplayer_no_such_user">Utente inesistente</string>
     <string name="multiplayer_already_in_room">Già nella stanza</string>
     <string name="multiplayer_create_room_error">Errore creazione stanza</string>
     <string name="multiplayer_host_kicked">Host espulso</string>
     <string name="multiplayer_unknown_error">Errore sconosciuto</string>
     <string name="multiplayer_room_uninitialized">Stanza non inizializzata</string>
     <string name="multiplayer_room_idle">Stanza inattiva</string>
-    <string name="multiplayer_room_joining">Unione alla stanza</string>
+    <string name="multiplayer_room_joining">Unione in corso...</string>
     <string name="multiplayer_room_joined">Unito alla stanza</string>
     <string name="multiplayer_room_moderator">Moderatore stanza</string>
     <string name="multiplayer_member_join">%1$s si è unito</string>
@@ -188,20 +192,20 @@
     <string name="multiplayer_member_banned">%1$s è stato bannato</string>
     <string name="multiplayer_address_unbanned">Indirizzo sbannato</string>
     <string name="multiplayer_kick_member">Espelli</string>
-    <string name="multiplayer_chat_input_hint">Invia messaggio…</string>
+    <string name="multiplayer_chat_input_hint">Invia messaggio...</string>
     <string name="multiplayer_password">Password</string>
-    <string name="original_button_text">Unisciti</string>
-    <string name="disabled_button_text">Unione in corso...</string>
+    <string name="multiplayer_joining">Unione in corso...</string>
+    <string name="multiplayer_creating">Creazione in corso...</string>
     <string name="multiplayer_room_name">Nome stanza</string>
-    <string name="multiplayer_room_name_invalid">Il nome della stanza deve essere compreso tra 3 e 20 caratteri</string>
+    <string name="multiplayer_room_name_invalid">Il nome deve contenere 3-20 caratteri</string>
     <string name="multiplayer_max_players">Giocatori max (16)</string>
     <string name="multiplayer_max_players_value">Giocatori max: %d</string>
     <string name="multiplayer_chat">Chat</string>
     <string name="multiplayer_more_options">Altre opzioni</string>
-    <string name="multiplayer_ip_copied">Indirizzo IP copiato negli appunti</string>
+    <string name="multiplayer_ip_copied">IP copiato</string>
     <string name="multiplayer_server_address">Indirizzo server</string>
     <string name="chat">Chat</string>
-    <string name="type_message">Scrivi un messaggio…</string>
+    <string name="type_message">Scrivi messaggio...</string>
     <string name="send">Invia</string>
     <string name="send_message">Invia messaggio</string>
     <string name="multiplayer_moderation">Moderazione</string>
@@ -220,13 +224,18 @@
     <string name="multiplayer_password_protected">Stanza protetta da password</string>
     <string name="multiplayer_hide_full_rooms">Nascondi stanze piene</string>
     <string name="multiplayer_hide_empty_rooms">Nascondi stanze vuote</string>
-    <string name="multiplayer_tap_refresh_to_check_again">Tocca aggiorna per controllare nuovamente</string>
-    <string name="multiplayer_search_public_lobbies">Cerca stanze…</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Tocca per aggiornare</string>
+    <string name="multiplayer_search_public_lobbies">Cerca stanze...</string>
     <string name="emulation_multiplayer">Multigiocatore</string>
     <string name="multiplayer_game_name">Giochi preferiti</string>
     <string name="multiplayer_preferred_game_name">Gioco preferito</string>
     <string name="multiplayer_no_game">Nessun gioco trovato</string>
-    <string name="multiplayer_preferred_game_name_invalid">Devi scegliere un gioco preferito per creare una stanza.</string>
+    <string name="multiplayer_preferred_game_name_invalid">Seleziona un gioco preferito per ospitare una stanza</string>
+    <string name="multiplayer_room_name_error">3-20 caratteri richiesti</string>
+    <string name="multiplayer_required">Richiesto</string>
+    <string name="multiplayer_ip_error">Formato IP non valido</string>
+    <string name="multiplayer_username_error">Minimo 5 caratteri</string>
+    <string name="multiplayer_port_error">Deve essere tra 1-65535</string>
     <string name="cancel">Annulla</string>
     <string name="ok">OK</string>
     <string name="refresh">Aggiorna</string>

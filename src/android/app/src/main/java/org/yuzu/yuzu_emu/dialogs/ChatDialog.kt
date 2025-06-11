@@ -4,6 +4,7 @@
 
 package org.yuzu.yuzu_emu.dialogs
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -35,6 +36,10 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var chatAdapter: ChatAdapter
     private val handler = Handler(Looper.getMainLooper())
 
+    // TODO(alekpop, crueter): Top drawer for message notifications, perhaps use system notifs?
+    // TODO(alekpop, crueter): Context menu actions for chat users
+    // TODO(alekpop, crueter): Block users (depends on the above)
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DialogChatBinding.inflate(LayoutInflater.from(context))
@@ -46,7 +51,6 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.skipCollapsed = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
 
         handler.post {
             chatAdapter.notifyDataSetChanged()
@@ -76,6 +80,7 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
         super.dismiss()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun sendMessage(message: String) {
         val username = NetPlayManager.getUsername(context)
         NetPlayManager.netPlaySendMessage(message)

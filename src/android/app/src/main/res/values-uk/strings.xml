@@ -1,44 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">Це програмне забезпечення дозволяє запускати ігри для ігрової консолі Nintendo Switch. Ми не надаємо самі ігри або ключі.&lt;br /&gt;&lt;br /&gt;Перед початком роботи знайдіть ваш файл <![CDATA[<b> prod.keys </b>]]> у сховищі пристрою.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Дізнатися більше</a>]]></string>
+    <string name="app_disclaimer">Це програмне забезпечення дозволяє запускати ігри для ігрової консолі Nintendo Switch. Ігри чи ключі до консолі не надаються.&lt;br /&gt;&lt;br /&gt;Перед початком роботи знайдіть ваш файл <![CDATA[<b> prod.keys </b>]]> у сховищі пристрою.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart\">Дізнатися більше</a>]]></string>
     <string name="notice_notification_channel_name">Сповіщення та помилки</string>
-    <string name="notice_notification_channel_description">Показувати сповіщення, коли щось пішло не так</string>
-    <string name="notification_permission_not_granted">Ви не надали дозвіл сповіщень!</string>
+    <string name="notice_notification_channel_description">Виводить сповіщення у разі виникнення проблем.</string>
+    <string name="notification_permission_not_granted">Дозвіл на сповіщення не надано!</string>
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Покращений)</string>
+    <string name="process_ram">RAM процесу: %1$d МБ</string>
+    <string name="shaders_prefix">Компіляція</string>
+    <string name="shaders_suffix">Шейдер(и)</string>
     <string name="system_info_label">Система:</string>
-    <string name="show_stats_overlay">Показати накладання статистики</string>
+    <string name="show_stats_overlay">Показувати оверлей продуктивності</string>
     <string name="stats_overlay_customization">Налаштування</string>
     <string name="stats_overlay_items">Видимість</string>
-    <string name="stats_overlay_options">Накладання</string>
-    <string name="enable_stats_overlay_">Увімкнути накладання статистики</string>
-    <string name="stats_overlay_options_description">Налаштування відображуваної інформації</string>
+    <string name="stats_overlay_options">Оверлей</string>
+    <string name="enable_stats_overlay_">Увімкнути оверлей статистики</string>
+    <string name="stats_overlay_options_description">Налаштуйте, яку інформацію відображати в оверлеї продуктивності</string>
     <string name="show_fps">Показати FPS</string>
-    <string name="show_fps_description">Відображати кадри за секунду</string>
-    <string name="show_frametime">Показати час кадру</string>
+    <string name="show_fps_description">Виводити поточну частоту кадрів</string>
+    <string name="show_frametime">Показати Frametime</string>
     <string name="show_frametime_description">Відображати час обробки кадру</string>
     <string name="show_speed">Показати швидкість</string>
-    <string name="show_speed_description">Відображати швидкість емуляції</string>
+    <string name="show_speed_description">Відображати швидкість емуляції у відсотках</string>
     <string name="show_app_ram_usage">Показати використання RAM</string>
     <string name="show_app_ram_usage_description">Показати обсяг оперативної пам’яті, яку використовує емулятор</string>
     <string name="show_system_ram_usage">Показати системну RAM</string>
     <string name="show_system_ram_usage_description">Показати обсяг оперативної пам’яті, яку використовує система</string>
     <string name="show_bat_temperature">Показати температуру батареї</string>
     <string name="show_bat_temperature_description">Відображати температуру батареї</string>
-    <string name="overlay_position">Позиція накладання</string>
-    <string name="overlay_position_description">Обрати розташування статистики</string>
+    <string name="overlay_position">Позиція оверлею</string>
+    <string name="overlay_position_description">Обрати розташування виводу статистики на екрані</string>
     <string name="overlay_position_top_left">Вгорі ліворуч</string>
     <string name="overlay_position_top_right">Вгорі праворуч</string>
     <string name="overlay_position_bottom_left">Внизу ліворуч</string>
     <string name="overlay_position_bottom_right">Внизу праворуч</string>
     <string name="overlay_position_center_top">По центру вгорі</string>
     <string name="overlay_position_center_bottom">По центру внизу</string>
-    <string name="perf_overlay_background">Фон накладання</string>
-    <string name="perf_overlay_background_description">Додати фон для кращої читабельності</string>
+    <string name="overlay_background">Фон оверлею</string>
+    <string name="overlay_background_description">Додати фон для кращої читабельності</string>
     <string name="show_shaders_building">Показати побудову шейдерів</string>
-    <string name="show_shaders_building_description">Відображає поточну кількість шейдерів, які будуються</string>
+    <string name="show_shaders_building_description">Показати поточну кількість шейдерів, які наразі компілюються</string>
 
     <!-- Device Overlay settings -->
     <string name="show_soc_overlay">Показати накладання інформації про пристрій</string>
@@ -54,44 +57,41 @@
     <string name="show_soc_model_description">Відобразити модель головного SoC</string>
 
     <!-- Eden`s Veil -->
-    <string name="veil_extensions">Розширення GPU</string>
-    <string name="veil_renderer">Рендерер</string>
-    <string name="veil_misc">Інше</string>
-    <string name="eden_veil">Покривало Едему</string>
-    <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та можливостей. Ці налаштування можуть спричинити чорні екрани або інші проблеми в грі.</string>
+    <string name="eden_veil">Завіса Eden</string>
+    <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та сумісності. Ці налаштування можуть викликати збої, зокрема чорний екран.</string>
     <string name="eden_veil_warning_title">Експериментальні налаштування</string>
-    <string name="eden_veil_warning_description">Налаштування в Eden\'s Veil є дуже експериментальними і можуть спричинити проблеми. Якщо ваша гра не запускається, вимкніть усі розширення та змініть Extended Dynamic State на 0.</string>
+    <string name="eden_veil_warning_description">Налаштування Завіси Eden (Eden\'s Veil) є дуже експериментальними та можуть спричинити проблеми. Якщо ваша гра не запускається — вимкніть усі розширення та змініть Розширений динамічний стан на 0.</string>
     <string name="frame_skipping">В розробці: Пропуск кадрів</string>
     <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
     <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
     <string name="use_lru_cache">Увімкнути LRU-кеш</string>
-    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU (найменш нещодавно використаний), що підвищує продуктивність за рахунок економії використання CPU. Деякі ігри мають проблеми з ним, особливо TotK 1.2.1, тому вимкніть, якщо гра не запускається або випадково вилітає.</string>
+    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU (Least Recently Used), підвищуючи продуктивність за рахунок зменшення навантаження на CPU. Однак деякі ігри, як-от TotK версії 1.2.1, можуть працювати некоректно — у такому разі вимкніть цю опцію, якщо гра не запускається або раптово вилітає.</string>
     <string name="dyna_state">Розширений динамічний стан</string>
-    <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, рендерингу та економії ресурсів під час створення конвеєрів, зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Встановіть 0 для використання емульованих форматів Yuzu.</string>
+    <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, поліпшеня рендерингу та економії ресурсів під час створення конвеєрів (pepeline), зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Встановіть 0, щоб увімкнути використання емуляції попередніх (Legacy) форматів.</string>
     <string name="use_sync_core">Синхронізувати швидкість ядра</string>
     <string name="use_sync_core_description">Синхронізує швидкість ядра з максимальним відсотком швидкості для покращення продуктивності без зміни реальної швидкості гри.</string>
     <string name="use_auto_stub">Використовувати Auto Stub</string>
-    <string name="use_auto_stub_description">Автоматично замінює відсутні сервіси та функції. Може покращити сумісність, але викликати збої та проблеми стабільності.</string>
+    <string name="use_auto_stub_description">Автоматично замінює відсутні сервіси та функції. Це може покращити сумісність, але може викликати збої та проблеми зі стабільністю.</string>
     <string name="uninstall_firmware">Видалити прошивку</string>
-    <string name="uninstall_firmware_description">Видалення прошивки видалить її з пристрою та може вплинути на сумісність ігор.</string>
+    <string name="uninstall_firmware_description">Видалення прошивки з пристрою може вплинути на сумісність ігор.</string>
     <string name="firmware_uninstalling">Видалення прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивку успішно видалено</string>
-    <string name="provoking_vertex">Провокуюча вершина</string>
-    <string name="provoking_vertex_description">Покращує освітлення та обробку вершин у деяких іграх. Підтримується лише GPU з Vulkan 1.0+.</string>
+    <string name="provoking_vertex">Provoking Vertex</string>
+    <string name="provoking_vertex_description">Провокуюча вершина (Provoking Vertex) покращує освітлення та обробку вершин у деяких іграх. Підтримується лише GPU з Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Використовувати швидкий час GPU</string>
-    <string name="use_fast_gpu_time_description">Змушує більшість ігор працювати у максимальній рідній роздільній здатності. Ця опція може спричиняти проблеми.</string>
+    <string name="use_fast_gpu_time_description">Змушує більшість ігор працювати з найвищою нативною роздільною здатністю. Цей параметр є нестабільним і може призвести до збоїв.</string>
     <string name="fast_gpu_time">Фактор розгону GPU</string>
     <string name="fast_gpu_time_description">Використовуйте 128 для максимальної продуктивності та 512 для максимальної графічної точності.</string>
     <string name="gpu_low">Низький (128)</string>
     <string name="gpu_medium">Середній (256)</string>
     <string name="gpu_high">Високий (512)</string>
     <string name="use_fast_cpu_time">Швидкий час CPU</string>
-    <string name="use_fast_cpu_time_description">Змушує емульований процесор працювати на вищій тактовій частоті, зменшуючи деякі обмежувачі FPS. Ця опція нестабільна і може спричинити проблеми, а слабші процесори можуть мати знижену продуктивність.</string>
+    <string name="use_fast_cpu_time_description">Змушує емульований процесор працювати на вищій тактовій частоті, зменшуючи деякі обмежувачі FPS. Ця опція нестабільна і може спричинити проблеми, а слабші CPU можуть мати знижену продуктивність.</string>
     <string name="fast_cpu_time">Тактова частота CPU</string>
-    <string name="fast_cpu_time_description">Використовуйте Boost (1700MHz) для роботи на максимальній нативній частоті Switch або Fast (2000MHz) для роботи на подвійній частоті.</string>
+    <string name="fast_cpu_time_description">Використовуйте Прискорену (1700MHz) для роботи на максимальній нативній частоті Switch, або оберіть Швидку (2000MHz) для подвоєння базової частоти.</string>
     <string name="memory_layout">Розподіл пам\'яті</string>
     <string name="memory_layout_description">(ЕКСПЕРИМЕНТАЛЬНО) Змінює емульований розподіл пам\'яті. Це налаштування не підвищує продуктивність, але може допомогти в іграх, які використовують високу роздільну здатність через моди. Не використовуйте на телефонах з 8 ГБ ОЗУ або менше.</string>
     <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
@@ -99,12 +99,12 @@
     <string name="memory_8gb">8 ГБ (Небезпечно)</string>
 
     <string name="clock_base">Базова (1000MHz)</string>
-    <string name="clock_boost">Розгін (1700MHz)</string>
+    <string name="clock_boost">Прискорена (1700MHz)</string>
     <string name="clock_fast">Швидка (2000MHz)</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодування ASTC</string>
-    <string name="accelerate_astc_description">Виберіть спосіб декодування стиснених текстур ASTC для рендерингу: CPU (повільно, безпечно), GPU (швидко, рекомендовано) або CPU Async (без затримок, можуть виникнути проблеми)</string>
+    <string name="accelerate_astc_description">Виберіть спосіб декодування стиснених текстур ASTC для рендерингу: CPU (повільно, безпечно), GPU (швидко, рекомендовано) або CPU Async (без затримок, можуть виникнути несправності)</string>
     <string name="accelerate_astc_cpu">CPU</string>
     <string name="accelerate_astc_gpu">GPU</string>
     <string name="accelerate_astc_async">Асинхронно CPU</string>
@@ -123,7 +123,7 @@
     <string name="vram_usage_aggressive">Агресивний</string>
 
     <!-- Shader Backend -->
-    <string name="shader_backend">Вершинний шейдер</string>
+    <string name="shader_backend">Система обробки шейдерів</string>
     <string name="shader_backend_description">Спосіб компіляції шейдерів</string>
     <string name="shader_backend_glsl">Універсальний</string>
     <string name="shader_backend_glasm">Mali</string>
@@ -145,22 +145,23 @@
 
     <!-- Multiplayer -->
     <string name="multiplayer">Мультиплеєр</string>
-    <string name="multiplayer_description">Створіть власну ігрову кімнату або приєднайтеся до існуючої, щоб грати з іншими</string>
+    <string name="multiplayer_description">Створити свою або приєднатися до вже існуючої кімнати для гри онлайн</string>
     <string name="multiplayer_room_title">Кімната: %1$s</string>
     <string name="multiplayer_console_id">ID консолі: %1$s</string>
     <string name="multiplayer_create_room">Створити</string>
     <string name="multiplayer_join_room">Приєднатися</string>
-    <string name="multiplayer_public_room">Огляд публічних кімнат</string>
-    <string name="multiplayer_username">Ім\'я користувача</string>
+    <string name="multiplayer_public_room">Публічні кімнати</string>
+    <string name="multiplayer_username">Ім`я</string>
     <string name="multiplayer_ip_address">IP-адреса</string>
     <string name="multiplayer_ip_port">Порт</string>
-    <string name="multiplayer_create_room_success">Кімнату успішно створено!</string>
-    <string name="multiplayer_join_room_success">Успішно приєдналися до кімнати!</string>
-    <string name="multiplayer_create_room_failed">Не вдалося створити кімнату!</string>
-    <string name="multiplayer_join_room_failed">Не вдалося приєднатися до кімнати!</string>
-    <string name="multiplayer_input_invalid">Невірна адреса або ім\'я занадто коротке!</string>
-    <string name="multiplayer_port_invalid">Невірний порт!</string>
-    <string name="multiplayer_exit_room">Вийти з кімнати</string>
+    <string name="multiplayer_create_room_success">Кімнату створено</string>
+    <string name="multiplayer_join_room_success">Приєднано до кімнати</string>
+    <string name="multiplayer_create_room_failed">Помилка створення</string>
+    <string name="multiplayer_join_room_failed">Помилка приєднання</string>
+    <string name="multiplayer_input_invalid">Невірні дані</string>
+    <string name="multiplayer_address_invalid">Невірна адреса</string>
+    <string name="multiplayer_port_invalid">Невірний порт</string>
+    <string name="multiplayer_exit_room">Вийти</string>
     <string name="multiplayer_network_error">Помилка мережі</string>
     <string name="multiplayer_lost_connection">Втрачено з\'єднання</string>
     <string name="multiplayer_name_collision">Конфлікт імен</string>
@@ -175,25 +176,25 @@
     <string name="multiplayer_no_such_user">Користувача не знайдено</string>
     <string name="multiplayer_already_in_room">Вже в кімнаті</string>
     <string name="multiplayer_create_room_error">Помилка створення кімнати</string>
-    <string name="multiplayer_host_kicked">Хост виключений</string>
+    <string name="multiplayer_host_kicked">Вигнано власником</string>
     <string name="multiplayer_unknown_error">Невідома помилка</string>
-    <string name="multiplayer_room_uninitialized">Кімната не ініціалізована</string>
-    <string name="multiplayer_room_idle">Кімната бездіяльна</string>
-    <string name="multiplayer_room_joining">Приєднання до кімнати</string>
-    <string name="multiplayer_room_joined">Приєдналися до кімнати</string>
-    <string name="multiplayer_room_moderator">Модератор кімнати</string>
+    <string name="multiplayer_room_uninitialized">Кімнату не ініціалізовано</string>
+    <string name="multiplayer_room_idle">Кімната простоює</string>
+    <string name="multiplayer_room_joining">Приєднання...</string>
+    <string name="multiplayer_room_joined">Приєднано</string>
+    <string name="multiplayer_room_moderator">Модератор</string>
     <string name="multiplayer_member_join">%1$s приєднався</string>
     <string name="multiplayer_member_leave">%1$s вийшов</string>
-    <string name="multiplayer_member_kicked">%1$s виключений</string>
-    <string name="multiplayer_member_banned">%1$s заблокований</string>
-    <string name="multiplayer_address_unbanned">Адресу розблоковано</string>
-    <string name="multiplayer_kick_member">Виключити</string>
-    <string name="multiplayer_chat_input_hint">Надіслати повідомлення…</string>
+    <string name="multiplayer_member_kicked">%1$s вигнано</string>
+    <string name="multiplayer_member_banned">%1$s заблоковано</string>
+    <string name="multiplayer_address_unbanned">Розблоковано</string>
+    <string name="multiplayer_kick_member">Вигнати</string>
+    <string name="multiplayer_chat_input_hint">Повідомлення...</string>
     <string name="multiplayer_password">Пароль</string>
     <string name="original_button_text">Приєднатися</string>
     <string name="disabled_button_text">Приєднання...</string>
     <string name="multiplayer_room_name">Назва кімнати</string>
-    <string name="multiplayer_room_name_invalid">Назва кімнати має бути від 3 до 20 символів</string>
+    <string name="multiplayer_room_name_invalid">Назва кімнати має містити від 3 до 20 символів</string>
     <string name="multiplayer_max_players">Макс. гравців (16)</string>
     <string name="multiplayer_max_players_value">Макс. гравців: %d</string>
     <string name="multiplayer_chat">Чат</string>
@@ -209,26 +210,31 @@
     <string name="multiplayer_no_bans">Немає заблокованих користувачів</string>
     <string name="multiplayer_unban_title">Розблокувати користувача</string>
     <string name="multiplayer_unban">Розблокувати</string>
-    <string name="multiplayer_unban_message">Ви впевнені, що хочете розблокувати %1$s?</string>
-    <string name="multiplayer_ban">Заблокувати користувача</string>
+    <string name="multiplayer_unban_message">Розблокувати %1$s?</string>
+    <string name="multiplayer_ban">Заблокувати</string>
     <string name="multiplayer_room_browser">Публічні кімнати</string>
-    <string name="multiplayer_no_rooms_found">Публічні кімнати не знайдено</string>
+    <string name="multiplayer_no_rooms_found">Кімнат не знайдено</string>
     <string name="multiplayer_password_required">Потрібен пароль</string>
     <string name="multiplayer_player_count">: %1$d/%2$d</string>
     <string name="multiplayer_game">Гра</string>
     <string name="multiplayer_no_game_info">Будь-яка гра</string>
-    <string name="multiplayer_password_protected">Кімната захищена паролем</string>
-    <string name="multiplayer_hide_full_rooms">Приховати заповнені кімнати</string>
-    <string name="multiplayer_hide_empty_rooms">Приховати порожні кімнати</string>
-    <string name="multiplayer_tap_refresh_to_check_again">Натисніть оновити для повторної перевірки</string>
-    <string name="multiplayer_search_public_lobbies">Пошук кімнат…</string>
+    <string name="multiplayer_password_protected">З паролем</string>
+    <string name="multiplayer_hide_full_rooms">Приховати заповнені</string>
+    <string name="multiplayer_hide_empty_rooms">Приховати порожні</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Оновити</string>
+    <string name="multiplayer_search_public_lobbies">Пошук кімнат...</string>
     <string name="emulation_multiplayer">Мультиплеєр</string>
-    <string name="multiplayer_game_name">Улюблені ігри</string>
-    <string name="multiplayer_preferred_game_name">Улюблена гра</string>
-    <string name="multiplayer_no_game">Ігри не знайдено</string>
-    <string name="multiplayer_preferred_game_name_invalid">Для створення кімнати необхідно обрати улюблену гру.</string>
+    <string name="multiplayer_game_name">Вподобані ігри</string>
+    <string name="multiplayer_preferred_game_name">Вподобана гра</string>
+    <string name="multiplayer_no_game">Ігор не знайдено</string>
+    <string name="multiplayer_preferred_game_name_invalid">Виберіть гру</string>
+    <string name="multiplayer_room_name_error">3-20 символів</string>
+    <string name="multiplayer_required">Обов\'язково</string>
+    <string name="multiplayer_ip_error">Невірний IP</string>
+    <string name="multiplayer_username_error">Мінімум 5 символів</string>
+    <string name="multiplayer_port_error">1-65535</string>
     <string name="cancel">Скасувати</string>
-    <string name="ok">ОК</string>
+    <string name="ok">OK</string>
     <string name="refresh">Оновити</string>
     <string name="room_list">Список кімнат</string>
 
@@ -252,35 +258,35 @@
     <string name="keys_description">Виберіть ваш файл &lt;b>prod.keys&lt;/b> за допомогою кнопки нижче.</string>
     <string name="select_keys">Вибрати ключі</string>
     <string name="games">Ігри</string>
-    <string name="games_description">Виберіть вашу папку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
+    <string name="games_description">Виберіть вашу теку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
     <string name="done">Готово</string>
     <string name="done_description">Все готово.\nМожна грати!</string>
     <string name="text_continue">Продовжити</string>
     <string name="next">Далі</string>
     <string name="back">Назад</string>
     <string name="add_games">Додати ігри</string>
-    <string name="add_games_description">Виберіть папку з іграми</string>
+    <string name="add_games_description">Виберіть теку з іграми</string>
     <!-- Home strings -->
     <string name="alphabetical">За алфавітом</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сітка</string>
-    <string name="folder">Папка</string>
+    <string name="folder">Тека</string>
     <string name="pre_alpha_warning_title">Попередня версія</string>
     <string name="pre_alpha_warning_description">УВАГА: Ця версія не призначена для публічного використання. Програмне забезпечення знаходиться на ранній стадії розробки та може містити помилки.</string>
     <string name="dont_show_again">Більше не показувати</string>
     <string name="pre_alpha_warning">ПОПЕРЕДНЯ ВЕРСІЯ; НЕ ДЛЯ ПУБЛІКИ</string>
-    <string name="add_directory_success">Папку з іграми успішно додано</string>
+    <string name="add_directory_success">Теку з іграми успішно додано</string>
     <string name="home_games">Ігри</string>
     <string name="home_search">Пошук</string>
     <string name="home_settings">Налаштування</string>
-    <string name="empty_gamelist">Не знайдено файлів або ще не вибрано папку з іграми.</string>
+    <string name="empty_gamelist">Не знайдено файлів або ще не вибрано теку з іграми.</string>
     <string name="search_and_filter_games">Пошук та фільтрація ігор</string>
-    <string name="select_games_folder">Виберіть папку з іграми</string>
+    <string name="select_games_folder">Виберіть теку з іграми</string>
     <string name="select_games_folder_description">Дозволяє Eden заповнити список ігор</string>
-    <string name="add_games_warning">Пропустити вибір папки з іграми?</string>
-    <string name="add_games_warning_description">Ігри не відображатимуться у списку Ігри, якщо папку не вибрано.</string>
+    <string name="add_games_warning">Пропустити вибір теки з іграми?</string>
+    <string name="add_games_warning_description">Ігри не відображатимуться у списку Ігри, якщо теку не вибрано.</string>
     <string name="home_search_games">Знайти ігри</string>
-    <string name="games_dir_selected">Вибрано папку з іграми</string>
+    <string name="games_dir_selected">Вибрано теку з іграми</string>
     <string name="install_prod_keys">Встановити prod.keys</string>
     <string name="install_prod_keys_description">Потрібно для розшифровки роздрібних ігор</string>
     <string name="install_prod_keys_warning">Пропустити додавання ключів?</string>
@@ -304,25 +310,25 @@
     <string name="reading_keys_failure">Помилка під час зчитування ключів шифрування</string>
     <string name="install_prod_keys_failure_extension_description">Переконайтеся, що файл ключів має розширення .keys, і повторіть спробу.</string>
     <string name="invalid_keys_error">Невірні ключі шифрування</string>
-    <string name="install_keys_failure_description">Обраний файл невірний або пошкоджений. Будь ласка, пере-дампіть ваші ключі.</string>
-    <string name="install_gpu_driver">Встановити драйвер ГП</string>
+    <string name="install_keys_failure_description">Обраний файл невірний або пошкоджений. Будь ласка, зробіть повторний дамп ваших ключів.</string>
+    <string name="install_gpu_driver">Встановити драйвер GPU</string>
     <string name="install_gpu_driver_description">Встановіть альтернативні драйвери для потенційно кращої продуктивності та/або точності</string>
     <string name="advanced_settings">Розширені налаштування</string>
     <string name="settings_description">Налаштування параметрів емулятора</string>
     <string name="search_retail">Роздрібні</string>
     <string name="search_homebrew">Homebrew</string>
-    <string name="open_user_folder">Відкрити папку Eden</string>
+    <string name="open_user_folder">Відкрити теку Eden</string>
     <string name="open_user_folder_description">Керування внутрішніми файлами Eden</string>
     <string name="theme_and_color_description">Змінити зовнішній вигляд застосунку</string>
     <string name="no_file_manager">Не знайдено файлового менеджера</string>
-    <string name="notification_no_directory_link">Не вдалося відкрити папку Eden</string>
-    <string name="notification_no_directory_link_description">Будь ласка, знайдіть папку користувача за допомогою бічної панелі файлового менеджера вручну.</string>
+    <string name="notification_no_directory_link">Не вдалося відкрити теку Eden</string>
+    <string name="notification_no_directory_link_description">Будь ласка, знайдіть теку користувача за допомогою бічної панелі файлового менеджера вручну.</string>
     <string name="manage_save_data">Керування даними збережень</string>
     <string name="manage_save_data_description">Знайдено дані збережень. Будь ласка, виберіть варіант нижче.</string>
     <string name="import_export_saves_description">Імпорт або експорт файлів збереження</string>
     <string name="save_file_imported_success">Успішно імпортовано</string>
-    <string name="save_file_invalid_zip_structure">Неприпустима структура папки збереження</string>
-    <string name="save_file_invalid_zip_structure_description">Назва першої вкладеної папки має бути ідентифікатором гри.</string>
+    <string name="save_file_invalid_zip_structure">Неприпустима структура теки збереження</string>
+    <string name="save_file_invalid_zip_structure_description">Назва підтеки має бути ідентифікатором гри (title ID).</string>
     <string name="import_saves">Імпорт</string>
     <string name="export_saves">Експорт</string>
 
@@ -354,12 +360,23 @@
     <string name="contributors_description">Зроблено з \u2764 від команди Eden</string>
     <string name="build">Збірка</string>
 
+    <!-- Early access upgrade strings -->
+    <string name="early_access">Ранній доступ</string>
+    <string name="early_access_benefits">Переваги раннього доступу</string>
+    <string name="cutting_edge_features">Новітні можливості</string>
+    <string name="early_access_updates">Ранній доступ до оновлень</string>
+    <string name="no_manual_installation">Без ручного встановлення</string>
+    <string name="prioritized_support">Пріоритетна підтримка</string>
+    <string name="helping_game_preservation">Допомога в презервації ігор</string>
+    <string name="our_eternal_gratitude">Наша нескінченна вдячність</string>
+    <string name="are_you_interested">Ви зацікавлені?</string>
+
     <string name="frame_limit_enable">Обмеження швидкості</string>
     <string name="frame_limit_enable_description">Обмежує швидкість емуляції у відсотках від нормальної.</string>
     <string name="frame_limit_slider">Відсоток обмеження</string>
     <string name="frame_limit_slider_description">Вказує відсоток обмеження швидкості. 100% — нормальна швидкість.</string>
-    <string name="cpu_backend">Режим ЦП</string>
-    <string name="cpu_accuracy">Точність ЦП</string>
+    <string name="cpu_backend">Режим CPU</string>
+    <string name="cpu_accuracy">Точність CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
@@ -371,7 +388,7 @@
     <string name="select_rtc_date">Вибрати дату</string>
     <string name="select_rtc_time">Вибрати час</string>
     <string name="use_custom_rtc">Свій RTC</string>
-    <string name="use_custom_rtc_description">Дозволяє встановити власний час, відмінний від системного.</string>
+    <string name="use_custom_rtc_description">Дозволяє встановити власний час (Real-time clock, або RTC), відмінний від системного.</string>
     <string name="set_custom_rtc">Встановити RTC</string>
 
     <!-- Network settings strings -->
@@ -384,15 +401,15 @@
     <string name="renderer_resolution">Роздільна здатність (Портативний/Док)</string>
     <string name="renderer_vsync">Режим верт. синхронізації</string>
     <string name="renderer_screen_layout">Орієнтація</string>
-    <string name="renderer_aspect_ratio">Співвідношення</string>
-    <string name="renderer_scaling_filter">Фільтр масштабування</string>
+    <string name="renderer_aspect_ratio">Співвідношення сторін</string>
+    <string name="renderer_scaling_filter">Фільтр масштабування вікна</string>
     <string name="fsr_sharpness">Різкість FSR</string>
     <string name="fsr_sharpness_description">Визначає різкість зображення при використанні FSR.</string>
     <string name="renderer_anti_aliasing">Згладжування</string>
     <string name="renderer_force_max_clock">Максимальна тактова частота (тільки Adreno)</string>
-    <string name="renderer_force_max_clock_description">Змушує ГП працювати на максимальній тактовій частоті.</string>
+    <string name="renderer_force_max_clock_description">Змушує GPU працювати на максимальній тактовій частоті.</string>
     <string name="renderer_asynchronous_shaders">Асинхронні шейдери</string>
-    <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні помилки.</string>
+    <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно. Це може зменшити затримки, але також може спричинити графічні баги.</string>
     <string name="renderer_reactive_flushing">Реактивне очищення</string>
     <string name="renderer_reactive_flushing_description">Покращує точність рендерингу в деяких іграх.</string>
     <string name="use_disk_shader_cache">Кеш шейдерів</string>
@@ -401,10 +418,10 @@
     <string name="anisotropic_filtering_description">Покращує якість текстур під кутом.</string>
 
     <!-- Debug settings strings -->
-    <string name="cpu">ЦП</string>
-    <string name="cpu_debug_mode">Налагодження ЦП</string>
-    <string name="cpu_debug_mode_description">Уповільнює ЦП для налагодження.</string>
-    <string name="gpu">ГП</string>
+    <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">Налагодження CPU</string>
+    <string name="cpu_debug_mode_description">Уповільнює CPU для налагодження.</string>
+    <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Налагодження графіки</string>
     <string name="renderer_debug_description">Уповільнює графічний API для налагодження.</string>
@@ -415,9 +432,9 @@
     <string name="flush_by_line_description">Скидає логи налагодження після кожного написаного рядка, полегшуючи налагодження у випадках збоїв або зависань.</string>
 
     <!-- Audio settings strings -->
-    <string name="audio_output_engine">Двигун аудіо</string>
+    <string name="audio_output_engine">Аудіорушій</string>
     <string name="audio_volume">Гучність</string>
-    <string name="audio_volume_description">Вказує гучність аудіовиходу.</string>
+    <string name="audio_volume_description">Визначає гучність аудіовиходу.</string>
 
     <!-- Input strings -->
     <string name="buttons">Кнопки</string>
@@ -429,11 +446,14 @@
     <string name="button_minus">Мінус</string>
     <string name="button_home">Home</string>
     <string name="button_capture">Захоплення</string>
-    <string name="dpad">Кнопки напрямків</string>
+    <string name="dpad">Хрестовина</string>
     <string name="up">Вгору</string>
     <string name="down">Вниз</string>
     <string name="left">Вліво</string>
     <string name="right">Вправо</string>
+    <string name="left_stick">Лівий стік</string>
+    <string name="control_stick">Контрольний стік</string>
+    <string name="right_stick">Правий стік</string>
     <string name="c_stick">C-Джойстик</string>
     <string name="pressed">Натиснення</string>
     <string name="range">Діапазон</string>
@@ -444,7 +464,7 @@
     <string name="button_zl">ZL</string>
     <string name="button_zr">ZR</string>
     <string name="button_z">Z</string>
-    <string name="invalid">Неприпустимо</string>
+    <string name="invalid">Некоректний</string>
     <string name="pro_controller">Контролер Pro</string>
     <string name="handheld">Портативний</string>
     <string name="dual_joycons">Подвійні Joy-Con\'и</string>
@@ -454,7 +474,7 @@
     <string name="invert_axis">Інвертувати осі</string>
     <string name="invert_button">Інвертувати кнопку</string>
     <string name="toggle_button">Переключити кнопку</string>
-    <string name="turbo_button">Турбо кнопка</string>
+    <string name="turbo_button">Кнопка Турбо</string>
     <string name="set_threshold">Встановити поріг</string>
     <string name="toggle_axis">Переключити осі</string>
     <string name="connected">З\'єднано</string>
@@ -484,12 +504,12 @@
     <string name="save">Зберегти</string>
 
     <!-- GPU driver installation -->
-    <string name="select_gpu_driver">Вибрати драйвер ГП</string>
-    <string name="select_gpu_driver_title">Хочете замінити поточний драйвер ГП?</string>
+    <string name="select_gpu_driver">Вибрати драйвер GPU</string>
+    <string name="select_gpu_driver_title">Хочете замінити поточний драйвер GPU?</string>
     <string name="select_gpu_driver_install">Встановити</string>
     <string name="select_gpu_driver_default">За замовчуванням</string>
-    <string name="select_gpu_driver_use_default">Використовується стандартний драйвер ГП</string>
-    <string name="system_gpu_driver">Системний драйвер ГП</string>
+    <string name="select_gpu_driver_use_default">Використовується стандартний драйвер GPU</string>
+    <string name="system_gpu_driver">Системний драйвер GPU</string>
     <string name="installing_driver">Встановлення драйвера...</string>
 
     <!-- GPU driver fetcher -->
@@ -526,36 +546,40 @@
     <string name="preferences_graphics">Графіка</string>
     <string name="preferences_audio">Аудіо</string>
     <string name="preferences_controls">Керування</string>
-    <string name="preferences_theme">Тема і колір</string>
+    <string name="preferences_theme">Тема та колір</string>
     <string name="preferences_debug">Налагодження</string>
+
     <!-- Game properties -->
     <string name="info">Інформація</string>
     <string name="path">Шлях</string>
     <string name="developer">Розробник</string>
     <string name="version">Версія</string>
     <string name="add_ons">Доповнення</string>
+
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
     <string name="loader_error_video_core">Сталася помилка під час ініціалізації відеоядра.</string>
-    <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером ГП. Встановлення користувацького драйвера ГП може вирішити цю проблему.</string>
+    <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером GPU. Встановлення користувацького драйвера GPU може вирішити цю проблему.</string>
     <string name="loader_error_invalid_format">Не вдалося запустити ROM</string>
-    <string name="loader_error_file_not_found">Файл ROM не існує</string>
+    <string name="loader_error_file_not_found">ROM файлу не існує</string>
 
     <string name="emulation_done">Готово</string>
     <string name="emulation_control_scale">Масштаб</string>
     <string name="emulation_control_opacity">Непрозорість</string>
     <string name="touchscreen">Сенсорний екран</string>
+
     <!-- Errors and warnings -->
-    <string name="abort_button">Перервати</string>
+    <string name="abort_button">Зупинити</string>
     <string name="continue_button">Продовжити</string>
     <string name="system_archive_not_found">Системний архів не знайдено</string>
-    <string name="system_archive_not_found_message">%s відсутній. Будь ласка, здампіть ваші системні архіви.\nПродовження емуляції може призвести до збоїв і помилок.</string>
+    <string name="system_archive_not_found_message">%s відсутній. Будь ласка, зробіть дамп ваших системних архівів.\nПродовження емуляції може призвести до збоїв і помилок.</string>
     <string name="system_archive_general">Системний архів</string>
     <string name="save_load_error">Помилка збереження/завантаження</string>
     <string name="fatal_error">Фатальна помилка</string>
     <string name="fatal_error_message">Сталася фатальна помилка. Перевірте журнал для отримання докладної інформації.\nПродовження емуляції може призвести до збоїв і помилок.</string>
     <string name="performance_warning">Вимкнення цього налаштування значно знизить продуктивність емуляції! Для досягнення найкращих результатів рекомендується залишити це налаштування увімкненим.</string>
+
     <!-- Region Names -->
     <string name="region_japan">Японія</string>
     <string name="region_usa">США</string>
@@ -565,8 +589,15 @@
     <string name="region_korea">Корея</string>
     <string name="region_taiwan">Тайвань</string>
 
-    <string name="memory_byte_shorthand">B</string>
-    <string name="memory_gigabyte">GB</string>
+    <string name="memory_byte">Байти</string>
+    <string name="memory_byte_shorthand">Б</string>
+    <string name="memory_kilobyte">КБ</string>
+    <string name="memory_megabyte">МБ</string>
+    <string name="memory_gigabyte">ГБ</string>
+    <string name="memory_terabyte">ТБ</string>
+    <string name="memory_petabyte">ПБ</string>
+    <string name="memory_exabyte">ЕБ</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Вимкнено</string>
@@ -608,9 +639,9 @@
     <string name="screen_layout_auto">Авто</string>
     <!-- Aspect Ratios -->
     <string name="ratio_default">За замовчуванням (16:9)</string>
-    <string name="ratio_force_four_three">Змусити 4:3</string>
-    <string name="ratio_force_twenty_one_nine">Змусити 21:9</string>
-    <string name="ratio_force_sixteen_ten">Змусити 16:10</string>
+    <string name="ratio_force_four_three">Примусові 4:3</string>
+    <string name="ratio_force_twenty_one_nine">Примусові 21:9</string>
+    <string name="ratio_force_sixteen_ten">Примусові 16:10</string>
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезпечно</string>
