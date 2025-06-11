@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include <cinttypes>
 #include <clocale>
 #include <cmath>
 #include <fstream>
@@ -36,6 +35,7 @@
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
 #include "core/file_sys/romfs_factory.h"
+#include "core/core_timing.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
@@ -121,7 +121,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #endif
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/core_timing.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
@@ -149,7 +148,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "video_core/shader_notify.h"
 #include "yuzu/about_dialog.h"
 #include "yuzu/bootmanager.h"
-#include "yuzu/compatdb.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/configuration/configure_input_per_game.h"
@@ -318,6 +316,22 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
     Common::FS::CreateEdenPaths();
     this->config = std::make_unique<QtConfig>();
+
+    if (user_data_migrator.migrated) {
+        // Sort-of hack whereby we only move the old dir if it's a subfolder of the user dir
+    #define MIGRATE_DIR(type) std::string type##path = Common::FS::GetEdenPathString(Common::FS::EdenPath::type##Dir); \
+        if (type##path.starts_with(user_data_migrator.selected_emu.get_user_dir())) { \
+            boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name(), "eden"); \
+            Common::FS::SetEdenPath(Common::FS::EdenPath::type##Dir, type##path); \
+        }
+
+        MIGRATE_DIR(NAND)
+        MIGRATE_DIR(SDMC)
+        MIGRATE_DIR(Dump)
+        MIGRATE_DIR(Load)
+
+    #undef MIGRATE_DIR
+    }
 
 #ifdef __unix__
     SetupSigInterrupts();
@@ -506,13 +520,14 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     SetupPrepareForSleep();
 
+    // Some moron added a race condition to the status bar
+    // so now we have to make this completely unnecessary call
+    // to prevent the UI from blowing up.
+    UpdateUITheme();
+
     QStringList args = QApplication::arguments();
 
     if (args.size() < 2) {
-        // Some moron added a race condition to the status bar
-        // so now we have to make this completely unnecessary call
-        // to prevent the UI from blowing up.
-        UpdateUITheme();
         return;
     }
 

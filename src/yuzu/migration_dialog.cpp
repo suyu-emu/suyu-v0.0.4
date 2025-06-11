@@ -47,10 +47,11 @@ QAbstractButton *MigrationDialog::addButton(
     m_buttons->addWidget(button, 1);
 
     connect(button, &QAbstractButton::clicked, this, [this, button, reject]() {
+        m_clickedButton = button;
+
         if (reject) {
             this->reject();
         } else {
-            m_clickedButton = button;
             this->accept();
         }
     });

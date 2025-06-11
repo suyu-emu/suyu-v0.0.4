@@ -1,10 +1,13 @@
 #include "migration_worker.h"
 
+#include <QMap>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <filesystem>
 
 #include "common/fs/path_util.h"
 
-MigrationWorker::MigrationWorker(const LegacyEmu selected_legacy_emu_,
+MigrationWorker::MigrationWorker(const Emulator selected_legacy_emu_,
                                  const bool clear_shader_cache_,
                                  const MigrationStrategy strategy_)
     : QObject()
@@ -18,31 +21,13 @@ void MigrationWorker::process()
     namespace fs = std::filesystem;
     const auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
 
-    std::string legacy_user_dir;
-    std::string legacy_config_dir;
-    std::string legacy_cache_dir;
+    std::string legacy_user_dir   = selected_legacy_emu.get_user_dir();
+    std::string legacy_config_dir = selected_legacy_emu.get_config_dir();
+    std::string legacy_cache_dir  = selected_legacy_emu.get_cache_dir();
 
-#define LEGACY_EMU(emu) \
-    case LegacyEmu::emu: \
-        legacy_user_dir = Common::FS::GetLegacyPath(Common::FS::LegacyPath::emu##Dir).string(); \
-        legacy_config_dir = Common::FS::GetLegacyPath(Common::FS::LegacyPath::emu##ConfigDir) \
-                                .string(); \
-        legacy_cache_dir = Common::FS::GetLegacyPath(Common::FS::LegacyPath::emu##CacheDir) \
-                               .string(); \
-        break;
-
-    switch (selected_legacy_emu) {
-        LEGACY_EMU(Citron)
-        LEGACY_EMU(Sudachi)
-        LEGACY_EMU(Yuzu)
-        LEGACY_EMU(Suyu)
-    }
-
-#undef LEGACY_EMU
-
-    fs::path eden_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
+    fs::path eden_dir   = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
     fs::path config_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    fs::path cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
+    fs::path cache_dir  = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
     fs::path shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
 
     try {
@@ -62,7 +47,7 @@ void MigrationWorker::process()
             emit error(tr("Linking the old directory failed. You may need to re-run with "
                           "administrative privileges on Windows.\nOS gave error: %1")
                            .arg(tr(e.what())));
-            return;
+            std::exit(-1);
         }
 
 // Windows doesn't need any more links, because cache and config
@@ -119,5 +104,5 @@ void MigrationWorker::process()
         fs::create_directory(shader_dir);
     }
 
-    emit finished(success_text);
+    emit finished(success_text, legacy_user_dir);
 }

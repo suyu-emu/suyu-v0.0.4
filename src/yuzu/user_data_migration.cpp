@@ -40,150 +40,144 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
 {
     namespace fs = std::filesystem;
 
-    const QString migration_prompt_message = main_window->tr(
-        "Would you like to migrate your data for use in Eden?\n"
-        "Select the corresponding button to migrate data from that emulator.\n"
-        "This may take a while.");
+    // define strings here for easy access
+    static constexpr const char *prompt_prefix_text
+        = "Eden has detected user data for the following emulators:";
 
-    bool any_found = false;
+    static constexpr const char *migration_prompt_message
+        = "Would you like to migrate your data for use in Eden?\n"
+          "Select the corresponding button to migrate data from that emulator.\n"
+          "This may take a while.";
+
+    static constexpr const char *clear_shader_tooltip
+        = "Clearing shader cache is recommended for all "
+          "users.\nDo not uncheck unless you know what "
+          "you're doing.";
+
+    static constexpr const char *keep_old_data_tooltip
+        = "Keeps the old data directory. This is recommended if you aren't\n"
+          "space-constrained and want to keep separate data for the old emulator.";
+
+    static constexpr const char *clear_old_data_tooltip
+        = "Deletes the old data directory.\nThis is recommended on "
+          "devices with space constraints.";
+
+    static constexpr const char *link_old_dir_tooltip
+        = "Creates a filesystem link between the old directory and Eden directory.\n"
+          "This is recommended if you want to share data between emulators.";
+
+    // actual migration code
 
     MigrationDialog migration_prompt;
-    migration_prompt.setWindowTitle(main_window->tr("Migration"));
+    migration_prompt.setWindowTitle(QObject::tr("Migration"));
 
-    QCheckBox *clear_shaders = new QCheckBox(&migration_prompt);
-    clear_shaders->setText(main_window->tr("Clear Shader Cache"));
-    clear_shaders->setToolTip(main_window->tr(
-        "Clearing shader cache is recommended for all users.\nDo not uncheck unless you know what "
-        "you're doing."));
-    clear_shaders->setChecked(true);
-
-    QRadioButton *keep_old = new QRadioButton(&migration_prompt);
-    keep_old->setText(main_window->tr("Keep Old Data"));
-    keep_old->setToolTip(
-        main_window->tr("Keeps the old data directory. This is recommended if you aren't\n"
-                        "space-constrained and want to keep separate data for the old emulator."));
-    keep_old->setChecked(true);
-
-    QRadioButton *clear_old = new QRadioButton(&migration_prompt);
-    clear_old->setText(main_window->tr("Clear Old Data"));
-    clear_old->setToolTip(main_window->tr("Deletes the old data directory.\nThis is recommended on "
-                                          "devices with space constraints."));
-    clear_old->setChecked(false);
-
-    QRadioButton *link = new QRadioButton(&migration_prompt);
-    link->setText(main_window->tr("Link Old Directory"));
-    link->setToolTip(
-        main_window->tr("Creates a filesystem link between the old directory and Eden directory.\n"
-                        "This is recommended if you want to share data between emulators.."));
-    link->setChecked(false);
-
-    // Link and Clear Old are mutually exclusive
+    // mutually exclusive
     QButtonGroup *group = new QButtonGroup(&migration_prompt);
-    group->addButton(keep_old);
-    group->addButton(clear_old);
-    group->addButton(link);
 
-    migration_prompt.addBox(clear_shaders);
-    migration_prompt.addBox(keep_old);
-    migration_prompt.addBox(clear_old);
-    migration_prompt.addBox(link);
+    // MACRO MADNESS
 
-    // Reflection would make this code 10x better
-    // but for now... MACRO MADNESS!!!!
-    QMap<QString, bool> found;
-    QMap<QString, MigrationWorker::LegacyEmu> legacyMap;
-    QMap<QString, QAbstractButton *> buttonMap;
+#define BUTTON(clazz, name, text, tooltip, checkState) \
+    clazz *name = new clazz(&migration_prompt); \
+    name->setText(QObject::tr(text)); \
+    name->setToolTip(QObject::tr(tooltip)); \
+    name->setChecked(checkState); \
+    migration_prompt.addBox(name);
 
-#define EMU_MAP(name) \
-    const bool name##_found = fs::is_directory( \
-        Common::FS::GetLegacyPath(Common::FS::LegacyPath::name##Dir)); \
-    legacyMap[main_window->tr(#name)] = MigrationWorker::LegacyEmu::name; \
-    found[main_window->tr(#name)] = name##_found; \
-    if (name##_found) \
-        any_found = true;
+    BUTTON(QCheckBox, clear_shaders, "Clear Shader Cache", clear_shader_tooltip, true)
 
-    EMU_MAP(Citron)
-    EMU_MAP(Sudachi)
-    EMU_MAP(Yuzu)
-    EMU_MAP(Suyu)
+#define RADIO(name, text, tooltip, checkState) \
+    BUTTON(QRadioButton, name, text, tooltip, checkState) \
+    group->addButton(name);
 
-#undef EMU_MAP
+    RADIO(keep_old, "Keep Old Data", keep_old_data_tooltip, true)
+    RADIO(clear_old, "Clear Old Data", clear_old_data_tooltip, false)
+    RADIO(link_old, "Link Old Directory", link_old_dir_tooltip, false)
 
-    if (any_found) {
-        QString promptText = main_window->tr(
-            "Eden has detected user data for the following emulators:");
-        QMapIterator iter(found);
+#undef RADIO
+#undef BUTTON
 
-        while (iter.hasNext()) {
-            iter.next();
-            if (!iter.value())
-                continue;
+    std::vector<Emulator> found{};
 
-            QAbstractButton *button = migration_prompt.addButton(iter.key());
+    for (const Emulator &emu : legacy_emus)
+        if (fs::is_directory(emu.get_user_dir()))
+            found.emplace_back(emu);
 
-            buttonMap[iter.key()] = button;
-            promptText.append(main_window->tr("\n- %1").arg(iter.key()));
-        }
-
-        promptText.append(main_window->tr("\n\n"));
-
-        migration_prompt.setText(promptText + migration_prompt_message);
-        migration_prompt.addButton(main_window->tr("No"), true);
-
-        migration_prompt.exec();
-
-        MigrationWorker::MigrationStrategy strategy;
-        if (link->isChecked()) {
-            strategy = MigrationWorker::MigrationStrategy::Link;
-        } else if (clear_old->isChecked()) {
-            strategy = MigrationWorker::MigrationStrategy::Move;
-        } else {
-            strategy = MigrationWorker::MigrationStrategy::Copy;
-        }
-
-        QMapIterator buttonIter(buttonMap);
-
-        while (buttonIter.hasNext()) {
-            buttonIter.next();
-            if (buttonIter.value() == migration_prompt.clickedButton()) {
-                MigrateUserData(main_window,
-                                legacyMap[buttonIter.key()],
-                                clear_shaders->isChecked(),
-                                strategy);
-                return;
-            }
-        }
-
-        // If we're here, the user chose not to migrate
-        ShowMigrationCancelledMessage(main_window);
+    if (found.empty()) {
+        return;
     }
 
-    else // no other data was found
-        return;
+    // makes my life easier
+    qRegisterMetaType<Emulator>();
+
+    QString prompt_text = QObject::tr(prompt_prefix_text);
+
+    // natural language processing is a nightmare
+    for (const Emulator &emu : found) {
+        prompt_text.append(QStringLiteral("\n- %1").arg(QObject::tr(emu.name)));
+
+        QAbstractButton *button = migration_prompt.addButton(QObject::tr(emu.name));
+
+        // This is cursed, but it's actually the most efficient way by a mile
+        button->setProperty("emulator", QVariant::fromValue(emu));
+    }
+
+    prompt_text.append(QObject::tr("\n\n"));
+    prompt_text.append(QObject::tr(migration_prompt_message));
+
+    migration_prompt.setText(prompt_text);
+    migration_prompt.addButton(QObject::tr("No"), true);
+
+    migration_prompt.exec();
+
+    QAbstractButton *button = migration_prompt.clickedButton();
+
+    if (button->text() == QObject::tr("No")) {
+        return ShowMigrationCancelledMessage(main_window);
+    }
+
+    MigrationWorker::MigrationStrategy strategy;
+    switch (group->checkedId()) {
+    default:
+        [[fallthrough]];
+    case 0:
+        strategy = MigrationWorker::MigrationStrategy::Copy;
+        break;
+    case 1:
+        strategy = MigrationWorker::MigrationStrategy::Move;
+        break;
+    case 2:
+        strategy = MigrationWorker::MigrationStrategy::Link;
+        break;
+    }
+
+    MigrateUserData(main_window,
+                    button->property("emulator").value<Emulator>(),
+                    clear_shaders->isChecked(),
+                    strategy);
 }
 
 void UserDataMigrator::ShowMigrationCancelledMessage(QMainWindow *main_window)
 {
     QMessageBox::information(main_window,
-                             main_window->tr("Migration"),
-                             main_window
-                                 ->tr("You can manually re-trigger this prompt by deleting the "
-                                      "new config directory:\n"
-                                      "%1")
+                             QObject::tr("Migration"),
+                             QObject::tr("You can manually re-trigger this prompt by deleting the "
+                                         "new config directory:\n%1")
                                  .arg(QString::fromStdString(Common::FS::GetEdenPathString(
                                      Common::FS::EdenPath::ConfigDir))),
                              QMessageBox::Ok);
 }
 
 void UserDataMigrator::MigrateUserData(QMainWindow *main_window,
-                                       const MigrationWorker::LegacyEmu selected_legacy_emu,
+                                       const Emulator selected_legacy_emu,
                                        const bool clear_shader_cache,
                                        const MigrationWorker::MigrationStrategy strategy)
 {
-    // Create a dialog to let the user know it's migrating, some users noted confusion.
+    selected_emu = selected_legacy_emu;
+
+    // Create a dialog to let the user know it's migrating
     QProgressDialog *progress = new QProgressDialog(main_window);
-    progress->setWindowTitle(main_window->tr("Migrating"));
-    progress->setLabelText(main_window->tr("Migrating, this may take a while..."));
+    progress->setWindowTitle(QObject::tr("Migrating"));
+    progress->setLabelText(QObject::tr("Migrating, this may take a while..."));
     progress->setRange(0, 0);
     progress->setCancelButton(nullptr);
     progress->setWindowModality(Qt::WindowModality::ApplicationModal);
@@ -194,13 +188,14 @@ void UserDataMigrator::MigrateUserData(QMainWindow *main_window,
 
     thread->connect(thread, &QThread::started, worker, &MigrationWorker::process);
 
-    thread->connect(worker, &MigrationWorker::finished, progress, [=](const QString &success_text) {
+    thread->connect(worker, &MigrationWorker::finished, progress, [=, this](const QString &success_text, const std::string &path) {
         progress->close();
         QMessageBox::information(main_window,
-                                 main_window->tr("Migration"),
+                                 QObject::tr("Migration"),
                                  success_text,
                                  QMessageBox::Ok);
 
+        migrated = true;
         thread->quit();
     });
 
