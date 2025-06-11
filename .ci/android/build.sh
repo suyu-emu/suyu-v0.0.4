@@ -5,10 +5,10 @@
 
 export NDK_CCACHE=$(which ccache)
 
-# keystore & pass are stored locally
-export ANDROID_KEYSTORE_FILE=~/android.keystore
-export ANDROID_KEYSTORE_PASS=`cat ~/android.pass`
-export ANDROID_KEY_ALIAS=`cat ~/android.alias`
+if [ ! -z "${ANDROID_KEYSTORE_B64}" ]; then
+    export ANDROID_KEYSTORE_FILE="${GITHUB_WORKSPACE}/ks.jks"
+    base64 --decode <<< "${ANDROID_KEYSTORE_B64}" > "${ANDROID_KEYSTORE_FILE}"
+fi
 
 cd src/android
 chmod +x ./gradlew
@@ -17,3 +17,7 @@ chmod +x ./gradlew
 ./gradlew bundleRelease
 
 ccache -s -v
+
+if [ ! -z "${ANDROID_KEYSTORE_B64}" ]; then
+    rm "${ANDROID_KEYSTORE_FILE}"
+fi

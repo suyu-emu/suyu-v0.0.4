@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@ Type=Application
 Name=eden
 GenericName=Switch Emulator
 Comment=Nintendo Switch video game console emulator
-Icon=eden
+Icon=org.eden_emu.eden
 TryExec=eden
 Exec=eden %f
 Categories=Game;Emulator;Qt;

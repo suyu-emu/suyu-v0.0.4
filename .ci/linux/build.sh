@@ -14,15 +14,23 @@ if [ "$ARCH" = 'x86_64' ]; then
 		echo "Making x86-64 generic build of eden"
 		ARCH_FLAGS="-march=x86-64 -mtune=generic -O3"
 	fi
+
+    if [ "$1" != '' ]; then
+        shift
+    fi
 else
 	echo "Making aarch64 build of eden"
 	ARCH_FLAGS="-march=armv8-a -mtune=generic -O3"
 fi
 
-NPROC="$2"
+
+NPROC="$1"
 if [ -z "$NPROC" ]; then
     NPROC="$(nproc)"
+else
+    shift
 fi
+
 
 if [ "$TARGET" = "appimage" ]; then
     export EXTRA_CMAKE_FLAGS=(-DCMAKE_INSTALL_PREFIX=/usr -DYUZU_ROOM=ON -DYUZU_ROOM_STANDALONE=OFF -DYUZU_CMD=OFF)
@@ -34,9 +42,11 @@ else
     export EXTRA_CMAKE_FLAGS=(-DYUZU_USE_PRECOMPILED_HEADERS=OFF)
 fi
 
-if [ "$RELEASE" == "1" ]; then
+if [ "$DEVEL" != "true" ]; then
     export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DENABLE_QT_UPDATE_CHECKER=ON)
 fi
+
+export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" $@)
 
 mkdir -p build && cd build
 cmake .. -G Ninja \

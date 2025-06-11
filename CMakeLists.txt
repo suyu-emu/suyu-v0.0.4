@@ -655,15 +655,14 @@ endif()
 # https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
 # https://www.freedesktop.org/software/appstream/docs/
 if(ENABLE_QT AND UNIX AND NOT APPLE)
-    install(FILES "dist/eden.desktop"
+    install(FILES "dist/org.eden_emu.eden.desktop"
         DESTINATION "share/applications")
-    install(FILES "dist/eden.svg"
-        DESTINATION "share/icons/hicolor/scalable/apps"
-        RENAME "eden.svg")
+    install(FILES "dist/org.eden_emu.eden.svg"
+        DESTINATION "share/icons/hicolor/scalable/apps")
 
     # TODO: these files need to be updated.
-    install(FILES "dist/eden.xml"
+    install(FILES "dist/org.eden_emu.eden.xml"
         DESTINATION "share/mime/packages")
-    install(FILES "dist/eden.metainfo.xml"
+    install(FILES "dist/org.eden_emu.eden.metainfo.xml"
         DESTINATION "share/metainfo")
 endif()

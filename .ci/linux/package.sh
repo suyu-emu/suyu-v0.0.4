@@ -1,12 +1,9 @@
-#!/bin/sh
+#!/bin/sh -ex
 
 # SPDX-FileCopyrightText: 2025 eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# TODO: create a lighter version based on pflyly's script
-
 # This script assumes you're in the source directory
-set -ex
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 export BASE_ARCH="$(uname -m)"
@@ -37,25 +34,16 @@ VERSION="$(echo "$EDEN_TAG")"
 mkdir -p ./AppDir
 cd ./AppDir
 
-cat > eden.desktop << EOL
-[Desktop Entry]
-Type=Application
-Name=Eden
-Icon=eden
-StartupWMClass=eden
-Exec=eden
-Categories=Game;Emulator;
-EOL
+cp ../dist/org.eden_emu.eden.desktop .
+cp ../dist/org.eden_emu.eden.svg .
 
-cp ../dist/eden.svg ./eden.svg
-
-ln -sf ./eden.svg ./.DirIcon
+ln -sf ./org.eden_emu.eden.svg ./.DirIcon
 
 # TODO(crueter): Nightly
-# if [ "$DEVEL" = 'true' ]; then
-# 	sed -i 's|Name=Eden|Name=Eden Nightly|' ./eden.desktop
-# 	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
-# fi
+if [ "$DEVEL" = 'true' ]; then
+	sed -i 's|Name=Eden|Name=Eden Nightly|' ./org.eden_emu.eden.desktop
+ 	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
+fi
 
 UPINFO='gh-releases-zsync|eden-emulator|Releases|latest|*.AppImage.zsync'
 
@@ -68,6 +56,11 @@ then
 fi
 
 # Bundle all libs
+
+# temp workaround for arch being silly
+mkdir -p share/X11
+cp -r /usr/share/X11/xkb share/X11
+
 wget --retry-connrefused --tries=30 "$LIB4BN" -O ./lib4bin
 chmod +x ./lib4bin
 xvfb-run -a -- ./lib4bin -p -v -e -s -k \
