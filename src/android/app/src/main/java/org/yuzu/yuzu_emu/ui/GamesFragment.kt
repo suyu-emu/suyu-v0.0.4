@@ -444,32 +444,24 @@ class GamesFragment : Fragment() {
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
-        ) { view: View, windowInsets: WindowInsetsCompat ->
+        ) { _: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
             resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
-            val isLandscape =
-                resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
             binding.swipeRefresh.setProgressViewEndTarget(
                 false,
                 barInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )
 
-            val leftInsets = barInsets.left + cutoutInsets.left
-            val rightInsets = barInsets.right + cutoutInsets.right
-            val topInsets = barInsets.top + cutoutInsets.top
-            val bottomInsets = barInsets.bottom + cutoutInsets.bottom
+            val leftInset = barInsets.left + cutoutInsets.left
+            val rightInset = barInsets.right + cutoutInsets.right
+            val topInset = maxOf(barInsets.top, cutoutInsets.top)
 
             val mlpSwipe = binding.swipeRefresh.layoutParams as ViewGroup.MarginLayoutParams
-            if (view.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR) {
-                mlpSwipe.leftMargin = leftInsets
-                mlpSwipe.rightMargin = rightInsets
-            } else {
-                mlpSwipe.leftMargin = leftInsets
-                mlpSwipe.rightMargin = rightInsets
-            }
+            mlpSwipe.leftMargin = leftInset
+            mlpSwipe.rightMargin = rightInset
             binding.swipeRefresh.layoutParams = mlpSwipe
 
             val mlpHeader = binding.header.layoutParams as ViewGroup.MarginLayoutParams
@@ -477,29 +469,27 @@ class GamesFragment : Fragment() {
             // Store original margins only once
             if (originalHeaderTopMargin == null) {
                 originalHeaderTopMargin = mlpHeader.topMargin
-                originalHeaderBottomMargin = mlpHeader.bottomMargin
                 originalHeaderRightMargin = mlpHeader.rightMargin
                 originalHeaderLeftMargin = mlpHeader.leftMargin
             }
 
             // Always set margin as original + insets
-            mlpHeader.leftMargin = (originalHeaderLeftMargin ?: 0) + leftInsets
-            mlpHeader.rightMargin = (originalHeaderRightMargin ?: 0) + rightInsets
-            mlpHeader.topMargin = (originalHeaderTopMargin ?: 0) + if (!isLandscape) topInsets else 0
-            mlpHeader.bottomMargin = (originalHeaderBottomMargin ?: 0) + if (!isLandscape) bottomInsets else 0
+            mlpHeader.leftMargin = (originalHeaderLeftMargin ?: 0) + leftInset
+            mlpHeader.rightMargin = (originalHeaderRightMargin ?: 0) + rightInset
+            mlpHeader.topMargin = (originalHeaderTopMargin ?: 0) + topInset + resources.getDimensionPixelSize(R.dimen.spacing_med)
             binding.header.layoutParams = mlpHeader
 
             binding.noticeText.updatePadding(bottom = spacingNavigation)
-            binding.header.updatePadding(top = cutoutInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_large) + if (isLandscape) barInsets.top else 0)
+
             binding.gridGames.updatePadding(
                 top = resources.getDimensionPixelSize(R.dimen.spacing_med)
             )
 
             val mlpFab = binding.addDirectory.layoutParams as ViewGroup.MarginLayoutParams
             val fabPadding = resources.getDimensionPixelSize(R.dimen.spacing_large)
-            mlpFab.leftMargin = leftInsets + fabPadding
+            mlpFab.leftMargin = leftInset + fabPadding
             mlpFab.bottomMargin = barInsets.bottom + fabPadding
-            mlpFab.rightMargin = rightInsets + fabPadding
+            mlpFab.rightMargin = rightInset + fabPadding
             binding.addDirectory.layoutParams = mlpFab
 
             windowInsets
