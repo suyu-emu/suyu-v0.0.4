@@ -38,8 +38,8 @@
     <string name="overlay_position_bottom_right">Внизу праворуч</string>
     <string name="overlay_position_center_top">По центру вгорі</string>
     <string name="overlay_position_center_bottom">По центру внизу</string>
-    <string name="overlay_background">Фон оверлею</string>
-    <string name="overlay_background_description">Додати фон для кращої читабельності</string>
+    <string name="perf_overlay_background">Фон оверлею</string>
+    <string name="perf_overlay_background_description">Додати фон для кращої читабельності</string>
     <string name="show_shaders_building">Показати побудову шейдерів</string>
     <string name="show_shaders_building_description">Показати поточну кількість шейдерів, які наразі компілюються</string>
 
@@ -158,7 +158,6 @@
     <string name="multiplayer_join_room_success">Приєднано до кімнати</string>
     <string name="multiplayer_create_room_failed">Помилка створення</string>
     <string name="multiplayer_join_room_failed">Помилка приєднання</string>
-    <string name="multiplayer_input_invalid">Невірні дані</string>
     <string name="multiplayer_address_invalid">Невірна адреса</string>
     <string name="multiplayer_port_invalid">Невірний порт</string>
     <string name="multiplayer_exit_room">Вийти</string>
@@ -191,8 +190,6 @@
     <string name="multiplayer_kick_member">Вигнати</string>
     <string name="multiplayer_chat_input_hint">Повідомлення...</string>
     <string name="multiplayer_password">Пароль</string>
-    <string name="original_button_text">Приєднатися</string>
-    <string name="disabled_button_text">Приєднання...</string>
     <string name="multiplayer_room_name">Назва кімнати</string>
     <string name="multiplayer_room_name_invalid">Назва кімнати має містити від 3 до 20 символів</string>
     <string name="multiplayer_max_players">Макс. гравців (16)</string>
@@ -359,17 +356,6 @@
     <string name="contributors">Вкладники</string>
     <string name="contributors_description">Зроблено з \u2764 від команди Eden</string>
     <string name="build">Збірка</string>
-
-    <!-- Early access upgrade strings -->
-    <string name="early_access">Ранній доступ</string>
-    <string name="early_access_benefits">Переваги раннього доступу</string>
-    <string name="cutting_edge_features">Новітні можливості</string>
-    <string name="early_access_updates">Ранній доступ до оновлень</string>
-    <string name="no_manual_installation">Без ручного встановлення</string>
-    <string name="prioritized_support">Пріоритетна підтримка</string>
-    <string name="helping_game_preservation">Допомога в презервації ігор</string>
-    <string name="our_eternal_gratitude">Наша нескінченна вдячність</string>
-    <string name="are_you_interested">Ви зацікавлені?</string>
 
     <string name="frame_limit_enable">Обмеження швидкості</string>
     <string name="frame_limit_enable_description">Обмежує швидкість емуляції у відсотках від нормальної.</string>

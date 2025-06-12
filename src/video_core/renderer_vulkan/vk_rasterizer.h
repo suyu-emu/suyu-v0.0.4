@@ -139,6 +139,12 @@ public:
                                                             u32 pixel_stride);
 
 private:
+    static constexpr u64 NEEDS_D24[] = {
+        0x01006A800016E000ULL, // SSBU
+        0x0100E95004038000ULL, // XC2
+        0x0100A6301214E000ULL, // FE:Engage
+    };
+
     static constexpr size_t MAX_TEXTURES = 192;
     static constexpr size_t MAX_IMAGES = 48;
     static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
