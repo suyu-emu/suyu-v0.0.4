@@ -21,9 +21,7 @@ extern "C" {
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
-#ifndef ANDROID
 #include <libavcodec/codec_internal.h>
-#endif
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop

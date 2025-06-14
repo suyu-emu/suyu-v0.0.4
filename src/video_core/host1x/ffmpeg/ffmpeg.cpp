@@ -34,7 +34,7 @@ constexpr std::array PreferredGpuDecoders = {
     AV_HWDEVICE_TYPE_VAAPI,
     AV_HWDEVICE_TYPE_VDPAU,
 #endif
-    AV_HWDEVICE_TYPE_VULKAN,
+    AV_HWDEVICE_TYPE_VULKAN
 };
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
@@ -99,8 +99,7 @@ bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceTyp
     for (int i = 0;; i++) {
         const AVCodecHWConfig* config = avcodec_get_hw_config(m_codec, i);
         if (!config) {
-            LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name,
-                      av_hwdevice_get_type_name(type));
+            LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
             break;
         }
         if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
@@ -131,8 +130,7 @@ HardwareContext::~HardwareContext() {
     av_buffer_unref(&m_gpu_decoder);
 }
 
-bool HardwareContext::InitializeForDecoder(DecoderContext& decoder_context,
-                                           const Decoder& decoder) {
+bool HardwareContext::InitializeForDecoder(DecoderContext& decoder_context, const Decoder& decoder) {
     const auto supported_types = GetSupportedDeviceTypes();
     for (const auto type : PreferredGpuDecoders) {
         AVPixelFormat hw_pix_fmt;
@@ -152,17 +150,14 @@ bool HardwareContext::InitializeForDecoder(DecoderContext& decoder_context,
         }
     }
 
-    LOG_INFO(HW_GPU, "Hardware decoding is disabled due to implementation issues, using CPU.");
     return false;
 }
 
 bool HardwareContext::InitializeWithType(AVHWDeviceType type) {
     av_buffer_unref(&m_gpu_decoder);
 
-    if (const int ret = av_hwdevice_ctx_create(&m_gpu_decoder, type, nullptr, nullptr, 0);
-        ret < 0) {
-        LOG_DEBUG(HW_GPU, "av_hwdevice_ctx_create({}) failed: {}", av_hwdevice_get_type_name(type),
-                  AVError(ret));
+    if (const int ret = av_hwdevice_ctx_create(&m_gpu_decoder, type, nullptr, nullptr, 0); ret < 0) {
+        LOG_DEBUG(HW_GPU, "av_hwdevice_ctx_create({}) failed: {}", av_hwdevice_get_type_name(type), AVError(ret));
         return false;
     }
 
@@ -189,6 +184,7 @@ bool HardwareContext::InitializeWithType(AVHWDeviceType type) {
 
 DecoderContext::DecoderContext(const Decoder& decoder) : m_decoder{decoder} {
     m_codec_context = avcodec_alloc_context3(m_decoder.GetCodec());
+	av_opt_set(m_codec_context->priv_data, "preset", "veryfast", 0);
     av_opt_set(m_codec_context->priv_data, "tune", "zerolatency", 0);
     m_codec_context->thread_count = 0;
     m_codec_context->thread_type &= ~FF_THREAD_FRAME;
@@ -199,8 +195,7 @@ DecoderContext::~DecoderContext() {
     avcodec_free_context(&m_codec_context);
 }
 
-void DecoderContext::InitializeHardwareDecoder(const HardwareContext& context,
-                                               AVPixelFormat hw_pix_fmt) {
+void DecoderContext::InitializeHardwareDecoder(const HardwareContext& context, AVPixelFormat hw_pix_fmt) {
     m_codec_context->hw_device_ctx = av_buffer_ref(context.GetBufferRef());
     m_codec_context->get_format = GetGpuFormat;
     m_codec_context->pix_fmt = hw_pix_fmt;
@@ -223,21 +218,15 @@ bool DecoderContext::SendPacket(const Packet& packet) {
     m_temp_frame = std::make_shared<Frame>();
     m_got_frame = 0;
 
-// Android can randomly crash when calling decode directly, so skip.
-// TODO update ffmpeg and hope that fixes it.
-#ifndef ANDROID
     if (!m_codec_context->hw_device_ctx && m_codec_context->codec_id == AV_CODEC_ID_H264) {
         m_decode_order = true;
         auto* codec{ffcodec(m_decoder.GetCodec())};
-        if (const int ret = codec->cb.decode(m_codec_context, m_temp_frame->GetFrame(),
-                                             &m_got_frame, packet.GetPacket());
-            ret < 0) {
+        if (const int ret = codec->cb.decode(m_codec_context, m_temp_frame->GetFrame(), &m_got_frame, packet.GetPacket()); ret < 0) {
             LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", AVError(ret));
             return false;
         }
         return true;
     }
-#endif
 
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
@@ -248,9 +237,6 @@ bool DecoderContext::SendPacket(const Packet& packet) {
 }
 
 std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
-    // Android can randomly crash when calling decode directly, so skip.
-    // TODO update ffmpeg and hope that fixes it.
-#ifndef ANDROID
     if (!m_codec_context->hw_device_ctx && m_codec_context->codec_id == AV_CODEC_ID_H264) {
         m_decode_order = true;
         auto* codec{ffcodec(m_decoder.GetCodec())};
@@ -269,10 +255,7 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
             LOG_ERROR(Service_NVDRV, "Failed to receive a frame! error {}", ret);
             return {};
         }
-    } else
-#endif
-    {
-
+    } else {
         const auto ReceiveImpl = [&](AVFrame* frame) {
             if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0) {
                 LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
@@ -292,9 +275,7 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
             }
 
             m_temp_frame->SetFormat(PreferredGpuFormat);
-            if (const int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(),
-                                                         intermediate_frame.GetFrame(), 0);
-                ret < 0) {
+            if (const int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame.GetFrame(), 0); ret < 0) {
                 LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
                 return {};
             }

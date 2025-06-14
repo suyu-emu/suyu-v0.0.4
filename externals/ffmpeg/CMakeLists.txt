@@ -225,7 +225,7 @@ if (NOT WIN32 AND NOT ANDROID)
 elseif(ANDROID)
     # Use yuzu FFmpeg binaries
     if (ARCHITECTURE_arm64)
-        set(FFmpeg_EXT_NAME "ffmpeg-android-v5.1.LTS-aarch64")
+        set(FFmpeg_EXT_NAME "ffmpeg-android-7.1.1-aarch64")
     elseif (ARCHITECTURE_x86_64)
         set(FFmpeg_EXT_NAME "ffmpeg-android-v5.1.LTS-x86_64")
     else()
