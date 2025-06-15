@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -104,7 +107,9 @@ class NfcReader(private val activity: Activity) {
 
             try {
                 val data = ntag215FastRead(amiibo, dataStart, dataEnd - 1)
-                System.arraycopy(data, 0, tagData, i, (dataEnd - dataStart) * pageSize)
+                if (data != null) {
+                    System.arraycopy(data, 0, tagData, i, (dataEnd - dataStart) * pageSize)
+                }
             } catch (e: IOException) {
                 return null
             }

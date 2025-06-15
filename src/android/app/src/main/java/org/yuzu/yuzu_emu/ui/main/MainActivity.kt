@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.ui.main
@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
 
+        // TODO(crueter): Remove this
         window.statusBarColor =
             ContextCompat.getColor(applicationContext, android.R.color.transparent)
         window.navigationBarColor =
