@@ -26,6 +26,7 @@ enum class TitleType : u8 {
     Update = 0x81,
     AOC = 0x82,
     DeltaTitle = 0x83,
+    DataPatch = 0x84,
 };
 
 enum class ContentRecordType : u8 {
