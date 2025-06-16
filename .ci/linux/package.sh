@@ -11,8 +11,8 @@ export ARCH="$BASE_ARCH"
 
 export BUILDDIR="$2"
 
-LIB4BN="https://raw.githubusercontent.com/VHSgunzo/sharun/refs/heads/main/lib4bin"
-URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-$ARCH"
+SHARUN="https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-${BASE_ARCH}-aio"
+URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-${BASE_ARCH}"
 
 if [ "$ARCH" = 'x86_64' ]; then
 	if [ "$1" = 'v3' ]; then
@@ -48,22 +48,24 @@ fi
 UPINFO='gh-releases-zsync|eden-emulator|Releases|latest|*.AppImage.zsync'
 
 LIBDIR="/usr/lib"
-# some distros are weird and use a subdir
 
-if [ ! -f "/usr/lib/libGL.so" ]
+# Workaround for Gentoo
+if [ ! -d "$LIBDIR/qt6" ]
+then
+	LIBDIR="/usr/lib64"
+fi
+
+# Workaround for Debian
+if [ ! -d "$LIBDIR/qt6" ]
 then
     LIBDIR="/usr/lib/${BASE_ARCH}-linux-gnu"
 fi
 
 # Bundle all libs
 
-# temp workaround for arch being silly
-mkdir -p share/X11
-cp -r /usr/share/X11/xkb share/X11
-
-wget --retry-connrefused --tries=30 "$LIB4BN" -O ./lib4bin
-chmod +x ./lib4bin
-xvfb-run -a -- ./lib4bin -p -v -e -s -k \
+wget --retry-connrefused --tries=30 "$SHARUN" -O ./sharun-aio
+chmod +x ./sharun-aio
+xvfb-run -a ./sharun-aio l -p -v -e -s -k \
 	../$BUILDDIR/bin/eden* \
 	$LIBDIR/lib*GL*.so* \
     $LIBDIR/libSDL2*.so* \
@@ -88,14 +90,18 @@ xvfb-run -a -- ./lib4bin -p -v -e -s -k \
 	$LIBDIR/spa-0.2/*/* \
 	$LIBDIR/alsa-lib/*
 
+rm -f ./sharun-aio
+
 # Prepare sharun
 if [ "$ARCH" = 'aarch64' ]; then
-	# allow the host vulkan to be used for aarch64 given the sed situation
+	# allow the host vulkan to be used for aarch64 given the sad situation
 	echo 'SHARUN_ALLOW_SYS_VKICD=1' > ./.env
 fi
 
-wget https://github.com/VHSgunzo/sharun/releases/download/v0.6.3/sharun-x86_64 -O sharun
-chmod a+x sharun
+# Workaround for Gentoo
+if [ -d "shared/libproxy" ]; then
+	cp shared/libproxy/* lib/
+fi
 
 ln -f ./sharun ./AppRun
 ./sharun -g
@@ -122,8 +128,3 @@ echo "Generating AppImage..."
 echo "Generating zsync file..."
 zsyncmake *.AppImage -u *.AppImage
 echo "All Done!"
-
-# Cleanup
-
-rm -rf AppDir
-rm uruntime

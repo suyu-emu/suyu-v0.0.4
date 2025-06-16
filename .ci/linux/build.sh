@@ -34,9 +34,6 @@ fi
 
 if [ "$TARGET" = "appimage" ]; then
     export EXTRA_CMAKE_FLAGS=(-DCMAKE_INSTALL_PREFIX=/usr -DYUZU_ROOM=ON -DYUZU_ROOM_STANDALONE=OFF -DYUZU_CMD=OFF)
-    # Bundle required QT wayland libraries
-    export EXTRA_QT_PLUGINS="waylandcompositor"
-    export EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so"
 else
     # For the linux-fresh verification target, verify compilation without PCH as well.
     export EXTRA_CMAKE_FLAGS=(-DYUZU_USE_PRECOMPILED_HEADERS=OFF)
