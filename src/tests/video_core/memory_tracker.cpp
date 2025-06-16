@@ -7,7 +7,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "common/alignment.h"
 #include "common/common_types.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
 

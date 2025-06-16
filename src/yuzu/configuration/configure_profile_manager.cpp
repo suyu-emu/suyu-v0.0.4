@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-#include <functional>
+#include "yuzu/configuration/configure_profile_manager.h"
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -18,8 +20,10 @@
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "ui_configure_profile_manager.h"
-#include "yuzu/configuration/configure_profile_manager.h"
 #include "yuzu/util/limitable_input_dialog.h"
+#include <algorithm>
+#include <functional>
+#include <iostream>
 
 namespace {
 // Same backup JPEG used by acc IProfile::GetImage if no jpeg found

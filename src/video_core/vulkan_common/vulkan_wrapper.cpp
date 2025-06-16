@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -141,6 +144,9 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetDepthWriteEnableEXT);
     X(vkCmdSetPrimitiveRestartEnableEXT);
     X(vkCmdSetRasterizerDiscardEnableEXT);
+    X(vkCmdSetConservativeRasterizationModeEXT);
+    X(vkCmdSetLineRasterizationModeEXT);
+    X(vkCmdSetLineStippleEnableEXT);
     X(vkCmdSetDepthBiasEnableEXT);
     X(vkCmdSetLogicOpEnableEXT);
     X(vkCmdSetDepthClampEnableEXT);

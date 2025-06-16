@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -234,6 +237,9 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetDepthWriteEnableEXT vkCmdSetDepthWriteEnableEXT{};
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT{};
     PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT{};
+    PFN_vkCmdSetConservativeRasterizationModeEXT vkCmdSetConservativeRasterizationModeEXT{};
+    PFN_vkCmdSetLineRasterizationModeEXT vkCmdSetLineRasterizationModeEXT{};
+    PFN_vkCmdSetLineStippleEnableEXT vkCmdSetLineStippleEnableEXT{};
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
     PFN_vkCmdSetLogicOpEnableEXT vkCmdSetLogicOpEnableEXT{};
     PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT{};
@@ -1429,6 +1435,21 @@ public:
 
     void SetRasterizerDiscardEnableEXT(bool enable) const noexcept {
         dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetConservativeRasterizationModeEXT(VkConservativeRasterizationModeEXT mode) const noexcept
+    {
+        dld->vkCmdSetConservativeRasterizationModeEXT(handle, mode);
+    }
+
+    void SetLineRasterizationModeEXT(VkLineRasterizationModeEXT mode) const noexcept
+    {
+        dld->vkCmdSetLineRasterizationModeEXT(handle, mode);
+    }
+
+    void SetLineStippleEnableEXT(bool enable) const noexcept
+    {
+        dld->vkCmdSetLineStippleEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
     void SetDepthBiasEnableEXT(bool enable) const noexcept {

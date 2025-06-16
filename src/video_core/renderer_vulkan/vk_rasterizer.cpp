@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -928,6 +931,7 @@ bool AccelerateDMA::BufferToImage(const Tegra::DMA::ImageCopy& copy_info,
 
 void RasterizerVulkan::UpdateDynamicStates() {
     auto& regs = maxwell3d->regs;
+
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -935,7 +939,24 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-    if (device.IsExtExtendedDynamicStateSupported()) {
+
+    const u8 dynamic_state = Settings::values.dyna_state.GetValue();
+
+    auto features = DynamicFeatures{
+        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported()
+                                      && dynamic_state > 0,
+        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported()
+                                        && dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported()
+                                              && dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported()
+                                              && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported()
+                                                && dynamic_state > 2,
+        .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
+    };
+
+    if (features.has_extended_dynamic_state) {
         UpdateCullMode(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
@@ -946,45 +967,54 @@ void RasterizerVulkan::UpdateDynamicStates() {
             UpdateDepthTestEnable(regs);
             UpdateDepthWriteEnable(regs);
             UpdateStencilTestEnable(regs);
-            if (device.IsExtExtendedDynamicState2Supported()) {
+
+            if (features.has_extended_dynamic_state_2) {
                 UpdatePrimitiveRestartEnable(regs);
                 UpdateRasterizerDiscardEnable(regs);
                 UpdateDepthBiasEnable(regs);
             }
-            if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+
+            if (features.has_extended_dynamic_state_3_enables) {
                 using namespace Tegra::Engines;
 
                 if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE
                     || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    struct In {
+                    struct In
+                    {
                         const Maxwell3D::Regs::VertexAttribute::Type d;
-                        In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
-                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
+                        In(Maxwell3D::Regs::VertexAttribute::Type n)
+                            : d(n)
+                        {}
+                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const
+                        {
                             return n.type == d;
                         }
                     };
 
-                    auto has_float = std::any_of(
-                        regs.vertex_attrib_format.begin(), regs.vertex_attrib_format.end(),
-                        In(Maxwell3D::Regs::VertexAttribute::Type::Float));
+                    auto has_float = std::any_of(regs.vertex_attrib_format.begin(),
+                                                 regs.vertex_attrib_format.end(),
+                                                 In(Maxwell3D::Regs::VertexAttribute::Type::Float));
 
                     if (regs.logic_op.enable)
                         regs.logic_op.enable = static_cast<u32>(!has_float);
 
                     UpdateLogicOpEnable(regs);
-                } else
+                } else {
                     UpdateLogicOpEnable(regs);
+                }
                 UpdateDepthClampEnable(regs);
             }
         }
-        if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
+        if (features.has_extended_dynamic_state_2_extra) {
             UpdateLogicOp(regs);
         }
-        if (device.IsExtExtendedDynamicState3Supported()) {
+        if (features.has_extended_dynamic_state_3_enables) {
             UpdateBlending(regs);
+            UpdateLineStippleEnable(regs);
+            UpdateConservativeRasterizationMode(regs);
         }
     }
-    if (device.IsExtVertexInputDynamicStateSupported()) {
+    if (features.has_dynamic_vertex_input) {
         UpdateVertexInput(regs);
     }
 }
@@ -1104,25 +1134,39 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
                         regs.zeta.format == Tegra::DepthFormat::S8Z24_UNORM ||
                         regs.zeta.format == Tegra::DepthFormat::V8Z24_UNORM;
 
-    size_t length = sizeof(NEEDS_D24) / sizeof(u64);
-    bool needs_convert = false;
-    for (size_t i = 0; i < length; ++i) {
-        if (NEEDS_D24[i] == program_id) {
-            needs_convert = true;
-            break;
+    if (is_d24 && !device.SupportsD24DepthBuffer()) {
+        static constexpr const size_t length = sizeof(NEEDS_D24) / sizeof(NEEDS_D24[0]);
+
+        static constexpr const u64 *start = NEEDS_D24;
+        static constexpr const u64 *end = NEEDS_D24 + length;
+
+        const size_t *it = std::find(start, end, program_id);
+
+        if (it != end) {
+            // the base formulas can be obtained from here:
+            //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
+            const double rescale_factor = static_cast<double>(1ULL << (32 - 24))
+                                          / (static_cast<double>(0x1.ep+127));
+            units = static_cast<float>(static_cast<double>(units) * rescale_factor);
         }
     }
 
-    if (is_d24 && !device.SupportsD24DepthBuffer() && needs_convert) {
-        // the base formulas can be obtained from here:
-        //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
-        const double rescale_factor = static_cast<double>(1ULL << (32 - 24))
-                                      / (static_cast<double>(0x1.ep+127));
-        units = static_cast<float>(static_cast<double>(units) * rescale_factor);
-    }    scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
-                      factor = regs.slope_scale_depth_bias](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetDepthBias(constant, clamp, factor);
-    });
+    scheduler.Record(
+        [constant = units, clamp = regs.depth_bias_clamp, factor = regs.slope_scale_depth_bias, this](
+            vk::CommandBuffer cmdbuf) {
+            if (device.IsExtDepthBiasControlSupported()) {
+                static VkDepthBiasRepresentationInfoEXT bias_info{
+                    .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
+                    .pNext = nullptr,
+                    .depthBiasRepresentation = VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
+                    .depthBiasExact = VK_FALSE,
+                };
+
+                cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
+            } else {
+                cmdbuf.SetDepthBias(constant, clamp, factor);
+            }
+        });
 }
 
 void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1302,6 +1346,45 @@ void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::
     scheduler.Record([disable = regs.rasterize_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetRasterizerDiscardEnableEXT(disable == 0);
     });
+}
+
+void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs)
+{
+    if (!state_tracker.TouchConservativeRasterizationMode()) {
+        return;
+    }
+
+    scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetConservativeRasterizationModeEXT(
+            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
+                   : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
+    });
+}
+
+void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs)
+{
+    if (!state_tracker.TouchLineStippleEnable()) {
+        return;
+    }
+
+    scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLineStippleEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs)
+{
+    // if (!state_tracker.TouchLi()) {
+    //     return;
+    // }
+
+    // TODO: The maxwell emulator does not capture line rasters
+
+    // scheduler.Record([enable = regs.line](vk::CommandBuffer cmdbuf) {
+    //     cmdbuf.SetConservativeRasterizationModeEXT(
+    //         enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
+    //                : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
+    // });
 }
 
 void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

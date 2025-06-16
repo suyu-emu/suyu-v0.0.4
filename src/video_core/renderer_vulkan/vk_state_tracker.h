@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -50,6 +53,8 @@ enum : u8 {
     StencilTestEnable,
     PrimitiveRestartEnable,
     RasterizerDiscardEnable,
+    ConservativeRasterizationMode,
+    LineStippleEnable,
     DepthBiasEnable,
     StateEnable,
     LogicOp,
@@ -200,9 +205,14 @@ public:
         return Exchange(Dirty::RasterizerDiscardEnable, false);
     }
 
-    bool TouchDepthBiasEnable() {
-        return Exchange(Dirty::DepthBiasEnable, false);
+    bool TouchConservativeRasterizationMode()
+    {
+        return Exchange(Dirty::ConservativeRasterizationMode, false);
     }
+
+    bool TouchLineStippleEnable() { return Exchange(Dirty::ConservativeRasterizationMode, false); }
+
+    bool TouchDepthBiasEnable() { return Exchange(Dirty::DepthBiasEnable, false); }
 
     bool TouchLogicOpEnable() {
         return Exchange(Dirty::LogicOpEnable, false);
