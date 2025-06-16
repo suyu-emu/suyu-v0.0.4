@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -38,7 +35,7 @@ object SoftwareKeyboard {
         val overlayView = emulationActivity!!.findViewById<View>(R.id.surface_input_overlay)
         val im =
             overlayView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        im.showSoftInput(overlayView, InputMethodManager.SHOW_IMPLICIT)
+        im.showSoftInput(overlayView, InputMethodManager.SHOW_FORCED)
 
         // There isn't a good way to know that the IMM is dismissed, so poll every 500ms to submit inline keyboard result.
         val handler = Handler(Looper.myLooper()!!)

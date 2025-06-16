@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -300,8 +300,8 @@ class GamePropertiesFragment : Fragment() {
             if (smallLayout) {
                 binding.listAll.updateMargins(left = leftInsets, right = rightInsets)
             } else {
-                if (binding.root.layoutDirection ==
-                    View.LAYOUT_DIRECTION_LTR
+                if (ViewCompat.getLayoutDirection(binding.root) ==
+                    ViewCompat.LAYOUT_DIRECTION_LTR
                 ) {
                     binding.listAll.updateMargins(right = rightInsets)
                     binding.iconLayout!!.updateMargins(top = barInsets.top, left = leftInsets)

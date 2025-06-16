@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 import android.annotation.SuppressLint
 import kotlin.collections.setOf
@@ -13,7 +13,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
-    kotlin("plugin.serialization") version "2.0.0-RC1"
+    kotlin("plugin.serialization") version "1.9.20"
     id("androidx.navigation.safeargs.kotlin")
     id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
     id("com.github.triplet.play") version "3.8.6"
@@ -35,7 +35,6 @@ android {
 
     buildFeatures {
         viewBinding = true
-        buildConfig = true
     }
 
     compileOptions {
@@ -63,7 +62,11 @@ android {
         targetSdk = 35
         versionName = getGitVersion()
 
-        versionCode = autoVersion
+        versionCode = if (System.getenv("AUTO_VERSIONED") == "true") {
+            autoVersion
+        } else {
+            1
+        }
 
         ndk {
             @SuppressLint("ChromeOsAbiSupport")
@@ -118,6 +121,7 @@ android {
             isDefault = true
             resValue("string", "app_name_suffixed", "eden Debug Release")
             signingConfig = signingConfigs.getByName("default")
+            isMinifyEnabled = true
             isDebuggable = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android.txt"),
@@ -193,6 +197,13 @@ ktlint {
     version.set("0.47.1")
     android.set(true)
     ignoreFailures.set(false)
+    disabledRules.set(
+        setOf(
+            "no-wildcard-imports",
+            "package-name",
+            "import-ordering"
+        )
+    )
     reporters {
         reporter(ReporterType.CHECKSTYLE)
     }
@@ -208,29 +219,29 @@ play {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.fragment:fragment-ktx:1.8.8")
-    implementation("androidx.documentfile:documentfile:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.6")
+    implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("io.coil-kt:coil:2.7.0")
+    implementation("io.coil-kt:coil:2.2.2")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
-    implementation("androidx.window:window:1.4.0")
+    implementation("androidx.window:window:1.3.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("org.commonmark:commonmark:0.22.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.0")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.0")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.9")
+    implementation("androidx.navigation:navigation-ui-ktx:2.8.9")
     implementation("info.debatty:java-string-similarity:2.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("androidx.compose.ui:ui-graphics-android:1.8.2")
-    implementation("androidx.compose.ui:ui-text-android:1.8.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("androidx.compose.ui:ui-graphics-android:1.7.8")
+    implementation("androidx.compose.ui:ui-text-android:1.7.8")
 }
 
 fun runGitCommand(command: List<String>): String {
