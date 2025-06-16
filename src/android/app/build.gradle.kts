@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright yuzu/Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 import android.annotation.SuppressLint
 import kotlin.collections.setOf
@@ -35,6 +35,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -62,11 +63,7 @@ android {
         targetSdk = 35
         versionName = getGitVersion()
 
-        versionCode = if (System.getenv("AUTO_VERSIONED") == "true") {
-            autoVersion
-        } else {
-            1
-        }
+        versionCode = autoVersion
 
         ndk {
             @SuppressLint("ChromeOsAbiSupport")
@@ -121,7 +118,6 @@ android {
             isDefault = true
             resValue("string", "app_name_suffixed", "eden Debug Release")
             signingConfig = signingConfigs.getByName("default")
-            isMinifyEnabled = true
             isDebuggable = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android.txt"),
