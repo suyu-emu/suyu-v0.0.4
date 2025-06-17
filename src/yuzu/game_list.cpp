@@ -371,40 +371,6 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    warning_layout = new QHBoxLayout;
-    pre_alpha_warning = new QLabel;
-    pre_alpha_warning->setText(
-        tr("IMPORTANT: Eden is PRE-ALPHA SOFTWARE. "
-           "Bugs and unfinished features are expected to be present at this stage."));
-    pre_alpha_warning->setWordWrap(true);
-    pre_alpha_warning->setOpenExternalLinks(true);
-    pre_alpha_warning->setStyleSheet(
-        QString::fromStdString("color: black; font-weight: bold;"));
-
-    warning_dont_show_again = new QPushButton(this);
-    warning_dont_show_again->setStyleSheet(
-        QString::fromStdString("color: #DFDFDF; background-color: #383838;"));
-    warning_dont_show_again->setText(tr("Don't Show Again"));
-    connect(warning_dont_show_again, &QPushButton::clicked, this, [=, this] {
-        Settings::values.hide_pre_alpha_warning.SetValue(true);
-
-        layout->removeWidget(warning_widget);
-        warning_widget->hide();
-    });
-
-    warning_layout->addWidget(pre_alpha_warning, 1);
-    warning_layout->addWidget(warning_dont_show_again);
-    warning_layout->setContentsMargins(3, 3, 3, 3);
-    warning_widget = new QWidget;
-    warning_widget->setStyleSheet(QString::fromStdString("background-color: khaki;"));
-    warning_widget->setLayout(warning_layout);
-
-    if (!Settings::values.hide_pre_alpha_warning.GetValue()) {
-        layout->addWidget(warning_widget);
-    } else {
-        warning_widget->hide();
-    }
-
     layout->addWidget(tree_view);
     layout->addWidget(search_field);
     setLayout(layout);

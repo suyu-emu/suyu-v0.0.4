@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -175,11 +178,6 @@ private:
     QFileSystemWatcher* watcher = nullptr;
     ControllerNavigation* controller_navigation = nullptr;
     CompatibilityList compatibility_list;
-
-    QHBoxLayout* warning_layout = nullptr;
-    QWidget* warning_widget = nullptr;
-    QPushButton* warning_dont_show_again = nullptr;
-    QLabel* pre_alpha_warning = nullptr;
 
     friend class GameListSearchField;
 
