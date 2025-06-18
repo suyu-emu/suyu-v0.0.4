@@ -42,6 +42,8 @@ add_library(common STATIC
     demangle.h
     detached_tasks.cpp
     detached_tasks.h
+    device_power_state.cpp
+    device_power_state.h
     div_ceil.h
     dynamic_library.cpp
     dynamic_library.h

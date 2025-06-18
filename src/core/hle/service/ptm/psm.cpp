@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
 
+#include "common/device_power_state.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
@@ -148,17 +152,31 @@ PSM::~PSM() = default;
 void PSM::GetBatteryChargePercentage(HLERequestContext& ctx) {
     LOG_DEBUG(Service_PTM, "called");
 
+    u32 percentage = 100;
+
+    Common::PowerStatus power_status = Common::GetPowerStatus();
+
+    if (power_status.has_battery && power_status.percentage >= 0) {
+        percentage = static_cast<u32>(power_status.percentage);
+    }
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u32>(battery_charge_percentage);
+    rb.Push<u32>(percentage);
 }
 
 void PSM::GetChargerType(HLERequestContext& ctx) {
     LOG_DEBUG(Service_PTM, "called");
 
+    ChargerType charger = ChargerType::Unplugged;
+    Common::PowerStatus power_status = Common::GetPowerStatus();
+    if (power_status.has_battery && power_status.charging) {
+        charger = ChargerType::RegularCharger;
+    }
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(charger_type);
+    rb.PushEnum(charger);
 }
 
 void PSM::OpenSession(HLERequestContext& ctx) {

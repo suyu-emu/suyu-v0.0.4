@@ -1,8 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 
 package org.yuzu.yuzu_emu
@@ -489,4 +489,9 @@ object NativeLibrary {
      * Checks if all necessary keys are present for decryption
      */
     external fun areKeysPresent(): Boolean
+
+    /**
+     * Updates the device power state to global variables
+     */
+    external fun updatePowerState(percentage: Int, isCharging: Boolean, hasBattery: Boolean)
 }

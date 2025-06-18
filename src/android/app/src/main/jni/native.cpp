@@ -1,8 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 
 #include <codecvt>
@@ -78,6 +78,11 @@ static EmulationSession s_instance;
 //Abdroid Multiplayer which can be initialized with parameters
 std::unique_ptr<AndroidMultiplayer> multiplayer{nullptr};
 std::shared_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
+
+//Power Status default values
+std::atomic<int> g_battery_percentage = {100};
+std::atomic<bool> g_is_charging = {false};
+std::atomic<bool> g_has_battery = {true};
 
 EmulationSession::EmulationSession() {
     m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
@@ -1013,5 +1018,17 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayBan
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayUnbanUser(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
     multiplayer->NetPlayUnbanUser(Common::Android::GetJString(env, username));
+}
+
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_updatePowerState(
+        JNIEnv* env,
+        jobject,
+        jint percentage,
+        jboolean isCharging,
+        jboolean hasBattery) {
+
+    g_battery_percentage.store(percentage, std::memory_order_relaxed);
+    g_is_charging.store(isCharging, std::memory_order_relaxed);
+    g_has_battery.store(hasBattery, std::memory_order_relaxed);
 }
 } // extern "C"
