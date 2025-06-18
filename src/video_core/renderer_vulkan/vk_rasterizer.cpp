@@ -1140,7 +1140,7 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
         static constexpr const u64 *start = NEEDS_D24;
         static constexpr const u64 *end = NEEDS_D24 + length;
 
-        const size_t *it = std::find(start, end, program_id);
+        const u64 *it = std::find(start, end, program_id);
 
         if (it != end) {
             // the base formulas can be obtained from here:
