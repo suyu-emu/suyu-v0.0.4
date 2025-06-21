@@ -366,7 +366,7 @@ target_sources(yuzu
 )
 
 if (APPLE)
-    set(MACOSX_ICON "../../dist/yuzu.icns")
+    set(MACOSX_ICON "../../dist/eden.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(yuzu PRIVATE ${MACOSX_ICON})
     set_target_properties(yuzu PROPERTIES MACOSX_BUNDLE TRUE)
@@ -374,7 +374,7 @@ if (APPLE)
 
     if (NOT USE_SYSTEM_MOLTENVK)
         set(MOLTENVK_PLATFORM "macOS")
-        set(MOLTENVK_VERSION "v1.2.7")
+        set(MOLTENVK_VERSION "v1.3.0")
         download_moltenvk_external(${MOLTENVK_PLATFORM} ${MOLTENVK_VERSION})
     endif()
     find_library(MOLTENVK_LIBRARY MoltenVK REQUIRED)

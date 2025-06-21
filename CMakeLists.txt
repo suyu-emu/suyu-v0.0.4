@@ -512,6 +512,8 @@ if (APPLE)
     # Umbrella framework for everything GUI-related
     find_library(COCOA_LIBRARY Cocoa)
     set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    find_library(ICONV_LIBRARY iconv REQUIRED)
+    list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
     add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)

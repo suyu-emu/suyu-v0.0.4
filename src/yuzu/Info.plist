@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
@@ -15,7 +20,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <key>CFBundleGetInfoString</key>
     <string></string>
     <key>CFBundleIconFile</key>
-    <string>yuzu.icns</string>
+    <string>eden.icns</string>
     <key>CFBundleIdentifier</key>
     <string>com.yuzu-emu.yuzu</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -23,7 +28,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     <key>CFBundleLongVersionString</key>
     <string></string>
     <key>CFBundleName</key>
-    <string>yuzu</string>
+    <string>eden</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
