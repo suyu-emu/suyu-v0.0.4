@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
@@ -15,6 +15,7 @@
 #include "core/hle/kernel/k_typed_address.h"
 #include "core/hle/kernel/physical_memory.h"
 #include "lru_cache.h"
+#include <utility>
 
 namespace Core::NCE {
 
@@ -30,6 +31,10 @@ using EntryTrampolines = std::unordered_map<ModuleTextAddress, PatchTextAddress>
 
 class Patcher {
 public:
+    Patcher(const Patcher&) = delete;
+    Patcher& operator=(const Patcher&) = delete;
+    Patcher(Patcher&& other) noexcept;
+    Patcher& operator=(Patcher&&) noexcept = delete;
     explicit Patcher();
     ~Patcher();
 
@@ -62,7 +67,7 @@ private:
     void WriteCntpctHandler(ModuleDestLabel module_dest, oaknut::XReg dest_reg);
 
 private:
-    static constexpr size_t CACHE_SIZE = 4096;  // Cache size for patch entries
+    static constexpr size_t CACHE_SIZE = 16384;  // Cache size for patch entries
     LRUCache<uintptr_t, PatchTextAddress> patch_cache{CACHE_SIZE, Settings::values.lru_cache_enabled.GetValue()};
 
     void BranchToPatch(uintptr_t module_dest) {
@@ -70,7 +75,7 @@ private:
             LOG_DEBUG(Core_ARM, "LRU cache lookup for address {:#x}", module_dest);
             // Try to get existing patch entry from cache
             if (auto* cached_patch = patch_cache.get(module_dest)) {
-                LOG_DEBUG(Core_ARM, "LRU cache hit for address {:#x}", module_dest);
+                LOG_WARNING(Core_ARM, "LRU cache hit for address {:#x}", module_dest);
                 curr_patch->m_branch_to_patch_relocations.push_back({c.offset(), *cached_patch});
                 return;
             }

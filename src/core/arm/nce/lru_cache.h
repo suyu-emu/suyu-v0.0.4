@@ -1,136 +1,187 @@
-#pragma once
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
+#pragma once
 #include <list>
-#include <unordered_map>
 #include <optional>
+#include <shared_mutex>
+#include <unordered_map>
+#include <utility>
+
 #include "common/logging/log.h"
 
-template<typename KeyType, typename ValueType>
+template <typename KeyType, typename ValueType>
 class LRUCache {
-private:
-    bool enabled = true;
-    size_t capacity;
-    std::list<KeyType> cache_list;
-    std::unordered_map<KeyType, std::pair<typename std::list<KeyType>::iterator, ValueType>> cache_map;
-
 public:
-    explicit LRUCache(size_t capacity, bool enabled = true) : enabled(enabled), capacity(capacity) {
-        cache_map.reserve(capacity);
-        LOG_WARNING(Core, "LRU Cache initialized with state: {}", enabled ? "enabled" : "disabled");
+    using key_type   = KeyType;
+    using value_type = ValueType;
+    using size_type  = std::size_t;
+
+    struct Statistics {
+        size_type hits   = 0;
+        size_type misses = 0;
+        void reset() noexcept { hits = misses = 0; }
+    };
+
+    explicit LRUCache(size_type capacity, bool enabled = true)
+        : enabled_{enabled}, capacity_{capacity} {
+        cache_map_.reserve(capacity_);
+        LOG_WARNING(Core, "LRU Cache initialised (state: {} | capacity: {})", enabled_ ? "enabled" : "disabled", capacity_);
     }
 
-    // Returns pointer to value if found, nullptr otherwise
-    ValueType* get(const KeyType& key) {
-        if (!enabled) return nullptr;
+    // Non-movable copy semantics
+    LRUCache(const LRUCache&)            = delete;
+    LRUCache& operator=(const LRUCache&) = delete;
+    LRUCache(LRUCache&& other) noexcept { *this = std::move(other); }
+    LRUCache& operator=(LRUCache&& other) noexcept {
+        if (this == &other) return *this;
+        std::unique_lock this_lock(mutex_, std::defer_lock);
+        std::unique_lock other_lock(other.mutex_, std::defer_lock);
+        std::lock(this_lock, other_lock);
+        enabled_ = other.enabled_;
+        capacity_ = other.capacity_;
+        cache_list_ = std::move(other.cache_list_);
+        cache_map_ = std::move(other.cache_map_);
+        stats_ = other.stats_;
+        return *this;
+    }
+    ~LRUCache() = default;
 
-        auto it = cache_map.find(key);
-        if (it == cache_map.end()) {
+    [[nodiscard]] value_type* get(const key_type& key) {
+        if (!enabled_) [[unlikely]] return nullptr;
+        std::unique_lock lock(mutex_);
+        auto it = cache_map_.find(key);
+        if (it == cache_map_.end()) {
+            ++stats_.misses;
             return nullptr;
         }
-
-        // Move the accessed item to the front of the list (most recently used)
-        cache_list.splice(cache_list.begin(), cache_list, it->second.first);
-        return &(it->second.second);
+        move_to_front(it);
+        ++stats_.hits;
+        return &it->second.second;
     }
 
-    // Returns pointer to value if found (without promoting it), nullptr otherwise
-    ValueType* peek(const KeyType& key) const {
-        if (!enabled) return nullptr;
-
-        auto it = cache_map.find(key);
-        return it != cache_map.end() ? &(it->second.second) : nullptr;
+    [[nodiscard]] value_type* peek(const key_type& key) const {
+        if (!enabled_) [[unlikely]] return nullptr;
+        std::shared_lock lock(mutex_);
+        auto it = cache_map_.find(key);
+        return it == cache_map_.end() ? nullptr : &it->second.second;
     }
 
-    // Inserts or updates a key-value pair
-    void put(const KeyType& key, const ValueType& value) {
-        if (!enabled) return;
+    template <typename V>
+    void put(const key_type& key, V&& value) {
+        if (!enabled_) [[unlikely]] return;
+        std::unique_lock lock(mutex_);
+        insert_or_update(key, std::forward<V>(value));
+    }
 
-        auto it = cache_map.find(key);
-
-        if (it != cache_map.end()) {
-            // Key exists, update value and move to front
-            it->second.second = value;
-            cache_list.splice(cache_list.begin(), cache_list, it->second.first);
-            return;
+    template <typename ValueFactory>
+    value_type& get_or_emplace(const key_type& key, ValueFactory&& factory) {
+        std::unique_lock lock(mutex_);
+        auto it = cache_map_.find(key);
+        if (it != cache_map_.end()) {
+            move_to_front(it);
+            return it->second.second;
         }
-
-        // Remove the least recently used item if cache is full
-        if (cache_map.size() >= capacity) {
-            auto last = cache_list.back();
-            cache_map.erase(last);
-            cache_list.pop_back();
-        }
-
-        // Insert new item at the front
-        cache_list.push_front(key);
-        cache_map[key] = {cache_list.begin(), value};
+        value_type new_value = factory();
+        insert_or_update(key, std::move(new_value));
+        return cache_map_.find(key)->second.second;
     }
 
-    // Enable or disable the LRU cache
-    void setEnabled(bool state) {
-        enabled = state;
-        LOG_WARNING(Core, "LRU Cache state changed to: {}", state ? "enabled" : "disabled");
-        if (!enabled) {
-            clear();
-        }
+    [[nodiscard]] bool contains(const key_type& key) const {
+        if (!enabled_) return false;
+        std::shared_lock lock(mutex_);
+        return cache_map_.find(key) != cache_map_.end();
     }
 
-    // Check if the cache is enabled
-    bool isEnabled() const {
-        return enabled;
-    }
-
-    // Attempts to get value, returns std::nullopt if not found
-    std::optional<ValueType> try_get(const KeyType& key) {
-        auto* val = get(key);
-        return val ? std::optional<ValueType>(*val) : std::nullopt;
-    }
-
-    // Checks if key exists in cache
-    bool contains(const KeyType& key) const {
-        if (!enabled) return false;
-        return cache_map.find(key) != cache_map.end();
-    }
-
-    // Removes a key from the cache if it exists
-    bool erase(const KeyType& key) {
-        if (!enabled) return false;
-
-        auto it = cache_map.find(key);
-        if (it == cache_map.end()) {
-            return false;
-        }
-        cache_list.erase(it->second.first);
-        cache_map.erase(it);
+    bool erase(const key_type& key) {
+        if (!enabled_) return false;
+        std::unique_lock lock(mutex_);
+        auto it = cache_map_.find(key);
+        if (it == cache_map_.end()) return false;
+        cache_list_.erase(it->second.first);
+        cache_map_.erase(it);
         return true;
     }
 
-    // Removes all elements from the cache
     void clear() {
-        cache_map.clear();
-        cache_list.clear();
+        std::unique_lock lock(mutex_);
+        cache_list_.clear();
+        cache_map_.clear();
+        stats_.reset();
     }
 
-    // Returns current number of elements in cache
-    size_t size() const {
-        return enabled ? cache_map.size() : 0;
+    [[nodiscard]] size_type size() const {
+        if (!enabled_) return 0;
+        std::shared_lock lock(mutex_);
+        return cache_map_.size();
     }
 
-    // Returns maximum capacity of cache
-    size_t get_capacity() const {
-        return capacity;
+    [[nodiscard]] size_type get_capacity() const { return capacity_; }
+
+    void resize(size_type new_capacity) {
+        if (!enabled_) return;
+        std::unique_lock lock(mutex_);
+        capacity_ = new_capacity;
+        shrink_if_needed();
+        cache_map_.reserve(capacity_);
     }
 
-    // Resizes the cache, evicting LRU items if new capacity is smaller
-    void resize(size_t new_capacity) {
-        if (!enabled) return;
+    void setEnabled(bool state) {
+        std::unique_lock lock(mutex_);
+        enabled_ = state;
+        LOG_WARNING(Core, "LRU Cache state changed to: {}", state ? "enabled" : "disabled");
+        if (!enabled_) clear();
+    }
 
-        capacity = new_capacity;
-        while (cache_map.size() > capacity) {
-            auto last = cache_list.back();
-            cache_map.erase(last);
-            cache_list.pop_back();
+    [[nodiscard]] bool isEnabled() const { return enabled_; }
+
+    [[nodiscard]] Statistics stats() const {
+        std::shared_lock lock(mutex_);
+        return stats_;
+    }
+
+private:
+    using list_type      = std::list<key_type>;
+    using list_iterator  = typename list_type::iterator;
+    using map_value_type = std::pair<list_iterator, value_type>;
+    using map_type       = std::unordered_map<key_type, map_value_type>;
+
+    template <typename V>
+    void insert_or_update(const key_type& key, V&& value) {
+        auto it = cache_map_.find(key);
+        if (it != cache_map_.end()) {
+            it->second.second = std::forward<V>(value);
+            move_to_front(it);
+            return;
         }
-        cache_map.reserve(capacity);
+        // evict LRU if full
+        if (cache_map_.size() >= capacity_) {
+            const auto& lru_key = cache_list_.back();
+            cache_map_.erase(lru_key);
+            cache_list_.pop_back();
+        }
+        cache_list_.push_front(key);
+        cache_map_[key] = {cache_list_.begin(), std::forward<V>(value)};
     }
+
+    void move_to_front(typename map_type::iterator it) {
+        cache_list_.splice(cache_list_.begin(), cache_list_, it->second.first);
+        it->second.first = cache_list_.begin();
+    }
+
+    void shrink_if_needed() {
+        while (cache_map_.size() > capacity_) {
+            const auto& lru_key = cache_list_.back();
+            cache_map_.erase(lru_key);
+            cache_list_.pop_back();
+        }
+    }
+
+private:
+    mutable std::shared_mutex mutex_;
+    bool enabled_{true};
+    size_type capacity_;
+    list_type cache_list_;
+    map_type cache_map_;
+    mutable Statistics stats_;
 };

@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/arm64/native_clock.h"
 #include "common/bit_cast.h"
@@ -13,6 +13,23 @@
 #include "core/hle/kernel/svc.h"
 
 namespace Core::NCE {
+
+Patcher::Patcher(Patcher&& other) noexcept
+    : patch_cache(std::move(other.patch_cache)),
+      m_patch_instructions(std::move(other.m_patch_instructions)),
+      c(m_patch_instructions),
+      m_save_context(other.m_save_context),
+      m_load_context(other.m_load_context),
+      mode(other.mode),
+      total_program_size(other.total_program_size),
+      m_relocate_module_index(other.m_relocate_module_index),
+      modules(std::move(other.modules)),
+      curr_patch(nullptr) {
+    if (!modules.empty()) {
+        curr_patch = &modules.back();
+    }
+}
+
 
 using namespace Common::Literals;
 using namespace oaknut::util;
