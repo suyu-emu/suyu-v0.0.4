@@ -250,6 +250,7 @@
         <item>@string/scaling_filter_gaussian</item>
         <item>@string/scaling_filter_scale_force</item>
         <item>@string/scaling_filter_fsr</item>
+        <item>@string/scaling_filter_area</item>
     </string-array>
 
     <integer-array name="rendererScalingFilterValues">
@@ -259,6 +260,7 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>6</item>
     </integer-array>
 
     <string-array name="rendererAntiAliasingNames">

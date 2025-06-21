@@ -1,8 +1,15 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/common_types.h"
 
+#include "video_core/host_shaders/present_area_frag_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
@@ -51,6 +58,11 @@ std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat fra
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              SelectScaleForceShader(device));
+}
+
+std::unique_ptr<WindowAdaptPass> MakeArea(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
+                                             BuildShader(device, PRESENT_AREA_FRAG_SPV));
 }
 
 } // namespace Vulkan

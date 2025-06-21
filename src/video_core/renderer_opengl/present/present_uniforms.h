@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,6 +16,7 @@ namespace OpenGL {
 constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
+constexpr GLint ScreenSizeLocation = 1;
 
 struct ScreenRectVertex {
     constexpr ScreenRectVertex() = default;

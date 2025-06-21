@@ -220,6 +220,7 @@ class SettingsFragmentPresenter(
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
+            // TODO(crueter): reorganize this, this is awful
             add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)

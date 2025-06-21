@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,5 +20,6 @@ std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat fra
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format);
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format);
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format);
+std::unique_ptr<WindowAdaptPass> MakeArea(const Device& device, VkFormat frame_format);
 
 } // namespace Vulkan

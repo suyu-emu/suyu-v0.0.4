@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 Torzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -42,6 +48,9 @@ void BlitScreen::SetWindowAdaptPass() {
         break;
     case Settings::ScalingFilter::ScaleForce:
         window_adapt = MakeScaleForce(device, swapchain_view_format);
+        break;
+    case Settings::ScalingFilter::Area:
+        window_adapt = MakeArea(device, swapchain_view_format);
         break;
     case Settings::ScalingFilter::Fsr:
     case Settings::ScalingFilter::Bilinear:
