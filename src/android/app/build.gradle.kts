@@ -127,7 +127,7 @@ android {
             applicationIdSuffix = ".relWithDebInfo"
             isJniDebuggable = true
         }
-
+        
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
@@ -140,13 +140,21 @@ android {
         }
     }
 
-    flavorDimensions.add("version")
-    productFlavors {
-        create("mainline") {
-            isDefault = true
-            dimension = "version"
+    android {
+        flavorDimensions.add("version")
+        productFlavors {
+            create("mainline") {
+                dimension = "version"
+                // No need to set applicationId here
+            }
+
+            create("genshinSpoof") {
+                dimension = "version"
+                applicationId = "com.miHoYo.Yuanshen"  // Correct use of applicationId inside the flavor block
+            }
         }
     }
+
 
     externalNativeBuild {
         cmake {
