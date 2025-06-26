@@ -1,0 +1,11 @@
+#!/bin/sh
+
+for i in dist/languages/*.ts; do
+    SRC=en_US
+    TARGET=`head -n1 $i | awk -F 'language="' '{split($2, a, "\""); print a[1]}'`
+
+    # requires fd
+    SOURCES=`fd . src/yuzu -tf -e ui -e cpp -e h -e plist`
+
+    lupdate -source-language $SRC -target-language $TARGET $SOURCES -ts /data/code/eden/$i
+done
