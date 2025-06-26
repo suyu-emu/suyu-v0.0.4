@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -36,6 +39,8 @@ public:
         void InitializeApplicationInfoV2(HLERequestContext& ctx);
         void BeginUserRegistration(HLERequestContext& ctx);
         void CompleteUserRegistration(HLERequestContext& ctx);
+        void DeleteUser(HLERequestContext& ctx);
+        void SetUserPosition(HLERequestContext& ctx);
         void GetProfileEditor(HLERequestContext& ctx);
         void ListQualifiedUsers(HLERequestContext& ctx);
         void ListOpenContextStoredUsers(HLERequestContext& ctx);

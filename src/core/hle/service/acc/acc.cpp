@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -646,6 +649,7 @@ public:
             {2, &IManagerForApplication::EnsureIdTokenCacheAsync, "EnsureIdTokenCacheAsync"},
             {3, &IManagerForApplication::LoadIdTokenCache, "LoadIdTokenCache"},
             {130, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCacheForApplication"},
+            {136, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCache"}, // 19.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, &IManagerForApplication::StoreOpenContext, "StoreOpenContext"},
             {170, nullptr, "LoadNetworkServiceLicenseKindAsync"},
@@ -981,6 +985,34 @@ void Module::Interface::CompleteUserRegistration(HLERequestContext& ctx) {
     LOG_INFO(Service_ACC, "called, uuid={}", user_id.FormattedString());
 
     profile_manager->WriteUserSaveFile();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void Module::Interface::DeleteUser(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
+    LOG_INFO(Service_ACC, "called, uuid={}", user_id.FormattedString());
+    if (!profile_manager->RemoveUser(user_id)) {
+        LOG_ERROR(Service_ACC, "Failed to delete user with uuid={}", user_id.RawString());
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(1U);
+        return;
+    }
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void Module::Interface::SetUserPosition(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    u64 position = rp.Pop<u64>();
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
+
+    LOG_DEBUG(Service_ACC, "called, position={} user_id={}", position, user_id.FormattedString());
+
+    profile_manager->SetUserPosition(position, user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

@@ -1,5 +1,8 @@
-// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator
+// Project// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -28,6 +31,7 @@ private:
     Result ConfirmResumeApplicationPermission(InBuffer<BufferAttr_HipcPointer> restriction_bitset,
                                               u64 nacp_flag, u64 application_id);
     Result ConfirmSnsPostPermission();
+    Result ConfirmSystemSettingsPermission();
     Result IsRestrictionTemporaryUnlocked(Out<bool> out_is_temporary_unlocked);
     Result IsRestrictedSystemSettingsEntered(Out<bool> out_is_restricted_system_settings_entered);
     Result ConfirmStereoVisionPermission();

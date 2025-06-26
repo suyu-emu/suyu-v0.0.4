@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -344,6 +347,7 @@ bool ProfileManager::RemoveUser(UUID uuid) {
                           [](const ProfileInfo& profile) { return profile.user_uuid.IsValid(); });
 
     is_save_needed = true;
+    WriteUserSaveFile();
 
     return true;
 }
@@ -360,6 +364,7 @@ bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
     profile.creation_time = profile_new.timestamp;
 
     is_save_needed = true;
+    WriteUserSaveFile();
 
     return true;
 }
@@ -370,9 +375,12 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
     if (index.has_value() && SetProfileBase(uuid, profile_new)) {
         profiles[*index].data = data_new;
         is_save_needed = true;
+        WriteUserSaveFile();
         return true;
+    } else {
+        LOG_ERROR(Service_ACC, "Failed to set profile base and data for user with UUID: {}",
+                  uuid.RawString());
     }
-
     return false;
 }
 
@@ -437,6 +445,14 @@ void ProfileManager::WriteUserSaveFile() {
     const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
 
+    if (FS::IsFile(save_path) && !FS::RemoveFile(save_path)) {
+        LOG_WARNING(Service_ACC, "Could not remove existing profiles.dat");
+        return;
+    } else {
+        LOG_INFO(Service_ACC, "Writing profiles.dat to {}",
+                 Common::FS::PathToUTF8String(save_path));
+    }
+
     if (!FS::CreateParentDirs(save_path)) {
         LOG_WARNING(Service_ACC, "Failed to create full path of profiles.dat. Create the directory "
                                  "nand/system/save/8000000000000010/su/avators to mitigate this "
@@ -454,5 +470,31 @@ void ProfileManager::WriteUserSaveFile() {
 
     is_save_needed = false;
 }
+
+void ProfileManager::SetUserPosition(u64 position, Common::UUID uuid) {
+    auto idxOpt = GetUserIndex(uuid);
+    if (!idxOpt)
+        return;
+
+    size_t oldIdx = *idxOpt;
+    if (position >= user_count || position == oldIdx)
+        return;
+
+    ProfileInfo moving = profiles[oldIdx];
+
+    if (position < oldIdx) {
+        for (size_t i = oldIdx; i > position; --i)
+            profiles[i] = profiles[i - 1];
+    } else {
+        for (size_t i = oldIdx; i < position; ++i)
+            profiles[i] = profiles[i + 1];
+    }
+
+    profiles[position] = std::move(moving);
+
+    is_save_needed = true;
+    WriteUserSaveFile();
+}
+
 
 }; // namespace Service::Account

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -44,8 +47,8 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {200, &ACC_SU::BeginUserRegistration, "BeginUserRegistration"},
         {201, &ACC_SU::CompleteUserRegistration, "CompleteUserRegistration"},
         {202, nullptr, "CancelUserRegistration"},
-        {203, nullptr, "DeleteUser"},
-        {204, nullptr, "SetUserPosition"},
+        {203, &ACC_SU::DeleteUser, "DeleteUser"},
+        {204, &ACC_SU::SetUserPosition, "SetUserPosition"},
         {205, &ACC_SU::GetProfileEditor, "GetProfileEditor"},
         {206, nullptr, "CompleteUserRegistrationForcibly"},
         {210, nullptr, "CreateFloatingRegistrationRequest"},

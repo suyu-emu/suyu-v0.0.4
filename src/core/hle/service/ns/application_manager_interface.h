@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,6 +19,7 @@ public:
     explicit IApplicationManagerInterface(Core::System& system_);
     ~IApplicationManagerInterface() override;
 
+    Result UnregisterNetworkServiceAccountWithUserSaveDataDeletion(Common::UUID user_id);
     Result GetApplicationControlData(OutBuffer<BufferAttr_HipcMapAlias> out_buffer,
                                      Out<u32> out_actual_size,
                                      ApplicationControlSource application_control_source,

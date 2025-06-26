@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,7 +24,7 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1002, D<&IParentalControlService::ConfirmLaunchApplicationPermission>, "ConfirmLaunchApplicationPermission"},
         {1003, D<&IParentalControlService::ConfirmResumeApplicationPermission>, "ConfirmResumeApplicationPermission"},
         {1004, D<&IParentalControlService::ConfirmSnsPostPermission>, "ConfirmSnsPostPermission"},
-        {1005, nullptr, "ConfirmSystemSettingsPermission"},
+        {1005, D<&IParentalControlService::ConfirmSystemSettingsPermission>, "ConfirmSystemSettingsPermission"},
         {1006, D<&IParentalControlService::IsRestrictionTemporaryUnlocked>, "IsRestrictionTemporaryUnlocked"},
         {1007, nullptr, "RevertRestrictionTemporaryUnlocked"},
         {1008, nullptr, "EnterRestrictedSystemSettings"},
@@ -238,6 +241,11 @@ Result IParentalControlService::ConfirmResumeApplicationPermission(
 Result IParentalControlService::ConfirmSnsPostPermission() {
     LOG_WARNING(Service_PCTL, "(STUBBED) called");
     R_THROW(PCTL::ResultNoFreeCommunication);
+}
+
+Result IParentalControlService::ConfirmSystemSettingsPermission() {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    R_SUCCEED();
 }
 
 Result IParentalControlService::IsRestrictionTemporaryUnlocked(

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,6 +20,7 @@ private:
     Result NotifyApplicationRightsCheckStart();
     Result GetRunningApplicationStatus(Out<u32> out_status, u64 rights_handle);
     Result VerifyActivatedRightsOwners(u64 rights_handle);
+    Result HasAccountRestrictedRightsInRunningApplications(Out<u8> out_bool);
 };
 
 } // namespace Service::NS

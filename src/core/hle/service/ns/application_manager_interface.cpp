@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -107,7 +110,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {210, nullptr, "DeleteUserSystemSaveData"},
         {211, nullptr, "DeleteSaveData"},
         {220, nullptr, "UnregisterNetworkServiceAccount"},
-        {221, nullptr, "UnregisterNetworkServiceAccountWithUserSaveDataDeletion"},
+        {221, D<&IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSaveDataDeletion>, "UnregisterNetworkServiceAccountWithUserSaveDataDeletion"},
         {300, nullptr, "GetApplicationShellEvent"},
         {301, nullptr, "PopApplicationShellEventInfo"},
         {302, nullptr, "LaunchLibraryApplet"},
@@ -312,6 +315,10 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
 
 IApplicationManagerInterface::~IApplicationManagerInterface() = default;
 
+Result IApplicationManagerInterface::UnregisterNetworkServiceAccountWithUserSaveDataDeletion(Common::UUID user_id) {
+    LOG_DEBUG(Service_NS, "called, user_id={}", user_id.FormattedString());
+    R_SUCCEED();
+}
 Result IApplicationManagerInterface::GetApplicationControlData(
     OutBuffer<BufferAttr_HipcMapAlias> out_buffer, Out<u32> out_actual_size,
     ApplicationControlSource application_control_source, u64 application_id) {
