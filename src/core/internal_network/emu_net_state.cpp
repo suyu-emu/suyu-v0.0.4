@@ -14,6 +14,8 @@
 #endif
 #include <common/settings.h>
 
+#include <mutex>
+
 namespace Network {
 
 EmuNetState& EmuNetState::Get() {
