@@ -28,11 +28,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.color.MaterialColors
-import info.debatty.java.stringsimilarity.Jaccard
-import info.debatty.java.stringsimilarity.JaroWinkler
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
@@ -43,6 +42,8 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.ViewUtils.setVisible
 import org.yuzu.yuzu_emu.utils.collect
+import info.debatty.java.stringsimilarity.Jaccard
+import info.debatty.java.stringsimilarity.JaroWinkler
 import java.util.Locale
 import androidx.core.content.edit
 import androidx.core.view.updateLayoutParams
@@ -57,9 +58,12 @@ class GamesFragment : Fragment() {
     private var originalHeaderRightMargin: Int? = null
     private var originalHeaderLeftMargin: Int? = null
 
+    private var lastViewType: Int = GameAdapter.VIEW_TYPE_GRID
+
     companion object {
         private const val SEARCH_TEXT = "SearchText"
-        private const val PREF_VIEW_TYPE = "GamesViewType"
+        private const val PREF_VIEW_TYPE_PORTRAIT = "GamesViewTypePortrait"
+        private const val PREF_VIEW_TYPE_LANDSCAPE = "GamesViewTypeLandscape"
         private const val PREF_SORT_TYPE = "GamesSortType"
     }
 
@@ -78,7 +82,18 @@ class GamesFragment : Fragment() {
             }
         }
 
+    private fun getCurrentViewType(): Int {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val key = if (isLandscape) PREF_VIEW_TYPE_LANDSCAPE else PREF_VIEW_TYPE_PORTRAIT
+        val fallback = if (isLandscape) GameAdapter.VIEW_TYPE_CAROUSEL else GameAdapter.VIEW_TYPE_GRID
+        return preferences.getInt(key, fallback)
+    }
 
+    private fun setCurrentViewType(type: Int) {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val key = if (isLandscape) PREF_VIEW_TYPE_LANDSCAPE else PREF_VIEW_TYPE_PORTRAIT
+        preferences.edit { putInt(key, type) }
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -104,36 +119,31 @@ class GamesFragment : Fragment() {
         applyGridGamesBinding()
 
         binding.swipeRefresh.apply {
-            // Add swipe down to refresh gesture
-            setOnRefreshListener {
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setOnRefreshListener {
                 gamesViewModel.reloadGames(false)
             }
-
-            // Set theme color to the refresh animation's background
-            setProgressBackgroundColorSchemeColor(
-                MaterialColors.getColor(
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setProgressBackgroundColorSchemeColor(
+                com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorPrimary
                 )
             )
-            setColorSchemeColors(
-                MaterialColors.getColor(
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setColorSchemeColors(
+                com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorOnPrimary
                 )
             )
-
-            // Make sure the loading indicator appears even if the layout is told to refresh before being fully drawn
             post {
                 if (_binding == null) {
                     return@post
                 }
-                binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value
+                (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.isRefreshing = gamesViewModel.isReloading.value
             }
         }
 
         gamesViewModel.isReloading.collect(viewLifecycleOwner) {
-            binding.swipeRefresh.isRefreshing = it
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.isRefreshing = it
             binding.noticeText.setVisible(
                 visible = gamesViewModel.games.value.isEmpty() && !it,
                 gone = false
@@ -165,20 +175,53 @@ class GamesFragment : Fragment() {
     }
 
     val applyGridGamesBinding = {
-        binding.gridGames.apply {
-            val savedViewType = preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID)
+        (binding.gridGames as? RecyclerView)?.apply {
+            val savedViewType = getCurrentViewType()
+            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val effectiveViewType = if (!isLandscape && savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
+                GameAdapter.VIEW_TYPE_GRID
+            } else {
+                savedViewType
+            }
+            gameAdapter.setViewType(effectiveViewType)
             gameAdapter.setViewType(savedViewType)
             currentFilter = preferences.getInt(PREF_SORT_TYPE, View.NO_ID)
-            adapter = gameAdapter
+            val overlapPx = resources.getDimensionPixelSize(R.dimen.carousel_overlap)
 
-            val gameGrid = when (savedViewType) {
-                GameAdapter.VIEW_TYPE_LIST -> R.integer.game_columns_list
-                GameAdapter.VIEW_TYPE_GRID -> R.integer.game_columns_grid
-                else -> 0
+            // Set the correct layout manager
+            layoutManager = when (savedViewType) {
+                GameAdapter.VIEW_TYPE_GRID -> {
+                    val columns = resources.getInteger(R.integer.game_columns_grid)
+                    GridLayoutManager(context, columns)
+                }
+                GameAdapter.VIEW_TYPE_LIST -> {
+                    val columns = resources.getInteger(R.integer.game_columns_list)
+                    GridLayoutManager(context, columns)
+                }
+                GameAdapter.VIEW_TYPE_CAROUSEL -> {
+                    LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+                }
+                else -> throw IllegalArgumentException("Invalid view type: $savedViewType")
             }
 
-            layoutManager = GridLayoutManager(requireContext(), resources.getInteger(gameGrid))
+            // Carousel mode: wait for layout, then set card size and enable carousel features
+            if (savedViewType == GameAdapter.VIEW_TYPE_CAROUSEL) {
+                post {
+                    val insets = ViewCompat.getRootWindowInsets(this)
+                    val bottomInset = insets?.getInsets(WindowInsetsCompat.Type.systemBars())?.bottom ?: 0
+                    val size = (resources.getFraction(R.fraction.carousel_card_size_multiplier, 1, 1) * (height - bottomInset)).toInt()
+                    if (size > 0) {
+                        gameAdapter.setCardSize(size)
+                        (this as? JukeboxRecyclerView)?.setCarouselMode(true, overlapPx, size)
+                    }
+                }
+            } else {
+                // Disable carousel features in other modes
+                (this as? JukeboxRecyclerView)?.setCarouselMode(false, overlapPx, 0)
+            }
 
+            adapter = gameAdapter
+            lastViewType = savedViewType
         }
     }
 
@@ -193,11 +236,10 @@ class GamesFragment : Fragment() {
         val currentSearchText = binding.searchText.text.toString()
         val currentFilter = binding.filterButton.id
 
-
         if (currentSearchText.isNotEmpty() || currentFilter != View.NO_ID) {
             filterAndSearch(games)
         } else {
-            (binding.gridGames.adapter as GameAdapter).submitList(games)
+            ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(games)
             gamesViewModel.setFilteredGames(games)
         }
     }
@@ -235,24 +277,36 @@ class GamesFragment : Fragment() {
     private fun showViewMenu(anchor: View) {
         val popup = PopupMenu(requireContext(), anchor)
         popup.menuInflater.inflate(R.menu.menu_game_views, popup.menu)
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (!isLandscape) {
+            popup.menu.findItem(R.id.view_carousel)?.isVisible = false
+        }
 
-        val currentViewType = (preferences.getInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID))
+        val currentViewType = getCurrentViewType()
         when (currentViewType) {
             GameAdapter.VIEW_TYPE_LIST -> popup.menu.findItem(R.id.view_list).isChecked = true
             GameAdapter.VIEW_TYPE_GRID -> popup.menu.findItem(R.id.view_grid).isChecked = true
+            GameAdapter.VIEW_TYPE_CAROUSEL -> popup.menu.findItem(R.id.view_carousel).isChecked = true
         }
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.view_grid -> {
-                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_GRID) }
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_GRID)
                     applyGridGamesBinding()
                     item.isChecked = true
                     true
                 }
 
                 R.id.view_list -> {
-                    preferences.edit() { putInt(PREF_VIEW_TYPE, GameAdapter.VIEW_TYPE_LIST) }
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_LIST)
+                    applyGridGamesBinding()
+                    item.isChecked = true
+                    true
+                }
+
+                R.id.view_carousel -> {
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_CAROUSEL)
                     applyGridGamesBinding()
                     item.isChecked = true
                     true
@@ -301,20 +355,18 @@ class GamesFragment : Fragment() {
                     lastPlayedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
                 }.sortedByDescending { preferences.getLong(it.keyLastPlayedTime, 0L) }
             }
-
             R.id.filter_recently_added -> {
                 baseList.filter {
                     val addedTime = preferences.getLong(it.keyAddedToLibraryTime, 0L)
                     addedTime > (System.currentTimeMillis() - 24 * 60 * 60 * 1000)
                 }.sortedByDescending { preferences.getLong(it.keyAddedToLibraryTime, 0L) }
             }
-
             else -> baseList
         }
 
         val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())
         if (searchTerm.isEmpty()) {
-            (binding.gridGames.adapter as GameAdapter).submitList(filteredList)
+            ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(filteredList)
             gamesViewModel.setFilteredGames(filteredList)
             return
         }
@@ -330,7 +382,7 @@ class GamesFragment : Fragment() {
             }
         }.sortedByDescending { it.score }.map { it.item }
 
-        (binding.gridGames.adapter as GameAdapter).submitList(sortedList)
+        ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(sortedList)
         gamesViewModel.setFilteredGames(sortedList)
     }
 
@@ -343,7 +395,6 @@ class GamesFragment : Fragment() {
         imm?.showSoftInput(binding.searchText, InputMethodManager.SHOW_IMPLICIT)
     }
 
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -351,7 +402,7 @@ class GamesFragment : Fragment() {
 
     private fun scrollToTop() {
         if (_binding != null) {
-            binding.gridGames.smoothScrollToPosition(0)
+            (binding.gridGames as? JukeboxRecyclerView)?.smoothScrollToPosition(0)
         }
     }
 
@@ -364,7 +415,7 @@ class GamesFragment : Fragment() {
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
             resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
 
-            binding.swipeRefresh.setProgressViewEndTarget(
+            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setProgressViewEndTarget(
                 false,
                 barInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )

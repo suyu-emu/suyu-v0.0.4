@@ -8,5 +8,8 @@
             android:id="@+id/view_list"
             android:title="@string/view_list"
             android:checked="true"/>
+        <item
+            android:id="@+id/view_carousel"
+            android:title="@string/view_carousel" />
     </group>
 </menu>

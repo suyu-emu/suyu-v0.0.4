@@ -232,6 +232,8 @@
     <string name="alphabetical">Alphabetical</string>
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
+    <string name="view_carousel">Carousel</string>
+    <string name="game_image_desc">Screenshot for %1$s</string>
     <string name="folder">Folder</string>
     <string name="pre_alpha_warning_title">Pre-Alpha Software</string>
     <string name="pre_alpha_warning_description">"WARNING: This software is in the pre-alpha stage and may have bugs and incomplete feature implementations."</string>

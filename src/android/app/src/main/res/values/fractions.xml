@@ -1,0 +1,6 @@
+<resources>
+    <fraction name="carousel_min_scale">60%</fraction>
+    <fraction name="carousel_min_alpha">60%</fraction>
+    <fraction name="carousel_fling_multiplier">200%</fraction>
+    <fraction name="carousel_card_size_multiplier">100%</fraction>
+</resources>
