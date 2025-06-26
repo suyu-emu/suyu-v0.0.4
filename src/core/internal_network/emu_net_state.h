@@ -4,6 +4,7 @@
 #pragma once
 #include <atomic>
 #include <common/socket_types.h>
+#include <mutex>
 
 namespace Network {
 
