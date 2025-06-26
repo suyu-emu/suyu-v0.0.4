@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -680,6 +683,14 @@ abstract class SettingsItem(
                     titleId = R.string.swkbd_applet,
                     choicesId = R.array.appletEntries,
                     valuesId = R.array.appletValues
+                )
+            )
+
+            put(
+                SwitchSetting(
+                    BooleanSetting.AIRPLANE_MODE,
+                    titleId = R.string.airplane_mode,
+                    descriptionId = R.string.airplane_mode_description
                 )
             )
         }

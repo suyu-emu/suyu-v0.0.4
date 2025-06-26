@@ -20,7 +20,8 @@ private:
     Result NotifyApplicationRightsCheckStart();
     Result GetRunningApplicationStatus(Out<u32> out_status, u64 rights_handle);
     Result VerifyActivatedRightsOwners(u64 rights_handle);
-    Result HasAccountRestrictedRightsInRunningApplications(Out<u8> out_bool);
+    Result HasAccountRestrictedRightsInRunningApplications(Out<u32> out_status,
+                                                              u64 rights_handle);
 };
 
 } // namespace Service::NS

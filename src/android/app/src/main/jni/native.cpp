@@ -269,6 +269,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
         nullptr,                     // Profile Selector
         std::move(android_keyboard), // Software Keyboard
         nullptr,                     // Web Browser
+        nullptr,                     // Net Connect
     });
 
     // Initialize filesystem.

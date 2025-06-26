@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,6 +34,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     HAPTIC_FEEDBACK("haptic_feedback"),
     SHOW_INPUT_OVERLAY("show_input_overlay"),
     TOUCHSCREEN("touchscreen"),
+    AIRPLANE_MODE("airplane_mode"),
 
     SHOW_SOC_OVERLAY("show_soc_overlay"),
     SHOW_DEVICE_MODEL("show_device_model"),

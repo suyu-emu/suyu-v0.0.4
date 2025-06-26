@@ -1859,11 +1859,12 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         system->GetUserChannel().clear();
     }
 
+
     system->SetFrontendAppletSet({
-                                     std::make_unique<QtAmiiboSettings>(*this), // Amiibo Settings
+                                     std::make_unique<QtAmiiboSettings>(*this),           // Amiibo Settings
                                      (UISettings::values.controller_applet_disabled.GetValue() == true)
                                      ? nullptr
-                                     : std::make_unique<QtControllerSelector>(*this), // Controller Selector
+                                     : std::make_unique<QtControllerSelector>(*this),     // Controller Selector
                                      std::make_unique<QtErrorDisplay>(*this),             // Error Display
                                      nullptr,                                             // Mii Editor
                                      nullptr,                                             // Parental Controls
@@ -1871,6 +1872,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                                      std::make_unique<QtProfileSelector>(*this),          // Profile Selector
                                      std::make_unique<QtSoftwareKeyboard>(*this),         // Software Keyboard
                                      std::make_unique<QtWebBrowser>(*this),               // Web Browser
+                                     nullptr,                                             // Net Connect
                                  });
 
     /** Game Updates check */

@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
 #include <memory>
@@ -22,6 +22,7 @@
 #include "core/internal_network/socket_proxy.h"
 #include "core/internal_network/sockets.h"
 #include "network/network.h"
+#include <common/settings.h>
 
 using Common::Expected;
 using Common::Unexpected;
@@ -489,6 +490,12 @@ void BSD::ExecuteWork(HLERequestContext& ctx, Work work) {
 }
 
 std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protocol) {
+
+    if (Settings::values.airplane_mode.GetValue()) {
+        LOG_ERROR(Service, "Airplane mode is enabled, cannot create socket");
+        return {-1, Errno::NOTCONN};
+    }
+
     if (type == Type::SEQPACKET) {
         UNIMPLEMENTED_MSG("SOCK_SEQPACKET errno management");
     } else if (type == Type::RAW && (domain != Domain::INET || protocol != Protocol::ICMP)) {

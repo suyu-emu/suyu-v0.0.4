@@ -1,16 +1,39 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include <filesystem>
+#include <fstream>
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nifm/nifm.h"
 #include "core/hle/service/server_manager.h"
+#include "core/internal_network/emu_net_state.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/network_interface.h"
+#include "core/internal_network/wifi_scanner.h"
 #include "network/network.h"
+
+#include <atomic>
+#include <chrono>
+#include <mutex>
+#include <thread>
+#include <unordered_set>
+#include <common/settings.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#undef CreateEvent
+#pragma push_macro("interface")
+#undef interface
+#include <wlanapi.h>
+#pragma pop_macro("interface")
+#pragma comment(lib, "wlanapi.lib")
+#endif
 
 namespace {
 
@@ -22,10 +45,28 @@ namespace {
 
 } // Anonymous namespace
 
-#include "core/internal_network/network.h"
-#include "core/internal_network/network_interface.h"
-
 namespace Service::NIFM {
+
+static u128 MakeUuidFromName(std::string_view name) {
+    constexpr u64 kOff = 0xcbf29ce484222325ULL;
+    constexpr u64 kPrime = 0x100000001b3ULL;
+
+    u64 h1 = kOff;
+    u64 h2 = kOff ^ 0x9e3779b97f4a7c15ULL;
+
+    for (unsigned char c : name) {
+        h1 ^= c;
+        h1 *= kPrime;
+
+        h2 ^= static_cast<u8>(c ^ 0x5A);
+        h2 *= kPrime;
+    }
+    if (h1 == 0 && h2 == 0)
+        h1 = 1;
+
+    return {h1, h2};
+}
+
 
 // This is nn::nifm::RequestState
 enum class RequestState : u32 {
@@ -75,6 +116,20 @@ struct DnsSetting {
 };
 static_assert(sizeof(DnsSetting) == 0x9, "DnsSetting has incorrect size.");
 
+// This is nn::nifm::detail::sf::AccessPointData (for >= 19.0.0)
+struct AccessPointDataV3 {
+    u8 ssid_len;     // Length of SSID
+    char ssid[0x20]; // SSID Name (not null-terminated)
+    u8 unk_pad[11];  // Unk
+    u8 strength;     // 0-3 = Signal Strengh Bar
+    u8 pad2[3];      // Unk 3 bytes
+    u8 visible;      // 0 = Hidden, 1 = Shows up in UI
+    u8 has_password; // 0 = Open, 1 = Password Protected
+    u8 uk1;          // Unk
+    u8 is_available; // 0 = Gray, 1 = Connectable
+};
+static_assert(sizeof(AccessPointDataV3) == 52, "AccessPointData18 must be 64 bytes");
+
 // This is nn::nifm::AuthenticationSetting
 struct AuthenticationSetting {
     bool is_enabled{};
@@ -108,7 +163,7 @@ struct SfWirelessSettingData {
     std::array<char, 0x20> ssid{};
     u8 unknown_1{};
     u8 unknown_2{};
-    u8 unknown_3{};
+    u8 is_secured{};
     std::array<char, 0x41> passphrase{};
 };
 static_assert(sizeof(SfWirelessSettingData) == 0x65, "SfWirelessSettingData has incorrect size.");
@@ -132,10 +187,10 @@ struct SfNetworkProfileData {
     IpSettingData ip_setting_data{};
     u128 uuid{};
     std::array<char, 0x40> network_name{};
-    u8 unknown_1{};
-    u8 unknown_2{};
-    u8 unknown_3{};
-    u8 unknown_4{};
+    u8 profile_type;
+    u8 interface_type;
+    u8 is_auto_connect;
+    u8 is_large_capacity;
     SfWirelessSettingData wireless_setting_data{};
     INSERT_PADDING_BYTES(1);
 };
@@ -155,26 +210,131 @@ struct NifmNetworkProfileData {
 };
 static_assert(sizeof(NifmNetworkProfileData) == 0x18E,
               "NifmNetworkProfileData has incorrect size.");
-#pragma pack(pop)
+
+struct PendingProfile {
+    std::array<char, 0x21> ssid{};
+    u8 ssid_len{};
+    std::array<char, 0x41> passphrase{};
+};
+
 
 constexpr Result ResultPendingConnection{ErrorModule::NIFM, 111};
+constexpr Result ResultInvalidInput{ErrorModule::NIFM, 112};
 constexpr Result ResultNetworkCommunicationDisabled{ErrorModule::NIFM, 1111};
+
+static std::mutex g_scan_mtx;
+static std::vector<Network::ScanData> g_last_scan_results;
+static std::mutex g_profile_mtx;
+static std::optional<PendingProfile> g_pending_profile;
 
 class IScanRequest final : public ServiceFramework<IScanRequest> {
 public:
-    explicit IScanRequest(Core::System& system_) : ServiceFramework{system_, "IScanRequest"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, nullptr, "Submit"},
-            {1, nullptr, "IsProcessing"},
-            {2, nullptr, "GetResult"},
-            {3, nullptr, "GetSystemEventReadableHandle"},
-            {4, nullptr, "SetChannels"},
-        };
-        // clang-format on
+    explicit IScanRequest(Core::System& system_)
+        : ServiceFramework{system_, "IScanRequest"}, svc_ctx{system_, "IScanRequest"} {
 
+        static const FunctionInfo functions[] = {
+            {0, &IScanRequest::Submit, "Submit"},
+            {1, &IScanRequest::IsProcessing, "IsProcessing"},
+            {2, &IScanRequest::GetResult, "GetResult"},
+            {3, &IScanRequest::GetSystemEventReadableHandle, "GetSystemEventReadableHandle"},
+            {4, &IScanRequest::SetChannels, "SetChannels"},
+        };
         RegisterHandlers(functions);
+
+        evt_scan_complete = CreateKEvent(svc_ctx, "IScanRequest:Complete");
+        evt_processing = CreateKEvent(svc_ctx, "IScanRequest:Processing");
     }
+
+    ~IScanRequest() override {
+        state.store(State::Idle);
+        svc_ctx.CloseEvent(evt_scan_complete);
+        svc_ctx.CloseEvent(evt_processing);
+        if (worker.joinable())
+            worker.join();
+    }
+
+private:
+    std::vector<Network::ScanData> scan_results;
+
+    void Submit(HLERequestContext& ctx) {
+
+        if (state.load() == State::Finished) {
+            if (worker.joinable())
+                worker.join();
+
+            state.store(State::Idle);
+            worker_result.store(ResultPendingConnection);
+        }
+
+        if (state.load() != State::Idle) {
+            IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
+            return;
+        }
+
+        state.store(State::Processing);
+        evt_processing->Signal();
+
+        worker = std::thread(&IScanRequest::WorkerThread, this);
+        IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
+    }
+
+    void IsProcessing(HLERequestContext& ctx)
+    {
+        const bool processing = state.load() == State::Processing;
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(processing);
+    }
+
+    void GetResult(HLERequestContext& ctx) {
+        const Result rc = worker_result.load();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(rc);
+    }
+
+    void GetSystemEventReadableHandle(HLERequestContext& ctx) {
+        IPC::ResponseBuilder rb{ctx, 2, 2};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(evt_scan_complete->GetReadableEvent(),
+                           evt_processing->GetReadableEvent());
+    }
+
+    void SetChannels(HLERequestContext& ctx) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+        IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
+    }
+
+    enum class State { Idle, Processing, Finished };
+
+ void WorkerThread() {
+        using namespace std::chrono_literals;
+
+        scan_results = Network::ScanWifiNetworks(3s);
+
+        {
+            std::scoped_lock lk{g_scan_mtx};
+            g_last_scan_results = scan_results;
+        }
+
+        // ❸ choose result code
+        const bool ok = !scan_results.empty();
+        Finish(ok ? ResultSuccess : ResultPendingConnection);
+    }
+
+
+    void Finish(Result rc) {
+        worker_result.store(rc);
+        state.store(State::Finished);
+        evt_scan_complete->Signal();
+    }
+
+    KernelHelpers::ServiceContext svc_ctx;
+
+    Kernel::KEvent* evt_scan_complete{};
+    Kernel::KEvent* evt_processing{};
+    std::thread worker;
+    std::atomic<State> state{State::Idle};
+    std::atomic<Result> worker_result{ResultPendingConnection};
 };
 
 class IRequest final : public ServiceFramework<IRequest> {
@@ -190,7 +350,7 @@ public:
             {5, nullptr, "SetRequirement"},
             {6, &IRequest::SetRequirementPreset, "SetRequirementPreset"},
             {8, nullptr, "SetPriority"},
-            {9, nullptr, "SetNetworkProfileId"},
+            {9, &IRequest::SetNetworkProfileId, "SetNetworkProfileId"},
             {10, nullptr, "SetRejectable"},
             {11, &IRequest::SetConnectionConfirmationOption, "SetConnectionConfirmationOption"},
             {12, nullptr, "SetPersistent"},
@@ -222,7 +382,7 @@ public:
 
 private:
     void Submit(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         if (state == RequestState::NotSubmitted) {
             UpdateState(RequestState::OnHold);
@@ -233,7 +393,7 @@ private:
     }
 
     void GetRequestState(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -250,8 +410,22 @@ private:
         rb.Push(ResultSuccess);
     }
 
+    void SetNetworkProfileId(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto ssid_length = rp.Pop<u32>();
+        if (ssid_length > 0x20) {
+            LOG_ERROR(Service_NIFM, "Invalid SSID length: {}", ssid_length);
+            IPC::ResponseBuilder{ctx, 2}.Push(ResultInvalidInput);
+            return;
+        }
+        LOG_WARNING(Service_NIFM, "(STUBBED) called, ssid_length={}", ssid_length);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(1);
+    }
+
     void GetResult(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         const auto result = [this] {
             const auto has_connection = Network::GetHostIPv4Address().has_value();
@@ -304,7 +478,7 @@ private:
 
         ctx.WriteBuffer(out_buffer);
 
-        IPC::ResponseBuilder rb{ctx, 5};
+        IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(ResultSuccess);
         rb.Push<u32>(0);
         rb.Push<u32>(0);
@@ -312,6 +486,7 @@ private:
     }
 
     void UpdateState(RequestState new_state) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
         state = new_state;
         event1->Signal();
     }
@@ -322,6 +497,10 @@ private:
 
     Kernel::KEvent* event1;
     Kernel::KEvent* event2;
+
+    std::thread connect_worker;
+    std::atomic<bool> connect_done{false};
+    std::atomic<Result> connect_result{ResultPendingConnection};
 };
 
 class INetworkProfile final : public ServiceFramework<INetworkProfile> {
@@ -364,14 +543,133 @@ void IGeneralService::CreateRequest(HLERequestContext& ctx) {
 }
 
 void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+    Network::RefreshFromHost();
+    const auto& st = Network::EmuNetState::Get();
+
+    SfNetworkProfileData profile{};
+
+    if (st.connected) {
+
+        profile.ip_setting_data.ip_address_setting.is_automatic = true;
+        profile.ip_setting_data.ip_address_setting.ip_address = st.ip;
+        profile.ip_setting_data.ip_address_setting.subnet_mask = st.mask;
+        profile.ip_setting_data.ip_address_setting.default_gateway = st.gw;
+
+        profile.ip_setting_data.dns_setting.is_automatic = true;
+        profile.ip_setting_data.dns_setting.primary_dns = {1, 1, 1, 1};
+        profile.ip_setting_data.dns_setting.secondary_dns = {8, 8, 8, 8};
+
+        profile.uuid = MakeUuidFromName(st.ssid);
+        profile.profile_type = static_cast<u8>(NetworkProfileType::User);
+        profile.interface_type = static_cast<u8>(st.via_wifi ? NetworkInterfaceType::WiFi_Ieee80211
+                                                             : NetworkInterfaceType::Ethernet);
+
+        std::strncpy(profile.network_name.data(), st.ssid, sizeof(profile.network_name) - 1);
+
+        if (st.via_wifi) {
+            profile.wireless_setting_data.ssid_length = static_cast<u8>(std::strlen(st.ssid));
+            std::memcpy(profile.wireless_setting_data.ssid.data(), st.ssid,
+                        profile.wireless_setting_data.ssid_length);
+        }
+    }
+
+    ctx.WriteBuffer(profile);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IGeneralService::EnumerateNetworkInterfaces(HLERequestContext& ctx) {
+
+    using Network::HostAdapterKind;
+
+    const auto adapters = Network::GetAvailableNetworkInterfaces();
+    constexpr size_t kEntry = 0x3F0;
+
+    std::vector<u8> blob(adapters.size() * kEntry, 0);
+
+    for (size_t i = 0; i < adapters.size(); ++i) {
+        const auto& host = adapters[i];
+        u8* const base = blob.data() + i * kEntry;
+
+        *reinterpret_cast<u32*>(base + 0x0) = host.kind == HostAdapterKind::Wifi ? 1u : 2u;
+        *reinterpret_cast<u32*>(base + 0x4) = 1u;
+
+        *reinterpret_cast<in_addr*>(base + 0x18) = host.ip_address;
+        *reinterpret_cast<in_addr*>(base + 0x1C) = host.subnet_mask;
+        *reinterpret_cast<in_addr*>(base + 0x20) = host.gateway;
+
+        std::string name_utf8 = host.name;
+        name_utf8.resize(0x110, '\0');
+        std::memcpy(base + 0x2E0, name_utf8.data(), 0x110);
+    }
+
+    const size_t guest_bytes = ctx.GetWriteBufferSize();
+    if (guest_bytes && !blob.empty())
+        ctx.WriteBuffer(blob.data(), std::min(guest_bytes, blob.size()));
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u32>(static_cast<u32>(adapters.size()));
+}
+
+void IGeneralService::EnumerateNetworkProfiles(HLERequestContext& ctx) {
+    const auto adapter = Network::GetSelectedNetworkInterface();
+
+    if (!adapter) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(0);
+        return;
+    }
+
+    const u32 count = static_cast<u32>(1);
+
+    std::vector<u128> uuids;
+    uuids.reserve(count);
+
+    uuids.push_back(MakeUuidFromName(adapter.value().name));
+
+    const size_t guest_sz = ctx.GetWriteBufferSize();
+    if (guest_sz && uuids.size()) {
+        const size_t to_copy = std::min(guest_sz, uuids.size() * sizeof(u128));
+        ctx.WriteBuffer(uuids.data(), to_copy);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(count);
+}
+
+void IGeneralService::GetNetworkProfile(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_NIFM, "GetNetworkProfile called");
+
+    IPC::RequestParser rp{ctx};
+
+    ASSERT_MSG(ctx.GetWriteBufferSize() == sizeof(SfNetworkProfileData),
+               "Caller expects SfNetworkProfileData (0x17C bytes)");
 
     const auto net_iface = Network::GetSelectedNetworkInterface();
 
-    SfNetworkProfileData network_profile_data = [&net_iface] {
+    SfNetworkProfileData profile = [&] {
         if (!net_iface) {
             return SfNetworkProfileData{};
         }
+
+        const auto& net_state = Network::EmuNetState::Get();
+
+        std::array<char, 0x40> net_name{};
+        const size_t ssid_len = std::min<size_t>(std::strlen(net_state.ssid), net_name.size());
+        std::memcpy(net_name.data(), net_state.ssid, ssid_len);
+
+        SfWirelessSettingData wifi{};
+        wifi.ssid_length = static_cast<u8>(std::min<size_t>(std::strlen(net_state.ssid), net_name.size()));
+        wifi.is_secured = !net_state.secure; //somehow reversed
+        wifi.passphrase = {"password"};
+        std::memcpy(wifi.ssid.data(), net_state.ssid, wifi.ssid_length);
+
+        LOG_INFO(Service_NIFM, "ssid={} lenght={}", wifi.ssid, wifi.ssid_length);
 
         return SfNetworkProfileData{
             .ip_setting_data{
@@ -388,63 +686,145 @@ void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
                 },
                 .proxy_setting{
                     .is_enabled{false},
-                    .port{},
-                    .proxy_server{},
-                    .authentication{
-                        .is_enabled{},
-                        .user{},
-                        .password{},
-                    },
                 },
                 .mtu{1500},
             },
-            .uuid{0xdeadbeef, 0xdeadbeef},
-            .network_name{"yuzu Network"},
-            .wireless_setting_data{
-                .ssid_length{12},
-                .ssid{"yuzu Network"},
-                .passphrase{"yuzupassword"},
-            },
+            .uuid{MakeUuidFromName(net_state.ssid)},
+            .network_name{net_name},
+            .profile_type = static_cast<u8>(NetworkProfileType::User),
+            .interface_type =
+                static_cast<u8>(net_iface->kind ==
+                                Network::HostAdapterKind::Wifi ? NetworkInterfaceType::WiFi_Ieee80211 : NetworkInterfaceType::Ethernet),
+            .wireless_setting_data{wifi}
         };
     }();
 
-    // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = Network::GetRoomMember().lock()) {
-        if (room_member->IsConnected()) {
-            network_profile_data.ip_setting_data.ip_address_setting.ip_address =
-                room_member->GetFakeIpAddress();
-        }
+    ctx.WriteBuffer(profile);
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<INetworkProfile>(system);
+}
+
+void IGeneralService::SetNetworkProfile(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_NIFM, "SetNetworkProfile called");
+
+    if (!ctx.CanReadBuffer(0) || ctx.GetReadBufferSize() < sizeof(NifmNetworkProfileData)) {
+        IPC::ResponseBuilder{ctx, 2}.Push(ResultInvalidInput);
+        return;
     }
 
-    ctx.WriteBuffer(network_profile_data);
+    const auto data = ctx.ReadBufferCopy(0);
+    const auto* np = reinterpret_cast<const NifmNetworkProfileData*>(data.data());
 
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    PendingProfile prof{};
+    prof.ssid_len = np->wireless_setting_data.ssid_length;
+    std::memcpy(prof.ssid.data(), np->wireless_setting_data.ssid.data(), prof.ssid_len);
+    std::memcpy(prof.passphrase.data(), np->wireless_setting_data.passphrase.data(),
+                sizeof(prof.passphrase));
+
+    {
+        std::scoped_lock lk{g_profile_mtx};
+        g_pending_profile = prof;
+    }
+
+    IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
 }
 
-void IGeneralService::EnumerateNetworkInterfaces(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NIFM, "(STUBBED) called.");
-
-    // TODO (jarrodnorwell)
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
-
-void IGeneralService::EnumerateNetworkProfiles(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NIFM, "(STUBBED) called.");
-
-    // TODO (jarrodnorwell)
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
-}
 
 void IGeneralService::RemoveNetworkProfile(HLERequestContext& ctx) {
     LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void IGeneralService::GetScanData(HLERequestContext& ctx) {
+    LOG_INFO(Service_NIFM, "GetScanData called");
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(0);
+}
+
+void IGeneralService::GetScanDataV2(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    std::scoped_lock lk{g_scan_mtx};
+    const auto& scans = g_last_scan_results;
+
+    const auto& net_state = Network::EmuNetState::Get();
+
+    const std::size_t guest_bytes = ctx.GetWriteBufferSize();
+    const std::size_t max_rows = guest_bytes / sizeof(AccessPointDataV3);
+    const std::size_t rows_copy = std::min<std::size_t>(scans.size(), max_rows);
+
+
+    std::vector<AccessPointDataV3> rows;
+    rows.resize(rows_copy);
+
+    auto to_bars = [](u8 q) {
+        return static_cast<u8>((q + 16) / 33); // quick maths
+    };
+
+    for (std::size_t i = 0; i < rows_copy; ++i) {
+        const Network::ScanData& s = scans[i];
+        auto& ap = rows[i];
+
+        ap.ssid_len = s.ssid_len;
+        std::memcpy(ap.ssid, s.ssid, s.ssid_len);
+        ap.strength = to_bars(s.quality);
+
+        bool is_connected = std::strncmp(net_state.ssid, ap.ssid, ap.ssid_len) == 0 &&
+                    net_state.ssid[ap.ssid_len] == '\0';
+
+        ap.visible = (is_connected) ? 0 : 1;
+        ap.has_password = (s.flags & 2) ? 2 : 1;
+        ap.is_available = 1;
+    }
+
+    if (rows_copy)
+        ctx.WriteBuffer(rows.data(), rows_copy * sizeof(AccessPointDataV3));
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<u32>(scans.size()));
+}
+
+void IGeneralService::GetScanDataV3(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    std::scoped_lock lk{g_scan_mtx};
+    const auto& scans = g_last_scan_results;
+
+    const std::size_t guest_bytes = ctx.GetWriteBufferSize();
+    const std::size_t max_rows = guest_bytes / sizeof(AccessPointDataV3);
+    const std::size_t rows_copy = std::min<std::size_t>(scans.size(), max_rows);
+
+    std::vector<AccessPointDataV3> rows;
+    rows.resize(rows_copy);
+
+    auto to_bars = [](u8 q) {
+        return static_cast<u8>((q + 16) / 33); // quick maths
+    };
+
+    for (std::size_t i = 0; i < rows_copy; ++i) {
+        const Network::ScanData& s = scans[i];
+        auto& ap = rows[i];
+
+        ap.ssid_len = s.ssid_len;
+        std::memcpy(ap.ssid, s.ssid, s.ssid_len);
+        ap.strength = to_bars(s.quality);
+        ap.visible = 1;
+        ap.has_password = (s.flags & 2) ? 2 : 1;
+        ap.is_available = 1;
+    }
+
+    if (rows_copy)
+        ctx.WriteBuffer(rows.data(), rows_copy * sizeof(AccessPointDataV3));
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<u32>(scans.size()));
 }
 
 void IGeneralService::GetCurrentIpAddress(HLERequestContext& ctx) {
@@ -456,7 +836,6 @@ void IGeneralService::GetCurrentIpAddress(HLERequestContext& ctx) {
         ipv4.emplace(Network::IPv4Address{0, 0, 0, 0});
     }
 
-    // When we're connected to a room, spoof the hosts IP address
     if (auto room_member = Network::GetRoomMember().lock()) {
         if (room_member->IsConnected()) {
             ipv4 = room_member->GetFakeIpAddress();
@@ -484,72 +863,83 @@ void IGeneralService::CreateTemporaryNetworkProfile(HLERequestContext& ctx) {
 }
 
 void IGeneralService::GetCurrentIpConfigInfo(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NIFM, "(STUBBED) called");
+    Network::RefreshFromHost();
+    const auto& st = Network::EmuNetState::Get();
 
     struct IpConfigInfo {
-        IpAddressSetting ip_address_setting{};
-        DnsSetting dns_setting{};
+        IpAddressSetting ip{};
+        DnsSetting dns{};
     };
-    static_assert(sizeof(IpConfigInfo) == sizeof(IpAddressSetting) + sizeof(DnsSetting),
-                  "IpConfigInfo has incorrect size.");
+    static_assert(sizeof(IpConfigInfo) == sizeof(IpAddressSetting) + sizeof(DnsSetting));
 
-    const auto net_iface = Network::GetSelectedNetworkInterface();
+    IpConfigInfo info{};
 
-    IpConfigInfo ip_config_info = [&net_iface] {
-        if (!net_iface) {
-            return IpConfigInfo{};
-        }
+    if (st.connected) {
+        info.ip.is_automatic = true;
+        info.ip.ip_address = st.ip;
+        info.ip.subnet_mask = st.mask;
+        info.ip.default_gateway = st.gw;
 
-        return IpConfigInfo{
-            .ip_address_setting{
-                .is_automatic{true},
-                .ip_address{Network::TranslateIPv4(net_iface->ip_address)},
-                .subnet_mask{Network::TranslateIPv4(net_iface->subnet_mask)},
-                .default_gateway{Network::TranslateIPv4(net_iface->gateway)},
-            },
-            .dns_setting{
-                .is_automatic{true},
-                .primary_dns{1, 1, 1, 1},
-                .secondary_dns{1, 0, 0, 1},
-            },
-        };
-    }();
-
-    // When we're connected to a room, spoof the hosts IP address
-    if (auto room_member = Network::GetRoomMember().lock()) {
-        if (room_member->IsConnected()) {
-            ip_config_info.ip_address_setting.ip_address = room_member->GetFakeIpAddress();
-        }
+        info.dns.is_automatic = true;
+        info.dns.primary_dns = {1, 1, 1, 1};
+        info.dns.secondary_dns = {8, 8, 8, 8};
     }
 
-    IPC::ResponseBuilder rb{ctx, 2 + (sizeof(IpConfigInfo) + 3) / sizeof(u32)};
+    IPC::ResponseBuilder rb{ctx, 2 + (sizeof(IpConfigInfo) + 3) / 4};
     rb.Push(ResultSuccess);
-    rb.PushRaw<IpConfigInfo>(ip_config_info);
+    rb.PushRaw(info);
+}
+
+void IGeneralService::SetWirelessCommunicationEnabled(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const u8 enable = rp.Pop<u8>();
+
+    Settings::values.airplane_mode.SetValue(enable == 0);
+
+    IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
 }
 
 void IGeneralService::IsWirelessCommunicationEnabled(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NIFM, "(STUBBED) called");
-
+    const bool en = !Settings::values.airplane_mode.GetValue();
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u8>(1);
+    rb.Push<u8>(en);
 }
 
 void IGeneralService::GetInternetConnectionStatus(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
+    Network::RefreshFromHost();
+
+    const auto& st = Network::EmuNetState::Get();
     struct Output {
-        u8 type{static_cast<u8>(NetworkInterfaceType::WiFi_Ieee80211)};
-        u8 wifi_strength{3};
-        InternetConnectionStatus state{InternetConnectionStatus::Connected};
+        u8 type; // 1 Wi-Fi, 2 Ethernet
+        u8 bars; // 0-3
+        InternetConnectionStatus state;
     };
-    static_assert(sizeof(Output) == 0x3, "Output has incorrect size.");
+    Output out{};
 
-    constexpr Output out{};
+    if (!st.connected) {
+        out.type = 1;
+        out.bars = 0;
+        out.state = InternetConnectionStatus::ConnectingUnknown1;
+    } else {
+        out.type = st.via_wifi ? 1 : 2;
+        out.bars = st.bars;
+        out.state = InternetConnectionStatus::Connected;
+    }
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.PushRaw(out);
+}
+
+void IGeneralService::SetEthernetCommunicationEnabled(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const u8 enable = rp.Pop<u8>();
+
+    Network::EmuNetState::Get().ethernet_enabled.store(enable != 0);
+
+    IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
 }
 
 void IGeneralService::IsEthernetCommunicationEnabled(HLERequestContext& ctx) {
@@ -615,28 +1005,18 @@ void IGeneralService::SetBackgroundRequestEnabled(HLERequestContext& ctx) {
 }
 
 void IGeneralService::GetCurrentAccessPoint(HLERequestContext& ctx) {
-    LOG_WARNING(Service_NIFM, "(STUBBED) called");
+    Network::RefreshFromHost();
 
-    struct AccessPointInfo {
-        u8 ssid_length{};
-        std::array<char, 0x20> ssid{};
-        u8 unknown_1{};
-        u8 unknown_2{};
-        u8 unknown_3{};
-        std::array<char, 0x41> passphrase{};
-    };
-    static_assert(sizeof(AccessPointInfo) == 0x65, "AccessPointInfo has incorrect size.");
+    const auto& st = Network::EmuNetState::Get();
 
-    const auto net_iface = Network::GetSelectedNetworkInterface();
-    AccessPointInfo access_point_info{};
+    AccessPointDataV3 access_point_info{};
 
-    if (net_iface) {
-        const std::string ssid = "yuzu Network";
-        access_point_info.ssid_length = static_cast<u8>(ssid.size());
-        std::memcpy(access_point_info.ssid.data(), ssid.c_str(), ssid.size());
-
-        const std::string passphrase = "yuzupassword";
-        std::memcpy(access_point_info.passphrase.data(), passphrase.c_str(), passphrase.size());
+    if (st.connected && st.via_wifi) {
+        access_point_info.ssid_len = static_cast<u8>(std::strlen(st.ssid));
+        access_point_info.strength = st.bars;
+        access_point_info.visible = 1;
+        access_point_info.is_available = 1;
+        std::memcpy(access_point_info.ssid, st.ssid, access_point_info.ssid_len);
     }
 
     ctx.WriteBuffer(access_point_info);
@@ -648,6 +1028,7 @@ void IGeneralService::GetCurrentAccessPoint(HLERequestContext& ctx) {
 IGeneralService::IGeneralService(Core::System& system_)
     : ServiceFramework{system_, "IGeneralService"} {
     // clang-format off
+
     static const FunctionInfo functions[] = {
         {1, &IGeneralService::GetClientId, "GetClientId"},
         {2, &IGeneralService::CreateScanRequest, "CreateScanRequest"},
@@ -655,18 +1036,18 @@ IGeneralService::IGeneralService(Core::System& system_)
         {5, &IGeneralService::GetCurrentNetworkProfile, "GetCurrentNetworkProfile"},
         {6, &IGeneralService::EnumerateNetworkInterfaces, "EnumerateNetworkInterfaces"},
         {7, &IGeneralService::EnumerateNetworkProfiles, "EnumerateNetworkProfiles"},
-        {8, nullptr, "GetNetworkProfile"},
-        {9, nullptr, "SetNetworkProfile"},
+        {8, &IGeneralService::GetNetworkProfile, "GetNetworkProfile"},
+        {9, &IGeneralService::SetNetworkProfile, "SetNetworkProfile"},
         {10, &IGeneralService::RemoveNetworkProfile, "RemoveNetworkProfile"},
-        {11, nullptr, "GetScanDataOld"},
+        {11, &IGeneralService::GetScanData, "GetScanDataOld"},
         {12, &IGeneralService::GetCurrentIpAddress, "GetCurrentIpAddress"},
         {13, nullptr, "GetCurrentAccessPointOld"},
         {14, &IGeneralService::CreateTemporaryNetworkProfile, "CreateTemporaryNetworkProfile"},
         {15, &IGeneralService::GetCurrentIpConfigInfo, "GetCurrentIpConfigInfo"},
-        {16, nullptr, "SetWirelessCommunicationEnabled"},
+        {16, &IGeneralService::SetWirelessCommunicationEnabled, "SetWirelessCommunicationEnabled"},
         {17, &IGeneralService::IsWirelessCommunicationEnabled, "IsWirelessCommunicationEnabled"},
         {18, &IGeneralService::GetInternetConnectionStatus, "GetInternetConnectionStatus"},
-        {19, nullptr, "SetEthernetCommunicationEnabled"},
+        {19, &IGeneralService::SetEthernetCommunicationEnabled, "SetEthernetCommunicationEnabled"},
         {20, &IGeneralService::IsEthernetCommunicationEnabled, "IsEthernetCommunicationEnabled"},
         {21, &IGeneralService::IsAnyInternetRequestAccepted, "IsAnyInternetRequestAccepted"},
         {22, &IGeneralService::IsAnyForegroundRequestAccepted, "IsAnyForegroundRequestAccepted"},
@@ -682,7 +1063,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {32, nullptr, "GetTelemetryInfo"},
         {33, &IGeneralService::ConfirmSystemAvailability, "ConfirmSystemAvailability"}, // 2.0.0+
         {34, &IGeneralService::SetBackgroundRequestEnabled, "SetBackgroundRequestEnabled"}, // 4.0.0+
-        {35, nullptr, "GetScanData"},
+        {35, &IGeneralService::GetScanDataV2, "GetScanData"},
         {36, &IGeneralService::GetCurrentAccessPoint, "GetCurrentAccessPoint"},
         {37, nullptr, "Shutdown"},
         {38, nullptr, "GetAllowedChannels"},
@@ -694,7 +1075,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {44, nullptr, "IsWiredConnectionAvailable"}, // 18.0.0+
         {45, nullptr, "IsNetworkEmulationFeatureEnabled"}, // 18.0.0+
         {46, nullptr, "SelectActiveNetworkEmulationProfileIdForDebug"}, // 18.0.0+
-        {47, nullptr, "GetActiveNetworkEmulationProfileId"}, // 18.0.0+
+        {47, &IGeneralService::GetScanDataV3, "GetScanData"}, // 19.0.0+
         {50, nullptr, "IsRewriteFeatureEnabled"}, // 18.0.0+
         {51, nullptr, "CreateRewriteRule"}, // 18.0.0+
         {52, nullptr, "DestroyRewriteRule"} // 18.0.0+

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,6 +27,7 @@ ConfigureNetwork::~ConfigureNetwork() = default;
 
 void ConfigureNetwork::ApplyConfiguration() {
     Settings::values.network_interface = ui->network_interface->currentText().toStdString();
+    Settings::values.airplane_mode = ui->airplane_mode->isChecked();
 }
 
 void ConfigureNetwork::changeEvent(QEvent* event) {
@@ -42,7 +46,11 @@ void ConfigureNetwork::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
 
     const std::string& network_interface = Settings::values.network_interface.GetValue();
+    const bool& airplane_mode = Settings::values.airplane_mode.GetValue();
 
     ui->network_interface->setCurrentText(QString::fromStdString(network_interface));
     ui->network_interface->setEnabled(runtime_lock);
+
+    ui->airplane_mode->setChecked(airplane_mode);
+    ui->network_interface->setEnabled(true);
 }

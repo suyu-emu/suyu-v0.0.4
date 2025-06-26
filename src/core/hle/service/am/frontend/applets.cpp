@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cstring>
 
@@ -10,6 +10,7 @@
 #include "core/frontend/applets/error.h"
 #include "core/frontend/applets/general.h"
 #include "core/frontend/applets/mii_edit.h"
+#include "core/frontend/applets/net_connect.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
@@ -22,6 +23,7 @@
 #include "core/hle/service/am/frontend/applet_error.h"
 #include "core/hle/service/am/frontend/applet_general.h"
 #include "core/hle/service/am/frontend/applet_mii_edit.h"
+#include "core/hle/service/am/frontend/applet_net_connect.h"
 #include "core/hle/service/am/frontend/applet_profile_select.h"
 #include "core/hle/service/am/frontend/applet_software_keyboard.h"
 #include "core/hle/service/am/frontend/applet_web_browser.h"
@@ -83,12 +85,13 @@ FrontendAppletSet::FrontendAppletSet(CabinetApplet cabinet_applet,
                                      MiiEdit mii_edit_,
                                      ParentalControlsApplet parental_controls_applet,
                                      PhotoViewer photo_viewer_, ProfileSelect profile_select_,
-                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_)
+                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_, NetConnect net_connect_)
     : cabinet{std::move(cabinet_applet)}, controller{std::move(controller_applet)},
       error{std::move(error_applet)}, mii_edit{std::move(mii_edit_)},
       parental_controls{std::move(parental_controls_applet)},
       photo_viewer{std::move(photo_viewer_)}, profile_select{std::move(profile_select_)},
-      software_keyboard{std::move(software_keyboard_)}, web_browser{std::move(web_browser_)} {}
+      software_keyboard{std::move(software_keyboard_)}, web_browser{std::move(web_browser_)},
+      net_connect{std::move(net_connect_)} {}
 
 FrontendAppletSet::~FrontendAppletSet() = default;
 
@@ -148,6 +151,10 @@ void FrontendAppletHolder::SetFrontendAppletSet(FrontendAppletSet set) {
     if (set.web_browser != nullptr) {
         frontend.web_browser = std::move(set.web_browser);
     }
+
+    if (set.net_connect != nullptr) {
+        frontend.net_connect = std::move(set.net_connect);
+    }
 }
 
 void FrontendAppletHolder::SetCabinetMode(NFP::CabinetMode mode) {
@@ -197,6 +204,10 @@ void FrontendAppletHolder::SetDefaultAppletsIfMissing() {
     if (frontend.web_browser == nullptr) {
         frontend.web_browser = std::make_unique<Core::Frontend::DefaultWebBrowserApplet>();
     }
+
+    if (frontend.net_connect == nullptr) {
+        frontend.net_connect = std::make_unique<Core::Frontend::DefaultNetConnectApplet>();
+    }
 }
 
 void FrontendAppletHolder::ClearAll() {
@@ -230,6 +241,8 @@ std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<
         return std::make_shared<WebBrowser>(system, applet, mode, *frontend.web_browser);
     case AppletId::PhotoViewer:
         return std::make_shared<PhotoViewer>(system, applet, mode, *frontend.photo_viewer);
+    case AppletId::NetConnect:
+        return std::make_shared<NetConnect>(system, applet, mode, *frontend.net_connect);
     default:
         UNIMPLEMENTED_MSG(
             "No backend implementation exists for applet_id={:02X}! Falling back to stub applet.",

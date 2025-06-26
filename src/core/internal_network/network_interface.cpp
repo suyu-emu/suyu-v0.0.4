@@ -12,6 +12,7 @@
 #include "common/polyfill_ranges.h"
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "core/internal_network/emu_net_state.h"
 #include "core/internal_network/network_interface.h"
 
 #ifdef _WIN32
@@ -27,65 +28,65 @@ namespace Network {
 #ifdef _WIN32
 
 std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
-    std::vector<IP_ADAPTER_ADDRESSES> adapter_addresses;
-    DWORD ret = ERROR_BUFFER_OVERFLOW;
-    DWORD buf_size = 0;
 
-    // retry up to 5 times
-    for (int i = 0; i < 5 && ret == ERROR_BUFFER_OVERFLOW; i++) {
-        ret = GetAdaptersAddresses(
+    ULONG buf_size = 0;
+    if (GetAdaptersAddresses(
             AF_INET, GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_INCLUDE_GATEWAYS,
-            nullptr, adapter_addresses.data(), &buf_size);
-
-        if (ret != ERROR_BUFFER_OVERFLOW) {
-            break;
-        }
-
-        adapter_addresses.resize((buf_size / sizeof(IP_ADAPTER_ADDRESSES)) + 1);
+            nullptr, nullptr, &buf_size) != ERROR_BUFFER_OVERFLOW) {
+        LOG_ERROR(Network, "GetAdaptersAddresses(overrun probe) failed");
+        return {};
     }
 
-    if (ret != NO_ERROR) {
-        LOG_ERROR(Network, "Failed to get network interfaces with GetAdaptersAddresses");
+    std::vector<u8> buffer(buf_size, 0);
+    auto* addrs = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+
+    if (GetAdaptersAddresses(
+            AF_INET, GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_INCLUDE_GATEWAYS,
+            nullptr, addrs, &buf_size) != NO_ERROR) {
+        LOG_ERROR(Network, "GetAdaptersAddresses(data) failed");
         return {};
     }
 
     std::vector<NetworkInterface> result;
 
-    for (auto current_address = adapter_addresses.data(); current_address != nullptr;
-         current_address = current_address->Next) {
-        if (current_address->FirstUnicastAddress == nullptr ||
-            current_address->FirstUnicastAddress->Address.lpSockaddr == nullptr) {
+    for (auto* a = addrs; a; a = a->Next) {
+
+        if (a->OperStatus != IfOperStatusUp || !a->FirstUnicastAddress ||
+            !a->FirstUnicastAddress->Address.lpSockaddr)
             continue;
-        }
 
-        if (current_address->OperStatus != IfOperStatusUp) {
+        const in_addr ip =
+            reinterpret_cast<sockaddr_in*>(a->FirstUnicastAddress->Address.lpSockaddr)->sin_addr;
+
+        ULONG mask_raw = 0;
+        if (ConvertLengthToIpv4Mask(a->FirstUnicastAddress->OnLinkPrefixLength, &mask_raw) !=
+            NO_ERROR)
             continue;
-        }
 
-        const auto ip_addr = Common::BitCast<struct sockaddr_in>(
-                                 *current_address->FirstUnicastAddress->Address.lpSockaddr)
-                                 .sin_addr;
+        in_addr mask{.S_un{.S_addr{mask_raw}}};
 
-        ULONG mask = 0;
-        if (ConvertLengthToIpv4Mask(current_address->FirstUnicastAddress->OnLinkPrefixLength,
-                                    &mask) != NO_ERROR) {
-            LOG_ERROR(Network, "Failed to convert IPv4 prefix length to subnet mask");
-            continue;
-        }
+        in_addr gw{.S_un{.S_addr{0}}};
+        if (a->FirstGatewayAddress && a->FirstGatewayAddress->Address.lpSockaddr)
+            gw = reinterpret_cast<sockaddr_in*>(a->FirstGatewayAddress->Address.lpSockaddr)
+                     ->sin_addr;
 
-        struct in_addr gateway = {.S_un{.S_addr{0}}};
-        if (current_address->FirstGatewayAddress != nullptr &&
-            current_address->FirstGatewayAddress->Address.lpSockaddr != nullptr) {
-            gateway = Common::BitCast<struct sockaddr_in>(
-                          *current_address->FirstGatewayAddress->Address.lpSockaddr)
-                          .sin_addr;
+        HostAdapterKind kind = HostAdapterKind::Ethernet;
+        switch (a->IfType) {
+        case IF_TYPE_IEEE80211: // 802.11 Wi-Fi
+            kind = HostAdapterKind::Wifi;
+            break;
+        default:
+            kind = HostAdapterKind::Ethernet;
+            break;
         }
 
         result.emplace_back(NetworkInterface{
-            .name{Common::UTF16ToUTF8(std::wstring{current_address->FriendlyName})},
-            .ip_address{ip_addr},
-            .subnet_mask = in_addr{.S_un{.S_addr{mask}}},
-            .gateway = gateway});
+            .name = Common::UTF16ToUTF8(std::wstring{a->FriendlyName}),
+            .ip_address = ip,
+            .subnet_mask = mask,
+            .gateway = gw,
+            .kind = kind
+        });
     }
 
     return result;
@@ -197,6 +198,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 #endif // _WIN32
 
 std::optional<NetworkInterface> GetSelectedNetworkInterface() {
+
     const auto& selected_network_interface = Settings::values.network_interface.GetValue();
     const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
     if (network_interfaces.empty()) {

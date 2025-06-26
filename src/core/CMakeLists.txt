@@ -185,6 +185,8 @@ add_library(core STATIC
     frontend/applets/general.h
     frontend/applets/mii_edit.cpp
     frontend/applets/mii_edit.h
+    frontend/applets/net_connect.cpp
+    frontend/applets/net_connect.h
     frontend/applets/profile_select.cpp
     frontend/applets/profile_select.h
     frontend/applets/software_keyboard.cpp
@@ -422,6 +424,8 @@ add_library(core STATIC
     hle/service/am/frontend/applet_mii_edit.cpp
     hle/service/am/frontend/applet_mii_edit.h
     hle/service/am/frontend/applet_mii_edit_types.h
+    hle/service/am/frontend/applet_net_connect.cpp
+    hle/service/am/frontend/applet_net_connect.h
     hle/service/am/frontend/applet_profile_select.cpp
     hle/service/am/frontend/applet_profile_select.h
     hle/service/am/frontend/applet_software_keyboard.cpp
@@ -1099,6 +1103,8 @@ add_library(core STATIC
     hle/service/vi/vi_types.h
     hle/service/vi/vsync_manager.cpp
     hle/service/vi/vsync_manager.h
+    internal_network/emu_net_state.cpp
+    internal_network/emu_net_state.h
     internal_network/network.cpp
     internal_network/network.h
     internal_network/network_interface.cpp
@@ -1106,6 +1112,8 @@ add_library(core STATIC
     internal_network/socket_proxy.cpp
     internal_network/socket_proxy.h
     internal_network/sockets.h
+    internal_network/wifi_scanner.cpp
+    internal_network/wifi_scanner.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/kip.cpp
@@ -1141,6 +1149,20 @@ add_library(core STATIC
     tools/renderdoc.cpp
     tools/renderdoc.h
 )
+
+if (UNIX AND NOT APPLE AND NOT ANDROID)
+    # find_package(libiw REQUIRED)
+    target_link_libraries(core PRIVATE iw)
+endif()
+
+if (WIN32)
+    target_compile_definitions(core PRIVATE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
+
+    if(TARGET iw)
+        target_link_libraries(core PRIVATE iw)
+        message(STATUS "Linking 'core' with iw on Linux.")
+    endif()
+endif()
 
 if (MSVC)
     target_compile_options(core PRIVATE
@@ -1230,6 +1252,7 @@ else()
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_none.cpp)
 endif()
+
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(core PRIVATE precompiled_headers.h)

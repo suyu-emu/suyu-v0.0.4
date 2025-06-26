@@ -966,6 +966,9 @@
 
     <string name="swkbd_applet">Software Keyboard</string>
 
+    <string name="airplane_mode">Airplane Mode</string>
+    <string name="airplane_mode_description">Passes Airplane Mode to the Switch OS</string>
+
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>
     <string name="license_fidelityfx_fsr" translatable="false">FidelityFX-FSR</string>
