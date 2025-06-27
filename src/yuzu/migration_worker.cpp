@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "migration_worker.h"
 
 #include <QMap>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <filesystem>
+#include <qdebug.h>
 
 #include "common/fs/path_util.h"
 
@@ -19,16 +23,17 @@ MigrationWorker::MigrationWorker(const Emulator selected_legacy_emu_,
 void MigrationWorker::process()
 {
     namespace fs = std::filesystem;
-    const auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
+    constexpr auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
 
-    std::string legacy_user_dir   = selected_legacy_emu.get_user_dir();
-    std::string legacy_config_dir = selected_legacy_emu.get_config_dir();
-    std::string legacy_cache_dir  = selected_legacy_emu.get_cache_dir();
+    const fs::path legacy_user_dir   = selected_legacy_emu.get_user_dir();
+    const fs::path legacy_config_dir = selected_legacy_emu.get_config_dir();
+    const fs::path legacy_cache_dir  = selected_legacy_emu.get_cache_dir();
 
-    fs::path eden_dir   = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
-    fs::path config_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
-    fs::path cache_dir  = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
-    fs::path shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    // TODO(crueter): Make these constexpr since they're defaulted
+    const fs::path eden_dir   = Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir);
+    const fs::path config_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
+    const fs::path cache_dir  = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
+    const fs::path shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
 
     try {
         fs::remove_all(eden_dir);
@@ -61,6 +66,14 @@ void MigrationWorker::process()
             fs::create_directory_symlink(legacy_cache_dir, cache_dir);
         }
 #endif
+
+        success_text.append(tr("\n\nNote that your configuration and data will be shared with %1.\n"
+                               "If this is not desirable, delete the following files:\n%2\n%3\n%4")
+                                .arg(tr(selected_legacy_emu.name),
+                                     QString::fromStdString(eden_dir.string()),
+                                     QString::fromStdString(config_dir.string()),
+                                     QString::fromStdString(cache_dir.string())));
+
         break;
     case MigrationStrategy::Move:
         // Rename directories if deletion is requested (achieves the same result)
@@ -83,6 +96,9 @@ void MigrationWorker::process()
         // Default behavior: copy
         fs::copy(legacy_user_dir, eden_dir, copy_options);
 
+// Windows doesn't need any more copies, because cache and config
+// are already children of the root directory
+#ifndef WIN32
         if (fs::is_directory(legacy_config_dir)) {
             fs::copy(legacy_config_dir, config_dir, copy_options);
         }
@@ -90,11 +106,12 @@ void MigrationWorker::process()
         if (fs::is_directory(legacy_cache_dir)) {
             fs::copy(legacy_cache_dir, cache_dir, copy_options);
         }
+#endif
 
         success_text.append(tr("\n\nIf you wish to clean up the files which were left in the old "
                                "data location, you can do so by deleting the following directory:\n"
                                "%1")
-                                .arg(QString::fromStdString(legacy_user_dir)));
+                                .arg(QString::fromStdString(legacy_user_dir.string())));
         break;
     }
 
@@ -104,5 +121,5 @@ void MigrationWorker::process()
         fs::create_directory(shader_dir);
     }
 
-    emit finished(success_text, legacy_user_dir);
+    emit finished(success_text, legacy_user_dir.string());
 }

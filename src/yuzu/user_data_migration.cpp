@@ -85,9 +85,11 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
 
     BUTTON(QCheckBox, clear_shaders, "Clear Shader Cache", clear_shader_tooltip, true)
 
+    u32 id = 0;
+
 #define RADIO(name, text, tooltip, checkState) \
     BUTTON(QRadioButton, name, text, tooltip, checkState) \
-    group->addButton(name);
+    group->addButton(name, ++id);
 
     RADIO(keep_old, "Keep Old Data", keep_old_data_tooltip, true)
     RADIO(clear_old, "Clear Old Data", clear_old_data_tooltip, false)
@@ -136,16 +138,17 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow *main_window)
     }
 
     MigrationWorker::MigrationStrategy strategy;
+
     switch (group->checkedId()) {
     default:
         [[fallthrough]];
-    case 0:
+    case 1:
         strategy = MigrationWorker::MigrationStrategy::Copy;
         break;
-    case 1:
+    case 2:
         strategy = MigrationWorker::MigrationStrategy::Move;
         break;
-    case 2:
+    case 3:
         strategy = MigrationWorker::MigrationStrategy::Link;
         break;
     }
