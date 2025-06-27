@@ -70,16 +70,16 @@ if [ "$FIX" = "true" ]; then
     done
 
     echo "License headers fixed."
+
+    if [ "$COMMIT" = "true" ]; then
+        echo
+        echo "COMMIT set to true. Committing changes."
+        echo
+
+        git commit -m "Fix license headers"
+
+        echo "Changes committed. You may now push."
+    fi
+else
+    exit 1
 fi
-
-if [ "$COMMIT" = "true" ]; then
-    echo
-    echo "COMMIT set to true. Committing changes."
-    echo
-
-    git commit -m "Fix license headers"
-
-    echo "Changes committed. You may now push."
-fi
-
-exit
