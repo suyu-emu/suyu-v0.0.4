@@ -259,6 +259,25 @@ struct Values {
                                               true,
                                               &use_fast_cpu_time};
 
+    SwitchableSetting<bool> use_custom_cpu_ticks{linkage,
+                                                 false,
+                                                 "use_custom_cpu_ticks",
+                                                 Category::Cpu,
+                                                 Specialization::Paired,
+                                                 true,
+                                                 true};
+
+    SwitchableSetting<u32, true> cpu_ticks{linkage,
+                                           16000,
+                                           77,
+                                           65535,
+                                           "cpu_ticks",
+                                           Category::Cpu,
+                                           Specialization::Countable,
+                                           true,
+                                           true,
+                                           &use_custom_cpu_ticks};
+
     SwitchableSetting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::CpuDebug};
 
     Setting<bool> cpuopt_page_tables{linkage, true, "cpuopt_page_tables", Category::CpuDebug};

@@ -106,6 +106,13 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Overclocks the emulated CPU to remove some FPS limiters. Weaker CPUs may see reduced performance, "
               "and certain games may behave improperly.\nUse Boost (1700MHz) to run at the Switch's highest native "
               "clock, or Fast (2000MHz) to run at 2x clock."));
+
+    INSERT(Settings, use_custom_cpu_ticks, QString(), QString());
+    INSERT(Settings,
+           cpu_ticks,
+           tr("Custom CPU Ticks"),
+           tr("Set a custom value of CPU ticks. Higher values can increase performance, but may "
+              "also cause the game to freeze. A range of 77–21000 is recommended."));
     INSERT(Settings, cpu_backend, tr("Backend:"), QString());
 
     // Cpu Debug

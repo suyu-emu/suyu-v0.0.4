@@ -582,6 +582,22 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.USE_CUSTOM_CPU_TICKS,
+                    titleId = R.string.custom_cpu_ticks,
+                    descriptionId = R.string.custom_cpu_ticks_description
+                )
+            )
+            put(
+                SliderSetting(
+                    IntSetting.CPU_TICKS,
+                    titleId = R.string.cpu_ticks,
+                    descriptionId = 0,
+                    min = 77,
+                    max = 65535
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
                     titleId = R.string.renderer_reactive_flushing,
                     descriptionId = R.string.renderer_reactive_flushing_description
