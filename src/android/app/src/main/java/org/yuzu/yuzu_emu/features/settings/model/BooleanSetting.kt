@@ -41,6 +41,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_DEVICE_MODEL("show_device_model"),
     SHOW_GPU_MODEL("show_gpu_model"),
     SHOW_SOC_MODEL("show_soc_model"),
+    SHOW_FW_VERSION("show_firmware_version"),
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
 

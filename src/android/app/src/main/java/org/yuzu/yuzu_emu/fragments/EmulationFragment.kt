@@ -1,9 +1,8 @@
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
 
@@ -752,6 +751,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             if (sb.isNotEmpty()) sb.append(" | ")
                             sb.append(Build.SOC_MODEL)
                         }
+                    }
+
+                    if (BooleanSetting.SHOW_FW_VERSION.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                        if (sb.isNotEmpty()) sb.append(" | ")
+                        sb.append(NativeLibrary.firmwareVersion())
                     }
 
                     binding.showSocOverlayText.text = sb.toString()

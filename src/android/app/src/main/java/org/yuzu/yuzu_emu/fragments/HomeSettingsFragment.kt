@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -137,7 +137,7 @@ class HomeSettingsFragment : Fragment() {
                         binding.root.findNavController()
                             .navigate(R.id.action_homeSettingsFragment_to_appletLauncherFragment)
                     },
-                    { NativeLibrary.isFirmwareAvailable() },
+                    { NativeLibrary.isFirmwareAvailable() && NativeLibrary.isFirmwareSupported() },
                     R.string.applets_error_firmware,
                     R.string.applets_error_description
                 )

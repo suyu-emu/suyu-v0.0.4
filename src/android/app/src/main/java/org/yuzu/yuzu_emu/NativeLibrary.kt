@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.Keep
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import net.swiftzer.semver.SemVer
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.fragments.CoreErrorDialogFragment
@@ -406,6 +407,26 @@ object NativeLibrary {
      * @return 'true' if firmware is available
      */
     external fun isFirmwareAvailable(): Boolean
+
+    /**
+     * Gets the firmware version.
+     *
+     * @return Reported firmware version
+     */
+    external fun firmwareVersion(): String
+
+    fun isFirmwareSupported(): Boolean {
+        var version: SemVer
+
+        try {
+            version = SemVer.parse(firmwareVersion())
+        } catch (_: Exception) {
+            return false
+        }
+        val max = SemVer(19, 0, 1)
+
+        return version <= max
+    }
 
     /**
      * Checks the PatchManager for any addons that are available

@@ -58,6 +58,8 @@
     <string name="show_gpu_model_description">Display the host GPU model</string>
     <string name="show_soc_model">Show SoC Model</string>
     <string name="show_soc_model_description">Display the host SoC model</string>
+    <string name="show_fw_version">Show Firmware Version</string>
+    <string name="show_fw_version_description">Display the installed firmware version</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Eden’s Veil</string>
@@ -220,6 +222,9 @@
     <string name="keys">Keys</string>
     <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
     <string name="select_keys">Select Keys</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Select your &lt;b>firmware.zip&lt;/b> file with the button below.\nEden currently requires version &lt;b>19.0.1&lt;/b> or below.</string>
+    <string name="select_firmware">Select Firmware</string>
     <string name="games">Games</string>
     <string name="games_description">Select your &lt;b>Games&lt;/b> folder with the button below.</string>
     <string name="done">Done</string>
@@ -232,6 +237,8 @@
     <string name="step_complete">Complete!</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
+
     <string name="alphabetical">Alphabetical</string>
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
@@ -262,6 +269,9 @@
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
+    <string name="install_firmware_warning">Skip adding firmware?</string>
+    <string name="install_firmware_warning_description">Many games require access to firmware to run properly.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_description">Grant the notification permission with the button below.</string>
     <string name="give_permission">Grant permission</string>
@@ -357,18 +367,24 @@
     <string name="no_save_data_found">No save data found</string>
     <string name="verify_installed_content">Verify installed content</string>
     <string name="verify_installed_content_description">Checks all installed content for corruption</string>
+
     <string name="keys_missing">Encryption keys are missing</string>
     <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
+
+    <string name="firmware_missing">Firmware is missing or too new</string>
+    <string name="firmware_missing_description">Some games may not function properly. Eden requires firmware 19.0.1 or below.</string>
+    <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Launch applications from the system home screen</string>
     <string name="applets">Applet launcher</string>
     <string name="applets_description">Launch system applets using installed firmware</string>
-    <string name="applets_error_firmware">Firmware not installed</string>
+    <string name="applets_error_firmware">Firmware not installed or invalid version</string>
     <string name="applets_error_applet">Applet not available</string>
-    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.]]></string>
+    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and
+ <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.<br>Additionally, ensure your firmware is of version 19.0.1 or older.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">See images stored in the user screenshots folder with the system photo viewer</string>
     <string name="mii_edit_applet">Mii edit</string>

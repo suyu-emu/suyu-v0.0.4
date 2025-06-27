@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
@@ -129,7 +129,7 @@ class SetupFragment : Fragment() {
                         0,
                         {
                             if (NotificationManagerCompat.from(requireContext())
-                                .areNotificationsEnabled()
+                                    .areNotificationsEnabled()
                             ) {
                                 StepState.COMPLETE
                             } else {
@@ -166,6 +166,32 @@ class SetupFragment : Fragment() {
                     }
                 )
             )
+            add(
+                SetupPage(
+                    R.drawable.ic_firmware,
+                    R.string.firmware,
+                    R.string.firmware_description,
+                    R.drawable.ic_add,
+                    true,
+                    R.string.select_firmware,
+                    {
+                        firmwareCallback = it
+                        getFirmware.launch(arrayOf("application/zip"))
+                    },
+                    true,
+                    R.string.install_firmware_warning,
+                    R.string.install_firmware_warning_description,
+                    R.string.install_firmware_warning_help,
+                    {
+                        if (NativeLibrary.isFirmwareAvailable()) {
+                            StepState.COMPLETE
+                        } else {
+                            StepState.INCOMPLETE
+                        }
+                    }
+                )
+            )
+
             add(
                 SetupPage(
                     R.drawable.ic_controller,
@@ -321,6 +347,7 @@ class SetupFragment : Fragment() {
         }
 
     private lateinit var keyCallback: SetupCallback
+    private lateinit var firmwareCallback: SetupCallback
 
     val getProdKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
@@ -328,6 +355,17 @@ class SetupFragment : Fragment() {
                 mainActivity.processKey(result)
                 if (NativeLibrary.areKeysPresent()) {
                     keyCallback.onStepCompleted()
+                }
+            }
+        }
+
+    val getFirmware =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result != null) {
+                mainActivity.processFirmware(result) {
+                    if (NativeLibrary.isFirmwareAvailable()) {
+                        firmwareCallback.onStepCompleted()
+                    }
                 }
             }
         }

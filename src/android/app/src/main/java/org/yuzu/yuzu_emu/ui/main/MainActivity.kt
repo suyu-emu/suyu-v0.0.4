@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.ui.main
@@ -62,6 +62,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private val CHECKED_DECRYPTION = "CheckedDecryption"
     private var checkedDecryption = false
 
+    private val CHECKED_FIRMWARE = "CheckedFirmware"
+    private var checkedFirmware = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { !DirectoryInitialization.areDirectoriesReady }
@@ -76,15 +79,25 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         if (savedInstanceState != null) {
             checkedDecryption = savedInstanceState.getBoolean(CHECKED_DECRYPTION)
+            checkedFirmware = savedInstanceState.getBoolean(CHECKED_FIRMWARE)
         }
         if (!checkedDecryption) {
             val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
                 .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
             if (!firstTimeSetup) {
                 checkKeys()
-                showPreAlphaWarningDialog()
             }
             checkedDecryption = true
+        }
+
+        if (!checkedFirmware) {
+            val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
+            if (!firstTimeSetup) {
+                checkFirmware()
+                showPreAlphaWarningDialog()
+            }
+            checkedFirmware = true
         }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -135,6 +148,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (it) checkKeys()
         }
 
+        homeViewModel.checkFirmware.collect(this, resetState = { homeViewModel.setCheckFirmware(false) }) {
+            if (it) checkFirmware()
+        }
+
         setInsets()
     }
 
@@ -175,9 +192,21 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
     }
 
+    private fun checkFirmware() {
+        if (!NativeLibrary.isFirmwareAvailable() || !NativeLibrary.isFirmwareSupported()) {
+            MessageDialogFragment.newInstance(
+                titleId = R.string.firmware_missing,
+                descriptionId = R.string.firmware_missing_description,
+                helpLinkId = R.string.firmware_missing_help
+            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+        }
+    }
+
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(CHECKED_DECRYPTION, checkedDecryption)
+        outState.putBoolean(CHECKED_FIRMWARE, checkedFirmware)
     }
 
     fun finishSetup(navController: NavController) {
@@ -306,6 +335,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     Toast.LENGTH_SHORT
                 ).show()
                 homeViewModel.setCheckKeys(true)
+                homeViewModel.setCheckFirmware(true)
                 gamesViewModel.reloadGames(true)
                 return true
             } else {
@@ -327,47 +357,55 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
             }
 
-            val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
-
-            val firmwarePath =
-                File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
-            val cacheFirmwareDir = File("${cacheDir.path}/registered/")
-
-            ProgressDialogFragment.newInstance(
-                this,
-                R.string.firmware_installing
-            ) { progressCallback, _ ->
-                var messageToShow: Any
-                try {
-                    FileUtil.unzipToInternalStorage(
-                        result.toString(),
-                        cacheFirmwareDir,
-                        progressCallback
-                    )
-                    val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
-                    val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
-                    messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
-                        MessageDialogFragment.newInstance(
-                            this,
-                            titleId = R.string.firmware_installed_failure,
-                            descriptionId = R.string.firmware_installed_failure_description
-                        )
-                    } else {
-                        firmwarePath.deleteRecursively()
-                        cacheFirmwareDir.copyRecursively(firmwarePath, true)
-                        NativeLibrary.initializeSystem(true)
-                        homeViewModel.setCheckKeys(true)
-                        getString(R.string.save_file_imported_success)
-                    }
-                } catch (e: Exception) {
-                    Log.error("[MainActivity] Firmware install failed - ${e.message}")
-                    messageToShow = getString(R.string.fatal_error)
-                } finally {
-                    cacheFirmwareDir.deleteRecursively()
-                }
-                messageToShow
-            }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+            processFirmware(result)
         }
+
+    fun processFirmware(result: Uri, onComplete: (() -> Unit)? = null) {
+        val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
+
+        val firmwarePath =
+            File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
+        val cacheFirmwareDir = File("${cacheDir.path}/registered/")
+
+        ProgressDialogFragment.newInstance(
+            this,
+            R.string.firmware_installing
+        ) { progressCallback, _ ->
+            var messageToShow: Any
+            try {
+                FileUtil.unzipToInternalStorage(
+                    result.toString(),
+                    cacheFirmwareDir,
+                    progressCallback
+                )
+                val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
+                val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
+                messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
+                    MessageDialogFragment.newInstance(
+                        this,
+                        titleId = R.string.firmware_installed_failure,
+                        descriptionId = R.string.firmware_installed_failure_description
+                    )
+                } else {
+                    firmwarePath.deleteRecursively()
+                    cacheFirmwareDir.copyRecursively(firmwarePath, true)
+                    NativeLibrary.initializeSystem(true)
+                    homeViewModel.setCheckKeys(true)
+                    homeViewModel.setCheckFirmware(true)
+                    getString(R.string.save_file_imported_success)
+                }
+            } catch (e: Exception) {
+                Log.error("[MainActivity] Firmware install failed - ${e.message}")
+                messageToShow = getString(R.string.fatal_error)
+            } finally {
+                cacheFirmwareDir.deleteRecursively()
+            }
+            messageToShow
+        }.apply {
+            onDialogComplete = onComplete
+        }.show(supportFragmentManager, ProgressDialogFragment.TAG)
+    }
+
     fun uninstallFirmware() {
         val firmwarePath = File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
         ProgressDialogFragment.newInstance(
@@ -382,6 +420,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     // Optionally reinitialize the system or perform other necessary steps
                     NativeLibrary.initializeSystem(true)
                     homeViewModel.setCheckKeys(true)
+                    homeViewModel.setCheckFirmware(true)
                     messageToShow = getString(R.string.firmware_uninstalled_success)
                 } else {
                     messageToShow = getString(R.string.firmware_uninstalled_failure)

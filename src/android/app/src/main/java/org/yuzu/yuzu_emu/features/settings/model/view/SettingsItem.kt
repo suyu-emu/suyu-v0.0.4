@@ -460,6 +460,14 @@ abstract class SettingsItem(
                     descriptionId = R.string.show_soc_model_description
                 )
             )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_FW_VERSION,
+                    titleId = R.string.show_fw_version,
+                    descriptionId = R.string.show_fw_version_description
+                )
+            )
+
 
             put(
                 SingleChoiceSetting(

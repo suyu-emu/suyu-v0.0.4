@@ -7,16 +7,9 @@ license_header = <<~EOF
       EOF
 
 print 'Getting branch changes...'
-puts "\n"
 branch_name = `git rev-parse --abbrev-ref HEAD`.chomp
-print branch_name
-puts "\n"
 branch_commits = `git log #{branch_name} --not master --pretty=format:"%h"`.split("\n")
-print branch_commits
-puts "\n"
 branch_commit_range = "#{branch_commits[-1]}^..#{branch_commits[0]}"
-print branch_commit_range
-puts "\n"
 branch_changed_files = `git diff-tree --no-commit-id --name-only #{branch_commit_range} -r`.split("\n")
 puts 'done'
 

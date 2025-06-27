@@ -462,6 +462,9 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
 
+    // Check firmware
+    OnCheckFirmware();
+
     game_list->LoadCompatibilityList();
     // force reload on first load to ensure add-ons get updated
     game_list->PopulateAsync(UISettings::values.game_dirs, false);
@@ -4326,6 +4329,7 @@ void GMainWindow::OnInstallFirmware() {
 
     progress.close();
     OnCheckFirmwareDecryption();
+    OnCheckFirmware();
 }
 
 void GMainWindow::OnInstallDecryptionKeys() {
@@ -4404,6 +4408,7 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     OnCheckFirmwareDecryption();
+    OnCheckFirmware();
 }
 
 void GMainWindow::OnAbout() {
@@ -5065,6 +5070,34 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     }
     SetFirmwareVersion();
     UpdateMenuState();
+}
+
+void GMainWindow::OnCheckFirmware()
+{
+    if (!CheckFirmwarePresence()) {
+        QMessageBox::warning(
+                    this, tr("Firmware Missing"),
+                    tr("Firmware missing. Firmware is required to run certain games and use the Home Menu.\n"
+                       "Eden only works with firmware 19.0.1 and earlier."));
+    } else {
+        Service::Set::FirmwareVersionFormat firmware_data{};
+        const auto result = Service::Set::GetFirmwareVersionImpl(
+                    firmware_data, *system, Service::Set::GetFirmwareVersionType::Version2);
+
+        if (result.IsError()) {
+            LOG_INFO(Frontend, "Unable to read firmware");
+            QMessageBox::warning(
+                        this, tr("Firmware Corrupted"),
+                        tr("Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary."));
+            return;
+        }
+
+        if (firmware_data.major > 19) {
+            QMessageBox::warning(
+                        this, tr("Firmware Too New"),
+                        tr("Firmware is too new. Eden only works with firmware 19.0.1 and earlier."));
+        }
+    }
 }
 
 bool GMainWindow::CheckFirmwarePresence() {

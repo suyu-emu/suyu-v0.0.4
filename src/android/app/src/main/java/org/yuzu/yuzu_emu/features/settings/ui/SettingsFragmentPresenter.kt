@@ -271,6 +271,8 @@ class SettingsFragmentPresenter(
             if (Build.VERSION.SDK_INT >= 31) {
                 add(BooleanSetting.SHOW_SOC_MODEL.key)
             }
+
+            add(BooleanSetting.SHOW_FW_VERSION.key)
         }
     }
 

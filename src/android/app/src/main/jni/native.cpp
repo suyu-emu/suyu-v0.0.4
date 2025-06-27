@@ -57,6 +57,7 @@
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/set/system_settings_server.h"
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
 #include "hid_core/frontend/emulated_controller.h"
@@ -762,20 +763,45 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass cl
         static_cast<Service::NFP::CabinetMode>(jcabinetMode));
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+bool isFirmwarePresent() {
     auto bis_system =
-        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+            EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         return false;
     }
 
     // Query an applet to see if it's available
     auto applet_nca =
-        bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
+            bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
     if (!applet_nca) {
         return false;
     }
     return true;
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+    return isFirmwarePresent();
+}
+
+// TODO(crueter): This check is nonfunctional...
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclass clazz) {
+    Service::Set::FirmwareVersionFormat firmware_data{};
+    const auto result = Service::Set::GetFirmwareVersionImpl(
+            firmware_data, EmulationSession::GetInstance().System(),
+            Service::Set::GetFirmwareVersionType::Version2);
+
+    if (result.IsError() || !isFirmwarePresent()) {
+        LOG_INFO(Frontend, "Installed firmware: No firmware available");
+
+        return Common::Android::ToJString(env, "N/A");
+    }
+
+    const std::string display_version(firmware_data.display_version.data());
+    const std::string display_title(firmware_data.display_title.data());
+
+    LOG_INFO(Frontend, "Installed firmware: {}", display_title);
+
+    return Common::Android::ToJString(env, display_version);
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env, jobject jobj,

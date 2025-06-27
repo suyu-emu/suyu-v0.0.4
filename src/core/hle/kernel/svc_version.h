@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -50,8 +53,8 @@ constexpr inline u32 RequiredKernelVersion =
 
 // This is the highest SVC version supported, to be updated on new kernel releases.
 // NOTE: Official kernel versions have SVC major = SDK major + 4, SVC minor = SDK minor.
-constexpr inline u32 SupportedKernelMajorVersion = ConvertToSvcMajorVersion(15);
-constexpr inline u32 SupportedKernelMinorVersion = ConvertToSvcMinorVersion(3);
+constexpr inline u32 SupportedKernelMajorVersion = ConvertToSvcMajorVersion(20);
+constexpr inline u32 SupportedKernelMinorVersion = ConvertToSvcMinorVersion(5);
 constexpr inline u32 SupportedKernelVersion =
     EncodeKernelVersion(SupportedKernelMajorVersion, SupportedKernelMinorVersion);
 

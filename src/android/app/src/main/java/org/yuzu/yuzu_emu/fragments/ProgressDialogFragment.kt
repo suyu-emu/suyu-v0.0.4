@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -27,6 +31,8 @@ class ProgressDialogFragment : DialogFragment() {
     private lateinit var binding: DialogProgressBarBinding
 
     private val PROGRESS_BAR_RESOLUTION = 1000
+
+    var onDialogComplete: (() -> Unit)? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val titleId = requireArguments().getInt(TITLE)
@@ -119,6 +125,11 @@ class ProgressDialogFragment : DialogFragment() {
             binding.progressBar.isIndeterminate = true
             taskViewModel.setCancelled(true)
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onDialogComplete?.invoke()
     }
 
     companion object {
