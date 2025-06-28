@@ -491,11 +491,6 @@ void BSD::ExecuteWork(HLERequestContext& ctx, Work work) {
 
 std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protocol) {
 
-    if (Settings::values.airplane_mode.GetValue()) {
-        LOG_ERROR(Service, "Airplane mode is enabled, cannot create socket");
-        return {-1, Errno::NOTCONN};
-    }
-
     if (type == Type::SEQPACKET) {
         UNIMPLEMENTED_MSG("SOCK_SEQPACKET errno management");
     } else if (type == Type::RAW && (domain != Domain::INET || protocol != Protocol::ICMP)) {
@@ -527,6 +522,11 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
 
     descriptor.socket->Initialize(Translate(domain), Translate(type), Translate(protocol));
     descriptor.is_connection_based = IsConnectionBased(type);
+
+    if (Settings::values.airplane_mode.GetValue() && descriptor.is_connection_based) {
+        LOG_ERROR(Service, "Airplane mode is enabled, cannot create socket");
+        return {-1, Errno::NOTCONN};
+    }
 
     return {fd, Errno::SUCCESS};
 }

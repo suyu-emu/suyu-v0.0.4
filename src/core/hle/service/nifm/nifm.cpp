@@ -428,7 +428,8 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         const auto result = [this] {
-            const auto has_connection = Network::GetHostIPv4Address().has_value();
+            const auto has_connection = Network::GetHostIPv4Address().has_value() &&
+                                        !Settings::values.airplane_mode.GetValue();
             switch (state) {
             case RequestState::NotSubmitted:
                 return has_connection ? ResultSuccess : ResultNetworkCommunicationDisabled;
@@ -947,7 +948,7 @@ void IGeneralService::IsEthernetCommunicationEnabled(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    if (Network::GetHostIPv4Address().has_value()) {
+    if (Network::GetHostIPv4Address().has_value() && !Settings::values.airplane_mode.GetValue()) {
         rb.Push<u8>(1);
     } else {
         rb.Push<u8>(0);
@@ -959,7 +960,7 @@ void IGeneralService::IsAnyInternetRequestAccepted(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    if (Network::GetHostIPv4Address().has_value()) {
+    if (Network::GetHostIPv4Address().has_value() && !Settings::values.airplane_mode.GetValue()) {
         rb.Push<u8>(1);
     } else {
         rb.Push<u8>(0);

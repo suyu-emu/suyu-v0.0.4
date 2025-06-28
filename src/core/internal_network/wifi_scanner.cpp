@@ -11,20 +11,22 @@
 
 using namespace std::chrono_literals;
 
-namespace Network {
-
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
 #include <wlanapi.h>
 #pragma comment(lib, "wlanapi.lib")
+#endif
 
+namespace Network {
+
+#ifdef _WIN32
 static u8 QualityToPercent(DWORD q) {
     return static_cast<u8>(q);
 }
 
-static std::vector<ScanData> ScanWifiWin(std::chrono::milliseconds deadline) {
-    std::vector<ScanData> out;
+static std::vector<Network::ScanData> ScanWifiWin(std::chrono::milliseconds deadline) {
+    std::vector<Network::ScanData> out;
 
     HANDLE hClient{};
     DWORD ver{};
@@ -57,7 +59,7 @@ static std::vector<ScanData> ScanWifiWin(std::chrono::milliseconds deadline) {
 
             for (DWORD n = 0; n < list->dwNumberOfItems; ++n) {
                 const auto& nw = list->Network[n];
-                ScanData sd{};
+                Network::ScanData sd{};
                 sd.ssid_len = static_cast<u8>(nw.dot11Ssid.uSSIDLength);
                 std::memcpy(sd.ssid, nw.dot11Ssid.ucSSID, sd.ssid_len);
                 sd.quality = QualityToPercent(nw.wlanSignalQuality);
@@ -112,8 +114,8 @@ static int wifi_callback(int skfd, char* ifname, char* args[], int count)
 }
 
 // TODO(crueter, Maufeat): Check if driver supports wireless extensions, fallback to nl80211 if not
-static std::vector<ScanData> ScanWifiLinux(std::chrono::milliseconds deadline) {
-    std::vector<ScanData> out;
+static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds deadline) {
+    std::vector<Network::ScanData> out;
     int sock = iw_sockets_open();
     if (sock < 0) {
         LOG_ERROR(Network, "iw_sockets_open() failed");
@@ -152,7 +154,7 @@ static std::vector<ScanData> ScanWifiLinux(std::chrono::milliseconds deadline) {
             if (!ws->b.has_essid)
                 continue;
 
-            ScanData sd{};
+            Network::ScanData sd{};
             sd.ssid_len = static_cast<u8>(std::min<int>(ws->b.essid_len, 0x20));
             std::memcpy(sd.ssid, ws->b.essid, sd.ssid_len);
             sd.quality = QualityToPercent(range, ws);
@@ -172,7 +174,7 @@ static std::vector<ScanData> ScanWifiLinux(std::chrono::milliseconds deadline) {
 }
 #endif /* linux */
 
-std::vector<ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
+std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
 #ifdef _WIN32
     return ScanWifiWin(deadline);
 #elif defined(__linux__) && !defined(ANDROID)

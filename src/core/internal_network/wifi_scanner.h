@@ -18,5 +18,5 @@ struct ScanData {
 };
 static_assert(sizeof(ScanData) <= 0x2C, "ScanData layout changed – update conversions!");
 
-std::vector<ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline);
+std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline);
 }
