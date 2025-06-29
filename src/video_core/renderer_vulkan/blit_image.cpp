@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -189,9 +192,25 @@ constexpr VkPipelineDepthStencilStateCreateInfo PIPELINE_DEPTH_STENCIL_STATE_CRE
     .depthWriteEnable = VK_TRUE,
     .depthCompareOp = VK_COMPARE_OP_ALWAYS,
     .depthBoundsTestEnable = VK_FALSE,
-    .stencilTestEnable = VK_FALSE,
-    .front = VkStencilOpState{},
-    .back = VkStencilOpState{},
+    .stencilTestEnable = VK_TRUE,
+    .front = VkStencilOpState{
+        .failOp = VK_STENCIL_OP_REPLACE,
+        .passOp = VK_STENCIL_OP_REPLACE,
+        .depthFailOp = VK_STENCIL_OP_KEEP,
+        .compareOp = VK_COMPARE_OP_ALWAYS,
+        .compareMask = 0x0,
+        .writeMask = 0xFFFFFFFF,
+        .reference = 0x00,
+    },
+    .back = VkStencilOpState{
+        .failOp = VK_STENCIL_OP_REPLACE,
+        .passOp = VK_STENCIL_OP_REPLACE,
+        .depthFailOp = VK_STENCIL_OP_KEEP,
+        .compareOp = VK_COMPARE_OP_ALWAYS,
+        .compareMask = 0x0,
+        .writeMask = 0xFFFFFFFF,
+        .reference = 0x00,
+    },
     .minDepthBounds = 0.0f,
     .maxDepthBounds = 0.0f,
 };
