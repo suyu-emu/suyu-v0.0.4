@@ -137,6 +137,7 @@ void Layer::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {
         .pQueueFamilyIndices = nullptr,
     };
 
+    buffer.reset();
     buffer = memory_allocator.CreateBuffer(ci, MemoryUsage::Upload);
 }
 

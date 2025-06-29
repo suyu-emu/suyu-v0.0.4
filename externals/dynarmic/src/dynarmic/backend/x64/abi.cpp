@@ -116,18 +116,13 @@ void ABI_PopCallerSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size
     ABI_PopRegistersAndAdjustStack(code, frame_size, ABI_ALL_CALLER_SAVE);
 }
 
-static consteval size_t ABI_AllCallerSaveSize() noexcept {
-    return ABI_ALL_CALLER_SAVE.max_size();
-}
-static consteval std::array<HostLoc, ABI_AllCallerSaveSize() - 1> ABI_AllCallerSaveExcept(const std::size_t except) noexcept {
-    std::array<HostLoc, ABI_AllCallerSaveSize() - 1> arr;
-    for(std::size_t i = 0; i < arr.size(); ++i) {
-        arr[i] = static_cast<HostLoc>(i + (i >= except ? 1 : 0));
-    }
+static std::vector<HostLoc> ABI_AllCallerSaveExcept(const std::size_t except) noexcept {
+    std::vector<HostLoc> arr;
+    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(arr), static_cast<HostLoc>(except));
     return arr;
 }
 
-alignas(64) static constinit std::array<HostLoc, ABI_AllCallerSaveSize() - 1> ABI_CALLER_SAVED_EXCEPT_TABLE[32] = {
+alignas(64) static std::vector<HostLoc> ABI_CALLER_SAVED_EXCEPT_TABLE[32] = {
     ABI_AllCallerSaveExcept(0),
     ABI_AllCallerSaveExcept(1),
     ABI_AllCallerSaveExcept(2),
@@ -163,24 +158,12 @@ alignas(64) static constinit std::array<HostLoc, ABI_AllCallerSaveSize() - 1> AB
 };
 
 void ABI_PushCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
-#ifdef _MSC_VER
-    std::vector<HostLoc> regs;
-    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
-    ABI_PushRegistersAndAdjustStack(code, 0, regs);
-#else
     ASSUME(size_t(exception) < 32);
     ABI_PushRegistersAndAdjustStack(code, 0, ABI_CALLER_SAVED_EXCEPT_TABLE[size_t(exception)]);
-#endif
 }
 
 void ABI_PopCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
-#ifdef _MSC_VER
-    std::vector<HostLoc> regs;
-    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
-    ABI_PopRegistersAndAdjustStack(code, 0, regs);
-#else
     ASSUME(size_t(exception) < 32);
     ABI_PopRegistersAndAdjustStack(code, 0, ABI_CALLER_SAVED_EXCEPT_TABLE[size_t(exception)]);
-#endif
 }
 }  // namespace Dynarmic::Backend::X64

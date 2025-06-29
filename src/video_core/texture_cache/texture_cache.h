@@ -78,6 +78,9 @@ void TextureCache<P>::RunGarbageCollector() {
     size_t num_iterations = 0;
 
     const auto Configure = [&](bool allow_aggressive) {
+#ifdef ANDROID
+        high_priority_mode = true;
+#endif
         high_priority_mode = total_used_memory >= expected_memory;
         aggressive_mode = allow_aggressive && total_used_memory >= critical_memory;
         ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
