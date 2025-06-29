@@ -17,6 +17,11 @@ else
     export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DYUZU_USE_BUNDLED_QT=OFF)
 fi
 
+if [ "$WINDEPLOYQT" == "" ]; then
+    echo "You must supply the WINDEPLOYQT environment variable."
+    exit 1
+fi
+
 export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" $@)
 
 mkdir -p build && cd build
@@ -36,6 +41,7 @@ cmake .. -G Ninja \
 
 ninja
 
-windeployqt --release --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler --no-system-d3d-compiler --dir pkg bin/eden.exe
+$WINDEPLOYQT --release --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler --no-system-d3d-compiler --dir pkg bin/eden.exe
 
-find pkg -type f -name "*.pdb" -exec rm -fv {} +
+set +e
+find pkg -type f -name "*.pdb" -exec rm -fv {} + \; || true
