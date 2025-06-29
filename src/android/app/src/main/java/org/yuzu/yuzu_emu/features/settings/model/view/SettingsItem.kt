@@ -153,6 +153,13 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.RENDERER_SAMPLE_SHADING,
+                    titleId = R.string.sample_shading,
+                    descriptionId = R.string.sample_shading_description
+                )
+            )
+            put(
                 SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,
                     titleId = R.string.frame_limit_slider,

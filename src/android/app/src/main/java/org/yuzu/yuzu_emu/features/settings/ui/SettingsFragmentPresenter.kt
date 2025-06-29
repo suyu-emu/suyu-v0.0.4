@@ -435,6 +435,7 @@ class SettingsFragmentPresenter(
             add(ByteSetting.RENDERER_DYNA_STATE.key)
             add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
             add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
+            add(BooleanSetting.RENDERER_SAMPLE_SHADING.key)
 
             add(HeaderSetting(R.string.veil_renderer))
             add(BooleanSetting.FRAME_INTERPOLATION.key)
