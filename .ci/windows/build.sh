@@ -36,6 +36,6 @@ cmake .. -G Ninja \
 
 ninja
 
-windeployqt6 --release --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler --no-system-d3d-compiler --dir pkg bin/eden.exe
+windeployqt --release --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler --no-system-d3d-compiler --dir pkg bin/eden.exe
 
 find pkg -type f -name "*.pdb" -exec rm -fv {} +
