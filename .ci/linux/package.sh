@@ -1,4 +1,4 @@
-#!/bin/sh -ex
+#!/bin/sh -e
 
 # SPDX-FileCopyrightText: 2025 eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -7,18 +7,38 @@
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 export BASE_ARCH="$(uname -m)"
-export ARCH="$BASE_ARCH"
-
-export BUILDDIR="$2"
 
 SHARUN="https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-${BASE_ARCH}-aio"
 URUNTIME="https://github.com/VHSgunzo/uruntime/releases/latest/download/uruntime-appimage-dwarfs-${BASE_ARCH}"
 
-if [ "$ARCH" = 'x86_64' ]; then
-	if [ "$1" = 'v3' ]; then
-		ARCH="${ARCH}_v3"
-	fi
-fi
+case "$1" in
+    amd64|"")
+        echo "Packaging amd64-v3 optimized build of Eden"
+        ARCH="amd64_v3"
+        ;;
+    steamdeck)
+        echo "Packaging Steam Deck (Zen 2) optimized build of Eden"
+        ARCH="steamdeck"
+        ;;
+    rog-ally|allyx)
+        echo "Packaging ROG Ally X (Zen 4) optimized build of Eden"
+        ARCH="rog-ally-x"
+        ;;
+    legacy)
+        echo "Packaging amd64 generic build of Eden"
+        ARCH=amd64
+        ;;
+    aarch64)
+        echo "Packaging armv8-a build of Eden"
+        ARCH=aarch64
+        ;;
+    armv9)
+        echo "Packaging armv9-a build of Eden"
+        ARCH=armv9
+        ;;
+esac
+
+export BUILDDIR="$2"
 
 if [ "$BUILDDIR" = '' ]
 then
@@ -26,7 +46,7 @@ then
 fi
 
 EDEN_TAG=$(git describe --tags --abbrev=0)
-echo "Making stable \"$EDEN_TAG\" build"
+echo "Making \"$EDEN_TAG\" build"
 # git checkout "$EDEN_TAG"
 VERSION="$(echo "$EDEN_TAG")"
 
@@ -39,13 +59,12 @@ cp ../dist/org.eden_emu.eden.svg .
 
 ln -sf ./org.eden_emu.eden.svg ./.DirIcon
 
-# TODO(crueter): Nightly
+UPINFO='gh-releases-zsync|eden-emulator|Releases|latest|*.AppImage.zsync'
+
 if [ "$DEVEL" = 'true' ]; then
 	sed -i 's|Name=Eden|Name=Eden Nightly|' ./org.eden_emu.eden.desktop
- 	UPINFO="$(echo "$UPINFO" | sed 's|latest|nightly|')"
+ 	UPINFO="$(echo "$UPINFO" | sed 's|Releases|nightly|')"
 fi
-
-UPINFO='gh-releases-zsync|eden-emulator|Releases|latest|*.AppImage.zsync'
 
 LIBDIR="/usr/lib"
 
@@ -68,7 +87,7 @@ chmod +x ./sharun-aio
 xvfb-run -a ./sharun-aio l -p -v -e -s -k \
 	../$BUILDDIR/bin/eden* \
 	$LIBDIR/lib*GL*.so* \
-    $LIBDIR/libSDL2*.so* \
+  $LIBDIR/libSDL2*.so* \
 	$LIBDIR/dri/* \
 	$LIBDIR/vdpau/* \
 	$LIBDIR/libvulkan* \

@@ -1,5 +1,7 @@
 @echo off
 
+REM TODO: make this a shell script...
+
 set chain=%1
 
 if not defined DevEnvDir (
@@ -16,7 +18,8 @@ CALL cmake -S . -B build\%chain% ^
 -DYUZU_USE_QT_MULTIMEDIA=ON ^
 -DYUZU_USE_QT_WEB_ENGINE=ON ^
 -DYUZU_USE_BUNDLED_VCPKG=ON ^
--DYUZU_USE_BUNDLED_SDL2=ON ^
+-DYUZU_USE_BUNDLED_SDL2=OFF ^
+-DYUZU_USE_EXTERNAL_SDL2=ON ^
 -DYUZU_ENABLE_LTO=ON ^
 -G "Ninja" ^
 -DYUZU_TESTS=OFF 
