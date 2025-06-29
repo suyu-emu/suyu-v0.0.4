@@ -46,4 +46,4 @@ find bin -type f -name "*.pdb" -exec rm -fv {} + \; || true
 set -e
 
 $WINDEPLOYQT --release --no-compiler-runtime --no-opengl-sw --no-system-dxc-compiler --no-system-d3d-compiler --dir pkg bin/eden.exe
-
+cp bin/*.exe pkg
