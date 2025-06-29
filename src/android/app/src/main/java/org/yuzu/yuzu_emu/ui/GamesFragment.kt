@@ -119,16 +119,16 @@ class GamesFragment : Fragment() {
         applyGridGamesBinding()
 
         binding.swipeRefresh.apply {
-            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setOnRefreshListener {
+            (binding.swipeRefresh as? SwipeRefreshLayout)?.setOnRefreshListener {
                 gamesViewModel.reloadGames(false)
             }
-            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setProgressBackgroundColorSchemeColor(
+            (binding.swipeRefresh as? SwipeRefreshLayout)?.setProgressBackgroundColorSchemeColor(
                 com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorPrimary
                 )
             )
-            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setColorSchemeColors(
+            (binding.swipeRefresh as? SwipeRefreshLayout)?.setColorSchemeColors(
                 com.google.android.material.color.MaterialColors.getColor(
                     binding.swipeRefresh,
                     com.google.android.material.R.attr.colorOnPrimary
@@ -138,12 +138,12 @@ class GamesFragment : Fragment() {
                 if (_binding == null) {
                     return@post
                 }
-                (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.isRefreshing = gamesViewModel.isReloading.value
+                (binding.swipeRefresh as? SwipeRefreshLayout)?.isRefreshing = gamesViewModel.isReloading.value
             }
         }
 
         gamesViewModel.isReloading.collect(viewLifecycleOwner) {
-            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.isRefreshing = it
+            (binding.swipeRefresh as? SwipeRefreshLayout)?.isRefreshing = it
             binding.noticeText.setVisible(
                 visible = gamesViewModel.games.value.isEmpty() && !it,
                 gone = false
@@ -415,7 +415,7 @@ class GamesFragment : Fragment() {
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
             resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
 
-            (binding.swipeRefresh as? MidScreenSwipeRefreshLayout)?.setProgressViewEndTarget(
+            (binding.swipeRefresh as? SwipeRefreshLayout)?.setProgressViewEndTarget(
                 false,
                 barInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )
