@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 We're in need of developers. Please join our chat below or DM a developer if you want to contribute as part of the team, one-time or infrequent contributions can be done through the Git. 
 
-This repo is currently based on Yuzu EA 4176 (with multiple commits borrowed from the Sudachi, Torzu, Ziunx, Citron/Uzuy and Nozomi projects) but the code will be "evolved" from the ground up to combat legal and performance related concerns.
+This repo is currently based on Eden with the code being "evolved" from the core upward to combat legal and performance related concerns.
 
 Our only website is suyu.dev so please be cautious when using other sites offering downloads for builds relating to suyu and other emulators.
 
