@@ -21,7 +21,6 @@ extern "C" {
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
-#include <libavutil/pixdesc.h>
 #include <libavcodec/codec_internal.h>
 
 #if defined(__GNUC__) || defined(__clang__)

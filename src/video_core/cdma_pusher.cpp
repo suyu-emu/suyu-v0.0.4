@@ -20,9 +20,6 @@ CDmaPusher::CDmaPusher(Host1x::Host1x& host1x_, s32 id)
     : host1x{host1x_}, memory_manager{host1x.GMMU()},
       host_processor{std::make_unique<Host1x::Control>(host1x_)}, current_class{
                                                                       static_cast<ChClassId>(id)} {
-#ifdef ANDROID
-    std::this_thread::sleep_for(std::chrono::milliseconds{500}); // HACK: Fix for Astroneer - doesn't always start without this delay. Happens on Windows too (but rarer)
-#endif
     thread = std::jthread([this](std::stop_token stop_token) { ProcessEntries(stop_token); });
 }
 

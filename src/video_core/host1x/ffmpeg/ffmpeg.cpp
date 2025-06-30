@@ -237,23 +237,16 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
     if (m_codec_context->hw_device_ctx) {
         // If we have a hardware context, make a separate frame here to receive the
         // hardware result before sending it to the output.
-        std::shared_ptr<Frame> intermediate_frame = std::make_shared<Frame>();
+        Frame intermediate_frame;
 
-        if (!receive(intermediate_frame->GetFrame())) {
+        if (!receive(intermediate_frame.GetFrame())) {
             return {};
 		}
 		
-        const auto fmt = intermediate_frame->GetPixelFormat();
-        const auto desc = av_pix_fmt_desc_get(fmt);
-        if (desc && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
-		    m_temp_frame->SetFormat(PreferredGpuFormat);
-            if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
-                LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
-                return {};
-            }
-        }
-        else {
-            m_temp_frame = std::move(intermediate_frame);
+		m_temp_frame->SetFormat(PreferredGpuFormat);
+        if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame.GetFrame(), 0); ret < 0) {
+            LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
+            return {};
         }
     } else {
         // Otherwise, decode the frame as normal.

@@ -22,6 +22,7 @@ public:
     void Push(T&& object) {
         elements[index].push_back(std::move(object));
     }
+
 private:
     size_t index = 0;
     std::array<std::vector<T>, TICKS_TO_DESTROY> elements;

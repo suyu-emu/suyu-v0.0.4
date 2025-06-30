@@ -156,11 +156,7 @@ template <class P>
 class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInfo> {
     // Page size for caching purposes.
     // This is unrelated to the CPU page size and it can be changed as it seems optimal.
-#ifdef ANDROID
-    static constexpr u32 CACHING_PAGEBITS = 12;
-#else
     static constexpr u32 CACHING_PAGEBITS = 16;
-#endif
     static constexpr u64 CACHING_PAGESIZE = u64{1} << CACHING_PAGEBITS;
 
     static constexpr bool IS_OPENGL = P::IS_OPENGL;
@@ -174,15 +170,9 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     static constexpr bool SEPARATE_IMAGE_BUFFERS_BINDINGS = P::SEPARATE_IMAGE_BUFFER_BINDINGS;
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = P::USE_MEMORY_MAPS_FOR_UPLOADS;
 
-#ifdef ANDROID
-    static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
-    static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
-    static constexpr s64 TARGET_THRESHOLD = 3_GiB;
-#else
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
-#endif
 
     // Debug Flags.
 
@@ -458,12 +448,7 @@ private:
     Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     Common::SlotVector<Buffer> slot_buffers;
-#ifdef ANDROID
-    static constexpr size_t TICKS_TO_DESTROY = 2;
-#else
-    static constexpr size_t TICKS_TO_DESTROY = 8;
-#endif
-    DelayedDestructionRing<Buffer, TICKS_TO_DESTROY> delayed_destruction_ring;
+    DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
 
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
 

@@ -50,7 +50,7 @@ BufferCache<P>::~BufferCache() = default;
 template <class P>
 void BufferCache<P>::RunGarbageCollector() {
     const bool aggressive_gc = total_used_memory >= critical_memory;
-    const u64 ticks_to_destroy = aggressive_gc ? 60 : 150;
+    const u64 ticks_to_destroy = aggressive_gc ? 60 : 120;
     int num_iterations = aggressive_gc ? 64 : 32;
     const auto clean_up = [this, &num_iterations](BufferId buffer_id) {
         if (num_iterations == 0) {
@@ -1380,9 +1380,6 @@ void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
     });
     new_buffer.MarkUsage(copies[0].dst_offset, copies[0].size);
     runtime.CopyBuffer(new_buffer, overlap, copies, true);
-#ifdef ANDROID
-    runtime.Finish();
-#endif
     DeleteBuffer(overlap_id, true);
 }
 
@@ -1674,12 +1671,7 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     }
 
     Unregister(buffer_id);
-    
-#ifdef ANDROID
-    if (!do_not_mark)
-#endif
     delayed_destruction_ring.Push(std::move(slot_buffers[buffer_id]));
-    
     slot_buffers.erase(buffer_id);
 
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {

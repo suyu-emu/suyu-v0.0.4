@@ -151,12 +151,7 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
     // For now, ignore options, which are in input buffer 1 for GetHostByNameRequestWithOptions.
 
     // Prevent resolution of Nintendo servers
-    if (host.find("srv.nintendo.net") != std::string::npos ||
-        host.find("battle.net") != std::string::npos ||
-        host.find("microsoft.com") != std::string::npos ||
-        host.find("mojang.com") != std::string::npos ||
-        host.find("xboxlive.com") != std::string::npos ||
-        host.find("minecraftservices.com") != std::string::npos) {
+    if (host.find("srv.nintendo.net") != std::string::npos) {
         LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
         return {0, GetAddrInfoError::AGAIN};
     }
@@ -273,12 +268,7 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
     const std::string host = Common::StringFromBuffer(host_buffer);
 
     // Prevent resolution of Nintendo servers
-    if (host.find("srv.nintendo.net") != std::string::npos ||
-        host.find("battle.net") != std::string::npos ||
-        host.find("microsoft.com") != std::string::npos ||
-        host.find("mojang.com") != std::string::npos ||
-        host.find("xboxlive.com") != std::string::npos ||
-        host.find("minecraftservices.com") != std::string::npos) {
+    if (host.find("srv.nintendo.net") != std::string::npos) {
         LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
         return {0, GetAddrInfoError::AGAIN};
     }
