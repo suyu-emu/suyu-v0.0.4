@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,9 +9,13 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -138,6 +145,46 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                 stringInputBinding = DialogEditTextBinding.inflate(layoutInflater)
                 val item = settingsViewModel.clickedItem as StringInputSetting
                 stringInputBinding.editText.setText(item.getSelectedValue())
+
+                val onGenerate = item.onGenerate
+                stringInputBinding.generate.isVisible = onGenerate != null
+
+                if (onGenerate != null) {
+                    stringInputBinding.generate.setOnClickListener {
+                        stringInputBinding.editText.setText(onGenerate())
+                    }
+                }
+
+                val validator = item.validator
+
+                if (validator != null) {
+                    val watcher = object : TextWatcher {
+                        override fun beforeTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            count: Int,
+                            after: Int
+                        ) {
+                        }
+
+                        override fun onTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            before: Int,
+                            count: Int
+                        ) {
+                        }
+
+                        override fun afterTextChanged(s: Editable?) {
+                            stringInputBinding.editText.error =
+                                if (validator(s.toString())) null else requireContext().getString(item.errorId)
+                        }
+                    }
+
+                    stringInputBinding.editText.addTextChangedListener(watcher)
+                    watcher.afterTextChanged(stringInputBinding.editText.text)
+                }
+
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(item.title)
                     .setView(stringInputBinding.root)

@@ -527,7 +527,7 @@ struct Values {
     SwitchableSetting<Language, true> language_index{linkage,
                                                      Language::EnglishAmerican,
                                                      Language::Japanese,
-                                                     Language::PortugueseBrazilian,
+                                                     Language::Serbian,
                                                      "language_index",
                                                      Category::System};
     SwitchableSetting<Region, true> region_index{linkage,        Region::Usa,    Region::Japan,
@@ -700,9 +700,9 @@ struct Values {
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> yuzu_username{linkage, std::string(), "yuzu_username",
+    Setting<std::string> eden_username{linkage, std::string(), "eden_username",
                                        Category::WebService};
-    Setting<std::string> yuzu_token{linkage, std::string(), "yuzu_token", Category::WebService};
+    Setting<std::string> eden_token{linkage, std::string(), "eden_token", Category::WebService};
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;

@@ -975,12 +975,12 @@ Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayGetPublicRooms(
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayCreateRoom(
         JNIEnv* env, [[maybe_unused]] jobject obj, jstring ipaddress, jint port,
         jstring username, jstring preferredGameName, jlong preferredGameId, jstring password,
-        jstring room_name, jint max_players) {
+        jstring room_name, jint max_players, jboolean isPublic) {
     return static_cast<jint>(
             multiplayer->NetPlayCreateRoom(Common::Android::GetJString(env, ipaddress), port,
                               Common::Android::GetJString(env, username), Common::Android::GetJString(env, preferredGameName),
                               preferredGameId,Common::Android::GetJString(env, password),
-                              Common::Android::GetJString(env, room_name), max_players));
+                              Common::Android::GetJString(env, room_name), max_players, isPublic));
 }
 
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_network_NetPlayManager_netPlayJoinRoom(

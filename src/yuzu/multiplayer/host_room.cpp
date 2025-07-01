@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <future>
 #include <QColor>
@@ -59,9 +59,9 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     // Restore the settings:
     ui->username->setText(
         QString::fromStdString(UISettings::values.multiplayer_room_nickname.GetValue()));
-    if (ui->username->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
+    if (ui->username->text().isEmpty() && !Settings::values.eden_username.GetValue().empty()) {
         // Use eden Web Service user name as nickname by default
-        ui->username->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
+        ui->username->setText(QString::fromStdString(Settings::values.eden_username.GetValue()));
     }
     ui->room_name->setText(
         QString::fromStdString(UISettings::values.multiplayer_room_name.GetValue()));
@@ -167,7 +167,7 @@ void HostRoomWindow::Host() {
             const bool created =
                 room->Create(ui->room_name->text().toStdString(),
                              ui->room_description->toPlainText().toStdString(), "", port, password,
-                             ui->max_player->value(), Settings::values.yuzu_username.GetValue(),
+                             ui->max_player->value(), Settings::values.eden_username.GetValue(),
                              game, CreateVerifyBackend(is_public), ban_list);
             if (!created) {
                 NetworkMessage::ErrorManager::ShowError(
@@ -206,8 +206,8 @@ void HostRoomWindow::Host() {
 #ifdef ENABLE_WEB_SERVICE
         if (is_public) {
             WebService::Client client(Settings::values.web_api_url.GetValue(),
-                                      Settings::values.yuzu_username.GetValue(),
-                                      Settings::values.yuzu_token.GetValue());
+                                      Settings::values.eden_username.GetValue(),
+                                      Settings::values.eden_token.GetValue());
             if (auto room = Network::GetRoom().lock()) {
                 token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
             }

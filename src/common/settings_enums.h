@@ -111,7 +111,7 @@ ENUM(AudioMode, Mono, Stereo, Surround);
 
 ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
      Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,
-     ChineseSimplified, ChineseTraditional, PortugueseBrazilian);
+     ChineseSimplified, ChineseTraditional, PortugueseBrazilian, Serbian);
 
 ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
 

@@ -1,6 +1,5 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 
 package org.yuzu.yuzu_emu.dialogs
 
@@ -19,6 +18,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogChatBinding
 import org.yuzu.yuzu_emu.databinding.ItemChatMessageBinding
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetPlayManager
 import java.text.SimpleDateFormat
 import java.util.*
@@ -82,7 +82,7 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun sendMessage(message: String) {
-        val username = NetPlayManager.getUsername(context)
+        val username = StringSetting.WEB_USERNAME.getString()
         NetPlayManager.netPlaySendMessage(message)
 
         val chatMessage = ChatMessage(

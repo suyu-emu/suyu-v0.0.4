@@ -212,30 +212,38 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.USE_CUSTOM_RTC.key)
             add(LongSetting.CUSTOM_RTC.key)
 
-            // TODO(alekpop): Add functionality
-//            add(HeaderSetting(R.string.network))
-//            add(StringSetting.WEB_TOKEN.key)
+            add(HeaderSetting(R.string.network))
+            add(StringSetting.WEB_TOKEN.key)
+            add(StringSetting.WEB_USERNAME.key)
         }
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             // TODO(crueter): reorganize this, this is awful
+            add(HeaderSetting(R.string.backend))
+
             add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.RENDERER_RESOLUTION.key)
-            add(IntSetting.RENDERER_VSYNC.key)
-            add(IntSetting.RENDERER_SCALING_FILTER.key)
-            add(IntSetting.FSR_SHARPENING_SLIDER.key)
-            add(IntSetting.RENDERER_ANTI_ALIASING.key)
-            add(IntSetting.MAX_ANISOTROPY.key)
-            add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
-            add(IntSetting.RENDERER_ASPECT_RATIO.key)
-            add(IntSetting.VERTICAL_ALIGNMENT.key)
-            add(BooleanSetting.PICTURE_IN_PICTURE.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
             add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
+
+            add(HeaderSetting(R.string.processing))
+
+            add(IntSetting.RENDERER_VSYNC.key)
+            add(IntSetting.RENDERER_ANTI_ALIASING.key)
+            add(IntSetting.MAX_ANISOTROPY.key)
+            add(IntSetting.RENDERER_SCALING_FILTER.key)
+            add(IntSetting.FSR_SHARPENING_SLIDER.key)
+
+            add(HeaderSetting(R.string.display))
+
+            add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
+            add(IntSetting.RENDERER_ASPECT_RATIO.key)
+            add(IntSetting.VERTICAL_ALIGNMENT.key)
+            add(BooleanSetting.PICTURE_IN_PICTURE.key)
         }
     }
 

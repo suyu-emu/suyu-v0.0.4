@@ -345,14 +345,14 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
             PadToken(token);
-            Settings::values.yuzu_username = UsernameFromDisplayToken(token);
-            username = Settings::values.yuzu_username.GetValue();
-            Settings::values.yuzu_token = TokenFromDisplayToken(token);
+            Settings::values.eden_username = UsernameFromDisplayToken(token);
+            username = Settings::values.eden_username.GetValue();
+            Settings::values.eden_token = TokenFromDisplayToken(token);
         } else {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
-            Settings::values.yuzu_username = username;
-            Settings::values.yuzu_token = token;
+            Settings::values.eden_username = username;
+            Settings::values.eden_token = token;
         }
     }
 

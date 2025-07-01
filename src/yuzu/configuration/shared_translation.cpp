@@ -602,6 +602,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
              PAIR(Language, ChineseSimplified, tr("Simplified Chinese")),
              PAIR(Language, ChineseTraditional, tr("Traditional Chinese (正體中文)")),
              PAIR(Language, PortugueseBrazilian, tr("Brazilian Portuguese (português do Brasil)")),
+             PAIR(Language, Serbian, tr("Serbian (српски)")),
          }});
     translations->insert({Settings::EnumMetadata<Settings::Region>::Index(),
                           {

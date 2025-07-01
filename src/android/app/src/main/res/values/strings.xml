@@ -204,18 +204,22 @@
     <string name="emulation_multiplayer">Multiplayer</string>
     <string name="multiplayer_game_name">Preferred Games</string>
     <string name="multiplayer_preferred_game_name">Preferred Game</string>
+    <string name="multiplayer_lobby_type">Lobby Type</string>
     <string name="multiplayer_no_game">No Games Found</string>
     <string name="multiplayer_preferred_game_name_invalid">You must choose a Preferred Game to host a room.</string>
     <string name="multiplayer_room_name_error">Must be between 3 and 20 characters</string>
     <string name="multiplayer_required">Required</string>
+    <string name="multiplayer_token_required">Web Token required, go to Advanced Settings -> System -> Network</string>
     <string name="multiplayer_ip_error">Invalid IP format</string>
-    <string name="multiplayer_username_error">Must be at least 5 characters</string>
+    <string name="multiplayer_username_error">Must be between 4–20 characters</string>
+    <string name="multiplayer_token_error">Must be 48 characters, and lowercase a-z only</string>
     <string name="multiplayer_port_error">Must be between 1 and 65535</string>
     <string name="cancel">Cancel</string>
     <string name="ok">Ok</string>
     <string name="refresh">Refresh</string>
     <string name="room_list">Room List</string>
-
+    <string name="multiplayer_public_visibility">Public</string>
+    <string name="multiplayer_unlisted_visibility">Unlisted</string>
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
@@ -443,12 +447,20 @@
     <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
     <string name="set_custom_rtc">Set custom RTC</string>
 
+    <string name="generate">Generate</string>
+
     <!-- Network settings strings -->
     <string name="web_token">Web Token</string>
     <string name="web_token_description">Web token used for creating public lobbies. It is a 48-character string containing only lowercase a-z.</string>
+    <string name="web_username">Web Username</string>
+    <string name="web_username_description">Username to be shown in multiplayer lobbies. It must be 4–20 characters.</string>
     <string name="network">Network</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Display</string>
+    <string name="processing">Post-Processing</string>
+
     <string name="frame_skipping">WIP: Frameskip</string>
     <string name="frame_skipping_description">Toggle frame skipping to improve performance by reducing the number of rendered frames. This feature is still being worked on and will be enabled in future releases.</string>
     <string name="renderer_accuracy">Accuracy level</string>
@@ -820,6 +832,7 @@
     <string name="language_simplified_chinese" translatable="false">简体中文</string>
     <string name="language_traditional_chinese" translatable="false">正體中文</string>
     <string name="language_brazilian_portuguese" translatable="false">Português do Brasil</string>
+    <string name="language_serbian" translatable="false">српски</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -66,7 +66,7 @@ public:
     NetPlayStatus NetPlayCreateRoom(const std::string &ipaddress, int port,
                                     const std::string &username, const std::string &preferredGameName,
                                     const u64 &preferredGameId, const std::string &password,
-                                    const std::string &room_name, int max_players);
+                                    const std::string &room_name, int max_players, bool isPublic);
 
     NetPlayStatus NetPlayJoinRoom(const std::string &ipaddress, int port,
                                   const std::string &username, const std::string &password);

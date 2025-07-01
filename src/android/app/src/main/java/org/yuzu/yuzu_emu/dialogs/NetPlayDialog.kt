@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.dialogs
@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.databinding.DialogMultiplayerConnectBinding
@@ -32,6 +33,7 @@ import org.yuzu.yuzu_emu.databinding.DialogMultiplayerRoomBinding
 import org.yuzu.yuzu_emu.databinding.ItemBanListBinding
 import org.yuzu.yuzu_emu.databinding.ItemButtonNetplayBinding
 import org.yuzu.yuzu_emu.databinding.ItemTextNetplayBinding
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetPlayManager
 import org.yuzu.yuzu_emu.utils.CompatUtils
 import org.yuzu.yuzu_emu.utils.GameHelper
@@ -180,9 +182,9 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 PopupMenu(view.context, view).apply {
                     menuInflater.inflate(R.menu.menu_netplay_member, menu)
                     menu.findItem(R.id.action_kick).isEnabled = isModerator &&
-                            netPlayItems.name != NetPlayManager.getUsername(context)
+                            netPlayItems.name != StringSetting.WEB_USERNAME.getString()
                     menu.findItem(R.id.action_ban).isEnabled = isModerator &&
-                            netPlayItems.name != NetPlayManager.getUsername(context)
+                            netPlayItems.name != StringSetting.WEB_USERNAME.getString()
                     setOnMenuItemClickListener { item ->
                         if (item.itemId == R.id.action_kick) {
                             NetPlayManager.netPlayKickUser(netPlayItems.name)
@@ -297,13 +299,13 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
 
     abstract class TextValidatorWatcher(
         private val btnConfirm: Button,
-        private val view: EditText,
+        private val layout: TextInputLayout,
         private val errorMessage: String
     ) : TextWatcher {
-
         companion object {
-            val validStates: HashMap<EditText, Boolean> = hashMapOf()
+            val validStates: HashMap<TextInputLayout, Boolean> = hashMapOf()
         }
+
         abstract fun validate(s: String): Boolean
 
         override fun beforeTextChanged(
@@ -325,19 +327,19 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         override fun afterTextChanged(s: Editable?) {
             val input = s.toString()
             val isValid = validate(input)
-            view.error = if (isValid) null else errorMessage
+            layout.isErrorEnabled = !isValid
+            layout.error = if (isValid) null else errorMessage
 
-            validStates.put(view, isValid)
+            validStates[layout] = isValid
             btnConfirm.isEnabled = !validStates.containsValue(false)
         }
     }
 
     // TODO(alekpop, crueter): Properly handle getting banned (both during and in future connects)
     private fun showNetPlayInputDialog(isCreateRoom: Boolean) {
+        TextValidatorWatcher.validStates.clear()
         val activity = CompatUtils.findActivity(context)
         val dialog = BottomSheetDialog(activity)
-
-        val validStates: HashMap<EditText, Boolean> = hashMapOf()
 
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -347,6 +349,11 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         val binding = DialogMultiplayerRoomBinding.inflate(LayoutInflater.from(activity))
         dialog.setContentView(binding.root)
 
+        val visibilityList: List<String> = listOf(
+            context.getString(R.string.multiplayer_public_visibility),
+            context.getString(R.string.multiplayer_unlisted_visibility),
+        )
+
         binding.textTitle.text = activity.getString(
             if (isCreateRoom) R.string.multiplayer_create_room
             else R.string.multiplayer_join_room
@@ -355,7 +362,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         // setup listeners etc
         val roomNameWatcher = object : TextValidatorWatcher(
             binding.btnConfirm, // TODO(alekpop, crueter): Figure out a better way to deal with this?
-            binding.roomName,
+            binding.layoutRoomName,
             context.getString(
                 R.string.multiplayer_room_name_error
             )
@@ -367,25 +374,32 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
 
         val preferredWatcher = object : TextValidatorWatcher(
             binding.btnConfirm,
-            binding.dropdownPreferredGameName,
+            binding.preferredGameName,
             context.getString(R.string.multiplayer_required)
         ) {
             override fun validate(s: String): Boolean {
                 return s.isNotEmpty()
             }
+        }
 
-            override fun afterTextChanged(s: Editable?) {
-                super.afterTextChanged(s)
+        val visibilityWatcher = object : TextValidatorWatcher(
+            binding.btnConfirm,
+            binding.lobbyVisibility,
+            context.getString(R.string.multiplayer_token_required)
+        ) {
+            override fun validate(s: String): Boolean {
+                if (s != context.getString(R.string.multiplayer_public_visibility)) {
+                    return true;
+                }
 
-                // special case: remove dropdown arrow
-                val input = s.toString()
-                binding.preferredGameName.isEndIconVisible = validate(input)
+                val token = StringSetting.WEB_TOKEN.getString()
+                return token.matches(Regex("[a-z]{48}"))
             }
         }
 
         val ipWatcher = object : TextValidatorWatcher(
             binding.btnConfirm,
-            binding.ipAddress,
+            binding.layoutIpAddress,
             context.getString(R.string.multiplayer_ip_error)
         ) {
             override fun validate(s: String): Boolean {
@@ -400,17 +414,17 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
 
         val usernameWatcher = object : TextValidatorWatcher(
             binding.btnConfirm,
-            binding.username,
+            binding.layoutUsername,
             context.getString(R.string.multiplayer_username_error)
         ) {
             override fun validate(s: String): Boolean {
-                return s.length >= 5
+                return s.length in 4..20
             }
         }
 
         val portWatcher = object : TextValidatorWatcher(
             binding.btnConfirm,
-            binding.ipPort,
+            binding.layoutIpPort,
             context.getString(R.string.multiplayer_port_error)
         ) {
             override fun validate(s: String): Boolean {
@@ -421,6 +435,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         if (isCreateRoom) {
             binding.roomName.addTextChangedListener(roomNameWatcher)
             binding.dropdownPreferredGameName.addTextChangedListener(preferredWatcher)
+            binding.dropdownLobbyVisibility.addTextChangedListener(visibilityWatcher)
 
             binding.dropdownPreferredGameName.apply {
                 setAdapter(
@@ -431,19 +446,35 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                     )
                 )
             }
+
+            binding.dropdownLobbyVisibility.setText(context.getString(R.string.multiplayer_unlisted_visibility))
+
+            binding.dropdownLobbyVisibility.apply {
+                setAdapter(
+                    ArrayAdapter(
+                        activity,
+                        R.layout.dropdown_item,
+                        visibilityList
+                    )
+                )
+            }
         }
 
         binding.ipAddress.addTextChangedListener(ipWatcher)
         binding.ipPort.addTextChangedListener(portWatcher)
         binding.username.addTextChangedListener(usernameWatcher)
 
+        binding.ipAddress.setText(NetPlayManager.getRoomAddress(activity))
         binding.ipPort.setText(NetPlayManager.getRoomPort(activity))
-        binding.username.setText(NetPlayManager.getUsername(activity))
+        binding.username.setText(StringSetting.WEB_USERNAME.getString())
 
         // manually trigger text listeners
         if (isCreateRoom) {
             roomNameWatcher.afterTextChanged(binding.roomName.text)
             preferredWatcher.afterTextChanged(binding.dropdownPreferredGameName.text)
+
+            // It's not needed here, the watcher is called by the initial set method
+            // visibilityWatcher.afterTextChanged(binding.dropdownLobbyVisibility.text)
         }
 
         ipWatcher.afterTextChanged(binding.ipAddress.text)
@@ -451,8 +482,10 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         usernameWatcher.afterTextChanged(binding.username.text)
 
         binding.preferredGameName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
+        binding.lobbyVisibility.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.roomName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.maxPlayersContainer.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
+
         binding.maxPlayersLabel.text = context.getString(
             R.string.multiplayer_max_players_value,
             binding.maxPlayers.value.toInt()
@@ -464,7 +497,6 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         // TODO(alekpop, crueter): Room descriptions
-        // TODO(alekpop, crueter): Public room creation
         // TODO(alekpop, crueter): Preview preferred games
         binding.btnConfirm.setOnClickListener {
             binding.btnConfirm.isEnabled = false
@@ -487,6 +519,9 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             val preferredIdx = gameNameList.indexOfFirst { it[0] == preferredGameName }
             val preferredGameId = if (preferredIdx == -1) 0 else gameIdList[preferredIdx][0]
 
+            val visibility = binding.dropdownLobbyVisibility.text.toString()
+            val isPublic = visibility == context.getString(R.string.multiplayer_public_visibility)
+
             Handler(Looper.getMainLooper()).post {
                 val result = if (isCreateRoom) {
                     NetPlayManager.netPlayCreateRoom(
@@ -497,23 +532,26 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         preferredGameId,
                         password,
                         roomName,
-                        maxPlayers
+                        maxPlayers,
+                        isPublic
                     )
                 } else {
                     NetPlayManager.netPlayJoinRoom(ipAddress, port, username, password)
                 }
 
                 if (result == 0) {
-                    // TODO(alekpop, crueter): These need to be moved as settings, editable in a tab
-                    NetPlayManager.setUsername(activity, username)
+                    StringSetting.WEB_USERNAME.setString(username)
                     NetPlayManager.setRoomPort(activity, portStr)
+                    NetPlayManager.setRoomAddress(activity, ipAddress)
                     if (!isCreateRoom) NetPlayManager.setRoomAddress(activity, ipAddress)
+
                     Toast.makeText(
                         YuzuApplication.appContext,
                         if (isCreateRoom) R.string.multiplayer_create_room_success
                         else R.string.multiplayer_join_room_success,
                         Toast.LENGTH_LONG
                     ).show()
+
                     dialog.dismiss()
                 } else {
                     Toast.makeText(
@@ -521,6 +559,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         R.string.multiplayer_could_not_connect,
                         Toast.LENGTH_LONG
                     ).show()
+
                     binding.btnConfirm.isEnabled = true
                     binding.btnConfirm.text = activity.getString(R.string.ok)
                 }

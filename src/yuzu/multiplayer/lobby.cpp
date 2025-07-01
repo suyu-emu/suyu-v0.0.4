@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2017 Citra Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QInputDialog>
 #include <QList>
@@ -67,9 +67,9 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
 
     // Try find the best nickname by default
     if (ui->nickname->text().isEmpty() || ui->nickname->text() == QStringLiteral("eden")) {
-        if (!Settings::values.yuzu_username.GetValue().empty()) {
+        if (!Settings::values.eden_username.GetValue().empty()) {
             ui->nickname->setText(
-                QString::fromStdString(Settings::values.yuzu_username.GetValue()));
+                QString::fromStdString(Settings::values.eden_username.GetValue()));
         } else if (!GetProfileUsername().empty()) {
             ui->nickname->setText(QString::fromStdString(GetProfileUsername()));
         } else {
@@ -189,11 +189,11 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_uid] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
-        if (!Settings::values.yuzu_username.GetValue().empty() &&
-            !Settings::values.yuzu_token.GetValue().empty()) {
+        if (!Settings::values.eden_username.GetValue().empty() &&
+            !Settings::values.eden_token.GetValue().empty()) {
             WebService::Client client(Settings::values.web_api_url.GetValue(),
-                                      Settings::values.yuzu_username.GetValue(),
-                                      Settings::values.yuzu_token.GetValue());
+                                      Settings::values.eden_username.GetValue(),
+                                      Settings::values.eden_token.GetValue());
             token = client.GetExternalJWT(verify_uid).returned_data;
             if (token.empty()) {
                 LOG_ERROR(WebService, "Could not get external JWT, verification may fail");

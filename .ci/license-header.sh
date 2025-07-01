@@ -4,13 +4,12 @@ HEADER="$(cat "$PWD/.ci/license/header.txt")"
 
 echo "Getting branch changes"
 
-# I created this cursed POSIX abomination only to discover a better solution
-#BRANCH=`git rev-parse --abbrev-ref HEAD`
-#COMMITS=`git log ${BRANCH} --not master --pretty=format:"%h"`
-#RANGE="${COMMITS[${#COMMITS[@]}-1]}^..${COMMITS[0]}"
-#FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+COMMITS=`git log ${BRANCH} --not master --pretty=format:"%h"`
+RANGE="${COMMITS[${#COMMITS[@]}-1]}^..${COMMITS[0]}"
+FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
 
-FILES=$(git diff --name-only master)
+#FILES=$(git diff --name-only master)
 
 echo "Done"
 

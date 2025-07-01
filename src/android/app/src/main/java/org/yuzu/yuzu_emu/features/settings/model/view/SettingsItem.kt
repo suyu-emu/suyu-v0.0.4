@@ -284,11 +284,32 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_custom_rtc_description
                 )
             )
+
             put(
                 StringInputSetting(
                     StringSetting.WEB_TOKEN,
                     titleId = R.string.web_token,
-                    descriptionId = R.string.web_token_description
+                    descriptionId = R.string.web_token_description,
+                    onGenerate = {
+                        val chars = "abcdefghijklmnopqrstuvwxyz"
+                        (1..48).map { chars.random() }.joinToString("")
+                    },
+                    validator = { s ->
+                        s?.matches(Regex("[a-z]{48}")) == true
+                    },
+                    errorId = R.string.multiplayer_token_error
+                )
+            )
+
+            put(
+                StringInputSetting(
+                    StringSetting.WEB_USERNAME,
+                    titleId = R.string.web_username,
+                    descriptionId = R.string.web_username_description,
+                    validator = { s ->
+                        s?.length in 4..20
+                    },
+                    errorId = R.string.multiplayer_username_error
                 )
             )
             put(DateTimeSetting(LongSetting.CUSTOM_RTC, titleId = R.string.set_custom_rtc))

@@ -26,41 +26,28 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayoutYuzuWebService">
         <item>
-         <widget class="QLabel" name="web_credentials_disclaimer">
-          <property name="text">
-           <string>By providing your username and token, you agree to allow eden to collect additional usage data, which may include user identifying information.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QGridLayout" name="gridLayoutYuzuUsername">
-          <item row="2" column="3">
-           <widget class="QPushButton" name="button_verify_login">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_token">
+            <property name="text">
+             <string>Token: </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_username">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="layoutDirection">
-             <enum>Qt::LayoutDirection::RightToLeft</enum>
-            </property>
             <property name="text">
-             <string>Verify</string>
+             <string>Username: </string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="web_signup_link">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Sign up</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1" colspan="3">
+          <item row="0" column="1" colspan="4">
            <widget class="QLineEdit" name="edit_username">
             <property name="maxLength">
              <number>20</number>
@@ -70,25 +57,27 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_token">
-            <property name="text">
-             <string>Token: </string>
+          <item row="1" column="5">
+           <widget class="QLabel" name="label_token_verified">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="label_token_verified"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_username">
-            <property name="text">
-             <string>Username: </string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" colspan="3">
+          <item row="1" column="1" colspan="4">
            <widget class="QLineEdit" name="edit_token">
+            <property name="inputMethodHints">
+             <set>Qt::InputMethodHint::ImhLowercaseOnly</set>
+            </property>
             <property name="maxLength">
              <number>80</number>
             </property>
@@ -97,14 +86,27 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="web_token_info_link">
+          <item row="0" column="5">
+           <widget class="QLabel" name="label_username_verified">
             <property name="text">
-             <string>What is my token?</string>
+             <string/>
             </property>
            </widget>
           </item>
-          <item row="2" column="2">
+          <item row="2" column="4">
+           <widget class="QPushButton" name="button_generate">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Generate</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="3">
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>

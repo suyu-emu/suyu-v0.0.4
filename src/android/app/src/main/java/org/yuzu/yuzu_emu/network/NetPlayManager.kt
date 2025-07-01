@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.network
@@ -16,6 +16,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.dialogs.ChatMessage
 import java.net.Inet4Address
+import androidx.core.content.edit
 
 object NetPlayManager {
     external fun netPlayCreateRoom(
@@ -26,7 +27,8 @@ object NetPlayManager {
         preferredGameId: Long,
         password: String,
         roomName: String,
-        maxPlayers: Int
+        maxPlayers: Int,
+        isPublic: Boolean
     ): Int
 
     external fun netPlayJoinRoom(
@@ -125,17 +127,6 @@ object NetPlayManager {
         adapterRefreshListener = listener
     }
 
-    fun getUsername(activity: Context): String {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        val name = "Eden${(Math.random() * 100).toInt()}"
-        return prefs.getString("NetPlayUsername", name) ?: name
-    }
-
-    fun setUsername(activity: Activity, name: String) {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        prefs.edit().putString("NetPlayUsername", name).apply()
-    }
-
     fun getRoomAddress(activity: Activity): String {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
         val address = getIpAddressByWifi(activity)
@@ -144,7 +135,7 @@ object NetPlayManager {
 
     fun setRoomAddress(activity: Activity, address: String) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        prefs.edit().putString("NetPlayRoomAddress", address).apply()
+        prefs.edit { putString("NetPlayRoomAddress", address) }
     }
 
     fun getRoomPort(activity: Activity): String {
@@ -154,7 +145,7 @@ object NetPlayManager {
 
     fun setRoomPort(activity: Activity, port: String) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        prefs.edit().putString("NetPlayRoomPort", port).apply()
+        prefs.edit { putString("NetPlayRoomPort", port) }
     }
 
     private val chatMessages = mutableListOf<ChatMessage>()

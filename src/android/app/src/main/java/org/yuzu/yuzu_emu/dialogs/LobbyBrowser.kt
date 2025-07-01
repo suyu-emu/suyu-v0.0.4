@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 package org.yuzu.yuzu_emu.dialogs
@@ -28,6 +28,7 @@ import info.debatty.java.stringsimilarity.JaroWinkler
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogLobbyBrowserBinding
 import org.yuzu.yuzu_emu.databinding.ItemLobbyRoomBinding
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetPlayManager
 import java.util.Locale
 
@@ -144,7 +145,7 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
     }
 
     private fun joinRoom(room: NetPlayManager.RoomInfo, password: String) {
-        val username = NetPlayManager.getUsername(context)
+        val username = StringSetting.WEB_USERNAME.getString()
 
         Thread {
             val result = NetPlayManager.netPlayJoinRoom(room.ip, room.port, username, password)

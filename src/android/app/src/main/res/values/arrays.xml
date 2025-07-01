@@ -62,6 +62,7 @@
         <item>@string/language_spanish</item>
         <item>@string/language_taiwanese</item>
         <item>@string/language_traditional_chinese</item>
+        <item>@string/language_serbian</item>
     </string-array>
 
     <integer-array name="languageValues">
@@ -83,6 +84,7 @@
         <item>5</item>
         <item>11</item>
         <item>16</item>
+        <item>18</item>
     </integer-array>
 
     <string-array name="rendererApiNames">

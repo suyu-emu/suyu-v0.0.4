@@ -1,0 +1,1453 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <!-- General application strings -->
+    <string name="app_name" translatable="false">Eden</string>
+    <string name="app_disclaimer">Овај софтвер ће покренути игре за нинтендо прекидач игру. Нису укључени ни тастери за игру или тастери.&lt;br /&gt;&lt;br /&gt; пре него што започнете, молимо вас да пронађете своје</string>
+    <string name="notice_notification_channel_name">Обавештења и грешке</string>
+    <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
+    <string name="notice_notification_channel_description">Приказује обавештења када нешто пође по злу.</string>
+    <string name="notification_permission_not_granted">Дозвола за обавештавање није одобрена!</string>
+
+    <!-- Stats Overlay settings -->
+    <string name="enhanced_fps_suffix">(Побољшано)</string>
+    <string name="shaders_prefix">Зграда</string>
+    <string name="shaders_suffix">Схадер (с)</string>
+    <string name="system_info_label">Систем:</string>
+    <string name="show_stats_overlay">Покажи Статистика перформанси Статистика</string>
+    <string name="stats_overlay_customization">Прилагођавање</string>
+    <string name="stats_overlay_items">Видљивост</string>
+    <string name="stats_overlay_options">Прекривање перформанси</string>
+    <string name="enable_stats_overlay_">Омогући преклапање статистика перформанси</string>
+    <string name="stats_overlay_options_description">Конфигуришите које се информације приказују у прекривању статистике перформанси</string>
+    <string name="show_fps">Прикажи фпс</string>
+    <string name="show_fps_description">Прикажите тренутне оквире у секунди</string>
+    <string name="show_frametime">Показати фраметиме</string>
+    <string name="show_frametime_description">Прикажи тренутни фрамети</string>
+    <string name="show_speed">Брзина показати</string>
+    <string name="show_speed_description">Прикажи проценат брзине тренутне емулације</string>
+    <string name="show_app_ram_usage">Прикажи употребу апликације меморије</string>
+    <string name="show_app_ram_usage_description">Прикажи количину РАМ-а Емулатор користи</string>
+    <string name="show_system_ram_usage">Прикажи употребу система меморије</string>
+    <string name="show_system_ram_usage_description">Прикажите износ РАМ-а који користи систем</string>
+    <string name="show_bat_temperature">Прикажи температуру батерије</string>
+    <string name="show_bat_temperature_description">Прикажи тренутну температуру батерије у Целзијусу и Фахренхеиту</string>
+    <string name="show_shaders_building">Прикажи Схадерс Буилдинг</string>
+    <string name="show_shaders_building_description">Прикажи тренутни број саграђених Схадера</string>
+    <string name="overlay_position">Положај прекривања</string>
+    <string name="overlay_position_description">Одаберите где се приказује прекривање на екрану</string>
+    <string name="overlay_position_top_left">Горњи леви</string>
+    <string name="overlay_position_top_right">Горњи десни</string>
+    <string name="overlay_position_bottom_left">Доњи леви</string>
+    <string name="overlay_position_bottom_right">Дно десно</string>
+    <string name="overlay_position_center_top">Центар на врху</string>
+    <string name="overlay_position_center_bottom">Доњи део центра</string>
+    <string name="perf_overlay_background">Позадина прекривања</string>
+    <string name="perf_overlay_background_description">Додаје позадину иза прекривања за лакше читање</string>
+
+    <!-- Device Overlay settings -->
+    <string name="show_soc_overlay">Прикажи прекривање информација о уређају</string>
+    <string name="enable_soc_overlay">Омогући прекривање уређаја</string>
+    <string name="soc_overlay_options">Прекривање уређаја</string>
+    <string name="soc_overlay_options_description">Конфигуришите које се информације приказују у прекривању уређаја</string>
+
+    <string name="show_device_model">Прикажи модел уређаја</string>
+    <string name="show_device_model_description">Прикажите модел уређаја за хост</string>
+    <string name="show_gpu_model">Прикажи ГПУ модел</string>
+    <string name="show_gpu_model_description">Прикажите модел ГПУ-а у хосту</string>
+    <string name="show_soc_model">Прикажи соц модел</string>
+    <string name="show_soc_model_description">Прикажите модел домаћина СоЦ</string>
+
+    <!-- Eden`s Veil -->
+    <string name="eden_veil">Еденова аукција</string>
+    <string name="eden_veil_description">Експериментална подешавања за побољшање перформанси и способности. Ова подешавања могу изазвати црне екране или друге проблеме у игри.</string>
+    <string name="eden_veil_warning_title">Експериментална подешавања</string>
+    <string name="eden_veil_warning_description">Подешавања која се налазе у оквиру ЕДЕН-ова вела су високо експериментални и могу проузроковати проблеме. Ако се ваша игра не покрене, онемогућите било какве проширења и промените продужено динамичко стање на 0.</string>
+
+    <string name="veil_extensions">ГПУ екстензије</string>
+    <string name="dyna_state">Проширена динамичка држава</string>
+    <string name="dyna_state_description">Омогућава функције Вулкана да побољшају перформансе, приказивање и уштеде ресурсе за креирање на цевоводама, задржавајући нижи ЦПУ / ГПУ коришћење. Ови продужеци могу повећати температуру уређаја и ГПУ који припадају старијој А6кк линији не могу правилно реаговати. Подесите на 0 да бисте користили заоставштине емулираних формата.</string>
+    <string name="provoking_vertex">Провоцирајући врх</string>
+    <string name="provoking_vertex_description">Побољшава осветљење и вертификат руковања у одређеним играма. Подржан само на Вулкану 1.0+ ГПУ-у.</string>
+    <string name="descriptor_indexing">Индексирање дескриптора</string>
+    <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
+
+    <string name="veil_renderer">Рендерер</string>
+    <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
+    <string name="frame_interpolation_description">Осигурава глатку и доследан испоруку оквира синхронизацијом времена између оквира, смањење муцања и неуједначене анимације. Идеално за игре које доживљавају временски оквир нестабилност или микро-штитнике током играња.</string>
+    <string name="use_auto_stub">Користите ауто-стуб</string>
+    <string name="use_auto_stub_description">Аутоматски угушите мрежне услуге и функције. То може побољшати компатибилност, али може проузроковати пад рушења и питања стабилности.</string>
+    <string name="uninstall_firmware">Деинсталирајте фирмвер</string>
+    <string name="uninstall_firmware_description">Деинсталирање фирмвера ће га уклонити са уређаја и може утицати на компатибилност игара.</string>
+    <string name="firmware_uninstalling">Деинсталирање фирмвера</string>
+    <string name="firmware_uninstalled_success">Фирмваре је успешно деинсталирано</string>
+
+    <string name="veil_misc">Остало</string>
+    <string name="use_sync_core">Синхронизујте брзину језгре</string>
+    <string name="use_sync_core_description">Синхронизујте језгро Тицк Брзина брзине максималне брзине да бисте побољшали перформансе без измене стварне брзине игре.</string>
+    <string name="use_lru_cache">Омогући ЛРУ кеш</string>
+    <string name="use_lru_cache_description">Омогућите или онемогућите најмање недавно коришћене (ЛРУ) кеш меморије, све веће перформансе штедећи употребу процеса ЦПУ-а. Неке игре са њом имају проблем, посебно тотк 1.2.1, тако да онемогућите ако се игра не покрене или се руши насумично.</string>
+    <string name="use_fast_cpu_time">Брзо време ЦПУ-а</string>
+    <string name="use_fast_cpu_time_description">Присиљава опомена ЦПУ-а како би се покренуло на вишим сатима, смањујући одређене ФПС ограничења. Ова опција је хакира и може проузроковати проблеме и слабији ЦПУ-ови могу видети смањене перформансе.</string>
+    <string name="fast_cpu_time">ЦПУ сат</string>
+    <string name="fast_cpu_time_description">Користите појачање (1700МХз) да бисте се покренули на највишим матичним тактом Свитцх \ 2000МХз (2000МХз) да бисте покренули на 2к сату.</string>
+    <string name="memory_layout">Изглед меморије</string>
+    <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
+
+    <!-- Shader Backend -->
+    <string name="shader_backend">Схадер Бацкенд</string>
+    <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
+    <string name="shader_backend_glsl">Универзалан</string>
+    <string name="shader_backend_glasm">Мали</string>
+    <string name="shader_backend_spirv">Адрено / Ксцлипсе</string>
+
+    <!-- NVDEC Emulation -->
+    <string name="nvdec_emulation">НВДЕЦ Емулација</string>
+    <string name="nvdec_emulation_description">Изаберите како се видео декодирање (НВДЕЦ) обрађује током секс и увозних интросија.</string>
+    <string name="nvdec_emulation_cpu">ЦПУ</string>
+    <string name="nvdec_emulation_gpu">ГПУ</string>
+    <string name="nvdec_emulation_none">Ниједан</string>
+
+    <!-- Optimize SPIRV output -->
+    <string name="never">Невер</string>
+    <string name="on_load">На оптерећење</string>
+    <string name="always">Увек</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer">Мултиплаиер</string>
+    <string name="multiplayer_description">Домаћин сопствене собе за играње или се придружите постојећем којој ћете се играти са људима</string>
+    <string name="multiplayer_room_title">Соба:%1$s</string>
+    <string name="multiplayer_console_id">ИД конзоле:%1$s</string>
+    <string name="multiplayer_create_room">Створити</string>
+    <string name="multiplayer_join_room">Придружити се</string>
+    <string name="multiplayer_public_room">Прегледајте јавне собе</string>
+    <string name="multiplayer_username">Корисничко име</string>
+    <string name="multiplayer_ip_address">ИП адреса</string>
+    <string name="multiplayer_ip_port">Лука</string>
+    <string name="multiplayer_create_room_success">Соба је успешно створена!</string>
+    <string name="multiplayer_join_room_success">Успешно се придружите собу!</string>
+    <string name="multiplayer_create_room_failed">Није успело креирање собе!</string>
+    <string name="multiplayer_join_room_failed">Није успело да се придружи соби!</string>
+    <string name="multiplayer_port_invalid">Неважећи порт!</string>
+    <string name="multiplayer_exit_room">Излазна соба</string>
+    <string name="multiplayer_network_error">Грешка у мрежи</string>
+    <string name="multiplayer_lost_connection">Изгубљена веза</string>
+    <string name="multiplayer_name_collision">Судар имена</string>
+    <string name="multiplayer_mac_collision">Мац судар</string>
+    <string name="multiplayer_console_id_collision">Судар конзоле</string>
+    <string name="multiplayer_wrong_version">Погрешна верзија</string>
+    <string name="multiplayer_wrong_password">Погрешна лозинка</string>
+    <string name="multiplayer_could_not_connect">Није се могао повезати</string>
+    <string name="multiplayer_room_is_full">Соба је пуна</string>
+    <string name="multiplayer_host_banned">Домаћин забрањен</string>
+    <string name="multiplayer_permission_denied">Дозвола одбијена</string>
+    <string name="multiplayer_no_such_user">Нема таквог корисника</string>
+    <string name="multiplayer_already_in_room">Већ у соби</string>
+    <string name="multiplayer_create_room_error">Креирајте грешку у соби</string>
+    <string name="multiplayer_host_kicked">Шутирао домаћин</string>
+    <string name="multiplayer_unknown_error">непозната грешка</string>
+    <string name="multiplayer_room_uninitialized">Соба неиницијализована</string>
+    <string name="multiplayer_room_idle">Собни у празном ходу</string>
+    <string name="multiplayer_room_joining">Спајање собе</string>
+    <string name="multiplayer_room_joined">Соба се придружила</string>
+    <string name="multiplayer_room_moderator">Модератор соба</string>
+    <string name="multiplayer_member_join">%1$s Придружен</string>
+    <string name="multiplayer_member_leave">%1$s лево</string>
+    <string name="multiplayer_member_kicked">%1$s шутран</string>
+    <string name="multiplayer_member_banned">%1$s забрањено</string>
+    <string name="multiplayer_address_unbanned">адреса необјављена</string>
+    <string name="multiplayer_kick_member">Избити</string>
+    <string name="multiplayer_chat_input_hint">Пошаљите поруке ......</string>
+    <string name="multiplayer_password">Лозинка</string>
+    <string name="multiplayer_room_name">Име собе</string>
+    <string name="multiplayer_room_name_invalid">Име собе мора бити између 3 и 20 знакова</string>
+    <string name="multiplayer_max_players">Максимални играчи (16)</string>
+    <string name="multiplayer_max_players_value">МАКС ИГРАЧИ:%d</string>
+    <string name="multiplayer_chat">Разговарати</string>
+    <string name="multiplayer_more_options">Више опција</string>
+    <string name="multiplayer_ip_copied">ИП адреса копирана у међуспремник</string>
+    <string name="multiplayer_server_address">Адреса сервера</string>
+    <string name="chat">Разговарати</string>
+    <string name="type_message">Унесите поруку ......</string>
+    <string name="send">Пошаљи</string>
+    <string name="send_message">Пошаљи поруку</string>
+    <string name="multiplayer_moderation">Умјереност</string>
+    <string name="multiplayer_moderation_title">Списак</string>
+    <string name="multiplayer_no_bans">Нема забрањених корисника</string>
+    <string name="multiplayer_unban_title">Унбан корисник</string>
+    <string name="multiplayer_unban">Унбанкати</string>
+    <string name="multiplayer_unban_message">Јесте ли сигурни да желите да убаците%1$s?</string>
+    <string name="multiplayer_ban">Корисник забране</string>
+    <string name="multiplayer_room_browser">Јавне собе</string>
+    <string name="multiplayer_no_rooms_found">Није пронађена ниједна јавне собе</string>
+    <string name="multiplayer_password_required">Потребна лозинка</string>
+    <string name="multiplayer_player_count">:%1$d/%2$d</string>
+    <string name="multiplayer_game">Игра</string>
+    <string name="multiplayer_no_game_info">Било која игра</string>
+    <string name="multiplayer_password_protected">Заштићена соба заштићена лозинком</string>
+    <string name="multiplayer_hide_full_rooms">Сакриј пуне собе</string>
+    <string name="multiplayer_hide_empty_rooms">Сакриј празне собе</string>
+    <string name="multiplayer_tap_refresh_to_check_again">Куцните на освежавање да бисте поново проверили</string>
+    <string name="multiplayer_search_public_lobbies">Претражите лобиес ...</string>
+    <string name="emulation_multiplayer">Мултиплаиер</string>
+    <string name="multiplayer_game_name">Префериране игре</string>
+    <string name="multiplayer_preferred_game_name">Преферирана игра</string>
+    <string name="multiplayer_no_game">Није пронађена није пронађена игара</string>
+    <string name="multiplayer_preferred_game_name_invalid">Морате одабрати преферирану игру да бисте угостили собу.</string>
+    <string name="cancel">Отказати</string>
+    <string name="ok">У реду</string>
+    <string name="refresh">Освежити</string>
+    <string name="room_list">Листа соба</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">Добродошли!</string>
+    <string name="welcome_description">Научите како се подесити и &lt;b>Еден&lt;/b> скочи у емулацију.</string>
+    <string name="get_started">Започните</string>
+    <string name="keys">Тастери</string>
+    <string name="keys_description">Изаберите свој и лт; &lt;b>prod.keys&lt;/b> датотека са дугметом испод.</string>
+    <string name="select_keys">Изаберите тастере</string>
+    <string name="games">Игре</string>
+    <string name="games_description">Изаберите свој и игре и ЛТ; Б> мапу са дугметом испод.</string>
+    <string name="done">Доношен</string>
+    <string name="done_description">Све је постављено. \ Нењои своје игре!</string>
+    <string name="text_continue">Настављати</string>
+    <string name="next">Следећи</string>
+    <string name="back">Назад</string>
+    <string name="add_games">Додајте игре</string>
+    <string name="add_games_description">Одаберите фасциклу за игре</string>
+    <string name="step_complete">Довршите!</string>
+
+    <!-- Home strings -->
+    <string name="alphabetical">Азбучни</string>
+    <string name="view_list">Списак</string>
+    <string name="view_grid">Мрежа</string>
+    <string name="folder">Мапа</string>
+    <string name="pre_alpha_warning_title">Пре-Алпха софтвер</string>
+    <string name="pre_alpha_warning_description">"УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција."</string>
+    <string name="dont_show_again">Не покажи поново</string>
+    <string name="pre_alpha_warning">Пре-Алпха софтвер</string>
+    <string name="add_directory_success">"Нова играчка игара је успешно додата"</string>
+    <string name="home_games">Игре</string>
+    <string name="home_search">Тражити</string>
+    <string name="home_settings">Подешавања</string>
+    <string name="empty_gamelist">Није пронађена ниједна датотека или се још није одабрала директоријум игара.</string>
+    <string name="search_and_filter_games">Игре за претрагу и филтрирање</string>
+    <string name="select_games_folder">Изаберите Фолдер игре</string>
+    <string name="manage_game_folders">Управљајте мапама игара</string>
+    <string name="select_games_folder_description">Омогућује ЕДЕН-у да попуни листу игара</string>
+    <string name="add_games_warning">Прескочите одабир мапе игре?</string>
+    <string name="add_games_warning_description">Игре побеђују \ "т приказују се на листи игара ако је изабрана мапа н \" т.</string>
+    <string name="home_search_games">Претражите игре</string>
+    <string name="search_settings">Подешавања претраге</string>
+    <string name="games_dir_selected">Изабрани Игре Именик</string>
+    <string name="install_prod_keys">Инсталирајте prod.keys</string>
+    <string name="install_prod_keys_description">Потребан за дешифровање малопродајних игара</string>
+    <string name="install_prod_keys_warning">Прескочите додавање тастера?</string>
+    <string name="install_prod_keys_warning_description">Потребни су важећи тастери за опонашање малопродајних игара. Само хомебрев апликације ће функционисати ако наставите.</string>
+    <string name="notifications">Обавештења</string>
+    <string name="notifications_description">Одобрите дозволу за обавештење дугметом испод.</string>
+    <string name="give_permission">Дозвола за одобрење</string>
+    <string name="notification_warning">Прескочите давање дозволе за обавештавање?</string>
+    <string name="notification_warning_description">Еден је победио да вас може обавестити о важним информацијама.</string>
+    <string name="permission_denied">Дозвола одбијена</string>
+    <string name="permission_denied_description">Превише пута сте негирали ову дозволу и сада морате да га ручно одобри у системским подешавањима.</string>
+    <string name="about">О томе</string>
+    <string name="about_description">Изградите верзију, кредите и још много тога</string>
+    <string name="warning_help">Помоћи</string>
+    <string name="warning_skip">Прескочити</string>
+    <string name="warning_cancel">Отказати</string>
+    <string name="install_amiibo_keys">Инсталирајте Амиибо Кеис</string>
+    <string name="install_amiibo_keys_description">Потребно је користити Амиибо у игри</string>
+    <string name="invalid_keys_file">Изабрана је неважећа датотека тастера</string>
+    <string name="install_keys_success">Кључеви су успешно инсталирани</string>
+    <string name="reading_keys_failure">Грешка приликом чишћења кључева за шифровање</string>
+    <string name="install_prod_keys_failure_extension_description">Проверите да датотека кључева има. Екеис Ектенсион и покушајте поново.</string>
+    <string name="install_amiibo_keys_failure_extension_description">Проверите да датотека кључева има .бин екстензију и покушајте поново.</string>
+    <string name="invalid_keys_error">Неважеће кључеве за шифровање</string>
+    <string name="install_keys_failure_description">Изабрана датотека је нетачна или оштећена. Молим вас да вам умањите кључеве.</string>
+    <string name="gpu_driver_fetcher">ГПУ возач фетцхер</string>
+    <string name="gpu_driver_manager">ГПУ управљач возача</string>
+    <string name="install_gpu_driver">Инсталирајте ГПУ драјвер</string>
+    <string name="install_gpu_driver_description">Инсталирајте алтернативне управљачке програме за потенцијално боље перформансе или тачност</string>
+    <string name="advanced_settings">Напредна подешавања</string>
+    <string name="advanced_settings_game">Напредна подешавања:%1$s</string>
+    <string name="settings_description">Конфигуришите подешавања емулатора</string>
+    <string name="search_recently_played">Недавно одигран</string>
+    <string name="search_recently_added">Недавно је додато</string>
+    <string name="search_retail">Малопродаја</string>
+    <string name="search_homebrew">Домаћинство</string>
+    <string name="open_user_folder">Отворите директоријум ЕДЕН</string>
+    <string name="open_user_folder_description">Управљајте унутрашњим датотекама ЕДЕН-а</string>
+    <string name="theme_and_color_description">Измените изглед апликације</string>
+    <string name="no_file_manager">Није пронађен ниједан управник датотека</string>
+    <string name="notification_no_directory_link">Није могуће отворити директоријум ЕДЕН-а</string>
+    <string name="notification_no_directory_link_description">Молимо пронађите корисничку мапу са бочним панелом датотека менаџера и ручно.</string>
+    <string name="manage_save_data">Управљајте сачувајте податке</string>
+    <string name="manage_save_data_description">Спреми податке. Изаберите опцију испод.</string>
+    <string name="import_save_warning">Увоз сачувај податке</string>
+    <string name="import_save_warning_description">Ово ће пребрисати све постојеће сачувајте податке са испорученом датотеком. Јесте ли сигурни да желите да наставите?</string>
+    <string name="import_export_saves_description">Увоз или извоз сачувајте датотеке</string>
+    <string name="save_files_importing">Увоз сачуваних датотека ...</string>
+    <string name="save_files_exporting">Извоз сачувања датотека ...</string>
+    <string name="save_file_imported_success">Увезено је успешно</string>
+    <string name="save_file_invalid_zip_structure">Неважеће структуре директорија сачувања</string>
+    <string name="save_file_invalid_zip_structure_description">Прво име подмагера мора бити ИД наслова игре.</string>
+    <string name="import_saves">Увоз</string>
+    <string name="export_saves">Извоз</string>
+    <string name="install_firmware">Инсталирајте фирмвер</string>
+    <string name="install_firmware_description">Фирмваре мора бити у ЗИП архиви и потребно је за покретање неких игара</string>
+    <string name="firmware_installing">Инсталирање фирмвера</string>
+    <string name="firmware_installed_success">Фирмвер је успешно инсталиран</string>
+    <string name="firmware_installed_failure">Инсталација фирмвера није успела</string>
+    <string name="firmware_installed_failure_description">Проверите да ли су ФИРВВАРЕ НЦА датотеке у корену Зип и покушавају поново.</string>
+    <string name="firmware_uninstalled_failure">Деинсталација фирмвера није успела</string>
+    <string name="share_log">Дели се за уклањање погрешака</string>
+    <string name="share_log_description">Поделите ЕДЕН \ е-е датотеку дневника у проблематику за уклањање погрешака</string>
+    <string name="share_log_missing">Није пронађена датотека дневника</string>
+    <string name="install_game_content">Инсталирајте садржај игре</string>
+    <string name="install_game_content_description">Инсталирајте исправке игре или ДЛЦ</string>
+    <string name="installing_game_content">Инсталирање садржаја ...</string>
+    <string name="install_game_content_failure">Грешка у инсталирању датотека (а) у НАНД</string>
+    <string name="install_game_content_failure_description">Молимо вас да осигурате да су садржаји валидни и да је инсталирана датотека prod.keys.</string>
+    <string name="install_game_content_failure_base">Инсталација основних игара није дозвољено да се избегне могући сукоби.</string>
+    <string name="install_game_content_failure_file_extension">Подржани су само НСП и КСЦИ садржај. Проверите да ли постоје садржаји игара валидни.</string>
+    <string name="install_game_content_failed_count">%1$d Грешка у инсталацији</string>
+    <string name="install_game_content_success">Садржај игре (и) инсталирани су успешно</string>
+    <string name="install_game_content_success_install">%1$d инсталирано успешно</string>
+    <string name="install_game_content_success_overwrite">%1$d преписано успешно</string>
+    <string name="custom_driver_not_supported">Прилагођени управљачки програми нису подржани</string>
+    <string name="custom_driver_not_supported_description">Прилагођени управљачки програм за учитавање ИСН \ "т тренутно подржан за овај уређај. \ НХЕЦК Поново у будућности да бисте видели да ли је додата подршка!</string>
+    <string name="manage_yuzu_data">Управљајте подацима ЕДЕН-а</string>
+    <string name="manage_yuzu_data_description">Увоз / извозни софтвер, кључеви, кориснички подаци и још много тога!</string>
+    <string name="share_save_file">Схаре Спреми датотеку</string>
+    <string name="export_save_failed">Није успело извоз уштеде</string>
+    <string name="game_folders">Мапе игре</string>
+    <string name="deep_scan">Дубоко скенирање</string>
+    <string name="add_game_folder">Додајте мапу игара</string>
+    <string name="folder_already_added">Ова мапа је већ додата!</string>
+    <string name="game_folder_properties">Играње некретнина</string>
+    <plurals name="saves_import_failed" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">Увоз%d уштедите%d</item>
+        <item quantity="other">Увоз%d уносе%d</item>
+    </plurals>
+    <plurals name="saves_import_success" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">Успешно увезено%d уштеда</item>
+        <item quantity="other">Успешно увезени%d штеди</item>
+    </plurals>
+    <string name="no_save_data_found">Не пронађени су подаци сачувања</string>
+    <string name="verify_installed_content">Проверите инсталирани садржај</string>
+    <string name="verify_installed_content_description">Проверава све инсталиране садржаје за корупцију</string>
+    <string name="keys_missing">Шифра о шифрирањима недостају</string>
+    <string name="keys_missing_description">Фирмваре и малопродајне игре не могу се дешифровати</string>
+
+    <!-- Applet launcher strings -->
+    <string name="qlaunch_applet">Клаунцх</string>
+    <string name="qlaunch_description">Покрените апликације са почетног екрана система</string>
+    <string name="applets">Апплет бацач</string>
+    <string name="applets_description">Покрените системске аплете помоћу инсталираног фирмвера</string>
+    <string name="applets_error_firmware">Фирмваре није инсталиран</string>
+    <string name="applets_error_applet">Апплет није доступан</string>
+    <string name="applets_error_description">prod.keys</string>
+    <string name="album_applet">Албум</string>
+    <string name="album_applet_description">Погледајте слике сачуване у фасцикли заслона корисника са системом Гледач фотографија</string>
+    <string name="mii_edit_applet">Хиљаде Едит</string>
+    <string name="mii_edit_applet_description">Прегледајте и уредите МИИС са системом уреднику</string>
+    <string name="cabinet_applet">Кабинет</string>
+    <string name="cabinet_applet_description">Уређивање и брисање података похрањених на Амиибо-у</string>
+    <string name="cabinet_launcher">Бацач ормара</string>
+    <string name="cabinet_nickname_and_owner">Подешавања надимак и власника</string>
+    <string name="cabinet_game_data_eraser">Брисање података о игри</string>
+    <string name="cabinet_restorer">Рестауратор</string>
+    <string name="cabinet_formatter">Форматтер</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Гаиа није стварно</string>
+    <string name="copied_to_clipboard">Копирано у међуспремник</string>
+    <string name="about_app_description">Емулатор прекидача отвореног кода</string>
+    <string name="contributors">Сарадници</string>
+    <string name="contributors_description">Сарадници који су омогућили ЕДЕН за Андроид</string>
+    <string name="licenses_description">Пројекти који омогућавају ЕДЕН за Андроид</string>
+    <string name="build">Градити</string>
+    <string name="user_data">Кориснички подаци</string>
+    <string name="user_data_description">Увоз / извоз свих података апликација. \ Н \ н када увози податке о кориснику, сви постојећи кориснички подаци биће избрисани! \ Н \ НИМПОРТИНГ Подаци из ЦИТРОН-а могу проузроковати проблеме. Препоручује се ручно увоз свих потребних података.</string>
+    <string name="exporting_user_data">Извоз података корисника ...</string>
+    <string name="importing_user_data">Увоз података корисника ...</string>
+    <string name="import_user_data">Увоз корисничких података</string>
+    <string name="invalid_yuzu_backup">Неважећа резервна копија ЕДЕН-а</string>
+    <string name="user_data_export_success">Кориснички подаци су успешно извезени</string>
+    <string name="user_data_import_success">Корисничке податке увезене успешно</string>
+    <string name="user_data_export_cancelled">Извоз је отказан</string>
+    <string name="user_data_import_failed_description">Проверите да ли су мапе корисничких података у корену зип мапе и садрже конфигурацију датотека на Цонфиг / Цонфиг.ини и покушајте поново.</string>
+
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">Ограничити брзину</string>
+    <string name="frame_limit_enable_description">Ограничава брзину емулације на одређени проценат нормалне брзине.</string>
+    <string name="frame_limit_slider">Ограничите проценат брзине</string>
+    <string name="frame_limit_slider_description">Одређује проценат за ограничавање брзине емулације. 100% је нормална брзина. Вредности веће или ниже повећаће се или смањити ограничење брзине.</string>
+    <string name="cpu_backend">ЦПУ Бацкенд</string>
+    <string name="cpu_accuracy">ЦПУ тачност</string>
+    <string name="value_with_units">%1$s%2$s</string>
+
+    <!-- System settings strings -->
+    <string name="device_name">Име уређаја</string>
+    <string name="use_docked_mode">Прикључен режим</string>
+    <string name="use_docked_mode_description">Повећава резолуцију, смањење перформанси. Ручни режим се користи када је онемогућено, снижавање резолуције и све веће перформансе.</string>
+    <string name="emulated_region">Емулирана регија</string>
+    <string name="emulated_language">Емулирани језик</string>
+    <string name="select_rtc_date">Изаберите РТЦ дате</string>
+    <string name="select_rtc_time">Изаберите РТЦ време</string>
+    <string name="use_custom_rtc">Цустом РТЦ</string>
+    <string name="use_custom_rtc_description">Омогућава вам да поставите прилагођени сат у реалном времену одвојено од тренутног времена система.</string>
+    <string name="set_custom_rtc">Подесите прилагођени РТЦ</string>
+
+    <!-- Network settings strings -->
+    <string name="web_token">Веб токен</string>
+    <string name="web_token_description">Веб токен који се користи за стварање јавних лобија. То је низ од 48 знакова који садржи само мала слова А-З.</string>
+    <string name="network">Мрежа</string>
+
+    <!-- Graphics settings strings -->
+    <string name="frame_skipping">ВИП: Фрамескип</string>
+    <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
+    <string name="renderer_accuracy">Ниво тачности</string>
+    <string name="renderer_resolution">Резолуција (ручно / прикључено)</string>
+    <string name="renderer_vsync">Всинц мод</string>
+    <string name="renderer_screen_layout">Оријентација</string>
+    <string name="renderer_aspect_ratio">Омјер аспекта</string>
+    <string name="renderer_scaling_filter">Филтер прилагођавања прозора</string>
+    <string name="fsr_sharpness">ФСР оштрина</string>
+    <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи ФСР \ "динамички контраст</string>
+    <string name="renderer_anti_aliasing">Метода против алиасирања</string>
+    <string name="renderer_force_max_clock">Формирајте максималне сатове (само адрено)</string>
+    <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
+    <string name="renderer_optimize_spirv_output">Оптимизирајте Спирев излаз</string>
+    <string name="renderer_optimize_spirv_output_description">Оптимизира састављена схадер за побољшање ефикасности ГПУ-а.</string>
+    <string name="renderer_asynchronous_shaders">Користите асинхроне схадера</string>
+    <string name="renderer_asynchronous_shaders_description">Саставља схадера асинхроно. Ово може умањити затезаче, али могу такође да уведе пропусте.</string>
+    <string name="use_fast_gpu_time">Користите брзи ГПУ време</string>
+    <string name="use_fast_gpu_time_description">Присиљава већину игара да се покрене у својој највишој родној резолуцији. Ова опција је хаковна и може проузроковати проблеме.</string>
+    <string name="fast_gpu_time">ГПУ оверклок фактора</string>
+    <string name="fast_gpu_time_description">Користите 128 за максималне перформансе и 512 за максималну верност графике.</string>
+    <string name="renderer_reactive_flushing">Користите реактивно испирање</string>
+    <string name="renderer_reactive_flushing_description">Побољшава тачност приказивања у неким играма по цени перформанси.</string>
+    <string name="use_disk_shader_cache">Предмеморија сјена диска</string>
+    <string name="use_disk_shader_cache_description">Смањује муцање локалном чувањем и учитавањем генерисаних схадера.</string>
+    <string name="anisotropic_filtering">Анисотропни филтрирање</string>
+    <string name="anisotropic_filtering_description">Побољшава квалитет текстура када се посматра у косим угловима</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">ЦПУ</string>
+    <string name="cpu_debug_mode">ЦПУ уклањање погрешака</string>
+    <string name="cpu_debug_mode_description">Ставља ЦПУ у спор режим уклањања погрешака.</string>
+
+    <string name="gpu">ГПУ</string>
+    <string name="renderer_api">АПИ</string>
+    <string name="renderer_debug">Графички уклањање погрешака</string>
+    <string name="renderer_debug_description">Поставља графички АПИ на спорни режим уклањања погрешака.</string>
+    <string name="fastmem">Брбљање</string>
+
+    <string name="log">Сечеља</string>
+    <string name="flush_by_line">Записници за уклањање погрешака по линији</string>
+    <string name="flush_by_line_description">Испушта ознаке за уклањање погрешака на сваком писменом линијском линији, олакшавање уклањања погрешака у случајевима пада или замрзавања.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_output_engine">Излазни мотор</string>
+    <string name="audio_volume">Запремина</string>
+    <string name="audio_volume_description">Одређује обим аудио излаза.</string>
+
+    <!-- Input strings -->
+    <string name="buttons">Тастери</string>
+    <string name="button_a">А</string>
+    <string name="button_b">Б</string>
+    <string name="button_x">К</string>
+    <string name="button_y">И</string>
+    <string name="button_plus">Плус</string>
+    <string name="button_minus">Минус</string>
+    <string name="button_home">Дом</string>
+    <string name="button_capture">Заробити</string>
+    <string name="start_pause">Почетак / пауза</string>
+    <string name="dpad">Д-пад</string>
+    <string name="up">Уп</string>
+    <string name="down">Надиграти се</string>
+    <string name="left">Лево</string>
+    <string name="right">У праву</string>
+    <string name="left_stick">Левичар</string>
+    <string name="control_stick">Контролни штап</string>
+    <string name="right_stick">Десни штап</string>
+    <string name="c_stick">Ц-стицк</string>
+    <string name="pressed">Пресован</string>
+    <string name="range">Домет</string>
+    <string name="deadzone">Деадзоне</string>
+    <string name="modifier">Модификатор</string>
+    <string name="modifier_range">Распон модификатора</string>
+    <string name="triggers">Окидачи</string>
+    <string name="button_l">Л</string>
+    <string name="button_r">Р</string>
+    <string name="button_zl">Зл</string>
+    <string name="button_zr">Зр</string>
+    <string name="button_sl_left">Лефт сл</string>
+    <string name="button_sr_left">Лефт ср</string>
+    <string name="button_sl_right">Десни сл</string>
+    <string name="button_sr_right">Десно ср</string>
+    <string name="button_z">З</string>
+    <string name="invalid">Неважећи</string>
+    <string name="not_set">Није постављен</string>
+    <string name="unknown">Непознат</string>
+    <string name="qualified_hat">%1$s%2$s%3$sХАТ%4$s</string>
+    <string name="qualified_button">%1$s%2$s%3$sБУТТОН%4$s</string>
+    <string name="qualified_axis">АКСИС%1$s%2$s</string>
+    <string name="unused">Неискориштен</string>
+    <string name="input_prompt">Померите се или притисните улаз</string>
+    <string name="unsupported_input">Неподржани тип улаза</string>
+    <string name="input_mapping_filter">Филтер за мапирање уноса</string>
+    <string name="input_mapping_filter_description">Изаберите уређај за филтрирање уноса мапирања</string>
+    <string name="auto_map">Ауто-мапа контролер</string>
+    <string name="auto_map_description">Изаберите уређај да бисте покушали аутоматско мапирање</string>
+    <string name="attempted_auto_map">Покушај аутоматске мапе са%1$s</string>
+    <string name="controller_type">Врста контролера</string>
+    <string name="pro_controller">Про контролер</string>
+    <string name="handheld">Ручни</string>
+    <string name="dual_joycons">Дуал Јоицонс</string>
+    <string name="left_joycon">Леви ЈоиЦон</string>
+    <string name="right_joycon">Десни радовицон</string>
+    <string name="gamecube_controller">Гамецубе контролер</string>
+    <string name="invert_axis">Преокрет</string>
+    <string name="invert_button">Дугме за уметност</string>
+    <string name="toggle_button">Дугме за пребацивање</string>
+    <string name="turbo_button">Турбо дугме</string>
+    <string name="set_threshold">Подесити праг</string>
+    <string name="toggle_axis">Пребацивање оси</string>
+    <string name="connected">Повезан</string>
+    <string name="use_system_vibrator">Користите системски вибратор</string>
+    <string name="input_overlay">Улазно прекривање</string>
+    <string name="vibration">Вибрација</string>
+    <string name="vibration_strength">Снага вибрација</string>
+    <string name="profile">Профил</string>
+    <string name="create_new_profile">Креирајте нови профил</string>
+    <string name="enter_profile_name">Унесите име профила</string>
+    <string name="profile_name_already_exists">Име профила већ постоји</string>
+    <string name="invalid_profile_name">Неважеће име профила</string>
+    <string name="use_global_input_configuration">Користите глобалну улазну конфигурацију</string>
+    <string name="player_num_profile">Играч%d Профил</string>
+    <string name="delete_input_profile">Избриши унос профила</string>
+    <string name="delete_input_profile_description">Јесте ли сигурни да желите да избришете овај профил? Ово се не може надокнадити.</string>
+    <string name="stick_map_description">Померите штап улево и затим горе или притисните дугме</string>
+    <string name="button_map_description">Притисните дугме или преместите окидач / штап</string>
+    <string name="map_dpad_direction">Мапа на Д-Пад%1$s</string>
+    <string name="map_control">МАП до%1$s</string>
+    <string name="failed_to_load_profile">Профил за учитавање није успело</string>
+    <string name="failed_to_save_profile">Није успело да уштедите профил</string>
+    <string name="reset_mapping">Ресетујте мапирање</string>
+    <string name="reset_mapping_description">Јесте ли сигурни да желите да ресетујете све пресликавања за овај контролер за подразумевано? То се не може поништити.</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">Подразумевано</string>
+    <string name="ini_saved">Сачувана подешавања</string>
+    <string name="gameid_saved">Сачувана подешавања за%1$s</string>
+    <string name="error_saving">Грешка уштеде%1$s.ини:%2$s</string>
+    <string name="unimplemented_menu">Једностављени мени</string>
+    <string name="loading">Учитавање ...</string>
+    <string name="shutting_down">Искључивање ...</string>
+    <string name="reset_setting_confirmation">Да ли желите да ресетујете ово постављање назад на задану вредност?</string>
+    <string name="reset_to_default">Ресетујте на подразумевано</string>
+    <string name="reset_to_default_description">Ресетује све напредне поставке</string>
+    <string name="reset_all_settings">Ресетујте сва подешавања?</string>
+    <string name="reset_all_settings_description">Све напредна подешавања ће се ресетовати на њихову подразумевану конфигурацију. То се не може поништити.</string>
+    <string name="settings_reset">Подешавање поставки</string>
+    <string name="close">Затворити</string>
+    <string name="learn_more">Сазнајте више</string>
+    <string name="auto">Аутомат</string>
+    <string name="submit">Поднети</string>
+    <string name="string_null">Нула</string>
+    <string name="string_import">Увоз</string>
+    <string name="export">Извоз</string>
+    <string name="export_failed">Извоз није успео</string>
+    <string name="import_failed">Увоз није успео</string>
+    <string name="cancelling">Отказивање</string>
+    <string name="install">Инсталирати</string>
+    <string name="fetch">Дохватити</string>
+    <string name="delete">Избрисати</string>
+    <string name="edit">Уредити</string>
+    <string name="export_success">Успешно извезено</string>
+    <string name="start">Почети</string>
+    <string name="clear">Чист</string>
+    <string name="global">Глобално</string>
+    <string name="custom">Обичај</string>
+    <string name="notice">Обавештење</string>
+    <string name="import_complete">Увоз комплетан</string>
+    <string name="more_options">Више опција</string>
+    <string name="use_global_setting">Користите Глобално подешавање</string>
+    <string name="operation_completed_successfully">Операција је успешно завршена</string>
+    <string name="retry">Поново покушати</string>
+    <string name="confirm">Потврдити</string>
+    <string name="load">Оптеретити</string>
+    <string name="save">Сачувати</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver">Изаберите ГПУ драјвер</string>
+    <string name="select_gpu_driver_title">Да ли желите да замените свој тренутни ГПУ управљачки програм?</string>
+    <string name="select_gpu_driver_install">Инсталирати</string>
+    <string name="select_gpu_driver_default">Подразумевано</string>
+    <string name="select_gpu_driver_use_default">Коришћење подразумеваног ГПУ драјвера</string>
+    <string name="select_gpu_driver_error">Изабран је неважећи управљачки програм</string>
+    <string name="driver_already_installed">Возач је већ инсталиран</string>
+    <string name="system_gpu_driver">Систем ГПУ драјвер</string>
+    <string name="installing_driver">Инсталирање управљачког програма ...</string>
+
+    <!-- GPU driver fetcher -->
+    <string name="fetch_error">Грешка приликом дохваћања</string>
+    <string name="check_connection">Проверите везу и покушајте поново.</string>
+    <string name="show_releases">Објаснити издања</string>
+    <string name="view_full_release_notes">Белешке о ослобађању</string>
+    <string name="failed_to_fetch">Није успело дохватити</string>
+    <string name="error_during_fetch">Грешка током дохвата</string>
+    <string name="toggle_release_notes">Укључите белешке о ослобађању</string>
+    <string name="downloads">Преузимања</string>
+    <string name="show_downloads">Схов Довнлоадс</string>
+    <string name="hide_downloads">Хиде Довнлоадс</string>
+    <string name="failed_cache_dir">Именик у кеш меморију</string>
+    <string name="empty_response_body">Празно тело одговора</string>
+    <string name="successfully_installed">%1$s успешно инсталиран</string>
+    <string name="driver_failed_title">Инсталација возача није успела</string>
+    <string name="failed_install_driver">Није успело да се инсталира%1$s управљачки програм, да ли ваш систем подржава?</string>
+    <string name="driver_empty">Преузето управљачки програм је празан, проверите свој Интернет</string>
+    <string name="downloading">Преузимање ...</string>
+    <string name="installing">Инсталирање ...</string>
+    <string name="latest">Најновији</string>
+    <string name="recommended_driver">Препоручени управљачки програм:</string>
+    <string name="gpu_model">ГПУ модел:</string>
+    <string name="unsupported_gpu">Неподржани ГПУ</string>
+    <string name="unsupported_gpu_warning">Ваш ГПУ не подржава ињекцију управљачких програма. Покушај постављања прилагођених управљачких програма се не препоручује.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">Подешавања</string>
+    <string name="preferences_general">Општи</string>
+    <string name="preferences_system">Систем</string>
+    <string name="preferences_system_description">Доцдед мод, регион, језик</string>
+    <string name="preferences_graphics">Графика</string>
+    <string name="preferences_graphics_description">Ниво тачности, резолуција, сенчара</string>
+    <string name="preferences_audio">Аудио</string>
+    <string name="preferences_audio_description">Излазни мотор, запремина</string>
+    <string name="preferences_controls">Контрола</string>
+    <string name="preferences_controls_description">Унос контролера мапе</string>
+    <string name="preferences_player">Играч%d</string>
+    <string name="preferences_theme">Тема и боја</string>
+    <string name="preferences_debug">Ослободити збрајања</string>
+    <string name="preferences_debug_description">ЦПУ / ГПУ уклањање погрешака, графички АПИ, ФастМем</string>
+
+    <!-- Game properties -->
+    <string name="info">Информације</string>
+    <string name="info_description">ИД програма, програмер, верзија</string>
+    <string name="per_game_settings">Подешавања по игри</string>
+    <string name="per_game_settings_description">Уређивање поставки специфично за ову игру</string>
+    <string name="launch_options">Лансирање цонфиг</string>
+    <string name="path">Стаза</string>
+    <string name="program_id">ИД програма</string>
+    <string name="developer">Разводнички</string>
+    <string name="version">Верзија</string>
+    <string name="copy_details">Детаљи копирања</string>
+    <string name="add_ons">Додаци</string>
+    <string name="add_ons_description">Пребаците модове, исправке и ДЛЦ</string>
+    <string name="clear_shader_cache">Цлеар Схадер Цацхе</string>
+    <string name="clear_shader_cache_description">Уклања све сјенадесете изграђене током репродукције ове игре</string>
+    <string name="clear_shader_cache_warning_description">Доживећете више муцајући док се схадер кеш регенерати</string>
+    <string name="cleared_shaders_successfully">Успешно очистили схадера</string>
+    <string name="addons_game">Аддонс:%1$s</string>
+    <string name="save_data">Сачувајте податке</string>
+    <string name="save_data_description">Управљајте Спреми податке специфично за ову игру</string>
+    <string name="delete_save_data">Избришите сачувајте податке</string>
+    <string name="delete_save_data_description">Уклања све Спреми податке специфичне за ову игру</string>
+    <string name="delete_save_data_warning_description">Ово неподобно уклања све податке о сачувању ове игре. Јесте ли сигурни да желите да наставите?</string>
+    <string name="save_data_deleted_successfully">Спремите податке који су успешно избрисани</string>
+    <string name="select_content_type">Врста садржаја</string>
+    <string name="updates_and_dlc">Ажурирања и ДЛЦ</string>
+    <string name="mods_and_cheats">Модови и варалице</string>
+    <string name="addon_notice">Важна Обавештење о Аддон-у</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">Да бисте инсталирали модс и варалице, морате да одаберете мапу која садржи шифре /, Ромфс / или ЕкеФС / директориј. Не можемо да проверимо да ли ће то бити компатибилно са вашом игром, па будите опрезни!</string>
+    <string name="invalid_directory">Неважећи директориј</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">Молимо вас проверите да ли је име одабрано да садржи варалице /, Ромфс / или ЕкеФС / мапу и покушајте поново.</string>
+    <string name="addon_installed_successfully">Аддон је успешно инсталиран</string>
+    <string name="verifying_content">Верификација садржаја ...</string>
+    <string name="content_install_notice">Обавештење о инсталирању садржаја</string>
+    <string name="content_install_notice_description">Садржај који сте одабрали не одговара овој игри. Ионако нинсталл?</string>
+    <string name="confirm_uninstall">Потврдите деинсталирање</string>
+    <string name="confirm_uninstall_description">Јесте ли сигурни да желите да деинсталирате овај Аддон?</string>
+    <string name="verify_integrity">Проверите интегритет</string>
+    <string name="verifying">Провера ...</string>
+    <string name="verify_success">Провера интегритета је успела!</string>
+    <string name="verify_failure">Провера интегритета није успела!</string>
+    <string name="verify_failure_description">Садржај датотеке може бити оштећен</string>
+    <string name="verify_no_result">Провјера интегритета није могла да се изврши</string>
+    <string name="verify_no_result_description">Садржај датотеке није проверен за валидност</string>
+    <string name="verification_failed_for">Верификација није успела за следеће датотеке: \ н%1$s</string>
+
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">Ваш РОМ је шифровани</string>
+    <string name="loader_error_encrypted_roms_description">Игра ЦартиДгес</string>
+    <string name="loader_error_encrypted_keys_description">prod.keys</string>
+    <string name="loader_error_video_core">Дошло је до грешке приликом иницијализације видео језгра</string>
+    <string name="loader_error_video_core_description">То обично узрокује некомпатибилни ГПУ драјвер. Инсталирање прилагођеног ГПУ управљачког програма може решити овај проблем.</string>
+    <string name="loader_error_invalid_format">Није могуће учитати РОМ</string>
+    <string name="loader_error_file_not_found">РОМ датотека не постоји</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Излазни емулација</string>
+    <string name="emulation_done">Доношен</string>
+    <string name="emulation_fps_counter">Фпс цоунтер</string>
+    <string name="emulation_thermal_indicator">Термички индикатор</string>
+    <string name="emulation_toggle_controls">Пребацивање контрола</string>
+    <string name="emulation_rel_stick_center">Релативни центар за штапић</string>
+    <string name="emulation_dpad_slide">Д-Пад Слиде</string>
+    <string name="emulation_haptics">Додирните ХАптицс</string>
+    <string name="emulation_show_overlay">Приказати прекривање</string>
+    <string name="emulation_toggle_all">Пребацивати све</string>
+    <string name="emulation_control_adjust">Подесити прекривање</string>
+    <string name="emulation_control_scale">Скала</string>
+    <string name="emulation_control_opacity">Непрозирност</string>
+    <string name="emulation_touch_overlay_reset">Ресетовање прекривања</string>
+    <string name="emulation_touch_overlay_edit">Уредити прекривање</string>
+    <string name="emulation_pause">Паузирање емулација</string>
+    <string name="emulation_unpause">Непознавање емулације</string>
+    <string name="emulation_input_overlay">Опције прекривања</string>
+    <string name="touchscreen">Екран осетљив на додир</string>
+    <string name="lock_drawer">Ладица за закључавање</string>
+    <string name="unlock_drawer">Откључај ладицу</string>
+
+    <string name="load_settings">Учитавање поставки ...</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Софтверска тастатура</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">Престати</string>
+    <string name="continue_button">Настављати</string>
+    <string name="system_archive_not_found">Архива система није пронађена</string>
+    <string name="system_archive_not_found_message">%s недостаје. Молимо вас да избаците системске архиве. \ Нцонтинуинг Емулација може резултирати рушењем и грешкама.</string>
+    <string name="system_archive_general">Архива система</string>
+    <string name="save_load_error">Грешка уштеде / учитавање</string>
+    <string name="fatal_error">Фатална грешка</string>
+    <string name="fatal_error_message">Дошло је до кобне грешке. Проверите детаље о дневнику. \ НцонТинуинг Емулација може резултирати сударама и грешкама.</string>
+    <string name="performance_warning">Искључивање ове поставке значајно ће смањити перформансе емулације! За најбоље искуство, препоручује се да поставите ово подешавање омогућено.</string>
+    <string name="device_memory_inadequate">Уређај РАМ-а:%1$s \ н Рецоммсендед:%2$s</string>
+    <string name="memory_formatted">%1$s%2$s</string>
+    <string name="no_game_present">Нема презентације игре за покретање!</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">Јапан</string>
+    <string name="region_usa">САД</string>
+    <string name="region_europe">Европа</string>
+    <string name="region_australia">Аустралија</string>
+    <string name="region_china">Кина</string>
+    <string name="region_korea">Кореја</string>
+    <string name="region_taiwan">Тајван</string>
+
+    <!-- Memory Layouts -->
+    <string name="memory_4gb">4ГБ (препоручује се)</string>
+    <string name="memory_6gb">6ГБ (несигуран)</string>
+    <string name="memory_8gb">8ГБ (несигурно)</string>
+
+    <!--CPU clock speeds-->
+    <string name="clock_base">База (1000МХз)</string>
+    <string name="clock_boost">Боост (1700МХз)</string>
+    <string name="clock_fast">Брзи (2000МХз)</string>
+
+    <!-- GPU overclock factors -->
+    <string name="gpu_low">Ниско (128)</string>
+    <string name="gpu_medium">Средња (256)</string>
+    <string name="gpu_high">Висок (512)</string>
+
+    <!-- Language Names -->
+    <string name="language_japanese" translatable="false">日本語</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_french" translatable="false">Français</string>
+    <string name="language_german" translatable="false">Deutsch</string>
+    <string name="language_italian" translatable="false">Italiano</string>
+    <string name="language_spanish" translatable="false">Español</string>
+    <string name="language_chinese" translatable="false">简体中文</string>
+    <string name="language_korean" translatable="false">한국어</string>
+    <string name="language_dutch" translatable="false">Nederlands</string>
+    <string name="language_portuguese" translatable="false">Português</string>
+    <string name="language_russian" translatable="false">Русский</string>
+    <string name="language_taiwanese" translatable="false">台湾</string>
+    <string name="language_british_english" translatable="false">British English</string>
+    <string name="language_canadian_french" translatable="false">Français canadien</string>
+    <string name="language_latin_american_spanish" translatable="false">Español latinoamericano</string>
+    <string name="language_simplified_chinese" translatable="false">简体中文</string>
+    <string name="language_traditional_chinese" translatable="false">正體中文</string>
+    <string name="language_brazilian_portuguese" translatable="false">Português do Brasil</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte">Бајт</string>
+    <string name="memory_byte_shorthand">Б</string>
+    <string name="memory_kilobyte">Кб</string>
+    <string name="memory_megabyte">МБ</string>
+    <string name="memory_gigabyte">ГБ</string>
+    <string name="memory_terabyte">Тб</string>
+    <string name="memory_petabyte">Пб</string>
+    <string name="memory_exabyte">Еб</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Вулкан</string>
+    <string name="renderer_none">Ниједан</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">Нормалан</string>
+    <string name="renderer_accuracy_high">Високо</string>
+    <string name="renderer_accuracy_extreme">Екстремни (спор)</string>
+
+    <!-- ASTC Decoding Method -->
+    <string name="accelerate_astc">АСТЦ метода декодирања</string>
+    <string name="accelerate_astc_description">Изаберите како су текстуре са компримираним текстовима декодиране за приказивање: ЦПУ (споро, сигуран), ГПУ (Фаст, Препоручи) или ЦПУ АСИНЦ (без затезача, могу да изазове питања)</string>
+
+    <!-- ASTC Decoding Method Choices -->
+    <string name="accelerate_astc_cpu">ЦПУ</string>
+    <string name="accelerate_astc_gpu">ГПУ</string>
+    <string name="accelerate_astc_async">ЦПУ асинхроно</string>
+
+    <!-- ASTC Recompression Method -->
+    <string name="astc_recompression">Метода рекомпресије АСТЦ-а</string>
+    <string name="astc_recompression_description">Изаберите како се текстуре АСТЦ препоручују да би се побољшале компатибилност и перформансе. Омогућавање ове опције штеди ВРАМ, али може смањити квалитет текстуре.</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="astc_recompression_uncompressed">Некомпримован</string>
+    <string name="astc_recompression_bc1">БЦ1 (низак квалитет)</string>
+    <string name="astc_recompression_bc3">БЦ3 (средњи квалитет)</string>
+
+    <!-- ASTC Recompression Method Choices -->
+    <string name="vram_usage_mode">ВРАМ режим употребе</string>
+    <string name="vram_usage_mode_description">Контролишите колико агресивно емулатор додељује и ослобађа ГПУ меморију.</string>
+    <string name="vram_usage_conservative">Конзервативан</string>
+    <string name="vram_usage_aggressive">Агресиван</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_quarter">0,25к (180п / 270п)</string>
+    <string name="resolution_half">0,5к (360п / 540п)</string>
+    <string name="resolution_three_quarter">0,75к (540п / 810п)</string>
+    <string name="resolution_one">1к (720п / 1080п)</string>
+    <string name="resolution_two">2к (1440п / 2160п) (споро)</string>
+    <string name="resolution_three">3к (2160п / 3240п) (споро)</string>
+    <string name="resolution_four">4к (2880п / 4320п) (споро)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Непосредан (искључен)</string>
+    <string name="renderer_vsync_mailbox">Поштански сандучић</string>
+    <string name="renderer_vsync_fifo">ФИФО (ОН)</string>
+    <string name="renderer_vsync_fifo_relaxed">ФИФО је опуштен</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">Најближи комшија</string>
+    <string name="scaling_filter_bilinear">Билинеарни</string>
+    <string name="scaling_filter_bicubic">Бицубиц</string>
+    <string name="scaling_filter_gaussian">Гауссиан</string>
+    <string name="scaling_filter_scale_force">Скалефорце</string>
+    <string name="scaling_filter_fsr">АМД ФиделитиФКС ™ Супер резолуција</string>
+
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">Ниједан</string>
+    <string name="anti_aliasing_fxaa">ФКСАА</string>
+    <string name="anti_aliasing_smaa">СМАА</string>
+
+    <!-- Screen Layouts -->
+    <string name="screen_layout_auto">Аутомат</string>
+    <string name="screen_layout_sensor_landscape">Сензорски пејзаж</string>
+    <string name="screen_layout_landscape">Пејзаж</string>
+    <string name="screen_layout_reverse_landscape">Обрнути пејзаж</string>
+    <string name="screen_layout_sensor_portrait">Портрет сензора</string>
+    <string name="screen_layout_portrait">Портрет</string>
+    <string name="screen_layout_reverse_portrait">Обрнути портрет</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">Подразумевано (16: 9)</string>
+    <string name="ratio_force_four_three">Форце 4: 3</string>
+    <string name="ratio_force_twenty_one_nine">Натура 21: 9</string>
+    <string name="ratio_force_sixteen_ten">Сила 16:10</string>
+    <string name="ratio_stretch">Протезање до прозора</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Динамина (споро)</string>
+    <string name="cpu_backend_nce">Извођење изворног кода (НЦЕ)</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">Тачан</string>
+    <string name="cpu_accuracy_unsafe">Несигуран</string>
+    <string name="cpu_accuracy_paranoid">Параноичан (споро)</string>
+
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">Д-пад</string>
+    <string name="gamepad_left_stick">Левичар</string>
+    <string name="gamepad_right_stick">Десни штап</string>
+    <string name="gamepad_home">Дом</string>
+    <string name="gamepad_screenshot">Заслона</string>
+
+    <!-- Disk shader cache -->
+    <string name="preparing_shaders">Припрема схадера</string>
+    <string name="building_shaders">Зграда схадера</string>
+
+    <!-- Theme options -->
+    <string name="change_app_theme">Промените тему апликација</string>
+    <string name="theme_default">Подразумевано</string>
+    <string name="theme_material_you">Материјал ти</string>
+
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">Промените режим теме</string>
+    <string name="theme_mode_follow_system">Слиједите систем</string>
+    <string name="theme_mode_light">Светло</string>
+    <string name="theme_mode_dark">Мрак</string>
+
+    <!-- Audio output engines -->
+    <string name="oboe">обоја</string>
+    <string name="cubeb">Цубеб</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2к</string>
+    <string name="multiplier_four">4к</string>
+    <string name="multiplier_eight">8к</string>
+    <string name="multiplier_sixteen">16к</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Црна позадина</string>
+    <string name="use_black_backgrounds_description">Када користите тамну тему, нанесите црну позадину.</string>
+
+    <!-- Static Themes -->
+    <string name="static_theme_color">Боја теме</string>
+    <string name="violet">Виолет (подразумевано)</string>
+    <string name="blue">Плава</string>
+    <string name="cyan">Цијан</string>
+    <string name="red">Црвено</string>
+    <string name="green">Зеленило</string>
+    <string name="yellow">Жути</string>
+    <string name="orange">Наранџаста</string>
+    <string name="pink">Ружичаст</string>
+    <string name="gray">Сива</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Слика на слици</string>
+    <string name="picture_in_picture_description">Смањите прозор када се постави у позадини</string>
+    <string name="pause">Пауза</string>
+    <string name="play">Играње</string>
+    <string name="mute">Немирати</string>
+    <string name="unmute">Имуцати</string>
+
+    <!-- Emulation vertical alignment -->
+    <string name="vertical_alignment">Вертикално поравнање</string>
+    <string name="top">На врху</string>
+    <string name="center">Центер</string>
+    <string name="bottom">Дно</string>
+
+    <!-- Applet Modes -->
+    <string name="applets_menu">Аплетс</string>
+    <string name="applets_menu_description">(ВИП) Промените Апплете Фронтендс и Подешавања</string>
+
+    <string name="applet_hle">Прилагођена фронтенд</string>
+    <string name="applet_lle">Прави апплет</string>
+
+    <string name="swkbd_applet">Софтверска тастатура</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Лиценце</string>
+    <string name="license_fidelityfx_fsr" translatable="false">FidelityFX-FSR</string>
+    <string name="license_fidelityfx_fsr_description">Висококвалитетни упглинг из АМД-а</string>
+    <string name="license_fidelityfx_fsr_link" translatable="false">https://github.com/GPUOpen-Effects/FidelityFX-FSR</string>
+    <string name="license_fidelityfx_fsr_copyright" translatable="false">Copyright © 2021 Advanced Micro Devices, Inc.</string>
+    <string name="license_fidelityfx_fsr_text" translatable="false">
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:\n\n
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.\n\n
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+    </string>
+    <string name="license_cubeb" translatable="false">cubeb</string>
+    <string name="license_cubeb_description" translatable="false">Cross platform audio library</string>
+    <string name="license_cubeb_link" translatable="false">https://github.com/mozilla/cubeb</string>
+    <string name="license_cubeb_copyright" translatable="false">Copyright © 2011 Mozilla Foundation</string>
+    <string name="license_cubeb_text" translatable="false">
+Permission to use, copy, modify, and distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.\n\n
+
+THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    </string>
+    <string name="license_dynarmic" translatable="false">Dynarmic</string>
+    <string name="license_dynarmic_description" translatable="false">An ARM dynamic recompiler</string>
+    <string name="license_dynarmic_link" translatable="false">https://github.com/merryhime/dynarmic</string>
+    <string name="license_dynarmic_copyright" translatable="false">Copyright © 2017 merryhime</string>
+    <string name="license_dynarmic_text" translatable="false">
+Permission to use, copy, modify, and/or distribute this software for
+any purpose with or without fee is hereby granted.\n\n
+
+THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    </string>
+    <string name="license_ffmpeg" translatable="false">FFmpeg</string>
+    <string name="license_ffmpeg_description" translatable="false">FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata.</string>
+    <string name="license_ffmpeg_link" translatable="false">https://github.com/FFmpeg/FFmpeg</string>
+    <string name="license_ffmpeg_copyright" translatable="false">Copyright © 1991, 1999 Free Software Foundation, Inc.</string>
+    <string name="license_ffmpeg_text" translatable="false">
+GNU LESSER GENERAL PUBLIC LICENSE\n
+TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n\n
+
+  0. This License Agreement applies to any software library or other
+program which contains a notice placed by the copyright holder or
+other authorized party saying it may be distributed under the terms of
+this Lesser General Public License (also called \"this License\").
+Each licensee is addressed as \"you\".\n\n
+
+  A \"library\" means a collection of software functions and/or data
+prepared so as to be conveniently linked with application programs
+(which use some of those functions and data) to form executables.\n\n
+
+  The \"Library\", below, refers to any such software library or work
+which has been distributed under these terms.  A \"work based on the
+Library\" means either the Library or any derivative work under
+copyright law: that is to say, a work containing the Library or a
+portion of it, either verbatim or with modifications and/or translated
+straightforwardly into another language.  (Hereinafter, translation is
+included without limitation in the term \"modification\".)\n\n
+
+  \"Source code\" for a work means the preferred form of the work for
+making modifications to it.  For a library, complete source code means
+all the source code for all modules it contains, plus any associated
+interface definition files, plus the scripts used to control compilation
+and installation of the library.\n\n
+
+  Activities other than copying, distribution and modification are not
+covered by this License; they are outside its scope.  The act of
+running a program using the Library is not restricted, and output from
+such a program is covered only if its contents constitute a work based
+on the Library (independent of the use of the Library in a tool for
+writing it).  Whether that is true depends on what the Library does
+and what the program that uses the Library does.\n\n
+
+  1. You may copy and distribute verbatim copies of the Library\"s
+complete source code as you receive it, in any medium, provided that
+you conspicuously and appropriately publish on each copy an
+appropriate copyright notice and disclaimer of warranty; keep intact
+all the notices that refer to this License and to the absence of any
+warranty; and distribute a copy of this License along with the
+Library.\n\n
+
+  You may charge a fee for the physical act of transferring a copy,
+and you may at your option offer warranty protection in exchange for a
+fee.\n\n
+
+  2. You may modify your copy or copies of the Library or any portion
+of it, thus forming a work based on the Library, and copy and
+distribute such modifications or work under the terms of Section 1
+above, provided that you also meet all of these conditions:\n\n
+
+a) The modified work must itself be a software library.\n\n
+
+b) You must cause the files modified to carry prominent notices
+stating that you changed the files and the date of any change.\n\n
+
+c) You must cause the whole of the work to be licensed at no
+charge to all third parties under the terms of this License.\n\n
+
+d) If a facility in the modified Library refers to a function or a
+table of data to be supplied by an application program that uses
+the facility, other than as an argument passed when the facility
+is invoked, then you must make a good faith effort to ensure that,
+in the event an application does not supply such function or
+table, the facility still operates, and performs whatever part of
+its purpose remains meaningful.\n\n
+
+(For example, a function in a library to compute square roots has
+a purpose that is entirely well-defined independent of the
+application.  Therefore, Subsection 2d requires that any
+application-supplied function or table used by this function must
+be optional: if the application does not supply it, the square
+root function must still compute square roots.)\n\n
+
+These requirements apply to the modified work as a whole.  If
+identifiable sections of that work are not derived from the Library,
+and can be reasonably considered independent and separate works in
+themselves, then this License, and its terms, do not apply to those
+sections when you distribute them as separate works.  But when you
+distribute the same sections as part of a whole which is a work based
+on the Library, the distribution of the whole must be on the terms of
+this License, whose permissions for other licensees extend to the
+entire whole, and thus to each and every part regardless of who wrote
+it.\n\n
+
+Thus, it is not the intent of this section to claim rights or contest
+your rights to work written entirely by you; rather, the intent is to
+exercise the right to control the distribution of derivative or
+collective works based on the Library.\n\n
+
+In addition, mere aggregation of another work not based on the Library
+with the Library (or with a work based on the Library) on a volume of
+a storage or distribution medium does not bring the other work under
+the scope of this License.\n\n
+
+  3. You may opt to apply the terms of the ordinary GNU General Public
+License instead of this License to a given copy of the Library.  To do
+this, you must alter all the notices that refer to this License, so
+that they refer to the ordinary GNU General Public License, version 2,
+instead of to this License.  (If a newer version than version 2 of the
+ordinary GNU General Public License has appeared, then you can specify
+that version instead if you wish.)  Do not make any other change in
+these notices.\n\n
+
+  Once this change is made in a given copy, it is irreversible for
+that copy, so the ordinary GNU General Public License applies to all
+subsequent copies and derivative works made from that copy.\n\n
+
+  This option is useful when you wish to copy part of the code of
+the Library into a program that is not a library.\n\n
+
+  4. You may copy and distribute the Library (or a portion or
+derivative of it, under Section 2) in object code or executable form
+under the terms of Sections 1 and 2 above provided that you accompany
+it with the complete corresponding machine-readable source code, which
+must be distributed under the terms of Sections 1 and 2 above on a
+medium customarily used for software interchange.\n\n
+
+  If distribution of object code is made by offering access to copy
+from a designated place, then offering equivalent access to copy the
+source code from the same place satisfies the requirement to
+distribute the source code, even though third parties are not
+compelled to copy the source along with the object code.\n\n
+
+  5. A program that contains no derivative of any portion of the
+Library, but is designed to work with the Library by being compiled or
+linked with it, is called a \"work that uses the Library\".  Such a
+work, in isolation, is not a derivative work of the Library, and
+therefore falls outside the scope of this License.\n\n
+
+  However, linking a \"work that uses the Library\" with the Library
+creates an executable that is a derivative of the Library (because it
+contains portions of the Library), rather than a \"work that uses the
+library\".  The executable is therefore covered by this License.
+Section 6 states terms for distribution of such executables.\n\n
+
+  When a \"work that uses the Library\" uses material from a header file
+that is part of the Library, the object code for the work may be a
+derivative work of the Library even though the source code is not.
+Whether this is true is especially significant if the work can be
+linked without the Library, or if the work is itself a library.  The
+threshold for this to be true is not precisely defined by law.\n\n
+
+  If such an object file uses only numerical parameters, data
+structure layouts and accessors, and small macros and small inline
+functions (ten lines or less in length), then the use of the object
+file is unrestricted, regardless of whether it is legally a derivative
+work.  (Executables containing this object code plus portions of the
+Library will still fall under Section 6.)\n\n
+
+  Otherwise, if the work is a derivative of the Library, you may
+distribute the object code for the work under the terms of Section 6.
+Any executables containing that work also fall under Section 6,
+whether or not they are linked directly with the Library itself.\n\n
+
+  6. As an exception to the Sections above, you may also combine or
+link a \"work that uses the Library\" with the Library to produce a
+work containing portions of the Library, and distribute that work
+under terms of your choice, provided that the terms permit
+modification of the work for the customer\"s own use and reverse
+engineering for debugging such modifications.\n\n
+
+  You must give prominent notice with each copy of the work that the
+Library is used in it and that the Library and its use are covered by
+this License.  You must supply a copy of this License.  If the work
+during execution displays copyright notices, you must include the
+copyright notice for the Library among them, as well as a reference
+directing the user to the copy of this License.  Also, you must do one
+of these things:\n\n
+
+a) Accompany the work with the complete corresponding
+machine-readable source code for the Library including whatever
+changes were used in the work (which must be distributed under
+Sections 1 and 2 above); and, if the work is an executable linked
+with the Library, with the complete machine-readable \"work that
+uses the Library\", as object code and/or source code, so that the
+user can modify the Library and then relink to produce a modified
+executable containing the modified Library.  (It is understood
+that the user who changes the contents of definitions files in the
+Library will not necessarily be able to recompile the application
+to use the modified definitions.)\n\n
+
+b) Use a suitable shared library mechanism for linking with the
+Library.  A suitable mechanism is one that (1) uses at run time a
+copy of the library already present on the user\"s computer system,
+rather than copying library functions into the executable, and (2)
+will operate properly with a modified version of the library, if
+the user installs one, as long as the modified version is
+interface-compatible with the version that the work was made with.\n\n
+
+c) Accompany the work with a written offer, valid for at
+least three years, to give the same user the materials
+specified in Subsection 6a, above, for a charge no more
+than the cost of performing this distribution.\n\n
+
+d) If distribution of the work is made by offering access to copy
+from a designated place, offer equivalent access to copy the above
+specified materials from the same place.\n\n
+
+e) Verify that the user has already received a copy of these
+materials or that you have already sent this user a copy.\n\n
+
+  For an executable, the required form of the \"work that uses the
+Library\" must include any data and utility programs needed for
+reproducing the executable from it.  However, as a special exception,
+the materials to be distributed need not include anything that is
+normally distributed (in either source or binary form) with the major
+components (compiler, kernel, and so on) of the operating system on
+which the executable runs, unless that component itself accompanies
+the executable.\n\n
+
+  It may happen that this requirement contradicts the license
+restrictions of other proprietary libraries that do not normally
+accompany the operating system.  Such a contradiction means you cannot
+use both them and the Library together in an executable that you
+distribute.\n\n
+
+  7. You may place library facilities that are a work based on the
+Library side-by-side in a single library together with other library
+facilities not covered by this License, and distribute such a combined
+library, provided that the separate distribution of the work based on
+the Library and of the other library facilities is otherwise
+permitted, and provided that you do these two things:\n\n
+
+a) Accompany the combined library with a copy of the same work
+based on the Library, uncombined with any other library
+facilities.  This must be distributed under the terms of the
+Sections above.\n\n
+
+b) Give prominent notice with the combined library of the fact
+that part of it is a work based on the Library, and explaining
+where to find the accompanying uncombined form of the same work.\n\n
+
+  8. You may not copy, modify, sublicense, link with, or distribute
+the Library except as expressly provided under this License.  Any
+attempt otherwise to copy, modify, sublicense, link with, or
+distribute the Library is void, and will automatically terminate your
+rights under this License.  However, parties who have received copies,
+or rights, from you under this License will not have their licenses
+terminated so long as such parties remain in full compliance.\n\n
+
+  9. You are not required to accept this License, since you have not
+signed it.  However, nothing else grants you permission to modify or
+distribute the Library or its derivative works.  These actions are
+prohibited by law if you do not accept this License.  Therefore, by
+modifying or distributing the Library (or any work based on the
+Library), you indicate your acceptance of this License to do so, and
+all its terms and conditions for copying, distributing or modifying
+the Library or works based on it.\n\n
+
+  10. Each time you redistribute the Library (or any work based on the
+Library), the recipient automatically receives a license from the
+original licensor to copy, distribute, link with or modify the Library
+subject to these terms and conditions.  You may not impose any further
+restrictions on the recipients\" exercise of the rights granted herein.
+You are not responsible for enforcing compliance by third parties with
+this License.\n\n
+
+  11. If, as a consequence of a court judgment or allegation of patent
+infringement or for any other reason (not limited to patent issues),
+conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot
+distribute so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you
+may not distribute the Library at all.  For example, if a patent
+license would not permit royalty-free redistribution of the Library by
+all those who receive copies directly or indirectly through you, then
+the only way you could satisfy both it and this License would be to
+refrain entirely from distribution of the Library.\n\n
+
+If any portion of this section is held invalid or unenforceable under any
+particular circumstance, the balance of the section is intended to apply,
+and the section as a whole is intended to apply in other circumstances.\n\n
+
+It is not the purpose of this section to induce you to infringe any
+patents or other property right claims or to contest validity of any
+such claims; this section has the sole purpose of protecting the
+integrity of the free software distribution system which is
+implemented by public license practices.  Many people have made
+generous contributions to the wide range of software distributed
+through that system in reliance on consistent application of that
+system; it is up to the author/donor to decide if he or she is willing
+to distribute software through any other system and a licensee cannot
+impose that choice.\n\n
+
+This section is intended to make thoroughly clear what is believed to
+be a consequence of the rest of this License.\n\n
+
+  12. If the distribution and/or use of the Library is restricted in
+certain countries either by patents or by copyrighted interfaces, the
+original copyright holder who places the Library under this License may add
+an explicit geographical distribution limitation excluding those countries,
+so that distribution is permitted only in or among countries not thus
+excluded.  In such case, this License incorporates the limitation as if
+written in the body of this License.\n\n
+
+  13. The Free Software Foundation may publish revised and/or new
+versions of the Lesser General Public License from time to time.
+Such new versions will be similar in spirit to the present version,
+but may differ in detail to address new problems or concerns.\n\n
+
+Each version is given a distinguishing version number.  If the Library
+specifies a version number of this License which applies to it and
+"any later version\", you have the option of following the terms and
+conditions either of that version or of any later version published by
+the Free Software Foundation.  If the Library does not specify a
+license version number, you may choose any version ever published by
+the Free Software Foundation.\n\n
+
+  14. If you wish to incorporate parts of the Library into other free
+programs whose distribution conditions are incompatible with these,
+write to the author to ask for permission.  For software which is
+copyrighted by the Free Software Foundation, write to the Free
+Software Foundation; we sometimes make exceptions for this.  Our
+decision will be guided by the two goals of preserving the free status
+of all derivatives of our free software and of promoting the sharing
+and reuse of software generally.\n\n
+
+NO WARRANTY\n\n
+
+  15. BECAUSE THE LIBRARY IS LICENSED FREE OF CHARGE, THERE IS NO
+WARRANTY FOR THE LIBRARY, TO THE EXTENT PERMITTED BY APPLICABLE LAW.
+EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR
+OTHER PARTIES PROVIDE THE LIBRARY \"AS IS\" WITHOUT WARRANTY OF ANY
+KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
+LIBRARY IS WITH YOU.  SHOULD THE LIBRARY PROVE DEFECTIVE, YOU ASSUME
+THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\n
+
+  16. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY
+AND/OR REDISTRIBUTE THE LIBRARY AS PERMITTED ABOVE, BE LIABLE TO YOU
+FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE
+LIBRARY (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
+RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+FAILURE OF THE LIBRARY TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
+SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGES.
+    </string>
+    <string name="license_opus" translatable="false">Opus</string>
+    <string name="license_opus_description" translatable="false">Modern audio compression for the internet</string>
+    <string name="license_opus_link" translatable="false">https://github.com/xiph/opus</string>
+    <string name="license_opus_copyright" translatable="false">Copyright 2001–2011 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo</string>
+    <string name="license_opus_text" translatable="false">
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:\n\n
+
+- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.\n\n
+
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.\n\n
+
+- Neither the name of Internet Society, IETF or IETF Trust, nor the
+names of specific contributors, may be used to endorse or promote
+products derived from this software without specific prior written
+permission.\n\n
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS\"\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n
+
+Opus is subject to the royalty-free patent licenses which are
+specified at:\n\n
+
+Xiph.Org Foundation:
+https://datatracker.ietf.org/ipr/1524/ \n\n
+
+Microsoft Corporation:
+https://datatracker.ietf.org/ipr/1914/ \n\n
+
+Broadcom Corporation:
+https://datatracker.ietf.org/ipr/1526/
+    </string>
+    <string name="license_sirit" translatable="false">Sirit</string>
+    <string name="license_sirit_description" translatable="false">A runtime SPIR-V assembler</string>
+    <string name="license_sirit_link" translatable="false">https://github.com/ReinUsesLisp/sirit</string>
+    <string name="license_sirit_copyright" translatable="false">Copyright © 2019, sirit All rights reserved.</string>
+    <string name="license_sirit_text" translatable="false">
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:\n
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.\n
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.\n
+* Neither the name of the organization nor the
+  names of its contributors may be used to endorse or promote products
+  derived from this software without specific prior written permission.\n\n
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    </string>
+    <string name="license_adreno_tools" translatable="false">Adreno Tools</string>
+    <string name="license_adreno_tools_description" translatable="false">A library for applying rootless Adreno GPU driver modifications/replacements</string>
+    <string name="license_adreno_tools_link" translatable="false">https://github.com/bylaws/libadrenotools</string>
+    <string name="license_adreno_tools_copyright" translatable="false">Copyright © 2021, Billy Laws</string>
+    <string name="license_adreno_tools_text" translatable="false">
+BSD 2-Clause License\n\n
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:\n\n
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.\n\n
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.\n\n
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    </string>
+</resources>

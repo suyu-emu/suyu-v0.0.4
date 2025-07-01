@@ -3591,8 +3591,8 @@ void GMainWindow::OnMenuReportCompatibility() {
         return;
     }
 
-    if (!Settings::values.yuzu_token.GetValue().empty() &&
-            !Settings::values.yuzu_username.GetValue().empty()) {
+    if (!Settings::values.eden_token.GetValue().empty() &&
+            !Settings::values.eden_username.GetValue().empty()) {
     } else {
         QMessageBox::critical(
                     this, tr("Missing yuzu Account"),
