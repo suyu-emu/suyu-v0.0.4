@@ -214,54 +214,42 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 }
 
 bool DecoderContext::SendPacket(const Packet& packet) {
-    m_temp_frame = std::make_shared<Frame>();
-    m_got_frame = 0;
-
-    if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
+	m_temp_frame = std::make_shared<Frame>();
+	
+    if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
     }
-
+	
     return true;
 }
 
 std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
-    auto receive = [&](AVFrame* dst) -> bool {
-        if (const int ret = avcodec_receive_frame(m_codec_context, dst); ret < 0) {
-            LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
-            return false;
-        }
-        return true;
-    };
-
-    if (m_codec_context->hw_device_ctx) {
-        // If we have a hardware context, make a separate frame here to receive the
-        // hardware result before sending it to the output.
-        std::shared_ptr<Frame> intermediate_frame = std::make_shared<Frame>();
-
-        if (!receive(intermediate_frame->GetFrame())) {
-            return {};
+	auto ReceiveImpl = [&](AVFrame* frame) -> bool {
+		if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0) {
+			LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
+			return false;
 		}
-		
-        const auto fmt = intermediate_frame->GetPixelFormat();
-        const auto desc = av_pix_fmt_desc_get(fmt);
-        if (desc && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
-		    m_temp_frame->SetFormat(PreferredGpuFormat);
-            if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
-                LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
-                return {};
-            }
-        } else {
-            m_temp_frame = std::move(intermediate_frame);
-        }
-    } else {
-        // Otherwise, decode the frame as normal.
-        if (!receive(m_temp_frame->GetFrame())) {
-            return {};
-        }
-    }
+		return true;
+	};
 
-    return std::move(m_temp_frame);
+	std::shared_ptr<Frame> intermediate_frame = std::make_shared<Frame>();
+	if (!ReceiveImpl(intermediate_frame->GetFrame())) {
+		return {};
+	}
+
+	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
+	if (m_codec_context->hw_device_ctx && (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
+		m_temp_frame->SetFormat(PreferredGpuFormat);
+		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
+			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
+			return {};
+		}
+	} else {
+		m_temp_frame = std::move(intermediate_frame);
+	}
+
+	return std::move(m_temp_frame);
 }
 
 void DecodeApi::Reset() {
