@@ -569,14 +569,14 @@ abstract class SettingsItem(
                 )
             )
             put(
-                 SingleChoiceSetting(
-                     IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
-                     titleId = R.string.renderer_optimize_spirv_output,
-                     descriptionId = R.string.renderer_optimize_spirv_output_description,
-                     choicesId = R.array.optimizeSpirvOutputEntries,
-                     valuesId = R.array.optimizeSpirvOutputValues
-                 )
-             )
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_OPTIMIZE_SPIRV_OUTPUT,
+                    titleId = R.string.renderer_optimize_spirv_output,
+                    descriptionId = R.string.renderer_optimize_spirv_output_description,
+                    choicesId = R.array.optimizeSpirvOutputEntries,
+                    valuesId = R.array.optimizeSpirvOutputValues
+                )
+            )
             put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,

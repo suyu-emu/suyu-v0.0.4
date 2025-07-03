@@ -64,3 +64,6 @@
 [submodule "externals/sirit/externals/SPIRV-Headers"]
 	path = externals/sirit/externals/SPIRV-Headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers.git
+[submodule "externals/SPIRV-Tools"]
+	path = externals/SPIRV-Tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git

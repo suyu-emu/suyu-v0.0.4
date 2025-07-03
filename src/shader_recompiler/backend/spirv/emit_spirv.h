@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,11 +34,12 @@ constexpr u32 RESCALING_LAYOUT_DOWN_FACTOR_OFFSET = offsetof(RescalingLayout, do
 constexpr u32 RENDERAREA_LAYOUT_OFFSET = offsetof(RenderAreaLayout, render_area);
 
 [[nodiscard]] std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,
-                                         IR::Program& program, Bindings& bindings);
+                                         IR::Program& program, Bindings& bindings, bool optimize);
 
-[[nodiscard]] inline std::vector<u32> EmitSPIRV(const Profile& profile, IR::Program& program) {
+[[nodiscard]] inline std::vector<u32> EmitSPIRV(const Profile& profile, IR::Program& program,
+                                                bool optimize) {
     Bindings binding;
-    return EmitSPIRV(profile, {}, program, binding);
+    return EmitSPIRV(profile, {}, program, binding, optimize);
 }
 
 } // namespace Shader::Backend::SPIRV

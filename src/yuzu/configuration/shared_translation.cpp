@@ -463,6 +463,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(AppletMode, HLE, tr("Custom frontend")),
                               PAIR(AppletMode, LLE, tr("Real applet")),
                           }});
+
     translations->insert({Settings::EnumMetadata<Settings::SpirvOptimizeMode>::Index(),
                           {
                               PAIR(SpirvOptimizeMode, Never, tr("Never")),
