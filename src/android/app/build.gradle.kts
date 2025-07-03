@@ -103,7 +103,7 @@ android {
                 signingConfigs.getByName("default")
             }
 
-            resValue("string", "app_name_suffixed", "eden")
+            resValue("string", "app_name_suffixed", "Eden")
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
