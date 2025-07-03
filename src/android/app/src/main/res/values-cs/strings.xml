@@ -54,10 +54,14 @@
     <string name="show_gpu_model_description">Zobrazit model hostitelské GPU</string>
     <string name="show_soc_model">Zobrazit model SoC</string>
     <string name="show_soc_model_description">Zobrazit model hostitelského SoC</string>
+    <string name="show_fw_version">Zobrazit verzi firmwaru</string>
+    <string name="show_fw_version_description">Zobrazí nainstalovanou verzi firmwaru</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">Rozšíření GPU</string>
     <string name="veil_renderer">Renderer</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Metoda automatické správy prostředků ve Vulkanu, která zajišťuje správné uvolnění prostředků, když již nejsou potřeba, ale může způsobit pády v balených hrách.</string>
     <string name="veil_misc">Různé</string>
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
@@ -96,6 +100,12 @@
     <string name="fast_cpu_time_description">Použijte Boost (1700MHz) pro běh na nejvyšším nativním taktu Switch nebo Fast (2000MHz) pro běh na dvojnásobném taktu.</string>
     <string name="memory_layout">Rozložení paměti</string>
     <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
+    <string name="sample_shading">Vzorkovací stínování</string>
+    <string name="sample_shading_description">Umožňuje fragment shaderu provádět výpočty pro každý vzorek ve fragmentu s více vzorky namísto jednou pro fragment. Zlepšuje kvalitu grafiky na úkor výkonu. Tuto funkci podporují pouze zařízení s Vulkan 1.1+.</string>
+    <string name="custom_cpu_ticks">Vlastní CPU takty</string>
+    <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
+    <string name="cpu_ticks">Takty</string>
+
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
     <string name="memory_8gb">8GB (Nebezpečné)</string>
@@ -233,12 +243,17 @@
     <string name="multiplayer_room_name_error">Musí mít 3 až 20 znaků</string>
     <string name="multiplayer_required">Povinné</string>
     <string name="multiplayer_ip_error">Neplatný formát IP</string>
-    <string name="multiplayer_username_error">Musí mít alespoň 5 znaků</string>
+    <string name="multiplayer_username_error">Musí mít 4–20 znaků</string>
     <string name="multiplayer_port_error">Musí být mezi 1 a 65535</string>
+    <string name="multiplayer_token_error">Musí mít 48 znaků a pouze malá písmena a-z</string>
+    <string name="multiplayer_lobby_type">Typ místnosti</string>
+    <string name="multiplayer_public_visibility">Veřejné</string>
+    <string name="multiplayer_unlisted_visibility">Neveřejné</string>
     <string name="cancel">Zrušit</string>
     <string name="ok">OK</string>
     <string name="refresh">Obnovit</string>
     <string name="room_list">Seznam místností</string>
+    <string name="multiplayer_token_required">Vyžadován webový token, přejděte do Pokročilá nastavení -> Systém -> Síť</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Barva motivu</string>
@@ -270,6 +285,7 @@
     <string name="alphabetical">Abecedně</string>
     <string name="view_list">Seznam</string>
     <string name="view_grid">Mřížka</string>
+    <string name="view_carousel">Kolotoč</string>
     <string name="folder">Složka</string>
     <string name="pre_alpha_warning_title">Předběžná verze</string>
     <string name="pre_alpha_warning_description">Varování: Tato verze není určena pro veřejnost. Může obsahovat chyby.</string>
@@ -392,11 +408,17 @@
     <string name="set_custom_rtc">Nastavit vlastní RTC</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Generovat</string>
+    <string name="web_username">Webové uživatelské jméno</string>
+    <string name="web_username_description">Uživatelské jméno zobrazené v multiplayerových místnostech. Musí mít 4–20 znaků.</string>
     <string name="web_token">Webový token</string>
     <string name="web_token_description">Webový token používaný k vytváření veřejných místností. Jedná se o řetězec o délce 48 znaků obsahující pouze malá písmena a-z.</string>
     <string name="network">Síť</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Zobrazení</string>
+    <string name="processing">Postprocesing</string>
     <string name="renderer_accuracy">Úroveň přesnosti</string>
     <string name="renderer_resolution">Rozlišení (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync režim</string>
@@ -624,6 +646,9 @@
     <string name="applet_lle">Skutečný aplet</string>
 
     <string name="swkbd_applet">Softwarová klávesnice</string>
+
+    <string name="airplane_mode">Režim letadla</string>
+    <string name="airplane_mode_description">Předává režim letadla do systému Switch</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licence</string>

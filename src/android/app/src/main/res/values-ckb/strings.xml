@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">نیشاندانی مۆدێلی GPUی میواندار</string>
     <string name="show_soc_model">نیشاندانی مۆدێلی SoC</string>
     <string name="show_soc_model_description">نیشاندانی مۆدێلی SoCی میواندار</string>
+    <string name="show_fw_version">نیشاندانی وەشانی فریموێر</string>
+    <string name="show_fw_version_description">وەشانی فریموێری نەصبکراو پیشان بدە</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">پاشکۆکانی GPU</string>
     <string name="veil_renderer">رێندرەر</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">ڕێگایەکی بەڕێوەبردنی سەرچاوەکان بە خۆکار لە ڤولکان کە دڵنیای دەکاتەوە لە ئازادکردنی گونجاوی سەرچاوەکان کاتێک کە چیتر پێویستیان نییە، بەڵام لەوانەیە ببێتە هۆی کەوتنی یارییە کۆکراوەکان.</string>
     <string name="veil_misc">جۆراوجۆر</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
@@ -97,6 +101,12 @@
     <string name="fast_cpu_time_description">Boost (1700MHz) بەکاربهێنە بۆ کارکردن بە بەرزترین کاتژمێری نەیتیڤی سوویچ، یان Fast (2000MHz) بۆ کارکردن بە دوو هێندەی کاتژمێر.</string>
     <string name="memory_layout">ڕێکخستنی بیرگە</string>
     <string name="memory_layout_description">(تاقیکاری) گۆڕینی ڕێکخستنی بیرگەی شبیهسازیکراو. ئەم ڕێکخستنە کارایی زیاد ناکات، بەڵام لەوانەیە یارمەتی یارییەکان بدات کە بەرزی ڕێزۆلۆشن بەکاردهێنن بە هۆی مۆدەکان. لەسەر مۆبایلەکانی کە 8GB یان کەمتر RAMیان هەیە بەکارمەهێنە.</string>
+    <string name="sample_shading">سێبەندی نمونە</string>
+    <string name="sample_shading_description">ڕێگە بە شێدەری پارچە دەدات کە بۆ هەر نمونەیەک لە پارچەی فرە نمونەیدا جێبەجێ بکات لە جیاتی جێبەجێکردنی بۆ هەر پارچەیەک. جۆرایی گرافیک باشتر دەکات بە بەهای هەندێک لە کارایی. تەنها ئامێرەکانی Vulkan 1.1+ پشتگیری ئەم درێژکراوە دەکەن.</string>
+    <string name="custom_cpu_ticks">تیکی CPU هەڵبژێردراو</string>
+    <string name="custom_cpu_ticks_description">بەهای هەڵبژێردراوی تیکی CPU دابنێ. بەهای زیاتر دەتوانن کارایی زیاد بکەن، بەڵام لەوانەیە بووەستانی یاریش دروست بکەن. ئامۆژگاری بە نێوان 77-21000 دەکرێت.</string>
+    <string name="cpu_ticks">تیک</string>
+
     <string name="memory_4gb">4GB (پێشنیارکراو)</string>
     <string name="memory_6gb">6GB (نائاسایش)</string>
     <string name="memory_8gb">8GB (نائاسایش)</string>
@@ -234,12 +244,17 @@
     <string name="multiplayer_room_name_error">دەبێت لە نێوان 3 بۆ 20 پیت بێت</string>
     <string name="multiplayer_required">پێویستە</string>
     <string name="multiplayer_ip_error">فۆرماتی IP نادروستە</string>
-    <string name="multiplayer_username_error">دەبێت لانیکەم 5 پیت بێت</string>
+    <string name="multiplayer_username_error">دەبێت لە نێوان 4-20 پیتدا بێت</string>
     <string name="multiplayer_port_error">دەبێت لە نێوان 1 بۆ 65535 بێت</string>
+    <string name="multiplayer_token_error">دەبێت 48 پیت بێت، و تەنها پیتی بچووکی a-z</string>
+    <string name="multiplayer_lobby_type">جۆری لۆبی</string>
+    <string name="multiplayer_public_visibility">گشتی</string>
+    <string name="multiplayer_unlisted_visibility">نەناسراو</string>
     <string name="cancel">پاشگەزبوونەوە</string>
     <string name="ok">باشە</string>
     <string name="refresh">نوێکردنەوە</string>
     <string name="room_list">لیستی ژوورەکان</string>
+    <string name="multiplayer_token_required">تۆکنی وێب پێویستە، بڕۆ بۆ ڕێکخستنە پێشکەوتووەکان -> سیستەم -> تۆڕ</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">ڕەنگی پۆل</string>
@@ -273,6 +288,7 @@
     <string name="alphabetical">پێنووس</string>
     <string name="view_list">لیست</string>
     <string name="view_grid">تۆڕ</string>
+    <string name="view_carousel">کارۆسێل</string>
     <string name="folder">فۆڵدەر</string>
     <string name="pre_alpha_warning_title">نەرمەکاڵای پێش-ئەلفا</string>
     <string name="pre_alpha_warning_description">"ئاگاداری: ئەم وەشانە بۆ بڵاوکردنەوە یان پیشاندانی گشتی نییە. ئەم نەرمەکاڵایە لە قۆناغی پێش-ئەلفادایە و لەوانەیە هەڵەی تێدا بێت."</string>
@@ -397,11 +413,17 @@
     <string name="set_custom_rtc">دانانی RTCی تایبەتمەند</string>
 
     <!-- Network settings strings -->
+    <string name="generate">بەرهەم هێنان</string>
+    <string name="web_username">ناوی بەکارهێنەری وێب</string>
+    <string name="web_username_description">ناوی بەکارهێنەر کە لە لۆبی یاری فرە یاریکەردا دەر دەکەوێت. دەبێت 4-20 پیت بێت.</string>
     <string name="web_token">نیشانەی وێب</string>
     <string name="web_token_description">نیشانەی وێب بۆ دروستکردنی ژوورە گشتییەکان. زنجیرەیەکی 48 پیتییە تەنها پیتی a-z بچووک لەخۆدەگرێت.</string>
     <string name="network">تۆڕ</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">پاشبنەما</string>
+    <string name="display">پیشاندان</string>
+    <string name="processing">پاشپڕۆسەکردن</string>
     <string name="renderer_accuracy">ئاستی وردبینی</string>
     <string name="renderer_resolution">ڕوونی (دۆخی دەستی/دۆخی دۆک)</string>
     <string name="renderer_vsync">دۆخی VSync</string>
@@ -705,6 +727,9 @@
     <string name="applet_lle">ئەپلێتی ڕاستەقینە</string>
 
     <string name="swkbd_applet">کلیلەبۆردی نەرمەکاڵا</string>
+
+    <string name="airplane_mode">دۆخی فڕۆکە</string>
+    <string name="airplane_mode_description">دۆخی فڕۆکە بۆ سیستەمی کارپێکەری Switch دەگوازێتەوە</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">مۆڵەتەکان</string>

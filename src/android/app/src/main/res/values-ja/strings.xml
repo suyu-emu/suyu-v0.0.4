@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">ホストGPUのモデルを表示</string>
     <string name="show_soc_model">SoCモデルを表示</string>
     <string name="show_soc_model_description">ホストSoCのモデルを表示</string>
+    <string name="show_fw_version">ファームウェアバージョンを表示</string>
+    <string name="show_fw_version_description">インストールされているファームウェアのバージョンを表示します</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">GPU拡張機能</string>
     <string name="veil_renderer">レンダラー</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Vulkanにおける自動リソース管理の方法で、不要になったリソースを適切に解放しますが、バンドルされたゲームでクラッシュを引き起こす可能性があります。</string>
     <string name="veil_misc">その他</string>
     <string name="eden_veil">エデンのベール</string>
     <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。これらの設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Boost (1700MHz)を使用してSwitchの最高ネイティブクロックで動作させるか、Fast (2000MHz)を使用して2倍のクロックで動作させます。</string>
     <string name="memory_layout">メモリレイアウト</string>
     <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
+    <string name="sample_shading">サンプルシェーディング</string>
+    <string name="sample_shading_description">マルチサンプルフラグメントでフラグメントシェーダーをフラグメントごとではなくサンプルごとに実行できるようにします。パフォーマンスを犠牲にしてグラフィック品質を向上させます。Vulkan 1.1+デバイスのみがこの拡張機能をサポートしています。</string>
+    <string name="custom_cpu_ticks">カスタムCPUティック</string>
+    <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
+    <string name="cpu_ticks">ティック</string>
     <string name="memory_4gb">4GB (推奨)</string>
     <string name="memory_6gb">6GB (安全でない)</string>
     <string name="memory_8gb">8GB (安全でない)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">3〜20文字で入力してください</string>
     <string name="multiplayer_required">必須</string>
     <string name="multiplayer_ip_error">無効なIP形式</string>
-    <string name="multiplayer_username_error">5文字以上必要です</string>
+    <string name="multiplayer_username_error">Deve essere lungo 4–20 caratteri</string>
     <string name="multiplayer_port_error">1〜65535の間で入力してください</string>
+    <string name="multiplayer_token_error">48文字で、小文字のa-zのみ使用可能</string>
+    <string name="multiplayer_lobby_type">ロビータイプ</string>
+    <string name="multiplayer_public_visibility">公開</string>
+    <string name="multiplayer_unlisted_visibility">非公開</string>
     <string name="cancel">キャンセル</string>
     <string name="ok">OK</string>
     <string name="refresh">更新</string>
     <string name="room_list">ルーム一覧</string>
+    <string name="multiplayer_token_required">ウェブトークンが必要です。詳細設定 -> システム -> ネットワークに移動してください</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">テーマカラー</string>
@@ -275,6 +289,7 @@
     <string name="alphabetical">アルファベット順</string>
     <string name="view_list">リスト表示</string>
     <string name="view_grid">グリッド表示</string>
+    <string name="view_carousel">カルーセル</string>
     <string name="folder">フォルダ</string>
     <string name="pre_alpha_warning_title">プレアルファ版</string>
     <string name="pre_alpha_warning_description">警告: このビルドは公開用ではありません。プレアルファ段階でバグや未実装機能が含まれます。\n不正に入手した場合は直ちにアンインストールしてください</string>
@@ -421,11 +436,17 @@
     <string name="set_custom_rtc">カスタムRTCを設定</string>
 
     <!-- Network settings strings -->
+    <string name="generate">生成</string>
+    <string name="web_username">ウェブユーザー名</string>
+    <string name="web_username_description">マルチプレイヤーロビーに表示されるユーザー名。4〜20文字でなければなりません。</string>
     <string name="web_token">ウェブトークン</string>
     <string name="web_token_description">公開ルームを作成するために使用されるウェブトークン。a-zの小文字のみを含む48文字の文字列です。</string>
     <string name="network">ネットワーク</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">バックエンド</string>
+    <string name="display">ディスプレイ</string>
+    <string name="processing">後処理</string>
     <string name="renderer_accuracy">精度</string>
     <string name="renderer_resolution">解像度（携帯モード/TVモード）</string>
     <string name="renderer_vsync">垂直同期モード</string>
@@ -766,6 +787,9 @@
     <string name="applet_lle">リアルアプレット</string>
 
     <string name="swkbd_applet">ソフトウェアキーボード</string>
+
+    <string name="airplane_mode">機内モード</string>
+    <string name="airplane_mode_description">機内モードをSwitch OSに渡します</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">ライセンス</string>

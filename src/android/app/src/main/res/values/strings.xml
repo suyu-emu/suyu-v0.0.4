@@ -78,6 +78,8 @@
     <string name="sample_shading_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance. Only Vulkan 1.1+ devices support this extension.</string>
 
     <string name="veil_renderer">Renderer</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
     <string name="use_auto_stub">Use Auto Stub</string>

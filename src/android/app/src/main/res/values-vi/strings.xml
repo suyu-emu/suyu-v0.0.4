@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">Hiển thị model GPU chủ</string>
     <string name="show_soc_model">Hiển thị model SoC</string>
     <string name="show_soc_model_description">Hiển thị model SoC chủ</string>
+    <string name="show_fw_version">Hiển thị phiên bản firmware</string>
+    <string name="show_fw_version_description">Hiển thị phiên bản firmware đã cài đặt</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">Tiện ích mở rộng GPU</string>
     <string name="veil_renderer">Trình kết xuất</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Phương pháp quản lý tài nguyên tự động trong Vulkan đảm bảo giải phóng tài nguyên đúng cách khi không còn cần thiết, nhưng có thể gây ra sự cố trong các trò chơi được đóng gói.</string>
     <string name="veil_misc">Khác</string>
     <string name="eden_veil">Màn Eden</string>
     <string name="eden_veil_description">Cài đặt thử nghiệm để cải thiện hiệu suất và khả năng. Những cài đặt này có thể gây ra màn hình đen hoặc các vấn đề khác trong trò chơi.</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Sử dụng Boost (1700MHz) để chạy ở tốc độ xung nhịp gốc cao nhất của Switch hoặc Fast (2000MHz) để chạy ở tốc độ gấp đôi.</string>
     <string name="memory_layout">Bố cục bộ nhớ</string>
     <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
+    <string name="sample_shading">Tô bóng mẫu</string>
+    <string name="sample_shading_description">Cho phép fragment shader thực thi trên mỗi mẫu trong một fragment đa mẫu thay vì một lần mỗi fragment. Cải thiện chất lượng đồ họa với chi phí hiệu suất. Chỉ thiết bị Vulkan 1.1+ hỗ trợ tiện ích mở rộng này.</string>
+    <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
+    <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
+    <string name="cpu_ticks">Tích</string>
     <string name="memory_4gb">4GB (Được đề xuất)</string>
     <string name="memory_6gb">6GB (Không an toàn)</string>
     <string name="memory_8gb">8GB (Không an toàn)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">3-20 ký tự</string>
     <string name="multiplayer_required">Bắt buộc</string>
     <string name="multiplayer_ip_error">Sai định dạng IP</string>
-    <string name="multiplayer_username_error">Ít nhất 5 ký tự</string>
+    <string name="multiplayer_username_error">Phải có từ 4–20 ký tự</string>
     <string name="multiplayer_port_error">1-65535</string>
+    <string name="multiplayer_token_error">Phải có 48 ký tự và chỉ chữ thường a-z</string>
+    <string name="multiplayer_lobby_type">Loại phòng</string>
+    <string name="multiplayer_public_visibility">Công khai</string>
+    <string name="multiplayer_unlisted_visibility">Không công khai</string>
     <string name="cancel">Hủy</string>
     <string name="ok">OK</string>
     <string name="refresh">Tải lại</string>
     <string name="room_list">Danh sách phòng</string>
+    <string name="multiplayer_token_required">Yêu cầu mã web, hãy vào Cài đặt nâng cao -> Hệ thống -> Mạng</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Màu giao diện</string>
@@ -273,6 +287,7 @@
     <string name="alphabetical">A-Z</string>
     <string name="view_list">Danh sách</string>
     <string name="view_grid">Lưới</string>
+    <string name="view_carousel">Băng chuyền</string>
     <string name="folder">Thư mục</string>
     <string name="pre_alpha_warning_title">Phần mềm Pre-Alpha</string>
     <string name="pre_alpha_warning_description">CẢNH BÁO: Phiên bản này chưa hoàn thiện, có thể có lỗi.</string>
@@ -397,11 +412,17 @@
     <string name="set_custom_rtc">Thiết lập RTC tùy chỉnh</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Tạo</string>
+    <string name="web_username">Tên người dùng web</string>
+    <string name="web_username_description">Tên người dùng hiển thị trong phòng chơi nhiều người. Phải có 4–20 ký tự.</string>
     <string name="web_token">Token web</string>
     <string name="web_token_description">Token web dùng để tạo phòng công khai. Đây là chuỗi 48 ký tự chỉ chứa chữ thường a-z.</string>
     <string name="network">Mạng</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Hiển thị</string>
+    <string name="processing">Hậu xử lý</string>
     <string name="renderer_accuracy">Mức độ chính xác</string>
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>
@@ -707,6 +728,9 @@
     <string name="applet_lle">Applet thực</string>
 
     <string name="swkbd_applet">Bàn phím phần mềm</string>
+
+    <string name="airplane_mode">Chế độ máy bay</string>
+    <string name="airplane_mode_description">Truyền chế độ máy bay sang hệ điều hành Switch</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Giấy phép</string>

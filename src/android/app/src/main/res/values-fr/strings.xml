@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">Afficher le modèle du GPU hôte</string>
     <string name="show_soc_model">Afficher le modèle du SoC</string>
     <string name="show_soc_model_description">Afficher le modèle du SoC hôte</string>
+    <string name="show_fw_version">Afficher la version du firmware</string>
+    <string name="show_fw_version_description">Affiche la version du firmware installé</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">Extensions GPU</string>
     <string name="veil_renderer">Rendu</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Une méthode de gestion automatique des ressources dans Vulkan qui assure la libération correcte des ressources lorsqu\'elles ne sont plus nécessaires, mais peut provoquer des plantages dans les jeux regroupés.</string>
     <string name="veil_misc">Divers</string>
     <string name="eden_veil">Voile d`Éden</string>
     <string name="eden_veil_description">Paramètres expérimentaux pour améliorer les performances et les capacités. Ces paramètres peuvent causer des écrans noirs ou d\'autres problèmes de jeu.</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Utilisez Boost (1700MHz) pour fonctionner à la fréquence native la plus élevée de la Switch, ou Fast (2000MHz) pour fonctionner à double fréquence.</string>
     <string name="memory_layout">Disposition de la mémoire</string>
     <string name="memory_layout_description">(EXPÉRIMENTAL) Change la disposition de la mémoire émulée. Ce paramètre n\'augmente pas les performances, mais peut aider les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins.</string>
+    <string name="sample_shading">Échantillonnage de shading</string>
+    <string name="sample_shading_description">Permet au fragment shader de s\'exécuter par échantillon dans un fragment multi-échantillonné au lieu d\'une fois par fragment. Améliore la qualité graphique au détriment des performances. Seuls les appareils Vulkan 1.1+ prennent en charge cette extension.</string>
+    <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
+    <string name="custom_cpu_ticks_description">Définissez une valeur personnalisée de ticks CPU. Des valeurs plus élevées peuvent améliorer les performances, mais peuvent aussi provoquer des gels du jeu. Une plage de 77 à 21000 est recommandée.</string>
+    <string name="cpu_ticks">Ticks</string>
     <string name="memory_4gb">4 Go (Recommandé)</string>
     <string name="memory_6gb">6 Go (Dangereux)</string>
     <string name="memory_8gb">8 Go (Dangereux)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">Doit contenir entre 3 et 20 caractères</string>
     <string name="multiplayer_required">Requis</string>
     <string name="multiplayer_ip_error">Format IP invalide</string>
-    <string name="multiplayer_username_error">Doit contenir au moins 5 caractères</string>
+    <string name="multiplayer_username_error">Doit contenir entre 4 et 20 caractères</string>
     <string name="multiplayer_port_error">Doit être entre 1 et 65535</string>
+    <string name="multiplayer_token_error">Doit contenir 48 caractères, uniquement des lettres minuscules a-z</string>
+    <string name="multiplayer_lobby_type">Type de lobby</string>
+    <string name="multiplayer_public_visibility">Public</string>
+    <string name="multiplayer_unlisted_visibility">Non listé</string>
     <string name="cancel">Annuler</string>
     <string name="ok">OK</string>
     <string name="refresh">Actualiser</string>
     <string name="room_list">Liste des salons</string>
+    <string name="multiplayer_token_required">Token web requis, allez dans Paramètres avancés -> Système -> Réseau</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Couleur du thème</string>
@@ -275,6 +289,7 @@
     <string name="alphabetical">Alphabétique</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Grille</string>
+    <string name="view_carousel">Carrousel</string>
     <string name="folder">Dossier</string>
     <string name="pre_alpha_warning_title">Logiciel Pré-Alpha</string>
     <string name="pre_alpha_warning_description">AVERTISSEMENT : Cette version ne doit pas être partagée ou montrée au public. Ce logiciel est en phase pré-alpha et peut contenir des bugs et des fonctionnalités incomplètes.\nSi vous avez obtenu un accès non autorisé à cette version, il est fortement recommandé de la désinstaller immédiatement.</string>
@@ -455,11 +470,17 @@
     <string name="set_custom_rtc">Définir l\'horloge RTC personnalisée</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Générer</string>
+    <string name="web_username">Nom d\'utilisateur web</string>
+    <string name="web_username_description">Nom d\'utilisateur à afficher dans les lobbys multijoueur. Doit contenir entre 4 et 20 caractères.</string>
     <string name="web_token">Jeton Web</string>
     <string name="web_token_description">Jeton Web utilisé pour créer des salles publiques. Il s\'agit d\'une chaîne de 48 caractères ne contenant que des lettres minuscules a-z.</string>
     <string name="network">Réseau</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Affichage</string>
+    <string name="processing">Post-traitement</string>
     <string name="renderer_accuracy">Niveau de précision</string>
     <string name="renderer_resolution">Résolution (Mode Portable/Mode TV)</string>
     <string name="renderer_vsync">Mode VSync</string>
@@ -919,6 +940,9 @@
     <string name="applet_lle">Applet réel</string>
 
     <string name="swkbd_applet">Clavier logiciel</string>
+
+    <string name="airplane_mode">Mode avion</string>
+    <string name="airplane_mode_description">Passe le mode avion au système d\'exploitation Switch</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licences</string>

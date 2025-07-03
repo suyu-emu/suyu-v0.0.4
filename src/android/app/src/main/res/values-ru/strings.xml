@@ -55,6 +55,8 @@
     <string name="show_gpu_model_description">Отобразить модель хостовой GPU</string>
     <string name="show_soc_model">Показать модель SoC</string>
     <string name="show_soc_model_description">Отобразить модель хостового SoC</string>
+    <string name="show_fw_version">Показать версию прошивки</string>
+    <string name="show_fw_version_description">Отображает установленную версию прошивки</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">Расширения GPU</string>
@@ -66,6 +68,8 @@
     <string name="eden_veil_warning_description">Настройки в Eden\'s Veil являются экспериментальными и могут вызывать проблемы. Если ваша игра не запускается, отключите все расширения и установите расширенное динамическое состояние на 0.</string>
     <string name="frame_skipping">В разработке: Пропуск кадров</string>
     <string name="frame_skipping_description">Включите или отключите пропуск кадров для повышения производительности за счет уменьшения количества отображаемых кадров. Эта функция находится в разработке и будет включена в будущих версиях.</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Метод автоматического управления ресурсами в Vulkan, который обеспечивает правильное освобождение ресурсов при их ненадобности, но может вызывать сбои в бандл-играх.</string>
     <string name="frame_interpolation">Улучшенная синхронизация кадров</string>
     <string name="frame_interpolation_description">Обеспечивает плавную и стабильную подачу кадров за счет синхронизации их времени, уменьшая подтормаживания и неравномерную анимацию. Идеально для игр с нестабильным временем кадров или микро-подтормаживаниями во время игры.</string>
     <string name="use_lru_cache">Включить LRU-кеш</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Используйте Разгон (1700MHz) для работы на максимальной нативной частоте Switch или Быстрая (2000MHz) для работы на удвоенной частоте.</string>
     <string name="memory_layout">Распределение памяти</string>
     <string name="memory_layout_description">(ЭКСПЕРИМЕНТАЛЬНО) Изменяет эмулируемое распределение памяти. Эта настройка не увеличивает производительность, но может помочь в играх, использующих высокие разрешения через моды. Не используйте на телефонах с 8 ГБ ОЗУ или меньше.</string>
+    <string name="sample_shading">Сэмпловый шейдинг</string>
+    <string name="sample_shading_description">Позволяет шейдеру фрагментов выполняться на каждый сэмпл в мультисэмпловом фрагменте вместо одного раза на фрагмент. Улучшает качество графики ценой производительности. Только устройства с Vulkan 1.1+ поддерживают это расширение.</string>
+    <string name="custom_cpu_ticks">Пользовательские такты CPU</string>
+    <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов CPU. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
+    <string name="cpu_ticks">Такты</string>
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
     <string name="memory_8gb">8 ГБ (Небезопасно)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">3-20 символов</string>
     <string name="multiplayer_required">Обязательно</string>
     <string name="multiplayer_ip_error">Неверный IP</string>
-    <string name="multiplayer_username_error">Минимум 5 символов</string>
+    <string name="multiplayer_username_error">Должно быть от 4 до 20 символов</string>
     <string name="multiplayer_port_error">1-65535</string>
+    <string name="multiplayer_token_error">Должно быть 48 символов и содержать только строчные буквы a-z</string>
+    <string name="multiplayer_lobby_type">Тип лобби</string>
+    <string name="multiplayer_public_visibility">Публичное</string>
+    <string name="multiplayer_unlisted_visibility">Непубличное</string>
     <string name="cancel">Отмена</string>
     <string name="ok">OK</string>
     <string name="refresh">Обновить</string>
     <string name="room_list">Список комнат</string>
+    <string name="multiplayer_token_required">Требуется веб-токен, перейдите в Дополнительные настройки -> Система -> Сеть</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Цвет темы</string>
@@ -275,6 +289,7 @@
     <string name="alphabetical">По алфавиту</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сетка</string>
+    <string name="view_carousel">Карусель</string>
     <string name="folder">Папка</string>
     <string name="pre_alpha_warning_title">Пре-альфа версия</string>
     <string name="pre_alpha_warning_description">ВНИМАНИЕ: Эта версия не предназначена для публичного использования. Возможны ошибки и неполные функции.</string>
@@ -375,6 +390,7 @@
     <string name="game_folders">Папки с играми</string>
     <string name="deep_scan">Глубокий анализ</string>
     <string name="add_game_folder">Добавить папку с игрой</string>
+    <string name="add_directory_success">Новый игровой каталог успешно добавлен</string>
     <string name="folder_already_added">Эта папка уже была добавлена!</string>
     <string name="game_folder_properties">Свойства папки игры</string>
     <plurals name="saves_import_failed">
@@ -456,11 +472,17 @@
     <string name="set_custom_rtc">Установить пользовательский RTC</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Создать</string>
+    <string name="web_username">Веб-имя пользователя</string>
+    <string name="web_username_description">Имя пользователя, которое будет отображаться в мультиплеерных лобби. Должно содержать 4–20 символов.</string>
     <string name="web_token">Веб-токен</string>
     <string name="web_token_description">Веб-токен, используемый для создания публичных комнат. Это строка из 48 символов, содержащая только строчные буквы a-z.</string>
     <string name="network">Сеть</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Бэкенд</string>
+    <string name="display">Дисплей</string>
+    <string name="processing">Постобработка</string>
     <string name="renderer_accuracy">Уровень точности</string>
     <string name="renderer_resolution">Разрешение (портативное/в док-станции)</string>
     <string name="renderer_vsync">Режим верт. синхронизации</string>
@@ -920,6 +942,9 @@
     <string name="applet_lle">Настоящий апплет</string>
 
     <string name="swkbd_applet">Программная клавиатура</string>
+
+    <string name="airplane_mode">Режим полета</string>
+    <string name="airplane_mode_description">Передает режим полета в ОС Switch</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Лицензии</string>

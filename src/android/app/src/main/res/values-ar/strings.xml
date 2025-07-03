@@ -54,10 +54,14 @@
     <string name="show_gpu_model_description">عرض طراز GPU المضيف</string>
     <string name="show_soc_model">عرض طراز SoC</string>
     <string name="show_soc_model_description">عرض طراز SoC المضيف</string>
+    <string name="show_fw_version">إظهار إصدار البرنامج الثابت</string>
+    <string name="show_fw_version_description">عرض إصدار البرنامج الثابت المثبت</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">امتدادات GPU</string>
     <string name="veil_renderer">العارض</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">طريقة لإدارة الموارد تلقائيًا في فولكان تضمن الإفراج الصحيح عن الموارد عندما لا تكون هناك حاجة إليها، ولكن قد تسبب تعطل الألعاب المجمعة.</string>
     <string name="veil_misc">متنوع</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">إعدادات تجريبية لتحسين الأداء والقدرة. قد تسبب هذه الإعدادات شاشات سوداء أو مشاكل أخرى في اللعبة.</string>
@@ -93,6 +97,11 @@
     <string name="fast_cpu_time_description">استخدم Boost (1700MHz) للتشغيل بأعلى سرعة أصلية لـ Switch، أو Fast (2000MHz) للتشغيل بضعف السرعة.</string>
     <string name="memory_layout">تخطيط الذاكرة</string>
     <string name="memory_layout_description">(تجريبي) تغيير تخطيط الذاكرة المحاكاة. هذا الإعداد لن يزيد الأداء، ولكن قد يساعد في الألعاب التي تستخدم دقة عالية عبر التعديلات. لا تستخدم على الهواتف التي تحتوي على 8 جيجابايت من الذاكرة العشوائية أو أقل.</string>
+    <string name="sample_shading">تظليل العينة</string>
+    <string name="sample_shading_description">يسمح لمُظلل الأجزاء بالتنفيذ لكل عينة في جزء متعدد العينات بدلاً من مرة واحدة لكل جزء. يحسن جودة الرسومات على حساب بعض الأداء. تدعم فقط أجهزة Vulkan 1.1+ هذا الامتداد.</string>
+    <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
+    <string name="custom_cpu_ticks_description">تعيين قيمة مخصصة لدورات المعالج. القيم الأعلى قد تزيد الأداء، ولكن قد تتسبب أيضًا في تجمد اللعبة. يوصى بنطاق 77-21000.</string>
+    <string name="cpu_ticks">دورات</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4 جيجابايت (موصى به)</string>
@@ -238,12 +247,17 @@
     <string name="multiplayer_room_name_error">يجب أن يكون بين 3 و20 حرفًا</string>
     <string name="multiplayer_required">مطلوب</string>
     <string name="multiplayer_ip_error">تنسيق IP غير صالح</string>
-    <string name="multiplayer_username_error">يجب أن يكون 5 أحرف على الأقل</string>
+    <string name="multiplayer_username_error">يجب أن يكون بين 4-20 حرفًا</string>
     <string name="multiplayer_port_error">يجب أن يكون بين 1 و65535</string>
+    <string name="multiplayer_token_error">يجب أن يتكون من 48 حرفًا، وأحرف صغيرة من a-z فقط</string>
+    <string name="multiplayer_lobby_type">نوع الغرفة</string>
+    <string name="multiplayer_public_visibility">عام</string>
+    <string name="multiplayer_unlisted_visibility">غير مدرج</string>
     <string name="cancel">إلغاء</string>
     <string name="ok">موافق</string>
     <string name="refresh">تحديث</string>
     <string name="room_list">قائمة الغرف</string>
+    <string name="multiplayer_token_required">مطلوب رمز ويب، انتقل إلى الإعدادات المتقدمة -> النظام -> الشبكة</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">لون السمة</string>
@@ -279,6 +293,7 @@
     <string name="alphabetical">أبجدي</string>
     <string name="view_list">قائمة</string>
     <string name="view_grid">شبكة</string>
+    <string name="view_carousel">عرض دائري</string>
     <string name="folder">مجلد</string>
     <string name="pre_alpha_warning_title">برنامج أولي</string>
     <string name="pre_alpha_warning_description">تحذير: هذا الإصدار غير مكتمل وقد يحتوي على أخطاء</string>
@@ -429,11 +444,17 @@
     <string name="set_custom_rtc">تعيين ساعة مخصصة في الوقت الحقيقي</string>
 
     <!-- Network settings strings -->
+    <string name="generate">توليد</string>
+    <string name="web_username">اسم مستخدم الويب</string>
+    <string name="web_username_description">اسم المستخدم الذي سيظهر في غرف اللعب الجماعي. يجب أن يكون بين 4-20 حرفًا.</string>
     <string name="web_token">رمز الويب</string>
     <string name="web_token_description">رمز الويب المستخدم لإنشاء غرف عامة. وهو سلسلة من 48 حرفًا تحتوي فقط على أحرف صغيرة من a-z.</string>
     <string name="network">الشبكة</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">الخلفية</string>
+    <string name="display">العرض</string>
+    <string name="processing">المعالجة اللاحقة</string>
     <string name="renderer_accuracy">مستوى الدقة</string>
     <string name="renderer_resolution">(Handheld/Docked) الدقة</string>
     <string name="renderer_vsync">VSync وضع</string>
@@ -445,6 +466,7 @@
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">تحسين دقة العرض في بعض الألعاب على حساب الأداء</string>
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>
     <string name="cpu_debug_mode">تصحيح أخطاء وحدة المعالجة المركزية</string>
@@ -749,6 +771,9 @@
     <string name="applet_lle">تطبيق حقيقي</string>
 
     <string name="swkbd_applet">لوحة المفاتيح البرمجية</string>
+
+    <string name="airplane_mode">وضع الطيران</string>
+    <string name="airplane_mode_description">يمرر وضع الطيران إلى نظام التشغيل Switch</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">التراخيص</string>

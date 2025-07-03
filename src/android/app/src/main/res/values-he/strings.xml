@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">הצג את דגם ה-GPU המארח</string>
     <string name="show_soc_model">הצג דגם SoC</string>
     <string name="show_soc_model_description">הצג את דגם ה-SoC המארח</string>
+    <string name="show_fw_version">הצג גרסת קושחה</string>
+    <string name="show_fw_version_description">מציג את גרסת הקושחה המותקנת</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">הרחבות GPU</string>
     <string name="veil_renderer">רנדרר</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">שיטה לניהול אוטומטי של משאבים ב-Vulkan המבטיחה שחרור נכון של משאבים כאשר הם כבר לא נחוצים, אך עלולה לגרום לקריסות במשחקים מאוגדים.</string>
     <string name="veil_misc">שונות</string>
     <string name="eden_veil">עדן וייל</string>
     <string name="eden_veil_description">הגדרות ניסיוניות לשיפור ביצועים ויכולות. הגדרות אלו עלולות לגרום למסכים שחורים או לבעיות אחרות במשחק.</string>
@@ -98,6 +102,11 @@
     <string name="fast_cpu_time_description">השתמש ב-Boost (1700MHz) כדי לפעול במהירות השעון הגבוהה ביותר של ה-Switch, או Fast (2000MHz) כדי לפעול במהירות כפולה.</string>
     <string name="memory_layout">מבנה זיכרון</string>
     <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
+    <string name="sample_shading">דגימת צל</string>
+    <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
+    <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
+    <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
+    <string name="cpu_ticks">טיקים</string>
     <string name="memory_4gb">4GB (מומלץ)</string>
     <string name="memory_6gb">6GB (לא בטוח)</string>
     <string name="memory_8gb">8GB (לא בטוח)</string>
@@ -235,12 +244,17 @@
     <string name="multiplayer_room_name_error">חייב להיות בין 3-20 תווים</string>
     <string name="multiplayer_required">נדרש</string>
     <string name="multiplayer_ip_error">פורמט IP לא תקין</string>
-    <string name="multiplayer_username_error">לפחות 5 תווים</string>
+    <string name="multiplayer_username_error">חייב להיות בין 4-20 תווים</string>
     <string name="multiplayer_port_error">חייב להיות בין 1-65535</string>
+    <string name="multiplayer_token_error">חייב להיות באורך 48 תווים, ורק אותיות קטנות a-z</string>
+    <string name="multiplayer_lobby_type">סוג לובי</string>
+    <string name="multiplayer_public_visibility">ציבורי</string>
+    <string name="multiplayer_unlisted_visibility">לא רשום</string>
     <string name="cancel">ביטול</string>
     <string name="ok">אישור</string>
     <string name="refresh">רענון</string>
     <string name="room_list">רשימת חדרים</string>
+    <string name="multiplayer_token_required">נדרש אסימון אינטרנט, עבור להגדרות מתקדמות -> מערכת -> רשת</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">צבע ערכת עיצוב</string>
@@ -276,6 +290,7 @@
     <string name="alphabetical">אלפביתי</string>
     <string name="view_list">רשימה</string>
     <string name="view_grid">רשת</string>
+    <string name="view_carousel">קרוסלה</string>
     <string name="folder">תיקייה</string>
     <string name="pre_alpha_warning_title">תוכנת טרום-אלפא</string>
     <string name="pre_alpha_warning_description">אזהרה: גרסה זו אינה מיועדת לשימוש ציבורי. התוכנה בשלבי פיתוח מוקדמים ועלולה להכיל באגים.</string>
@@ -441,11 +456,17 @@
     <string name="set_custom_rtc">קבע RTC מותאם אישית</string>
 
     <!-- Network settings strings -->
+    <string name="generate">יצירה</string>
+    <string name="web_username">שם משתמש באינטרנט</string>
+    <string name="web_username_description">שם המשתמש שיוצג בלובי מרובה משתתפים. חייב להיות באורך 4-20 תווים.</string>
     <string name="web_token">אסימון אינטרנט</string>
     <string name="web_token_description">אסימון אינטרנט המשמש ליצירת חדרים ציבוריים. זהו מחרוזת של 48 תווים המכילה רק אותיות קטנות a-z.</string>
     <string name="network">רשת</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">בקאנד</string>
+    <string name="display">תצוגה</string>
+    <string name="processing">עיבוד לאחר</string>
     <string name="renderer_accuracy">רמת דיוק</string>
     <string name="renderer_resolution">רזולוציה (מעוגן/נייד)</string>
     <string name="renderer_vsync">מצב VSync</string>
@@ -770,6 +791,9 @@
     <string name="applet_lle">אפלט אמיתי</string>
 
     <string name="swkbd_applet">מקלדת תוכנה</string>
+
+    <string name="airplane_mode">מצב טיסה</string>
+    <string name="airplane_mode_description">מעביר את מצב הטיסה למערכת ההפעלה של Switch</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">רישיונות</string>

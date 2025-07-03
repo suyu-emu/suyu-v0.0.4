@@ -46,6 +46,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
 
     SOC_OVERLAY_BACKGROUND("soc_overlay_background"),
 
+    ENABLE_RAII("enable_raii"),
     FRAME_INTERPOLATION("frame_interpolation"),
 //    FRAME_SKIPPING("frame_skipping"),
 
@@ -60,7 +61,9 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_SHADERS_BUILDING("show_shaders_building"),
     DEBUG_FLUSH_BY_LINE("flush_lines"),
     USE_LRU_CACHE("use_lru_cache"),;
-//    external fun isFrameSkippingEnabled(): Boolean
+
+    external fun isRaiiEnabled(): Boolean
+//  external fun isFrameSkippingEnabled(): Boolean
     external fun isFrameInterpolationEnabled(): Boolean
 
 

@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">Vis verts-GPUens modell</string>
     <string name="show_soc_model">Vis SoC-modell</string>
     <string name="show_soc_model_description">Vis verts-SoCens modell</string>
+    <string name="show_fw_version">Vis firmwareversjon</string>
+    <string name="show_fw_version_description">Viser den installerte firmwareversjonen</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">GPU-utvidelser</string>
     <string name="veil_renderer">Renderer</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">En metode for automatisk ressurshåndtering i Vulkan som sikrer riktig frigjøring av ressurser når de ikke lenger trengs, men kan føre til krasj i bundlede spill.</string>
     <string name="veil_misc">Diverse</string>
     <string name="eden_veil">Edens slør</string>
     <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Bruk Boost (1700MHz) for å kjøre med Switch\'s høyeste native klokkehastighet, eller Fast (2000MHz) for å kjøre med dobbel hastighet.</string>
     <string name="memory_layout">Minneoppsett</string>
     <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
+    <string name="sample_shading">Prøvegjengivelse</string>
+    <string name="sample_shading_description">Lar fragment-shaderen kjøres per prøve i et flerprøvefragment i stedet for en gang per fragment. Forbedrer grafikkvaliteten på bekostning av ytelse. Bare Vulkan 1.1+-enheter støtter denne utvidelsen.</string>
+    <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
+    <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
+    <string name="cpu_ticks">Takter</string>
     <string name="memory_4gb">4GB (Anbefalt)</string>
     <string name="memory_6gb">6GB (Usikkert)</string>
     <string name="memory_8gb">8GB (Usikkert)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">Må være 3-20 tegn</string>
     <string name="multiplayer_required">Påkrevd</string>
     <string name="multiplayer_ip_error">Ugyldig IP-format</string>
-    <string name="multiplayer_username_error">Minst 5 tegn</string>
+    <string name="multiplayer_username_error">Må være mellom 4–20 tegn</string>
     <string name="multiplayer_port_error">Må være mellom 1-65535</string>
+    <string name="multiplayer_token_error">Må være 48 tegn, og kun små bokstaver a-z</string>
+    <string name="multiplayer_lobby_type">Lobbytype</string>
+    <string name="multiplayer_public_visibility">Offentlig</string>
+    <string name="multiplayer_unlisted_visibility">Uoppført</string>
     <string name="cancel">Avbryt</string>
     <string name="ok">OK</string>
     <string name="refresh">Oppdater</string>
     <string name="room_list">Romliste</string>
+    <string name="multiplayer_token_required">Webtoken kreves, gå til Avanserte innstillinger -> System -> Nettverk</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Temafarge</string>
@@ -273,6 +287,7 @@
     <string name="alphabetical">Alfabetisk</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Rutenett</string>
+    <string name="view_carousel">Karusell</string>
     <string name="folder">Mappe</string>
     <string name="pre_alpha_warning_title">Forhåndsversjon</string>
     <string name="pre_alpha_warning_description">ADVARSEL: Denne versjonen er ikke ment for offentlig bruk. Programvaren er i tidlig utvikling og kan inneholde feil.</string>
@@ -397,11 +412,17 @@
     <string name="set_custom_rtc">Angi tilpasset RTC</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Generer</string>
+    <string name="web_username">Webbrukernavn</string>
+    <string name="web_username_description">Brukernavn som vises i flerspillerlobbyer. Må være 4–20 tegn langt.</string>
     <string name="web_token">Nett-token</string>
     <string name="web_token_description">Nett-token som brukes til å opprette offentlige rom. Det er en 48-tegns streng som kun inneholder små bokstaver a-z.</string>
     <string name="network">Nettverk</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Skjerm</string>
+    <string name="processing">Etterbehandling</string>
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
     <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
     <string name="renderer_vsync">VSync-modus</string>
@@ -715,6 +736,9 @@
     <string name="applet_lle">Ekte applet</string>
 
     <string name="swkbd_applet">Programvare-tastatur</string>
+
+    <string name="airplane_mode">Flymodus</string>
+    <string name="airplane_mode_description">Sender flymodus til Switch OS</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Lisenser</string>

@@ -220,7 +220,13 @@ abstract class SettingsItem(
 
                 override fun reset() = BooleanSetting.USE_DOCKED_MODE.reset()
             }
-
+            put(
+                SwitchSetting(
+                    BooleanSetting.ENABLE_RAII,
+                    titleId = R.string.enable_raii,
+                    descriptionId = R.string.enable_raii_description
+                )
+            )
             put(
                 SwitchSetting(
                     BooleanSetting.FRAME_INTERPOLATION,

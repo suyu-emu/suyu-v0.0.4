@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">显示主机GPU型号</string>
     <string name="show_soc_model">显示SoC型号</string>
     <string name="show_soc_model_description">显示主机SoC型号</string>
+    <string name="show_fw_version">显示固件版本</string>
+    <string name="show_fw_version_description">显示已安装的固件版本</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">GPU扩展</string>
     <string name="veil_renderer">渲染器</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Vulkan中的一种自动资源管理方法，确保在不再需要时正确释放资源，但可能导致捆绑游戏崩溃。</string>
     <string name="veil_misc">杂项</string>
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">实验性设置以提高性能和能力。这些设置可能会导致黑屏或其他游戏问题。</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生时钟速度运行，或 Fast (2000MHz) 以双倍时钟速度运行。</string>
     <string name="memory_layout">内存布局</string>
     <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
+    <string name="sample_shading">采样着色</string>
+    <string name="sample_shading_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。仅Vulkan 1.1+设备支持此扩展。</string>
+    <string name="custom_cpu_ticks">自定义CPU时钟</string>
+    <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
+    <string name="cpu_ticks">时钟</string>
     <string name="memory_4gb">4GB (推荐)</string>
     <string name="memory_6gb">6GB (不安全)</string>
     <string name="memory_8gb">8GB (不安全)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">长度需为3-20个字符</string>
     <string name="multiplayer_required">必填</string>
     <string name="multiplayer_ip_error">IP格式无效</string>
-    <string name="multiplayer_username_error">至少5个字符</string>
+    <string name="multiplayer_username_error">必须为4-20个字符</string>
     <string name="multiplayer_port_error">端口需为1-65535</string>
+    <string name="multiplayer_token_error">必须为48个字符，且仅包含小写字母a-z</string>
+    <string name="multiplayer_lobby_type">大厅类型</string>
+    <string name="multiplayer_public_visibility">公开</string>
+    <string name="multiplayer_unlisted_visibility">未列出</string>
     <string name="cancel">取消</string>
     <string name="ok">确定</string>
     <string name="refresh">刷新</string>
     <string name="room_list">房间列表</string>
+    <string name="multiplayer_token_required">需要Web令牌，请前往高级设置 -> 系统 -> 网络</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">主题颜色</string>
@@ -275,6 +289,7 @@
     <string name="alphabetical">字母顺序</string>
     <string name="view_list">列表</string>
     <string name="view_grid">网格</string>
+    <string name="view_carousel">轮播</string>
     <string name="folder">文件夹</string>
     <string name="pre_alpha_warning_title">预发布软件</string>
     <string name="pre_alpha_warning_description">警告：此版本不适用于公开分享或展示。软件处于预发布阶段，可能存在错误和功能不完整。\n如果您未经授权获取此版本，强烈建议立即卸载。</string>
@@ -450,11 +465,17 @@
     <string name="set_custom_rtc">设置自定义系统时间</string>
 
     <!-- Network settings strings -->
+    <string name="generate">生成</string>
+    <string name="web_username">网络用户名</string>
+    <string name="web_username_description">在多人游戏大厅中显示的用户名。必须为4-20个字符。</string>
     <string name="web_token">网络令牌</string>
     <string name="web_token_description">用于创建公共房间的网络令牌。它是一个48个字符的字符串，仅包含小写字母a-z。</string>
     <string name="network">网络</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">后端</string>
+    <string name="display">显示</string>
+    <string name="processing">后处理</string>
     <string name="renderer_accuracy">精度等级</string>
     <string name="renderer_resolution">分辨率 (掌机模式/主机模式)</string>
     <string name="renderer_vsync">垂直同步模式</string>
@@ -914,6 +935,9 @@
     <string name="applet_lle">真实小程序</string>
 
     <string name="swkbd_applet">软件键盘</string>
+
+    <string name="airplane_mode">飞行模式</string>
+    <string name="airplane_mode_description">将飞行模式传递给Switch操作系统</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">许可证</string>

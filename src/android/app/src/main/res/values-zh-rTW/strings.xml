@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">顯示主機GPU型號</string>
     <string name="show_soc_model">顯示SoC型號</string>
     <string name="show_soc_model_description">顯示主機SoC型號</string>
+    <string name="show_fw_version">顯示韌體版本</string>
+    <string name="show_fw_version_description">顯示已安裝的韌體版本</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">GPU擴充功能</string>
     <string name="veil_renderer">渲染器</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Vulkan中的一種自動資源管理方法，確保在不再需要時正確釋放資源，但可能導致捆綁遊戲崩潰。</string>
     <string name="veil_misc">其他</string>
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">實驗性設定以提高效能和能力。這些設定可能會導致黑屏或其他遊戲問題。</string>
@@ -94,6 +98,11 @@
     <string name="fast_cpu_time_description">使用 Boost (1700MHz) 以 Switch 的最高原生時鐘速度運行，或 Fast (2000MHz) 以雙倍時鐘速度運行。</string>
     <string name="memory_layout">記憶體佈局</string>
     <string name="memory_layout_description">(實驗性) 更改模擬記憶體佈局。此設定不會提高效能，但可能有助於通過模組使用高解析度的遊戲。不要在 RAM 為 8GB 或更少的手機上使用。</string>
+    <string name="sample_shading">取樣著色</string>
+    <string name="sample_shading_description">允許片段著色器在多取樣片段中每個樣本執行一次，而不是每個片段執行一次。以提高效能為代價改善圖形品質。僅Vulkan 1.1+裝置支援此擴充功能。</string>
+    <string name="custom_cpu_ticks">自訂CPU時脈</string>
+    <string name="custom_cpu_ticks_description">設定自訂的CPU時脈值。更高的值可能提高效能，但也可能導致遊戲卡頓。建議範圍為77-21000。</string>
+    <string name="cpu_ticks">時脈</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (推薦)</string>
@@ -239,12 +248,17 @@
     <string name="multiplayer_room_name_error">長度需為3-20個字元</string>
     <string name="multiplayer_required">必填</string>
     <string name="multiplayer_ip_error">IP格式無效</string>
-    <string name="multiplayer_username_error">至少5個字元</string>
+    <string name="multiplayer_username_error">必須為4-20個字元</string>
     <string name="multiplayer_port_error">埠號需為1-65535</string>
+    <string name="multiplayer_token_error">必須為48個字元，且僅包含小寫字母a-z</string>
+    <string name="multiplayer_lobby_type">大廳類型</string>
+    <string name="multiplayer_public_visibility">公開</string>
+    <string name="multiplayer_unlisted_visibility">未列出</string>
     <string name="cancel">取消</string>
     <string name="ok">確定</string>
     <string name="refresh">刷新</string>
     <string name="room_list">房間列表</string>
+    <string name="multiplayer_token_required">需要Web令牌，請前往進階設定 -> 系統 -> 網路</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">主題色彩</string>
@@ -280,6 +294,7 @@
     <string name="alphabetical">依字母</string>
     <string name="view_list">列表</string>
     <string name="view_grid">網格</string>
+    <string name="view_carousel">輪播</string>
     <string name="folder">資料夾</string>
     <string name="pre_alpha_warning_title">預覽版軟體</string>
     <string name="pre_alpha_warning_description">警告：此版本不應公開分享或展示。此為預覽版軟體，可能存在錯誤與未完成功能。\n若您未經授權取得此版本，強烈建議立即解除安裝</string>
@@ -456,11 +471,17 @@
     <string name="set_custom_rtc">設定自訂 RTC</string>
 
     <!-- Network settings strings -->
+    <string name="generate">生成</string>
+    <string name="web_username">網路使用者名稱</string>
+    <string name="web_username_description">在多人遊戲大廳中顯示的使用者名稱。必須為4-20個字元。</string>
     <string name="web_token">網路令牌</string>
     <string name="web_token_description">用於建立公開大廳的網路令牌。它是由48個小寫字母a-z組成的字串。</string>
     <string name="network">網路</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">後端</string>
+    <string name="display">顯示</string>
+    <string name="processing">後處理</string>
     <string name="renderer_accuracy">準確度層級</string>
     <string name="renderer_resolution">解析度 (手提/底座)</string>
     <string name="renderer_vsync">VSync 模式</string>
@@ -920,6 +941,9 @@
     <string name="applet_lle">真實小程式</string>
 
     <string name="swkbd_applet">軟體鍵盤</string>
+
+    <string name="airplane_mode">飛航模式</string>
+    <string name="airplane_mode_description">將飛航模式傳遞給Switch作業系統</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">授權</string>

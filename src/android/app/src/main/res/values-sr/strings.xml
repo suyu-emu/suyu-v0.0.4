@@ -57,6 +57,8 @@
     <string name="show_gpu_model_description">Прикажите модел ГПУ-а у хосту</string>
     <string name="show_soc_model">Прикажи соц модел</string>
     <string name="show_soc_model_description">Прикажите модел домаћина СоЦ</string>
+    <string name="show_fw_version">Прикажи верзију фирмвера</string>
+    <string name="show_fw_version_description">Приказује инсталирану верзију фирмвера</string>
 
     <!-- Eden`s Veil -->
     <string name="eden_veil">Еденова аукција</string>
@@ -73,6 +75,8 @@
     <string name="descriptor_indexing_description">Побољшава текстуру и руковање међуспремника, као и преводилачки слој Маквелл. Подржани од стране неких Вулкана 1.1 ГПУ-а и сви Вулкан 1.2+ ГПУ.</string>
 
     <string name="veil_renderer">Рендерер</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Метод аутоматског управљања ресурсима у Vulkan-у који осигурава правилно ослобађање ресурса када више нису потребни, али може изазвати падове у пакованим играма.</string>
     <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
     <string name="frame_interpolation_description">Осигурава глатку и доследан испоруку оквира синхронизацијом времена између оквира, смањење муцања и неуједначене анимације. Идеално за игре које доживљавају временски оквир нестабилност или микро-штитнике током играња.</string>
     <string name="use_auto_stub">Користите ауто-стуб</string>
@@ -93,6 +97,12 @@
     <string name="fast_cpu_time_description">Користите појачање (1700МХз) да бисте се покренули на највишим матичним тактом Свитцх \ 2000МХз (2000МХз) да бисте покренули на 2к сату.</string>
     <string name="memory_layout">Изглед меморије</string>
     <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
+
+  <string name="sample_shading">Семпловање сенчења</string>
+  <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
+  <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
+  <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
+  <string name="cpu_ticks">Тактови</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>
@@ -194,10 +204,24 @@
     <string name="multiplayer_preferred_game_name">Преферирана игра</string>
     <string name="multiplayer_no_game">Није пронађена није пронађена игара</string>
     <string name="multiplayer_preferred_game_name_invalid">Морате одабрати преферирану игру да бисте угостили собу.</string>
+    <string name="multiplayer_token_error">Мора бити дугачко 48 знакова и садржати само мала слова a-z</string>
+  <string name="multiplayer_lobby_type">Тип лобија</string>
+  <string name="multiplayer_public_visibility">Јавно</string>
+  <string name="multiplayer_unlisted_visibility">Неприказано</string>
+  <string name="multiplayer_name_invalid">Име је прекратко</string>
+  <string name="multiplayer_address_invalid">Неисправна адреса</string>
+  <string name="multiplayer_username_error">Мора бити између 4–20 знакова</string>
     <string name="cancel">Отказати</string>
     <string name="ok">У реду</string>
     <string name="refresh">Освежити</string>
     <string name="room_list">Листа соба</string>
+    <string name="multiplayer_joining">Придружујем се…</string>
+  <string name="multiplayer_creating">Креирам…</string>
+  <string name="multiplayer_required">Обавезно</string>
+  <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
+  <string name="multiplayer_ip_error">Неисправан ИП формат</string>
+  <string name="multiplayer_port_error">Мора бити између 1 и 65535</string>
+  <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
 
     <!-- Setup strings -->
     <string name="welcome">Добродошли!</string>
@@ -221,6 +245,7 @@
     <string name="alphabetical">Азбучни</string>
     <string name="view_list">Списак</string>
     <string name="view_grid">Мрежа</string>
+    <string name="view_carousel">Карусел</string>
     <string name="folder">Мапа</string>
     <string name="pre_alpha_warning_title">Пре-Алпха софтвер</string>
     <string name="pre_alpha_warning_description">"УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција."</string>
@@ -401,11 +426,17 @@
     <string name="set_custom_rtc">Подесите прилагођени РТЦ</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Генериши</string>
+  <string name="web_username">Веб корисничко име</string>
+  <string name="web_username_description">Корисничко име које ће бити приказано у мултиплејер лобијима. Мора бити дугачко 4–20 знакова.</string>
     <string name="web_token">Веб токен</string>
     <string name="web_token_description">Веб токен који се користи за стварање јавних лобија. То је низ од 48 знакова који садржи само мала слова А-З.</string>
     <string name="network">Мрежа</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Бекенд</string>
+  <string name="display">Приказ</string>
+  <string name="processing">Постпроцесирање</string>
     <string name="frame_skipping">ВИП: Фрамескип</string>
     <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
     <string name="renderer_accuracy">Ниво тачности</string>
@@ -943,6 +974,9 @@
     <string name="applet_lle">Прави апплет</string>
 
     <string name="swkbd_applet">Софтверска тастатура</string>
+
+  <string name="airplane_mode">Авионски режим</string>
+  <string name="airplane_mode_description">Прослеђује авионски режим на Switch OS</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Лиценце</string>

@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">호스트 GPU 모델 표시</string>
     <string name="show_soc_model">SoC 모델 표시</string>
     <string name="show_soc_model_description">호스트 SoC 모델 표시</string>
+    <string name="show_fw_version">펌웨어 버전 표시</string>
+    <string name="show_fw_version_description">설치된 펌웨어 버전을 표시합니다</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">GPU 확장 기능</string>
     <string name="veil_renderer">렌더러</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">Vulkan에서 자동 리소스 관리를 위한 방법으로, 더 이상 필요하지 않은 리소스를 적절히 해제하지만 번들된 게임에서 충돌을 일으킬 수 있습니다.</string>
     <string name="veil_misc">기타</string>
     <string name="eden_veil">에덴의 장막</string>
     <string name="eden_veil_description">성능 및 기능을 향상시키기 위한 실험적 설정. 이 설정은 검은 화면 또는 기타 게임 문제를 일으킬 수 있습니다.</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Boost (1700MHz)를 사용하여 Switch의 최고 네이티브 클럭으로 실행하거나 Fast (2000MHz)를 사용하여 2배 클럭으로 실행합니다.</string>
     <string name="memory_layout">메모리 레이아웃</string>
     <string name="memory_layout_description">(실험적) 에뮬레이트된 메모리 레이아웃을 변경합니다. 이 설정은 성능을 높이지 않지만 모드를 통해 고해상도를 사용하는 게임에 도움이 될 수 있습니다. 8GB 이하 RAM의 휴대폰에서는 사용하지 마십시오.</string>
+    <string name="sample_shading">샘플 쉐이딩</string>
+    <string name="sample_shading_description">멀티샘플 프래그먼트에서 프래그먼트 쉐이더가 프래그먼트당 한 번이 아니라 샘플당 실행되도록 합니다. 성능을 희생하여 그래픽 품질을 향상시킵니다. Vulkan 1.1+ 장치만 이 확장을 지원합니다.</string>
+    <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
+    <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
+    <string name="cpu_ticks">틱</string>
     <string name="memory_4gb">4GB (권장)</string>
     <string name="memory_6gb">6GB (안전하지 않음)</string>
     <string name="memory_8gb">8GB (안전하지 않음)</string>
@@ -233,12 +242,17 @@
     <string name="multiplayer_room_name_error">3~20자여야 합니다</string>
     <string name="multiplayer_required">필수</string>
     <string name="multiplayer_ip_error">잘못된 IP 형식</string>
-    <string name="multiplayer_username_error">최소 5자 이상</string>
+    <string name="multiplayer_username_error">4~20자여야 합니다</string>
     <string name="multiplayer_port_error">1~65535 사이여야 합니다</string>
+    <string name="multiplayer_token_error">48자여야 하며, 소문자 a-z만 사용 가능</string>
+    <string name="multiplayer_lobby_type">로비 유형</string>
+    <string name="multiplayer_public_visibility">공개</string>
+    <string name="multiplayer_unlisted_visibility">비공개</string>
     <string name="cancel">취소</string>
     <string name="ok">확인</string>
     <string name="refresh">새로 고침</string>
     <string name="room_list">방 목록</string>
+    <string name="multiplayer_token_required">웹 토큰이 필요합니다. 고급 설정 -> 시스템 -> 네트워크로 이동하세요</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">테마 색상</string>
@@ -274,6 +288,7 @@
     <string name="alphabetical">알파벳순</string>
     <string name="view_list">목록</string>
     <string name="view_grid">격자</string>
+    <string name="view_carousel">캐러셀</string>
     <string name="folder">폴더</string>
     <string name="pre_alpha_warning_title">프리-알파 소프트웨어</string>
     <string name="pre_alpha_warning_description">"경고: 이 빌드는 공개용이 아닙니다. 이 소프트웨어는 프리-알파 단계이며 버그 및 미완성 기능이 있을 수 있습니다. \n무단으로 이 빌드를 획득한 경우 즉시 삭제하는 것이 좋습니다."</string>
@@ -450,11 +465,17 @@
     <string name="set_custom_rtc">사용자 지정 RTC 설정</string>
 
     <!-- Network settings strings -->
+    <string name="generate">생성</string>
+    <string name="web_username">웹 사용자 이름</string>
+    <string name="web_username_description">멀티플레이어 로비에 표시될 사용자 이름. 4~20자여야 합니다.</string>
     <string name="web_token">웹 토큰</string>
     <string name="web_token_description">공개 방을 만들기 위해 사용되는 웹 토큰. a-z 소문자만 포함된 48자 문자열입니다.</string>
     <string name="network">네트워크</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">백엔드</string>
+    <string name="display">디스플레이</string>
+    <string name="processing">후처리</string>
     <string name="renderer_accuracy">정확도 수준</string>
     <string name="renderer_resolution">해상도 (휴대 모드/독 모드)</string>
     <string name="renderer_vsync">수직동기화 모드</string>
@@ -862,6 +883,9 @@
     <string name="applet_lle">실제 애플릿</string>
 
     <string name="swkbd_applet">소프트웨어 키보드</string>
+
+    <string name="airplane_mode">비행기 모드</string>
+    <string name="airplane_mode_description">비행기 모드를 Switch OS에 전달합니다</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">라이센스</string>

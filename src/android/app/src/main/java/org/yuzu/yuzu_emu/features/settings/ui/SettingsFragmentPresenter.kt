@@ -446,6 +446,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_SAMPLE_SHADING.key)
 
             add(HeaderSetting(R.string.veil_renderer))
+            add(BooleanSetting.ENABLE_RAII.key)
             add(BooleanSetting.FRAME_INTERPOLATION.key)
             add(BooleanSetting.RENDERER_FAST_GPU.key)
             add(IntSetting.FAST_GPU_TIME.key)

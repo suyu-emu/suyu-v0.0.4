@@ -55,10 +55,14 @@
     <string name="show_gpu_model_description">A gazda GPU modelljének megjelenítése</string>
     <string name="show_soc_model">SoC modell megjelenítése</string>
     <string name="show_soc_model_description">A gazda SoC modelljének megjelenítése</string>
+    <string name="show_fw_version">Firmver verzió megjelenítése</string>
+    <string name="show_fw_version_description">A telepített firmver verziójának megjelenítése</string>
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">GPU kiterjesztések</string>
     <string name="veil_renderer">Megjelenítő</string>
+    <string name="enable_raii">RAII</string>
+    <string name="enable_raii_description">A Vulkan erőforrás-kezelési módszere, amely biztosítja az erőforrások megfelelő felszabadítását, ha már nincs rájuk szükség, de csomagolt játékok összeomlását okozhatja.</string>
     <string name="veil_misc">Egyéb</string>
     <string name="eden_veil">Eden Fátyla</string>
     <string name="eden_veil_description">Kísérleti beállítások a teljesítmény és képesség javításához. Ezek a beállítások fekete képernyőket vagy más játékproblémákat okozhatnak.</string>
@@ -97,6 +101,11 @@
     <string name="fast_cpu_time_description">Használd a Boost (1700MHz) opciót a Switch legmagasabb natív órajelén való futáshoz, vagy a Fast (2000MHz) opciót a dupla órajelen való futáshoz.</string>
     <string name="memory_layout">Memórialayout</string>
     <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
+    <string name="sample_shading">Mintavételezés árnyékolás</string>
+    <string name="sample_shading_description">Lehetővé teszi, hogy a fragment shader mintánként fusson egy többmintás fragmentben a fragmentenkénti futtatás helyett. Javítja a grafikai minőséget a teljesítmény rovására. Csak Vulkan 1.1+ eszközök támogatják ezt a kiterjesztést.</string>
+    <string name="custom_cpu_ticks">Egyéni CPU tick-ek</string>
+    <string name="custom_cpu_ticks_description">Egyéni CPU tick érték beállítása. A magasabb értékek növelhetik a teljesítményt, de a játék befagyását is okozhatják. 77–21000 közötti tartomány ajánlott.</string>
+    <string name="cpu_ticks">Tick-ek</string>
     <string name="memory_4gb">4GB (Ajánlott)</string>
     <string name="memory_6gb">6GB (Nem biztonságos)</string>
     <string name="memory_8gb">8GB (Nem biztonságos)</string>
@@ -234,12 +243,17 @@
     <string name="multiplayer_room_name_error">3-20 karakter kell</string>
     <string name="multiplayer_required">Kötelező</string>
     <string name="multiplayer_ip_error">Érvénytelen IP formátum</string>
-    <string name="multiplayer_username_error">Legalább 5 karakter</string>
+    <string name="multiplayer_username_error">4–20 karakter hosszú lehet</string>
     <string name="multiplayer_port_error">1-65535 között legyen</string>
+    <string name="multiplayer_token_error">48 karakter hosszú lehet, és csak kisbetűket (a-z) tartalmazhat</string>
+    <string name="multiplayer_lobby_type">Lobby típusa</string>
+    <string name="multiplayer_public_visibility">Nyilvános</string>
+    <string name="multiplayer_unlisted_visibility">Nem nyilvános</string>
     <string name="cancel">Mégse</string>
     <string name="ok">OK</string>
     <string name="refresh">Frissítés</string>
     <string name="room_list">Szobalista</string>
+    <string name="multiplayer_token_required">Web token szükséges, lépj a Speciális beállítások -> Rendszer -> Hálózat menüpontba</string>
 
     <!-- Static Themes -->
     <string name="static_theme_color">Téma színe</string>
@@ -275,6 +289,7 @@
     <string name="alphabetical">ABC sorrend</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Rács</string>
+    <string name="view_carousel">Körhinta</string>
     <string name="folder">Mappa</string>
     <string name="pre_alpha_warning_title">Pre-Alpha szoftver</string>
     <string name="pre_alpha_warning_description">FIGYELMEZTETÉS: Ez a verzió nem nyilvános. A szoftver pre-alpha állapotban van, hibákat és hiányos funkciókat tartalmazhat.</string>
@@ -450,11 +465,17 @@
     <string name="set_custom_rtc">Egyéni RTC beállítása</string>
 
     <!-- Network settings strings -->
+    <string name="generate">Generálás</string>
+    <string name="web_username">Webes felhasználónév</string>
+    <string name="web_username_description">A többjátékos lobbikban megjelenítendő felhasználónév. 4–20 karakter hosszúságú lehet.</string>
     <string name="web_token">Web token</string>
     <string name="web_token_description">Web token nyilvános termek létrehozásához. Ez egy 48 karakter hosszú sztring, amely csak kisbetűket (a-z) tartalmaz.</string>
     <string name="network">Hálózat</string>
 
     <!-- Graphics settings strings -->
+    <string name="backend">Backend</string>
+    <string name="display">Kijelző</string>
+    <string name="processing">Utófeldolgozás</string>
     <string name="renderer_accuracy">Pontosság szintje</string>
     <string name="renderer_resolution">Felbontás (Kézi/Dockolt)</string>
     <string name="renderer_vsync">VSync mód</string>
@@ -903,6 +924,9 @@
     <string name="applet_lle">Valódi applet</string>
 
     <string name="swkbd_applet">Szoftveres billentyűzet</string>
+
+    <string name="airplane_mode">Repülő üzemmód</string>
+    <string name="airplane_mode_description">Átadja a repülő üzemmódot a Switch operációs rendszernek</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenszek</string>
