@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.ui
 
+import org.yuzu.yuzu_emu.R
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -21,8 +22,9 @@ class MidScreenSwipeRefreshLayout @JvmOverloads constructor(
             MotionEvent.ACTION_DOWN -> {
                 startX = ev.x
                 val width = width
-                val leftBound = width / 3
-                val rightBound = width * 2 / 3
+                val center_fraction = resources.getFraction(R.fraction.carousel_midscreenswipe_width_fraction, 1, 1).coerceIn(0f, 1f)
+                val leftBound = ((1 - center_fraction) / 2) * width
+                val rightBound = leftBound + (width * center_fraction)
                 allowRefresh = startX >= leftBound && startX <= rightBound
             }
         }

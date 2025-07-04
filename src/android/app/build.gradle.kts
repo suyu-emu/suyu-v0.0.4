@@ -127,7 +127,7 @@ android {
             applicationIdSuffix = ".relWithDebInfo"
             isJniDebuggable = true
         }
-        
+
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {

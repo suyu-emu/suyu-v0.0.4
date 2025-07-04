@@ -32,6 +32,7 @@ import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
+import androidx.recyclerview.widget.RecyclerView
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
@@ -49,7 +50,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
         notifyDataSetChanged()
     }
 
-    var cardSize: Int = 0
+    public var cardSize: Int = 0
         private set
 
     fun setCardSize(size: Int) {
@@ -63,7 +64,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        // Always reset scale/alpha for recycled views
         when (getItemViewType(position)) {
             VIEW_TYPE_LIST -> {
                 val listBinding = holder.binding as CardGameListBinding
@@ -85,14 +85,9 @@ class GameAdapter(private val activity: AppCompatActivity) :
             }
             VIEW_TYPE_CAROUSEL -> {
                 val carouselBinding = holder.binding as CardGameCarouselBinding
-                carouselBinding.cardGameCarousel.scaleX = 1f
-                carouselBinding.cardGameCarousel.scaleY = 1f
+                //soothens transient flickering
+                carouselBinding.cardGameCarousel.scaleY = 0f
                 carouselBinding.cardGameCarousel.alpha = 0f
-                // Set square size for carousel
-                if (cardSize > 0) {
-                    carouselBinding.root.layoutParams.width = cardSize
-                    carouselBinding.root.layoutParams.height = cardSize
-                }
             }
         }
     }
@@ -158,16 +153,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
         private fun bindCarouselView(model: Game) {
             val carouselBinding = binding as CardGameCarouselBinding
 
-            // Remove padding from the root LinearLayout
-            (carouselBinding.root.getChildAt(0) as? LinearLayout)?.setPadding(0, 0, 0, 0)
-
-            // Always set square size and remove margins for carousel
-            val params = carouselBinding.root.layoutParams
-            params.width = cardSize
-            params.height = cardSize
-            if (params is ViewGroup.MarginLayoutParams) params.setMargins(0, 0, 0, 0)
-            carouselBinding.root.layoutParams = params
-
             carouselBinding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
             GameIconUtils.loadGameIcon(model, carouselBinding.imageGameScreen)
 
@@ -178,6 +163,9 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
             carouselBinding.imageGameScreen.contentDescription =
                 binding.root.context.getString(R.string.game_image_desc, model.title)
+
+            // Ensure zero-heighted-full-width cards for carousel
+            carouselBinding.root.layoutParams.width = cardSize
         }
 
         fun onClick(game: Game) {

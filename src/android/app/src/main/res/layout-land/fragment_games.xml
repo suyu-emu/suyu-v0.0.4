@@ -185,7 +185,7 @@
                 android:visibility="gone"
                 />
 
-            <org.yuzu.yuzu_emu.ui.JukeboxRecyclerView
+            <org.yuzu.yuzu_emu.ui.CarouselRecyclerView
                 android:id="@+id/grid_games"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -195,7 +195,6 @@
                 android:scrollbars="vertical"
                 android:fadeScrollbars="true"
                 />
-
 
         </RelativeLayout>
 

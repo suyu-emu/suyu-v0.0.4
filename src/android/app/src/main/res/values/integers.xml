@@ -3,6 +3,10 @@
     <integer name="grid_columns">1</integer>
     <integer name="game_columns_list">1</integer>
     <integer name="game_columns_grid">2</integer>
+    <integer name="carousel_max_fling_count">4</integer>
+    <integer name="carousel_focus_search_repeat_threshold_ms">100</integer>
+    <integer name="carousel_cards_scaling_shape">1</integer>
+    <integer name="carousel_cards_alpha_shape">4</integer>
 
     <!-- Default SWITCH landscape layout -->
     <integer name="BUTTON_A_X">760</integer>
