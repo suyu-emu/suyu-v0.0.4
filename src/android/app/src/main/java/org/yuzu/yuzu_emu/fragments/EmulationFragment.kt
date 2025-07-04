@@ -105,6 +105,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var isInFoldableLayout = false
 
     private lateinit var gpuModel: String
+    private lateinit var fwVersion: String
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -186,6 +187,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         gpuModel = GpuDriverHelper.getGpuModel().toString()
+        fwVersion = NativeLibrary.firmwareVersion()
 
         binding.surfaceEmulation.holder.addCallback(this)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
@@ -755,7 +757,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     if (BooleanSetting.SHOW_FW_VERSION.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
                         if (sb.isNotEmpty()) sb.append(" | ")
-                        sb.append(NativeLibrary.firmwareVersion())
+                        sb.append(fwVersion)
                     }
 
                     binding.showSocOverlayText.text = sb.toString()

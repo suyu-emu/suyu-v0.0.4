@@ -127,22 +127,22 @@ namespace AndroidSettings {
         Settings::Setting<bool> show_device_model{linkage, true, "show_device_model",
                                                       Settings::Category::Overlay,
                                                       Settings::Specialization::Default, true, true,
-                                                      &show_performance_overlay};
+                                                      &show_soc_overlay};
 
         Settings::Setting<bool> show_gpu_model{linkage, true, "show_gpu_model",
                                                       Settings::Category::Overlay,
                                                       Settings::Specialization::Default, true, true,
-                                                      &show_performance_overlay};
+                                                      &show_soc_overlay};
 
         Settings::Setting<bool> show_soc_model{linkage, true, "show_soc_model",
                                                Settings::Category::Overlay,
                                                Settings::Specialization::Default, true, true,
-                                               &show_performance_overlay};
+                                               &show_soc_overlay};
 
         Settings::Setting<bool> show_fw_version{linkage, true, "show_firmware_version",
                                                Settings::Category::Overlay,
                                                Settings::Specialization::Default, true, true,
-                                               &show_performance_overlay};
+                                               &show_soc_overlay};
 
         Settings::Setting<bool> soc_overlay_background{linkage, false, "soc_overlay_background",
                                                         Settings::Category::Overlay,

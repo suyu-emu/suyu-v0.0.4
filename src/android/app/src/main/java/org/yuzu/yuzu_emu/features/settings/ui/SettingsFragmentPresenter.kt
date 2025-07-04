@@ -56,6 +56,7 @@ class SettingsFragmentPresenter(
         }
 
         val pairedSettingKey = item.setting.pairedSettingKey
+
         if (pairedSettingKey.isNotEmpty()) {
             val pairedSettingValue = NativeConfig.getBoolean(
                 pairedSettingKey,
@@ -220,7 +221,6 @@ class SettingsFragmentPresenter(
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            // TODO(crueter): reorganize this, this is awful
             add(HeaderSetting(R.string.backend))
 
             add(IntSetting.RENDERER_ACCURACY.key)
@@ -436,7 +436,6 @@ class SettingsFragmentPresenter(
         }
     }
 
-    // TODO(alekpop): sort these into headers.
     private fun addEdenVeilSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             add(HeaderSetting(R.string.veil_extensions))

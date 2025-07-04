@@ -22,6 +22,7 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
         binding.textSettingDescription.setVisible(setting.description.isNotEmpty())
         binding.textSettingDescription.text = setting.description
 
+        // TODO(alekpop): A race condition occurs here if the button is clicked too fast
         binding.switchWidget.setOnCheckedChangeListener(null)
         binding.switchWidget.isChecked = setting.getIsChecked(setting.needsRuntimeGlobal)
         binding.switchWidget.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->

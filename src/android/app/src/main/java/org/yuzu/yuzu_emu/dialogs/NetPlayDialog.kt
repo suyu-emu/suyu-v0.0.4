@@ -361,7 +361,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
 
         // setup listeners etc
         val roomNameWatcher = object : TextValidatorWatcher(
-            binding.btnConfirm, // TODO(alekpop, crueter): Figure out a better way to deal with this?
+            binding.btnConfirm,
             binding.layoutRoomName,
             context.getString(
                 R.string.multiplayer_room_name_error
