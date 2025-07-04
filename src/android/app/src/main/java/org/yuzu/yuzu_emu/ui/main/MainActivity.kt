@@ -65,6 +65,36 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private val CHECKED_FIRMWARE = "CheckedFirmware"
     private var checkedFirmware = false
 
+    private val requestBluetoothPermissionsLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val granted = permissions.entries.all { it.value }
+            if (granted) {
+                // Permissions were granted.
+                android.widget.Toast.makeText(this, "Bluetooth permissions granted.", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                // Permissions were denied.
+                android.widget.Toast.makeText(this, "Bluetooth permissions denied. Controller support may be limited.", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+
+    private fun checkAndRequestBluetoothPermissions() {
+        // This check is only necessary for Android 12 (API level 31) and above.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            val permissionsToRequest = arrayOf(
+                android.Manifest.permission.BLUETOOTH_SCAN,
+                android.Manifest.permission.BLUETOOTH_CONNECT
+            )
+
+            val permissionsNotGranted = permissionsToRequest.filter {
+                checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+
+            if (permissionsNotGranted.isNotEmpty()) {
+                requestBluetoothPermissionsLauncher.launch(permissionsNotGranted.toTypedArray())
+            }
+        }
+    }
+  
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { !DirectoryInitialization.areDirectoriesReady }
@@ -75,8 +105,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         NativeLibrary.initMultiplayer()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        
 
+        setContentView(binding.root)
+        
+ 
+        checkAndRequestBluetoothPermissions()
+        
         if (savedInstanceState != null) {
             checkedDecryption = savedInstanceState.getBoolean(CHECKED_DECRYPTION)
             checkedFirmware = savedInstanceState.getBoolean(CHECKED_FIRMWARE)
