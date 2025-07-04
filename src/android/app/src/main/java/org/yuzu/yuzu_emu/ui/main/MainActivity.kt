@@ -335,7 +335,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     Toast.LENGTH_SHORT
                 ).show()
                 homeViewModel.setCheckKeys(true)
-                homeViewModel.setCheckFirmware(true)
+
+                val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                    .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
+                if (!firstTimeSetup) {
+                    homeViewModel.setCheckFirmware(true)
+                }
+
                 gamesViewModel.reloadGames(true)
                 return true
             } else {

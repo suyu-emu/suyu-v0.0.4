@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package org.yuzu.yuzu_emu.features.fetcher
 
 import android.annotation.SuppressLint
@@ -17,7 +20,9 @@ import androidx.transition.TransitionManager
 import androidx.transition.TransitionSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.model.DriverViewModel
 
 class DriverGroupAdapter(
@@ -25,42 +30,60 @@ class DriverGroupAdapter(
     private val driverViewModel: DriverViewModel
 ) : RecyclerView.Adapter<DriverGroupAdapter.DriverGroupViewHolder>() {
     private var driverGroups: List<DriverGroup> = emptyList()
+    private val adapterJobs = mutableMapOf<Int, Job>()
 
     inner class DriverGroupViewHolder(
         private val binding: ItemDriverGroupBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(group: DriverGroup) {
+            binding.textGroupName.text = group.name
+
+            if (binding.recyclerReleases.layoutManager == null) {
+                binding.recyclerReleases.layoutManager = LinearLayoutManager(activity)
+                binding.recyclerReleases.addItemDecoration(
+                    SpacingItemDecoration(
+                        (activity.resources.displayMetrics.density * 8).toInt()
+                    )
+                )
+            }
+
             val onClick = {
+                adapterJobs[bindingAdapterPosition]?.cancel()
+
                 TransitionManager.beginDelayedTransition(
                     binding.root,
                     TransitionSet().addTransition(Fade()).addTransition(ChangeBounds())
                         .setDuration(200)
                 )
+
                 val isVisible = binding.recyclerReleases.isVisible
+
+                if (!isVisible && binding.recyclerReleases.adapter == null) {
+                    val job = CoroutineScope(Dispatchers.Main).launch {
+                        // It prevents blocking the ui thread.
+                        var adapter: ReleaseAdapter?
+
+                        withContext(Dispatchers.IO) {
+                            adapter = ReleaseAdapter(group.releases, activity, driverViewModel)
+                        }
+
+                        binding.recyclerReleases.adapter = adapter
+                    }
+
+                    adapterJobs[bindingAdapterPosition] = job
+                }
 
                 binding.recyclerReleases.visibility = if (isVisible) View.GONE else View.VISIBLE
                 binding.imageDropdownArrow.rotation = if (isVisible) 0f else 180f
-
-                if (!isVisible && binding.recyclerReleases.adapter == null) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        binding.recyclerReleases.layoutManager =
-                            LinearLayoutManager(binding.root.context)
-                        binding.recyclerReleases.adapter =
-                            ReleaseAdapter(group.releases, activity, driverViewModel)
-
-                        binding.recyclerReleases.addItemDecoration(
-                            SpacingItemDecoration(
-                                (activity.resources.displayMetrics.density * 8).toInt()
-                            )
-                        )
-                    }
-                }
             }
 
-            binding.textGroupName.text = group.name
             binding.textGroupName.setOnClickListener { onClick() }
-
             binding.imageDropdownArrow.setOnClickListener { onClick() }
+        }
+
+        fun clear() {
+            adapterJobs[bindingAdapterPosition]?.cancel()
+            adapterJobs.remove(bindingAdapterPosition)
         }
     }
 
