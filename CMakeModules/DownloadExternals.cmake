@@ -8,7 +8,7 @@
 set(CURRENT_MODULE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(download_bundled_external remote_path lib_name prefix_var)
 
-set(package_base_url "https://git.eden-emu.dev/eden-emu/")
+set(package_base_url "https://github.com/eden-emulator")
 set(package_repo "no_platform")
 set(package_extension "no_platform")
 if (WIN32)

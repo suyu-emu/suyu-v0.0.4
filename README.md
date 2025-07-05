@@ -8,7 +8,7 @@
 
 <h1 align="center">
   <br>
-  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
+  <a href="https://github.com/pflyly/eden-mirror"><img src="https://github.com/pflyly/eden-mirror/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
   <br>
   <b>Eden</b>
   <br>
@@ -46,7 +46,7 @@ Check out our [website](https://eden-emulator.github.io) for the latest news on 
 
 ## Development
 
-Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/ynGGJAN4Rx).
+Most of the development happens on our Git server. It is also where [our central repository](https://github.com/pflyly/eden-mirror) is hosted. For development discussions, please join us on [Discord](https://discord.gg/edenemu).
 
 If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented.
 You can also contact any of the developers on Discord to learn more about the current state of the emulator.
