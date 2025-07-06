@@ -1,11 +1,21 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-// Uncomment this to disable microprofile. This will get you cleaner profiles when using
+// Use this to disable microprofile. This will get you cleaner profiles when using
 // external sampling profilers like "Very Sleepy", and will improve performance somewhat.
-// #define MICROPROFILE_ENABLED 0
+#ifdef ANDROID
+#define MICROPROFILE_ENABLED 0
+#define MICROPROFILEUI_ENABLED 0
+#define MicroProfileOnThreadExit() do{}while(0)
+#define MICROPROFILE_TOKEN(x) 0
+#define MicroProfileEnter(x) 0
+#define MicroProfileLeave(x, y) ignore_all(x, y)
+#endif
 
 // Customized Citra settings.
 // This file wraps the MicroProfile header so that these are consistent everywhere.
@@ -18,6 +28,12 @@
 // This isn't defined by the standard library in MSVC2015
 typedef void* HANDLE;
 #endif
+
+#include <tuple>
+template <typename... Args>
+void ignore_all(Args&&... args) {
+    (static_cast<void>(std::ignore = args), ...);
+}
 
 #include <microprofile.h>
 

@@ -7,6 +7,7 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "shader_recompiler/frontend/maxwell/translate/impl/impl.h"
+#include <fstream>
 
 namespace Shader::Maxwell {
 namespace {
@@ -36,6 +37,17 @@ enum class ShuffleMode : u64 {
     }
 }
 
+bool IsKONA() {
+    std::ifstream machineFile("/sys/devices/soc0/machine");
+    if (machineFile.is_open()) {
+        std::string line;
+        std::getline(machineFile, line);
+        if (line == "KONA")
+            return true;
+    }
+    return false;
+}
+
 void Shuffle(TranslatorVisitor& v, u64 insn, const IR::U32& index, const IR::U32& mask) {
     union {
         u64 insn;
@@ -47,7 +59,10 @@ void Shuffle(TranslatorVisitor& v, u64 insn, const IR::U32& index, const IR::U32
 
     const IR::U32 result{ShuffleOperation(v.ir, v.X(shfl.src_reg), index, mask, shfl.mode)};
     v.ir.SetPred(shfl.pred, v.ir.GetInBoundsFromOp(result));
-    v.X(shfl.dest_reg, result);
+    if (IsKONA())
+        v.X(shfl.dest_reg, v.ir.Imm32(0xffffffff)); // This fixes the freeze for Retroid / Snapdragon SD865
+    else
+        v.X(shfl.dest_reg, result);
 }
 } // Anonymous namespace
 

@@ -271,7 +271,10 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
     VmaAllocation allocation{};
     VkMemoryPropertyFlags property_flags{};
 
-    vk::Check(vmaCreateBuffer(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info));
+    VkResult result = vmaCreateBuffer(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info);
+    if (result == VK_ERROR_OUT_OF_DEVICE_MEMORY) {
+        LOG_ERROR(Render_Vulkan, "Out of memory creating buffer (size: {})", ci.size);
+    }
     vmaGetAllocationMemoryProperties(allocator, allocation, &property_flags);
 
     u8* data = reinterpret_cast<u8*>(alloc_info.pMappedData);

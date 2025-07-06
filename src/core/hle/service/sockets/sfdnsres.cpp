@@ -53,6 +53,16 @@ enum class NetDbError : s32 {
     NoData = 4,
 };
 
+const std::vector<std::string> blockedDomains = {"srv.nintendo.net", "battle.net",
+                                                 "microsoft.com",    "mojang.com",
+                                                 "xboxlive.com",     "minecraftservices.com"};
+
+static bool IsBlockedHost(const std::string& host) {
+    return std::any_of(
+        blockedDomains.begin(), blockedDomains.end(),
+        [&host](const std::string& domain) { return host.find(domain) != std::string::npos; });
+}
+
 static NetDbError GetAddrInfoErrorToNetDbError(GetAddrInfoError result) {
     // These combinations have been verified on console (but are not
     // exhaustive).
@@ -154,7 +164,7 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
     // For now, ignore options, which are in input buffer 1 for GetHostByNameRequestWithOptions.
 
     // Prevent resolution of Nintendo servers
-    if (host.find("srv.nintendo.net") != std::string::npos) {
+    if (IsBlockedHost(host)) {
         LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
         return {0, GetAddrInfoError::AGAIN};
     }
@@ -271,7 +281,7 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
     const std::string host = Common::StringFromBuffer(host_buffer);
 
     // Prevent resolution of Nintendo servers
-    if (host.find("srv.nintendo.net") != std::string::npos) {
+    if (IsBlockedHost(host)) {
         LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
         return {0, GetAddrInfoError::AGAIN};
     }
@@ -359,5 +369,4 @@ void SFDNSRES::ResolverSetOptionRequest(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.Push<s32>(0); // bsd errno
 }
-
 } // namespace Service::Sockets
