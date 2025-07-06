@@ -180,6 +180,7 @@
         <item>@string/resolution_half</item>
         <item>@string/resolution_three_quarter</item>
         <item>@string/resolution_one</item>
+        <item>@string/resolution_three_half</item>
         <item>@string/resolution_two</item>
         <item>@string/resolution_three</item>
         <item>@string/resolution_four</item>
@@ -200,6 +201,7 @@
         <item>4</item>
         <item>5</item>
         <item>6</item>
+        <item>7</item>
     </integer-array>
 
     <integer-array name="rendererVSyncValues">

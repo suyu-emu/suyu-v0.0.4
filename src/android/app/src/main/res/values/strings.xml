@@ -290,6 +290,7 @@
     <string name="about">About</string>
     <string name="about_description">Build version, credits, and more</string>
     <string name="warning_help">Help</string>
+    <string name="warning">Warning</string>
     <string name="warning_skip">Skip</string>
     <string name="warning_cancel">Cancel</string>
     <string name="install_amiibo_keys">Install Amiibo keys</string>
@@ -490,6 +491,8 @@
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
+
+    <string name="warning_resolution">Resolution scaling above 2x is known to cause issues, and may result in significant slowdowns of your device.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -884,6 +887,7 @@
     <string name="resolution_half">0.5X (360p/540p)</string>
     <string name="resolution_three_quarter">0.75X (540p/810p)</string>
     <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
     <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
     <string name="resolution_four">4X (2880p/4320p) (Slow)</string>

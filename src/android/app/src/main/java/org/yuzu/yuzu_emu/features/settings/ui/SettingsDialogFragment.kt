@@ -14,7 +14,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -113,6 +112,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
             SettingsItem.TYPE_SINGLE_CHOICE -> {
                 val item = settingsViewModel.clickedItem as SingleChoiceSetting
                 val value = getSelectionForSingleChoiceValue(item)
+
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(item.title)
                     .setSingleChoiceItems(item.choicesId, value, this)
@@ -125,6 +125,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
 
                 settingsViewModel.setSliderTextValue(item.getSelectedValue().toFloat(), item.units)
                 sliderBinding.slider.apply {
+                    stepSize = 1.0f
                     valueFrom = item.min.toFloat()
                     valueTo = item.max.toFloat()
                     value = settingsViewModel.sliderProgress.value.toFloat()
@@ -244,6 +245,15 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
             is SingleChoiceSetting -> {
                 val scSetting = settingsViewModel.clickedItem as SingleChoiceSetting
                 val value = getValueForSingleChoiceSelection(scSetting, which)
+
+                if (value in scSetting.warnChoices) {
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.warning)
+                        .setMessage(scSetting.warningMessage)
+                        .setPositiveButton(R.string.ok, null)
+                        .create()
+                        .show()
+                }
                 scSetting.setSelectedValue(value)
             }
 

@@ -279,6 +279,7 @@
     <string name="about">О томе</string>
     <string name="about_description">Изградите верзију, кредите и још много тога</string>
     <string name="warning_help">Помоћи</string>
+    <string name="warning">упозорење</string>
     <string name="warning_skip">Прескочити</string>
     <string name="warning_cancel">Отказати</string>
     <string name="install_amiibo_keys">Инсталирајте Амиибо Кеис</string>
@@ -464,6 +465,8 @@
     <string name="use_disk_shader_cache_description">Смањује муцање локалном чувањем и учитавањем генерисаних схадера.</string>
     <string name="anisotropic_filtering">Анисотропни филтрирање</string>
     <string name="anisotropic_filtering_description">Побољшава квалитет текстура када се посматра у косим угловима</string>
+
+    <string name="warning_resolution">Познато је да скалирање резолуције изнад 2x изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦПУ</string>
@@ -852,13 +855,14 @@
     <string name="vram_usage_aggressive">Агресиван</string>
 
     <!-- Resolutions -->
-    <string name="resolution_quarter">0,25к (180п / 270п)</string>
-    <string name="resolution_half">0,5к (360п / 540п)</string>
-    <string name="resolution_three_quarter">0,75к (540п / 810п)</string>
-    <string name="resolution_one">1к (720п / 1080п)</string>
-    <string name="resolution_two">2к (1440п / 2160п) (споро)</string>
-    <string name="resolution_three">3к (2160п / 3240п) (споро)</string>
-    <string name="resolution_four">4к (2880п / 4320п) (споро)</string>
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (споро)</string>
+    <string name="resolution_three">3X (2160p/3240p) (споро)</string>
+    <string name="resolution_four">4X (2880p/4320p) (споро)</string>
 
     <!-- Renderer VSync -->
     <string name="renderer_vsync_immediate">Непосредан (искључен)</string>
