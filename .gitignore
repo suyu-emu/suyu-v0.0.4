@@ -19,7 +19,13 @@ dist/english_plurals/generated_en.ts
 .idea/
 .vs/
 .vscode/
+.cache/
+profile.json.gz
 CMakeLists.txt.user*
+
+# kdevelop
+.kdev4/
+*.kdev4
 
 # *nix related
 # Common convention for backup or temporary files
