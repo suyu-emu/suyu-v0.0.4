@@ -290,7 +290,6 @@
     <string name="bluetooth_permissions_denied">Uprawnienia Bluetooth odrzucone. Obsługa kontrolera może być ograniczona.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabetycznie</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Siatka</string>

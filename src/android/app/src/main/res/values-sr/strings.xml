@@ -252,7 +252,6 @@
     <string name="bluetooth_permissions_denied">Bluetooth дозволе одбијене. Подршка за контролере може бити ограничена.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Фирмвер:</string>
     <string name="alphabetical">Азбучни</string>
     <string name="view_list">Списак</string>
     <string name="view_grid">Мрежа</string>
@@ -378,7 +377,8 @@
     <string name="verify_installed_content_description">Проверава све инсталиране садржаје за корупцију</string>
     <string name="keys_missing">Шифра о шифрирањима недостају</string>
     <string name="keys_missing_description">Фирмваре и малопродајне игре не могу се дешифровати</string>
-      <string name="firmware_missing">Фирмвер недостаје или је превише нов</string>
+
+    <string name="firmware_missing">Фирмвер недостаје или је превише нов</string>
     <string name="firmware_missing_description">Неке игре можда неће радити исправно. Eden захтева фирмвер верзије 19.0.1 или старији.</string>
 
     <!-- Applet launcher strings -->
@@ -481,7 +481,7 @@
     <string name="anisotropic_filtering">Анисотропни филтрирање</string>
     <string name="anisotropic_filtering_description">Побољшава квалитет текстура када се посматра у косим угловима</string>
 
-    <string name="warning_resolution">Познато је да скалирање резолуције изнад 2x изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
+    <string name="warning_resolution">Познато је да скалирање резолуције на 2x или више изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦПУ</string>

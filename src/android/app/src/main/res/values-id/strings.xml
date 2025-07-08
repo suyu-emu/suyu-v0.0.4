@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Izin Bluetooth ditolak. Dukungan controller mungkin terbatas.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Abjad</string>
     <string name="view_list">Daftar</string>
     <string name="view_grid">Grid</string>

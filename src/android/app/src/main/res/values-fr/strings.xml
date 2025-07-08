@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Autorisations Bluetooth refusées. Le support des contrôleurs peut être limité.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware :</string>
     <string name="alphabetical">Alphabétique</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Grille</string>

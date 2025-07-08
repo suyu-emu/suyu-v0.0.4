@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">مجوزهای بلوتوث رد شد. پشتیبانی کنترلر ممکن است محدود باشد.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">فریمور:</string>
     <string name="alphabetical">الفبایی</string>
     <string name="view_list">لیست</string>
     <string name="view_grid">گرید</string>

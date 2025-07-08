@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Permessi Bluetooth negati. Il supporto del controller potrebbe essere limitato.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabetico</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Griglia</string>

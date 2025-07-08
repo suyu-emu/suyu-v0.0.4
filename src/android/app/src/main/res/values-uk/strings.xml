@@ -290,7 +290,6 @@
     <string name="bluetooth_permissions_denied">Дозволи Bluetooth відхилено. Підтримка контролерів може бути обмежена.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Прошивка:</string>
     <string name="alphabetical">За алфавітом</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сітка</string>

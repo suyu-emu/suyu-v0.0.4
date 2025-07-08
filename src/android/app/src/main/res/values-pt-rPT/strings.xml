@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Permissões Bluetooth recusadas. O suporte a comandos pode ser limitado.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabético</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Grelha</string>

@@ -295,7 +295,6 @@
     <string name="bluetooth_permissions_denied">تم رفض أذونات البلوتوث. قد يكون دعم التحكم محدودًا.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">البرنامج الثابت:</string>
     <string name="alphabetical">أبجدي</string>
     <string name="view_list">قائمة</string>
     <string name="view_grid">شبكة</string>

@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">蓝牙权限被拒绝。控制器支持可能受限。</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">固件：</string>
     <string name="alphabetical">字母顺序</string>
     <string name="view_list">列表</string>
     <string name="view_grid">网格</string>

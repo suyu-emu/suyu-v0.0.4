@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Bluetooth engedélyek megtagadva. A kontroller támogatás korlátozott lehet.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">ABC sorrend</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Rács</string>

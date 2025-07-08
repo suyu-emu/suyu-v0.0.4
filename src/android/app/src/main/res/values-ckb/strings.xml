@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">مۆڵەتی بلوتۆس ڕەتکرایەوە. پشتیوانی کۆنتڕۆڵەر دەکرێت سنوردار بێت.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">فریموێر:</string>
     <string name="alphabetical">پێنووس</string>
     <string name="view_list">لیست</string>
     <string name="view_grid">تۆڕ</string>

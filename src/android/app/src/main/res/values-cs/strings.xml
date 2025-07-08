@@ -287,7 +287,6 @@
     <string name="bluetooth_permissions_denied">Bluetoothová oprávnění zamítnuta. Podpora ovladače může být omezena.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Abecedně</string>
     <string name="view_list">Seznam</string>
     <string name="view_grid">Mřížka</string>

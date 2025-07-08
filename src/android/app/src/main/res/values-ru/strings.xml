@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Разрешения Bluetooth отклонены. Поддержка контроллера может быть ограничена.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Прошивка:</string>
     <string name="alphabetical">По алфавиту</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сетка</string>

@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Bluetooth-Berechtigungen verweigert. Controller-Unterstützung kann eingeschränkt sein.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alphabetisch</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Raster</string>

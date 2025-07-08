@@ -290,7 +290,6 @@
     <string name="bluetooth_permissions_denied">Bluetooth-tillatelser avslått. Kontrollerstøtte kan være begrenset.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabetisk</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Rutenett</string>

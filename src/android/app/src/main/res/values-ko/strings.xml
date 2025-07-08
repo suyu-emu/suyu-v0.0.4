@@ -290,7 +290,6 @@
     <string name="bluetooth_permissions_denied">블루투스 권한이 거부되었습니다. 컨트롤러 지원이 제한될 수 있습니다.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">펌웨어:</string>
     <string name="alphabetical">알파벳순</string>
     <string name="view_list">목록</string>
     <string name="view_grid">격자</string>

@@ -292,7 +292,6 @@
     <string name="bluetooth_permissions_denied">הרשאות Bluetooth נדחו. תמיכה בבקרים עשויה להיות מוגבלת.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">קושחה:</string>
     <string name="alphabetical">אלפביתי</string>
     <string name="view_list">רשימה</string>
     <string name="view_grid">רשת</string>

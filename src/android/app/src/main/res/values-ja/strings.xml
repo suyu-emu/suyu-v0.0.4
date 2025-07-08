@@ -291,7 +291,6 @@
     <string name="bluetooth_permissions_denied">Bluetoothの権限が拒否されました。コントローラーのサポートが制限される可能性があります。</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">ファームウェア:</string>
     <string name="alphabetical">アルファベット順</string>
     <string name="view_list">リスト表示</string>
     <string name="view_grid">グリッド表示</string>

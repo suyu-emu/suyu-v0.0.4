@@ -254,7 +254,6 @@
     <string name="bluetooth_permissions_denied">Bluetooth permissions denied. Controller support may be limited.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
 
     <string name="alphabetical">Alphabetical</string>
     <string name="view_list">List</string>
@@ -501,7 +500,7 @@
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
 
-    <string name="warning_resolution">Resolution scaling above 2x is known to cause issues, and may result in significant slowdowns of your device.</string>
+    <string name="warning_resolution">Resolution scaling to 2x or higher is known to cause issues, and may result in significant slowdowns of your device.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
