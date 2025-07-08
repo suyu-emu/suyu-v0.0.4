@@ -274,6 +274,9 @@
     <string name="keys">کلیدها</string>
     <string name="keys_description">فایل &lt;b>prod.keys&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
     <string name="select_keys">انتخاب کلیدها</string>
+    <string name="firmware">فریمور</string>
+    <string name="firmware_description">فایل <b>firmware.zip</b> خود را با دکمه زیر انتخاب کنید.\nاکنون ایدن به نسخه <b>19.0.1</b> یا پایین‌تر نیاز دارد.</string>
+    <string name="select_firmware">انتخاب فریمور</string>
     <string name="games">بازی‌ها</string>
     <string name="games_description">پوشه &lt;b>بازی‌ها&lt;/b> خود را با دکمه زیر انتخاب کنید.</string>
     <string name="done">انجام شد</string>
@@ -284,8 +287,11 @@
     <string name="add_games">افزودن بازی‌ها</string>
     <string name="add_games_description">پوشه بازی‌های خود را انتخاب کنید</string>
     <string name="step_complete">تکمیل شد!</string>
+    <string name="bluetooth_permissions_granted">مجوزهای بلوتوث اعطا شد.</string>
+    <string name="bluetooth_permissions_denied">مجوزهای بلوتوث رد شد. پشتیبانی کنترلر ممکن است محدود باشد.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">فریمور:</string>
     <string name="alphabetical">الفبایی</string>
     <string name="view_list">لیست</string>
     <string name="view_grid">گرید</string>
@@ -313,6 +319,8 @@
     <string name="install_prod_keys_description">برای رمزگشایی بازی‌های فروشگاهی مورد نیاز است</string>
     <string name="install_prod_keys_warning">افزودن کلیدها را رد می‌کنید؟</string>
     <string name="install_prod_keys_warning_description">کلیدهای معتبر برای شبیه‌سازی بازی‌های فروشگاهی مورد نیاز است. اگر ادامه دهید، فقط برنامه‌های سیستم ریزکامپیوتری کار خواهند کرد.</string>
+    <string name="install_firmware_warning">افزودن فریمور حذف شود؟</string>
+    <string name="install_firmware_warning_description">بسیاری از بازی‌ها برای اجرای صحیح به دسترسی به فریمور نیاز دارند.</string>
     <string name="notifications">اعلان‌ها</string>
     <string name="notifications_description">مجوز اعلان را با دکمه زیر اعطا کنید.</string>
     <string name="give_permission">اجازه بدهید</string>
@@ -323,6 +331,7 @@
     <string name="about">درباره</string>
     <string name="about_description">نسخه ساخت، عوامل و موارد دیگر</string>
     <string name="warning_help">کمک</string>
+    <string name="warning">هشدار</string>
     <string name="warning_skip">رد کردن</string>
     <string name="warning_cancel">لغو</string>
     <string name="install_amiibo_keys">کلیدهای Amiibo را نصب کنید</string>
@@ -406,15 +415,18 @@
     <string name="verify_installed_content_description">تمام محتوای نصب شده را از نظر خرابی بررسی می‌کند</string>
     <string name="keys_missing">کلیدهای رمزگذاری وجود ندارند</string>
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
+    <string name="firmware_missing">فریمور وجود ندارد یا خیلی جدید است</string>
+    <string name="firmware_missing_description">برخی بازی‌ها ممکن است به درستی کار نکنند. ایدن به فریمور نسخه 19.0.1 یا پایین‌تر نیاز دارد.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">راه‌اندازی برنامه‌ها از صفحه اصلی سیستم</string>
     <string name="applets">اجراکننده برنامک</string>
     <string name="applets_description">برنامک‌های سیستم را با استفاده از ثابت‌افزار نصب شده راه اندازی کنید</string>
-    <string name="applets_error_firmware">ثابت‌افزار نصب نیست</string>
+    <string name="applets_error_firmware">فریمور نصب نشده یا نسخه نامعتبر است</string>
     <string name="applets_error_applet">برنامک در دسترس نیست</string>
-    <string name="applets_error_description"><![CDATA[لطفاً مطمئن شوید که فایل <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">ثابت‌افزار</a> شما نصب شده است و دوباره امتحان کنید.]]></string>
+    <string name="applets_error_description"><![CDATA[لطفاً مطمئن شوید که فایل <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> و
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">فریمور</a> شما نصب شده است و دوباره امتحان کنید.<br>همچنین مطمئن شوید که فریمور شما نسخه 19.0.1 یا قدیمی‌تر است.]]></string>
     <string name="album_applet">آلبوم</string>
     <string name="album_applet_description">تصاویر ذخیره شده در پوشه اسکرین شات‌های کاربر را با نمایشگر عکس سیستم مشاهده کنید</string>
     <string name="mii_edit_applet">ویرایش Mii</string>
@@ -498,6 +510,8 @@
     <string name="use_disk_shader_cache_description">لکنت را با ذخیره و بارگذاری سایه‌زن‌های تولید شده کاهش می‌دهد.</string>
     <string name="anisotropic_filtering">فیلتر ناهمسانگرد</string>
     <string name="anisotropic_filtering_description">کیفیت بافت‌ها را هنگام مشاهده در زوایای اریب بهبود می‌بخشد</string>
+
+    <string name="warning_resolution">مقیاس‌گذاری رزولوشن بالاتر از 2x می‌تواند باعث مشکلاتی شود و ممکن است منجر به کاهش سرعت قابل توجه دستگاه شما شود.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">پردازنده</string>

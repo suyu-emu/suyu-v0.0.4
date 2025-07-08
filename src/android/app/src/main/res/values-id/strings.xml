@@ -274,6 +274,9 @@
     <string name="keys">Kunci</string>
     <string name="keys_description">Pilih file &lt;b>prod.keys&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="select_keys">Pilih Kunci</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Pilih file <b>firmware.zip</b> Anda dengan tombol di bawah.\nEden saat ini memerlukan versi <b>19.0.1</b> atau lebih rendah.</string>
+    <string name="select_firmware">Pilih Firmware</string>
     <string name="games">Permainan</string>
     <string name="games_description">Pilih folder &lt;b>Games&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="done">Selesai</string>
@@ -284,8 +287,11 @@
     <string name="add_games">Tambahkan permainan</string>
     <string name="add_games_description">Pilih folder game anda</string>
     <string name="step_complete">Selesai!</string>
+    <string name="bluetooth_permissions_granted">Izin Bluetooth diberikan.</string>
+    <string name="bluetooth_permissions_denied">Izin Bluetooth ditolak. Dukungan controller mungkin terbatas.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Abjad</string>
     <string name="view_list">Daftar</string>
     <string name="view_grid">Grid</string>
@@ -313,6 +319,8 @@
     <string name="install_prod_keys_description">Diperlukan untuk mendekripsi game retail</string>
     <string name="install_prod_keys_warning">Lewati penginstalan keys?</string>
     <string name="install_prod_keys_warning_description">Perlu keys yang valid untuk meng-emulate game retail. Hanya homebrew apps yang akan berfungsi jika kamu melanjutkan.</string>
+    <string name="install_firmware_warning">Lewati penambahan firmware?</string>
+    <string name="install_firmware_warning_description">Banyak game memerlukan akses ke firmware untuk berjalan dengan baik.</string>
     <string name="notifications">Notifikasi</string>
     <string name="notifications_description">Berikan izin notifikasi dengan tombol di bawah ini.</string>
     <string name="give_permission">Berikan izin</string>
@@ -323,6 +331,7 @@
     <string name="about">Tentang</string>
     <string name="about_description">Versi build, kredit, dan lainnya</string>
     <string name="warning_help">Bantuan</string>
+    <string name="warning">Peringatan</string>
     <string name="warning_skip">Lewati</string>
     <string name="warning_cancel">Batalkan</string>
     <string name="install_amiibo_keys">Install Amiibo keys</string>
@@ -404,15 +413,18 @@
     <string name="verify_installed_content_description">Memeriksa semua konten yang terinstal dari kerusakan</string>
     <string name="keys_missing">Kunci enkripsi hilang</string>
     <string name="keys_missing_description">Firmware dan game retail tidak dapat didekripsi</string>
+    <string name="firmware_missing">Firmware hilang atau terlalu baru</string>
+    <string name="firmware_missing_description">Beberapa game mungkin tidak berfungsi dengan baik. Eden memerlukan firmware 19.0.1 atau lebih rendah.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Luncurkan aplikasi dari layar beranda sistem</string>
     <string name="applets">Luncurkan applet</string>
     <string name="applets_description">Meluncurkan sistem applet menggunakan firmware yang diinstal</string>
-    <string name="applets_error_firmware">Firmware tidak terinstal</string>
+    <string name="applets_error_firmware">Firmware tidak terinstal atau versi tidak valid</string>
     <string name="applets_error_applet">Applet tidak tersedia</string>
-    <string name="applets_error_description"><![CDATA[Pastikan file prod.keys dan firmware Anda terpasang dan coba lagi.]]></string>
+    <string name="applets_error_description"><![CDATA[Pastikan file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> dan
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> Anda terinstal dan coba lagi.<br>Pastikan juga firmware Anda versi 19.0.1 atau lebih lama.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Lihat gambar yang disimpan di folder tangkapan layar pengguna dengan penampil foto sistem.</string>
     <string name="mii_edit_applet">Ubah Mii</string>
@@ -496,6 +508,8 @@
     <string name="use_disk_shader_cache_description">Mengurangi Tutup Paksa dengan menyimpan dan memuat yang dihasilkan secara lokal</string>
     <string name="anisotropic_filtering">Penyaringan Anisotropik</string>
     <string name="anisotropic_filtering_description">Meningkatkan kualitas tekstur bila dilihat pada sudut miring</string>
+
+    <string name="warning_resolution">Skala resolusi di atas 2x diketahui menyebabkan masalah, dan dapat mengakibatkan perlambatan signifikan pada perangkat Anda.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

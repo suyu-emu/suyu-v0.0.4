@@ -278,6 +278,9 @@
     <string name="keys">المفاتيح</string>
     <string name="keys_description">اختر ملف &lt;b>prod.keys&lt;/b> من الزر ادناه</string>
     <string name="select_keys">إختيار المفاتيح</string>
+    <string name="firmware">البرنامج الثابت</string>
+    <string name="firmware_description">حدد ملف <b>firmware.zip</b> الخاص بك باستخدام الزر أدناه.\nيتطلب إيدن حاليًا الإصدار <b>19.0.1</b> أو أقل.</string>
+    <string name="select_firmware">حدد البرنامج الثابت</string>
     <string name="games">الألعاب</string>
     <string name="games_description">حدد مجلد &lt;b>العابك&lt;/b> من الزر ادناه.</string>
     <string name="done">إنهاء</string>
@@ -288,8 +291,11 @@
     <string name="add_games">إضافة ألعاب</string>
     <string name="add_games_description">حدد مجلد الألعاب الخاص بك</string>
     <string name="step_complete">مكتمل</string>
+    <string name="bluetooth_permissions_granted">تم منح أذونات البلوتوث.</string>
+    <string name="bluetooth_permissions_denied">تم رفض أذونات البلوتوث. قد يكون دعم التحكم محدودًا.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">البرنامج الثابت:</string>
     <string name="alphabetical">أبجدي</string>
     <string name="view_list">قائمة</string>
     <string name="view_grid">شبكة</string>
@@ -317,6 +323,8 @@
     <string name="install_prod_keys_description">مطلوب لفك تشفير ألعاب البيع بالتجزئة</string>
     <string name="install_prod_keys_warning">تخطي إضافة المفاتيح؟</string>
     <string name="install_prod_keys_warning_description">مطلوب مفاتيح صالحة لمحاكاة ألعاب البيع بالتجزئة. ستعمل تطبيقات البيرة المنزلية فقط إذا تابعت</string>
+    <string name="install_firmware_warning">تخطي إضافة البرنامج الثابت؟</string>
+    <string name="install_firmware_warning_description">العديد من الألعاب تتطلب الوصول إلى البرنامج الثابت لتشغيل بشكل صحيح.</string>
     <string name="notifications">الإشعارات</string>
     <string name="notifications_description">امنح إذن الإشعار باستخدام الزر أدناه</string>
     <string name="give_permission">منح الإذن</string>
@@ -327,6 +335,7 @@
     <string name="about">حول</string>
     <string name="about_description">بناء الإصدار، والاعتمادات، وأكثر من ذلك</string>
     <string name="warning_help">مساعدة</string>
+    <string name="warning">تحذير</string>
     <string name="warning_skip">تخطي</string>
     <string name="warning_cancel">إلغاء</string>
     <string name="install_amiibo_keys">تثبيت مفاتيح أميبو</string>
@@ -391,22 +400,45 @@
     <string name="add_game_folder">إضافة مجلد اللعبة</string>
     <string name="folder_already_added">تمت إضافة هذا المجلد بالفعل</string>
     <string name="game_folder_properties">خصائص مجلد اللعبة</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">فشل استيراد %d حفظ</item>
+        <item quantity="other">فشل استيراد %d حفظ</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">تم استيراد %d حفظ بنجاح</item>
+        <item quantity="other">تم استيراد %d حفظ بنجاح</item>
+    </plurals>
     <string name="no_save_data_found">لم يتم العثور على بيانات الحفظ</string>
+    <string name="verify_installed_content">التحقق من المحتوى المثبت</string>
+    <string name="verify_installed_content_description">فحص المحتوى المثبت بحثًا عن تلف</string>
+    <string name="keys_missing">مفاتيح التشفير مفقودة</string>
+    <string name="keys_missing_description">لا يمكن فك تشفير البرنامج الثابت والألعاب</string>
+    <string name="firmware_missing">البرنامج الثابت مفقود أو جديد جدًا</string>
+    <string name="firmware_missing_description">بعض الألعاب قد لا تعمل بشكل صحيح. يتطلب إيدن البرنامج الثابت 19.0.1 أو أقل.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">تشغيل التطبيقات من الشاشة الرئيسية للنظام</string>
     <string name="applets">قائمة التطبيقات المصغرة</string>
     <string name="applets_description">قم بتشغيل تطبيقات النظام باستخدام فيرموير المثبت</string>
-    <string name="applets_error_firmware">فيرموير غير مثبت</string>
+    <string name="applets_error_firmware">البرنامج الثابت غير مثبت أو إصدار غير صالح</string>
     <string name="applets_error_applet">التطبيق المصغر غير متوفر</string>
+    <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> الخاص بك و
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">البرنامج الثابت</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن برنامجك الثابت من إصدار 19.0.1 أو أقدم.]]></string>
     <string name="album_applet">الألبوم</string>
     <string name="album_applet_description">شاهد الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
     <string name="mii_edit_applet">تحرير Mii</string>
     <string name="mii_edit_applet_description">باستخدام محرر النظام Miis عرض وتحرير</string>
+    <string name="cabinet_applet">خزانة</string>
     <string name="cabinet_applet_description">تحرير وحذف البيانات المخزنة على أميبو</string>
+    <string name="cabinet_launcher">مشغل الخزانة</string>
     <string name="cabinet_nickname_and_owner">إعدادات الاسم المستعار والمالك</string>
     <string name="cabinet_game_data_eraser">ممحاة بيانات اللعبة</string>
+    <string name="cabinet_restorer">استعادة</string>
+    <string name="cabinet_formatter">تنسيق</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia غير حقيقي</string>
     <string name="copied_to_clipboard">نسخ إلى الحافظة</string>
     <string name="about_app_description">محاكي سويتش مفتوح المصدر</string>
     <string name="contributors">المساهمين</string>
@@ -460,12 +492,22 @@
     <string name="renderer_vsync">VSync وضع</string>
     <string name="renderer_screen_layout">اتجاه العرض</string>
     <string name="renderer_aspect_ratio">تناسب الابعاد</string>
+    <string name="renderer_scaling_filter">تصفية التكيف</string>
+    <string name="fsr_sharpness">حدة FSR</string>
+    <string name="fsr_sharpness_description">تحديد مدى حدة الصورة عند استخدام FSR</string>
     <string name="renderer_anti_aliasing">طريقة مكافحة التعرج</string>
+    <string name="renderer_force_max_clock">إجبار السرعة القصوى (لأجهزة Adreno فقط)</string>
+    <string name="renderer_force_max_clock_description">إجبار GPU على العمل بأقصى سرعة</string>
     <string name="renderer_asynchronous_shaders">استخدم تظليل غير متزامن</string>
     <string name="renderer_asynchronous_shaders_description">تجميع الظلال بشكل غير متزامن. قد يقلل هذا من التقطع ولكنه قد يتسبب أيضًا في حدوث أخطاء.</string>
     <string name="renderer_reactive_flushing">استخدم التنظيف التفاعلي</string>
     <string name="renderer_reactive_flushing_description">تحسين دقة العرض في بعض الألعاب على حساب الأداء</string>
+    <string name="use_disk_shader_cache">ذاكرة التخزين المؤقت للتظليل</string>
     <string name="use_disk_shader_cache_description">يقلل من التأتأة عن طريق تخزين وتحميل التظليلات التي تم إنشاؤها محليًا.</string>
+    <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
+    <string name="anisotropic_filtering_description">تحسين جودة القوام عند الزوايا المائلة</string>
+
+    <string name="warning_resolution">من المعروف أن تحجيم الدقة فوق 2x يسبب مشاكل، وقد يؤدي إلى تباطؤ كبير في جهازك.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>

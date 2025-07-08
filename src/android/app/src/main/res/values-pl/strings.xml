@@ -274,6 +274,9 @@
     <string name="keys">Klucze</string>
     <string name="keys_description">Wybierz swoje klucze &lt;b>prod.keys&lt;/b> za pomocą przycisku poniżej.</string>
     <string name="select_keys">Wybierz klucze</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Wybierz plik <b>firmware.zip</b> za pomocą przycisku poniżej.\nEden obecnie wymaga wersji <b>19.0.1</b> lub starszej.</string>
+    <string name="select_firmware">Wybierz Firmware</string>
     <string name="games">Gry</string>
     <string name="games_description">Wybierz katalog z grami &lt;b>Games&lt;/b> za pomocą przycisku poniżej.</string>
     <string name="done">Gotowe</string>
@@ -283,7 +286,11 @@
     <string name="back">Wstecz</string>
     <string name="add_games">Dodaj gry</string>
     <string name="add_games_description">Wybierz folder zawierający Twoje gry</string>
+    <string name="bluetooth_permissions_granted">Uprawnienia Bluetooth przyznane.</string>
+    <string name="bluetooth_permissions_denied">Uprawnienia Bluetooth odrzucone. Obsługa kontrolera może być ograniczona.</string>
+
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabetycznie</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Siatka</string>
@@ -309,6 +316,8 @@
     <string name="install_prod_keys_description">Wymagane aby poprawnie odczytać sklepowe gry</string>
     <string name="install_prod_keys_warning">Pominąć dodawanie kluczy?</string>
     <string name="install_prod_keys_warning_description">Poprawne klucze są wymagane aby emulować sklepowe gry. Jeśli przejdziesz dalej, jedynie homebrew będą działać.</string>
+    <string name="install_firmware_warning">Pominąć dodawanie firmware?</string>
+    <string name="install_firmware_warning_description">Wiele gier wymaga dostępu do firmware do prawidłowego działania.</string>
     <string name="notifications">Powiadomienia</string>
     <string name="notifications_description">Nadaj uprawnienia dostępu do powiadomień. </string>
     <string name="give_permission">Nadaj uprawnienia</string>
@@ -319,6 +328,7 @@
     <string name="about">O aplikacji</string>
     <string name="about_description">Wersja, podziękowania i więcej</string>
     <string name="warning_help">Pomoc</string>
+    <string name="warning">Ostrzeżenie</string>
     <string name="warning_skip">Pomiń</string>
     <string name="warning_cancel">Anuluj</string>
     <string name="install_amiibo_keys">Zainstaluj klucze Amiibo</string>
@@ -362,15 +372,51 @@
     <string name="share_log_missing">Nie znaleziono plików logów</string>
     <string name="install_game_content">Zainstaluj zawartość gry</string>
     <string name="install_game_content_description">Zainstaluj aktualizację gry lub dodatek DLC</string>
+    <string name="installing_game_content">Instalowanie zawartości…</string>
+    <string name="install_game_content_failure">Błąd instalacji</string>
+    <string name="install_game_content_failure_description">Upewnij się, że pliki są poprawne i prod.keys jest zainstalowany.</string>
+    <string name="install_game_content_failure_base">Instalacja podstawowych gier jest zablokowana.</string>
+    <string name="install_game_content_failure_file_extension">Obsługiwane tylko NSP i XCI.</string>
+    <string name="install_game_content_failed_count">%1$d błędów instalacji</string>
+    <string name="install_game_content_success">Zawartość zainstalowana</string>
+    <string name="install_game_content_success_install">%1$d zainstalowano</string>
+    <string name="install_game_content_success_overwrite">%1$d nadpisano</string>
+    <string name="custom_driver_not_supported">Niestandardowe sterowniki nieobsługiwane</string>
+    <string name="custom_driver_not_supported_description">Twoje urządzenie nie obsługuje niestandardowych sterowników.</string>
+    <string name="manage_yuzu_data">Zarządzaj danymi Eden</string>
+    <string name="manage_yuzu_data_description">Importuj/eksportuj firmware, klucze i dane.</string>
+    <string name="share_save_file">Udostępnij zapis</string>
+    <string name="export_save_failed">Błąd eksportu</string>
+    <string name="game_folders">Foldery gier</string>
+    <string name="deep_scan">Głębokie skanowanie</string>
+    <string name="add_game_folder">Dodaj folder gier</string>
+    <string name="folder_already_added">Folder już dodany</string>
+    <string name="game_folder_properties">Właściwości folderu</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Błąd importu %d zapisu</item>
+        <item quantity="other">Błąd importu %d zapisów</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Pomyślnie zaimportowano %d zapis</item>
+        <item quantity="other">Pomyślnie zaimportowano %d zapisów</item>
+    </plurals>
+    <string name="no_save_data_found">Brak zapisów</string>
+    <string name="verify_installed_content">Sprawdź zawartość</string>
+    <string name="verify_installed_content_description">Sprawdza integralność zainstalowanych plików.</string>
+    <string name="keys_missing">Brak kluczy</string>
+    <string name="keys_missing_description">Firmware i gry nie mogą być odszyfrowane.</string>
+    <string name="firmware_missing">Brak firmware lub zbyt nowa wersja</string>
+    <string name="firmware_missing_description">Niektóre gry mogą nie działać poprawnie. Eden wymaga firmware w wersji 19.0.1 lub starszej.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Uruchamianie aplikacji z ekranu głównego systemu</string>
     <string name="applets">Aplety</string>
     <string name="applets_description">Uruchamia aplety systemowe.</string>
-    <string name="applets_error_firmware">Brak firmware</string>
+    <string name="applets_error_firmware">Firmware nie zainstalowany lub nieprawidłowa wersja</string>
     <string name="applets_error_applet">Aplet niedostępny</string>
-    <string name="applets_error_description"><![CDATA[Upewnij się, że masz zainstalowane <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> i <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>.]]></string>
+    <string name="applets_error_description"><![CDATA[Upewnij się, że plik <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> i
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> są zainstalowane i spróbuj ponownie.<br>Upewnij się również, że firmware jest w wersji 19.0.1 lub starszej.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Przeglądaj zrzuty ekranu.</string>
     <string name="mii_edit_applet">Edytor Mii</string>
@@ -426,8 +472,11 @@
     <string name="renderer_accuracy">Poziom precyzji emulacji</string>
     <string name="renderer_resolution">Rozdzielczość (Handheld/Zadokowany)</string>
     <string name="renderer_vsync">Synchronizacja pionowa VSync</string>
+    <string name="renderer_screen_layout">Orientacja</string>
     <string name="renderer_aspect_ratio">Proporcje ekranu</string>
     <string name="renderer_scaling_filter">Filtr adaptacji rozdzielczości</string>
+    <string name="fsr_sharpness">Ostrość FSR</string>
+    <string name="fsr_sharpness_description">Kontroluje ostrość obrazu w FSR.</string>
     <string name="renderer_anti_aliasing">Metoda wygładzania krawędzi</string>
     <string name="renderer_force_max_clock">Maksymalne taktowanie GPU (układy Adreno)</string>
     <string name="renderer_force_max_clock_description">Wymusza uruchomienie maksymalnego taktowania układu graficznego (zabezpieczenia termiczne będą dalej aktywne).</string>
@@ -437,6 +486,10 @@
     <string name="renderer_reactive_flushing_description">Poprawia jakość renderowania w kilku grach, kosztem wydajności.</string>
     <string name="use_disk_shader_cache">Pamięć podręczna shaderów</string>
     <string name="use_disk_shader_cache_description">Zmniejsza przycięcia przez przechowywanie gotowych wygenerowanych plików oświetlenia w pamięci urządzenia.</string>
+    <string name="anisotropic_filtering">Filtrowanie anizotropowe</string>
+    <string name="anisotropic_filtering_description">Poprawia jakość tekstur.</string>
+
+    <string name="warning_resolution">Skalowanie rozdzielczości powyżej 2x może powodować problemy i znaczne spowolnienie działania urządzenia.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

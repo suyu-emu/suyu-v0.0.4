@@ -274,6 +274,9 @@
     <string name="keys">Claves</string>
     <string name="keys_description">Selecciona el archivo &lt;b>prod.keys&lt;/b> utilizando el botón de abajo.</string>
     <string name="select_keys">Seleccionar las claves</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Selecciona tu archivo <b>firmware.zip</b> con el botón de abajo.\nEden actualmente requiere la versión <b>19.0.1</b> o inferior.</string>
+    <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta &lt;b>Games&lt;/b> utilizando el botón de abajo</string>
     <string name="done">Hecho</string>
@@ -284,8 +287,11 @@
     <string name="add_games">Añadir Juegos</string>
     <string name="add_games_description">Selecciona la carpeta de juegos</string>
     <string name="step_complete">¡Completado!</string>
+    <string name="bluetooth_permissions_granted">Permisos de Bluetooth concedidos.</string>
+    <string name="bluetooth_permissions_denied">Permisos de Bluetooth denegados. El soporte para controladores puede ser limitado.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabético</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Cuadrícula</string>
@@ -313,6 +319,8 @@
     <string name="install_prod_keys_description">Requerido para descifrar juegos</string>
     <string name="install_prod_keys_warning">¿Omitir agregar claves?</string>
     <string name="install_prod_keys_warning_description">Se requieren claves válidas para emular juegos. Solo las aplicaciones homebrew funcionarán si continúas.</string>
+    <string name="install_firmware_warning">¿Omitir la adición del firmware?</string>
+    <string name="install_firmware_warning_description">Muchos juegos requieren acceso al firmware para funcionar correctamente.</string>
     <string name="notifications">Notificaciones</string>
     <string name="notifications_description">Otorga el permiso de notificación con el botón de abajo.</string>
     <string name="give_permission">Conceder permiso</string>
@@ -323,6 +331,7 @@
     <string name="about">Acerca de</string>
     <string name="about_description">Versión, créditos y más</string>
     <string name="warning_help">Ayuda</string>
+    <string name="warning">Advertencia</string>
     <string name="warning_skip">Siguiente</string>
     <string name="warning_cancel">Cancelar</string>
     <string name="install_amiibo_keys">Instalar claves de Amiibo</string>
@@ -408,15 +417,18 @@
     <string name="verify_installed_content_description">Comprueba todo el contenido instalado por si hubiese alguno corrupto</string>
     <string name="keys_missing">Faltan las claves de encriptación</string>
     <string name="keys_missing_description">El firmware y los juegos no se pueden desencriptar</string>
+    <string name="firmware_missing">Falta el firmware o es demasiado nuevo</string>
+    <string name="firmware_missing_description">Algunos juegos pueden no funcionar correctamente. Eden requiere firmware 19.0.1 o inferior.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Iniciar aplicaciones desde la pantalla de inicio del sistema</string>
     <string name="applets">Ejecutador de applet</string>
     <string name="applets_description">Ejecutar applets de sistema usando el firmware instalado</string>
-    <string name="applets_error_firmware">Firmware no instalado</string>
+    <string name="applets_error_firmware">Firmware no instalado o versión inválida</string>
     <string name="applets_error_applet">Applet no disponible</string>
-    <string name="applets_error_description"><![CDATA[Asegúrese de que el archivo<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> y el <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> estén instalados e inténtelo de nuevo.]]></string>
+    <string name="applets_error_description"><![CDATA[Por favor, asegúrate de que tu archivo <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> y
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> estén instalados e inténtalo de nuevo.<br>Además, asegúrate de que tu firmware sea de la versión 19.0.1 o anterior.]]></string>
     <string name="album_applet">Álbum</string>
     <string name="album_applet_description">Ver las imágenes que están en la carpeta \"screenshots\" del usuario con el visor de fotos del sistema</string>
     <string name="mii_edit_applet">Editor de Mii</string>
@@ -500,6 +512,8 @@
     <string name="use_disk_shader_cache_description">Reduce los parones almacenando y cargando shaders generados.</string>
     <string name="anisotropic_filtering">Filtrado anisotrópico</string>
     <string name="anisotropic_filtering_description">Mejora la calidad de las texturas al ser observadas desde ángulos oblicuos</string>
+
+    <string name="warning_resolution">Escalar la resolución por encima de 2x puede causar problemas y puede resultar en una ralentización significativa de tu dispositivo.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

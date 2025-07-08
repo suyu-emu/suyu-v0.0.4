@@ -274,6 +274,9 @@
     <string name="keys">Schlüssel</string>
     <string name="keys_description">Wähle deine &lt;b>prod.keys&lt;/b> Datei mit dem Button unten aus.</string>
     <string name="select_keys">Schlüssel auswählen</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Wählen Sie Ihre <b>firmware.zip</b>-Datei mit der Schaltfläche unten aus.\nEden erfordert derzeit Version <b>19.0.1</b> oder älter.</string>
+    <string name="select_firmware">Firmware auswählen</string>
     <string name="games">Spiele</string>
     <string name="games_description">Wähle mit dem Knopf unten den &lt;b>Spiele&lt;/b>-Ordner aus.</string>
     <string name="done">Fertig</string>
@@ -284,8 +287,11 @@
     <string name="add_games">Spiele hinzufügen</string>
     <string name="add_games_description">Spieleverzeichnis auswählen</string>
     <string name="step_complete">Fertig!</string>
+    <string name="bluetooth_permissions_granted">Bluetooth-Berechtigungen erteilt.</string>
+    <string name="bluetooth_permissions_denied">Bluetooth-Berechtigungen verweigert. Controller-Unterstützung kann eingeschränkt sein.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alphabetisch</string>
     <string name="view_list">Liste</string>
     <string name="view_grid">Raster</string>
@@ -313,6 +319,8 @@
     <string name="install_prod_keys_description">Zum Entschlüsseln von Spielen benötigt</string>
     <string name="install_prod_keys_warning">Hinzufügen der Schlüssel überspringen?</string>
     <string name="install_prod_keys_warning_description">Für die Emulation von Spielen sind gültige Schlüssel erforderlich. Wenn du fortfährst, funktionieren nur Homebrew-Anwendungen.</string>
+    <string name="install_firmware_warning">Firmware nicht hinzufügen?</string>
+    <string name="install_firmware_warning_description">Viele Spiele benötigen Zugriff auf die Firmware, um richtig zu funktionieren.</string>
     <string name="notifications">Benachrichtigungen</string>
     <string name="notifications_description">Erteile mit dem Knopf unten die Berechtigung, Benachrichtigungen zu senden.</string>
     <string name="give_permission">Berechtigung erteilen</string>
@@ -322,6 +330,7 @@
     <string name="about">Über</string>
     <string name="about_description">Build-Version, Credits und mehr</string>
     <string name="warning_help">Hilfe</string>
+    <string name="warning">Warnung</string>
     <string name="warning_skip">Überspringen</string>
     <string name="warning_cancel">Abbrechen</string>
     <string name="install_amiibo_keys">Amiibo-Schlüssel installieren</string>
@@ -380,15 +389,33 @@ Wirklich fortfahren?</string>
     <string name="share_save_file">Speicherdaten teilen</string>
     <string name="game_folders">Spiele-Ordner</string>
     <string name="add_game_folder">Spiele-Ordner hinzufügen</string>
+    <string name="folder_already_added">Ordner bereits vorhanden</string>
+    <string name="game_folder_properties">Ordner-Eigenschaften</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">%d Spielstand konnte nicht importiert werden</item>
+        <item quantity="other">%d Spielstände konnten nicht importiert werden</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%d Spielstand erfolgreich importiert</item>
+        <item quantity="other">%d Spielstände erfolgreich importiert</item>
+    </plurals>
+    <string name="no_save_data_found">Keine Spielstände gefunden</string>
+    <string name="verify_installed_content">Inhalt überprüfen</string>
+    <string name="verify_installed_content_description">Überprüft installierte Inhalte auf Fehler</string>
+    <string name="keys_missing">Schlüssel fehlen</string>
+    <string name="keys_missing_description">Firmware und Spiele können nicht entschlüsselt werden</string>
+    <string name="firmware_missing">Firmware fehlt oder ist zu neu</string>
+    <string name="firmware_missing_description">Einige Spiele funktionieren möglicherweise nicht richtig. Eden erfordert Firmware 19.0.1 oder älter.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Anwendungen vom Systemstartbildschirm aus starten</string>
     <string name="applets">Applet-Launcher</string>
     <string name="applets_description">System-Applets mit Firmware starten</string>
-    <string name="applets_error_firmware">Firmware nicht installiert</string>
+    <string name="applets_error_firmware">Firmware nicht installiert oder ungültige Version</string>
     <string name="applets_error_applet">Applet nicht verfügbar</string>
-    <string name="applets_error_description"><![CDATA[Stellen Sie sicher, dass <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> und <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">Firmware</a> installiert sind.]]></string>
+    <string name="applets_error_description"><![CDATA[Bitte stellen Sie sicher, dass Ihre <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>-Datei und
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">Firmware</a> installiert sind, und versuchen Sie es erneut.<br>Stellen Sie außerdem sicher, dass Ihre Firmware Version 19.0.1 oder älter ist.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Bilder im Screenshot-Ordner anzeigen</string>
     <string name="mii_edit_applet">Mii-Editor</string>
@@ -465,6 +492,8 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="use_disk_shader_cache_description">Reduziert Ruckler durch Shader-Caching.</string>
     <string name="anisotropic_filtering">Anisotrope Filterung</string>
     <string name="anisotropic_filtering_description">Verbessert die Texturenqualität.</string>
+
+    <string name="warning_resolution">Eine Skalierung der Auflösung über 2x kann Probleme verursachen und zu erheblichen Verlangsamungen Ihres Geräts führen.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

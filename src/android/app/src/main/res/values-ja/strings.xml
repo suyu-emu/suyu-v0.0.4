@@ -274,6 +274,9 @@
     <string name="keys">キー</string>
     <string name="keys_description">下のボタンから &lt;b>prod.keys&lt;/b> ファイルを選択してください。</string>
     <string name="select_keys">キーを選択</string>
+    <string name="firmware">ファームウェア</string>
+    <string name="firmware_description">下のボタンで<b>firmware.zip</b>ファイルを選択してください。\n現在Edenは<b>19.0.1</b>以下のバージョンが必要です。</string>
+    <string name="select_firmware">ファームウェアを選択</string>
     <string name="games">ゲーム</string>
     <string name="games_description">下のボタンから&lt;b>ゲーム&lt;/b>のあるフォルダを選択してください。</string>
     <string name="done">完了</string>
@@ -284,8 +287,11 @@
     <string name="add_games">ゲームを追加</string>
     <string name="add_games_description">ゲームフォルダを選択</string>
     <string name="step_complete">完了!</string>
+    <string name="bluetooth_permissions_granted">Bluetoothの権限が許可されました。</string>
+    <string name="bluetooth_permissions_denied">Bluetoothの権限が拒否されました。コントローラーのサポートが制限される可能性があります。</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">ファームウェア:</string>
     <string name="alphabetical">アルファベット順</string>
     <string name="view_list">リスト表示</string>
     <string name="view_grid">グリッド表示</string>
@@ -312,6 +318,8 @@
     <string name="install_prod_keys_description">製品版ゲームの復号化に必要です</string>
     <string name="install_prod_keys_warning">キーの追加をスキップしますか？</string>
     <string name="install_prod_keys_warning_description">製品版ゲームのエミュレーションには、有効なキーが必要です。続行すると自作アプリしか機能しません。</string>
+    <string name="install_firmware_warning">ファームウェアの追加をスキップしますか？</string>
+    <string name="install_firmware_warning_description">多くのゲームは正常に動作するためにファームウェアへのアクセスが必要です。</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">下のボタンで通知を許可してください。</string>
     <string name="give_permission">許可</string>
@@ -322,6 +330,7 @@
     <string name="about">情報</string>
     <string name="about_description">ビルドバージョン、クレジットなど</string>
     <string name="warning_help">ヘルプ</string>
+    <string name="warning">警告</string>
     <string name="warning_skip">スキップ</string>
     <string name="warning_cancel">キャンセル</string>
     <string name="install_amiibo_keys">Amiibo</string>
@@ -378,15 +387,37 @@
     <string name="custom_driver_not_supported">カスタムドライバはサポートされていません</string>
     <string name="manage_yuzu_data">Eden データを管理</string>
     <string name="share_save_file">セーブファイルを共有</string>
+    <string name="export_save_failed">セーブのエクスポート失敗</string>
+    <string name="game_folders">ゲームフォルダ</string>
+    <string name="deep_scan">詳細スキャン</string>
+    <string name="add_game_folder">ゲームフォルダを追加</string>
+    <string name="folder_already_added">このフォルダは既に追加されています</string>
+    <string name="game_folder_properties">ゲームフォルダのプロパティ</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">%d件のセーブインポート失敗</item>
+        <item quantity="other">%d件のセーブインポート失敗</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%d件のセーブインポート成功</item>
+        <item quantity="other">%d件のセーブインポート成功</item>
+    </plurals>
+    <string name="no_save_data_found">セーブデータが見つかりません</string>
+    <string name="verify_installed_content">インストール済みコンテンツを検証</string>
+    <string name="verify_installed_content_description">すべてのインストール済みコンテンツの整合性を確認</string>
+    <string name="keys_missing">暗号化キーが不足</string>
+    <string name="keys_missing_description">ファームウェアと製品版ゲームを復号化できません</string>
+    <string name="firmware_missing">ファームウェアがないか、バージョンが新しすぎます</string>
+    <string name="firmware_missing_description">一部のゲームが正常に動作しない可能性があります。Edenは19.0.1以下のファームウェアが必要です。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">システムホーム画面からアプリを起動</string>
     <string name="applets">アプレットランチャー</string>
     <string name="applets_description">インストール済みファームウェアでシステムアプレットを起動</string>
-    <string name="applets_error_firmware">ファームウェア未インストール</string>
+    <string name="applets_error_firmware">ファームウェアがインストールされていないか無効なバージョンです</string>
     <string name="applets_error_applet">アプレット利用不可</string>
-    <string name="applets_error_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>ファイルと<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">ファームウェア</a>がインストールされていることを確認してください]]></string>
+    <string name="applets_error_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>ファイルと
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">ファームウェア</a>がインストールされていることを確認し、再度お試しください。<br>また、ファームウェアが19.0.1以下のバージョンであることを確認してください。]]></string>
     <string name="album_applet">アルバム</string>
     <string name="album_applet_description">システムフォトビューアでスクリーンショットを表示</string>
     <string name="mii_edit_applet">Mii編集</string>
@@ -464,6 +495,8 @@
     <string name="use_disk_shader_cache_description">生成したシェーダーを端末に保存して読み込み、コマ落ちを軽減します。</string>
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_description">斜めから見たときのテクスチャーの質感を向上させます</string>
+
+    <string name="warning_resolution">解像度のスケーリングが2倍を超えると問題が発生する可能性があり、デバイスの大幅な速度低下を引き起こす可能性があります。</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

@@ -274,6 +274,9 @@
     <string name="keys">密钥文件</string>
     <string name="keys_description">使用下方的按钮来选择你的 &lt;b>prod.keys&lt;/b> 文件。</string>
     <string name="select_keys">选择密钥文件</string>
+    <string name="firmware">固件</string>
+    <string name="firmware_description">使用下方按钮选择您的<b>firmware.zip</b>文件。\n当前Eden需要<b>19.0.1</b>或更低版本。</string>
+    <string name="select_firmware">选择固件</string>
     <string name="games">游戏</string>
     <string name="games_description">使用下方的按钮选择你的&lt;b>游戏&lt;/b>文件夹。</string>
     <string name="done">完成</string>
@@ -284,8 +287,11 @@
     <string name="add_games">添加游戏</string>
     <string name="add_games_description">选择你的游戏文件夹</string>
     <string name="step_complete">完成！</string>
+    <string name="bluetooth_permissions_granted">蓝牙权限已授予。</string>
+    <string name="bluetooth_permissions_denied">蓝牙权限被拒绝。控制器支持可能受限。</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">固件：</string>
     <string name="alphabetical">字母顺序</string>
     <string name="view_list">列表</string>
     <string name="view_grid">网格</string>
@@ -312,6 +318,8 @@
     <string name="install_prod_keys_description">需要密钥文件来解密游戏</string>
     <string name="install_prod_keys_warning">跳过添加密钥文件？</string>
     <string name="install_prod_keys_warning_description">对于商业游戏，需要有效的密钥文件才能运行。如果没有密钥文件，将只能运行自制软件。</string>
+    <string name="install_firmware_warning">跳过添加固件？</string>
+    <string name="install_firmware_warning_description">许多游戏需要访问固件才能正常运行。</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">使用下方的按钮授予通知权限。</string>
     <string name="give_permission">授予权限</string>
@@ -322,6 +330,7 @@
     <string name="about">关于</string>
     <string name="about_description">开发版本、贡献者、以及更多</string>
     <string name="warning_help">帮助</string>
+    <string name="warning">警告</string>
     <string name="warning_skip">跳过</string>
     <string name="warning_cancel">取消</string>
     <string name="install_amiibo_keys">安装 Amiibo 密钥文件</string>
@@ -403,15 +412,18 @@
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
+    <string name="firmware_missing">固件缺失或版本过新</string>
+    <string name="firmware_missing_description">某些游戏可能无法正常运行。Eden需要19.0.1或更低版本的固件。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">从系统主屏幕启动应用程序</string>
     <string name="applets">小程序启动器</string>
     <string name="applets_description">使用已安装的固件启动系统小程序</string>
-    <string name="applets_error_firmware">未安装固件</string>
+    <string name="applets_error_firmware">固件未安装或版本无效</string>
     <string name="applets_error_applet">小程序不可用</string>
-    <string name="applets_error_description"><![CDATA[请确保 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件和<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装，然后再试一次。]]></string>
+    <string name="applets_error_description"><![CDATA[请确保您的<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>文件和
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">固件</a>已安装并重试。<br>同时请确保您的固件版本为19.0.1或更早。]]></string>
     <string name="album_applet">相册</string>
     <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -495,6 +507,8 @@
     <string name="use_disk_shader_cache_description">将生成的着色器缓存于磁盘中并进行读取，以减少卡顿。</string>
     <string name="anisotropic_filtering">各向异性过滤</string>
     <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
+
+    <string name="warning_resolution">分辨率缩放超过2倍可能导致问题，并可能显著降低设备速度。</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

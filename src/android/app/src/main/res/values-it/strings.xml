@@ -274,6 +274,9 @@
     <string name="keys">Chiavi</string>
     <string name="keys_description">Seleziona il tuo file &lt;b>prod.keys&lt;/b> con il pulsante in basso.</string>
     <string name="select_keys">Seleziona le chiavi</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Seleziona il tuo file <b>firmware.zip</b> con il pulsante sottostante.\nEden attualmente richiede la versione <b>19.0.1</b> o precedente.</string>
+    <string name="select_firmware">Seleziona Firmware</string>
     <string name="games">Giochi</string>
     <string name="games_description">Seleziona la cartella dei &lt;b>giochi&lt;/b> con il pulsante in basso.</string>
     <string name="done">Fatto</string>
@@ -284,8 +287,11 @@
     <string name="add_games">Aggiungi giochi</string>
     <string name="add_games_description">Seleziona la cartella dei giochi</string>
     <string name="step_complete">Completato!</string>
+    <string name="bluetooth_permissions_granted">Permessi Bluetooth concessi.</string>
+    <string name="bluetooth_permissions_denied">Permessi Bluetooth negati. Il supporto del controller potrebbe essere limitato.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Firmware:</string>
     <string name="alphabetical">Alfabetico</string>
     <string name="view_list">Lista</string>
     <string name="view_grid">Griglia</string>
@@ -313,6 +319,9 @@
     <string name="install_prod_keys_description">Necessario per decrittografare i giochi</string>
     <string name="install_prod_keys_warning">Saltare l\'aggiunta delle chiavi?</string>
     <string name="install_prod_keys_warning_description">Sono necessarie delle chiavi valide per emulare i giochi. Se continui, funzioneranno solo le app homebrew.</string>
+    <string name="install_firmware_warning">Saltare l\'aggiunta del firmware?</string>
+    <string name="install_firmware_warning_description">Molti giochi richiedono l\'accesso al firmware per funzionare correttamente.</string>
+    <string name="install_firmware_warning_help">https://yuzu-mirror.github.io/help/quickstart/#guide-introduction</string>
     <string name="notifications">Notifiche</string>
     <string name="notifications_description">Concedi l\'autorizzazione alle notifiche con il pulsante in basso.</string>
     <string name="give_permission">Concedere l\'autorizzazione</string>
@@ -323,6 +332,7 @@
     <string name="about">Informazioni</string>
     <string name="about_description">Versione build, crediti ed altro</string>
     <string name="warning_help">Aiuto</string>
+    <string name="warning">Avviso</string>
     <string name="warning_skip">Salta</string>
     <string name="warning_cancel">Annulla</string>
     <string name="install_amiibo_keys">Installa le chiavi degli Amiibo</string>
@@ -393,18 +403,31 @@
     <string name="add_game_folder">Aggiungi Cartella di gioco</string>
     <string name="folder_already_added">Questa cartella è già presente nell\'elenco.</string>
     <string name="game_folder_properties">Proprietà della cartella di Gioco</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Importazione fallita per %d salvataggio</item>
+        <item quantity="other">Importazione fallita per %d salvataggi</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Importati %d salvataggio</item>
+        <item quantity="other">Importati %d salvataggi</item>
+    </plurals>
     <string name="no_save_data_found">Nessun salvataggio trovato</string>
     <string name="verify_installed_content">Verifica i contenuti installati</string>
     <string name="verify_installed_content_description">Verifica l\'integrità di tutti i contenuti installati.</string>
+    <string name="keys_missing">Chiavi di crittografia mancanti</string>
+    <string name="keys_missing_description">Impossibile decifrare firmware e giochi retail</string>
+    <string name="firmware_missing">Firmware mancante o troppo recente</string>
+    <string name="firmware_missing_description">Alcuni giochi potrebbero non funzionare correttamente. Eden richiede il firmware 19.0.1 o precedente.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Avvia applicazioni dalla schermata principale del sistema</string>
     <string name="applets">Avvia applet</string>
     <string name="applets_description">Avvia applet di sistema usando il firmware installato</string>
-    <string name="applets_error_firmware">Firmware non installato</string>
+    <string name="applets_error_firmware">Firmware non installato o versione non valida</string>
     <string name="applets_error_applet">Applet non disponibile</string>
-    <string name="applets_error_description"><![CDATA[Assicurati che il file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e il <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> siano installati e riprova.]]></string>
+    <string name="applets_error_description"><![CDATA[Assicurati che il tuo file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> e
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> siano installati e riprova.<br>Inoltre, assicurati che il tuo firmware sia versione 19.0.1 o precedente.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Visualizza le immagini salvate nella cartella screenshots dell\'utente con il visualizzatore immagini di sistema</string>
     <string name="mii_edit_applet">Modifica Mii</string>
@@ -486,6 +509,8 @@
     <string name="use_disk_shader_cache_description">Riduce lo stuttering caricando le shader già compilate all\'avvio.</string>
     <string name="anisotropic_filtering">Filtro Anisotropico</string>
     <string name="anisotropic_filtering_description">Migliora la qualità delle texture quando vengono visualizzate ad un angolo obliquo.</string>
+
+    <string name="warning_resolution">Il ridimensionamento della risoluzione superiore a 2x può causare problemi e potrebbe rallentare significativamente il dispositivo.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

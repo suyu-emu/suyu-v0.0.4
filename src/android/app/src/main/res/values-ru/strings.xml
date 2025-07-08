@@ -274,6 +274,9 @@
     <string name="keys">Ключи</string>
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
+    <string name="firmware">Прошивка</string>
+    <string name="firmware_description">Выберите файл <b>firmware.zip</b> с помощью кнопки ниже.\nВ настоящее время Eden требует версию <b>19.0.1</b> или ниже.</string>
+    <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
     <string name="done">Готово</string>
@@ -284,8 +287,11 @@
     <string name="add_games">Добавить игры</string>
     <string name="add_games_description">Выберите папку с играми</string>
     <string name="step_complete">Выполнено!</string>
+    <string name="bluetooth_permissions_granted">Разрешения Bluetooth предоставлены.</string>
+    <string name="bluetooth_permissions_denied">Разрешения Bluetooth отклонены. Поддержка контроллера может быть ограничена.</string>
 
     <!-- Home strings -->
+    <string name="firmware_version">Прошивка:</string>
     <string name="alphabetical">По алфавиту</string>
     <string name="view_list">Список</string>
     <string name="view_grid">Сетка</string>
@@ -312,6 +318,8 @@
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
     <string name="install_prod_keys_warning">Пропустить добавление ключей?</string>
     <string name="install_prod_keys_warning_description">Для эмуляции розничных игр требуются действительные ключи. Если вы продолжите, будут работать только homebrew приложения.</string>
+    <string name="install_firmware_warning">Пропустить добавление прошивки?</string>
+    <string name="install_firmware_warning_description">Многим играм требуется доступ к прошивке для правильной работы.</string>
     <string name="notifications">Уведомления</string>
     <string name="notifications_description">Предоставьте разрешение уведомлений с помощью кнопки ниже.</string>
     <string name="give_permission">Предоставить разрешение</string>
@@ -322,6 +330,7 @@
     <string name="about">О нас</string>
     <string name="about_description">Версия сборки, титры и другое</string>
     <string name="warning_help">Помощь</string>
+    <string name="warning">Предупреждение</string>
     <string name="warning_skip">Пропустить</string>
     <string name="warning_cancel">Отмена</string>
     <string name="install_amiibo_keys">Установить ключи Amiibo</string>
@@ -410,15 +419,18 @@
     <string name="verify_installed_content_description">Проверяет весь установленный контент на наличие повреждений</string>
     <string name="keys_missing">Отсутствуют ключи шифрования</string>
     <string name="keys_missing_description">Прошивка и розничные игры не могут быть расшифрованы</string>
+    <string name="firmware_missing">Прошивка отсутствует или слишком новая</string>
+    <string name="firmware_missing_description">Некоторые игры могут работать некорректно. Eden требует прошивку версии 19.0.1 или ниже.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Запуск приложений с домашнего экрана системы</string>
     <string name="applets">Запуск апплета</string>
     <string name="applets_description">Запуск системных апплетов на установленной прошивке</string>
-    <string name="applets_error_firmware">Прошивка не установлена</string>
+    <string name="applets_error_firmware">Прошивка не установлена или неверная версия</string>
     <string name="applets_error_applet">Апплет недоступен</string>
-    <string name="applets_error_description"><![CDATA[Пожалуйста, убедитесь, что ваш <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> установлены и попробуйте еще раз.]]></string>
+    <string name="applets_error_description"><![CDATA[Убедитесь, что файлы <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> и
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> установлены, и попробуйте снова.<br>Также убедитесь, что ваша прошивка версии 19.0.1 или ниже.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Просмотрите изображения, сохраненные в папке скриншотов пользователя, с помощью системного просмотрщика фотографий.</string>
     <string name="mii_edit_applet">Mii редактор</string>
@@ -502,6 +514,8 @@
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
+
+    <string name="warning_resolution">Масштабирование разрешения выше 2x может вызвать проблемы и привести к значительному замедлению работы вашего устройства.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦП</string>

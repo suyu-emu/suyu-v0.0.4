@@ -250,6 +250,8 @@
     <string name="add_games">Add Games</string>
     <string name="add_games_description">Select your games folder</string>
     <string name="step_complete">Complete!</string>
+    <string name="bluetooth_permissions_granted">Bluetooth permissions granted.</string>
+    <string name="bluetooth_permissions_denied">Bluetooth permissions denied. Controller support may be limited.</string>
 
     <!-- Home strings -->
     <string name="firmware_version">Firmware:</string>
