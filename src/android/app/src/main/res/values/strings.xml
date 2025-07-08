@@ -14,6 +14,8 @@
     <string name="process_ram">Process RAM: %1$d MB</string>
     <string name="shaders_prefix">Building</string>
     <string name="shaders_suffix">Shader(s)</string>
+    <string name="charging">(Charging)</string>
+
     <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Show Performance Stats Overlay</string>
     <string name="stats_overlay_customization">Customization</string>
@@ -32,7 +34,10 @@
     <string name="show_system_ram_usage">Show System Memory Usage</string>
     <string name="show_system_ram_usage_description">Display the amount of RAM used by the system</string>
     <string name="show_bat_temperature">Show Battery Temperature</string>
-    <string name="show_bat_temperature_description">Display current Battery temperature in Celsius and Fahrenheit</string>
+    <string name="show_bat_temperature_description">Display current battery temperature</string>
+    <string name="bat_temperature_unit">Battery Temperature Units</string>
+    <string name="show_power_info">Show Battery Info</string>
+    <string name="show_power_info_description">Display current power draw and remaining capacity on battery</string>
     <string name="show_shaders_building">Show Shaders Building</string>
     <string name="show_shaders_building_description">Display current number of shaders being built</string>
     <string name="overlay_position">Overlay Position</string>
@@ -817,6 +822,10 @@
     <string name="gpu_low">Low (128)</string>
     <string name="gpu_medium">Medium (256)</string>
     <string name="gpu_high">High (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
 
     <!-- Language Names -->
     <string name="language_japanese" translatable="false">日本語</string>

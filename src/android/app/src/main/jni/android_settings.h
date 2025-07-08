@@ -9,6 +9,7 @@
 #include <common/settings_common.h>
 #include "common/common_types.h"
 #include "common/settings_setting.h"
+#include "common/settings_enums.h"
 
 namespace AndroidSettings {
 
@@ -79,9 +80,10 @@ namespace AndroidSettings {
                                                          Settings::Specialization::Paired, true,
                                                          true};
         Settings::Setting<bool> perf_overlay_background{linkage, false, "perf_overlay_background",
-                                                   Settings::Category::Overlay,
-                                                   Settings::Specialization::Default, true, true,
-                                                   &show_performance_overlay};
+                                                        Settings::Category::Overlay,
+                                                        Settings::Specialization::Default, true,
+                                                        true,
+                                                        &show_performance_overlay};
         Settings::Setting<s32> perf_overlay_position{linkage, 0, "perf_overlay_position",
                                                      Settings::Category::Overlay,
                                                      Settings::Specialization::Default, true, true,
@@ -107,10 +109,23 @@ namespace AndroidSettings {
                                                      Settings::Category::Overlay,
                                                      Settings::Specialization::Default, true, true,
                                                      &show_performance_overlay};
+        Settings::Setting<Settings::TemperatureUnits> bat_temperature_unit{linkage,
+                                                                           Settings::TemperatureUnits::Celsius,
+                                                                           "bat_temperature_unit",
+                                                                           Settings::Category::Overlay,
+                                                                           Settings::Specialization::Default,
+                                                                           true, true,
+                                                                           &show_bat_temperature};
+        Settings::Setting<bool> show_power_info{linkage, false, "show_power_info",
+                                                Settings::Category::Overlay,
+                                                Settings::Specialization::Default, true, true,
+                                                &show_performance_overlay};
         Settings::Setting<bool> show_shaders_building{linkage, true, "show_shaders_building",
                                                       Settings::Category::Overlay,
                                                       Settings::Specialization::Default, true, true,
                                                       &show_performance_overlay};
+
+
         Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
                                                    Settings::Category::Overlay};
         Settings::Setting<bool> touchscreen{linkage, true, "touchscreen",
@@ -125,14 +140,14 @@ namespace AndroidSettings {
                                                  Settings::Specialization::Paired, true, true};
 
         Settings::Setting<bool> show_device_model{linkage, true, "show_device_model",
-                                                      Settings::Category::Overlay,
-                                                      Settings::Specialization::Default, true, true,
-                                                      &show_soc_overlay};
+                                                  Settings::Category::Overlay,
+                                                  Settings::Specialization::Default, true, true,
+                                                  &show_performance_overlay};
 
         Settings::Setting<bool> show_gpu_model{linkage, true, "show_gpu_model",
-                                                      Settings::Category::Overlay,
-                                                      Settings::Specialization::Default, true, true,
-                                                      &show_soc_overlay};
+                                               Settings::Category::Overlay,
+                                               Settings::Specialization::Default, true, true,
+                                               &show_performance_overlay};
 
         Settings::Setting<bool> show_soc_model{linkage, true, "show_soc_model",
                                                Settings::Category::Overlay,
@@ -140,18 +155,19 @@ namespace AndroidSettings {
                                                &show_soc_overlay};
 
         Settings::Setting<bool> show_fw_version{linkage, true, "show_firmware_version",
-                                               Settings::Category::Overlay,
-                                               Settings::Specialization::Default, true, true,
-                                               &show_soc_overlay};
+                                                Settings::Category::Overlay,
+                                                Settings::Specialization::Default, true, true,
+                                                &show_performance_overlay};
 
         Settings::Setting<bool> soc_overlay_background{linkage, false, "soc_overlay_background",
-                                                        Settings::Category::Overlay,
-                                                        Settings::Specialization::Default, true, true,
-                                                        &show_soc_overlay};
+                                                       Settings::Category::Overlay,
+                                                       Settings::Specialization::Default, true,
+                                                       true,
+                                                       &show_soc_overlay};
         Settings::Setting<s32> soc_overlay_position{linkage, 2, "soc_overlay_position",
-                                                     Settings::Category::Overlay,
-                                                     Settings::Specialization::Default, true, true,
-                                                     &show_soc_overlay};
+                                                    Settings::Category::Overlay,
+                                                    Settings::Specialization::Default, true, true,
+                                                    &show_soc_overlay};
 
         Settings::Setting<bool> dont_show_eden_veil_warning{linkage, false,
                                                             "dont_show_eden_veil_warning",

@@ -178,6 +178,8 @@ ENUM(SpirvOptimizeMode, Never, OnLoad, Always);
 
 ENUM(GpuOverclock, Low, Medium, High)
 
+ENUM(TemperatureUnits, Celsius, Fahrenheit)
+
 template <typename Type>
 inline std::string CanonicalizeEnum(Type id) {
     const auto group = EnumMetadata<Type>::Canonicalizations();

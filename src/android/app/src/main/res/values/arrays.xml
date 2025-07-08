@@ -471,4 +471,14 @@
         <item>1</item>
         <item>2</item>
     </integer-array>
+
+    <string-array name="temperatureUnitEntries">
+        <item>@string/temperature_celsius</item>
+        <item>@string/temperature_fahrenheit</item>
+    </string-array>
+
+    <integer-array name="temperatureUnitValues">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
 </resources>

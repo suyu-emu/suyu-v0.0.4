@@ -78,7 +78,7 @@ abstract class SettingsItem(
 
     val needsRuntimeGlobal: Boolean
         get() = NativeLibrary.isRunning() && !setting.global &&
-            !NativeConfig.isPerGameConfigLoaded()
+                !NativeConfig.isPerGameConfigLoaded()
 
     val clearable: Boolean
         get() = !setting.global && NativeConfig.isPerGameConfigLoaded()
@@ -260,12 +260,12 @@ abstract class SettingsItem(
                 )
             )
             put(
-                 SwitchSetting(
-                     BooleanSetting.CORE_SYNC_CORE_SPEED,
-                     titleId = R.string.use_sync_core,
-                     descriptionId = R.string.use_sync_core_description
-                 )
-             )
+                SwitchSetting(
+                    BooleanSetting.CORE_SYNC_CORE_SPEED,
+                    titleId = R.string.use_sync_core,
+                    descriptionId = R.string.use_sync_core_description
+                )
+            )
 
             put(
                 SingleChoiceSetting(
@@ -441,6 +441,21 @@ abstract class SettingsItem(
                     BooleanSetting.SHOW_BAT_TEMPERATURE,
                     R.string.show_bat_temperature,
                     descriptionId = R.string.show_bat_temperature_description
+                )
+            )
+            put(
+                SingleChoiceSetting(
+                    IntSetting.BAT_TEMPERATURE_UNIT,
+                    R.string.bat_temperature_unit,
+                    choicesId = R.array.temperatureUnitEntries,
+                    valuesId = R.array.temperatureUnitValues
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SHOW_POWER_INFO,
+                    R.string.show_power_info,
+                    descriptionId = R.string.show_power_info_description
                 )
             )
             put(
@@ -688,12 +703,12 @@ abstract class SettingsItem(
                 )
             )
             put(
-                 SwitchSetting(
-                     BooleanSetting.USE_AUTO_STUB,
-                     titleId = R.string.use_auto_stub,
-                     descriptionId = R.string.use_auto_stub_description
-                 )
-             )
+                SwitchSetting(
+                    BooleanSetting.USE_AUTO_STUB,
+                    titleId = R.string.use_auto_stub,
+                    descriptionId = R.string.use_auto_stub_description
+                )
+            )
             put(
                 SwitchSetting(
                     BooleanSetting.CPU_DEBUG_MODE,
@@ -705,7 +720,7 @@ abstract class SettingsItem(
             val fastmem = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
                     BooleanSetting.FASTMEM.getBoolean() &&
-                        BooleanSetting.FASTMEM_EXCLUSIVES.getBoolean()
+                            BooleanSetting.FASTMEM_EXCLUSIVES.getBoolean()
 
                 override fun setBoolean(value: Boolean) {
                     BooleanSetting.FASTMEM.setBoolean(value)
@@ -720,7 +735,7 @@ abstract class SettingsItem(
                 override var global: Boolean
                     get() {
                         return BooleanSetting.FASTMEM.global &&
-                            BooleanSetting.FASTMEM_EXCLUSIVES.global
+                                BooleanSetting.FASTMEM_EXCLUSIVES.global
                     }
                     set(value) {
                         BooleanSetting.FASTMEM.global = value

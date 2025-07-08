@@ -42,7 +42,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     FAST_CPU_TIME("fast_cpu_time"),
     CPU_TICKS("cpu_ticks"),
     FAST_GPU_TIME("fast_gpu_time"),
-
+    BAT_TEMPERATURE_UNIT("bat_temperature_unit"),
     CABINET_APPLET("cabinet_applet_mode"),
     CONTROLLER_APPLET("controller_applet_mode"),
     DATA_ERASE_APPLET("data_erase_applet_mode"),

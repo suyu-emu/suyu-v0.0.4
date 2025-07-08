@@ -17,6 +17,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.BatteryManager
+import android.os.BatteryManager.*
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -574,12 +575,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (emulationViewModel.emulationStarted.value &&
                     !emulationViewModel.isEmulationStopping.value
                 ) {
+                    val needsGlobal = NativeConfig.isPerGameConfigLoaded()
                     sb.setLength(0)
 
                     val perfStats = NativeLibrary.getPerfStats()
                     val actualFps = perfStats[FPS]
 
-                    if (BooleanSetting.SHOW_FPS.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_FPS.getBoolean(needsGlobal)) {
                         val enableFrameInterpolation =
                             BooleanSetting.FRAME_INTERPOLATION.getBoolean()
 //                        val enableFrameSkipping = BooleanSetting.FRAME_SKIPPING.getBoolean()
@@ -597,7 +599,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         sb.append(fpsText)
                     }
 
-                    if (BooleanSetting.SHOW_FRAMETIME.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_FRAMETIME.getBoolean(needsGlobal)) {
                         if (sb.isNotEmpty()) sb.append(" | ")
                         sb.append(
                             String.format(
@@ -607,13 +609,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         )
                     }
 
-                    if (BooleanSetting.SHOW_APP_RAM_USAGE.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_APP_RAM_USAGE.getBoolean(needsGlobal)) {
                         if (sb.isNotEmpty()) sb.append(" | ")
-                        val appRamUsage = File("/proc/self/statm").readLines()[0].split(' ')[1].toLong() * 4096 / 1000000
+                        val appRamUsage =
+                            File("/proc/self/statm").readLines()[0].split(' ')[1].toLong() * 4096 / 1000000
                         sb.append(getString(R.string.process_ram, appRamUsage))
                     }
 
-                    if (BooleanSetting.SHOW_SYSTEM_RAM_USAGE.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_SYSTEM_RAM_USAGE.getBoolean(needsGlobal)) {
                         if (sb.isNotEmpty()) sb.append(" | ")
                         context?.let { ctx ->
                             val activityManager =
@@ -625,16 +628,35 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         }
                     }
 
-                    if (BooleanSetting.SHOW_BAT_TEMPERATURE.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.SHOW_BAT_TEMPERATURE.getBoolean(needsGlobal)) {
                         if (sb.isNotEmpty()) sb.append(" | ")
+
                         val batteryTemp = getBatteryTemperature()
-                        val tempF = celsiusToFahrenheit(batteryTemp)
-                        sb.append(String.format("%.1f°C/%.1f°F", batteryTemp, tempF))
+                        when (IntSetting.BAT_TEMPERATURE_UNIT.getInt(needsGlobal)) {
+                            0 -> sb.append(String.format("%.1f°C", batteryTemp))
+                            1 -> sb.append(String.format("%.1f°F", celsiusToFahrenheit(batteryTemp)))
+                        }
+                    }
+
+                    if (BooleanSetting.SHOW_POWER_INFO.getBoolean(needsGlobal)) {
+                        if (sb.isNotEmpty()) sb.append(" | ")
+
+                        val battery: BatteryManager =
+                            requireContext().getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+
+                        val capacity = battery.getIntProperty(BATTERY_PROPERTY_CAPACITY)
+                        val nowUAmps = battery.getIntProperty(BATTERY_PROPERTY_CURRENT_NOW)
+
+                        sb.append(String.format("%.1fA (%d%%)", nowUAmps / 1000000.0, capacity))
+
+                        if (battery.isCharging || nowUAmps > 0.0) {
+                            sb.append(" ${getString(R.string.charging)}")
+                        }
                     }
 
                     val shadersBuilding = NativeLibrary.getShadersBuilding()
 
-                    if (BooleanSetting.SHOW_SHADERS_BUILDING.getBoolean(NativeConfig.isPerGameConfigLoaded()) && shadersBuilding != 0) {
+                    if (BooleanSetting.SHOW_SHADERS_BUILDING.getBoolean(needsGlobal) && shadersBuilding != 0) {
                         if (sb.isNotEmpty()) sb.append(" | ")
 
                         val prefix = getString(R.string.shaders_prefix)
@@ -642,7 +664,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         sb.append(String.format("$prefix %d $suffix", shadersBuilding))
                     }
 
-                    if (BooleanSetting.PERF_OVERLAY_BACKGROUND.getBoolean(NativeConfig.isPerGameConfigLoaded())) {
+                    if (BooleanSetting.PERF_OVERLAY_BACKGROUND.getBoolean(needsGlobal)) {
                         binding.showStatsOverlayText.setBackgroundResource(R.color.yuzu_transparent_black)
                     } else {
                         binding.showStatsOverlayText.setBackgroundResource(0)

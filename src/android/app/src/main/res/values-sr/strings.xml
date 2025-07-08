@@ -14,6 +14,8 @@
     <string name="shaders_prefix">Зграда</string>
     <string name="shaders_suffix">Схадер (с)</string>
     <string name="system_info_label">Систем:</string>
+    <string name="charging">(Пуњење)</string>
+
     <string name="show_stats_overlay">Покажи Статистика перформанси Статистика</string>
     <string name="stats_overlay_customization">Прилагођавање</string>
     <string name="stats_overlay_items">Видљивост</string>
@@ -31,7 +33,10 @@
     <string name="show_system_ram_usage">Прикажи употребу система меморије</string>
     <string name="show_system_ram_usage_description">Прикажите износ РАМ-а који користи систем</string>
     <string name="show_bat_temperature">Прикажи температуру батерије</string>
-    <string name="show_bat_temperature_description">Прикажи тренутну температуру батерије у Целзијусу и Фахренхеиту</string>
+    <string name="show_bat_temperature_description">Прикажи тренутну температуру батерије</string>
+    <string name="bat_temperature_unit">Јединице за температуру батерије</string>
+    <string name="show_power_info">Прикажи информације о батерији</string>
+    <string name="show_power_info_description">Приказ тренутне потрошње енергије и преостали капацитет батерије</string>
     <string name="show_shaders_building">Прикажи Схадерс Буилдинг</string>
     <string name="show_shaders_building_description">Прикажи тренутни број саграђених Схадера</string>
     <string name="overlay_position">Положај прекривања</string>
@@ -98,11 +103,11 @@
     <string name="memory_layout">Изглед меморије</string>
     <string name="memory_layout_description">(Експериментално) Промените изглед емулираног меморије. Ово постављање неће повећати перформансе, али може помоћи у играма које користе високе резолуције путем модова. Не користите на телефонима са 8 ГБ РАМ-а или мање. Ради само на динамичком (ЈИТ) бацкенд-у.</string>
 
-  <string name="sample_shading">Семпловање сенчења</string>
-  <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
-  <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
-  <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
-  <string name="cpu_ticks">Тактови</string>
+    <string name="sample_shading">Семпловање сенчења</string>
+    <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
+    <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
+    <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
+    <string name="cpu_ticks">Тактови</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>
@@ -205,23 +210,23 @@
     <string name="multiplayer_no_game">Није пронађена није пронађена игара</string>
     <string name="multiplayer_preferred_game_name_invalid">Морате одабрати преферирану игру да бисте угостили собу.</string>
     <string name="multiplayer_token_error">Мора бити дугачко 48 знакова и садржати само мала слова a-z</string>
-  <string name="multiplayer_lobby_type">Тип лобија</string>
-  <string name="multiplayer_public_visibility">Јавно</string>
-  <string name="multiplayer_unlisted_visibility">Неприказано</string>
-  <string name="multiplayer_name_invalid">Име је прекратко</string>
-  <string name="multiplayer_address_invalid">Неисправна адреса</string>
-  <string name="multiplayer_username_error">Мора бити између 4–20 знакова</string>
+    <string name="multiplayer_lobby_type">Тип лобија</string>
+    <string name="multiplayer_public_visibility">Јавно</string>
+    <string name="multiplayer_unlisted_visibility">Неприказано</string>
+    <string name="multiplayer_name_invalid">Име је прекратко</string>
+    <string name="multiplayer_address_invalid">Неисправна адреса</string>
+    <string name="multiplayer_username_error">Мора бити између 4–20 знакова</string>
     <string name="cancel">Отказати</string>
     <string name="ok">У реду</string>
     <string name="refresh">Освежити</string>
     <string name="room_list">Листа соба</string>
     <string name="multiplayer_joining">Придружујем се…</string>
-  <string name="multiplayer_creating">Креирам…</string>
-  <string name="multiplayer_required">Обавезно</string>
-  <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
-  <string name="multiplayer_ip_error">Неисправан ИП формат</string>
-  <string name="multiplayer_port_error">Мора бити између 1 и 65535</string>
-  <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
+    <string name="multiplayer_creating">Креирам…</string>
+    <string name="multiplayer_required">Обавезно</string>
+    <string name="multiplayer_token_required">Потребан је веб токен, идите на Напредне поставке -> Систем -> Мрежа</string>
+    <string name="multiplayer_ip_error">Неисправан ИП формат</string>
+    <string name="multiplayer_port_error">Мора бити између 1 и 65535</string>
+    <string name="multiplayer_room_name_error">Мора бити између 3 и 20 знакова</string>
 
     <!-- Setup strings -->
     <string name="welcome">Добродошли!</string>
@@ -428,16 +433,16 @@
 
     <!-- Network settings strings -->
     <string name="generate">Генериши</string>
-  <string name="web_username">Веб корисничко име</string>
-  <string name="web_username_description">Корисничко име које ће бити приказано у мултиплејер лобијима. Мора бити дугачко 4–20 знакова.</string>
+    <string name="web_username">Веб корисничко име</string>
+    <string name="web_username_description">Корисничко име које ће бити приказано у мултиплејер лобијима. Мора бити дугачко 4–20 знакова.</string>
     <string name="web_token">Веб токен</string>
     <string name="web_token_description">Веб токен који се користи за стварање јавних лобија. То је низ од 48 знакова који садржи само мала слова А-З.</string>
     <string name="network">Мрежа</string>
 
     <!-- Graphics settings strings -->
     <string name="backend">Бекенд</string>
-  <string name="display">Приказ</string>
-  <string name="processing">Постпроцесирање</string>
+    <string name="display">Приказ</string>
+    <string name="processing">Постпроцесирање</string>
     <string name="frame_skipping">ВИП: Фрамескип</string>
     <string name="frame_skipping_description">Пребацивање оквира прескакање да бисте побољшали перформансе смањењем броја пружених оквира. Ова функција се и даље ради и биће омогућена у будућим издањима.</string>
     <string name="renderer_accuracy">Ниво тачности</string>
@@ -791,6 +796,10 @@
     <string name="gpu_medium">Средња (256)</string>
     <string name="gpu_high">Висок (512)</string>
 
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Целзијус</string>
+    <string name="temperature_fahrenheit">Фаренхајт</string>
+
     <!-- Language Names -->
     <string name="language_japanese" translatable="false">日本語</string>
     <string name="language_english" translatable="false">English</string>
@@ -979,8 +988,8 @@
 
     <string name="swkbd_applet">Софтверска тастатура</string>
 
-  <string name="airplane_mode">Авионски режим</string>
-  <string name="airplane_mode_description">Прослеђује авионски режим на Switch OS</string>
+    <string name="airplane_mode">Авионски режим</string>
+    <string name="airplane_mode_description">Прослеђује авионски режим на Switch OS</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Лиценце</string>
