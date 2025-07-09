@@ -450,6 +450,13 @@ struct Values {
                                                            VramUsageMode::Aggressive,
                                                            "vram_usage_mode",
                                                            Category::RendererAdvanced};
+    SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
+                                                        true,
+                                                        "skip_cpu_inner_invalidation",
+                                                        Category::RendererAdvanced,
+                                                        Specialization::Default,
+                                                        true,
+                                                        true};
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID
                                                true,

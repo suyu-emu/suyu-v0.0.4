@@ -9,6 +9,7 @@
 #include <utility>
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
+#include "common/settings.h"
 #include "video_core/cache_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
@@ -100,8 +101,10 @@ public:
                                   VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
     virtual void InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) {
-        for (const auto& [cpu_addr, size] : sequences) {
-            InvalidateRegion(cpu_addr, size);
+        if (!Settings::values.skip_cpu_inner_invalidation.GetValue()) {
+            for (const auto& [cpu_addr, size] : sequences) {
+                InvalidateRegion(cpu_addr, size);
+            }
         }
     }
 

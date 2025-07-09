@@ -657,6 +657,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.SKIP_CPU_INNER_INVALIDATION,
+                    titleId = R.string.skip_cpu_inner_invalidation,
+                    descriptionId = R.string.skip_cpu_inner_invalidation_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
                     titleId = R.string.renderer_reactive_flushing,
                     descriptionId = R.string.renderer_reactive_flushing_description
