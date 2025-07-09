@@ -9,7 +9,7 @@
 
 <h1 align="center">
   <br>
-  <a href="https://github.com/pflyly/eden-mirror"><img src="https://github.com/pflyly/eden-mirror/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
+  <a href="https://git.eden-emu.dev/eden-emu/eden"><img src="https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/dist/qt_themes/default/icons/256x256/eden_named.png" alt="Eden" width="200"></a>
   <br>
   <b>Eden</b>
   <br>
@@ -43,11 +43,11 @@ The emulator is capable of running most commercial games at full speed, provided
 
 A list of supported games will be available in future. Please be patient.
 
-Check out our [website](https://eden-emulator.github.io) for the latest news on exciting features, monthly progress reports, and more!
+Check out our [website](https://eden-emu.dev) for the latest news on exciting features, monthly progress reports, and more!
 
 ## Development
 
-Most of the development happens on our Git server. It is also where [our central repository](https://github.com/pflyly/eden-mirror) is hosted. For development discussions, please join us on [Discord](https://discord.gg/edenemu).
+Most of the development happens on our Git server. It is also where [our central repository](https://git.eden-emu.dev/eden-emu/eden) is hosted. For development discussions, please join us on [Discord](https://discord.gg/edenemu).
 
 If you would like to contribute, we are open to new developers and pull requests. Please ensure that your work is of a high standard and properly documented.
 You can also contact any of the developers on Discord to learn more about the current state of the emulator.
@@ -60,12 +60,11 @@ You can also contact any of the developers on Discord to learn more about the cu
 
 ## Download
 
-You will be able to download the latest releases from [here](https://git.eden-emu.dev/eden-emu/eden/releases), or with MEGA and Archive links provided on Discord.
+You will be able to download the latest releases from [here](https://github.com/eden-emulator/Releases/releases).
 
 ## Support
 
-If you enjoy the project and would like to support us financially, please check out our developers' donation pages!
-- [crueter/Camille](https://liberapay.com/crueter)
+If you enjoy the project and would like to support us financially, please check out our developers' [donation pages](https://eden-emu.dev/donations.html)!
 
 Any donations received will go towards things such as:
 * Switch consoles to explore and reverse-engineer the hardware
