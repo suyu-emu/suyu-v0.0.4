@@ -11,6 +11,7 @@
     <string name="process_ram">進程記憶體: %1$d MB</string>
     <string name="shaders_prefix">正在編譯</string>
     <string name="shaders_suffix">著色器</string>
+    <string name="charging">(充電中)</string>
     <string name="system_info_label">系統:</string>
     <string name="show_stats_overlay">顯示效能統計疊加層</string>
     <string name="stats_overlay_customization">自訂</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">顯示系統記憶體用量</string>
     <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
     <string name="show_bat_temperature">顯示電池溫度</string>
-    <string name="show_bat_temperature_description">顯示當前電池溫度（攝氏/華氏）</string>
+    <string name="show_bat_temperature_description">顯示當前電池溫度</string>
+    <string name="bat_temperature_unit">電池溫度單位</string>
+    <string name="show_power_info">顯示電池資訊</string>
+    <string name="show_power_info_description">顯示當前功耗和電池剩餘容量</string>
     <string name="overlay_position">疊加層位置</string>
     <string name="overlay_position_description">選擇疊加層在畫面上的顯示位置</string>
     <string name="overlay_position_top_left">左上</string>
@@ -103,6 +107,8 @@
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
     <string name="custom_cpu_ticks_description">設定自訂的CPU時脈值。更高的值可能提高效能，但也可能導致遊戲卡頓。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>
+    <string name="skip_cpu_inner_invalidation">跳過CPU內部無效化</string>
+    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取無效化，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (推薦)</string>
@@ -118,6 +124,10 @@
     <string name="gpu_low">低 (128)</string>
     <string name="gpu_medium">中 (256)</string>
     <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">攝氏度</string>
+    <string name="temperature_fahrenheit">華氏度</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC解碼方式</string>
@@ -513,7 +523,7 @@
     <string name="anisotropic_filtering">非等向性過濾</string>
     <string name="anisotropic_filtering_description">改善斜角檢視時的紋理品質</string>
 
-    <string name="warning_resolution">解析度縮放超過2倍可能導致問題，並可能顯著降低設備速度。</string>
+    <string name="warning_resolution">解析度縮放到2倍或更高可能會導致問題，並可能顯著降低設備速度。</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

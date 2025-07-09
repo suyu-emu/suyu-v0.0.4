@@ -11,6 +11,7 @@
     <string name="process_ram">プロセスRAM: %1$d MB</string>
     <string name="shaders_prefix">シェーダー</string>
     <string name="shaders_suffix">を構築中</string>
+    <string name="charging">(充電中)</string>
     <string name="system_info_label">システム:</string>
     <string name="show_stats_overlay">パフォーマンス統計オーバーレイを表示</string>
     <string name="stats_overlay_customization">カスタマイズ</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">システムRAM使用量</string>
     <string name="show_system_ram_usage_description">システムが使用しているRAMの量を表示</string>
     <string name="show_bat_temperature">バッテリー温度</string>
-    <string name="show_bat_temperature_description">バッテリー温度を表示（℃/℉）</string>
+    <string name="show_bat_temperature_description">現在のバッテリー温度を表示</string>
+    <string name="bat_temperature_unit">バッテリー温度単位</string>
+    <string name="show_power_info">バッテリー情報を表示</string>
+    <string name="show_power_info_description">現在の電力消費量とバッテリー残量を表示</string>
     <string name="overlay_position">オーバーレイ位置</string>
     <string name="overlay_position_description">オーバーレイの表示位置を設定</string>
     <string name="overlay_position_top_left">左上</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">低 (128)</string>
     <string name="gpu_medium">中 (256)</string>
     <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">摂氏</string>
+    <string name="temperature_fahrenheit">華氏</string>
+
     <string name="use_fast_cpu_time">高速CPU時間</string>
     <string name="use_fast_cpu_time_description">エミュレートされたCPUをより高いクロックで動作させ、特定のFPSリミッターを削減します。このオプションは不安定で問題を引き起こす可能性があり、弱いCPUではパフォーマンスが低下する可能性があります。</string>
     <string name="fast_cpu_time">CPUクロック</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">カスタムCPUティック</string>
     <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
     <string name="cpu_ticks">ティック</string>
+    <string name="skip_cpu_inner_invalidation">CPU内部無効化をスキップ</string>
+    <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
+
     <string name="memory_4gb">4GB (推奨)</string>
     <string name="memory_6gb">6GB (安全でない)</string>
     <string name="memory_8gb">8GB (安全でない)</string>
@@ -495,7 +507,7 @@
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_description">斜めから見たときのテクスチャーの質感を向上させます</string>
 
-    <string name="warning_resolution">解像度のスケーリングが2倍を超えると問題が発生する可能性があり、デバイスの大幅な速度低下を引き起こす可能性があります。</string>
+    <string name="warning_resolution">解像度を2倍以上にスケーリングすると問題が発生する可能性があり、デバイスが大幅に遅くなる場合があります。</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

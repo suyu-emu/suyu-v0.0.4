@@ -11,6 +11,7 @@
     <string name="process_ram">RAM процесса: %1$d МБ</string>
     <string name="shaders_prefix">Компиляция</string>
     <string name="shaders_suffix">шейдеров</string>
+    <string name="charging">(Заряжается)</string>
     <string name="system_info_label">Система:</string>
     <string name="show_stats_overlay">Показать оверлей статистики</string>
     <string name="stats_overlay_customization">Настройки</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Показать RAM системы</string>
     <string name="show_system_ram_usage_description">Показать объем оперативной памяти, используемой системой</string>
     <string name="show_bat_temperature">Показать температуру батареи</string>
-    <string name="show_bat_temperature_description">Текущая температура батареи (°C/°F)</string>
+    <string name="show_bat_temperature_description">Показать текущую температуру аккумулятора</string>
+    <string name="bat_temperature_unit">Единицы температуры аккумулятора</string>
+    <string name="show_power_info">Показать информацию о батарее</string>
+    <string name="show_power_info_description">Показать текущее энергопотребление и оставшуюся емкость аккумулятора</string>
     <string name="overlay_position">Позиция оверлея</string>
     <string name="overlay_position_description">Расположение оверлея на экране</string>
     <string name="overlay_position_top_left">Сверху слева</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Низкий (128)</string>
     <string name="gpu_medium">Средний (256)</string>
     <string name="gpu_high">Высокий (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Цельсий</string>
+    <string name="temperature_fahrenheit">Фаренгейт</string>
+
     <string name="use_fast_cpu_time">Быстрое время CPU</string>
     <string name="use_fast_cpu_time_description">Заставляет эмулируемый процессор работать на более высокой частоте, уменьшая некоторые ограничители FPS. Эта опция нестабильна и может вызывать проблемы, а более слабые процессоры могут показывать снижение производительности.</string>
     <string name="fast_cpu_time">Тактовая частота CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Пользовательские такты CPU</string>
     <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов CPU. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
     <string name="cpu_ticks">Такты</string>
+    <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне CPU при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
     <string name="memory_8gb">8 ГБ (Небезопасно)</string>
@@ -514,7 +526,7 @@
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
 
-    <string name="warning_resolution">Масштабирование разрешения выше 2x может вызвать проблемы и привести к значительному замедлению работы вашего устройства.</string>
+    <string name="warning_resolution">Масштабирование разрешения до 2x или выше может вызвать проблемы и привести к значительному замедлению работы устройства.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦП</string>

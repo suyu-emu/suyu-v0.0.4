@@ -10,6 +10,7 @@
     <string name="process_ram">ذاكرة RAM للعملية: %1$d م.ب</string>
     <string name="shaders_prefix">جاري بناء</string>
     <string name="shaders_suffix">شادر(شادرات)</string>
+    <string name="charging">(يشحن)</string>
     <string name="system_info_label">النظام:</string>
     <string name="show_stats_overlay">عرض إحصائيات الأداء</string>
     <string name="stats_overlay_customization">تخصيص</string>
@@ -29,6 +30,9 @@
     <string name="show_system_ram_usage_description">عرض كمية ذاكرة الوصول العشوائي المستخدمة من قبل النظام</string>
     <string name="show_bat_temperature">عرض درجة حرارة البطارية</string>
     <string name="show_bat_temperature_description">عرض درجة حرارة البطارية الحالية</string>
+    <string name="bat_temperature_unit">وحدات درجة حرارة البطارية</string>
+    <string name="show_power_info">عرض معلومات البطارية</string>
+    <string name="show_power_info_description">عرض استهلاك الطاقة الحالي والسعة المتبقية في البطارية</string>
     <string name="show_shaders_building">عرض بناء الشادرات</string>
     <string name="show_shaders_building_description">عرض العدد الحالي للشادرات التي يتم بناؤها</string>
     <string name="overlay_position">موضع العرض</string>
@@ -102,6 +106,8 @@
     <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
     <string name="custom_cpu_ticks_description">تعيين قيمة مخصصة لدورات المعالج. القيم الأعلى قد تزيد الأداء، ولكن قد تتسبب أيضًا في تجمد اللعبة. يوصى بنطاق 77-21000.</string>
     <string name="cpu_ticks">دورات</string>
+    <string name="skip_cpu_inner_invalidation">تخطي إبطال ذاكرة التخزين المؤقت الداخلية للوحدة المركزية</string>
+    <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقت أثناء تحديثات الذاكرة، مما يقلل استخدام المعالج ويحسن أدائه. قد يسبب هذا أعطالاً أو تعطلًا في بعض الألعاب.</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4 جيجابايت (موصى به)</string>
@@ -117,6 +123,10 @@
     <string name="gpu_low">منخفض (128)</string>
     <string name="gpu_medium">متوسط (256)</string>
     <string name="gpu_high">مرتفع (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">مئوية</string>
+    <string name="temperature_fahrenheit">فهرنهايت</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">طريقة فك ضغط ASTC</string>
@@ -506,7 +516,7 @@
     <string name="anisotropic_filtering">تصفية متباينة الخواص</string>
     <string name="anisotropic_filtering_description">تحسين جودة القوام عند الزوايا المائلة</string>
 
-    <string name="warning_resolution">من المعروف أن تحجيم الدقة فوق 2x يسبب مشاكل، وقد يؤدي إلى تباطؤ كبير في جهازك.</string>
+    <string name="warning_resolution">تغيير دقة العرض إلى 2x أو أعلى قد يسبب مشاكل، وقد يؤدي إلى تباطؤ كبير في جهازك.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">وحدة المعالج المركزية</string>

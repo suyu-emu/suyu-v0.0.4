@@ -11,6 +11,7 @@
     <string name="process_ram">Pamięć procesu: %1$d MB</string>
     <string name="shaders_prefix">Kompilacja</string>
     <string name="shaders_suffix">shaderów</string>
+    <string name="charging">(Ładowanie)</string>
     <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Pokaż nakładkę statystyk wydajności</string>
     <string name="stats_overlay_customization">Dostosowanie</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Pokaż użycie RAM systemu</string>
     <string name="show_system_ram_usage_description">Wyświetl ilość pamięci RAM używanej przez system</string>
     <string name="show_bat_temperature">Pokaż temperaturę baterii</string>
-    <string name="show_bat_temperature_description">Wyświetla temperaturę baterii w °C i °F</string>
+    <string name="show_bat_temperature_description">Wyświetl aktualną temperaturę baterii</string>
+    <string name="bat_temperature_unit">Jednostki temperatury baterii</string>
+    <string name="show_power_info">Pokaż informacje o baterii</string>
+    <string name="show_power_info_description">Wyświetl aktualne zużycie energii i pozostałą pojemność baterii</string>
     <string name="overlay_position">Pozycja nakładki</string>
     <string name="overlay_position_description">Wybierz miejsce wyświetlania nakładki statystyk na ekranie</string>
     <string name="overlay_position_top_left">Lewy górny</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Niskie (128)</string>
     <string name="gpu_medium">Średnie (256)</string>
     <string name="gpu_high">Wysokie (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsjusza</string>
+    <string name="temperature_fahrenheit">Fahrenheita</string>
+
     <string name="use_fast_cpu_time">Szybki czas CPU</string>
     <string name="use_fast_cpu_time_description">Wymusza działanie emulowanego procesora z wyższą częstotliwością taktowania, zmniejszając niektóre ograniczenia FPS. Ta opcja jest niestabilna i może powodować problemy, a słabsze procesory mogą doświadczyć zmniejszonej wydajności.</string>
     <string name="fast_cpu_time">Taktowanie CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Niestandardowe takty CPU</string>
     <string name="custom_cpu_ticks_description">Ustaw niestandardową wartość taktów CPU. Wyższe wartości mogą zwiększyć wydajność, ale mogą też powodować zawieszanie się gry. Zalecany zakres to 77–21000.</string>
     <string name="cpu_ticks">Takty</string>
+    <string name="skip_cpu_inner_invalidation">Pomiń wewnętrzne unieważnienie CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Pomija niektóre unieważnienia pamięci podręcznej po stronie CPU podczas aktualizacji pamięci, zmniejszając użycie CPU i poprawiając jego wydajność. Może powodować błędy lub awarie w niektórych grach.</string>
+
     <string name="memory_4gb">4GB (Zalecane)</string>
     <string name="memory_6gb">6GB (Niebezpieczne)</string>
     <string name="memory_8gb">8GB (Niebezpieczne)</string>
@@ -488,7 +500,7 @@
     <string name="anisotropic_filtering">Filtrowanie anizotropowe</string>
     <string name="anisotropic_filtering_description">Poprawia jakość tekstur.</string>
 
-    <string name="warning_resolution">Skalowanie rozdzielczości powyżej 2x może powodować problemy i znaczne spowolnienie działania urządzenia.</string>
+    <string name="warning_resolution">Skalowanie rozdzielczości do 2x lub wyżej może powodować problemy i znaczne spowolnienie działania urządzenia.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

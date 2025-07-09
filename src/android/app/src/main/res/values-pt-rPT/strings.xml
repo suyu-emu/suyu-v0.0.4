@@ -11,6 +11,7 @@
     <string name="process_ram">RAM do processo: %1$d MB</string>
     <string name="shaders_prefix">A compilar</string>
     <string name="shaders_suffix">shader(s)</string>
+    <string name="charging">(A carregar)</string>
     <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostrar Overlay de Desempenho</string>
     <string name="stats_overlay_customization">Personalização</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Mostrar RAM do Sistema</string>
     <string name="show_system_ram_usage_description">Mostrar a quantidade de RAM utilizada pelo sistema</string>
     <string name="show_bat_temperature">Mostrar Temp. Bateria</string>
-    <string name="show_bat_temperature_description">Exibir temperatura em Celsius/Fahrenheit</string>
+    <string name="show_bat_temperature_description">Mostrar temperatura atual da bateria</string>
+    <string name="bat_temperature_unit">Unidades de temperatura da bateria</string>
+    <string name="show_power_info">Mostrar informações da bateria</string>
+    <string name="show_power_info_description">Mostrar consumo atual de energia e capacidade restante da bateria</string>
     <string name="overlay_position">Posição do Overlay</string>
     <string name="overlay_position_description">Escolher posição do overlay na tela</string>
     <string name="overlay_position_top_left">Canto Superior Esquerdo</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Baixo (128)</string>
     <string name="gpu_medium">Médio (256)</string>
     <string name="gpu_high">Alto (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Tempo de CPU rápido</string>
     <string name="use_fast_cpu_time_description">Força a CPU emulada a funcionar a uma velocidade de relógio mais alta, reduzindo certos limitadores de FPS. Esta opção é instável e pode causar problemas, e CPUs mais fracas podem ter desempenho reduzido.</string>
     <string name="fast_cpu_time">Velocidade do CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Defina um valor personalizado para ticks de CPU. Valores mais altos podem aumentar o desempenho, mas também podem causar bloqueios no jogo. Um intervalo de 77–21000 é recomendado.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">Ignorar invalidação interna da CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Ignora algumas invalidações de cache do lado da CPU durante atualizações de memória, reduzindo a utilização da CPU e melhorando o desempenho. Pode causar falhas ou crashes em alguns jogos.</string>
+
     <string name="memory_4gb">4GB (Recomendado)</string>
     <string name="memory_6gb">6GB (Inseguro)</string>
     <string name="memory_8gb">8GB (Inseguro)</string>
@@ -512,7 +524,7 @@
     <string name="anisotropic_filtering">Filtragem anisotrópica</string>
     <string name="anisotropic_filtering_description">Melhora a qualidade das texturas quando visualizadas de ângulos oblíquos</string>
 
-    <string name="warning_resolution">Escalonamento de resolução acima de 2x pode causar problemas e resultar numa lentidão significativa do seu dispositivo.</string>
+    <string name="warning_resolution">A escala de resolução para 2x ou superior pode causar problemas e resultar numa lentidão significativa do dispositivo.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

@@ -11,6 +11,7 @@
     <string name="process_ram">حافظه فرآیند: %1$d مگابایت</string>
     <string name="shaders_prefix">در حال ساخت</string>
     <string name="shaders_suffix">شیدر(ها)</string>
+    <string name="charging">(در حال شارژ)</string>
     <string name="system_info_label">سیستم:</string>
     <string name="show_stats_overlay">نمایش آمار عملکرد</string>
     <string name="stats_overlay_customization">سفارشی‌سازی</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">نمایش مصرف رم سیستم</string>
     <string name="show_system_ram_usage_description">نمایش میزان رم استفاده شده توسط سیستم</string>
     <string name="show_bat_temperature">نمایش دمای باتری</string>
-    <string name="show_bat_temperature_description">نمایش دمای باتری به سانتی‌گراد و فارنهایت</string>
+    <string name="show_bat_temperature_description">نمایش دمای فعلی باتری</string>
+    <string name="bat_temperature_unit">واحدهای دمای باتری</string>
+    <string name="show_power_info">نمایش اطلاعات باتری</string>
+    <string name="show_power_info_description">نمایش مصرف فعلی برق و ظرفیت باقی‌مانده باتری</string>
     <string name="overlay_position">موقعیت اورلی</string>
     <string name="overlay_position_description">انتخاب محل نمایش اورلی آمار عملکرد روی صفحه</string>
     <string name="overlay_position_top_left">بالا چپ</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">پایین (128)</string>
     <string name="gpu_medium">متوسط (256)</string>
     <string name="gpu_high">بالا (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">سلسیوس</string>
+    <string name="temperature_fahrenheit">فارنهایت</string>
+
     <string name="use_fast_cpu_time">زمان CPU سریع</string>
     <string name="use_fast_cpu_time_description">CPU شبیه‌سازی شده را مجبور می‌کند با سرعت کلاک بالاتر کار کند، که برخی محدودکننده‌های FPS را کاهش می‌دهد. این گزینه ناپایدار است و ممکن است باعث مشکلات شود و CPUهای ضعیف‌تر ممکن است کاهش عملکرد را تجربه کنند.</string>
     <string name="fast_cpu_time">سرعت کلاک CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">تیک‌های CPU سفارشی</string>
     <string name="custom_cpu_ticks_description">مقدار سفارشی برای تیک‌های CPU تنظیم کنید. مقادیر بالاتر ممکن است عملکرد را افزایش دهند، اما ممکن است باعث یخ زدن بازی شوند. محدوده 77-21000 توصیه می‌شود.</string>
     <string name="cpu_ticks">تیک‌ها</string>
+    <string name="skip_cpu_inner_invalidation">رد کردن ابطال داخلی CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">بعضی ابطال‌های حافظه نهان در هنگام به‌روزرسانی‌های حافظه را رد می‌کند، استفاده از CPU را کاهش داده و عملکرد آن را بهبود می‌بخشد. ممکن است در برخی بازی‌ها باعث مشکلات یا خرابی شود.</string>
+
     <string name="memory_4gb">4 گیگابایت (توصیه شده)</string>
     <string name="memory_6gb">6 گیگابایت (ناامن)</string>
     <string name="memory_8gb">8 گیگابایت (ناامن)</string>
@@ -510,7 +522,7 @@
     <string name="anisotropic_filtering">فیلتر ناهمسانگرد</string>
     <string name="anisotropic_filtering_description">کیفیت بافت‌ها را هنگام مشاهده در زوایای اریب بهبود می‌بخشد</string>
 
-    <string name="warning_resolution">مقیاس‌گذاری رزولوشن بالاتر از 2x می‌تواند باعث مشکلاتی شود و ممکن است منجر به کاهش سرعت قابل توجه دستگاه شما شود.</string>
+    <string name="warning_resolution">مقیاس‌گذاری وضوح به 2x یا بالاتر ممکن است باعث ایجاد مشکل شود و منجر به کاهش سرعت قابل توجه دستگاه شما شود.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">پردازنده</string>

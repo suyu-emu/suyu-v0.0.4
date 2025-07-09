@@ -11,6 +11,7 @@
     <string name="process_ram">Prozess-RAM: %1$d MB</string>
     <string name="shaders_prefix">Erstelle</string>
     <string name="shaders_suffix">Shader</string>
+    <string name="charging">(Wird geladen)</string>
     <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Leistungsstatistik Overlay anzeigen</string>
     <string name="stats_overlay_customization">Anpassung</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">System-RAM-Nutzung anzeigen</string>
     <string name="show_system_ram_usage_description">Zeigt den vom System genutzten RAM an</string>
     <string name="show_bat_temperature">Batterietemperatur anzeigen</string>
-    <string name="show_bat_temperature_description">Aktuelle Batterietemperatur in °C/°F</string>
+    <string name="show_bat_temperature_description">Aktuelle Batterietemperatur anzeigen</string>
+    <string name="bat_temperature_unit">Batterietemperatur-Einheiten</string>
+    <string name="show_power_info">Batterieinfo anzeigen</string>
+    <string name="show_power_info_description">Aktuellen Stromverbrauch und verbleibende Kapazität der Batterie anzeigen</string>
     <string name="overlay_position">Overlay-Position</string>
     <string name="overlay_position_description">Position des Overlays auf dem Bildschirm</string>
     <string name="overlay_position_top_left">Oben links</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Niedrig (128)</string>
     <string name="gpu_medium">Mittel (256)</string>
     <string name="gpu_high">Hoch (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Schnelle CPU-Zeit</string>
     <string name="use_fast_cpu_time_description">Zwingt die emulierte CPU, mit höherer Taktrate zu laufen, wodurch bestimmte FPS-Begrenzungen reduziert werden. Diese Option ist unsauber und kann Probleme verursachen, und schwächere CPUs können eine geringere Leistung aufweisen.</string>
     <string name="fast_cpu_time">CPU-Takt</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Benutzerdefinierte CPU-Ticks</string>
     <string name="custom_cpu_ticks_description">Legen Sie einen benutzerdefinierten Wert für CPU-Ticks fest. Höhere Werte können die Leistung steigern, aber auch zum Einfrieren des Spiels führen. Ein Bereich von 77–21000 wird empfohlen.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
+    <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+
     <string name="memory_4gb">4 GB (Empfohlen)</string>
     <string name="memory_6gb">6 GB (Unsicher)</string>
     <string name="memory_8gb">8 GB (Unsicher)</string>
@@ -492,7 +504,7 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="anisotropic_filtering">Anisotrope Filterung</string>
     <string name="anisotropic_filtering_description">Verbessert die Texturenqualität.</string>
 
-    <string name="warning_resolution">Eine Skalierung der Auflösung über 2x kann Probleme verursachen und zu erheblichen Verlangsamungen Ihres Geräts führen.</string>
+    <string name="warning_resolution">Eine Skalierung der Auflösung auf 2x oder höher kann Probleme verursachen und zu erheblichen Verlangsamungen Ihres Geräts führen.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

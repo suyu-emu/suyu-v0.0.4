@@ -11,6 +11,7 @@
     <string name="process_ram">RAM процесу: %1$d МБ</string>
     <string name="shaders_prefix">Компіляція</string>
     <string name="shaders_suffix">Шейдер(и)</string>
+    <string name="charging">(Заряджається)</string>
     <string name="system_info_label">Система:</string>
     <string name="show_stats_overlay">Показувати оверлей продуктивності</string>
     <string name="stats_overlay_customization">Налаштування</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Показати системну RAM</string>
     <string name="show_system_ram_usage_description">Показати обсяг оперативної пам’яті, яку використовує система</string>
     <string name="show_bat_temperature">Показати температуру батареї</string>
-    <string name="show_bat_temperature_description">Відображати температуру батареї</string>
+    <string name="show_bat_temperature_description">Показати поточну температуру акумулятора</string>
+    <string name="bat_temperature_unit">Одиниці виміру температури акумулятора</string>
+    <string name="show_power_info">Показати інформацію про акумулятор</string>
+    <string name="show_power_info_description">Показати поточне споживання енергії та залишкову ємність акумулятора</string>
     <string name="overlay_position">Позиція оверлею</string>
     <string name="overlay_position_description">Обрати розташування виводу статистики на екрані</string>
     <string name="overlay_position_top_left">Вгорі ліворуч</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Низький (128)</string>
     <string name="gpu_medium">Середній (256)</string>
     <string name="gpu_high">Високий (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Цельсій</string>
+    <string name="temperature_fahrenheit">Фаренгейт</string>
+
     <string name="use_fast_cpu_time">Швидкий час CPU</string>
     <string name="use_fast_cpu_time_description">Змушує емульований процесор працювати на вищій тактовій частоті, зменшуючи деякі обмежувачі FPS. Ця опція нестабільна і може спричинити проблеми, а слабші CPU можуть мати знижену продуктивність.</string>
     <string name="fast_cpu_time">Тактова частота CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Користувацькі такти CPU</string>
     <string name="custom_cpu_ticks_description">Встановіть користувацьке значення тактів CPU. Вищі значення можуть покращити продуктивність, але також можуть спричинити зависання гри. Рекомендується діапазон 77–21000.</string>
     <string name="cpu_ticks">Такти</string>
+    <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
+
     <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
     <string name="memory_6gb">6 ГБ (Небезпечно)</string>
     <string name="memory_8gb">8 ГБ (Небезпечно)</string>
@@ -487,7 +499,7 @@
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
     <string name="anisotropic_filtering_description">Покращує якість текстур під кутом.</string>
 
-    <string name="warning_resolution">Масштабування роздільної здатності вище 2x може спричинити проблеми та значно сповільнити роботу вашого пристрою.</string>
+    <string name="warning_resolution">Масштабування роздільної здатності до 2x або вище може спричинити проблеми та значно сповільнити роботу пристрою.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

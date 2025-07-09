@@ -11,6 +11,7 @@
     <string name="process_ram">RAM Proses: %1$d MB</string>
     <string name="shaders_prefix">Membangun</string>
     <string name="shaders_suffix">Shader</string>
+    <string name="charging">(Sedang diisi)</string>
     <string name="system_info_label">Sistem:</string>
     <string name="show_stats_overlay">Tampilkan Overlay Statistik Performa</string>
     <string name="stats_overlay_customization">Kustomisasi</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Tampilkan Penggunaan RAM Sistem</string>
     <string name="show_system_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh sistem</string>
     <string name="show_bat_temperature">Tampilkan Suhu Baterai</string>
-    <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini dalam Celsius dan Fahrenheit</string>
+    <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini</string>
+    <string name="bat_temperature_unit">Satuan Suhu Baterai</string>
+    <string name="show_power_info">Tampilkan Info Baterai</string>
+    <string name="show_power_info_description">Tampilkan pengeluaran daya saat ini dan kapasitas baterai yang tersisa</string>
     <string name="overlay_position">Posisi Overlay</string>
     <string name="overlay_position_description">Pilih lokasi tampilan overlay statistik performa di layar</string>
     <string name="overlay_position_top_left">Kiri Atas</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Rendah (128)</string>
     <string name="gpu_medium">Sedang (256)</string>
     <string name="gpu_high">Tinggi (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Waktu CPU Cepat</string>
     <string name="use_fast_cpu_time_description">Memaksa CPU emulasi berjalan pada kecepatan clock yang lebih tinggi, mengurangi beberapa pembatas FPS. Opsi ini tidak stabil dan dapat menyebabkan masalah, dan CPU yang lebih lemah mungkin mengalami penurunan kinerja.</string>
     <string name="fast_cpu_time">Kecepatan Clock CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
     <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
+
     <string name="memory_4gb">4GB (Direkomendasikan)</string>
     <string name="memory_6gb">6GB (Tidak Aman)</string>
     <string name="memory_8gb">8GB (Tidak Aman)</string>
@@ -508,7 +520,7 @@
     <string name="anisotropic_filtering">Penyaringan Anisotropik</string>
     <string name="anisotropic_filtering_description">Meningkatkan kualitas tekstur bila dilihat pada sudut miring</string>
 
-    <string name="warning_resolution">Skala resolusi di atas 2x diketahui menyebabkan masalah, dan dapat mengakibatkan perlambatan signifikan pada perangkat Anda.</string>
+    <string name="warning_resolution">Penskalaan resolusi ke 2x atau lebih tinggi diketahui menyebabkan masalah, dan dapat mengakibatkan perlambatan signifikan pada perangkat Anda.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

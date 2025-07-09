@@ -11,6 +11,7 @@
     <string name="process_ram">RAMی پرۆسە: %1$d MB</string>
     <string name="shaders_prefix">بیناکردنی</string>
     <string name="shaders_suffix">شەیدەر(ەکان)</string>
+    <string name="charging">(بارگاویکراو)</string>
     <string name="system_info_label">سیستەم:</string>
     <string name="show_stats_overlay">پیشاندانی ستاتیستی کارایی</string>
     <string name="stats_overlay_customization">خۆڕێکخستن</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">نیشاندانی بەکارهێنانی RAMی سیستەم</string>
     <string name="show_system_ram_usage_description">نیشاندانی بڕی RAM کە سیستم بەکاردەهێنێت</string>
     <string name="show_bat_temperature">نیشاندانی پلەی گەرمی بەتری</string>
-    <string name="show_bat_temperature_description">نیشاندانی پلەی گەرمی بەتری بە سەدی و فارینهایت</string>
+    <string name="show_bat_temperature_description">پیشاندانی پلەی گەرمی بەترییەکەی ئێستا</string>
+    <string name="bat_temperature_unit">یەکەکانی پلەی گەرمی بەتری</string>
+    <string name="show_power_info">پیشاندانی زانیاری بەتری</string>
+    <string name="show_power_info_description">پیشاندانی بەکارهێنانی وزە و توانای ماوە لەسەر بەتری</string>
     <string name="overlay_position">شوێنی ئاوێرە</string>
     <string name="overlay_position_description">هەڵبژاردنی شوێنی نیشاندانی ستاتیست لەسەر شاشە</string>
     <string name="overlay_position_top_left">سەرەوە چەپ</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">نزم (128)</string>
     <string name="gpu_medium">ناوەند (256)</string>
     <string name="gpu_high">بەرز (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">سیلیزی</string>
+    <string name="temperature_fahrenheit">فارینهایت</string>
+
     <string name="use_fast_cpu_time">کاتی CPU خێرا</string>
     <string name="use_fast_cpu_time_description">CPUی شبیهسازیکراو بە زۆرکردنی کاتژمێر وادەکات بە خێرایی زیاتر کاربکات، ئەمەش هەندێک لە سنووردارکەرانی FPS کەم دەکاتەوە. ئەم هەڵبژاردە هەڵە و لەوانەیە کێشە دروست بکات، و لەوانەیە کەسی بە CPUی بێهێز کارایی کەمتر ببینێت.</string>
     <string name="fast_cpu_time">کاتژمێری CPU</string>
@@ -106,6 +115,8 @@
     <string name="custom_cpu_ticks">تیکی CPU هەڵبژێردراو</string>
     <string name="custom_cpu_ticks_description">بەهای هەڵبژێردراوی تیکی CPU دابنێ. بەهای زیاتر دەتوانن کارایی زیاد بکەن، بەڵام لەوانەیە بووەستانی یاریش دروست بکەن. ئامۆژگاری بە نێوان 77-21000 دەکرێت.</string>
     <string name="cpu_ticks">تیک</string>
+    <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
 
     <string name="memory_4gb">4GB (پێشنیارکراو)</string>
     <string name="memory_6gb">6GB (نائاسایش)</string>
@@ -489,7 +500,7 @@
     <string name="anisotropic_filtering">فلتەری anisotropic</string>
     <string name="anisotropic_filtering_description">کوالێتی تێکستەرەکان باشتر دەکات لە کاتی سەیرکردنی لە گۆشە.</string>
 
-    <string name="warning_resolution">زیادکردنی ڕێزۆلۆشن زیاتر لە ٢x دەبێتە هۆی کێشە، و دەکرێت ببێتە هۆی خاوبوونەوەی بەرگری ئامێرەکەت.</string>
+    <string name="warning_resolution">گۆرینی رێزلوشن بۆ 2x یان زیاتر دەبێتە هۆی کێشە، و لەوانەیە ببێتە هۆی خاوبوونەوەی بەرچاوی ئامێرەکەت.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

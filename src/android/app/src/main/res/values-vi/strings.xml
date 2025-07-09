@@ -11,6 +11,7 @@
     <string name="process_ram">RAM tiến trình: %1$d MB</string>
     <string name="shaders_prefix">Đang xây dựng</string>
     <string name="shaders_suffix">shader</string>
+    <string name="charging">(Đang sạc)</string>
     <string name="system_info_label">Hệ thống:</string>
     <string name="show_stats_overlay">Hiển thị thống kê hiệu suất</string>
     <string name="stats_overlay_customization">Tùy chỉnh</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Hiển thị RAM hệ thống</string>
     <string name="show_system_ram_usage_description">Hiển thị lượng RAM được hệ thống sử dụng</string>
     <string name="show_bat_temperature">Hiển thị nhiệt độ pin</string>
-    <string name="show_bat_temperature_description">Hiển thị nhiệt độ pin (Celsius/Fahrenheit)</string>
+    <string name="show_bat_temperature_description">Hiển thị nhiệt độ pin hiện tại</string>
+    <string name="bat_temperature_unit">Đơn vị nhiệt độ pin</string>
+    <string name="show_power_info">Hiển thị thông tin pin</string>
+    <string name="show_power_info_description">Hiển thị mức tiêu thụ điện hiện tại và dung lượng pin còn lại</string>
     <string name="overlay_position">Vị trí overlay</string>
     <string name="overlay_position_description">Chọn vị trí hiển thị overlay</string>
     <string name="overlay_position_top_left">Trên trái</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Thấp (128)</string>
     <string name="gpu_medium">Trung bình (256)</string>
     <string name="gpu_high">Cao (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Thời gian CPU nhanh</string>
     <string name="use_fast_cpu_time_description">Buộc CPU mô phỏng chạy ở tốc độ xung nhịp cao hơn, giảm một số giới hạn FPS. Tùy chọn này không ổn định và có thể gây ra sự cố, và CPU yếu hơn có thể thấy hiệu suất giảm.</string>
     <string name="fast_cpu_time">Tốc độ xung nhịp CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
     <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
     <string name="cpu_ticks">Tích</string>
+    <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+
     <string name="memory_4gb">4GB (Được đề xuất)</string>
     <string name="memory_6gb">6GB (Không an toàn)</string>
     <string name="memory_8gb">8GB (Không an toàn)</string>
@@ -488,7 +500,7 @@
     <string name="anisotropic_filtering">Lọc dị hướng</string>
     <string name="anisotropic_filtering_description">Cải thiện chất lượng texture</string>
 
-    <string name="warning_resolution">Tỷ lệ phân giải trên 2x có thể gây ra sự cố và làm thiết bị chậm đáng kể.</string>
+    <string name="warning_resolution">Phóng to độ phân giải lên 2x hoặc cao hơn có thể gây ra sự cố và làm thiết bị chậm đáng kể.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

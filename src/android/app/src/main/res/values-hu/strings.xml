@@ -11,6 +11,7 @@
     <string name="process_ram">Processz RAM: %1$d MB</string>
     <string name="shaders_prefix">Shader(ek)</string>
     <string name="shaders_suffix">fordítása</string>
+    <string name="charging">(Töltés alatt)</string>
     <string name="system_info_label">Rendszer:</string>
     <string name="show_stats_overlay">Teljesítmény statisztikák megjelenítése</string>
     <string name="stats_overlay_customization">Testreszabás</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Rendszer RAM-használat</string>
     <string name="show_system_ram_usage_description">A rendszer által használt RAM mennyiségének megjelenítése</string>
     <string name="show_bat_temperature">Akkumulátor hőmérséklet</string>
-    <string name="show_bat_temperature_description">Aktuális hőmérséklet Celsiusban és Fahrenheitben</string>
+    <string name="show_bat_temperature_description">Az akkumulátor jelenlegi hőmérsékletének megjelenítése</string>
+    <string name="bat_temperature_unit">Akkumulátor hőmérséklet egységek</string>
+    <string name="show_power_info">Akkumulátor információk</string>
+    <string name="show_power_info_description">Jelenlegi energiafelhasználás és remaining kapacitás megjelenítése</string>
     <string name="overlay_position">Overlay pozíció</string>
     <string name="overlay_position_description">Az overlay helyének kiválasztása</string>
     <string name="overlay_position_top_left">Bal fent</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Alacsony (128)</string>
     <string name="gpu_medium">Közepes (256)</string>
     <string name="gpu_high">Magas (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Gyors CPU idő</string>
     <string name="use_fast_cpu_time_description">Kényszeríti az emulált CPU-t, hogy magasabb órajelen fusson, csökkentve bizonyos FPS korlátozókat. Ez az opció instabil és problémákat okozhat, és gyengébb CPU-k csökkentett teljesítményt tapasztalhatnak.</string>
     <string name="fast_cpu_time">CPU órajel</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Egyéni CPU tick-ek</string>
     <string name="custom_cpu_ticks_description">Egyéni CPU tick érték beállítása. A magasabb értékek növelhetik a teljesítményt, de a játék befagyását is okozhatják. 77–21000 közötti tartomány ajánlott.</string>
     <string name="cpu_ticks">Tick-ek</string>
+    <string name="skip_cpu_inner_invalidation">CPU belső érvénytelenítés kihagyása</string>
+    <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
+
     <string name="memory_4gb">4GB (Ajánlott)</string>
     <string name="memory_6gb">6GB (Nem biztonságos)</string>
     <string name="memory_8gb">8GB (Nem biztonságos)</string>
@@ -507,7 +519,7 @@
     <string name="anisotropic_filtering">Anizotropikus szűrés</string>
     <string name="anisotropic_filtering_description">Javítja a ferdén megjelenő textúrák minőségét</string>
 
-    <string name="warning_resolution">A 2x feletti felbontásméretezés problémákat okozhat, és jelentős lassulást eredményezhet az eszközön.</string>
+    <string name="warning_resolution">A 2x vagy nagyobb felbontásméretezés problémákat okozhat, és jelentős lassulást eredményezhet az eszközön.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

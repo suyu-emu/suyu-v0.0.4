@@ -10,6 +10,7 @@
     <string name="process_ram">RAM procesu: %1$d MB</string>
     <string name="shaders_prefix">Sestavování</string>
     <string name="shaders_suffix">shaderů</string>
+    <string name="charging">(Nabíjení)</string>
     <string name="system_info_label">Systém:</string>
     <string name="show_stats_overlay">Zobrazit překryv statistik výkonu</string>
     <string name="stats_overlay_customization">Přizpůsobení</string>
@@ -28,7 +29,10 @@
     <string name="show_system_ram_usage">Zobrazit využití systémové RAM</string>
     <string name="show_system_ram_usage_description">Zobrazit množství RAM využívané systémem</string>
     <string name="show_bat_temperature">Zobrazit teplotu baterie</string>
-    <string name="show_bat_temperature_description">Aktuální teplota baterie ve °C a °F</string>
+    <string name="show_bat_temperature_description">Zobrazit aktuální teplotu baterie</string>
+    <string name="bat_temperature_unit">Jednotky teploty baterie</string>
+    <string name="show_power_info">Zobrazit informace o baterii</string>
+    <string name="show_power_info_description">Zobrazit aktuální odběr energie a zbývající kapacitu baterie</string>
     <string name="overlay_position">Pozice překryvu</string>
     <string name="overlay_position_description">Umístění překryvu statistik na obrazovce</string>
     <string name="overlay_position_top_left">Vlevo nahoře</string>
@@ -94,6 +98,11 @@
     <string name="gpu_low">Nízké (128)</string>
     <string name="gpu_medium">Střední (256)</string>
     <string name="gpu_high">Vysoké (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsia</string>
+    <string name="temperature_fahrenheit">Fahrenheita</string>
+
     <string name="use_fast_cpu_time">Rychlý čas CPU</string>
     <string name="use_fast_cpu_time_description">Nutí emulované CPU běžet na vyšší frekvenci, čímž snižuje některé limity FPS. Tato volba je nestabilní a může způsobit problémy a slabší CPU mohou mít snížený výkon.</string>
     <string name="fast_cpu_time">Taktování CPU</string>
@@ -105,6 +114,8 @@
     <string name="custom_cpu_ticks">Vlastní CPU takty</string>
     <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
     <string name="cpu_ticks">Takty</string>
+    <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
 
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
@@ -463,7 +474,7 @@
     <string name="anisotropic_filtering">Anizotropní filtrování</string>
     <string name="anisotropic_filtering_description">Zlepšení kvality textur</string>
 
-    <string name="warning_resolution">Zvýšení rozlišení nad 2x může způsobit problémy a může vést k výraznému zpomalení zařízení.</string>
+    <string name="warning_resolution">Zvětšení rozlišení na 2x nebo více může způsobit problémy a výrazné zpomalení zařízení.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

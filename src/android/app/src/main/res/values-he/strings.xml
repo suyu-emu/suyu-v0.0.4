@@ -11,6 +11,7 @@
     <string name="process_ram">זיכרון תהליך: %1$d MB</string>
     <string name="shaders_prefix">בונה</string>
     <string name="shaders_suffix">שיידר(ים)</string>
+    <string name="charging">(בטעינה)</string>
     <string name="system_info_label">מערכת:</string>
     <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
     <string name="stats_overlay_customization">התאמה אישית</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
     <string name="show_system_ram_usage_description">הצג את כמות ה-RAM שבה המערכת משתמשת</string>
     <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
-    <string name="show_bat_temperature_description">מציג טמפרטורת סוללה במעלות צלזיוס ופרנהייט</string>
+    <string name="show_bat_temperature_description">הצג טמפרטורת סוללה נוכחית</string>
+    <string name="bat_temperature_unit">יחידות טמפרטורת סוללה</string>
+    <string name="show_power_info">הצג מידע סוללה</string>
+    <string name="show_power_info_description">הצג צריכת חשמל נוכחית וקיבולת סוללה remaining</string>
     <string name="overlay_position">מיקום שכבה</string>
     <string name="overlay_position_description">בחר היכן להציג את שכבת הסטטיסטיקות על המסך</string>
     <string name="overlay_position_top_left">פינה עליונה שמאלית</string>
@@ -96,6 +100,11 @@
     <string name="gpu_low">נמוך (128)</string>
     <string name="gpu_medium">בינוני (256)</string>
     <string name="gpu_high">גבוה (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">צלזיוס</string>
+    <string name="temperature_fahrenheit">פרנהייט</string>
+
     <string name="use_fast_cpu_time">זמן CPU מהיר</string>
     <string name="use_fast_cpu_time_description">מכריח את ה-CPU המדומה לפעול במהירות שעון גבוהה יותר, מה שמפחית חלק ממגבילי ה-FPS. אפשרות זו אינה יציבה ועלולה לגרום לבעיות, ומעבדים חלשים יותר עשויים לראות ירידה בביצועים.</string>
     <string name="fast_cpu_time">מהירות שעון CPU</string>
@@ -107,6 +116,9 @@
     <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
     <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
     <string name="cpu_ticks">טיקים</string>
+    <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
+    <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
+
     <string name="memory_4gb">4GB (מומלץ)</string>
     <string name="memory_6gb">6GB (לא בטוח)</string>
     <string name="memory_8gb">8GB (לא בטוח)</string>
@@ -511,7 +523,7 @@
     <string name="anisotropic_filtering">סינון אנאיזוטרופי</string>
     <string name="anisotropic_filtering_description">משפר איכות טקסטורות בזוויות.</string>
 
-    <string name="warning_resolution">שינוי רזולוציה מעל 2x עלול לגרום לבעיות ולהוביל להאטה משמעותית של המכשיר שלך.</string>
+    <string name="warning_resolution">שינוי רזולוציה ל-2x או יותר עלול לגרום לבעיות ולעיכובים משמעותיים במכשיר שלך.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">מעבד</string>

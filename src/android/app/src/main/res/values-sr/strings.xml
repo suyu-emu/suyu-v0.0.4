@@ -108,6 +108,8 @@
     <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
     <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
     <string name="cpu_ticks">Тактови</string>
+    <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
+    <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>

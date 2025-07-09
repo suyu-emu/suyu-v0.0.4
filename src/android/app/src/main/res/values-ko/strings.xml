@@ -11,6 +11,7 @@
     <string name="process_ram">프로세스 RAM: %1$d MB</string>
     <string name="shaders_prefix">셰이더</string>
     <string name="shaders_suffix">빌드 중</string>
+    <string name="charging">(충전 중)</string>
     <string name="system_info_label">시스템:</string>
     <string name="show_stats_overlay">성능 통계 오버레이 표시</string>
     <string name="stats_overlay_customization">사용자 지정</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">시스템 RAM 사용량 표시</string>
     <string name="show_system_ram_usage_description">시스템이 사용 중인 RAM 양 표시</string>
     <string name="show_bat_temperature">배터리 온도 표시</string>
-    <string name="show_bat_temperature_description">현재 배터리 온도(°C/°F) 표시</string>
+    <string name="show_bat_temperature_description">현재 배터리 온도 표시</string>
+    <string name="bat_temperature_unit">배터리 온도 단위</string>
+    <string name="show_power_info">배터리 정보 표시</string>
+    <string name="show_power_info_description">현재 전력 소모량 및 배터리 잔량 표시</string>
     <string name="overlay_position">오버레이 위치</string>
     <string name="overlay_position_description">성능 통계 오버레이의 화면 표시 위치 선택</string>
     <string name="overlay_position_top_left">상단 왼쪽</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">낮음 (128)</string>
     <string name="gpu_medium">중간 (256)</string>
     <string name="gpu_high">높음 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">섭씨</string>
+    <string name="temperature_fahrenheit">화씨</string>
+
     <string name="use_fast_cpu_time">빠른 CPU 시간</string>
     <string name="use_fast_cpu_time_description">에뮬레이트된 CPU를 더 높은 클럭으로 실행하여 특정 FPS 제한기를 줄입니다. 이 옵션은 불안정하며 문제를 일으킬 수 있고, 약한 CPU는 성능 저하를 볼 수 있습니다.</string>
     <string name="fast_cpu_time">CPU 클럭</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
     <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
     <string name="cpu_ticks">틱</string>
+    <string name="skip_cpu_inner_invalidation">CPU 내부 무효화 건너뛰기</string>
+    <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
+
     <string name="memory_4gb">4GB (권장)</string>
     <string name="memory_6gb">6GB (안전하지 않음)</string>
     <string name="memory_8gb">8GB (안전하지 않음)</string>
@@ -505,7 +517,7 @@
     <string name="anisotropic_filtering">비등방성 필터링</string>
     <string name="anisotropic_filtering_description">경사각에서 보이는 텍스처의 품질을 향상시킵니다.</string>
 
-    <string name="warning_resolution">해상도 스케일링이 2x를 초과하면 문제가 발생할 수 있으며 기기 속도가 크게 저하될 수 있습니다.</string>
+    <string name="warning_resolution">해상도를 2x 이상으로 스케일링하면 문제가 발생할 수 있으며 기기가 크게 느려질 수 있습니다.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
