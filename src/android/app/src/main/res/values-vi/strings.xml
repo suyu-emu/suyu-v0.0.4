@@ -137,9 +137,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Backend Shader</string>
     <string name="shader_backend_description">Chọn cách biên dịch shader</string>
-    <string name="shader_backend_glsl">Đa năng</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Giả lập NVDEC</string>
@@ -148,8 +148,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tắt</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">Tối ưu SPIRV</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">Tối ưu Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Tối ưu hóa shader đã biên dịch để cải thiện hiệu suất GPU.</string>
     <string name="never">Không</string>
     <string name="on_load">Khi tải</string>

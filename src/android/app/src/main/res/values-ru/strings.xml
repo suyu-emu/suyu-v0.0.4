@@ -137,9 +137,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Шейдерный бэкенд</string>
     <string name="shader_backend_description">Метод компиляции шейдеров</string>
-    <string name="shader_backend_glsl">Универсальный</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Эмуляция NVDEC</string>
@@ -148,8 +148,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Отключено</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">Оптимизация SPIRV</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">Оптимизация Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Оптимизирует скомпилированный шейдер для повышения эффективности GPU.</string>
     <string name="never">Никогда</string>
     <string name="on_load">При загрузке</string>

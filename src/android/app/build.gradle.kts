@@ -116,7 +116,7 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
             isDefault = true
-            resValue("string", "app_name_suffixed", "eden Debug Release")
+            resValue("string", "app_name_suffixed", "Eden Debug Release")
             signingConfig = signingConfigs.getByName("default")
             isDebuggable = true
             proguardFiles(
@@ -132,7 +132,7 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
             signingConfig = signingConfigs.getByName("default")
-            resValue("string", "app_name_suffixed", "eden Debug")
+            resValue("string", "app_name_suffixed", "Eden Debug")
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
@@ -150,7 +150,7 @@ android {
 
             create("genshinSpoof") {
                 dimension = "version"
-                applicationId = "com.miHoYo.Yuanshen"  // Correct use of applicationId inside the flavor block
+                applicationId = "com.miHoYo.Yuanshen"
             }
         }
     }

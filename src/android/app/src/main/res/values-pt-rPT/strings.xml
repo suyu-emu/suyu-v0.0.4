@@ -137,9 +137,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Backend de Shader</string>
     <string name="shader_backend_description">Método de compilação de shaders.</string>
-    <string name="shader_backend_glsl">Universal</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulação NVDEC</string>
@@ -148,8 +148,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Nenhum</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">Otimizar SPIRV</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">Otimizar Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Otimiza o shader compilado para melhorar a eficiência da GPU.</string>
     <string name="never">Nunca</string>
     <string name="on_load">Ao Carregar</string>

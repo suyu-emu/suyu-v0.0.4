@@ -151,7 +151,7 @@ struct Values {
                                                 Category::LibraryApplet};
     Setting<AppletMode> player_select_applet_mode{
                                                   linkage, AppletMode::LLE, "player_select_applet_mode", Category::LibraryApplet};
-    Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::LLE, "swkbd_applet_mode",
+    Setting<AppletMode> swkbd_applet_mode{linkage, AppletMode::HLE, "swkbd_applet_mode",
                                           Category::LibraryApplet};
     Setting<AppletMode> mii_edit_applet_mode{linkage, AppletMode::LLE, "mii_edit_applet_mode",
                                              Category::LibraryApplet};
@@ -220,9 +220,9 @@ struct Values {
     SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core, Specialization::Default};
 
     // Memory
-    #ifdef ANDROID
+#ifdef HAS_NCE
     SwitchableSetting<bool> lru_cache_enabled{linkage, false, "use_lru_cache", Category::System};
-    #endif
+#endif
 
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
@@ -317,7 +317,7 @@ struct Values {
                                                               linkage,   RendererBackend::Vulkan, RendererBackend::OpenGL, RendererBackend::Null,
                                                               "backend", Category::Renderer};
     SwitchableSetting<ShaderBackend, true> shader_backend{
-                                                          linkage,          ShaderBackend::Glsl, ShaderBackend::Glsl,        ShaderBackend::SpirV,
+                                                          linkage,          ShaderBackend::SpirV, ShaderBackend::Glsl,        ShaderBackend::SpirV,
                                                           "shader_backend", Category::Renderer,  Specialization::RuntimeList};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
                                          Specialization::RuntimeList};
@@ -477,7 +477,7 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_fast_gpu_time{linkage,
-                                              true,
+                                              false,
                                               "use_fast_gpu_time",
                                               Category::RendererAdvanced,
                                               Specialization::Paired,

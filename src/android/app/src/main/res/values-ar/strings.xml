@@ -141,9 +141,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">خلفية Shader</string>
     <string name="shader_backend_description">اختيار طريقة ترجمة Shaders</string>
-    <string name="shader_backend_glsl">عام</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">محاكاة NVDEC</string>
@@ -152,8 +152,8 @@
     <string name="nvdec_emulation_gpu">وحدة المعالجة الرسومية</string>
     <string name="nvdec_emulation_none">لا شيء</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">تحسين SPIRV</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">تحسين Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">يحسن الشادر المترجم لزيادة كفاءة GPU.</string>
     <string name="never">أبداً</string>
     <string name="on_load">عند التحميل</string>

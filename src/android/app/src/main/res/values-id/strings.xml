@@ -137,9 +137,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Backend Shader</string>
     <string name="shader_backend_description">Pilih cara shader dikompilasi dan diterjemahkan untuk GPU Anda.</string>
-    <string name="shader_backend_glsl">Universal</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulasi NVDEC</string>
@@ -148,8 +148,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Tidak Ada</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">Optimalkan Output SPIRV</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">Optimalkan Output Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">Mengoptimalkan shader yang dikompilasi untuk meningkatkan efisiensi GPU.</string>
     <string name="never">Tidak Pernah</string>
     <string name="on_load">Saat Memuat</string>

@@ -130,12 +130,12 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SliderSetting(
+                SingleChoiceSetting(
                     ByteSetting.RENDERER_DYNA_STATE,
                     titleId = R.string.dyna_state,
                     descriptionId = R.string.dyna_state_description,
-                    min = 0,
-                    max = 3,
+                    choicesId = R.array.dynaStateEntries,
+                    valuesId = R.array.dynaStateValues
                 )
             )
             put(

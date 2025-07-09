@@ -137,9 +137,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Shader backend</string>
     <string name="shader_backend_description">Shaderek fordításának módja</string>
-    <string name="shader_backend_glsl">Univerzális</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC emuláció</string>
@@ -148,8 +148,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Nincs</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">SPIRV optimalizálás</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">Spir-V optimalizálás</string>
     <string name="renderer_optimize_spirv_output_description">Optimalizálja a lefordított shadert a GPU hatékonyságának javításáért.</string>
     <string name="never">Soha</string>
     <string name="on_load">Betöltéskor</string>

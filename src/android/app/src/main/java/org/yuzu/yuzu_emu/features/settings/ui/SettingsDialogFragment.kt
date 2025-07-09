@@ -154,6 +154,8 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     stringInputBinding.generate.setOnClickListener {
                         stringInputBinding.editText.setText(onGenerate())
                     }
+                } else {
+                    stringInputBinding.generate.isVisible = false
                 }
 
                 val validator = item.validator

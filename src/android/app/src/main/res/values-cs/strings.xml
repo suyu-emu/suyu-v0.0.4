@@ -137,9 +137,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Backend shaderů</string>
     <string name="shader_backend_description">Způsob kompilace shaderů</string>
-    <string name="shader_backend_glsl">Univerzální</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Emulace NVDEC</string>
@@ -148,8 +148,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Žádné</string>
 
-    <!-- Optimalizace SPIRV výstupu -->
-    <string name="renderer_optimize_spirv_output">Optimalizovat SPIRV výstup</string>
+    <!-- Optimalizace Spir-V výstupu -->
+    <string name="renderer_optimize_spirv_output">Optimalizovat Spir-V výstup</string>
     <string name="renderer_optimize_spirv_output_description">Optimalizuje zkompilovaný shader pro zvýšení efektivity GPU.</string>
     <string name="never">Nikdy</string>
     <string name="on_load">Při načtení</string>

@@ -481,4 +481,19 @@
         <item>0</item>
         <item>1</item>
     </integer-array>
+
+    <string-array name="dynaStateEntries">
+        <item>@string/disabled</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <integer-array name="dynaStateValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
 </resources>

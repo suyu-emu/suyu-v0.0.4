@@ -31,7 +31,7 @@ endif()
 
 # Generate cpp with Git revision from template
 # Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
-set(REPO_NAME "eden")
+set(REPO_NAME "Eden")
 set(BUILD_ID ${GIT_BRANCH})
 set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_VERSION} ")
 

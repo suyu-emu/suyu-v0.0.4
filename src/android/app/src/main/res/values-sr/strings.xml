@@ -112,9 +112,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>
     <string name="shader_backend_description">Изаберите како се сјеначици саставе и преведете за ваш ГПУ.</string>
-    <string name="shader_backend_glsl">Универзалан</string>
-    <string name="shader_backend_glasm">Мали</string>
-    <string name="shader_backend_spirv">Адрено / Ксцлипсе</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">НВДЕЦ Емулација</string>
@@ -123,7 +123,7 @@
     <string name="nvdec_emulation_gpu">ГПУ</string>
     <string name="nvdec_emulation_none">Ниједан</string>
 
-    <!-- Optimize SPIRV output -->
+    <!-- Optimize Spir-V output -->
     <string name="never">Невер</string>
     <string name="on_load">На оптерећење</string>
     <string name="always">Увек</string>

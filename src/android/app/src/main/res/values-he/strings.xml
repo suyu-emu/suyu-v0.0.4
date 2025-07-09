@@ -138,9 +138,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">מנוע שיידרים</string>
     <string name="shader_backend_description">בחר כיצד לקמפל שיידרים</string>
-    <string name="shader_backend_glsl">אוניברסלי</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">אמולציית NVDEC</string>
@@ -149,8 +149,8 @@
     <string name="nvdec_emulation_gpu">כרטיס מסך</string>
     <string name="nvdec_emulation_none">ללא</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">אופטימיזציית SPIRV</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">אופטימיזציית Spir-V</string>
     <string name="renderer_optimize_spirv_output_description">משפר את השאדר המהודר כדי להגביר את יעילות ה-GPU.</string>
     <string name="never">לעולם לא</string>
     <string name="on_load">בטעינה</string>

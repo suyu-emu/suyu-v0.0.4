@@ -75,6 +75,7 @@
     <string name="veil_extensions">GPU Extensions</string>
     <string name="dyna_state">Extended Dynamic State</string>
     <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats.</string>
+    <string name="disabled">Disabled</string>
     <string name="provoking_vertex">Provoking Vertex</string>
     <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
     <string name="descriptor_indexing">Descriptor Indexing</string>
@@ -105,7 +106,7 @@
     <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
-    <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it's performance. This may cause glitches or crashes on some games.</string>
+    <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving its performance. This may cause glitches or crashes on some games.</string>
     <string name="fast_cpu_time">CPU Clock</string>
     <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
     <string name="memory_layout">Memory Layout</string>
@@ -114,9 +115,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
     <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
-    <string name="shader_backend_glsl">Universal</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC Emulation</string>
@@ -125,7 +126,7 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">None</string>
 
-    <!-- Optimize SPIRV output -->
+    <!-- Optimize Spir-V output -->
     <string name="never">Never</string>
     <string name="on_load">On Load</string>
     <string name="always">Always</string>
@@ -484,8 +485,8 @@
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
     <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
-    <string name="renderer_optimize_spirv_output">Optimize SPIRV output</string>
-    <string name="renderer_optimize_spirv_output_description">Optimizes compiled shader to improve GPU efficiency.</string>
+    <string name="renderer_optimize_spirv_output">Optimize Spir-V output</string>
+    <string name="renderer_optimize_spirv_output_description">Optimizes compiled shaders to improve GPU efficiency, but may introduce longer loading times and initial slowdowns.</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously. This may reduce stutters but may also introduce glitches.</string>
     <string name="use_fast_gpu_time">Use Fast GPU Time</string>

@@ -142,9 +142,9 @@
     <!-- Shader Backend -->
     <string name="shader_backend">著色器後端</string>
     <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
-    <string name="shader_backend_glsl">通用</string>
-    <string name="shader_backend_glasm">Mali</string>
-    <string name="shader_backend_spirv">Adreno/Xclipse</string>
+    <string name="shader_backend_glsl">GLSL</string>
+    <string name="shader_backend_glasm">GLASM</string>string>
+    <string name="shader_backend_spirv">Spir-V</string>string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模擬</string>
@@ -153,8 +153,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">無</string>
 
-    <!-- Optimize SPIRV output -->
-    <string name="renderer_optimize_spirv_output">優化SPIRV輸出</string>
+    <!-- Optimize Spir-V output -->
+    <string name="renderer_optimize_spirv_output">優化Spir-V輸出</string>
     <string name="renderer_optimize_spirv_output_description">最佳化編譯後的著色器以提高GPU效率。</string>
     <string name="never">永不</string>
     <string name="on_load">載入時</string>
