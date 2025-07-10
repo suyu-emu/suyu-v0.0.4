@@ -64,14 +64,14 @@
 
     <!-- Eden`s Veil -->
     <string name="veil_extensions">Розширення GPU</string>
-    <string name="veil_renderer">Рендерер</string>
+    <string name="veil_renderer">Рендеринг</string>
     <string name="veil_misc">Різне</string>
     <string name="eden_veil">Завіса Eden</string>
     <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та сумісності. Ці налаштування можуть викликати збої, зокрема чорний екран.</string>
     <string name="eden_veil_warning_title">Експериментальні налаштування</string>
-    <string name="eden_veil_warning_description">Налаштування Завіси Eden (Eden\'s Veil) є дуже експериментальними та можуть спричинити проблеми. Якщо ваша гра не запускається — вимкніть усі розширення та змініть Розширений динамічний стан на 0.</string>
+    <string name="eden_veil_warning_description">Налаштування Завіси Eden (Eden\'s Veil) є експериментальними та можуть спричинити проблеми. Якщо ваша гра не запускається — вимкніть усі розширення та змініть \"Розширений динамічний стан\" на 0.</string>
     <string name="enable_raii">RAII</string>
-    <string name="enable_raii_description">Метод автоматичного керування ресурсами у Vulkan, який забезпечує правильне звільнення ресурсів, коли вони більше не потрібні, але може спричинити збої в зібраних іграх.</string>
+    <string name="enable_raii_description">Метод автоматичного керування ресурсами у Vulkan, який забезпечує правильне звільнення ресурсів після завершення їх використання, проте він може спричинити збої в ігрових збірниках.</string>
     <string name="frame_skipping">В розробці: Пропуск кадрів</string>
     <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
@@ -160,8 +160,8 @@
     <string name="nvdec_emulation_gpu">GPU</string>
     <string name="nvdec_emulation_none">Вимкнено</string>
 
-    <!-- Optimize Spir-V output -->
-    <string name="renderer_optimize_spirv_output">Оптимізація Spir-V</string>
+    <!-- Optimize SPIRV output -->
+    <string name="renderer_optimize_spirv_output">Оптимізація SPIRV</string>
     <string name="renderer_optimize_spirv_output_description">Оптимізує скомпільований шейдер для покращення ефективності GPU.</string>
     <string name="never">Ніколи</string>
     <string name="on_load">При завантаженні</string>
@@ -371,21 +371,21 @@
     <string name="import_saves">Імпорт</string>
     <string name="export_saves">Експорт</string>
     <string name="install_firmware">Встановити прошивку</string>
-    <string name="install_firmware_description">Прошивка має бути у ZIP-архіві та потрібна для запуску деяких ігор.</string>
+    <string name="install_firmware_description">Прошивка має бути у ZIP-архіві. Деякі ігри вимагають її наявності.</string>
     <string name="firmware_installing">Встановлення прошивки…</string>
     <string name="firmware_installed_success">Прошивку успішно встановлено</string>
     <string name="firmware_installed_failure">Помилка встановлення прошивки</string>
-    <string name="firmware_installed_failure_description">Переконайтеся, що файли прошивки знаходяться в корені ZIP-архіву, і повторіть спробу.</string>
+    <string name="firmware_installed_failure_description">Переконайтеся, що файли прошивки знаходяться в корені ZIP-архіву та повторіть спробу.</string>
     <string name="firmware_uninstalled_failure">Помилка видалення прошивки</string>
     <string name="share_log">Поділитися логами</string>
-    <string name="share_log_description">Поділіться файлом логу для діагностики проблем.</string>
+    <string name="share_log_description">Поділіться лог-файлом для діагностики та допомоги з проблемою.</string>
     <string name="share_log_missing">Файл логу не знайдено</string>
     <string name="install_game_content">Встановити вміст гри</string>
     <string name="install_game_content_description">Встановити оновлення або DLC</string>
     <string name="installing_game_content">Встановлення вмісту…</string>
     <string name="install_game_content_failure">Помилка встановлення вмісту</string>
-    <string name="install_game_content_failure_description">Переконайтеся, що вміст валідний, а файл prod.keys встановлено.</string>
-    <string name="install_game_content_failure_base">Встановлення основних ігор заборонено.</string>
+    <string name="install_game_content_failure_description">Переконайтеся, що вміст є дійсним та що файл prod.keys встановлено.</string>
+    <string name="install_game_content_failure_base">Встановлення базових ігор не дозволено з міркувань сумісності.</string>
     <string name="install_game_content_failure_file_extension">Підтримуються лише файли NSP та XCI.</string>
     <string name="install_game_content_failed_count">%1$d помилок встановлення</string>
     <string name="install_game_content_success">Вміст гри успішно встановлено</string>
@@ -397,11 +397,11 @@
     <string name="manage_yuzu_data_description">Імпорт/експорт прошивки, ключів, даних користувача та іншого.</string>
     <string name="share_save_file">Поділитися збереженням</string>
     <string name="export_save_failed">Помилка експорту збереження</string>
-    <string name="game_folders">Папки з іграми</string>
+    <string name="game_folders">Тека з іграми</string>
     <string name="deep_scan">Глибоке сканування</string>
-    <string name="add_game_folder">Додати папку з іграми</string>
-    <string name="folder_already_added">Цю папку вже додано!</string>
-    <string name="game_folder_properties">Властивості папки</string>
+    <string name="add_game_folder">Додати теку з іграми</string>
+    <string name="folder_already_added">Цю теку вже додано!</string>
+    <string name="game_folder_properties">Властивості теки</string>
     <plurals name="saves_import_failed">
         <item quantity="one">Не вдалося імпортувати %d збереження</item>
         <item quantity="other">Не вдалося імпортувати %d збережень</item>
@@ -416,7 +416,7 @@
     <string name="keys_missing">Відсутні ключі</string>
     <string name="keys_missing_description">Прошивку та роздрібні ігри не вдасться розшифрувати.</string>
     <string name="firmware_missing">Прошивка відсутня або занадто нова</string>
-    <string name="firmware_missing_description">Деякі ігри можуть працювати неправильно. Eden вимагає прошивку версії 19.0.1 або старішу.</string>
+    <string name="firmware_missing_description">Деякі ігри можуть працювати неправильно. Eden вимагає прошивку версії 19.0.1 або нижче.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -442,7 +442,7 @@
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia не існує</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
-    <string name="about_app_description">Емулятор Switch із відкритим першокодом</string>
+    <string name="about_app_description">Емулятор Switch із відкритим вихідним кодом</string>
     <string name="contributors">Вкладники</string>
     <string name="contributors_description">Зроблено з \u2764 від команди Eden</string>
     <string name="build">Збірка</string>
