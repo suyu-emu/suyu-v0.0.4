@@ -108,6 +108,8 @@
     <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
     <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
     <string name="cpu_ticks">Тактови</string>
+    <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
+    <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>
@@ -235,6 +237,9 @@
     <string name="keys">Тастери</string>
     <string name="keys_description">Изаберите свој и лт; &lt;b>prod.keys&lt;/b> датотека са дугметом испод.</string>
     <string name="select_keys">Изаберите тастере</string>
+    <string name="firmware">Фирмвер</string>
+    <string name="firmware_description">Изаберите свој <b>firmware.zip</b> фајл помоћу дугмета испод.\nEden тренутно захтева верзију <b>19.0.1</b> или старију.</string>
+    <string name="select_firmware">Изабери фирмвер</string>
     <string name="games">Игре</string>
     <string name="games_description">Изаберите свој и игре и ЛТ; Б> мапу са дугметом испод.</string>
     <string name="done">Доношен</string>
@@ -245,6 +250,8 @@
     <string name="add_games">Додајте игре</string>
     <string name="add_games_description">Одаберите фасциклу за игре</string>
     <string name="step_complete">Довршите!</string>
+    <string name="bluetooth_permissions_granted">Bluetooth дозволе одобрене.</string>
+    <string name="bluetooth_permissions_denied">Bluetooth дозволе одбијене. Подршка за контролере може бити ограничена.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">Азбучни</string>
@@ -274,6 +281,8 @@
     <string name="install_prod_keys_description">Потребан за дешифровање малопродајних игара</string>
     <string name="install_prod_keys_warning">Прескочите додавање тастера?</string>
     <string name="install_prod_keys_warning_description">Потребни су важећи тастери за опонашање малопродајних игара. Само хомебрев апликације ће функционисати ако наставите.</string>
+    <string name="install_firmware_warning">Прескочити додавање фирмвера?</string>
+    <string name="install_firmware_warning_description">Многе игре захтевају приступ фирмверу за правилно функционисање.</string>
     <string name="notifications">Обавештења</string>
     <string name="notifications_description">Одобрите дозволу за обавештење дугметом испод.</string>
     <string name="give_permission">Дозвола за одобрење</string>
@@ -371,12 +380,15 @@
     <string name="keys_missing">Шифра о шифрирањима недостају</string>
     <string name="keys_missing_description">Фирмваре и малопродајне игре не могу се дешифровати</string>
 
+    <string name="firmware_missing">Фирмвер недостаје или је превише нов</string>
+    <string name="firmware_missing_description">Неке игре можда неће радити исправно. Eden захтева фирмвер верзије 19.0.1 или старији.</string>
+
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Клаунцх</string>
     <string name="qlaunch_description">Покрените апликације са почетног екрана система</string>
     <string name="applets">Апплет бацач</string>
     <string name="applets_description">Покрените системске аплете помоћу инсталираног фирмвера</string>
-    <string name="applets_error_firmware">Фирмваре није инсталиран</string>
+    <string name="applets_error_firmware">Фирмвер није инсталиран или је неважећа верзија</string>
     <string name="applets_error_applet">Апплет није доступан</string>
     <string name="applets_error_description">prod.keys</string>
     <string name="album_applet">Албум</string>
@@ -471,7 +483,7 @@
     <string name="anisotropic_filtering">Анисотропни филтрирање</string>
     <string name="anisotropic_filtering_description">Побољшава квалитет текстура када се посматра у косим угловима</string>
 
-    <string name="warning_resolution">Познато је да скалирање резолуције изнад 2x изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
+    <string name="warning_resolution">Познато је да скалирање резолуције на 2x или више изазива проблеме и може довести до значајног успоравања вашег уређаја.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦПУ</string>

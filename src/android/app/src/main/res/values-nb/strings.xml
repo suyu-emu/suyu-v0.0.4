@@ -11,6 +11,7 @@
     <string name="process_ram">Prosess-RAM: %1$d MB</string>
     <string name="shaders_prefix">Bygger</string>
     <string name="shaders_suffix">shader(e)</string>
+    <string name="charging">(Lades)</string>
     <string name="system_info_label">System:</string>
     <string name="show_stats_overlay">Vis ytelsesstatistikkoverlay</string>
     <string name="stats_overlay_customization">Tilpasning</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Vis systemminnebruk</string>
     <string name="show_system_ram_usage_description">Vis hvor mye RAM systemet bruker</string>
     <string name="show_bat_temperature">Vis batteritemperatur</string>
-    <string name="show_bat_temperature_description">Vis batteritemperatur i Celsius og Fahrenheit</string>
+    <string name="show_bat_temperature_description">Vis gjeldende batteritemperatur</string>
+    <string name="bat_temperature_unit">Batteritemperatursenheter</string>
+    <string name="show_power_info">Vis batteriinfo</string>
+    <string name="show_power_info_description">Vis gjeldende strømforbruk og gjenværende batterikapasitet</string>
     <string name="overlay_position">Overlayposisjon</string>
     <string name="overlay_position_description">Velg hvor overlayet vises på skjermen</string>
     <string name="overlay_position_top_left">Øverst til venstre</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Lav (128)</string>
     <string name="gpu_medium">Middels (256)</string>
     <string name="gpu_high">Høy (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Rask CPU-tid</string>
     <string name="use_fast_cpu_time_description">Tvinger den emulerte CPU-en til å kjøre med høyere klokkehastighet, noe som reduserer visse FPS-begrensninger. Dette alternativet er ustabilt og kan forårsake problemer, og svakere CPU-er kan oppleve redusert ytelse.</string>
     <string name="fast_cpu_time">CPU-klokkehastighet</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
     <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
     <string name="cpu_ticks">Takter</string>
+    <string name="skip_cpu_inner_invalidation">Hopp over CPU intern invalidering</string>
+    <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
+
     <string name="memory_4gb">4GB (Anbefalt)</string>
     <string name="memory_6gb">6GB (Usikkert)</string>
     <string name="memory_8gb">8GB (Usikkert)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Nøkler</string>
     <string name="keys_description">Velg din &lt;b>prod.keys&lt;/b> fil ved å bruke knappen under.</string>
     <string name="select_keys">Velg nøkler</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Velg <b>firmware.zip</b>-filen din med knappen nedenfor.\nEden krever for tiden versjon <b>19.0.1</b> eller lavere.</string>
+    <string name="select_firmware">Velg Firmware</string>
     <string name="games">Spill</string>
     <string name="games_description">Velg din &lt;b>Spill&lt;/b> mappe ved å bruke knappen under.</string>
     <string name="done">Ferdig</string>
@@ -283,6 +298,9 @@
     <string name="back">Tilbake</string>
     <string name="add_games">Legg til spill</string>
     <string name="add_games_description">Velg din spillmappe</string>
+    <string name="bluetooth_permissions_granted">Bluetooth-tillatelser gitt.</string>
+    <string name="bluetooth_permissions_denied">Bluetooth-tillatelser avslått. Kontrollerstøtte kan være begrenset.</string>
+
     <!-- Home strings -->
     <string name="alphabetical">Alfabetisk</string>
     <string name="view_list">Liste</string>
@@ -309,6 +327,8 @@
     <string name="install_prod_keys_description">Nødvendig for å dekryptere spill</string>
     <string name="install_prod_keys_warning">Hoppe over å legge til nøkler?</string>
     <string name="install_prod_keys_warning_description">Gyldige nøkler er påkrevd for å emulere spill. Bare hjemmebryggede apper vil fungere hvis du fortsetter.</string>
+    <string name="install_firmware_warning">Hopp over tillegget av firmware?</string>
+    <string name="install_firmware_warning_description">Mange spill krever tilgang til firmware for å fungere skikkelig.</string>
     <string name="notifications">Varsler</string>
     <string name="notifications_description">Gi varslingstillatelse med knappen nedenfor.</string>
     <string name="give_permission">Gi tillatelse</string>
@@ -319,6 +339,7 @@
     <string name="about">Om</string>
     <string name="about_description">Byggeversjon, kildehenvisninger og mer</string>
     <string name="warning_help">Hjelp</string>
+    <string name="warning">Advarsel</string>
     <string name="warning_skip">Hopp over</string>
     <string name="warning_cancel">Avbryt</string>
     <string name="install_amiibo_keys">Installer Amiibo-nøkler</string>
@@ -362,15 +383,51 @@
     <string name="share_log_missing">Ingen loggfil funnet</string>
     <string name="install_game_content">Installer spillinnhold</string>
     <string name="install_game_content_description">Installer spilloppdateringer eller DLC</string>
+    <string name="installing_game_content">Installerer innhold…</string>
+    <string name="install_game_content_failure">Feil ved installasjon</string>
+    <string name="install_game_content_failure_description">Sørg for at innholdet er gyldig</string>
+    <string name="install_game_content_failure_base">Grunnspill kan ikke installeres</string>
+    <string name="install_game_content_failure_file_extension">Kun NSP og XCI støttes</string>
+    <string name="install_game_content_failed_count">%1$d installasjonsfeil</string>
+    <string name="install_game_content_success">Innhold installert</string>
+    <string name="install_game_content_success_install">%1$d installert</string>
+    <string name="install_game_content_success_overwrite">%1$d overskrevet</string>
+    <string name="custom_driver_not_supported">Egendefinert driver støttes ikke</string>
+    <string name="custom_driver_not_supported_description">Støtte mangler for denne enheten</string>
+    <string name="manage_yuzu_data">Administrer eden-data</string>
+    <string name="manage_yuzu_data_description">Importer/eksporter firmware, nøkler osv.</string>
+    <string name="share_save_file">Del lagringsfil</string>
+    <string name="export_save_failed">Feil ved eksport</string>
+    <string name="game_folders">Spillmapper</string>
+    <string name="deep_scan">Dyp skanning</string>
+    <string name="add_game_folder">Legg til spillmappe</string>
+    <string name="folder_already_added">Mappe allerede lagt til</string>
+    <string name="game_folder_properties">Mappeegenskaper</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Feil ved import av %d lagring</item>
+        <item quantity="other">Feil ved import av %d lagringer</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">%d lagring importert</item>
+        <item quantity="other">%d lagringer importert</item>
+    </plurals>
+    <string name="no_save_data_found">Ingen lagringsdata funnet</string>
+    <string name="verify_installed_content">Verifiser innhold</string>
+    <string name="verify_installed_content_description">Sjekk for korrupsjon</string>
+    <string name="keys_missing">Nøkler mangler</string>
+    <string name="keys_missing_description">Kan ikke dekryptere firmware/spill</string>
+    <string name="firmware_missing">Firmware mangler eller er for ny</string>
+    <string name="firmware_missing_description">Noen spill fungerer kanskje ikke skikkelig. Eden krever firmware 19.0.1 eller lavere.</string>
 
     <!-- Applet-lanseringsstrenger -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Start applikasjoner fra systemets hjemmeskjerm</string>
     <string name="applets">Applet-lanserer</string>
     <string name="applets_description">Start systemapplets</string>
-    <string name="applets_error_firmware">Firmware mangler</string>
+    <string name="applets_error_firmware">Firmware er ikke installert eller ugyldig versjon</string>
     <string name="applets_error_applet">Applet utilgjengelig</string>
-    <string name="applets_error_description"><![CDATA[Sørg for at <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> og <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> er installert]]></string>
+    <string name="applets_error_description"><![CDATA[Kontroller at <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>-filen din og
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> er installert og prøv igjen.<br>Kontroller også at firmwaren din er versjon 19.0.1 eller eldre.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Vis bilder i systemets fotovisning</string>
     <string name="mii_edit_applet">Mii-redigering</string>
@@ -426,8 +483,11 @@
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
     <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
     <string name="renderer_vsync">VSync-modus</string>
+    <string name="renderer_screen_layout">Orientering</string>
     <string name="renderer_aspect_ratio">Størrelsesforhold</string>
     <string name="renderer_scaling_filter">Filter for vindustilpasning</string>
+    <string name="fsr_sharpness">FSR-skarphet</string>
+    <string name="fsr_sharpness_description">Bestemmer bildekvalitet med FSR</string>
     <string name="renderer_anti_aliasing">Anti-aliasing-metode</string>
     <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
     <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
@@ -437,6 +497,10 @@
     <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
     <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
     <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
+    <string name="anisotropic_filtering">Anisotropisk filtrering</string>
+    <string name="anisotropic_filtering_description">Forbedrer teksturkvalitet</string>
+
+    <string name="warning_resolution">Oppskalering av oppløsning til 2x eller høyere kan forårsake problemer og føre til betydelig treghet på enheten.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

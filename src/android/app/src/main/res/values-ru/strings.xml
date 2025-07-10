@@ -11,6 +11,7 @@
     <string name="process_ram">RAM процесса: %1$d МБ</string>
     <string name="shaders_prefix">Компиляция</string>
     <string name="shaders_suffix">шейдеров</string>
+    <string name="charging">(Заряжается)</string>
     <string name="system_info_label">Система:</string>
     <string name="show_stats_overlay">Показать оверлей статистики</string>
     <string name="stats_overlay_customization">Настройки</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Показать RAM системы</string>
     <string name="show_system_ram_usage_description">Показать объем оперативной памяти, используемой системой</string>
     <string name="show_bat_temperature">Показать температуру батареи</string>
-    <string name="show_bat_temperature_description">Текущая температура батареи (°C/°F)</string>
+    <string name="show_bat_temperature_description">Показать текущую температуру аккумулятора</string>
+    <string name="bat_temperature_unit">Единицы температуры аккумулятора</string>
+    <string name="show_power_info">Показать информацию о батарее</string>
+    <string name="show_power_info_description">Показать текущее энергопотребление и оставшуюся емкость аккумулятора</string>
     <string name="overlay_position">Позиция оверлея</string>
     <string name="overlay_position_description">Расположение оверлея на экране</string>
     <string name="overlay_position_top_left">Сверху слева</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Низкий (128)</string>
     <string name="gpu_medium">Средний (256)</string>
     <string name="gpu_high">Высокий (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Цельсий</string>
+    <string name="temperature_fahrenheit">Фаренгейт</string>
+
     <string name="use_fast_cpu_time">Быстрое время CPU</string>
     <string name="use_fast_cpu_time_description">Заставляет эмулируемый процессор работать на более высокой частоте, уменьшая некоторые ограничители FPS. Эта опция нестабильна и может вызывать проблемы, а более слабые процессоры могут показывать снижение производительности.</string>
     <string name="fast_cpu_time">Тактовая частота CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Пользовательские такты CPU</string>
     <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов CPU. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
     <string name="cpu_ticks">Такты</string>
+    <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне CPU при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
     <string name="memory_8gb">8 ГБ (Небезопасно)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Ключи</string>
     <string name="keys_description">Выберите ваш файл &lt;b>prod.keys&lt;/b> с помощью кнопки ниже.</string>
     <string name="select_keys">Выбрать ключи</string>
+    <string name="firmware">Прошивка</string>
+    <string name="firmware_description">Выберите файл <b>firmware.zip</b> с помощью кнопки ниже.\nВ настоящее время Eden требует версию <b>19.0.1</b> или ниже.</string>
+    <string name="select_firmware">Выбрать прошивку</string>
     <string name="games">Игры</string>
     <string name="games_description">Выберите вашу папку с &lt;b>играми&lt;/b> с помощью кнопки ниже.</string>
     <string name="done">Готово</string>
@@ -284,6 +299,8 @@
     <string name="add_games">Добавить игры</string>
     <string name="add_games_description">Выберите папку с играми</string>
     <string name="step_complete">Выполнено!</string>
+    <string name="bluetooth_permissions_granted">Разрешения Bluetooth предоставлены.</string>
+    <string name="bluetooth_permissions_denied">Разрешения Bluetooth отклонены. Поддержка контроллера может быть ограничена.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">По алфавиту</string>
@@ -312,6 +329,8 @@
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
     <string name="install_prod_keys_warning">Пропустить добавление ключей?</string>
     <string name="install_prod_keys_warning_description">Для эмуляции розничных игр требуются действительные ключи. Если вы продолжите, будут работать только homebrew приложения.</string>
+    <string name="install_firmware_warning">Пропустить добавление прошивки?</string>
+    <string name="install_firmware_warning_description">Многим играм требуется доступ к прошивке для правильной работы.</string>
     <string name="notifications">Уведомления</string>
     <string name="notifications_description">Предоставьте разрешение уведомлений с помощью кнопки ниже.</string>
     <string name="give_permission">Предоставить разрешение</string>
@@ -322,6 +341,7 @@
     <string name="about">О нас</string>
     <string name="about_description">Версия сборки, титры и другое</string>
     <string name="warning_help">Помощь</string>
+    <string name="warning">Предупреждение</string>
     <string name="warning_skip">Пропустить</string>
     <string name="warning_cancel">Отмена</string>
     <string name="install_amiibo_keys">Установить ключи Amiibo</string>
@@ -410,15 +430,18 @@
     <string name="verify_installed_content_description">Проверяет весь установленный контент на наличие повреждений</string>
     <string name="keys_missing">Отсутствуют ключи шифрования</string>
     <string name="keys_missing_description">Прошивка и розничные игры не могут быть расшифрованы</string>
+    <string name="firmware_missing">Прошивка отсутствует или слишком новая</string>
+    <string name="firmware_missing_description">Некоторые игры могут работать некорректно. Eden требует прошивку версии 19.0.1 или ниже.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Запуск приложений с домашнего экрана системы</string>
     <string name="applets">Запуск апплета</string>
     <string name="applets_description">Запуск системных апплетов на установленной прошивке</string>
-    <string name="applets_error_firmware">Прошивка не установлена</string>
+    <string name="applets_error_firmware">Прошивка не установлена или неверная версия</string>
     <string name="applets_error_applet">Апплет недоступен</string>
-    <string name="applets_error_description"><![CDATA[Пожалуйста, убедитесь, что ваш <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> установлены и попробуйте еще раз.]]></string>
+    <string name="applets_error_description"><![CDATA[Убедитесь, что файлы <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> и
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> установлены, и попробуйте снова.<br>Также убедитесь, что ваша прошивка версии 19.0.1 или ниже.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Просмотрите изображения, сохраненные в папке скриншотов пользователя, с помощью системного просмотрщика фотографий.</string>
     <string name="mii_edit_applet">Mii редактор</string>
@@ -502,6 +525,8 @@
     <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
     <string name="anisotropic_filtering">Анизотропная фильтрация</string>
     <string name="anisotropic_filtering_description">Улучшает качество текстур под углом</string>
+
+    <string name="warning_resolution">Масштабирование разрешения до 2x или выше может вызвать проблемы и привести к значительному замедлению работы устройства.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">ЦП</string>

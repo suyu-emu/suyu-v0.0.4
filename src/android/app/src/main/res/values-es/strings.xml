@@ -11,6 +11,7 @@
     <string name="process_ram">RAM de proceso: %1$d MB</string>
     <string name="shaders_prefix">Compilando</string>
     <string name="shaders_suffix">shader(s)</string>
+    <string name="charging">(Cargando)</string>
     <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostrar superposición de estadísticas de rendimiento</string>
     <string name="stats_overlay_customization">Personalización</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Mostrar uso de RAM del sistema</string>
     <string name="show_system_ram_usage_description">Mostrar la cantidad de RAM utilizada por el sistema</string>
     <string name="show_bat_temperature">Mostrar temperatura de batería</string>
-    <string name="show_bat_temperature_description">Mostrar temperatura en Celsius y Fahrenheit</string>
+    <string name="show_bat_temperature_description">Mostrar temperatura actual de la batería</string>
+    <string name="bat_temperature_unit">Unidades de temperatura de la batería</string>
+    <string name="show_power_info">Mostrar información de la batería</string>
+    <string name="show_power_info_description">Mostrar consumo actual de energía y capacidad restante de la batería</string>
     <string name="overlay_position">Posición de la superposición</string>
     <string name="overlay_position_description">Elegir posición en pantalla</string>
     <string name="overlay_position_top_left">Superior izquierda</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Bajo (128)</string>
     <string name="gpu_medium">Medio (256)</string>
     <string name="gpu_high">Alto (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Tiempo de CPU rápido</string>
     <string name="use_fast_cpu_time_description">Fuerza a la CPU emulada a funcionar a una velocidad de reloj más alta, reduciendo ciertos limitadores de FPS. Esta opción es inestable y puede causar problemas, y CPUs más débiles pueden ver un rendimiento reducido.</string>
     <string name="fast_cpu_time">Reloj de CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Establece un valor personalizado de ticks de CPU. Valores más altos pueden aumentar el rendimiento, pero también pueden hacer que el juego se congele. Se recomienda un rango de 77–21000.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché durante actualizaciones de memoria, reduciendo el uso de CPU y mejorando su rendimiento. Puede causar fallos en algunos juegos.</string>
+
     <string name="memory_4gb">4GB (Recomendado)</string>
     <string name="memory_6gb">6GB (Inseguro)</string>
     <string name="memory_8gb">8GB (Inseguro)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Claves</string>
     <string name="keys_description">Selecciona el archivo &lt;b>prod.keys&lt;/b> utilizando el botón de abajo.</string>
     <string name="select_keys">Seleccionar las claves</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Selecciona tu archivo <b>firmware.zip</b> con el botón de abajo.\nEden actualmente requiere la versión <b>19.0.1</b> o inferior.</string>
+    <string name="select_firmware">Seleccionar firmware</string>
     <string name="games">Juegos</string>
     <string name="games_description">Selecciona la carpeta &lt;b>Games&lt;/b> utilizando el botón de abajo</string>
     <string name="done">Hecho</string>
@@ -284,6 +299,8 @@
     <string name="add_games">Añadir Juegos</string>
     <string name="add_games_description">Selecciona la carpeta de juegos</string>
     <string name="step_complete">¡Completado!</string>
+    <string name="bluetooth_permissions_granted">Permisos de Bluetooth concedidos.</string>
+    <string name="bluetooth_permissions_denied">Permisos de Bluetooth denegados. El soporte para controladores puede ser limitado.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">Alfabético</string>
@@ -313,6 +330,8 @@
     <string name="install_prod_keys_description">Requerido para descifrar juegos</string>
     <string name="install_prod_keys_warning">¿Omitir agregar claves?</string>
     <string name="install_prod_keys_warning_description">Se requieren claves válidas para emular juegos. Solo las aplicaciones homebrew funcionarán si continúas.</string>
+    <string name="install_firmware_warning">¿Omitir la adición del firmware?</string>
+    <string name="install_firmware_warning_description">Muchos juegos requieren acceso al firmware para funcionar correctamente.</string>
     <string name="notifications">Notificaciones</string>
     <string name="notifications_description">Otorga el permiso de notificación con el botón de abajo.</string>
     <string name="give_permission">Conceder permiso</string>
@@ -323,6 +342,7 @@
     <string name="about">Acerca de</string>
     <string name="about_description">Versión, créditos y más</string>
     <string name="warning_help">Ayuda</string>
+    <string name="warning">Advertencia</string>
     <string name="warning_skip">Siguiente</string>
     <string name="warning_cancel">Cancelar</string>
     <string name="install_amiibo_keys">Instalar claves de Amiibo</string>
@@ -408,15 +428,18 @@
     <string name="verify_installed_content_description">Comprueba todo el contenido instalado por si hubiese alguno corrupto</string>
     <string name="keys_missing">Faltan las claves de encriptación</string>
     <string name="keys_missing_description">El firmware y los juegos no se pueden desencriptar</string>
+    <string name="firmware_missing">Falta el firmware o es demasiado nuevo</string>
+    <string name="firmware_missing_description">Algunos juegos pueden no funcionar correctamente. Eden requiere firmware 19.0.1 o inferior.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Iniciar aplicaciones desde la pantalla de inicio del sistema</string>
     <string name="applets">Ejecutador de applet</string>
     <string name="applets_description">Ejecutar applets de sistema usando el firmware instalado</string>
-    <string name="applets_error_firmware">Firmware no instalado</string>
+    <string name="applets_error_firmware">Firmware no instalado o versión inválida</string>
     <string name="applets_error_applet">Applet no disponible</string>
-    <string name="applets_error_description"><![CDATA[Asegúrese de que el archivo<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> y el <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> estén instalados e inténtelo de nuevo.]]></string>
+    <string name="applets_error_description"><![CDATA[Por favor, asegúrate de que tu archivo <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> y
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> estén instalados e inténtalo de nuevo.<br>Además, asegúrate de que tu firmware sea de la versión 19.0.1 o anterior.]]></string>
     <string name="album_applet">Álbum</string>
     <string name="album_applet_description">Ver las imágenes que están en la carpeta \"screenshots\" del usuario con el visor de fotos del sistema</string>
     <string name="mii_edit_applet">Editor de Mii</string>
@@ -500,6 +523,8 @@
     <string name="use_disk_shader_cache_description">Reduce los parones almacenando y cargando shaders generados.</string>
     <string name="anisotropic_filtering">Filtrado anisotrópico</string>
     <string name="anisotropic_filtering_description">Mejora la calidad de las texturas al ser observadas desde ángulos oblicuos</string>
+
+    <string name="warning_resolution">Escalar la resolución a 2x o más puede causar problemas y ralentizar significativamente tu dispositivo.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

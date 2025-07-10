@@ -11,6 +11,7 @@
     <string name="process_ram">RAM процесу: %1$d МБ</string>
     <string name="shaders_prefix">Компіляція</string>
     <string name="shaders_suffix">Шейдер(и)</string>
+    <string name="charging">(Заряджається)</string>
     <string name="system_info_label">Система:</string>
     <string name="show_stats_overlay">Показувати оверлей продуктивності</string>
     <string name="stats_overlay_customization">Налаштування</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Показати системну RAM</string>
     <string name="show_system_ram_usage_description">Показати обсяг оперативної пам’яті, яку використовує система</string>
     <string name="show_bat_temperature">Показати температуру батареї</string>
-    <string name="show_bat_temperature_description">Відображати температуру батареї</string>
+    <string name="show_bat_temperature_description">Показати поточну температуру акумулятора</string>
+    <string name="bat_temperature_unit">Одиниці виміру температури акумулятора</string>
+    <string name="show_power_info">Показати інформацію про акумулятор</string>
+    <string name="show_power_info_description">Показати поточне споживання енергії та залишкову ємність акумулятора</string>
     <string name="overlay_position">Позиція оверлею</string>
     <string name="overlay_position_description">Обрати розташування виводу статистики на екрані</string>
     <string name="overlay_position_top_left">Вгорі ліворуч</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Низький (128)</string>
     <string name="gpu_medium">Середній (256)</string>
     <string name="gpu_high">Високий (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Цельсій</string>
+    <string name="temperature_fahrenheit">Фаренгейт</string>
+
     <string name="use_fast_cpu_time">Швидкий час CPU</string>
     <string name="use_fast_cpu_time_description">Змушує емульований процесор працювати на вищій тактовій частоті, зменшуючи деякі обмежувачі FPS. Ця опція нестабільна і може спричинити проблеми, а слабші CPU можуть мати знижену продуктивність.</string>
     <string name="fast_cpu_time">Тактова частота CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Користувацькі такти CPU</string>
     <string name="custom_cpu_ticks_description">Встановіть користувацьке значення тактів CPU. Вищі значення можуть покращити продуктивність, але також можуть спричинити зависання гри. Рекомендується діапазон 77–21000.</string>
     <string name="cpu_ticks">Такти</string>
+    <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
+
     <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
     <string name="memory_6gb">6 ГБ (Небезпечно)</string>
     <string name="memory_8gb">8 ГБ (Небезпечно)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Ключі</string>
     <string name="keys_description">Виберіть ваш файл &lt;b>prod.keys&lt;/b> за допомогою кнопки нижче.</string>
     <string name="select_keys">Вибрати ключі</string>
+    <string name="firmware">Прошивка</string>
+    <string name="firmware_description">Виберіть файл <b>firmware.zip</b> за допомогою кнопки нижче.\nЗараз Eden вимагає версію <b>19.0.1</b> або старішу.</string>
+    <string name="select_firmware">Вибрати прошивку</string>
     <string name="games">Ігри</string>
     <string name="games_description">Виберіть вашу теку з &lt;b>іграми&lt;/b> за допомогою кнопки нижче.</string>
     <string name="done">Готово</string>
@@ -283,6 +298,9 @@
     <string name="back">Назад</string>
     <string name="add_games">Додати ігри</string>
     <string name="add_games_description">Виберіть теку з іграми</string>
+    <string name="bluetooth_permissions_granted">Дозволи Bluetooth надано.</string>
+    <string name="bluetooth_permissions_denied">Дозволи Bluetooth відхилено. Підтримка контролерів може бути обмежена.</string>
+
     <!-- Home strings -->
     <string name="alphabetical">За алфавітом</string>
     <string name="view_list">Список</string>
@@ -309,6 +327,8 @@
     <string name="install_prod_keys_description">Потрібно для розшифровки роздрібних ігор</string>
     <string name="install_prod_keys_warning">Пропустити додавання ключів?</string>
     <string name="install_prod_keys_warning_description">Для емуляції роздрібних ігор потрібні дійсні ключі. Якщо ви продовжите, працюватимуть тільки homebrew додатки.</string>
+    <string name="install_firmware_warning">Пропустити додавання прошивки?</string>
+    <string name="install_firmware_warning_description">Багато ігор вимагають доступу до прошивки для правильної роботи.</string>
     <string name="notifications">Сповіщення</string>
     <string name="notifications_description">Надайте дозвіл сповіщень за допомогою кнопки нижче.</string>
     <string name="give_permission">Надати дозвіл</string>
@@ -319,6 +339,7 @@
     <string name="about">Про нас</string>
     <string name="about_description">Версія збірки, титри та інше</string>
     <string name="warning_help">Допомога</string>
+    <string name="warning">Попередження</string>
     <string name="warning_skip">Пропустити</string>
     <string name="warning_cancel">Відміна</string>
     <string name="install_amiibo_keys">Встановити ключі Amiibo</string>
@@ -349,15 +370,63 @@
     <string name="save_file_invalid_zip_structure_description">Назва підтеки має бути ідентифікатором гри (title ID).</string>
     <string name="import_saves">Імпорт</string>
     <string name="export_saves">Експорт</string>
+    <string name="install_firmware">Встановити прошивку</string>
+    <string name="install_firmware_description">Прошивка має бути у ZIP-архіві та потрібна для запуску деяких ігор.</string>
+    <string name="firmware_installing">Встановлення прошивки…</string>
+    <string name="firmware_installed_success">Прошивку успішно встановлено</string>
+    <string name="firmware_installed_failure">Помилка встановлення прошивки</string>
+    <string name="firmware_installed_failure_description">Переконайтеся, що файли прошивки знаходяться в корені ZIP-архіву, і повторіть спробу.</string>
+    <string name="firmware_uninstalled_failure">Помилка видалення прошивки</string>
+    <string name="share_log">Поділитися логами</string>
+    <string name="share_log_description">Поділіться файлом логу для діагностики проблем.</string>
+    <string name="share_log_missing">Файл логу не знайдено</string>
+    <string name="install_game_content">Встановити вміст гри</string>
+    <string name="install_game_content_description">Встановити оновлення або DLC</string>
+    <string name="installing_game_content">Встановлення вмісту…</string>
+    <string name="install_game_content_failure">Помилка встановлення вмісту</string>
+    <string name="install_game_content_failure_description">Переконайтеся, що вміст валідний, а файл prod.keys встановлено.</string>
+    <string name="install_game_content_failure_base">Встановлення основних ігор заборонено.</string>
+    <string name="install_game_content_failure_file_extension">Підтримуються лише файли NSP та XCI.</string>
+    <string name="install_game_content_failed_count">%1$d помилок встановлення</string>
+    <string name="install_game_content_success">Вміст гри успішно встановлено</string>
+    <string name="install_game_content_success_install">%1$d успішно встановлено</string>
+    <string name="install_game_content_success_overwrite">%1$d перезаписано</string>
+    <string name="custom_driver_not_supported">Спеціальні драйвери не підтримуються</string>
+    <string name="custom_driver_not_supported_description">Завантаження спеціальних драйверів на цьому пристрої зараз недоступне.</string>
+    <string name="manage_yuzu_data">Керування даними eden</string>
+    <string name="manage_yuzu_data_description">Імпорт/експорт прошивки, ключів, даних користувача та іншого.</string>
+    <string name="share_save_file">Поділитися збереженням</string>
+    <string name="export_save_failed">Помилка експорту збереження</string>
+    <string name="game_folders">Папки з іграми</string>
+    <string name="deep_scan">Глибоке сканування</string>
+    <string name="add_game_folder">Додати папку з іграми</string>
+    <string name="folder_already_added">Цю папку вже додано!</string>
+    <string name="game_folder_properties">Властивості папки</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Не вдалося імпортувати %d збереження</item>
+        <item quantity="other">Не вдалося імпортувати %d збережень</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Успішно імпортовано %d збереження</item>
+        <item quantity="other">Успішно імпортовано %d збережень</item>
+    </plurals>
+    <string name="no_save_data_found">Збережень не знайдено</string>
+    <string name="verify_installed_content">Перевірити встановлений вміст</string>
+    <string name="verify_installed_content_description">Перевіряє встановлений вміст на наявність помилок.</string>
+    <string name="keys_missing">Відсутні ключі</string>
+    <string name="keys_missing_description">Прошивку та роздрібні ігри не вдасться розшифрувати.</string>
+    <string name="firmware_missing">Прошивка відсутня або занадто нова</string>
+    <string name="firmware_missing_description">Деякі ігри можуть працювати неправильно. Eden вимагає прошивку версії 19.0.1 або старішу.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Запуск додатків з домашнього екрану системи</string>
     <string name="applets">Аплети</string>
     <string name="applets_description">Запуск системних аплетів за допомогою прошивки.</string>
-    <string name="applets_error_firmware">Прошивка не встановлена</string>
+    <string name="applets_error_firmware">Прошивка не встановлена або недійсна версія</string>
     <string name="applets_error_applet">Аплет недоступний</string>
-    <string name="applets_error_description"><![CDATA[Переконайтеся, що файл <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> та <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> встановлені.]]></string>
+    <string name="applets_error_description"><![CDATA[Переконайтеся, що ваш файл <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> та
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> встановлені, і спробуйте ще раз.<br>Також переконайтеся, що ваша прошивка має версію 19.0.1 або старішу.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Перегляд зображень у папці скріншотів.</string>
     <string name="mii_edit_applet">Редактор Mii</string>
@@ -429,6 +498,8 @@
     <string name="use_disk_shader_cache_description">Зменшує затримки шляхом збереження шейдерів.</string>
     <string name="anisotropic_filtering">Анізотропне фільтрування</string>
     <string name="anisotropic_filtering_description">Покращує якість текстур під кутом.</string>
+
+    <string name="warning_resolution">Масштабування роздільної здатності до 2x або вище може спричинити проблеми та значно сповільнити роботу пристрою.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

@@ -70,10 +70,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val granted = permissions.entries.all { it.value }
             if (granted) {
                 // Permissions were granted.
-                android.widget.Toast.makeText(this, "Bluetooth permissions granted.", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.bluetooth_permissions_granted, Toast.LENGTH_SHORT).show()
             } else {
                 // Permissions were denied.
-                android.widget.Toast.makeText(this, "Bluetooth permissions denied. Controller support may be limited.", android.widget.Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.bluetooth_permissions_denied, Toast.LENGTH_LONG).show()
             }
         }
 

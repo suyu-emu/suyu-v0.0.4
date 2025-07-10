@@ -11,6 +11,7 @@
     <string name="process_ram">进程内存: %1$d MB</string>
     <string name="shaders_prefix">正在编译</string>
     <string name="shaders_suffix">着色器</string>
+    <string name="charging">(充电中)</string>
     <string name="system_info_label">系统:</string>
     <string name="show_stats_overlay">显示性能统计悬浮窗</string>
     <string name="stats_overlay_customization">自定义</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">显示系统内存占用</string>
     <string name="show_system_ram_usage_description">显示系统使用的内存量</string>
     <string name="show_bat_temperature">显示电池温度</string>
-    <string name="show_bat_temperature_description">显示当前电池温度(℃/℉)</string>
+    <string name="show_bat_temperature_description">显示当前电池温度</string>
+    <string name="bat_temperature_unit">电池温度单位</string>
+    <string name="show_power_info">显示电池信息</string>
+    <string name="show_power_info_description">显示当前功耗和电池剩余容量</string>
     <string name="overlay_position">悬浮窗位置</string>
     <string name="overlay_position_description">选择悬浮窗在屏幕上的显示位置</string>
     <string name="overlay_position_top_left">左上</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">低 (128)</string>
     <string name="gpu_medium">中 (256)</string>
     <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">摄氏度</string>
+    <string name="temperature_fahrenheit">华氏度</string>
+
     <string name="use_fast_cpu_time">快速 CPU 时间</string>
     <string name="use_fast_cpu_time_description">强制模拟 CPU 以更高的时钟速度运行，减少某些 FPS 限制器。此选项不稳定，可能会导致问题，较弱的 CPU 可能会看到性能下降。</string>
     <string name="fast_cpu_time">CPU 时钟</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">自定义CPU时钟</string>
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>
+    <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
+    <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
+
     <string name="memory_4gb">4GB (推荐)</string>
     <string name="memory_6gb">6GB (不安全)</string>
     <string name="memory_8gb">8GB (不安全)</string>
@@ -274,6 +286,9 @@
     <string name="keys">密钥文件</string>
     <string name="keys_description">使用下方的按钮来选择你的 &lt;b>prod.keys&lt;/b> 文件。</string>
     <string name="select_keys">选择密钥文件</string>
+    <string name="firmware">固件</string>
+    <string name="firmware_description">使用下方按钮选择您的<b>firmware.zip</b>文件。\n当前Eden需要<b>19.0.1</b>或更低版本。</string>
+    <string name="select_firmware">选择固件</string>
     <string name="games">游戏</string>
     <string name="games_description">使用下方的按钮选择你的&lt;b>游戏&lt;/b>文件夹。</string>
     <string name="done">完成</string>
@@ -284,6 +299,8 @@
     <string name="add_games">添加游戏</string>
     <string name="add_games_description">选择你的游戏文件夹</string>
     <string name="step_complete">完成！</string>
+    <string name="bluetooth_permissions_granted">蓝牙权限已授予。</string>
+    <string name="bluetooth_permissions_denied">蓝牙权限被拒绝。控制器支持可能受限。</string>
 
     <!-- Home strings -->
     <string name="alphabetical">字母顺序</string>
@@ -312,6 +329,8 @@
     <string name="install_prod_keys_description">需要密钥文件来解密游戏</string>
     <string name="install_prod_keys_warning">跳过添加密钥文件？</string>
     <string name="install_prod_keys_warning_description">对于商业游戏，需要有效的密钥文件才能运行。如果没有密钥文件，将只能运行自制软件。</string>
+    <string name="install_firmware_warning">跳过添加固件？</string>
+    <string name="install_firmware_warning_description">许多游戏需要访问固件才能正常运行。</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">使用下方的按钮授予通知权限。</string>
     <string name="give_permission">授予权限</string>
@@ -322,6 +341,7 @@
     <string name="about">关于</string>
     <string name="about_description">开发版本、贡献者、以及更多</string>
     <string name="warning_help">帮助</string>
+    <string name="warning">警告</string>
     <string name="warning_skip">跳过</string>
     <string name="warning_cancel">取消</string>
     <string name="install_amiibo_keys">安装 Amiibo 密钥文件</string>
@@ -403,15 +423,18 @@
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
+    <string name="firmware_missing">固件缺失或版本过新</string>
+    <string name="firmware_missing_description">某些游戏可能无法正常运行。Eden需要19.0.1或更低版本的固件。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">从系统主屏幕启动应用程序</string>
     <string name="applets">小程序启动器</string>
     <string name="applets_description">使用已安装的固件启动系统小程序</string>
-    <string name="applets_error_firmware">未安装固件</string>
+    <string name="applets_error_firmware">固件未安装或版本无效</string>
     <string name="applets_error_applet">小程序不可用</string>
-    <string name="applets_error_description"><![CDATA[请确保 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件和<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装，然后再试一次。]]></string>
+    <string name="applets_error_description"><![CDATA[请确保您的<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>文件和
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">固件</a>已安装并重试。<br>同时请确保您的固件版本为19.0.1或更早。]]></string>
     <string name="album_applet">相册</string>
     <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -495,6 +518,8 @@
     <string name="use_disk_shader_cache_description">将生成的着色器缓存于磁盘中并进行读取，以减少卡顿。</string>
     <string name="anisotropic_filtering">各向异性过滤</string>
     <string name="anisotropic_filtering_description">提高斜角的纹理质量</string>
+
+    <string name="warning_resolution">分辨率缩放至2倍或更高可能会导致问题，并可能显著降低设备速度。</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

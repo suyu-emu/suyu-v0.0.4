@@ -11,6 +11,7 @@
     <string name="process_ram">RAM tiến trình: %1$d MB</string>
     <string name="shaders_prefix">Đang xây dựng</string>
     <string name="shaders_suffix">shader</string>
+    <string name="charging">(Đang sạc)</string>
     <string name="system_info_label">Hệ thống:</string>
     <string name="show_stats_overlay">Hiển thị thống kê hiệu suất</string>
     <string name="stats_overlay_customization">Tùy chỉnh</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Hiển thị RAM hệ thống</string>
     <string name="show_system_ram_usage_description">Hiển thị lượng RAM được hệ thống sử dụng</string>
     <string name="show_bat_temperature">Hiển thị nhiệt độ pin</string>
-    <string name="show_bat_temperature_description">Hiển thị nhiệt độ pin (Celsius/Fahrenheit)</string>
+    <string name="show_bat_temperature_description">Hiển thị nhiệt độ pin hiện tại</string>
+    <string name="bat_temperature_unit">Đơn vị nhiệt độ pin</string>
+    <string name="show_power_info">Hiển thị thông tin pin</string>
+    <string name="show_power_info_description">Hiển thị mức tiêu thụ điện hiện tại và dung lượng pin còn lại</string>
     <string name="overlay_position">Vị trí overlay</string>
     <string name="overlay_position_description">Chọn vị trí hiển thị overlay</string>
     <string name="overlay_position_top_left">Trên trái</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Thấp (128)</string>
     <string name="gpu_medium">Trung bình (256)</string>
     <string name="gpu_high">Cao (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Thời gian CPU nhanh</string>
     <string name="use_fast_cpu_time_description">Buộc CPU mô phỏng chạy ở tốc độ xung nhịp cao hơn, giảm một số giới hạn FPS. Tùy chọn này không ổn định và có thể gây ra sự cố, và CPU yếu hơn có thể thấy hiệu suất giảm.</string>
     <string name="fast_cpu_time">Tốc độ xung nhịp CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
     <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
     <string name="cpu_ticks">Tích</string>
+    <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+
     <string name="memory_4gb">4GB (Được đề xuất)</string>
     <string name="memory_6gb">6GB (Không an toàn)</string>
     <string name="memory_8gb">8GB (Không an toàn)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Chìa khóa</string>
     <string name="keys_description">Chọn file &lt;b>prod.keys&lt;/b> của bạn bằng nút bên dưới.</string>
     <string name="select_keys">Chọn Chìa khóa</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Chọn file <b>firmware.zip</b> của bạn bằng nút bên dưới.\nHiện Eden yêu cầu phiên bản <b>19.0.1</b> hoặc thấp hơn.</string>
+    <string name="select_firmware">Chọn Firmware</string>
     <string name="games">Trò chơi</string>
     <string name="games_description">Chọn thư mục &lt;b>Games&lt;/b> của bạn bằng nút bên dưới.</string>
     <string name="done">Hoàn thành</string>
@@ -283,6 +298,9 @@
     <string name="back">Trở lại</string>
     <string name="add_games">Thêm Trò chơi</string>
     <string name="add_games_description">Chọn thư mục trò chơi của bạn</string>
+    <string name="bluetooth_permissions_granted">Đã cấp quyền Bluetooth.</string>
+    <string name="bluetooth_permissions_denied">Từ chối quyền Bluetooth. Hỗ trợ điều khiển có thể bị hạn chế.</string>
+
     <!-- Home strings -->
     <string name="alphabetical">A-Z</string>
     <string name="view_list">Danh sách</string>
@@ -309,6 +327,8 @@
     <string name="install_prod_keys_description">Yêu cầu để giải mã các game bán lẻ</string>
     <string name="install_prod_keys_warning">Bỏ qua thêm chìa khóa?</string>
     <string name="install_prod_keys_warning_description">Cần có chìa khóa hợp lệ để giả lập trò chơi. Chỉ có các ứng dụng homebrew có thể vận hành nếu bạn tiếp tục</string>
+    <string name="install_firmware_warning">Bỏ qua thêm firmware?</string>
+    <string name="install_firmware_warning_description">Nhiều trò chơi cần truy cập firmware để hoạt động bình thường.</string>
     <string name="notifications">Thông báo</string>
     <string name="notifications_description">Ấn vào nút bên dưới để cấp quyền ứng dụng gửi thông báo</string>
     <string name="give_permission">Cấp quyền</string>
@@ -319,6 +339,7 @@
     <string name="about">Thông tin</string>
     <string name="about_description">Phiên bản, đóng góp và những thứ khác</string>
     <string name="warning_help">Trợ giúp</string>
+    <string name="warning">Cảnh báo</string>
     <string name="warning_skip">Bỏ qua</string>
     <string name="warning_cancel">Huỷ</string>
     <string name="install_amiibo_keys">Cài đặt Amiibo</string>
@@ -362,15 +383,51 @@
     <string name="share_log_missing">Không tìm thấy tệp log</string>
     <string name="install_game_content">Cài đặt nội dung game</string>
     <string name="install_game_content_description">Cài đặt cập nhật game hoặc DLC</string>
+    <string name="installing_game_content">Đang cài đặt...</string>
+    <string name="install_game_content_failure">Lỗi cài đặt</string>
+    <string name="install_game_content_failure_description">Đảm bảo nội dung hợp lệ và có prod.keys</string>
+    <string name="install_game_content_failure_base">Không cho phép cài game gốc</string>
+    <string name="install_game_content_failure_file_extension">Chỉ hỗ trợ NSP và XCI</string>
+    <string name="install_game_content_failed_count">%1$d lỗi cài đặt</string>
+    <string name="install_game_content_success">Cài đặt thành công</string>
+    <string name="install_game_content_success_install">%1$d cài thành công</string>
+    <string name="install_game_content_success_overwrite">%1$d ghi đè thành công</string>
+    <string name="custom_driver_not_supported">Không hỗ trợ driver tùy chỉnh</string>
+    <string name="custom_driver_not_supported_description">Thiết bị này chưa hỗ trợ driver tùy chỉnh</string>
+    <string name="manage_yuzu_data">Quản lý dữ liệu</string>
+    <string name="manage_yuzu_data_description">Nhập/xuất firmware, keys, dữ liệu</string>
+    <string name="share_save_file">Chia sẻ save</string>
+    <string name="export_save_failed">Xuất save thất bại</string>
+    <string name="game_folders">Thư mục game</string>
+    <string name="deep_scan">Quét sâu</string>
+    <string name="add_game_folder">Thêm thư mục</string>
+    <string name="folder_already_added">Thư mục đã tồn tại</string>
+    <string name="game_folder_properties">Thuộc tính thư mục</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Lỗi nhập %d save</item>
+        <item quantity="other">Lỗi nhập %d saves</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Nhập thành công %d save</item>
+        <item quantity="other">Nhập thành công %d saves</item>
+    </plurals>
+    <string name="no_save_data_found">Không tìm thấy save</string>
+    <string name="verify_installed_content">Kiểm tra nội dung</string>
+    <string name="verify_installed_content_description">Kiểm tra lỗi nội dung đã cài</string>
+    <string name="keys_missing">Thiếu keys mã hóa</string>
+    <string name="keys_missing_description">Không thể giải mã firmware và game</string>
+    <string name="firmware_missing">Thiếu firmware hoặc phiên bản quá mới</string>
+    <string name="firmware_missing_description">Một số trò chơi có thể không hoạt động bình thường. Eden yêu cầu firmware phiên bản 19.0.1 hoặc thấp hơn.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Khởi chạy ứng dụng từ màn hình chính hệ thống</string>
     <string name="applets">Trình khởi chạy applet</string>
     <string name="applets_description">Khởi chạy applet hệ thống</string>
-    <string name="applets_error_firmware">Chưa cài firmware</string>
+    <string name="applets_error_firmware">Firmware chưa cài đặt hoặc phiên bản không hợp lệ</string>
     <string name="applets_error_applet">Applet không khả dụng</string>
-    <string name="applets_error_description"><![CDATA[Đảm bảo đã cài <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> và <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>]]></string>
+    <string name="applets_error_description"><![CDATA[Hãy đảm bảo file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> và
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> đã được cài đặt và thử lại.<br>Đồng thời đảm bảo firmware của bạn là phiên bản 19.0.1 hoặc cũ hơn.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Xem ảnh trong thư mục chụp màn hình</string>
     <string name="mii_edit_applet">Chỉnh sửa Mii</string>
@@ -426,8 +483,11 @@
     <string name="renderer_accuracy">Mức độ chính xác</string>
     <string name="renderer_resolution">Độ phân giải (Handheld/Docked)</string>
     <string name="renderer_vsync">Chế độ VSync</string>
+    <string name="renderer_screen_layout">Hướng màn hình</string>
     <string name="renderer_aspect_ratio">Tỉ lệ khung hình</string>
     <string name="renderer_scaling_filter">Bộ lọc điều chỉnh cửa sổ</string>
+    <string name="fsr_sharpness">Độ sắc nét FSR</string>
+    <string name="fsr_sharpness_description">Độ sắc nét khi dùng FSR</string>
     <string name="renderer_anti_aliasing">Phương pháp khử răng cưa</string>
     <string name="renderer_force_max_clock">Buộc chạy ở xung nhịp tối đa (chỉ Adreno)</string>
     <string name="renderer_force_max_clock_description">Buộc GPU hoạt động ở xung nhịp tối đa có thể (ràng buộc nhiệt độ vẫn sẽ được áp dụng).</string>
@@ -437,6 +497,10 @@
     <string name="renderer_reactive_flushing_description">Cải thiện độ chính xác hiển thị trong một số trò chơi nhưng đồng thời giảm hiệu suất chơi.</string>
     <string name="use_disk_shader_cache">Lưu bộ nhớ đệm shader trên ổ cứng</string>
     <string name="use_disk_shader_cache_description">Giảm tình trạng giật lag bằng cách lưu trữ và tải các shader được tạo ra nội bộ.</string>
+    <string name="anisotropic_filtering">Lọc dị hướng</string>
+    <string name="anisotropic_filtering_description">Cải thiện chất lượng texture</string>
+
+    <string name="warning_resolution">Phóng to độ phân giải lên 2x hoặc cao hơn có thể gây ra sự cố và làm thiết bị chậm đáng kể.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

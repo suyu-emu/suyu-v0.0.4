@@ -10,6 +10,7 @@
     <string name="process_ram">RAM procesu: %1$d MB</string>
     <string name="shaders_prefix">Sestavování</string>
     <string name="shaders_suffix">shaderů</string>
+    <string name="charging">(Nabíjení)</string>
     <string name="system_info_label">Systém:</string>
     <string name="show_stats_overlay">Zobrazit překryv statistik výkonu</string>
     <string name="stats_overlay_customization">Přizpůsobení</string>
@@ -28,7 +29,10 @@
     <string name="show_system_ram_usage">Zobrazit využití systémové RAM</string>
     <string name="show_system_ram_usage_description">Zobrazit množství RAM využívané systémem</string>
     <string name="show_bat_temperature">Zobrazit teplotu baterie</string>
-    <string name="show_bat_temperature_description">Aktuální teplota baterie ve °C a °F</string>
+    <string name="show_bat_temperature_description">Zobrazit aktuální teplotu baterie</string>
+    <string name="bat_temperature_unit">Jednotky teploty baterie</string>
+    <string name="show_power_info">Zobrazit informace o baterii</string>
+    <string name="show_power_info_description">Zobrazit aktuální odběr energie a zbývající kapacitu baterie</string>
     <string name="overlay_position">Pozice překryvu</string>
     <string name="overlay_position_description">Umístění překryvu statistik na obrazovce</string>
     <string name="overlay_position_top_left">Vlevo nahoře</string>
@@ -94,6 +98,11 @@
     <string name="gpu_low">Nízké (128)</string>
     <string name="gpu_medium">Střední (256)</string>
     <string name="gpu_high">Vysoké (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsia</string>
+    <string name="temperature_fahrenheit">Fahrenheita</string>
+
     <string name="use_fast_cpu_time">Rychlý čas CPU</string>
     <string name="use_fast_cpu_time_description">Nutí emulované CPU běžet na vyšší frekvenci, čímž snižuje některé limity FPS. Tato volba je nestabilní a může způsobit problémy a slabší CPU mohou mít snížený výkon.</string>
     <string name="fast_cpu_time">Taktování CPU</string>
@@ -105,6 +114,8 @@
     <string name="custom_cpu_ticks">Vlastní CPU takty</string>
     <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
     <string name="cpu_ticks">Takty</string>
+    <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
 
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
@@ -272,6 +283,9 @@
     <string name="get_started">Začít</string>
     <string name="keys">Klíče</string>
     <string name="select_keys">Vybrat klíče</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Vyberte svůj soubor <b>firmware.zip</b> pomocí tlačítka níže.\nEden aktuálně vyžaduje verzi <b>19.0.1</b> nebo nižší.</string>
+    <string name="select_firmware">Vybrat firmware</string>
     <string name="games">Hry</string>
     <string name="done">Hotovo</string>
     <string name="done_description">Vše je připraveno.\nUžijte si vaše hry!</string>
@@ -280,6 +294,8 @@
     <string name="back">Zpět</string>
     <string name="add_games">Přidat hry</string>
     <string name="add_games_description">Vyber svoji složku se hrami</string>
+    <string name="bluetooth_permissions_granted">Bluetoothová oprávnění udělena.</string>
+    <string name="bluetooth_permissions_denied">Bluetoothová oprávnění zamítnuta. Podpora ovladače může být omezena.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">Abecedně</string>
@@ -301,6 +317,8 @@
     <string name="manage_game_folders">Spravovat složky s hrami</string>
     <string name="install_prod_keys">Instalovat prod.keys</string>
     <string name="install_prod_keys_warning">Přeskočit přidávání klíčů?</string>
+    <string name="install_firmware_warning">Přeskočit přidání firmwaru?</string>
+    <string name="install_firmware_warning_description">Mnoho her vyžaduje přístup k firmwaru pro správnou funkci.</string>
     <string name="notifications">Oznámení</string>
     <string name="give_permission">Udělit oprávnění</string>
     <string name="notification_warning">Přeskočit udělení oprávnění k oznámení?</string>
@@ -310,6 +328,7 @@
     <string name="about">O aplikaci</string>
     <string name="about_description">Verze sestavení, titulky a více</string>
     <string name="warning_help">Pomoc</string>
+    <string name="warning">Varování</string>
     <string name="warning_skip">Přeskočit</string>
     <string name="warning_cancel">Zrušit</string>
     <string name="install_amiibo_keys">Instalovat Amiibo klíče</string>
@@ -348,15 +367,31 @@
     <string name="game_folders">Složky s hrami</string>
     <string name="folder_already_added">Tato složka byla již přidána!</string>
     <string name="game_folder_properties">Vlastnosti složky s hrami</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Chyba při importu %d uložení</item>
+        <item quantity="other">Chyba při importu %d uložení</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Úspěšně importováno %d uložení</item>
+        <item quantity="other">Úspěšně importováno %d uložení</item>
+    </plurals>
+    <string name="no_save_data_found">Nenalezena uložená data</string>
+    <string name="verify_installed_content">Ověřit obsah</string>
+    <string name="verify_installed_content_description">Kontrola poškození obsahu</string>
+    <string name="keys_missing">Chybí šifrovací klíče</string>
+    <string name="keys_missing_description">Firmware a retail hry nelze dešifrovat</string>
+    <string name="firmware_missing">Firmware chybí nebo je příliš nový</string>
+    <string name="firmware_missing_description">Některé hry nemusí fungovat správně. Eden vyžaduje firmware 19.0.1 nebo nižší.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Spouštění aplikací z domovské obrazovky</string>
     <string name="applets">Spouštěč apletů</string>
     <string name="applets_description">Spouštění systémových apletů</string>
-    <string name="applets_error_firmware">Firmware není nainstalován</string>
+    <string name="applets_error_firmware">Firmware není nainstalován nebo je neplatná verze</string>
     <string name="applets_error_applet">Aplet není dostupný</string>
-    <string name="applets_error_description"><![CDATA[Ovněřte instalaci <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> a <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>.]]></string>
+    <string name="applets_error_description"><![CDATA[Ujistěte se, že máte nainstalovaný soubor <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> a
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>, a zkuste to znovu.<br>Dále se ujistěte, že váš firmware je verze 19.0.1 nebo starší.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Zobrazovat obrázky uložené v uživatelské složce se snímky obrazovky pomocí systémového prohlížeče fotografií</string>
     <string name="mii_edit_applet">Editor Mii</string>
@@ -438,6 +473,8 @@
     <string name="use_disk_shader_cache_description">Snížení trhání ukládáním shaderů</string>
     <string name="anisotropic_filtering">Anizotropní filtrování</string>
     <string name="anisotropic_filtering_description">Zlepšení kvality textur</string>
+
+    <string name="warning_resolution">Zvětšení rozlišení na 2x nebo více může způsobit problémy a výrazné zpomalení zařízení.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

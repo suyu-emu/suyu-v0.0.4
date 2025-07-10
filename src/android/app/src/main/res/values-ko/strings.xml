@@ -11,6 +11,7 @@
     <string name="process_ram">프로세스 RAM: %1$d MB</string>
     <string name="shaders_prefix">셰이더</string>
     <string name="shaders_suffix">빌드 중</string>
+    <string name="charging">(충전 중)</string>
     <string name="system_info_label">시스템:</string>
     <string name="show_stats_overlay">성능 통계 오버레이 표시</string>
     <string name="stats_overlay_customization">사용자 지정</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">시스템 RAM 사용량 표시</string>
     <string name="show_system_ram_usage_description">시스템이 사용 중인 RAM 양 표시</string>
     <string name="show_bat_temperature">배터리 온도 표시</string>
-    <string name="show_bat_temperature_description">현재 배터리 온도(°C/°F) 표시</string>
+    <string name="show_bat_temperature_description">현재 배터리 온도 표시</string>
+    <string name="bat_temperature_unit">배터리 온도 단위</string>
+    <string name="show_power_info">배터리 정보 표시</string>
+    <string name="show_power_info_description">현재 전력 소모량 및 배터리 잔량 표시</string>
     <string name="overlay_position">오버레이 위치</string>
     <string name="overlay_position_description">성능 통계 오버레이의 화면 표시 위치 선택</string>
     <string name="overlay_position_top_left">상단 왼쪽</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">낮음 (128)</string>
     <string name="gpu_medium">중간 (256)</string>
     <string name="gpu_high">높음 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">섭씨</string>
+    <string name="temperature_fahrenheit">화씨</string>
+
     <string name="use_fast_cpu_time">빠른 CPU 시간</string>
     <string name="use_fast_cpu_time_description">에뮬레이트된 CPU를 더 높은 클럭으로 실행하여 특정 FPS 제한기를 줄입니다. 이 옵션은 불안정하며 문제를 일으킬 수 있고, 약한 CPU는 성능 저하를 볼 수 있습니다.</string>
     <string name="fast_cpu_time">CPU 클럭</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">사용자 정의 CPU 틱</string>
     <string name="custom_cpu_ticks_description">CPU 틱의 사용자 정의 값을 설정합니다. 높은 값은 성능을 향상시킬 수 있지만 게임이 멈출 수도 있습니다. 77~21000 범위를 권장합니다.</string>
     <string name="cpu_ticks">틱</string>
+    <string name="skip_cpu_inner_invalidation">CPU 내부 무효화 건너뛰기</string>
+    <string name="skip_cpu_inner_invalidation_description">메모리 업데이트 시 일부 CPU 측 캐시 무효화를 건너뛰어 CPU 사용량을 줄이고 성능을 향상시킵니다. 일부 게임에서 오류 또는 충돌을 일으킬 수 있습니다.</string>
+
     <string name="memory_4gb">4GB (권장)</string>
     <string name="memory_6gb">6GB (안전하지 않음)</string>
     <string name="memory_8gb">8GB (안전하지 않음)</string>
@@ -273,6 +285,9 @@
     <string name="keys">키 설정</string>
     <string name="keys_description">아래 버튼으로 &lt;b>prod.keys&lt;/b> 파일을 선택합니다.</string>
     <string name="select_keys">키 선택</string>
+    <string name="firmware">펌웨어</string>
+    <string name="firmware_description">아래 버튼으로 <b>firmware.zip</b> 파일을 선택하세요.\n현재 Eden은 <b>19.0.1</b> 이하 버전이 필요합니다.</string>
+    <string name="select_firmware">펌웨어 선택</string>
     <string name="games">게임</string>
     <string name="games_description">아래 버튼으로 &lt;b>게임&lt;/b> 폴더를 선택합니다.</string>
     <string name="done">완료</string>
@@ -283,6 +298,8 @@
     <string name="add_games">게임 추가</string>
     <string name="add_games_description">게임 폴더 선택</string>
     <string name="step_complete">완료되었습니다!</string>
+    <string name="bluetooth_permissions_granted">블루투스 권한이 허용되었습니다.</string>
+    <string name="bluetooth_permissions_denied">블루투스 권한이 거부되었습니다. 컨트롤러 지원이 제한될 수 있습니다.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">알파벳순</string>
@@ -312,6 +329,8 @@
     <string name="install_prod_keys_description">패키지 게임 암호 해독에 필요</string>
     <string name="install_prod_keys_warning">키 추가를 건너뛰겠습니까?</string>
     <string name="install_prod_keys_warning_description">패키지 게임을 에뮬레이트하려면 유효한 키 값이 필요합니다. 이 단계를 건너뛰면 홈브류 게임만 실행할 수 있습니다.</string>
+    <string name="install_firmware_warning">펌웨어 추가를 건너뛰시겠습니까?</string>
+    <string name="install_firmware_warning_description">많은 게임이 제대로 작동하려면 펌웨어에 액세스해야 합니다.</string>
     <string name="notifications">알림</string>
     <string name="notifications_description">아래 버튼으로 알림 권한을 부여합니다.</string>
     <string name="give_permission">알림 켜기</string>
@@ -322,6 +341,7 @@
     <string name="about">정보</string>
     <string name="about_description">빌드 버전, 크레딧 등</string>
     <string name="warning_help">도움말</string>
+    <string name="warning">경고</string>
     <string name="warning_skip">건너뛰기</string>
     <string name="warning_cancel">취소</string>
     <string name="install_amiibo_keys">amiibo 키 설치</string>
@@ -403,15 +423,18 @@
     <string name="verify_installed_content_description">전체 설치된 콘텐츠의 손상을 확인합니다.</string>
     <string name="keys_missing">암호화 키를 찾을 수 없음</string>
     <string name="keys_missing_description">펌웨어 및 패키지 게임을 해독할 수 없음</string>
+    <string name="firmware_missing">펌웨어가 없거나 버전이 너무 높습니다</string>
+    <string name="firmware_missing_description">일부 게임이 제대로 작동하지 않을 수 있습니다. Eden은 19.0.1 이하 버전의 펌웨어가 필요합니다.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">시스템 홈 화면에서 애플리케이션 실행</string>
     <string name="applets">애플릿 런처</string>
     <string name="applets_description">설치된 펌웨어를 사용해 시스템 애플릿을 실행합니다.</string>
-    <string name="applets_error_firmware">펌웨어가 설치되지 않았습니다.</string>
+    <string name="applets_error_firmware">펌웨어가 설치되지 않았거나 유효하지 않은 버전입니다</string>
     <string name="applets_error_applet">애플릿을 사용할 수 없음</string>
-    <string name="applets_error_description"><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 파일과 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">펌웨어가</a> 설치되었는지 확인하고 다시 시도하세요.]]></string>
+    <string name="applets_error_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> 파일과
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">펌웨어</a>가 설치되어 있는지 확인하고 다시 시도하세요.<br>또한 펌웨어 버전이 19.0.1 이하인지 확인하세요.]]></string>
     <string name="album_applet">앨범</string>
     <string name="album_applet_description">시스템 사진 뷰어로 유저 스크린샷 폴더에 저장된 이미지를 확인합니다. </string>
     <string name="mii_edit_applet">Mii 편집</string>
@@ -493,6 +516,8 @@
     <string name="use_disk_shader_cache_description">생성된 셰이더를 로컬에 저장하고 로드하여 끊김 현상을 줄입니다.</string>
     <string name="anisotropic_filtering">비등방성 필터링</string>
     <string name="anisotropic_filtering_description">경사각에서 보이는 텍스처의 품질을 향상시킵니다.</string>
+
+    <string name="warning_resolution">해상도를 2x 이상으로 스케일링하면 문제가 발생할 수 있으며 기기가 크게 느려질 수 있습니다.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

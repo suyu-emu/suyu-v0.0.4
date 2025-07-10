@@ -11,6 +11,7 @@
     <string name="process_ram">RAM do processo: %1$d MB</string>
     <string name="shaders_prefix">A compilar</string>
     <string name="shaders_suffix">shader(s)</string>
+    <string name="charging">(A carregar)</string>
     <string name="system_info_label">Sistema:</string>
     <string name="show_stats_overlay">Mostrar Overlay de Desempenho</string>
     <string name="stats_overlay_customization">Personalização</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Mostrar RAM do Sistema</string>
     <string name="show_system_ram_usage_description">Mostrar a quantidade de RAM utilizada pelo sistema</string>
     <string name="show_bat_temperature">Mostrar Temp. Bateria</string>
-    <string name="show_bat_temperature_description">Exibir temperatura em Celsius/Fahrenheit</string>
+    <string name="show_bat_temperature_description">Mostrar temperatura atual da bateria</string>
+    <string name="bat_temperature_unit">Unidades de temperatura da bateria</string>
+    <string name="show_power_info">Mostrar informações da bateria</string>
+    <string name="show_power_info_description">Mostrar consumo atual de energia e capacidade restante da bateria</string>
     <string name="overlay_position">Posição do Overlay</string>
     <string name="overlay_position_description">Escolher posição do overlay na tela</string>
     <string name="overlay_position_top_left">Canto Superior Esquerdo</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Baixo (128)</string>
     <string name="gpu_medium">Médio (256)</string>
     <string name="gpu_high">Alto (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Tempo de CPU rápido</string>
     <string name="use_fast_cpu_time_description">Força a CPU emulada a funcionar a uma velocidade de relógio mais alta, reduzindo certos limitadores de FPS. Esta opção é instável e pode causar problemas, e CPUs mais fracas podem ter desempenho reduzido.</string>
     <string name="fast_cpu_time">Velocidade do CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Defina um valor personalizado para ticks de CPU. Valores mais altos podem aumentar o desempenho, mas também podem causar bloqueios no jogo. Um intervalo de 77–21000 é recomendado.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">Ignorar invalidação interna da CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Ignora algumas invalidações de cache do lado da CPU durante atualizações de memória, reduzindo a utilização da CPU e melhorando o desempenho. Pode causar falhas ou crashes em alguns jogos.</string>
+
     <string name="memory_4gb">4GB (Recomendado)</string>
     <string name="memory_6gb">6GB (Inseguro)</string>
     <string name="memory_8gb">8GB (Inseguro)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Chaves</string>
     <string name="keys_description">Seleciona o teu ficheiro &lt;b>prod.keys&lt;/b> com o botão abaixo.</string>
     <string name="select_keys">Seleciona as Chaves</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Selecione o seu ficheiro <b>firmware.zip</b> com o botão abaixo.\nAtualmente, o Eden requer a versão <b>19.0.1</b> ou inferior.</string>
+    <string name="select_firmware">Selecionar Firmware</string>
     <string name="games">Jogos</string>
     <string name="games_description">Seleciona a tua pasta &lt;b>Games&lt;/b> com o botão abaixo.</string>
     <string name="done">Feito</string>
@@ -284,6 +299,8 @@
     <string name="add_games">Adiciona Jogos</string>
     <string name="add_games_description">Seleciona a tua pasta de Jogos</string>
     <string name="step_complete">Completo!</string>
+    <string name="bluetooth_permissions_granted">Permissões Bluetooth concedidas.</string>
+    <string name="bluetooth_permissions_denied">Permissões Bluetooth recusadas. O suporte a comandos pode ser limitado.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">Alfabético</string>
@@ -313,6 +330,8 @@
     <string name="install_prod_keys_description">Necessário para desencriptar jogos comerciais</string>
     <string name="install_prod_keys_warning">Ignorar a adição de chaves?</string>
     <string name="install_prod_keys_warning_description">São necessárias chaves válidas para emular jogos comerciais. Somente aplicativos homebrew funcionarão se você continuar.</string>
+    <string name="install_firmware_warning">Ignorar a adição do firmware?</string>
+    <string name="install_firmware_warning_description">Muitos jogos requerem acesso ao firmware para funcionar corretamente.</string>
     <string name="notifications">Notificações</string>
     <string name="notifications_description">Conceda a permissão de notificação com o botão abaixo.</string>
     <string name="give_permission">Conceda permissão</string>
@@ -323,6 +342,7 @@
     <string name="about">Sobre</string>
     <string name="about_description">Versão de compilação, créditos e mais</string>
     <string name="warning_help">Ajuda</string>
+    <string name="warning">Aviso</string>
     <string name="warning_skip">Saltar</string>
     <string name="warning_cancel">Cancelar</string>
     <string name="install_amiibo_keys">Instala chaves Amiibo</string>
@@ -408,15 +428,18 @@
     <string name="verify_installed_content_description">Verifica todo o conteúdo instalado em busca de dados corrompidos</string>
     <string name="keys_missing">Faltando chaves de encriptação</string>
     <string name="keys_missing_description">O firmware e jogos comerciais não poderão ser decriptados</string>
+    <string name="firmware_missing">Firmware em falta ou demasiado recente</string>
+    <string name="firmware_missing_description">Alguns jogos podem não funcionar corretamente. O Eden requer firmware versão 19.0.1 ou inferior.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Iniciar aplicações a partir do ecrã inicial do sistema</string>
     <string name="applets">Launcher de miniaplicativos</string>
     <string name="applets_description">Inicie miniaplicativos do sistema usando o firmware instalado</string>
-    <string name="applets_error_firmware">Firmware não instalado</string>
+    <string name="applets_error_firmware">Firmware não instalado ou versão inválida</string>
     <string name="applets_error_applet">Miniaplicativo não disponível</string>
-    <string name="applets_error_description"><![CDATA[Por favor verifique se o arquivo 1prod.keys1 e o 2firmware2 estão  instalados e tente novamente.]]></string>
+    <string name="applets_error_description"><![CDATA[Certifique-se de que o seu ficheiro <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> e
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> estão instalados e tente novamente.<br>Além disso, verifique se o seu firmware é a versão 19.0.1 ou mais antiga.]]></string>
     <string name="album_applet">Álbum</string>
     <string name="album_applet_description">Visualize imagens armazenadas na pasta de capturas de telas do usuário com o visualizador de imagens do sistema</string>
     <string name="mii_edit_applet">Editor de Mii</string>
@@ -500,6 +523,8 @@
     <string name="use_disk_shader_cache_description">Reduz travamentos ao armazenar e carregar localmente os shaders.</string>
     <string name="anisotropic_filtering">Filtragem anisotrópica</string>
     <string name="anisotropic_filtering_description">Melhora a qualidade das texturas quando visualizadas de ângulos oblíquos</string>
+
+    <string name="warning_resolution">A escala de resolução para 2x ou superior pode causar problemas e resultar numa lentidão significativa do dispositivo.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

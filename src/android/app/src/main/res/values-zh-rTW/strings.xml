@@ -11,6 +11,7 @@
     <string name="process_ram">進程記憶體: %1$d MB</string>
     <string name="shaders_prefix">正在編譯</string>
     <string name="shaders_suffix">著色器</string>
+    <string name="charging">(充電中)</string>
     <string name="system_info_label">系統:</string>
     <string name="show_stats_overlay">顯示效能統計疊加層</string>
     <string name="stats_overlay_customization">自訂</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">顯示系統記憶體用量</string>
     <string name="show_system_ram_usage_description">顯示系統使用的記憶體量</string>
     <string name="show_bat_temperature">顯示電池溫度</string>
-    <string name="show_bat_temperature_description">顯示當前電池溫度（攝氏/華氏）</string>
+    <string name="show_bat_temperature_description">顯示當前電池溫度</string>
+    <string name="bat_temperature_unit">電池溫度單位</string>
+    <string name="show_power_info">顯示電池資訊</string>
+    <string name="show_power_info_description">顯示當前功耗和電池剩餘容量</string>
     <string name="overlay_position">疊加層位置</string>
     <string name="overlay_position_description">選擇疊加層在畫面上的顯示位置</string>
     <string name="overlay_position_top_left">左上</string>
@@ -103,6 +107,8 @@
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
     <string name="custom_cpu_ticks_description">設定自訂的CPU時脈值。更高的值可能提高效能，但也可能導致遊戲卡頓。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>
+    <string name="skip_cpu_inner_invalidation">跳過CPU內部無效化</string>
+    <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取無效化，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (推薦)</string>
@@ -118,6 +124,10 @@
     <string name="gpu_low">低 (128)</string>
     <string name="gpu_medium">中 (256)</string>
     <string name="gpu_high">高 (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">攝氏度</string>
+    <string name="temperature_fahrenheit">華氏度</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC解碼方式</string>
@@ -279,6 +289,9 @@
     <string name="keys">金鑰</string>
     <string name="keys_description">使用下方的按鈕選取您的 &lt;b>prod.keys&lt;/b> 檔案。</string>
     <string name="select_keys">選取金鑰</string>
+    <string name="firmware">韌體</string>
+    <string name="firmware_description">使用下方按鈕選擇您的<b>firmware.zip</b>檔案。\n當前Eden需要<b>19.0.1</b>或更低版本。</string>
+    <string name="select_firmware">選擇韌體</string>
     <string name="games">遊戲</string>
     <string name="games_description">使用下方的按鈕選取您的&lt;b>遊戲&lt;/b>資料夾。</string>
     <string name="done">完成</string>
@@ -289,6 +302,8 @@
     <string name="add_games">新增遊戲</string>
     <string name="add_games_description">選取您的遊戲資料夾</string>
     <string name="step_complete">完成！</string>
+    <string name="bluetooth_permissions_granted">藍牙權限已授予。</string>
+    <string name="bluetooth_permissions_denied">藍牙權限被拒絕。控制器支援可能受限。</string>
 
     <!-- Home strings -->
     <string name="alphabetical">依字母</string>
@@ -318,6 +333,8 @@
     <string name="install_prod_keys_description">需要解密零售遊戲</string>
     <string name="install_prod_keys_warning">跳過新增金鑰？</string>
     <string name="install_prod_keys_warning_description">模擬零售遊戲需要有效的金鑰，若要繼續，將僅有自製遊戲應用程式可以運作。</string>
+    <string name="install_firmware_warning">跳過添加韌體？</string>
+    <string name="install_firmware_warning_description">許多遊戲需要存取韌體才能正常運作。</string>
     <string name="notifications">通知</string>
     <string name="notifications_description">使用下方的按鈕授予通知權限。</string>
     <string name="give_permission">授予權限</string>
@@ -328,6 +345,7 @@
     <string name="about">關於</string>
     <string name="about_description">組建版本、製作群、以及更多</string>
     <string name="warning_help">說明</string>
+    <string name="warning">警告</string>
     <string name="warning_skip">跳過</string>
     <string name="warning_cancel">取消</string>
     <string name="install_amiibo_keys">安裝 Amiibo 金鑰</string>
@@ -409,15 +427,18 @@
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
+    <string name="firmware_missing">韌體缺失或版本過新</string>
+    <string name="firmware_missing_description">某些遊戲可能無法正常運作。Eden需要19.0.1或更低版本的韌體。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">從系統主畫面啟動應用程式</string>
     <string name="applets">小程式啟動器</string>
     <string name="applets_description">使用已安裝的韌體啟動系統小程式</string>
-    <string name="applets_error_firmware">未安裝韌體</string>
+    <string name="applets_error_firmware">韌體未安裝或版本無效</string>
     <string name="applets_error_applet">無法使用小程式</string>
-    <string name="applets_error_description"><![CDATA[請確保您的 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 檔案和<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">韌體</a>已安裝，然後再試一次。]]></string>
+    <string name="applets_error_description"><![CDATA[請確保您的<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>檔案和
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">韌體</a>已安裝並重試。<br>同時請確保您的韌體版本為19.0.1或更早。]]></string>
     <string name="album_applet">相簿</string>
     <string name="album_applet_description">使用系統相片檢視器查看儲存在使用者螢幕截圖資料夾中的影像</string>
     <string name="mii_edit_applet">Mii 編輯</string>
@@ -501,6 +522,8 @@
     <string name="use_disk_shader_cache_description">透過將產生的著色器儲存並載入至磁碟，減少中斷。</string>
     <string name="anisotropic_filtering">非等向性過濾</string>
     <string name="anisotropic_filtering_description">改善斜角檢視時的紋理品質</string>
+
+    <string name="warning_resolution">解析度縮放到2倍或更高可能會導致問題，並可能顯著降低設備速度。</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

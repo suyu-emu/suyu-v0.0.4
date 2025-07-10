@@ -11,6 +11,7 @@
     <string name="process_ram">RAM Proses: %1$d MB</string>
     <string name="shaders_prefix">Membangun</string>
     <string name="shaders_suffix">Shader</string>
+    <string name="charging">(Sedang diisi)</string>
     <string name="system_info_label">Sistem:</string>
     <string name="show_stats_overlay">Tampilkan Overlay Statistik Performa</string>
     <string name="stats_overlay_customization">Kustomisasi</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">Tampilkan Penggunaan RAM Sistem</string>
     <string name="show_system_ram_usage_description">Tampilkan jumlah RAM yang digunakan oleh sistem</string>
     <string name="show_bat_temperature">Tampilkan Suhu Baterai</string>
-    <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini dalam Celsius dan Fahrenheit</string>
+    <string name="show_bat_temperature_description">Tampilkan suhu baterai saat ini</string>
+    <string name="bat_temperature_unit">Satuan Suhu Baterai</string>
+    <string name="show_power_info">Tampilkan Info Baterai</string>
+    <string name="show_power_info_description">Tampilkan pengeluaran daya saat ini dan kapasitas baterai yang tersisa</string>
     <string name="overlay_position">Posisi Overlay</string>
     <string name="overlay_position_description">Pilih lokasi tampilan overlay statistik performa di layar</string>
     <string name="overlay_position_top_left">Kiri Atas</string>
@@ -95,6 +99,11 @@
     <string name="gpu_low">Rendah (128)</string>
     <string name="gpu_medium">Sedang (256)</string>
     <string name="gpu_high">Tinggi (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">Celsius</string>
+    <string name="temperature_fahrenheit">Fahrenheit</string>
+
     <string name="use_fast_cpu_time">Waktu CPU Cepat</string>
     <string name="use_fast_cpu_time_description">Memaksa CPU emulasi berjalan pada kecepatan clock yang lebih tinggi, mengurangi beberapa pembatas FPS. Opsi ini tidak stabil dan dapat menyebabkan masalah, dan CPU yang lebih lemah mungkin mengalami penurunan kinerja.</string>
     <string name="fast_cpu_time">Kecepatan Clock CPU</string>
@@ -106,6 +115,9 @@
     <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
     <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
     <string name="cpu_ticks">Ticks</string>
+    <string name="skip_cpu_inner_invalidation">Lewati Pembatalan Internal CPU</string>
+    <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
+
     <string name="memory_4gb">4GB (Direkomendasikan)</string>
     <string name="memory_6gb">6GB (Tidak Aman)</string>
     <string name="memory_8gb">8GB (Tidak Aman)</string>
@@ -274,6 +286,9 @@
     <string name="keys">Kunci</string>
     <string name="keys_description">Pilih file &lt;b>prod.keys&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="select_keys">Pilih Kunci</string>
+    <string name="firmware">Firmware</string>
+    <string name="firmware_description">Pilih file <b>firmware.zip</b> Anda dengan tombol di bawah.\nEden saat ini memerlukan versi <b>19.0.1</b> atau lebih rendah.</string>
+    <string name="select_firmware">Pilih Firmware</string>
     <string name="games">Permainan</string>
     <string name="games_description">Pilih folder &lt;b>Games&lt;/b> Anda dengan tombol di bawah ini.</string>
     <string name="done">Selesai</string>
@@ -284,6 +299,8 @@
     <string name="add_games">Tambahkan permainan</string>
     <string name="add_games_description">Pilih folder game anda</string>
     <string name="step_complete">Selesai!</string>
+    <string name="bluetooth_permissions_granted">Izin Bluetooth diberikan.</string>
+    <string name="bluetooth_permissions_denied">Izin Bluetooth ditolak. Dukungan controller mungkin terbatas.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">Abjad</string>
@@ -313,6 +330,8 @@
     <string name="install_prod_keys_description">Diperlukan untuk mendekripsi game retail</string>
     <string name="install_prod_keys_warning">Lewati penginstalan keys?</string>
     <string name="install_prod_keys_warning_description">Perlu keys yang valid untuk meng-emulate game retail. Hanya homebrew apps yang akan berfungsi jika kamu melanjutkan.</string>
+    <string name="install_firmware_warning">Lewati penambahan firmware?</string>
+    <string name="install_firmware_warning_description">Banyak game memerlukan akses ke firmware untuk berjalan dengan baik.</string>
     <string name="notifications">Notifikasi</string>
     <string name="notifications_description">Berikan izin notifikasi dengan tombol di bawah ini.</string>
     <string name="give_permission">Berikan izin</string>
@@ -323,6 +342,7 @@
     <string name="about">Tentang</string>
     <string name="about_description">Versi build, kredit, dan lainnya</string>
     <string name="warning_help">Bantuan</string>
+    <string name="warning">Peringatan</string>
     <string name="warning_skip">Lewati</string>
     <string name="warning_cancel">Batalkan</string>
     <string name="install_amiibo_keys">Install Amiibo keys</string>
@@ -404,15 +424,18 @@
     <string name="verify_installed_content_description">Memeriksa semua konten yang terinstal dari kerusakan</string>
     <string name="keys_missing">Kunci enkripsi hilang</string>
     <string name="keys_missing_description">Firmware dan game retail tidak dapat didekripsi</string>
+    <string name="firmware_missing">Firmware hilang atau terlalu baru</string>
+    <string name="firmware_missing_description">Beberapa game mungkin tidak berfungsi dengan baik. Eden memerlukan firmware 19.0.1 atau lebih rendah.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">Luncurkan aplikasi dari layar beranda sistem</string>
     <string name="applets">Luncurkan applet</string>
     <string name="applets_description">Meluncurkan sistem applet menggunakan firmware yang diinstal</string>
-    <string name="applets_error_firmware">Firmware tidak terinstal</string>
+    <string name="applets_error_firmware">Firmware tidak terinstal atau versi tidak valid</string>
     <string name="applets_error_applet">Applet tidak tersedia</string>
-    <string name="applets_error_description"><![CDATA[Pastikan file prod.keys dan firmware Anda terpasang dan coba lagi.]]></string>
+    <string name="applets_error_description"><![CDATA[Pastikan file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> dan
+<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> Anda terinstal dan coba lagi.<br>Pastikan juga firmware Anda versi 19.0.1 atau lebih lama.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Lihat gambar yang disimpan di folder tangkapan layar pengguna dengan penampil foto sistem.</string>
     <string name="mii_edit_applet">Ubah Mii</string>
@@ -496,6 +519,8 @@
     <string name="use_disk_shader_cache_description">Mengurangi Tutup Paksa dengan menyimpan dan memuat yang dihasilkan secara lokal</string>
     <string name="anisotropic_filtering">Penyaringan Anisotropik</string>
     <string name="anisotropic_filtering_description">Meningkatkan kualitas tekstur bila dilihat pada sudut miring</string>
+
+    <string name="warning_resolution">Penskalaan resolusi ke 2x atau lebih tinggi diketahui menyebabkan masalah, dan dapat mengakibatkan perlambatan signifikan pada perangkat Anda.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>

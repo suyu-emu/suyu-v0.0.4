@@ -11,6 +11,7 @@
     <string name="process_ram">זיכרון תהליך: %1$d MB</string>
     <string name="shaders_prefix">בונה</string>
     <string name="shaders_suffix">שיידר(ים)</string>
+    <string name="charging">(בטעינה)</string>
     <string name="system_info_label">מערכת:</string>
     <string name="show_stats_overlay">הצג סטטיסטיקות ביצועים</string>
     <string name="stats_overlay_customization">התאמה אישית</string>
@@ -29,7 +30,10 @@
     <string name="show_system_ram_usage">הצג שימוש זיכרון מערכת</string>
     <string name="show_system_ram_usage_description">הצג את כמות ה-RAM שבה המערכת משתמשת</string>
     <string name="show_bat_temperature">הצג טמפרטורת סוללה</string>
-    <string name="show_bat_temperature_description">מציג טמפרטורת סוללה במעלות צלזיוס ופרנהייט</string>
+    <string name="show_bat_temperature_description">הצג טמפרטורת סוללה נוכחית</string>
+    <string name="bat_temperature_unit">יחידות טמפרטורת סוללה</string>
+    <string name="show_power_info">הצג מידע סוללה</string>
+    <string name="show_power_info_description">הצג צריכת חשמל נוכחית וקיבולת סוללה remaining</string>
     <string name="overlay_position">מיקום שכבה</string>
     <string name="overlay_position_description">בחר היכן להציג את שכבת הסטטיסטיקות על המסך</string>
     <string name="overlay_position_top_left">פינה עליונה שמאלית</string>
@@ -96,6 +100,11 @@
     <string name="gpu_low">נמוך (128)</string>
     <string name="gpu_medium">בינוני (256)</string>
     <string name="gpu_high">גבוה (512)</string>
+
+    <!-- Temperature Units -->
+    <string name="temperature_celsius">צלזיוס</string>
+    <string name="temperature_fahrenheit">פרנהייט</string>
+
     <string name="use_fast_cpu_time">זמן CPU מהיר</string>
     <string name="use_fast_cpu_time_description">מכריח את ה-CPU המדומה לפעול במהירות שעון גבוהה יותר, מה שמפחית חלק ממגבילי ה-FPS. אפשרות זו אינה יציבה ועלולה לגרום לבעיות, ומעבדים חלשים יותר עשויים לראות ירידה בביצועים.</string>
     <string name="fast_cpu_time">מהירות שעון CPU</string>
@@ -107,6 +116,9 @@
     <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
     <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
     <string name="cpu_ticks">טיקים</string>
+    <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
+    <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
+
     <string name="memory_4gb">4GB (מומלץ)</string>
     <string name="memory_6gb">6GB (לא בטוח)</string>
     <string name="memory_8gb">8GB (לא בטוח)</string>
@@ -275,6 +287,9 @@
     <string name="keys">מפתחות</string>
     <string name="keys_description">בחר את קובץ ה &lt;b>prod.keys&lt;/b> שלך עם הכפתור למטה.</string>
     <string name="select_keys">בחר מפתחות</string>
+    <string name="firmware">קושחה</string>
+    <string name="firmware_description">בחר את קובץ ה-<b>firmware.zip</b> שלך באמצעות הכפתור למטה.\nEden דורש כרגע גרסה <b>19.0.1</b> או נמוכה יותר.</string>
+    <string name="select_firmware">בחירת קושחה</string>
     <string name="games">משחקים</string>
     <string name="games_description">בחר את התיקיית ה &lt;b>Games&lt;/b> שלך עם הכפתור למטה.</string>
     <string name="done">סיום</string>
@@ -285,6 +300,8 @@
     <string name="add_games">הוסף משחקים</string>
     <string name="add_games_description">בחר/י את תיקיית המשחקים שלך</string>
     <string name="step_complete">הושלם!</string>
+    <string name="bluetooth_permissions_granted">הרשאות Bluetooth אושרו.</string>
+    <string name="bluetooth_permissions_denied">הרשאות Bluetooth נדחו. תמיכה בבקרים עשויה להיות מוגבלת.</string>
 
     <!-- Home strings -->
     <string name="alphabetical">אלפביתי</string>
@@ -314,6 +331,8 @@
     <string name="install_prod_keys_description">הכרחי בכדי לפענח משחקים</string>
     <string name="install_prod_keys_warning">לדלג על הוספת מפתחות?</string>
     <string name="install_prod_keys_warning_description">מפתחות חוקיים הכרחיים כדי לשחק במשחקים. רק אפליקציות פירטיות יפעלו אם תמשיך.</string>
+    <string name="install_firmware_warning">לדלג על הוספת קושחה?</string>
+    <string name="install_firmware_warning_description">משחקים רבים דורשים גישה לקושחה כדי לפעול כראוי.</string>
     <string name="notifications">התראות</string>
     <string name="notifications_description">תן גישה להתראות עם הכפתור למטה.</string>
     <string name="give_permission">תן הרשאה</string>
@@ -324,6 +343,7 @@
     <string name="about">אודות</string>
     <string name="about_description">מספר גירסה, קרדיטים ועוד</string>
     <string name="warning_help">עזרה</string>
+    <string name="warning">אזהרה</string>
     <string name="warning_skip">דלג</string>
     <string name="warning_cancel">ביטול</string>
     <string name="install_amiibo_keys">התקן מפתחות Amiibo</string>
@@ -394,15 +414,31 @@
     <string name="add_game_folder">הוסף תיקיית משחקים</string>
     <string name="folder_already_added">התיקייה הזו נוספה כבר!</string>
     <string name="game_folder_properties">מאפייני תיקיית משחקים</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">נכשל בייבוא %d שמירה</item>
+        <item quantity="other">נכשל בייבוא %d שמירות</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">יובא בהצלחה %d שמירה</item>
+        <item quantity="other">יובא בהצלחה %d שמירות</item>
+    </plurals>
+    <string name="no_save_data_found">לא נמצאו שמירות</string>
+    <string name="verify_installed_content">אמת תוכן מותקן</string>
+    <string name="verify_installed_content_description">בודק תוכן מותקן לשגיאות</string>
+    <string name="keys_missing">מפתחות הצפנה חסרים</string>
+    <string name="keys_missing_description">לא ניתן לפענח firmware ומשחקים</string>
+    <string name="firmware_missing">קושחה חסרה או חדשה מדי</string>
+    <string name="firmware_missing_description">חלק מהמשחקים עשויים לא לפעול כראוי. Eden דורש קושחה בגרסה 19.0.1 או נמוכה יותר.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
     <string name="qlaunch_description">הפעלת יישומים ממסך הבית של המערכת</string>
     <string name="applets">משגר Applet</string>
     <string name="applets_description">מערכת שיגור Applet משתמשת בתוכנה המותקנת</string>
-    <string name="applets_error_firmware">ה Firmware לא מותקן</string>
+    <string name="applets_error_firmware">קושחה לא מותקנת או גרסה לא תקינה</string>
     <string name="applets_error_applet">Applet לא זמין</string>
-    <string name="applets_error_description"><![CDATA[בבקשה וודא שקבצי ה - <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>ו <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>שלך מותקנים ונסה שוב.]]></string>
+    <string name="applets_error_description"><![CDATA[אנא ודא שקובץ ה-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> שלך
+וה-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">קושחה</a> מותקנים ונסה שוב.<br>כמו כן, ודא שהקושחה שלך בגרסה 19.0.1 או ישנה יותר.]]></string>
     <string name="album_applet">אלבום</string>
     <string name="album_applet_description">צפה בתמונות השמורות בתיקיית צילומי המסך של המשתמש בעזרת מציג התמונות של המערכת</string>
     <string name="mii_edit_applet">עורך Mii</string>
@@ -473,6 +509,8 @@
     <string name="renderer_screen_layout">כיוון</string>
     <string name="renderer_aspect_ratio">יחס רוחב גובה</string>
     <string name="renderer_scaling_filter">פילטר מתאם חלון</string>
+    <string name="fsr_sharpness">חדות FSR</string>
+    <string name="fsr_sharpness_description">קובע את מידת החדות בעת שימוש ב-FSR.</string>
     <string name="renderer_anti_aliasing">שיטת Anti-aliasing</string>
     <string name="renderer_force_max_clock">החזק מהירות שעון מקסימלית (רק ל Adreno)</string>
     <string name="renderer_force_max_clock_description">מכריח לדחוף את מהירויות המעבד הגרפי למקסימום (הגבלות חום ימשיכו לתפקד).</string>
@@ -482,6 +520,11 @@
     <string name="renderer_reactive_flushing_description">משפר את הדיוק של האמולציה במשחקים מסויימים במחיר של ביצועים.</string>
     <string name="use_disk_shader_cache">מטמון השיידר של הדיסק</string>
     <string name="use_disk_shader_cache_description">מפחית בתקיעות על ידי אחסון מקומי וטעינה של שיידרים הנוצרים. </string>
+    <string name="anisotropic_filtering">סינון אנאיזוטרופי</string>
+    <string name="anisotropic_filtering_description">משפר איכות טקסטורות בזוויות.</string>
+
+    <string name="warning_resolution">שינוי רזולוציה ל-2x או יותר עלול לגרום לבעיות ולעיכובים משמעותיים במכשיר שלך.</string>
+
     <!-- Debug settings strings -->
     <string name="cpu">מעבד</string>
     <string name="cpu_debug_mode">דיבאגינג למעבד</string>

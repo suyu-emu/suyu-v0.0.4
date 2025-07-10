@@ -106,7 +106,7 @@
     <string name="custom_cpu_ticks_description">Set a custom value of CPU ticks. Higher values can increase performance, but may also cause the game to freeze. A range of 77–21000 is recommended.</string>
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Skip CPU Inner Invalidation</string>
-    <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving its performance. This may cause glitches or crashes on some games.</string>
+    <string name="skip_cpu_inner_invalidation_description">Skips certain CPU-side cache invalidations during memory updates, reducing CPU usage and improving it\'s performance. This may cause glitches or crashes on some games.</string>
     <string name="fast_cpu_time">CPU Clock</string>
     <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
     <string name="memory_layout">Memory Layout</string>
@@ -251,9 +251,10 @@
     <string name="add_games">Add Games</string>
     <string name="add_games_description">Select your games folder</string>
     <string name="step_complete">Complete!</string>
+    <string name="bluetooth_permissions_granted">Bluetooth permissions granted.</string>
+    <string name="bluetooth_permissions_denied">Bluetooth permissions denied. Controller support may be limited.</string>
 
     <!-- Home strings -->
-    <string name="firmware_version">Firmware:</string>
 
     <string name="alphabetical">Alphabetical</string>
     <string name="view_list">List</string>
@@ -500,7 +501,7 @@
     <string name="anisotropic_filtering">Anisotropic filtering</string>
     <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
 
-    <string name="warning_resolution">Resolution scaling above 2x is known to cause issues, and may result in significant slowdowns of your device.</string>
+    <string name="warning_resolution">Resolution scaling to 2x or higher is known to cause issues, and may result in significant slowdowns of your device.</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
