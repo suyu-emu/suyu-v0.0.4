@@ -25,7 +25,13 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
 #include <libavutil/pixdesc.h>
+
+// Works quite fine, and omits the hacky ffmpeg building for now...
+#if defined(__FreeBSD__)
+#include <libavcodec/codec.h>
+#else
 #include <libavcodec/codec_internal.h>
+#endif
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop

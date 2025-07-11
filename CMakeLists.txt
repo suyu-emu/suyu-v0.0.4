@@ -17,6 +17,10 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
+endif()
+
 # Check if SDL2::SDL2 target exists; if not, create an alias
 if (TARGET SDL2::SDL2-static)
     add_library(SDL2::SDL2 ALIAS SDL2::SDL2-static)
@@ -27,8 +31,12 @@ endif()
 # Set bundled sdl2/qt as dependent options.
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
-# On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
-CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+	# On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
+	CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
+else()
+	CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
+endif()
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -43,13 +51,29 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSV
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
-option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "ON")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
+else()
+	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
+endif()
 
-option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
+else()
+	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
+endif()
 
-option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+	option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
+else()
+	option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
+endif()
 
-option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" OFF)
+else()
+    option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
+endif()
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -61,7 +85,11 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+	option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
+else()
+	option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
+endif()
 
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
@@ -75,7 +103,11 @@ CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" 
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
 
-option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+	option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
+else()
+	option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
+endif()
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
@@ -337,7 +369,11 @@ if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
 endif()
 
 if (ENABLE_LIBUSB)
-    find_package(libusb 1.0.24 MODULE)
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    	find_package(libusb MODULE)
+    else()
+    	find_package(libusb 1.0.24 MODULE)
+    endif()
 endif()
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
@@ -429,7 +465,13 @@ if (ENABLE_QT)
 		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
+    # QT6 Multimedia pulls in unneeded audio systems (ALSA, Pulseaudio) for FreeBSD
+    # ALSA is the default sound system on Linux, but FreeBSD uses OSS which works well enough
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    	find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
+    else()
+    	find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
+    endif()
 
     if (UNIX AND NOT APPLE)
         find_package(Qt6 REQUIRED COMPONENTS DBus)
@@ -485,7 +527,8 @@ if (UNIX AND NOT APPLE AND NOT ANDROID)
 endif()
 if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
-    find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+    #find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+    find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 endif()
 
 if(ENABLE_QT)

@@ -1150,7 +1150,7 @@ add_library(core STATIC
     tools/renderdoc.h
 )
 
-if (UNIX AND NOT APPLE AND NOT ANDROID)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     # find_package(libiw REQUIRED)
     target_link_libraries(core PRIVATE iw)
 endif()
