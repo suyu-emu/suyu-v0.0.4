@@ -643,13 +643,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         val battery: BatteryManager =
                             requireContext().getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+                        val batteryIntent = requireContext().registerReceiver(null,
+                            IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
                         val capacity = battery.getIntProperty(BATTERY_PROPERTY_CAPACITY)
                         val nowUAmps = battery.getIntProperty(BATTERY_PROPERTY_CURRENT_NOW)
 
                         sb.append(String.format("%.1fA (%d%%)", nowUAmps / 1000000.0, capacity))
 
-                        if (battery.isCharging || nowUAmps > 0.0) {
+                        val status = batteryIntent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+                        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                                        status == BatteryManager.BATTERY_STATUS_FULL
+
+                        if (isCharging) {
                             sb.append(" ${getString(R.string.charging)}")
                         }
                     }

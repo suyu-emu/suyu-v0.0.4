@@ -5,6 +5,7 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 
 import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
+import org.yuzu.yuzu_emu.features.settings.model.AbstractByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
@@ -24,8 +25,14 @@ class SingleChoiceSetting(
     fun getSelectedValue(needsGlobal: Boolean = false) =
         when (setting) {
             is AbstractIntSetting -> setting.getInt(needsGlobal)
+            is AbstractByteSetting -> setting.getByte(needsGlobal).toInt()
             else -> -1
         }
 
-    fun setSelectedValue(value: Int) = (setting as AbstractIntSetting).setInt(value)
+    fun setSelectedValue(value: Int) =
+        when (setting) {
+            is AbstractIntSetting -> setting.setInt(value)
+            is AbstractByteSetting -> setting.setByte(value.toByte())
+            else -> -1
+        }
 }

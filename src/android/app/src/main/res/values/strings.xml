@@ -74,7 +74,7 @@
 
     <string name="veil_extensions">GPU Extensions</string>
     <string name="dyna_state">Extended Dynamic State</string>
-    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Set to 0 to use Legacy emulated formats.</string>
+    <string name="dyna_state_description">Enables Vulkan features to improve performance, rendering, and save resources on pipeline creation while maintaining lower CPU/GPU usage. These extensions may increase device temperature, and GPUs belonging to the older A6XX line may not react properly. Disable to emulate scaled formats.</string>
     <string name="disabled">Disabled</string>
     <string name="provoking_vertex">Provoking Vertex</string>
     <string name="provoking_vertex_description">Improves lighting and vertex handling in certain games. Only supported on Vulkan 1.0+ GPUs.</string>
@@ -95,11 +95,11 @@
     <string name="firmware_uninstalling">Uninstalling firmware</string>
     <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
 
-    <string name="veil_misc">Miscellaneous</string>
+    <string name="veil_misc">CPU and Memory</string>
     <string name="use_sync_core">Synchronize Core Speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
     <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issue with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issues with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
     <string name="use_fast_cpu_time">Fast CPU Time</string>
     <string name="use_fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. This option is hacky and may cause issues, and weaker CPUs may see reduced performance.</string>
     <string name="custom_cpu_ticks">Custom CPU Ticks</string>
