@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -354,7 +351,7 @@ std::optional<StorageBufferAddr> Track(const IR::Value& value, const Bias* bias)
             .index = index.U32(),
             .offset = offset.U32(),
         };
-        const u32 alignment{bias ? bias->alignment : 16U};
+        const u32 alignment{bias ? bias->alignment : 8U};
         if (!Common::IsAligned(storage_buffer.offset, alignment)) {
             // The SSBO pointer has to be aligned
             return std::nullopt;
@@ -375,9 +372,9 @@ void CollectStorageBuffers(IR::Block& block, IR::Inst& inst, StorageInfo& info) 
     // avoid getting false positives
     static constexpr Bias nvn_bias{
         .index = 0,
-        .offset_begin = 0x110,
-        .offset_end = 0x800,
-        .alignment = 32,
+        .offset_begin = 0x100,
+        .offset_end = 0x700,
+        .alignment = 16,
     };
     // Track the low address of the instruction
     const std::optional<LowAddrInfo> low_addr_info{TrackLowAddress(&inst)};
@@ -429,10 +426,7 @@ IR::U32 StorageOffset(IR::Block& block, IR::Inst& inst, StorageBufferAddr buffer
 
     // Align the offset base to match the host alignment requirements
     low_cbuf = ir.BitwiseAnd(low_cbuf, ir.Imm32(~(alignment - 1U)));
-
-    // It aligns the memory strongly
-    IR::U32 res = ir.ISub(offset, low_cbuf);
-    return res;
+    return ir.ISub(offset, low_cbuf);
 }
 
 /// Replace a global memory load instruction with its storage buffer equivalent
