@@ -60,6 +60,18 @@ if [ "$DEVEL" != "true" ]; then
     export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DENABLE_QT_UPDATE_CHECKER=ON)
 fi
 
+if [ "$USE_WEBENGINE" = "true" ]; then
+    WEBENGINE=ON
+else
+    WEBENGINE=OFF
+fi
+
+if [ "$USE_MULTIMEDIA" = "false" ]; then
+    MULTIMEDIA=OFF
+else
+    MULTIMEDIA=ON
+fi
+
 export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" $@)
 
 mkdir -p build && cd build
@@ -74,8 +86,8 @@ cmake .. -G Ninja \
     -DYUZU_USE_BUNDLED_SDL2=OFF \
     -DYUZU_USE_EXTERNAL_SDL2=ON \
     -DYUZU_TESTS=OFF \
-    -DYUZU_USE_QT_MULTIMEDIA=ON \
-    -DYUZU_USE_QT_WEB_ENGINE=ON \
+    -DYUZU_USE_QT_MULTIMEDIA=$MULTIMEDIA \
+    -DYUZU_USE_QT_WEB_ENGINE=$WEBENGINE \
     -DYUZU_USE_FASTER_LD=ON \
     -DYUZU_ENABLE_LTO=ON \
 	"${EXTRA_CMAKE_FLAGS[@]}"
