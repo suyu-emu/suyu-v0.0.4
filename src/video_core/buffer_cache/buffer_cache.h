@@ -416,7 +416,7 @@ void BufferCache<P>::UnbindGraphicsStorageBuffers(size_t stage) {
 }
 
 template <class P>
-void BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index,
+bool BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index,
                                                u32 cbuf_offset, bool is_written) {
     channel_state->enabled_storage_buffers[stage] |= 1U << ssbo_index;
     channel_state->written_storage_buffers[stage] |= (is_written ? 1U : 0U) << ssbo_index;
@@ -425,6 +425,7 @@ void BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, 
     const GPUVAddr ssbo_addr = cbufs.const_buffers[cbuf_index].address + cbuf_offset;
     channel_state->storage_buffers[stage][ssbo_index] =
         StorageBufferBinding(ssbo_addr, cbuf_index, is_written);
+    return (channel_state->storage_buffers[stage][ssbo_index].buffer_id != NULL_BUFFER_ID);
 }
 
 template <class P>

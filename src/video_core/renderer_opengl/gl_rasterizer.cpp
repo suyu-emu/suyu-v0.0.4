@@ -250,7 +250,8 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
         program_manager.LocalMemoryWarmup();
     }
     pipeline->SetEngine(maxwell3d, gpu_memory);
-    pipeline->Configure(is_indexed);
+    if (!pipeline->Configure(is_indexed))
+        return;
 
     SyncState();
 

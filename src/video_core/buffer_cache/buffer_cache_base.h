@@ -235,7 +235,7 @@ public:
 
     void UnbindGraphicsStorageBuffers(size_t stage);
 
-    void BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
+    bool BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
                                    bool is_written);
 
     void UnbindGraphicsTextureBuffers(size_t stage);
