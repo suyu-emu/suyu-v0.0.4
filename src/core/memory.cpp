@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -868,35 +871,35 @@ struct Memory::Impl {
     [[nodiscard]] u8* GetPointerImpl(u64 vaddr, auto on_unmapped, auto on_rasterizer) const {
         // AARCH64 masks the upper 16 bit of all memory accesses
         vaddr = vaddr & 0xffffffffffffULL;
-
         if (!AddressSpaceContains(*current_page_table, vaddr, 1)) [[unlikely]] {
             on_unmapped();
             return nullptr;
+        } else {
+            // Avoid adding any extra logic to this fast-path block
+            const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Raw();
+            if (const uintptr_t pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
+                return reinterpret_cast<u8*>(pointer + vaddr);
+            } else {
+                switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
+                case Common::PageType::Unmapped:
+                    on_unmapped();
+                    return nullptr;
+                case Common::PageType::Memory:
+                    ASSERT_MSG(false, "Mapped memory page without a pointer @ 0x{:016X}", vaddr);
+                    return nullptr;
+                case Common::PageType::DebugMemory:
+                    return GetPointerFromDebugMemory(vaddr);
+                case Common::PageType::RasterizerCachedMemory: {
+                    u8* const host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
+                    on_rasterizer();
+                    return host_ptr;
+                }
+                default:
+                    UNREACHABLE();
+                }
+                return nullptr;
+            }
         }
-
-        // Avoid adding any extra logic to this fast-path block
-        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Raw();
-        if (const uintptr_t pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            return reinterpret_cast<u8*>(pointer + vaddr);
-        }
-        switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
-        case Common::PageType::Unmapped:
-            on_unmapped();
-            return nullptr;
-        case Common::PageType::Memory:
-            ASSERT_MSG(false, "Mapped memory page without a pointer @ 0x{:016X}", vaddr);
-            return nullptr;
-        case Common::PageType::DebugMemory:
-            return GetPointerFromDebugMemory(vaddr);
-        case Common::PageType::RasterizerCachedMemory: {
-            u8* const host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
-            on_rasterizer();
-            return host_ptr;
-        }
-        default:
-            UNREACHABLE();
-        }
-        return nullptr;
     }
 
     [[nodiscard]] u8* GetPointer(const Common::ProcessAddress vaddr) const {
@@ -1149,13 +1152,19 @@ struct Memory::Impl {
         gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr address) {
             auto& current_area = rasterizer_write_areas[core];
             PAddr subaddress = address >> YUZU_PAGEBITS;
-            bool do_collection = current_area.last_address == subaddress;
-            if (!do_collection) [[unlikely]] {
-                do_collection = system.GPU().OnCPUWrite(address, size);
-                if (!do_collection) {
+            // Performance note:
+            // It may not be a good idea to assume accesses are within the same subaddress (i.e same page)
+            // It is often the case the games like to access wildly different addresses. Hence why I propose
+            // we should let the compiler just do it's thing...
+            if (current_area.last_address != subaddress) {
+                // Short circuit the need to check for address/size
+                auto const do_collection = (address != 0 && size != 0)
+                    && system.GPU().OnCPUWrite(address, size);
+                if (do_collection) {
+                    current_area.last_address = subaddress;
+                } else {
                     return;
                 }
-                current_area.last_address = subaddress;
             }
             gpu_dirty_managers[core].Collect(address, size);
         });
