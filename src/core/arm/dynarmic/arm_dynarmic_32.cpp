@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -201,7 +204,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     }
 
     // Multi-process state
-    config.processor_id = m_core_index;
+    config.processor_id = std::uint8_t(m_core_index);
     config.global_monitor = &m_exclusive_monitor.monitor;
 
     // Timing
@@ -210,9 +213,9 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
 
     // Code cache size
 #ifdef ARCHITECTURE_arm64
-    config.code_cache_size = 128_MiB;
+    config.code_cache_size = std::uint32_t(128_MiB);
 #else
-    config.code_cache_size = 512_MiB;
+    config.code_cache_size = std::uint32_t(512_MiB);
 #endif
 
     // Allow memory fault handling to work
@@ -223,7 +226,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
     // null_jit
     if (!page_table) {
         // Don't waste too much memory on null_jit
-        config.code_cache_size = 8_MiB;
+        config.code_cache_size = std::uint32_t(8_MiB);
     }
 
     // Safe optimizations

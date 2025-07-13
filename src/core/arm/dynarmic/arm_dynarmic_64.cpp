@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -232,7 +235,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     // Memory
     if (page_table) {
         config.page_table = reinterpret_cast<void**>(page_table->pointers.data());
-        config.page_table_address_space_bits = address_space_bits;
+        config.page_table_address_space_bits = std::uint32_t(address_space_bits);
         config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
         config.silently_mirror_page_table = false;
         config.absolute_offset_page_table = true;
@@ -242,7 +245,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
         config.fastmem_pointer = page_table->fastmem_arena ?
             std::optional<uintptr_t>{reinterpret_cast<uintptr_t>(page_table->fastmem_arena)} :
             std::nullopt;
-        config.fastmem_address_space_bits = address_space_bits;
+        config.fastmem_address_space_bits = std::uint32_t(address_space_bits);
         config.silently_mirror_fastmem = false;
 
         config.fastmem_exclusive_access = config.fastmem_pointer != std::nullopt;
@@ -250,7 +253,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     }
 
     // Multi-process state
-    config.processor_id = m_core_index;
+    config.processor_id = std::uint8_t(m_core_index);
     config.global_monitor = &m_exclusive_monitor.monitor;
 
     // System registers
@@ -269,9 +272,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
 
     // Code cache size
 #ifdef ARCHITECTURE_arm64
-    config.code_cache_size = 128_MiB;
+    config.code_cache_size = std::uint32_t(128_MiB);
 #else
-    config.code_cache_size = 512_MiB;
+    config.code_cache_size = std::uint32_t(512_MiB);
 #endif
 
     // Allow memory fault handling to work
@@ -282,7 +285,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
     // null_jit
     if (!page_table) {
         // Don't waste too much memory on null_jit
-        config.code_cache_size = 8_MiB;
+        config.code_cache_size = std::uint32_t(8_MiB);
     }
 
     // Safe optimizations

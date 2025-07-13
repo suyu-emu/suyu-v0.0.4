@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -159,9 +162,6 @@ struct UserConfig {
     /// Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
     std::uint32_t code_cache_size = 128 * 1024 * 1024;  // bytes
 
-    /// Processor ID
-    std::uint32_t processor_id = 0;
-
     /// Masks out the first N bits in host pointers from the page table.
     /// The intention behind this is to allow users of Dynarmic to pack attributes in the
     /// same integer and update the pointer attribute pair atomically.
@@ -171,6 +171,9 @@ struct UserConfig {
     /// Select the architecture version to use.
     /// There are minor behavioural differences between versions.
     ArchVersion arch_version = ArchVersion::v8;
+
+    /// Processor ID
+    std::uint8_t processor_id = 0;
 
     /// Determines if we should detect memory accesses via page_table that straddle are
     /// misaligned. Accesses that straddle page boundaries will fallback to the relevant
