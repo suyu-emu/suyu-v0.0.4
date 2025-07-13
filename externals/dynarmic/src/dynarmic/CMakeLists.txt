@@ -125,52 +125,6 @@ if ("A32" IN_LIST DYNARMIC_FRONTENDS)
         frontend/A32/translate/a32_translate.h
         frontend/A32/translate/conditional_state.cpp
         frontend/A32/translate/conditional_state.h
-        frontend/A32/translate/impl/a32_branch.cpp
-        frontend/A32/translate/impl/a32_crc32.cpp
-        frontend/A32/translate/impl/a32_exception_generating.cpp
-        frontend/A32/translate/impl/a32_translate_impl.cpp
-        frontend/A32/translate/impl/a32_translate_impl.h
-        frontend/A32/translate/impl/asimd_load_store_structures.cpp
-        frontend/A32/translate/impl/asimd_misc.cpp
-        frontend/A32/translate/impl/asimd_one_reg_modified_immediate.cpp
-        frontend/A32/translate/impl/asimd_three_regs.cpp
-        frontend/A32/translate/impl/asimd_two_regs_misc.cpp
-        frontend/A32/translate/impl/asimd_two_regs_scalar.cpp
-        frontend/A32/translate/impl/asimd_two_regs_shift.cpp
-        frontend/A32/translate/impl/barrier.cpp
-        frontend/A32/translate/impl/coprocessor.cpp
-        frontend/A32/translate/impl/data_processing.cpp
-        frontend/A32/translate/impl/divide.cpp
-        frontend/A32/translate/impl/extension.cpp
-        frontend/A32/translate/impl/hint.cpp
-        frontend/A32/translate/impl/load_store.cpp
-        frontend/A32/translate/impl/misc.cpp
-        frontend/A32/translate/impl/multiply.cpp
-        frontend/A32/translate/impl/packing.cpp
-        frontend/A32/translate/impl/parallel.cpp
-        frontend/A32/translate/impl/reversal.cpp
-        frontend/A32/translate/impl/saturated.cpp
-        frontend/A32/translate/impl/status_register_access.cpp
-        frontend/A32/translate/impl/synchronization.cpp
-        frontend/A32/translate/impl/thumb16.cpp
-        frontend/A32/translate/impl/thumb32_branch.cpp
-        frontend/A32/translate/impl/thumb32_control.cpp
-        frontend/A32/translate/impl/thumb32_coprocessor.cpp
-        frontend/A32/translate/impl/thumb32_data_processing_modified_immediate.cpp
-        frontend/A32/translate/impl/thumb32_data_processing_plain_binary_immediate.cpp
-        frontend/A32/translate/impl/thumb32_data_processing_register.cpp
-        frontend/A32/translate/impl/thumb32_data_processing_shifted_register.cpp
-        frontend/A32/translate/impl/thumb32_load_byte.cpp
-        frontend/A32/translate/impl/thumb32_load_halfword.cpp
-        frontend/A32/translate/impl/thumb32_load_store_dual.cpp
-        frontend/A32/translate/impl/thumb32_load_store_multiple.cpp
-        frontend/A32/translate/impl/thumb32_load_word.cpp
-        frontend/A32/translate/impl/thumb32_long_multiply.cpp
-        frontend/A32/translate/impl/thumb32_misc.cpp
-        frontend/A32/translate/impl/thumb32_multiply.cpp
-        frontend/A32/translate/impl/thumb32_parallel.cpp
-        frontend/A32/translate/impl/thumb32_store_single_data_item.cpp
-        frontend/A32/translate/impl/vfp.cpp
         frontend/A32/translate/translate_arm.cpp
         frontend/A32/translate/translate_thumb.cpp
         interface/A32/a32.h
@@ -194,65 +148,6 @@ if ("A64" IN_LIST DYNARMIC_FRONTENDS)
         frontend/A64/decoder/a64.inc
         frontend/A64/translate/a64_translate.cpp
         frontend/A64/translate/a64_translate.h
-        frontend/A64/translate/impl/a64_branch.cpp
-        frontend/A64/translate/impl/a64_exception_generating.cpp
-        frontend/A64/translate/impl/data_processing_addsub.cpp
-        frontend/A64/translate/impl/data_processing_bitfield.cpp
-        frontend/A64/translate/impl/data_processing_conditional_compare.cpp
-        frontend/A64/translate/impl/data_processing_conditional_select.cpp
-        frontend/A64/translate/impl/data_processing_crc32.cpp
-        frontend/A64/translate/impl/data_processing_logical.cpp
-        frontend/A64/translate/impl/data_processing_multiply.cpp
-        frontend/A64/translate/impl/data_processing_pcrel.cpp
-        frontend/A64/translate/impl/data_processing_register.cpp
-        frontend/A64/translate/impl/data_processing_shift.cpp
-        frontend/A64/translate/impl/floating_point_compare.cpp
-        frontend/A64/translate/impl/floating_point_conditional_compare.cpp
-        frontend/A64/translate/impl/floating_point_conditional_select.cpp
-        frontend/A64/translate/impl/floating_point_conversion_fixed_point.cpp
-        frontend/A64/translate/impl/floating_point_conversion_integer.cpp
-        frontend/A64/translate/impl/floating_point_data_processing_one_register.cpp
-        frontend/A64/translate/impl/floating_point_data_processing_three_register.cpp
-        frontend/A64/translate/impl/floating_point_data_processing_two_register.cpp
-        frontend/A64/translate/impl/impl.cpp
-        frontend/A64/translate/impl/impl.h
-        frontend/A64/translate/impl/load_store_exclusive.cpp
-        frontend/A64/translate/impl/load_store_load_literal.cpp
-        frontend/A64/translate/impl/load_store_multiple_structures.cpp
-        frontend/A64/translate/impl/load_store_no_allocate_pair.cpp
-        frontend/A64/translate/impl/load_store_register_immediate.cpp
-        frontend/A64/translate/impl/load_store_register_pair.cpp
-        frontend/A64/translate/impl/load_store_register_register_offset.cpp
-        frontend/A64/translate/impl/load_store_register_unprivileged.cpp
-        frontend/A64/translate/impl/load_store_single_structure.cpp
-        frontend/A64/translate/impl/move_wide.cpp
-        frontend/A64/translate/impl/simd_across_lanes.cpp
-        frontend/A64/translate/impl/simd_aes.cpp
-        frontend/A64/translate/impl/simd_copy.cpp
-        frontend/A64/translate/impl/simd_crypto_four_register.cpp
-        frontend/A64/translate/impl/simd_crypto_three_register.cpp
-        frontend/A64/translate/impl/simd_extract.cpp
-        frontend/A64/translate/impl/simd_modified_immediate.cpp
-        frontend/A64/translate/impl/simd_permute.cpp
-        frontend/A64/translate/impl/simd_scalar_pairwise.cpp
-        frontend/A64/translate/impl/simd_scalar_shift_by_immediate.cpp
-        frontend/A64/translate/impl/simd_scalar_three_same.cpp
-        frontend/A64/translate/impl/simd_scalar_two_register_misc.cpp
-        frontend/A64/translate/impl/simd_scalar_x_indexed_element.cpp
-        frontend/A64/translate/impl/simd_sha.cpp
-        frontend/A64/translate/impl/simd_sha512.cpp
-        frontend/A64/translate/impl/simd_shift_by_immediate.cpp
-        frontend/A64/translate/impl/simd_table_lookup.cpp
-        frontend/A64/translate/impl/simd_three_different.cpp
-        frontend/A64/translate/impl/simd_three_same.cpp
-        frontend/A64/translate/impl/simd_three_same_extra.cpp
-        frontend/A64/translate/impl/simd_two_register_misc.cpp
-        frontend/A64/translate/impl/simd_vector_x_indexed_element.cpp
-        frontend/A64/translate/impl/sys_dc.cpp
-        frontend/A64/translate/impl/sys_ic.cpp
-        frontend/A64/translate/impl/system.cpp
-        frontend/A64/translate/impl/system_flag_format.cpp
-        frontend/A64/translate/impl/system_flag_manipulation.cpp
         interface/A64/a64.h
         interface/A64/config.h
         ir/opt/a64_callback_config_pass.cpp

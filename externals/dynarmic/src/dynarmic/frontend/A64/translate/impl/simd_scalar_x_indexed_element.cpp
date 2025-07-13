@@ -9,7 +9,7 @@
 
 namespace Dynarmic::A64 {
 namespace {
-std::pair<size_t, Vec> Combine(Imm<2> size, Imm<1> H, Imm<1> L, Imm<1> M, Imm<4> Vmlo) {
+std::pair<size_t, Vec> CombineScalar(Imm<2> size, Imm<1> H, Imm<1> L, Imm<1> M, Imm<4> Vmlo) {
     if (size == 0b01) {
         return {concatenate(H, L, M).ZeroExtend(), Vmlo.ZeroExtend<Vec>()};
     }
@@ -122,7 +122,7 @@ bool TranslatorVisitor::SQDMULH_elt_1(Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vm
     }
 
     const size_t esize = 8 << size.ZeroExtend();
-    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
+    const auto [index, Vm] = CombineScalar(size, H, L, M, Vmlo);
 
     const IR::UAny operand1 = V_scalar(esize, Vn);
     const IR::UAny operand2 = ir.VectorGetElement(esize, V(128, Vm), index);
@@ -137,7 +137,7 @@ bool TranslatorVisitor::SQRDMULH_elt_1(Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> V
     }
 
     const size_t esize = 8 << size.ZeroExtend();
-    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
+    const auto [index, Vm] = CombineScalar(size, H, L, M, Vmlo);
 
     const IR::U128 operand1 = ir.ZeroExtendToQuad(ir.VectorGetElement(esize, V(128, Vn), 0));
     const IR::U128 operand2 = V(128, Vm);
@@ -154,7 +154,7 @@ bool TranslatorVisitor::SQDMULL_elt_1(Imm<2> size, Imm<1> L, Imm<1> M, Imm<4> Vm
     }
 
     const size_t esize = 8 << size.ZeroExtend();
-    const auto [index, Vm] = Combine(size, H, L, M, Vmlo);
+    const auto [index, Vm] = CombineScalar(size, H, L, M, Vmlo);
 
     const IR::U128 operand1 = ir.ZeroExtendToQuad(ir.VectorGetElement(esize, V(128, Vn), 0));
     const IR::U128 operand2 = V(128, Vm);

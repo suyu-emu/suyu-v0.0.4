@@ -4,13 +4,9 @@
  */
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
-
-static IR::U32 Rotate(A32::IREmitter& ir, Reg m, SignExtendRotation rotate) {
-    const u8 rotate_by = static_cast<u8>(static_cast<size_t>(rotate) * 8);
-    return ir.RotateRight(ir.GetRegister(m), ir.Imm8(rotate_by), ir.Imm1(0)).result;
-}
 
 // SXTAB<c> <Rd>, <Rn>, <Rm>{, <rotation>}
 bool TranslatorVisitor::arm_SXTAB(Cond cond, Reg n, Reg d, SignExtendRotation rotate, Reg m) {

@@ -4,12 +4,11 @@
  */
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
 
-using ExtensionFunction = IR::U32 (IREmitter::*)(const IR::U16&);
-
-static bool LoadHalfLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, ExtensionFunction ext_fn) {
+static bool LoadHalfLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, ExtensionFunctionU16 ext_fn) {
     const auto imm32 = imm12.ZeroExtend();
     const auto base = v.ir.AlignPC(4);
     const auto address = U ? (base + imm32) : (base - imm32);
@@ -19,7 +18,7 @@ static bool LoadHalfLiteral(TranslatorVisitor& v, bool U, Reg t, Imm<12> imm12, 
     return true;
 }
 
-static bool LoadHalfRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m, ExtensionFunction ext_fn) {
+static bool LoadHalfRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Reg m, ExtensionFunctionU16 ext_fn) {
     if (m == Reg::PC) {
         return v.UnpredictableInstruction();
     }
@@ -34,7 +33,7 @@ static bool LoadHalfRegister(TranslatorVisitor& v, Reg n, Reg t, Imm<2> imm2, Re
     return true;
 }
 
-static bool LoadHalfImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W, Imm<12> imm12, ExtensionFunction ext_fn) {
+static bool LoadHalfImmediate(TranslatorVisitor& v, Reg n, Reg t, bool P, bool U, bool W, Imm<12> imm12, ExtensionFunctionU16 ext_fn) {
     const u32 imm32 = imm12.ZeroExtend();
     const IR::U32 reg_n = v.ir.GetRegister(n);
     const IR::U32 offset_address = U ? v.ir.Add(reg_n, v.ir.Imm32(imm32))

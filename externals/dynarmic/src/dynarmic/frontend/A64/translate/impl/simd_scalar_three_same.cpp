@@ -26,12 +26,12 @@ enum class ComparisonVariant {
     Zero,
 };
 
-enum class Signedness {
+enum class SignednessSSTS {
     Signed,
     Unsigned,
 };
 
-bool RoundingShiftLeft(TranslatorVisitor& v, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, Signedness sign) {
+bool RoundingShiftLeft(TranslatorVisitor& v, Imm<2> size, Vec Vm, Vec Vn, Vec Vd, SignednessSSTS sign) {
     if (size != 0b11) {
         return v.ReservedValue();
     }
@@ -39,7 +39,7 @@ bool RoundingShiftLeft(TranslatorVisitor& v, Imm<2> size, Vec Vm, Vec Vn, Vec Vd
     const IR::U128 operand1 = v.V(64, Vn);
     const IR::U128 operand2 = v.V(64, Vm);
     const IR::U128 result = [&] {
-        if (sign == Signedness::Signed) {
+        if (sign == SignednessSSTS::Signed) {
             return v.ir.VectorRoundingShiftLeftSigned(64, operand1, operand2);
         }
 
@@ -369,7 +369,7 @@ bool TranslatorVisitor::SQSHL_reg_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::SRSHL_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return RoundingShiftLeft(*this, size, Vm, Vn, Vd, Signedness::Signed);
+    return RoundingShiftLeft(*this, size, Vm, Vn, Vd, SignednessSSTS::Signed);
 }
 
 bool TranslatorVisitor::SSHL_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
@@ -411,7 +411,7 @@ bool TranslatorVisitor::UQSHL_reg_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::URSHL_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {
-    return RoundingShiftLeft(*this, size, Vm, Vn, Vd, Signedness::Unsigned);
+    return RoundingShiftLeft(*this, size, Vm, Vn, Vd, SignednessSSTS::Unsigned);
 }
 
 bool TranslatorVisitor::USHL_1(Imm<2> size, Vec Vm, Vec Vn, Vec Vd) {

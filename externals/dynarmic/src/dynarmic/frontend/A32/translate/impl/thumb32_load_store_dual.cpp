@@ -6,11 +6,9 @@
 #include <mcl/bit/bit_field.hpp>
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
-static bool ITBlockCheck(const A32::IREmitter& ir) {
-    return ir.current_location.IT().IsInITBlock() && !ir.current_location.IT().IsLastInITBlock();
-}
 
 static bool TableBranch(TranslatorVisitor& v, Reg n, Reg m, bool half) {
     if (m == Reg::PC) {

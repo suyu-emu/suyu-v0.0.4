@@ -33,6 +33,7 @@ CMakeLists.txt.user*
 
 # Visual Studio CMake settings
 CMakeSettings.json
+.cache/
 
 # OSX global filetypes
 # Created by Finder or Spotlight in directories for various OS functionality (indexing, etc)

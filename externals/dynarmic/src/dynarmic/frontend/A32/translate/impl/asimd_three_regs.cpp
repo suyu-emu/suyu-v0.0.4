@@ -6,6 +6,7 @@
 #include <mcl/bit/bit_field.hpp>
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
 namespace {
@@ -15,11 +16,6 @@ enum class Comparison {
     EQ,
     AbsoluteGE,
     AbsoluteGT,
-};
-
-enum class AccumulateBehavior {
-    None,
-    Accumulate,
 };
 
 enum class WidenBehaviour {

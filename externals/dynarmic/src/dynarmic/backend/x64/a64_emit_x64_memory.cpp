@@ -33,13 +33,13 @@ void A64EmitX64::GenMemory128Accessors() {
 #ifdef _WIN32
     Devirtualize<&A64::UserCallbacks::MemoryRead128>(conf.callbacks).EmitCallWithReturnPointer(code, [&](Xbyak::Reg64 return_value_ptr, [[maybe_unused]] RegList args) {
         code.mov(code.ABI_PARAM3, code.ABI_PARAM2);
-        code.sub(rsp, 8 + 16 + ABI_SHADOW_SPACE);
+        code.lea(rsp, ptr[rsp - (8 + 16 + ABI_SHADOW_SPACE)]);
         code.lea(return_value_ptr, ptr[rsp + ABI_SHADOW_SPACE]);
     });
     code.movups(xmm1, xword[code.ABI_RETURN]);
     code.add(rsp, 8 + 16 + ABI_SHADOW_SPACE);
 #else
-    code.sub(rsp, 8);
+    code.lea(rsp, ptr[rsp - 8]);
     Devirtualize<&A64::UserCallbacks::MemoryRead128>(conf.callbacks).EmitCall(code);
     if (code.HasHostFeature(HostFeature::SSE41)) {
         code.movq(xmm1, code.ABI_RETURN);
@@ -57,13 +57,13 @@ void A64EmitX64::GenMemory128Accessors() {
     code.align();
     memory_write_128 = code.getCurr<void (*)()>();
 #ifdef _WIN32
-    code.sub(rsp, 8 + 16 + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (8 + 16 + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
     code.movaps(xword[code.ABI_PARAM3], xmm1);
     Devirtualize<&A64::UserCallbacks::MemoryWrite128>(conf.callbacks).EmitCall(code);
     code.add(rsp, 8 + 16 + ABI_SHADOW_SPACE);
 #else
-    code.sub(rsp, 8);
+    code.lea(rsp, ptr[rsp - 8]);
     if (code.HasHostFeature(HostFeature::SSE41)) {
         code.movq(code.ABI_PARAM3, xmm1);
         code.pextrq(code.ABI_PARAM4, xmm1, 1);
@@ -81,7 +81,7 @@ void A64EmitX64::GenMemory128Accessors() {
     code.align();
     memory_exclusive_write_128 = code.getCurr<void (*)()>();
 #ifdef _WIN32
-    code.sub(rsp, 8 + 32 + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (8 + 32 + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
     code.lea(code.ABI_PARAM4, ptr[rsp + ABI_SHADOW_SPACE + 16]);
     code.movaps(xword[code.ABI_PARAM3], xmm1);
@@ -89,7 +89,7 @@ void A64EmitX64::GenMemory128Accessors() {
     Devirtualize<&A64::UserCallbacks::MemoryWriteExclusive128>(conf.callbacks).EmitCall(code);
     code.add(rsp, 8 + 32 + ABI_SHADOW_SPACE);
 #else
-    code.sub(rsp, 8);
+    code.lea(rsp, ptr[rsp - 8]);
     if (code.HasHostFeature(HostFeature::SSE41)) {
         code.movq(code.ABI_PARAM3, xmm1);
         code.pextrq(code.ABI_PARAM4, xmm1, 1);
@@ -131,8 +131,8 @@ void A64EmitX64::GenFastmemFallbacks() {
         {64, Devirtualize<&A64::UserCallbacks::MemoryWriteExclusive64>(conf.callbacks)},
     }};
 
-    for (bool ordered : {false, true}) {
-        for (int vaddr_idx : idxes) {
+    for (auto const ordered : {false, true}) {
+        for (auto const vaddr_idx : idxes) {
             if (vaddr_idx == 4 || vaddr_idx == 15) {
                 continue;
             }

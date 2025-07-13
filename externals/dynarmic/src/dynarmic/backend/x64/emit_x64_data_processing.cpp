@@ -992,7 +992,6 @@ static void EmitAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, int bit
         code.seto(overflow);
         ctx.reg_alloc.DefineValue(overflow_inst, overflow);
     }
-
     ctx.reg_alloc.DefineValue(inst, result);
 }
 

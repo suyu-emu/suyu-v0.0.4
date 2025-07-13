@@ -258,7 +258,7 @@ struct TranslatorVisitor final {
     bool arm_CLZ(Cond cond, Reg d, Reg m);
     bool arm_MOVT(Cond cond, Imm<4> imm4, Reg d, Imm<12> imm12);
     bool arm_MOVW(Cond cond, Imm<4> imm4, Reg d, Imm<12> imm12);
-    bool arm_NOP() { return true; }
+    bool arm_NOP();
     bool arm_RBIT(Cond cond, Reg d, Reg m);
     bool arm_SBFX(Cond cond, Imm<5> widthm1, Reg d, Imm<5> lsb, Reg n);
     bool arm_SEL(Cond cond, Reg n, Reg d, Reg m);

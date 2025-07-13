@@ -4,13 +4,10 @@
  */
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
 namespace {
-IR::U32 Rotate(A32::IREmitter& ir, Reg m, SignExtendRotation rotate) {
-    const u8 rotate_by = static_cast<u8>(static_cast<size_t>(rotate) * 8);
-    return ir.RotateRight(ir.GetRegister(m), ir.Imm8(rotate_by), ir.Imm1(0)).result;
-}
 
 using ShiftFunction = IR::ResultAndCarry<IR::U32> (IREmitter::*)(const IR::U32&, const IR::U8&, const IR::U1&);
 

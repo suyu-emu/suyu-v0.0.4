@@ -15,7 +15,7 @@
 
 namespace Dynarmic::A32 {
 
-enum class ArchVersion;
+enum class ArchVersion : std::uint8_t;
 enum class CoprocReg;
 enum class Exception;
 enum class ExtReg;
@@ -27,12 +27,11 @@ enum class Reg;
  * The user of this class updates `current_location` as appropriate.
  */
 class IREmitter : public IR::IREmitter {
+    IR::U64 ImmCurrentLocationDescriptor();
 public:
     IREmitter(IR::Block& block, LocationDescriptor descriptor, ArchVersion arch_version)
             : IR::IREmitter(block), current_location(descriptor), arch_version(arch_version) {}
-
-    LocationDescriptor current_location;
-
+    
     size_t ArchVersion() const;
 
     u32 PC() const;
@@ -107,10 +106,9 @@ public:
     IR::U64 CoprocGetTwoWords(size_t coproc_no, bool two, size_t opc, CoprocReg CRm);
     void CoprocLoadWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd, const IR::U32& address, bool has_option, u8 option);
     void CoprocStoreWords(size_t coproc_no, bool two, bool long_transfer, CoprocReg CRd, const IR::U32& address, bool has_option, u8 option);
-
-private:
+public:
+    LocationDescriptor current_location;
     enum ArchVersion arch_version;
-    IR::U64 ImmCurrentLocationDescriptor();
 };
 
 }  // namespace Dynarmic::A32

@@ -6,11 +6,9 @@
 #include <mcl/bit/bit_count.hpp>
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
-static bool ITBlockCheck(const A32::IREmitter& ir) {
-    return ir.current_location.IT().IsInITBlock() && !ir.current_location.IT().IsLastInITBlock();
-}
 
 static bool LDMHelper(A32::IREmitter& ir, bool W, Reg n, u32 list, const IR::U32& start_address, const IR::U32& writeback_address) {
     auto address = start_address;

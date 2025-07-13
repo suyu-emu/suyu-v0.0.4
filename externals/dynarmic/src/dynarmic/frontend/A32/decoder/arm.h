@@ -33,13 +33,11 @@ inline size_t ToFastLookupIndexArm(u32 instruction) {
 }  // namespace detail
 
 template<typename V>
-ArmDecodeTable<V> GetArmDecodeTable() {
+constexpr ArmDecodeTable<V> GetArmDecodeTable() {
     std::vector<ArmMatcher<V>> list = {
-
 #define INST(fn, name, bitstring) DYNARMIC_DECODER_GET_MATCHER(ArmMatcher, fn, name, Decoder::detail::StringToArray<32>(bitstring)),
 #include "./arm.inc"
 #undef INST
-
     };
 
     // If a matcher has more bits in its mask it is more specific, so it should come first.
@@ -62,9 +60,10 @@ ArmDecodeTable<V> GetArmDecodeTable() {
 
 template<typename V>
 std::optional<std::reference_wrapper<const ArmMatcher<V>>> DecodeArm(u32 instruction) {
-    static const auto table = GetArmDecodeTable<V>();
-
-    const auto matches_instruction = [instruction](const auto& matcher) { return matcher.Matches(instruction); };
+    alignas(64) static const auto table = GetArmDecodeTable<V>();
+    const auto matches_instruction = [instruction](const auto& matcher) {
+        return matcher.Matches(instruction);
+    };
 
     const auto& subtable = table[detail::ToFastLookupIndexArm(instruction)];
     auto iter = std::find_if(subtable.begin(), subtable.end(), matches_instruction);

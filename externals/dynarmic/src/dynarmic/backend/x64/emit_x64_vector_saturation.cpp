@@ -338,3 +338,6 @@ void EmitX64::EmitVectorUnsignedSaturatedSub64(EmitContext& ctx, IR::Inst* inst)
 }
 
 }  // namespace Dynarmic::Backend::X64
+
+#undef FCODE
+#undef ICODE

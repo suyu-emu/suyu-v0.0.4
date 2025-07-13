@@ -98,8 +98,7 @@ else()
         -Wextra
         -Wcast-qual
         -pedantic
-        -Wno-missing-braces
-        -Wstack-usage=4096)
+        -Wno-missing-braces)
 
     if (ARCHITECTURE STREQUAL "x86_64")
         list(APPEND DYNARMIC_CXX_FLAGS -mtune=core2)
@@ -123,12 +122,15 @@ else()
         # GCC knows that the variable is actually a Reg64.  isMEM() will never return true for a
         # Reg64, but GCC doesn't know that.
         list(APPEND DYNARMIC_CXX_FLAGS -Wno-array-bounds)
+        list(APPEND DYNARMIC_CXX_FLAGS -Wstack-usage=4096)
     endif()
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "[Cc]lang")
         # Bracket depth determines maximum size of a fold expression in Clang since 9c9974c3ccb6.
         # And this in turns limits the size of a std::array.
         list(APPEND DYNARMIC_CXX_FLAGS -fbracket-depth=1024)
+        # Clang mistakenly blames CMake for using unused arguments during compilation
+        list(APPEND DYNARMIC_CXX_FLAGS -Wno-unused-command-line-argument)
     endif()
 endif()
 

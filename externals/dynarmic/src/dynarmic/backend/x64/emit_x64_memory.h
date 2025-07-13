@@ -161,8 +161,7 @@ template<>
 
 template<>
 [[maybe_unused]] Xbyak::RegExp EmitFastmemVAddr<A64EmitContext>(BlockOfCode& code, A64EmitContext& ctx, Xbyak::Label& abort, Xbyak::Reg64 vaddr, bool& require_abort_handling, std::optional<Xbyak::Reg64> tmp) {
-    const size_t unused_top_bits = 64 - ctx.conf.fastmem_address_space_bits;
-
+    auto const unused_top_bits = 64 - ctx.conf.fastmem_address_space_bits;
     if (unused_top_bits == 0) {
         return r13 + vaddr;
     } else if (ctx.conf.silently_mirror_fastmem) {
@@ -306,7 +305,7 @@ const void* EmitWriteMemoryMov(BlockOfCode& code, const Xbyak::RegExp& addr, int
             code.L(loop);
             code.lock();
             code.cmpxchg16b(xword[addr]);
-            code.jnz(loop);
+            code.jnz(loop, code.T_NEAR);
             break;
         }
         default:
@@ -373,7 +372,7 @@ void EmitExclusiveTestAndClear(BlockOfCode& code, const UserConfig& conf, Xbyak:
         Xbyak::Label ok;
         code.mov(pointer, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, processor_index)));
         code.cmp(qword[pointer], vaddr);
-        code.jne(ok);
+        code.jne(ok, code.T_NEAR);
         code.mov(qword[pointer], tmp);
         code.L(ok);
     }

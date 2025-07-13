@@ -7,7 +7,7 @@
 
 namespace Dynarmic::A64 {
 namespace {
-enum class ComparisonType {
+enum class ComparisonTypeSSTRM {
     EQ,
     GE,
     GT,
@@ -15,12 +15,12 @@ enum class ComparisonType {
     LT
 };
 
-enum class Signedness {
+enum class SignednessSSTRM {
     Signed,
     Unsigned
 };
 
-bool ScalarFPCompareAgainstZero(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, ComparisonType type) {
+bool ScalarFPCompareAgainstZero(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, ComparisonTypeSSTRM type) {
     const size_t esize = sz ? 64 : 32;
     const size_t datasize = esize;
 
@@ -28,15 +28,15 @@ bool ScalarFPCompareAgainstZero(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, C
     const IR::U128 zero = v.ir.ZeroVector();
     const IR::U128 result = [&] {
         switch (type) {
-        case ComparisonType::EQ:
+        case ComparisonTypeSSTRM::EQ:
             return v.ir.FPVectorEqual(esize, operand, zero);
-        case ComparisonType::GE:
+        case ComparisonTypeSSTRM::GE:
             return v.ir.FPVectorGreaterEqual(esize, operand, zero);
-        case ComparisonType::GT:
+        case ComparisonTypeSSTRM::GT:
             return v.ir.FPVectorGreater(esize, operand, zero);
-        case ComparisonType::LE:
+        case ComparisonTypeSSTRM::LE:
             return v.ir.FPVectorGreaterEqual(esize, zero, operand);
-        case ComparisonType::LT:
+        case ComparisonTypeSSTRM::LT:
             return v.ir.FPVectorGreater(esize, zero, operand);
         }
 
@@ -47,18 +47,18 @@ bool ScalarFPCompareAgainstZero(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, C
     return true;
 }
 
-bool ScalarFPConvertWithRound(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, FP::RoundingMode rmode, Signedness sign) {
+bool ScalarFPConvertWithRound(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, FP::RoundingMode rmode, SignednessSSTRM sign) {
     const size_t esize = sz ? 64 : 32;
 
     const IR::U32U64 operand = v.V_scalar(esize, Vn);
     const IR::U32U64 result = [&]() -> IR::U32U64 {
         if (sz) {
-            return sign == Signedness::Signed
+            return sign == SignednessSSTRM::Signed
                      ? v.ir.FPToFixedS64(operand, 0, rmode)
                      : v.ir.FPToFixedU64(operand, 0, rmode);
         }
 
-        return sign == Signedness::Signed
+        return sign == SignednessSSTRM::Signed
                  ? v.ir.FPToFixedS32(operand, 0, rmode)
                  : v.ir.FPToFixedU32(operand, 0, rmode);
     }();
@@ -107,55 +107,55 @@ bool TranslatorVisitor::FCMEQ_zero_1(Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FCMEQ_zero_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonType::EQ);
+    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonTypeSSTRM::EQ);
 }
 
 bool TranslatorVisitor::FCMGE_zero_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonType::GE);
+    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonTypeSSTRM::GE);
 }
 
 bool TranslatorVisitor::FCMGT_zero_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonType::GT);
+    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonTypeSSTRM::GT);
 }
 
 bool TranslatorVisitor::FCMLE_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonType::LE);
+    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonTypeSSTRM::LE);
 }
 
 bool TranslatorVisitor::FCMLT_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonType::LT);
+    return ScalarFPCompareAgainstZero(*this, sz, Vn, Vd, ComparisonTypeSSTRM::LT);
 }
 
 bool TranslatorVisitor::FCVTAS_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero, Signedness::Signed);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero, SignednessSSTRM::Signed);
 }
 
 bool TranslatorVisitor::FCVTAU_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero, Signedness::Unsigned);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieAwayFromZero, SignednessSSTRM::Unsigned);
 }
 
 bool TranslatorVisitor::FCVTMS_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity, Signedness::Signed);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity, SignednessSSTRM::Signed);
 }
 
 bool TranslatorVisitor::FCVTMU_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity, Signedness::Unsigned);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsMinusInfinity, SignednessSSTRM::Unsigned);
 }
 
 bool TranslatorVisitor::FCVTNS_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieEven, Signedness::Signed);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieEven, SignednessSSTRM::Signed);
 }
 
 bool TranslatorVisitor::FCVTNU_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieEven, Signedness::Unsigned);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::ToNearest_TieEven, SignednessSSTRM::Unsigned);
 }
 
 bool TranslatorVisitor::FCVTPS_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsPlusInfinity, Signedness::Signed);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsPlusInfinity, SignednessSSTRM::Signed);
 }
 
 bool TranslatorVisitor::FCVTPU_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsPlusInfinity, Signedness::Unsigned);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsPlusInfinity, SignednessSSTRM::Unsigned);
 }
 
 bool TranslatorVisitor::FCVTXN_1(bool sz, Vec Vn, Vec Vd) {
@@ -171,11 +171,11 @@ bool TranslatorVisitor::FCVTXN_1(bool sz, Vec Vn, Vec Vd) {
 }
 
 bool TranslatorVisitor::FCVTZS_int_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsZero, Signedness::Signed);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsZero, SignednessSSTRM::Signed);
 }
 
 bool TranslatorVisitor::FCVTZU_int_2(bool sz, Vec Vn, Vec Vd) {
-    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsZero, Signedness::Unsigned);
+    return ScalarFPConvertWithRound(*this, sz, Vn, Vd, FP::RoundingMode::TowardsZero, SignednessSSTRM::Unsigned);
 }
 
 bool TranslatorVisitor::FRECPE_1(Vec Vn, Vec Vd) {

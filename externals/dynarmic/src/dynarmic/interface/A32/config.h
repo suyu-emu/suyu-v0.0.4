@@ -120,14 +120,32 @@ struct UserCallbacks : public TranslateCallbacks {
 };
 
 struct UserConfig {
+    bool HasOptimization(OptimizationFlag f) const {
+        if (!unsafe_optimizations) {
+            f &= all_safe_optimizations;
+        }
+        return (f & optimizations) != no_optimizations;
+    }
+
     UserCallbacks* callbacks;
 
-    size_t processor_id = 0;
     ExclusiveMonitor* global_monitor = nullptr;
 
-    /// Select the architecture version to use.
-    /// There are minor behavioural differences between versions.
-    ArchVersion arch_version = ArchVersion::v8;
+    // Page Table
+    // The page table is used for faster memory access. If an entry in the table is nullptr,
+    // the JIT will fallback to calling the MemoryRead*/MemoryWrite* callbacks.
+    static constexpr std::size_t PAGE_BITS = 12;
+    static constexpr std::size_t NUM_PAGE_TABLE_ENTRIES = 1 << (32 - PAGE_BITS);
+    std::array<std::uint8_t*, NUM_PAGE_TABLE_ENTRIES>* page_table = nullptr;
+
+    /// Coprocessors
+    std::array<std::shared_ptr<Coprocessor>, 16> coprocessors{};
+
+    /// Fastmem Pointer
+    /// This should point to the beginning of a 4GB address space which is in arranged just like
+    /// what you wish for emulated memory to be. If the host page faults on an address, the JIT
+    /// will fallback to calling the MemoryRead*/MemoryWrite* callbacks.
+    std::optional<uintptr_t> fastmem_pointer = std::nullopt;
 
     /// This selects other optimizations than can't otherwise be disabled by setting other
     /// configuration options. This includes:
@@ -137,12 +155,29 @@ struct UserConfig {
     /// This is intended to be used for debugging.
     OptimizationFlag optimizations = all_safe_optimizations;
 
-    bool HasOptimization(OptimizationFlag f) const {
-        if (!unsafe_optimizations) {
-            f &= all_safe_optimizations;
-        }
-        return (f & optimizations) != no_optimizations;
-    }
+    /// Minimum size is about 8MiB. Maximum size is about 128MiB (arm64 host) or 2GiB (x64 host).
+    /// Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
+    std::uint32_t code_cache_size = 128 * 1024 * 1024;  // bytes
+
+    /// Processor ID
+    std::uint32_t processor_id = 0;
+
+    /// Masks out the first N bits in host pointers from the page table.
+    /// The intention behind this is to allow users of Dynarmic to pack attributes in the
+    /// same integer and update the pointer attribute pair atomically.
+    /// If the configured value is 3, all pointers will be forcefully aligned to 8 bytes.
+    std::int32_t page_table_pointer_mask_bits = 0;
+
+    /// Select the architecture version to use.
+    /// There are minor behavioural differences between versions.
+    ArchVersion arch_version = ArchVersion::v8;
+
+    /// Determines if we should detect memory accesses via page_table that straddle are
+    /// misaligned. Accesses that straddle page boundaries will fallback to the relevant
+    /// memory callback.
+    /// This value should be the required access sizes this applies to ORed together.
+    /// To detect any access, use: 8 | 16 | 32 | 64.
+    std::uint8_t detect_misaligned_access_via_page_table = 0;
 
     /// This enables unsafe optimizations that reduce emulation accuracy in favour of speed.
     /// For safety, in order to enable unsafe optimizations you have to set BOTH this flag
@@ -150,12 +185,6 @@ struct UserConfig {
     /// The prefered and tested mode for this library is with unsafe optimizations disabled.
     bool unsafe_optimizations = false;
 
-    // Page Table
-    // The page table is used for faster memory access. If an entry in the table is nullptr,
-    // the JIT will fallback to calling the MemoryRead*/MemoryWrite* callbacks.
-    static constexpr std::size_t PAGE_BITS = 12;
-    static constexpr std::size_t NUM_PAGE_TABLE_ENTRIES = 1 << (32 - PAGE_BITS);
-    std::array<std::uint8_t*, NUM_PAGE_TABLE_ENTRIES>* page_table = nullptr;
     /// Determines if the pointer in the page_table shall be offseted locally or globally.
     /// 'false' will access page_table[addr >> bits][addr & mask]
     /// 'true'  will access page_table[addr >> bits][addr]
@@ -163,26 +192,11 @@ struct UserConfig {
     ///       So there might be wrongly faulted pages which maps to nullptr.
     ///       This can be avoided by carefully allocating the memory region.
     bool absolute_offset_page_table = false;
-    /// Masks out the first N bits in host pointers from the page table.
-    /// The intention behind this is to allow users of Dynarmic to pack attributes in the
-    /// same integer and update the pointer attribute pair atomically.
-    /// If the configured value is 3, all pointers will be forcefully aligned to 8 bytes.
-    int page_table_pointer_mask_bits = 0;
-    /// Determines if we should detect memory accesses via page_table that straddle are
-    /// misaligned. Accesses that straddle page boundaries will fallback to the relevant
-    /// memory callback.
-    /// This value should be the required access sizes this applies to ORed together.
-    /// To detect any access, use: 8 | 16 | 32 | 64.
-    std::uint8_t detect_misaligned_access_via_page_table = 0;
+
     /// Determines if the above option only triggers when the misalignment straddles a
     /// page boundary.
     bool only_detect_misalignment_via_page_table_on_page_boundary = false;
 
-    // Fastmem Pointer
-    // This should point to the beginning of a 4GB address space which is in arranged just like
-    // what you wish for emulated memory to be. If the host page faults on an address, the JIT
-    // will fallback to calling the MemoryRead*/MemoryWrite* callbacks.
-    std::optional<uintptr_t> fastmem_pointer = std::nullopt;
     /// Determines if instructions that pagefault should cause recompilation of that block
     /// with fastmem disabled.
     /// Recompiled code will use the page_table if this is available, otherwise memory
@@ -197,9 +211,6 @@ struct UserConfig {
     /// recompilation of that block with fastmem disabled. Recompiled code will use memory
     /// callbacks.
     bool recompile_on_exclusive_fastmem_failure = true;
-
-    // Coprocessors
-    std::array<std::shared_ptr<Coprocessor>, 16> coprocessors{};
 
     /// When set to true, UserCallbacks::InstructionSynchronizationBarrierRaised will be
     /// called when an ISB instruction is executed.
@@ -233,10 +244,6 @@ struct UserConfig {
     /// NOTE: Calling Jit::SetCpsr with CPSR.E=1 while this option is enabled may result
     ///       in unusual behavior.
     bool always_little_endian = false;
-
-    // Minimum size is about 8MiB. Maximum size is about 128MiB (arm64 host) or 2GiB (x64 host).
-    // Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
-    size_t code_cache_size = 128 * 1024 * 1024;  // bytes
 
     /// Internal use only
     bool very_verbose_debugging_output = false;

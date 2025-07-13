@@ -33,6 +33,23 @@
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 
+#define FCODE(NAME)                  \
+    [&code](auto... args) {          \
+        if constexpr (fsize == 32) { \
+            code.NAME##s(args...);   \
+        } else {                     \
+            code.NAME##d(args...);   \
+        }                            \
+    }
+#define ICODE(NAME)                  \
+    [&code](auto... args) {          \
+        if constexpr (fsize == 32) { \
+            code.NAME##d(args...);   \
+        } else {                     \
+            code.NAME##q(args...);   \
+        }                            \
+    }
+
 namespace Dynarmic::Backend::X64 {
 
 using namespace Xbyak::util;
@@ -59,23 +76,6 @@ constexpr u64 f64_max_u16 = 0x40efffe000000000u;      // 65535 as a double
 constexpr u64 f64_max_s32 = 0x41dfffffffc00000u;      // 2147483647 as a double
 constexpr u64 f64_max_u32 = 0x41efffffffe00000u;      // 4294967295 as a double
 constexpr u64 f64_max_s64_lim = 0x43e0000000000000u;  // 2^63 as a double (actual maximum unrepresentable)
-
-#define FCODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (fsize == 32) { \
-            code.NAME##s(args...);   \
-        } else {                     \
-            code.NAME##d(args...);   \
-        }                            \
-    }
-#define ICODE(NAME)                  \
-    [&code](auto... args) {          \
-        if constexpr (fsize == 32) { \
-            code.NAME##d(args...);   \
-        } else {                     \
-            code.NAME##q(args...);   \
-        }                            \
-    }
 
 template<size_t fsize>
 void ForceDenormalsToZero(BlockOfCode& code, std::initializer_list<Xbyak::Xmm> to_daz) {
@@ -473,7 +473,7 @@ static void EmitFPMinMax(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 }
 
 template<size_t fsize, bool is_max>
-static void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
+static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) noexcept {
     using FPT = mcl::unsigned_integer_of_size<fsize>;
     constexpr FPT default_nan = FP::FPInfo<FPT>::DefaultNaN();
 
@@ -701,15 +701,14 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     // x64 rounds before flushing to zero
                     // AArch64 rounds after flushing to zero
                     // This difference of behaviour is noticable if something would round to a smallest normalized number
-
-                    code.sub(rsp, 8);
+                    code.lea(rsp, ptr[rsp - 8]);
                     ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                     code.movq(code.ABI_PARAM1, operand1);
                     code.movq(code.ABI_PARAM2, operand2);
                     code.movq(code.ABI_PARAM3, operand3);
                     code.mov(code.ABI_PARAM4.cvt32(), ctx.FPCR().Value());
 #ifdef _WIN32
-                    code.sub(rsp, 16 + ABI_SHADOW_SPACE);
+                    code.lea(rsp, ptr[rsp - (16 + ABI_SHADOW_SPACE)]);
                     code.lea(rax, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
                     code.mov(qword[rsp + ABI_SHADOW_SPACE], rax);
                     code.CallFunction(fallback_fn);
@@ -735,13 +734,13 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.vmovaps(xmm0, code.Const(xword, FP::FPInfo<FPT>::mantissa_msb));
 
                     FCODE(ucomis)(operand2, operand3);
-                    code.jp(has_nan);
+                    code.jp(has_nan, code.T_NEAR);
                     FCODE(ucomis)(operand1, operand1);
-                    code.jnp(indeterminate);
+                    code.jnp(indeterminate, code.T_NEAR);
 
                     // AArch64 specifically emits a default NaN for the case when the addend is a QNaN and the two other arguments are {inf, zero}
                     code.ptest(operand1, xmm0);
-                    code.jz(op1_snan);
+                    code.jz(op1_snan, code.T_NEAR);
                     FCODE(vmuls)(xmm0, operand2, operand3);  // check if {op2, op3} are {inf, zero}/{zero, inf}
                     FCODE(ucomis)(xmm0, xmm0);
                     code.jnp(*end);
@@ -753,10 +752,10 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.L(has_nan);
 
                     FCODE(ucomis)(operand1, operand1);
-                    code.jnp(op1_done);
+                    code.jnp(op1_done, code.T_NEAR);
                     code.movaps(result, operand1);  // this is done because of NaN behavior of vfmadd231s (priority of op2, op3, op1)
                     code.ptest(operand1, xmm0);
-                    code.jnz(op1_done);
+                    code.jnz(op1_done, code.T_NEAR);
                     code.L(op1_snan);
                     code.vorps(result, operand1, xmm0);
                     code.jmp(*end);
@@ -774,9 +773,9 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.L(op2_done);
 
                     FCODE(ucomis)(operand3, operand3);
-                    code.jnp(op3_done);
+                    code.jnp(op3_done, code.T_NEAR);
                     code.ptest(operand3, xmm0);
-                    code.jnz(op3_done);
+                    code.jnz(op3_done, code.T_NEAR);
                     code.vorps(result, operand3, xmm0);
                     code.jmp(*end);
                     code.L(op3_done);
@@ -1019,7 +1018,7 @@ static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
                 code.L(*fallback);
 
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 code.movq(code.ABI_PARAM1, operand1);
                 code.movq(code.ABI_PARAM2, operand2);
@@ -1204,9 +1203,9 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
                     }
 
                     // a > 0 && a < 0x00800000;
-                    code.sub(tmp, 1);
+                    code.dec(tmp);
                     code.cmp(tmp, 0x007FFFFF);
-                    code.jb(fallback);
+                    code.jb(fallback, code.T_NEAR); //within -127,128
                     needs_fallback = true;
                 }
 
@@ -1235,17 +1234,17 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
 
                 code.ucomisd(value, result);
                 if (ctx.FPCR().DN()) {
-                    code.jc(default_nan);
-                    code.je(zero);
+                    code.jc(default_nan, code.T_NEAR);
+                    code.je(zero, code.T_NEAR);
                 } else {
-                    code.jp(nan);
-                    code.je(zero);
-                    code.jc(default_nan);
+                    code.jp(nan, code.T_NEAR);
+                    code.je(zero, code.T_NEAR);
+                    code.jc(default_nan, code.T_NEAR);
                 }
 
                 if (!ctx.FPCR().FZ()) {
                     needs_fallback = true;
-                    code.jmp(fallback);
+                    code.jmp(fallback, code.T_NEAR);
                 } else {
                     // result = 0
                     code.jmp(*end, code.T_NEAR);
@@ -1278,7 +1277,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
 
             code.L(fallback);
             if (needs_fallback) {
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 code.movq(code.ABI_PARAM1, operand);
                 code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
@@ -1361,7 +1360,7 @@ static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
                 code.L(*fallback);
 
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 code.movq(code.ABI_PARAM1, operand1);
                 code.movq(code.ABI_PARAM2, operand2);
@@ -2132,3 +2131,6 @@ void EmitX64::EmitFPFixedU64ToSingle(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.DefineValue(inst, result);
 }
 }  // namespace Dynarmic::Backend::X64
+
+#undef FCODE
+#undef ICODE

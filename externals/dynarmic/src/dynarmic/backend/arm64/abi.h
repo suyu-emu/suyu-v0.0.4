@@ -59,13 +59,12 @@ constexpr RegisterList ToRegList(oaknut::Reg reg) {
     }
 
     if (reg.index() == 31) {
-        throw std::out_of_range("ZR not allowed in reg list");
+        ASSERT_FALSE("ZR not allowed in reg list");
     }
 
     if (reg.index() == -1) {
         return RegisterList{1} << 31;
     }
-
     return RegisterList{1} << reg.index();
 }
 

@@ -11,6 +11,10 @@
 
 namespace Dynarmic::A32 {
 
+bool TranslatorVisitor::arm_NOP() {
+    return true;
+}
+
 bool TranslatorVisitor::ArmConditionPassed(Cond cond) {
     return IsConditionPassed(*this, cond);
 }

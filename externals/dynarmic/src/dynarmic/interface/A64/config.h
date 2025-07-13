@@ -136,10 +136,29 @@ struct UserCallbacks {
 };
 
 struct UserConfig {
+    /// Fastmem Pointer
+    /// This should point to the beginning of a 2^page_table_address_space_bits bytes
+    /// address space which is in arranged just like what you wish for emulated memory to
+    /// be. If the host page faults on an address, the JIT will fallback to calling the
+    /// MemoryRead*/MemoryWrite* callbacks.
+    std::optional<std::uintptr_t> fastmem_pointer = std::nullopt;
+
     UserCallbacks* callbacks;
 
-    size_t processor_id = 0;
     ExclusiveMonitor* global_monitor = nullptr;
+
+    /// Pointer to where TPIDRRO_EL0 is stored. This pointer will be inserted into
+    /// emitted code.
+    const std::uint64_t* tpidrro_el0 = nullptr;
+
+    /// Pointer to where TPIDR_EL0 is stored. This pointer will be inserted into
+    /// emitted code.
+    std::uint64_t* tpidr_el0 = nullptr;
+
+    /// Pointer to the page table which we can use for direct page table access.
+    /// If an entry in page_table is null, the relevant memory callback will be called.
+    /// If page_table is nullptr, all memory accesses hit the memory callbacks.
+    void** page_table = nullptr;
 
     /// This selects other optimizations than can't otherwise be disabled by setting other
     /// configuration options. This includes:
@@ -149,12 +168,50 @@ struct UserConfig {
     /// This is intended to be used for debugging.
     OptimizationFlag optimizations = all_safe_optimizations;
 
-    bool HasOptimization(OptimizationFlag f) const {
-        if (!unsafe_optimizations) {
-            f &= all_safe_optimizations;
-        }
-        return (f & optimizations) != no_optimizations;
-    }
+    /// Declares how many valid address bits are there in virtual addresses.
+    /// Determines the size of page_table. Valid values are between 12 and 64 inclusive.
+    /// This is only used if page_table is not nullptr.
+    std::uint32_t page_table_address_space_bits = 36;
+
+    /// Masks out the first N bits in host pointers from the page table.
+    /// The intention behind this is to allow users of Dynarmic to pack attributes in the
+    /// same integer and update the pointer attribute pair atomically.
+    /// If the configured value is 3, all pointers will be forcefully aligned to 8 bytes.
+    std::int32_t page_table_pointer_mask_bits = 0;
+
+    /// Counter-timer frequency register. The value of the register is not interpreted by
+    /// dynarmic.
+    std::uint32_t cntfrq_el0 = 600000000;
+
+    /// CTR_EL0<27:24> is log2 of the cache writeback granule in words.
+    /// CTR_EL0<23:20> is log2 of the exclusives reservation granule in words.
+    /// CTR_EL0<19:16> is log2 of the smallest data/unified cacheline in words.
+    /// CTR_EL0<15:14> is the level 1 instruction cache policy.
+    /// CTR_EL0<3:0> is log2 of the smallest instruction cacheline in words.
+    std::uint32_t ctr_el0 = 0x8444c004;
+
+    /// DCZID_EL0<3:0> is log2 of the block size in words
+    /// DCZID_EL0<4> is 0 if the DC ZVA instruction is permitted.
+    std::uint32_t dczid_el0 = 4;
+
+    /// Declares how many valid address bits are there in virtual addresses.
+    /// Determines the size of fastmem arena. Valid values are between 12 and 64 inclusive.
+    /// This is only used if fastmem_pointer is set.
+    std::uint32_t fastmem_address_space_bits = 36;
+
+    // Minimum size is about 8MiB. Maximum size is about 128MiB (arm64 host) or 2GiB (x64 host).
+    // Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
+    std::uint32_t code_cache_size = 128 * 1024 * 1024;  // bytes
+
+    /// Determines if we should detect memory accesses via page_table that straddle are
+    /// misaligned. Accesses that straddle page boundaries will fallback to the relevant
+    /// memory callback.
+    /// This value should be the required access sizes this applies to ORed together.
+    /// To detect any access, use: 8 | 16 | 32 | 64 | 128.
+    std::uint8_t detect_misaligned_access_via_page_table = 0;
+
+    /// Processor ID
+    std::uint8_t processor_id = 0;
 
     /// This enables unsafe optimizations that reduce emulation accuracy in favour of speed.
     /// For safety, in order to enable unsafe optimizations you have to set BOTH this flag
@@ -177,48 +234,13 @@ struct UserConfig {
     /// instruction is executed.
     bool hook_hint_instructions = false;
 
-    /// Counter-timer frequency register. The value of the register is not interpreted by
-    /// dynarmic.
-    std::uint32_t cntfrq_el0 = 600000000;
-
-    /// CTR_EL0<27:24> is log2 of the cache writeback granule in words.
-    /// CTR_EL0<23:20> is log2 of the exclusives reservation granule in words.
-    /// CTR_EL0<19:16> is log2 of the smallest data/unified cacheline in words.
-    /// CTR_EL0<15:14> is the level 1 instruction cache policy.
-    /// CTR_EL0<3:0> is log2 of the smallest instruction cacheline in words.
-    std::uint32_t ctr_el0 = 0x8444c004;
-
-    /// DCZID_EL0<3:0> is log2 of the block size in words
-    /// DCZID_EL0<4> is 0 if the DC ZVA instruction is permitted.
-    std::uint32_t dczid_el0 = 4;
-
-    /// Pointer to where TPIDRRO_EL0 is stored. This pointer will be inserted into
-    /// emitted code.
-    const std::uint64_t* tpidrro_el0 = nullptr;
-
-    /// Pointer to where TPIDR_EL0 is stored. This pointer will be inserted into
-    /// emitted code.
-    std::uint64_t* tpidr_el0 = nullptr;
-
-    /// Pointer to the page table which we can use for direct page table access.
-    /// If an entry in page_table is null, the relevant memory callback will be called.
-    /// If page_table is nullptr, all memory accesses hit the memory callbacks.
-    void** page_table = nullptr;
-    /// Declares how many valid address bits are there in virtual addresses.
-    /// Determines the size of page_table. Valid values are between 12 and 64 inclusive.
-    /// This is only used if page_table is not nullptr.
-    size_t page_table_address_space_bits = 36;
-    /// Masks out the first N bits in host pointers from the page table.
-    /// The intention behind this is to allow users of Dynarmic to pack attributes in the
-    /// same integer and update the pointer attribute pair atomically.
-    /// If the configured value is 3, all pointers will be forcefully aligned to 8 bytes.
-    int page_table_pointer_mask_bits = 0;
     /// Determines what happens if the guest accesses an entry that is off the end of the
     /// page table. If true, Dynarmic will silently mirror page_table's address space. If
     /// false, accessing memory outside of page_table bounds will result in a call to the
     /// relevant memory callback.
     /// This is only used if page_table is not nullptr.
     bool silently_mirror_page_table = true;
+
     /// Determines if the pointer in the page_table shall be offseted locally or globally.
     /// 'false' will access page_table[addr >> bits][addr & mask]
     /// 'true'  will access page_table[addr >> bits][addr]
@@ -226,31 +248,17 @@ struct UserConfig {
     ///       So there might be wrongly faulted pages which maps to nullptr.
     ///       This can be avoided by carefully allocating the memory region.
     bool absolute_offset_page_table = false;
-    /// Determines if we should detect memory accesses via page_table that straddle are
-    /// misaligned. Accesses that straddle page boundaries will fallback to the relevant
-    /// memory callback.
-    /// This value should be the required access sizes this applies to ORed together.
-    /// To detect any access, use: 8 | 16 | 32 | 64 | 128.
-    std::uint8_t detect_misaligned_access_via_page_table = 0;
+
     /// Determines if the above option only triggers when the misalignment straddles a
     /// page boundary.
     bool only_detect_misalignment_via_page_table_on_page_boundary = false;
 
-    /// Fastmem Pointer
-    /// This should point to the beginning of a 2^page_table_address_space_bits bytes
-    /// address space which is in arranged just like what you wish for emulated memory to
-    /// be. If the host page faults on an address, the JIT will fallback to calling the
-    /// MemoryRead*/MemoryWrite* callbacks.
-    std::optional<uintptr_t> fastmem_pointer = std::nullopt;
     /// Determines if instructions that pagefault should cause recompilation of that block
     /// with fastmem disabled.
     /// Recompiled code will use the page_table if this is available, otherwise memory
     /// accesses will hit the memory callbacks.
     bool recompile_on_fastmem_failure = true;
-    /// Declares how many valid address bits are there in virtual addresses.
-    /// Determines the size of fastmem arena. Valid values are between 12 and 64 inclusive.
-    /// This is only used if fastmem_pointer is set.
-    size_t fastmem_address_space_bits = 36;
+
     /// Determines what happens if the guest accesses an entry that is off the end of the
     /// fastmem arena. If true, Dynarmic will silently mirror fastmem's address space. If
     /// false, accessing memory outside of fastmem bounds will result in a call to the
@@ -285,12 +293,15 @@ struct UserConfig {
     /// AddTicks and GetTicksRemaining are never called, and no cycle counting is done.
     bool enable_cycle_counting = true;
 
-    // Minimum size is about 8MiB. Maximum size is about 128MiB (arm64 host) or 2GiB (x64 host).
-    // Maximum size is limited by the maximum length of a x86_64 / arm64 jump.
-    size_t code_cache_size = 128 * 1024 * 1024;  // bytes
-
     /// Internal use only
     bool very_verbose_debugging_output = false;
+
+    inline bool HasOptimization(OptimizationFlag f) const {
+        if (!unsafe_optimizations) {
+            f &= all_safe_optimizations;
+        }
+        return (f & optimizations) != no_optimizations;
+    }
 };
 
 }  // namespace A64

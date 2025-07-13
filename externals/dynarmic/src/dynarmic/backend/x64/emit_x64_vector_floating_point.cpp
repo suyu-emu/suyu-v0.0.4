@@ -33,13 +33,6 @@
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
 
-namespace Dynarmic::Backend::X64 {
-
-using namespace Xbyak::util;
-namespace mp = mcl::mp;
-
-namespace {
-
 #define FCODE(NAME)                  \
     [&code](auto... args) {          \
         if constexpr (fsize == 32) { \
@@ -56,6 +49,13 @@ namespace {
             code.NAME##q(args...);   \
         }                            \
     }
+
+namespace Dynarmic::Backend::X64 {
+
+using namespace Xbyak::util;
+namespace mp = mcl::mp;
+
+namespace {
 
 template<typename Lambda>
 void MaybeStandardFPSCRValue(BlockOfCode& code, EmitContext& ctx, bool fpcr_controlled, Lambda lambda) {
@@ -122,11 +122,11 @@ void HandleNaNs(BlockOfCode& code, EmitContext& ctx, bool fpcr_controlled, std::
 
         const Xbyak::Xmm result = xmms[0];
 
-        code.sub(rsp, 8);
+        code.lea(rsp, ptr[rsp - 8]);
         ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
 
         const size_t stack_space = xmms.size() * 16;
-        code.sub(rsp, static_cast<u32>(stack_space + ABI_SHADOW_SPACE));
+        code.lea(rsp, ptr[rsp - static_cast<u32>(stack_space + ABI_SHADOW_SPACE)]);
         for (size_t i = 0; i < xmms.size(); ++i) {
             code.movaps(xword[rsp + ABI_SHADOW_SPACE + i * 16], xmms[i]);
         }
@@ -443,7 +443,7 @@ void EmitTwoOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbyak
     const u32 fpcr = ctx.FPCR(fpcr_controlled).Value();
 
     constexpr u32 stack_space = 2 * 16;
-    code.sub(rsp, stack_space + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (stack_space + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE + 0 * 16]);
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.mov(code.ABI_PARAM3.cvt32(), fpcr);
@@ -479,7 +479,7 @@ void EmitThreeOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xby
 
 #ifdef _WIN32
     constexpr u32 stack_space = 4 * 16;
-    code.sub(rsp, stack_space + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (stack_space + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 3 * 16]);
@@ -488,7 +488,7 @@ void EmitThreeOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xby
     code.mov(qword[rsp + ABI_SHADOW_SPACE + 0], rax);
 #else
     constexpr u32 stack_space = 3 * 16;
-    code.sub(rsp, stack_space + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (stack_space + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE + 0 * 16]);
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
@@ -536,7 +536,7 @@ void EmitFourOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbya
 
 #ifdef _WIN32
     constexpr u32 stack_space = 5 * 16;
-    code.sub(rsp, stack_space + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (stack_space + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 3 * 16]);
@@ -546,7 +546,7 @@ void EmitFourOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbya
     code.mov(qword[rsp + ABI_SHADOW_SPACE + 8], rax);
 #else
     constexpr u32 stack_space = 4 * 16;
-    code.sub(rsp, stack_space + ABI_SHADOW_SPACE);
+    code.lea(rsp, ptr[rsp - (stack_space + ABI_SHADOW_SPACE)]);
     code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE + 0 * 16]);
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
@@ -1371,7 +1371,7 @@ void EmitFPVectorMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
                 code.L(*fallback);
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 if (needs_rounding_correction && needs_nan_correction) {
                     EmitFourOpFallbackWithoutRegAlloc<LoadPreviousResult::Yes>(code, ctx, result, xmm_a, xmm_b, xmm_c, EmitFPVectorMulAddFallback<FPT, true, true>, fpcr_controlled);
@@ -1635,7 +1635,7 @@ static void EmitRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
                 code.L(*fallback);
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 EmitThreeOpFallbackWithoutRegAlloc(code, ctx, result, operand1, operand2, fallback_fn, fpcr_controlled);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
@@ -1812,7 +1812,7 @@ static void EmitRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* ins
 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
                 code.L(*bad_values);
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 EmitTwoOpFallbackWithoutRegAlloc(code, ctx, result, operand, fallback_fn, fpcr_controlled);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
@@ -1898,7 +1898,7 @@ static void EmitRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
 
             ctx.deferred_emits.emplace_back([=, &code, &ctx] {
                 code.L(*fallback);
-                code.sub(rsp, 8);
+                code.lea(rsp, ptr[rsp - 8]);
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 EmitThreeOpFallbackWithoutRegAlloc(code, ctx, result, operand1, operand2, fallback_fn, fpcr_controlled);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
@@ -2180,3 +2180,6 @@ void EmitX64::EmitFPVectorToUnsignedFixed64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 }  // namespace Dynarmic::Backend::X64
+
+#undef FCODE
+#undef ICODE

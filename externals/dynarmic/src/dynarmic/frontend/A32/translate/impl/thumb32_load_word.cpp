@@ -4,11 +4,9 @@
  */
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
+#include "dynarmic/frontend/A32/translate/impl/common.h"
 
 namespace Dynarmic::A32 {
-static bool ITBlockCheck(const A32::IREmitter& ir) {
-    return ir.current_location.IT().IsInITBlock() && !ir.current_location.IT().IsLastInITBlock();
-}
 
 bool TranslatorVisitor::thumb32_LDR_lit(bool U, Reg t, Imm<12> imm12) {
     if (t == Reg::PC && ITBlockCheck(ir)) {
