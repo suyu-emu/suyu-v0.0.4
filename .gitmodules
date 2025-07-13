@@ -72,3 +72,6 @@
 [submodule "externals/SPIRV-Tools"]
 	path = externals/SPIRV-Tools
 	url = https://github.com/KhronosGroup/SPIRV-Tools.git
+[submodule "externals/nxdumptool"]
+	path = externals/nxdumptool
+	url = https://github.com/DarkMatterCore/nxdumptool.git
