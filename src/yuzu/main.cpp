@@ -12,6 +12,8 @@
 #include "core/tools/renderdoc.h"
 #include "frontend_common/firmware_manager.h"
 
+#include <JlCompress.h>
+
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
@@ -1683,7 +1685,8 @@ void GMainWindow::ConnectMenuEvents() {
 
     connect_menu(ui->action_Discord, &GMainWindow::OnOpenDiscord);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
-    connect_menu(ui->action_Install_Firmware, &GMainWindow::OnInstallFirmware);
+    connect_menu(ui->action_Firmware_From_Folder, &GMainWindow::OnInstallFirmware);
+    connect_menu(ui->action_Firmware_From_ZIP, &GMainWindow::OnInstallFirmwareFromZIP);
     connect_menu(ui->action_Install_Keys, &GMainWindow::OnInstallDecryptionKeys);
     connect_menu(ui->action_About, &GMainWindow::OnAbout);
 }
@@ -1714,7 +1717,8 @@ void GMainWindow::UpdateMenuState() {
         action->setEnabled(emulation_running);
     }
 
-    ui->action_Install_Firmware->setEnabled(!emulation_running);
+    ui->action_Firmware_From_Folder->setEnabled(!emulation_running);
+    ui->action_Firmware_From_ZIP->setEnabled(!emulation_running);
     ui->action_Install_Keys->setEnabled(!emulation_running);
 
     for (QAction* action : applet_actions) {
@@ -4239,26 +4243,8 @@ void GMainWindow::OnVerifyInstalledContents() {
     }
 }
 
-void GMainWindow::OnInstallFirmware() {
-    // Don't do this while emulation is running, that'd probably be a bad idea.
-    if (emu_thread != nullptr && emu_thread->IsRunning()) {
-        return;
-    }
-
-    // Check for installed keys, error out, suggest restart?
-    if (!ContentManager::AreKeysPresent()) {
-        QMessageBox::information(
-                    this, tr("Keys not installed"),
-                    tr("Install decryption keys and restart eden before attempting to install firmware."));
-        return;
-    }
-
-    const QString firmware_source_location = QFileDialog::getExistingDirectory(
-                this, tr("Select Dumped Firmware Source Location"), {}, QFileDialog::ShowDirsOnly);
-    if (firmware_source_location.isEmpty()) {
-        return;
-    }
-
+void GMainWindow::InstallFirmware(const QString &location, bool recursive)
+{
     QProgressDialog progress(tr("Installing Firmware..."), tr("Cancel"), 0, 100, this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
@@ -4272,11 +4258,11 @@ void GMainWindow::OnInstallFirmware() {
         return progress.wasCanceled();
     };
 
-    LOG_INFO(Frontend, "Installing firmware from {}", firmware_source_location.toStdString());
+    LOG_INFO(Frontend, "Installing firmware from {}", location.toStdString());
 
     // Check for a reasonable number of .nca files (don't hardcode them, just see if there's some in
     // there.)
-    std::filesystem::path firmware_source_path = firmware_source_location.toStdString();
+    std::filesystem::path firmware_source_path = location.toStdString();
     if (!Common::FS::IsDir(firmware_source_path)) {
         progress.close();
         return;
@@ -4294,7 +4280,12 @@ void GMainWindow::OnInstallFirmware() {
 
     QtProgressCallback(100, 10);
 
-    Common::FS::IterateDirEntries(firmware_source_path, callback, Common::FS::DirEntryFilter::File);
+    if (recursive) {
+        Common::FS::IterateDirEntriesRecursively(firmware_source_path, callback, Common::FS::DirEntryFilter::File);
+    } else {
+        Common::FS::IterateDirEntries(firmware_source_path, callback, Common::FS::DirEntryFilter::File);
+    }
+
     if (out.size() <= 0) {
         progress.close();
         QMessageBox::warning(this, tr("Firmware install failed"),
@@ -4375,6 +4366,93 @@ void GMainWindow::OnInstallFirmware() {
     progress.close();
     OnCheckFirmwareDecryption();
     OnCheckFirmware();
+}
+
+void GMainWindow::OnInstallFirmware() {
+    // Don't do this while emulation is running, that'd probably be a bad idea.
+    if (emu_thread != nullptr && emu_thread->IsRunning()) {
+        return;
+    }
+
+    // Check for installed keys, error out, suggest restart?
+    if (!ContentManager::AreKeysPresent()) {
+        QMessageBox::information(
+                    this, tr("Keys not installed"),
+                    tr("Install decryption keys and restart Eden before attempting to install firmware."));
+        return;
+    }
+
+    const QString firmware_source_location = QFileDialog::getExistingDirectory(
+                this, tr("Select Dumped Firmware Source Location"), {}, QFileDialog::ShowDirsOnly);
+    if (firmware_source_location.isEmpty()) {
+        return;
+    }
+
+    InstallFirmware(firmware_source_location);
+}
+
+void GMainWindow::OnInstallFirmwareFromZIP()
+{
+    // Don't do this while emulation is running, that'd probably be a bad idea.
+    if (emu_thread != nullptr && emu_thread->IsRunning()) {
+        return;
+    }
+
+    // Check for installed keys, error out, suggest restart?
+    if (!ContentManager::AreKeysPresent()) {
+        QMessageBox::information(
+                    this, tr("Keys not installed"),
+                    tr("Install decryption keys and restart Eden before attempting to install firmware."));
+        return;
+    }
+
+    const QString firmware_zip_location = QFileDialog::getOpenFileName(
+                this, tr("Select Dumped Firmware ZIP"), {}, tr("Zipped Archives (*.zip)"));
+    if (firmware_zip_location.isEmpty()) {
+        return;
+    }
+
+    namespace fs = std::filesystem;
+    fs::path tmp{std::filesystem::temp_directory_path()};
+
+    if (!std::filesystem::create_directories(tmp / "eden" / "firmware")) {
+        goto unzipFailed;
+    }
+
+    {
+        tmp /= "eden";
+        tmp /= "firmware";
+
+        QString qCacheDir = QString::fromStdString(tmp.string());
+
+        QFile zip(firmware_zip_location);
+
+        QStringList result = JlCompress::extractDir(&zip, qCacheDir);
+        if (result.isEmpty()) {
+            goto unzipFailed;
+        }
+
+        // In this case, it has to be done recursively, since sometimes people
+        // will pack it into a subdirectory after dumping
+        InstallFirmware(qCacheDir, true);
+
+        std::error_code ec;
+        std::filesystem::remove_all(tmp, ec);
+
+        if (ec) {
+                QMessageBox::warning(this, tr("Firmware cleanup failed"),
+                                      tr("Failed to clean up extracted firmware cache.\n"
+                                         "Check write permissions in the system temp directory and try again.\nOS reported error: %1")
+                                     .arg(ec.message()));
+        }
+
+        return;
+    }
+unzipFailed:
+        QMessageBox::critical(this, tr("Firmware unzip failed"),
+                              tr("Check write permissions in the system temp directory and try again."));
+        return;
+
 }
 
 void GMainWindow::OnInstallDecryptionKeys() {

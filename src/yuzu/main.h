@@ -394,6 +394,7 @@ private slots:
     void OnOpenLogFolder();
     void OnVerifyInstalledContents();
     void OnInstallFirmware();
+    void OnInstallFirmwareFromZIP();
     void OnInstallDecryptionKeys();
     void OnAbout();
     void OnToggleFilterBar();
@@ -613,6 +614,8 @@ private:
                         GameListShortcutTarget target,
                         std::string arguments,
                         const bool needs_title);
+
+    void InstallFirmware(const QString& location, bool recursive = false);
 
 protected:
     void dropEvent(QDropEvent* event) override;

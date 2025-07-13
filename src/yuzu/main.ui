@@ -182,8 +182,15 @@
      <addaction name="action_Desktop"/>
      <addaction name="action_Application_Menu"/>
     </widget>
+    <widget class="QMenu" name="menuInstall_Firmware">
+     <property name="title">
+      <string>Install Firmware</string>
+     </property>
+     <addaction name="action_Firmware_From_Folder"/>
+     <addaction name="action_Firmware_From_ZIP"/>
+    </widget>
     <addaction name="action_Install_Keys"/>
-    <addaction name="action_Install_Firmware"/>
+    <addaction name="menuInstall_Firmware"/>
     <addaction name="action_Verify_installed_contents"/>
     <addaction name="separator"/>
     <addaction name="menu_cabinet_applet"/>
@@ -484,11 +491,6 @@
     <string>Open &amp;Controller Menu</string>
    </property>
   </action>
-  <action name="action_Install_Firmware">
-   <property name="text">
-    <string>Install Firmware</string>
-   </property>
-  </action>
   <action name="action_Install_Keys">
    <property name="text">
     <string>Install Decryption Keys</string>
@@ -545,6 +547,16 @@
   <action name="action_Log_Folder">
    <property name="text">
     <string>&amp;Log Folder</string>
+    </property>
+   </action>
+  <action name="action_Firmware_From_Folder">
+   <property name="text">
+    <string>From Folder</string>
+   </property>
+  </action>
+  <action name="action_Firmware_From_ZIP">
+   <property name="text">
+    <string>From ZIP</string>
    </property>
   </action>
  </widget>
