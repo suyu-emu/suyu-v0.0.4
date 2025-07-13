@@ -349,6 +349,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         val resultCode: Int = NativeLibrary.installKeys(result.toString(), extension);
 
         if (resultCode == 0) {
+            // TODO(crueter): It may be worth it to switch some of these Toasts to snackbars,
+            // since most of it is foreground-only anyways.
             Toast.makeText(
                 applicationContext, R.string.keys_install_success, Toast.LENGTH_SHORT
             ).show()

@@ -46,7 +46,7 @@ FirmwareManager::InstallKeys(std::string location, std::string extension) {
     }
 
     jmethodID copyToStorage = Common::Android::GetCopyToStorage();
-    jstring jdest = Common::Android::ToJString(env, keys_dir.string());
+    jstring jdest = Common::Android::ToJString(env, keys_dir.string() + "/");
 
     jboolean copyResult = env->CallStaticBooleanMethod(
         native,
