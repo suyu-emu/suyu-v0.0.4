@@ -352,7 +352,7 @@ class SetupFragment : Fragment() {
     val getProdKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
             if (result != null) {
-                mainActivity.processKey(result)
+                mainActivity.processKey(result, "keys")
                 if (NativeLibrary.areKeysPresent()) {
                     keyCallback.onStepCompleted()
                 }

@@ -347,13 +347,7 @@
     <string name="warning_cancel">لغو</string>
     <string name="install_amiibo_keys">کلیدهای Amiibo را نصب کنید</string>
     <string name="install_amiibo_keys_description">برای استفاده از Amiibo در بازی لازم است</string>
-    <string name="invalid_keys_file">فایل کلیدهای نامعتبر انتخاب شد</string>
-    <string name="install_keys_success">کلیدها با موفقیت نصب شدند</string>
-    <string name="reading_keys_failure">خطا در خواندن کلیدهای رمزگذاری</string>
-    <string name="install_prod_keys_failure_extension_description">بررسی کنید که فایل کلیدهای شما دارای پسوند keys. باشد و دوباره امتحان کنید.</string>
     <string name="install_amiibo_keys_failure_extension_description">بررسی کنید که فایل کلیدهای شما دارای پسوند bin. باشد و دوباره امتحان کنید.</string>
-    <string name="invalid_keys_error">کلیدهای رمزگذاری نامعتبر</string>
-    <string name="install_keys_failure_description">فایل انتخابی نادرست یا خراب است. لطفا کلیدهای خود را دوباره استخراج کنید.</string>
     <string name="gpu_driver_manager">مدیریت درایور پردازنده گرافیکی</string>
     <string name="install_gpu_driver">نصب درایور پردازنده گرافیکی</string>
     <string name="install_gpu_driver_description">درایورهای جایگزین را برای عملکرد یا دقت بهتر نصب کنید</string>
@@ -426,8 +420,6 @@
     <string name="verify_installed_content_description">تمام محتوای نصب شده را از نظر خرابی بررسی می‌کند</string>
     <string name="keys_missing">کلیدهای رمزگذاری وجود ندارند</string>
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
-    <string name="firmware_missing">فریمور وجود ندارد یا خیلی جدید است</string>
-    <string name="firmware_missing_description">برخی بازی‌ها ممکن است به درستی کار نکنند. ایدن به فریمور نسخه 19.0.1 یا پایین‌تر نیاز دارد.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

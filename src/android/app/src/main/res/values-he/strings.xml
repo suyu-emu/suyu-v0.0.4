@@ -348,13 +348,7 @@
     <string name="warning_cancel">ביטול</string>
     <string name="install_amiibo_keys">התקן מפתחות Amiibo</string>
     <string name="install_amiibo_keys_description">נחוץ כדי להשתמש ב Amiibo במשחק</string>
-    <string name="invalid_keys_file">קובץ מפתחות לא חוקי נבחר</string>
-    <string name="install_keys_success">מפתחות הותקנו בהצלחה</string>
-    <string name="reading_keys_failure">שגיאה בקריאת מפתחות ההצפנה</string>
-    <string name="install_prod_keys_failure_extension_description">ודא שלקובץ המפתחות שלך יש סיומת של key. ונסה/י שוב.</string>
     <string name="install_amiibo_keys_failure_extension_description">ודא/י שלקובץ המפתחות שלך יש סיומת של bin. ונסה/י שוב.</string>
-    <string name="invalid_keys_error">מפתחות הצפנה לא חוקיים</string>
-    <string name="install_keys_failure_description">קבוץ שנבחר מושחת או לא נכון. בבקשה הוצא מחדש את המפתחות שלך.</string>
     <string name="gpu_driver_manager">מנהל הדרייברים של המעבד הגרפי</string>
     <string name="install_gpu_driver">התקן דרייבר למעבד הגרפי</string>
     <string name="install_gpu_driver_description">התקן דרייברים אחרים בשביל סיכוי לביצועים או דיוק גבוההים יותר</string>
@@ -427,8 +421,6 @@
     <string name="verify_installed_content_description">בודק תוכן מותקן לשגיאות</string>
     <string name="keys_missing">מפתחות הצפנה חסרים</string>
     <string name="keys_missing_description">לא ניתן לפענח firmware ומשחקים</string>
-    <string name="firmware_missing">קושחה חסרה או חדשה מדי</string>
-    <string name="firmware_missing_description">חלק מהמשחקים עשויים לא לפעול כראוי. Eden דורש קושחה בגרסה 19.0.1 או נמוכה יותר.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

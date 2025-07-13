@@ -346,13 +346,7 @@
     <string name="warning_cancel">Abbrechen</string>
     <string name="install_amiibo_keys">Amiibo-Schlüssel installieren</string>
     <string name="install_amiibo_keys_description">Benötigt um Amiibos im Spiel zu verwenden</string>
-    <string name="invalid_keys_file">Ungültige Schlüsseldatei ausgewählt</string>
-    <string name="install_keys_success">Schlüssel erfolgreich installiert</string>
-    <string name="reading_keys_failure">Fehler beim Lesen der Schlüssel</string>
-    <string name="install_prod_keys_failure_extension_description">Überprüfen Sie, ob Ihre Schlüsseldatei die Erweiterung \".keys\" hat, und versuchen Sie es erneut.</string>
     <string name="install_amiibo_keys_failure_extension_description">Überprüfen Sie, ob Ihre Schlüsseldatei die Erweiterung \".bin\" hat, und versuchen Sie es erneut.</string>
-    <string name="invalid_keys_error">Ungültige Schlüssel</string>
-    <string name="install_keys_failure_description">Die ausgewählte Datei ist falsch oder beschädigt. Bitte kopieren Sie Ihre Schlüssel erneut.</string>
     <string name="gpu_driver_manager">GPU-Treiber Verwaltung</string>
     <string name="install_gpu_driver">GPU-Treiber installieren</string>
     <string name="install_gpu_driver_description">Alternative Treiber für eventuell bessere Leistung oder Genauigkeit installieren</string>
@@ -415,8 +409,6 @@ Wirklich fortfahren?</string>
     <string name="verify_installed_content_description">Überprüft installierte Inhalte auf Fehler</string>
     <string name="keys_missing">Schlüssel fehlen</string>
     <string name="keys_missing_description">Firmware und Spiele können nicht entschlüsselt werden</string>
-    <string name="firmware_missing">Firmware fehlt oder ist zu neu</string>
-    <string name="firmware_missing_description">Einige Spiele funktionieren möglicherweise nicht richtig. Eden erfordert Firmware 19.0.1 oder älter.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

@@ -333,10 +333,6 @@
     <string name="warning_cancel">Zrušit</string>
     <string name="install_amiibo_keys">Instalovat Amiibo klíče</string>
     <string name="install_amiibo_keys_description">Povinné použití Amiibo ve hře</string>
-    <string name="invalid_keys_file">Vybrané klíče jsou neplatné</string>
-    <string name="install_keys_success">Klíče úspěšně nainstalovány</string>
-    <string name="reading_keys_failure">Chyba při čtení šifrovacích klíčů</string>
-    <string name="invalid_keys_error">Neplatné šifrovací klíče</string>
     <string name="gpu_driver_manager">Správce ovladače GPU</string>
     <string name="install_gpu_driver">Instalovat GPU ovladač</string>
     <string name="advanced_settings">Pokročilé nastavení</string>
@@ -380,8 +376,6 @@
     <string name="verify_installed_content_description">Kontrola poškození obsahu</string>
     <string name="keys_missing">Chybí šifrovací klíče</string>
     <string name="keys_missing_description">Firmware a retail hry nelze dešifrovat</string>
-    <string name="firmware_missing">Firmware chybí nebo je příliš nový</string>
-    <string name="firmware_missing_description">Některé hry nemusí fungovat správně. Eden vyžaduje firmware 19.0.1 nebo nižší.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

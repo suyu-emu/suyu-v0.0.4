@@ -496,4 +496,18 @@
         <item>3</item>
     </integer-array>
 
+    <string-array name="verifyFirmwareResults">
+        <item>""</item>
+        <item>@string/error_firmware_missing</item>
+        <item>@string/error_firmware_corrupted</item>
+        <item>@string/error_firmware_too_new</item>
+    </string-array>
+
+    <string-array name="installKeysResults">
+        <item>""</item>
+        <item>""</item>
+        <item>@string/error_keys_copy_failed</item>
+        <item>@string/error_keys_invalid_filename</item>
+        <item>@string/error_keys_failed_init</item>
+    </string-array>
 </resources>

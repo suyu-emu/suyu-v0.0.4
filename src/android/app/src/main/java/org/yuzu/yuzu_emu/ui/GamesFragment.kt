@@ -47,9 +47,6 @@ import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
 import java.util.Locale
 import androidx.core.content.edit
-import androidx.core.view.updateLayoutParams
-import org.yuzu.yuzu_emu.features.settings.model.Settings
-import android.view.ViewParent
 import androidx.core.view.doOnNextLayout
 
 class GamesFragment : Fragment() {
@@ -151,7 +148,7 @@ class GamesFragment : Fragment() {
             )
         }
         gamesViewModel.games.collect(viewLifecycleOwner) {
-            if (it.size > 0) {
+            if (it.isNotEmpty()) {
                 setAdapter(it)
             }
         }
@@ -361,7 +358,7 @@ class GamesFragment : Fragment() {
 
         popup.setOnMenuItemClickListener { item ->
             currentFilter = item.itemId
-            preferences.edit().putInt(PREF_SORT_TYPE, currentFilter).apply()
+            preferences.edit { putInt(PREF_SORT_TYPE, currentFilter) }
             filterAndSearch()
             true
         }

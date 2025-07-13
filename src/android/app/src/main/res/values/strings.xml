@@ -304,14 +304,8 @@
     <string name="warning_cancel">Cancel</string>
     <string name="install_amiibo_keys">Install Amiibo keys</string>
     <string name="install_amiibo_keys_description">Required to use Amiibo in game</string>
-    <string name="invalid_keys_file">Invalid keys file selected</string>
-    <string name="install_keys_success">Keys successfully installed</string>
-    <string name="reading_keys_failure">Error reading encryption keys</string>
-    <string name="install_prod_keys_failure_extension_description">Verify your keys file has a .keys extension and try again.</string>
     <string name="install_amiibo_keys_failure_extension_description">Verify your keys file has a .bin extension and try again.</string>
-    <string name="invalid_keys_error">Invalid encryption keys</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
-    <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
     <string name="gpu_driver_fetcher">GPU driver fetcher</string>
     <string name="gpu_driver_manager">GPU driver manager</string>
     <string name="install_gpu_driver">Install GPU driver</string>
@@ -390,9 +384,17 @@
     <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
 
-    <string name="firmware_missing">Firmware is missing or too new</string>
-    <string name="firmware_missing_description">Some games may not function properly. Eden requires firmware 19.0.1 or below.</string>
+    <string name="firmware_invalid">Firmware Invalid</string>
+    <string name="error_firmware_missing">Firmware is required to run certain games and use the Home Menu. Eden only works with firmware 19.0.1 and earlier.</string>
+    <string name="error_firmware_corrupted">Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary.</string>
+    <string name="error_firmware_too_new">Firmware is too new or could not be read. Eden only works with firmware 19.0.1 and earlier.</string>
     <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>
+
+    <string name="keys_failed">Failed to Install Keys</string>
+    <string name="keys_install_success">Keys successfully installed</string>
+    <string name="error_keys_copy_failed">One or more keys failed to copy.</string>
+    <string name="error_keys_invalid_filename">Verify your keys file has a .keys extension and try again.</string>
+    <string name="error_keys_failed_init">Keys failed to initialize. Check that your dumping tools are up to date and re-dump keys.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -754,12 +756,15 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">game cartidges</a> or <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">installed titles</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">game cartridges</a> or <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">installed titles</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file is installed so that games can be decrypted.]]></string>
     <string name="loader_error_video_core">An error occurred initializing the video core</string>
     <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
     <string name="loader_error_invalid_format">Unable to load ROM</string>
     <string name="loader_error_file_not_found">ROM file does not exist</string>
+
+    <string name="loader_requires_firmware">Game Requires Firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href="https://yuzu-mirror.github.io/help/quickstart"> dump and install firmware</a>, or press "OK" to launch anyways.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Exit emulation</string>

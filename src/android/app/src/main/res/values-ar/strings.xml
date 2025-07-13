@@ -349,13 +349,7 @@
     <string name="warning_cancel">إلغاء</string>
     <string name="install_amiibo_keys">تثبيت مفاتيح أميبو</string>
     <string name="install_amiibo_keys_description">مطلوب لاستخدام أميبو في اللعبة</string>
-    <string name="invalid_keys_file">تم تحديد ملف مفاتيح غير صالح</string>
-    <string name="install_keys_success">تم تثبيت المفاتيح بنجاح</string>
-    <string name="reading_keys_failure">خطأ في قراءة مفاتيح التشفير</string>
-    <string name="install_prod_keys_failure_extension_description">وحاول مرة أخر keys تحقق من أن ملف المفاتيح له امتداد</string>
     <string name="install_amiibo_keys_failure_extension_description">وحاول مرة أخر bin تحقق من أن ملف المفاتيح له امتداد</string>
-    <string name="invalid_keys_error">مفاتيح التشفير غير صالحة</string>
-    <string name="install_keys_failure_description">الملف المحدد غير صحيح أو تالف. يرجى إعادة المفاتيح الخاصة بك</string>
     <string name="gpu_driver_manager">GPU مدير برنامج تشغيل</string>
     <string name="install_gpu_driver">GPU تثبيت برنامج تشغيل</string>
     <string name="install_gpu_driver_description">قم بتثبيت برامج تشغيل بديلة للحصول على أداء أو دقة أفضل</string>
@@ -422,8 +416,6 @@
     <string name="verify_installed_content_description">فحص المحتوى المثبت بحثًا عن تلف</string>
     <string name="keys_missing">مفاتيح التشفير مفقودة</string>
     <string name="keys_missing_description">لا يمكن فك تشفير البرنامج الثابت والألعاب</string>
-    <string name="firmware_missing">البرنامج الثابت مفقود أو جديد جدًا</string>
-    <string name="firmware_missing_description">بعض الألعاب قد لا تعمل بشكل صحيح. يتطلب إيدن البرنامج الثابت 19.0.1 أو أقل.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

@@ -3,11 +3,16 @@
 
 package org.yuzu.yuzu_emu.adapters
 
+import android.content.DialogInterface
 import android.net.Uri
+import android.text.Html
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -33,6 +38,10 @@ import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.net.toUri
+import androidx.core.content.edit
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import org.yuzu.yuzu_emu.NativeLibrary
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
@@ -171,8 +180,9 @@ class GameAdapter(private val activity: AppCompatActivity) :
         fun onClick(game: Game) {
             val gameExists = DocumentFile.fromSingleUri(
                 YuzuApplication.appContext,
-                Uri.parse(game.path)
+                game.path.toUri()
             )?.exists() == true
+
             if (!gameExists) {
                 Toast.makeText(
                     YuzuApplication.appContext,
@@ -184,29 +194,49 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 return
             }
 
-            val preferences =
-                PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-            preferences.edit()
-                .putLong(
-                    game.keyLastPlayedTime,
-                    System.currentTimeMillis()
-                )
-                .apply()
-
-            activity.lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    val shortcut =
-                        ShortcutInfoCompat.Builder(YuzuApplication.appContext, game.path)
-                            .setShortLabel(game.title)
-                            .setIcon(GameIconUtils.getShortcutIcon(activity, game))
-                            .setIntent(game.launchIntent)
-                            .build()
-                    ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
+            val launch: () -> Unit = {
+                val preferences =
+                    PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                preferences.edit {
+                    putLong(
+                        game.keyLastPlayedTime,
+                        System.currentTimeMillis()
+                    )
                 }
+
+                activity.lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val shortcut =
+                            ShortcutInfoCompat.Builder(YuzuApplication.appContext, game.path)
+                                .setShortLabel(game.title)
+                                .setIcon(GameIconUtils.getShortcutIcon(activity, game))
+                                .setIntent(game.launchIntent)
+                                .build()
+                        ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
+                    }
+                }
+
+                val action = HomeNavigationDirections.actionGlobalEmulationActivity(game, true)
+                binding.root.findNavController().navigate(action)
             }
 
-            val action = HomeNavigationDirections.actionGlobalEmulationActivity(game, true)
-            binding.root.findNavController().navigate(action)
+            if (NativeLibrary.gameRequiresFirmware(game.programId) && !NativeLibrary.isFirmwareAvailable()) {
+                MaterialAlertDialogBuilder(activity)
+                    .setTitle(R.string.loader_requires_firmware)
+                    .setMessage(
+                        Html.fromHtml(
+                            activity.getString(R.string.loader_requires_firmware_description),
+                            Html.FROM_HTML_MODE_LEGACY
+                        )
+                    )
+                    .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+                        launch()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _,_ -> }
+                    .show()
+            } else {
+                launch()
+            }
         }
 
         fun onLongClick(game: Game): Boolean {

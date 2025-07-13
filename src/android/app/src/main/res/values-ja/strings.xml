@@ -346,13 +346,7 @@
     <string name="warning_cancel">キャンセル</string>
     <string name="install_amiibo_keys">Amiibo</string>
     <string name="install_amiibo_keys_description">ゲーム内での Amiibo の使用に必要です</string>
-    <string name="invalid_keys_file">無効なキーファイルです</string>
-    <string name="install_keys_success">正常にインストールされました</string>
-    <string name="reading_keys_failure">暗号化キーの読み込み失敗</string>
-    <string name="install_prod_keys_failure_extension_description">キーの拡張子が.keysであることを確認し、再度お試しください。</string>
     <string name="install_amiibo_keys_failure_extension_description">キーの拡張子が.binであることを確認し、再度お試しください。</string>
-    <string name="invalid_keys_error">暗号化キーが無効</string>
-    <string name="install_keys_failure_description">ファイルが間違っているか破損しています。キーを再ダンプしてください。</string>
     <string name="gpu_driver_manager">GPUドライバーの管理</string>
     <string name="install_gpu_driver">GPUドライバー</string>
     <string name="install_gpu_driver_description">代替ドライバーをインストールしてパフォーマンスや精度を向上させます</string>
@@ -417,8 +411,6 @@
     <string name="verify_installed_content_description">すべてのインストール済みコンテンツの整合性を確認</string>
     <string name="keys_missing">暗号化キーが不足</string>
     <string name="keys_missing_description">ファームウェアと製品版ゲームを復号化できません</string>
-    <string name="firmware_missing">ファームウェアがないか、バージョンが新しすぎます</string>
-    <string name="firmware_missing_description">一部のゲームが正常に動作しない可能性があります。Edenは19.0.1以下のファームウェアが必要です。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

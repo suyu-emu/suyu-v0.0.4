@@ -347,13 +347,7 @@
     <string name="warning_cancel">Batalkan</string>
     <string name="install_amiibo_keys">Install Amiibo keys</string>
     <string name="install_amiibo_keys_description">Diperlukan untuk menggunakan Amiibo di dalam game</string>
-    <string name="invalid_keys_file">Keys yang dipilih invalid</string>
-    <string name="install_keys_success">Keys berhasil diinstal</string>
-    <string name="reading_keys_failure">Error saat mengecek enkripsi keys</string>
-    <string name="install_prod_keys_failure_extension_description">Pastikan file keys anda memiliki format .keys dan coba lagi.</string>
     <string name="install_amiibo_keys_failure_extension_description">Pastikan file keys anda memiliki format .bin dan coba lagi.</string>
-    <string name="invalid_keys_error">Keys enkripsi tidak valid</string>
-    <string name="install_keys_failure_description">File yang dipilih salah atau rusak. Silakan masukkan kembali kunci Anda.</string>
     <string name="gpu_driver_manager">Manajer driver GPU</string>
     <string name="install_gpu_driver">Install driver GPU</string>
     <string name="install_gpu_driver_description">Instal driver lain untuk kinerja atau akurasi yang berpotensi lebih baik</string>
@@ -424,8 +418,6 @@
     <string name="verify_installed_content_description">Memeriksa semua konten yang terinstal dari kerusakan</string>
     <string name="keys_missing">Kunci enkripsi hilang</string>
     <string name="keys_missing_description">Firmware dan game retail tidak dapat didekripsi</string>
-    <string name="firmware_missing">Firmware hilang atau terlalu baru</string>
-    <string name="firmware_missing_description">Beberapa game mungkin tidak berfungsi dengan baik. Eden memerlukan firmware 19.0.1 atau lebih rendah.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

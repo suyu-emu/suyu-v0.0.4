@@ -15,6 +15,7 @@ import android.view.Surface
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.Keep
+import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import net.swiftzer.semver.SemVer
 import java.lang.ref.WeakReference
@@ -27,6 +28,7 @@ import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.network.NetPlayManager
+import java.io.File
 
 /**
  * Class which contains methods that interact
@@ -101,6 +103,21 @@ object NativeLibrary {
         } else {
             FileUtil.getFilename(Uri.parse(path))
         }
+
+    @Keep
+    @JvmStatic
+    fun copyFileToStorage(source: String, destdir: String): Boolean {
+        return FileUtil.copyUriToInternalStorage(
+            source.toUri(),
+            destdir
+        ) != null
+    }
+
+    @Keep
+    @JvmStatic
+    fun getFileExtension(source: String): String {
+        return FileUtil.getExtension(source.toUri())
+    }
 
     external fun setAppDirectory(directory: String)
 
@@ -415,18 +432,29 @@ object NativeLibrary {
      */
     external fun firmwareVersion(): String
 
-    fun isFirmwareSupported(): Boolean {
-        var version: SemVer
+    /**
+     * Verifies installed firmware.
+     *
+     * @return The result code.
+     */
+    external fun verifyFirmware(): Int
 
-        try {
-            version = SemVer.parse(firmwareVersion())
-        } catch (_: Exception) {
-            return false
-        }
-        val max = SemVer(19, 0, 1)
+    /**
+     * Check if a game requires firmware to be playable.
+     *
+     * @param programId The game's Program ID.
+     * @return Whether or not the game requires firmware to be playable.
+     */
+    external fun gameRequiresFirmware(programId: String): Boolean
 
-        return version <= max
-    }
+    /**
+     * Installs keys from the specified path.
+     *
+     * @param path The path to install keys from.
+     * @param ext What extension the keys should have.
+     * @return The result code.
+     */
+    external fun installKeys(path: String, ext: String): Int
 
     /**
      * Checks the PatchManager for any addons that are available

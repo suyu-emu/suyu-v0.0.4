@@ -346,13 +346,7 @@
     <string name="warning_cancel">취소</string>
     <string name="install_amiibo_keys">amiibo 키 설치</string>
     <string name="install_amiibo_keys_description">게임에서 amiibo 사용 시 필요</string>
-    <string name="invalid_keys_file">잘못된 키 파일이 선택됨</string>
-    <string name="install_keys_success">키 값을 설치했습니다.</string>
-    <string name="reading_keys_failure">암호화 키 읽기 오류</string>
-    <string name="install_prod_keys_failure_extension_description">키 파일의 확장자가 .keys인지 확인하고 다시 시도하세요.</string>
     <string name="install_amiibo_keys_failure_extension_description">키 파일의 확장자가 .bin인지 확인하고 다시 시도하세요.</string>
-    <string name="invalid_keys_error">암호화 키가 올바르지 않음</string>
-    <string name="install_keys_failure_description">선택한 파일이 잘못되었거나 손상되었습니다. 키를 다시 덤프하세요.</string>
     <string name="gpu_driver_manager">GPU 드라이버 관리자</string>
     <string name="install_gpu_driver">GPU 드라이버 설치</string>
     <string name="install_gpu_driver_description">잠재적인 성능 또는 정확도 개선을 위해 대체 드라이버 설치</string>
@@ -423,8 +417,6 @@
     <string name="verify_installed_content_description">전체 설치된 콘텐츠의 손상을 확인합니다.</string>
     <string name="keys_missing">암호화 키를 찾을 수 없음</string>
     <string name="keys_missing_description">펌웨어 및 패키지 게임을 해독할 수 없음</string>
-    <string name="firmware_missing">펌웨어가 없거나 버전이 너무 높습니다</string>
-    <string name="firmware_missing_description">일부 게임이 제대로 작동하지 않을 수 있습니다. Eden은 19.0.1 이하 버전의 펌웨어가 필요합니다.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

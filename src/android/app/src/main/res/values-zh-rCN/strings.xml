@@ -346,13 +346,7 @@
     <string name="warning_cancel">取消</string>
     <string name="install_amiibo_keys">安装 Amiibo 密钥文件</string>
     <string name="install_amiibo_keys_description">在遊戏中使用 Amiibo 时必需</string>
-    <string name="invalid_keys_file">选择的密钥文件无效</string>
-    <string name="install_keys_success">密钥文件已成功安装</string>
-    <string name="reading_keys_failure">读取加密密钥时出错</string>
-    <string name="install_prod_keys_failure_extension_description">请确保您的密钥文件扩展名为 .keys 并重试。</string>
     <string name="install_amiibo_keys_failure_extension_description">请确保您的密钥文件扩展名为 .bin 并重试。</string>
-    <string name="invalid_keys_error">无效的加密密钥</string>
-    <string name="install_keys_failure_description">选择的密钥文件不正确或已损坏。请重新转储密钥文件。</string>
     <string name="gpu_driver_manager">GPU 驱动管理器</string>
     <string name="install_gpu_driver">安装 GPU 驱动</string>
     <string name="install_gpu_driver_description">安装替代的驱动程序以获得更好的性能和精度</string>
@@ -423,8 +417,6 @@
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
-    <string name="firmware_missing">固件缺失或版本过新</string>
-    <string name="firmware_missing_description">某些游戏可能无法正常运行。Eden需要19.0.1或更低版本的固件。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

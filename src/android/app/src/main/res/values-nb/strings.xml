@@ -344,13 +344,7 @@
     <string name="warning_cancel">Avbryt</string>
     <string name="install_amiibo_keys">Installer Amiibo-nøkler</string>
     <string name="install_amiibo_keys_description">Kreves for å bruke Amiibo i spillet</string>
-    <string name="invalid_keys_file">Ugyldig nøkkelfil valgt</string>
-    <string name="install_keys_success">Nøkler vellykket installert</string>
-    <string name="reading_keys_failure">Feil ved lesing av krypteringsnøkler</string>
-    <string name="install_prod_keys_failure_extension_description">Kontroller at nøkkelfilen har filtypen .keys, og prøv igjen.</string>
     <string name="install_amiibo_keys_failure_extension_description">Kontroller at nøkkelfilen har filtypen .bin, og prøv igjen.</string>
-    <string name="invalid_keys_error">Ugyldige krypteringsnøkler</string>
-    <string name="install_keys_failure_description">Den valgte filen er feil eller ødelagt. Vennligst dump nøklene på nytt.</string>
     <string name="install_gpu_driver">Installer GPU-driver</string>
     <string name="install_gpu_driver_description">Installer alternative drivere for potensielt bedre ytelse eller nøyaktighet.</string>
     <string name="advanced_settings">Avanserte innstillinger</string>
@@ -416,8 +410,6 @@
     <string name="verify_installed_content_description">Sjekk for korrupsjon</string>
     <string name="keys_missing">Nøkler mangler</string>
     <string name="keys_missing_description">Kan ikke dekryptere firmware/spill</string>
-    <string name="firmware_missing">Firmware mangler eller er for ny</string>
-    <string name="firmware_missing_description">Noen spill fungerer kanskje ikke skikkelig. Eden krever firmware 19.0.1 eller lavere.</string>
 
     <!-- Applet-lanseringsstrenger -->
     <string name="qlaunch_applet">Qlaunch</string>

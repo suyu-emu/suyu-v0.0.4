@@ -344,13 +344,7 @@
     <string name="warning_cancel">Huỷ</string>
     <string name="install_amiibo_keys">Cài đặt Amiibo</string>
     <string name="install_amiibo_keys_description">Cần thiết để dùng Amiibo trong trò chơi</string>
-    <string name="invalid_keys_file">Chìa khóa không hợp lệ</string>
-    <string name="install_keys_success">Cài đặt chìa khóa thành công</string>
-    <string name="reading_keys_failure">Lỗi đọc keys mã hóa</string>
-    <string name="install_prod_keys_failure_extension_description">Xác minh rằng tệp keys của bạn có đuôi .keys và thử lại.</string>
     <string name="install_amiibo_keys_failure_extension_description">Xác minh rằng tệp keys của bạn có đuôi .bin và thử lại.</string>
-    <string name="invalid_keys_error">Keys mã hoá không hợp lệ</string>
-    <string name="install_keys_failure_description">Chọn file sai hoặc bị hỏng. Hãy xuất chìa khóa khác</string>
     <string name="install_gpu_driver">Cài đặt driver GPU</string>
     <string name="install_gpu_driver_description">Cài đặt driver thay thế để có thể có hiệu suất tốt và chính xác hơn</string>
     <string name="advanced_settings">Cài đặt nâng cao</string>
@@ -416,8 +410,6 @@
     <string name="verify_installed_content_description">Kiểm tra lỗi nội dung đã cài</string>
     <string name="keys_missing">Thiếu keys mã hóa</string>
     <string name="keys_missing_description">Không thể giải mã firmware và game</string>
-    <string name="firmware_missing">Thiếu firmware hoặc phiên bản quá mới</string>
-    <string name="firmware_missing_description">Một số trò chơi có thể không hoạt động bình thường. Eden yêu cầu firmware phiên bản 19.0.1 hoặc thấp hơn.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

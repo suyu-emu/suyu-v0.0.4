@@ -298,13 +298,7 @@
     <string name="warning_cancel">Отказати</string>
     <string name="install_amiibo_keys">Инсталирајте Амиибо Кеис</string>
     <string name="install_amiibo_keys_description">Потребно је користити Амиибо у игри</string>
-    <string name="invalid_keys_file">Изабрана је неважећа датотека тастера</string>
-    <string name="install_keys_success">Кључеви су успешно инсталирани</string>
-    <string name="reading_keys_failure">Грешка приликом чишћења кључева за шифровање</string>
-    <string name="install_prod_keys_failure_extension_description">Проверите да датотека кључева има. Екеис Ектенсион и покушајте поново.</string>
     <string name="install_amiibo_keys_failure_extension_description">Проверите да датотека кључева има .бин екстензију и покушајте поново.</string>
-    <string name="invalid_keys_error">Неважеће кључеве за шифровање</string>
-    <string name="install_keys_failure_description">Изабрана датотека је нетачна или оштећена. Молим вас да вам умањите кључеве.</string>
     <string name="gpu_driver_fetcher">ГПУ возач фетцхер</string>
     <string name="gpu_driver_manager">ГПУ управљач возача</string>
     <string name="install_gpu_driver">Инсталирајте ГПУ драјвер</string>
@@ -380,8 +374,6 @@
     <string name="keys_missing">Шифра о шифрирањима недостају</string>
     <string name="keys_missing_description">Фирмваре и малопродајне игре не могу се дешифровати</string>
 
-    <string name="firmware_missing">Фирмвер недостаје или је превише нов</string>
-    <string name="firmware_missing_description">Неке игре можда неће радити исправно. Eden захтева фирмвер верзије 19.0.1 или старији.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Клаунцх</string>

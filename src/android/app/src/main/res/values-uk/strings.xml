@@ -344,12 +344,6 @@
     <string name="warning_cancel">Відміна</string>
     <string name="install_amiibo_keys">Встановити ключі Amiibo</string>
     <string name="install_amiibo_keys_description">Необхідно для використання Amiibo в іграх</string>
-    <string name="invalid_keys_file">Вибрано неправильний файл ключів</string>
-    <string name="install_keys_success">Ключі успішно встановлено</string>
-    <string name="reading_keys_failure">Помилка під час зчитування ключів шифрування</string>
-    <string name="install_prod_keys_failure_extension_description">Переконайтеся, що файл ключів має розширення .keys, і повторіть спробу.</string>
-    <string name="invalid_keys_error">Невірні ключі шифрування</string>
-    <string name="install_keys_failure_description">Обраний файл невірний або пошкоджений. Будь ласка, зробіть повторний дамп ваших ключів.</string>
     <string name="install_gpu_driver">Встановити драйвер GPU</string>
     <string name="install_gpu_driver_description">Встановіть альтернативні драйвери для потенційно кращої продуктивності та/або точності</string>
     <string name="advanced_settings">Розширені налаштування</string>
@@ -415,8 +409,6 @@
     <string name="verify_installed_content_description">Перевіряє встановлений вміст на наявність помилок.</string>
     <string name="keys_missing">Відсутні ключі</string>
     <string name="keys_missing_description">Прошивку та роздрібні ігри не вдасться розшифрувати.</string>
-    <string name="firmware_missing">Прошивка відсутня або занадто нова</string>
-    <string name="firmware_missing_description">Деякі ігри можуть працювати неправильно. Eden вимагає прошивку версії 19.0.1 або нижче.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

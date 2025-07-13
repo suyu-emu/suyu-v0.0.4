@@ -264,8 +264,6 @@ class DriverFetcherFragment : Fragment() {
                             }
 
                             releases.add(release)
-
-                            println(release.publishTime)
                         }
                     }
 

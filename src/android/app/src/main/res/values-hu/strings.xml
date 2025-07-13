@@ -346,13 +346,7 @@
     <string name="warning_cancel">Mégse</string>
     <string name="install_amiibo_keys">Amiibo kulcsok telepítése</string>
     <string name="install_amiibo_keys_description">Amiibo használata szükséges a játékhoz</string>
-    <string name="invalid_keys_file">Érvénytelen titkosítófájlok kiválasztva</string>
-    <string name="install_keys_success">Kulcsok sikeresen telepítve</string>
-    <string name="reading_keys_failure">Hiba történt a titkosítókulcsok olvasása során</string>
-    <string name="install_prod_keys_failure_extension_description">Győződj meg róla, hogy a titkosító fájlod .keys kiterjesztéssel rendelkezik, majd próbáld újra.</string>
     <string name="install_amiibo_keys_failure_extension_description">Győződj meg róla, hogy a titkosító fájlod .bin kiterjesztéssel rendelkezik, majd próbáld újra.</string>
-    <string name="invalid_keys_error">Érvénytelen titkosítókulcsok</string>
-    <string name="install_keys_failure_description">A kiválasztott fájl helytelen, vagy sérült. Állíts össze egy új kulcsot.</string>
     <string name="gpu_driver_manager">GPU illesztőprogram-kezelő</string>
     <string name="install_gpu_driver">GPU illesztőprogram telepítése</string>
     <string name="install_gpu_driver_description">Alternatív illesztőprogramok telepítése az esetlegesen elérhető teljesítmény és pontosság érdekében</string>
@@ -424,8 +418,6 @@
     <string name="verify_installed_content_description">A telepített tartalom épségét ellenőrzi</string>
     <string name="keys_missing">Hiányzó titkosítókulcsok</string>
     <string name="keys_missing_description">A Firmware és a kiskereskedelmi (retail) játékok nem dekódolhatók</string>
-    <string name="firmware_missing">Hiányzó vagy túl új firmware</string>
-    <string name="firmware_missing_description">Néhány játék nem fog megfelelően működni. Az Eden 19.0.1 vagy régebbi firmware-t igényel.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

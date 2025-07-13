@@ -60,6 +60,7 @@
 #include "core/hle/service/set/system_settings_server.h"
 #include "core/loader/loader.h"
 #include "frontend_common/config.h"
+#include "frontend_common/firmware_manager.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
@@ -283,6 +284,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
                                           : Service::AM::LaunchType::ApplicationInitiated,
         .program_index = static_cast<s32>(program_index),
     };
+
     m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath, params);
     if (m_load_result != Core::SystemResultStatus::Success) {
         return m_load_result;
@@ -764,35 +766,19 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass cl
 }
 
 bool isFirmwarePresent() {
-    auto bis_system =
-            EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        return false;
-    }
-
-    // Query an applet to see if it's available
-    auto applet_nca =
-            bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
-    if (!applet_nca) {
-        return false;
-    }
-    return true;
+    return FirmwareManager::CheckFirmwarePresence(EmulationSession::GetInstance().System());
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
     return isFirmwarePresent();
 }
 
-// TODO(crueter): This check is nonfunctional...
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclass clazz) {
-    Service::Set::FirmwareVersionFormat firmware_data{};
-    const auto result = Service::Set::GetFirmwareVersionImpl(
-            firmware_data, EmulationSession::GetInstance().System(),
-            Service::Set::GetFirmwareVersionType::Version2);
+    const auto pair = FirmwareManager::GetFirmwareVersion(EmulationSession::GetInstance().System());
+    const auto firmware_data = pair.first;
+    const auto result = pair.second;
 
     if (result.IsError() || !isFirmwarePresent()) {
-        LOG_INFO(Frontend, "Installed firmware: No firmware available");
-
         return Common::Android::ToJString(env, "N/A");
     }
 
@@ -802,6 +788,23 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_firmwareVersion(JNIEnv* env, jclas
     LOG_INFO(Frontend, "Installed firmware: {}", display_title);
 
     return Common::Android::ToJString(env, display_version);
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_verifyFirmware(JNIEnv* env, jclass clazz) {
+    return static_cast<int>(FirmwareManager::VerifyFirmware(EmulationSession::GetInstance().System()));
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_gameRequiresFirmware(JNIEnv* env, jclass clazz, jstring jprogramId) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+
+    return FirmwareManager::GameRequiresFirmware(program_id);
+}
+
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_installKeys(JNIEnv* env, jclass clazz, jstring jpath, jstring jext) {
+    const auto path = Common::Android::GetJString(env, jpath);
+    const auto ext = Common::Android::GetJString(env, jext);
+
+    return static_cast<int>(FirmwareManager::InstallKeys(path, ext));
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPatchesForFile(JNIEnv* env, jobject jobj,

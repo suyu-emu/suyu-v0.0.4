@@ -137,7 +137,7 @@ class HomeSettingsFragment : Fragment() {
                         binding.root.findNavController()
                             .navigate(R.id.action_homeSettingsFragment_to_appletLauncherFragment)
                     },
-                    { NativeLibrary.isFirmwareAvailable() && NativeLibrary.isFirmwareSupported() },
+                    { NativeLibrary.isFirmwareAvailable() },
                     R.string.applets_error_firmware,
                     R.string.applets_error_description
                 )

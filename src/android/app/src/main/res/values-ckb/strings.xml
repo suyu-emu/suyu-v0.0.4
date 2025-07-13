@@ -344,13 +344,7 @@
     <string name="warning_cancel">ڕەتکردنەوە</string>
     <string name="install_amiibo_keys">دامەزراندنی کلیلی Amiibo</string>
     <string name="install_amiibo_keys_description">پێویستە بۆ بەکارهێنانی Amiibo لە یاریدا</string>
-    <string name="invalid_keys_file">فایلی کلیلێکی نادروست هەڵبژێردرا</string>
-    <string name="install_keys_success">کلیلەکان بە سەرکەوتوویی دامەزران</string>
-    <string name="reading_keys_failure">هەڵە لە خوێندنەوەی کۆدکردنی کلیل</string>
-    <string name="install_prod_keys_failure_extension_description">دڵنیابەوە کە فایلی کلیلەکانت درێژکراوەی .keys ی هەیە و دووبارە هەوڵبدەرەوە.</string>
     <string name="install_amiibo_keys_failure_extension_description">دڵنیابە کە فایلی کلیلەکانت درێژکراوەی .bin ی هەیە و دووبارە هەوڵبدەرەوە.</string>
-    <string name="invalid_keys_error">کلیلی کۆدکردنی نادروستە</string>
-    <string name="install_keys_failure_description">فایلە هەڵبژێردراوەکە هەڵەیە یان تێکچووە.  تکایە دووبارە کلیلەکانت دەربێنەوە.</string>
     <string name="install_gpu_driver">دامەزراندنی وەگەڕخەری GPU</string>
     <string name="install_gpu_driver_description">دامەزراندنی وەگەڕخەری بەدیل بۆ ئەوەی بە ئەگەرێکی زۆرەوە کارایی باشتر یان وردبینی هەبێت</string>
     <string name="advanced_settings">ڕێکخستنە پێشکەوتووەکان</string>
@@ -416,8 +410,6 @@
     <string name="verify_installed_content_description">هەموو ناوەڕۆکی دامەزراو پشکنین دەکات بۆ تێکچوون</string>
     <string name="keys_missing">کلیلە کۆدکراوەکان دیار نییە</string>
     <string name="keys_missing_description">پتەوواڵا و یارییە تاکەکەسییەکان ناتوانرێت کۆد بکرێنەوە</string>
-    <string name="firmware_missing">فریموێر بوونی نییە یان زۆر نوێە</string>
-    <string name="firmware_missing_description">هەندێ یاری لەوانەیە باش کار نەکەن. ئێدەن پێویستی بە فریموێری ١٩.٠.١ یان کەمترە.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

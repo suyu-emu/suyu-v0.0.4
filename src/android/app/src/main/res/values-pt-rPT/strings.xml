@@ -347,13 +347,7 @@
     <string name="warning_cancel">Cancelar</string>
     <string name="install_amiibo_keys">Instala chaves Amiibo</string>
     <string name="install_amiibo_keys_description">Necessário para usares Amiibo no jogo</string>
-    <string name="invalid_keys_file">Ficheiro de chaves inválido</string>
-    <string name="install_keys_success">Chaves instaladas com sucesso</string>
-    <string name="reading_keys_failure">Erro ao ler chaves de encriptação</string>
-    <string name="install_prod_keys_failure_extension_description">Verifique se seu arquivo keys possui a extensão .keys e tente novamente.</string>
     <string name="install_amiibo_keys_failure_extension_description">Verifique se seu arquivo keys possui a extensão .bin e tente novamente.</string>
-    <string name="invalid_keys_error">Chaves de encriptação inválidas</string>
-    <string name="install_keys_failure_description">O ficheiro selecionado está corrompido. Por favor recarrega as tuas chaves.</string>
     <string name="gpu_driver_manager">Gerenciador de driver de GPU</string>
     <string name="install_gpu_driver">Instala driver para GPU</string>
     <string name="install_gpu_driver_description">Instala drivers alternativos para desempenho ou precisão potencialmente melhores</string>
@@ -428,8 +422,6 @@
     <string name="verify_installed_content_description">Verifica todo o conteúdo instalado em busca de dados corrompidos</string>
     <string name="keys_missing">Faltando chaves de encriptação</string>
     <string name="keys_missing_description">O firmware e jogos comerciais não poderão ser decriptados</string>
-    <string name="firmware_missing">Firmware em falta ou demasiado recente</string>
-    <string name="firmware_missing_description">Alguns jogos podem não funcionar corretamente. O Eden requer firmware versão 19.0.1 ou inferior.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>

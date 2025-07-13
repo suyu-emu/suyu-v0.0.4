@@ -10,6 +10,7 @@
 #include "core/hle/service/am/applet_manager.h"
 #include "core/loader/nca.h"
 #include "core/tools/renderdoc.h"
+#include "frontend_common/firmware_manager.h"
 
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
@@ -211,7 +212,7 @@ enum class CalloutFlag : uint32_t {
  * Some games perform worse or straight-up don't work with updates,
  * so this tracks which games are bad in this regard.
  */
-static const QList<u64> bad_update_games{
+constexpr std::array<u64, 1> bad_update_games{
     0x0100F2C0115B6000   // Tears of the Kingdom
 };
 
@@ -1889,46 +1890,61 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
     QSettings settings;
     QStringList currentIgnored = settings.value("ignoredBadUpdates", {}).toStringList();
 
-    for (const u64 id : bad_update_games) {
-        const bool ignored = currentIgnored.contains(QString::number(id));
+    if (std::find(bad_update_games.begin(), bad_update_games.end(), params.program_id) != bad_update_games.end()
+            && !currentIgnored.contains(QString::number(params.program_id))) {
+        QMessageBox *msg = new QMessageBox(this);
+        msg->setWindowTitle(tr("Game Updates Warning"));
+        msg->setIcon(QMessageBox::Warning);
+        msg->setText(tr("The game you are trying to launch is known to have performance or booting "
+                        "issues when updates are applied. Please try increasing the memory layout to "
+                        "6GB or 8GB if any issues occur.<br><br>Press \"OK\" to continue launching, or "
+                        "\"Cancel\" to cancel the launch."));
 
-        if (params.program_id == id && !ignored) {
-            QMessageBox *msg = new QMessageBox(this);
-            msg->setWindowTitle(tr("Game Updates Warning"));
-            msg->setIcon(QMessageBox::Warning);
-            msg->setText(tr("The game you are trying to launch is known to have performance or booting "
-                            "issues when updates are applied. Please try increasing the memory layout to "
-                            "6GB or 8GB if any issues occur.<br><br>Press \"OK\" to continue launching, or "
-                            "\"Cancel\" to cancel the launch."));
+        msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
-            // TODO: TMP: Recommends more memory for TotK.
+        QCheckBox *dontShowAgain = new QCheckBox(msg);
+        dontShowAgain->setText(tr("Don't show again for this game"));
+        msg->setCheckBox(dontShowAgain);
 
-            msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        int result = msg->exec();
 
-            QCheckBox *dontShowAgain = new QCheckBox(msg);
-            dontShowAgain->setText(tr("Don't show again for this game"));
-            msg->setCheckBox(dontShowAgain);
+        // wtf
+        QMessageBox::ButtonRole role = msg->buttonRole(msg->button((QMessageBox::StandardButton) result));
 
-            int result = msg->exec();
-
-            // wtf
-            QMessageBox::ButtonRole role = msg->buttonRole(msg->button((QMessageBox::StandardButton) result));
-
-            switch (role) {
-
-            case QMessageBox::RejectRole:
-                return false;
-
-            case QMessageBox::AcceptRole:
-            default:
-                if (dontShowAgain->isChecked()) {
-                    currentIgnored << QString::number(params.program_id);
-
-                    settings.setValue("ignoredBadUpdates", currentIgnored);
-                    settings.sync();
-                }
-                break;
+        switch (role) {
+        case QMessageBox::RejectRole:
+            return false;
+        case QMessageBox::AcceptRole:
+        default:
+            if (dontShowAgain->isChecked()) {
+                currentIgnored << QString::number(params.program_id);
+                settings.setValue("ignoredBadUpdates", currentIgnored);
+                settings.sync();
             }
+            break;
+        }
+    }
+
+    if (FirmwareManager::GameRequiresFirmware(params.program_id) && !FirmwareManager::CheckFirmwarePresence(*system)) {
+        QMessageBox *msg = new QMessageBox(this);
+        msg->setWindowTitle(tr("Game Requires Firmware"));
+        msg->setIcon(QMessageBox::Warning);
+        msg->setText(tr("The game you are trying to launch requires firmware to boot or to get past the "
+                        "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
+                        "dump and install firmware</a>, or press \"OK\" to launch anyways."));
+
+        msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+
+        int exec_result = msg->exec();
+
+        QMessageBox::ButtonRole role = msg->buttonRole(msg->button((QMessageBox::StandardButton) exec_result));
+
+        switch (role) {
+        case QMessageBox::RejectRole:
+            return false;
+        case QMessageBox::AcceptRole:
+        default:
+            break;
         }
     }
 
@@ -1945,7 +1961,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         UISettings::values.callout_flags = UISettings::values.callout_flags.GetValue() |
                 static_cast<u32>(CalloutFlag::DRDDeprecation);
         QMessageBox::warning(
-                    this, tr("Warning Outdated Game Format"),
+                    this, tr("Warning: Outdated Game Format"),
                     tr("You are using the deconstructed ROM directory format for this game, which is an "
                        "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
                        "NSP. Deconstructed ROM directories lack icons, metadata, and update "
@@ -1968,7 +1984,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                            "This is usually caused by outdated GPU drivers, including integrated ones. "
                            "Please see the log for more details. "
                            "For more information on accessing the log, please see the following page: "
-                           "<a href='https://eden-emulator.github.io/help/reference/log-files/'>"
+                           "<a href='https://yuzu-mirror.github.io/help/reference/log-files/'>"
                            "How to Upload the Log File</a>. "));
             break;
         default:
@@ -4322,8 +4338,8 @@ void GMainWindow::OnInstallFirmware() {
             progress.close();
             QMessageBox::warning(
                         this, tr("Firmware install failed"),
-                        tr("Firmware installation cancelled, firmware may be in bad state, "
-                           "restart eden or re-install firmware."));
+                        tr("Firmware installation cancelled, firmware may be in a bad state or corrupted. "
+                           "Restart Eden or re-install firmware."));
             return;
         }
     }
@@ -4368,72 +4384,27 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     const QString key_source_location = QFileDialog::getOpenFileName(
-                this, tr("Select Dumped Keys Location"), {}, QStringLiteral("prod.keys (prod.keys)"), {},
+                this, tr("Select Dumped Keys Location"), {}, QStringLiteral("Decryption Keys (*.keys)"), {},
                 QFileDialog::ReadOnly);
     if (key_source_location.isEmpty()) {
         return;
     }
 
-    // Verify that it contains prod.keys, title.keys and optionally, key_retail.bin
-    LOG_INFO(Frontend, "Installing key files from {}", key_source_location.toStdString());
+    FirmwareManager::KeyInstallResult result = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
 
-    const std::filesystem::path prod_key_path = key_source_location.toStdString();
-    const std::filesystem::path key_source_path = prod_key_path.parent_path();
-    if (!Common::FS::IsDir(key_source_path)) {
-        return;
-    }
-
-    bool prod_keys_found = false;
-    std::vector<std::filesystem::path> source_key_files;
-
-    if (Common::FS::Exists(prod_key_path)) {
-        prod_keys_found = true;
-        source_key_files.emplace_back(prod_key_path);
-    }
-
-    if (Common::FS::Exists(key_source_path / "title.keys")) {
-        source_key_files.emplace_back(key_source_path / "title.keys");
-    }
-
-    if (Common::FS::Exists(key_source_path / "key_retail.bin")) {
-        source_key_files.emplace_back(key_source_path / "key_retail.bin");
-    }
-
-    // There should be at least prod.keys.
-    if (source_key_files.empty() || !prod_keys_found) {
-        QMessageBox::warning(this, tr("Decryption Keys install failed"),
-                             tr("prod.keys is a required decryption key file."));
-        return;
-    }
-
-    const auto yuzu_keys_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::KeysDir);
-    for (auto key_file : source_key_files) {
-        std::filesystem::path destination_key_file = yuzu_keys_dir / key_file.filename();
-        if (!std::filesystem::copy_file(key_file, destination_key_file,
-                                        std::filesystem::copy_options::overwrite_existing)) {
-            LOG_ERROR(Frontend, "Failed to copy file {} to {}", key_file.string(),
-                      destination_key_file.string());
-            QMessageBox::critical(this, tr("Decryption Keys install failed"),
-                                  tr("One or more keys failed to copy."));
-            return;
-        }
-    }
-
-    // Reinitialize the key manager, re-read the vfs (for update/dlc files),
-    // and re-populate the game list in the UI if the user has already added
-    // game folders.
-    Core::Crypto::KeyManager::Instance().ReloadKeys();
     system->GetFileSystemController().CreateFactories(*vfs);
     game_list->PopulateAsync(UISettings::values.game_dirs);
 
-    if (ContentManager::AreKeysPresent()) {
+    switch (result) {
+    case FirmwareManager::KeyInstallResult::Success:
         QMessageBox::information(this, tr("Decryption Keys install succeeded"),
                                  tr("Decryption Keys were successfully installed"));
-    } else {
+        break;
+    default:
         QMessageBox::critical(
                     this, tr("Decryption Keys install failed"),
-                    tr("Decryption Keys failed to initialize. Check that your dumping tools are "
-                       "up to date and re-dump keys."));
+                    tr(FirmwareManager::GetKeyInstallResultString(result)));
+        break;
     }
 
     OnCheckFirmwareDecryption();
@@ -5103,52 +5074,27 @@ void GMainWindow::OnCheckFirmwareDecryption() {
 
 void GMainWindow::OnCheckFirmware()
 {
-    if (!CheckFirmwarePresence()) {
+    auto result = FirmwareManager::VerifyFirmware(*system.get());
+
+    switch (result) {
+        case FirmwareManager::FirmwareGood:
+        break;
+    default:
         QMessageBox::warning(
-                    this, tr("Firmware Missing"),
-                    tr("Firmware missing. Firmware is required to run certain games and use the Home Menu.\n"
-                       "Eden only works with firmware 19.0.1 and earlier."));
-    } else {
-        Service::Set::FirmwareVersionFormat firmware_data{};
-        const auto result = Service::Set::GetFirmwareVersionImpl(
-                    firmware_data, *system, Service::Set::GetFirmwareVersionType::Version2);
-
-        if (result.IsError()) {
-            LOG_INFO(Frontend, "Unable to read firmware");
-            QMessageBox::warning(
-                        this, tr("Firmware Corrupted"),
-                        tr("Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary."));
-            return;
-        }
-
-        if (firmware_data.major > 19) {
-            QMessageBox::warning(
-                        this, tr("Firmware Too New"),
-                        tr("Firmware is too new. Eden only works with firmware 19.0.1 and earlier."));
-        }
+                    this, tr("Firmware Read Error"),
+                    tr(FirmwareManager::GetFirmwareCheckString(result)));
+        break;
     }
 }
 
 bool GMainWindow::CheckFirmwarePresence() {
-    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::AppletProgramId::MiiEdit);
-
-    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        return false;
-    }
-
-    auto mii_applet_nca = bis_system->GetEntry(MiiEditId, FileSys::ContentRecordType::Program);
-    if (!mii_applet_nca) {
-        return false;
-    }
-
-    return true;
+    return FirmwareManager::CheckFirmwarePresence(*system.get());
 }
 
 void GMainWindow::SetFirmwareVersion() {
-    Service::Set::FirmwareVersionFormat firmware_data{};
-    const auto result = Service::Set::GetFirmwareVersionImpl(
-                firmware_data, *system, Service::Set::GetFirmwareVersionType::Version2);
+    const auto pair = FirmwareManager::GetFirmwareVersion(*system.get());
+    const auto firmware_data = pair.first;
+    const auto result = pair.second;
 
     if (result.IsError() || !CheckFirmwarePresence()) {
         LOG_INFO(Frontend, "Installed firmware: No firmware available");
