@@ -57,6 +57,16 @@
       <string>&amp;Recent Files</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuOpen_Eden_Folders">
+     <property name="title">
+      <string>Open &amp;Eden Folders</string>
+     </property>
+     <addaction name="action_Root_Data_Folder"/>
+     <addaction name="action_NAND_Folder"/>
+     <addaction name="action_SDMC_Folder"/>
+     <addaction name="action_Mod_Folder"/>
+     <addaction name="action_Log_Folder"/>
+    </widget>
     <addaction name="action_Install_File_NAND"/>
     <addaction name="separator"/>
     <addaction name="action_Load_File"/>
@@ -66,7 +76,7 @@
     <addaction name="separator"/>
     <addaction name="action_Load_Amiibo"/>
     <addaction name="separator"/>
-    <addaction name="action_Open_yuzu_Folder"/>
+    <addaction name="menuOpen_Eden_Folders"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -388,11 +398,6 @@
     <string>&amp;FAQ</string>
    </property>
   </action>
-  <action name="action_Open_yuzu_Folder">
-   <property name="text">
-    <string>Open &amp;eden Folder</string>
-   </property>
-  </action>
   <action name="action_Capture_Screenshot">
    <property name="enabled">
     <bool>false</bool>
@@ -515,6 +520,31 @@
   <action name="action_Application_Menu">
    <property name="text">
     <string>&amp;Application Menu</string>
+   </property>
+  </action>
+  <action name="action_Root_Data_Folder">
+   <property name="text">
+    <string>&amp;Root Data Folder</string>
+   </property>
+  </action>
+  <action name="action_NAND_Folder">
+   <property name="text">
+    <string>&amp;NAND Folder</string>
+   </property>
+  </action>
+  <action name="action_SDMC_Folder">
+   <property name="text">
+    <string>&amp;SDMC Folder</string>
+   </property>
+  </action>
+  <action name="action_Mod_Folder">
+   <property name="text">
+    <string>&amp;Mod Folder</string>
+   </property>
+  </action>
+  <action name="action_Log_Folder">
+   <property name="text">
+    <string>&amp;Log Folder</string>
    </property>
   </action>
  </widget>

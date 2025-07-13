@@ -157,13 +157,6 @@
          <string>Logging</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_1">
-         <item row="1" column="1">
-          <widget class="QPushButton" name="open_log_button">
-           <property name="text">
-            <string>Open Log Location</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QWidget" name="logging_widget" native="true">
            <property name="sizePolicy">
@@ -221,6 +214,13 @@
           <widget class="QCheckBox" name="toggle_console">
            <property name="text">
             <string>Show Log in Console</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="open_log_button">
+           <property name="text">
+            <string>Open Log Location</string>
            </property>
           </widget>
          </item>

@@ -1674,7 +1674,12 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Configure_Tas, &GMainWindow::OnConfigureTas);
 
     // Help
-    connect_menu(ui->action_Open_yuzu_Folder, &GMainWindow::OnOpenYuzuFolder);
+    connect_menu(ui->action_Root_Data_Folder, &GMainWindow::OnOpenRootDataFolder);
+    connect_menu(ui->action_NAND_Folder, &GMainWindow::OnOpenNANDFolder);
+    connect_menu(ui->action_SDMC_Folder, &GMainWindow::OnOpenSDMCFolder);
+    connect_menu(ui->action_Mod_Folder, &GMainWindow::OnOpenModFolder);
+    connect_menu(ui->action_Log_Folder, &GMainWindow::OnOpenLogFolder);
+
     connect_menu(ui->action_Discord, &GMainWindow::OnOpenDiscord);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_Install_Firmware, &GMainWindow::OnInstallFirmware);
@@ -4159,9 +4164,33 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
     }
 }
 
-void GMainWindow::OnOpenYuzuFolder() {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(
+void GMainWindow::OnOpenRootDataFolder() {
+    QDesktopServices::openUrl(QUrl(
                                   QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::EdenDir))));
+}
+
+void GMainWindow::OnOpenNANDFolder()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir))));
+}
+
+void GMainWindow::OnOpenSDMCFolder()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir))));
+}
+
+void GMainWindow::OnOpenModFolder()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir))));
+}
+
+void GMainWindow::OnOpenLogFolder()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir))));
 }
 
 void GMainWindow::OnVerifyInstalledContents() {
