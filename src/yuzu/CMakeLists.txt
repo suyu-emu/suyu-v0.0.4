@@ -499,8 +499,11 @@ set(BUILD_SHARED_LIBS OFF)
 
 include(CPM)
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+set(CPM_USE_LOCAL_PACKAGES ON)
 
 set(QUAZIP_QT_MAJOR_VERSION 6)
+set(QUAZIP_BZIP2 OFF)
+
 CPMAddPackage(
     URI "gh:stachenov/quazip@1.5"
     PATCHES
