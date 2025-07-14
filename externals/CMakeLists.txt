@@ -20,6 +20,7 @@ set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
     add_subdirectory(xbyak)
 add_subdirectory(nxdumptool)
+add_subdirectory(nx-optimizer)
 endif()
 
 # Oaknut (also used by Dynarmic, so needs to be added first)
