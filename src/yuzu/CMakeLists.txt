@@ -505,6 +505,7 @@ CPMAddPackage(
     URI "gh:stachenov/quazip@1.5"
     PATCHES
         ${CMAKE_SOURCE_DIR}/.ci/patch/0001-quazip-strict.patch
+        ${CMAKE_SOURCE_DIR}/.ci/patch/0002-quazip-fetchcontent.patch
 )
 
 if (NOT MSVC)

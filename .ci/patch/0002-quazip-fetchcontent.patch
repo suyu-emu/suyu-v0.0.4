@@ -1,0 +1,13 @@
+diff --git a/cmake/clone-repo.cmake b/cmake/clone-repo.cmake
+index 2ffb4b2..77974dc 100644
+--- a/cmake/clone-repo.cmake
++++ b/cmake/clone-repo.cmake
+@@ -26,7 +26,7 @@ macro(clone_repo name url)
+         FetchContent_GetProperties(${name} POPULATED ${name_lower}_POPULATED)
+ 
+         if(NOT ${name_lower}_POPULATED)
+-            FetchContent_Populate(${name})
++            FetchContent_MakeAvailable(${name})
+         endif()
+ 
+         set(${name_upper}_SOURCE_DIR ${${name_lower}_SOURCE_DIR})
