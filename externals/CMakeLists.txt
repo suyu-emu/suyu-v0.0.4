@@ -21,6 +21,7 @@ if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
     add_subdirectory(xbyak)
 add_subdirectory(nxdumptool)
 add_subdirectory(nx-optimizer)
+add_subdirectory(ownfoil)
 endif()
 
 # Oaknut (also used by Dynarmic, so needs to be added first)
