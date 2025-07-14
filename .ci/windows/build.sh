@@ -17,6 +17,10 @@ else
     export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" -DYUZU_USE_BUNDLED_QT=OFF)
 fi
 
+if [ -z "$BUILD_TYPE" ]; then
+    export BUILD_TYPE="Release"
+fi
+
 if [ "$WINDEPLOYQT" == "" ]; then
     echo "You must supply the WINDEPLOYQT environment variable."
     exit 1
@@ -38,7 +42,7 @@ export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" $@)
 
 mkdir -p build && cd build
 cmake .. -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
 	-DENABLE_QT_TRANSLATION=ON \
     -DUSE_DISCORD_PRESENCE=ON \
     -DYUZU_USE_BUNDLED_SDL2=OFF \

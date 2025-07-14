@@ -216,18 +216,16 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 
 bool DecoderContext::SendPacket(const Packet& packet) {
 	m_temp_frame = std::make_shared<Frame>();
-	
-    if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0) {
+    if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
     }
-	
     return true;
 }
 
 std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 	auto ReceiveImpl = [&](AVFrame* frame) -> bool {
-		if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0) {
+		if (const int ret = avcodec_receive_frame(m_codec_context, frame); ret < 0 && ret != AVERROR_EOF) {
 			LOG_ERROR(HW_GPU, "avcodec_receive_frame error: {}", AVError(ret));
 			return false;
 		}

@@ -36,15 +36,16 @@ case "$1" in
         ARCH=armv9
         ARCH_FLAGS="-march=armv9-a -mtune=generic -w"
         ;;
+    *)
+        echo "Invalid target $1 specified, must be one of amd64, steamdeck, allyx, rog-ally, legacy, aarch64, armv9"
+        exit 1
+        ;;
 esac
 
 export ARCH_FLAGS="$ARCH_FLAGS -O3"
 
-NPROC="$2"
 if [ -z "$NPROC" ]; then
     NPROC="$(nproc)"
-else
-    shift
 fi
 
 if [ "$1" != "" ]; then shift; fi
@@ -72,11 +73,15 @@ else
     MULTIMEDIA=ON
 fi
 
+if [ -z "$BUILD_TYPE" ]; then
+    export BUILD_TYPE="Release"
+fi
+
 export EXTRA_CMAKE_FLAGS=("${EXTRA_CMAKE_FLAGS[@]}" $@)
 
 mkdir -p build && cd build
 cmake .. -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
 	-DENABLE_QT_TRANSLATION=ON \
     -DUSE_DISCORD_PRESENCE=ON \
     -DCMAKE_CXX_FLAGS="$ARCH_FLAGS" \
