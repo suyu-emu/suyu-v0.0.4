@@ -65,6 +65,11 @@ option(SUZU_CMD "Compile the -cmd executable (can disable if -cmd is unused)" ON
 
 CMAKE_DEPENDENT_OPTION(SUYU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
+option(ENABLE_NXDUMPTOOL "Enable nxdumptool integration" OFF)
+option(ENABLE_NXOPTIMIZER "Enable NXOptimizer integration" OFF)
+option(ENABLE_OWNFOIL "Enable ownfoil integration" OFF)
+option(ENABLE_NXAPI "Enable nxapi integration" OFF)
+
 option(SUYU_USE_BUNDLED_VCPKG "Use vcpkg for suyu dependencies" "${MSVC}")
 
 option(SUYU_CHECK_SUBMODULES "Check if submodules are present" ON)
@@ -193,6 +198,10 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
         message(STATUS "Copying pre-commit hook")
         file(COPY hooks/pre-commit DESTINATION ${PROJECT_SOURCE_DIR}/.git/hooks)
     endif()
+endif()
+
+if(ENABLE_NXDUMPTOOL)
+    add_subdirectory(externals/nxdumptool)
 endif()
 
 # Sanity check : Check that all submodules are present
