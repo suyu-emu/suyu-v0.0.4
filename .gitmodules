@@ -75,3 +75,12 @@
 [submodule "externals/nxdumptool"]
 	path = externals/nxdumptool
 	url = https://github.com/DarkMatterCore/nxdumptool.git
+[submodule "externals/nx-optimizer"]
+	path = externals/nx-optimizer
+	url = https://github.com/MaxLastBreath/nx-optimizer.git
+[submodule "externals/ownfoil"]
+	path = externals/ownfoil
+	url = https://github.com/a1ex4/ownfoil.git
+[submodule "externals/nxapi"]
+	path = externals/nxapi
+	url = https://github.com/samuelthomas2774/nxapi.git
