@@ -495,29 +495,7 @@ if (YUZU_ROOM)
 endif()
 
 # Extra deps
-set(BUILD_SHARED_LIBS OFF)
-
-include(CPM)
-set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
-set(CPM_USE_LOCAL_PACKAGES ON)
-
-set(QUAZIP_QT_MAJOR_VERSION 6)
-set(QUAZIP_BZIP2 OFF)
-
-CPMAddPackage(
-    URI "gh:stachenov/quazip@1.5"
-    PATCHES
-        ${CMAKE_SOURCE_DIR}/.ci/patch/0001-quazip-strict.patch
-        ${CMAKE_SOURCE_DIR}/.ci/patch/0002-quazip-fetchcontent.patch
-)
-
-if (NOT MSVC)
-    target_compile_options(QuaZip PRIVATE
-        -Wno-error=shadow
-        -Wno-error=missing-declarations
-    )
-endif()
-
+add_subdirectory(externals)
 target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
 
 create_target_directory_groups(yuzu)

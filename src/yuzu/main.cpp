@@ -4443,7 +4443,7 @@ void GMainWindow::OnInstallFirmwareFromZIP()
                 QMessageBox::warning(this, tr("Firmware cleanup failed"),
                                       tr("Failed to clean up extracted firmware cache.\n"
                                          "Check write permissions in the system temp directory and try again.\nOS reported error: %1")
-                                     .arg(ec.message()));
+                                     .arg(QString::fromStdString(ec.message())));
         }
 
         return;
