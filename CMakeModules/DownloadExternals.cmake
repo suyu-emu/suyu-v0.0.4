@@ -94,7 +94,7 @@ function(determine_qt_parameters target host_out type_out arch_out arch_path_out
     else()
         set(host "linux")
         set(type "desktop")
-        set(arch "gcc_64")
+        set(arch "linux_gcc_64")
         set(arch_path "linux")
     endif()
 
@@ -133,12 +133,26 @@ function(download_qt_configuration prefix_out target host type arch arch_path ba
         set(install_args ${install_args} install-tool --outputdir ${base_path} ${host} desktop ${target})
     else()
         set(prefix "${base_path}/${target}/${arch_path}")
-        set(install_args ${install_args} install-qt --outputdir ${base_path} ${host} ${type} ${target} ${arch} -m qt3d qt5compat qtactiveqt qtcharts qtconnectivity qtdatavis3d qtgraphs qtgrpc qthttpserver qtimageformats qtlanguageserver qtlocation qtlottie qtmultimedia qtnetworkauth qtpdf qtpositioning qtquick3d qtquick3dphysics qtquickeffectmaker qtquicktimeline qtremoteobjects qtscxml qtsensors qtserialbus qtserialport qtshadertools qtspeech qtvirtualkeyboard qtwebchannel qtwebengine qtwebsockets qtwebview)
+        set(install_args ${install_args} install-qt --outputdir ${base_path} ${host} ${type} ${target} ${arch} -m qt5compat)
+
+        if (YUZU_USE_QT_MULTIMEDIA)
+            set(install_args ${install_args} qtmultimedia)
+        endif()
+
+        if (YUZU_USE_QT_WEB_ENGINE)
+            set(install_args ${install_args} qtpositioning qtwebchannel qtwebengine)
+        endif()
+
+        if (NOT ${YUZU_QT_MIRROR} STREQUAL "")
+            message(STATUS "Using Qt mirror ${YUZU_QT_MIRROR}")
+            set(install_args ${install_args} -b ${YUZU_QT_MIRROR})
+        endif()
     endif()
 
+    message(STATUS "Install Args ${install_args}")
     if (NOT EXISTS "${prefix}")
         message(STATUS "Downloading Qt binaries for ${target}:${host}:${type}:${arch}:${arch_path}")
-        set(AQT_PREBUILD_BASE_URL "https://github.com/miurahr/aqtinstall/releases/download/v3.2.1")
+        set(AQT_PREBUILD_BASE_URL "https://github.com/miurahr/aqtinstall/releases/download/v3.3.0")
         if (WIN32)
             set(aqt_path "${base_path}/aqt.exe")
             if (NOT EXISTS "${aqt_path}")

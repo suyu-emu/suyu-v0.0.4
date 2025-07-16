@@ -20,6 +20,7 @@ function(copy_yuzu_Qt6_deps target_dir)
     if (MSVC)
         windows_copy_files(${target_dir} ${Qt6_DLL_DIR} ${DLL_DEST}
             Qt6Core$<$<CONFIG:Debug>:d>.*
+            Qt6Core5Compat$<$<CONFIG:Debug>:d>.*
             Qt6Gui$<$<CONFIG:Debug>:d>.*
             Qt6Widgets$<$<CONFIG:Debug>:d>.*
             Qt6Network$<$<CONFIG:Debug>:d>.*

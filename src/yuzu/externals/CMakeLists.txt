@@ -5,9 +5,6 @@ set(BUILD_TESTING OFF)
 set(BUILD_SHARED_LIBS OFF)
 
 # QuaZip
-set(QUAZIP_QT_MAJOR_VERSION 6)
-set(QUAZIP_BZIP2 OFF)
-
 include(CPM)
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 set(CPM_USE_LOCAL_PACKAGES ON)
@@ -18,14 +15,14 @@ CPMAddPackage(
     GIT_REPOSITORY "https://github.com/stachenov/quazip.git"
     GIT_TAG v1.5
     PATCHES
-        ${CMAKE_SOURCE_DIR}/.ci/patch/0001-quazip-strict.patch
-        ${CMAKE_SOURCE_DIR}/.ci/patch/0002-quazip-fetchcontent.patch
-)
+        ${CMAKE_SOURCE_DIR}/.patch/quazip/0001-strict.patch
+        ${CMAKE_SOURCE_DIR}/.patch/quazip/0002-oldstyle.patch
+        ${CMAKE_SOURCE_DIR}/.patch/quazip/0003-predecls.patch
+        ${CMAKE_SOURCE_DIR}/.patch/quazip/0004-qt6-only.patch
 
-if (NOT MSVC AND NOT "QuaZip-Qt6" IN_LIST CPM_PACKAGES)
-    message(STATUS "QUAZIP DIR: ${CPM_PACKAGES}")
-    target_compile_options(QuaZip PRIVATE
-        -Wno-error=shadow
-        -Wno-error=missing-declarations
-    )
-endif()
+    # thanks to 0004-qt6-only.patch, this isn't needed,
+    # but we keep it since the patch is "technically" optional
+    OPTIONS
+        "QUAZIP_QT_MAJOR_VERSION 6"
+        "QUAZIP_BZIP2 OFF"
+)
