@@ -467,7 +467,7 @@ if (ENABLE_QT)
 		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
-    find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent Core5Compat)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
 
     if (YUZU_USE_QT_MULTIMEDIA)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
