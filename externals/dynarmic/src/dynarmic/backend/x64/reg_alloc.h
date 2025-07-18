@@ -92,8 +92,8 @@ private:
     uint8_t max_bit_width = 0; //Valid values: 1,2,4,8,16,32,128
     bool is_scratch : 1 = false; //1
     bool is_set_last_use : 1 = false; //1
-
-    alignas(16) char padding;
+    alignas(16) uint8_t lru_counter = 0; //1
+    friend class RegAlloc;
 };
 static_assert(sizeof(HostLocInfo) == 64);
 
