@@ -16,9 +16,9 @@ AboutDialog::AboutDialog(QWidget* parent)
 
     std::string yuzu_build;
     if (Common::g_is_dev_build) {
-        yuzu_build = fmt::format("eden Nightly | {}-{}", description, build_id);
+        yuzu_build = fmt::format("Eden Nightly | {}-{}", description, build_id);
     } else {
-        yuzu_build = fmt::format("eden | {}", description);
+        yuzu_build = fmt::format("Eden | {}", description);
     }
 
     const auto override_build = fmt::format(fmt::runtime(

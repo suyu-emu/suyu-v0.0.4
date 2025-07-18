@@ -4902,9 +4902,9 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 
     std::string yuzu_title;
     if (Common::g_is_dev_build) {
-        yuzu_title = fmt::format("eden Nightly | {}-{}", description, build_id);
+        yuzu_title = fmt::format("Eden Nightly | {}-{}", description, build_id);
     } else {
-        yuzu_title = fmt::format("eden | {}", description);
+        yuzu_title = fmt::format("Eden | {}", description);
     }
 
     const auto override_title =
