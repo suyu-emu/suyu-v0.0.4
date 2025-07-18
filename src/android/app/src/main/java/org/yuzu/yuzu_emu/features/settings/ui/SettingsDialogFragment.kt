@@ -154,8 +154,6 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     stringInputBinding.generate.setOnClickListener {
                         stringInputBinding.editText.setText(onGenerate())
                     }
-                } else {
-                    stringInputBinding.generate.isVisible = false
                 }
 
                 val validator = item.validator
@@ -179,8 +177,9 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                         }
 
                         override fun afterTextChanged(s: Editable?) {
-                            stringInputBinding.editText.error =
-                                if (validator(s.toString())) null else requireContext().getString(item.errorId)
+                            val isValid = validator(s.toString())
+                            stringInputBinding.editTextLayout.isErrorEnabled = !isValid
+                            stringInputBinding.editTextLayout.error = if (isValid) null else requireContext().getString(item.errorId)
                         }
                     }
 

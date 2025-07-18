@@ -34,6 +34,7 @@ import org.yuzu.yuzu_emu.databinding.ItemBanListBinding
 import org.yuzu.yuzu_emu.databinding.ItemButtonNetplayBinding
 import org.yuzu.yuzu_emu.databinding.ItemTextNetplayBinding
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.network.NetDataValidators
 import org.yuzu.yuzu_emu.network.NetPlayManager
 import org.yuzu.yuzu_emu.utils.CompatUtils
 import org.yuzu.yuzu_emu.utils.GameHelper
@@ -102,8 +103,16 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         dismiss()
                     }
                     btnLobbyBrowser.setOnClickListener {
-                        LobbyBrowser(context).show()
-                        dismiss()
+                        if (!NetDataValidators.username()) {
+                            Toast.makeText(
+                                context,
+                                R.string.multiplayer_nickname_invalid,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            LobbyBrowser(context).show()
+                            dismiss()
+                        }
                     }
                 }
             }
@@ -368,7 +377,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             )
         ) {
             override fun validate(s: String): Boolean {
-                return s.length in 3..20
+                return NetDataValidators.roomName(s)
             }
         }
 
@@ -378,7 +387,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             context.getString(R.string.multiplayer_required)
         ) {
             override fun validate(s: String): Boolean {
-                return s.isNotEmpty()
+                return NetDataValidators.notEmpty(s)
             }
         }
 
@@ -388,12 +397,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             context.getString(R.string.multiplayer_token_required)
         ) {
             override fun validate(s: String): Boolean {
-                if (s != context.getString(R.string.multiplayer_public_visibility)) {
-                    return true;
-                }
-
-                val token = StringSetting.WEB_TOKEN.getString()
-                return token.matches(Regex("[a-z]{48}"))
+                return NetDataValidators.roomVisibility(s, context)
             }
         }
 
@@ -403,12 +407,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             context.getString(R.string.multiplayer_ip_error)
         ) {
             override fun validate(s: String): Boolean {
-                return try {
-                    InetAddress.getByName(s)
-                    s.length >= 7
-                } catch (_: Exception) {
-                    false
-                }
+                return NetDataValidators.ipAddress(s)
             }
         }
 
@@ -418,7 +417,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             context.getString(R.string.multiplayer_username_error)
         ) {
             override fun validate(s: String): Boolean {
-                return s.length in 4..20
+                return NetDataValidators.username(s)
             }
         }
 
@@ -428,7 +427,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             context.getString(R.string.multiplayer_port_error)
         ) {
             override fun validate(s: String): Boolean {
-                return s.toIntOrNull() in 1..65535
+                return NetDataValidators.port(s)
             }
         }
 

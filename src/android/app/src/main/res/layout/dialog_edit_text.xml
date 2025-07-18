@@ -27,6 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:text="@string/generate"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/edit_text_layout"
         app:layout_constraintTop_toBottomOf="@+id/edit_text_layout" />
 

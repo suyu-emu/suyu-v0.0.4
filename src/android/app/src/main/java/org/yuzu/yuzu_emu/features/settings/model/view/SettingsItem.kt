@@ -20,6 +20,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.network.NetDataValidators
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
@@ -300,9 +301,7 @@ abstract class SettingsItem(
                         val chars = "abcdefghijklmnopqrstuvwxyz"
                         (1..48).map { chars.random() }.joinToString("")
                     },
-                    validator = { s ->
-                        s?.matches(Regex("[a-z]{48}")) == true
-                    },
+                    validator = NetDataValidators::token,
                     errorId = R.string.multiplayer_token_error
                 )
             )
@@ -312,9 +311,7 @@ abstract class SettingsItem(
                     StringSetting.WEB_USERNAME,
                     titleId = R.string.web_username,
                     descriptionId = R.string.web_username_description,
-                    validator = { s ->
-                        s?.length in 4..20
-                    },
+                    validator = NetDataValidators::username,
                     errorId = R.string.multiplayer_username_error
                 )
             )
