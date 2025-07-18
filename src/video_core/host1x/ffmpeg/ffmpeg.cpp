@@ -23,32 +23,48 @@ namespace FFmpeg {
 
 namespace {
 
-constexpr AVPixelFormat PreferredGpuFormat = AV_PIX_FMT_NV12;
-constexpr AVPixelFormat PreferredCpuFormat = AV_PIX_FMT_YUV420P;
 constexpr std::array PreferredGpuDecoders = {
-#ifdef _WIN32
+#if defined (_WIN32)
     AV_HWDEVICE_TYPE_CUDA,
     AV_HWDEVICE_TYPE_D3D11VA,
     AV_HWDEVICE_TYPE_DXVA2,
 #elif defined(__FreeBSD__)
     AV_HWDEVICE_TYPE_VDPAU,
 #elif defined(__unix__)
+	AV_HWDEVICE_TYPE_CUDA,
     AV_HWDEVICE_TYPE_VAAPI,
+	AV_HWDEVICE_TYPE_VDPAU,
 #endif
     AV_HWDEVICE_TYPE_VULKAN,
 };
 
 AVPixelFormat GetGpuFormat(AVCodecContext* codec_context, const AVPixelFormat* pix_fmts) {
-    for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
-        if (*p == codec_context->pix_fmt) {
-            return codec_context->pix_fmt;
-        }
-    }
+	// Check if there is a pixel format supported by the GPU decoder.
+	const auto desc = av_pix_fmt_desc_get(codec_context->pix_fmt);
+	if (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL) {
+		for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
+			if (*p == codec_context->pix_fmt) {
+				return codec_context->pix_fmt;
+			}
+		}
+	}
 
-    LOG_INFO(HW_GPU, "Could not find compatible GPU AV format, falling back to CPU");
+	// Another check to confirm if there is a pixel format supported by specific GPU decoders.
+	for (int i = 0;; i++) {
+		const AVCodecHWConfig* config = avcodec_get_hw_config(codec_context->codec, i);
+		if (!config) {
+			break;
+		}
+
+		if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) && (config->device_type == AV_HWDEVICE_TYPE_CUDA || config->device_type == AV_HWDEVICE_TYPE_VAAPI)) {
+			return config->pix_fmt;
+		}
+	}
+
+	// Fallback to CPU decoder.
+    LOG_INFO(HW_GPU, "Could not find compatible GPU pixel format, falling back to CPU");
     av_buffer_unref(&codec_context->hw_device_ctx);
 
-    codec_context->pix_fmt = PreferredCpuFormat;
     return codec_context->pix_fmt;
 }
 
@@ -58,7 +74,7 @@ std::string AVError(int errnum) {
     return errbuf;
 }
 
-} // namespace
+}
 
 Packet::Packet(std::span<const u8> data) {
     m_packet = av_packet_alloc();
@@ -81,16 +97,16 @@ Frame::~Frame() {
 Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
     const AVCodecID av_codec = [&] {
         switch (codec) {
-        case Tegra::Host1x::NvdecCommon::VideoCodec::H264:
-            return AV_CODEC_ID_H264;
-        case Tegra::Host1x::NvdecCommon::VideoCodec::VP8:
-            return AV_CODEC_ID_VP8;
-        case Tegra::Host1x::NvdecCommon::VideoCodec::VP9:
-            return AV_CODEC_ID_VP9;
-        default:
-            UNIMPLEMENTED_MSG("Unknown codec {}", codec);
-            return AV_CODEC_ID_NONE;
-        }
+			case Tegra::Host1x::NvdecCommon::VideoCodec::H264:
+				return AV_CODEC_ID_H264;
+			case Tegra::Host1x::NvdecCommon::VideoCodec::VP8:
+				return AV_CODEC_ID_VP8;
+			case Tegra::Host1x::NvdecCommon::VideoCodec::VP9:
+				return AV_CODEC_ID_VP9;
+			default:
+				UNIMPLEMENTED_MSG("Unknown codec {}", codec);
+				return AV_CODEC_ID_NONE;
+			}
     }();
 
     m_codec = avcodec_find_decoder(av_codec);
@@ -103,6 +119,7 @@ bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceTyp
             LOG_DEBUG(HW_GPU, "{} decoder does not support device type {}", m_codec->name, av_hwdevice_get_type_name(type));
             break;
         }
+
         if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX && config->device_type == type) {
             LOG_INFO(HW_GPU, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
             *out_pix_fmt = config->pix_fmt;
@@ -215,11 +232,11 @@ bool DecoderContext::OpenContext(const Decoder& decoder) {
 }
 
 bool DecoderContext::SendPacket(const Packet& packet) {
-	m_temp_frame = std::make_shared<Frame>();
     if (const int ret = avcodec_send_packet(m_codec_context, packet.GetPacket()); ret < 0 && ret != AVERROR_EOF) {
         LOG_ERROR(HW_GPU, "avcodec_send_packet error: {}", AVError(ret));
         return false;
     }
+
     return true;
 }
 
@@ -237,14 +254,15 @@ std::shared_ptr<Frame> DecoderContext::ReceiveFrame() {
 		return {};
 	}
 
-	const auto desc = av_pix_fmt_desc_get(intermediate_frame->GetPixelFormat());
-	if (m_codec_context->hw_device_ctx && (desc && desc->flags & AV_PIX_FMT_FLAG_HWACCEL)) {
-		m_temp_frame->SetFormat(PreferredGpuFormat);
+	m_temp_frame = std::make_shared<Frame>();
+	if (m_codec_context->hw_device_ctx) {
+		m_temp_frame->SetFormat(AV_PIX_FMT_NV12);
 		if (int ret = av_hwframe_transfer_data(m_temp_frame->GetFrame(), intermediate_frame->GetFrame(), 0); ret < 0) {
 			LOG_ERROR(HW_GPU, "av_hwframe_transfer_data error: {}", AVError(ret));
 			return {};
 		}
 	} else {
+		m_temp_frame->SetFormat(AV_PIX_FMT_YUV420P);
 		m_temp_frame = std::move(intermediate_frame);
 	}
 
@@ -287,4 +305,4 @@ std::shared_ptr<Frame> DecodeApi::ReceiveFrame() {
     return m_decoder_context->ReceiveFrame();
 }
 
-} // namespace FFmpeg
+}

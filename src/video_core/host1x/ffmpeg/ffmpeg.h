@@ -26,7 +26,6 @@ extern "C" {
 #include <libavutil/opt.h>
 #include <libavutil/pixdesc.h>
 
-// Works quite fine, and omits the hacky ffmpeg building for now...
 #if defined(__FreeBSD__)
 #include <libavcodec/codec.h>
 #else
