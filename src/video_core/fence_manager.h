@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -73,15 +76,27 @@ public:
 
     void SignalFence(std::function<void()>&& func) {
         bool delay_fence = Settings::IsGPULevelHigh();
+        #ifdef __ANDROID__
+        if (!delay_fence) {
+            TryReleasePendingFences<false>();
+        }
+        #else
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
+        #endif
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
+        #ifdef __ANDROID__
+        if (delay_fence) {
+            guard.lock();
+        }
+        #else
         if constexpr (can_async_check) {
             guard.lock();
         }
+        #endif
         if (delay_fence) {
             uncommitted_operations.emplace_back(std::move(func));
         }
@@ -94,10 +109,17 @@ public:
         if (should_flush) {
             rasterizer.FlushCommands();
         }
+        #ifdef __ANDROID__
+        if (delay_fence) {
+            guard.unlock();
+            cv.notify_all();
+        }
+        #else
         if constexpr (can_async_check) {
             guard.unlock();
             cv.notify_all();
         }
+        #endif
         rasterizer.InvalidateGPUCache();
     }
 
