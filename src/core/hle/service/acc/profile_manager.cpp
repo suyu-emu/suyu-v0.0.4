@@ -49,7 +49,7 @@ ProfileManager::ProfileManager() {
 
     // Create an user if none are present
     if (user_count == 0) {
-        CreateNewUser(UUID::MakeRandom(), "eden");
+        CreateNewUser(UUID::MakeRandom(), "Eden");
         WriteUserSaveFile();
     }
 

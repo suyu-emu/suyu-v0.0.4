@@ -390,13 +390,13 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto yuzu_build = fmt::format("eden Development Build | {}-{}", branch_name, description);
+    const auto yuzu_build = fmt::format("Eden Development Build | {}-{}", branch_name, description);
     const auto override_build =
             fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
     const auto processor_count = std::thread::hardware_concurrency();
 
-    LOG_INFO(Frontend, "eden Version: {}", yuzu_build_version);
+    LOG_INFO(Frontend, "Eden Version: {}", yuzu_build_version);
     LogRuntimes();
 #ifdef ARCHITECTURE_x86_64
     const auto& caps = Common::GetCPUCaps();
@@ -1410,7 +1410,7 @@ void GMainWindow::InitializeHotkeys() {
 
     LinkActionShortcut(ui->action_Load_File, QStringLiteral("Load File"));
     LinkActionShortcut(ui->action_Load_Amiibo, QStringLiteral("Load/Remove Amiibo"));
-    LinkActionShortcut(ui->action_Exit, QStringLiteral("Exit eden"));
+    LinkActionShortcut(ui->action_Exit, QStringLiteral("Exit Eden"));
     LinkActionShortcut(ui->action_Restart, QStringLiteral("Restart Emulation"));
     LinkActionShortcut(ui->action_Pause, QStringLiteral("Continue/Pause Emulation"));
     LinkActionShortcut(ui->action_Stop, QStringLiteral("Stop Emulation"));
@@ -1969,7 +1969,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                     tr("You are using the deconstructed ROM directory format for this game, which is an "
                        "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
                        "NSP. Deconstructed ROM directories lack icons, metadata, and update "
-                       "support.<br><br>For an explanation of the various Switch formats eden supports, <a "
+                       "support.<br><br>For an explanation of the various Switch formats Eden supports, <a "
                        "href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'>check out our "
                        "wiki</a>. This message will not be shown again."));
     }
@@ -1984,7 +1984,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         case Core::SystemResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                         this, tr("An error occurred initializing the video core."),
-                        tr("eden has encountered an error while running the video core. "
+                        tr("Eden has encountered an error while running the video core. "
                            "This is usually caused by outdated GPU drivers, including integrated ones. "
                            "Please see the log for more details. "
                            "For more information on accessing the log, please see the following page: "
@@ -2076,7 +2076,7 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
 
 void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
                            StartGameType type) {
-    LOG_INFO(Frontend, "eden starting...");
+    LOG_INFO(Frontend, "Eden starting...");
 
     if (params.program_id == 0 ||
             params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
@@ -3621,8 +3621,8 @@ void GMainWindow::OnMenuReportCompatibility() {
     } else {
         QMessageBox::critical(
                     this, tr("Missing yuzu Account"),
-                    tr("In order to submit a game compatibility test case, you must link your eden "
-                       "account.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
+                    tr("In order to submit a game compatibility test case, you must set up your web token and "
+                       "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
                        "&gt; "
                        "Web."));
     }
@@ -3650,7 +3650,7 @@ void GMainWindow::OnOpenQuickstartGuide() {
 }
 
 void GMainWindow::OnOpenFAQ() {
-    OpenURL(QUrl(QStringLiteral("https://eden-emulator.github.io/")));
+    OpenURL(QUrl(QStringLiteral("https://eden-emu.dev")));
 }
 
 void GMainWindow::OnOpenDiscord()
@@ -5260,8 +5260,8 @@ bool GMainWindow::ConfirmClose() {
             UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game) {
         return true;
     }
-    const auto text = tr("Are you sure you want to close eden?");
-    return question(this, tr("eden"), text);
+    const auto text = tr("Are you sure you want to close Eden?");
+    return question(this, tr("Eden"), text);
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event) {
@@ -5341,7 +5341,7 @@ bool GMainWindow::ConfirmChangeGame() {
 
     // Use custom question to link controller navigation
     return question(
-                this, tr("eden"),
+                this, tr("Eden"),
                 tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 }
@@ -5350,10 +5350,10 @@ bool GMainWindow::ConfirmForceLockedExit() {
     if (emu_thread == nullptr) {
         return true;
     }
-    const auto text = tr("The currently running application has requested eden to not exit.\n\n"
+    const auto text = tr("The currently running application has requested Eden to not exit.\n\n"
                          "Would you like to bypass this and exit anyway?");
 
-    return question(this, tr("eden"), text);
+    return question(this, tr("Eden"), text);
 }
 
 void GMainWindow::RequestGameExit() {

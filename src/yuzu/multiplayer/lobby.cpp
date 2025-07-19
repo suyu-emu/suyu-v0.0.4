@@ -66,14 +66,14 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
         QString::fromStdString(UISettings::values.multiplayer_nickname.GetValue()));
 
     // Try find the best nickname by default
-    if (ui->nickname->text().isEmpty() || ui->nickname->text() == QStringLiteral("eden")) {
+    if (ui->nickname->text().isEmpty() || ui->nickname->text() == QStringLiteral("Eden")) {
         if (!Settings::values.eden_username.GetValue().empty()) {
             ui->nickname->setText(
                 QString::fromStdString(Settings::values.eden_username.GetValue()));
         } else if (!GetProfileUsername().empty()) {
             ui->nickname->setText(QString::fromStdString(GetProfileUsername()));
         } else {
-            ui->nickname->setText(QStringLiteral("eden"));
+            ui->nickname->setText(QStringLiteral("Eden"));
         }
     }
 

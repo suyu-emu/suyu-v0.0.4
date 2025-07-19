@@ -68,14 +68,13 @@ static void PrintHelp(const char* argv0) {
              "-a, --web-api-url       yuzu Web API url\n"
              "-b, --ban-list-file     The file for storing the room ban list\n"
              "-l, --log-file          The file for storing the room log\n"
-             "-e, --enable-mods       Allow Community Moderators to moderate on your room\n"
              "-h, --help              Display this help and exit\n"
              "-v, --version           Output version information and exit\n",
              argv0);
 }
 
 static void PrintVersion() {
-    LOG_INFO(Network, "yuzu dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
+    LOG_INFO(Network, "Eden dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
              Common::g_scm_desc, Network::network_version);
 }
 
@@ -229,7 +228,6 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
         {"web-api-url", required_argument, 0, 'a'},
         {"ban-list-file", required_argument, 0, 'b'},
         {"log-file", required_argument, 0, 'l'},
-        {"enable-mods", no_argument, 0, 'e'},
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'v'},
         // Entry option
@@ -369,7 +367,7 @@ void LaunchRoom(int argc, char** argv, bool called_by_option)
             std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
 #else
         LOG_INFO(Network,
-                 "yuzu Web Services is not available with this build: validation is disabled.");
+                 "Eden Web Services is not available with this build: validation is disabled.");
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
 #endif
     } else {

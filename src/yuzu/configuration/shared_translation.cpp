@@ -420,12 +420,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     INSERT(UISettings,
            select_user_on_boot,
            tr("Prompt for user on game boot"),
-           tr("Ask to select a user profile on each boot, useful if multiple people use eden on "
+           tr("Ask to select a user profile on each boot, useful if multiple people use Eden on "
               "the same PC."));
     INSERT(UISettings,
            pause_when_in_background,
            tr("Pause emulation when in background"),
-           tr("This setting pauses eden when focusing other windows."));
+           tr("This setting pauses Eden when focusing other windows."));
     INSERT(UISettings,
            confirm_before_stopping,
            tr("Confirm before stopping emulation"),

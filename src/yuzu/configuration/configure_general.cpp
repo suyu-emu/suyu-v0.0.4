@@ -96,7 +96,7 @@ void ConfigureGeneral::SetResetCallback(std::function<void()> callback) {
 
 void ConfigureGeneral::ResetDefaults() {
     QMessageBox::StandardButton answer = QMessageBox::question(
-        this, tr("eden"),
+        this, tr("Eden"),
         tr("This reset all settings and remove all per-game configurations. This will not delete "
            "game directories, profiles, or input profiles. Proceed?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
