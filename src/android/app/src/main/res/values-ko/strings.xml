@@ -62,24 +62,25 @@
     <string name="show_fw_version">펌웨어 버전 표시</string>
     <string name="show_fw_version_description">설치된 펌웨어 버전을 표시합니다</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">GPU 확장 기능</string>
     <string name="veil_renderer">렌더러</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Vulkan에서 자동 리소스 관리를 위한 방법으로, 더 이상 필요하지 않은 리소스를 적절히 해제하지만 번들된 게임에서 충돌을 일으킬 수 있습니다.</string>
-    <string name="veil_misc">기타</string>
-    <string name="eden_veil">에덴의 장막</string>
+    <string name="veil_misc">CPU 및 메모리</string>
+    <string name="eden_veil">에덴의 베일</string>
     <string name="eden_veil_description">성능 및 기능을 향상시키기 위한 실험적 설정. 이 설정은 검은 화면 또는 기타 게임 문제를 일으킬 수 있습니다.</string>
     <string name="eden_veil_warning_title">실험적 설정</string>
-    <string name="eden_veil_warning_description">Eden\'s Veil 내의 설정은 매우 실험적이며 문제를 일으킬 수 있습니다. 게임이 부팅되지 않으면 모든 확장 기능을 비활성화하고 Extended Dynamic State를 0으로 변경하십시오.</string>
+    <string name="eden_veil_warning_description">에덴의 베일에 포함된 설정은 매우 실험적이며 문제가 발생할 수 있습니다. 게임이 시작되지 않으면 확장 기능을 비활성화하세요.</string>
     <string name="frame_skipping">작업 중: 프레임 스킵</string>
     <string name="frame_skipping_description">렌더링되는 프레임 수를 줄여 성능을 향상시키기 위해 프레임 스킵을 전환합니다. 이 기능은 현재 개발 중이며 향후 출시 버전에서 활성화될 예정입니다.</string>
     <string name="frame_interpolation">향상된 프레임 페이싱</string>
     <string name="frame_interpolation_description">프레임 간 타이밍을 동기화하여 부드럽고 일관된 프레임 전달을 보장하며, 끊김과 불균일한 애니메이션을 줄입니다. 프레임 타이밍 불안정이나 게임 플레이 중 미세 끊김이 발생하는 게임에 이상적입니다.</string>
     <string name="use_lru_cache">LRU 캐시 사용</string>
-    <string name="use_lru_cache_description">LRU 캐시(최근 사용되지 않은 항목)를 활성화 또는 비활성화하여 CPU 사용량을 절약하고 성능을 향상시킵니다. 일부 게임(특히 TotK 1.2.1)에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
+    <string name="use_lru_cache_description">LRU 캐시를 활성화 또는 비활성화하여 CPU 프로세스 사용을 절약하고 성능을 향상시킵니다. TotK 1.2.1을 포함한 일부 게임에서 문제가 발생할 수 있으므로 게임이 부팅되지 않거나 무작위로 충돌하는 경우 비활성화하세요.</string>
     <string name="dyna_state">확장 동적 상태</string>
-    <string name="dyna_state_description">Vulkan 기능을 활성화하여 성능을 향상시키고, 렌더링을 개선하며, 파이프라인 생성 시 리소스를 절약하면서 CPU/GPU 사용량을 낮게 유지합니다. 이 확장 기능은 기기 온도를 높일 수 있으며, 이전 A6XX 시리즈 GPU는 제대로 작동하지 않을 수 있습니다. 레거시 에뮬레이션 형식을 사용하려면 0으로 설정하세요.</string>
+    <string name="dyna_state_description">파이프라인 생성 시 CPU/GPU 사용량을 낮게 유지하면서 성능, 렌더링 및 리소스 절약을 개선하기 위해 Vulkan 기능을 활성화합니다. 이 확장 기능은 장치 온도를 높일 수 있으며 이전 A6XX 라인에 속하는 GPU가 제대로 반응하지 않을 수 있습니다. 스케일된 형식을 에뮬레이트하려면 비활성화하세요.</string>
+    <string name="disabled">비활성화됨</string>
     <string name="use_sync_core">코어 속도 동기화</string>
     <string name="use_sync_core_description">코어 틱 속도를 최대 속도 백분율과 동기화하여 게임의 실제 속도를 변경하지 않고 성능을 향상시킵니다.</string>
     <string name="use_auto_stub">자동 스텁 사용</string>
@@ -183,18 +184,18 @@
     <string name="multiplayer_join_room_failed">방 참가 실패</string>
     <string name="multiplayer_name_invalid">이름이 너무 짧습니다</string>
     <string name="multiplayer_address_invalid">잘못된 주소</string>
-    <string name="multiplayer_port_invalid">잘못된 포트!</string>
+    <string name="multiplayer_port_invalid">잘못된 포트</string>
     <string name="multiplayer_exit_room">방 나가기</string>
     <string name="multiplayer_network_error">네트워크 오류</string>
     <string name="multiplayer_lost_connection">연결 끊김</string>
-    <string name="multiplayer_name_collision">이름 충돌</string>
+    <string name="multiplayer_name_collision">사용자 이름이 이미 사용 중입니다</string>
     <string name="multiplayer_mac_collision">MAC 주소 충돌</string>
     <string name="multiplayer_console_id_collision">콘솔 ID 충돌</string>
     <string name="multiplayer_wrong_version">잘못된 버전</string>
     <string name="multiplayer_wrong_password">잘못된 비밀번호</string>
     <string name="multiplayer_could_not_connect">연결할 수 없음</string>
     <string name="multiplayer_room_is_full">방이 가득 찼습니다</string>
-    <string name="multiplayer_host_banned">호스트 차단됨</string>
+    <string name="multiplayer_host_banned">이 방에서 차단되었습니다</string>
     <string name="multiplayer_permission_denied">권한 거부됨</string>
     <string name="multiplayer_no_such_user">해당 사용자 없음</string>
     <string name="multiplayer_already_in_room">이미 방에 참여 중</string>
@@ -254,7 +255,8 @@
     <string name="multiplayer_room_name_error">3~20자여야 합니다</string>
     <string name="multiplayer_required">필수</string>
     <string name="multiplayer_ip_error">잘못된 IP 형식</string>
-    <string name="multiplayer_username_error">4~20자여야 합니다</string>
+    <string name="multiplayer_username_error">4~20자의 영숫자, 마침표, 하이픈, 밑줄 및 공백만 포함해야 합니다</string>
+    <string name="multiplayer_nickname_invalid">사용자 이름이 유효하지 않습니다. 시스템 → 네트워크에서 올바르게 설정되었는지 확인하세요</string>
     <string name="multiplayer_port_error">1~65535 사이여야 합니다</string>
     <string name="multiplayer_token_error">48자여야 하며, 소문자 a-z만 사용 가능</string>
     <string name="multiplayer_lobby_type">로비 유형</string>
@@ -417,6 +419,15 @@
     <string name="verify_installed_content_description">전체 설치된 콘텐츠의 손상을 확인합니다.</string>
     <string name="keys_missing">암호화 키를 찾을 수 없음</string>
     <string name="keys_missing_description">펌웨어 및 패키지 게임을 해독할 수 없음</string>
+    <string name="firmware_invalid">펌웨어가 유효하지 않음</string>
+    <string name="error_firmware_missing">일부 게임 및 애플리케이션 실행을 위해 펌웨어가 필요합니다. Eden은 19.0.1 이하 버전의 펌웨어에서만 작동합니다.</string>
+    <string name="error_firmware_corrupted">펌웨어가 존재하지만 읽을 수 없습니다. 복호화 키를 확인하고 필요한 경우 펌웨어를 다시 덤프하세요.</string>
+    <string name="error_firmware_too_new">펌웨어가 너무 최신이거나 읽을 수 없습니다. Eden은 19.0.1 이전 버전의 펌웨어에서만 작동합니다.</string>
+    <string name="keys_failed">키 설치 실패</string>
+    <string name="keys_install_success">키가 성공적으로 설치됨</string>
+    <string name="error_keys_copy_failed">하나 이상의 키를 복사하지 못했습니다.</string>
+    <string name="error_keys_invalid_filename">키 파일에 .keys 확장자가 있는지 확인하고 다시 시도하세요.</string>
+    <string name="error_keys_failed_init">키 초기화에 실패했습니다. 덤프 도구가 최신 상태인지 확인하고 키를 다시 덤프하세요.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -482,7 +493,7 @@
     <!-- Network settings strings -->
     <string name="generate">생성</string>
     <string name="web_username">웹 사용자 이름</string>
-    <string name="web_username_description">멀티플레이어 로비에 표시될 사용자 이름. 4~20자여야 합니다.</string>
+    <string name="web_username_description">멀티플레이어 방에 표시되는 사용자 이름. 4~20자의 영숫자, 하이픈, 마침표, 밑줄 및 공백만 포함해야 합니다.</string>
     <string name="web_token">웹 토큰</string>
     <string name="web_token_description">공개 방을 만들기 위해 사용되는 웹 토큰. a-z 소문자만 포함된 48자 문자열입니다.</string>
     <string name="network">네트워크</string>
@@ -713,12 +724,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">롬 파일이 암호화되어있음</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[가이드에 따라 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">게임 카트리지</a> 또는 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">설치된 타이틀</a>을 다시 덤프하세요.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">게임 카드</a> 또는 <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">디지털 타이틀</a>을 다시 덤프하려면 가이드를 따르세요.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[게임을 해독할 수 있도록 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 파일이 설치되어 있는지 확인하세요.]]></string>
     <string name="loader_error_video_core">비디오 코어를 초기화하는 동안 오류 발생</string>
     <string name="loader_error_video_core_description">일반적으로 이 문제는 호환되지 않는 GPU 드라이버로 인해 발생합니다. 사용자 지정 GPU 드라이버를 설치하면 이 문제가 해결될 수 있습니다.</string>
     <string name="loader_error_invalid_format">롬 파일을 불러올 수 없음</string>
     <string name="loader_error_file_not_found">롬 파일이 존재하지 않음</string>
+    <string name="loader_requires_firmware">게임에 펌웨어가 필요합니다</string>
+    <string name="loader_requires_firmware_description"><![CDATA[실행하려는 게임은 부팅하거나 시작 메뉴를 통과하기 위해 펌웨어가 필요합니다. <a href="https://yuzu-mirror.github.io/help/quickstart">펌웨어를 덤프하여 설치</a>하거나 "확인"을 눌러 계속 진행하세요.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">에뮬레이션 종료</string>

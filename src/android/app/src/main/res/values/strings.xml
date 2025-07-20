@@ -66,11 +66,11 @@
     <string name="show_fw_version">Show Firmware Version</string>
     <string name="show_fw_version_description">Display the installed firmware version</string>
 
-    <!-- Eden`s Veil -->
-    <string name="eden_veil">Eden’s Veil</string>
+    <!-- Eden\'s Veil -->
+    <string name="eden_veil">Eden\'s Veil</string>
     <string name="eden_veil_description">Experimental settings to improve performance and capability. These settings may cause black screens or other game issues.</string>
     <string name="eden_veil_warning_title">Experimental Settings</string>
-    <string name="eden_veil_warning_description">The settings contained within Eden\'s Veil are highly experimental and may cause issues. If your game does not boot, disable any extensions and change Extended Dynamic State to 0.</string>
+    <string name="eden_veil_warning_description">The settings contained within Eden\'s Veil are highly experimental and may cause issues. If your game does not boot, disable any extensions.</string>
 
     <string name="veil_extensions">GPU Extensions</string>
     <string name="dyna_state">Extended Dynamic State</string>
@@ -386,7 +386,7 @@
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
 
     <string name="firmware_invalid">Firmware Invalid</string>
-    <string name="error_firmware_missing">Firmware is required to run certain games and use the Home Menu. Eden only works with firmware 19.0.1 and earlier.</string>
+    <string name="error_firmware_missing">Firmware is required to run certain games and use system applications. Eden only works with firmware 19.0.1 and earlier.</string>
     <string name="error_firmware_corrupted">Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary.</string>
     <string name="error_firmware_too_new">Firmware is too new or could not be read. Eden only works with firmware 19.0.1 and earlier.</string>
     <string name="firmware_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware</string>

@@ -61,24 +61,25 @@
     <string name="show_fw_version">Zobrazit verzi firmwaru</string>
     <string name="show_fw_version_description">Zobrazí nainstalovanou verzi firmwaru</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">Rozšíření GPU</string>
     <string name="veil_renderer">Renderer</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Metoda automatické správy prostředků ve Vulkanu, která zajišťuje správné uvolnění prostředků, když již nejsou potřeba, ale může způsobit pády v balených hrách.</string>
-    <string name="veil_misc">Různé</string>
+    <string name="veil_misc">CPU a paměť</string>
     <string name="eden_veil">Edenův závoj</string>
     <string name="eden_veil_description">Experimentální nastavení pro zlepšení výkonu a schopností. Tato nastavení mohou způsobit černé obrazovky nebo další herní problémy.</string>
     <string name="eden_veil_warning_title">Experimentální nastavení</string>
-    <string name="eden_veil_warning_description">Nastavení v Eden\'s Veil jsou vysoce experimentální a mohou způsobit problémy. Pokud se vaše hra nespustí, deaktivujte všechna rozšíření a nastavte Extended Dynamic State na 0.</string>
+    <string name="eden_veil_warning_description">Nastavení obsažená v Edenově závoji jsou vysoce experimentální a mohou způsobit problémy. Pokud se vaše hra nespustí, deaktivujte všechna rozšíření.</string>
     <string name="frame_skipping">WIP: Přeskočení snímků</string>
     <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
     <string name="use_lru_cache">Povolit LRU mezipaměť</string>
-    <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU (Least Recently Used), což zvýší výkon snížením zatížení CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, proto ji deaktivujte, pokud hra nespustí nebo náhodně padá.</string>
+    <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
     <string name="dyna_state">Rozšířený dynamický stav</string>
-    <string name="dyna_state_description">Umožňuje funkce Vulkan pro lepší výkon, vykreslování a úsporu prostředků při vytváření pipeline při zachování nízkého využití CPU/GPU. Tato rozšíření mohou zvýšit teplotu zařízení a starší GPU řady A6XX nemusí fungovat správně. Nastavte na 0 pro použití zastaralých emulovaných formátů.</string>
+    <string name="dyna_state_description">Umožňuje funkce Vulkan pro zlepšení výkonu, vykreslování a úsporu zdrojů při vytváření pipeline při zachování nižšího využití CPU/GPU. Tato rozšíření mohou zvýšit teplotu zařízení a starší GPU řady A6XX nemusí správně reagovat. Vypněte pro emulaci měřítkových formátů.</string>
+    <string name="disabled">Vypnuto</string>
     <string name="use_sync_core">Synchronizovat rychlost jádra</string>
     <string name="use_sync_core_description">Synchronizuje rychlost jádra s maximálním procentem rychlosti, aby se zlepšil výkon bez změny skutečné rychlosti hry.</string>
     <string name="use_auto_stub">Použít automatický stub</string>
@@ -183,18 +184,18 @@
     <string name="multiplayer_join_room_failed">Nepodařilo se připojit k místnosti</string>
     <string name="multiplayer_name_invalid">Jméno je příliš krátké</string>
     <string name="multiplayer_address_invalid">Neplatná adresa</string>
-    <string name="multiplayer_port_invalid">Neplatný port!</string>
+    <string name="multiplayer_port_invalid">Neplatný port</string>
     <string name="multiplayer_exit_room">Opustit místnost</string>
     <string name="multiplayer_network_error">Chyba sítě</string>
     <string name="multiplayer_lost_connection">Ztraceno připojení</string>
-    <string name="multiplayer_name_collision">Kolize jmen</string>
+    <string name="multiplayer_name_collision">Uživatelské jméno je již obsazeno</string>
     <string name="multiplayer_mac_collision">Kolize MAC adresy</string>
     <string name="multiplayer_console_id_collision">Kolize ID konzole</string>
     <string name="multiplayer_wrong_version">Nesprávná verze</string>
     <string name="multiplayer_wrong_password">Nesprávné heslo</string>
     <string name="multiplayer_could_not_connect">Nelze se připojit</string>
     <string name="multiplayer_room_is_full">Místnost je plná</string>
-    <string name="multiplayer_host_banned">Hostitel zablokován</string>
+    <string name="multiplayer_host_banned">Jste z této místnosti zabanován</string>
     <string name="multiplayer_permission_denied">Přístup odepřen</string>
     <string name="multiplayer_no_such_user">Uživatel neexistuje</string>
     <string name="multiplayer_already_in_room">Již v místnosti</string>
@@ -254,7 +255,8 @@
     <string name="multiplayer_room_name_error">Musí mít 3 až 20 znaků</string>
     <string name="multiplayer_required">Povinné</string>
     <string name="multiplayer_ip_error">Neplatný formát IP</string>
-    <string name="multiplayer_username_error">Musí mít 4–20 znaků</string>
+    <string name="multiplayer_username_error">Musí mít 4–20 znaků a obsahovat pouze alfanumerické znaky, tečky, pomlčky, podtržítka a mezery</string>
+    <string name="multiplayer_nickname_invalid">Neplatné uživatelské jméno, ujistěte se, že je správně nastaveno v Systém → Síť</string>
     <string name="multiplayer_port_error">Musí být mezi 1 a 65535</string>
     <string name="multiplayer_token_error">Musí mít 48 znaků a pouze malá písmena a-z</string>
     <string name="multiplayer_lobby_type">Typ místnosti</string>
@@ -376,6 +378,15 @@
     <string name="verify_installed_content_description">Kontrola poškození obsahu</string>
     <string name="keys_missing">Chybí šifrovací klíče</string>
     <string name="keys_missing_description">Firmware a retail hry nelze dešifrovat</string>
+    <string name="firmware_invalid">Neplatný firmware</string>
+    <string name="error_firmware_missing">Firmware je vyžadován pro spuštění některých her a aplikací. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
+    <string name="error_firmware_corrupted">Firmware byl nahlášen jako přítomný, ale nelze jej přečíst. Zkontrolujte šifrovací klíče a v případě potřeby firmware převezměte znovu.</string>
+    <string name="error_firmware_too_new">Firmware je příliš nový nebo nelze přečíst. Eden funguje pouze s firmwarem 19.0.1 nebo starším.</string>
+    <string name="keys_failed">Selhání instalace klíčů</string>
+    <string name="keys_install_success">Klíče úspěšně nainstalovány</string>
+    <string name="error_keys_copy_failed">Jeden nebo více klíčů se nepodařilo zkopírovat.</string>
+    <string name="error_keys_invalid_filename">Ověřte, zda má váš soubor klíčů příponu .keys a zkuste to znovu.</string>
+    <string name="error_keys_failed_init">Klíče se nepodařilo inicializovat. Zkontrolujte, zda jsou vaše dumpingové nástroje aktuální, a klíče převezměte znovu.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -439,7 +450,7 @@
     <!-- Network settings strings -->
     <string name="generate">Generovat</string>
     <string name="web_username">Webové uživatelské jméno</string>
-    <string name="web_username_description">Uživatelské jméno zobrazené v multiplayerových místnostech. Musí mít 4–20 znaků.</string>
+    <string name="web_username_description">Uživatelské jméno zobrazené v multiplayerových místnostech. Musí mít 4–20 znaků a obsahovat pouze alfanumerické znaky, pomlčky, tečky, podtržítka a mezery.</string>
     <string name="web_token">Webový token</string>
     <string name="web_token_description">Webový token používaný k vytváření veřejných místností. Jedná se o řetězec o délce 48 znaků obsahující pouze malá písmena a-z.</string>
     <string name="network">Síť</string>
@@ -560,40 +571,101 @@
 
     <!-- Game properties -->
     <string name="info">Info</string>
+    <string name="info_description">ID programu, vývojář, verze</string>
+    <string name="per_game_settings">Nastavení hry</string>
+    <string name="per_game_settings_description">Specifická nastavení</string>
+    <string name="launch_options">Konfigurace spuštění</string>
     <string name="path">Cesta</string>
+    <string name="program_id">ID programu</string>
     <string name="developer">Vývojář</string>
     <string name="version">Verze</string>
     <string name="copy_details">Zkopírovat podrobnosti</string>
     <string name="add_ons">Modifkace</string>
+    <string name="add_ons_description">Módy, aktualizace a DLC</string>
+    <string name="clear_shader_cache">Vymazat shader cache</string>
+    <string name="clear_shader_cache_description">Odstranění všech shaderů</string>
+    <string name="clear_shader_cache_warning_description">Může způsobit trhání</string>
+    <string name="cleared_shaders_successfully">Shader cache vymazána</string>
     <string name="addons_game">Rozšíření: %1$s</string>
+    <string name="save_data">Uložená data</string>
+    <string name="save_data_description">Správa uložených dat</string>
+    <string name="delete_save_data">Smazat data</string>
+    <string name="delete_save_data_description">Odstranění všech uložených dat</string>
+    <string name="delete_save_data_warning_description">Návrat není možný. Pokračovat?</string>
+    <string name="save_data_deleted_successfully">Data smazána</string>
     <string name="select_content_type">Typ obsahu</string>
     <string name="updates_and_dlc">Aktualizace a DLC</string>
     <string name="mods_and_cheats">Módy a cheaty</string>
+    <string name="addon_notice">Důležité upozornění</string>
+    <string name="addon_notice_description">Složka musí obsahovat cheats/, romfs/ nebo exefs/.</string>
+    <string name="invalid_directory">Neplatná složka</string>
+    <string name="invalid_directory_description">Složka musí obsahovat cheats/, romfs/ nebo exefs/.</string>
     <string name="addon_installed_successfully">Rozšíření úspěšně nainstalováno</string>
     <string name="verifying_content">Ověřování obsahu...</string>
+    <string name="content_install_notice">Upozornění</string>
+    <string name="content_install_notice_description">Obsah neodpovídá hře. Nainstalovat?</string>
+    <string name="confirm_uninstall">Potvrdit odstranění</string>
+    <string name="confirm_uninstall_description">Odstranit tento doplněk?</string>
+    <string name="verify_integrity">Ověřit integritu</string>
+    <string name="verifying">Ověřování...</string>
+    <string name="verify_success">Integrita potvrzena</string>
+    <string name="verify_failure">Chyba ověření</string>
+    <string name="verify_failure_description">Soubor může být poškozen</string>
+    <string name="verify_no_result">Ověření nelze provést</string>
+    <string name="verify_no_result_description">Integrita nebyla ověřena</string>
+    <string name="verification_failed_for">Chyba ověření:\n%1$s</string>
+
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">ROM je zašifrován</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Postupujte podle průvodců pro opětovné převzetí vašich <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">herních karet</a> nebo <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">digitálních titulů</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Nainstalujte <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> pro dešifrování.]]></string>
+    <string name="loader_error_video_core">Chyba inicializace</string>
+    <string name="loader_error_video_core_description">Neplatný GPU ovladač</string>
+    <string name="loader_error_invalid_format">Nelze načíst ROM</string>
+    <string name="loader_error_file_not_found">ROM neexistuje</string>
+    <string name="loader_requires_firmware">Hra vyžaduje firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Hra, kterou se pokoušíte spustit, vyžaduje firmware pro spuštění nebo pro překročení úvodní nabídky. Prosím <a href="https://yuzu-mirror.github.io/help/quickstart"> převezměte a nainstalujte firmware</a>, nebo stiskněte "OK" pro pokračování v každém případě.]]></string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Ukončit emulaci</string>
     <string name="emulation_done">Hotovo</string>
+    <string name="emulation_fps_counter">FPS čítač</string>
+    <string name="emulation_thermal_indicator">Teplotní indikátor</string>
+    <string name="emulation_toggle_controls">Přepnout ovládání</string>
+    <string name="emulation_rel_stick_center">Relativní střed joysticku</string>
+    <string name="emulation_dpad_slide">D-pad slide</string>
+    <string name="emulation_haptics">Haptická odezva</string>
+    <string name="emulation_show_overlay">Zobrazit překryv</string>
+    <string name="emulation_toggle_all">Přepnout vše</string>
+    <string name="emulation_control_adjust">Upravit překryv</string>
     <string name="emulation_control_scale">Měřítko</string>
     <string name="emulation_control_opacity">Průhlednost</string>
+    <string name="emulation_touch_overlay_reset">Resetovat překryv</string>
+    <string name="emulation_touch_overlay_edit">Upravit překryv</string>
+    <string name="emulation_pause">Pozastavit emulaci</string>
+    <string name="emulation_unpause">Obnovit emulaci</string>
+    <string name="emulation_input_overlay">Nastavení překryvu</string>
     <string name="touchscreen">Dotyková obrazovka</string>
+    <string name="lock_drawer">Zamknout zásuvku</string>
+    <string name="unlock_drawer">Odemknout zásuvku</string>
+    <string name="load_settings">Načítání nastavení...</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Softwarová klávesnice</string>
 
     <!-- Errors and warnings -->
     <string name="abort_button">Přerušit</string>
     <string name="continue_button">Pokračovat</string>
     <string name="system_archive_not_found">Systémový Archív Nenalezen</string>
+    <string name="system_archive_not_found_message">%s chybí. Získejte systémové archivy.\nPokračování může způsobit chyby.</string>
+    <string name="system_archive_general">Systémový archív</string>
     <string name="save_load_error">Ukládací/Načítací chyba</string>
     <string name="fatal_error">Fatální Chyba</string>
-
-    <!-- Region Names -->
-    <string name="region_japan">Japonsko</string>
-    <string name="region_usa">USA</string>
-    <string name="region_europe">Evropa</string>
-    <string name="region_australia">Austrálie</string>
-    <string name="region_china">Čína</string>
-    <string name="region_korea">Korea</string>
-    <string name="region_taiwan">Taiwan</string>
-
-    <string name="memory_byte_shorthand">B</string>
-    <string name="memory_gigabyte">GB</string>
+    <string name="fatal_error_message">Vyskytla se fatální chyba. Podrobnosti v logu.\nPokračování může způsobit chyby.</string>
+    <string name="performance_warning">Vypnutí sníží výkon!</string>
+    <string name="device_memory_inadequate">RAM zařízení: %1$s\nDoporučeno: %2$s</string>
+    <string name="memory_formatted">%1$s %2$s</string>
+    <string name="no_game_present">Nenalezena spustitelná hra!</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -602,6 +674,7 @@
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">Normální</string>
     <string name="renderer_accuracy_high">Vysoká</string>
+    <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

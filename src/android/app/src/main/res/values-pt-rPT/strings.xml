@@ -62,24 +62,25 @@
     <string name="show_fw_version">Mostrar versão do firmware</string>
     <string name="show_fw_version_description">Mostra a versão do firmware instalado</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">Extensões da GPU</string>
     <string name="veil_renderer">Renderizador</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Um método de gestão automática de recursos no Vulkan que garante a libertação adequada de recursos quando já não são necessários, mas pode causar falhas em jogos empacotados.</string>
-    <string name="veil_misc">Diversos</string>
+    <string name="veil_misc">CPU e Memória</string>
     <string name="eden_veil">Véu do Éden</string>
     <string name="eden_veil_description">Definições experimentais para melhorar o desempenho e capacidade. Estas definições podem causar ecrãs pretos ou outros problemas no jogo.</string>
     <string name="eden_veil_warning_title">Definições experimentais</string>
-    <string name="eden_veil_warning_description">As definições contidas no Eden\'s Veil são altamente experimentais e podem causar problemas. Se o jogo não iniciar, desative todas as extensões e altere o Extended Dynamic State para 0.</string>
+    <string name="eden_veil_warning_description">As configurações no Véu do Éden são altamente experimentais e podem causar problemas. Se o jogo não iniciar, desative todas as extensões.</string>
     <string name="frame_skipping">WIP: Saltar frames</string>
     <string name="frame_skipping_description">Ative ou desative o salto de frames para melhorar o desempenho reduzindo o número de frames renderizados. Esta funcionalidade ainda está em desenvolvimento e será ativada em versões futuras.</string>
     <string name="frame_interpolation">Sincronização avançada de frames</string>
     <string name="frame_interpolation_description">Garante uma entrega suave e consistente de frames sincronizando o seu tempo, reduzindo engasgadelas e animações irregulares. Ideal para jogos que experienciam instabilidade no tempo de frames ou micro-engasgadelas durante o jogo.</string>
     <string name="use_lru_cache">Ativar cache LRU</string>
-    <string name="use_lru_cache_description">Ative ou desative a cache LRU (Least Recently Used), aumentando o desempenho ao poupar utilização da CPU. Alguns jogos têm problemas com ela, especialmente TotK 1.2.1, por isso desative se o jogo não arrancar ou falhar aleatoriamente.</string>
+    <string name="use_lru_cache_description">Ative ou desative a cache LRU para melhorar desempenho poupando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou falhar aleatoriamente.</string>
     <string name="dyna_state">Estado Dinâmico Estendido</string>
-    <string name="dyna_state_description">Ativa funcionalidades Vulkan para melhorar o desempenho, renderização e poupar recursos na criação de pipeline, mantendo uma utilização reduzida da CPU/GPU. Estas extensões podem aumentar a temperatura do dispositivo e as GPUs da antiga linha A6XX podem não funcionar corretamente. Defina como 0 para utilizar formatos emulados legados.</string>
+    <string name="dyna_state_description">Ativa funcionalidades Vulkan para melhorar desempenho, renderização e poupar recursos na criação de pipelines mantendo baixa utilização de CPU/GPU. Estas extensões podem aumentar a temperatura do dispositivo e GPUs da linha A6XX mais antigos podem não responder corretamente. Desative para emular formatos dimensionados.</string>
+    <string name="disabled">Desativado</string>
     <string name="use_sync_core">Sincronizar velocidade do núcleo</string>
     <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a percentagem máxima de velocidade para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
     <string name="use_auto_stub">Usar Auto Stub</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">Falha ao entrar na sala</string>
     <string name="multiplayer_name_invalid">Nome muito curto</string>
     <string name="multiplayer_address_invalid">Endereço inválido</string>
-    <string name="multiplayer_port_invalid">Porta inválida!</string>
+    <string name="multiplayer_port_invalid">Porto inválido</string>
     <string name="multiplayer_exit_room">Sair da sala</string>
     <string name="multiplayer_network_error">Erro de rede</string>
     <string name="multiplayer_lost_connection">Conexão perdida</string>
-    <string name="multiplayer_name_collision">Conflito de nomes</string>
+    <string name="multiplayer_name_collision">Nome de utilizador já em uso</string>
     <string name="multiplayer_mac_collision">Conflito de endereço MAC</string>
     <string name="multiplayer_console_id_collision">Conflito de ID da consola</string>
     <string name="multiplayer_wrong_version">Versão incorreta</string>
     <string name="multiplayer_wrong_password">Palavra-passe incorreta</string>
     <string name="multiplayer_could_not_connect">Não foi possível conectar</string>
     <string name="multiplayer_room_is_full">Sala cheia</string>
-    <string name="multiplayer_host_banned">Anfitrião banido</string>
+    <string name="multiplayer_host_banned">Está banido desta sala</string>
     <string name="multiplayer_permission_denied">Permissão negada</string>
     <string name="multiplayer_no_such_user">Utilizador não existe</string>
     <string name="multiplayer_already_in_room">Já está na sala</string>
@@ -255,7 +256,8 @@
     <string name="multiplayer_room_name_error">3-20 caracteres necessários</string>
     <string name="multiplayer_required">Obrigatório</string>
     <string name="multiplayer_ip_error">Formato de IP inválido</string>
-    <string name="multiplayer_username_error">Deve ter entre 4–20 caracteres</string>
+    <string name="multiplayer_username_error">Deve ter 4-20 caracteres (apenas alfanuméricos, pontos, hífens, underscores e espaços)</string>
+    <string name="multiplayer_nickname_invalid">Nome de utilizador inválido, verifique em Sistema → Rede</string>
     <string name="multiplayer_port_error">Deve ser entre 1-65535</string>
     <string name="multiplayer_token_error">Deve ter 48 caracteres e apenas letras minúsculas a-z</string>
     <string name="multiplayer_lobby_type">Tipo de lobby</string>
@@ -422,6 +424,15 @@
     <string name="verify_installed_content_description">Verifica todo o conteúdo instalado em busca de dados corrompidos</string>
     <string name="keys_missing">Faltando chaves de encriptação</string>
     <string name="keys_missing_description">O firmware e jogos comerciais não poderão ser decriptados</string>
+    <string name="firmware_invalid">Firmware inválido</string>
+    <string name="error_firmware_missing">É necessário firmware para executar alguns jogos e aplicações. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
+    <string name="error_firmware_corrupted">Firmware está presente mas não pode ser lido. Verifique chaves de descriptografia e volte a fazer dump do firmware se necessário.</string>
+    <string name="error_firmware_too_new">Firmware é demasiado recente ou ilegível. O Eden só funciona com firmware 19.0.1 ou anterior.</string>
+    <string name="keys_failed">Falha ao instalar chaves</string>
+    <string name="keys_install_success">Chaves instaladas com sucesso</string>
+    <string name="error_keys_copy_failed">Uma ou mais chaves falharam ao copiar.</string>
+    <string name="error_keys_invalid_filename">Verifique se o seu ficheiro de chaves tem extensão .keys e tente novamente.</string>
+    <string name="error_keys_failed_init">Falha ao inicializar chaves. Verifique se as suas ferramentas de dump estão atualizadas e volte a fazer dump das chaves.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -487,7 +498,7 @@
     <!-- Network settings strings -->
     <string name="generate">Gerar</string>
     <string name="web_username">Nome de utilizador web</string>
-    <string name="web_username_description">Nome de utilizador a ser exibido nos lobbies multiplayer. Deve ter entre 4–20 caracteres.</string>
+    <string name="web_username_description">Nome de utilizador exibido em salas multiplayer. Deve ter 4-20 caracteres (apenas alfanuméricos, hífens, pontos, underscores e espaços).</string>
     <string name="web_token">Token web</string>
     <string name="web_token_description">Token web usado para criar salas públicas. É uma string de 48 caracteres contendo apenas letras minúsculas a-z.</string>
     <string name="network">Rede</string>
@@ -770,12 +781,14 @@ uma tentativa de mapeamento automático</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">A tua ROM está encriptada</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Por favor, siga os guias para despejar novamente o seu <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">cartucho de jogo</a> or <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos instalados</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Siga os guias para voltar a fazer dump dos seus <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">cartões de jogo</a> ou <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">títulos digitais</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Por favor confirma que o teu ficheiro <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> está instalado para que os jogos possam ser desencriptados.]]></string>
     <string name="loader_error_video_core">Ocorreu um erro ao iniciar o núcleo de vídeo.</string>
     <string name="loader_error_video_core_description">Isto é normalmente causado por um driver de GPU incompatível. Instalar um driver GPU pode resolver este problema.</string>
     <string name="loader_error_invalid_format">Impossível carregar a tua ROM</string>
     <string name="loader_error_file_not_found">O ficheiro da ROM não existe</string>
+    <string name="loader_requires_firmware">O jogo requer firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[O jogo que está a tentar iniciar requer firmware para arrancar ou passar o menu inicial. Por favor <a href="https://yuzu-mirror.github.io/help/quickstart"> faça dump e instale o firmware</a>, ou pressione "OK" para continuar mesmo assim.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Parar emulação</string>

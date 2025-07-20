@@ -62,24 +62,25 @@
     <string name="show_fw_version">نیشاندانی وەشانی فریموێر</string>
     <string name="show_fw_version_description">وەشانی فریموێری نەصبکراو پیشان بدە</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">پاشکۆکانی GPU</string>
     <string name="veil_renderer">رێندرەر</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">ڕێگایەکی بەڕێوەبردنی سەرچاوەکان بە خۆکار لە ڤولکان کە دڵنیای دەکاتەوە لە ئازادکردنی گونجاوی سەرچاوەکان کاتێک کە چیتر پێویستیان نییە، بەڵام لەوانەیە ببێتە هۆی کەوتنی یارییە کۆکراوەکان.</string>
-    <string name="veil_misc">جۆراوجۆر</string>
+    <string name="veil_misc">CPU و بیرگە</string>
     <string name="eden_veil">حجاب عدن</string>
     <string name="eden_veil_description">ڕێکخستنە تاقیکارییەکان بۆ باشترکردنی کارایی و توانا. ئەم ڕێکخستنانە لەوانەیە ببێتە هۆی شاشە ڕەشەکان یان کێشەیتری یاری.</string>
     <string name="eden_veil_warning_title">ڕێکخستنە تاقیکارییەکان</string>
-    <string name="eden_veil_warning_description">ڕێکخستنەکانی ناو ئیدین ڤێڵ زۆر تاقیکارین و لەوانەیە کێشە دروست بکەن. ئەگەر یاریەکەت نەگەشتە ناوەوە، هەموو زیادکراوەکان ناچالاک بکە و گۆڕینی دۆخی داینامیکی درێژکراو بۆ 0.</string>
+    <string name="eden_veil_warning_description">ڕێکخستنەکانی ناو پردی عەدن زۆر تاقیکارییە و ڕەنگە کێشە دروست بکات. ئەگەر یارییەکەت کارینەکات، هەموو زیادکراوەکان ناچالاک بکە.</string>
     <string name="frame_skipping">قيد التطوير: تخطي الإطارات</string>
     <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>
-    <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU (کەمترین بەکارهێنراوی دوایی)، کارایی زیاد دەکات بە هەڵگرتنی بەکارهێنانی CPU. هەندێک یاری کێشەییان هەیە لەگەڵیدا، بەتایبەتی TotK 1.2.1، بۆیە ئەگەر یاریەکە نەکەوتەوە یان بە هەڕەمەکی داخرا، ناچالاکی بکە.</string>
+    <string name="use_lru_cache_description">چالاک یان ناچالاککردنی کاشەی LRU، کارایی باشتر دەکات بە هەڵگرتنی بەکارهێنانی پرۆسەی CPU. هەندێک یاری کێشەی لەگەڵ هەیە، بەتایبەتی TotK 1.2.1، بۆیە بیخەوێنە ئەگەر یاریەکە نەگەڕێت یان بە هەڕەمەکی بشکێت.</string>
     <string name="dyna_state">الحالة الديناميكية الممتدة</string>
-    <string name="dyna_state_description">کاریگەرییەکانی ڤولکان چالاک دەکات بۆ باشترکردنی کارایی، رێندرکردن، و هەڵگرتنی سەرچاوەکان لە دروستکردنی پایپلاین بە بەکارهێنانی کەمی CPU/GPU. ئەم فراوانکراوانە لەوانەیە پلەی گەرمی ئامێر زیاد بکەن، و کارتە گرافیکییە کۆنەکانی زنجیرەی A6XX لەوانەیە بە شێوەیەکی گونجاو کار نەکەن. بۆ بەکارهێنانی شێوازە کۆنەکانی دروستکراو، بڕەکە بۆ ٠ دابنێ.</string>
+    <string name="dyna_state_description">کاریگەرییەکانی ڤولکان چالاک بکە بۆ باشترکردنی کارایی، رێندرکردن، و هەڵگرتنی سەرچاوەکان لە دروستکردنی پایپلاین بە هەمان کات کەمترین بەکارهێنانی CPU/GPU بەکاربهێنرێت. ئەم زیادکراوانە ڕەنگە پلەی گەرمی ئامێر زیاد بکەن، و GPU-کانی هێڵی کۆنی A6XX ڕەنگە بە شێوەیەکی گونجاو کارنەکەن. بیخەوێنە بۆ نەخشەکێشانی فۆرماتە پێوانەکراوەکان.</string>
+    <string name="disabled">ناچالاک</string>
     <string name="use_sync_core">مزامنة سرعة النواة</string>
     <string name="use_sync_core_description">خێرایی تیکەکانی ناوک ڕێکبخە لەگەڵ ڕێژەی خێرایی بەرزترین بۆ باشترکردنی کارایی بەبێ گۆڕینی خێرایی ڕاستەقینەی یارییەکە.</string>
     <string name="use_auto_stub">استخدام الستاب التلقائي</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">نەتوانی بچیتە ناو ژوورەوە</string>
     <string name="multiplayer_name_invalid">ناو زۆر کورتە</string>
     <string name="multiplayer_address_invalid">ناونیشانی نادروست</string>
-    <string name="multiplayer_port_invalid">پۆرتی نادروست!</string>
+    <string name="multiplayer_port_invalid">پۆرتی نادروست</string>
     <string name="multiplayer_exit_room">دەرچوون لە ژوور</string>
     <string name="multiplayer_network_error">هەڵەی تۆڕ</string>
     <string name="multiplayer_lost_connection">پەیوەندی لەدەستچوو</string>
-    <string name="multiplayer_name_collision">ناو دووبارەکراوەتەوە</string>
+    <string name="multiplayer_name_collision">ناوی بەکارهێنەر پێشتر هەیە</string>
     <string name="multiplayer_mac_collision">ناونیشانی MAC دووبارەکراوەتەوە</string>
     <string name="multiplayer_console_id_collision">ناسنامەی کۆنسۆڵ دووبارەکراوەتەوە</string>
     <string name="multiplayer_wrong_version">وەشانی هەڵە</string>
     <string name="multiplayer_wrong_password">تێپەڕەوشەی هەڵە</string>
     <string name="multiplayer_could_not_connect">نەتوانی پەیوەندی بکات</string>
     <string name="multiplayer_room_is_full">ژوور پڕە</string>
-    <string name="multiplayer_host_banned">خاوەن ژوور قەدەغەکراوە</string>
+    <string name="multiplayer_host_banned">تۆ لەم ژوورە قەدەغە کراوە</string>
     <string name="multiplayer_permission_denied">ڕێگەپێنەدراوە</string>
     <string name="multiplayer_no_such_user">ئەم بەکارهێنەرە بوونی نییە</string>
     <string name="multiplayer_already_in_room">خۆت لە ژوور دەیت</string>
@@ -255,7 +256,8 @@
     <string name="multiplayer_room_name_error">دەبێت لە نێوان 3 بۆ 20 پیت بێت</string>
     <string name="multiplayer_required">پێویستە</string>
     <string name="multiplayer_ip_error">فۆرماتی IP نادروستە</string>
-    <string name="multiplayer_username_error">دەبێت لە نێوان 4-20 پیتدا بێت</string>
+    <string name="multiplayer_username_error">پێویستە ٤-٢٠ پیت بێت (تەنها پیت و ژمارە و خاڵ و خط و خەتەکێشە و بۆشایی)</string>
+    <string name="multiplayer_nickname_invalid">ناوی بەکارهێنەری نادروست، دڵنیا بەرەوە کە بە شێوەیەکی دروست دانراوە لە سیستەم → تۆڕ</string>
     <string name="multiplayer_port_error">دەبێت لە نێوان 1 بۆ 65535 بێت</string>
     <string name="multiplayer_token_error">دەبێت 48 پیت بێت، و تەنها پیتی بچووکی a-z</string>
     <string name="multiplayer_lobby_type">جۆری لۆبی</string>
@@ -410,6 +412,15 @@
     <string name="verify_installed_content_description">هەموو ناوەڕۆکی دامەزراو پشکنین دەکات بۆ تێکچوون</string>
     <string name="keys_missing">کلیلە کۆدکراوەکان دیار نییە</string>
     <string name="keys_missing_description">پتەوواڵا و یارییە تاکەکەسییەکان ناتوانرێت کۆد بکرێنەوە</string>
+    <string name="firmware_invalid">فریموێر نادروستە</string>
+    <string name="error_firmware_missing">فریموێر پێویستە بۆ کارپێکردنی هەندێک یاری و بەکارهێنانی بەرنامەکان. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
+    <string name="error_firmware_corrupted">فریموێر هەیە بەڵام ناتوانرێت بخوێنرێتەوە. پشکنین بکە بۆ کلیلی شیکردنەوە و دووبارە فریموێرەکە دامپ بکە ئەگەر پێویست بوو.</string>
+    <string name="error_firmware_too_new">فریموێر زۆر نوێ یان ناتوانرێت بخوێنرێتەوە. ئێدین تەنها لەگەڵ فریموێری 19.0.1 یان کۆنتر کار دەکات.</string>
+    <string name="keys_failed">سەرکەوتوو نەبوو لە ناساندنی کلیلی</string>
+    <string name="keys_install_success">کلیلەکان بە سەرکەوتوویی ناسێندران</string>
+    <string name="error_keys_copy_failed">یەک یان زیاتر کلیل سەرکەوتوو نەبوو لە ناساندن.</string>
+    <string name="error_keys_invalid_filename">دڵنیا بەرەوە کە فایلی کلیلی تۆ پاشگرەکەی .keys هەیە و هەوڵ بدەرەوە.</string>
+    <string name="error_keys_failed_init">کلیلەکان سەرکەوتوو نەبوون لە ناساندن. دڵنیا بەرەوە کە ئامرازەکانی دامپکردنت نوێن و دووبارە کلیلی دامپ بکە.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -463,7 +474,7 @@
     <!-- Network settings strings -->
     <string name="generate">بەرهەم هێنان</string>
     <string name="web_username">ناوی بەکارهێنەری وێب</string>
-    <string name="web_username_description">ناوی بەکارهێنەر کە لە لۆبی یاری فرە یاریکەردا دەر دەکەوێت. دەبێت 4-20 پیت بێت.</string>
+    <string name="web_username_description">ناوی بەکارهێنەر کە لە ژوورەکانی فرە یاریزاندا پیشان دەدرێت. پێویستە ٤-٢٠ پیت بێت (تەنها پیت و ژمارە و خاڵ و خط و خەتەکێشە و بۆشایی).</string>
     <string name="web_token">نیشانەی وێب</string>
     <string name="web_token_description">نیشانەی وێب بۆ دروستکردنی ژوورە گشتییەکان. زنجیرەیەکی 48 پیتییە تەنها پیتی a-z بچووک لەخۆدەگرێت.</string>
     <string name="network">تۆڕ</string>
@@ -626,11 +637,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ڕۆمەکەت کۆدکراوە</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[تکایە ڕێنمایییەکان بە شوێن بکەوە بۆ دووبارە دامپکردنی <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">یارییە کارتەکان</a> یان <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">ناونیشانە دیجیتاڵییەکان</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[تکایە دڵنیابەوە لەدامەزراوی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> فایلەکەت بۆ ئەوەی بتوانرێت یارییەکان کۆد بکرێنەوە.]]></string>
     <string name="loader_error_video_core">هەڵەیەک لە دەستپێکردنی ناوەکی ڤیدیۆکەدا ڕوویدا</string>
     <string name="loader_error_video_core_description">ئەمەش بەزۆری بەهۆی وەگەڕخەرێکی ناتەبای GPU ەوەیە. دامەزراندنی وەگەڕخەری GPU ی تایبەتمەندکراو لەوانەیە ئەم کێشەیە چارەسەر بکات.</string>
     <string name="loader_error_invalid_format">ناتوانرێت ڕۆم باربکرێت</string>
     <string name="loader_error_file_not_found">فایلی ڕۆم بوونی نییە</string>
+    <string name="loader_requires_firmware">یارییەکە فریموێر پێویستە</string>
+    <string name="loader_requires_firmware_description"><![CDATA[یارییەکە کە تۆ هەوڵ دەدەیت بیخەیتە کار فریموێر پێویستە بۆ کردنەوە یان تێپەڕاندنی مێنیوی کردنەوە. تکایە <a href="https://yuzu-mirror.github.io/help/quickstart"> فریموێر دامپ بکە و دابنێ</a>, یان پەنجە بنێ سەر "باشە" بۆ بەردەوامبوون هەرچۆنێک بێت.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">دەرچوون لە ئیمولەیشن</string>

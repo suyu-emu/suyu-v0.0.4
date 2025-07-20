@@ -62,24 +62,25 @@
     <string name="show_fw_version">نمایش نسخه فریمور</string>
     <string name="show_fw_version_description">نسخه نصب شده فریمور را نمایش می‌دهد</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">افزونه‌های GPU</string>
     <string name="veil_renderer">رندرر</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">روشی برای مدیریت خودکار منابع در ولکان که تضمین می‌کند منابع به درستی آزاد شوند وقتی دیگر مورد نیاز نیستند، اما ممکن است باعث کرش شدن بازی‌های بسته‌بندی شده شود.</string>
-    <string name="veil_misc">متفرقه</string>
+    <string name="veil_misc">پردازنده و حافظه</string>
     <string name="eden_veil">پرده عدن</string>
     <string name="eden_veil_description">تنظیمات آزمایشی برای بهبود عملکرد و قابلیت. این تنظیمات ممکن است باعث نمایش صفحه سیاه یا سایر مشکلات بازی شود.</string>
     <string name="eden_veil_warning_title">تنظیمات آزمایشی</string>
-    <string name="eden_veil_warning_description">تنظیمات موجود در Eden\'s Veil بسیار آزمایشی هستند و ممکن است باعث مشکلات شوند. اگر بازی شما بوت نمی‌شود، همه افزونه‌ها را غیرفعال کنید و Extended Dynamic State را روی 0 تنظیم کنید.</string>
+    <string name="eden_veil_warning_description">تنظیمات موجود در پرده عدن بسیار آزمایشی هستند و ممکن است باعث مشکلاتی شوند. اگر بازی شما اجرا نمی‌شود، همه پسوندها را غیرفعال کنید.</string>
     <string name="frame_skipping">در حال توسعه: رد کردن فریم‌ها</string>
     <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
     <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
     <string name="use_lru_cache">فعال‌سازی حافظه نهان LRU</string>
-    <string name="use_lru_cache_description">فعال یا غیرفعال کردن کش LRU (کمترین اخیراً استفاده شده)، که با کاهش استفاده از CPU عملکرد را افزایش می‌دهد. برخی بازی‌ها با آن مشکل دارند، به ویژه TotK 1.2.1، بنابراین اگر بازی اجرا نشد یا به صورت تصادفی کرش کرد، آن را غیرفعال کنید.</string>
+    <string name="use_lru_cache_description">حافظه پنهان LRU را فعال یا غیرفعال کنید تا با کاهش استفاده از پردازنده، عملکرد بهبود یابد. برخی بازی‌ها مانند TotK 1.2.1 با این ویژگی مشکل دارند، در صورت عدم راه‌اندازی یا قطعی تصادفی بازی، آن را غیرفعال کنید.</string>
     <string name="dyna_state">حالت پویای گسترده</string>
-    <string name="dyna_state_description">قابلیت‌های ولکان را برای بهبود عملکرد، رندرینگ و صرفه‌جویی در منابع هنگام ایجاد خط لوله فعال می‌کند، در حالی که استفاده از CPU/GPU پایین نگه داشته می‌شود. این افزونه‌ها ممکن است دمای دستگاه را افزایش دهند و کارت‌های گرافیک سری قدیمی A6XX ممکن است به درستی کار نکنند. برای استفاده از فرمت‌های شبیه‌سازی شده قدیمی، مقدار را روی 0 تنظیم کنید.</string>
+    <string name="dyna_state_description">قابلیت‌های ولکان را برای بهبود عملکرد، رندرینگ و صرفه‌جویی در منابع هنگام ایجاد خط لوله فعال می‌کند، در حالی که استفاده کمتری از CPU/GPU دارد. این پسوندها ممکن است دمای دستگاه را افزایش دهند و GPUهای قدیمی خط A6XX ممکن است به درستی واکنش نشان ندهند. برای شبیه‌سازی فرمت‌های مقیاس‌شده غیرفعال کنید.</string>
+    <string name="disabled">غیرفعال</string>
     <string name="use_sync_core">همگام‌سازی سرعت هسته</string>
     <string name="use_sync_core_description">همگام‌سازی سرعت هسته با حداکثر درصد سرعت برای بهبود عملکرد بدون تغییر سرعت واقعی بازی.</string>
     <string name="use_auto_stub">استفاده از استاب خودکار</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">پیوستن به اتاق ناموفق بود</string>
     <string name="multiplayer_name_invalid">نام خیلی کوتاه است</string>
     <string name="multiplayer_address_invalid">آدرس نامعتبر</string>
-    <string name="multiplayer_port_invalid">پورت نامعتبر!</string>
+    <string name="multiplayer_port_invalid">پورت نامعتبر</string>
     <string name="multiplayer_exit_room">خروج از اتاق</string>
     <string name="multiplayer_network_error">خطای شبکه</string>
     <string name="multiplayer_lost_connection">اتصال قطع شد</string>
-    <string name="multiplayer_name_collision">تضاد نام</string>
+    <string name="multiplayer_name_collision">نام کاربری قبلا انتخاب شده</string>
     <string name="multiplayer_mac_collision">تضاد آدرس MAC</string>
     <string name="multiplayer_console_id_collision">تضاد شناسه کنسول</string>
     <string name="multiplayer_wrong_version">نسخه نادرست</string>
     <string name="multiplayer_wrong_password">رمز عبور نادرست</string>
     <string name="multiplayer_could_not_connect">اتصال برقرار نشد</string>
     <string name="multiplayer_room_is_full">اتاق پر است</string>
-    <string name="multiplayer_host_banned">میزبان مسدود شده</string>
+    <string name="multiplayer_host_banned">شما از این اتاق محروم شده‌اید</string>
     <string name="multiplayer_permission_denied">دسترسی رد شد</string>
     <string name="multiplayer_no_such_user">کاربری وجود ندارد</string>
     <string name="multiplayer_already_in_room">قبلاً در اتاق هستید</string>
@@ -257,7 +258,8 @@
     <string name="multiplayer_required">الزامی</string>
     <string name="multiplayer_token_required">توکن وب مورد نیاز است، به تنظیمات پیشرفته -> سیستم -> شبکه بروید</string>
     <string name="multiplayer_ip_error">فرمت IP نامعتبر</string>
-    <string name="multiplayer_username_error">باید بین 4-20 کاراکتر باشد</string>
+    <string name="multiplayer_username_error">باید بین 4 تا 20 کاراکتر و فقط شامل حروف الفبا، اعداد، نقطه، خط تیره، زیرخط و فاصله باشد</string>
+    <string name="multiplayer_nickname_invalid">نام کاربری نامعتبر، از تنظیم صحیح آن در سیستم > شبکه اطمینان حاصل کنید</string>
     <string name="multiplayer_token_error">باید 48 کاراکتر باشد و فقط حروف کوچک a-z</string>
     <string name="multiplayer_port_error">باید بین 1 تا 65535 باشد</string>
     <string name="cancel">انصراف</string>
@@ -420,6 +422,15 @@
     <string name="verify_installed_content_description">تمام محتوای نصب شده را از نظر خرابی بررسی می‌کند</string>
     <string name="keys_missing">کلیدهای رمزگذاری وجود ندارند</string>
     <string name="keys_missing_description">ثابت‌افزار و بازی‌های فروشگاهی قابل رمزگشایی نیستند</string>
+    <string name="firmware_invalid">فیرمور نامعتبر</string>
+    <string name="error_firmware_missing">برای اجرای برخی بازی‌ها و برنامه‌ها نیاز به فیرمور است. ادن فقط با فیرمور 19.0.1 یا قدیمی‌تر کار می‌کند.</string>
+    <string name="error_firmware_corrupted">فیرمور موجود است اما قابل خواندن نیست. کلیدهای رمزگشایی را بررسی کنید و در صورت نیاز فیرمور را دوباره دامپ کنید.</string>
+    <string name="error_firmware_too_new">فیرمور خیلی جدید است یا قابل خواندن نیست. ادن فقط با فیرمور 19.0.1 یا قدیمی‌تر کار می‌کند.</string>
+    <string name="keys_failed">خطا در نصب کلیدها</string>
+    <string name="keys_install_success">کلیدها با موفقیت نصب شدند</string>
+    <string name="error_keys_copy_failed">یک یا چند کلید با خطا در کپی مواجه شد.</string>
+    <string name="error_keys_invalid_filename">اطمینان حاصل کنید که فایل کلید شما دارای پسوند .keys است و مجددا تلاش کنید.</string>
+    <string name="error_keys_failed_init">خطا در مقداردهی اولیه کلیدها. ابزارهای دامپ خود را بررسی و کلیدها را مجددا دامپ کنید.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -485,7 +496,7 @@
     <!-- Network settings strings -->
     <string name="generate">تولید</string>
     <string name="web_username">نام کاربری وب</string>
-    <string name="web_username_description">نام کاربری که در لابی‌های چندنفره نمایش داده می‌شود. باید بین 4 تا 20 کاراکتر باشد.</string>
+    <string name="web_username_description">نام کاربری نمایش داده شده در اتاق‌های چندنفره. باید بین 4-20 کاراکتر و فقط شامل حروف الفبا، اعداد، خط تیره، نقطه، زیرخط و فاصله باشد.</string>
     <string name="web_token">توکن وب</string>
     <string name="web_token_description">توکن وب برای ایجاد اتاق‌های عمومی استفاده می‌شود. این یک رشته 48 کاراکتری است که فقط شامل حروف کوچک a-z می‌شود.</string>
     <string name="network">شبکه</string>
@@ -720,12 +731,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">رام شما رمزگذاری شده است</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[لطفاً راهنماها را دنبال کنید تا <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">کارتیج‌های بازی</a> یا <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">عناوین نصب شده</a> خود را استخراج کنید.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[لطفا راهنماهای دامپ مجدد <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">کارت‌های بازی</a> یا <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">عنوان‌های دیجیتال</a> را دنبال کنید.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[لطفاً مطمئن شوید که فایل prod.keys شما نصب شده است تا بازی‌ها رمزگشایی شوند.]]></string>
     <string name="loader_error_video_core">در راه‌اندازی اولیه هسته ویدیو خطایی رخ داد</string>
     <string name="loader_error_video_core_description">این مورد معمولاً توسط یک درایور گرافیکی ناسازگار ایجاد می‌شود. نصب درایور گرافیکی سفارشی ممکن است این مشکل را حل کند.</string>
     <string name="loader_error_invalid_format">رام بارگذاری نشد</string>
     <string name="loader_error_file_not_found">فایل رام وجود ندارد</string>
+    <string name="loader_requires_firmware">بازی نیاز به فیرمور دارد</string>
+    <string name="loader_requires_firmware_description"><![CDATA[بازی که می‌خواهید اجرا کنید برای بوت شدن یا عبور از منوی شروع نیاز به فیرمور دارد. لطفا <a href="https://yuzu-mirror.github.io/help/quickstart"> فیرمور را دامپ و نصب کنید</a> یا برای ادامه کار "تایید" را فشار دهید.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">خروج از شبیه‌سازی</string>

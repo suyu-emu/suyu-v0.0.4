@@ -62,24 +62,25 @@
     <string name="show_fw_version">ファームウェアバージョンを表示</string>
     <string name="show_fw_version_description">インストールされているファームウェアのバージョンを表示します</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">GPU拡張機能</string>
     <string name="veil_renderer">レンダラー</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Vulkanにおける自動リソース管理の方法で、不要になったリソースを適切に解放しますが、バンドルされたゲームでクラッシュを引き起こす可能性があります。</string>
-    <string name="veil_misc">その他</string>
+    <string name="veil_misc">CPUとメモリ</string>
     <string name="eden_veil">エデンのベール</string>
     <string name="eden_veil_description">パフォーマンスと機能を向上させる実験的な設定。これらの設定は黒画面やその他のゲームの問題を引き起こす可能性があります。</string>
     <string name="eden_veil_warning_title">実験的設定</string>
-    <string name="eden_veil_warning_description">Eden\'s Veil内の設定は非常に実験的で問題を引き起こす可能性があります。ゲームが起動しない場合は、すべての拡張機能を無効にし、Extended Dynamic Stateを0に変更してください。</string>
+    <string name="eden_veil_warning_description">エデンのベールに含まれる設定は非常に実験的であり、問題を引き起こす可能性があります。ゲームが起動しない場合は、拡張機能を無効にしてください。</string>
     <string name="frame_skipping">WIP: フレームスキップ</string>
     <string name="frame_skipping_description">フレームスキップを切り替えて、レンダリングされるフレーム数を減らしパフォーマンスを向上させます。この機能は開発中であり、今後のリリースで有効になります。</string>
     <string name="frame_interpolation">高度なフレーム同期</string>
     <string name="frame_interpolation_description">フレーム間のタイミングを同期させることで、スムーズで一貫したフレーム配信を確保し、カクつきや不均一なアニメーションを軽減します。フレームタイミングの不安定さやマイクロスタッターが発生するゲームに最適です。</string>
     <string name="use_lru_cache">LRUキャッシュを有効化</string>
-    <string name="use_lru_cache_description">LRUキャッシュ（最近最も使われていない）を有効または無効にし、CPU使用率を節約してパフォーマンスを向上させます。一部のゲーム（特にTotK 1.2.1）で問題が発生する可能性があるため、ゲームが起動しないかランダムにクラッシュする場合は無効にしてください。</string>
+    <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
-    <string name="dyna_state_description">Vulkan機能を有効にし、パフォーマンスとレンダリングを向上させ、パイプライン作成時のリソースを節約しながらCPU/GPU使用率を低く保ちます。これらの拡張機能はデバイスの温度を上昇させる可能性があり、旧世代のA6XXシリーズのGPUは正しく動作しない場合があります。レガシーエミュレートフォーマットを使用するには0に設定してください。</string>
+    <string name="dyna_state_description">Vulkan機能を有効にし、パイプライン作成時のCPU/GPU使用率を低く保ちながら、パフォーマンス、レンダリング、リソース節約を改善します。これらの拡張機能はデバイスの温度を上昇させる可能性があり、旧A6XXシリーズのGPUは正しく反応しない場合があります。スケールフォーマットをエミュレートするには無効にしてください。</string>
+    <string name="disabled">無効</string>
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>
     <string name="use_auto_stub">自動スタブを使用</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">ルーム参加に失敗</string>
     <string name="multiplayer_name_invalid">名前が短すぎます</string>
     <string name="multiplayer_address_invalid">無効なアドレス</string>
-    <string name="multiplayer_port_invalid">無効なポート!</string>
+    <string name="multiplayer_port_invalid">無効なポート</string>
     <string name="multiplayer_exit_room">ルームを退出</string>
     <string name="multiplayer_network_error">ネットワークエラー</string>
     <string name="multiplayer_lost_connection">接続が切断されました</string>
-    <string name="multiplayer_name_collision">名前が重複しています</string>
+    <string name="multiplayer_name_collision">ユーザー名が既に使用されています</string>
     <string name="multiplayer_mac_collision">MACアドレスが重複</string>
     <string name="multiplayer_console_id_collision">コンソールIDが重複</string>
     <string name="multiplayer_wrong_version">バージョンが異なります</string>
     <string name="multiplayer_wrong_password">パスワードが間違っています</string>
     <string name="multiplayer_could_not_connect">接続できませんでした</string>
     <string name="multiplayer_room_is_full">ルームが満員です</string>
-    <string name="multiplayer_host_banned">ホストが禁止されています</string>
+    <string name="multiplayer_host_banned">このルームから追放されました</string>
     <string name="multiplayer_permission_denied">権限がありません</string>
     <string name="multiplayer_no_such_user">ユーザーが存在しません</string>
     <string name="multiplayer_already_in_room">既にルームに参加しています</string>
@@ -255,7 +256,8 @@
     <string name="multiplayer_room_name_error">3〜20文字で入力してください</string>
     <string name="multiplayer_required">必須</string>
     <string name="multiplayer_ip_error">無効なIP形式</string>
-    <string name="multiplayer_username_error">Deve essere lungo 4–20 caratteri</string>
+    <string name="multiplayer_username_error">4～20文字の英数字、ピリオド、ハイフン、アンダースコア、スペースのみ使用可能</string>
+    <string name="multiplayer_nickname_invalid">無効なユーザー名です。システム→ネットワークで正しく設定されていることを確認してください</string>
     <string name="multiplayer_port_error">1〜65535の間で入力してください</string>
     <string name="multiplayer_token_error">48文字で、小文字のa-zのみ使用可能</string>
     <string name="multiplayer_lobby_type">ロビータイプ</string>
@@ -411,6 +413,15 @@
     <string name="verify_installed_content_description">すべてのインストール済みコンテンツの整合性を確認</string>
     <string name="keys_missing">暗号化キーが不足</string>
     <string name="keys_missing_description">ファームウェアと製品版ゲームを復号化できません</string>
+    <string name="firmware_invalid">ファームウェアが無効</string>
+    <string name="error_firmware_missing">一部のゲームとアプリケーションを実行するにはファームウェアが必要です。Edenは19.0.1以前のファームウェアでのみ動作します。</string>
+    <string name="error_firmware_corrupted">ファームウェアは存在しますが読み取れません。復号キーを確認し、必要に応じてファームウェアを再ダンプしてください。</string>
+    <string name="error_firmware_too_new">ファームウェアが新しすぎるか読み取れません。Edenは19.0.1以前のファームウェアのみに対応しています。</string>
+    <string name="keys_failed">キーのインストールに失敗</string>
+    <string name="keys_install_success">キーが正常にインストールされました</string>
+    <string name="error_keys_copy_failed">1つ以上のキーのコピーに失敗しました。</string>
+    <string name="error_keys_invalid_filename">キーファイルの拡張子が.keysであることを確認し、再度お試しください。</string>
+    <string name="error_keys_failed_init">キーの初期化に失敗しました。ダンプツールが最新であることを確認し、キーを再ダンプしてください。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -472,7 +483,7 @@
     <!-- Network settings strings -->
     <string name="generate">生成</string>
     <string name="web_username">ウェブユーザー名</string>
-    <string name="web_username_description">マルチプレイヤーロビーに表示されるユーザー名。4〜20文字でなければなりません。</string>
+    <string name="web_username_description">マルチプレイヤールームに表示されるユーザー名。4～20文字の英数字、ハイフン、ピリオド、アンダースコア、スペースのみ使用可能。</string>
     <string name="web_token">ウェブトークン</string>
     <string name="web_token_description">公開ルームを作成するために使用されるウェブトークン。a-zの小文字のみを含む48文字の文字列です。</string>
     <string name="network">ネットワーク</string>
@@ -645,11 +656,14 @@
     <string name="verify_failure">整合性の確認に失敗しました!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROMが暗号化されています</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">ゲームカード</a>または<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">デジタルタイトル</a>を再ダンプするにはガイドに従ってください。]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[ゲームの復号化に必要な <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> ファイルがインストールされていることを確認してください。]]></string>
     <string name="loader_error_video_core">ビデオコアの初期化中にエラーが発生しました</string>
     <string name="loader_error_video_core_description">これは通常、互換性のないGPUドライバーが原因で発生します。 カスタムGPUドライバーをインストールすると、問題が解決する可能性があります。</string>
     <string name="loader_error_invalid_format">ROMの読み込みに失敗しました</string>
     <string name="loader_error_file_not_found">ROMファイルが存在しません</string>
+    <string name="loader_requires_firmware">ゲームにはファームウェアが必要です</string>
+    <string name="loader_requires_firmware_description"><![CDATA[起動しようとしているゲームは、起動または開始メニューを通過するためにファームウェアが必要です。<a href="https://yuzu-mirror.github.io/help/quickstart"> ファームウェアをダンプしてインストール</a>するか、"OK"を押して続行してください。]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">終了</string>

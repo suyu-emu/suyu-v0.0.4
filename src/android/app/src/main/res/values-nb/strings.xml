@@ -62,24 +62,25 @@
     <string name="show_fw_version">Vis firmwareversjon</string>
     <string name="show_fw_version_description">Viser den installerte firmwareversjonen</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">GPU-utvidelser</string>
     <string name="veil_renderer">Renderer</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">En metode for automatisk ressurshåndtering i Vulkan som sikrer riktig frigjøring av ressurser når de ikke lenger trengs, men kan føre til krasj i bundlede spill.</string>
-    <string name="veil_misc">Diverse</string>
+    <string name="veil_misc">CPU og minne</string>
     <string name="eden_veil">Edens slør</string>
     <string name="eden_veil_description">Eksperimentelle innstillinger for å forbedre ytelse og funksjonalitet. Disse innstillingene kan forårsake svarte skjermer eller andre spillproblemer.</string>
     <string name="eden_veil_warning_title">Eksperimentelle innstillinger</string>
-    <string name="eden_veil_warning_description">Innstillingene i Eden\'s Veil er svært eksperimentelle og kan forårsake problemer. Hvis spillet ditt ikke starter, deaktiver alle utvidelser og endre Extended Dynamic State til 0.</string>
+    <string name="eden_veil_warning_description">Innstillingene i Edens slør er svært eksperimentelle og kan forårsake problemer. Hvis spillet ikke starter, deaktiver alle utvidelser.</string>
     <string name="frame_skipping">WIP: Hoppe over bilder</string>
     <string name="frame_skipping_description">Slå av/på frame skipping for å forbedre ytelsen ved å redusere antall renderte bilder. Denne funksjonen er fortsatt under utvikling og vil bli aktivert i fremtidige versjoner.</string>
     <string name="frame_interpolation">Avansert bildevindu-synkronisering</string>
     <string name="frame_interpolation_description">Sikrer jevn og konsekvent bildelevering ved å synkronisere tiden mellom bilder, noe som reduserer hakking og ujevn animasjon. Ideelt for spill som opplever ustabil bildetid eller mikro-hakk under spilling.</string>
     <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
-    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager (Least Recently Used), som forbedrer ytelsen ved å spare CPU-bruk. Noen spill har problemer med dette, spesielt TotK 1.2.1, så deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
+    <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
-    <string name="dyna_state_description">Aktiverer Vulkan-funksjoner for å forbedre ytelse, rendering og spare ressurser ved oppretting av pipeline samtidig som CPU/GPU-bruken holdes lav. Disse utvidelsene kan øke enhetstemperaturen, og eldre GPU-er fra A6XX-serien fungerer kanskje ikke riktig. Sett til 0 for å bruke eldre emulerte formater.</string>
+    <string name="dyna_state_description">Aktiverer Vulkan-funksjoner for å forbedre ytelse, rendering og spare ressurser ved oppretting av pipeline samtidig som CPU/GPU-bruken holdes lav. Disse utvidelsene kan øke enhetstemperaturen, og eldre GPU-er fra A6XX-serien reagerer kanskje ikke ordentlig. Deaktiver for å emulere skalerte formater.</string>
+    <string name="disabled">Deaktivert</string>
     <string name="use_sync_core">Synkroniser kjernespeed</string>
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>
     <string name="use_auto_stub">Bruk Auto Stub</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">Kunne ikke bli med i rommet</string>
     <string name="multiplayer_name_invalid">Navn for kort</string>
     <string name="multiplayer_address_invalid">Ugyldig adresse</string>
-    <string name="multiplayer_port_invalid">Ugyldig port!</string>
+    <string name="multiplayer_port_invalid">Ugyldig port</string>
     <string name="multiplayer_exit_room">Forlat rom</string>
     <string name="multiplayer_network_error">Nettverksfeil</string>
     <string name="multiplayer_lost_connection">Mistet tilkobling</string>
-    <string name="multiplayer_name_collision">Navnekollisjon</string>
+    <string name="multiplayer_name_collision">Brukernavnet er allerede tatt</string>
     <string name="multiplayer_mac_collision">MAC-kollisjon</string>
     <string name="multiplayer_console_id_collision">Konsoll-ID-kollisjon</string>
     <string name="multiplayer_wrong_version">Feil versjon</string>
     <string name="multiplayer_wrong_password">Feil passord</string>
     <string name="multiplayer_could_not_connect">Kunne ikke koble til</string>
     <string name="multiplayer_room_is_full">Rommet er fullt</string>
-    <string name="multiplayer_host_banned">Vert utestengt</string>
+    <string name="multiplayer_host_banned">Du er utestengt fra dette rommet</string>
     <string name="multiplayer_permission_denied">Tilgang nektet</string>
     <string name="multiplayer_no_such_user">Ingen slik bruker</string>
     <string name="multiplayer_already_in_room">Allerede i rommet</string>
@@ -255,7 +256,8 @@
     <string name="multiplayer_room_name_error">Må være 3-20 tegn</string>
     <string name="multiplayer_required">Påkrevd</string>
     <string name="multiplayer_ip_error">Ugyldig IP-format</string>
-    <string name="multiplayer_username_error">Må være mellom 4–20 tegn</string>
+    <string name="multiplayer_username_error">Må være mellom 4-20 tegn (kun alfanumeriske tegn, punktum, bindestreker, understreker og mellomrom)</string>
+    <string name="multiplayer_nickname_invalid">Ugyldig brukernavn, kontroller at det er riktig satt under System → Nettverk</string>
     <string name="multiplayer_port_error">Må være mellom 1-65535</string>
     <string name="multiplayer_token_error">Må være 48 tegn, og kun små bokstaver a-z</string>
     <string name="multiplayer_lobby_type">Lobbytype</string>
@@ -410,6 +412,15 @@
     <string name="verify_installed_content_description">Sjekk for korrupsjon</string>
     <string name="keys_missing">Nøkler mangler</string>
     <string name="keys_missing_description">Kan ikke dekryptere firmware/spill</string>
+    <string name="firmware_invalid">Ugyldig fastvare</string>
+    <string name="error_firmware_missing">Fastvare kreves for å kjøre enkelte spill og applikasjoner. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
+    <string name="error_firmware_corrupted">Fastvare er til stede, men kan ikke leses. Sjekk dekrypteringsnøklene og dump fastvaren på nytt om nødvendig.</string>
+    <string name="error_firmware_too_new">Fastvaren er for ny eller kan ikke leses. Eden fungerer bare med fastvare 19.0.1 eller eldre.</string>
+    <string name="keys_failed">Kunne ikke installere nøkler</string>
+    <string name="keys_install_success">Nøklene ble installert</string>
+    <string name="error_keys_copy_failed">En eller flere nøkler kunne ikke kopieres.</string>
+    <string name="error_keys_invalid_filename">Kontroller at nøkkelfilen din har filendelsen .keys og prøv på nytt.</string>
+    <string name="error_keys_failed_init">Kunne ikke initialisere nøkler. Sjekk at dumpverktøyene dine er oppdaterte og dump nøklene på nytt.</string>
 
     <!-- Applet-lanseringsstrenger -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -463,7 +474,7 @@
     <!-- Network settings strings -->
     <string name="generate">Generer</string>
     <string name="web_username">Webbrukernavn</string>
-    <string name="web_username_description">Brukernavn som vises i flerspillerlobbyer. Må være 4–20 tegn langt.</string>
+    <string name="web_username_description">Brukernavn som vises i flerspillerrom. Må være mellom 4-20 tegn (kun alfanumeriske tegn, bindestreker, punktum, understreker og mellomrom).</string>
     <string name="web_token">Nett-token</string>
     <string name="web_token_description">Nett-token som brukes til å opprette offentlige rom. Det er en 48-tegns streng som kun inneholder små bokstaver a-z.</string>
     <string name="network">Nettverk</string>
@@ -636,11 +647,14 @@
     <string name="verify_failure">Integritetsverifisering mislyktes!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-en din er kryptert</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Følg veiledningene for å dumpe <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">spillkort</a> eller <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">digitale titler</a> på nytt.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
     <string name="loader_error_video_core">Det oppstod en feil ved initialisering av videokjernen</string>
     <string name="loader_error_video_core_description">Dette skyldes vanligvis en inkompatibel GPU-driver. Installering av en tilpasset GPU-driver kan løse problemet.</string>
     <string name="loader_error_invalid_format">Kunne ikke laste inn ROM</string>
     <string name="loader_error_file_not_found">ROM-filen finnes ikke</string>
+    <string name="loader_requires_firmware">Spillet krever fastvare</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Spillet du prøver å starte krever fastvare for oppstart eller for å komme forbi startmenyen. Vennligst <a href="https://yuzu-mirror.github.io/help/quickstart"> dump og installer fastvare</a>, eller trykk "OK" for å fortsette likevel.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Avslutt emulering</string>

@@ -55,21 +55,21 @@
 
     <string name="show_device_model">Показать модель устройства</string>
     <string name="show_device_model_description">Отобразить модель хостового устройства</string>
-    <string name="show_gpu_model">Показать модель GPU</string>
-    <string name="show_gpu_model_description">Отобразить модель хостовой GPU</string>
+    <string name="show_gpu_model">Показать модель ГПУ</string>
+    <string name="show_gpu_model_description">Отобразить модель хостовой ГПУ</string>
     <string name="show_soc_model">Показать модель SoC</string>
     <string name="show_soc_model_description">Отобразить модель хостового SoC</string>
     <string name="show_fw_version">Показать версию прошивки</string>
     <string name="show_fw_version_description">Отображает установленную версию прошивки</string>
 
-    <!-- Eden`s Veil -->
-    <string name="veil_extensions">Расширения GPU</string>
-    <string name="veil_renderer">Рендерер</string>
-    <string name="veil_misc">Разное</string>
+    <!-- Eden\'s Veil -->
+    <string name="veil_extensions">Расширения ГПУ</string>
+    <string name="veil_renderer">Рендеринг</string>
+    <string name="veil_misc">Процессор и память</string>
     <string name="eden_veil">Покров Эдема</string>
     <string name="eden_veil_description">Экспериментальные настройки для улучшения производительности и возможностей. Эти настройки могут вызывать черные экраны или другие проблемы в игре.</string>
     <string name="eden_veil_warning_title">Экспериментальные настройки</string>
-    <string name="eden_veil_warning_description">Настройки в Eden\'s Veil являются экспериментальными и могут вызывать проблемы. Если ваша игра не запускается, отключите все расширения и установите расширенное динамическое состояние на 0.</string>
+    <string name="eden_veil_warning_description">Настройки в Покров Эдема являются экспериментальными и могут вызывать проблемы. Если ваша игра не запускается, отключите все расширения.</string>
     <string name="frame_skipping">В разработке: Пропуск кадров</string>
     <string name="frame_skipping_description">Включите или отключите пропуск кадров для повышения производительности за счет уменьшения количества отображаемых кадров. Эта функция находится в разработке и будет включена в будущих версиях.</string>
     <string name="enable_raii">RAII</string>
@@ -77,9 +77,10 @@
     <string name="frame_interpolation">Улучшенная синхронизация кадров</string>
     <string name="frame_interpolation_description">Обеспечивает плавную и стабильную подачу кадров за счет синхронизации их времени, уменьшая подтормаживания и неравномерную анимацию. Идеально для игр с нестабильным временем кадров или микро-подтормаживаниями во время игры.</string>
     <string name="use_lru_cache">Включить LRU-кеш</string>
-    <string name="use_lru_cache_description">Включите или отключите кэш LRU (наименее недавно использованный), что повышает производительность за счет экономии использования ЦП. Некоторые игры имеют проблемы с ним, особенно TotK 1.2.1, поэтому отключите, если игра не запускается или случайно вылетает.</string>
+    <string name="use_lru_cache_description">Включите или отключите кэш LRU (наименее недавно использованный), повышая производительность за счёт снижения нагрузки на ЦП. Некоторые игры могут работать с ним некорректно (например, TotK 1.2.1), поэтому отключите, если игра не запускается или случайно вылетает.</string>
     <string name="dyna_state">Расширенное динамическое состояние</string>
-    <string name="dyna_state_description">Активирует расширения Vulkan для оптимизации производительности, улучшения рендеринга и снижения нагрузки при создании конвейера с сохранением низкого энергопотребления CPU/GPU. Может привести к повышению температуры устройства. На GPU серии A6XX возможны некорректные работы. Установите 0 для использования эмулируемых форматов (Legacy).</string>
+    <string name="dyna_state_description">Включает функции Vulkan для улучшения производительности, рендеринга и экономии ресурсов при создании конвейера, сохраняя низкое использование ЦП/ГПУ. Эти расширения могут увеличить температуру устройства, а ГПУ из старой линейки A6XX могут работать некорректно. Отключите для эмуляции масштабируемых форматов.</string>
+    <string name="disabled">Отключено</string>
     <string name="use_sync_core">Синхронизация скорости ядра</string>
     <string name="use_sync_core_description">Синхронизирует скорость ядра с максимальным процентом скорости для улучшения производительности без изменения фактической скорости игры.</string>
     <string name="use_auto_stub">Использовать Auto Stub</string>
@@ -89,12 +90,12 @@
     <string name="firmware_uninstalling">Удаление прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивка успешно удалена</string>
     <string name="provoking_vertex">Определяющая вершина</string>
-    <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только GPU с Vulkan 1.0+.</string>
+    <string name="provoking_vertex_description">Улучшает освещение и обработку вершин в некоторых играх. Поддерживается только ГПУ с Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Индексирование дескрипторов</string>
-    <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми GPU Vulkan 1.1 и всеми GPU Vulkan 1.2+.</string>
-    <string name="use_fast_gpu_time">Использовать быстрое время GPU</string>
+    <string name="descriptor_indexing_description">Улучшает обработку текстур и буферов, а также слой перевода Maxwell. Поддерживается некоторыми ГПУ Vulkan 1.1 и всеми ГПУ Vulkan 1.2+.</string>
+    <string name="use_fast_gpu_time">Использовать быстрое время ГПУ</string>
     <string name="use_fast_gpu_time_description">Заставляет большинство игр работать в максимальном нативном разрешении. Эта опция может вызывать проблемы.</string>
-    <string name="fast_gpu_time">Фактор разгона GPU</string>
+    <string name="fast_gpu_time">Фактор разгона ГПУ</string>
     <string name="fast_gpu_time_description">Используйте 128 для максимальной производительности и 512 для максимальной графической точности.</string>
     <string name="gpu_low">Низкий (128)</string>
     <string name="gpu_medium">Средний (256)</string>
@@ -104,19 +105,19 @@
     <string name="temperature_celsius">Цельсий</string>
     <string name="temperature_fahrenheit">Фаренгейт</string>
 
-    <string name="use_fast_cpu_time">Быстрое время CPU</string>
+    <string name="use_fast_cpu_time">Быстрое время ЦП</string>
     <string name="use_fast_cpu_time_description">Заставляет эмулируемый процессор работать на более высокой частоте, уменьшая некоторые ограничители FPS. Эта опция нестабильна и может вызывать проблемы, а более слабые процессоры могут показывать снижение производительности.</string>
-    <string name="fast_cpu_time">Тактовая частота CPU</string>
+    <string name="fast_cpu_time">Тактовая частота ЦП</string>
     <string name="fast_cpu_time_description">Используйте Разгон (1700MHz) для работы на максимальной нативной частоте Switch или Быстрая (2000MHz) для работы на удвоенной частоте.</string>
     <string name="memory_layout">Распределение памяти</string>
     <string name="memory_layout_description">(ЭКСПЕРИМЕНТАЛЬНО) Изменяет эмулируемое распределение памяти. Эта настройка не увеличивает производительность, но может помочь в играх, использующих высокие разрешения через моды. Не используйте на телефонах с 8 ГБ ОЗУ или меньше.</string>
     <string name="sample_shading">Сэмпловый шейдинг</string>
     <string name="sample_shading_description">Позволяет шейдеру фрагментов выполняться на каждый сэмпл в мультисэмпловом фрагменте вместо одного раза на фрагмент. Улучшает качество графики ценой производительности. Только устройства с Vulkan 1.1+ поддерживают это расширение.</string>
-    <string name="custom_cpu_ticks">Пользовательские такты CPU</string>
-    <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов CPU. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
+    <string name="custom_cpu_ticks">Пользовательские такты ЦП</string>
+    <string name="custom_cpu_ticks_description">Установите пользовательское значение тактов ЦП. Более высокие значения могут увеличить производительность, но также могут вызвать зависание игры. Рекомендуется диапазон 77–21000.</string>
     <string name="cpu_ticks">Такты</string>
-    <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию CPU</string>
-    <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне CPU при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+    <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
+    <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
 
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
@@ -128,10 +129,10 @@
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">Метод декодирования ASTC</string>
-    <string name="accelerate_astc_description">Выберите способ декодирования сжатых текстур ASTC для рендеринга: CPU (медленно, безопасно), GPU (быстро, рекомендуется) или CPU Async (без заиканий, могут возникнуть проблемы)</string>
-    <string name="accelerate_astc_cpu">CPU</string>
-    <string name="accelerate_astc_gpu">GPU</string>
-    <string name="accelerate_astc_async">CPU (асинхронно)</string>
+    <string name="accelerate_astc_description">Выберите способ декодирования сжатых текстур ASTC для рендеринга: ЦП (медленно, безопасно), ГПУ (быстро, рекомендуется) или ЦП асинхронно (без заиканий, могут возникнуть проблемы)</string>
+    <string name="accelerate_astc_cpu">ЦП</string>
+    <string name="accelerate_astc_gpu">ГПУ</string>
+    <string name="accelerate_astc_async">ЦП (асинхронно)</string>
 
     <!-- ASTC Recompression Method -->
     <string name="astc_recompression">Метод пережатия ASTC</string>
@@ -156,13 +157,13 @@
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">Эмуляция NVDEC</string>
     <string name="nvdec_emulation_description">Обработка видео (ролики, интро)</string>
-    <string name="nvdec_emulation_cpu">CPU</string>
-    <string name="nvdec_emulation_gpu">GPU</string>
+    <string name="nvdec_emulation_cpu">ЦП</string>
+    <string name="nvdec_emulation_gpu">ГПУ</string>
     <string name="nvdec_emulation_none">Отключено</string>
 
     <!-- Optimize Spir-V output -->
     <string name="renderer_optimize_spirv_output">Оптимизация Spir-V</string>
-    <string name="renderer_optimize_spirv_output_description">Оптимизирует скомпилированный шейдер для повышения эффективности GPU.</string>
+    <string name="renderer_optimize_spirv_output_description">Оптимизирует скомпилированный шейдер для повышения эффективности ГПУ.</string>
     <string name="never">Никогда</string>
     <string name="on_load">При загрузке</string>
     <string name="always">Всегда</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">Ошибка подключения</string>
     <string name="multiplayer_name_invalid">Слишком короткое имя</string>
     <string name="multiplayer_address_invalid">Неверный адрес</string>
-    <string name="multiplayer_port_invalid">Неверный порт!</string>
+    <string name="multiplayer_port_invalid">Неверный порт</string>
     <string name="multiplayer_exit_room">Выйти</string>
     <string name="multiplayer_network_error">Ошибка сети</string>
     <string name="multiplayer_lost_connection">Соединение потеряно</string>
-    <string name="multiplayer_name_collision">Имя занято</string>
+    <string name="multiplayer_name_collision">Имя пользователя уже занято</string>
     <string name="multiplayer_mac_collision">Конфликт MAC-адреса</string>
     <string name="multiplayer_console_id_collision">Конфликт ID консоли</string>
     <string name="multiplayer_wrong_version">Неверная версия</string>
     <string name="multiplayer_wrong_password">Неверный пароль</string>
     <string name="multiplayer_could_not_connect">Не удалось подключиться</string>
     <string name="multiplayer_room_is_full">Комната заполнена</string>
-    <string name="multiplayer_host_banned">Хост заблокирован</string>
+    <string name="multiplayer_host_banned">Вы забанены в этой комнате</string>
     <string name="multiplayer_permission_denied">Доступ запрещен</string>
     <string name="multiplayer_no_such_user">Пользователь не найден</string>
     <string name="multiplayer_already_in_room">Уже в комнате</string>
@@ -255,7 +256,8 @@
     <string name="multiplayer_room_name_error">3-20 символов</string>
     <string name="multiplayer_required">Обязательно</string>
     <string name="multiplayer_ip_error">Неверный IP</string>
-    <string name="multiplayer_username_error">Должно быть от 4 до 20 символов</string>
+    <string name="multiplayer_username_error">Должно быть от 4 до 20 символов и содержать только буквы, цифры, точки, дефисы, подчёркивания и пробелы</string>
+    <string name="multiplayer_nickname_invalid">Неверное имя пользователя. Убедитесь, что оно правильно указано в Система -> Сеть</string>
     <string name="multiplayer_port_error">1-65535</string>
     <string name="multiplayer_token_error">Должно быть 48 символов и содержать только строчные буквы a-z</string>
     <string name="multiplayer_lobby_type">Тип лобби</string>
@@ -424,6 +426,15 @@
     <string name="verify_installed_content_description">Проверяет весь установленный контент на наличие повреждений</string>
     <string name="keys_missing">Отсутствуют ключи шифрования</string>
     <string name="keys_missing_description">Прошивка и розничные игры не могут быть расшифрованы</string>
+    <string name="firmware_invalid">Прошивка недействительна</string>
+    <string name="error_firmware_missing">Для запуска некоторых игр и системных апплетов требуется прошивка. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
+    <string name="error_firmware_corrupted">Прошивка обнаружена, но не может быть прочитана. Проверьте наличие ключей дешифрования и при необходимости пересохраните прошивку.</string>
+    <string name="error_firmware_too_new">Прошивка слишком новая или не может быть прочитана. Eden работает только с прошивкой версии 19.0.1 и ниже.</string>
+    <string name="keys_failed">Ошибка установки ключей</string>
+    <string name="keys_install_success">Ключи успешно установлены</string>
+    <string name="error_keys_copy_failed">Не удалось скопировать один или несколько ключей.</string>
+    <string name="error_keys_invalid_filename">Убедитесь, что файл ключей имеет расширение .keys, и попробуйте снова.</string>
+    <string name="error_keys_failed_init">Не удалось инициализировать ключи. Проверьте, актуальны ли ваши инструменты для дампа, и пересохраните ключи.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -489,7 +500,7 @@
     <!-- Network settings strings -->
     <string name="generate">Создать</string>
     <string name="web_username">Веб-имя пользователя</string>
-    <string name="web_username_description">Имя пользователя, которое будет отображаться в мультиплеерных лобби. Должно содержать 4–20 символов.</string>
+    <string name="web_username_description">Имя пользователя, отображаемое в мультиплеерных лобби. Должно быть от 4 до 20 символов и содержать только буквы, цифры, дефисы, точки, подчёркивания и пробелы.</string>
     <string name="web_token">Веб-токен</string>
     <string name="web_token_description">Веб-токен, используемый для создания публичных комнат. Это строка из 48 символов, содержащая только строчные буквы a-z.</string>
     <string name="network">Сеть</string>
@@ -524,7 +535,7 @@
     <string name="cpu">ЦП</string>
     <string name="cpu_debug_mode">Отладка ЦП</string>
     <string name="cpu_debug_mode_description">Переводит ЦП в режим медленной отладки.</string>
-    <string name="gpu">Графический процессор</string>
+    <string name="gpu">ГПУ</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Отладка графики</string>
     <string name="renderer_debug_description">Переводит графический API в режим медленной отладки.</string>
@@ -679,7 +690,7 @@
     <string name="installing_driver">Установка драйвера...</string>
 
     <!-- GPU driver fetcher -->
-    <string name="gpu_driver_fetcher">Получение драйверов GPU</string>
+    <string name="gpu_driver_fetcher">Получение драйверов ГПУ</string>
     <string name="fetch">Получить</string>
     <string name="fetch_error">Ошибка при получении</string>
     <string name="check_connection">Проверьте соединение и попробуйте снова.</string>
@@ -701,9 +712,9 @@
     <string name="installing">Установка…</string>
     <string name="latest">Последний</string>
     <string name="recommended_driver">Рекомендуемый драйвер:</string>
-    <string name="gpu_model">Модель GPU:</string>
-    <string name="unsupported_gpu">GPU не поддерживается</string>
-    <string name="unsupported_gpu_warning">Ваш GPU не поддерживает замену драйверов. Установка сторонних драйверов не рекомендуется.</string>
+    <string name="gpu_model">Модель ГПУ:</string>
+    <string name="unsupported_gpu">ГПУ не поддерживается</string>
+    <string name="unsupported_gpu_warning">Ваш ГПУ не поддерживает замену драйверов. Установка сторонних драйверов не рекомендуется.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Настройки</string>
@@ -771,12 +782,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Следуйте инструкциям, чтобы пере-дампить игровые картриджи <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\"> или <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\"> установленные игры</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">игровых картриджей</a> или <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">установленных игр</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Пожалуйста, убедитесь, что ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> установлен, чтобы игры можно было расшифровать.]]></string>
     <string name="loader_error_video_core">Произошла ошибка при инициализации видеоядра.</string>
     <string name="loader_error_video_core_description">Обычно это вызвано несовместимым драйвером ГП. Установка пользовательского драйвера ГП может решить эту проблему.</string>
     <string name="loader_error_invalid_format">Не удалось запустить ROM</string>
     <string name="loader_error_file_not_found">Файл ROM не существует</string>
+    <string name="loader_requires_firmware">Игре требуется прошивка</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Для запуска этой игры или прохождения начального меню требуется прошивка. Пожалуйста, <a href="https://yuzu-mirror.github.io/help/quickstart">сохраните и установите прошивку</a> или нажмите "OK" для запуска в любом случае.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Выход из эмуляции</string>

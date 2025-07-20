@@ -62,24 +62,25 @@
     <string name="show_fw_version">Tampilkan Versi Firmware</string>
     <string name="show_fw_version_description">Menampilkan versi firmware yang terinstal</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">Ekstensi GPU</string>
     <string name="veil_renderer">Renderer</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Metode manajemen sumber daya otomatis di Vulkan yang memastikan pelepasan sumber daya yang tepat ketika tidak lagi diperlukan, tetapi dapat menyebabkan crash pada game yang dibundel.</string>
-    <string name="veil_misc">Lain-lain</string>
-    <string name="eden_veil">Eden`s Veil</string>
+    <string name="veil_misc">CPU dan Memori</string>
+    <string name="eden_veil">Eden\'s Veil</string>
     <string name="eden_veil_description">Pengaturan eksperimental untuk meningkatkan kinerja dan kemampuan. Pengaturan ini dapat menyebabkan layar hitam atau masalah game lainnya.</string>
     <string name="eden_veil_warning_title">Pengaturan Eksperimental</string>
-    <string name="eden_veil_warning_description">Pengaturan dalam Eden\'s Veil sangat eksperimental dan dapat menyebabkan masalah. Jika game Anda tidak boot, nonaktifkan semua ekstensi dan ubah Extended Dynamic State ke 0.</string>
+    <string name="eden_veil_warning_description">Pengaturan di Eden\'s Veil sangat eksperimental dan dapat menyebabkan masalah. Jika game tidak mau berjalan, nonaktifkan semua ekstensi.</string>
     <string name="frame_skipping">WIP: Loncatan Frame</string>
     <string name="frame_skipping_description">Aktifkan atau nonaktifkan frame skipping untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender. Fitur ini masih dalam pengembangan dan akan diaktifkan di rilis mendatang.</string>
     <string name="frame_interpolation">Penyelarasan Frame Tingkat Lanjut</string>
     <string name="frame_interpolation_description">Memastikan pengiriman frame yang halus dan konsisten dengan menyinkronkan waktu antar frame, mengurangi stuttering dan animasi tidak rata. Ideal untuk game yang mengalami ketidakstabilan waktu frame atau micro-stutter selama gameplay.</string>
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
-    <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU (Least Recently Used), meningkatkan performa dengan menghemat penggunaan CPU. Beberapa game memiliki masalah dengannya, terutama TotK 1.2.1, jadi nonaktifkan jika game tidak mau boot atau sering crash.</string>
+    <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
-    <string name="dyna_state_description">Mengaktifkan fitur Vulkan untuk meningkatkan kinerja, rendering, dan menghemat sumber daya saat pembuatan pipeline dengan tetap mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU dari seri A6XX lama mungkin tidak berfungsi dengan baik. Setel ke 0 untuk menggunakan format emulasi lama.</string>
+    <string name="dyna_state_description">Aktifkan fitur Vulkan untuk meningkatkan performa, rendering dan menghemat sumber daya saat pembuatan pipeline sambil mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU seri A6XX lama mungkin tidak merespons dengan benar. Nonaktifkan untuk emulasi format skala.</string>
+    <string name="disabled">Dinonaktifkan</string>
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>
     <string name="use_auto_stub">Gunakan Auto Stub</string>
@@ -184,18 +185,18 @@
     <string name="multiplayer_join_room_failed">Gagal bergabung ke ruang</string>
     <string name="multiplayer_name_invalid">Nama terlalu pendek</string>
     <string name="multiplayer_address_invalid">Alamat tidak valid</string>
-    <string name="multiplayer_port_invalid">Port tidak valid!</string>
+    <string name="multiplayer_port_invalid">Port tidak valid</string>
     <string name="multiplayer_exit_room">Keluar Ruang</string>
     <string name="multiplayer_network_error">Kesalahan jaringan</string>
     <string name="multiplayer_lost_connection">Koneksi terputus</string>
-    <string name="multiplayer_name_collision">Nama bentrok</string>
+    <string name="multiplayer_name_collision">Nama pengguna sudah digunakan</string>
     <string name="multiplayer_mac_collision">Alamat MAC bentrok</string>
     <string name="multiplayer_console_id_collision">ID Konsol bentrok</string>
     <string name="multiplayer_wrong_version">Versi salah</string>
     <string name="multiplayer_wrong_password">Password salah</string>
     <string name="multiplayer_could_not_connect">Tidak dapat terhubung</string>
     <string name="multiplayer_room_is_full">Ruang penuh</string>
-    <string name="multiplayer_host_banned">Host diblokir</string>
+    <string name="multiplayer_host_banned">Anda dilarang masuk ke ruangan ini</string>
     <string name="multiplayer_permission_denied">Izin ditolak</string>
     <string name="multiplayer_no_such_user">Pengguna tidak ditemukan</string>
     <string name="multiplayer_already_in_room">Sudah berada di ruang</string>
@@ -257,7 +258,8 @@
     <string name="multiplayer_required">Diperlukan</string>
     <string name="multiplayer_token_required">Token Web diperlukan, buka Pengaturan Lanjutan -> Sistem -> Jaringan</string>
     <string name="multiplayer_ip_error">Format IP tidak valid</string>
-    <string name="multiplayer_username_error">Harus antara 4-20 karakter</string>
+    <string name="multiplayer_username_error">Harus 4-20 karakter (hanya alfanumerik, titik, tanda hubung, garis bawah, dan spasi)</string>
+    <string name="multiplayer_nickname_invalid">Nama pengguna tidak valid, pastikan sudah diatur dengan benar di Sistem → Jaringan</string>
     <string name="multiplayer_token_error">Harus 48 karakter, dan hanya huruf kecil a-z</string>
     <string name="multiplayer_port_error">Harus antara 1-65535</string>
     <string name="cancel">Batal</string>
@@ -418,6 +420,15 @@
     <string name="verify_installed_content_description">Memeriksa semua konten yang terinstal dari kerusakan</string>
     <string name="keys_missing">Kunci enkripsi hilang</string>
     <string name="keys_missing_description">Firmware dan game retail tidak dapat didekripsi</string>
+    <string name="firmware_invalid">Firmware tidak valid</string>
+    <string name="error_firmware_missing">Firmware diperlukan untuk menjalankan game dan aplikasi tertentu. Eden hanya bekerja dengan firmware 19.0.1 atau lebih lama.</string>
+    <string name="error_firmware_corrupted">Firmware dilaporkan ada tetapi tidak dapat dibaca. Periksa kunci dekripsi dan dump ulang firmware jika diperlukan.</string>
+    <string name="error_firmware_too_new">Firmware terlalu baru atau tidak dapat dibaca. Eden hanya bekerja dengan firmware 19.0.1 atau lebih lama.</string>
+    <string name="keys_failed">Gagal menginstal kunci</string>
+    <string name="keys_install_success">Kunci berhasil diinstal</string>
+    <string name="error_keys_copy_failed">Satu atau lebih kunci gagal disalin.</string>
+    <string name="error_keys_invalid_filename">Pastikan file kunci Anda memiliki ekstensi .keys dan coba lagi.</string>
+    <string name="error_keys_failed_init">Kunci gagal diinisialisasi. Periksa apakah alat dumping Anda mutakhir dan dump ulang kunci.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -483,7 +494,7 @@
     <!-- Network settings strings -->
     <string name="generate">Hasilkan</string>
     <string name="web_username">Nama Pengguna Web</string>
-    <string name="web_username_description">Nama pengguna yang akan ditampilkan di lobi multipemain. Harus terdiri dari 4–20 karakter.</string>
+    <string name="web_username_description">Nama pengguna yang ditampilkan di ruang multiplayer. Harus 4-20 karakter (hanya alfanumerik, tanda hubung, titik, garis bawah, dan spasi).</string>
     <string name="web_token">Token Web</string>
     <string name="web_token_description">Token web digunakan untuk membuat ruang publik. Ini adalah string 48 karakter yang hanya berisi huruf kecil a-z.</string>
     <string name="network">Jaringan</string>
@@ -713,12 +724,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-mu ter-enkripsi</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk redump <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">kartu permainan</a> atau <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">judul yang terinstal</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk mendump ulang <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">kartrid game</a> atau <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">judul digital</a> Anda.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Harap pastikan bahwa Anda <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> diinstal sehingga game dapat didekripsi.]]></string>
     <string name="loader_error_video_core">Terjadi kesalahan ketika menginisialisasi inti video.</string>
     <string name="loader_error_video_core_description">Hal ini biasanya disebabkan oleh driver GPU yang tidak kompatibel. Menginstal driver GPU khusus dapat mengatasi masalah ini</string>
     <string name="loader_error_invalid_format">Tidak Dapat Memuat ROM</string>
     <string name="loader_error_file_not_found">Berkas Tidak Ditemukan</string>
+    <string name="loader_requires_firmware">Game memerlukan firmware</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Game yang ingin Anda jalankan memerlukan firmware untuk boot atau melewati menu pembuka. Silakan <a href="https://yuzu-mirror.github.io/help/quickstart"> dump dan instal firmware</a>, atau tekan "OK" untuk melanjutkan.]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Keluar</string>

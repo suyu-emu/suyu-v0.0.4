@@ -62,14 +62,14 @@
     <string name="show_fw_version">Показати версію прошивки</string>
     <string name="show_fw_version_description">Відображає встановлену версію прошивки</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">Розширення GPU</string>
     <string name="veil_renderer">Рендеринг</string>
-    <string name="veil_misc">Різне</string>
+    <string name="veil_misc">Процесор і пам\'ять</string>
     <string name="eden_veil">Завіса Eden</string>
     <string name="eden_veil_description">Експериментальні налаштування для покращення продуктивності та сумісності. Ці налаштування можуть викликати збої, зокрема чорний екран.</string>
     <string name="eden_veil_warning_title">Експериментальні налаштування</string>
-    <string name="eden_veil_warning_description">Налаштування Завіси Eden (Eden\'s Veil) є експериментальними та можуть спричинити проблеми. Якщо ваша гра не запускається — вимкніть усі розширення та змініть \"Розширений динамічний стан\" на 0.</string>
+    <string name="eden_veil_warning_description">Налаштування Завіси Eden є експериментальними та можуть спричинити проблеми. Якщо ваша гра не запускається — вимкніть усі розширення.</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Метод автоматичного керування ресурсами у Vulkan, який забезпечує правильне звільнення ресурсів після завершення їх використання, проте він може спричинити збої в ігрових збірниках.</string>
     <string name="frame_skipping">В розробці: Пропуск кадрів</string>
@@ -77,9 +77,10 @@
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
     <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
     <string name="use_lru_cache">Увімкнути LRU-кеш</string>
-    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU (Least Recently Used), підвищуючи продуктивність за рахунок зменшення навантаження на CPU. Однак деякі ігри, як-от TotK версії 1.2.1, можуть працювати некоректно — у такому разі вимкніть цю опцію, якщо гра не запускається або раптово вилітає.</string>
+    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU для покращення продуктивності шляхом зменшення використання процесора. Деякі ігри (зокрема TotK 1.2.1) мають проблеми - вимкніть, якщо гра не запускається або випадково зникає.</string>
     <string name="dyna_state">Розширений динамічний стан</string>
-    <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, поліпшеня рендерингу та економії ресурсів під час створення конвеєрів (pepeline), зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Встановіть 0, щоб увімкнути використання емуляції попередніх (Legacy) форматів.</string>
+    <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, поліпшеня рендерингу та економії ресурсів під час створення конвеєрів (pepeline), зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Вимкніть для емуляції масштабованих форматів.</string>
+    <string name="disabled">Вимкнено</string>
     <string name="use_sync_core">Синхронізувати швидкість ядра</string>
     <string name="use_sync_core_description">Синхронізує швидкість ядра з максимальним відсотком швидкості для покращення продуктивності без зміни реальної швидкості гри.</string>
     <string name="use_auto_stub">Використовувати Auto Stub</string>
@@ -187,14 +188,14 @@
     <string name="multiplayer_exit_room">Вийти</string>
     <string name="multiplayer_network_error">Помилка мережі</string>
     <string name="multiplayer_lost_connection">Втрачено з\'єднання</string>
-    <string name="multiplayer_name_collision">Конфлікт імен</string>
+    <string name="multiplayer_name_collision">Ім\'я користувача вже використовується</string>
     <string name="multiplayer_mac_collision">Конфлікт MAC</string>
     <string name="multiplayer_console_id_collision">Конфлікт ID консолі</string>
     <string name="multiplayer_wrong_version">Невірна версія</string>
     <string name="multiplayer_wrong_password">Невірний пароль</string>
     <string name="multiplayer_could_not_connect">Не вдалося підключитися</string>
     <string name="multiplayer_room_is_full">Кімната заповнена</string>
-    <string name="multiplayer_host_banned">Хост заблокований</string>
+    <string name="multiplayer_host_banned">Вам заборонено входити до цієї кімнати</string>
     <string name="multiplayer_permission_denied">Доступ заборонено</string>
     <string name="multiplayer_no_such_user">Користувача не знайдено</string>
     <string name="multiplayer_already_in_room">Вже в кімнаті</string>
@@ -253,7 +254,8 @@
     <string name="multiplayer_required">Обов\'язково</string>
     <string name="multiplayer_ip_error">Невірний IP</string>
     <string name="multiplayer_name_invalid">Ім\'я занадто коротке</string>
-    <string name="multiplayer_username_error">Має бути від 4 до 20 символів</string>
+    <string name="multiplayer_username_error">Повинно містити 4-20 символів (лише літери, цифри, крапки, дефіси, підкреслення та пробіли)</string>
+    <string name="multiplayer_nickname_invalid">Недійсне ім\'я користувача, перевірте в Система → Мережа</string>
     <string name="multiplayer_port_error">1-65535</string>
     <string name="multiplayer_token_error">Має бути 48 символів і містити лише малі літери a-z</string>
     <string name="multiplayer_lobby_type">Тип лобі</string>
@@ -409,6 +411,15 @@
     <string name="verify_installed_content_description">Перевіряє встановлений вміст на наявність помилок.</string>
     <string name="keys_missing">Відсутні ключі</string>
     <string name="keys_missing_description">Прошивку та роздрібні ігри не вдасться розшифрувати.</string>
+    <string name="firmware_invalid">Недійсна прошивка</string>
+    <string name="error_firmware_missing">Для запуску деяких ігор та системних аплетів потрібна прошивка. Eden працює лише з прошивкою 19.0.1 або старішою.</string>
+    <string name="error_firmware_corrupted">Прошивка є, але не може бути прочитана. Перевірте ключі дешифрування та повторно зробіть дамп прошивки за необхідності.</string>
+    <string name="error_firmware_too_new">Прошивка занадто нова або нечитабельна. Eden працює лише з прошивкою 19.0.1 або старішою.</string>
+    <string name="keys_failed">Не вдалося встановити ключі</string>
+    <string name="keys_install_success">Ключі успішно встановлено</string>
+    <string name="error_keys_copy_failed">Не вдалося скопіювати один або кілька ключів.</string>
+    <string name="error_keys_invalid_filename">Переконайтеся, що ваш файл ключів має розширення .keys і спробуйте ще раз.</string>
+    <string name="error_keys_failed_init">Не вдалося ініціалізувати ключі. Переконайтеся, що ваші інструменти дампу оновлені, і повторно зробіть дамп ключів.</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -462,7 +473,7 @@
     <!-- Network settings strings -->
     <string name="generate">Створити</string>
     <string name="web_username">Веб-ім\'я користувача</string>
-    <string name="web_username_description">Ім\'я користувача, яке буде відображатися в мультиплеєрних лобі. Має містити 4–20 символів.</string>
+    <string name="web_username_description">Ім\'я користувача, що відображається в мультиплеєрних кімнатах. Повинно містити 4-20 символів (лише літери, цифри, дефіси, крапки, підкреслення та пробіли).</string>
     <string name="web_token">Веб-токен</string>
     <string name="web_token_description">Веб-токен, що використовується для створення публічних кімнат. Це рядок із 48 символів, що містить лише малі літери a-z.</string>
     <string name="network">Мережа</string>
@@ -634,11 +645,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Будь ласка, дотримуйтесь інструкцій для повторного дампу ваших <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">ігрових картриджів</a> або <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">цифрових назв</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
     <string name="loader_error_video_core">Сталася помилка під час ініціалізації відеоядра.</string>
     <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером GPU. Встановлення користувацького драйвера GPU може вирішити цю проблему.</string>
     <string name="loader_error_invalid_format">Не вдалося запустити ROM</string>
     <string name="loader_error_file_not_found">ROM файлу не існує</string>
+    <string name="loader_requires_firmware">Гра вимагає прошивки</string>
+    <string name="loader_requires_firmware_description"><![CDATA[Гра, яку ви намагаєтеся запустити, вимагає прошивки для завантаження або пропуску початкового меню. Будь ласка, <a href="https://yuzu-mirror.github.io/help/quickstart"> зробіть дамп і встановіть прошивку</a>, або натисніть "OK", щоб продовжити в будь-якому разі.]]></string>
 
     <string name="emulation_done">Готово</string>
     <string name="emulation_control_scale">Масштаб</string>

@@ -62,24 +62,25 @@
     <string name="show_fw_version">顯示韌體版本</string>
     <string name="show_fw_version_description">顯示已安裝的韌體版本</string>
 
-    <!-- Eden`s Veil -->
+    <!-- Eden\'s Veil -->
     <string name="veil_extensions">GPU擴充功能</string>
     <string name="veil_renderer">渲染器</string>
     <string name="enable_raii">RAII</string>
     <string name="enable_raii_description">Vulkan中的一種自動資源管理方法，確保在不再需要時正確釋放資源，但可能導致捆綁遊戲崩潰。</string>
-    <string name="veil_misc">其他</string>
+    <string name="veil_misc">CPU與記憶體</string>
     <string name="eden_veil">伊甸之幕</string>
     <string name="eden_veil_description">實驗性設定以提高效能和能力。這些設定可能會導致黑屏或其他遊戲問題。</string>
     <string name="eden_veil_warning_title">實驗性設定</string>
-    <string name="eden_veil_warning_description">Eden\'s Veil 中的設定是高度實驗性的，可能會導致問題。如果您的遊戲無法啟動，請停用所有擴充功能並將 Extended Dynamic State 更改為 0。</string>
+    <string name="eden_veil_warning_description">伊甸之幕中的設定具有高度實驗性，可能導致問題。如果遊戲無法啟動，請停用所有擴充功能。</string>
     <string name="frame_skipping">開發中：跳幀</string>
     <string name="frame_skipping_description">啟用或停用跳幀以減少渲染幀數，提高效能。此功能仍在開發中，將在未來版本中啟用。</string>
     <string name="frame_interpolation">增強幀同步</string>
     <string name="frame_interpolation_description">通過同步幀間時間確保流暢一致的幀交付，減少卡頓和不均勻動畫。適合存在幀時間不穩定或遊戲過程中出現微卡頓的遊戲。</string>
     <string name="use_lru_cache">啟用LRU快取</string>
-    <string name="use_lru_cache_description">啟用或停用LRU（最近最少使用）快取，通過節省CPU使用來提高效能。某些遊戲（尤其是TotK 1.2.1）可能存在問題，如果遊戲無法啟動或隨機崩潰，請停用它。</string>
+    <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用來提高效能。某些遊戲可能存在問題，特別是TotK 1.2.1，如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
     <string name="dyna_state">擴展動態狀態</string>
-    <string name="dyna_state_description">啟用Vulkan功能以提升效能、改善渲染並在創建管線時節省資源，同時保持較低的CPU/GPU使用率。這些擴充功能可能會提高設備溫度，且舊款A6XX系列的GPU可能無法正常運作。設為0以使用舊版模擬格式。</string>
+    <string name="dyna_state_description">啟用Vulkan功能以提高效能、渲染效果，並在創建管線時節省資源，同時保持較低的CPU/GPU使用率。這些擴充功能可能會提高裝置溫度，舊款A6XX系列GPU可能無法正常運作。停用可模擬縮放格式。</string>
+    <string name="disabled">已停用</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>
     <string name="use_auto_stub">使用自動存根</string>
@@ -187,18 +188,18 @@
     <string name="multiplayer_join_room_failed">加入房間失敗</string>
     <string name="multiplayer_name_invalid">名稱過短</string>
     <string name="multiplayer_address_invalid">位址無效</string>
-    <string name="multiplayer_port_invalid">埠號無效！</string>
+    <string name="multiplayer_port_invalid">連接埠無效</string>
     <string name="multiplayer_exit_room">退出房間</string>
     <string name="multiplayer_network_error">網路錯誤</string>
     <string name="multiplayer_lost_connection">連線中斷</string>
-    <string name="multiplayer_name_collision">名稱衝突</string>
+    <string name="multiplayer_name_collision">使用者名稱已被佔用</string>
     <string name="multiplayer_mac_collision">MAC位址衝突</string>
     <string name="multiplayer_console_id_collision">主機ID衝突</string>
     <string name="multiplayer_wrong_version">版本不符</string>
     <string name="multiplayer_wrong_password">密碼錯誤</string>
     <string name="multiplayer_could_not_connect">無法連接</string>
     <string name="multiplayer_room_is_full">房間已滿</string>
-    <string name="multiplayer_host_banned">主機已被封鎖</string>
+    <string name="multiplayer_host_banned">您已被禁止加入此房間</string>
     <string name="multiplayer_permission_denied">權限不足</string>
     <string name="multiplayer_no_such_user">使用者不存在</string>
     <string name="multiplayer_already_in_room">已在房間中</string>
@@ -258,7 +259,8 @@
     <string name="multiplayer_room_name_error">長度需為3-20個字元</string>
     <string name="multiplayer_required">必填</string>
     <string name="multiplayer_ip_error">IP格式無效</string>
-    <string name="multiplayer_username_error">必須為4-20個字元</string>
+    <string name="multiplayer_username_error">必須為4-20個字元（僅字母數字、點號、連字號、底線和空格）</string>
+    <string name="multiplayer_nickname_invalid">使用者名稱無效，請在系統→網路中檢查設定</string>
     <string name="multiplayer_port_error">埠號需為1-65535</string>
     <string name="multiplayer_token_error">必須為48個字元，且僅包含小寫字母a-z</string>
     <string name="multiplayer_lobby_type">大廳類型</string>
@@ -421,6 +423,15 @@
     <string name="verify_installed_content_description">检查所有安装的内容是否有损坏</string>
     <string name="keys_missing">密钥缺失</string>
     <string name="keys_missing_description">无法解密固件和商业游戏</string>
+    <string name="firmware_invalid">韌體無效</string>
+    <string name="error_firmware_missing">執行某些遊戲和系統應用需要韌體。Eden僅支援19.0.1及更早版本的韌體。</string>
+    <string name="error_firmware_corrupted">檢測到韌體存在但無法讀取。請檢查解密金鑰並在必要時重新轉儲韌體。</string>
+    <string name="error_firmware_too_new">韌體過新或無法讀取。Eden僅支援19.0.1及更早版本的韌體。</string>
+    <string name="keys_failed">金鑰安裝失敗</string>
+    <string name="keys_install_success">金鑰安裝成功</string>
+    <string name="error_keys_copy_failed">一個或多個金鑰複製失敗。</string>
+    <string name="error_keys_invalid_filename">請確保金鑰檔案具有.keys副檔名後重試。</string>
+    <string name="error_keys_failed_init">金鑰初始化失敗。請檢查您的轉儲工具是否為最新版本並重新轉儲金鑰。</string>
 
     <!-- Applet launcher strings -->
     <string name="qlaunch_applet">Qlaunch</string>
@@ -486,7 +497,7 @@
     <!-- Network settings strings -->
     <string name="generate">生成</string>
     <string name="web_username">網路使用者名稱</string>
-    <string name="web_username_description">在多人遊戲大廳中顯示的使用者名稱。必須為4-20個字元。</string>
+    <string name="web_username_description">多人遊戲房間中顯示的使用者名稱。必須為4-20個字元（僅字母數字、連字號、點號、底線和空格）。</string>
     <string name="web_token">網路令牌</string>
     <string name="web_token_description">用於建立公開大廳的網路令牌。它是由48個小寫字母a-z組成的字串。</string>
     <string name="network">網路</string>
@@ -768,12 +779,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[請依循指南重新傾印您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">遊戲卡匣</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">已安裝的遊戲</a>。]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[請按照指南重新轉儲您的<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">遊戲卡帶</a>或<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">數位版遊戲</a>。]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[請確保您的 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 檔案已安裝，讓遊戲可以解密。]]></string>
     <string name="loader_error_video_core">初始化視訊核心時發生錯誤</string>
     <string name="loader_error_video_core_description">這經常由不相容的 GPU 驅動程式造成，安裝自訂 GPU 驅動程式可能會解決此問題。</string>
     <string name="loader_error_invalid_format">無法載入 ROM</string>
     <string name="loader_error_file_not_found">ROM 檔案不存在</string>
+    <string name="loader_requires_firmware">遊戲需要韌體</string>
+    <string name="loader_requires_firmware_description"><![CDATA[您嘗試啟動的遊戲需要韌體才能引導或通過啟動選單。請<a href="https://yuzu-mirror.github.io/help/quickstart">轉儲並安裝韌體</a>，或點擊"確定"繼續。]]></string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">結束模擬</string>
