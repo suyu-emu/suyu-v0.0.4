@@ -151,6 +151,16 @@ private:
     };
     static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
+    struct IoctlGetCpuTimeCorrelationInfo {
+        struct {
+            u64_le cpu_timestamp;
+            u64_le gpu_timestamp;
+        } samples[16];
+        u32_le count;
+        u32_le source_id;
+    };
+    static_assert(sizeof(IoctlGetCpuTimeCorrelationInfo) == 264);
+
     NvResult GetCharacteristics1(IoctlCharacteristics& params);
     NvResult GetCharacteristics3(IoctlCharacteristics& params,
                                  std::span<IoctlGpuCharacteristics> gpu_characteristics);
@@ -171,6 +181,18 @@ private:
     // Events
     Kernel::KEvent* error_notifier_event;
     Kernel::KEvent* unknown_event;
+
+    struct ZbcEntry {
+        u32_le color_ds[4];
+        u32_le color_l2[4];
+        u32_le depth;
+        u32_le type;
+        u32_le format;
+    };
+    std::array<ZbcEntry, 16> color_entries;
+    std::array<ZbcEntry, 16> depth_entries;
+    u8 max_color_entries;
+    u8 max_depth_entries;
 };
 
 } // namespace Service::Nvidia::Devices
