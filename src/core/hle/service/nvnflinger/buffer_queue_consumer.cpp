@@ -101,6 +101,14 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         // slot to the producer, it will wait for the fence to pass. We should fix this
         // by properly waiting for the fence in the BufferItemConsumer.
         // slots[slot].fence = Fence::NoFence();
+
+        const auto target_frame_number = slots[slot].frame_number;
+        for (size_t i = 0; i < core->history.size(); i++) {
+            if (core->history[i].frame_number == target_frame_number) {
+                core->history[i].state = BufferState::Acquired;
+                break;
+            }
+        }
     }
 
     // If the buffer has previously been acquired by the consumer, set graphic_buffer to nullptr to

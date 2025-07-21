@@ -512,6 +512,8 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         slots[slot].buffer_state = BufferState::Queued;
         ++core->frame_counter;
         slots[slot].frame_number = core->frame_counter;
+        slots[slot].queue_time = timestamp;
+        slots[slot].presentation_time = 0;
 
         item.acquire_called = slots[slot].acquire_called;
         item.graphic_buffer = slots[slot].graphic_buffer;
@@ -527,6 +529,11 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         item.fence = fence;
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
+
+        position = (position + 1) % 8;
+        core->history[position] = {.frame_number = core->frame_counter,
+                                   .queue_time = slots[slot].queue_time,
+                                   .state = BufferState::Queued};
 
         sticky_transform = sticky_transform_;
 
@@ -803,6 +810,10 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
+Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
+    return &buffer_wait_event->GetReadableEvent();
+}
+
 void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
                                    std::span<u8> parcel_reply, u32 flags) {
     // Values used by BnGraphicBufferProducer onTransact
@@ -922,23 +933,49 @@ void BufferQueueProducer::Transact(u32 code, std::span<const u8> parcel_data,
         status = SetBufferCount(buffer_count);
         break;
     }
-    case TransactionId::GetBufferHistory:
-        LOG_WARNING(Service_Nvnflinger, "(STUBBED) called, transaction=GetBufferHistory");
+    case TransactionId::GetBufferHistory: {
+        LOG_WARNING(Service_Nvnflinger, "called, transaction=GetBufferHistory");
+
+        std::scoped_lock lock{core->mutex};
+
+        auto buffer_history_count = std::min(parcel_in.Read<s32>(), (s32)core->history.size());
+
+        if (buffer_history_count <= 0) {
+            parcel_out.Write(Status::BadValue);
+            parcel_out.Write<s32>(0);
+            status = Status::None;
+            break;
+        }
+
+        auto info = new BufferInfo[buffer_history_count];
+        auto pos = position;
+        for (int i = 0; i < buffer_history_count; i++) {
+            info[i] = core->history[(pos - i) % core->history.size()];
+            LOG_WARNING(Service_Nvnflinger, "frame_number={}, state={}",
+                        core->history[(pos - i) % core->history.size()].frame_number,
+                        (u32)core->history[(pos - i) % core->history.size()].state);
+            pos--;
+        }
+
+        parcel_out.Write(Status::NoError);
+        parcel_out.Write(buffer_history_count);
+        parcel_out.WriteFlattenedObject<BufferInfo>(info);
+        status = Status::None;
         break;
+    }
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
         break;
     }
 
-    parcel_out.Write(status);
+    if (status != Status::None) {
+        parcel_out.Write(status);
+    }
 
     const auto serialized = parcel_out.Serialize();
     std::memcpy(parcel_reply.data(), serialized.data(),
                 std::min(parcel_reply.size(), serialized.size()));
 }
 
-Kernel::KReadableEvent* BufferQueueProducer::GetNativeHandle(u32 type_id) {
-    return &buffer_wait_event->GetReadableEvent();
-}
 
 } // namespace Service::android

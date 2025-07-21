@@ -21,6 +21,25 @@
 
 namespace Service::android {
 
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif
+struct BufferInfo {
+    u64 frame_number;
+    s64 queue_time;
+    s64 presentation_time{};
+    BufferState state{BufferState::Free};
+}
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((packed))
+#endif
+;
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
+static_assert(sizeof(BufferInfo) == 0x1C,
+              "BufferInfo is an invalid size");
+
 class IConsumerListener;
 class IProducerListener;
 
@@ -72,6 +91,8 @@ private:
     u32 transform_hint{};
     bool is_allocating{};
     mutable std::condition_variable_any is_allocating_condition;
+
+    std::vector<BufferInfo> history{8};
 };
 
 } // namespace Service::android
