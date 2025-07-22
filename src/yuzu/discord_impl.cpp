@@ -23,7 +23,7 @@ DiscordImpl::DiscordImpl(Core::System& system_) : system{system_} {
     DiscordEventHandlers handlers{};
     // The number is the client ID for yuzu, it's used for images and the
     // application name
-    Discord_Initialize("1371246384434380841", &handlers, 1, nullptr);
+    Discord_Initialize("1397286652128264252", &handlers, 1, nullptr);
 }
 
 DiscordImpl::~DiscordImpl() {
@@ -62,7 +62,7 @@ std::string DiscordImpl::GetGameString(const std::string& title) {
 
 void DiscordImpl::UpdateGameStatus(bool use_default) {
     const std::string default_text = "eden is an emulator for the Nintendo Switch";
-    const std::string default_image = "https://github.com/pflyly/eden-mirror/raw/branch/master/"
+    const std::string default_image = "https://git.eden-emu.dev/eden-emu/eden/raw/branch/master/"
                                       "dist/qt_themes/default/icons/256x256/eden_named.png";
     const std::string url = use_default ? default_image : game_url;
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
