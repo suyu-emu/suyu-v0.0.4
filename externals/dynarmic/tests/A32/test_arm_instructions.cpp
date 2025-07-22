@@ -539,7 +539,8 @@ TEST_CASE("arm: Memory access (fastmem)", "[arm][A32]") {
     char* backing_memory = reinterpret_cast<char*>(std::align(page_size, memory_size, buffer_ptr, buffer_size_nconst));
 
     A32FastmemTestEnv env{backing_memory};
-    Dynarmic::A32::UserConfig config{&env};
+    Dynarmic::A32::UserConfig config{};
+    config.callbacks = &env;
     config.fastmem_pointer = reinterpret_cast<uintptr_t>(backing_memory);
     config.recompile_on_fastmem_failure = false;
     config.processor_id = 0;

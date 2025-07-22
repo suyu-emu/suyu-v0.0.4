@@ -12,8 +12,8 @@ using namespace Dynarmic;
 
 TEST_CASE("ensure fast dispatch entry is cleared even when a block does not have any patching requirements", "[a64]") {
     A64TestEnv env;
-
-    A64::UserConfig conf{&env};
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
     A64::Jit jit{conf};
 
     REQUIRE(conf.HasOptimization(OptimizationFlag::FastDispatch));
@@ -64,8 +64,8 @@ TEST_CASE("ensure fast dispatch entry is cleared even when a block does not have
 
 TEST_CASE("ensure fast dispatch entry is cleared even when a block does not have any patching requirements 2", "[a64]") {
     A64TestEnv env;
-
-    A64::UserConfig conf{&env};
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
     A64::Jit jit{conf};
 
     REQUIRE(conf.HasOptimization(OptimizationFlag::FastDispatch));

@@ -10,7 +10,8 @@
 
 TEST_CASE("misaligned load/store do not use page_table when detect_misaligned_access_via_page_table is set", "[a64]") {
     A64TestEnv env;
-    Dynarmic::A64::UserConfig conf{&env};
+    Dynarmic::A64::UserConfig conf{};
+    conf.callbacks = &env;
     conf.page_table = nullptr;
     conf.detect_misaligned_access_via_page_table = 128;
     conf.only_detect_misalignment_via_page_table_on_page_boundary = true;

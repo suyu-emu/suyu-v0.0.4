@@ -23,6 +23,7 @@
 #include "./rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
+#include "dynarmic/common/llvm_disassemble.h"
 #include "dynarmic/frontend/A32/ITState.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/a32_types.h"
@@ -396,39 +397,41 @@ Dynarmic::A32::UserConfig GetA32UserConfig(TestEnv& testenv, bool noopt) {
 
 template<size_t num_jit_reruns = 1, typename TestEnv>
 void RunTestInstance(Dynarmic::A32::Jit& jit,
-                     TestEnv& jit_env,
-                     const std::array<u32, 16>& regs,
-                     const std::array<u32, 64>& vecs,
-                     const std::vector<typename TestEnv::InstructionType>& instructions,
-                     const u32 cpsr,
-                     const u32 fpscr,
-                     const size_t ticks_left) {
+                    TestEnv& jit_env,
+                    const std::array<u32, 16>& regs,
+                    const std::array<u32, 64>& vecs,
+                    const std::vector<typename TestEnv::InstructionType>& instructions,
+                    const u32 cpsr,
+                    const u32 fpscr,
+                    const size_t ticks_left,
+                    const bool show_disas) {
     const u32 initial_pc = regs[15];
     const u32 num_words = initial_pc / sizeof(typename TestEnv::InstructionType);
     const u32 code_mem_size = num_words + static_cast<u32>(instructions.size());
 
-    fmt::print("instructions:");
-    for (auto instruction : instructions) {
-        if constexpr (sizeof(decltype(instruction)) == 2) {
-            fmt::print(" {:04x}", instruction);
-        } else {
-            fmt::print(" {:08x}", instruction);
+    if (show_disas) {
+        fmt::print("instructions:\n");
+        auto current_pc = initial_pc;
+        for (auto instruction : instructions) {
+            if constexpr (sizeof(decltype(instruction)) == 2) {
+                fmt::print("{:04x} ?\n", instruction);
+            } else {
+                fmt::print("{}", Dynarmic::Common::DisassembleAArch64(instruction, current_pc));
+            }
+            current_pc += sizeof(decltype(instruction));
         }
-    }
-    fmt::print("\n");
 
-    fmt::print("initial_regs:");
-    for (u32 i : regs) {
-        fmt::print(" {:08x}", i);
+        fmt::print("initial_regs:");
+        for (u32 i : regs)
+            fmt::print(" {:08x}", i);
+        fmt::print("\n");
+        fmt::print("initial_vecs:");
+        for (u32 i : vecs)
+            fmt::print(" {:08x}", i);
+        fmt::print("\n");
+        fmt::print("initial_cpsr: {:08x}\n", cpsr);
+        fmt::print("initial_fpcr: {:08x}\n", fpscr);
     }
-    fmt::print("\n");
-    fmt::print("initial_vecs:");
-    for (u32 i : vecs) {
-        fmt::print(" {:08x}", i);
-    }
-    fmt::print("\n");
-    fmt::print("initial_cpsr: {:08x}\n", cpsr);
-    fmt::print("initial_fpcr: {:08x}\n", fpscr);
 
     jit.ClearCache();
 
@@ -450,36 +453,37 @@ void RunTestInstance(Dynarmic::A32::Jit& jit,
         jit.Run();
     }
 
-    fmt::print("final_regs:");
-    for (u32 i : jit.Regs()) {
-        fmt::print(" {:08x}", i);
+    if (show_disas) {
+        fmt::print("final_regs:");
+        for (u32 i : jit.Regs()) {
+            fmt::print(" {:08x}", i);
+        }
+        fmt::print("\n");
+        fmt::print("final_vecs:");
+        for (u32 i : jit.ExtRegs()) {
+            fmt::print(" {:08x}", i);
+        }
+        fmt::print("\n");
+        fmt::print("final_cpsr: {:08x}\n", jit.Cpsr());
+        fmt::print("final_fpsr: {:08x}\n", mask_fpsr_cum_bits ? jit.Fpscr() & 0xffffff00 : jit.Fpscr());
+        fmt::print("mod_mem: ");
+        for (auto [addr, value] : jit_env.modified_memory) {
+            fmt::print("{:08x}:{:02x} ", addr, value);
+        }
+        fmt::print("\n");
+        fmt::print("interrupts:\n");
+        for (const auto& i : jit_env.interrupts) {
+            std::puts(i.c_str());
+        }
+        fmt::print("===\n");
+        jit.DumpDisassembly();
     }
-    fmt::print("\n");
-    fmt::print("final_vecs:");
-    for (u32 i : jit.ExtRegs()) {
-        fmt::print(" {:08x}", i);
-    }
-    fmt::print("\n");
-    fmt::print("final_cpsr: {:08x}\n", jit.Cpsr());
-    fmt::print("final_fpsr: {:08x}\n", mask_fpsr_cum_bits ? jit.Fpscr() & 0xffffff00 : jit.Fpscr());
-
-    fmt::print("mod_mem: ");
-    for (auto [addr, value] : jit_env.modified_memory) {
-        fmt::print("{:08x}:{:02x} ", addr, value);
-    }
-    fmt::print("\n");
-
-    fmt::print("interrupts:\n");
-    for (const auto& i : jit_env.interrupts) {
-        std::puts(i.c_str());
-    }
-
-    fmt::print("===\n");
 }
 
 Dynarmic::A64::UserConfig GetA64UserConfig(A64TestEnv& jit_env, bool noopt) {
-    Dynarmic::A64::UserConfig jit_user_config{&jit_env};
-    jit_user_config.optimizations &= ~OptimizationFlag::FastDispatch;
+    Dynarmic::A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &jit_env;
+    jit_user_config.optimizations = all_safe_optimizations;
     // The below corresponds to the settings for qemu's aarch64_max_initfn
     jit_user_config.dczid_el0 = 7;
     jit_user_config.ctr_el0 = 0x80038003;
@@ -491,15 +495,16 @@ Dynarmic::A64::UserConfig GetA64UserConfig(A64TestEnv& jit_env, bool noopt) {
 
 template<size_t num_jit_reruns = 2>
 void RunTestInstance(Dynarmic::A64::Jit& jit,
-                     A64TestEnv& jit_env,
-                     const std::array<u64, 31>& regs,
-                     const std::array<std::array<u64, 2>, 32>& vecs,
-                     const std::vector<u32>& instructions,
-                     const u32 pstate,
-                     const u32 fpcr,
-                     const u64 initial_sp,
-                     const u64 start_address,
-                     const size_t ticks_left) {
+                    A64TestEnv& jit_env,
+                    const std::array<u64, 31>& regs,
+                    const std::array<std::array<u64, 2>, 32>& vecs,
+                    const std::vector<u32>& instructions,
+                    const u32 pstate,
+                    const u32 fpcr,
+                    const u64 initial_sp,
+                    const u64 start_address,
+                    const size_t ticks_left,
+                    const bool show_disas) {
     jit.ClearCache();
 
     for (size_t jit_rerun_count = 0; jit_rerun_count < num_jit_reruns; ++jit_rerun_count) {
@@ -522,59 +527,53 @@ void RunTestInstance(Dynarmic::A64::Jit& jit,
         jit.Run();
     }
 
-    fmt::print("instructions:");
-    for (u32 instruction : instructions) {
-        fmt::print(" {:08x}", instruction);
-    }
-    fmt::print("\n");
+    if (show_disas) {
+        fmt::print("instructions:\n");
+        auto current_pc = start_address;
+        for (u32 instruction : instructions) {
+            fmt::print("{}", Dynarmic::Common::DisassembleAArch64(instruction, current_pc));
+            current_pc += 4;
+        }
 
-    fmt::print("initial_regs:");
-    for (u64 i : regs) {
-        fmt::print(" {:016x}", i);
+        fmt::print("initial_regs:");
+        for (u64 i : regs)
+            fmt::print(" {:016x}", i);
+        fmt::print("\n");
+        fmt::print("initial_vecs:");
+        for (auto i : vecs)
+            fmt::print(" {:016x}:{:016x}", i[0], i[1]);
+        fmt::print("\n");
+        fmt::print("initial_sp: {:016x}\n", initial_sp);
+        fmt::print("initial_pstate: {:08x}\n", pstate);
+        fmt::print("initial_fpcr: {:08x}\n", fpcr);
+        fmt::print("final_regs:");
+        for (u64 i : jit.GetRegisters())
+            fmt::print(" {:016x}", i);
+        fmt::print("\n");
+        fmt::print("final_vecs:");
+        for (auto i : jit.GetVectors())
+            fmt::print(" {:016x}:{:016x}", i[0], i[1]);
+        fmt::print("\n");
+        fmt::print("final_sp: {:016x}\n", jit.GetSP());
+        fmt::print("final_pc: {:016x}\n", jit.GetPC());
+        fmt::print("final_pstate: {:08x}\n", jit.GetPstate());
+        fmt::print("final_fpcr: {:08x}\n", jit.GetFpcr());
+        fmt::print("final_qc : {}\n", FP::FPSR{jit.GetFpsr()}.QC());
+        fmt::print("mod_mem:");
+        for (auto [addr, value] : jit_env.modified_memory)
+            fmt::print(" {:08x}:{:02x}", addr, value);
+        fmt::print("\n");
+        fmt::print("interrupts:\n");
+        for (const auto& i : jit_env.interrupts)
+            std::puts(i.c_str());
+        fmt::print("===\n");
+        jit.DumpDisassembly();
     }
-    fmt::print("\n");
-    fmt::print("initial_vecs:");
-    for (auto i : vecs) {
-        fmt::print(" {:016x}:{:016x}", i[0], i[1]);
-    }
-    fmt::print("\n");
-    fmt::print("initial_sp: {:016x}\n", initial_sp);
-    fmt::print("initial_pstate: {:08x}\n", pstate);
-    fmt::print("initial_fpcr: {:08x}\n", fpcr);
-
-    fmt::print("final_regs:");
-    for (u64 i : jit.GetRegisters()) {
-        fmt::print(" {:016x}", i);
-    }
-    fmt::print("\n");
-    fmt::print("final_vecs:");
-    for (auto i : jit.GetVectors()) {
-        fmt::print(" {:016x}:{:016x}", i[0], i[1]);
-    }
-    fmt::print("\n");
-    fmt::print("final_sp: {:016x}\n", jit.GetSP());
-    fmt::print("final_pc: {:016x}\n", jit.GetPC());
-    fmt::print("final_pstate: {:08x}\n", jit.GetPstate());
-    fmt::print("final_fpcr: {:08x}\n", jit.GetFpcr());
-    fmt::print("final_qc : {}\n", FP::FPSR{jit.GetFpsr()}.QC());
-
-    fmt::print("mod_mem:");
-    for (auto [addr, value] : jit_env.modified_memory) {
-        fmt::print(" {:08x}:{:02x}", addr, value);
-    }
-    fmt::print("\n");
-
-    fmt::print("interrupts:\n");
-    for (const auto& i : jit_env.interrupts) {
-        std::puts(i.c_str());
-    }
-
-    fmt::print("===\n");
 }
 
 }  // Anonymous namespace
 
-void TestThumb(size_t num_instructions, size_t num_iterations, bool noopt) {
+void TestThumb(size_t num_instructions, size_t num_iterations, bool noopt, bool show_disas) {
     ThumbTestEnv jit_env{};
     Dynarmic::A32::Jit jit{GetA32UserConfig(jit_env, noopt)};
 
@@ -597,11 +596,11 @@ void TestThumb(size_t num_instructions, size_t num_iterations, bool noopt) {
         }
 
         regs[15] = start_address;
-        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions);
+        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions, show_disas);
     }
 }
 
-void TestArm(size_t num_instructions, size_t num_iterations, bool noopt) {
+void TestArm(size_t num_instructions, size_t num_iterations, bool noopt, bool show_disas) {
     ArmTestEnv jit_env{};
     Dynarmic::A32::Jit jit{GetA32UserConfig(jit_env, noopt)};
 
@@ -623,11 +622,11 @@ void TestArm(size_t num_instructions, size_t num_iterations, bool noopt) {
         }
 
         regs[15] = start_address;
-        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions);
+        RunTestInstance(jit, jit_env, regs, ext_reg, instructions, cpsr, fpcr, num_instructions, show_disas);
     }
 }
 
-void TestA64(size_t num_instructions, size_t num_iterations, bool noopt) {
+void TestA64(size_t num_instructions, size_t num_iterations, bool noopt, bool show_disas) {
     A64TestEnv jit_env{};
     Dynarmic::A64::Jit jit{GetA64UserConfig(jit_env, noopt)};
 
@@ -649,7 +648,7 @@ void TestA64(size_t num_instructions, size_t num_iterations, bool noopt) {
             instructions.emplace_back(GenRandomA64Inst(static_cast<u32>(start_address + 4 * instructions.size()), i == num_instructions - 1));
         }
 
-        RunTestInstance(jit, jit_env, regs, vecs, instructions, pstate, fpcr, initial_sp, start_address, num_instructions);
+        RunTestInstance(jit, jit_env, regs, vecs, instructions, pstate, fpcr, initial_sp, start_address, num_instructions, show_disas);
     }
 }
 
@@ -677,6 +676,7 @@ int main(int argc, char* argv[]) {
     const auto instruction_count = str2sz(argv[3]);
     const auto iterator_count = str2sz(argv[4]);
     const bool noopt = argc == 6 && (strcmp(argv[5], "noopt") == 0);
+    const bool show_disas = argc == 6 && (strcmp(argv[5], "disas") == 0);
 
     if (!seed || !instruction_count || !iterator_count) {
         fmt::print("invalid numeric arguments\n");
@@ -686,11 +686,11 @@ int main(int argc, char* argv[]) {
     detail::g_rand_int_generator.seed(static_cast<std::mt19937::result_type>(*seed));
 
     if (strcmp(argv[1], "thumb") == 0) {
-        TestThumb(*instruction_count, *iterator_count, noopt);
+        TestThumb(*instruction_count, *iterator_count, noopt, show_disas);
     } else if (strcmp(argv[1], "arm") == 0) {
-        TestArm(*instruction_count, *iterator_count, noopt);
+        TestArm(*instruction_count, *iterator_count, noopt, show_disas);
     } else if (strcmp(argv[1], "a64") == 0) {
-        TestA64(*instruction_count, *iterator_count, noopt);
+        TestA64(*instruction_count, *iterator_count, noopt, show_disas);
     } else {
         fmt::print("unrecognized instruction class\n");
         return 1;

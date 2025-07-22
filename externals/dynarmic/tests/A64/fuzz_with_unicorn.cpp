@@ -154,7 +154,8 @@ static u32 GenFloatInst(u64 pc, bool is_last_inst) {
 }
 
 static Dynarmic::A64::UserConfig GetUserConfig(A64TestEnv& jit_env) {
-    Dynarmic::A64::UserConfig jit_user_config{&jit_env};
+    Dynarmic::A64::UserConfig jit_user_config{};
+    jit_user_config.callbacks = &jit_env;
     jit_user_config.optimizations &= ~OptimizationFlag::FastDispatch;
     // The below corresponds to the settings for qemu's aarch64_max_initfn
     jit_user_config.dczid_el0 = 7;
