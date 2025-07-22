@@ -23,14 +23,9 @@ extern "C" {
 #endif
 
 #include <libavcodec/avcodec.h>
+#include <libavcodec/codec.h>
 #include <libavutil/opt.h>
 #include <libavutil/pixdesc.h>
-
-#if defined(__FreeBSD__)
-#include <libavcodec/codec.h>
-#else
-#include <libavcodec/codec_internal.h>
-#endif
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
