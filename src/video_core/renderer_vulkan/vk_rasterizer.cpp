@@ -935,6 +935,8 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
+    // TODO: updating line stipple causes the cmdbuf to die
+    // UpdateLineStipple(regs);
 
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
@@ -1352,7 +1354,7 @@ void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwe
 
     scheduler.Record([enable = regs.conservative_raster_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetConservativeRasterizationModeEXT(
-            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_UNDERESTIMATE_EXT
+            enable ? VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
                    : VK_CONSERVATIVE_RASTERIZATION_MODE_DISABLED_EXT);
     });
 }
@@ -1365,6 +1367,17 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
 
     scheduler.Record([enable = regs.line_stipple_enable](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetLineStippleEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs)
+{
+    if (!state_tracker.TouchLineStipple()) {
+        return;
+    }
+
+    scheduler.Record([params = regs.line_stipple_params](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLineStippleEXT(params.factor, static_cast<uint16_t>(params.pattern));
     });
 }
 

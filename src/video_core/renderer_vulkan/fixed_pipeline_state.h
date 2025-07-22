@@ -150,6 +150,7 @@ struct FixedPipelineState {
             BitField<6, 4, u32> logic_op;
             BitField<10, 1, u32> logic_op_enable;
             BitField<11, 1, u32> depth_clamp_disabled;
+            BitField<12, 1, u32> line_stipple_enable;
         };
         union {
             u32 raw2;
@@ -218,6 +219,7 @@ struct FixedPipelineState {
 
     u32 alpha_test_ref;
     u32 point_size;
+
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
     union {
         u64 attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
@@ -232,6 +234,12 @@ struct FixedPipelineState {
     std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
 
     VideoCommon::TransformFeedbackState xfb_state;
+
+    u32 depth_bounds_min;
+    u32 depth_bounds_max;
+
+    u32 line_stipple_factor;
+    u32 line_stipple_pattern;
 
     void Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features);
 
