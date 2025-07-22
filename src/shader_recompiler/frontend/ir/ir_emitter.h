@@ -305,7 +305,8 @@ public:
     [[nodiscard]] F16F32F64 ConvertIToF(size_t dest_bitsize, size_t src_bitsize, bool is_signed,
                                         const Value& value, FpControl control = {});
 
-    [[nodiscard]] U32U64 UConvert(size_t result_bitsize, const U32U64& value);
+    [[nodiscard]] U8U16U32U64 UConvert(size_t result_bitsize, const U8U16U32U64& value);
+    [[nodiscard]] U8U16U32U64 SConvert(size_t result_bitsize, const U8U16U32U64& value);
     [[nodiscard]] F16F32F64 FPConvert(size_t result_bitsize, const F16F32F64& value,
                                       FpControl control = {});
 

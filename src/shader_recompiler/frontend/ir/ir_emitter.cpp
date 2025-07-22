@@ -1730,10 +1730,36 @@ F16F32F64 IREmitter::ConvertIToF(size_t dest_bitsize, size_t src_bitsize, bool i
                      : ConvertUToF(dest_bitsize, src_bitsize, value, control);
 }
 
-U32U64 IREmitter::UConvert(size_t result_bitsize, const U32U64& value) {
+U8U16U32U64 IREmitter::UConvert(size_t result_bitsize, const U8U16U32U64& value) {
     switch (result_bitsize) {
+    case 8:
+        switch (value.Type()) {
+        case Type::U8:
+            // Nothing to do
+            return value;
+        case Type::U32:
+            return Inst<U8>(Opcode::ConvertU8U32, value);
+        default:
+            break;
+        }
+        break;
+    case 16:
+        switch (value.Type()) {
+        case Type::U16:
+            // Nothing to do
+            return value;
+        case Type::U32:
+            return Inst<U16>(Opcode::ConvertU16U32, value);
+        default:
+            break;
+        }
+        break;
     case 32:
         switch (value.Type()) {
+        case Type::U8:
+            return Inst<U32>(Opcode::ConvertU32U8, value);
+        case Type::U16:
+            return Inst<U32>(Opcode::ConvertU32U16, value);
         case Type::U32:
             // Nothing to do
             return value;
@@ -1753,8 +1779,29 @@ U32U64 IREmitter::UConvert(size_t result_bitsize, const U32U64& value) {
         default:
             break;
         }
+        break;
+    default:
+        break;
     }
     throw NotImplementedException("Conversion from {} to {} bits", value.Type(), result_bitsize);
+}
+
+U8U16U32U64 IR::IREmitter::SConvert(size_t result_bitsize, const U8U16U32U64& value) {
+    switch (result_bitsize) {
+    case 32:
+        switch (value.Type()) {
+        case Type::U8:
+            return Inst<U32>(Opcode::ConvertS32S8, value);
+        case Type::U16:
+            return Inst<U32>(Opcode::ConvertS32S16, value);
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+    throw NotImplementedException("Signed Conversion from {} to {} bits", value.Type(), result_bitsize);
 }
 
 F16F32F64 IREmitter::FPConvert(size_t result_bitsize, const F16F32F64& value, FpControl control) {

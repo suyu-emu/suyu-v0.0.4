@@ -68,6 +68,36 @@ void EmitConvertU32F16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::I
     NotImplemented();
 }
 
+void EmitConvertU16U32([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
+                       [[maybe_unused]] std::string_view value) {
+    NotImplemented();
+}
+
+void EmitConvertU32U16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
+                       [[maybe_unused]] std::string_view value) {
+    NotImplemented();
+}
+
+void EmitConvertU8U32([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
+                       [[maybe_unused]] std::string_view value) {
+    NotImplemented();
+}
+
+void EmitConvertU32U8([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
+                       [[maybe_unused]] std::string_view value) {
+    NotImplemented();
+}
+
+void EmitConvertS32S8([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
+                       [[maybe_unused]] std::string_view value) {
+    NotImplemented();
+}
+
+void EmitConvertS32S16([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] IR::Inst& inst,
+                       [[maybe_unused]] std::string_view value) {
+    NotImplemented();
+}
+
 void EmitConvertU32F32(EmitContext& ctx, IR::Inst& inst, std::string_view value) {
     ctx.AddU32("{}=uint({});", inst, value);
 }
