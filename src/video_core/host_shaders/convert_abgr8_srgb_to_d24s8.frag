@@ -5,9 +5,10 @@
 
 layout(binding = 0) uniform sampler2D color_texture;
 
-// More accurate sRGB to linear conversion
+// Even more accurate sRGB to linear conversion
+// https://entropymine.com/imageworsener/srgbformula/
 float srgbToLinear(float srgb) {
-    if (srgb <= 0.04045) {
+    if (srgb <= 0.0404482362771082f) { //assumes it's >= 0
         return srgb / 12.92;
     } else {
         return pow((srgb + 0.055) / 1.055, 2.4);

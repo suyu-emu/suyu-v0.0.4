@@ -46,8 +46,12 @@ std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat fra
 }
 
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format) {
+    // No need for handrolled shader -- if the VK impl can do it for us ;)
+    if (device.IsExtFilterCubicSupported())
+        return std::make_unique<WindowAdaptPass>(device, frame_format, CreateCubicSampler(device),
+                                                 BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
-                                             BuildShader(device, PRESENT_BICUBIC_FRAG_SPV));
+                                                BuildShader(device, PRESENT_BICUBIC_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format) {
