@@ -415,6 +415,10 @@ void RegAlloc::ReleaseStackSpace(const size_t stack_space) noexcept {
 }
 
 HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc, 28>& desired_locations) const noexcept {
+    // TODO(lizzie): Overspill causes issues (reads to 0 and such) on some games, I need to make a testbench
+    // to later track this down - however I just modified the LRU algo so it prefers empty registers first
+    // we need to test high register pressure (and spills, maybe 32 regs?)
+
     // Selects the best location out of the available locations.
     // NOTE: Using last is BAD because new REX prefix for each insn using the last regs
     // TODO: Actually do LRU or something. Currently we just try to pick something without a value if possible.
@@ -428,10 +432,9 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
         if (loc_info.IsLocked()) {
             // skip, not suitable for allocation
         } else {
-            // idempotency, only assign once
-            if (it_empty_candidate == desired_locations.cend() && loc_info.IsEmpty())
-                it_empty_candidate = it;
             if (loc_info.lru_counter < min_lru_counter) {
+                if (loc_info.IsEmpty())
+                    it_empty_candidate = it;
                 // Otherwise a "quasi"-LRU
                 min_lru_counter = loc_info.lru_counter;
                 if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
@@ -442,17 +445,20 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
                 if (min_lru_counter == 0)
                     break; //early exit
             }
+            // only if not assigned (i.e for failcase of all LRU=0)
+            if (it_empty_candidate == desired_locations.cend() && loc_info.IsEmpty())
+                it_empty_candidate = it;
         }
     }
     // Final resolution goes as follows:
-    // 1 => Try normal candidate (no REX prefix)
-    // 2 => Try an empty candidate
+    // 1 => Try an empty candidate
+    // 2 => Try normal candidate (no REX prefix)
     // 3 => Try using a REX prefixed one
     // We avoid using REX-addressable registers because they add +1 REX prefix which
     // do we really need? The trade-off may not be worth it.
-    auto const it_final = it_candidate != desired_locations.cend()
-        ? it_candidate : it_empty_candidate != desired_locations.cend()
-        ? it_empty_candidate : it_rex_candidate;
+    auto const it_final = it_empty_candidate != desired_locations.cend()
+        ? it_empty_candidate : it_candidate != desired_locations.cend()
+        ? it_candidate : it_rex_candidate;
     ASSERT_MSG(it_final != desired_locations.cend(), "All candidate registers have already been allocated");
     // Evil magic - increment LRU counter (will wrap at 256)
     const_cast<RegAlloc*>(this)->LocInfo(*it_final).lru_counter++;
