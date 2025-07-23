@@ -211,7 +211,7 @@ if (ANDROID)
    endif()
 endif()
 
-if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT TARGET gamemode::headers)
     add_library(gamemode INTERFACE)
     target_include_directories(gamemode INTERFACE gamemode)
     add_library(gamemode::headers ALIAS gamemode)

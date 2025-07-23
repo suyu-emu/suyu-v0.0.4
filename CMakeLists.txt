@@ -347,7 +347,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # Enforce the search mode of non-required packages for better and shorter failure messages
 find_package(enet 1.3 MODULE)
 find_package(fmt 8 REQUIRED)
-find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
+find_package(LLVM MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
 find_package(Opus 1.3 MODULE)
@@ -415,7 +415,7 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
-if (UNIX AND NOT APPLE)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(gamemode 1.7 MODULE)
 endif()
 
