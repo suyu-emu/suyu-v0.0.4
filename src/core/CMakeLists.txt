@@ -1212,7 +1212,7 @@ if (HAS_NCE)
         arm/nce/patcher.h
         arm/nce/visitor_base.h
     )
-    target_link_libraries(core PRIVATE merry::oaknut)
+    target_link_libraries(core PRIVATE merry::mcl merry::oaknut)
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
