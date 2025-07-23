@@ -415,7 +415,7 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
     find_package(gamemode 1.7 MODULE)
 endif()
 
