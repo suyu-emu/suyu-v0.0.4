@@ -57,6 +57,7 @@ You can also contact any of the developers on Discord to learn more about the cu
 * **Windows**: [Windows Building Guide](./docs/build/Windows.md)
 * **Linux**: [Linux Building Guide](./docs/build/Linux.md)
 * **Android**: [Android Building Guide](./docs/build/Android.md)
+* **Solaris**: [Solaris Building Guide](./docs/build/Solaris.md)
 * **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
 * **macOS**: [macOS Building Guide](./docs/build/macOS.md)
 
