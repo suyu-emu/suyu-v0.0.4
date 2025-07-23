@@ -50,6 +50,7 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)

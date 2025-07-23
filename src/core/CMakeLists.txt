@@ -1150,8 +1150,9 @@ add_library(core STATIC
     tools/renderdoc.h
 )
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if (ENABLE_WIFI_SCAN)
     # find_package(libiw REQUIRED)
+    target_compile_definitions(core PRIVATE -DENABLE_WIFI_SCAN)
     target_link_libraries(core PRIVATE iw)
 endif()
 

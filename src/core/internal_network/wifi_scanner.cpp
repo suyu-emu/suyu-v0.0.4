@@ -19,7 +19,7 @@ using namespace std::chrono_literals;
 #endif
 
 namespace Network {
-
+#ifdef ENABLE_WIFI_SCAN
 #ifdef _WIN32
 static u8 QualityToPercent(DWORD q) {
     return static_cast<u8>(q);
@@ -173,15 +173,19 @@ static std::vector<Network::ScanData> ScanWifiLinux(std::chrono::milliseconds de
     return out;
 }
 #endif /* linux */
+#endif
 
 std::vector<Network::ScanData> ScanWifiNetworks(std::chrono::milliseconds deadline) {
-#ifdef _WIN32
+#ifdef ENABLE_WIFI_SCAN
+#if defined(_WIN32)
     return ScanWifiWin(deadline);
 #elif defined(__linux__) && !defined(ANDROID)
     return ScanWifiLinux(deadline);
 #else
-    std::this_thread::sleep_for(deadline);
     return {}; // unsupported host, pretend no results
+#endif
+#else
+    return {}; // disabled, pretend no results
 #endif
 }
 
