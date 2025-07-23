@@ -1,14 +1,17 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "tzif.h"
 #include <cstdint>
 #include <cstring>
 #include <memory>
-#include <sys/types.h>
+#include <cstdint>
 
 namespace Tzif {
 
-static std::size_t SkipToVersion2(const u_int8_t *data, std::size_t size) {
+static std::size_t SkipToVersion2(const std::uint8_t *data, std::size_t size) {
   char magic[5];
-  const u_int8_t *p{data};
+  const std::uint8_t *p{data};
 
   std::memcpy(magic, data, 4);
   magic[4] = '\0';
@@ -28,15 +31,15 @@ static std::size_t SkipToVersion2(const u_int8_t *data, std::size_t size) {
 }
 
 template <typename Type> constexpr static void SwapEndianess(Type *value) {
-  u_int8_t *data = reinterpret_cast<u_int8_t *>(value);
+  std::uint8_t *data = reinterpret_cast<std::uint8_t *>(value);
 
   union {
-    u_int8_t data[sizeof(Type)];
+    std::uint8_t data[sizeof(Type)];
     Type value;
   } temp;
 
-  for (u_int32_t i = 0; i < sizeof(Type); i++) {
-    u_int32_t alt_index = sizeof(Type) - i - 1;
+  for (std::uint32_t i = 0; i < sizeof(Type); i++) {
+    std::uint32_t alt_index = sizeof(Type) - i - 1;
     temp.data[alt_index] = data[i];
   }
 
@@ -52,13 +55,13 @@ static void FlipHeader(Header &header) {
   SwapEndianess(&header.charcnt);
 }
 
-std::unique_ptr<DataImpl> ReadData(const u_int8_t *data, std::size_t size) {
+std::unique_ptr<DataImpl> ReadData(const std::uint8_t *data, std::size_t size) {
   const std::size_t v2_offset = SkipToVersion2(data, size);
   if (v2_offset == static_cast<std::size_t>(-1)) {
     return nullptr;
   }
 
-  const u_int8_t *p = data + v2_offset;
+  const std::uint8_t *p = data + v2_offset;
 
   Header header;
   std::memcpy(&header, p, sizeof(header));
@@ -67,10 +70,10 @@ std::unique_ptr<DataImpl> ReadData(const u_int8_t *data, std::size_t size) {
   FlipHeader(header);
 
   const std::size_t data_block_length =
-      header.timecnt * sizeof(int64_t) + header.timecnt * sizeof(u_int8_t) +
+      header.timecnt * sizeof(int64_t) + header.timecnt * sizeof(std::uint8_t) +
       header.typecnt * sizeof(TimeTypeRecord) +
-      header.charcnt * sizeof(int8_t) + header.isstdcnt * sizeof(u_int8_t) +
-      header.isutcnt * sizeof(u_int8_t);
+      header.charcnt * sizeof(int8_t) + header.isstdcnt * sizeof(std::uint8_t) +
+      header.isutcnt * sizeof(std::uint8_t);
 
   if (v2_offset + data_block_length + sizeof(Header) > size) {
     return nullptr;
@@ -81,7 +84,7 @@ std::unique_ptr<DataImpl> ReadData(const u_int8_t *data, std::size_t size) {
 
   const auto copy =
       []<typename Type>(std::unique_ptr<Type[]> &array, int length,
-                        const u_int8_t *const &ptr) -> const u_int8_t * {
+                        const std::uint8_t *const &ptr) -> const std::uint8_t * {
     const std::size_t region_length = length * sizeof(Type);
     array = std::make_unique<Type[]>(length);
     std::memcpy(array.get(), ptr, region_length);
@@ -110,16 +113,16 @@ std::unique_ptr<DataImpl> ReadData(const u_int8_t *data, std::size_t size) {
   return impl;
 }
 
-static void PushToBuffer(std::vector<u_int8_t> &buffer, const void *data,
+static void PushToBuffer(std::vector<std::uint8_t> &buffer, const void *data,
                          std::size_t size) {
-  const u_int8_t *p{reinterpret_cast<const u_int8_t *>(data)};
+  const std::uint8_t *p{reinterpret_cast<const std::uint8_t *>(data)};
   for (std::size_t i = 0; i < size; i++) {
     buffer.push_back(*p);
     p++;
   }
 }
 
-void DataImpl::ReformatNintendo(std::vector<u_int8_t> &buffer) const {
+void DataImpl::ReformatNintendo(std::vector<std::uint8_t> &buffer) const {
   buffer.clear();
 
   Header header_copy{header};
@@ -131,7 +134,7 @@ void DataImpl::ReformatNintendo(std::vector<u_int8_t> &buffer) const {
   PushToBuffer(buffer, transition_times.get(),
                header.timecnt * sizeof(int64_t));
   PushToBuffer(buffer, transition_types.get(),
-               header.timecnt * sizeof(u_int8_t));
+               header.timecnt * sizeof(std::uint8_t));
   PushToBuffer(buffer, local_time_type_records.get(),
                header.typecnt * sizeof(TimeTypeRecord));
   PushToBuffer(buffer, time_zone_designations.get(),

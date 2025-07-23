@@ -12,7 +12,7 @@
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "xbyak"]
 	path = externals/xbyak
-	url = https://github.com/herumi/xbyak.git
+	url = https://github.com/Lizzie841/xbyak.git
 [submodule "opus"]
 	path = externals/opus
 	url = https://github.com/xiph/opus.git
@@ -51,7 +51,7 @@
 	url = https://github.com/Lizzie841/unordered_dense.git
 [submodule "externals/dynarmic/externals/xbyak"]
 	path = externals/dynarmic/externals/xbyak
-	url = https://github.com/herumi/xbyak.git
+	url = https://github.com/Lizzie841/xbyak.git
 [submodule "externals/dynarmic/externals/zycore-c"]
 	path = externals/dynarmic/externals/zycore-c
 	url = https://github.com/zyantific/zycore-c.git

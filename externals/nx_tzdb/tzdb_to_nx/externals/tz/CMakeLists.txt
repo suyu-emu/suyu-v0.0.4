@@ -24,8 +24,8 @@ if (NOT EXISTS "${TZ_DIR}" OR NOT EXISTS "${TZIF_LIST_FILE}")
         # separate directory before building.
         execute_process(
             COMMAND
-                ${GIT_PROGRAM} clone --depth 1 "file://${TZ_SOURCE_DIR}" "${TZ_TMP_SOURCE_DIR}"
-            COMMAND_ERROR_IS_FATAL ANY
+                ${GIT_PROGRAM} clone --depth=1 "file://${TZ_SOURCE_DIR}" "${TZ_TMP_SOURCE_DIR}"
+            # No need to be fatal, on SunOS this works fine - COMMAND_ERROR_IS_FATAL ANY
         )
 
         if (APPLE)

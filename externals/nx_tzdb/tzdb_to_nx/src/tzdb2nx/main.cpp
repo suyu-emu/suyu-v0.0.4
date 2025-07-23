@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "tzif.h"
 #include <array>
 #include <cerrno>
@@ -7,7 +10,7 @@
 #include <getopt.h>
 #include <poll.h>
 #include <sys/stat.h>
-#include <sys/types.h>
+#include <cstdint>
 #include <unistd.h>
 
 constexpr std::size_t ten_megabytes{(1 << 20) * 10};
@@ -92,7 +95,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  u_int8_t *buf = new u_int8_t[filesize];
+  std::uint8_t *buf = new std::uint8_t[filesize];
 
   filesize = read(f, buf, filesize);
   if (filesize == static_cast<std::size_t>(-1)) {
@@ -124,7 +127,7 @@ int main(int argc, char *argv[]) {
 
   delete[] buf;
 
-  std::vector<u_int8_t> output_buffer;
+  std::vector<std::uint8_t> output_buffer;
   tzif_data->ReformatNintendo(output_buffer);
 
   filename = "(stdout)";

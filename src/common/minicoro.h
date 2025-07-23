@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /*
 Minimal asymmetric stackful cross-platform coroutine library in pure C.
 minicoro - v0.2.0 - 15/Nov/2023
@@ -467,7 +470,7 @@ extern "C" {
 #ifdef MCO_NO_MULTITHREAD
 #define MCO_THREAD_LOCAL
 #else
-#ifdef thread_local
+#if defined(thread_local) || __STDC_VERSION__ >= 202311L || defined(__sun__)
 #define MCO_THREAD_LOCAL thread_local
 #elif __STDC_VERSION__ >= 201112 && !defined(__STDC_NO_THREADS__)
 #define MCO_THREAD_LOCAL _Thread_local

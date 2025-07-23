@@ -27,7 +27,7 @@ namespace Network {
 
 #ifdef _WIN32
 
-std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
+std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
 
     ULONG buf_size = 0;
     if (GetAdaptersAddresses(
@@ -47,7 +47,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
         return {};
     }
 
-    std::vector<NetworkInterface> result;
+    std::vector<Network::NetworkInterface> result;
 
     for (auto* a = addrs; a; a = a->Next) {
 
@@ -80,7 +80,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
             break;
         }
 
-        result.emplace_back(NetworkInterface{
+        result.emplace_back(Network::NetworkInterface{
             .name = Common::UTF16ToUTF8(std::wstring{a->FriendlyName}),
             .ip_address = ip,
             .subnet_mask = mask,
@@ -94,7 +94,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 
 #else
 
-std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
+std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
     struct ifaddrs* ifaddr = nullptr;
 
     if (getifaddrs(&ifaddr) != 0) {
@@ -103,7 +103,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
         return {};
     }
 
-    std::vector<NetworkInterface> result;
+    std::vector<Network::NetworkInterface> result;
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr == nullptr || ifa->ifa_netmask == nullptr) {
@@ -121,7 +121,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 #ifdef ANDROID
         // On Android, we can't reliably get gateway info from /proc/net/route
         // Just use 0 as the gateway address
-        result.emplace_back(NetworkInterface{
+        result.emplace_back(Network::NetworkInterface{
                 .name{ifa->ifa_name},
                 .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
                 .subnet_mask{Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
@@ -134,11 +134,15 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
         if (!file.is_open()) {
             LOG_ERROR(Network, "Failed to open \"/proc/net/route\"");
 
-            result.emplace_back(NetworkInterface{
-                .name{ifa->ifa_name},
-                .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
-                .subnet_mask{Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
-                .gateway{in_addr{.s_addr = gateway}}});
+            // Solaris defines s_addr as a macro, can't use special C++ shenanigans here
+            in_addr gateway_0;
+            gateway_0.s_addr = gateway;
+            result.emplace_back(Network::NetworkInterface{
+                .name = ifa->ifa_name,
+                .ip_address = Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
+                .subnet_mask = Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
+                .gateway = gateway_0
+            });
             continue;
         }
 
@@ -183,11 +187,14 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
             gateway = 0;
         }
 
-        result.emplace_back(NetworkInterface{
-            .name{ifa->ifa_name},
-            .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr},
-            .subnet_mask{Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr},
-            .gateway{in_addr{.s_addr = gateway}}});
+        in_addr gateway_0;
+        gateway_0.s_addr = gateway;
+        result.emplace_back(Network::NetworkInterface{
+            .name = ifa->ifa_name,
+            .ip_address = Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr,
+            .subnet_mask = Common::BitCast<struct sockaddr_in>(*ifa->ifa_netmask).sin_addr,
+            .gateway = gateway_0
+        });
 #endif // ANDROID
     }
 
@@ -197,7 +204,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 
 #endif // _WIN32
 
-std::optional<NetworkInterface> GetSelectedNetworkInterface() {
+std::optional<Network::NetworkInterface> GetSelectedNetworkInterface() {
 
     const auto& selected_network_interface = Settings::values.network_interface.GetValue();
     const auto network_interfaces = Network::GetAvailableNetworkInterfaces();

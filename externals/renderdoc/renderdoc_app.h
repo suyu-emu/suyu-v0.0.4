@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Baldur Karlsson
 // SPDX-License-Identifier: MIT
 
@@ -38,14 +41,8 @@
 
 #if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER)
 #define RENDERDOC_CC __cdecl
-#elif defined(__linux__)
-#define RENDERDOC_CC
-#elif defined(__APPLE__)
-#define RENDERDOC_CC
-#elif defined(__FreeBSD__)
-#define RENDERDOC_CC
 #else
-#error "Unknown platform"
+#define RENDERDOC_CC
 #endif
 
 #ifdef __cplusplus

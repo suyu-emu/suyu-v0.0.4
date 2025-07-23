@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -206,9 +209,9 @@ template <>
 struct fmt::formatter<Service::PSC::Time::CalendarTime> : fmt::formatter<fmt::string_view> {
     template <typename FormatContext>
     auto format(const Service::PSC::Time::CalendarTime& calendar, FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "[{:02}/{:02}/{:04} {:02}:{:02}:{:02}]", calendar.day,
-                              calendar.month, calendar.year, calendar.hour, calendar.minute,
-                              calendar.second);
+        return fmt::format_to(ctx.out(), "[{:02}/{:02}/{:04} {:02}:{:02}:{:02}]", u8(calendar.day),
+                              u8(calendar.month), u16(calendar.year), u8(calendar.hour), u8(calendar.minute),
+                              u8(calendar.second));
     }
 };
 

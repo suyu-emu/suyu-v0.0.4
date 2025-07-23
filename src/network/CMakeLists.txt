@@ -25,6 +25,11 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(network PRIVATE web_service)
 endif()
 
+# Solaris uses /lib/amd64/libsocket.so and /lib/amd64/libnsl.so
+if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+    target_link_libraries(network PRIVATE socket nsl)
+endif()
+
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(network PRIVATE precompiled_headers.h)
 endif()

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2019 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -12,6 +15,9 @@
 #    include <signal.h>
 #    ifndef __OpenBSD__
 #        include <ucontext.h>
+#    endif
+#    ifdef __sun__
+#        include <sys/regset.h>
 #    endif
 #endif
 
@@ -145,9 +151,9 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 
 #ifndef MCL_ARCHITECTURE_RISCV
     ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
-#    ifndef __OpenBSD__
+#ifndef __OpenBSD__
     auto& mctx = ucontext->uc_mcontext;
-#    endif
+#endif
 #endif
 
 #if defined(MCL_ARCHITECTURE_X86_64)
@@ -167,6 +173,9 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #    elif defined(__OpenBSD__)
 #        define CTX_RIP (ucontext->sc_rip)
 #        define CTX_RSP (ucontext->sc_rsp)
+#    elif defined(__sun__)
+#        define CTX_RIP (mctx.gregs[REG_RIP])
+#        define CTX_RSP (mctx.gregs[REG_RSP])
 #    else
 #        error "Unknown platform"
 #    endif
