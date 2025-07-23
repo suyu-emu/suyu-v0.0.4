@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Build directory
-[Bb]uild*/
+/[Bb]uild*/
 doc-build/
 AppDir/
 uruntime

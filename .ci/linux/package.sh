@@ -16,11 +16,11 @@ case "$1" in
         echo "Packaging amd64-v3 optimized build of Eden"
         ARCH="amd64_v3"
         ;;
-    steamdeck)
+    steamdeck|zen2)
         echo "Packaging Steam Deck (Zen 2) optimized build of Eden"
         ARCH="steamdeck"
         ;;
-    rog-ally|allyx)
+    rog-ally|allyx|zen4)
         echo "Packaging ROG Ally X (Zen 4) optimized build of Eden"
         ARCH="rog-ally-x"
         ;;
@@ -36,6 +36,11 @@ case "$1" in
         echo "Packaging armv9-a build of Eden"
         ARCH=armv9
         ;;
+		native)
+        echo "Packaging native build of Eden"
+        ARCH="$BASE_ARCH"
+        ;;
+
 esac
 
 export BUILDDIR="$2"

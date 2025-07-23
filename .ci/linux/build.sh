@@ -3,7 +3,6 @@
 # SPDX-FileCopyrightText: 2025 eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-export ARCH="$(uname -m)"
 
 case "$1" in
     amd64|"")
@@ -11,15 +10,15 @@ case "$1" in
         ARCH="amd64_v3"
         ARCH_FLAGS="-march=x86-64-v3"
         ;;
-    steamdeck)
+    steamdeck|zen2)
         echo "Making Steam Deck (Zen 2) optimized build of Eden"
         ARCH="steamdeck"
         ARCH_FLAGS="-march=znver2 -mtune=znver2"
         ;;
-    rog-ally|allyx)
+    rog-ally|allyx|zen4)
         echo "Making ROG Ally X (Zen 4) optimized build of Eden"
         ARCH="rog-ally-x"
-        ARCH_FLAGS="-march=znver3 -mtune=znver4" # GH actions runner is a Zen 3 CPU, so a small workaround
+        ARCH_FLAGS="-march=znver4 -mtune=znver4"
         ;;
     legacy)
         echo "Making amd64 generic build of Eden"
@@ -36,8 +35,13 @@ case "$1" in
         ARCH=armv9
         ARCH_FLAGS="-march=armv9-a -mtune=generic -w"
         ;;
+    native)
+        echo "Making native build of Eden"
+        ARCH="$(uname -m)"
+        ARCH_FLAGS="-march=native -mtune=native"
+        ;;
     *)
-        echo "Invalid target $1 specified, must be one of amd64, steamdeck, allyx, rog-ally, legacy, aarch64, armv9"
+        echo "Invalid target $1 specified, must be one of native, amd64, steamdeck, zen2, allyx, rog-ally, zen4, legacy, aarch64, armv9"
         exit 1
         ;;
 esac
