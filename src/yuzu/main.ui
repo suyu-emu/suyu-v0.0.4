@@ -213,8 +213,8 @@
     <addaction name="action_Open_Quickstart_Guide"/>
     <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
-    <addaction name="action_About"/>
     <addaction name="action_Discord"/>
+    <addaction name="action_About"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -547,8 +547,8 @@
   <action name="action_Log_Folder">
    <property name="text">
     <string>&amp;Log Folder</string>
-    </property>
-   </action>
+   </property>
+  </action>
   <action name="action_Firmware_From_Folder">
    <property name="text">
     <string>From Folder</string>
