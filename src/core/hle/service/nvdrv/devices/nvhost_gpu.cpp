@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -192,11 +195,27 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params, DeviceFD fd) {
 }
 
 NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, class_num={:X}, flags={:X}", params.class_num,
-                params.flags);
+    LOG_DEBUG(Service_NVDRV, "called, class_num={:X}, flags={:X}, obj_id={:X}", params.class_num,
+                params.flags, params.obj_id);
 
-    params.obj_id = 0x0;
-    return NvResult::Success;
+    if (!channel_state->initialized) {
+        LOG_CRITICAL(Service_NVDRV, "No address space bound to allocate a object context!");
+        return NvResult::NotInitialized;
+    }
+
+    switch (static_cast<CtxClasses>(params.class_num)) { 
+    case CtxClasses::Ctx2D:
+    case CtxClasses::Ctx3D:
+    case CtxClasses::CtxCompute:
+    case CtxClasses::CtxKepler:
+    case CtxClasses::CtxDMA:
+    case CtxClasses::CtxChannelGPFIFO:
+        ctxObj_params.push_back(params);
+        return NvResult::Success;
+    default:
+        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:X}", params.class_num);
+        return NvResult::BadParameter;
+    }
 }
 
 static boost::container::small_vector<Tegra::CommandHeader, 512> BuildWaitCommandList(
