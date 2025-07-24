@@ -68,7 +68,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
-#ifdef __unix__
+#ifdef __linux__
 #include "common/linux/gamemode.h"
 #endif
 
@@ -410,9 +410,7 @@ int main(int argc, char** argv) {
                          "While attempting to load the ROM requested, an error occurred. Please "
                          "refer to the Eden wiki for more information or the Eden discord for "
                          "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
-                         loader_id,
-                         error_id,
-                         static_cast<Loader::ResultStatus>(error_id));
+                         loader_id, error_id, static_cast<Loader::ResultStatus>(error_id));
         }
         break;
     }
@@ -447,7 +445,7 @@ int main(int argc, char** argv) {
         exit(0);
     });
 
-#ifdef __unix__
+#ifdef __linux__
     Common::Linux::StartGamemode();
 #endif
 
@@ -462,7 +460,7 @@ int main(int argc, char** argv) {
     void(system.Pause());
     system.ShutdownMainProcess();
 
-#ifdef __unix__
+#ifdef __linux__
     Common::Linux::StopGamemode();
 #endif
 

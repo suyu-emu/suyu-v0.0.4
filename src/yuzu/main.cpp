@@ -20,6 +20,8 @@
 #ifdef __unix__
 #include <csignal>
 #include <sys/socket.h>
+#endif
+#ifdef __linux__
 #include "common/linux/gamemode.h"
 #endif
 
@@ -37,8 +39,8 @@
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
-#include "core/file_sys/romfs_factory.h"
 #include "core/core_timing.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs/vfs.h"
 #include "core/file_sys/vfs/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
@@ -66,7 +68,7 @@
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
 static FileSys::VirtualDir VfsFilesystemCreateDirectoryWrapper(
-        const FileSys::VirtualFilesystem& vfs, const std::string& path, FileSys::OpenMode mode) {
+    const FileSys::VirtualFilesystem& vfs, const std::string& path, FileSys::OpenMode mode) {
     return vfs->CreateDirectory(path, mode);
 }
 
@@ -215,7 +217,7 @@ enum class CalloutFlag : uint32_t {
  * so this tracks which games are bad in this regard.
  */
 constexpr std::array<u64, 1> bad_update_games{
-    0x0100F2C0115B6000   // Tears of the Kingdom
+    0x0100F2C0115B6000 // Tears of the Kingdom
 };
 
 const int GMainWindow::max_recent_files_item;
@@ -267,21 +269,21 @@ static QString PrettyProductName() {
     // After Windows 10 Version 2004, Microsoft decided to switch to a different notation: 20H2
     // With that notation change they changed the registry key used to denote the current version
     QSettings windows_registry(
-                QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"),
-                QSettings::NativeFormat);
+        QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"),
+        QSettings::NativeFormat);
     const QString release_id = windows_registry.value(QStringLiteral("ReleaseId")).toString();
     if (release_id == QStringLiteral("2009")) {
         const u32 current_build = windows_registry.value(QStringLiteral("CurrentBuild")).toUInt();
         const QString display_version =
-                windows_registry.value(QStringLiteral("DisplayVersion")).toString();
+            windows_registry.value(QStringLiteral("DisplayVersion")).toString();
         const u32 ubr = windows_registry.value(QStringLiteral("UBR")).toUInt();
         u32 version = 10;
         if (current_build >= 22000) {
             version = 11;
         }
         return QStringLiteral("Windows %1 Version %2 (Build %3.%4)")
-                .arg(QString::number(version), display_version, QString::number(current_build),
-                     QString::number(ubr));
+            .arg(QString::number(version), display_version, QString::number(current_build),
+                 QString::number(ubr));
     }
 #endif
     return QSysInfo::prettyProductName();
@@ -313,8 +315,7 @@ bool GMainWindow::CheckDarkMode() {
 
 GMainWindow::GMainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
-      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
-      user_data_migrator{this},
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, user_data_migrator{this},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
     Common::FS::CreateEdenPaths();
@@ -322,24 +323,29 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     if (user_data_migrator.migrated) {
         // Sort-of hack whereby we only move the old dir if it's a subfolder of the user dir
-    #define MIGRATE_DIR(type) std::string type##path = Common::FS::GetEdenPathString(Common::FS::EdenPath::type##Dir); \
-        if (type##path.starts_with(user_data_migrator.selected_emu.get_user_dir())) { \
-            boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name(), "eden"); \
-            Common::FS::SetEdenPath(Common::FS::EdenPath::type##Dir, type##path); \
-        }
+#define MIGRATE_DIR(type)                                                                          \
+    std::string type##path = Common::FS::GetEdenPathString(Common::FS::EdenPath::type##Dir);       \
+    if (type##path.starts_with(user_data_migrator.selected_emu.get_user_dir())) {                  \
+        boost::replace_all(type##path, user_data_migrator.selected_emu.lower_name(), "eden");      \
+        Common::FS::SetEdenPath(Common::FS::EdenPath::type##Dir, type##path);                      \
+    }
 
         MIGRATE_DIR(NAND)
         MIGRATE_DIR(SDMC)
         MIGRATE_DIR(Dump)
         MIGRATE_DIR(Load)
 
-    #undef MIGRATE_DIR
+#undef MIGRATE_DIR
     }
 
 #ifdef __unix__
     SetupSigInterrupts();
+#endif
+
+#ifdef __linux__
     SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
 #endif
+
     UISettings::RestoreWindowState(config);
 
     system->Initialize();
@@ -392,7 +398,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 
     const auto yuzu_build = fmt::format("Eden Development Build | {}-{}", branch_name, description);
     const auto override_build =
-            fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
+        fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
     const auto processor_count = std::thread::hardware_concurrency();
 
@@ -426,7 +432,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     LOG_INFO(Frontend, "Host Timer Resolution: {:.4f} ms",
              std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(
                  Common::Windows::SetCurrentTimerResolutionToMaximum())
-             .count());
+                 .count());
     system->CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
 #endif
     UpdateWindowTitle();
@@ -436,13 +442,12 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
 #ifdef ENABLE_QT_UPDATE_CHECKER
     if (UISettings::values.check_for_updates) {
         update_future = QtConcurrent::run([]() -> QString {
-            const bool is_prerelease =
-                    ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
-                     (strstr(Common::g_build_version, "alpha") != NULL) ||
-                     (strstr(Common::g_build_version, "beta") != NULL) ||
-                     (strstr(Common::g_build_version, "rc") != NULL));
+            const bool is_prerelease = ((strstr(Common::g_build_version, "pre-alpha") != NULL) ||
+                                        (strstr(Common::g_build_version, "alpha") != NULL) ||
+                                        (strstr(Common::g_build_version, "beta") != NULL) ||
+                                        (strstr(Common::g_build_version, "rc") != NULL));
             const std::optional<std::string> latest_release_tag =
-                    UpdateChecker::GetLatestRelease(is_prerelease);
+                UpdateChecker::GetLatestRelease(is_prerelease);
             if (latest_release_tag && latest_release_tag.value() != Common::g_build_version) {
                 return QString::fromStdString(latest_release_tag.value());
             }
@@ -676,26 +681,26 @@ void GMainWindow::RegisterMetaTypes() {
     // Cabinet Applet
     qRegisterMetaType<Core::Frontend::CabinetParameters>("Core::Frontend::CabinetParameters");
     qRegisterMetaType<std::shared_ptr<Service::NFC::NfcDevice>>(
-                "std::shared_ptr<Service::NFC::NfcDevice>");
+        "std::shared_ptr<Service::NFC::NfcDevice>");
 
     // Controller Applet
     qRegisterMetaType<Core::Frontend::ControllerParameters>("Core::Frontend::ControllerParameters");
 
     // Profile Select Applet
     qRegisterMetaType<Core::Frontend::ProfileSelectParameters>(
-                "Core::Frontend::ProfileSelectParameters");
+        "Core::Frontend::ProfileSelectParameters");
 
     // Software Keyboard Applet
     qRegisterMetaType<Core::Frontend::KeyboardInitializeParameters>(
-                "Core::Frontend::KeyboardInitializeParameters");
+        "Core::Frontend::KeyboardInitializeParameters");
     qRegisterMetaType<Core::Frontend::InlineAppearParameters>(
-                "Core::Frontend::InlineAppearParameters");
+        "Core::Frontend::InlineAppearParameters");
     qRegisterMetaType<Core::Frontend::InlineTextParameters>("Core::Frontend::InlineTextParameters");
     qRegisterMetaType<Service::AM::Frontend::SwkbdResult>("Service::AM::Frontend::SwkbdResult");
     qRegisterMetaType<Service::AM::Frontend::SwkbdTextCheckResult>(
-                "Service::AM::Frontend::SwkbdTextCheckResult");
+        "Service::AM::Frontend::SwkbdTextCheckResult");
     qRegisterMetaType<Service::AM::Frontend::SwkbdReplyType>(
-                "Service::AM::Frontend::SwkbdReplyType");
+        "Service::AM::Frontend::SwkbdReplyType");
 
     // Web Browser Applet
     qRegisterMetaType<Service::AM::Frontend::WebExitReason>("Service::AM::Frontend::WebExitReason");
@@ -707,7 +712,7 @@ void GMainWindow::RegisterMetaTypes() {
 void GMainWindow::AmiiboSettingsShowDialog(const Core::Frontend::CabinetParameters& parameters,
                                            std::shared_ptr<Service::NFC::NfcDevice> nfp_device) {
     cabinet_applet =
-            new QtAmiiboSettingsDialog(this, parameters, input_subsystem.get(), nfp_device);
+        new QtAmiiboSettingsDialog(this, parameters, input_subsystem.get(), nfp_device);
     SCOPE_EXIT {
         cabinet_applet->deleteLater();
         cabinet_applet = nullptr;
@@ -732,9 +737,9 @@ void GMainWindow::AmiiboSettingsRequestExit() {
 }
 
 void GMainWindow::ControllerSelectorReconfigureControllers(
-        const Core::Frontend::ControllerParameters& parameters) {
+    const Core::Frontend::ControllerParameters& parameters) {
     controller_applet =
-            new QtControllerSelectorDialog(this, parameters, input_subsystem.get(), *system);
+        new QtControllerSelectorDialog(this, parameters, input_subsystem.get(), *system);
     SCOPE_EXIT {
         controller_applet->deleteLater();
         controller_applet = nullptr;
@@ -763,7 +768,7 @@ void GMainWindow::ControllerSelectorRequestExit() {
 }
 
 void GMainWindow::ProfileSelectorSelectProfile(
-        const Core::Frontend::ProfileSelectParameters& parameters) {
+    const Core::Frontend::ProfileSelectParameters& parameters) {
     profile_select_applet = new QtProfileSelectionDialog(*system, this, parameters);
     SCOPE_EXIT {
         profile_select_applet->deleteLater();
@@ -780,7 +785,7 @@ void GMainWindow::ProfileSelectorSelectProfile(
     }
 
     const auto uuid = system->GetProfileManager().GetUser(
-                static_cast<std::size_t>(profile_select_applet->GetIndex()));
+        static_cast<std::size_t>(profile_select_applet->GetIndex()));
     if (!uuid.has_value()) {
         emit ProfileSelectorFinishedSelection(std::nullopt);
         return;
@@ -796,7 +801,7 @@ void GMainWindow::ProfileSelectorRequestExit() {
 }
 
 void GMainWindow::SoftwareKeyboardInitialize(
-        bool is_inline, Core::Frontend::KeyboardInitializeParameters initialize_parameters) {
+    bool is_inline, Core::Frontend::KeyboardInitializeParameters initialize_parameters) {
     if (software_keyboard) {
         LOG_ERROR(Frontend, "The software keyboard is already initialized!");
         return;
@@ -807,20 +812,20 @@ void GMainWindow::SoftwareKeyboardInitialize(
 
     if (is_inline) {
         connect(
-                    software_keyboard, &QtSoftwareKeyboardDialog::SubmitInlineText, this,
-                    [this](Service::AM::Frontend::SwkbdReplyType reply_type, std::u16string submitted_text,
-                    s32 cursor_position) {
-            emit SoftwareKeyboardSubmitInlineText(reply_type, submitted_text, cursor_position);
-        },
-        Qt::QueuedConnection);
+            software_keyboard, &QtSoftwareKeyboardDialog::SubmitInlineText, this,
+            [this](Service::AM::Frontend::SwkbdReplyType reply_type, std::u16string submitted_text,
+                   s32 cursor_position) {
+                emit SoftwareKeyboardSubmitInlineText(reply_type, submitted_text, cursor_position);
+            },
+            Qt::QueuedConnection);
     } else {
         connect(
-                    software_keyboard, &QtSoftwareKeyboardDialog::SubmitNormalText, this,
-                    [this](Service::AM::Frontend::SwkbdResult result, std::u16string submitted_text,
-                    bool confirmed) {
-            emit SoftwareKeyboardSubmitNormalText(result, submitted_text, confirmed);
-        },
-        Qt::QueuedConnection);
+            software_keyboard, &QtSoftwareKeyboardDialog::SubmitNormalText, this,
+            [this](Service::AM::Frontend::SwkbdResult result, std::u16string submitted_text,
+                   bool confirmed) {
+                emit SoftwareKeyboardSubmitNormalText(result, submitted_text, confirmed);
+            },
+            Qt::QueuedConnection);
     }
 }
 
@@ -843,8 +848,8 @@ void GMainWindow::SoftwareKeyboardShowNormal() {
 }
 
 void GMainWindow::SoftwareKeyboardShowTextCheck(
-        Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
-        std::u16string text_check_message) {
+    Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
+    std::u16string text_check_message) {
     if (!software_keyboard) {
         LOG_ERROR(Frontend, "The software keyboard is not initialized!");
         return;
@@ -854,7 +859,7 @@ void GMainWindow::SoftwareKeyboardShowTextCheck(
 }
 
 void GMainWindow::SoftwareKeyboardShowInline(
-        Core::Frontend::InlineAppearParameters appear_parameters) {
+    Core::Frontend::InlineAppearParameters appear_parameters) {
     if (!software_keyboard) {
         LOG_ERROR(Frontend, "The software keyboard is not initialized!");
         return;
@@ -863,13 +868,13 @@ void GMainWindow::SoftwareKeyboardShowInline(
     const auto& layout = render_window->GetFramebufferLayout();
 
     const auto x =
-            static_cast<int>(layout.screen.left + (0.5f * layout.screen.GetWidth() *
-                                                   ((2.0f * appear_parameters.key_top_translate_x) +
-                                                    (1.0f - appear_parameters.key_top_scale_x))));
+        static_cast<int>(layout.screen.left + (0.5f * layout.screen.GetWidth() *
+                                               ((2.0f * appear_parameters.key_top_translate_x) +
+                                                (1.0f - appear_parameters.key_top_scale_x))));
     const auto y =
-            static_cast<int>(layout.screen.top + (layout.screen.GetHeight() *
-                                                  ((2.0f * appear_parameters.key_top_translate_y) +
-                                                   (1.0f - appear_parameters.key_top_scale_y))));
+        static_cast<int>(layout.screen.top + (layout.screen.GetHeight() *
+                                              ((2.0f * appear_parameters.key_top_translate_y) +
+                                               (1.0f - appear_parameters.key_top_scale_y))));
     const auto w = static_cast<int>(layout.screen.GetWidth() * appear_parameters.key_top_scale_x);
     const auto h = static_cast<int>(layout.screen.GetHeight() * appear_parameters.key_top_scale_y);
     const auto scale_ratio = devicePixelRatioF();
@@ -889,7 +894,7 @@ void GMainWindow::SoftwareKeyboardHideInline() {
 }
 
 void GMainWindow::SoftwareKeyboardInlineTextChanged(
-        Core::Frontend::InlineTextParameters text_parameters) {
+    Core::Frontend::InlineTextParameters text_parameters) {
     if (!software_keyboard) {
         LOG_ERROR(Frontend, "The software keyboard is not initialized!");
         return;
@@ -980,11 +985,11 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
     QAction* exit_action = new QAction(tr("Disable Web Applet"), this);
     connect(exit_action, &QAction::triggered, this, [this] {
         const auto result = QMessageBox::warning(
-                    this, tr("Disable Web Applet"),
-                    tr("Disabling the web applet can lead to undefined behavior and should only be used "
-                       "with Super Mario 3D All-Stars. Are you sure you want to disable the web "
-                       "applet?\n(This can be re-enabled in the Debug settings.)"),
-                    QMessageBox::Yes | QMessageBox::No);
+            this, tr("Disable Web Applet"),
+            tr("Disabling the web applet can lead to undefined behavior and should only be used "
+               "with Super Mario 3D All-Stars. Are you sure you want to disable the web "
+               "applet?\n(This can be re-enabled in the Debug settings.)"),
+            QMessageBox::Yes | QMessageBox::No);
         if (result == QMessageBox::Yes) {
             UISettings::values.disable_web_applet = true;
             web_applet->SetFinished(true);
@@ -997,14 +1002,14 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
 
         if (!exit_check) {
             web_applet->page()->runJavaScript(
-                        QStringLiteral("end_applet;"), [&](const QVariant& variant) {
-                exit_check = false;
-                if (variant.toBool()) {
-                    web_applet->SetFinished(true);
-                    web_applet->SetExitReason(
-                                Service::AM::Frontend::WebExitReason::EndButtonPressed);
-                }
-            });
+                QStringLiteral("end_applet;"), [&](const QVariant& variant) {
+                    exit_check = false;
+                    if (variant.toBool()) {
+                        web_applet->SetFinished(true);
+                        web_applet->SetExitReason(
+                            Service::AM::Frontend::WebExitReason::EndButtonPressed);
+                    }
+                });
 
             exit_check = true;
         }
@@ -1102,18 +1107,18 @@ void GMainWindow::InitializeWidgets() {
     res_scale_label->setToolTip(tr("The current selected resolution scaling multiplier."));
     emu_speed_label = new QLabel();
     emu_speed_label->setToolTip(
-                tr("Current emulation speed. Values higher or lower than 100% "
-                   "indicate emulation is running faster or slower than a Switch."));
+        tr("Current emulation speed. Values higher or lower than 100% "
+           "indicate emulation is running faster or slower than a Switch."));
     game_fps_label = new QLabel();
     game_fps_label->setToolTip(tr("How many frames per second the game is currently displaying. "
                                   "This will vary from game to game and scene to scene."));
     emu_frametime_label = new QLabel();
     emu_frametime_label->setToolTip(
-                tr("Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For "
-                   "full-speed emulation this should be at most 16.67 ms."));
+        tr("Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For "
+           "full-speed emulation this should be at most 16.67 ms."));
 
     for (auto& label : {shader_building_label, res_scale_label, emu_speed_label, game_fps_label,
-         emu_frametime_label}) {
+                        emu_frametime_label}) {
         label->setVisible(false);
         label->setFrameStyle(QFrame::NoFrame);
         label->setContentsMargins(4, 0, 4, 0);
@@ -1167,21 +1172,21 @@ void GMainWindow::InitializeWidgets() {
     volume_button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(volume_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
-        QMenu context_menu;
-        context_menu.addAction(
+                QMenu context_menu;
+                context_menu.addAction(
                     Settings::values.audio_muted ? tr("Unmute") : tr("Mute"), [this] {
-            Settings::values.audio_muted = !Settings::values.audio_muted;
-            UpdateVolumeUI();
-        });
+                        Settings::values.audio_muted = !Settings::values.audio_muted;
+                        UpdateVolumeUI();
+                    });
 
-        context_menu.addAction(tr("Reset Volume"), [this] {
-            Settings::values.volume.SetValue(100);
-            UpdateVolumeUI();
-        });
+                context_menu.addAction(tr("Reset Volume"), [this] {
+                    Settings::values.volume.SetValue(100);
+                    UpdateVolumeUI();
+                });
 
-        context_menu.exec(volume_button->mapToGlobal(menu_location));
-        volume_button->repaint();
-    });
+                context_menu.exec(volume_button->mapToGlobal(menu_location));
+                volume_button->repaint();
+            });
     connect(volume_button, &VolumeButton::VolumeChanged, this, &GMainWindow::UpdateVolumeUI);
 
     statusBar()->insertPermanentWidget(0, volume_button);
@@ -1206,16 +1211,16 @@ void GMainWindow::InitializeWidgets() {
     aa_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(aa_status_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
-        QMenu context_menu;
-        for (auto const& aa_text_pair : ConfigurationShared::anti_aliasing_texts_map) {
-            context_menu.addAction(aa_text_pair.second, [this, aa_text_pair] {
-                Settings::values.anti_aliasing.SetValue(aa_text_pair.first);
-                UpdateAAText();
+                QMenu context_menu;
+                for (auto const& aa_text_pair : ConfigurationShared::anti_aliasing_texts_map) {
+                    context_menu.addAction(aa_text_pair.second, [this, aa_text_pair] {
+                        Settings::values.anti_aliasing.SetValue(aa_text_pair.first);
+                        UpdateAAText();
+                    });
+                }
+                context_menu.exec(aa_status_button->mapToGlobal(menu_location));
+                aa_status_button->repaint();
             });
-        }
-        context_menu.exec(aa_status_button->mapToGlobal(menu_location));
-        aa_status_button->repaint();
-    });
     statusBar()->insertPermanentWidget(0, aa_status_button);
 
     // Setup Filter button
@@ -1230,16 +1235,16 @@ void GMainWindow::InitializeWidgets() {
     filter_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(filter_status_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
-        QMenu context_menu;
-        for (auto const& filter_text_pair : ConfigurationShared::scaling_filter_texts_map) {
-            context_menu.addAction(filter_text_pair.second, [this, filter_text_pair] {
-                Settings::values.scaling_filter.SetValue(filter_text_pair.first);
-                UpdateFilterText();
+                QMenu context_menu;
+                for (auto const& filter_text_pair : ConfigurationShared::scaling_filter_texts_map) {
+                    context_menu.addAction(filter_text_pair.second, [this, filter_text_pair] {
+                        Settings::values.scaling_filter.SetValue(filter_text_pair.first);
+                        UpdateFilterText();
+                    });
+                }
+                context_menu.exec(filter_status_button->mapToGlobal(menu_location));
+                filter_status_button->repaint();
             });
-        }
-        context_menu.exec(filter_status_button->mapToGlobal(menu_location));
-        filter_status_button->repaint();
-    });
     statusBar()->insertPermanentWidget(0, filter_status_button);
 
     // Setup Dock button
@@ -1252,18 +1257,18 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(dock_status_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
-        QMenu context_menu;
+                QMenu context_menu;
 
-        for (auto const& pair : ConfigurationShared::use_docked_mode_texts_map) {
-            context_menu.addAction(pair.second, [this, &pair] {
-                if (pair.first != Settings::values.use_docked_mode.GetValue()) {
-                    OnToggleDockedMode();
+                for (auto const& pair : ConfigurationShared::use_docked_mode_texts_map) {
+                    context_menu.addAction(pair.second, [this, &pair] {
+                        if (pair.first != Settings::values.use_docked_mode.GetValue()) {
+                            OnToggleDockedMode();
+                        }
+                    });
                 }
+                context_menu.exec(dock_status_button->mapToGlobal(menu_location));
+                dock_status_button->repaint();
             });
-        }
-        context_menu.exec(dock_status_button->mapToGlobal(menu_location));
-        dock_status_button->repaint();
-    });
     statusBar()->insertPermanentWidget(0, dock_status_button);
 
     // Setup GPU Accuracy button
@@ -1276,20 +1281,20 @@ void GMainWindow::InitializeWidgets() {
     gpu_accuracy_button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(gpu_accuracy_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
-        QMenu context_menu;
+                QMenu context_menu;
 
-        for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
-            if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
-                continue;
-            }
-            context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
-                Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
-                UpdateGPUAccuracyButton();
+                for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
+                    if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
+                        continue;
+                    }
+                    context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
+                        Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
+                        UpdateGPUAccuracyButton();
+                    });
+                }
+                context_menu.exec(gpu_accuracy_button->mapToGlobal(menu_location));
+                gpu_accuracy_button->repaint();
             });
-        }
-        context_menu.exec(gpu_accuracy_button->mapToGlobal(menu_location));
-        gpu_accuracy_button->repaint();
-    });
     statusBar()->insertPermanentWidget(0, gpu_accuracy_button);
 
     // Setup Renderer API button
@@ -1305,22 +1310,22 @@ void GMainWindow::InitializeWidgets() {
     renderer_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(renderer_status_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
-        QMenu context_menu;
+                QMenu context_menu;
 
-        for (auto const& renderer_backend_pair :
-             ConfigurationShared::renderer_backend_texts_map) {
-            if (renderer_backend_pair.first == Settings::RendererBackend::Null) {
-                continue;
-            }
-            context_menu.addAction(
+                for (auto const& renderer_backend_pair :
+                     ConfigurationShared::renderer_backend_texts_map) {
+                    if (renderer_backend_pair.first == Settings::RendererBackend::Null) {
+                        continue;
+                    }
+                    context_menu.addAction(
                         renderer_backend_pair.second, [this, renderer_backend_pair] {
-                Settings::values.renderer_backend.SetValue(renderer_backend_pair.first);
-                UpdateAPIText();
+                            Settings::values.renderer_backend.SetValue(renderer_backend_pair.first);
+                            UpdateAPIText();
+                        });
+                }
+                context_menu.exec(renderer_status_button->mapToGlobal(menu_location));
+                renderer_status_button->repaint();
             });
-        }
-        context_menu.exec(renderer_status_button->mapToGlobal(menu_location));
-        renderer_status_button->repaint();
-    });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
 
     // Setup Refresh Button
@@ -1385,24 +1390,24 @@ void GMainWindow::LinkActionShortcut(QAction* action, const QString& action_name
     static const auto main_window = std::string("Main Window");
     action->setShortcut(hotkey_registry.GetKeySequence(main_window, action_name.toStdString()));
     action->setShortcutContext(
-                hotkey_registry.GetShortcutContext(main_window, action_name.toStdString()));
+        hotkey_registry.GetShortcutContext(main_window, action_name.toStdString()));
     action->setAutoRepeat(false);
 
     this->addAction(action);
 
     auto* controller = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     const auto* controller_hotkey =
-            hotkey_registry.GetControllerHotkey(main_window, action_name.toStdString(), controller);
+        hotkey_registry.GetControllerHotkey(main_window, action_name.toStdString(), controller);
     connect(
-                controller_hotkey, &ControllerShortcut::Activated, this,
-                [action, tas_allowed, this] {
-        auto [tas_status, current_tas_frame, total_tas_frames] =
+        controller_hotkey, &ControllerShortcut::Activated, this,
+        [action, tas_allowed, this] {
+            auto [tas_status, current_tas_frame, total_tas_frames] =
                 input_subsystem->GetTas()->GetStatus();
-        if (tas_allowed || tas_status == InputCommon::TasInput::TasState::Stopped) {
-            action->trigger();
-        }
-    },
-    Qt::QueuedConnection);
+            if (tas_allowed || tas_status == InputCommon::TasInput::TasState::Stopped) {
+                action->trigger();
+            }
+        },
+        Qt::QueuedConnection);
 }
 
 void GMainWindow::InitializeHotkeys() {
@@ -1433,15 +1438,15 @@ void GMainWindow::InitializeHotkeys() {
 
     static const QString main_window = QStringLiteral("Main Window");
     const auto connect_shortcut = [&]<typename Fn>(const QString& action_name, const Fn& function) {
-            const auto* hotkey =
+        const auto* hotkey =
             hotkey_registry.GetHotkey(main_window.toStdString(), action_name.toStdString(), this);
-            auto* controller = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
-            const auto* controller_hotkey = hotkey_registry.GetControllerHotkey(
-                main_window.toStdString(), action_name.toStdString(), controller);
-            connect(hotkey, &QShortcut::activated, this, function);
-            connect(controller_hotkey, &ControllerShortcut::Activated, this, function,
-                    Qt::QueuedConnection);
-};
+        auto* controller = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        const auto* controller_hotkey = hotkey_registry.GetControllerHotkey(
+            main_window.toStdString(), action_name.toStdString(), controller);
+        connect(hotkey, &QShortcut::activated, this, function);
+        connect(controller_hotkey, &ControllerShortcut::Activated, this, function,
+                Qt::QueuedConnection);
+    };
 
     connect_shortcut(QStringLiteral("Exit Fullscreen"), [&] {
         if (emulation_running && ui->action_Fullscreen->isChecked()) {
@@ -1508,7 +1513,7 @@ void GMainWindow::RestoreUIState() {
     ui->action_Fullscreen->setChecked(UISettings::values.fullscreen.GetValue());
 
     ui->action_Display_Dock_Widget_Headers->setChecked(
-                UISettings::values.display_titlebar.GetValue());
+        UISettings::values.display_titlebar.GetValue());
     OnDisplayTitleBars(ui->action_Display_Dock_Widget_Headers->isChecked());
 
     ui->action_Show_Filter_Bar->setChecked(UISettings::values.show_filter_bar.GetValue());
@@ -1521,7 +1526,7 @@ void GMainWindow::RestoreUIState() {
 
 void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
     if (state != Qt::ApplicationHidden && state != Qt::ApplicationInactive &&
-            state != Qt::ApplicationActive) {
+        state != Qt::ApplicationActive) {
         LOG_DEBUG(Frontend, "ApplicationState unusual flag: {} ", state);
     }
     if (!emulation_running) {
@@ -1529,7 +1534,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
     }
     if (UISettings::values.pause_when_in_background) {
         if (emu_thread->IsRunning() &&
-                (state & (Qt::ApplicationHidden | Qt::ApplicationInactive))) {
+            (state & (Qt::ApplicationHidden | Qt::ApplicationInactive))) {
             auto_paused = true;
             OnPauseGame();
         } else if (!emu_thread->IsRunning() && auto_paused && state == Qt::ApplicationActive) {
@@ -1539,7 +1544,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
     }
     if (UISettings::values.mute_when_in_background) {
         if (!Settings::values.audio_muted &&
-                (state & (Qt::ApplicationHidden | Qt::ApplicationInactive))) {
+            (state & (Qt::ApplicationHidden | Qt::ApplicationInactive))) {
             Settings::values.audio_muted = true;
             auto_muted = true;
         } else if (auto_muted && state == Qt::ApplicationActive) {
@@ -1600,12 +1605,12 @@ void GMainWindow::ConnectWidgetEvents() {
 
 void GMainWindow::ConnectMenuEvents() {
     const auto connect_menu = [&]<typename Fn>(QAction* action, const Fn& event_fn) {
-            connect(action, &QAction::triggered, this, event_fn);
-            // Add actions to this window so that hiding menus in fullscreen won't disable them
-            addAction(action);
-            // Add actions to the render window so that they work outside of single window mode
-            render_window->addAction(action);
-};
+        connect(action, &QAction::triggered, this, event_fn);
+        // Add actions to this window so that hiding menus in fullscreen won't disable them
+        addAction(action);
+        // Add actions to the render window so that they work outside of single window mode
+        render_window->addAction(action);
+    };
 
     // File
     connect_menu(ui->action_Load_File, &GMainWindow::OnMenuLoadFile);
@@ -1667,7 +1672,8 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Load_Home_Menu, &GMainWindow::OnHomeMenu);
     connect_menu(ui->action_Open_Setup, &GMainWindow::OnInitialSetup);
     connect_menu(ui->action_Desktop, &GMainWindow::OnCreateHomeMenuDesktopShortcut);
-    connect_menu(ui->action_Application_Menu, &GMainWindow::OnCreateHomeMenuApplicationMenuShortcut);
+    connect_menu(ui->action_Application_Menu,
+                 &GMainWindow::OnCreateHomeMenuApplicationMenuShortcut);
     connect_menu(ui->action_Capture_Screenshot, &GMainWindow::OnCaptureScreenshot);
 
     // TAS
@@ -1697,21 +1703,21 @@ void GMainWindow::UpdateMenuState() {
 
     const std::array running_actions{
         ui->action_Stop,
-                ui->action_Restart,
-                ui->action_Configure_Current_Game,
-                ui->action_Report_Compatibility,
-                ui->action_Load_Amiibo,
-                ui->action_Pause,
+        ui->action_Restart,
+        ui->action_Configure_Current_Game,
+        ui->action_Report_Compatibility,
+        ui->action_Load_Amiibo,
+        ui->action_Pause,
     };
 
     const std::array applet_actions{ui->action_Load_Album,
-                ui->action_Load_Cabinet_Nickname_Owner,
-                ui->action_Load_Cabinet_Eraser,
-                ui->action_Load_Cabinet_Restorer,
-                ui->action_Load_Cabinet_Formatter,
-                ui->action_Load_Mii_Edit,
-                ui->action_Load_Home_Menu,
-                ui->action_Open_Controller_Menu};
+                                    ui->action_Load_Cabinet_Nickname_Owner,
+                                    ui->action_Load_Cabinet_Eraser,
+                                    ui->action_Load_Cabinet_Restorer,
+                                    ui->action_Load_Cabinet_Formatter,
+                                    ui->action_Load_Mii_Edit,
+                                    ui->action_Load_Home_Menu,
+                                    ui->action_Open_Controller_Menu};
 
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
@@ -1761,9 +1767,9 @@ void GMainWindow::SetupPrepareForSleep() {
     auto bus = QDBusConnection::systemBus();
     if (bus.isConnected()) {
         const bool success = bus.connect(
-                    QStringLiteral("org.freedesktop.login1"), QStringLiteral("/org/freedesktop/login1"),
-                    QStringLiteral("org.freedesktop.login1.Manager"), QStringLiteral("PrepareForSleep"),
-                    QStringLiteral("b"), this, SLOT(OnPrepareForSleep(bool)));
+            QStringLiteral("org.freedesktop.login1"), QStringLiteral("/org/freedesktop/login1"),
+            QStringLiteral("org.freedesktop.login1.Manager"), QStringLiteral("PrepareForSleep"),
+            QStringLiteral("b"), this, SLOT(OnPrepareForSleep(bool)));
 
         if (!success) {
             LOG_WARNING(Frontend, "Couldn't register PrepareForSleep signal");
@@ -1872,21 +1878,20 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         system->GetUserChannel().clear();
     }
 
-
     system->SetFrontendAppletSet({
-                                     std::make_unique<QtAmiiboSettings>(*this),           // Amiibo Settings
-                                     (UISettings::values.controller_applet_disabled.GetValue() == true)
-                                     ? nullptr
-                                     : std::make_unique<QtControllerSelector>(*this),     // Controller Selector
-                                     std::make_unique<QtErrorDisplay>(*this),             // Error Display
-                                     nullptr,                                             // Mii Editor
-                                     nullptr,                                             // Parental Controls
-                                     nullptr,                                             // Photo Viewer
-                                     std::make_unique<QtProfileSelector>(*this),          // Profile Selector
-                                     std::make_unique<QtSoftwareKeyboard>(*this),         // Software Keyboard
-                                     std::make_unique<QtWebBrowser>(*this),               // Web Browser
-                                     nullptr,                                             // Net Connect
-                                 });
+        std::make_unique<QtAmiiboSettings>(*this), // Amiibo Settings
+        (UISettings::values.controller_applet_disabled.GetValue() == true)
+            ? nullptr
+            : std::make_unique<QtControllerSelector>(*this), // Controller Selector
+        std::make_unique<QtErrorDisplay>(*this),             // Error Display
+        nullptr,                                             // Mii Editor
+        nullptr,                                             // Parental Controls
+        nullptr,                                             // Photo Viewer
+        std::make_unique<QtProfileSelector>(*this),          // Profile Selector
+        std::make_unique<QtSoftwareKeyboard>(*this),         // Software Keyboard
+        std::make_unique<QtWebBrowser>(*this),               // Web Browser
+        nullptr,                                             // Net Connect
+    });
 
     /** Game Updates check */
 
@@ -1894,26 +1899,29 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
     QSettings settings;
     QStringList currentIgnored = settings.value("ignoredBadUpdates", {}).toStringList();
 
-    if (std::find(bad_update_games.begin(), bad_update_games.end(), params.program_id) != bad_update_games.end()
-            && !currentIgnored.contains(QString::number(params.program_id))) {
-        QMessageBox *msg = new QMessageBox(this);
+    if (std::find(bad_update_games.begin(), bad_update_games.end(), params.program_id) !=
+            bad_update_games.end() &&
+        !currentIgnored.contains(QString::number(params.program_id))) {
+        QMessageBox* msg = new QMessageBox(this);
         msg->setWindowTitle(tr("Game Updates Warning"));
         msg->setIcon(QMessageBox::Warning);
-        msg->setText(tr("The game you are trying to launch is known to have performance or booting "
-                        "issues when updates are applied. Please try increasing the memory layout to "
-                        "6GB or 8GB if any issues occur.<br><br>Press \"OK\" to continue launching, or "
-                        "\"Cancel\" to cancel the launch."));
+        msg->setText(
+            tr("The game you are trying to launch is known to have performance or booting "
+               "issues when updates are applied. Please try increasing the memory layout to "
+               "6GB or 8GB if any issues occur.<br><br>Press \"OK\" to continue launching, or "
+               "\"Cancel\" to cancel the launch."));
 
         msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
-        QCheckBox *dontShowAgain = new QCheckBox(msg);
+        QCheckBox* dontShowAgain = new QCheckBox(msg);
         dontShowAgain->setText(tr("Don't show again for this game"));
         msg->setCheckBox(dontShowAgain);
 
         int result = msg->exec();
 
         // wtf
-        QMessageBox::ButtonRole role = msg->buttonRole(msg->button((QMessageBox::StandardButton) result));
+        QMessageBox::ButtonRole role =
+            msg->buttonRole(msg->button((QMessageBox::StandardButton)result));
 
         switch (role) {
         case QMessageBox::RejectRole:
@@ -1929,19 +1937,22 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
         }
     }
 
-    if (FirmwareManager::GameRequiresFirmware(params.program_id) && !FirmwareManager::CheckFirmwarePresence(*system)) {
-        QMessageBox *msg = new QMessageBox(this);
+    if (FirmwareManager::GameRequiresFirmware(params.program_id) &&
+        !FirmwareManager::CheckFirmwarePresence(*system)) {
+        QMessageBox* msg = new QMessageBox(this);
         msg->setWindowTitle(tr("Game Requires Firmware"));
         msg->setIcon(QMessageBox::Warning);
-        msg->setText(tr("The game you are trying to launch requires firmware to boot or to get past the "
-                        "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
-                        "dump and install firmware</a>, or press \"OK\" to launch anyways."));
+        msg->setText(
+            tr("The game you are trying to launch requires firmware to boot or to get past the "
+               "opening menu. Please <a href='https://yuzu-mirror.github.io/help/quickstart'>"
+               "dump and install firmware</a>, or press \"OK\" to launch anyways."));
 
         msg->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
         int exec_result = msg->exec();
 
-        QMessageBox::ButtonRole role = msg->buttonRole(msg->button((QMessageBox::StandardButton) exec_result));
+        QMessageBox::ButtonRole role =
+            msg->buttonRole(msg->button((QMessageBox::StandardButton)exec_result));
 
         switch (role) {
         case QMessageBox::RejectRole:
@@ -1960,18 +1971,19 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                               static_cast<u32>(CalloutFlag::DRDDeprecation)) == 0;
 
     if (result == Core::SystemResultStatus::Success &&
-            system->GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory &&
-            drd_callout) {
+        system->GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory &&
+        drd_callout) {
         UISettings::values.callout_flags = UISettings::values.callout_flags.GetValue() |
-                static_cast<u32>(CalloutFlag::DRDDeprecation);
+                                           static_cast<u32>(CalloutFlag::DRDDeprecation);
         QMessageBox::warning(
-                    this, tr("Warning: Outdated Game Format"),
-                    tr("You are using the deconstructed ROM directory format for this game, which is an "
-                       "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
-                       "NSP. Deconstructed ROM directories lack icons, metadata, and update "
-                       "support.<br><br>For an explanation of the various Switch formats Eden supports, <a "
-                       "href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'>check out our "
-                       "wiki</a>. This message will not be shown again."));
+            this, tr("Warning: Outdated Game Format"),
+            tr("You are using the deconstructed ROM directory format for this game, which is an "
+               "outdated format that has been superseded by others such as NCA, NAX, XCI, or "
+               "NSP. Deconstructed ROM directories lack icons, metadata, and update "
+               "support.<br><br>For an explanation of the various Switch formats Eden supports, <a "
+               "href='https://eden-emulator.github.io/wiki/overview-of-switch-game-formats'>check "
+               "out our "
+               "wiki</a>. This message will not be shown again."));
     }
 
     if (result != Core::SystemResultStatus::Success) {
@@ -1983,13 +1995,13 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
             break;
         case Core::SystemResultStatus::ErrorVideoCore:
             QMessageBox::critical(
-                        this, tr("An error occurred initializing the video core."),
-                        tr("Eden has encountered an error while running the video core. "
-                           "This is usually caused by outdated GPU drivers, including integrated ones. "
-                           "Please see the log for more details. "
-                           "For more information on accessing the log, please see the following page: "
-                           "<a href='https://yuzu-mirror.github.io/help/reference/log-files/'>"
-                           "How to Upload the Log File</a>. "));
+                this, tr("An error occurred initializing the video core."),
+                tr("Eden has encountered an error while running the video core. "
+                   "This is usually caused by outdated GPU drivers, including integrated ones. "
+                   "Please see the log for more details. "
+                   "For more information on accessing the log, please see the following page: "
+                   "<a href='https://yuzu-mirror.github.io/help/reference/log-files/'>"
+                   "How to Upload the Log File</a>. "));
             break;
         default:
             if (result > Core::SystemResultStatus::ErrorLoader) {
@@ -1999,19 +2011,19 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                 LOG_CRITICAL(Frontend, "Failed to load ROM! {}", error_code);
 
                 const auto title =
-                        tr("Error while loading ROM! %1", "%1 signifies a numeric error code.")
+                    tr("Error while loading ROM! %1", "%1 signifies a numeric error code.")
                         .arg(QString::fromStdString(error_code));
                 const auto description =
-                        tr("%1<br>Please redump your files or ask on Discord for help.",
-                           "%1 signifies an error string.")
+                    tr("%1<br>Please redump your files or ask on Discord for help.",
+                       "%1 signifies an error string.")
                         .arg(QString::fromStdString(
-                                 GetResultStatusString(static_cast<Loader::ResultStatus>(error_id))));
+                            GetResultStatusString(static_cast<Loader::ResultStatus>(error_id))));
 
                 QMessageBox::critical(this, title, description);
             } else {
                 QMessageBox::critical(
-                            this, tr("Error while loading ROM!"),
-                            tr("An unknown error occurred. Please see the log for more details."));
+                    this, tr("Error while loading ROM!"),
+                    tr("An unknown error occurred. Please see the log for more details."));
             }
             break;
         }
@@ -2023,7 +2035,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
 }
 
 bool GMainWindow::SelectAndSetCurrentUser(
-        const Core::Frontend::ProfileSelectParameters& parameters) {
+    const Core::Frontend::ProfileSelectParameters& parameters) {
     QtProfileSelectionDialog dialog(*system, this, parameters);
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
@@ -2063,8 +2075,8 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
     } else if (res2 == Loader::ResultStatus::Success &&
                (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
         const auto nsp = file_type == Loader::FileType::NSP
-                ? std::make_shared<FileSys::NSP>(file)
-                : FileSys::XCI{file}.GetSecurePartitionNSP();
+                             ? std::make_shared<FileSys::NSP>(file)
+                             : FileSys::XCI{file}.GetSecurePartitionNSP();
         for (const auto& title : nsp->GetNCAs()) {
             for (const auto& entry : title.second) {
                 provider->AddEntry(entry.first.first, entry.first.second, title.first,
@@ -2079,7 +2091,7 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     LOG_INFO(Frontend, "Eden starting...");
 
     if (params.program_id == 0 ||
-            params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
+        params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
         StoreRecentFile(filename); // Put the filename on top of the list
     }
 
@@ -2097,13 +2109,13 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     const auto loader = Loader::GetLoader(*system, v_file, params.program_id, params.program_index);
 
     if (loader != nullptr && loader->ReadProgramId(title_id) == Loader::ResultStatus::Success &&
-            type == StartGameType::Normal) {
+        type == StartGameType::Normal) {
         // Load per game settings
         const auto file_path =
-                std::filesystem::path{Common::U16StringFromBuffer(filename.utf16(), filename.size())};
+            std::filesystem::path{Common::U16StringFromBuffer(filename.utf16(), filename.size())};
         const auto config_file_name = title_id == 0
-                ? Common::FS::PathToUTF8String(file_path.filename())
-                : fmt::format("{:016X}", title_id);
+                                          ? Common::FS::PathToUTF8String(file_path.filename())
+                                          : fmt::format("{:016X}", title_id);
         QtConfig per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
         system->HIDCore().ReloadInputDevices();
         system->ApplySettings();
@@ -2114,9 +2126,9 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     if (UISettings::values.select_user_on_boot && !user_flag_cmd_line) {
         const Core::Frontend::ProfileSelectParameters parameters{
             .mode = Service::AM::Frontend::UiMode::UserSelector,
-                    .invalid_uid_list = {},
-                    .display_options = {},
-                    .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+            .invalid_uid_list = {},
+            .display_options = {},
+            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
         };
         if (SelectAndSetCurrentUser(parameters) == false) {
             return;
@@ -2142,7 +2154,7 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
 
     // Register an ExecuteProgram callback such that Core can execute a sub-program
     system->RegisterExecuteProgramCallback(
-                [this](std::size_t program_index_) { render_window->ExecuteProgram(program_index_); });
+        [this](std::size_t program_index_) { render_window->ExecuteProgram(program_index_); });
 
     system->RegisterExitCallback([this] {
         emu_thread->ForceStop();
@@ -2197,14 +2209,14 @@ void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletP
     }
     if (res != Loader::ResultStatus::Success || title_name.empty()) {
         title_name = Common::FS::PathToUTF8String(
-                    std::filesystem::path{Common::U16StringFromBuffer(filename.utf16(), filename.size())}
-                    .filename());
+            std::filesystem::path{Common::U16StringFromBuffer(filename.utf16(), filename.size())}
+                .filename());
     }
     const bool is_64bit = system->Kernel().ApplicationProcess()->Is64Bit();
     const auto instruction_set_suffix = is_64bit ? tr("(64-bit)") : tr("(32-bit)");
     title_name = tr("%1 %2", "%1 is the title name. %2 indicates if the title is 64-bit or 32-bit")
-            .arg(QString::fromStdString(title_name), instruction_set_suffix)
-            .toStdString();
+                     .arg(QString::fromStdString(title_name), instruction_set_suffix)
+                     .toStdString();
     LOG_INFO(Frontend, "Booting game: {:016X} | {} | {}", title_id, title_name, title_version);
     const auto gpu_vendor = system->GPU().Renderer().GetDeviceVendor();
     UpdateWindowTitle(title_name, title_version, gpu_vendor);
@@ -2300,7 +2312,7 @@ void GMainWindow::OnEmulationStopped() {
 
     discord_rpc->Update();
 
-#ifdef __unix__
+#ifdef __linux__
     Common::Linux::StopGamemode();
 #endif
 
@@ -2384,11 +2396,11 @@ void GMainWindow::StoreRecentFile(const QString& filename) {
 
 void GMainWindow::UpdateRecentFiles() {
     const int num_recent_files =
-            std::min(static_cast<int>(UISettings::values.recent_files.size()), max_recent_files_item);
+        std::min(static_cast<int>(UISettings::values.recent_files.size()), max_recent_files_item);
 
     for (int i = 0; i < num_recent_files; i++) {
         const QString text = QStringLiteral("&%1. %2").arg(i + 1).arg(
-                    QFileInfo(UISettings::values.recent_files[i]).fileName());
+            QFileInfo(UISettings::values.recent_files[i]).fileName());
         actions_recent_files[i]->setText(text);
         actions_recent_files[i]->setData(UISettings::values.recent_files[i]);
         actions_recent_files[i]->setToolTip(UISettings::values.recent_files[i]);
@@ -2417,7 +2429,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 
     const auto [user_save_size, device_save_size] = [this, &game_path, &program_id] {
         const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
-                    system->GetContentProvider()};
+                                       system->GetContentProvider()};
         const auto control = pm.GetControlMetadata().first;
         if (control != nullptr) {
             return std::make_pair(control->GetDefaultNormalSaveSize(),
@@ -2443,16 +2455,16 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
         open_target = tr("Save Data");
         const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
         auto vfs_nand_dir =
-                vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
+            vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
         if (has_user_save) {
             // User save data
             const auto select_profile = [this] {
                 const Core::Frontend::ProfileSelectParameters parameters{
                     .mode = Service::AM::Frontend::UiMode::UserSelector,
-                            .invalid_uid_list = {},
-                            .display_options = {},
-                            .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
+                    .invalid_uid_list = {},
+                    .display_options = {},
+                    .purpose = Service::AM::Frontend::UserSelectionPurpose::General,
                 };
                 QtProfileSelectionDialog dialog(*system, this, parameters);
                 dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
@@ -2472,19 +2484,19 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             }
 
             const auto user_id =
-                    system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
+                system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
             ASSERT(user_id);
 
             const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-                        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
-                        program_id, user_id->AsU128(), 0);
+                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
+                program_id, user_id->AsU128(), 0);
 
             path = Common::FS::ConcatPathSafe(nand_dir, user_save_data_path);
         } else {
             // Device save data
             const auto device_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-                        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
-                        program_id, {}, 0);
+                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Account,
+                program_id, {}, 0);
 
             path = Common::FS::ConcatPathSafe(nand_dir, device_save_data_path);
         }
@@ -2498,7 +2510,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     case GameListOpenTarget::ModData: {
         open_target = tr("Mod Data");
         path = Common::FS::GetEdenPath(Common::FS::EdenPath::LoadDir) /
-                fmt::format("{:016X}", program_id);
+               fmt::format("{:016X}", program_id);
         break;
     }
     default:
@@ -2543,7 +2555,7 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
     auto last_timestamp = std::chrono::steady_clock::now();
 
     const auto QtRawCopy = [&](const FileSys::VirtualFile& src_file,
-            const FileSys::VirtualFile& dest_file) {
+                               const FileSys::VirtualFile& dest_file) {
         if (src_file == nullptr || dest_file == nullptr) {
             return false;
         }
@@ -2563,7 +2575,7 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
             if ((new_timestamp - last_timestamp) > 33ms) {
                 last_timestamp = new_timestamp;
                 dialog.setValue(
-                            static_cast<int>(std::min(read_size, total_size) * 100 / total_size));
+                    static_cast<int>(std::min(read_size, total_size) * 100 / total_size));
                 QCoreApplication::processEvents();
             }
 
@@ -2645,14 +2657,14 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
 
 void GMainWindow::RemoveBaseContent(u64 program_id, InstalledEntryType type) {
     const auto res =
-            ContentManager::RemoveBaseContent(system->GetFileSystemController(), program_id);
+        ContentManager::RemoveBaseContent(system->GetFileSystemController(), program_id);
     if (res) {
         QMessageBox::information(this, tr("Successfully Removed"),
                                  tr("Successfully removed the installed base game."));
     } else {
         QMessageBox::warning(
-                    this, GetGameListErrorRemoving(type),
-                    tr("The base game is not installed in the NAND and cannot be removed."));
+            this, GetGameListErrorRemoving(type),
+            tr("The base game is not installed in the NAND and cannot be removed."));
     }
 }
 
@@ -2799,10 +2811,10 @@ void GMainWindow::RemoveAllTransferableShaderCaches(u64 program_id) {
 void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& game_path) {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(game_path));
     const auto config_file_name =
-            program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
-                            : fmt::format("{:016X}.ini", program_id);
+        program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
+                        : fmt::format("{:016X}.ini", program_id);
     const auto custom_config_file_path =
-            Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom" / config_file_name;
+        Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
@@ -2822,11 +2834,11 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& g
 void GMainWindow::RemoveCacheStorage(u64 program_id) {
     const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
     auto vfs_nand_dir =
-            vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
+        vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
     const auto cache_storage_path = FileSys::SaveDataFactory::GetFullPath(
-                {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Cache,
-                0 /* program_id */, {}, 0);
+        {}, vfs_nand_dir, FileSys::SaveDataSpaceId::User, FileSys::SaveDataType::Cache,
+        0 /* program_id */, {}, 0);
 
     const auto path = Common::FS::ConcatPathSafe(nand_dir, cache_storage_path);
 
@@ -2843,7 +2855,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     };
 
     const auto loader =
-            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+        Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
     if (loader == nullptr) {
         failed();
         return;
@@ -2870,14 +2882,14 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
 
     const FileSys::NCA update_nca{packed_update_raw, nullptr};
     if (type != FileSys::ContentRecordType::Program ||
-            update_nca.GetStatus() != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS ||
-            update_nca.GetTitleId() != FileSys::GetUpdateTitleID(title_id)) {
+        update_nca.GetStatus() != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS ||
+        update_nca.GetTitleId() != FileSys::GetUpdateTitleID(title_id)) {
         packed_update_raw = {};
     }
 
     const auto base_romfs = base_nca->GetRomFS();
     const auto dump_dir =
-            target == DumpRomFSTarget::Normal
+        target == DumpRomFSTarget::Normal
             ? Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)
             : Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "atmosphere" / "contents";
     const auto romfs_dir = fmt::format("{:016X}/romfs", title_id);
@@ -2898,11 +2910,11 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     bool ok = false;
     const QStringList selections{tr("Full"), tr("Skeleton")};
     const auto res = QInputDialog::getItem(
-                this, tr("Select RomFS Dump Mode"),
-                tr("Please select the how you would like the RomFS dumped.<br>Full will copy all of the "
-                   "files into the new directory while <br>skeleton will only create the directory "
-                   "structure."),
-                selections, 0, false, &ok);
+        this, tr("Select RomFS Dump Mode"),
+        tr("Please select the how you would like the RomFS dumped.<br>Full will copy all of the "
+           "files into the new directory while <br>skeleton will only create the directory "
+           "structure."),
+        selections, 0, false, &ok);
     if (!ok) {
         failed();
         vfs->DeleteDirectory(path);
@@ -2925,7 +2937,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
                              tr("There is not enough free space at %1 to extract the RomFS. Please "
                                 "free up space or select a different dump directory at "
                                 "Emulation > Configure > System > Filesystem > Dump Root")
-                             .arg(QString::fromStdString(path)));
+                                 .arg(QString::fromStdString(path)));
         return;
     }
 
@@ -2996,7 +3008,8 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
         directory = it->second.second;
     }
 
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://eden-emulator.github.io/game/") + directory));
+    QDesktopServices::openUrl(
+        QUrl(QStringLiteral("https://eden-emulator.github.io/game/") + directory));
 }
 
 bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
@@ -3109,8 +3122,8 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES:
         buttons = QMessageBox::Yes | QMessageBox::No;
         result =
-                QMessageBox::information(parent, tr("Create Shortcut"),
-                                         tr("Do you want to launch the game in fullscreen?"), buttons);
+            QMessageBox::information(parent, tr("Create Shortcut"),
+                                     tr("Do you want to launch the game in fullscreen?"), buttons);
         return result == QMessageBox::Yes;
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS:
         QMessageBox::information(parent, tr("Create Shortcut"),
@@ -3119,10 +3132,10 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING:
         buttons = QMessageBox::StandardButton::Ok | QMessageBox::StandardButton::Cancel;
         result =
-                QMessageBox::warning(this, tr("Create Shortcut"),
-                                     tr("This will create a shortcut to the current AppImage. This may "
-                                        "not work well if you update. Continue?"),
-                                     buttons);
+            QMessageBox::warning(this, tr("Create Shortcut"),
+                                 tr("This will create a shortcut to the current AppImage. This may "
+                                    "not work well if you update. Continue?"),
+                                 buttons);
         return result == QMessageBox::Ok;
     default:
         buttons = QMessageBox::Ok;
@@ -3145,10 +3158,10 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     // Create icons directory if it doesn't exist
     if (!Common::FS::CreateDirs(out_icon_path)) {
         QMessageBox::critical(
-                    this, tr("Create Icon"),
-                    tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
-                    .arg(QString::fromStdString(out_icon_path.string())),
-                    QMessageBox::StandardButton::Ok);
+            this, tr("Create Icon"),
+            tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
+                .arg(QString::fromStdString(out_icon_path.string())),
+            QMessageBox::StandardButton::Ok);
         out_icon_path.clear();
         return false;
     }
@@ -3171,13 +3184,13 @@ void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
     std::filesystem::path fs_path;
     if (directory == QStringLiteral("SDMC")) {
         fs_path =
-                Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "Nintendo/Contents/registered";
+            Common::FS::GetEdenPath(Common::FS::EdenPath::SDMCDir) / "Nintendo/Contents/registered";
     } else if (directory == QStringLiteral("UserNAND")) {
         fs_path =
-                Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/Contents/registered";
+            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/Contents/registered";
     } else if (directory == QStringLiteral("SysNAND")) {
         fs_path =
-                Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/Contents/registered";
+            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/Contents/registered";
     } else {
         fs_path = directory.toStdString();
     }
@@ -3238,14 +3251,14 @@ void GMainWindow::OnMenuLoadFile() {
 
     is_load_file_select_active = true;
     const QString extensions =
-            QStringLiteral("*.")
+        QStringLiteral("*.")
             .append(GameList::supported_file_extensions.join(QStringLiteral(" *.")))
             .append(QStringLiteral(" main"));
     const QString file_filter = tr("Switch Executable (%1);;All Files (*.*)",
                                    "%1 is an identifier for the Switch executable file extensions.")
-            .arg(extensions);
+                                    .arg(extensions);
     const QString filename = QFileDialog::getOpenFileName(
-                this, tr("Load File"), QString::fromStdString(UISettings::values.roms_path), file_filter);
+        this, tr("Load File"), QString::fromStdString(UISettings::values.roms_path), file_filter);
     is_load_file_select_active = false;
 
     if (filename.isEmpty()) {
@@ -3258,7 +3271,7 @@ void GMainWindow::OnMenuLoadFile() {
 
 void GMainWindow::OnMenuLoadFolder() {
     const QString dir_path =
-            QFileDialog::getExistingDirectory(this, tr("Open Extracted ROM Directory"));
+        QFileDialog::getExistingDirectory(this, tr("Open Extracted ROM Directory"));
 
     if (dir_path.isNull()) {
         return;
@@ -3280,13 +3293,13 @@ void GMainWindow::IncrementInstallProgress() {
 
 void GMainWindow::OnMenuInstallToNAND() {
     const QString file_filter =
-            tr("Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive "
-               "(*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge "
-               "Image (*.xci)");
+        tr("Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive "
+           "(*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge "
+           "Image (*.xci)");
 
     QStringList filenames = QFileDialog::getOpenFileNames(
-                this, tr("Install Files"), QString::fromStdString(UISettings::values.roms_path),
-                file_filter);
+        this, tr("Install Files"), QString::fromStdString(UISettings::values.roms_path),
+        file_filter);
 
     if (filenames.isEmpty()) {
         return;
@@ -3334,7 +3347,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     for (const QString& file : files) {
         install_progress->setWindowTitle(tr("%n file(s) remaining", "", remaining));
         install_progress->setLabelText(
-                    tr("Installing file \"%1\"...").arg(QFileInfo(file).fileName()));
+            tr("Installing file \"%1\"...").arg(QFileInfo(file).fileName()));
 
         QFuture<ContentManager::InstallResult> future;
         ContentManager::InstallResult result;
@@ -3388,19 +3401,19 @@ void GMainWindow::OnMenuInstallToNAND() {
 
     if (detected_base_install) {
         QMessageBox::warning(
-                    this, tr("Install Results"),
-                    tr("To avoid possible conflicts, we discourage users from installing base games to the "
-                       "NAND.\nPlease, only use this feature to install updates and DLC."));
+            this, tr("Install Results"),
+            tr("To avoid possible conflicts, we discourage users from installing base games to the "
+               "NAND.\nPlease, only use this feature to install updates and DLC."));
     }
 
     const QString install_results =
-            (new_files.isEmpty() ? QString{}
-                                 : tr("%n file(s) were newly installed\n", "", new_files.size())) +
-            (overwritten_files.isEmpty()
+        (new_files.isEmpty() ? QString{}
+                             : tr("%n file(s) were newly installed\n", "", new_files.size())) +
+        (overwritten_files.isEmpty()
              ? QString{}
              : tr("%n file(s) were overwritten\n", "", overwritten_files.size())) +
-            (failed_files.isEmpty() ? QString{}
-                                    : tr("%n file(s) failed to install\n", "", failed_files.size()));
+        (failed_files.isEmpty() ? QString{}
+                                : tr("%n file(s) failed to install\n", "", failed_files.size()));
 
     QMessageBox::information(this, tr("Install Results"), install_results);
     Common::FS::RemoveDirRecursively(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
@@ -3411,20 +3424,20 @@ void GMainWindow::OnMenuInstallToNAND() {
 
 ContentManager::InstallResult GMainWindow::InstallNCA(const QString& filename) {
     const QStringList tt_options{tr("System Application"),
-                tr("System Archive"),
-                tr("System Application Update"),
-                tr("Firmware Package (Type A)"),
-                tr("Firmware Package (Type B)"),
-                tr("Game"),
-                tr("Game Update"),
-                tr("Game DLC"),
-                tr("Delta Title")};
+                                 tr("System Archive"),
+                                 tr("System Application Update"),
+                                 tr("Firmware Package (Type A)"),
+                                 tr("Firmware Package (Type B)"),
+                                 tr("Game"),
+                                 tr("Game Update"),
+                                 tr("Game DLC"),
+                                 tr("Delta Title")};
     bool ok;
     const auto item = QInputDialog::getItem(
-                this, tr("Select NCA Install Type..."),
-                tr("Please select the type of title you would like to install this NCA as:\n(In "
-                   "most instances, the default 'Game' is fine.)"),
-                tt_options, 5, false, &ok);
+        this, tr("Select NCA Install Type..."),
+        tr("Please select the type of title you would like to install this NCA as:\n(In "
+           "most instances, the default 'Game' is fine.)"),
+        tt_options, 5, false, &ok);
 
     auto index = tt_options.indexOf(item);
     if (!ok || index == -1) {
@@ -3436,7 +3449,7 @@ ContentManager::InstallResult GMainWindow::InstallNCA(const QString& filename) {
     // If index is equal to or past Game, add the jump in TitleType.
     if (index >= 5) {
         index += static_cast<size_t>(FileSys::TitleType::Application) -
-                static_cast<size_t>(FileSys::TitleType::FirmwarePackageB);
+                 static_cast<size_t>(FileSys::TitleType::FirmwarePackageB);
     }
 
     const bool is_application = index >= static_cast<s32>(FileSys::TitleType::Application);
@@ -3485,7 +3498,7 @@ void GMainWindow::OnStartGame() {
 
     discord_rpc->Update();
 
-#ifdef __unix__
+#ifdef __linux__
     Common::Linux::StartGamemode();
 #endif
 }
@@ -3509,7 +3522,7 @@ void GMainWindow::OnPauseGame() {
     UpdateMenuState();
     AllowOSSleep();
 
-#ifdef __unix__
+#ifdef __linux__
     Common::Linux::StopGamemode();
 #endif
 }
@@ -3551,7 +3564,7 @@ bool GMainWindow::ConfirmShutdownGame() {
     } else {
         if (UISettings::values.confirm_before_stopping.GetValue() ==
                 ConfirmStop::Ask_Based_On_Game &&
-                system->GetExitLocked()) {
+            system->GetExitLocked()) {
             if (!ConfirmForceLockedExit()) {
                 return false;
             }
@@ -3617,14 +3630,15 @@ void GMainWindow::OnMenuReportCompatibility() {
     }
 
     if (!Settings::values.eden_token.GetValue().empty() &&
-            !Settings::values.eden_username.GetValue().empty()) {
+        !Settings::values.eden_username.GetValue().empty()) {
     } else {
         QMessageBox::critical(
-                    this, tr("Missing yuzu Account"),
-                    tr("In order to submit a game compatibility test case, you must set up your web token and "
-                       "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
-                       "&gt; "
-                       "Web."));
+            this, tr("Missing yuzu Account"),
+            tr("In order to submit a game compatibility test case, you must set up your web token "
+               "and "
+               "username.<br><br/>To link your eden account, go to Emulation &gt; Configuration "
+               "&gt; "
+               "Web."));
     }
 #else
     QMessageBox::critical(this, tr("Hardware requirements not met"),
@@ -3653,8 +3667,7 @@ void GMainWindow::OnOpenFAQ() {
     OpenURL(QUrl(QStringLiteral("https://eden-emu.dev")));
 }
 
-void GMainWindow::OnOpenDiscord()
-{
+void GMainWindow::OnOpenDiscord() {
     OpenURL(QUrl(QStringLiteral("https://discord.gg/edenemu")));
 }
 
@@ -3673,18 +3686,18 @@ void GMainWindow::ToggleFullscreen() {
 static QScreen* GuessCurrentScreen(QWidget* window) {
     const QList<QScreen*> screens = QGuiApplication::screens();
     return *std::max_element(
-                screens.cbegin(), screens.cend(), [window](const QScreen* left, const QScreen* right) {
-        const QSize left_size = left->geometry().intersected(window->geometry()).size();
-        const QSize right_size = right->geometry().intersected(window->geometry()).size();
-        return (left_size.height() * left_size.width()) <
-                (right_size.height() * right_size.width());
-    });
+        screens.cbegin(), screens.cend(), [window](const QScreen* left, const QScreen* right) {
+            const QSize left_size = left->geometry().intersected(window->geometry()).size();
+            const QSize right_size = right->geometry().intersected(window->geometry()).size();
+            return (left_size.height() * left_size.width()) <
+                   (right_size.height() * right_size.width());
+        });
 }
 
 bool GMainWindow::UsingExclusiveFullscreen() {
     return Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive ||
-            QGuiApplication::platformName() == QStringLiteral("wayland") ||
-            QGuiApplication::platformName() == QStringLiteral("wayland-egl");
+           QGuiApplication::platformName() == QStringLiteral("wayland") ||
+           QGuiApplication::platformName() == QStringLiteral("wayland-egl");
 }
 
 void GMainWindow::ShowFullscreen() {
@@ -3771,8 +3784,8 @@ void GMainWindow::ToggleWindowMode() {
 
 void GMainWindow::ResetWindowSize(u32 width, u32 height) {
     const auto aspect_ratio = Layout::EmulationAspectRatio(
-                static_cast<Layout::AspectRatio>(Settings::values.aspect_ratio.GetValue()),
-                static_cast<float>(height) / width);
+        static_cast<Layout::AspectRatio>(Settings::values.aspect_ratio.GetValue()),
+        static_cast<float>(height) / width);
     if (!ui->action_Single_Window_Mode->isChecked()) {
         render_window->resize(height / aspect_ratio, height);
     } else {
@@ -3798,7 +3811,7 @@ void GMainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
-#ifdef __unix__
+#ifdef __linux__
     const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
 #endif
 
@@ -3811,7 +3824,7 @@ void GMainWindow::OnConfigure() {
 
     const auto result = configure_dialog.exec();
     if (result != QDialog::Accepted && !UISettings::values.configuration_applied &&
-            !UISettings::values.reset_to_defaults) {
+        !UISettings::values.reset_to_defaults) {
         // Runs if the user hit Cancel or closed the window, and did not ever press the Apply button
         // or `Reset to Defaults` button
         return;
@@ -3826,11 +3839,11 @@ void GMainWindow::OnConfigure() {
             LOG_WARNING(Frontend, "Failed to remove configuration file");
         }
         if (!Common::FS::RemoveDirContentsRecursively(
-                    Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom")) {
+                Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom")) {
             LOG_WARNING(Frontend, "Failed to remove custom configuration files");
         }
         if (!Common::FS::RemoveDirRecursively(
-                    Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
+                Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
             LOG_WARNING(Frontend, "Failed to remove game metadata cache files");
         }
 
@@ -3860,7 +3873,7 @@ void GMainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
-#ifdef __unix__
+#ifdef __linux__
     if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
         SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
     }
@@ -4144,12 +4157,12 @@ bool GMainWindow::question(QWidget* parent, const QString& title, const QString&
     box_dialog->setDefaultButton(defaultButton);
 
     ControllerNavigation* controller_navigation =
-            new ControllerNavigation(system->HIDCore(), box_dialog);
+        new ControllerNavigation(system->HIDCore(), box_dialog);
     connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
             [box_dialog](Qt::Key key) {
-        QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
-        QCoreApplication::postEvent(box_dialog, event);
-    });
+                QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+                QCoreApplication::postEvent(box_dialog, event);
+            });
     int res = box_dialog->exec();
 
     controller_navigation->UnloadController();
@@ -4185,32 +4198,28 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 }
 
 void GMainWindow::OnOpenRootDataFolder() {
-    QDesktopServices::openUrl(QUrl(
-                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::EdenDir))));
+    QDesktopServices::openUrl(
+        QUrl(QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::EdenDir))));
 }
 
-void GMainWindow::OnOpenNANDFolder()
-{
+void GMainWindow::OnOpenNANDFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir))));
+        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir))));
 }
 
-void GMainWindow::OnOpenSDMCFolder()
-{
+void GMainWindow::OnOpenSDMCFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir))));
+        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir))));
 }
 
-void GMainWindow::OnOpenModFolder()
-{
+void GMainWindow::OnOpenModFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir))));
+        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir))));
 }
 
-void GMainWindow::OnOpenLogFolder()
-{
+void GMainWindow::OnOpenLogFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
-                                  QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir))));
+        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LogDir))));
 }
 
 void GMainWindow::OnVerifyInstalledContents() {
@@ -4228,7 +4237,7 @@ void GMainWindow::OnVerifyInstalledContents() {
     };
 
     const std::vector<std::string> result =
-            ContentManager::VerifyInstalledContents(*system, *provider, QtProgressCallback);
+        ContentManager::VerifyInstalledContents(*system, *provider, QtProgressCallback);
     progress.close();
 
     if (result.empty()) {
@@ -4236,15 +4245,14 @@ void GMainWindow::OnVerifyInstalledContents() {
                                  tr("The operation completed successfully."));
     } else {
         const auto failed_names =
-                QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
         QMessageBox::critical(
-                    this, tr("Integrity verification failed!"),
-                    tr("Verification failed for the following files:\n\n%1").arg(failed_names));
+            this, tr("Integrity verification failed!"),
+            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
     }
 }
 
-void GMainWindow::InstallFirmware(const QString &location, bool recursive)
-{
+void GMainWindow::InstallFirmware(const QString& location, bool recursive) {
     QProgressDialog progress(tr("Installing Firmware..."), tr("Cancel"), 0, 100, this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
@@ -4270,20 +4278,22 @@ void GMainWindow::InstallFirmware(const QString &location, bool recursive)
 
     std::vector<std::filesystem::path> out;
     const Common::FS::DirEntryCallable callback =
-            [&out](const std::filesystem::directory_entry& entry) {
-        if (entry.path().has_extension() && entry.path().extension() == ".nca") {
-            out.emplace_back(entry.path());
-        }
+        [&out](const std::filesystem::directory_entry& entry) {
+            if (entry.path().has_extension() && entry.path().extension() == ".nca") {
+                out.emplace_back(entry.path());
+            }
 
-        return true;
-    };
+            return true;
+        };
 
     QtProgressCallback(100, 10);
 
     if (recursive) {
-        Common::FS::IterateDirEntriesRecursively(firmware_source_path, callback, Common::FS::DirEntryFilter::File);
+        Common::FS::IterateDirEntriesRecursively(firmware_source_path, callback,
+                                                 Common::FS::DirEntryFilter::File);
     } else {
-        Common::FS::IterateDirEntries(firmware_source_path, callback, Common::FS::DirEntryFilter::File);
+        Common::FS::IterateDirEntries(firmware_source_path, callback,
+                                      Common::FS::DirEntryFilter::File);
     }
 
     if (out.size() <= 0) {
@@ -4314,9 +4324,9 @@ void GMainWindow::InstallFirmware(const QString &location, bool recursive)
     for (const auto& firmware_src_path : out) {
         i++;
         auto firmware_src_vfile =
-                vfs->OpenFile(firmware_src_path.generic_string(), FileSys::OpenMode::Read);
+            vfs->OpenFile(firmware_src_path.generic_string(), FileSys::OpenMode::Read);
         auto firmware_dst_vfile =
-                firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
+            firmware_vdir->CreateFileRelative(firmware_src_path.filename().string());
 
         if (!VfsRawCopy(firmware_src_vfile, firmware_dst_vfile)) {
             LOG_ERROR(Frontend, "Failed to copy firmware file {} to {} in registered folder!",
@@ -4325,12 +4335,12 @@ void GMainWindow::InstallFirmware(const QString &location, bool recursive)
         }
 
         if (QtProgressCallback(
-                    100, 20 + static_cast<int>(((i) / static_cast<float>(out.size())) * 70.0))) {
+                100, 20 + static_cast<int>(((i) / static_cast<float>(out.size())) * 70.0))) {
             progress.close();
             QMessageBox::warning(
-                        this, tr("Firmware install failed"),
-                        tr("Firmware installation cancelled, firmware may be in a bad state or corrupted. "
-                           "Restart Eden or re-install firmware."));
+                this, tr("Firmware install failed"),
+                tr("Firmware installation cancelled, firmware may be in a bad state or corrupted. "
+                   "Restart Eden or re-install firmware."));
             return;
         }
     }
@@ -4351,15 +4361,15 @@ void GMainWindow::InstallFirmware(const QString &location, bool recursive)
     };
 
     auto result =
-            ContentManager::VerifyInstalledContents(*system, *provider, VerifyFirmwareCallback, true);
+        ContentManager::VerifyInstalledContents(*system, *provider, VerifyFirmwareCallback, true);
 
     if (result.size() > 0) {
         const auto failed_names =
-                QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
+            QString::fromStdString(fmt::format("{}", fmt::join(result, "\n")));
         progress.close();
         QMessageBox::critical(
-                    this, tr("Firmware integrity verification failed!"),
-                    tr("Verification failed for the following files:\n\n%1").arg(failed_names));
+            this, tr("Firmware integrity verification failed!"),
+            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
         return;
     }
 
@@ -4377,13 +4387,13 @@ void GMainWindow::OnInstallFirmware() {
     // Check for installed keys, error out, suggest restart?
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::information(
-                    this, tr("Keys not installed"),
-                    tr("Install decryption keys and restart Eden before attempting to install firmware."));
+            this, tr("Keys not installed"),
+            tr("Install decryption keys and restart Eden before attempting to install firmware."));
         return;
     }
 
     const QString firmware_source_location = QFileDialog::getExistingDirectory(
-                this, tr("Select Dumped Firmware Source Location"), {}, QFileDialog::ShowDirsOnly);
+        this, tr("Select Dumped Firmware Source Location"), {}, QFileDialog::ShowDirsOnly);
     if (firmware_source_location.isEmpty()) {
         return;
     }
@@ -4391,8 +4401,7 @@ void GMainWindow::OnInstallFirmware() {
     InstallFirmware(firmware_source_location);
 }
 
-void GMainWindow::OnInstallFirmwareFromZIP()
-{
+void GMainWindow::OnInstallFirmwareFromZIP() {
     // Don't do this while emulation is running, that'd probably be a bad idea.
     if (emu_thread != nullptr && emu_thread->IsRunning()) {
         return;
@@ -4401,13 +4410,13 @@ void GMainWindow::OnInstallFirmwareFromZIP()
     // Check for installed keys, error out, suggest restart?
     if (!ContentManager::AreKeysPresent()) {
         QMessageBox::information(
-                    this, tr("Keys not installed"),
-                    tr("Install decryption keys and restart Eden before attempting to install firmware."));
+            this, tr("Keys not installed"),
+            tr("Install decryption keys and restart Eden before attempting to install firmware."));
         return;
     }
 
     const QString firmware_zip_location = QFileDialog::getOpenFileName(
-                this, tr("Select Dumped Firmware ZIP"), {}, tr("Zipped Archives (*.zip)"));
+        this, tr("Select Dumped Firmware ZIP"), {}, tr("Zipped Archives (*.zip)"));
     if (firmware_zip_location.isEmpty()) {
         return;
     }
@@ -4440,19 +4449,20 @@ void GMainWindow::OnInstallFirmwareFromZIP()
         std::filesystem::remove_all(tmp, ec);
 
         if (ec) {
-                QMessageBox::warning(this, tr("Firmware cleanup failed"),
-                                      tr("Failed to clean up extracted firmware cache.\n"
-                                         "Check write permissions in the system temp directory and try again.\nOS reported error: %1")
+            QMessageBox::warning(this, tr("Firmware cleanup failed"),
+                                 tr("Failed to clean up extracted firmware cache.\n"
+                                    "Check write permissions in the system temp directory and try "
+                                    "again.\nOS reported error: %1")
                                      .arg(QString::fromStdString(ec.message())));
         }
 
         return;
     }
 unzipFailed:
-        QMessageBox::critical(this, tr("Firmware unzip failed"),
-                              tr("Check write permissions in the system temp directory and try again."));
-        return;
-
+    QMessageBox::critical(
+        this, tr("Firmware unzip failed"),
+        tr("Check write permissions in the system temp directory and try again."));
+    return;
 }
 
 void GMainWindow::OnInstallDecryptionKeys() {
@@ -4462,13 +4472,14 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     const QString key_source_location = QFileDialog::getOpenFileName(
-                this, tr("Select Dumped Keys Location"), {}, QStringLiteral("Decryption Keys (*.keys)"), {},
-                QFileDialog::ReadOnly);
+        this, tr("Select Dumped Keys Location"), {}, QStringLiteral("Decryption Keys (*.keys)"), {},
+        QFileDialog::ReadOnly);
     if (key_source_location.isEmpty()) {
         return;
     }
 
-    FirmwareManager::KeyInstallResult result = FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
+    FirmwareManager::KeyInstallResult result =
+        FirmwareManager::InstallKeys(key_source_location.toStdString(), "keys");
 
     system->GetFileSystemController().CreateFactories(*vfs);
     game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -4479,9 +4490,8 @@ void GMainWindow::OnInstallDecryptionKeys() {
                                  tr("Decryption Keys were successfully installed"));
         break;
     default:
-        QMessageBox::critical(
-                    this, tr("Decryption Keys install failed"),
-                    tr(FirmwareManager::GetKeyInstallResultString(result)));
+        QMessageBox::critical(this, tr("Decryption Keys install failed"),
+                              tr(FirmwareManager::GetKeyInstallResultString(result)));
         break;
     }
 
@@ -4507,8 +4517,7 @@ void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
-void GMainWindow::OnGameListRefresh()
-{
+void GMainWindow::OnGameListRefresh() {
     // force reload add-ons etc
     game_list->ForceRefreshGameDirectory();
 }
@@ -4593,7 +4602,7 @@ void GMainWindow::OnOpenControllerMenu() {
     }
 
     auto controller_applet_nca =
-            bis_system->GetEntry(ControllerAppletId, FileSys::ContentRecordType::Program);
+        bis_system->GetEntry(ControllerAppletId, FileSys::ContentRecordType::Program);
     if (!controller_applet_nca) {
         QMessageBox::warning(this, tr("Controller Applet"),
                              tr("Controller Menu is not available. Please reinstall firmware."));
@@ -4631,8 +4640,7 @@ void GMainWindow::OnHomeMenu() {
     BootGame(filename, LibraryAppletParameters(QLaunchId, Service::AM::AppletId::QLaunch));
 }
 
-void GMainWindow::OnInitialSetup()
-{
+void GMainWindow::OnInitialSetup() {
     constexpr u64 Starter = static_cast<u64>(Service::AM::AppletProgramId::Starter);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
@@ -4655,18 +4663,15 @@ void GMainWindow::OnInitialSetup()
     BootGame(filename, LibraryAppletParameters(Starter, Service::AM::AppletId::Starter));
 }
 
-void GMainWindow::OnCreateHomeMenuDesktopShortcut()
-{
+void GMainWindow::OnCreateHomeMenuDesktopShortcut() {
     OnCreateHomeMenuShortcut(GameListShortcutTarget::Desktop);
 }
 
-void GMainWindow::OnCreateHomeMenuApplicationMenuShortcut()
-{
+void GMainWindow::OnCreateHomeMenuApplicationMenuShortcut() {
     OnCreateHomeMenuShortcut(GameListShortcutTarget::Applications);
 }
 
-std::filesystem::path GMainWindow::GetEdenCommand()
-{
+std::filesystem::path GMainWindow::GetEdenCommand() {
     std::filesystem::path command;
 
     QString appimage = QString::fromLocal8Bit(getenv("APPIMAGE"));
@@ -4685,21 +4690,22 @@ std::filesystem::path GMainWindow::GetEdenCommand()
     return command;
 }
 
-std::filesystem::path GMainWindow::GetShortcutPath(GameListShortcutTarget target)
-{
+std::filesystem::path GMainWindow::GetShortcutPath(GameListShortcutTarget target) {
     std::filesystem::path shortcut_path{};
     if (target == GameListShortcutTarget::Desktop) {
         shortcut_path =
-                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
+            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
     } else if (target == GameListShortcutTarget::Applications) {
         shortcut_path =
-                QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
+            QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
     }
 
     return shortcut_path;
 }
 
-void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program_id, const std::string& game_title_, GameListShortcutTarget target, std::string arguments_, const bool needs_title) {
+void GMainWindow::CreateShortcut(const std::string& game_path, const u64 program_id,
+                                 const std::string& game_title_, GameListShortcutTarget target,
+                                 std::string arguments_, const bool needs_title) {
     // Get path to yuzu executable
     std::filesystem::path command = GetEdenCommand();
 
@@ -4708,17 +4714,17 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
 
     if (!std::filesystem::exists(shortcut_path)) {
         GMainWindow::CreateShortcutMessagesGUI(
-                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
-                    QString::fromStdString(shortcut_path.generic_string()));
+            this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
+            QString::fromStdString(shortcut_path.generic_string()));
         LOG_ERROR(Frontend, "Invalid shortcut target {}", shortcut_path.generic_string());
         return;
     }
 
     const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
-                system->GetContentProvider()};
+                                   system->GetContentProvider()};
     const auto control = pm.GetControlMetadata();
     const auto loader =
-            Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
+        Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::OpenMode::Read));
 
     std::string game_title{game_title_};
 
@@ -4750,7 +4756,7 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
     }
 
     QImage icon_data =
-            QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
+        QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
     std::filesystem::path out_icon_path;
     if (GMainWindow::MakeShortcutIcoPath(program_id, game_title, out_icon_path)) {
         if (!SaveIconToFile(out_icon_path, icon_data)) {
@@ -4763,7 +4769,7 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
     // Warn once if we are making a shortcut to a volatile AppImage
     if (command.string().ends_with(".AppImage") && !UISettings::values.shortcut_already_warned) {
         if (!GMainWindow::CreateShortcutMessagesGUI(
-                    this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qgame_title)) {
+                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING, qgame_title)) {
             return;
         }
         UISettings::values.shortcut_already_warned = true;
@@ -4773,15 +4779,15 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
     // Create shortcut
     std::string arguments{arguments_};
     if (GMainWindow::CreateShortcutMessagesGUI(
-                this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qgame_title)) {
+            this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qgame_title)) {
         arguments = "-f " + arguments;
     }
     const std::string comment = fmt::format("Start {:s} with the eden Emulator", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
-    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, command,
-                                        arguments, categories, keywords, game_title)) {
+    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, command, arguments,
+                                        categories, keywords, game_title)) {
         GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
                                                qgame_title);
         return;
@@ -4790,8 +4796,7 @@ void GMainWindow::CreateShortcut(const std::string &game_path, const u64 program
                                            qgame_title);
 }
 
-void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target)
-{
+void GMainWindow::OnCreateHomeMenuShortcut(GameListShortcutTarget target) {
     constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
@@ -4820,13 +4825,13 @@ void GMainWindow::OnCaptureScreenshot() {
 
     const u64 title_id = system->GetApplicationProcessProgramID();
     const auto screenshot_path =
-            QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::ScreenshotsDir));
+        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::ScreenshotsDir));
     const auto date =
-            QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"));
+        QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"));
     QString filename = QStringLiteral("%1/%2_%3.png")
-            .arg(screenshot_path)
-            .arg(title_id, 16, 16, QLatin1Char{'0'})
-            .arg(date);
+                           .arg(screenshot_path)
+                           .arg(title_id, 16, 16, QLatin1Char{'0'})
+                           .arg(date);
 
     if (!Common::FS::CreateDir(screenshot_path.toStdString())) {
         return;
@@ -4850,7 +4855,7 @@ void GMainWindow::OnCaptureScreenshot() {
 void GMainWindow::MigrateConfigFiles() {
     const auto config_dir_fs_path = Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir);
     const QDir config_dir =
-            QDir(QString::fromStdString(Common::FS::PathToUTF8String(config_dir_fs_path)));
+        QDir(QString::fromStdString(Common::FS::PathToUTF8String(config_dir_fs_path)));
     const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
 
     if (!Common::FS::CreateDirs(config_dir_fs_path / "custom")) {
@@ -4884,13 +4889,13 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
     update_prompt.setIcon(QMessageBox::Information);
     update_prompt.addButton(QMessageBox::Yes);
     update_prompt.addButton(QMessageBox::Ignore);
-    update_prompt.setText(tr("Update %1 for Eden is available.\nWould you like to download it?")
-                          .arg(version_string));
+    update_prompt.setText(
+        tr("Update %1 for Eden is available.\nWould you like to download it?").arg(version_string));
     update_prompt.exec();
     if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
         QDesktopServices::openUrl(
-                    QUrl(QString::fromStdString("https://github.com/eden-emulator/Releases/releases/tag/") +
-                         version_string));
+            QUrl(QString::fromStdString("https://github.com/eden-emulator/Releases/releases/tag/") +
+                 version_string));
     }
 }
 #endif
@@ -4908,7 +4913,7 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
     }
 
     const auto override_title =
-            fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
+        fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);
     const auto window_title = override_title.empty() ? yuzu_title : override_title;
 
     if (title_name.empty()) {
@@ -4926,7 +4931,7 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 }
 
 std::string GMainWindow::CreateTASFramesString(
-        std::array<size_t, InputCommon::TasInput::PLAYER_NUMBER> frames) const {
+    std::array<size_t, InputCommon::TasInput::PLAYER_NUMBER> frames) const {
     std::string string = "";
     size_t maxPlayerIndex = 0;
     for (size_t i = 0; i < frames.size(); i++) {
@@ -4947,14 +4952,14 @@ QString GMainWindow::GetTasStateDescription() const {
     switch (tas_status) {
     case InputCommon::TasInput::TasState::Running:
         return tr("TAS state: Running %1/%2")
-                .arg(current_tas_frame)
-                .arg(QString::fromStdString(tas_frames_string));
+            .arg(current_tas_frame)
+            .arg(QString::fromStdString(tas_frames_string));
     case InputCommon::TasInput::TasState::Recording:
         return tr("TAS state: Recording %1").arg(total_tas_frames[0]);
     case InputCommon::TasInput::TasState::Stopped:
         return tr("TAS state: Idle %1/%2")
-                .arg(current_tas_frame)
-                .arg(QString::fromStdString(tas_frames_string));
+            .arg(current_tas_frame)
+            .arg(QString::fromStdString(tas_frames_string));
     default:
         return tr("TAS State: Invalid");
     }
@@ -4965,7 +4970,7 @@ void GMainWindow::OnTasStateChanged() {
     bool is_recording = false;
     if (emulation_running) {
         const InputCommon::TasInput::TasState tas_status =
-                std::get<0>(input_subsystem->GetTas()->GetStatus());
+            std::get<0>(input_subsystem->GetTas()->GetStatus());
         is_running = tas_status == InputCommon::TasInput::TasState::Running;
         is_recording = tas_status == InputCommon::TasInput::TasState::Recording;
     }
@@ -5004,18 +5009,19 @@ void GMainWindow::UpdateStatusBar() {
     const auto res_info = Settings::values.resolution_info;
     const auto res_scale = res_info.up_factor;
     res_scale_label->setText(
-                tr("Scale: %1x", "%1 is the resolution scaling factor").arg(res_scale));
+        tr("Scale: %1x", "%1 is the resolution scaling factor").arg(res_scale));
 
     if (Settings::values.use_speed_limit.GetValue()) {
         emu_speed_label->setText(tr("Speed: %1% / %2%")
-                                 .arg(results.emulation_speed * 100.0, 0, 'f', 0)
-                                 .arg(Settings::values.speed_limit.GetValue()));
+                                     .arg(results.emulation_speed * 100.0, 0, 'f', 0)
+                                     .arg(Settings::values.speed_limit.GetValue()));
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
 
     game_fps_label->setText(
-                tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) + tr(Settings::values.use_speed_limit ? "" : " (Unlocked)"));
+        tr("Game: %1 FPS").arg(std::round(results.average_game_fps), 0, 'f', 0) +
+        tr(Settings::values.use_speed_limit ? "" : " (Unlocked)"));
 
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 
@@ -5029,7 +5035,7 @@ void GMainWindow::UpdateStatusBar() {
 void GMainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy = Settings::values.gpu_accuracy.GetValue();
     const auto gpu_accuracy_text =
-            ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
+        ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
     gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
 }
@@ -5038,20 +5044,20 @@ void GMainWindow::UpdateDockedButton() {
     const auto console_mode = Settings::values.use_docked_mode.GetValue();
     dock_status_button->setChecked(Settings::IsDockedMode());
     dock_status_button->setText(
-                ConfigurationShared::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
+        ConfigurationShared::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
 }
 
 void GMainWindow::UpdateAPIText() {
     const auto api = Settings::values.renderer_backend.GetValue();
     const auto renderer_status_text =
-            ConfigurationShared::renderer_backend_texts_map.find(api)->second;
+        ConfigurationShared::renderer_backend_texts_map.find(api)->second;
     renderer_status_button->setText(
-                api == Settings::RendererBackend::OpenGL
-                ? tr("%1 %2").arg(renderer_status_text.toUpper(),
-                                  ConfigurationShared::shader_backend_texts_map
+        api == Settings::RendererBackend::OpenGL
+            ? tr("%1 %2").arg(renderer_status_text.toUpper(),
+                              ConfigurationShared::shader_backend_texts_map
                                   .find(Settings::values.shader_backend.GetValue())
                                   ->second)
-                : renderer_status_text.toUpper());
+            : renderer_status_text.toUpper());
 }
 
 void GMainWindow::UpdateFilterText() {
@@ -5065,8 +5071,8 @@ void GMainWindow::UpdateAAText() {
     const auto aa_mode = Settings::values.anti_aliasing.GetValue();
     const auto aa_text = ConfigurationShared::anti_aliasing_texts_map.find(aa_mode)->second;
     aa_status_button->setText(aa_mode == Settings::AntiAliasing::None
-                              ? QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "NO AA"))
-                              : aa_text.toUpper());
+                                  ? QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "NO AA"))
+                                  : aa_text.toUpper());
 }
 
 void GMainWindow::UpdateVolumeUI() {
@@ -5142,25 +5148,22 @@ void GMainWindow::OnMouseActivity() {
 void GMainWindow::OnCheckFirmwareDecryption() {
     system->GetFileSystemController().CreateFactories(*vfs);
     if (!ContentManager::AreKeysPresent()) {
-        QMessageBox::warning(
-                    this, tr("Derivation Components Missing"),
-                    tr("Encryption keys are missing."));
+        QMessageBox::warning(this, tr("Derivation Components Missing"),
+                             tr("Encryption keys are missing."));
     }
     SetFirmwareVersion();
     UpdateMenuState();
 }
 
-void GMainWindow::OnCheckFirmware()
-{
+void GMainWindow::OnCheckFirmware() {
     auto result = FirmwareManager::VerifyFirmware(*system.get());
 
     switch (result) {
-        case FirmwareManager::FirmwareGood:
+    case FirmwareManager::FirmwareGood:
         break;
     default:
-        QMessageBox::warning(
-                    this, tr("Firmware Read Error"),
-                    tr(FirmwareManager::GetFirmwareCheckString(result)));
+        QMessageBox::warning(this, tr("Firmware Read Error"),
+                             tr(FirmwareManager::GetFirmwareCheckString(result)));
         break;
     }
 }
@@ -5197,11 +5200,11 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
     boost::container::flat_set<ContentInfo> available_title_ids;
 
     const auto RetrieveEntries = [&](FileSys::TitleType title_type,
-            FileSys::ContentRecordType record_type) {
+                                     FileSys::ContentRecordType record_type) {
         const auto entries = installed.ListEntriesFilter(title_type, record_type);
         for (const auto& entry : entries) {
             if (FileSys::GetBaseTitleID(entry.title_id) == program_id &&
-                    installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success) {
+                installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success) {
                 available_title_ids.insert({entry.title_id, title_type, record_type});
             }
         }
@@ -5230,14 +5233,14 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
                 list.push_back(QStringLiteral("Legal information [%1]").arg(hex_title_id));
             } else {
                 list.push_back(
-                            QStringLiteral("DLC %1 [%2]").arg(title_id & 0x7FF).arg(hex_title_id));
+                    QStringLiteral("DLC %1 [%2]").arg(title_id & 0x7FF).arg(hex_title_id));
             }
         }
 
         bool ok;
         const auto res = QInputDialog::getItem(
-                    this, tr("Select RomFS Dump Target"),
-                    tr("Please select which RomFS you would like to dump."), list, 0, false, &ok);
+            this, tr("Select RomFS Dump Target"),
+            tr("Please select which RomFS you would like to dump."), list, 0, false, &ok);
         if (!ok) {
             return false;
         }
@@ -5253,11 +5256,11 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
 
 bool GMainWindow::ConfirmClose() {
     if (emu_thread == nullptr ||
-            UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Never) {
+        UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Never) {
         return true;
     }
     if (!system->GetExitLocked() &&
-            UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game) {
+        UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game) {
         return true;
     }
     const auto text = tr("Are you sure you want to close Eden?");
@@ -5341,9 +5344,9 @@ bool GMainWindow::ConfirmChangeGame() {
 
     // Use custom question to link controller navigation
     return question(
-                this, tr("Eden"),
-                tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
-                QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        this, tr("Eden"),
+        tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 }
 
 bool GMainWindow::ConfirmForceLockedExit() {
@@ -5384,7 +5387,7 @@ static void AdjustLinkColor() {
 
 void GMainWindow::UpdateUITheme() {
     const QString default_theme = QString::fromUtf8(
-                UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second);
+        UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second);
     QString current_theme = QString::fromStdString(UISettings::values.theme);
 
     if (current_theme.isEmpty()) {
@@ -5476,7 +5479,7 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc->Update();
 }
 
-#ifdef __unix__
+#ifdef __linux__
 void GMainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
         Common::Linux::SetGamemodeState(state);
@@ -5507,16 +5510,16 @@ void GMainWindow::changeEvent(QEvent* event) {
 Service::AM::FrontendAppletParameters GMainWindow::ApplicationAppletParameters() {
     return Service::AM::FrontendAppletParameters{
         .applet_id = Service::AM::AppletId::Application,
-                .applet_type = Service::AM::AppletType::Application,
+        .applet_type = Service::AM::AppletType::Application,
     };
 }
 
 Service::AM::FrontendAppletParameters GMainWindow::LibraryAppletParameters(
-        u64 program_id, Service::AM::AppletId applet_id) {
+    u64 program_id, Service::AM::AppletId applet_id) {
     return Service::AM::FrontendAppletParameters{
         .program_id = program_id,
-                .applet_id = applet_id,
-                .applet_type = Service::AM::AppletType::LibraryApplet,
+        .applet_id = applet_id,
+        .applet_type = Service::AM::AppletType::LibraryApplet,
     };
 }
 
@@ -5529,10 +5532,10 @@ void VolumeButton::wheelEvent(QWheelEvent* event) {
 
     if (num_steps > 0) {
         Settings::values.volume.SetValue(
-                    std::min(200, Settings::values.volume.GetValue() + num_steps));
+            std::min(200, Settings::values.volume.GetValue() + num_steps));
     } else {
         Settings::values.volume.SetValue(
-                    std::max(0, Settings::values.volume.GetValue() + num_steps));
+            std::max(0, Settings::values.volume.GetValue() + num_steps));
     }
 
     scroll_multiplier = std::min(MaxMultiplier, scroll_multiplier * 2);
@@ -5584,15 +5587,15 @@ static void SetHighDPIAttributes() {
 
     if (max_ratio > real_ratio) {
         QApplication::setHighDpiScaleFactorRoundingPolicy(
-                    Qt::HighDpiScaleFactorRoundingPolicy::Round);
+            Qt::HighDpiScaleFactorRoundingPolicy::Round);
     } else {
         QApplication::setHighDpiScaleFactorRoundingPolicy(
-                    Qt::HighDpiScaleFactorRoundingPolicy::Floor);
+            Qt::HighDpiScaleFactorRoundingPolicy::Floor);
     }
 #else
     // Other OSes should be better than Windows at fractional scaling.
     QApplication::setHighDpiScaleFactorRoundingPolicy(
-                Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 #endif
 }
 
