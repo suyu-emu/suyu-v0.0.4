@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,7 +44,7 @@ void Decoder::Decode() {
 
         if (!frame.get()) {
             LOG_ERROR(HW_GPU,
-                      "Nvdec {} dailed to decode interlaced frame for top 0x{:X} bottom 0x{:X}", id,
+                      "Nvdec {} failed to decode interlaced frame for top 0x{:X} bottom 0x{:X}", id,
                       luma_top, luma_bottom);
         }
 
