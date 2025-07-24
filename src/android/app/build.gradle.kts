@@ -60,7 +60,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId = "dev.eden.eden_emulator"
         minSdk = 30
-        targetSdk = 35
+        targetSdk = 36
         versionName = getGitVersion()
 
         versionCode = autoVersion
@@ -150,7 +150,8 @@ android {
 
             create("genshinSpoof") {
                 dimension = "version"
-                applicationId = "com.miHoYo.Yuanshen"
+                resValue("string", "app_name_suffixed", "Eden Optimised")
+                applicationId = "com.miHoYo.Yuanshen" 
             }
         }
     }
