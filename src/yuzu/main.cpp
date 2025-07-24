@@ -3656,7 +3656,7 @@ void GMainWindow::OpenURL(const QUrl& url) {
 }
 
 void GMainWindow::OnOpenModsPage() {
-    OpenURL(QUrl(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods")));
+    OpenURL(QUrl(QStringLiteral("https://github.com/eden-emulator/yuzu-mod-archive")));
 }
 
 void GMainWindow::OnOpenQuickstartGuide() {
@@ -3664,7 +3664,7 @@ void GMainWindow::OnOpenQuickstartGuide() {
 }
 
 void GMainWindow::OnOpenFAQ() {
-    OpenURL(QUrl(QStringLiteral("https://eden-emu.dev")));
+    OpenURL(QUrl(QStringLiteral("https://yuzu-mirror.github.io/help")));
 }
 
 void GMainWindow::OnOpenDiscord() {
