@@ -25,6 +25,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
     RENDERER_FAST_GPU("use_fast_gpu_time"),
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
+    RENDERER_EARLY_RELEASE_FENCES("early_release_fences"),
     RENDERER_DEBUG("debug"),
     RENDERER_PROVOKING_VERTEX("provoking_vertex"),
     RENDERER_DESCRIPTOR_INDEXING("descriptor_indexing"),

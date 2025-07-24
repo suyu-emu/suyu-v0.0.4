@@ -88,12 +88,8 @@
     <string name="enable_raii_description">A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
-    <string name="use_auto_stub">Use Auto Stub</string>
-    <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
-    <string name="uninstall_firmware">Uninstall firmware</string>
-    <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
-    <string name="firmware_uninstalling">Uninstalling firmware</string>
-    <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
+    <string name="renderer_early_release_fences">Release fences early</string>
+    <string name="renderer_early_release_fences_description">Some games may require this to get past 0FPS errors, such as DKCR:HD, Subnautica, and Ori 2.</string>
 
     <string name="veil_misc">CPU and Memory</string>
     <string name="use_sync_core">Synchronize Core Speed</string>
@@ -385,6 +381,11 @@
     <string name="keys_missing_description">Firmware and retail games cannot be decrypted</string>
     <string name="keys_missing_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-decryption-keys</string>
 
+    <string name="uninstall_firmware">Uninstall firmware</string>
+    <string name="uninstall_firmware_description">Uninstalling the firmware will remove it from the device and may affect game compatibility.</string>
+    <string name="firmware_uninstalling">Uninstalling firmware</string>
+    <string name="firmware_uninstalled_success">Firmware uninstalled successfully</string>
+
     <string name="firmware_invalid">Firmware Invalid</string>
     <string name="error_firmware_missing">Firmware is required to run certain games and use system applications. Eden only works with firmware 19.0.1 and earlier.</string>
     <string name="error_firmware_corrupted">Firmware reported as present, but was unable to be read. Check for decryption keys and redump firmware if necessary.</string>
@@ -510,6 +511,8 @@
     <string name="cpu">CPU</string>
     <string name="cpu_debug_mode">CPU Debugging</string>
     <string name="cpu_debug_mode_description">Puts the CPU in a slow debugging mode.</string>
+    <string name="use_auto_stub">Use Auto Stub</string>
+    <string name="use_auto_stub_description">Automatically stub missing services and functions. This may improve compatibility but can cause crashes and stability issues.</string>
 
     <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>

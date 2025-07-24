@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -73,9 +76,15 @@ public:
 
     void SignalFence(std::function<void()>&& func) {
         bool delay_fence = Settings::IsGPULevelHigh();
+        #ifdef __ANDROID__
+        if (!delay_fence && Settings::values.early_release_fences.GetValue()) {
+            TryReleasePendingFences<false>();
+        }
+        #else
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
+        #endif
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
