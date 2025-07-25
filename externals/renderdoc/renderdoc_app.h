@@ -7,7 +7,7 @@
 /******************************************************************************
  * The MIT License (MIT)
  *
- * Copyright (c) 2019-2023 Baldur Karlsson
+ * Copyright (c) 2019-2025 Baldur Karlsson
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,8 +41,12 @@
 
 #if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER)
 #define RENDERDOC_CC __cdecl
-#else
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__)
 #define RENDERDOC_CC
+#elif defined(__APPLE__)
+#define RENDERDOC_CC
+#else
+#error "Unknown platform"
 #endif
 
 #ifdef __cplusplus
@@ -357,14 +361,14 @@ typedef enum RENDERDOC_OverlayBits
                                 eRENDERDOC_Overlay_FrameNumber | eRENDERDOC_Overlay_CaptureList),
 
   // Enable all bits
-  eRENDERDOC_Overlay_All = ~0U,
+  eRENDERDOC_Overlay_All = 0x7ffffff,
 
   // Disable all bits
   eRENDERDOC_Overlay_None = 0,
 } RENDERDOC_OverlayBits;
 
 // returns the overlay bits that have been set
-typedef uint32_t(RENDERDOC_CC *pRENDERDOC_GetOverlayBits)();
+typedef uint32_t(RENDERDOC_CC *pRENDERDOC_GetOverlayBits)(void);
 // sets the overlay bits with an and & or mask
 typedef void(RENDERDOC_CC *pRENDERDOC_MaskOverlayBits)(uint32_t And, uint32_t Or);
 
@@ -375,7 +379,7 @@ typedef void(RENDERDOC_CC *pRENDERDOC_MaskOverlayBits)(uint32_t And, uint32_t Or
 // injected hooks and shut down. Behaviour is undefined if this is called
 // after any API functions have been called, and there is still no guarantee of
 // success.
-typedef void(RENDERDOC_CC *pRENDERDOC_RemoveHooks)();
+typedef void(RENDERDOC_CC *pRENDERDOC_RemoveHooks)(void);
 
 // DEPRECATED: compatibility for code compiled against pre-1.4.1 headers.
 typedef pRENDERDOC_RemoveHooks pRENDERDOC_Shutdown;
@@ -385,7 +389,7 @@ typedef pRENDERDOC_RemoveHooks pRENDERDOC_Shutdown;
 // If you use your own crash handler and don't want RenderDoc's handler to
 // intercede, you can call this function to unload it and any unhandled
 // exceptions will pass to the next handler.
-typedef void(RENDERDOC_CC *pRENDERDOC_UnloadCrashHandler)();
+typedef void(RENDERDOC_CC *pRENDERDOC_UnloadCrashHandler)(void);
 
 // Sets the capture file path template
 //
@@ -407,14 +411,14 @@ typedef void(RENDERDOC_CC *pRENDERDOC_UnloadCrashHandler)();
 typedef void(RENDERDOC_CC *pRENDERDOC_SetCaptureFilePathTemplate)(const char *pathtemplate);
 
 // returns the current capture path template, see SetCaptureFileTemplate above, as a UTF-8 string
-typedef const char *(RENDERDOC_CC *pRENDERDOC_GetCaptureFilePathTemplate)();
+typedef const char *(RENDERDOC_CC *pRENDERDOC_GetCaptureFilePathTemplate)(void);
 
 // DEPRECATED: compatibility for code compiled against pre-1.1.2 headers.
 typedef pRENDERDOC_SetCaptureFilePathTemplate pRENDERDOC_SetLogFilePathTemplate;
 typedef pRENDERDOC_GetCaptureFilePathTemplate pRENDERDOC_GetLogFilePathTemplate;
 
 // returns the number of captures that have been made
-typedef uint32_t(RENDERDOC_CC *pRENDERDOC_GetNumCaptures)();
+typedef uint32_t(RENDERDOC_CC *pRENDERDOC_GetNumCaptures)(void);
 
 // This function returns the details of a capture, by index. New captures are added
 // to the end of the list.
@@ -445,7 +449,7 @@ typedef void(RENDERDOC_CC *pRENDERDOC_SetCaptureFileComments)(const char *filePa
                                                               const char *comments);
 
 // returns 1 if the RenderDoc UI is connected to this application, 0 otherwise
-typedef uint32_t(RENDERDOC_CC *pRENDERDOC_IsTargetControlConnected)();
+typedef uint32_t(RENDERDOC_CC *pRENDERDOC_IsTargetControlConnected)(void);
 
 // DEPRECATED: compatibility for code compiled against pre-1.1.1 headers.
 // This was renamed to IsTargetControlConnected in API 1.1.1, the old typedef is kept here for
@@ -477,7 +481,7 @@ typedef void(RENDERDOC_CC *pRENDERDOC_GetAPIVersion)(int *major, int *minor, int
 // This will return 1 if the request was successfully passed on, though it's not guaranteed that
 // the UI will be on top in all cases depending on OS rules. It will return 0 if there is no current
 // target control connection to make such a request, or if there was another error
-typedef uint32_t(RENDERDOC_CC *pRENDERDOC_ShowReplayUI)();
+typedef uint32_t(RENDERDOC_CC *pRENDERDOC_ShowReplayUI)(void);
 
 //////////////////////////////////////////////////////////////////////////
 // Capturing functions
@@ -508,7 +512,7 @@ typedef void(RENDERDOC_CC *pRENDERDOC_SetActiveWindow)(RENDERDOC_DevicePointer d
                                                        RENDERDOC_WindowHandle wndHandle);
 
 // capture the next frame on whichever window and API is currently considered active
-typedef void(RENDERDOC_CC *pRENDERDOC_TriggerCapture)();
+typedef void(RENDERDOC_CC *pRENDERDOC_TriggerCapture)(void);
 
 // capture the next N frames on whichever window and API is currently considered active
 typedef void(RENDERDOC_CC *pRENDERDOC_TriggerMultiFrameCapture)(uint32_t numFrames);
@@ -537,7 +541,7 @@ typedef void(RENDERDOC_CC *pRENDERDOC_StartFrameCapture)(RENDERDOC_DevicePointer
 // Returns whether or not a frame capture is currently ongoing anywhere.
 //
 // This will return 1 if a capture is ongoing, and 0 if there is no capture running
-typedef uint32_t(RENDERDOC_CC *pRENDERDOC_IsFrameCapturing)();
+typedef uint32_t(RENDERDOC_CC *pRENDERDOC_IsFrameCapturing)(void);
 
 // Ends capturing immediately.
 //
