@@ -22,11 +22,14 @@ enum class Shift : u64 {
 
 } // Anonymous namespace
 
+// Valid only for GS, TI, VS and trap
 void TranslatorVisitor::ISBERD(u64 insn) {
     union {
         u64 raw;
         BitField<0, 8, IR::Reg> dest_reg;
         BitField<8, 8, IR::Reg> src_reg;
+        BitField<8, 8, u32> src_reg_num;
+        BitField<24, 8, u32> imm;
         BitField<31, 1, u64> skew;
         BitField<32, 1, u64> o;
         BitField<33, 2, Mode> mode;
@@ -45,8 +48,14 @@ void TranslatorVisitor::ISBERD(u64 insn) {
     if (isberd.shift != Shift::Default) {
         throw NotImplementedException("Shift {}", isberd.shift.Value());
     }
-    LOG_WARNING(Shader, "(STUBBED) called");
-    X(isberd.dest_reg, X(isberd.src_reg));
+    //LOG_DEBUG(Shader, "(STUBBED) called {}", insn);
+    if (isberd.src_reg_num == 0xFF) {
+        IR::U32 src_imm{ir.Imm32(static_cast<u32>(isberd.imm))};
+        IR::U32 result{ir.IAdd(X(isberd.src_reg), src_imm)};
+        X(isberd.dest_reg, result);
+    } else {
+        X(isberd.dest_reg, X(isberd.src_reg));
+    }
 }
 
 } // namespace Shader::Maxwell
