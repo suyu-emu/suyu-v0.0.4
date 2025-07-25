@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -11,7 +14,7 @@
 #include <type_traits>
 
 #include <mcl/bit/bit_field.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 #include <xbyak/xbyak_util.h>
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -16,7 +19,7 @@
 #    include <unicorn/unicorn.h>
 #endif
 
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #include "../A64/testenv.h"
 

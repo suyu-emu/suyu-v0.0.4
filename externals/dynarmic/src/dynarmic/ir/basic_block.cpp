@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -11,7 +14,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 
 #include "dynarmic/common/memory_pool.h"
 #include "dynarmic/frontend/A32/a32_types.h"

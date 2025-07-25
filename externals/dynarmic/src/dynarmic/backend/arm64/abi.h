@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -10,7 +13,7 @@
 #include <type_traits>
 
 #include <mcl/mp/metavalue/lift_value.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/common/always_false.h"

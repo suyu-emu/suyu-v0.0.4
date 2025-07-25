@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -7,10 +10,10 @@
 
 #include <iterator>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit/bit_field.hpp>
 #include <mcl/scope_exit.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/backend/x64/block_of_code.h"

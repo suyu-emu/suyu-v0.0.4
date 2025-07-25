@@ -28,9 +28,9 @@
 #include <optional>
 #include <vector>
 
-#include <mcl/assert.hpp>
+#include "dynarmic/common/assert.h"
 #include <mcl/bit_cast.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 
 #if defined(MCL_ARCHITECTURE_X86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"

@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #include <mcl/iterator/reverse.hpp>
-#include <mcl/stdint.hpp>
+#include "dynarmic/common/common_types.h"
 #include <xbyak/xbyak.h>
 
 #include "dynarmic/backend/x64/block_of_code.h"
