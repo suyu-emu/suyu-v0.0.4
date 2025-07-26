@@ -15,8 +15,7 @@
   <br>
 </h1>
 
-<h4 align="center"><b>Eden</b> is a open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
-<br>
+<h4 align="center"><b>Eden</b> is an open-source Nintendo Switch emulator, forked from the Yuzu emulator — started by former Citron developer Camille LaVey and the Eden team.
 It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
 
@@ -76,7 +75,7 @@ Any donations received will go towards things such as:
 * Additional hardware (e.g. GPUs as needed to improve rendering support, other peripherals to add support for, etc.)
 * CI Infrastructure
 
-If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/edenemu), once public, and talk to Camille or any of our other developers.
+If you would prefer to support us in a different way, please join our [Discord](https://discord.gg/edenemu) and talk to Camille or any of our other developers.
 
 ## License
 
