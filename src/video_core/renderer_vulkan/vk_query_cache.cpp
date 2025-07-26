@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -1161,10 +1164,9 @@ struct QueryCacheRuntimeImpl {
                           StagingBufferPool& staging_pool_,
                           ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                           DescriptorPool& descriptor_pool)
-        : rasterizer{rasterizer_}, device_memory{device_memory_},
-          buffer_cache{buffer_cache_}, device{device_},
-          memory_allocator{memory_allocator_}, scheduler{scheduler_}, staging_pool{staging_pool_},
-          guest_streamer(0, runtime),
+        : rasterizer{rasterizer_}, device_memory{device_memory_}, buffer_cache{buffer_cache_},
+          device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
+          staging_pool{staging_pool_}, guest_streamer(0, runtime),
           sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
                           device, scheduler, memory_allocator, compute_pass_descriptor_queue,
                           descriptor_pool),
@@ -1300,9 +1302,11 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     if (impl->hcr_is_set) {
         if (impl->hcr_setup.buffer == impl->hcr_buffer &&
             impl->hcr_setup.offset == impl->hcr_offset) {
-            ResumeHostConditionalRendering();
             return;
         }
+    }
+    bool was_running = impl->is_hcr_running;
+    if (was_running) {
         PauseHostConditionalRendering();
     }
     impl->hcr_setup.buffer = impl->hcr_buffer;
@@ -1310,7 +1314,9 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
     impl->hcr_setup.flags = is_equal ? VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT : 0;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
-    ResumeHostConditionalRendering();
+    if (was_running) {
+        ResumeHostConditionalRendering();
+    }
 }
 
 void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal) {
@@ -1325,7 +1331,8 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
         to_resolve = buffer->Handle();
         to_resolve_offset = static_cast<u32>(offset);
     }
-    if (impl->is_hcr_running) {
+    bool was_running = impl->is_hcr_running;
+    if (was_running) {
         PauseHostConditionalRendering();
     }
     impl->conditional_resolve_pass->Resolve(*impl->hcr_resolve_buffer, to_resolve,
@@ -1335,7 +1342,9 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
     impl->hcr_setup.flags = is_equal ? 0 : VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
-    ResumeHostConditionalRendering();
+    if (was_running) {
+        ResumeHostConditionalRendering();
+    }
 }
 
 bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::LookupData object_1,

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -115,8 +118,8 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
     QueryCacheBaseImpl(QueryCacheBase<Traits>* owner_, VideoCore::RasterizerInterface& rasterizer_,
                        Tegra::MaxwellDeviceMemoryManager& device_memory_, RuntimeType& runtime_,
                        Tegra::GPU& gpu_)
-        : owner{owner_}, rasterizer{rasterizer_},
-          device_memory{device_memory_}, runtime{runtime_}, gpu{gpu_} {
+        : owner{owner_}, rasterizer{rasterizer_}, device_memory{device_memory_}, runtime{runtime_},
+          gpu{gpu_} {
         streamer_mask = 0;
         for (size_t i = 0; i < static_cast<size_t>(QueryType::MaxQueryTypes); i++) {
             streamers[i] = runtime.GetStreamerInterface(static_cast<QueryType>(i));
@@ -267,7 +270,11 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
             return;
         }
         if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
-            ASSERT(false);
+            LOG_ERROR(HW_GPU,
+                      "Query report value not synchronized. Consider increasing GPU accuracy.");
+            if (!is_synced) [[likely]] {
+                impl->pending_unregister.push_back(query_location);
+            }
             return;
         }
         query_base->value += streamer->GetAmendValue();
@@ -370,8 +377,6 @@ void QueryCacheBase<Traits>::NotifySegment(bool resume) {
     if (resume) {
         impl->runtime.ResumeHostConditionalRendering();
     } else {
-        CounterClose(VideoCommon::QueryType::ZPassPixelCount64);
-        CounterClose(VideoCommon::QueryType::StreamingByteCount);
         impl->runtime.PauseHostConditionalRendering();
     }
 }

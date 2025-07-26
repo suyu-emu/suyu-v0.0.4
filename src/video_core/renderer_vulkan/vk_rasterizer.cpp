@@ -217,8 +217,6 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
-    query_cache.NotifySegment(true);
-
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
@@ -232,9 +230,13 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     UpdateDynamicStates();
 
     HandleTransformFeedback();
+    query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
                               maxwell3d->regs.zpass_pixel_count_enable);
+
     draw_func();
+
+    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount, false);
 }
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
@@ -311,8 +313,6 @@ void RasterizerVulkan::DrawTexture() {
     };
     FlushWork();
 
-    query_cache.NotifySegment(true);
-
     std::scoped_lock l{texture_cache.mutex};
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
@@ -359,10 +359,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     FlushWork();
     gpu_memory->FlushCaching();
 
-    query_cache.NotifySegment(true);
-    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
-                              maxwell3d->regs.zpass_pixel_count_enable);
-
     auto& regs = maxwell3d->regs;
     const bool use_color = regs.clear_surface.R || regs.clear_surface.G || regs.clear_surface.B ||
                            regs.clear_surface.A;
@@ -377,6 +373,10 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
     const VkExtent2D render_area = framebuffer->RenderArea();
     scheduler.RequestRenderpass(framebuffer);
+
+    query_cache.NotifySegment(true);
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
 
     u32 up_scale = 1;
     u32 down_shift = 0;
@@ -832,6 +832,7 @@ std::optional<FramebufferTextureInfo> RasterizerVulkan::AccelerateDisplay(
     if (!image_view) {
         return {};
     }
+
     query_cache.NotifySegment(false);
 
     const auto& resolution = Settings::values.resolution_info;
@@ -943,22 +944,20 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
     UpdateLineWidth(regs);
-    // TODO: updating line stipple causes the cmdbuf to die
-    // UpdateLineStipple(regs);
 
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
     auto features = DynamicFeatures{
-        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported()
-                                      && dynamic_state > 0,
-        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported()
-                                        && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported()
-                                              && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported()
-                                              && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported()
-                                                && dynamic_state > 2,
+        .has_extended_dynamic_state =
+            device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
+        .has_extended_dynamic_state_2 =
+            device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra =
+            device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend =
+            device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables =
+            device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 
@@ -983,16 +982,12 @@ void RasterizerVulkan::UpdateDynamicStates() {
             if (features.has_extended_dynamic_state_3_enables) {
                 using namespace Tegra::Engines;
 
-                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE
-                    || device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
-                    struct In
-                    {
+                if (device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_OPEN_SOURCE ||
+                    device.GetDriverID() == VkDriverIdKHR::VK_DRIVER_ID_AMD_PROPRIETARY) {
+                    struct In {
                         const Maxwell3D::Regs::VertexAttribute::Type d;
-                        In(Maxwell3D::Regs::VertexAttribute::Type n)
-                            : d(n)
-                        {}
-                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const
-                        {
+                        In(Maxwell3D::Regs::VertexAttribute::Type n) : d(n) {}
+                        bool operator()(Maxwell3D::Regs::VertexAttribute n) const {
                             return n.type == d;
                         }
                     };
@@ -1143,36 +1138,36 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (is_d24 && !device.SupportsD24DepthBuffer()) {
         static constexpr const size_t length = sizeof(NEEDS_D24) / sizeof(NEEDS_D24[0]);
 
-        static constexpr const u64 *start = NEEDS_D24;
-        static constexpr const u64 *end = NEEDS_D24 + length;
+        static constexpr const u64* start = NEEDS_D24;
+        static constexpr const u64* end = NEEDS_D24 + length;
 
-        const u64 *it = std::find(start, end, program_id);
+        const u64* it = std::find(start, end, program_id);
 
         if (it != end) {
             // the base formulas can be obtained from here:
             //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
-            const double rescale_factor = static_cast<double>(1ULL << (32 - 24))
-                                          / (static_cast<double>(0x1.ep+127));
+            const double rescale_factor =
+                static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
             units = static_cast<float>(static_cast<double>(units) * rescale_factor);
         }
     }
 
-    scheduler.Record(
-        [constant = units, clamp = regs.depth_bias_clamp, factor = regs.slope_scale_depth_bias, this](
-            vk::CommandBuffer cmdbuf) {
-            if (device.IsExtDepthBiasControlSupported()) {
-                static VkDepthBiasRepresentationInfoEXT bias_info{
-                    .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
-                    .pNext = nullptr,
-                    .depthBiasRepresentation = VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
-                    .depthBiasExact = VK_FALSE,
-                };
+    scheduler.Record([constant = units, clamp = regs.depth_bias_clamp,
+                      factor = regs.slope_scale_depth_bias, this](vk::CommandBuffer cmdbuf) {
+        if (device.IsExtDepthBiasControlSupported()) {
+            static VkDepthBiasRepresentationInfoEXT bias_info{
+                .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT,
+                .pNext = nullptr,
+                .depthBiasRepresentation =
+                    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT,
+                .depthBiasExact = VK_FALSE,
+            };
 
-                cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
-            } else {
-                cmdbuf.SetDepthBias(constant, clamp, factor);
-            }
-        });
+            cmdbuf.SetDepthBias(constant, clamp, factor, &bias_info);
+        } else {
+            cmdbuf.SetDepthBias(constant, clamp, factor);
+        }
+    });
 }
 
 void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1354,8 +1349,7 @@ void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::
     });
 }
 
-void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs)
-{
+void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchConservativeRasterizationMode()) {
         return;
     }
@@ -1367,8 +1361,7 @@ void RasterizerVulkan::UpdateConservativeRasterizationMode(Tegra::Engines::Maxwe
     });
 }
 
-void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs)
-{
+void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchLineStippleEnable()) {
         return;
     }
@@ -1378,19 +1371,7 @@ void RasterizerVulkan::UpdateLineStippleEnable(Tegra::Engines::Maxwell3D::Regs& 
     });
 }
 
-void RasterizerVulkan::UpdateLineStipple(Tegra::Engines::Maxwell3D::Regs& regs)
-{
-    if (!state_tracker.TouchLineStipple()) {
-        return;
-    }
-
-    scheduler.Record([params = regs.line_stipple_params](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetLineStippleEXT(params.factor, static_cast<uint16_t>(params.pattern));
-    });
-}
-
-void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs)
-{
+void RasterizerVulkan::UpdateLineRasterizationMode(Tegra::Engines::Maxwell3D::Regs& regs) {
     // if (!state_tracker.TouchLi()) {
     //     return;
     // }
