@@ -174,15 +174,21 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
     }
 }
 
+static u64 GetNextTickCount(u64 next_ticks) {
+    if (Settings::values.use_custom_cpu_ticks.GetValue()) {
+        return Settings::values.cpu_ticks.GetValue();
+    }
+    return next_ticks;
+}
+
 void CoreTiming::AddTicks(u64 ticks_to_add) {
-    cpu_ticks = Settings::values.use_custom_cpu_ticks.GetValue() 
-            ? Settings::values.cpu_ticks.GetValue() 
-            : cpu_ticks + ticks_to_add;
-    downcount -= static_cast<s64>(cpu_ticks);
+    const u64 ticks = GetNextTickCount(ticks_to_add);
+    cpu_ticks += ticks;
+    downcount -= static_cast<s64>(ticks);
 }
 
 void CoreTiming::Idle() {
-    cpu_ticks += 1000U;
+    AddTicks(1000U);
 }
 
 void CoreTiming::ResetTicks() {
