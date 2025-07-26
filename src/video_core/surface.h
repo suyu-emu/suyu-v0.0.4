@@ -503,6 +503,8 @@ PixelFormat PixelFormatFromGPUPixelFormat(Service::android::PixelFormat format);
 
 SurfaceType GetFormatType(PixelFormat pixel_format);
 
+bool HasAlpha(PixelFormat pixel_format);
+
 bool IsPixelFormatASTC(PixelFormat format);
 
 bool IsPixelFormatBCn(PixelFormat format);

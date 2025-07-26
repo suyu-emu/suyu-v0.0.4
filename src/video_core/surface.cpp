@@ -237,6 +237,38 @@ SurfaceType GetFormatType(PixelFormat pixel_format) {
     return SurfaceType::Invalid;
 }
 
+bool HasAlpha(PixelFormat pixel_format) {
+    switch (pixel_format) {
+        case PixelFormat::A8B8G8R8_UNORM:
+        case PixelFormat::A8B8G8R8_SNORM:
+        case PixelFormat::A8B8G8R8_SINT:
+        case PixelFormat::A8B8G8R8_UINT:
+        case PixelFormat::A1R5G5B5_UNORM:
+        case PixelFormat::A2B10G10R10_UNORM:
+        case PixelFormat::A2B10G10R10_UINT:
+        case PixelFormat::A2R10G10B10_UNORM:
+        case PixelFormat::A1B5G5R5_UNORM:
+        case PixelFormat::A5B5G5R1_UNORM:
+        case PixelFormat::R16G16B16A16_FLOAT:
+        case PixelFormat::R16G16B16A16_UNORM:
+        case PixelFormat::R16G16B16A16_SNORM:
+        case PixelFormat::R16G16B16A16_SINT:
+        case PixelFormat::R16G16B16A16_UINT:
+        case PixelFormat::R32G32B32A32_UINT:
+        case PixelFormat::BC1_RGBA_UNORM:
+        case PixelFormat::B8G8R8A8_UNORM:
+        case PixelFormat::R32G32B32A32_FLOAT:
+        case PixelFormat::R32G32B32A32_SINT:
+        case PixelFormat::A8B8G8R8_SRGB:
+        case PixelFormat::B8G8R8A8_SRGB:
+        case PixelFormat::BC1_RGBA_SRGB:
+        case PixelFormat::A4B4G4R4_UNORM:
+            return true;
+        default:
+            return false;
+    }
+}
+
 bool IsPixelFormatASTC(PixelFormat format) {
     switch (format) {
     case PixelFormat::ASTC_2D_4X4_UNORM:

@@ -38,6 +38,7 @@ using VideoCommon::ImageInfo;
 using VideoCommon::ImageType;
 using VideoCommon::SubresourceRange;
 using VideoCore::Surface::BytesPerBlock;
+using VideoCore::Surface::HasAlpha;
 using VideoCore::Surface::IsPixelFormatASTC;
 using VideoCore::Surface::IsPixelFormatInteger;
 using VideoCore::Surface::SurfaceType;
@@ -1323,6 +1324,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::D32_FLOAT_S8_UINT:
     case PixelFormat::Invalid:
     default:
+        LOG_ERROR(Render_Vulkan, "Unimplemented texture conversion from {} to {} format type", src_view.format, dst_view.format);
         break;
     }
 }
@@ -1364,6 +1366,17 @@ bool TextureCacheRuntime::IsFormatScalable(PixelFormat format) {
 
 void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                                     std::span<const VideoCommon::ImageCopy> copies) {
+    // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
+    // these images that aren't size-compatible
+    if (HasAlpha(src.info.format) != HasAlpha(dst.info.format) ||
+        BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
+        auto oneCopy = VideoCommon::ImageCopy{
+            .src_offset = VideoCommon::Offset3D(0, 0, 0),
+            .dst_offset = VideoCommon::Offset3D(0, 0, 0),
+            .extent = dst.info.size
+        };
+        return ReinterpretImage(dst, src, std::span{&oneCopy, 1});
+    }
     boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
     const VkImageAspectFlags aspect_mask = dst.AspectMask();
     ASSERT(aspect_mask == src.AspectMask());
