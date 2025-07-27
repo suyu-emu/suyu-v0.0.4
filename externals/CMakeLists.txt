@@ -83,7 +83,18 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
-    add_subdirectory(SDL)
+    include(CPM)
+    set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
+        set(SDL_HASH cc016b0046)
+        set(SDL_PIPEWIRE OFF) # build errors out with this on
+    else()
+        set(SDL_HASH 2e4c12cd2c)
+    endif()
+
+    CPMAddPackage("gh:libsdl-org/SDL#${SDL_HASH}")
 endif()
 
 # ENet

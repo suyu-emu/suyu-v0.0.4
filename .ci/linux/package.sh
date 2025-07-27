@@ -92,7 +92,6 @@ chmod +x ./sharun-aio
 xvfb-run -a ./sharun-aio l -p -v -e -s -k \
 	../$BUILDDIR/bin/eden* \
 	$LIBDIR/lib*GL*.so* \
-  $LIBDIR/libSDL2*.so* \
 	$LIBDIR/dri/* \
 	$LIBDIR/vdpau/* \
 	$LIBDIR/libvulkan* \

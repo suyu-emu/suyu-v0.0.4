@@ -33,9 +33,9 @@ endif()
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
+    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
 else()
-	CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
+    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
 endif()
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
@@ -332,6 +332,41 @@ if (YUZU_ROOM)
     add_definitions(-DYUZU_ROOM)
 endif()
 
+# Build/optimization presets
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (ARCHITECTURE_x86_64)
+        set(YUZU_BUILD_PRESET "generic" CACHE STRING "Build preset to use. One of: generic, v3, zen2, zen4, native")
+        if (${YUZU_BUILD_PRESET} STREQUAL "generic")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -mtune=generic")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64 -mtune=generic")
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "v3")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3 -mtune=generic")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3 -mtune=generic")
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "zen2")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=znver2 -mtune=znver2")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=znver2 -mtune=znver2")
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "zen4")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=znver4 -mtune=znver4")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=znver4 -mtune=znver4")
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "native")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+        endif()
+    elseif(ARCHITECTURE_arm64)
+        set(YUZU_BUILD_PRESET "generic" CACHE STRING "Build preset to use. One of: generic, armv9")
+        if (${YUZU_BUILD_PRESET} STREQUAL "generic")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a -mtune=generic")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a -mtune=generic")
+        elseif (${YUZU_BUILD_PRESET} STREQUAL "armv9")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv9-a -mtune=generic")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv9-a -mtune=generic")
+        endif()
+    endif()
+endif()
+
+# Other presets, e.g. steamdeck
+set(YUZU_SYSTEM_PROFILE "generic" CACHE STRING "CMake and Externals profile to use. One of: generic, steamdeck")
+
 # Configure C++ standard
 # ===========================
 
@@ -420,6 +455,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
+# TODO(crueter): combine this all with CPM.
 if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
         # Detect toolchain and platform
