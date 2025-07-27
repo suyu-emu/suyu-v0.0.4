@@ -41,6 +41,8 @@ enum class IoMode : u32 {
 enum class OptionType : u32 {
     DoNotCloseSocket = 0,
     GetServerCertChain = 1,
+    SkipDefaultVerify = 2,
+    EnableAlpn = 3,
 };
 
 // This is nn::ssl::sf::SslVersion
@@ -93,11 +95,11 @@ public:
             {20, nullptr, "SetRenegotiationMode"},
             {21, nullptr, "GetRenegotiationMode"},
             {22, &ISslConnection::SetOption, "SetOption"},
-            {23, nullptr, "GetOption"},
+            {23, &ISslConnection::GetOption, "GetOption"},
             {24, nullptr, "GetVerifyCertErrors"},
             {25, nullptr, "GetCipherInfo"},
-            {26, nullptr, "SetNextAlpnProto"},
-            {27, nullptr, "GetNextAlpnProto"},
+            {26, &ISslConnection::SetNextAlpnProto, "SetNextAlpnProto"},
+            {27, &ISslConnection::GetNextAlpnProto, "GetNextAlpnProto"},
             {28, nullptr, "SetDtlsSocketDescriptor"},
             {29, nullptr, "GetDtlsHandshakeTimeout"},
             {30, nullptr, "SetPrivateOption"},
@@ -140,7 +142,10 @@ private:
     std::optional<int> fd_to_close;
     bool do_not_close_socket = false;
     bool get_server_cert_chain = false;
+    bool skip_default_verify = false;
+    bool enable_alpn = false;
     std::shared_ptr<Network::SocketBase> socket;
+    std::vector<u8> next_alpn_proto;
     bool did_handshake = false;
 
     Result SetSocketDescriptorImpl(s32* out_fd, s32 fd) {
@@ -381,6 +386,12 @@ private:
         case OptionType::GetServerCertChain:
             get_server_cert_chain = static_cast<bool>(parameters.value);
             break;
+        case OptionType::SkipDefaultVerify:
+            skip_default_verify = static_cast<bool>(parameters.value);
+            break;
+        case OptionType::EnableAlpn:
+            enable_alpn = static_cast<bool>(parameters.value);
+            break;
         default:
             LOG_WARNING(Service_SSL, "Unknown option={}, value={}", parameters.option,
                         parameters.value);
@@ -388,6 +399,63 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
+    }
+
+    void GetOption(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto option = rp.PopRaw<OptionType>();
+
+        u8 value = 0;
+
+        switch (option) {
+        case OptionType::DoNotCloseSocket:
+            value = static_cast<u8>(do_not_close_socket);
+            break;
+        case OptionType::GetServerCertChain:
+            value = static_cast<u8>(get_server_cert_chain);
+            break;
+        case OptionType::SkipDefaultVerify:
+            value = static_cast<u8>(skip_default_verify);
+            break;
+        case OptionType::EnableAlpn:
+            value = static_cast<u8>(enable_alpn);
+            break;
+        default:
+            LOG_WARNING(Service_SSL, "Unknown option={}", option);
+            value = 0;
+            break;
+        }
+
+        LOG_DEBUG(Service_SSL, "GetOption called, option={}, ret value={}", option, value);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(value);
+    }
+
+    void SetNextAlpnProto(HLERequestContext& ctx) {
+        const auto data = ctx.ReadBuffer(0);
+        next_alpn_proto.assign(data.begin(), data.end());
+
+        LOG_DEBUG(Service_SSL, "SetNextAlpnProto called, size={}", next_alpn_proto.size());
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetNextAlpnProto(HLERequestContext& ctx) {
+        const size_t writable = ctx.GetWriteBufferSize();
+        const size_t to_write = std::min(next_alpn_proto.size(), writable);
+
+        if (to_write != 0) {
+            ctx.WriteBuffer(std::span<const u8>(next_alpn_proto.data(), to_write));
+        }
+
+        LOG_DEBUG(Service_SSL, "GetNextAlpnProto called, size={}", to_write);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(static_cast<u32>(to_write));
     }
 };
 
@@ -398,7 +466,7 @@ public:
           shared_data{std::make_shared<SslContextSharedData>()} {
         static const FunctionInfo functions[] = {
             {0, &ISslContext::SetOption, "SetOption"},
-            {1, nullptr, "GetOption"},
+            {1, &ISslContext::GetOption, "GetOption"},
             {2, &ISslContext::CreateConnection, "CreateConnection"},
             {3, &ISslContext::GetConnectionCount, "GetConnectionCount"},
             {4, &ISslContext::ImportServerPki, "ImportServerPki"},
@@ -431,6 +499,17 @@ private:
 
         LOG_WARNING(Service_SSL, "(STUBBED) called. option={}, value={}", parameters.option,
                     parameters.value);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+
+    }
+
+    void GetOption(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto parameters = rp.PopRaw<OptionType>();
+
+        LOG_WARNING(Service_SSL, "(STUBBED) called. option={}", parameters);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
