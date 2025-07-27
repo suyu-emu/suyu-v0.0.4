@@ -49,9 +49,6 @@
 [submodule "externals/dynarmic/externals/unordered_dense"]
 	path = externals/dynarmic/externals/unordered_dense
 	url = https://github.com/Lizzie841/unordered_dense.git
-[submodule "externals/dynarmic/externals/xbyak"]
-	path = externals/dynarmic/externals/xbyak
-	url = https://github.com/Lizzie841/xbyak.git
 [submodule "externals/dynarmic/externals/zycore-c"]
 	path = externals/dynarmic/externals/zycore-c
 	url = https://github.com/zyantific/zycore-c.git

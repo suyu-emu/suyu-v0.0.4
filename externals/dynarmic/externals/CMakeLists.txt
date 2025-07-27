@@ -64,12 +64,13 @@ if (NOT TARGET ankerl::unordered_dense)
 endif()
 
 # xbyak
+# uncomment if in an independent repo.
 
-if (NOT TARGET xbyak::xbyak)
-    if ("x86_64" IN_LIST ARCHITECTURE)
-        add_subdirectory(xbyak)
-    endif()
-endif()
+# if (NOT TARGET xbyak::xbyak)
+#     if ("x86_64" IN_LIST ARCHITECTURE)
+#         add_subdirectory(xbyak)
+#     endif()
+# endif()
 
 # zydis
 
