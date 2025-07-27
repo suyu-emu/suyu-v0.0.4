@@ -728,24 +728,20 @@ Status BufferQueueProducer::Connect(const std::shared_ptr<IProducerListener>& li
     return status;
 }
 
-// https://android.googlesource.com/platform/frameworks/native/%2B/master/libs/gui/BufferQueueProducer.cpp#1457
 Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
-    LOG_DEBUG(Service_Nvnflinger, "disconnect api = {}", api);
+    LOG_DEBUG(Service_Nvnflinger, "api = {}", api);
 
-    std::shared_ptr<IConsumerListener> listener;
     Status status = Status::NoError;
+    std::shared_ptr<IConsumerListener> listener;
 
     {
         std::scoped_lock lock{core->mutex};
+
         core->WaitWhileAllocatingLocked();
 
         if (core->is_abandoned) {
+            // Disconnecting after the surface has been abandoned is a no-op.
             return Status::NoError;
-        }
-
-        if (core->connected_api == NativeWindowApi::NoConnectedApi) {
-            LOG_DEBUG(Service_Nvnflinger, "disconnect: not connected (req = {})", api);
-            return Status::NoInit;
         }
 
         switch (api) {
@@ -762,20 +758,20 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
                 buffer_wait_event->Signal();
                 listener = core->consumer_listener;
             } else {
-                LOG_ERROR(Service_Nvnflinger,
-                          "disconnect: still connected to another api (cur = {} req = {})",
+                LOG_ERROR(Service_Nvnflinger, "still connected to another api (cur = {} req = {})",
                           core->connected_api, api);
                 status = Status::BadValue;
             }
             break;
         default:
-            LOG_ERROR(Service_Nvnflinger, "disconnect: unknown api = {}", api);
+            LOG_ERROR(Service_Nvnflinger, "unknown api = {}", api);
             status = Status::BadValue;
             break;
         }
     }
 
-    if (listener) {
+    // Call back without lock held
+    if (listener != nullptr) {
         listener->OnBuffersReleased();
     }
 

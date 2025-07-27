@@ -40,21 +40,16 @@ Result IHOSBinderDriver::TransactParcel(s32 binder_id, u32 transaction_id,
 }
 
 Result IHOSBinderDriver::AdjustRefcount(s32 binder_id, s32 addval, s32 type) {
-    LOG_DEBUG(Service_VI, "called id={}, addval={}, type={}", binder_id, addval, type);
-    R_UNLESS(type == 0 || type == 1, ResultUnknown);
-    m_server->AdjustRefcount(binder_id, addval, type == 1);
+    LOG_WARNING(Service_VI, "(STUBBED) called id={}, addval={}, type={}", binder_id, addval, type);
     R_SUCCEED();
 }
 
 Result IHOSBinderDriver::GetNativeHandle(s32 binder_id, u32 type_id,
                                          OutCopyHandle<Kernel::KReadableEvent> out_handle) {
-    LOG_DEBUG(Service_VI, "called id={}, type_id={}", binder_id, type_id);
+    LOG_WARNING(Service_VI, "(STUBBED) called id={}, type_id={}", binder_id, type_id);
 
     const auto binder = m_server->TryGetBinder(binder_id);
     R_UNLESS(binder != nullptr, ResultUnknown);
-
-    auto native_handle = binder->GetNativeHandle(type_id);
-    R_UNLESS(native_handle != nullptr, ResultUnknown);
 
     *out_handle = binder->GetNativeHandle(type_id);
 
