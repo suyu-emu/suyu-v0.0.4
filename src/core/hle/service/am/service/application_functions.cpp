@@ -456,8 +456,21 @@ Result IApplicationFunctions::GetFriendInvitationStorageChannelEvent(
 
 Result IApplicationFunctions::TryPopFromFriendInvitationStorageChannel(
     Out<SharedPointer<IStorage>> out_storage) {
-    LOG_INFO(Service_AM, "(STUBBED) called");
-    R_THROW(AM::ResultNoDataInChannel);
+    LOG_DEBUG(Service_AM, "called");
+
+    std::scoped_lock lk{m_applet->lock};
+
+    auto& channel = m_applet->friend_invitation_storage_channel;
+
+    if (channel.empty()) {
+        return AM::ResultNoDataInChannel;
+    }
+
+    auto data = channel.back();
+    channel.pop_back();
+
+    *out_storage = std::make_shared<IStorage>(system, std::move(data));
+    R_SUCCEED();
 }
 
 Result IApplicationFunctions::GetNotificationStorageChannelEvent(

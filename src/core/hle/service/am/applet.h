@@ -92,6 +92,7 @@ struct Applet {
     // Channels
     std::deque<std::vector<u8>> user_channel_launch_parameter{};
     std::deque<std::vector<u8>> preselected_user_launch_parameter{};
+    std::deque<std::vector<u8>> friend_invitation_storage_channel{};
 
     // Caller applet
     std::weak_ptr<Applet> caller_applet{};

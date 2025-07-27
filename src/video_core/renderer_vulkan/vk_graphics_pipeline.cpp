@@ -324,9 +324,8 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             size_t ssbo_index{};
             for (const auto& desc : info.storage_buffers_descriptors) {
                 ASSERT(desc.count == 1);
-                if (!buffer_cache.BindGraphicsStorageBuffer(stage, ssbo_index, desc.cbuf_index,
-                                                            desc.cbuf_offset, desc.is_written))
-                    return false;
+                buffer_cache.BindGraphicsStorageBuffer(stage, ssbo_index, desc.cbuf_index,
+                                                       desc.cbuf_offset, desc.is_written);
                 ++ssbo_index;
             }
         }

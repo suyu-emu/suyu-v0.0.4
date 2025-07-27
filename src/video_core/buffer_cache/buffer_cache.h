@@ -467,6 +467,10 @@ void BufferCache<P>::BindComputeStorageBuffer(size_t ssbo_index, u32 cbuf_index,
     channel_state->written_compute_storage_buffers |= (is_written ? 1U : 0U) << ssbo_index;
 
     const auto& launch_desc = kepler_compute->launch_description;
+    if (((launch_desc.const_buffer_enable_mask >> cbuf_index) & 1) == 0) {
+        LOG_WARNING(HW_GPU, "Skipped binding SSBO: cbuf index {} is not enabled", cbuf_index);
+        return;
+    }
     ASSERT(((launch_desc.const_buffer_enable_mask >> cbuf_index) & 1) != 0);
 
     const auto& cbufs = launch_desc.const_buffer_config;
@@ -1701,6 +1705,11 @@ template <class P>
 Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
                                              bool is_written) const {
     const GPUVAddr gpu_addr = gpu_memory->Read<u64>(ssbo_addr);
+
+    if (gpu_addr == 0) {
+        return NULL_BINDING;
+    }
+
     const auto size = [&]() {
         const bool is_nvn_cbuf = cbuf_index == 0;
         // The NVN driver buffer (index 0) is known to pack the SSBO address followed by its size.
@@ -1723,7 +1732,7 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
 
     const std::optional<DAddr> aligned_device_addr = gpu_memory->GpuToCpuAddress(aligned_gpu_addr);
     if (!aligned_device_addr || size == 0) {
-        LOG_WARNING(HW_GPU, "Failed to find storage buffer for cbuf index {}", cbuf_index);
+        LOG_DEBUG(HW_GPU, "Failed to find storage buffer for cbuf index {}", cbuf_index);
         return NULL_BINDING;
     }
     const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
