@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -263,6 +266,12 @@ bool HasAlpha(PixelFormat pixel_format) {
         case PixelFormat::B8G8R8A8_SRGB:
         case PixelFormat::BC1_RGBA_SRGB:
         case PixelFormat::A4B4G4R4_UNORM:
+        case PixelFormat::BC2_SRGB:
+        case PixelFormat::BC2_UNORM:
+        case PixelFormat::BC3_SRGB:
+        case PixelFormat::BC3_UNORM:
+        case PixelFormat::BC7_SRGB:
+        case PixelFormat::BC7_UNORM:
             return true;
         default:
             return false;

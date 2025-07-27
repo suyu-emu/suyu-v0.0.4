@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -1368,8 +1371,7 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                                     std::span<const VideoCommon::ImageCopy> copies) {
     // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
     // these images that aren't size-compatible
-    if (HasAlpha(src.info.format) != HasAlpha(dst.info.format) ||
-        BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
+    if (BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
         auto oneCopy = VideoCommon::ImageCopy{
             .src_offset = VideoCommon::Offset3D(0, 0, 0),
             .dst_offset = VideoCommon::Offset3D(0, 0, 0),
