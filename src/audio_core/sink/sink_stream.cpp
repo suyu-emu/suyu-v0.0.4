@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -44,7 +46,7 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
         // Center = 0.596
         // LFE = 0.354
         // Back = 0.707
-        static constexpr std::array<f32, 4> down_mix_coeff{1.0, 0.596f, 0.354f, 0.707f};
+        static constexpr std::array<f32, 4> down_mix_coeff{1.0f, 0.596f, 0.354f, 0.707f};
 
         for (u32 read_index = 0, write_index = 0; read_index < samples.size();
              read_index += system_channels, write_index += device_channels) {

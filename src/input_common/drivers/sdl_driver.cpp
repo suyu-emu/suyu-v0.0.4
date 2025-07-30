@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -110,12 +112,12 @@ public:
 
     bool RumblePlay(const Common::Input::VibrationStatus vibration) {
         constexpr u32 rumble_max_duration_ms = 2000;
-        constexpr f32 low_start_sensitivity_limit = 140.0;
-        constexpr f32 low_width_sensitivity_limit = 400.0;
-        constexpr f32 high_start_sensitivity_limit = 200.0;
-        constexpr f32 high_width_sensitivity_limit = 700.0;
+        constexpr f32 low_start_sensitivity_limit = 140.0f;
+        constexpr f32 low_width_sensitivity_limit = 400.0f;
+        constexpr f32 high_start_sensitivity_limit = 200.0f;
+        constexpr f32 high_width_sensitivity_limit = 700.0f;
         // Try to provide some feeling of the frequency by reducing the amplitude depending on it.
-        f32 low_frequency_scale = 1.0;
+        f32 low_frequency_scale = 1.0f;
         if (vibration.low_frequency > low_start_sensitivity_limit) {
             low_frequency_scale =
                 std::max(1.0f - (vibration.low_frequency - low_start_sensitivity_limit) /
@@ -124,7 +126,7 @@ public:
         }
         f32 low_amplitude = vibration.low_amplitude * low_frequency_scale;
 
-        f32 high_frequency_scale = 1.0;
+        f32 high_frequency_scale = 1.0f;
         if (vibration.high_frequency > high_start_sensitivity_limit) {
             high_frequency_scale =
                 std::max(1.0f - (vibration.high_frequency - high_start_sensitivity_limit) /

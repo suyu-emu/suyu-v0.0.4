@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -51,7 +53,8 @@ struct InstEncoding {
     MaskValue mask_value;
     Opcode opcode;
 };
-constexpr std::array UNORDERED_ENCODINGS{
+constexpr auto SortedEncodings() {
+    std::array<InstEncoding, 279> encodings{
 #define INST(name, cute, encode)                                                                   \
     InstEncoding{                                                                                  \
         .mask_value{MaskValueFromEncoding(encode)},                                                \
@@ -59,10 +62,7 @@ constexpr std::array UNORDERED_ENCODINGS{
     },
 #include "maxwell.inc"
 #undef INST
-};
-
-constexpr auto SortedEncodings() {
-    std::array encodings{UNORDERED_ENCODINGS};
+    };
     std::ranges::sort(encodings, [](const InstEncoding& lhs, const InstEncoding& rhs) {
         return std::popcount(lhs.mask_value.mask) > std::popcount(rhs.mask_value.mask);
     });

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -88,26 +90,26 @@ if (MSVC)
         /wd4702 # unreachable code (when used with LTO)
     )
 
-if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
-    # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
-    # Precompiled headers are deleted if not using /Z7. See https://github.com/nanoant/CMakePCHCompiler/issues/21
-    add_compile_options(/Z7)
-    # Avoid D9025 warning
-    string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-    string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-else()
-    add_compile_options(/Zi)
-endif()
+    if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
+        # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
+        # Precompiled headers are deleted if not using /Z7. See https://github.com/nanoant/CMakePCHCompiler/issues/21
+        add_compile_options(/Z7)
+        # Avoid D9025 warning
+        string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+        string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    else()
+        add_compile_options(/Zi)
+    endif()
 
-if (ARCHITECTURE_x86_64)
-    add_compile_options(/QIntel-jcc-erratum)
-endif()
+    if (ARCHITECTURE_x86_64)
+        add_compile_options(/QIntel-jcc-erratum)
+    endif()
 
-# /GS- - No stack buffer overflow checks
-add_compile_options("$<$<CONFIG:Release>:/GS->")
+    # /GS- - No stack buffer overflow checks
+    add_compile_options("$<$<CONFIG:Release>:/GS->")
 
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
     add_compile_options(
         -fwrapv
@@ -124,63 +126,63 @@ else()
         -Wno-missing-field-initializers
     )
 
-if (CMAKE_CXX_COMPILER_ID MATCHES Clang) # Clang or AppleClang
-    add_compile_options(
-        -Wno-braced-scalar-init
-        -Wno-unused-private-field
-        -Wno-nullability-completeness
-        -Werror=shadow-uncaptured-local
-        -Werror=implicit-fallthrough
-        -Werror=type-limits
-    )
-endif()
-
-if (ARCHITECTURE_x86_64)
-    add_compile_options("-mcx16")
-endif()
-
-if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    add_compile_options("-stdlib=libc++")
-endif()
-
-# GCC bugs
-if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # These diagnostics would be great if they worked, but are just completely broken
-    # and produce bogus errors on external libraries like fmt.
-    add_compile_options(
-        -Wno-array-bounds
-        -Wno-stringop-overread
-        -Wno-stringop-overflow
-    )
-endif()
-
-# Set file offset size to 64 bits.
-#
-# On modern Unixes, this is typically already the case. The lone exception is
-# glibc, which may default to 32 bits. glibc allows this to be configured
-# by setting _FILE_OFFSET_BITS.
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
-    add_definitions(-D_FILE_OFFSET_BITS=64)
-endif()
-
-if (MINGW)
-    add_definitions(-DMINGW_HAS_SECURE_API)
-    add_compile_options("-msse4.1")
-
-    if (MINGW_STATIC_BUILD)
-        add_definitions(-DQT_STATICPLUGIN)
-        add_compile_options("-static")
+    if (CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM) # Clang or AppleClang
+        add_compile_options(
+            -Wno-braced-scalar-init
+            -Wno-unused-private-field
+            -Wno-nullability-completeness
+            -Werror=shadow-uncaptured-local
+            -Werror=implicit-fallthrough
+            -Werror=type-limits
+        )
     endif()
-endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
-    # GNU ar: Create thin archive files.
-    # Requires binutils-2.19 or later.
-    set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
-    set(CMAKE_C_ARCHIVE_APPEND   "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
-    set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
-    set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
-endif()
+    if (ARCHITECTURE_x86_64)
+        add_compile_options("-mcx16")
+    endif()
+
+    if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+        add_compile_options("-stdlib=libc++")
+    endif()
+
+    # GCC bugs
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # These diagnostics would be great if they worked, but are just completely broken
+        # and produce bogus errors on external libraries like fmt.
+        add_compile_options(
+            -Wno-array-bounds
+            -Wno-stringop-overread
+            -Wno-stringop-overflow
+        )
+    endif()
+
+    # Set file offset size to 64 bits.
+    #
+    # On modern Unixes, this is typically already the case. The lone exception is
+    # glibc, which may default to 32 bits. glibc allows this to be configured
+    # by setting _FILE_OFFSET_BITS.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
+        add_definitions(-D_FILE_OFFSET_BITS=64)
+    endif()
+
+    if (MINGW)
+        add_definitions(-DMINGW_HAS_SECURE_API)
+        add_compile_options("-msse4.1")
+
+        if (MINGW_STATIC_BUILD)
+            add_definitions(-DQT_STATICPLUGIN)
+            add_compile_options("-static")
+        endif()
+    endif()
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
+        # GNU ar: Create thin archive files.
+        # Requires binutils-2.19 or later.
+        set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_C_ARCHIVE_APPEND   "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcTP <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> qTP  <TARGET> <LINK_FLAGS> <OBJECTS>")
+    endif()
 endif()
 
 add_subdirectory(common)

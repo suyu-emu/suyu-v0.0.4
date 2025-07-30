@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -69,7 +71,7 @@ Result NpadVibration::GetVibrationMasterVolume(f32& out_volume) const {
 Result NpadVibration::BeginPermitVibrationSession(u64 aruid) {
     std::scoped_lock lock{mutex};
     session_aruid = aruid;
-    volume = 1.0;
+    volume = 1.0f;
     return ResultSuccess;
 }
 

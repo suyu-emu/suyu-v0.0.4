@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -249,7 +251,7 @@ void InputEngine::ResetButtonState() {
 void InputEngine::ResetAnalogState() {
     for (const auto& controller : controller_list) {
         for (const auto& axis : controller.second.axes) {
-            SetAxis(controller.first, axis.first, 0.0);
+            SetAxis(controller.first, axis.first, 0.0f);
         }
     }
 }
