@@ -19,8 +19,17 @@ if (NOT WIN32 AND NOT ANDROID)
         message(FATAL_ERROR "Required program `autoconf` not found.")
     endif()
 
-    set(FFmpeg_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg/ffmpeg)
-    set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg-build)
+    include(CPM)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    CPMAddPackage(
+        NAME ffmpeg
+        URL "https://github.com/ffmpeg/ffmpeg/archive/9c1294eadd.zip"
+        URL_HASH SHA512=2076e4cb843787c44718c70c4452517273dbc963ef98442f343762ade6c7b9f78555ae9b50a7c628844a15d8cb5e866c04e2f1acfb77093cea4fbc9edf3ad21a
+    )
+
+    set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
+    set(FFmpeg_BUILD_DIR ${ffmpeg_BINARY_DIR})
     set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
     make_directory(${FFmpeg_BUILD_DIR})
 

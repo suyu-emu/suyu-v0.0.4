@@ -83,8 +83,6 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
-    set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
-
     include(CPM)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 

@@ -491,6 +491,8 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+
 add_subdirectory(externals)
 
 if (ENABLE_QT)

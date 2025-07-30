@@ -6,7 +6,6 @@ set(BUILD_SHARED_LIBS OFF)
 
 # QuaZip
 include(CPM)
-set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 set(CPM_USE_LOCAL_PACKAGES ON)
 
 CPMAddPackage(
