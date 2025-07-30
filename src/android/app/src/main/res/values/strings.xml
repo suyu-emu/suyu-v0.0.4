@@ -88,8 +88,8 @@
     <string name="enable_raii_description">A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
-    <string name="renderer_early_release_fences">Release fences early</string>
-    <string name="renderer_early_release_fences_description">Some games may require this to get past 0FPS errors, such as DKCR:HD, Subnautica, and Ori 2. Other games, notably Unreal Engine games, may work improperly or not boot with this enabled.</string>
+    <string name="renderer_early_release_fences">Release Fences Early</string>
+    <string name="renderer_early_release_fences_description">Helps fix 0 FPS in games like DKCR:HD, Subnautica Below Zero and Ori 2, but may break loading or performance in Unreal Engine games.</string>
 
     <string name="veil_misc">CPU and Memory</string>
     <string name="use_sync_core">Synchronize Core Speed</string>

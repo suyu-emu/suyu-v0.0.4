@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Aktivieren Sie Frame Skipping, um die Leistung durch Reduzierung der gerenderten Frames zu verbessern. Diese Funktion wird noch entwickelt und in zukünftigen Versionen verfügbar sein.</string>
     <string name="frame_interpolation">Erweiterte Frame-Synchronisation</string>
     <string name="frame_interpolation_description">Sorgt für eine gleichmäßige und konsistente Frame-Wiedergabe durch Synchronisierung der Frame-Zeiten, was Ruckeln und ungleichmäßige Animationen reduziert. Ideal für Spiele, die unter instabilen Frame-Zeiten oder Mikrorucklern leiden.</string>
+    <string name="renderer_early_release_fences">Zäune früher freigeben</string>
+    <string name="renderer_early_release_fences_description">Behebt 0 FPS in Spielen wie DKCR:HD, Subnautica Below Zero und Ori 2, kann aber Ladezeiten oder Performance in Unreal Engine-Spielen beeinträchtigen.</string>
     <string name="use_lru_cache">LRU-Cache aktivieren</string>
     <string name="use_lru_cache_description">Aktivieren oder deaktivieren Sie den LRU-Cache, um die Leistung durch Einsparung von CPU-Prozessorauslastung zu verbessern. Einige Spiele haben Probleme damit, insbesondere TotK 1.2.1, deaktivieren Sie es also, wenn das Spiel nicht startet oder zufällig abstürzt.</string>
     <string name="dyna_state">Erweiterter dynamischer Status</string>

@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Aktifkan atau nonaktifkan frame skipping untuk meningkatkan performa dengan mengurangi jumlah frame yang dirender. Fitur ini masih dalam pengembangan dan akan diaktifkan di rilis mendatang.</string>
     <string name="frame_interpolation">Penyelarasan Frame Tingkat Lanjut</string>
     <string name="frame_interpolation_description">Memastikan pengiriman frame yang halus dan konsisten dengan menyinkronkan waktu antar frame, mengurangi stuttering dan animasi tidak rata. Ideal untuk game yang mengalami ketidakstabilan waktu frame atau micro-stutter selama gameplay.</string>
+    <string name="renderer_early_release_fences">Lepas Pagar Lebih Awal</string>
+    <string name="renderer_early_release_fences_description">Membantu memperbaiki 0 FPS di game seperti DKCR:HD, Subnautica Below Zero dan Ori 2, tapi mungkin mengganggu loading atau performa di game Unreal Engine.</string>
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
     <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>

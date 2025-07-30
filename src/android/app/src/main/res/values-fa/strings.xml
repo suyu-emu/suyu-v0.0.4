@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">با فعال کردن رد کردن فریم‌ها، عملکرد را با کاهش تعداد فریم‌های رندر شده بهبود دهید. این قابلیت در حال توسعه است و در نسخه‌های آینده فعال خواهد شد.</string>
     <string name="frame_interpolation">زمان‌بندی پیشرفته فریم‌ها</string>
     <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
+    <string name="renderer_early_release_fences">رهاسازی حصارها زودتر</string>
+    <string name="renderer_early_release_fences_description">به رفع مشکل 0 فریم بر ثانیه در بازی‌هایی مانند DKCR:HD، Subnautica Below Zero و Ori 2 کمک می‌کند، اما ممکن است بارگذاری یا عملکرد بازی‌های Unreal Engine را مختل کند.</string>
     <string name="use_lru_cache">فعال‌سازی حافظه نهان LRU</string>
     <string name="use_lru_cache_description">حافظه پنهان LRU را فعال یا غیرفعال کنید تا با کاهش استفاده از پردازنده، عملکرد بهبود یابد. برخی بازی‌ها مانند TotK 1.2.1 با این ویژگی مشکل دارند، در صورت عدم راه‌اندازی یا قطعی تصادفی بازی، آن را غیرفعال کنید.</string>
     <string name="dyna_state">حالت پویای گسترده</string>

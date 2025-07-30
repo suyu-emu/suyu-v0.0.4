@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Activa o desactiva el salto de fotogramas para mejorar el rendimiento reduciendo el número de fotogramas renderizados. Esta función está en desarrollo y se habilitará en futuras versiones.</string>
     <string name="frame_interpolation">Sincronización de fotogramas mejorada</string>
     <string name="frame_interpolation_description">Garantiza una reproducción suave y consistente de fotogramas sincronizando sus tiempos, reduciendo el tartamudeo y animaciones irregulares. Ideal para juegos con problemas de sincronización de fotogramas o microtartamudeos.</string>
+    <string name="renderer_early_release_fences">Liberar vallas antes</string>
+    <string name="renderer_early_release_fences_description">Ayuda a solucionar 0 FPS en juegos como DKCR:HD, Subnautica Below Zero y Ori 2, pero puede afectar la carga o rendimiento en juegos de Unreal Engine.</string>
     <string name="use_lru_cache">Habilitar caché LRU</string>
     <string name="use_lru_cache_description">Activa o desactiva la caché LRU, mejorando el rendimiento al ahorrar uso del proceso de la CPU. Algunos juegos tienen problemas con ella, notablemente TotK 1.2.1, así que desactívala si el juego no inicia o se cierra aleatoriamente.</string>
     <string name="dyna_state">Estado dinámico extendido</string>

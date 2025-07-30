@@ -88,9 +88,15 @@ public:
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(!should_flush);
+        #ifdef __ANDROID__
+        if (delay_fence && Settings::values.early_release_fences.GetValue()) {
+            guard.lock();
+        }
+        #else
         if constexpr (can_async_check) {
             guard.lock();
         }
+        #endif
         if (delay_fence) {
             uncommitted_operations.emplace_back(std::move(func));
         }
@@ -103,10 +109,17 @@ public:
         if (should_flush) {
             rasterizer.FlushCommands();
         }
+        #ifdef __ANDROID__
+        if (delay_fence && Settings::values.early_release_fences.GetValue()) {
+            guard.unlock();
+            cv.notify_all();
+        }
+        #else
         if constexpr (can_async_check) {
             guard.unlock();
             cv.notify_all();
         }
+        #endif
         rasterizer.InvalidateGPUCache();
     }
 

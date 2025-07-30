@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">啟用或停用跳幀以減少渲染幀數，提高效能。此功能仍在開發中，將在未來版本中啟用。</string>
     <string name="frame_interpolation">增強幀同步</string>
     <string name="frame_interpolation_description">通過同步幀間時間確保流暢一致的幀交付，減少卡頓和不均勻動畫。適合存在幀時間不穩定或遊戲過程中出現微卡頓的遊戲。</string>
+    <string name="renderer_early_release_fences">提前釋放圍欄</string>
+    <string name="renderer_early_release_fences_description">可修復《大金剛國度:熱帶寒流》《深海迷航:零度之下》和《奧日2》等遊戲中的0 FPS問題，但可能影響Unreal Engine遊戲的載入或效能。</string>
     <string name="use_lru_cache">啟用LRU快取</string>
     <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用來提高效能。某些遊戲可能存在問題，特別是TotK 1.2.1，如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
     <string name="dyna_state">擴展動態狀態</string>

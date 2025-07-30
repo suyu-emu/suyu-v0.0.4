@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Bật hoặc tắt bỏ qua khung hình để cải thiện hiệu suất bằng cách giảm số lượng khung hình được kết xuất. Tính năng này đang được phát triển và sẽ được kích hoạt trong các bản phát hành tương lai.</string>
     <string name="frame_interpolation">Đồng bộ khung hình nâng cao</string>
     <string name="frame_interpolation_description">Đảm bảo cung cấp khung hình mượt mà và ổn định bằng cách đồng bộ hóa thời gian giữa các khung hình, giảm giật lag và hoạt ảnh không đồng đều. Lý tưởng cho các trò chơi gặp vấn đề về thời gian khung hình không ổn định hoặc giật lag nhẹ trong khi chơi.</string>
+    <string name="renderer_early_release_fences">Giải phóng rào chắn sớm</string>
+    <string name="renderer_early_release_fences_description">Giúp sửa lỗi 0 FPS trong các trò chơi như DKCR:HD, Subnautica Below Zero và Ori 2, nhưng có thể ảnh hưởng đến tải hoặc hiệu suất trong trò chơi Unreal Engine.</string>
     <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
     <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>

@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
     <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
+    <string name="renderer_early_release_fences">שחרר גדרות מוקדם</string>
+    <string name="renderer_early_release_fences_description">עוזר לתקן 0 FPS במשחקים כמו DKCR:HD, Subnautica Below Zero ו-Ori 2, אך עלול לפגוע בטעינה או בביצועים במשחקי Unreal Engine.</string>
     <string name="use_lru_cache">הפעלת מטמון LRU</string>
     <string name="use_lru_cache_description">הפעל או השבת מטמון LRU לשיפור ביצועים על ידי חיסכון בשימוש במעבד. לחלק מהמשחקים כמו TotK 1.2.1 יש בעיות - השבת אם המשחק לא עולה או קורס באקראי.</string>
     <string name="dyna_state">מצב דינמי מורחב</string>

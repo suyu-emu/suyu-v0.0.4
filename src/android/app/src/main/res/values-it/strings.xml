@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Attiva o disattiva il salto dei fotogrammi per migliorare le prestazioni riducendo il numero di fotogrammi renderizzati. Questa funzionalità è ancora in sviluppo e verrà abilitata nelle versioni future.</string>
     <string name="frame_interpolation">Sincronizzazione avanzata fotogrammi</string>
     <string name="frame_interpolation_description">Garantisce una consegna fluida e costante dei fotogrammi sincronizzandone i tempi, riducendo scatti e animazioni irregolari. Ideale per giochi che presentano instabilità nei tempi dei fotogrammi o micro-scatti durante il gameplay.</string>
+    <string name="renderer_early_release_fences">Rilascia le barriere prima</string>
+    <string name="renderer_early_release_fences_description">Risolve problemi di 0 FPS in giochi come DKCR:HD, Subnautica Below Zero e Ori 2, ma potrebbe compromettere caricamento o prestazioni in giochi Unreal Engine.</string>
     <string name="use_lru_cache">Abilita cache LRU</string>
     <string name="use_lru_cache_description">Abilita o disabilita la cache LRU per migliorare le prestazioni riducendo l\'uso della CPU. Alcuni giochi come TotK 1.2.1 hanno problemi - disabilitalo se il gioco non si avvia o crasha casualmente.</string>
     <string name="dyna_state">Stato dinamico esteso</string>

@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Włącz lub wyłącz pomijanie klatek, aby poprawić wydajność poprzez zmniejszenie liczby renderowanych klatek. Ta funkcja jest wciąż w fazie rozwoju i zostanie włączona w przyszłych wersjach.</string>
     <string name="frame_interpolation">Zaawansowana synchronizacja klatek</string>
     <string name="frame_interpolation_description">Zapewnia płynne i spójne wyświetlanie klatek poprzez synchronizację ich czasu, redukując zacinanie i nierówną animację. Idealne dla gier z niestabilnym czasem klatek lub mikro-zacinaniem podczas rozgrywki.</string>
+    <string name="renderer_early_release_fences">Wcześniejsze zwalnianie zabezpieczeń</string>
+    <string name="renderer_early_release_fences_description">Pomaga naprawić 0 FPS w grach takich jak DKCR:HD, Subnautica Below Zero i Ori 2, ale może zaburzyć ładowanie lub wydajność w grach Unreal Engine.</string>
     <string name="use_lru_cache">Włącz pamięć podręczną LRU</string>
     <string name="use_lru_cache_description">Włącz lub wyłącz pamięć podręczną LRU, aby poprawić wydajność poprzez zmniejszenie użycia procesora. Niektóre gry, takie jak TotK 1.2.1, mogą mieć problemy - wyłącz, jeśli gra się nie uruchamia lub losowo zawiesza.</string>
     <string name="dyna_state">Rozszerzony stan dynamiczny</string>

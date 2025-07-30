@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Ative ou desative o salto de frames para melhorar o desempenho reduzindo o número de frames renderizados. Esta funcionalidade ainda está em desenvolvimento e será ativada em versões futuras.</string>
     <string name="frame_interpolation">Sincronização avançada de frames</string>
     <string name="frame_interpolation_description">Garante uma entrega suave e consistente de frames sincronizando o seu tempo, reduzindo engasgadelas e animações irregulares. Ideal para jogos que experienciam instabilidade no tempo de frames ou micro-engasgadelas durante o jogo.</string>
+    <string name="renderer_early_release_fences">Libertar barreiras antecipadamente</string>
+    <string name="renderer_early_release_fences_description">Ajuda a corrigir 0 FPS em jogos como DKCR:HD, Subnautica Below Zero e Ori 2, mas pode afetar carregamento ou desempenho em jogos Unreal Engine.</string>
     <string name="use_lru_cache">Ativar cache LRU</string>
     <string name="use_lru_cache_description">Ative ou desative a cache LRU para melhorar desempenho poupando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou falhar aleatoriamente.</string>
     <string name="dyna_state">Estado Dinâmico Estendido</string>

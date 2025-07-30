@@ -75,6 +75,8 @@
     <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
+    <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
+    <string name="renderer_early_release_fences_description">Pomáhá opravit 0 FPS v hrách jako DKCR:HD, Subnautica Below Zero a Ori 2, ale může narušit načítání nebo výkon v hrách na Unreal Engine.</string>
     <string name="use_lru_cache">Povolit LRU mezipaměť</string>
     <string name="use_lru_cache_description">Povolte nebo zakažte mezipaměť LRU, čímž zvýšíte výkon snížením využití procesoru CPU. Některé hry s ní mají problémy, zejména TotK 1.2.1, takže ji deaktivujte, pokud hra neběží nebo náhodně padá.</string>
     <string name="dyna_state">Rozšířený dynamický stav</string>

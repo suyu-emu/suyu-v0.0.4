@@ -85,6 +85,8 @@
     <string name="enable_raii_description">Метод аутоматског управљања ресурсима у Vulkan-у који осигурава правилно ослобађање ресурса када више нису потребни, али може изазвати падове у пакованим играма.</string>
     <string name="frame_interpolation">Побољшани оквирни пејсинг</string>
     <string name="frame_interpolation_description">Осигурава глатку и доследан испоруку оквира синхронизацијом времена између оквира, смањење муцања и неуједначене анимације. Идеално за игре које доживљавају временски оквир нестабилност или микро-штитнике током играња.</string>
+    <string name="renderer_early_release_fences">Ranije oslobađanje ograda</string>
+    <string name="renderer_early_release_fences_description">Pomaže u popravci 0 FPS u igrama kao što su DKCR:HD, Subnautica Below Zero i Ori 2, ali može oštetiti učitavanje ili performanse u Unreal Engine igrama.</string>
     <string name="use_auto_stub">Користите ауто-стуб</string>
     <string name="use_auto_stub_description">Аутоматски угушите мрежне услуге и функције. То може побољшати компатибилност, али може проузроковати пад рушења и питања стабилности.</string>
     <string name="uninstall_firmware">Деинсталирајте фирмвер</string>

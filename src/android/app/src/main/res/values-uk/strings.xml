@@ -76,6 +76,8 @@
     <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
     <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
+    <string name="renderer_early_release_fences">Раннє звільнення огорож</string>
+    <string name="renderer_early_release_fences_description">Допомагає виправити 0 FPS у таких іграх як DKCR:HD, Subnautica Below Zero та Ori 2, але може порушити завантаження чи продуктивність ігор на Unreal Engine.</string>
     <string name="use_lru_cache">Увімкнути LRU-кеш</string>
     <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU для покращення продуктивності шляхом зменшення використання процесора. Деякі ігри (зокрема TotK 1.2.1) мають проблеми - вимкніть, якщо гра не запускається або випадково зникає.</string>
     <string name="dyna_state">Розширений динамічний стан</string>
