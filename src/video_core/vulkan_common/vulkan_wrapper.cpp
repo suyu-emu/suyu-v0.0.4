@@ -440,13 +440,14 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
 #else
     constexpr VkFlags ci_flags{};
 #endif
-
+    // DO NOT TOUCH, breaks RNDA3!!
+    // Don't know why, but gloom + yellow line glitch appears
     const VkApplicationInfo application_info{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
         .pApplicationName = "yuzu Emulator",
         .applicationVersion = VK_MAKE_VERSION(1, 3, 0),
-        .pEngineName = "Eden Emulator",
+        .pEngineName = "yuzu Emulator",
         .engineVersion = VK_MAKE_VERSION(1, 3, 0),
         .apiVersion = VK_API_VERSION_1_3,
     };
