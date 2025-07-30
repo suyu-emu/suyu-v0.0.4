@@ -67,7 +67,6 @@ static u128 MakeUuidFromName(std::string_view name) {
     return {h1, h2};
 }
 
-
 // This is nn::nifm::RequestState
 enum class RequestState : u32 {
     NotSubmitted = 1,
@@ -217,7 +216,6 @@ struct PendingProfile {
     std::array<char, 0x41> passphrase{};
 };
 
-
 constexpr Result ResultPendingConnection{ErrorModule::NIFM, 111};
 constexpr Result ResultInvalidInput{ErrorModule::NIFM, 112};
 constexpr Result ResultNetworkCommunicationDisabled{ErrorModule::NIFM, 1111};
@@ -278,8 +276,7 @@ private:
         IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
     }
 
-    void IsProcessing(HLERequestContext& ctx)
-    {
+    void IsProcessing(HLERequestContext& ctx) {
         const bool processing = state.load() == State::Processing;
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -306,7 +303,7 @@ private:
 
     enum class State { Idle, Processing, Finished };
 
- void WorkerThread() {
+    void WorkerThread() {
         using namespace std::chrono_literals;
 
         scan_results = Network::ScanWifiNetworks(3s);
@@ -320,7 +317,6 @@ private:
         const bool ok = !scan_results.empty();
         Finish(ok ? ResultSuccess : ResultPendingConnection);
     }
-
 
     void Finish(Result rc) {
         worker_result.store(rc);
@@ -546,6 +542,7 @@ void IGeneralService::CreateRequest(HLERequestContext& ctx) {
 void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
 
     Network::RefreshFromHost();
+    const auto net_iface = Network::GetSelectedNetworkInterface();
     const auto& st = Network::EmuNetState::Get();
 
     SfNetworkProfileData profile{};
@@ -559,7 +556,7 @@ void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
 
         profile.ip_setting_data.dns_setting.is_automatic = true;
         profile.ip_setting_data.dns_setting.primary_dns = {1, 1, 1, 1};
-        profile.ip_setting_data.dns_setting.secondary_dns = {8, 8, 8, 8};
+        profile.ip_setting_data.dns_setting.secondary_dns = {1, 0, 0, 1},
 
         profile.uuid = MakeUuidFromName(st.ssid);
         profile.profile_type = static_cast<u8>(NetworkProfileType::User);
@@ -567,6 +564,14 @@ void IGeneralService::GetCurrentNetworkProfile(HLERequestContext& ctx) {
                                                              : NetworkInterfaceType::Ethernet);
 
         std::strncpy(profile.network_name.data(), st.ssid, sizeof(profile.network_name) - 1);
+
+        if (auto room_member = Network::GetRoomMember().lock()) {
+            if (room_member->IsConnected()) {
+                profile.ip_setting_data.ip_address_setting.ip_address =
+                    room_member->GetFakeIpAddress();
+            }
+            profile.ip_setting_data.dns_setting.secondary_dns = {8, 8, 8, 8};
+        }
 
         if (st.via_wifi) {
             profile.wireless_setting_data.ssid_length = static_cast<u8>(std::strlen(st.ssid));
@@ -665,8 +670,9 @@ void IGeneralService::GetNetworkProfile(HLERequestContext& ctx) {
         std::memcpy(net_name.data(), net_state.ssid, ssid_len);
 
         SfWirelessSettingData wifi{};
-        wifi.ssid_length = static_cast<u8>(std::min<size_t>(std::strlen(net_state.ssid), net_name.size()));
-        wifi.is_secured = !net_state.secure; //somehow reversed
+        wifi.ssid_length =
+            static_cast<u8>(std::min<size_t>(std::strlen(net_state.ssid), net_name.size()));
+        wifi.is_secured = !net_state.secure; // somehow reversed
         wifi.passphrase = {"password"};
         std::memcpy(wifi.ssid.data(), net_state.ssid, wifi.ssid_length);
 
@@ -693,16 +699,21 @@ void IGeneralService::GetNetworkProfile(HLERequestContext& ctx) {
             .uuid{MakeUuidFromName(net_state.ssid)},
             .network_name{net_name},
             .profile_type = static_cast<u8>(NetworkProfileType::User),
-            .interface_type =
-                static_cast<u8>(net_iface->kind ==
-                                Network::HostAdapterKind::Wifi ? NetworkInterfaceType::WiFi_Ieee80211 : NetworkInterfaceType::Ethernet),
-            .wireless_setting_data{wifi}
-        };
+            .interface_type = static_cast<u8>(net_iface->kind == Network::HostAdapterKind::Wifi
+                                                  ? NetworkInterfaceType::WiFi_Ieee80211
+                                                  : NetworkInterfaceType::Ethernet),
+            .wireless_setting_data{wifi}};
     }();
+
+    if (auto room_member = Network::GetRoomMember().lock()) {
+        if (room_member->IsConnected()) {
+            profile.ip_setting_data.ip_address_setting.ip_address = room_member->GetFakeIpAddress();
+        }
+    }
 
     ctx.WriteBuffer(profile);
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<INetworkProfile>(system);
 }
@@ -732,7 +743,6 @@ void IGeneralService::SetNetworkProfile(HLERequestContext& ctx) {
     IPC::ResponseBuilder{ctx, 2}.Push(ResultSuccess);
 }
 
-
 void IGeneralService::RemoveNetworkProfile(HLERequestContext& ctx) {
     LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
@@ -759,7 +769,6 @@ void IGeneralService::GetScanDataV2(HLERequestContext& ctx) {
     const std::size_t max_rows = guest_bytes / sizeof(AccessPointDataV3);
     const std::size_t rows_copy = std::min<std::size_t>(scans.size(), max_rows);
 
-
     std::vector<AccessPointDataV3> rows;
     rows.resize(rows_copy);
 
@@ -776,7 +785,7 @@ void IGeneralService::GetScanDataV2(HLERequestContext& ctx) {
         ap.strength = to_bars(s.quality);
 
         bool is_connected = std::strncmp(net_state.ssid, ap.ssid, ap.ssid_len) == 0 &&
-                    net_state.ssid[ap.ssid_len] == '\0';
+                            net_state.ssid[ap.ssid_len] == '\0';
 
         ap.visible = (is_connected) ? 0 : 1;
         ap.has_password = (s.flags & 2) ? 2 : 1;
@@ -886,7 +895,16 @@ void IGeneralService::GetCurrentIpConfigInfo(HLERequestContext& ctx) {
         info.dns.secondary_dns = {8, 8, 8, 8};
     }
 
-    IPC::ResponseBuilder rb{ctx, 2 + (sizeof(IpConfigInfo) + 3) / 4};
+    if (auto room_member = Network::GetRoomMember().lock()) {
+        if (room_member->IsConnected()) {
+            info.ip.ip_address = room_member->GetFakeIpAddress();
+        }
+        info.dns.is_automatic = true;
+        info.dns.primary_dns = {1, 1, 1, 1};
+        info.dns.secondary_dns = {8, 8, 8, 8};
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2 + (sizeof(IpConfigInfo) + 3) / sizeof(u32)};
     rb.Push(ResultSuccess);
     rb.PushRaw(info);
 }
