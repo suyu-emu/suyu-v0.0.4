@@ -5676,6 +5676,10 @@ int main(int argc, char* argv[]) {
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
+#ifdef _WIN32
+    QApplication::setStyle(QStringLiteral("windowsvista"));
+#endif
+
     QApplication app(argc, argv);
 
 #ifdef _WIN32
