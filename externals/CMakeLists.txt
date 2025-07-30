@@ -83,18 +83,25 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
-    include(CPM)
     set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+
+    include(CPM)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 
     if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
         set(SDL_HASH cc016b0046)
         set(SDL_PIPEWIRE OFF) # build errors out with this on
+        set(SDL_SHA512SUM 34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b)
     else()
         set(SDL_HASH 2e4c12cd2c)
+        set(SDL_SHA512SUM d95af47f469a312876f8ab361074a1e7b8083db19935a102d9c6e5887ace6008e64475a8c54b00164b40cad86492bb1b2366084efdd0b2555e5fea6d9c5da80e)
     endif()
 
-    CPMAddPackage("gh:libsdl-org/SDL#${SDL_HASH}")
+    CPMAddPackage(
+            NAME SDL2
+            URL "https://github.com/libsdl-org/SDL/archive/${SDL_HASH}.zip"
+            URL_HASH SHA512=${SDL_SHA512SUM}
+        )
 endif()
 
 # ENet
