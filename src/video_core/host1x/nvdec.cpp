@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,10 +37,6 @@ void Nvdec::ProcessMethod(u32 method, u32 argument) {
         CreateDecoder(static_cast<NvdecCommon::VideoCodec>(argument));
         break;
     case NVDEC_REG_INDEX(execute): {
-        if (wait_needed) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(32));
-            wait_needed = false;
-        }
         Execute();
     } break;
     }

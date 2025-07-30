@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,10 +31,6 @@ public:
         return syncpoint;
     }
 
-    void SetWait() {
-        wait_needed = true;
-    }
-
 private:
     /// Create the decoder when the codec id is set
     void CreateDecoder(NvdecCommon::VideoCodec codec);
@@ -45,7 +44,6 @@ private:
 
     NvdecCommon::NvdecRegisters regs{};
     std::unique_ptr<Decoder> decoder;
-    bool wait_needed{false};
 };
 
 } // namespace Host1x
