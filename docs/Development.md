@@ -7,6 +7,36 @@
 * **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
 * **macOS**: [macOS Building Guide](./docs/build/macOS.md)
 
+# Guidelines
+
+## License Headers
+All commits must have proper license header accreditation.
+
+You can easily add all necessary license headers by running:
+```sh
+git fetch origin master:master
+FIX=true COMMIT=true .ci/license-header.sh
+git push
+```
+
+Alternatively, you may omit `COMMIT=true` and do an amend commit:
+```sh
+git fetch origin master:master
+FIX=true .ci/license-header.sh
+git commit --amend -a --no-edit
+```
+
+## Pull Requests
+Pull requests are only to be merged by core developers when properly tested and discussions conclude on Discord or other communication channels. Labels are recommended but not required. However, all PRs MUST be namespaced and optionally typed:
+```
+[cmake] refactor: CPM over submodules
+[desktop] feat: implement firmware install from ZIP
+[hle] stub fw20 functions
+[core] test: raise maximum CPU cores to 6
+```
+
+The level of namespacing is generally left to the committer's choice, but we never recommend going more than two levels *except* in `hle`, in which case you may go as many as four levels depending on the specificity of your changes. Developers are permitted to change namespaces at will. Commits within PRs are not required to be namespaced, but it is highly recommended.
+
 # Building speedup
 
 If you have an HDD, use ramdisk (build in RAM):
@@ -171,4 +201,3 @@ EOF
 If having issues with older artifacts, then run `rm -r externals/dynarmic/build externals/dynarmic/externals externals/nx_tzdb/tzdb_to_nx/externals externals/sirit/externals`.
 
 Configuring CMake with `-DSIRIT_USE_SYSTEM_SPIRV_HEADERS=1 -DCMAKE_CXX_FLAGS="-Wno-error" -DCMAKE_C_FLAGS="-Wno-error -Wno-array-parameter -Wno-stringop-overflow"` is also recommended.
-
