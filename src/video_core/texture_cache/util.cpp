@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-FileCopyrightText: Ryujinx Team and Contributors
 // SPDX-License-Identifier: GPL-2.0-or-later AND MIT
@@ -1216,10 +1219,10 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
         return std::nullopt;
     }
     if (existing.type == ImageType::e3D) {
-        const u32 mip_depth = std::max(1U, existing.size.depth << base->level);
-        if (mip_depth < candidate.size.depth + base->layer) {
-            return std::nullopt;
-        }
+        // const u32 mip_depth = std::max(1U, existing.size.depth << base->level);
+        // if (mip_depth < candidate.size.depth + base->layer) {
+        //     return std::nullopt;
+        // }
     } else if (existing.resources.layers < candidate.resources.layers + base->layer) {
         return std::nullopt;
     }

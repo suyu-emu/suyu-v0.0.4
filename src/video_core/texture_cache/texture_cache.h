@@ -1426,6 +1426,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
         if (solution) {
             gpu_addr = solution->gpu_addr;
             cpu_addr = solution->cpu_addr;
+            // TODO: properly update new_info.size.depth.
             new_info.resources = solution->resources;
             join_overlap_ids.push_back(overlap_id);
             join_copies_to_do.emplace_back(JoinCopy{false, overlap_id});
