@@ -26,9 +26,9 @@
     <string name="show_speed">Показати швидкість</string>
     <string name="show_speed_description">Відображати швидкість емуляції у відсотках</string>
     <string name="show_app_ram_usage">Показати використання RAM</string>
-    <string name="show_app_ram_usage_description">Показати обсяг оперативної пам’яті, яку використовує емулятор</string>
+    <string name="show_app_ram_usage_description">Показати обсяг оперативної пам\'яті, яку використовує емулятор</string>
     <string name="show_system_ram_usage">Показати системну RAM</string>
-    <string name="show_system_ram_usage_description">Показати обсяг оперативної пам’яті, яку використовує система</string>
+    <string name="show_system_ram_usage_description">Показати обсяг оперативної пам\'яті, яку використовує система</string>
     <string name="show_bat_temperature">Показати температуру батареї</string>
     <string name="show_bat_temperature_description">Показати поточну температуру акумулятора</string>
     <string name="bat_temperature_unit">Одиниці виміру температури акумулятора</string>
@@ -76,12 +76,12 @@
     <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
     <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
-    <string name="renderer_early_release_fences">Раннє звільнення огорож</string>
-    <string name="renderer_early_release_fences_description">Допомагає виправити 0 FPS у таких іграх як DKCR:HD, Subnautica Below Zero та Ori 2, але може порушити завантаження чи продуктивність ігор на Unreal Engine.</string>
-    <string name="use_lru_cache">Увімкнути LRU-кеш</string>
-    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU для покращення продуктивності шляхом зменшення використання процесора. Деякі ігри (зокрема TotK 1.2.1) мають проблеми - вимкніть, якщо гра не запускається або випадково зникає.</string>
+    <string name="renderer_early_release_fences">Release fences early</string>
+    <string name="renderer_early_release_fences_description">Це налаштування може бути необхідним для виправлення помилок 0FPS у деяких іграх (зокрема DKCR:HD, Subnautica та Ori 2). Водночас інші ігри, особливо створені на рушії Unreal Engine, можуть працювати некоректно або взагалі не запускатися.</string>
+	<string name="use_lru_cache">Увімкнути LRU-кеш</string>
+    <string name="use_lru_cache_description">Увімкніть або вимкніть кеш LRU (Least Recently Used) для покращення продуктивності шляхом зменшення навантаження на CPU. Деякі ігри (зокрема TotK 1.2.1) можуть працювати некоректно - вимкніть, якщо гра не запускається або раптово вилітає.</string>
     <string name="dyna_state">Розширений динамічний стан</string>
-    <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, поліпшеня рендерингу та економії ресурсів під час створення конвеєрів (pepeline), зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Вимкніть для емуляції масштабованих форматів.</string>
+    <string name="dyna_state_description">Активує функції Vulkan для покращення продуктивності, поліпшеня рендерингу та економії ресурсів під час створення конвеєрів (pipeline), зберігаючи низьке використання CPU/GPU. Ці розширення можуть підвищити температуру пристрою, а старі GPU серії A6XX можуть реагувати некоректно. Вимкніть для емуляції масштабованих форматів.</string>
     <string name="disabled">Вимкнено</string>
     <string name="use_sync_core">Синхронізувати швидкість ядра</string>
     <string name="use_sync_core_description">Синхронізує швидкість ядра з максимальним відсотком швидкості для покращення продуктивності без зміни реальної швидкості гри.</string>
@@ -92,7 +92,7 @@
     <string name="firmware_uninstalling">Видалення прошивки...</string>
     <string name="firmware_uninstalled_success">Прошивку успішно видалено</string>
     <string name="provoking_vertex">Provoking Vertex</string>
-    <string name="provoking_vertex_description">Провокуюча вершина (Provoking Vertex) покращує освітлення та обробку вершин у деяких іграх. Підтримується лише GPU з Vulkan 1.0+.</string>
+    <string name="provoking_vertex_description">Покращує освітлення та обробку вершин у деяких іграх. Підтримується лише GPU з Vulkan 1.0+.</string>
     <string name="descriptor_indexing">Індексація дескрипторів</string>
     <string name="descriptor_indexing_description">Покращує обробку текстур та буферів, а також шар перекладу Maxwell. Підтримується деякими GPU Vulkan 1.1 та всіма GPU Vulkan 1.2+.</string>
     <string name="use_fast_gpu_time">Використовувати швидкий час GPU</string>
@@ -322,6 +322,7 @@
     <string name="empty_gamelist">Не знайдено файлів або ще не вибрано теку з іграми.</string>
     <string name="search_and_filter_games">Пошук та фільтрація ігор</string>
     <string name="select_games_folder">Виберіть теку з іграми</string>
+	<string name="manage_game_folders">Керування ігровими теками</string>
     <string name="select_games_folder_description">Дозволяє Eden заповнити список ігор</string>
     <string name="add_games_warning">Пропустити вибір теки з іграми?</string>
     <string name="add_games_warning_description">Ігри не відображатимуться у списку Ігри, якщо теку не вибрано.</string>
@@ -448,14 +449,27 @@
     <string name="gaia_is_not_real">Gaia не існує</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     <string name="about_app_description">Емулятор Switch із відкритим вихідним кодом</string>
-    <string name="contributors">Вкладники</string>
-    <string name="contributors_description">Зроблено з \u2764 від команди Eden</string>
+    <string name="contributors">Автори проєкту</string>
+    <string name="contributors_description">Зроблено з \u2764 командою Eden</string>
+	<string name="licenses_description">Проєкти, які зробили запуск Eden на Android можливим</string>
+	
     <string name="build">Збірка</string>
+	<string name="user_data">Дані користувача</string>
+    <string name="user_data_description">Імпортувати/експортувати всі дані застосунку.\n\nПід час імпорту всі наявні дані користувача буде видалено!\n\nІмпортування даних із Citron може спричинити помилки. Рекомендується вручну імпортувати всі потрібні дані.</string>
+    <string name="exporting_user_data">Експорт даних користувача…</string>
+    <string name="importing_user_data">Імпорт даних користувача…</string>
+    <string name="import_user_data">Імпортувати дані користувача</string>
+    <string name="invalid_yuzu_backup">Некоректна резервна копія Eden</string>
+    <string name="user_data_export_success">Дані користувача успішно експортовано</string>
+    <string name="user_data_import_success">Дані користувача успішно імпортовано</string>
+    <string name="user_data_export_cancelled">Експорт скасовано</string>
+    <string name="user_data_import_failed_description">Переконайтесь, що тека з даними користувача знаходяться в корені архіву ZIP і містять файл конфігурації за адресою config/config.ini, після чого повторіть спробу.</string>
+
 
     <string name="frame_limit_enable">Обмеження швидкості</string>
     <string name="frame_limit_enable_description">Обмежує швидкість емуляції у відсотках від нормальної.</string>
     <string name="frame_limit_slider">Відсоток обмеження</string>
-    <string name="frame_limit_slider_description">Вказує відсоток обмеження швидкості. 100% — нормальна швидкість.</string>
+    <string name="frame_limit_slider_description">Вказує відсоток обмеження швидкості. 100% — звичайна швидкість.</string>
     <string name="cpu_backend">Режим CPU</string>
     <string name="cpu_accuracy">Точність CPU</string>
     <string name="value_with_units">%1$s%2$s</string>
@@ -548,12 +562,19 @@
     <string name="range">Діапазон</string>
     <string name="deadzone">Мертва зона</string>
     <string name="modifier">Модифікатор</string>
+	<string name="modifier_range">Діапазон модифікатора</string>
     <string name="button_l">L</string>
     <string name="button_r">R</string>
     <string name="button_zl">ZL</string>
     <string name="button_zr">ZR</string>
     <string name="button_z">Z</string>
     <string name="invalid">Некоректний</string>
+	<string name="input_mapping_filter">Фільтр прив\'язки введення</string>
+    <string name="input_mapping_filter_description">Виберіть пристрій для фільтрації вводу</string>
+	<string name="auto_map">Автоприв\'язка контролера</string>
+    <string name="auto_map_description">Виберіть пристрій для спроби автоприв\'язки</string>
+    <string name="attempted_auto_map">Спроба автоприв\'язки з %1$s</string>
+	<string name="controller_type">Тип контролера</string>
     <string name="pro_controller">Контролер Pro</string>
     <string name="handheld">Портативний</string>
     <string name="dual_joycons">Подвійні Joy-Con\'и</string>
@@ -567,7 +588,9 @@
     <string name="set_threshold">Встановити поріг</string>
     <string name="toggle_axis">Переключити осі</string>
     <string name="connected">З\'єднано</string>
+	<string name="use_system_vibrator">Використовувати системну вібрацію</string>
     <string name="vibration">Вібрація</string>
+	<string name="vibration_strength">Інтенсивність вібрації</string>
     <string name="profile">Профіль</string>
     <string name="use_global_input_configuration">Використовувати глобальну конфігурацію вводу</string>
     <!-- Miscellaneous -->
@@ -577,7 +600,8 @@
     <string name="error_saving">Помилка збереження %1$s.ini: %2$s</string>
     <string name="loading">Завантаження...</string>
     <string name="reset_setting_confirmation">Чи хочете ви повернути цей параметр до значення за замовчуванням?</string>
-    <string name="reset_to_default">Скидання до налаштувань за замовчуванням</string>
+    <string name="reset_to_default">Скинути налаштування</string>
+	<string name="reset_to_default_description">Скидає всі розширені налаштування до значень за замовчуванням</string>
     <string name="reset_all_settings">Скинути всі налаштування</string>
     <string name="settings_reset">Налаштування скинуто</string>
     <string name="close">Закрити</string>
@@ -603,6 +627,7 @@
 
     <!-- GPU driver fetcher -->
     <string name="gpu_driver_fetcher">Отримання драйверів GPU</string>
+	<string name="gpu_driver_manager">Менеджер драйверів GPU</string>
     <string name="fetch">Отримати</string>
     <string name="fetch_error">Помилка під час отримання</string>
     <string name="check_connection">Перевірте з\'єднання та спробуйте ще раз.</string>
@@ -632,11 +657,16 @@
     <string name="preferences_settings">Налаштування</string>
     <string name="preferences_general">Загальні</string>
     <string name="preferences_system">Система</string>
+	<string name="preferences_system_description">Режим док-странції, регіон, мова</string>
     <string name="preferences_graphics">Графіка</string>
+    <string name="preferences_graphics_description">Рівень точності, роздільна здатність, кеш шейдерів</string>
     <string name="preferences_audio">Аудіо</string>
+	<string name="preferences_audio_description">Аудіорушій, гучність</string>
     <string name="preferences_controls">Керування</string>
+	<string name="preferences_controls_description">Призначити кнопки контролера</string>
     <string name="preferences_theme">Тема та колір</string>
     <string name="preferences_debug">Налагодження</string>
+	<string name="preferences_debug_description">Налагодження CPU/GPU, графічний API, швидка пам\'ять</string>
 
     <!-- Game properties -->
     <string name="info">Інформація</string>
@@ -747,6 +777,8 @@
     <string name="preparing_shaders">Підготовка шейдерів</string>
     <string name="building_shaders">Побудова шейдерів</string>
 
+    <!-- Theme options -->
+    <string name="change_app_theme">Змінити тему</string>
     <string name="theme_default">За замовчуванням</string>
     <string name="theme_material_you">Material You</string>
 
