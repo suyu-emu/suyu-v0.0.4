@@ -401,8 +401,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         config_stage(3);
     }
     if constexpr (Spec::enabled_stages[4]) {
-        if (!config_stage(4))
-            return false;
+        config_stage(4);
     }
     texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), view_index));
 
