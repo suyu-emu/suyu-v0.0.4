@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <cstring>
@@ -254,6 +254,11 @@ void IPSwitchCompiler::Parse() {
                 }
 
                 const auto& patch_line = lines[++i];
+
+                // Patch line may contain comments
+                if (StartsWith(patch_line, "//")) {
+                    continue;
+                }
 
                 // Start of new patch
                 if (StartsWith(patch_line, "@enabled") || StartsWith(patch_line, "@disabled")) {
