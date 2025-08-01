@@ -674,6 +674,13 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SwitchSetting(
+                    BooleanSetting.BUFFER_REORDER_DISABLE,
+                    titleId = R.string.buffer_reorder_disable,
+                    descriptionId = R.string.buffer_reorder_disable_description
+                )
+            )
+            put(
                 SingleChoiceSetting(
                     IntSetting.MAX_ANISOTROPY,
                     titleId = R.string.anisotropic_filtering,

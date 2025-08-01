@@ -451,7 +451,7 @@ struct Values {
                                                            "vram_usage_mode",
                                                            Category::RendererAdvanced};
     SwitchableSetting<bool> skip_cpu_inner_invalidation{linkage,
-                                                        true,
+                                                        false,
                                                         "skip_cpu_inner_invalidation",
                                                         Category::RendererAdvanced,
                                                         Specialization::Default,
