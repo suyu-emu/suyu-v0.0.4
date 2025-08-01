@@ -8,7 +8,7 @@
 
 #include <array>
 #include <exception>
-#include <map>
+#include <unordered_map>
 
 #include <catch2/catch_test_macros.hpp>
 #include "dynarmic/common/common_types.h"
@@ -23,7 +23,7 @@ namespace {
 class MyEnvironment final : public A64::UserCallbacks {
 public:
     u64 ticks_left = 0;
-    std::map<u64, u8> memory{};
+    std::unordered_map<u64, u8> memory{};
 
     u8 MemoryRead8(u64 vaddr) override {
         return memory[vaddr];

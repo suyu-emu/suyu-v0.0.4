@@ -109,13 +109,11 @@ bool TranslatorVisitor::arm_LDR_imm(Cond cond, bool P, bool U, bool W, Reg n, Re
 
     if (t == Reg::PC) {
         ir.LoadWritePC(data);
-
         if (!P && W && n == Reg::R13) {
             ir.SetTerm(IR::Term::PopRSBHint{});
         } else {
             ir.SetTerm(IR::Term::FastDispatchHint{});
         }
-
         return false;
     }
 
@@ -145,7 +143,11 @@ bool TranslatorVisitor::arm_LDR_reg(Cond cond, bool P, bool U, bool W, Reg n, Re
 
     if (t == Reg::PC) {
         ir.LoadWritePC(data);
-        ir.SetTerm(IR::Term::FastDispatchHint{});
+        if (!P && W && n == Reg::R13) {
+            ir.SetTerm(IR::Term::PopRSBHint{});
+        } else {
+            ir.SetTerm(IR::Term::FastDispatchHint{});
+        }
         return false;
     }
 

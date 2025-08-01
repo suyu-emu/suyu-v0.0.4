@@ -155,6 +155,7 @@ public:
     void SetCodePtr(CodePtr code_ptr);
     void EnsurePatchLocationSize(CodePtr begin, size_t size);
 
+    static const Xbyak::Reg64 ABI_JIT_PTR;
     // ABI registers
 #ifdef _WIN32
     static const Xbyak::Reg64 ABI_RETURN;

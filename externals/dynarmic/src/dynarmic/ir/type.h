@@ -18,7 +18,7 @@ namespace Dynarmic::IR {
 /**
  * The intermediate representation is typed. These are the used by our IR.
  */
-enum class Type {
+enum class Type : u16 {
     Void = 0,
     A32Reg = 1 << 0,
     A32ExtReg = 1 << 1,

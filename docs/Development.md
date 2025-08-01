@@ -1,11 +1,11 @@
 # Development
 
-* **Windows**: [Windows Building Guide](./docs/build/Windows.md)
-* **Linux**: [Linux Building Guide](./docs/build/Linux.md)
-* **Android**: [Android Building Guide](./docs/build/Android.md)
-* **Solaris**: [Solaris Building Guide](./docs/build/Solaris.md)
-* **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
-* **macOS**: [macOS Building Guide](./docs/build/macOS.md)
+* **Windows**: [Windows Building Guide](./build/Windows.md)
+* **Linux**: [Linux Building Guide](./build/Linux.md)
+* **Android**: [Android Building Guide](./build/Android.md)
+* **Solaris**: [Solaris Building Guide](./build/Solaris.md)
+* **FreeBSD**: [FreeBSD Building Guide](./build/FreeBSD.md)
+* **macOS**: [macOS Building Guide](./build/macOS.md)
 
 # Guidelines
 
@@ -61,7 +61,7 @@ Then type `target remote localhost:1234` and type `c` (for continue) - and then 
 
 ### gdb cheatsheet
 
-- `mo <cmd>`: Monitor commands, `get info`, `get fastmem` and `get mappings` are available.
+- `mo <cmd>`: Monitor commands, `get info`, `get fastmem` and `get mappings` are available. Type `mo help` for more info.
 - `detach`: Detach from remote (i.e restarting the emulator).
 - `c`: Continue
 - `p <expr>`: Print variable, `p/x <expr>` for hexadecimal.

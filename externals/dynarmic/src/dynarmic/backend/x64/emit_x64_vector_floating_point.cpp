@@ -450,7 +450,7 @@ void EmitTwoOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbyak
     code.lea(code.ABI_PARAM1, ptr[rsp + ABI_SHADOW_SPACE + 0 * 16]);
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.mov(code.ABI_PARAM3.cvt32(), fpcr);
-    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
 
     code.movaps(xword[code.ABI_PARAM2], arg1);
     code.CallFunction(fn);
@@ -487,7 +487,7 @@ void EmitThreeOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xby
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 3 * 16]);
     code.mov(code.ABI_PARAM4.cvt32(), fpcr);
-    code.lea(rax, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(rax, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.mov(qword[rsp + ABI_SHADOW_SPACE + 0], rax);
 #else
     constexpr u32 stack_space = 3 * 16;
@@ -496,7 +496,7 @@ void EmitThreeOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xby
     code.lea(code.ABI_PARAM2, ptr[rsp + ABI_SHADOW_SPACE + 1 * 16]);
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
     code.mov(code.ABI_PARAM4.cvt32(), fpcr);
-    code.lea(code.ABI_PARAM5, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM5, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
 #endif
 
     code.movaps(xword[code.ABI_PARAM2], arg1);
@@ -545,7 +545,7 @@ void EmitFourOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbya
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 3 * 16]);
     code.lea(code.ABI_PARAM4, ptr[rsp + ABI_SHADOW_SPACE + 4 * 16]);
     code.mov(qword[rsp + ABI_SHADOW_SPACE + 0], ctx.FPCR(fpcr_controlled).Value());
-    code.lea(rax, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(rax, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.mov(qword[rsp + ABI_SHADOW_SPACE + 8], rax);
 #else
     constexpr u32 stack_space = 4 * 16;
@@ -555,7 +555,7 @@ void EmitFourOpFallbackWithoutRegAlloc(BlockOfCode& code, EmitContext& ctx, Xbya
     code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE + 2 * 16]);
     code.lea(code.ABI_PARAM4, ptr[rsp + ABI_SHADOW_SPACE + 3 * 16]);
     code.mov(code.ABI_PARAM5.cvt32(), ctx.FPCR(fpcr_controlled).Value());
-    code.lea(code.ABI_PARAM6, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM6, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
 #endif
 
     if constexpr (load_previous_result == LoadPreviousResult::Yes) {

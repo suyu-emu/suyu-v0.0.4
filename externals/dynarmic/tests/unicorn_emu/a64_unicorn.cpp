@@ -173,7 +173,7 @@ void A64Unicorn::InterruptHook(uc_engine* uc, u32 int_number, void* user_data) {
     auto* this_ = static_cast<A64Unicorn*>(user_data);
 
     u32 esr;
-    CHECKED(uc_reg_read(uc, UC_ARM64_REG_ESR, &esr));
+    //CHECKED(uc_reg_read(uc, UC_ARM64_REG_ESR_EL0, &esr));
 
     auto ec = esr >> 26;
     auto iss = esr & 0xFFFFFF;

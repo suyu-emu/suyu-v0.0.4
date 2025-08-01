@@ -431,13 +431,22 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
     auto it_empty_candidate = desired_locations.cend();
     for (auto it = desired_locations.cbegin(); it != desired_locations.cend(); it++) {
         auto const& loc_info = LocInfo(*it);
+        DEBUG_ASSERT(*it != ABI_JIT_PTR);
         // Abstain from using upper registers unless absolutely nescesary
         if (loc_info.IsLocked()) {
             // skip, not suitable for allocation
+        // While R13 and R14 are technically available, we avoid allocating for them
+        // at all costs, because theoretically skipping them is better than spilling
+        // all over the place - it also fixes bugs with high reg pressure
+        } else if (*it >= HostLoc::R13 && *it <= HostLoc::R15) {
+            // skip, do not touch
+        // Intel recommends to reuse registers as soon as they're overwritable (DO NOT SPILL)
+        } else if (loc_info.IsEmpty()) {
+            it_empty_candidate = it;
+            break;
+        // No empty registers for some reason (very evil) - just do normal LRU
         } else {
             if (loc_info.lru_counter < min_lru_counter) {
-                if (loc_info.IsEmpty())
-                    it_empty_candidate = it;
                 // Otherwise a "quasi"-LRU
                 min_lru_counter = loc_info.lru_counter;
                 if (*it >= HostLoc::R8 && *it <= HostLoc::R15) {
@@ -448,9 +457,6 @@ HostLoc RegAlloc::SelectARegister(const boost::container::static_vector<HostLoc,
                 if (min_lru_counter == 0)
                     break; //early exit
             }
-            // only if not assigned (i.e for failcase of all LRU=0)
-            if (it_empty_candidate == desired_locations.cend() && loc_info.IsEmpty())
-                it_empty_candidate = it;
         }
     }
     // Final resolution goes as follows:
@@ -521,11 +527,10 @@ void RegAlloc::Move(HostLoc to, HostLoc from) noexcept {
 
     ASSERT(LocInfo(to).IsEmpty() && !LocInfo(from).IsLocked());
     ASSERT(bit_width <= HostLocBitWidth(to));
+    ASSERT_MSG(!LocInfo(from).IsEmpty(), "Mov eliminated");
 
-    if (!LocInfo(from).IsEmpty()) {
-        EmitMove(bit_width, to, from);
-        LocInfo(to) = std::exchange(LocInfo(from), {});
-    }
+    EmitMove(bit_width, to, from);
+    LocInfo(to) = std::exchange(LocInfo(from), {});
 }
 
 void RegAlloc::CopyToScratch(size_t bit_width, HostLoc to, HostLoc from) noexcept {
@@ -559,30 +564,44 @@ void RegAlloc::SpillRegister(HostLoc loc) noexcept {
     ASSERT_MSG(HostLocIsRegister(loc), "Only registers can be spilled");
     ASSERT_MSG(!LocInfo(loc).IsEmpty(), "There is no need to spill unoccupied registers");
     ASSERT_MSG(!LocInfo(loc).IsLocked(), "Registers that have been allocated must not be spilt");
-
-    const HostLoc new_loc = FindFreeSpill();
+    auto const new_loc = FindFreeSpill(HostLocIsXMM(loc));
     Move(new_loc, loc);
 }
 
-HostLoc RegAlloc::FindFreeSpill() const noexcept {
-    for (size_t i = static_cast<size_t>(HostLoc::FirstSpill); i < hostloc_info.size(); i++) {
-        const auto loc = static_cast<HostLoc>(i);
-        if (LocInfo(loc).IsEmpty()) {
-            return loc;
-        }
+HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
+    // Do not spill XMM into other XMM silly
+    if (!is_xmm) {
+        // TODO(lizzie): Using lower (xmm0 and such) registers results in issues/crashes - INVESTIGATE WHY
+        // Intel recommends to spill GPR onto XMM registers IF POSSIBLE
+        // TODO(lizzie): Issues on DBZ, theory: Scratch XMM not properly restored after a function call?
+        // Must sync with ABI registers (except XMM0, XMM1 and XMM2)
+#ifdef _WIN32
+        for (size_t i = size_t(HostLoc::XMM5); i >= size_t(HostLoc::XMM3); --i)
+            if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
+                return loc;
+#else
+        for (size_t i = size_t(HostLoc::XMM15); i >= size_t(HostLoc::XMM3); --i)
+            if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
+                return loc;
+#endif
     }
-
+    // Otherwise go to stack spilling
+    for (size_t i = size_t(HostLoc::FirstSpill); i < hostloc_info.size(); ++i)
+        if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
+            return loc;
     ASSERT_FALSE("All spill locations are full");
-}
-
-inline static Xbyak::RegExp SpillToOpArg_Helper1(HostLoc loc, size_t reserved_stack_space) noexcept {
-    ASSERT(HostLocIsSpill(loc));
-    size_t i = static_cast<size_t>(loc) - static_cast<size_t>(HostLoc::FirstSpill);
-    ASSERT_MSG(i < SpillCount, "Spill index greater than number of available spill locations");
-    return Xbyak::util::rsp + reserved_stack_space + ABI_SHADOW_SPACE + offsetof(StackLayout, spill) + i * sizeof(StackLayout::spill[0]);
-}
+};
 
 void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc from) noexcept {
+    auto const spill_to_op_arg_helper = [&](HostLoc loc, size_t reserved_stack_space) {
+        ASSERT(HostLocIsSpill(loc));
+        size_t i = size_t(loc) - size_t(HostLoc::FirstSpill);
+        ASSERT_MSG(i < SpillCount, "Spill index greater than number of available spill locations");
+        return Xbyak::util::rsp + reserved_stack_space + ABI_SHADOW_SPACE + offsetof(StackLayout, spill) + i * sizeof(StackLayout::spill[0]);
+    };
+    auto const spill_xmm_to_op = [&](const HostLoc loc) {
+        return Xbyak::util::xword[spill_to_op_arg_helper(loc, reserved_stack_space)];
+    };
     if (HostLocIsXMM(to) && HostLocIsXMM(from)) {
         MAYBE_AVX(movaps, HostLocToXmm(to), HostLocToXmm(from));
     } else if (HostLocIsGPR(to) && HostLocIsGPR(from)) {
@@ -607,7 +626,7 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
             MAYBE_AVX(movd, HostLocToReg64(to).cvt32(), HostLocToXmm(from));
         }
     } else if (HostLocIsXMM(to) && HostLocIsSpill(from)) {
-        const Xbyak::Address spill_addr = SpillToOpArg(from);
+        const Xbyak::Address spill_addr = spill_xmm_to_op(from);
         ASSERT(spill_addr.getBit() >= bit_width);
         switch (bit_width) {
         case 128:
@@ -625,7 +644,7 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
             UNREACHABLE();
         }
     } else if (HostLocIsSpill(to) && HostLocIsXMM(from)) {
-        const Xbyak::Address spill_addr = SpillToOpArg(to);
+        const Xbyak::Address spill_addr = spill_xmm_to_op(to);
         ASSERT(spill_addr.getBit() >= bit_width);
         switch (bit_width) {
         case 128:
@@ -645,16 +664,16 @@ void RegAlloc::EmitMove(const size_t bit_width, const HostLoc to, const HostLoc 
     } else if (HostLocIsGPR(to) && HostLocIsSpill(from)) {
         ASSERT(bit_width != 128);
         if (bit_width == 64) {
-            code->mov(HostLocToReg64(to), Xbyak::util::qword[SpillToOpArg_Helper1(from, reserved_stack_space)]);
+            code->mov(HostLocToReg64(to), Xbyak::util::qword[spill_to_op_arg_helper(from, reserved_stack_space)]);
         } else {
-            code->mov(HostLocToReg64(to).cvt32(), Xbyak::util::dword[SpillToOpArg_Helper1(from, reserved_stack_space)]);
+            code->mov(HostLocToReg64(to).cvt32(), Xbyak::util::dword[spill_to_op_arg_helper(from, reserved_stack_space)]);
         }
     } else if (HostLocIsSpill(to) && HostLocIsGPR(from)) {
         ASSERT(bit_width != 128);
         if (bit_width == 64) {
-            code->mov(Xbyak::util::qword[SpillToOpArg_Helper1(to, reserved_stack_space)], HostLocToReg64(from));
+            code->mov(Xbyak::util::qword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from));
         } else {
-            code->mov(Xbyak::util::dword[SpillToOpArg_Helper1(to, reserved_stack_space)], HostLocToReg64(from).cvt32());
+            code->mov(Xbyak::util::dword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from).cvt32());
         }
     } else {
         ASSERT_FALSE("Invalid RegAlloc::EmitMove");
@@ -669,10 +688,6 @@ void RegAlloc::EmitExchange(const HostLoc a, const HostLoc b) noexcept {
     } else {
         ASSERT_FALSE("Invalid RegAlloc::EmitExchange");
     }
-}
-
-Xbyak::Address RegAlloc::SpillToOpArg(const HostLoc loc) noexcept {
-    return Xbyak::util::xword[SpillToOpArg_Helper1(loc, reserved_stack_space)];
 }
 
 }  // namespace Dynarmic::Backend::X64

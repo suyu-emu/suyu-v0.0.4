@@ -16,15 +16,14 @@ namespace Dynarmic {
 void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp) {
     Xbyak::Label start, loop;
 
-    code.jmp(start);
+    code.jmp(start, code.T_NEAR);
     code.L(loop);
     code.pause();
     code.L(start);
     code.mov(tmp, 1);
-    code.lock();
-    code.xchg(code.dword[ptr], tmp);
+    /*code.lock();*/ code.xchg(code.dword[ptr], tmp);
     code.test(tmp, tmp);
-    code.jnz(loop);
+    code.jnz(loop, code.T_NEAR);
 }
 
 void EmitSpinLockUnlock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp) {

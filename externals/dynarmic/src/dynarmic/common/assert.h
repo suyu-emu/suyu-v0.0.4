@@ -22,7 +22,7 @@ template<typename... Ts>
     }())
 
 #define ASSERT(_a_) ASSERT_MSG(_a_, "")
-#define UNREACHABLE() ASSERT(false, "unreachable")
+#define UNREACHABLE() ASSERT_MSG(false, "unreachable")
 #ifdef _DEBUG
 #define DEBUG_ASSERT(_a_) ASSERT(_a_)
 #define DEBUG_ASSERT_MSG(_a_, ...) ASSERT_MSG(_a_, __VA_ARGS__)

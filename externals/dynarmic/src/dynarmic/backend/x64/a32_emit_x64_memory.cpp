@@ -168,7 +168,7 @@ void A32EmitX64::EmitA32WriteMemory64(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 void A32EmitX64::EmitA32ClearExclusive(A32EmitContext&, IR::Inst*) {
-    code.mov(code.byte[r15 + offsetof(A32JitState, exclusive_state)], u8(0));
+    code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, exclusive_state)], u8(0));
 }
 
 void A32EmitX64::EmitA32ExclusiveReadMemory8(A32EmitContext& ctx, IR::Inst* inst) {
@@ -244,14 +244,14 @@ void A32EmitX64::EmitCheckMemoryAbort(A32EmitContext& ctx, IR::Inst* inst, Xbyak
 
     const A32::LocationDescriptor current_location{IR::LocationDescriptor{inst->GetArg(0).GetU64()}};
 
-    code.test(dword[r15 + offsetof(A32JitState, halt_reason)], static_cast<u32>(HaltReason::MemoryAbort));
+    code.test(dword[code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], static_cast<u32>(HaltReason::MemoryAbort));
     if (end) {
         code.jz(*end, code.T_NEAR);
     } else {
         code.jz(skip, code.T_NEAR);
     }
     EmitSetUpperLocationDescriptor(current_location, ctx.Location());
-    code.mov(dword[r15 + offsetof(A32JitState, Reg) + sizeof(u32) * 15], current_location.PC());
+    code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, Reg) + sizeof(u32) * 15], current_location.PC());
     code.ForceReturnFromRunCode();
     code.L(skip);
 }
