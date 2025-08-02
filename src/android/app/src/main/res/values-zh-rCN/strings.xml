@@ -77,6 +77,8 @@
     <string name="frame_interpolation_description">通过同步帧间时间确保流畅一致的帧交付，减少卡顿和不均匀动画。适合存在帧时间不稳定或游戏过程中出现微卡顿的游戏。</string>
     <string name="renderer_early_release_fences">提前释放围栏</string>
     <string name="renderer_early_release_fences_description">可修复《大金刚国度:热带寒流》《深海迷航:零度之下》和《奥日2》等游戏中的0 FPS问题，但可能影响Unreal Engine游戏的加载或性能。</string>
+    <string name="buffer_reorder_disable">禁用缓冲重排序</string>
+    <string name="buffer_reorder_disable_description">勾选时，禁用映射内存上传的重排序功能，允许将上传与特定绘制关联。在某些情况下可能会降低性能。</string>
     <string name="use_lru_cache">启用LRU缓存</string>
     <string name="use_lru_cache_description">启用或禁用LRU缓存，通过节省CPU进程使用来提高性能。某些游戏可能存在问题，特别是TotK 1.2.1，如果游戏无法启动或随机崩溃，请禁用此选项。</string>
     <string name="dyna_state">扩展动态状态</string>
