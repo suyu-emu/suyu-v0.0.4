@@ -1,5 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
+
+#if MICROPROFILE_ENABLED
 
 #include <QAction>
 #include <QLayout>
@@ -14,7 +19,7 @@
 
 // Include the implementation of the UI in this file. This isn't in microprofile.cpp because the
 // non-Qt frontends don't need it (and don't implement the UI drawing hooks either).
-#if MICROPROFILE_ENABLED
+
 #define MICROPROFILEUI_IMPL 1
 #include "common/microprofileui.h"
 
@@ -43,16 +48,12 @@ private:
     qreal x_scale = 1.0, y_scale = 1.0;
 };
 
-#endif
-
 MicroProfileDialog::MicroProfileDialog(QWidget* parent) : QWidget(parent, Qt::Dialog) {
     setObjectName(QStringLiteral("MicroProfile"));
     setWindowTitle(tr("&MicroProfile"));
     resize(1000, 600);
     // Enable the maximize button
     setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
-
-#if MICROPROFILE_ENABLED
 
     MicroProfileWidget* widget = new MicroProfileWidget(this);
 
@@ -66,7 +67,6 @@ MicroProfileDialog::MicroProfileDialog(QWidget* parent) : QWidget(parent, Qt::Di
     setFocusProxy(widget);
     widget->setFocusPolicy(Qt::StrongFocus);
     widget->setFocus();
-#endif
 }
 
 QAction* MicroProfileDialog::toggleViewAction() {
@@ -93,8 +93,6 @@ void MicroProfileDialog::hideEvent(QHideEvent* ev) {
     }
     QWidget::hideEvent(ev);
 }
-
-#if MICROPROFILE_ENABLED
 
 /// There's no way to pass a user pointer to MicroProfile, so this variable is used to make the
 /// QPainter available inside the drawing callbacks.

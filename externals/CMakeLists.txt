@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -51,6 +54,11 @@ endif()
 # MicroProfile
 add_library(microprofile INTERFACE)
 target_include_directories(microprofile INTERFACE ./microprofile)
+if (ENABLE_MICROPROFILE)
+    target_compile_definitions(microprofile INTERFACE MICROPROFILE_ENABLED=1)
+else()
+    target_compile_definitions(microprofile INTERFACE MICROPROFILE_ENABLED=0)
+endif()
 
 # GCC bugs
 if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND MINGW)

@@ -271,9 +271,11 @@ public:
 
     bool IsShuttingDown() const;
 
+#if MICROPROFILE_ENABLED
     void EnterSVCProfile();
 
     void ExitSVCProfile();
+#endif
 
     /// Workaround for single-core mode when preempting threads while idle.
     bool IsPhantomModeForSingleCore() const;

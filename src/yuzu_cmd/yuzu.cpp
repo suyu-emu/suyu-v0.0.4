@@ -4,9 +4,6 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -338,10 +335,12 @@ int main(int argc, char** argv) {
     LocalFree(argv_w);
 #endif
 
+#if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT {
         MicroProfileShutdown();
     };
+#endif
 
     Common::ConfigureNvidiaEnvironmentFlags();
 

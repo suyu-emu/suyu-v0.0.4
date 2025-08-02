@@ -219,9 +219,11 @@ private:
         MicroProfileOnThreadCreate(name.c_str());
 
         // Cleanup
+#if MICROPROFILE_ENABLED
         SCOPE_EXIT {
             MicroProfileOnThreadExit();
         };
+#endif
 
         Common::SetCurrentThreadName(name.c_str());
         Common::SetCurrentThreadPriority(Common::ThreadPriority::High);

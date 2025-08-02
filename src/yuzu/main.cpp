@@ -1348,6 +1348,11 @@ void GMainWindow::InitializeDebugWidgets() {
     microProfileDialog = new MicroProfileDialog(this);
     microProfileDialog->hide();
     debug_menu->addAction(microProfileDialog->toggleViewAction());
+#else
+    auto micro_profile_stub = new QAction(tr("MicroProfile (unavailable)"), this);
+    micro_profile_stub->setEnabled(false);
+    micro_profile_stub->setChecked(false);
+    debug_menu->addAction(micro_profile_stub);
 #endif
 
     waitTreeWidget = new WaitTreeWidget(*system, this);
@@ -5630,10 +5635,13 @@ int main(int argc, char* argv[]) {
 #endif
 
     Common::DetachedTasks detached_tasks;
+
+#if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate("Frontend");
     SCOPE_EXIT {
         MicroProfileShutdown();
     };
+#endif
 
     Common::ConfigureNvidiaEnvironmentFlags();
 

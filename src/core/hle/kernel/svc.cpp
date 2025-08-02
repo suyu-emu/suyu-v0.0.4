@@ -4428,7 +4428,9 @@ void Call(Core::System& system, u32 imm) {
 
     std::array<uint64_t, 8> args;
     kernel.CurrentPhysicalCore().SaveSvcArguments(process, args);
+#if MICROPROFILE_ENABLED
     kernel.EnterSVCProfile();
+#endif
 
     if (process.Is64Bit()) {
         Call64(system, imm, args);
@@ -4436,7 +4438,9 @@ void Call(Core::System& system, u32 imm) {
         Call32(system, imm, args);
     }
 
+#if MICROPROFILE_ENABLED
     kernel.ExitSVCProfile();
+#endif
     kernel.CurrentPhysicalCore().LoadSvcArguments(process, args);
 }
 

@@ -86,6 +86,8 @@ option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
+option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
+
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")

@@ -201,7 +201,9 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     // Cleanup
     SCOPE_EXIT {
         data.host_context->Exit();
+#if MICROPROFILE_ENABLED
         MicroProfileOnThreadExit();
+#endif
     };
 
     // Running

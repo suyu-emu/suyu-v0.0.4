@@ -27,7 +27,9 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
     interface->Initialize();
 
     const auto EnterContext = [&]() {
+#if MICROPROFILE_ENABLED
         system.EnterCPUProfile();
+#endif
 
         // Lock the core context.
         std::scoped_lock lk{m_guard};
@@ -59,7 +61,9 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         m_arm_interface = nullptr;
         m_current_thread = nullptr;
 
+#if MICROPROFILE_ENABLED
         system.ExitCPUProfile();
+#endif
     };
 
     while (true) {

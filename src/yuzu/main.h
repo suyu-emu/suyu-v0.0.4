@@ -43,7 +43,9 @@ class GameList;
 class GImageInfo;
 class GRenderWindow;
 class LoadingScreen;
+#if MICROPROFILE_ENABLED
 class MicroProfileDialog;
+#endif
 class OverlayDialog;
 class ProfilerWidget;
 class ControllerDialog;
@@ -565,7 +567,9 @@ private:
 
     // Debugger panes
     ProfilerWidget* profilerWidget;
+#if MICROPROFILE_ENABLED
     MicroProfileDialog* microProfileDialog;
+#endif
     WaitTreeWidget* waitTreeWidget;
     ControllerDialog* controller_dialog;
 
