@@ -457,15 +457,6 @@ struct Values {
                                                         Specialization::Default,
                                                         true,
                                                         true};
-#ifdef ANDROID
-    SwitchableSetting<bool> early_release_fences{linkage,
-                                                 false,
-                                                 "early_release_fences",
-                                                 Category::RendererAdvanced,
-                                                 Specialization::Default,
-                                                 true,
-                                                 true};
-#endif
 
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID

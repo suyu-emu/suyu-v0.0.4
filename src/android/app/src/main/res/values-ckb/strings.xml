@@ -76,8 +76,6 @@
     <string name="frame_skipping_description">تێپەڕاندنی فرەیمەکان بکە بۆ باشترکردنی کارایی بە کەمکردنەوەی ژمارەی فرەیمە ڕێندرکراوەکان. ئەم تایبەتمەندییە هێشتا کاردەکرێت و لە وەشانە داهاتووەکاندا چالاکدەکرێت.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
-    <string name="renderer_early_release_fences">زێدەکردنی پەرستارەکان زووتر</string>
-    <string name="renderer_early_release_fences_description">یارمەتی دەدات لە چارەسەری 0 FPS لە یارییەکانی وەک DKCR:HD، Subnautica Below Zero و Ori 2، بەڵام ڕەنگە بارکردن یان کارایی لە یارییەکانی Unreal Engine تێکبدات.</string>
     <string name="buffer_reorder_disable">ڕێکخستنەوەی بافر ناچالاک بکە</string>
     <string name="buffer_reorder_disable_description">کە دیاریکرا، ڕێکخستنەوەی بارکردنی بیرگەی نەخشەکراو ناچالاک دەکات کە ڕێگەدەدات بارکردنەکان بە ڕەسمی دیاریکراو ببەسترێت. لە هەندێک حاڵەتدا کاراییمان دەکاتەوە.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>

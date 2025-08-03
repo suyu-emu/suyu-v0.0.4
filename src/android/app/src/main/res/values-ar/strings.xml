@@ -75,8 +75,6 @@
     <string name="frame_skipping_description">تبديل تخطي الإطارات لتحسين الأداء عن طريق تقليل عدد الإطارات المعروضة. هذه الميزة قيد التطوير وسيتم تمكينها في الإصدارات المستقبلية.</string>
     <string name="frame_interpolation">تحسين توقيت الإطارات</string>
     <string name="frame_interpolation_description">يضمن تسليمًا سلسًا ومتناسقًا للإطارات من خلال مزامنة التوقيت بينها، مما يقلل من التقطيع وعدم انتظام الحركة. مثالي للألعاب التي تعاني من عدم استقرار في توقيت الإطارات أو تقطع دقيق أثناء اللعب.</string>
-    <string name="renderer_early_release_fences">إطلاق الأسوار مبكرًا</string>
-    <string name="renderer_early_release_fences_description">يساعد في إصلاح مشكلة 0 إطار في الثانية في ألعاب مثل DKCR:HD وSubnautica Below Zero وOri 2، ولكن قد يتسبب في تعطيل التحميل أو الأداء في ألعاب Unreal Engine.</string>
     <string name="buffer_reorder_disable">تعطيل إعادة ترتيب المخزن المؤقت</string>
     <string name="buffer_reorder_disable_description">عند التحديد، يتم تعطيل إعادة ترتيب تحميل الذاكرة المعينة مما يسمح بربط التحميلات برسومات محددة. قد يقلل الأداء في بعض الحالات.</string>
     <string name="use_lru_cache">تمكين ذاكرة التخزين المؤقت LRU</string>

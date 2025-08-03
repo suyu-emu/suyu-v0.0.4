@@ -76,8 +76,6 @@
     <string name="frame_skipping_description">החלף דילוג על פריימים כדי לשפר ביצועים על ידי הפחתת מספר הפריימים המוצגים. תכונה זו עדיין בפיתוח ותופעל בגרסאות עתידיות.</string>
     <string name="frame_interpolation">סנכרון פריימים מתקדם</string>
     <string name="frame_interpolation_description">מבטיח אספקה חלקה ועקבית של פריימים על ידי סנכרון התזמון ביניהם, מפחית קפיצות ואנימציה לא אחידה. אידיאלי למשחקים עם בעיות בתזמון פריימים או מיקרו-קפיצות במהלך המשחק.</string>
-    <string name="renderer_early_release_fences">שחרר גדרות מוקדם</string>
-    <string name="renderer_early_release_fences_description">עוזר לתקן 0 FPS במשחקים כמו DKCR:HD, Subnautica Below Zero ו-Ori 2, אך עלול לפגוע בטעינה או בביצועים במשחקי Unreal Engine.</string>
     <string name="buffer_reorder_disable">השבת סידור מחדש של חוצץ</string>
     <string name="buffer_reorder_disable_description">כאשר מסומן, מבטל את סידור מחדש של העלאות זיכרון ממופה המאפשר לשייך העלאות עם ציורים ספציפיים. עלול להפחית ביצועים במקרים מסוימים.</string>
     <string name="use_lru_cache">הפעלת מטמון LRU</string>

@@ -76,8 +76,6 @@
     <string name="frame_skipping_description">Activez ou désactivez le saut d\'images pour améliorer les performances en réduisant le nombre d\'images affichées. Cette fonctionnalité est en cours de développement et sera activée dans les futures versions.</string>
     <string name="frame_interpolation">Synchronisation avancée des frames</string>
     <string name="frame_interpolation_description">Assure une diffusion fluide et régulière des frames en synchronisant leur timing, réduisant ainsi les saccades et les animations irrégulières. Idéal pour les jeux souffrant d`instabilité de timing des frames ou de micro-saccades pendant le jeu.</string>
-    <string name="renderer_early_release_fences">Libérer les barrières plus tôt</string>
-    <string name="renderer_early_release_fences_description">Résout les problèmes de 0 FPS dans des jeux comme DKCR:HD, Subnautica Below Zero et Ori 2, mais peut perturber le chargement ou les performances des jeux Unreal Engine.</string>
     <string name="buffer_reorder_disable">Désactiver le réordonnancement du tampon</string>
     <string name="buffer_reorder_disable_description">Lorsqu\'il est coché, désactive le réordonnancement des téléchargements de mémoire mappée, permettant d\'associer les téléchargements à des dessins spécifiques. Peut réduire les performances dans certains cas.</string>
     <string name="use_lru_cache">Activer le cache LRU</string>

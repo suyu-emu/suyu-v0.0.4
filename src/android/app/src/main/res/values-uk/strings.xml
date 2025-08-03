@@ -76,8 +76,6 @@
     <string name="frame_skipping_description">Увімкніть або вимкніть пропуск кадрів для покращення продуктивності за рахунок зменшення кількості візуалізованих кадрів. Ця функція ще розробляється та буде доступна у майбутніх версіях.</string>
     <string name="frame_interpolation">Покращена синхронізація кадрів</string>
     <string name="frame_interpolation_description">Забезпечує плавну та стабільну подачу кадрів шляхом синхронізації їх часу, зменшуючи підвисання та нерівномірну анімацію. Ідеально для ігор з нестабільним часом кадрів або мікро-підвисаннями під час гри.</string>
-    <string name="renderer_early_release_fences">Release fences early</string>
-    <string name="renderer_early_release_fences_description">Це налаштування може бути необхідним для виправлення помилок 0FPS у деяких іграх (зокрема DKCR:HD, Subnautica та Ori 2). Водночас інші ігри, особливо створені на рушії Unreal Engine, можуть працювати некоректно або взагалі не запускатися.</string>
     <string name="buffer_reorder_disable">Вимкнути переупорядкування буфера</string>
     <string name="buffer_reorder_disable_description">Якщо позначено, вимикає переупорядкування завантажень відображеної пам\'яті, що дозволяє пов\'язувати завантаження з конкретними малюваннями. Може знизити продуктивність у деяких випадках.</string>
     <string name="use_lru_cache">Увімкнути LRU-кеш</string>

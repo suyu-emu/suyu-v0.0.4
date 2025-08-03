@@ -75,8 +75,6 @@
     <string name="frame_skipping_description">Přepínání přeskočení snímků pro zlepšení výkonu snížením počtu vykreslených snímků. Tato funkce je stále ve vývoji a bude povolena v budoucích verzích.</string>
     <string name="frame_interpolation">Vylepšené časování snímků</string>
     <string name="frame_interpolation_description">Zajišťuje plynulé a konzistentní zobrazování snímků synchronizací jejich časování, čímž snižuje trhání a nerovnoměrné animace. Ideální pro hry, které trpí nestabilitou časování snímků nebo mikrotrháním během hraní.</string>
-    <string name="renderer_early_release_fences">Uvolnit ploty brzy</string>
-    <string name="renderer_early_release_fences_description">Pomáhá opravit 0 FPS v hrách jako DKCR:HD, Subnautica Below Zero a Ori 2, ale může narušit načítání nebo výkon v hrách na Unreal Engine.</string>
     <string name="buffer_reorder_disable">Zakázat přeřazování vyrovnávací paměti</string>
     <string name="buffer_reorder_disable_description">Při zaškrtnutí zakáže přeřazování nahrání mapované paměti, což umožňuje spojit nahrání s konkrétními vykresleními. V některých případech může snížit výkon.</string>
     <string name="use_lru_cache">Povolit LRU mezipaměť</string>

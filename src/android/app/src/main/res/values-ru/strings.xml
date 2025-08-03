@@ -76,8 +76,6 @@
     <string name="enable_raii_description">Метод автоматического управления ресурсами в Vulkan, который обеспечивает правильное освобождение ресурсов при их ненадобности, но может вызывать сбои в бандл-играх.</string>
     <string name="frame_interpolation">Улучшенная синхронизация кадров</string>
     <string name="frame_interpolation_description">Обеспечивает плавную и стабильную подачу кадров за счет синхронизации их времени, уменьшая подтормаживания и неравномерную анимацию. Идеально для игр с нестабильным временем кадров или микро-подтормаживаниями во время игры.</string>
-    <string name="renderer_early_release_fences">Ранний релиз ограждений</string>
-    <string name="renderer_early_release_fences_description">Помогает исправить 0 FPS в играх типа DKCR:HD, Subnautica Below Zero и Ori 2, но может нарушить загрузку или производительность в играх на Unreal Engine.</string>
     <string name="buffer_reorder_disable">Отключить переупорядочивание буфера</string>
     <string name="buffer_reorder_disable_description">При включении отключает переупорядочивание загрузки отображенной памяти, позволяя связывать загрузки с конкретными отрисовками. В некоторых случаях может снизить производительность.</string>
     <string name="use_lru_cache">Включить LRU-кеш</string>

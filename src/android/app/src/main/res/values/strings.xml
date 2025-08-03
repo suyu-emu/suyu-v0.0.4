@@ -88,8 +88,6 @@
     <string name="enable_raii_description">A method of automatic resource management in Vulkan that ensures proper release of resources when they are no longer needed, but may cause crashes in bundled games.</string>
     <string name="frame_interpolation">Enhanced Frame Pacing</string>
     <string name="frame_interpolation_description">Ensures smooth and consistent frame delivery by synchronizing the timing between frames, reducing stuttering and uneven animation. Ideal for games that experience frame timing instability or micro-stutters during gameplay.</string>
-    <string name="renderer_early_release_fences">Release Fences Early</string>
-    <string name="renderer_early_release_fences_description">Helps fix 0 FPS in games like DKCR:HD, Subnautica Below Zero and Ori 2, but may break loading or performance in Unreal Engine games.</string>
     <string name="buffer_reorder_disable">Disable Buffer Reorder</string>
     <string name="buffer_reorder_disable_description">When checked, disables reordering of mapped memory uploads which allows to associate uploads with specific draws. May reduce performance in some cases.</string>
 
