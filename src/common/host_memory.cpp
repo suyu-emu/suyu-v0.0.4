@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,7 +12,7 @@
 #include <windows.h>
 #include "common/dynamic_library.h"
 
-#elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) // ^^^ Windows ^^^ vvv Linux vvv
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -21,8 +24,13 @@
 #include <unistd.h>
 #include "common/scope_exit.h"
 
+// FreeBSD
 #ifndef MAP_NORESERVE
 #define MAP_NORESERVE 0
+#endif
+// Solaris 11 and illumos
+#ifndef MAP_ALIGNED_SUPER
+#define MAP_ALIGNED_SUPER 0
 #endif
 
 #endif // ^^^ Linux ^^^
@@ -364,7 +372,7 @@ private:
     std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) // ^^^ Windows ^^^ vvv Linux vvv
 
 #ifdef ARCHITECTURE_arm64
 
@@ -409,20 +417,63 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 #else
 
 static void* ChooseVirtualBase(size_t virtual_size) {
-#if defined(__FreeBSD__)
-    void* virtual_base =
-        mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
-             MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
-
-    if (virtual_base != MAP_FAILED) {
+    void* virtual_base = mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
+    if (virtual_base != MAP_FAILED)
         return virtual_base;
-    }
-#endif
-
     return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
 
+#endif
+
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
+/// Most Unices don't have a portable shm_open (AIX, OpenBSD, NetBSD, Solaris 11, OpenIndiana)
+/// Portable implementation of shm_open(SHM_ANON, ...) - roughly equivalent but without
+/// OS support - may fail sporadically, beware!
+static int shm_open_anon(int flags, mode_t mode) {
+    char name[16] = "/shm-";
+    char *const limit = name + sizeof(name) - 1;
+    *limit = '\0';
+    char *start = name + strlen(name);
+    for (int tries = 0; tries < 4; tries++) {
+        struct timespec tv;
+        clock_gettime(CLOCK_REALTIME, &tv);
+        unsigned long r = (unsigned long)tv.tv_sec + (unsigned long)tv.tv_nsec;
+        for (char *fill = start; fill < limit; r /= 8)
+            *fill++ = '0' + (r % 8);
+        int fd = shm_open(name, flags, mode);
+        if (fd != -1)
+            return ([](const char *name, int fd) {
+                if (shm_unlink(name) == -1) {
+                    int tmp = errno;
+                    close(fd);
+                    errno = tmp;
+                    return -1;
+                }
+                return fd;
+            })(name, fd);
+        if (errno != EEXIST)
+            break;
+    }
+    return -1;
+}
+#elif defined(__OpenBSD__)
+/// Except OpenBSD which explicitly uses shm_mkstemp instead (as a more secure alternative)
+static int shm_open_anon(int flags, mode_t mode) {
+    char name[16] = "/shm-XXXXXXXXXX";
+    int fd;
+    if ((fd = shm_mkstemp(name)) == -1)
+        return -1;
+    return ([](const char *name, int fd) {
+        if (shm_unlink(name) == -1) {
+            int tmp = errno;
+            close(fd);
+            errno = tmp;
+            return -1;
+        }
+        return fd;
+    })(name, fd);
+}
 #endif
 
 class HostMemory::Impl {
@@ -443,7 +494,11 @@ public:
         }
 
         // Backing memory initialization
-#if defined(__FreeBSD__) && __FreeBSD__ < 13
+#if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
+        fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
+#elif defined(__OpenBSD__)
+        fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
+#elif defined(__FreeBSD__) && __FreeBSD__ < 13
         // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
 #else
