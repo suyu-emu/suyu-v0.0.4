@@ -252,7 +252,10 @@ function(check_submodules_present)
     string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
     foreach(module ${gitmodules})
         string(REGEX REPLACE "path *= *" "" module ${module})
-        if (NOT EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
+
+        file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
+        list(LENGTH RESULT RES_LEN)
+        if(RES_LEN EQUAL 0)
             message(FATAL_ERROR "Git submodule ${module} not found. "
                 "Please run: \ngit submodule update --init --recursive")
         endif()
