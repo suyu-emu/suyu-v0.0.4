@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package org.yuzu.yuzu_emu.features.fetcher
 
 import android.animation.LayoutTransition
@@ -71,7 +74,7 @@ class ReleaseAdapter(
 
             // truncates to 150 chars so it does not take up too much space.
             var bodyPreview = release.body.take(150)
-            bodyPreview = bodyPreview.replace("#", "").removeSurrounding(" ");
+            bodyPreview = bodyPreview.replace("#", "").removeSurrounding(" ")
 
             val body =
                 bodyPreview.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\n", "<br>")
@@ -122,8 +125,11 @@ class ReleaseAdapter(
 
                 binding.imageDownloadsArrow.rotation = if (isVisible) 0f else 180f
                 binding.buttonToggleDownloads.text =
-                    if (isVisible) activity.getString(R.string.show_downloads)
-                    else activity.getString(R.string.hide_downloads)
+                    if (isVisible) {
+                        activity.getString(R.string.show_downloads)
+                    } else {
+                        activity.getString(R.string.hide_downloads)
+                    }
             }
 
             binding.buttonToggleDownloads.setOnClickListener {
@@ -139,9 +145,15 @@ class ReleaseAdapter(
             release.artifacts.forEach { artifact ->
                 val button = MaterialButton(binding.root.context).apply {
                     text = artifact.name
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_LabelLarge)
+                    setTextAppearance(
+                        com.google.android.material.R.style.TextAppearance_Material3_LabelLarge
+                    )
                     textAlignment = MaterialButton.TEXT_ALIGNMENT_VIEW_START
-                    setBackgroundColor(context.getColor(com.google.android.material.R.color.m3_button_background_color_selector))
+                    setBackgroundColor(
+                        context.getColor(
+                            com.google.android.material.R.color.m3_button_background_color_selector
+                        )
+                    )
                     setIconResource(R.drawable.ic_import)
                     iconTint = ColorStateList.valueOf(
                         MaterialColors.getColor(
@@ -199,7 +211,9 @@ class ReleaseAdapter(
                                                     input.copyTo(output)
                                                 }
                                             }
-                                                ?: throw IOException(context.getString(R.string.empty_response_body))
+                                                ?: throw IOException(
+                                                    context.getString(R.string.empty_response_body)
+                                                )
                                         }
                                 }
 
@@ -211,7 +225,9 @@ class ReleaseAdapter(
 
                                 val driverData = GpuDriverHelper.getMetadataFromZip(file)
                                 val driverPath =
-                                    "${GpuDriverHelper.driverStoragePath}${FileUtil.getFilename(file.toUri())}"
+                                    "${GpuDriverHelper.driverStoragePath}${FileUtil.getFilename(
+                                        file.toUri()
+                                    )}"
 
                                 if (GpuDriverHelper.copyDriverToInternalStorage(file.toUri())) {
                                     driverViewModel.onDriverAdded(Pair(driverPath, driverData))
@@ -254,7 +270,9 @@ class ReleaseAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReleaseViewHolder {
         val binding = ItemReleaseBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
         return ReleaseViewHolder(binding)
     }

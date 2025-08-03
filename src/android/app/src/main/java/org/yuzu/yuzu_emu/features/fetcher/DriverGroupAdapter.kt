@@ -13,7 +13,6 @@ import org.yuzu.yuzu_emu.databinding.ItemDriverGroupBinding
 import org.yuzu.yuzu_emu.fragments.DriverFetcherFragment.DriverGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
-import androidx.transition.AutoTransition
 import androidx.transition.ChangeBounds
 import androidx.transition.Fade
 import androidx.transition.TransitionManager
@@ -89,7 +88,9 @@ class DriverGroupAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DriverGroupViewHolder {
         val binding = ItemDriverGroupBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
         return DriverGroupViewHolder(binding)
     }

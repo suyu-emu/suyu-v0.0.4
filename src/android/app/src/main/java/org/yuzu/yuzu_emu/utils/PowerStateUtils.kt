@@ -13,7 +13,6 @@ object PowerStateUtils {
 
     @JvmStatic
     fun getBatteryInfo(context: Context?): IntArray {
-
         if (context == null) {
             return intArrayOf(0, 0, 0) // Percentage, IsCharging, HasBattery
         }

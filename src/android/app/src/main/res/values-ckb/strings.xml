@@ -153,8 +153,8 @@
     <string name="shader_backend">شادەر باکند</string>
     <string name="shader_backend_description">هەڵبژاردنی ڕێگای پێکهێنانی شادەر</string>
     <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>string>
-    <string name="shader_backend_spirv">Spir-V</string>string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">ئیمولەیشنی NVDEC</string>

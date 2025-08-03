@@ -220,7 +220,7 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
             val baseList = NetPlayManager.getPublicRooms()
             val filteredList = baseList.filter { room ->
                 (!binding.chipHideFull.isChecked || room.members.size < room.maxPlayers) &&
-                        (!binding.chipHideEmpty.isChecked || room.members.isNotEmpty())
+                    (!binding.chipHideEmpty.isChecked || room.members.isNotEmpty())
             }
 
             if (binding.searchText.text.toString().isEmpty() &&
@@ -245,7 +245,6 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
                 it.score
             }.map { it.item }
             adapter.updateRooms(sortedList)
-
         }
     }
 

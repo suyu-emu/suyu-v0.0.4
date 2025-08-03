@@ -28,8 +28,7 @@ class ChatMessage(
     val username: String, // Username is the community/forum username
     val message: String,
     val timestamp: String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-) {
-}
+)
 
 class ChatDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var binding: DialogChatBinding
@@ -50,7 +49,8 @@ class ChatDialog(context: Context) : BottomSheetDialog(context) {
 
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.skipCollapsed = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        behavior.skipCollapsed =
+            context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
         handler.post {
             chatAdapter.notifyDataSetChanged()
@@ -133,10 +133,12 @@ class ChatAdapter(private val messages: List<ChatMessage>) :
         fun bind(message: ChatMessage) {
             binding.usernameText.text = message.nickname
             binding.messageText.text = message.message
-            binding.userIcon.setImageResource(when (message.nickname) {
-                "System" -> R.drawable.ic_system
-                else -> R.drawable.ic_user
-            })
+            binding.userIcon.setImageResource(
+                when (message.nickname) {
+                    "System" -> R.drawable.ic_system
+                    else -> R.drawable.ic_user
+                }
+            )
         }
     }
 }

@@ -78,6 +78,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_action"
+            style="@style/EdenButton.Primary"
             android:layout_width="wrap_content"
             android:layout_height="56dp"
             android:layout_marginTop="16dp"

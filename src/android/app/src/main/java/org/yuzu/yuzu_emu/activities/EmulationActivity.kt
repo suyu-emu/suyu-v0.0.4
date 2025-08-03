@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-
 package org.yuzu.yuzu_emu.activities
 
 import android.annotation.SuppressLint
@@ -58,7 +57,6 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ParamPackage
 import org.yuzu.yuzu_emu.utils.ThemeHelper
-import org.yuzu.yuzu_emu.utils.PowerStateUtils
 import java.text.NumberFormat
 import kotlin.math.roundToInt
 
@@ -204,6 +202,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+
+        // Reset navigation graph with new intent data to recreate EmulationFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
+
         nfcReader.onNewIntent(intent)
         InputHandler.updateControllerData()
     }
@@ -420,7 +424,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     fun addNetPlayMessages(type: Int, msg: String) {
         NetPlayManager.addNetPlayMessage(type, msg)
     }
-
 
     private var pictureInPictureReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {

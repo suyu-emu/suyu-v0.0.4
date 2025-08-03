@@ -156,8 +156,8 @@
     <string name="shader_backend">著色器後端</string>
     <string name="shader_backend_description">選擇著色器的編譯與轉譯方式</string>
     <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>string>
-    <string name="shader_backend_spirv">Spir-V</string>string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC模擬</string>

@@ -4,8 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.AlertDialog
 import android.os.Build
 import android.widget.Toast
 import androidx.preference.PreferenceManager
@@ -1057,7 +1055,9 @@ class SettingsFragmentPresenter(
             }
 
             val staticThemeColor: AbstractIntSetting = object : AbstractIntSetting {
-                val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                val preferences = PreferenceManager.getDefaultSharedPreferences(
+                    YuzuApplication.appContext
+                )
                 override fun getInt(needsGlobal: Boolean): Int =
                     preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
                 override fun setInt(value: Int) {

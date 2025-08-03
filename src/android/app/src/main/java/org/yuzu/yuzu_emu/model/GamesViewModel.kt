@@ -141,7 +141,7 @@ class GamesViewModel : ViewModel() {
         }
     }
 
-    fun addFolder(gameDir: GameDir,  savedFromGameFragment: Boolean) =
+    fun addFolder(gameDir: GameDir, savedFromGameFragment: Boolean) =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 NativeConfig.addGameDir(gameDir)

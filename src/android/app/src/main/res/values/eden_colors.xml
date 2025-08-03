@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Synthwave/Vaporwave Primary Colors -->
+    <color name="eden_primary">#FF0080</color> <!-- Neon magenta -->
+    <color name="eden_primary_variant">#E6006B</color> <!-- Darker magenta -->
+    <color name="eden_secondary">#00FFFF</color> <!-- Electric cyan -->
+    <color name="eden_secondary_variant">#00E6E6</color> <!-- Darker cyan -->
+
+    <!-- Background Colors - Deep space black -->
+    <color name="eden_background">#000000</color> <!-- Pure black background -->
+    <color name="eden_surface">#0D0D0D</color> <!-- Card surface -->
+    <color name="eden_surface_variant">#1A1A1A</color> <!-- Elevated surface -->
+
+    <!-- Text Colors - High contrast for readability -->
+    <color name="eden_on_background">#FFFFFF</color> <!-- Pure white text -->
+    <color name="eden_on_surface">#FFFFFF</color> <!-- Pure white text -->
+    <color name="eden_on_primary">#FFFFFF</color> <!-- White on neon -->
+    <color name="eden_on_secondary">#000000</color> <!-- Black on cyan -->
+
+    <!-- Synthwave Accent Colors -->
+    <color name="eden_accent_pink">#FF0080</color> <!-- Neon magenta -->
+    <color name="eden_accent_purple">#9D00FF</color> <!-- Electric purple -->
+    <color name="eden_accent_blue">#0080FF</color> <!-- Electric blue -->
+    <color name="eden_accent_orange">#FF8000</color> <!-- Neon orange -->
+
+    <!-- Synthwave Gradient Colors -->
+    <color name="eden_gradient_start">#FF0080</color> <!-- Neon magenta -->
+    <color name="eden_gradient_middle">#9D00FF</color> <!-- Electric purple -->
+    <color name="eden_gradient_end">#00FFFF</color> <!-- Electric cyan -->
+
+    <!-- Neon Glow Effects -->
+    <color name="eden_glow_pink">#80FF0080</color> <!-- Magenta glow -->
+    <color name="eden_glow_cyan">#8000FFFF</color> <!-- Cyan glow -->
+    <color name="eden_glow_purple">#809D00FF</color> <!-- Purple glow -->
+    <color name="eden_glow_orange">#80FF8000</color> <!-- Orange glow -->
+
+    <!-- Neon Border Colors -->
+    <color name="eden_border">#333333</color> <!-- Subtle border -->
+    <color name="eden_border_light">#555555</color> <!-- Lighter border -->
+    <color name="eden_border_gradient_start">#FF0080</color> <!-- Neon magenta -->
+    <color name="eden_border_gradient_end">#00FFFF</color> <!-- Electric cyan -->
+
+    <!-- Retro Grid Pattern -->
+    <color name="eden_grid_line">#1A1A1A</color> <!-- Grid lines -->
+    <color name="eden_grid_line_accent">#FF0080</color> <!-- Neon grid lines -->
+    <color name="eden_grid_line_cyan">#00FFFF</color> <!-- Cyan grid lines -->
+
+    <!-- Synthwave Status Colors -->
+    <color name="eden_error">#FF0040</color> <!-- Neon red -->
+    <color name="eden_success">#00FF80</color> <!-- Neon green -->
+    <color name="eden_warning">#FFFF00</color> <!-- Neon yellow -->
+    <color name="eden_info">#0080FF</color> <!-- Electric blue -->
+
+    <!-- Overlay Colors -->
+    <color name="eden_overlay_dark">#CC000000</color>
+    <color name="eden_overlay_medium">#80000000</color>
+    <color name="eden_overlay_light">#33000000</color>
+
+    <!-- Neon Button Colors -->
+    <color name="eden_button_primary_bg">#FF0080</color> <!-- Neon magenta -->
+    <color name="eden_button_secondary_bg">#00000000</color> <!-- Transparent -->
+    <color name="eden_button_secondary_border">#00FFFF</color> <!-- Electric cyan -->
+
+    <!-- Synthwave Card Colors -->
+    <color name="eden_card_background">#0D0D0D</color> <!-- Almost black -->
+    <color name="eden_card_background_elevated">#1A1A1A</color> <!-- Elevated black -->
+
+    <!-- Retro Navigation Colors -->
+    <color name="eden_nav_background">#000000</color> <!-- Pure black -->
+    <color name="eden_nav_selected">#FF0080</color> <!-- Neon magenta -->
+    <color name="eden_nav_unselected">#666666</color> <!-- Gray -->
+
+    <!-- Transparent versions for gradients -->
+    <color name="eden_transparent">#00000000</color>
+    <color name="eden_primary_transparent">#00FF0080</color>
+    <color name="eden_secondary_transparent">#0000FFFF</color>
+
+    <!-- Additional Synthwave Colors -->
+    <color name="eden_scan_line">#33FF0080</color> <!-- Scan line effect -->
+    <color name="eden_hologram">#1A00FFFF</color> <!-- Holographic effect -->
+    <color name="eden_neon_outline">#FFFF0080</color> <!-- Neon outline -->
+
+</resources>

@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-
 package org.yuzu.yuzu_emu
 
 import android.content.DialogInterface
@@ -17,7 +16,6 @@ import android.widget.TextView
 import androidx.annotation.Keep
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import net.swiftzer.semver.SemVer
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.fragments.CoreErrorDialogFragment
@@ -28,7 +26,6 @@ import org.yuzu.yuzu_emu.model.InstallResult
 import org.yuzu.yuzu_emu.model.Patch
 import org.yuzu.yuzu_emu.model.GameVerificationResult
 import org.yuzu.yuzu_emu.network.NetPlayManager
-import java.io.File
 
 /**
  * Class which contains methods that interact
@@ -276,8 +273,7 @@ object NativeLibrary {
         val emulationActivity = sEmulationActivity.get()
         if (emulationActivity != null) {
             emulationActivity.addNetPlayMessages(type, message)
-        }
-        else {
+        } else {
             NetPlayManager.addNetPlayMessage(type, message)
         }
     }

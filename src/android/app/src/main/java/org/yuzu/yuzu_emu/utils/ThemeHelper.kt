@@ -23,10 +23,12 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 
 object ThemeHelper {
     const val SYSTEM_BAR_ALPHA = 0.9f
+
     // Listener that detects if the theme keys are being changed from the setting menu and recreates the activity
     private var listener: SharedPreferences.OnSharedPreferenceChangeListener? = null
-    private val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
+    private val preferences = PreferenceManager.getDefaultSharedPreferences(
+        YuzuApplication.appContext
+    )
 
     fun setTheme(activity: AppCompatActivity) {
         setThemeMode(activity)
@@ -52,6 +54,7 @@ object ThemeHelper {
     private fun getSelectedStaticThemeColor(): Int {
         val themeIndex = preferences.getInt(Settings.PREF_STATIC_THEME_COLOR, 0)
         val themes = arrayOf(
+            R.style.Theme_Eden_Main,
             R.style.Theme_Yuzu_Main_Violet,
             R.style.Theme_Yuzu_Main_Blue,
             R.style.Theme_Yuzu_Main_Cyan,
@@ -120,7 +123,11 @@ object ThemeHelper {
 
     fun ThemeChangeListener(activity: AppCompatActivity) {
         listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            val relevantKeys = listOf(Settings.PREF_STATIC_THEME_COLOR, Settings.PREF_THEME_MODE, Settings.PREF_BLACK_BACKGROUNDS)
+            val relevantKeys = listOf(
+                Settings.PREF_STATIC_THEME_COLOR,
+                Settings.PREF_THEME_MODE,
+                Settings.PREF_BLACK_BACKGROUNDS
+            )
             if (key in relevantKeys) {
                 activity.recreate()
             }

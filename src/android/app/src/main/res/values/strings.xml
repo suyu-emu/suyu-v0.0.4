@@ -112,8 +112,8 @@
     <string name="shader_backend">Shader Backend</string>
     <string name="shader_backend_description">Choose how shaders are compiled and translated for your GPU.</string>
     <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>string>
-    <string name="shader_backend_spirv">Spir-V</string>string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
 
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC Emulation</string>
@@ -230,7 +230,7 @@
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
-    <string name="welcome_description">Learn how to setup &lt;b>eden&lt;/b> and jump into emulation.</string>
+    <string name="welcome_description">Learn how to setup &lt;b>Eden&lt;/b> and jump into emulation.</string>
     <string name="get_started">Get started</string>
     <string name="keys">Keys</string>
     <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
@@ -271,7 +271,7 @@
     <string name="search_and_filter_games">Search and filter games</string>
     <string name="select_games_folder">Select games folder</string>
     <string name="manage_game_folders">Manage game folders</string>
-    <string name="select_games_folder_description">Allows eden to populate the games list</string>
+    <string name="select_games_folder_description">Allows Eden to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
     <string name="add_games_warning_help">https://yuzu-mirror.github.io/help/quickstart/#dumping-games</string>
@@ -290,7 +290,7 @@
     <string name="notifications_description">Grant the notification permission with the button below.</string>
     <string name="give_permission">Grant permission</string>
     <string name="notification_warning">Skip granting the notification permission?</string>
-    <string name="notification_warning_description">eden won\'t be able to notify you of important information.</string>
+    <string name="notification_warning_description">Eden won\'t be able to notify you of important information.</string>
     <string name="permission_denied">Permission denied</string>
     <string name="permission_denied_description">You denied this permission too many times and now you have to manually grant it in system settings.</string>
     <string name="about">About</string>
@@ -314,11 +314,11 @@
     <string name="search_recently_added">Recently added</string>
     <string name="search_retail">Retail</string>
     <string name="search_homebrew">Homebrew</string>
-    <string name="open_user_folder">Open eden folder</string>
-    <string name="open_user_folder_description">Manage eden\'s internal files</string>
+    <string name="open_user_folder">Open Eden folder</string>
+    <string name="open_user_folder_description">Manage Eden\'s internal files</string>
     <string name="theme_and_color_description">Modify the look of the app</string>
     <string name="no_file_manager">No file manager found</string>
-    <string name="notification_no_directory_link">Could not open eden directory</string>
+    <string name="notification_no_directory_link">Could not open Eden directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
     <string name="manage_save_data">Manage save data</string>
     <string name="manage_save_data_description">Save data found. Please select an option below.</string>
@@ -340,7 +340,7 @@
     <string name="firmware_installed_failure_description">Make sure the firmware nca files are at the root of the zip and try again.</string>
     <string name="firmware_uninstalled_failure">Firmware uninstallation failed</string>
     <string name="share_log">Share debug logs</string>
-    <string name="share_log_description">Share eden\'s log file to debug issues</string>
+    <string name="share_log_description">Share Eden\'s log file to debug issues</string>
     <string name="share_log_missing">No log file found</string>
     <string name="install_game_content">Install game content</string>
     <string name="install_game_content_description">Install game updates or DLC</string>
@@ -356,7 +356,7 @@
     <string name="install_game_content_help_link">https://yuzu-mirror.github.io/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Custom drivers not supported</string>
     <string name="custom_driver_not_supported_description">Custom driver loading isn\'t currently supported for this device.\nCheck this option again in the future to see if support was added!</string>
-    <string name="manage_yuzu_data">Manage eden data</string>
+    <string name="manage_yuzu_data">Manage Eden data</string>
     <string name="manage_yuzu_data_description">Import/export firmware, keys, user data, and more!</string>
     <string name="share_save_file">Share save file</string>
     <string name="export_save_failed">Failed to export save</string>
@@ -424,16 +424,16 @@
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="about_app_description">An open-source Switch emulator</string>
     <string name="contributors">Contributors</string>
-    <string name="contributors_description">Contributors who made eden for Android possible</string>
+    <string name="contributors_description">Contributors who made Eden for Android possible</string>
     <string name="contributors_link">https://git.eden-emu.dev/eden-emu/eden/activity/contributors</string>
-    <string name="licenses_description">Projects that make eden for Android possible</string>
+    <string name="licenses_description">Projects that make Eden for Android possible</string>
     <string name="build">Build</string>
     <string name="user_data">User data</string>
     <string name="user_data_description">Import/export all app data.\n\nWhen importing user data, all existing user data will be deleted!\n\nImporting data from Citron may cause issues. It\'s recommended to manually import all needed data.</string>
     <string name="exporting_user_data">Exporting user data…</string>
     <string name="importing_user_data">Importing user data…</string>
     <string name="import_user_data">Import user data</string>
-    <string name="invalid_yuzu_backup">Invalid eden backup</string>
+    <string name="invalid_yuzu_backup">Invalid Eden backup</string>
     <string name="user_data_export_success">User data exported successfully</string>
     <string name="user_data_import_success">User data imported successfully</string>
     <string name="user_data_export_cancelled">Export cancelled</string>
@@ -770,6 +770,45 @@
     <string name="loader_requires_firmware">Game Requires Firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href="https://yuzu-mirror.github.io/help/quickstart"> dump and install firmware</a>, or press "OK" to launch anyways.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Searching for game...</string>
+    <string name="game_not_found_for_title_id">Game not found for Title ID: %1$s</string>
+    <string name="custom_settings_failed_title">Custom Settings Failed</string>
+    <string name="custom_settings_failed_message">Failed to apply custom settings for %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Launch with Default Settings</string>
+    <string name="launch_cancelled">Launch cancelled</string>
+    <string name="custom_settings_failure_reasons">Unable to apply the requested settings. This may be due to missing GPU drivers or configuration issues.</string>
+    <string name="custom_settings_applied">Custom settings applied</string>
+    <string name="launching_game">Launching %1$s...</string>
+    <string name="failed_to_initialize_game">Failed to initialize game</string>
+    <string name="custom_intent_launch_message_with_settings">Would you like to launch %1$s with custom settings?</string>
+    <string name="custom_intent_launch_message">Would you like to launch %1$s?</string>
+    <string name="custom_intent_launch_title">Launch Game</string>
+    <string name="launch">Launch</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Failed to write configuration file</string>
+    <string name="config_apply_failed">Failed to apply configuration</string>
+    <string name="config_already_exists_title">Configuration Already Exists</string>
+    <string name="config_already_exists_message">Custom settings already exist for %1$s.\n\nWould you like to overwrite the existing configuration?\n\nThis action cannot be undone.</string>
+    <string name="config_exists_prompt">Checking for existing configuration...</string>
+    <string name="overwrite_cancelled">Overwrite cancelled</string>
+    <string name="checking_driver">Checking for custom driver: %1$s</string>
+    <string name="driver_unavailable">Custom driver not available for this device</string>
+    <string name="overwrite">Overwrite</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU Driver Missing</string>
+    <string name="missing_gpu_driver_message">The selected custom driver \"%s\" is not installed. Would you like to download and install it now?</string>
+    <string name="downloading_driver">Downloading driver...</string>
+    <string name="driver_installed">Driver installed successfully</string>
+    <string name="driver_installation_failed_title">Driver Installation Failed</string>
+    <string name="driver_installation_failed_message">Failed to install the GPU driver: %s</string>
+    <string name="driver_not_available_title">Driver Not Available</string>
+    <string name="driver_not_available_message">The selected driver is not available for download.</string>
+    <string name="driver_not_found">Required driver not installed: %s</string>
+    <string name="invalid_driver_file">Invalid driver file: %s</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Exit emulation</string>
     <string name="emulation_done">Done</string>
@@ -997,7 +1036,8 @@
 
     <!-- Static Themes -->
     <string name="static_theme_color">Theme Color</string>
-    <string name="violet">Violet (Default)</string>
+    <string name="eden_theme">Eden (Default)</string>
+    <string name="violet">Violet</string>
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
     <string name="red">Red</string>

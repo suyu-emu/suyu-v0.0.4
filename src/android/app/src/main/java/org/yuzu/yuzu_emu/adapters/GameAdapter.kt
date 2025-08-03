@@ -4,15 +4,10 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.content.DialogInterface
-import android.net.Uri
 import android.text.Html
-import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -37,7 +32,6 @@ import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.utils.GameIconUtils
 import org.yuzu.yuzu_emu.utils.ViewUtils.marquee
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
-import androidx.recyclerview.widget.RecyclerView
 import androidx.core.net.toUri
 import androidx.core.content.edit
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -94,7 +88,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
             }
             VIEW_TYPE_CAROUSEL -> {
                 val carouselBinding = holder.binding as CardGameCarouselBinding
-                //soothens transient flickering
+                // soothens transient flickering
                 carouselBinding.cardGameCarousel.scaleY = 0f
                 carouselBinding.cardGameCarousel.alpha = 0f
             }
@@ -103,9 +97,21 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         val binding = when (viewType) {
-            VIEW_TYPE_LIST -> CardGameListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            VIEW_TYPE_GRID -> CardGameGridBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            VIEW_TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            VIEW_TYPE_LIST -> CardGameListBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+            VIEW_TYPE_GRID -> CardGameGridBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+            VIEW_TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
             else -> throw IllegalArgumentException("Invalid view type")
         }
         return GameViewHolder(binding, viewType)
@@ -212,7 +218,10 @@ class GameAdapter(private val activity: AppCompatActivity) :
                                 .setIcon(GameIconUtils.getShortcutIcon(activity, game))
                                 .setIntent(game.launchIntent)
                                 .build()
-                        ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
+                        ShortcutManagerCompat.pushDynamicShortcut(
+                            YuzuApplication.appContext,
+                            shortcut
+                        )
                     }
                 }
 
@@ -232,7 +241,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                     .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
                         launch()
                     }
-                    .setNegativeButton(android.R.string.cancel) { _,_ -> }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
                     .show()
             } else {
                 launch()

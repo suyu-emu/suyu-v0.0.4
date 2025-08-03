@@ -4,7 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
     >
 
     <LinearLayout
@@ -21,9 +20,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
+            style="@style/SynthwaveText.Title"
             android:textSize="27sp"
-            android:textStyle="bold"
             />
 
         <Space
@@ -34,10 +32,11 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/view_button"
-            style="?attr/materialCardViewFilledStyle"
+            style="@style/EdenCard"
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
+            android:padding="8dp"
             >
 
             <ImageView
@@ -45,7 +44,7 @@
                 android:layout_height="18dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_eye"
-                app:tint="?attr/colorOnSurfaceVariant"
+                app:tint="?attr/colorSecondary"
                 />
 
         </com.google.android.material.card.MaterialCardView>
@@ -57,10 +56,11 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/filter_button"
-            style="?attr/materialCardViewFilledStyle"
+            style="@style/EdenCard"
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
+            android:padding="8dp"
             >
 
             <ImageView
@@ -80,10 +80,11 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/settings_button"
-            style="?attr/materialCardViewFilledStyle"
+            style="@style/EdenCard"
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
+            android:padding="8dp"
             >
 
             <ImageView
@@ -91,7 +92,7 @@
                 android:layout_height="18dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_settings"
-                app:tint="?attr/colorOnSurfaceVariant"
+                app:tint="?attr/colorTertiary"
                 />
 
         </com.google.android.material.card.MaterialCardView>
@@ -111,10 +112,11 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/search_background"
-            style="?attr/materialCardViewFilledStyle"
+            style="@style/EdenCard"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            app:cardCornerRadius="21dp"
+            app:cardCornerRadius="24dp"
+            android:padding="4dp"
             >
 
             <LinearLayout
@@ -132,7 +134,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="18dp"
                     android:src="@drawable/ic_search"
-                    app:tint="?attr/colorOnSurfaceVariant"
+                    app:tint="?attr/colorSecondary"
                     />
 
                 <EditText
@@ -144,6 +146,9 @@
                     android:inputType="text"
                     android:maxLines="1"
                     android:imeOptions="flagNoFullscreen"
+                    android:textColor="?attr/colorOnBackground"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:fontFamily="monospace"
                     />
 
             </LinearLayout>
@@ -186,6 +191,7 @@
                 android:gravity="center"
                 android:padding="@dimen/spacing_large"
                 android:text="@string/empty_gamelist"
+                android:textColor="?attr/colorOnBackground"
                 android:visibility="gone"
                 />
 
@@ -216,9 +222,9 @@
         app:icon="@drawable/ic_cartridge_outline"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:textColor="?attr/colorOnPrimaryContainer"
-        app:backgroundTint="?attr/colorPrimaryContainer"
-        app:iconTint="?attr/colorOnPrimaryContainer"
+        android:textColor="?attr/colorOnPrimary"
+        app:backgroundTint="?attr/colorPrimary"
+        app:iconTint="?attr/colorOnPrimary"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

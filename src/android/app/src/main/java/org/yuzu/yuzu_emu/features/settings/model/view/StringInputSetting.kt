@@ -6,7 +6,6 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import android.text.Editable
 import androidx.annotation.StringRes
 import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 

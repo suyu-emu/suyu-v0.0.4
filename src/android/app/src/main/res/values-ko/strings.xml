@@ -153,8 +153,8 @@
     <string name="shader_backend">셰이더 백엔드</string>
     <string name="shader_backend_description">셰이더 컴파일 방식 선택</string>
     <string name="shader_backend_glsl">GLSL</string>
-    <string name="shader_backend_glasm">GLASM</string>string>
-    <string name="shader_backend_spirv">Spir-V</string>string>
+    <string name="shader_backend_glasm">GLASM</string>
+    <string name="shader_backend_spirv">Spir-V</string>
     <!-- NVDEC Emulation -->
     <string name="nvdec_emulation">NVDEC 에뮬레이션</string>
     <string name="nvdec_emulation_description">비디오 디코딩 처리 방식 선택</string>

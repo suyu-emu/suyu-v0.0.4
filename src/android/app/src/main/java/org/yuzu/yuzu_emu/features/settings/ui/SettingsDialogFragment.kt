@@ -179,7 +179,13 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                         override fun afterTextChanged(s: Editable?) {
                             val isValid = validator(s.toString())
                             stringInputBinding.editTextLayout.isErrorEnabled = !isValid
-                            stringInputBinding.editTextLayout.error = if (isValid) null else requireContext().getString(item.errorId)
+                            stringInputBinding.editTextLayout.error = if (isValid) {
+                                null
+                            } else {
+                                requireContext().getString(
+                                    item.errorId
+                                )
+                            }
                         }
                     }
 

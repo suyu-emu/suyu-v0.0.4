@@ -4,7 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
     android:clipChildren="false"
     >
 
@@ -44,7 +43,10 @@
                 style="?attr/materialCardViewFilledStyle"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                app:cardCornerRadius="21dp"
+                app:cardCornerRadius="24dp"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp"
                 >
 
                 <LinearLayout
@@ -100,6 +102,9 @@
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@color/eden_surface_variant"
+            app:strokeColor="@color/eden_border"
+            app:strokeWidth="1dp"
             >
 
             <ImageView
@@ -123,6 +128,9 @@
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@color/eden_surface_variant"
+            app:strokeColor="@color/eden_border"
+            app:strokeWidth="1dp"
             >
 
             <ImageView
@@ -146,6 +154,9 @@
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@color/eden_surface_variant"
+            app:strokeColor="@color/eden_border"
+            app:strokeWidth="1dp"
             >
 
             <ImageView
@@ -210,9 +221,9 @@
         app:icon="@drawable/ic_cartridge_outline"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:textColor="?attr/colorOnPrimaryContainer"
-        app:backgroundTint="?attr/colorPrimaryContainer"
-        app:iconTint="?attr/colorOnPrimaryContainer"
+        android:textColor="?attr/colorOnPrimary"
+        app:backgroundTint="?attr/colorPrimary"
+        app:iconTint="?attr/colorOnPrimary"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -389,6 +389,7 @@
     </integer-array>
 
     <string-array name="staticThemeNames">
+        <item>@string/eden_theme</item>
         <item>@string/violet</item>
         <item>@string/blue</item>
         <item>@string/cyan</item>
@@ -409,6 +410,7 @@
         <item>6</item>
         <item>7</item>
         <item>8</item>
+        <item>9</item>
     </integer-array>
 
     <string-array name="anisoEntries">

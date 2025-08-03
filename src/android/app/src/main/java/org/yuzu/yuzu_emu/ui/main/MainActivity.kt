@@ -6,8 +6,6 @@ package org.yuzu.yuzu_emu.ui.main
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
-import android.provider.OpenableColumns
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
@@ -49,7 +47,6 @@ import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import androidx.core.content.edit
-import androidx.core.net.toFile
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -69,7 +66,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private var checkedFirmware = false
 
     private val requestBluetoothPermissionsLauncher =
-        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        registerForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
             val granted = permissions.entries.all { it.value }
             if (granted) {
                 // Permissions were granted.
@@ -111,9 +110,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-
         setContentView(binding.root)
-
 
         checkAndRequestBluetoothPermissions()
 
@@ -151,16 +148,20 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         binding.statusBarShade.setBackgroundColor(
             ThemeHelper.getColorWithOpacity(
                 MaterialColors.getColor(
-                    binding.root, com.google.android.material.R.attr.colorSurface
-                ), ThemeHelper.SYSTEM_BAR_ALPHA
+                    binding.root,
+                    com.google.android.material.R.attr.colorSurface
+                ),
+                ThemeHelper.SYSTEM_BAR_ALPHA
             )
         )
         if (InsetsHelper.getSystemGestureType(applicationContext) != InsetsHelper.GESTURE_NAVIGATION) {
             binding.navigationBarShade.setBackgroundColor(
                 ThemeHelper.getColorWithOpacity(
                     MaterialColors.getColor(
-                        binding.root, com.google.android.material.R.attr.colorSurface
-                    ), ThemeHelper.SYSTEM_BAR_ALPHA
+                        binding.root,
+                        com.google.android.material.R.attr.colorSurface
+                    ),
+                    ThemeHelper.SYSTEM_BAR_ALPHA
                 )
             )
         }
@@ -171,7 +172,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         homeViewModel.statusBarShadeVisible.collect(this) { showStatusBarShade(it) }
         homeViewModel.contentToInstall.collect(
-            this, resetState = { homeViewModel.setContentToInstall(null) }) {
+            this,
+            resetState = { homeViewModel.setContentToInstall(null) }
+        ) {
             if (it != null) {
                 installContent(it)
             }
@@ -181,7 +184,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
 
         homeViewModel.checkFirmware.collect(
-            this, resetState = { homeViewModel.setCheckFirmware(false) }) {
+            this,
+            resetState = { homeViewModel.setCheckFirmware(false) }
+        ) {
             if (it) checkFirmware()
         }
 
@@ -204,7 +209,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     PreferenceManager.getDefaultSharedPreferences(applicationContext).edit() {
                         putBoolean(Settings.PREF_SHOULD_SHOW_PRE_ALPHA_WARNING, false)
                     }
-                }).show(supportFragmentManager, MessageDialogFragment.TAG)
+                }
+            ).show(supportFragmentManager, MessageDialogFragment.TAG)
         }
     }
 
@@ -225,7 +231,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     private fun checkFirmware() {
         val resultCode: Int = NativeLibrary.verifyFirmware()
-        if (resultCode == 0) return;
+        if (resultCode == 0) return
 
         val resultString: String =
             resources.getStringArray(R.array.verifyFirmwareResults)[resultCode]
@@ -313,14 +319,17 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     fun processGamesDir(result: Uri, calledFromGameFragment: Boolean = false) {
         contentResolver.takePersistableUriPermission(
-            result, Intent.FLAG_GRANT_READ_URI_PERMISSION
+            result,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
         )
 
         val uriString = result.toString()
         val folder = gamesViewModel.folders.value.firstOrNull { it.uriString == uriString }
         if (folder != null) {
             Toast.makeText(
-                applicationContext, R.string.folder_already_added, Toast.LENGTH_SHORT
+                applicationContext,
+                R.string.folder_already_added,
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
@@ -343,16 +352,19 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     fun processKey(result: Uri, extension: String = "keys") {
         contentResolver.takePersistableUriPermission(
-            result, Intent.FLAG_GRANT_READ_URI_PERMISSION
+            result,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
         )
 
-        val resultCode: Int = NativeLibrary.installKeys(result.toString(), extension);
+        val resultCode: Int = NativeLibrary.installKeys(result.toString(), extension)
 
         if (resultCode == 0) {
             // TODO(crueter): It may be worth it to switch some of these Toasts to snackbars,
             // since most of it is foreground-only anyways.
             Toast.makeText(
-                applicationContext, R.string.keys_install_success, Toast.LENGTH_SHORT
+                applicationContext,
+                R.string.keys_install_success,
+                Toast.LENGTH_SHORT
             ).show()
 
             gamesViewModel.reloadGames(true)
@@ -384,12 +396,15 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         val cacheFirmwareDir = File("${cacheDir.path}/registered/")
 
         ProgressDialogFragment.newInstance(
-            this, R.string.firmware_installing
+            this,
+            R.string.firmware_installing
         ) { progressCallback, _ ->
             var messageToShow: Any
             try {
                 FileUtil.unzipToInternalStorage(
-                    result.toString(), cacheFirmwareDir, progressCallback
+                    result.toString(),
+                    cacheFirmwareDir,
+                    progressCallback
                 )
                 val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
                 val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
@@ -423,7 +438,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         val firmwarePath =
             File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
         ProgressDialogFragment.newInstance(
-            this, R.string.firmware_uninstalling
+            this,
+            R.string.firmware_uninstalling
         ) { progressCallback, _ ->
             var messageToShow: Any
             try {
@@ -459,12 +475,15 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
 
         ProgressDialogFragment.newInstance(
-            this@MainActivity, R.string.verifying_content, false
+            this@MainActivity,
+            R.string.verifying_content,
+            false
         ) { _, _ ->
             var updatesMatchProgram = true
             for (document in documents) {
                 val valid = NativeLibrary.doesUpdateMatchProgram(
-                    addonViewModel.game!!.programId, document.toString()
+                    addonViewModel.game!!.programId,
+                    document.toString()
                 )
                 if (!valid) {
                     updatesMatchProgram = false
@@ -480,14 +499,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     titleId = R.string.content_install_notice,
                     descriptionId = R.string.content_install_notice_description,
                     positiveAction = { homeViewModel.setContentToInstall(documents) },
-                    negativeAction = {})
+                    negativeAction = {}
+                )
             }
         }.show(supportFragmentManager, ProgressDialogFragment.TAG)
     }
 
     private fun installContent(documents: List<Uri>) {
         ProgressDialogFragment.newInstance(
-            this@MainActivity, R.string.installing_game_content
+            this@MainActivity,
+            R.string.installing_game_content
         ) { progressCallback, messageCallback ->
             var installSuccess = 0
             var installOverwrite = 0
@@ -495,11 +516,14 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             var error = 0
             documents.forEach {
                 messageCallback.invoke(FileUtil.getFilename(it))
-                when (InstallResult.from(
-                    NativeLibrary.installFileToNand(
-                        it.toString(), progressCallback
+                when (
+                    InstallResult.from(
+                        NativeLibrary.installFileToNand(
+                            it.toString(),
+                            progressCallback
+                        )
                     )
-                )) {
+                ) {
                     InstallResult.Success -> {
                         installSuccess += 1
                     }
@@ -525,7 +549,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (installSuccess > 0) {
                 installResult.append(
                     getString(
-                        R.string.install_game_content_success_install, installSuccess
+                        R.string.install_game_content_success_install,
+                        installSuccess
                     )
                 )
                 installResult.append(separator)
@@ -533,7 +558,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (installOverwrite > 0) {
                 installResult.append(
                     getString(
-                        R.string.install_game_content_success_overwrite, installOverwrite
+                        R.string.install_game_content_success_overwrite,
+                        installOverwrite
                     )
                 )
                 installResult.append(separator)
@@ -543,7 +569,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 installResult.append(separator)
                 installResult.append(
                     getString(
-                        R.string.install_game_content_failed_count, errorTotal
+                        R.string.install_game_content_failed_count,
+                        errorTotal
                     )
                 )
                 installResult.append(separator)
@@ -584,7 +611,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
 
         ProgressDialogFragment.newInstance(
-            this, R.string.exporting_user_data, true
+            this,
+            R.string.exporting_user_data,
+            true
         ) { progressCallback, _ ->
             val zipResult = FileUtil.zipFromInternalStorage(
                 File(DirectoryInitialization.userDirectory!!),
@@ -608,7 +637,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
 
             ProgressDialogFragment.newInstance(
-                this, R.string.importing_user_data
+                this,
+                R.string.importing_user_data
             ) { progressCallback, _ ->
                 val checkStream =
                     ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))

@@ -70,7 +70,6 @@ object NetPlayManager {
         val gameName: String
     )
 
-
     private var messageListener: ((Int, String) -> Unit)? = null
     private var adapterRefreshListener: ((Int, String) -> Unit)? = null
 
@@ -199,14 +198,12 @@ object NetPlayManager {
             }
         }
 
-
         Handler(Looper.getMainLooper()).post {
             if (!isChatOpen) {
                 // TODO(alekpop, crueter): Improve this, potentially a drawer at the top?
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
-
 
         messageListener?.invoke(type, msg)
         adapterRefreshListener?.invoke(type, msg)
@@ -218,19 +215,29 @@ object NetPlayManager {
             NetPlayStatus.LOST_CONNECTION -> context.getString(R.string.multiplayer_lost_connection)
             NetPlayStatus.NAME_COLLISION -> context.getString(R.string.multiplayer_name_collision)
             NetPlayStatus.MAC_COLLISION -> context.getString(R.string.multiplayer_mac_collision)
-            NetPlayStatus.CONSOLE_ID_COLLISION -> context.getString(R.string.multiplayer_console_id_collision)
+            NetPlayStatus.CONSOLE_ID_COLLISION -> context.getString(
+                R.string.multiplayer_console_id_collision
+            )
             NetPlayStatus.WRONG_VERSION -> context.getString(R.string.multiplayer_wrong_version)
             NetPlayStatus.WRONG_PASSWORD -> context.getString(R.string.multiplayer_wrong_password)
-            NetPlayStatus.COULD_NOT_CONNECT -> context.getString(R.string.multiplayer_could_not_connect)
+            NetPlayStatus.COULD_NOT_CONNECT -> context.getString(
+                R.string.multiplayer_could_not_connect
+            )
             NetPlayStatus.ROOM_IS_FULL -> context.getString(R.string.multiplayer_room_is_full)
             NetPlayStatus.HOST_BANNED -> context.getString(R.string.multiplayer_host_banned)
-            NetPlayStatus.PERMISSION_DENIED -> context.getString(R.string.multiplayer_permission_denied)
+            NetPlayStatus.PERMISSION_DENIED -> context.getString(
+                R.string.multiplayer_permission_denied
+            )
             NetPlayStatus.NO_SUCH_USER -> context.getString(R.string.multiplayer_no_such_user)
             NetPlayStatus.ALREADY_IN_ROOM -> context.getString(R.string.multiplayer_already_in_room)
-            NetPlayStatus.CREATE_ROOM_ERROR -> context.getString(R.string.multiplayer_create_room_error)
+            NetPlayStatus.CREATE_ROOM_ERROR -> context.getString(
+                R.string.multiplayer_create_room_error
+            )
             NetPlayStatus.HOST_KICKED -> context.getString(R.string.multiplayer_host_kicked)
             NetPlayStatus.UNKNOWN_ERROR -> context.getString(R.string.multiplayer_unknown_error)
-            NetPlayStatus.ROOM_UNINITIALIZED -> context.getString(R.string.multiplayer_room_uninitialized)
+            NetPlayStatus.ROOM_UNINITIALIZED -> context.getString(
+                R.string.multiplayer_room_uninitialized
+            )
             NetPlayStatus.ROOM_IDLE -> context.getString(R.string.multiplayer_room_idle)
             NetPlayStatus.ROOM_JOINING -> context.getString(R.string.multiplayer_room_joining)
             NetPlayStatus.ROOM_JOINED -> context.getString(R.string.multiplayer_room_joined)
@@ -247,7 +254,9 @@ object NetPlayManager {
                 msg
             )
 
-            NetPlayStatus.ADDRESS_UNBANNED -> context.getString(R.string.multiplayer_address_unbanned)
+            NetPlayStatus.ADDRESS_UNBANNED -> context.getString(
+                R.string.multiplayer_address_unbanned
+            )
             NetPlayStatus.CHAT_MESSAGE -> msg
             else -> ""
         }

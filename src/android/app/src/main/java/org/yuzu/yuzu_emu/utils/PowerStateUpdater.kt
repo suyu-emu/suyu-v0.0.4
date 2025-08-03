@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
 package org.yuzu.yuzu_emu.utils
 
 import android.os.Handler
@@ -17,7 +16,6 @@ object PowerStateUpdater {
     private var isStarted = false
 
     fun start() {
-
         if (isStarted) {
             return
         }

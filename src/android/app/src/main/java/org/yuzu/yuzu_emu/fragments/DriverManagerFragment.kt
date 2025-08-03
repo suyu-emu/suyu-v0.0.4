@@ -25,7 +25,6 @@ import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.DriverAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentDriverManagerBinding
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.model.Driver.Companion.toDriver
@@ -108,7 +107,9 @@ class DriverManagerFragment : Fragment() {
         }
 
         binding.buttonFetch.setOnClickListener {
-            binding.root.findNavController().navigate(R.id.action_driverManagerFragment_to_driverFetcherFragment)
+            binding.root.findNavController().navigate(
+                R.id.action_driverManagerFragment_to_driverFetcherFragment
+            )
         }
 
         binding.listDrivers.apply {

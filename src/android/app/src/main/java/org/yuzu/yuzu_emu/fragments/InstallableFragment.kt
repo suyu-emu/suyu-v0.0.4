@@ -134,10 +134,10 @@ class InstallableFragment : Fragment() {
                 install = { mainActivity.getFirmware.launch(arrayOf("application/zip")) }
             ),
             Installable(
-                 R.string.uninstall_firmware,
-                 R.string.uninstall_firmware_description,
-                 install = { mainActivity.uninstallFirmware() }
-             ),
+                R.string.uninstall_firmware,
+                R.string.uninstall_firmware_description,
+                install = { mainActivity.uninstallFirmware() }
+            ),
             Installable(
                 R.string.install_prod_keys,
                 R.string.install_prod_keys_description,

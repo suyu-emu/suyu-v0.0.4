@@ -21,7 +21,6 @@ import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.network.NetDataValidators
-import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
@@ -79,7 +78,7 @@ abstract class SettingsItem(
 
     val needsRuntimeGlobal: Boolean
         get() = NativeLibrary.isRunning() && !setting.global &&
-                !NativeConfig.isPerGameConfigLoaded()
+            !NativeConfig.isPerGameConfigLoaded()
 
     val clearable: Boolean
         get() = !setting.global && NativeConfig.isPerGameConfigLoaded()
@@ -516,7 +515,6 @@ abstract class SettingsItem(
                 )
             )
 
-
             put(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_VSYNC,
@@ -731,7 +729,7 @@ abstract class SettingsItem(
             val fastmem = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
                     BooleanSetting.FASTMEM.getBoolean() &&
-                            BooleanSetting.FASTMEM_EXCLUSIVES.getBoolean()
+                        BooleanSetting.FASTMEM_EXCLUSIVES.getBoolean()
 
                 override fun setBoolean(value: Boolean) {
                     BooleanSetting.FASTMEM.setBoolean(value)
@@ -746,7 +744,7 @@ abstract class SettingsItem(
                 override var global: Boolean
                     get() {
                         return BooleanSetting.FASTMEM.global &&
-                                BooleanSetting.FASTMEM_EXCLUSIVES.global
+                            BooleanSetting.FASTMEM_EXCLUSIVES.global
                     }
                     set(value) {
                         BooleanSetting.FASTMEM.global = value

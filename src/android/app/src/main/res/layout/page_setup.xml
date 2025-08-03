@@ -26,12 +26,10 @@
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_title"
-        style="@style/TextAppearance.Material3.DisplaySmall"
+        style="@style/SynthwaveText.Header"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:textAlignment="center"
-        android:textColor="?attr/colorOnSurface"
-        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/text_description"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,7 +39,7 @@
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_description"
-        style="@style/TextAppearance.Material3.TitleLarge"
+        style="@style/SynthwaveText.Body"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:textAlignment="center"
@@ -57,7 +55,7 @@
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_confirmation"
-        style="@style/TextAppearance.Material3.TitleLarge"
+        style="@style/SynthwaveText.Accent"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:paddingHorizontal="16dp"
@@ -66,7 +64,6 @@
         android:textSize="30sp"
         android:visibility="invisible"
         android:text="@string/step_complete"
-        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -76,6 +73,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_action"
+        style="@style/EdenButton.Primary"
         android:layout_width="wrap_content"
         android:layout_height="56dp"
         android:layout_marginTop="16dp"

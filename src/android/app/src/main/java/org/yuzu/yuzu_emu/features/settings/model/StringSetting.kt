@@ -13,7 +13,7 @@ enum class StringSetting(override val key: String) : AbstractStringSetting {
     DEVICE_NAME("device_name"),
 
     WEB_TOKEN("eden_token"),
-    WEB_USERNAME("eden_username"),
+    WEB_USERNAME("eden_username")
     ;
 
     override fun getString(needsGlobal: Boolean): String = NativeConfig.getString(key, needsGlobal)

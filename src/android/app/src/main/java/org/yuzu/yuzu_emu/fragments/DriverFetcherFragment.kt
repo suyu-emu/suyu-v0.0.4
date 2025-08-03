@@ -62,14 +62,14 @@ class DriverFetcherFragment : Fragment() {
         val path: String = "",
         val sort: Int = 0,
         val useTagName: Boolean = false,
-        val sortMode: SortMode = SortMode.Default,
+        val sortMode: SortMode = SortMode.Default
     )
 
     private val repoList: List<DriverRepo> = listOf(
         DriverRepo("Mr. Purple Turnip", "MrPurple666/purple-turnip", 0),
         DriverRepo("GameHub Adreno 8xx", "crueter/GameHub-8Elite-Drivers", 1),
         DriverRepo("KIMCHI Turnip", "K11MCH1/AdrenoToolsDrivers", 2, true, SortMode.PublishTime),
-        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3),
+        DriverRepo("Weab-Chan Freedreno", "Weab-chan/freedreno_turnip-CI", 3)
     )
 
     private val driverMap = listOf(
@@ -81,7 +81,7 @@ class DriverFetcherFragment : Fragment() {
         IntRange(700, 710) to "KIMCHI 25.2.0_r5",
         IntRange(711, 799) to "Mr. Purple T21",
         IntRange(800, 899) to "GameHub Adreno 8xx",
-        IntRange(900, Int.MAX_VALUE) to "Unsupported",
+        IntRange(900, Int.MAX_VALUE) to "Unsupported"
     )
 
     private lateinit var driverGroupAdapter: DriverGroupAdapter
@@ -124,7 +124,9 @@ class DriverFetcherFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentDriverFetcherBinding.inflate(inflater)
         binding.badgeRecommendedDriver.text = recommendedDriver
@@ -178,8 +180,12 @@ class DriverFetcherFragment : Fragment() {
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
-                            MaterialAlertDialogBuilder(requireActivity()).setTitle(getString(R.string.error_during_fetch))
-                                .setMessage("${getString(R.string.failed_to_fetch)} ${name}:\n${e.message}")
+                            MaterialAlertDialogBuilder(requireActivity()).setTitle(
+                                getString(R.string.error_during_fetch)
+                            )
+                                .setMessage(
+                                    "${getString(R.string.failed_to_fetch)} $name:\n${e.message}"
+                                )
                                 .setPositiveButton(getString(R.string.ok)) { dialog, _ -> dialog.cancel() }
                                 .show()
 
@@ -188,7 +194,9 @@ class DriverFetcherFragment : Fragment() {
                     }
 
                     val group = DriverGroup(
-                        name, releases, sort
+                        name,
+                        releases,
+                        sort
                     )
 
                     synchronized(driverGroups) {
@@ -223,7 +231,9 @@ class DriverFetcherFragment : Fragment() {
         binding.listDrivers.updateMargins(left = leftInsets, right = rightInsets)
 
         binding.listDrivers.updatePadding(
-            bottom = barInsets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_bottom_list_fab)
+            bottom = barInsets.bottom + resources.getDimensionPixelSize(
+                R.dimen.spacing_bottom_list_fab
+            )
         )
 
         windowInsets
@@ -239,11 +249,13 @@ class DriverFetcherFragment : Fragment() {
         var artifacts: List<Artifact> = ArrayList(),
         var prerelease: Boolean = false,
         var latest: Boolean = false,
-        var publishTime: LocalDateTime = LocalDateTime.now(),
+        var publishTime: LocalDateTime = LocalDateTime.now()
     ) {
         companion object {
             fun fromJsonArray(
-                jsonString: String, useTagName: Boolean, sortMode: SortMode
+                jsonString: String,
+                useTagName: Boolean,
+                sortMode: SortMode
             ): ArrayList<Release> {
                 val mapper = jacksonObjectMapper()
 
@@ -310,7 +322,16 @@ class DriverFetcherFragment : Fragment() {
                         }
                     }
 
-                    return Release(tagName, titleName, title, body, artifacts, prerelease, false, localTime)
+                    return Release(
+                        tagName,
+                        titleName,
+                        title,
+                        body,
+                        artifacts,
+                        prerelease,
+                        false,
+                        localTime
+                    )
                 } catch (e: Exception) {
                     // TODO: handle malformed input.
                     e.printStackTrace()
@@ -324,6 +345,6 @@ class DriverFetcherFragment : Fragment() {
     data class DriverGroup(
         val name: String,
         val releases: ArrayList<Release>,
-        val sort: Int,
+        val sort: Int
     )
 }

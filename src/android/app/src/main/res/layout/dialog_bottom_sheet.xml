@@ -6,14 +6,15 @@
     android:orientation="vertical"
     android:gravity="center"
     app:strokeWidth="0dp"
-    app:cardCornerRadius="24dp">
+    app:cardCornerRadius="24dp"
+    android:background="@drawable/theme_dialog_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="?colorSurface">
+        android:background="@android:color/transparent">
 
         <View
             android:layout_width="128dp"

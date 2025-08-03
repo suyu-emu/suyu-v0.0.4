@@ -6,7 +6,7 @@
     android:id="@+id/coordinator_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="?android:attr/colorBackground">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container"

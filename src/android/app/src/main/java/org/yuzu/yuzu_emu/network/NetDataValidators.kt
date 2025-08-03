@@ -27,7 +27,7 @@ object NetDataValidators {
 
     fun roomVisibility(s: String, context: Context): Boolean {
         if (s != context.getString(R.string.multiplayer_public_visibility)) {
-            return true;
+            return true
         }
 
         return token()

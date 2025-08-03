@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.yuzu.yuzu_emu.ui
 
 import android.content.Context
@@ -53,7 +56,7 @@ class CarouselRecyclerView @JvmOverloads constructor(
 
     var flingMultiplier: Float = 1f
 
-    public var pendingScrollAfterReload: Boolean = false
+    var pendingScrollAfterReload: Boolean = false
 
     var useCustomDrawingOrder: Boolean = false
         set(value) {
@@ -76,7 +79,11 @@ class CarouselRecyclerView @JvmOverloads constructor(
 
     private fun getLayoutManagerCenter(layoutManager: RecyclerView.LayoutManager): Int {
         return if (layoutManager is LinearLayoutManager) {
-            calculateCenter(layoutManager.width, layoutManager.paddingStart, layoutManager.paddingEnd)
+            calculateCenter(
+                layoutManager.width,
+                layoutManager.paddingStart,
+                layoutManager.paddingEnd
+            )
         } else {
             width / 2
         }
@@ -121,13 +128,13 @@ class CarouselRecyclerView @JvmOverloads constructor(
 
     fun shapingFunction(x: Float, option: Int = 0): Float {
         return when (option) {
-            0 -> 1f //Off
-            1 -> 1f - x  //linear descending
-            2 -> (1f - x) * (1f - x) //Ease out
-            3 -> if (x < 0.05f) 1f else (1f-x) * 0.8f
-            4 -> kotlin.math.cos(x * Math.PI).toFloat() //Cosine
-            5 -> kotlin.math.cos( (1.5f * x).coerceIn(0f, 1f) * Math.PI).toFloat() //Cosine 1.5x trimmed
-            else -> 1f //Default to Off
+            0 -> 1f // Off
+            1 -> 1f - x // linear descending
+            2 -> (1f - x) * (1f - x) // Ease out
+            3 -> if (x < 0.05f) 1f else (1f - x) * 0.8f
+            4 -> kotlin.math.cos(x * Math.PI).toFloat() // Cosine
+            5 -> kotlin.math.cos((1.5f * x).coerceIn(0f, 1f) * Math.PI).toFloat() // Cosine 1.5x trimmed
+            else -> 1f // Default to Off
         }
     }
 
@@ -143,20 +150,36 @@ class CarouselRecyclerView @JvmOverloads constructor(
         val center = getRecyclerViewCenter()
         val distance = abs(getChildDistanceToCenter(child))
         val internalBorderScale = resources.getFraction(R.fraction.carousel_bordercards_scale, 1, 1)
-        val borderScale = preferences.getFloat(CAROUSEL_BORDERCARDS_SCALE, internalBorderScale).coerceIn(0f, 1f)
+        val borderScale = preferences.getFloat(CAROUSEL_BORDERCARDS_SCALE, internalBorderScale).coerceIn(
+            0f,
+            1f
+        )
 
         val shapeInput = (distance / center).coerceIn(0f, 1f)
         val internalShapeSetting = resources.getInteger(R.integer.carousel_cards_scaling_shape)
-        val scalingShapeSetting = preferences.getInt(CAROUSEL_CARDS_SCALING_SHAPE, internalShapeSetting)
+        val scalingShapeSetting = preferences.getInt(
+            CAROUSEL_CARDS_SCALING_SHAPE,
+            internalShapeSetting
+        )
         val shapedScaling = shapingFunction(shapeInput, scalingShapeSetting)
         val scale = (borderScale + (1f - borderScale) * shapedScaling).coerceIn(0f, 1f)
 
         val maxDistance = width / 2f
         val alphaInput = (distance / maxDistance).coerceIn(0f, 1f)
-        val internalBordersAlpha = resources.getFraction(R.fraction.carousel_bordercards_alpha, 1, 1)
-        val borderAlpha = preferences.getFloat(CAROUSEL_BORDERCARDS_ALPHA, internalBordersAlpha).coerceIn(0f, 1f)
+        val internalBordersAlpha = resources.getFraction(
+            R.fraction.carousel_bordercards_alpha,
+            1,
+            1
+        )
+        val borderAlpha = preferences.getFloat(CAROUSEL_BORDERCARDS_ALPHA, internalBordersAlpha).coerceIn(
+            0f,
+            1f
+        )
         val internalAlphaShapeSetting = resources.getInteger(R.integer.carousel_cards_alpha_shape)
-        val alphaShapeSetting = preferences.getInt(CAROUSEL_CARDS_ALPHA_SHAPE, internalAlphaShapeSetting)
+        val alphaShapeSetting = preferences.getInt(
+            CAROUSEL_CARDS_ALPHA_SHAPE,
+            internalAlphaShapeSetting
+        )
         val shapedAlpha = shapingFunction(alphaInput, alphaShapeSetting)
         val alpha = (borderAlpha + (1f - borderAlpha) * shapedAlpha).coerceIn(0f, 1f)
 
@@ -185,16 +208,33 @@ class CarouselRecyclerView @JvmOverloads constructor(
             val insets = rootWindowInsets
             val bottomInset = insets?.getInsets(android.view.WindowInsets.Type.systemBars())?.bottom ?: 0
             val internalFactor = resources.getFraction(R.fraction.carousel_card_size_factor, 1, 1)
-            val userFactor = preferences.getFloat(CAROUSEL_CARD_SIZE_FACTOR, internalFactor).coerceIn(0f, 1f)
+            val userFactor = preferences.getFloat(CAROUSEL_CARD_SIZE_FACTOR, internalFactor).coerceIn(
+                0f,
+                1f
+            )
             val cardSize = (userFactor * (height - bottomInset)).toInt()
             gameAdapter?.setCardSize(cardSize)
 
-            val internalOverlapFactor = resources.getFraction(R.fraction.carousel_overlap_factor, 1, 1)
-            overlapFactor = preferences.getFloat(CAROUSEL_OVERLAP_FACTOR, internalOverlapFactor).coerceIn(0f, 1f)
+            val internalOverlapFactor = resources.getFraction(
+                R.fraction.carousel_overlap_factor,
+                1,
+                1
+            )
+            overlapFactor = preferences.getFloat(CAROUSEL_OVERLAP_FACTOR, internalOverlapFactor).coerceIn(
+                0f,
+                1f
+            )
             overlapPx = (cardSize * overlapFactor).toInt()
 
-            val internalFlingMultiplier = resources.getFraction(R.fraction.carousel_fling_multiplier, 1, 1)
-            flingMultiplier = preferences.getFloat(CAROUSEL_FLING_MULTIPLIER, internalFlingMultiplier).coerceIn(1f, 5f)
+            val internalFlingMultiplier = resources.getFraction(
+                R.fraction.carousel_fling_multiplier,
+                1,
+                1
+            )
+            flingMultiplier = preferences.getFloat(
+                CAROUSEL_FLING_MULTIPLIER,
+                internalFlingMultiplier
+            ).coerceIn(1f, 5f)
 
             gameAdapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
@@ -290,20 +330,28 @@ class CarouselRecyclerView @JvmOverloads constructor(
             View.FOCUS_LEFT -> {
                 if (position > 0) {
                     val now = System.currentTimeMillis()
-                    val repeatDetected = (now - lastFocusSearchTime) < resources.getInteger(R.integer.carousel_focus_search_repeat_threshold_ms)
+                    val repeatDetected = (now - lastFocusSearchTime) < resources.getInteger(
+                        R.integer.carousel_focus_search_repeat_threshold_ms
+                    )
                     lastFocusSearchTime = now
-                    if (!repeatDetected) { //ensures the first run
+                    if (!repeatDetected) { // ensures the first run
                         val offset = focused.width - overlapPx
                         smoothScrollBy(-offset, 0)
                     }
-                    findViewHolderForAdapterPosition(position - 1)?.itemView ?: super.focusSearch(focused, direction)
+                    findViewHolderForAdapterPosition(position - 1)?.itemView ?: super.focusSearch(
+                        focused,
+                        direction
+                    )
                 } else {
                     focused
                 }
             }
             View.FOCUS_RIGHT -> {
                 if (position < itemCount - 1) {
-                    findViewHolderForAdapterPosition(position + 1)?.itemView ?: super.focusSearch(focused, direction)
+                    findViewHolderForAdapterPosition(position + 1)?.itemView ?: super.focusSearch(
+                        focused,
+                        direction
+                    )
                 } else {
                     focused
                 }
@@ -341,7 +389,10 @@ class CarouselRecyclerView @JvmOverloads constructor(
 
     inner class OverlappingDecoration(private val overlap: Int) : ItemDecoration() {
         override fun getItemOffsets(
-            outRect: Rect, view: View, parent: RecyclerView, state: State
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: State
         ) {
             val position = parent.getChildAdapterPosition(view)
             if (position > 0) {
@@ -378,12 +429,17 @@ class CarouselRecyclerView @JvmOverloads constructor(
             return layoutManager.findViewByPosition(getClosestChildPosition())
         }
 
-        //NEEDED: fixes ghost movement when snapping, but breaks inertial scrolling
+        // NEEDED: fixes ghost movement when snapping, but breaks inertial scrolling
         override fun calculateDistanceToFinalSnap(
             layoutManager: RecyclerView.LayoutManager,
             targetView: View
         ): IntArray? {
-            if (layoutManager !is LinearLayoutManager) return super.calculateDistanceToFinalSnap(layoutManager, targetView)
+            if (layoutManager !is LinearLayoutManager) {
+                return super.calculateDistanceToFinalSnap(
+                    layoutManager,
+                    targetView
+                )
+            }
             val out = IntArray(2)
             out[0] = getChildDistanceToCenter(targetView).toInt()
             out[1] = 0
@@ -399,10 +455,13 @@ class CarouselRecyclerView @JvmOverloads constructor(
             if (layoutManager !is LinearLayoutManager) return RecyclerView.NO_POSITION
             val closestPosition = this@CarouselRecyclerView.getClosestChildPosition()
             val internalMaxFling = resources.getInteger(R.integer.carousel_max_fling_count)
-            val maxFling = preferences.getInt(CAROUSEL_MAX_FLING_COUNT, internalMaxFling).coerceIn(1, 10)
+            val maxFling = preferences.getInt(CAROUSEL_MAX_FLING_COUNT, internalMaxFling).coerceIn(
+                1,
+                10
+            )
             val rawFlingCount = if (velocityX == 0) 0 else velocityX / 2000
             val flingCount = rawFlingCount.coerceIn(-maxFling, maxFling)
-            var targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
+            val targetPos = (closestPosition + flingCount).coerceIn(0, layoutManager.itemCount - 1)
             return targetPos
         }
     }

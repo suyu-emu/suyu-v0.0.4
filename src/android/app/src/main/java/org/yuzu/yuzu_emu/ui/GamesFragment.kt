@@ -7,20 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -111,7 +104,7 @@ class GamesFragment : Fragment() {
         }
 
         gameAdapter = GameAdapter(
-            requireActivity() as AppCompatActivity,
+            requireActivity() as AppCompatActivity
         )
 
         applyGridGamesBinding()
@@ -238,7 +231,9 @@ class GamesFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) {
-            (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(gamesViewModel.lastScrollPosition)
+            (binding.gridGames as? CarouselRecyclerView)?.restoreScrollState(
+                gamesViewModel.lastScrollPosition
+            )
         }
     }
 
@@ -389,7 +384,9 @@ class GamesFragment : Fragment() {
 
         val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())
         if (searchTerm.isEmpty()) {
-            ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(filteredList)
+            ((binding.gridGames as? RecyclerView)?.adapter as? GameAdapter)?.submitList(
+                filteredList
+            )
             gamesViewModel.setFilteredGames(filteredList)
             return
         }
@@ -464,7 +461,9 @@ class GamesFragment : Fragment() {
             // Always set margin as original + insets
             mlpHeader.leftMargin = (originalHeaderLeftMargin ?: 0) + leftInset
             mlpHeader.rightMargin = (originalHeaderRightMargin ?: 0) + rightInset
-            mlpHeader.topMargin = (originalHeaderTopMargin ?: 0) + topInset + resources.getDimensionPixelSize(R.dimen.spacing_med)
+            mlpHeader.topMargin = (originalHeaderTopMargin ?: 0) + topInset + resources.getDimensionPixelSize(
+                R.dimen.spacing_med
+            )
             binding.header.layoutParams = mlpHeader
 
             binding.noticeText.updatePadding(bottom = spacingNavigation)

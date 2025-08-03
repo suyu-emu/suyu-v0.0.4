@@ -78,7 +78,6 @@ class SetupFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
-
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
@@ -129,7 +128,7 @@ class SetupFragment : Fragment() {
                         0,
                         {
                             if (NotificationManagerCompat.from(requireContext())
-                                    .areNotificationsEnabled()
+                                .areNotificationsEnabled()
                             ) {
                                 StepState.COMPLETE
                             } else {

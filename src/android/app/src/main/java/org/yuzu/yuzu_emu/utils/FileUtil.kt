@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -197,7 +200,9 @@ object FileUtil {
      */
     fun getFilename(uri: Uri): String {
         if (uri.scheme == "file") {
-            return uri.lastPathSegment?.takeIf { it.isNotEmpty() } ?: throw IOException("Invalid file URI: $uri")
+            return uri.lastPathSegment?.takeIf { it.isNotEmpty() } ?: throw IOException(
+                "Invalid file URI: $uri"
+            )
         }
 
         val resolver = YuzuApplication.appContext.contentResolver
