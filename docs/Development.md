@@ -33,18 +33,44 @@ Pull requests are only to be merged by core developers when properly tested and 
 [desktop] feat: implement firmware install from ZIP
 [hle] stub fw20 functions
 [core] test: raise maximum CPU cores to 6
+[cmake, core] Unbreak FreeBSD Building Process
 ```
 
-The level of namespacing is generally left to the committer's choice, but we never recommend going more than two levels *except* in `hle`, in which case you may go as many as four levels depending on the specificity of your changes. Developers are permitted to change namespaces at will. Commits within PRs are not required to be namespaced, but it is highly recommended.
+- The level of namespacing is generally left to the committer's choice.
+- However, we never recommend going more than two levels *except* in `hle`, in which case you may go as many as four levels depending on the specificity of your changes.
+- Ocassionally, up to two namespaces may be provided for more clarity.
+  * Changes that affect the entire project (sans CMake changes) should be namespaced as `meta`.
+- Maintainers are permitted to change namespaces at will.
+- Commits within PRs are not required to be namespaced, but it is highly recommended.
 
-# Building speedup
+# IDE setup
+
+## VSCode
+Copy this to `.vscode/settings.json`, get CMake tools and it should be ready to build:
+```json
+{
+    "editor.tabSize": 4,
+    "files.watcherExclude": {
+        "**/target": true
+    },
+    "files.associations": {
+      "*.inc": "cpp"
+    },
+    "git.enableCommitSigning": true,
+    "git.alwaysSignOff": true
+}
+```
+
+You may additionally need the `Qt Extension Pack` extension if building Qt.
+
+# Build speedup
 
 If you have an HDD, use ramdisk (build in RAM):
 ```sh
 sudo mkdir /tmp/ramdisk
 sudo chmod 777 /tmp/ramdisk
-# about 10GB needed
-sudo mount -t tmpfs -o size=10G myramdisk /tmp/ramdisk
+# about 8GB needed
+sudo mount -t tmpfs -o size=8G myramdisk /tmp/ramdisk
 cmake -B /tmp/ramdisk
 cmake --build /tmp/ramdisk -- -j32
 sudo umount /tmp/ramdisk
@@ -88,7 +114,7 @@ For more information type `info gdb` and read [the man page](https://man7.org/li
 Since going into the past can be tricky (especially due to the dependencies from the project being lost thru time). This should "restore" the URLs for the respective submodules.
 
 ```sh
-#!/bin/sh
+#!/bin/sh -e
 cat > .gitmodules <<EOF
 [submodule "enet"]
 	path = externals/enet
