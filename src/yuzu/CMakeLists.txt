@@ -495,6 +495,7 @@ if (YUZU_ROOM)
 endif()
 
 # Extra deps
+add_subdirectory(externals)
 target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
 
 create_target_directory_groups(yuzu)

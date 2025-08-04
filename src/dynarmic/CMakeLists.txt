@@ -20,6 +20,7 @@ option(DYNARMIC_IGNORE_ASSERTS "Ignore asserts" OFF)
 option(DYNARMIC_TESTS_USE_UNICORN "Enable fuzzing tests against unicorn" OFF)
 option(DYNARMIC_USE_LLVM "Support disassembly of jitted x86_64 code using LLVM" OFF)
 option(DYNARMIC_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
+option(DYNARMIC_INSTALL "Install dynarmic headers and CMake files" OFF)
 option(DYNARMIC_USE_BUNDLED_EXTERNALS "Use all bundled externals (useful when e.g. cross-compiling)" OFF)
 option(DYNARMIC_WARNINGS_AS_ERRORS "Warnings as errors" ${MASTER_PROJECT})
 if (NOT DEFINED DYNARMIC_FRONTENDS)
@@ -184,26 +185,28 @@ endif()
 #
 # Install
 #
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
+if (DYNARMIC_INSTALL)
+    include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
 
-install(TARGETS dynarmic EXPORT dynarmicTargets)
-install(EXPORT dynarmicTargets
-    NAMESPACE dynarmic::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/dynarmic"
-)
+    install(TARGETS dynarmic EXPORT dynarmicTargets)
+    install(EXPORT dynarmicTargets
+        NAMESPACE dynarmic::
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/dynarmic"
+    )
 
-configure_package_config_file(CMakeModules/dynarmicConfig.cmake.in
-    dynarmicConfig.cmake
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/dynarmic"
-)
-write_basic_package_version_file(dynarmicConfigVersion.cmake
-    COMPATIBILITY SameMajorVersion
-)
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/dynarmicConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/dynarmicConfigVersion.cmake"
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/dynarmic"
-)
+    configure_package_config_file(CMakeModules/dynarmicConfig.cmake.in
+        dynarmicConfig.cmake
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/dynarmic"
+    )
+    write_basic_package_version_file(dynarmicConfigVersion.cmake
+        COMPATIBILITY SameMajorVersion
+    )
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/dynarmicConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/dynarmicConfigVersion.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/dynarmic"
+    )
 
-install(DIRECTORY src/dynarmic TYPE INCLUDE FILES_MATCHING PATTERN "*.h")
+    install(DIRECTORY src/dynarmic TYPE INCLUDE FILES_MATCHING PATTERN "*.h")
+endif()

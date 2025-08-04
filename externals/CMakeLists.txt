@@ -330,6 +330,9 @@ CPMAddPackage(
     CUSTOM_CACHE_KEY "df2e"
 )
 
+set(VulkanUtilityLibraries_SOURCE_DIR "${VulkanUtilityLibraries_SOURCE_DIR}" PARENT_SCOPE)
+set(VulkanUtilityLibraries_ADDED "${VulkanUtilityLibraries_ADDED}" PARENT_SCOPE)
+
 # SPIRV-Tools
 if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     CPMAddPackage(
@@ -555,16 +558,4 @@ endif()
 if (ARCHITECTURE_arm64 AND NOT TARGET sse2neon)
     add_library(sse2neon INTERFACE)
     target_include_directories(sse2neon INTERFACE sse2neon)
-endif()
-
-# QuaZip
-if (ENABLE_QT)
-    set(CPM_USE_LOCAL_PACKAGES ON)
-
-    CPMAddPackage(
-        NAME QuaZip-Qt6
-        VERSION 1.3
-        URL "https://github.com/crueter/quazip-qt6/archive/f838774d63.zip"
-        CUSTOM_CACHE_KEY "f838"
-    )
 endif()

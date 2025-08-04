@@ -423,9 +423,9 @@ endif()
 
 if (ENABLE_LIBUSB)
     if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-    	find_package(libusb MODULE)
+        find_package(libusb MODULE)
     else()
-    	find_package(libusb 1.0.24 MODULE)
+        find_package(libusb 1.0.24 MODULE)
     endif()
 endif()
 

@@ -23,10 +23,6 @@ if (MSVC)
 endif()
 target_link_libraries(yuzu-room PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-if(UNIX AND NOT APPLE)
-    install(TARGETS yuzu-room)
-endif()
-
 if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(yuzu-room PRIVATE precompiled_headers.h)
 endif()
