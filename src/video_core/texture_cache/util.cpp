@@ -346,7 +346,7 @@ template <u32 GOB_EXTENT>
     if (!IsBlockLinearSizeCompatible(new_info, info, base.level, 0, strict_size)) {
         return std::nullopt;
     }
-    const u32 mip_depth = std::max(1U, new_info.size.depth << base.level);
+    const u32 mip_depth = AdjustMipSize(new_info.size.depth, base.level);
     if (mip_depth < info.size.depth + base.layer) {
         return std::nullopt;
     }
@@ -431,8 +431,14 @@ template <u32 GOB_EXTENT>
         return std::nullopt;
     }
     const SubresourceExtent resources = new_info.resources;
-    s32 layers = 1;
-    if (info.type != ImageType::e3D) {
+    s32 layers;
+    if (info.type == ImageType::e3D) {
+        const u32 mip_depth = AdjustMipSize(info.size.depth, base->level);
+        if (mip_depth < new_info.size.depth + base->layer) {
+            return std::nullopt;
+        }
+        layers = 1;
+    } else {
         layers = std::max(resources.layers, info.resources.layers + base->layer);
     }
     return OverlapResult{
@@ -1219,10 +1225,10 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
         return std::nullopt;
     }
     if (existing.type == ImageType::e3D) {
-        // const u32 mip_depth = std::max(1U, existing.size.depth << base->level);
-        // if (mip_depth < candidate.size.depth + base->layer) {
-        //     return std::nullopt;
-        // }
+        const u32 mip_depth = AdjustMipSize(existing.size.depth, base->level);
+        if (mip_depth < candidate.size.depth + base->layer) {
+            return std::nullopt;
+        }
     } else if (existing.resources.layers < candidate.resources.layers + base->layer) {
         return std::nullopt;
     }
@@ -1250,7 +1256,7 @@ bool IsSubCopy(const ImageInfo& candidate, const ImageBase& image, GPUVAddr cand
         return false;
     }
     if (existing.type == ImageType::e3D) {
-        const u32 mip_depth = std::max(1U, existing.size.depth << base->level);
+        const u32 mip_depth = AdjustMipSize(existing.size.depth, base->level);
         if (mip_depth < candidate.size.depth + base->layer) {
             return false;
         }
