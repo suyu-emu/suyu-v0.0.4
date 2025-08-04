@@ -95,7 +95,7 @@
     <string name="use_sync_core">Synchronize Core Speed</string>
     <string name="use_sync_core_description">Synchronize the core tick speed to the maximum speed percentage to improve performance without altering the game\'s actual speed.</string>
     <string name="use_lru_cache">Enable LRU Cache</string>
-    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games have issues with it, notably TotK 1.2.1, so disable if the game doesn\'t boot or crashes randomly.</string>
+    <string name="use_lru_cache_description">Enable or disable the Least Recently Used (LRU) cache, increasing performance by saving CPU process usage. Some games may see issues with this setting, so disable it if the game doesn\'t boot or crashes randomly.</string>
     <string name="use_fast_cpu_time">Fast CPU Time</string>
     <string name="use_fast_cpu_time_description">Forces the emulated CPU to run at a higher clock, reducing certain FPS limiters. This option is hacky and may cause issues, and weaker CPUs may see reduced performance.</string>
     <string name="custom_cpu_ticks">Custom CPU Ticks</string>

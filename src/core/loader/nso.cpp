@@ -166,9 +166,12 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     const auto& code = codeset.CodeSegment();
     auto* patch = patches ? &patches->operator[](patch_index) : nullptr;
     if (patch && !load_into_process) {
+        //Set module ID using build_id from the NSO header
+        patch->SetModuleID(nso_header.build_id);
         // Patch SVCs and MRS calls in the guest code
         while (!patch->PatchText(program_image, code)) {
             patch = &patches->emplace_back();
+            patch->SetModuleID(nso_header.build_id);  // In case the patcher is changed for big modules, the new patcher should also have the build_id
         }
     } else if (patch) {
         // Relocate code patch and copy to the program_image.
