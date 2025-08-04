@@ -1,0 +1,20 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 16c6092..9e75548 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,7 +8,14 @@ project(adrenotools LANGUAGES CXX C)
+ 
+ set(GEN_INSTALL_TARGET OFF CACHE BOOL "")
+ 
+-add_subdirectory(lib/linkernsbypass)
++include(CPM)
++set(CPM_USE_LOCAL_PACKAGES OFF)
++
++CPMAddPackage(
++    NAME linkernsbypass
++    URL "https://github.com/bylaws/liblinkernsbypass/archive/aa3975893d.zip"
++    URL_HASH SHA512=43d3d146facb7ec99d066a9b8990369ab7b9eec0d5f9a67131b0a0744fde0af27d884ca1f2a272cd113718a23356530ed97703c8c0659c4c25948d50c106119e
++)
+ 
+ set(LIB_SOURCES src/bcenabler.cpp
+                 src/driver.cpp

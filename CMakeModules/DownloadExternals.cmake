@@ -6,36 +6,52 @@
 #   remote_path: path to the file to download, relative to the remote repository root
 #   prefix_var: name of a variable which will be set with the path to the extracted contents
 set(CURRENT_MODULE_DIR ${CMAKE_CURRENT_LIST_DIR})
-function(download_bundled_external remote_path lib_name prefix_var)
+function(download_bundled_external remote_path lib_name cpm_key prefix_var)
+    set(package_base_url "https://github.com/eden-emulator/")
+    set(package_repo "no_platform")
+    set(package_extension "no_platform")
 
-set(package_base_url "https://github.com/eden-emulator/")
-set(package_repo "no_platform")
-set(package_extension "no_platform")
-if (WIN32)
-    set(package_repo "ext-windows-bin/raw/master/")
-    set(package_extension ".7z")
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    set(package_repo "ext-linux-bin/raw/master/")
-    set(package_extension ".tar.xz")
-elseif (ANDROID)
-    set(package_repo "ext-android-bin/raw/master/")
-    set(package_extension ".tar.xz")
-else()
-    message(FATAL_ERROR "No package available for this platform")
-endif()
-set(package_url "${package_base_url}${package_repo}")
+    if (WIN32 OR FORCE_WIN_ARCHIVES)
+        set(CACHE_KEY "windows")
+        set(package_repo "ext-windows-bin/raw/master/")
+        set(package_extension ".7z")
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        set(CACHE_KEY "linux")
+        set(package_repo "ext-linux-bin/raw/master/")
+        set(package_extension ".tar.xz")
+    elseif (ANDROID)
+        set(CACHE_KEY "android")
+        set(package_repo "ext-android-bin/raw/master/")
+        set(package_extension ".tar.xz")
+    else()
+        message(FATAL_ERROR "No package available for this platform")
+    endif()
+    set(package_url "${package_base_url}${package_repo}")
+    set(full_url ${package_url}${remote_path}${lib_name}${package_extension})
 
-set(prefix "${CMAKE_BINARY_DIR}/externals/${lib_name}")
-if (NOT EXISTS "${prefix}")
-    message(STATUS "Downloading binaries for ${lib_name}...")
-    file(DOWNLOAD
-        ${package_url}${remote_path}${lib_name}${package_extension}
-        "${CMAKE_BINARY_DIR}/externals/${lib_name}${package_extension}" SHOW_PROGRESS)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${CMAKE_BINARY_DIR}/externals/${lib_name}${package_extension}"
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
-endif()
-message(STATUS "Using bundled binaries at ${prefix}")
-set(${prefix_var} "${prefix}" PARENT_SCOPE)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    CPMAddPackage(
+        NAME ${cpm_key}
+        URL ${full_url}
+        DOWNLOAD_ONLY YES
+        CUSTOM_CACHE_KEY ${CACHE_KEY}
+    )
+
+    set(${prefix_var} "${${cpm_key}_SOURCE_DIR}" PARENT_SCOPE)
+    message(STATUS "Using bundled binaries at ${${cpm_key}_SOURCE_DIR}")
+endfunction()
+
+function(download_win_archives)
+    set(FORCE_WIN_ARCHIVES ON)
+    set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
+
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" "")
+
+    # TODO(crueter): separate handling for arm64
+    set(SDL2_VER "SDL2-2.32.8")
+    download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" "")
+    set(FORCE_WIN_ARCHIVES OFF)
 endfunction()
 
 function(download_moltenvk_external platform version)

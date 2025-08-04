@@ -468,7 +468,7 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
 void PatchPhiNodes(IR::Program& program, EmitContext& ctx) {
     auto inst{program.blocks.front()->begin()};
     size_t block_index{0};
-    ctx.PatchDeferredPhi([&](size_t phi_arg) {
+    ctx.PatchDeferredPhi([&](size_t phi_arg, Id parent) -> std::pair<Id, Id> {
         if (phi_arg == 0) {
             ++inst;
             if (inst == program.blocks[block_index]->end() ||
@@ -479,7 +479,7 @@ void PatchPhiNodes(IR::Program& program, EmitContext& ctx) {
                 } while (inst->GetOpcode() != IR::Opcode::Phi);
             }
         }
-        return ctx.Def(inst->Arg(phi_arg));
+        return {ctx.Def(inst->Arg(phi_arg)), parent};
     });
 }
 } // Anonymous namespace

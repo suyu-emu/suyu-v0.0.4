@@ -8,6 +8,8 @@ project(yuzu)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+
 include(DownloadExternals)
 include(CMakeDependentOption)
 include(CTest)
@@ -53,21 +55,21 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
+    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
 else()
-	option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
+    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
+    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
+    option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
 else()
-	option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
+    option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
@@ -75,6 +77,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
 endif()
+
+option(YUZU_USE_SYSTEM_OPUS "Use the system Opus library if available" ON)
+
+option(YUZU_USE_SYSTEM_HTTPLIB "Use the system cpp-httplib if available" ON)
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -91,12 +97,14 @@ option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
+    option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
 else()
-	option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
+    option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 endif()
 
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
+
+option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
@@ -109,14 +117,14 @@ CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-	option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
+    option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
 else()
-	option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
+    option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
 endif()
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
-option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
+option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 
 option(YUZU_ENABLE_PORTABLE "Allow yuzu to enable portable mode if a user folder is found in the CWD" ON)
 
@@ -208,7 +216,17 @@ if (YUZU_USE_BUNDLED_VCPKG)
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
     endif()
 
-    include(${CMAKE_SOURCE_DIR}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake)
+    include(CPM)
+    set(CPM_USE_LOCAL_PACKAGES OFF)
+
+    CPMAddPackage(
+        DOWNLOAD_ONLY YES
+        GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git"
+        GIT_TAG "ea2a964f93"
+        CUSTOM_CACHE_KEY "ea2a"
+    )
+
+    include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
 elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
     # Disable manifest mode (use vcpkg classic mode) when using a custom vcpkg installation
     option(VCPKG_MANIFEST_MODE "")
@@ -328,7 +346,7 @@ if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
+if (ARCHITECTURE_arm64 AND (ANDROID OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
     set(HAS_NCE 1)
     add_definitions(-DHAS_NCE=1)
 endif()
@@ -385,27 +403,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # =======================================================================
 
 # Enforce the search mode of non-required packages for better and shorter failure messages
+# TODO(crueter): some of these should be converted to CPM
 find_package(enet 1.3 MODULE)
 find_package(fmt 8 REQUIRED)
 find_package(LLVM MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
-find_package(Opus 1.3 MODULE)
 find_package(RenderDoc MODULE)
 find_package(SimpleIni MODULE)
 find_package(stb MODULE)
-find_package(VulkanMemoryAllocator CONFIG)
 find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
 
-if (NOT YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-    find_package(VulkanHeaders 1.3.274 REQUIRED)
-endif()
-
-if (NOT YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES)
-    find_package(VulkanUtilityLibraries REQUIRED)
-endif()
-
+# TODO(crueter): Work around this
 if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
@@ -417,34 +427,6 @@ if (ENABLE_LIBUSB)
     else()
     	find_package(libusb 1.0.24 MODULE)
     endif()
-endif()
-
-if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    find_package(xbyak 7 CONFIG)
-endif()
-
-if (ARCHITECTURE_arm64)
-    find_package(oaknut 2.0.1 CONFIG)
-endif()
-
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    find_package(dynarmic 6.4.0 CONFIG)
-endif()
-
-if (ENABLE_CUBEB)
-    find_package(cubeb CONFIG)
-endif()
-
-if (USE_DISCORD_PRESENCE)
-    find_package(DiscordRPC MODULE)
-endif()
-
-if (ENABLE_WEB_SERVICE)
-    find_package(cpp-jwt 1.4 CONFIG)
-endif()
-
-if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    find_package(httplib 0.12 MODULE COMPONENTS OpenSSL)
 endif()
 
 if (YUZU_TESTS)
@@ -471,7 +453,7 @@ if (ENABLE_SDL2)
         endif()
 
         if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} SDL2_PREFIX)
+            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX)
         endif()
 
         set(SDL2_FOUND YES)
@@ -496,7 +478,23 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
-set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
+# This function should be passed a list of all files in a target. It will automatically generate
+# file groups following the directory hierarchy, so that the layout of the files in IDEs matches the
+# one in the filesystem.
+function(create_target_directory_groups target_name)
+    # Place any files that aren't in the source list in a separate group so that they don't get in
+    # the way.
+    source_group("Other Files" REGULAR_EXPRESSION ".")
+
+    get_target_property(target_sources "${target_name}" SOURCES)
+
+    foreach(file_name IN LISTS target_sources)
+        get_filename_component(dir_name "${file_name}" PATH)
+        # Group names use '\' as a separator even though the entire rest of CMake uses '/'...
+        string(REPLACE "/" "\\" group_name "${dir_name}")
+        source_group("${group_name}" FILES "${file_name}")
+    endforeach()
+endfunction()
 
 add_subdirectory(externals)
 
@@ -508,7 +506,7 @@ if (ENABLE_QT)
         if (NOT Qt6_DIR)
             set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries like C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
         endif()
-		list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
+        list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
 
     find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
@@ -569,6 +567,7 @@ if (UNIX AND NOT APPLE AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBVA libva)
 endif()
+
 if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
     #find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
@@ -585,7 +584,7 @@ endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
     set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} BREAKPAD_PREFIX)
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX)
 
     set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
     set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
@@ -670,24 +669,6 @@ endif()
 
 # Include source code
 # ===================
-
-# This function should be passed a list of all files in a target. It will automatically generate
-# file groups following the directory hierarchy, so that the layout of the files in IDEs matches the
-# one in the filesystem.
-function(create_target_directory_groups target_name)
-    # Place any files that aren't in the source list in a separate group so that they don't get in
-    # the way.
-    source_group("Other Files" REGULAR_EXPRESSION ".")
-
-    get_target_property(target_sources "${target_name}" SOURCES)
-
-    foreach(file_name IN LISTS target_sources)
-        get_filename_component(dir_name "${file_name}" PATH)
-        # Group names use '\' as a separator even though the entire rest of CMake uses '/'...
-        string(REPLACE "/" "\\" group_name "${dir_name}")
-        source_group("${group_name}" FILES "${file_name}")
-    endforeach()
-endfunction()
 
 # Adjustments for MSVC + Ninja
 if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")

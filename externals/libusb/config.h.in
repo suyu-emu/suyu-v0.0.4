@@ -93,3 +93,7 @@
 
 /* Oldest Windows version supported */
 #define WINVER 0x0501
+
+#cmakedefine PLATFORM_POSIX
+
+#cmakedefine PLATFORM_WINDOWS

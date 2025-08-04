@@ -1,60 +1,6 @@
 # SPDX-FileCopyrightText: 2014 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-[submodule "cubeb"]
-	path = externals/cubeb
-	url = https://github.com/mozilla/cubeb.git
 [submodule "libusb"]
 	path = externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
-[submodule "Vulkan-Headers"]
-	path = externals/Vulkan-Headers
-	url = https://github.com/KhronosGroup/Vulkan-Headers.git
-[submodule "xbyak"]
-	path = externals/xbyak
-	url = https://github.com/Lizzie841/xbyak.git
-[submodule "opus"]
-	path = externals/opus
-	url = https://github.com/xiph/opus.git
-[submodule "cpp-httplib"]
-	path = externals/cpp-httplib
-	url = https://github.com/yhirose/cpp-httplib.git
-[submodule "vcpkg"]
-	path = externals/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
-[submodule "cpp-jwt"]
-	path = externals/cpp-jwt
-	url = https://github.com/arun11299/cpp-jwt.git
-[submodule "VulkanMemoryAllocator"]
-	path = externals/VulkanMemoryAllocator
-	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-[submodule "Vulkan-Utility-Libraries"]
-	path = externals/Vulkan-Utility-Libraries
-	url = https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git
-[submodule "externals/boost-headers"]
-	path = externals/boost-headers
-	url = https://github.com/boostorg/headers.git
-[submodule "externals/dynarmic/externals/catch"]
-	path = externals/dynarmic/externals/catch
-	url = https://github.com/catchorg/Catch2.git
-[submodule "externals/dynarmic/externals/fmt"]
-	path = externals/dynarmic/externals/fmt
-	url = https://github.com/fmtlib/fmt.git
-[submodule "externals/dynarmic/externals/unordered_dense"]
-	path = externals/dynarmic/externals/unordered_dense
-	url = https://github.com/Lizzie841/unordered_dense.git
-[submodule "externals/dynarmic/externals/zycore-c"]
-	path = externals/dynarmic/externals/zycore-c
-	url = https://github.com/zyantific/zycore-c.git
-[submodule "externals/dynarmic/externals/zydis"]
-	path = externals/dynarmic/externals/zydis
-	url = https://github.com/zyantific/zydis.git
-[submodule "externals/nx_tzdb/tzdb_to_nx/externals/tz/tz"]
-	path = externals/nx_tzdb/tzdb_to_nx/externals/tz/tz
-	url = https://github.com/eggert/tz.git
-[submodule "externals/sirit/externals/SPIRV-Headers"]
-	path = externals/sirit/externals/SPIRV-Headers
-	url = https://github.com/KhronosGroup/SPIRV-Headers.git
-[submodule "externals/SPIRV-Tools"]
-	path = externals/SPIRV-Tools
-	url = https://github.com/KhronosGroup/SPIRV-Tools.git

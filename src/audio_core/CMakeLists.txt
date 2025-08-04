@@ -226,7 +226,9 @@ else()
     )
 endif()
 
-target_link_libraries(audio_core PUBLIC common core Opus::opus)
+target_include_directories(audio_core PRIVATE ${OPUS_INCLUDE_DIRS})
+target_link_libraries(audio_core PUBLIC common core opus)
+
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(audio_core PRIVATE dynarmic::dynarmic)
 endif()
@@ -237,7 +239,7 @@ if (ENABLE_CUBEB)
         sink/cubeb_sink.h
     )
 
-    target_link_libraries(audio_core PRIVATE cubeb::cubeb)
+    target_link_libraries(audio_core PRIVATE cubeb)
     target_compile_definitions(audio_core PRIVATE -DHAVE_CUBEB=1)
 endif()
 

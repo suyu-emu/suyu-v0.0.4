@@ -26,6 +26,7 @@ if (NOT WIN32 AND NOT ANDROID)
         NAME ffmpeg
         URL "https://github.com/ffmpeg/ffmpeg/archive/9c1294eadd.zip"
         URL_HASH SHA512=2076e4cb843787c44718c70c4452517273dbc963ef98442f343762ade6c7b9f78555ae9b50a7c628844a15d8cb5e866c04e2f1acfb77093cea4fbc9edf3ad21a
+        CUSTOM_CACHE_KEY "9c12"
     )
 
     set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
@@ -240,8 +241,8 @@ elseif(ANDROID)
     else()
         message(FATAL_ERROR "Unsupported architecture for Android FFmpeg")
     endif()
-    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
+
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH)
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/lib" CACHE PATH "Path to FFmpeg library directory" FORCE)
@@ -265,8 +266,8 @@ elseif(ANDROID)
 elseif(WIN32)
     # Use yuzu FFmpeg binaries
     set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
-    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
+
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH)
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)

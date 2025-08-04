@@ -235,6 +235,12 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         )
     endif()
 
+    if(UNIX)
+        set(PLATFORM_POSIX TRUE)
+    else()
+        set(PLATFORM_WINDOWS TRUE)
+    endif()
+
     include(CheckFunctionExists)
     include(CheckIncludeFiles)
     include(CheckTypeSize)
