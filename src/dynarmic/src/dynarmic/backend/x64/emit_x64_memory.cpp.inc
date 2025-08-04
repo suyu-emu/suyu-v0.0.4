@@ -28,24 +28,27 @@ std::optional<AxxEmitX64::DoNotFastmemMarker> AxxEmitX64::ShouldFastmem(AxxEmitC
 
 FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
     const auto iter = fastmem_patch_info.find(rip_);
-    if (iter != fastmem_patch_info.end()) {
-        FakeCall result{
-            .call_rip = iter->second.callback,
-            .ret_rip = iter->second.resume_rip,
-        };
-        if (iter->second.recompile) {
-            const auto marker = iter->second.marker;
-            do_not_fastmem.insert(marker);
-            InvalidateBasicBlocks({std::get<0>(marker)});
-        }
-        return result;
-    } else {
+
+    if (iter == fastmem_patch_info.end()) {
         fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n", rip_);
         fmt::print("Segfault wasn't at a fastmem patch location!\n");
         fmt::print("Now dumping code.......\n\n");
         Common::DumpDisassembledX64((void*)(rip_ & ~u64(0xFFF)), 0x1000);
         ASSERT_FALSE("iter != fastmem_patch_info.end()");
     }
+
+    FakeCall result{
+        .call_rip = iter->second.callback,
+        .ret_rip = iter->second.resume_rip,
+    };
+
+    if (iter->second.recompile) {
+        const auto marker = iter->second.marker;
+        do_not_fastmem.insert(marker);
+        InvalidateBasicBlocks({std::get<0>(marker)});
+    }
+
+    return result;
 }
 
 template<std::size_t bitsize, auto callback>
@@ -92,7 +95,7 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
 
     if (fastmem_marker) {
         // Use fastmem
-        bool require_abort_handling = false;
+        bool require_abort_handling;
         const auto src_ptr = EmitFastmemVAddr(code, ctx, *abort, vaddr, require_abort_handling);
 
         const auto location = EmitReadMemoryMov<bitsize>(code, value_idx, src_ptr, ordered);
@@ -179,7 +182,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
 
     if (fastmem_marker) {
         // Use fastmem
-        bool require_abort_handling = false;
+        bool require_abort_handling;
         const auto dest_ptr = EmitFastmemVAddr(code, ctx, *abort, vaddr, require_abort_handling);
 
         const auto location = EmitWriteMemoryMov<bitsize>(code, dest_ptr, value_idx, ordered);
@@ -227,7 +230,7 @@ void AxxEmitX64::EmitExclusiveReadMemory(AxxEmitContext& ctx, IR::Inst* inst) {
 
         ctx.reg_alloc.HostCall(inst, {}, args[1]);
 
-        code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(1));
+        code.mov(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(1));
         code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
         if (ordered) {
             code.mfence();
@@ -245,7 +248,7 @@ void AxxEmitX64::EmitExclusiveReadMemory(AxxEmitContext& ctx, IR::Inst* inst) {
         ctx.reg_alloc.EndOfAllocScope();
         ctx.reg_alloc.HostCall(nullptr);
 
-        code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(1));
+        code.mov(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(1));
         code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
         ctx.reg_alloc.AllocStackSpace(16 + ABI_SHADOW_SPACE);
         code.lea(code.ABI_PARAM3, ptr[rsp + ABI_SHADOW_SPACE]);
@@ -285,9 +288,9 @@ void AxxEmitX64::EmitExclusiveWriteMemory(AxxEmitContext& ctx, IR::Inst* inst) {
     Xbyak::Label end;
 
     code.mov(code.ABI_RETURN, u32(1));
-    code.cmp(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
+    code.cmp(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.je(end);
-    code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
+    code.mov(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.mov(code.ABI_PARAM1, reinterpret_cast<u64>(&conf));
     if constexpr (bitsize != 128) {
         using T = mcl::unsigned_integer_of_size<bitsize>;
@@ -355,7 +358,7 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
 
     EmitExclusiveLock(code, conf, tmp, tmp2.cvt32());
 
-    code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(1));
+    code.mov(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(1));
     code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
     code.mov(qword[tmp], vaddr);
 
@@ -439,14 +442,14 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
 
     code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorAddressPointer(conf.global_monitor, conf.processor_id)));
     code.mov(status, u32(1));
-    code.cmp(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
+    code.cmp(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.je(*end, code.T_NEAR);
     code.cmp(qword[tmp], vaddr);
     code.jne(*end, code.T_NEAR);
 
     EmitExclusiveTestAndClear(code, conf, vaddr, tmp, rax);
 
-    code.mov(code.byte[code.ABI_JIT_PTR + offsetof(AxxJitState, exclusive_state)], u8(0));
+    code.mov(code.byte[r15 + offsetof(AxxJitState, exclusive_state)], u8(0));
     code.mov(tmp, mcl::bit_cast<u64>(GetExclusiveMonitorValuePointer(conf.global_monitor, conf.processor_id)));
 
     if constexpr (bitsize == 128) {
@@ -501,6 +504,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
         }
 
         code.setnz(status.cvt8());
+
         ctx.deferred_emits.emplace_back([=, this] {
             code.L(*abort);
             code.call(wrapped_fn);
@@ -514,21 +518,24 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
                     conf.recompile_on_exclusive_fastmem_failure,
                 });
 
-            code.xor_(status.cvt32(), status.cvt32()); //dep-break
-            code.test(code.al, code.al);
+            code.cmp(al, 0);
             code.setz(status.cvt8());
+            code.movzx(status.cvt32(), status.cvt8());
             code.jmp(*end, code.T_NEAR);
         });
     } else {
         code.call(wrapped_fn);
-        code.xor_(status.cvt32(), status.cvt32()); //dep-break
-        code.test(code.al, code.al);
+        code.cmp(al, 0);
         code.setz(status.cvt8());
+        code.movzx(status.cvt32(), status.cvt8());
     }
 
     code.L(*end);
+
     EmitExclusiveUnlock(code, conf, tmp, eax);
+
     ctx.reg_alloc.DefineValue(inst, status);
+
     EmitCheckMemoryAbort(ctx, inst);
 }
 

@@ -554,31 +554,32 @@ void GDBStub::HandleVCont(std::string_view command, std::vector<DebuggerAction>&
     }
 }
 
+constexpr std::array<std::pair<const char*, Kernel::Svc::MemoryState>, 22> MemoryStateNames{{
+    {"----- Free ------", Kernel::Svc::MemoryState::Free},
+    {"Io               ", Kernel::Svc::MemoryState::Io},
+    {"Static           ", Kernel::Svc::MemoryState::Static},
+    {"Code             ", Kernel::Svc::MemoryState::Code},
+    {"CodeData         ", Kernel::Svc::MemoryState::CodeData},
+    {"Normal           ", Kernel::Svc::MemoryState::Normal},
+    {"Shared           ", Kernel::Svc::MemoryState::Shared},
+    {"AliasCode        ", Kernel::Svc::MemoryState::AliasCode},
+    {"AliasCodeData    ", Kernel::Svc::MemoryState::AliasCodeData},
+    {"Ipc              ", Kernel::Svc::MemoryState::Ipc},
+    {"Stack            ", Kernel::Svc::MemoryState::Stack},
+    {"ThreadLocal      ", Kernel::Svc::MemoryState::ThreadLocal},
+    {"Transferred      ", Kernel::Svc::MemoryState::Transferred},
+    {"SharedTransferred", Kernel::Svc::MemoryState::SharedTransferred},
+    {"SharedCode       ", Kernel::Svc::MemoryState::SharedCode},
+    {"Inaccessible     ", Kernel::Svc::MemoryState::Inaccessible},
+    {"NonSecureIpc     ", Kernel::Svc::MemoryState::NonSecureIpc},
+    {"NonDeviceIpc     ", Kernel::Svc::MemoryState::NonDeviceIpc},
+    {"Kernel           ", Kernel::Svc::MemoryState::Kernel},
+    {"GeneratedCode    ", Kernel::Svc::MemoryState::GeneratedCode},
+    {"CodeOut          ", Kernel::Svc::MemoryState::CodeOut},
+    {"Coverage         ", Kernel::Svc::MemoryState::Coverage},
+}};
+
 static constexpr const char* GetMemoryStateName(Kernel::Svc::MemoryState state) {
-    constexpr std::array<std::pair<const char*, Kernel::Svc::MemoryState>, 22> MemoryStateNames{{
-        {"----- Free ------", Kernel::Svc::MemoryState::Free},
-        {"Io               ", Kernel::Svc::MemoryState::Io},
-        {"Static           ", Kernel::Svc::MemoryState::Static},
-        {"Code             ", Kernel::Svc::MemoryState::Code},
-        {"CodeData         ", Kernel::Svc::MemoryState::CodeData},
-        {"Normal           ", Kernel::Svc::MemoryState::Normal},
-        {"Shared           ", Kernel::Svc::MemoryState::Shared},
-        {"AliasCode        ", Kernel::Svc::MemoryState::AliasCode},
-        {"AliasCodeData    ", Kernel::Svc::MemoryState::AliasCodeData},
-        {"Ipc              ", Kernel::Svc::MemoryState::Ipc},
-        {"Stack            ", Kernel::Svc::MemoryState::Stack},
-        {"ThreadLocal      ", Kernel::Svc::MemoryState::ThreadLocal},
-        {"Transferred      ", Kernel::Svc::MemoryState::Transferred},
-        {"SharedTransferred", Kernel::Svc::MemoryState::SharedTransferred},
-        {"SharedCode       ", Kernel::Svc::MemoryState::SharedCode},
-        {"Inaccessible     ", Kernel::Svc::MemoryState::Inaccessible},
-        {"NonSecureIpc     ", Kernel::Svc::MemoryState::NonSecureIpc},
-        {"NonDeviceIpc     ", Kernel::Svc::MemoryState::NonDeviceIpc},
-        {"Kernel           ", Kernel::Svc::MemoryState::Kernel},
-        {"GeneratedCode    ", Kernel::Svc::MemoryState::GeneratedCode},
-        {"CodeOut          ", Kernel::Svc::MemoryState::CodeOut},
-        {"Coverage         ", Kernel::Svc::MemoryState::Coverage},
-    }};
     for (size_t i = 0; i < MemoryStateNames.size(); i++) {
         if (std::get<1>(MemoryStateNames[i]) == state) {
             return std::get<0>(MemoryStateNames[i]);
@@ -610,7 +611,13 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
 
     auto* process = GetProcess();
     auto& page_table = process->GetPageTable();
-    if (command_str == "fastmem" || command_str == "get fastmem") {
+
+    const char* commands = "Commands:\n"
+                           "  get fastmem\n"
+                           "  get info\n"
+                           "  get mappings\n";
+
+    if (command_str == "get fastmem") {
         if (Settings::IsFastmemEnabled()) {
             const auto& impl = page_table.GetImpl();
             const auto region = reinterpret_cast<uintptr_t>(impl.fastmem_arena);
@@ -623,7 +630,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
         } else {
             reply = "Fastmem is not enabled.\n";
         }
-    } else if (command_str == "info" || command_str == "get info") {
+    } else if (command_str == "get info") {
         auto modules = Core::FindModules(process);
 
         reply = fmt::format("Process:     {:#x} ({})\n"
@@ -641,7 +648,8 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
             GetInteger(page_table.GetHeapRegionStart()),
             GetInteger(page_table.GetHeapRegionStart()) + page_table.GetHeapRegionSize() - 1,
             GetInteger(page_table.GetAliasCodeRegionStart()),
-            GetInteger(page_table.GetAliasCodeRegionStart()) + page_table.GetAliasCodeRegionSize() - 1,
+            GetInteger(page_table.GetAliasCodeRegionStart()) + page_table.GetAliasCodeRegionSize() -
+                1,
             GetInteger(page_table.GetStackRegionStart()),
             GetInteger(page_table.GetStackRegionStart()) + page_table.GetStackRegionSize() - 1);
 
@@ -649,7 +657,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
             reply += fmt::format("  {:#012x} - {:#012x} {}\n", vaddr,
                                  GetInteger(Core::GetModuleEnd(process, vaddr)), name);
         }
-    } else if (command_str == "mappings" || command_str == "get mappings") {
+    } else if (command_str == "get mappings") {
         reply = "Mappings:\n";
         VAddr cur_addr = 0;
 
@@ -667,11 +675,15 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
                     std::numeric_limits<u64>::max()) {
                 const char* state = GetMemoryStateName(svc_mem_info.state);
                 const char* perm = GetMemoryPermissionString(svc_mem_info);
+
                 const char l = True(svc_mem_info.attribute & MemoryAttribute::Locked) ? 'L' : '-';
-                const char i = True(svc_mem_info.attribute & MemoryAttribute::IpcLocked) ? 'I' : '-';
-                const char d = True(svc_mem_info.attribute & MemoryAttribute::DeviceShared) ? 'D' : '-';
+                const char i =
+                    True(svc_mem_info.attribute & MemoryAttribute::IpcLocked) ? 'I' : '-';
+                const char d =
+                    True(svc_mem_info.attribute & MemoryAttribute::DeviceShared) ? 'D' : '-';
                 const char u = True(svc_mem_info.attribute & MemoryAttribute::Uncached) ? 'U' : '-';
-                const char p =True(svc_mem_info.attribute & MemoryAttribute::PermissionLocked) ? 'P' : '-';
+                const char p =
+                    True(svc_mem_info.attribute & MemoryAttribute::PermissionLocked) ? 'P' : '-';
 
                 reply += fmt::format(
                     "  {:#012x} - {:#012x} {} {} {}{}{}{}{} [{}, {}]\n", svc_mem_info.base_address,
@@ -686,8 +698,11 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
 
             cur_addr = next_address;
         }
+    } else if (command_str == "help") {
+        reply = commands;
     } else {
-        reply += "Commands: fastmem, info, mappings\n";
+        reply = "Unknown command.\n";
+        reply += commands;
     }
 
     std::span<const u8> reply_span{reinterpret_cast<u8*>(&reply.front()), reply.size()};

@@ -22,7 +22,7 @@ void PrintVerboseDebuggingOutputLine(RegisterData& reg_data, HostLoc hostloc, si
         } else if (HostLocIsXMM(hostloc)) {
             return reg_data.xmms[HostLocToXmm(hostloc).getIdx()];
         } else if (HostLocIsSpill(hostloc)) {
-            return (*reg_data.spill)[size_t(hostloc) - size_t(HostLoc::FirstSpill)];
+            return (*reg_data.spill)[static_cast<size_t>(hostloc) - static_cast<size_t>(HostLoc::FirstSpill)];
         } else {
             fmt::print("invalid hostloc! ");
             return {0, 0};

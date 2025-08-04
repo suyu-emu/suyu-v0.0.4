@@ -62,7 +62,7 @@ void EmitVectorSaturatedNative(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
         code.test(overflow.cvt32(), overflow.cvt32());
     }
     code.setnz(overflow);
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
+    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -104,7 +104,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
 
         code.ktestb(k1, k1);
         code.setnz(overflow);
-        code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
+        code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
         ctx.reg_alloc.DefineValue(inst, result);
         return;
@@ -160,7 +160,7 @@ void EmitVectorSignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* in
         code.test(overflow.cvt32(), overflow.cvt32());
     }
     code.setnz(overflow);
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
+    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
     if (code.HasHostFeature(HostFeature::SSE41)) {
         FCODE(blendvp)(result, tmp);
@@ -204,7 +204,7 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
 
         code.ktestb(k1, k1);
         code.setnz(overflow);
-        code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
+        code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
         ctx.reg_alloc.DefineValue(inst, result);
         return;
@@ -263,7 +263,7 @@ void EmitVectorUnsignedSaturated(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
     }
 
     code.setnz(overflow);
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
+    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow);
 
     if constexpr (op == Op::Add) {
         code.por(result, tmp);

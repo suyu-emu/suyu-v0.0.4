@@ -21,7 +21,6 @@ bool TranslatorVisitor::B_uncond(Imm<26> imm26) {
     const s64 offset = concatenate(imm26, Imm<2>{0}).SignExtend<s64>();
     const u64 target = ir.PC() + offset;
 
-    //ir.SetTerm(IR::Term::LinkBlockFast{ir.current_location->SetPC(target)});
     ir.SetTerm(IR::Term::LinkBlock{ir.current_location->SetPC(target)});
     return false;
 }

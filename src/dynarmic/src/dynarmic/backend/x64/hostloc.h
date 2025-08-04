@@ -78,16 +78,16 @@ inline bool HostLocIsFlag(HostLoc reg) {
 
 inline HostLoc HostLocRegIdx(int idx) {
     ASSERT(idx >= 0 && idx <= 15);
-    return HostLoc(idx);
+    return static_cast<HostLoc>(idx);
 }
 
 inline HostLoc HostLocXmmIdx(int idx) {
     ASSERT(idx >= 0 && idx <= 15);
-    return HostLoc(size_t(HostLoc::XMM0) + idx);
+    return static_cast<HostLoc>(static_cast<size_t>(HostLoc::XMM0) + idx);
 }
 
 inline HostLoc HostLocSpill(size_t i) {
-    return HostLoc(size_t(HostLoc::FirstSpill) + i);
+    return static_cast<HostLoc>(static_cast<size_t>(HostLoc::FirstSpill) + i);
 }
 
 inline bool HostLocIsSpill(HostLoc reg) {
@@ -109,8 +109,6 @@ inline size_t HostLocBitWidth(HostLoc loc) {
 using HostLocList = std::initializer_list<HostLoc>;
 
 // RSP is preserved for function calls
-// R13 contains fastmem pointer if any
-// R14 contains the pagetable pointer
 // R15 contains the JitState pointer
 const HostLocList any_gpr = {
     HostLoc::RAX,
@@ -127,16 +125,12 @@ const HostLocList any_gpr = {
     HostLoc::R12,
     HostLoc::R13,
     HostLoc::R14,
-    //HostLoc::R15,
 };
 
 // XMM0 is reserved for use by instructions that implicitly use it as an argument
-// XMM1 is used by 128 mem accessors
-// XMM2 is also used by that (and other stuff)
-// Basically dont use either XMM0, XMM1 or XMM2 ever; they're left for the regsel
 const HostLocList any_xmm = {
-    //HostLoc::XMM1,
-    //HostLoc::XMM2,
+    HostLoc::XMM1,
+    HostLoc::XMM2,
     HostLoc::XMM3,
     HostLoc::XMM4,
     HostLoc::XMM5,

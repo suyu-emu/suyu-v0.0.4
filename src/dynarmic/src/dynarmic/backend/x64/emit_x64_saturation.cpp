@@ -69,7 +69,7 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
             ctx.reg_alloc.DefineValue(overflow_inst, overflow);
         }
     } else {
-        code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow.cvt8());
+        code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow.cvt8());
     }
 
     ctx.reg_alloc.DefineValue(inst, result);
@@ -98,7 +98,7 @@ void EmitUnsignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst
 
     const Xbyak::Reg overflow = ctx.reg_alloc.ScratchGpr();
     code.setb(overflow.cvt8());
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], overflow.cvt8());
+    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], overflow.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, addend);
 }
@@ -226,7 +226,7 @@ void EmitX64::EmitSignedSaturatedDoublingMultiplyReturnHigh16(EmitContext& ctx, 
     code.cmovns(y, tmp);
 
     code.sets(tmp.cvt8());
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], tmp.cvt8());
+    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], tmp.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, y);
 }
@@ -250,7 +250,7 @@ void EmitX64::EmitSignedSaturatedDoublingMultiplyReturnHigh32(EmitContext& ctx, 
     code.cmovns(y.cvt32(), tmp.cvt32());
 
     code.sets(tmp.cvt8());
-    code.or_(code.byte[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], tmp.cvt8());
+    code.or_(code.byte[code.r15 + code.GetJitStateInfo().offsetof_fpsr_qc], tmp.cvt8());
 
     ctx.reg_alloc.DefineValue(inst, y);
 }

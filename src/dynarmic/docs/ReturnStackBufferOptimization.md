@@ -79,7 +79,7 @@ contain a prediction with the same `UniqueHash`.
                         ? u64(unique_hash_to_code_ptr[imm64])
                         : u64(code->GetReturnFromRunCodeAddress());
 
-        code->mov(index_reg, dword[code.ABI_JIT_PTR + offsetof(JitState, rsb_ptr)]);
+        code->mov(index_reg, dword[r15 + offsetof(JitState, rsb_ptr)]);
         code->add(index_reg, 1);
         code->and_(index_reg, u32(JitState::RSBSize - 1));
 
@@ -91,13 +91,13 @@ contain a prediction with the same `UniqueHash`.
 
         Xbyak::Label label;
         for (size_t i = 0; i < JitState::RSBSize; ++i) {
-            code->cmp(loc_desc_reg, qword[code.ABI_JIT_PTR + offsetof(JitState, rsb_location_descriptors) + i * sizeof(u64)]);
+            code->cmp(loc_desc_reg, qword[r15 + offsetof(JitState, rsb_location_descriptors) + i * sizeof(u64)]);
             code->je(label, code->T_SHORT);
         }
 
-        code->mov(dword[code.ABI_JIT_PTR + offsetof(JitState, rsb_ptr)], index_reg);
-        code->mov(qword[code.ABI_JIT_PTR + index_reg.cvt64() * 8 + offsetof(JitState, rsb_location_descriptors)], loc_desc_reg);
-        code->mov(qword[code.ABI_JIT_PTR + index_reg.cvt64() * 8 + offsetof(JitState, rsb_codeptrs)], code_ptr_reg);
+        code->mov(dword[r15 + offsetof(JitState, rsb_ptr)], index_reg);
+        code->mov(qword[r15 + index_reg.cvt64() * 8 + offsetof(JitState, rsb_location_descriptors)], loc_desc_reg);
+        code->mov(qword[r15 + index_reg.cvt64() * 8 + offsetof(JitState, rsb_codeptrs)], code_ptr_reg);
         code->L(label);
     }
 
@@ -122,14 +122,14 @@ To check if a predicition is in the RSB, we linearly scan the RSB.
         // This calculation has to match up with IREmitter::PushRSB
         code->mov(ecx, MJitStateReg(Arm::Reg::PC));
         code->shl(rcx, 32);
-        code->mov(ebx, dword[code.ABI_JIT_PTR + offsetof(JitState, FPSCR_mode)]);
-        code->or_(ebx, dword[code.ABI_JIT_PTR + offsetof(JitState, CPSR_et)]);
+        code->mov(ebx, dword[r15 + offsetof(JitState, FPSCR_mode)]);
+        code->or_(ebx, dword[r15 + offsetof(JitState, CPSR_et)]);
         code->or_(rbx, rcx);
 
         code->mov(rax, u64(code->GetReturnFromRunCodeAddress()));
         for (size_t i = 0; i < JitState::RSBSize; ++i) {
-            code->cmp(rbx, qword[code.ABI_JIT_PTR + offsetof(JitState, rsb_location_descriptors) + i * sizeof(u64)]);
-            code->cmove(rax, qword[code.ABI_JIT_PTR + offsetof(JitState, rsb_codeptrs) + i * sizeof(u64)]);
+            code->cmp(rbx, qword[r15 + offsetof(JitState, rsb_location_descriptors) + i * sizeof(u64)]);
+            code->cmove(rax, qword[r15 + offsetof(JitState, rsb_codeptrs) + i * sizeof(u64)]);
         }
 
         code->jmp(rax);

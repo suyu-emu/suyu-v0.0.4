@@ -127,10 +127,10 @@ protected:
     BlockRangeInformation<u64> block_ranges;
     std::array<FastDispatchEntry, fast_dispatch_table_size> fast_dispatch_table;
     ankerl::unordered_dense::map<u64, FastmemPatchInfo> fastmem_patch_info;
-    ankerl::unordered_dense::map<std::tuple<bool, size_t, int, int>, void (*)()> read_fallbacks;
-    ankerl::unordered_dense::map<std::tuple<bool, size_t, int, int>, void (*)()> write_fallbacks;
-    ankerl::unordered_dense::map<std::tuple<bool, size_t, int, int>, void (*)()> exclusive_write_fallbacks;
-    ankerl::unordered_dense::set<DoNotFastmemMarker> do_not_fastmem;
+    std::map<std::tuple<bool, size_t, int, int>, void (*)()> read_fallbacks;
+    std::map<std::tuple<bool, size_t, int, int>, void (*)()> write_fallbacks;
+    std::map<std::tuple<bool, size_t, int, int>, void (*)()> exclusive_write_fallbacks;
+    std::set<DoNotFastmemMarker> do_not_fastmem;
     const void* terminal_handler_pop_rsb_hint = nullptr;
     const void* terminal_handler_fast_dispatch_hint = nullptr;
     FastDispatchEntry& (*fast_dispatch_table_lookup)(u64) = nullptr;

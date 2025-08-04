@@ -152,9 +152,11 @@ constexpr CRC32Table iso_table{
 
 static u32 ComputeCRC32(const CRC32Table& table, u32 crc, const u64 value, int length) {
     const auto* data = reinterpret_cast<const unsigned char*>(&value);
+
     while (length-- > 0) {
         crc = (crc >> 8) ^ table[(crc ^ (*data++)) & 0xFF];
     }
+
     return crc;
 }
 

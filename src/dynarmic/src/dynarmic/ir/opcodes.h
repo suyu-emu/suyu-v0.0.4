@@ -15,7 +15,7 @@
 
 namespace Dynarmic::IR {
 
-enum class Type : u16;
+enum class Type;
 
 /// @brief The Opcodes of our intermediate representation.
 /// Type signatures for each opcode can be found in opcodes.inc
@@ -35,7 +35,7 @@ constexpr size_t OpcodeCount = static_cast<size_t>(Opcode::NUM_OPCODE);
 Type GetTypeOf(Opcode op) noexcept;
 size_t GetNumArgsOf(Opcode op) noexcept;
 Type GetArgTypeOf(Opcode op, size_t arg_index) noexcept;
-std::string_view GetNameOf(Opcode op) noexcept;
+std::string GetNameOf(Opcode op) noexcept;
 
 /// @brief Determines whether or not this instruction performs an arithmetic shift.
 constexpr bool IsArithmeticShift(const Opcode op) noexcept {

@@ -36,7 +36,6 @@
 
 namespace Dynarmic::Backend::X64 {
 
-const Xbyak::Reg64 BlockOfCode::ABI_JIT_PTR = HostLocToReg64(Dynarmic::Backend::X64::ABI_JIT_PTR);
 #ifdef _WIN32
 const Xbyak::Reg64 BlockOfCode::ABI_RETURN = HostLocToReg64(Dynarmic::Backend::X64::ABI_RETURN);
 const Xbyak::Reg64 BlockOfCode::ABI_PARAM1 = HostLocToReg64(Dynarmic::Backend::X64::ABI_PARAM1);
@@ -323,8 +322,8 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     //    that the stack is appropriately aligned for CALLs.
     ABI_PushCalleeSaveRegistersAndAdjustStack(*this, sizeof(StackLayout));
 
-    mov(ABI_JIT_PTR, ABI_PARAM1);
-    mov(rbx, ABI_PARAM2); // save temporarily in non-volatile register
+    mov(r15, ABI_PARAM1);
+    mov(rbx, ABI_PARAM2);  // save temporarily in non-volatile register
 
     if (cb.enable_cycle_counting) {
         cb.GetTicksRemaining->EmitCall(*this);
@@ -332,11 +331,9 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
         mov(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], ABI_RETURN);
     }
 
-    // r14 = page table
-    // r13 = fastmem pointer
     rcp(*this);
 
-    cmp(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], 0);
+    cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
     jne(return_to_caller_mxcsr_already_exited, T_NEAR);
 
     SwitchMxcsrOnEntry();
@@ -347,7 +344,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
 
     ABI_PushCalleeSaveRegistersAndAdjustStack(*this, sizeof(StackLayout));
 
-    mov(ABI_JIT_PTR, ABI_PARAM1);
+    mov(r15, ABI_PARAM1);
 
     if (cb.enable_cycle_counting) {
         mov(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_to_run)], 1);
@@ -356,10 +353,10 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
 
     rcp(*this);
 
-    cmp(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], 0);
+    cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
     jne(return_to_caller_mxcsr_already_exited, T_NEAR);
     lock();
-    or_(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], static_cast<u32>(HaltReason::Step));
+    or_(dword[r15 + jsi.offsetof_halt_reason], static_cast<u32>(HaltReason::Step));
 
     SwitchMxcsrOnEntry();
     jmp(ABI_PARAM2);
@@ -369,7 +366,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     align();
     return_from_run_code[0] = getCurr<const void*>();
 
-    cmp(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], 0);
+    cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
     jne(return_to_caller);
     if (cb.enable_cycle_counting) {
         cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
@@ -381,7 +378,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
     align();
     return_from_run_code[MXCSR_ALREADY_EXITED] = getCurr<const void*>();
 
-    cmp(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], 0);
+    cmp(dword[r15 + jsi.offsetof_halt_reason], 0);
     jne(return_to_caller_mxcsr_already_exited);
     if (cb.enable_cycle_counting) {
         cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
@@ -410,7 +407,7 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
 
     xor_(eax, eax);
     lock();
-    xchg(dword[ABI_JIT_PTR + jsi.offsetof_halt_reason], eax);
+    xchg(dword[r15 + jsi.offsetof_halt_reason], eax);
 
     ABI_PopCalleeSaveRegistersAndAdjustStack(*this, sizeof(StackLayout));
     ret();
@@ -420,22 +417,22 @@ void BlockOfCode::GenRunCode(std::function<void(BlockOfCode&)> rcp) {
 
 void BlockOfCode::SwitchMxcsrOnEntry() {
     stmxcsr(dword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, save_host_MXCSR)]);
-    ldmxcsr(dword[ABI_JIT_PTR + jsi.offsetof_guest_MXCSR]);
+    ldmxcsr(dword[r15 + jsi.offsetof_guest_MXCSR]);
 }
 
 void BlockOfCode::SwitchMxcsrOnExit() {
-    stmxcsr(dword[ABI_JIT_PTR + jsi.offsetof_guest_MXCSR]);
+    stmxcsr(dword[r15 + jsi.offsetof_guest_MXCSR]);
     ldmxcsr(dword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, save_host_MXCSR)]);
 }
 
 void BlockOfCode::EnterStandardASIMD() {
-    stmxcsr(dword[ABI_JIT_PTR + jsi.offsetof_guest_MXCSR]);
-    ldmxcsr(dword[ABI_JIT_PTR + jsi.offsetof_asimd_MXCSR]);
+    stmxcsr(dword[r15 + jsi.offsetof_guest_MXCSR]);
+    ldmxcsr(dword[r15 + jsi.offsetof_asimd_MXCSR]);
 }
 
 void BlockOfCode::LeaveStandardASIMD() {
-    stmxcsr(dword[ABI_JIT_PTR + jsi.offsetof_asimd_MXCSR]);
-    ldmxcsr(dword[ABI_JIT_PTR + jsi.offsetof_guest_MXCSR]);
+    stmxcsr(dword[r15 + jsi.offsetof_asimd_MXCSR]);
+    ldmxcsr(dword[r15 + jsi.offsetof_guest_MXCSR]);
 }
 
 void BlockOfCode::UpdateTicks() {

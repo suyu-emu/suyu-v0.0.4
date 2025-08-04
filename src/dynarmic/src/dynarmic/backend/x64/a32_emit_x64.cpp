@@ -44,21 +44,21 @@ namespace Dynarmic::Backend::X64 {
 using namespace Xbyak::util;
 
 static Xbyak::Address MJitStateReg(A32::Reg reg) {
-    return dword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, Reg) + sizeof(u32) * static_cast<size_t>(reg)];
+    return dword[r15 + offsetof(A32JitState, Reg) + sizeof(u32) * static_cast<size_t>(reg)];
 }
 
 static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
     if (A32::IsSingleExtReg(reg)) {
         const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::S0);
-        return dword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + sizeof(u32) * index];
+        return dword[r15 + offsetof(A32JitState, ExtReg) + sizeof(u32) * index];
     }
     if (A32::IsDoubleExtReg(reg)) {
         const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::D0);
-        return qword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + sizeof(u64) * index];
+        return qword[r15 + offsetof(A32JitState, ExtReg) + sizeof(u64) * index];
     }
     if (A32::IsQuadExtReg(reg)) {
         const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::Q0);
-        return xword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + 2 * sizeof(u64) * index];
+        return xword[r15 + offsetof(A32JitState, ExtReg) + 2 * sizeof(u64) * index];
     }
     ASSERT_FALSE("Should never happen.");
 }
@@ -109,11 +109,11 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 
     const boost::container::static_vector<HostLoc, 28> gpr_order = [this] {
         boost::container::static_vector<HostLoc, 28> gprs{any_gpr};
-        if (conf.fastmem_pointer) {
-            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R13));
-        }
         if (conf.page_table) {
             gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R14));
+        }
+        if (conf.fastmem_pointer) {
+            gprs.erase(std::find(gprs.begin(), gprs.end(), HostLoc::R13));
         }
         return gprs;
     }();
@@ -220,7 +220,7 @@ void A32EmitX64::GenTerminalHandlers() {
     // PC ends up in ebp, location_descriptor ends up in rbx
     const auto calculate_location_descriptor = [this] {
         // This calculation has to match up with IREmitter::PushRSB
-        code.mov(ebx, dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)]);
+        code.mov(ebx, dword[r15 + offsetof(A32JitState, upper_location_descriptor)]);
         code.shl(rbx, 32);
         code.mov(ecx, MJitStateReg(A32::Reg::PC));
         code.mov(ebp, ecx);
@@ -232,17 +232,17 @@ void A32EmitX64::GenTerminalHandlers() {
     code.align();
     terminal_handler_pop_rsb_hint = code.getCurr<const void*>();
     calculate_location_descriptor();
-    code.mov(eax, dword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_ptr)]);
-    code.sub(eax, 1);
+    code.mov(eax, dword[r15 + offsetof(A32JitState, rsb_ptr)]);
+    code.dec(eax);
     code.and_(eax, u32(A32JitState::RSBPtrMask));
-    code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_ptr)], eax);
-    code.cmp(rbx, qword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_location_descriptors) + rax * sizeof(u64)]);
+    code.mov(dword[r15 + offsetof(A32JitState, rsb_ptr)], eax);
+    code.cmp(rbx, qword[r15 + offsetof(A32JitState, rsb_location_descriptors) + rax * sizeof(u64)]);
     if (conf.HasOptimization(OptimizationFlag::FastDispatch)) {
         code.jne(rsb_cache_miss);
     } else {
         code.jne(code.GetReturnFromRunCodeAddress());
     }
-    code.mov(rax, qword[code.ABI_JIT_PTR + offsetof(A32JitState, rsb_codeptrs) + rax * sizeof(u64)]);
+    code.mov(rax, qword[r15 + offsetof(A32JitState, rsb_codeptrs) + rax * sizeof(u64)]);
     code.jmp(rax);
     PerfMapRegister(terminal_handler_pop_rsb_hint, code.getCurr(), "a32_terminal_handler_pop_rsb_hint");
 
@@ -392,17 +392,17 @@ void A32EmitX64::EmitA32GetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
         // so we load them both at the same time with one 64-bit read. This allows us to
         // extract all of their bits together at once with one pext.
         static_assert(offsetof(A32JitState, upper_location_descriptor) + 4 == offsetof(A32JitState, cpsr_ge));
-        code.mov(result.cvt64(), qword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)]);
+        code.mov(result.cvt64(), qword[r15 + offsetof(A32JitState, upper_location_descriptor)]);
         code.mov(tmp.cvt64(), 0x80808080'00000003ull);
         code.pext(result.cvt64(), result.cvt64(), tmp.cvt64());
         code.mov(tmp, 0x000f0220);
         code.pdep(result, result, tmp);
     } else {
-        code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)]);
+        code.mov(result, dword[r15 + offsetof(A32JitState, upper_location_descriptor)]);
         code.imul(result, result, 0x120);
         code.and_(result, 0x00000220);
 
-        code.mov(tmp, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)]);
+        code.mov(tmp, dword[r15 + offsetof(A32JitState, cpsr_ge)]);
         code.and_(tmp, 0x80808080);
         code.imul(tmp, tmp, 0x00204081);
         code.shr(tmp, 12);
@@ -410,11 +410,11 @@ void A32EmitX64::EmitA32GetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
         code.or_(result, tmp);
     }
 
-    code.mov(tmp, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)]);
+    code.mov(tmp, dword[r15 + offsetof(A32JitState, cpsr_q)]);
     code.shl(tmp, 27);
     code.or_(result, tmp);
 
-    code.mov(tmp2, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)]);
+    code.mov(tmp2, dword[r15 + offsetof(A32JitState, cpsr_nzcv)]);
     if (code.HasHostFeature(HostFeature::FastBMI2)) {
         code.mov(tmp, NZCV::x64_mask);
         code.pext(tmp2, tmp2, tmp);
@@ -426,7 +426,7 @@ void A32EmitX64::EmitA32GetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
     }
     code.or_(result, tmp2);
 
-    code.or_(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_jaifm)]);
+    code.or_(result, dword[r15 + offsetof(A32JitState, cpsr_jaifm)]);
 
     ctx.reg_alloc.DefineValue(inst, result);
 }
@@ -444,7 +444,7 @@ void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
 
     // cpsr_q
     code.bt(cpsr, 27);
-    code.setc(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)]);
+    code.setc(code.byte[r15 + offsetof(A32JitState, cpsr_q)]);
 
     // cpsr_nzcv
     code.mov(tmp, cpsr);
@@ -456,12 +456,12 @@ void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
         code.imul(tmp, tmp, NZCV::to_x64_multiplier);
         code.and_(tmp, NZCV::x64_mask);
     }
-    code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], tmp);
+    code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], tmp);
 
     // cpsr_jaifm
     code.mov(tmp, cpsr);
     code.and_(tmp, 0x010001DF);
-    code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_jaifm)], tmp);
+    code.mov(dword[r15 + offsetof(A32JitState, cpsr_jaifm)], tmp);
 
     if (code.HasHostFeature(HostFeature::FastBMI2)) {
         // cpsr_et and cpsr_ge
@@ -469,7 +469,7 @@ void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
         // This mask is 0x7FFF0000, because we do not want the MSB to be sign extended to the upper dword.
         static_assert((A32::LocationDescriptor::FPSCR_MODE_MASK & ~0x7FFF0000) == 0);
 
-        code.and_(qword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], u32(0x7FFF0000));
+        code.and_(qword[r15 + offsetof(A32JitState, upper_location_descriptor)], u32(0x7FFF0000));
         code.mov(tmp, 0x000f0220);
         code.pext(cpsr, cpsr, tmp);
         code.mov(tmp.cvt64(), 0x01010101'00000003ull);
@@ -479,14 +479,14 @@ void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(tmp2.cvt64(), tmp.cvt64());
         code.sub(tmp.cvt64(), cpsr.cvt64());
         code.xor_(tmp.cvt64(), tmp2.cvt64());
-        code.or_(qword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], tmp.cvt64());
+        code.or_(qword[r15 + offsetof(A32JitState, upper_location_descriptor)], tmp.cvt64());
     } else {
-        code.and_(dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], u32(0xFFFF0000));
+        code.and_(dword[r15 + offsetof(A32JitState, upper_location_descriptor)], u32(0xFFFF0000));
         code.mov(tmp, cpsr);
         code.and_(tmp, 0x00000220);
         code.imul(tmp, tmp, 0x00900000);
         code.shr(tmp, 28);
-        code.or_(dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], tmp);
+        code.or_(dword[r15 + offsetof(A32JitState, upper_location_descriptor)], tmp);
 
         code.and_(cpsr, 0x000f0000);
         code.shr(cpsr, 16);
@@ -495,14 +495,14 @@ void A32EmitX64::EmitA32SetCpsr(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(tmp, 0x80808080);
         code.sub(tmp, cpsr);
         code.xor_(tmp, 0x80808080);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], tmp);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_ge)], tmp);
     }
 }
 
 void A32EmitX64::EmitA32SetCpsrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Reg32 to_store = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
-    code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], to_store);
+    code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], to_store);
 }
 
 void A32EmitX64::EmitA32SetCpsrNZCVRaw(A32EmitContext& ctx, IR::Inst* inst) {
@@ -510,7 +510,7 @@ void A32EmitX64::EmitA32SetCpsrNZCVRaw(A32EmitContext& ctx, IR::Inst* inst) {
     if (args[0].IsImmediate()) {
         const u32 imm = args[0].GetImmediateU32();
 
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], NZCV::ToX64(imm));
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], NZCV::ToX64(imm));
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
         const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr().cvt32();
@@ -518,14 +518,14 @@ void A32EmitX64::EmitA32SetCpsrNZCVRaw(A32EmitContext& ctx, IR::Inst* inst) {
         code.shr(a, 28);
         code.mov(b, NZCV::x64_mask);
         code.pdep(a, a, b);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], a);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], a);
     } else {
         const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
 
         code.shr(a, 28);
         code.imul(a, a, NZCV::to_x64_multiplier);
         code.and_(a, NZCV::x64_mask);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], a);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], a);
     }
 }
 
@@ -534,25 +534,25 @@ void A32EmitX64::EmitA32SetCpsrNZCVQ(A32EmitContext& ctx, IR::Inst* inst) {
     if (args[0].IsImmediate()) {
         const u32 imm = args[0].GetImmediateU32();
 
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], NZCV::ToX64(imm));
-        code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)], u8((imm & 0x08000000) != 0 ? 1 : 0));
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], NZCV::ToX64(imm));
+        code.mov(code.byte[r15 + offsetof(A32JitState, cpsr_q)], u8((imm & 0x08000000) != 0 ? 1 : 0));
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
         const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr().cvt32();
 
         code.shr(a, 28);
-        code.setc(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)]);
+        code.setc(code.byte[r15 + offsetof(A32JitState, cpsr_q)]);
         code.mov(b, NZCV::x64_mask);
         code.pdep(a, a, b);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], a);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], a);
     } else {
         const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
 
         code.shr(a, 28);
-        code.setc(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)]);
+        code.setc(code.byte[r15 + offsetof(A32JitState, cpsr_q)]);
         code.imul(a, a, NZCV::to_x64_multiplier);
         code.and_(a, NZCV::x64_mask);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)], a);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_nzcv)], a);
     }
 }
 
@@ -562,10 +562,10 @@ void A32EmitX64::EmitA32SetCpsrNZ(A32EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Reg32 nz = ctx.reg_alloc.UseGpr(args[0]).cvt32();
     const Xbyak::Reg32 tmp = ctx.reg_alloc.ScratchGpr().cvt32();
 
-    code.movzx(tmp, code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1]);
+    code.movzx(tmp, code.byte[r15 + offsetof(A32JitState, cpsr_nzcv) + 1]);
     code.and_(tmp, 1);
     code.or_(tmp, nz);
-    code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], tmp.cvt8());
+    code.mov(code.byte[r15 + offsetof(A32JitState, cpsr_nzcv) + 1], tmp.cvt8());
 }
 
 void A32EmitX64::EmitA32SetCpsrNZC(A32EmitContext& ctx, IR::Inst* inst) {
@@ -575,11 +575,11 @@ void A32EmitX64::EmitA32SetCpsrNZC(A32EmitContext& ctx, IR::Inst* inst) {
         if (args[1].IsImmediate()) {
             const bool c = args[1].GetImmediateU1();
 
-            code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], c);
+            code.mov(code.byte[r15 + offsetof(A32JitState, cpsr_nzcv) + 1], c);
         } else {
             const Xbyak::Reg8 c = ctx.reg_alloc.UseGpr(args[1]).cvt8();
 
-            code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], c);
+            code.mov(code.byte[r15 + offsetof(A32JitState, cpsr_nzcv) + 1], c);
         }
     } else {
         const Xbyak::Reg32 nz = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
@@ -588,19 +588,19 @@ void A32EmitX64::EmitA32SetCpsrNZC(A32EmitContext& ctx, IR::Inst* inst) {
             const bool c = args[1].GetImmediateU1();
 
             code.or_(nz, c);
-            code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], nz.cvt8());
+            code.mov(code.byte[r15 + offsetof(A32JitState, cpsr_nzcv) + 1], nz.cvt8());
         } else {
             const Xbyak::Reg32 c = ctx.reg_alloc.UseGpr(args[1]).cvt32();
 
             code.or_(nz, c);
-            code.mov(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv) + 1], nz.cvt8());
+            code.mov(code.byte[r15 + offsetof(A32JitState, cpsr_nzcv) + 1], nz.cvt8());
         }
     }
 }
 
 static void EmitGetFlag(BlockOfCode& code, A32EmitContext& ctx, IR::Inst* inst, size_t flag_bit) {
     const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
-    code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_nzcv)]);
+    code.mov(result, dword[r15 + offsetof(A32JitState, cpsr_nzcv)]);
     if (flag_bit != 0) {
         code.shr(result, static_cast<int>(flag_bit));
     }
@@ -616,18 +616,18 @@ void A32EmitX64::EmitA32OrQFlag(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     if (args[0].IsImmediate()) {
         if (args[0].GetImmediateU1()) {
-            code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)], 1);
+            code.mov(dword[r15 + offsetof(A32JitState, cpsr_q)], 1);
         }
     } else {
         const Xbyak::Reg8 to_store = ctx.reg_alloc.UseGpr(args[0]).cvt8();
 
-        code.or_(code.byte[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_q)], to_store);
+        code.or_(code.byte[r15 + offsetof(A32JitState, cpsr_q)], to_store);
     }
 }
 
 void A32EmitX64::EmitA32GetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm();
-    code.movd(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)]);
+    code.movd(result, dword[r15 + offsetof(A32JitState, cpsr_ge)]);
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
@@ -637,10 +637,10 @@ void A32EmitX64::EmitA32SetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
 
     if (args[0].IsInXmm()) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(args[0]);
-        code.movd(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
+        code.movd(dword[r15 + offsetof(A32JitState, cpsr_ge)], to_store);
     } else {
         const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(args[0]).cvt32();
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_ge)], to_store);
     }
 }
 
@@ -654,7 +654,7 @@ void A32EmitX64::EmitA32SetGEFlagsCompressed(A32EmitContext& ctx, IR::Inst* inst
         ge |= mcl::bit::get_bit<17>(imm) ? 0x0000FF00 : 0;
         ge |= mcl::bit::get_bit<16>(imm) ? 0x000000FF : 0;
 
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], ge);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_ge)], ge);
     } else if (code.HasHostFeature(HostFeature::FastBMI2)) {
         const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg32 b = ctx.reg_alloc.ScratchGpr().cvt32();
@@ -663,7 +663,7 @@ void A32EmitX64::EmitA32SetGEFlagsCompressed(A32EmitContext& ctx, IR::Inst* inst
         code.shr(a, 16);
         code.pdep(a, a, b);
         code.imul(a, a, 0xFF);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], a);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_ge)], a);
     } else {
         const Xbyak::Reg32 a = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
 
@@ -672,7 +672,7 @@ void A32EmitX64::EmitA32SetGEFlagsCompressed(A32EmitContext& ctx, IR::Inst* inst
         code.imul(a, a, 0x00204081);
         code.and_(a, 0x01010101);
         code.imul(a, a, 0xFF);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], a);
+        code.mov(dword[r15 + offsetof(A32JitState, cpsr_ge)], a);
     }
 }
 
@@ -716,7 +716,7 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
         const u32 new_upper = upper_without_t | (mcl::bit::get_bit<0>(new_pc) ? 1 : 0);
 
         code.mov(MJitStateReg(A32::Reg::PC), new_pc & mask);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], new_upper);
+        code.mov(dword[r15 + offsetof(A32JitState, upper_location_descriptor)], new_upper);
     } else {
         const Xbyak::Reg32 new_pc = ctx.reg_alloc.UseScratchGpr(arg).cvt32();
         const Xbyak::Reg32 mask = ctx.reg_alloc.ScratchGpr().cvt32();
@@ -728,7 +728,7 @@ void A32EmitX64::EmitA32BXWritePC(A32EmitContext& ctx, IR::Inst* inst) {
         code.lea(mask, ptr[mask.cvt64() + mask.cvt64() * 1 - 4]);  // mask = pc & 1 ? 0xFFFFFFFE : 0xFFFFFFFC
         code.and_(new_pc, mask);
         code.mov(MJitStateReg(A32::Reg::PC), new_pc);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], new_upper);
+        code.mov(dword[r15 + offsetof(A32JitState, upper_location_descriptor)], new_upper);
     }
 }
 
@@ -798,9 +798,9 @@ static u32 GetFpscrImpl(A32JitState* jit_state) {
 
 void A32EmitX64::EmitA32GetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(inst);
-    code.mov(code.ABI_PARAM1, code.ABI_JIT_PTR);
+    code.mov(code.ABI_PARAM1, code.r15);
 
-    code.stmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A32JitState, guest_MXCSR)]);
+    code.stmxcsr(code.dword[code.r15 + offsetof(A32JitState, guest_MXCSR)]);
     code.CallFunction(&GetFpscrImpl);
 }
 
@@ -811,15 +811,15 @@ static void SetFpscrImpl(u32 value, A32JitState* jit_state) {
 void A32EmitX64::EmitA32SetFpscr(A32EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(nullptr, args[0]);
-    code.mov(code.ABI_PARAM2, code.ABI_JIT_PTR);
+    code.mov(code.ABI_PARAM2, code.r15);
 
     code.CallFunction(&SetFpscrImpl);
-    code.ldmxcsr(code.dword[code.ABI_JIT_PTR + offsetof(A32JitState, guest_MXCSR)]);
+    code.ldmxcsr(code.dword[code.r15 + offsetof(A32JitState, guest_MXCSR)]);
 }
 
 void A32EmitX64::EmitA32GetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
-    code.mov(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, fpsr_nzcv)]);
+    code.mov(result, dword[r15 + offsetof(A32JitState, fpsr_nzcv)]);
     ctx.reg_alloc.DefineValue(inst, result);
 }
 
@@ -833,7 +833,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(tmp, NZCV::x64_mask);
         code.pext(tmp, value, tmp);
         code.shl(tmp, 28);
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, fpsr_nzcv)], tmp);
+        code.mov(dword[r15 + offsetof(A32JitState, fpsr_nzcv)], tmp);
 
         return;
     }
@@ -843,7 +843,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
     code.and_(value, NZCV::x64_mask);
     code.imul(value, value, NZCV::from_x64_multiplier);
     code.and_(value, NZCV::arm_mask);
-    code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, fpsr_nzcv)], value);
+    code.mov(dword[r15 + offsetof(A32JitState, fpsr_nzcv)], value);
 }
 
 static void EmitCoprocessorException() {
@@ -1155,7 +1155,7 @@ void A32EmitX64::EmitSetUpperLocationDescriptor(IR::LocationDescriptor new_locat
     }();
 
     if (old_upper != new_upper) {
-        code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, upper_location_descriptor)], new_upper);
+        code.mov(dword[r15 + offsetof(A32JitState, upper_location_descriptor)], new_upper);
     }
 }
 
@@ -1165,28 +1165,32 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
     if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
         code.ReturnFromRunCode();
-    } else {
-        if (conf.enable_cycle_counting) {
-            code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
-            patch_information[terminal.next].jg.push_back(code.getCurr());
-            if (const auto next_bb = GetBasicBlock(terminal.next)) {
-                EmitPatchJg(terminal.next, next_bb->entrypoint);
-            } else {
-                EmitPatchJg(terminal.next);
-            }
-        } else {
-            code.cmp(dword[code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
-            patch_information[terminal.next].jz.push_back(code.getCurr());
-            if (const auto next_bb = GetBasicBlock(terminal.next)) {
-                EmitPatchJz(terminal.next, next_bb->entrypoint);
-            } else {
-                EmitPatchJz(terminal.next);
-            }
-        }
-        code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
-        PushRSBHelper(rax, rbx, terminal.next);
-        code.ForceReturnFromRunCode();
+        return;
     }
+
+    if (conf.enable_cycle_counting) {
+        code.cmp(qword[rsp + ABI_SHADOW_SPACE + offsetof(StackLayout, cycles_remaining)], 0);
+
+        patch_information[terminal.next].jg.push_back(code.getCurr());
+        if (const auto next_bb = GetBasicBlock(terminal.next)) {
+            EmitPatchJg(terminal.next, next_bb->entrypoint);
+        } else {
+            EmitPatchJg(terminal.next);
+        }
+    } else {
+        code.cmp(dword[r15 + offsetof(A32JitState, halt_reason)], 0);
+
+        patch_information[terminal.next].jz.push_back(code.getCurr());
+        if (const auto next_bb = GetBasicBlock(terminal.next)) {
+            EmitPatchJz(terminal.next, next_bb->entrypoint);
+        } else {
+            EmitPatchJz(terminal.next);
+        }
+    }
+
+    code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
+    PushRSBHelper(rax, rbx, terminal.next);
+    code.ForceReturnFromRunCode();
 }
 
 void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
@@ -1195,13 +1199,14 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::Location
     if (!conf.HasOptimization(OptimizationFlag::BlockLinking) || is_single_step) {
         code.mov(MJitStateReg(A32::Reg::PC), A32::LocationDescriptor{terminal.next}.PC());
         code.ReturnFromRunCode();
+        return;
+    }
+
+    patch_information[terminal.next].jmp.push_back(code.getCurr());
+    if (const auto next_bb = GetBasicBlock(terminal.next)) {
+        EmitPatchJmp(terminal.next, next_bb->entrypoint);
     } else {
-        patch_information[terminal.next].jmp.push_back(code.getCurr());
-        if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJmp(terminal.next, next_bb->entrypoint);
-        } else {
-            EmitPatchJmp(terminal.next);
-        }
+        EmitPatchJmp(terminal.next);
     }
 }
 
@@ -1240,7 +1245,7 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::CheckBit terminal, IR::LocationDescr
 }
 
 void A32EmitX64::EmitTerminalImpl(IR::Term::CheckHalt terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
-    code.cmp(dword[code.ABI_JIT_PTR + offsetof(A32JitState, halt_reason)], 0);
+    code.cmp(dword[r15 + offsetof(A32JitState, halt_reason)], 0);
     code.jne(code.GetForceReturnFromRunCodeAddress());
     EmitTerminal(terminal.else_, initial_location, is_single_step);
 }

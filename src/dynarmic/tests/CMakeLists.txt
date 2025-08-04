@@ -29,7 +29,6 @@ if ("A64" IN_LIST DYNARMIC_FRONTENDS)
         A64/fp_min_max.cpp
         A64/misaligned_page_table.cpp
         A64/test_invalidation.cpp
-        A64/real_world.cpp
         A64/testenv.h
     )
 endif()

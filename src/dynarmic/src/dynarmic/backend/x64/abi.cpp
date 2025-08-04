@@ -119,20 +119,6 @@ void ABI_PopCallerSaveRegistersAndAdjustStack(BlockOfCode& code, const std::size
     ABI_PopRegistersAndAdjustStack(code, frame_size, ABI_ALL_CALLER_SAVE);
 }
 
-// Windows ABI registers are not in the same allocation algorithm as unix's
-#ifdef _MSC_VER
-void ABI_PushCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
-    std::vector<HostLoc> regs;
-    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
-    ABI_PushRegistersAndAdjustStack(code, 0, regs);
-}
-
-void ABI_PopCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
-    std::vector<HostLoc> regs;
-    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
-    ABI_PopRegistersAndAdjustStack(code, 0, regs);
-}
-#else
 static consteval size_t ABI_AllCallerSaveSize() noexcept {
     return ABI_ALL_CALLER_SAVE.max_size();
 }
@@ -180,14 +166,24 @@ alignas(64) static constinit std::array<HostLoc, ABI_AllCallerSaveSize() - 1> AB
 };
 
 void ABI_PushCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
+#ifdef _MSC_VER
+    std::vector<HostLoc> regs;
+    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
+    ABI_PushRegistersAndAdjustStack(code, 0, regs);
+#else
     ASSUME(size_t(exception) < 32);
     ABI_PushRegistersAndAdjustStack(code, 0, ABI_CALLER_SAVED_EXCEPT_TABLE[size_t(exception)]);
+#endif
 }
 
 void ABI_PopCallerSaveRegistersAndAdjustStackExcept(BlockOfCode& code, const HostLoc exception) {
+#ifdef _MSC_VER
+    std::vector<HostLoc> regs;
+    std::remove_copy(ABI_ALL_CALLER_SAVE.begin(), ABI_ALL_CALLER_SAVE.end(), std::back_inserter(regs), exception);
+    ABI_PopRegistersAndAdjustStack(code, 0, regs);
+#else
     ASSUME(size_t(exception) < 32);
     ABI_PopRegistersAndAdjustStack(code, 0, ABI_CALLER_SAVED_EXCEPT_TABLE[size_t(exception)]);
-}
 #endif
-
+}
 }  // namespace Dynarmic::Backend::X64

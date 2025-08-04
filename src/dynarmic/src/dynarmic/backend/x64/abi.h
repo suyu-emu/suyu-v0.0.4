@@ -17,7 +17,6 @@ namespace Dynarmic::Backend::X64 {
 
 class BlockOfCode;
 
-constexpr HostLoc ABI_JIT_PTR = HostLoc::R15;
 #ifdef _WIN32
 
 constexpr HostLoc ABI_RETURN = HostLoc::RAX;

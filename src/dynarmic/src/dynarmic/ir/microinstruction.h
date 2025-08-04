@@ -19,7 +19,7 @@
 namespace Dynarmic::IR {
 
 enum class Opcode;
-enum class Type : u16;
+enum class Type;
 
 constexpr size_t max_arg_count = 4;
 

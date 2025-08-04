@@ -712,12 +712,12 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     code.mov(code.ABI_PARAM4.cvt32(), ctx.FPCR().Value());
 #ifdef _WIN32
                     code.lea(rsp, ptr[rsp - (16 + ABI_SHADOW_SPACE)]);
-                    code.lea(rax, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+                    code.lea(rax, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
                     code.mov(qword[rsp + ABI_SHADOW_SPACE], rax);
                     code.CallFunction(fallback_fn);
                     code.add(rsp, 16 + ABI_SHADOW_SPACE);
 #else
-                    code.lea(code.ABI_PARAM5, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+                    code.lea(code.ABI_PARAM5, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
                     code.CallFunction(fallback_fn);
 #endif
                     code.movq(result, code.ABI_RETURN);
@@ -821,12 +821,12 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
     code.mov(code.ABI_PARAM4.cvt32(), ctx.FPCR().Value());
 #ifdef _WIN32
     ctx.reg_alloc.AllocStackSpace(16 + ABI_SHADOW_SPACE);
-    code.lea(rax, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(rax, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.mov(qword[rsp + ABI_SHADOW_SPACE], rax);
     code.CallFunction(fallback_fn);
     ctx.reg_alloc.ReleaseStackSpace(16 + ABI_SHADOW_SPACE);
 #else
-    code.lea(code.ABI_PARAM5, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM5, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(fallback_fn);
 #endif
 }
@@ -945,7 +945,7 @@ static void EmitFPRecipEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-    code.lea(code.ABI_PARAM3, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM3, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPRecipEstimate<FPT>);
 }
 
@@ -968,7 +968,7 @@ static void EmitFPRecipExponent(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-    code.lea(code.ABI_PARAM3, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM3, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPRecipExponent<FPT>);
 }
 
@@ -1026,7 +1026,7 @@ static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
                 code.movq(code.ABI_PARAM1, operand1);
                 code.movq(code.ABI_PARAM2, operand2);
                 code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
-                code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+                code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
                 code.CallFunction(&FP::FPRecipStepFused<FPT>);
                 code.movq(result, code.ABI_RETURN);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
@@ -1055,7 +1055,7 @@ static void EmitFPRecipStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
 
     ctx.reg_alloc.HostCall(inst, args[0], args[1]);
     code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
-    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPRecipStepFused<FPT>);
 }
 
@@ -1119,7 +1119,7 @@ static void EmitFPRound(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, siz
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.HostCall(inst, args[0]);
-    code.lea(code.ABI_PARAM2, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM2, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
     code.CallFunction(lut.at(std::make_tuple(fsize, rounding_mode, exact)));
 }
@@ -1206,7 +1206,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
                     }
 
                     // a > 0 && a < 0x00800000;
-                    code.sub(tmp, 1);
+                    code.dec(tmp);
                     code.cmp(tmp, 0x007FFFFF);
                     code.jb(fallback, code.T_NEAR); //within -127,128
                     needs_fallback = true;
@@ -1284,7 +1284,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
                 ABI_PushCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
                 code.movq(code.ABI_PARAM1, operand);
                 code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-                code.lea(code.ABI_PARAM3, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+                code.lea(code.ABI_PARAM3, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
                 code.CallFunction(&FP::FPRSqrtEstimate<FPT>);
                 code.movq(result, rax);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
@@ -1298,7 +1298,7 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
         auto args = ctx.reg_alloc.GetArgumentInfo(inst);
         ctx.reg_alloc.HostCall(inst, args[0]);
         code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
-        code.lea(code.ABI_PARAM3, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+        code.lea(code.ABI_PARAM3, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
         code.CallFunction(&FP::FPRSqrtEstimate<FPT>);
     }
 }
@@ -1368,7 +1368,7 @@ static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
                 code.movq(code.ABI_PARAM1, operand1);
                 code.movq(code.ABI_PARAM2, operand2);
                 code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
-                code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+                code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
                 code.CallFunction(&FP::FPRSqrtStepFused<FPT>);
                 code.movq(result, code.ABI_RETURN);
                 ABI_PopCallerSaveRegistersAndAdjustStackExcept(code, HostLocXmmIdx(result.getIdx()));
@@ -1398,7 +1398,7 @@ static void EmitFPRSqrtStepFused(BlockOfCode& code, EmitContext& ctx, IR::Inst* 
 
     ctx.reg_alloc.HostCall(inst, args[0], args[1]);
     code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
-    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPRSqrtStepFused<FPT>);
 }
 
@@ -1511,7 +1511,7 @@ void EmitX64::EmitFPHalfToDouble(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
     code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
-    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPConvert<u64, u16>);
 }
 
@@ -1535,7 +1535,7 @@ void EmitX64::EmitFPHalfToSingle(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
     code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
-    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPConvert<u32, u16>);
 }
 
@@ -1556,7 +1556,7 @@ void EmitX64::EmitFPSingleToDouble(EmitContext& ctx, IR::Inst* inst) {
         ctx.reg_alloc.HostCall(inst, args[0]);
         code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
         code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
-        code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+        code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
         code.CallFunction(&FP::FPConvert<u64, u32>);
     }
 }
@@ -1581,7 +1581,7 @@ void EmitX64::EmitFPSingleToHalf(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
     code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
-    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPConvert<u16, u32>);
 }
 
@@ -1595,7 +1595,7 @@ void EmitX64::EmitFPDoubleToHalf(EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(inst, args[0]);
     code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
     code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
-    code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.CallFunction(&FP::FPConvert<u16, u64>);
 }
 
@@ -1616,7 +1616,7 @@ void EmitX64::EmitFPDoubleToSingle(EmitContext& ctx, IR::Inst* inst) {
         ctx.reg_alloc.HostCall(inst, args[0]);
         code.mov(code.ABI_PARAM2.cvt32(), ctx.FPCR().Value());
         code.mov(code.ABI_PARAM3.cvt32(), static_cast<u32>(rounding_mode));
-        code.lea(code.ABI_PARAM4, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+        code.lea(code.ABI_PARAM4, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
         code.CallFunction(&FP::FPConvert<u32, u64>);
     }
 }
@@ -1757,7 +1757,7 @@ static void EmitFPToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
         mp::cartesian_product<fbits_list, rounding_list>{});
 
     ctx.reg_alloc.HostCall(inst, args[0]);
-    code.lea(code.ABI_PARAM2, code.ptr[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_exc]);
+    code.lea(code.ABI_PARAM2, code.ptr[code.r15 + code.GetJitStateInfo().offsetof_fpsr_exc]);
     code.mov(code.ABI_PARAM3.cvt32(), ctx.FPCR().Value());
     code.CallFunction(lut.at(std::make_tuple(fbits, rounding_mode)));
 }

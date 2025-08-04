@@ -143,7 +143,7 @@ static void EmitConditionalSelect(BlockOfCode& code, EmitContext& ctx, IR::Inst*
     const Xbyak::Reg then_ = ctx.reg_alloc.UseGpr(args[1]).changeBit(bitsize);
     const Xbyak::Reg else_ = ctx.reg_alloc.UseScratchGpr(args[2]).changeBit(bitsize);
 
-    code.mov(nzcv, dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_cpsr_nzcv]);
+    code.mov(nzcv, dword[r15 + code.GetJitStateInfo().offsetof_cpsr_nzcv]);
 
     code.LoadRequiredFlagsForCondFromRax(args[0].GetImmediateCond());
 
@@ -909,11 +909,11 @@ static Xbyak::Reg8 DoCarry(RegAlloc& reg_alloc, Argument& carry_in, IR::Inst* ca
     }
 }
 
-// AL contains flags (after LAHF + SETO sequence)
 static Xbyak::Reg64 DoNZCV(BlockOfCode& code, RegAlloc& reg_alloc, IR::Inst* nzcv_out) {
     if (!nzcv_out) {
         return Xbyak::Reg64{-1};
     }
+
     const Xbyak::Reg64 nzcv = reg_alloc.ScratchGpr(HostLoc::RAX);
     code.xor_(nzcv.cvt32(), nzcv.cvt32());
     return nzcv;
@@ -1168,7 +1168,7 @@ void EmitX64::EmitUnsignedDiv32(EmitContext& ctx, IR::Inst* inst) {
 
     code.xor_(eax, eax);
     code.test(divisor, divisor);
-    code.jz(end, code.T_NEAR);
+    code.jz(end);
     code.mov(eax, dividend);
     code.xor_(edx, edx);
     code.div(divisor);
@@ -1189,7 +1189,7 @@ void EmitX64::EmitUnsignedDiv64(EmitContext& ctx, IR::Inst* inst) {
 
     code.xor_(eax, eax);
     code.test(divisor, divisor);
-    code.jz(end, code.T_NEAR);
+    code.jz(end);
     code.mov(rax, dividend);
     code.xor_(edx, edx);
     code.div(divisor);
@@ -1568,14 +1568,14 @@ void EmitX64::EmitCountLeadingZeros32(EmitContext& ctx, IR::Inst* inst) {
     } else {
         const Xbyak::Reg32 source = ctx.reg_alloc.UseScratchGpr(args[0]).cvt32();
         const Xbyak::Reg32 result = ctx.reg_alloc.ScratchGpr().cvt32();
-        const Xbyak::Reg32 temp = ctx.reg_alloc.ScratchGpr().cvt32();
 
         // The result of a bsr of zero is undefined, but zf is set after it.
         code.bsr(result, source);
-        code.mov(temp, 32);
-        code.xor_(result, 31);
-        code.test(source, source);
-        code.cmove(result, temp);
+        code.mov(source, 0xFFFFFFFF);
+        code.cmovz(result, source);
+        code.neg(result);
+        code.add(result, 31);
+
         ctx.reg_alloc.DefineValue(inst, result);
     }
 }
@@ -1592,14 +1592,14 @@ void EmitX64::EmitCountLeadingZeros64(EmitContext& ctx, IR::Inst* inst) {
     } else {
         const Xbyak::Reg64 source = ctx.reg_alloc.UseScratchGpr(args[0]).cvt64();
         const Xbyak::Reg64 result = ctx.reg_alloc.ScratchGpr().cvt64();
-        const Xbyak::Reg64 temp = ctx.reg_alloc.ScratchGpr().cvt64();
 
         // The result of a bsr of zero is undefined, but zf is set after it.
         code.bsr(result, source);
-        code.mov(temp.cvt32(), 64);
-        code.xor_(result.cvt32(), 63);
-        code.test(source, source);
-        code.cmove(result.cvt32(), temp.cvt32());
+        code.mov(source.cvt32(), 0xFFFFFFFF);
+        code.cmovz(result.cvt32(), source.cvt32());
+        code.neg(result.cvt32());
+        code.add(result.cvt32(), 63);
+
         ctx.reg_alloc.DefineValue(inst, result);
     }
 }
