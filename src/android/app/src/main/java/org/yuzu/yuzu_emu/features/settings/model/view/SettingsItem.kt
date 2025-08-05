@@ -666,6 +666,13 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.RENDERER_EARLY_RELEASE_FENCES,
+                    titleId = R.string.renderer_early_release_fences,
+                    descriptionId = R.string.renderer_early_release_fences_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.BUFFER_REORDER_DISABLE,
                     titleId = R.string.buffer_reorder_disable,
                     descriptionId = R.string.buffer_reorder_disable_description
