@@ -24,9 +24,9 @@ if (NOT WIN32 AND NOT ANDROID)
 
     CPMAddPackage(
         NAME ffmpeg
-        URL "https://github.com/ffmpeg/ffmpeg/archive/9c1294eadd.zip"
-        URL_HASH SHA512=2076e4cb843787c44718c70c4452517273dbc963ef98442f343762ade6c7b9f78555ae9b50a7c628844a15d8cb5e866c04e2f1acfb77093cea4fbc9edf3ad21a
-        CUSTOM_CACHE_KEY "9c12"
+        URL "https://github.com/FFmpeg/FFmpeg/archive/c2184b65d2.zip"
+        URL_HASH SHA512=2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
+        CUSTOM_CACHE_KEY "c218"
     )
 
     set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
