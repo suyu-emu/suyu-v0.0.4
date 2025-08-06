@@ -114,7 +114,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/memory_detect.h"
-#include "common/microprofile.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #ifdef _WIN32
@@ -159,7 +158,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/configuration/qt_config.h"
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
-#include "yuzu/debugger/profiler.h"
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/discord.h"
 #include "yuzu/game_list.h"
@@ -1344,17 +1342,6 @@ void GMainWindow::InitializeWidgets() {
 void GMainWindow::InitializeDebugWidgets() {
     QMenu* debug_menu = ui->menu_View_Debugging;
 
-#if MICROPROFILE_ENABLED
-    microProfileDialog = new MicroProfileDialog(this);
-    microProfileDialog->hide();
-    debug_menu->addAction(microProfileDialog->toggleViewAction());
-#else
-    auto micro_profile_stub = new QAction(tr("MicroProfile (unavailable)"), this);
-    micro_profile_stub->setEnabled(false);
-    micro_profile_stub->setChecked(false);
-    debug_menu->addAction(micro_profile_stub);
-#endif
-
     waitTreeWidget = new WaitTreeWidget(*system, this);
     addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);
     waitTreeWidget->hide();
@@ -1505,10 +1492,6 @@ void GMainWindow::RestoreUIState() {
     restoreState(UISettings::values.state);
     render_window->setWindowFlags(render_window->windowFlags() & ~Qt::FramelessWindowHint);
     render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
-#if MICROPROFILE_ENABLED
-    microProfileDialog->restoreGeometry(UISettings::values.microprofile_geometry);
-    microProfileDialog->setVisible(UISettings::values.microprofile_visible.GetValue());
-#endif
 
     game_list->LoadInterfaceLayout();
 
@@ -5109,10 +5092,6 @@ void GMainWindow::UpdateUISettings() {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
     }
     UISettings::values.state = saveState();
-#if MICROPROFILE_ENABLED
-    UISettings::values.microprofile_geometry = microProfileDialog->saveGeometry();
-    UISettings::values.microprofile_visible = microProfileDialog->isVisible();
-#endif
     UISettings::values.single_window_mode = ui->action_Single_Window_Mode->isChecked();
     UISettings::values.fullscreen = ui->action_Fullscreen->isChecked();
     UISettings::values.display_titlebar = ui->action_Display_Dock_Widget_Headers->isChecked();
@@ -5635,14 +5614,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     Common::DetachedTasks detached_tasks;
-
-#if MICROPROFILE_ENABLED
-    MicroProfileOnThreadCreate("Frontend");
-    SCOPE_EXIT {
-        MicroProfileShutdown();
-    };
-#endif
-
     Common::ConfigureNvidiaEnvironmentFlags();
 
     // Init settings params

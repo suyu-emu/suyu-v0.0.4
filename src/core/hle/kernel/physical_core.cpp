@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,10 +30,6 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
     interface->Initialize();
 
     const auto EnterContext = [&]() {
-#if MICROPROFILE_ENABLED
-        system.EnterCPUProfile();
-#endif
-
         // Lock the core context.
         std::scoped_lock lk{m_guard};
 
@@ -60,10 +59,6 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         // On exit, we no longer are running.
         m_arm_interface = nullptr;
         m_current_thread = nullptr;
-
-#if MICROPROFILE_ENABLED
-        system.ExitCPUProfile();
-#endif
     };
 
     while (true) {

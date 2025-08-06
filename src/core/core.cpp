@@ -9,7 +9,6 @@
 #include "audio_core/audio_core.h"
 #include "common/fs/fs.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "common/string_util.h"
@@ -62,11 +61,6 @@
 #include "video_core/host1x/host1x.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
-
-MICROPROFILE_DEFINE(ARM_CPU0, "ARM", "CPU 0", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_CPU1, "ARM", "CPU 1", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_CPU2, "ARM", "CPU 2", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_CPU3, "ARM", "CPU 3", MP_RGB(255, 64, 64));
 
 namespace Core {
 
@@ -288,13 +282,6 @@ struct System::Impl {
         is_powered_on = true;
         exit_locked = false;
         exit_requested = false;
-
-#if MICROPROFILE_ENABLED
-        microprofile_cpu[0] = MICROPROFILE_TOKEN(ARM_CPU0);
-        microprofile_cpu[1] = MICROPROFILE_TOKEN(ARM_CPU1);
-        microprofile_cpu[2] = MICROPROFILE_TOKEN(ARM_CPU2);
-        microprofile_cpu[3] = MICROPROFILE_TOKEN(ARM_CPU3);
-#endif
 
         if (Settings::values.enable_renderdoc_hotkey) {
             renderdoc_api = std::make_unique<Tools::RenderdocAPI>();
@@ -575,9 +562,6 @@ struct System::Impl {
     std::stop_source stop_event;
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
-#if MICROPROFILE_ENABLED
-    std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};
-#endif
 
     std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
         gpu_dirty_memory_managers;
@@ -955,18 +939,6 @@ void System::RegisterCoreThread(std::size_t id) {
 void System::RegisterHostThread() {
     impl->kernel.RegisterHostThread();
 }
-
-#if MICROPROFILE_ENABLED
-void System::EnterCPUProfile() {
-    std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    impl->dynarmic_ticks[core] = MicroProfileEnter(impl->microprofile_cpu[core]);
-}
-
-void System::ExitCPUProfile() {
-    std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    MicroProfileLeave(impl->microprofile_cpu[core], impl->dynarmic_ticks[core]);
-}
-#endif
 
 bool System::IsMulticore() const {
     return impl->is_multicore;

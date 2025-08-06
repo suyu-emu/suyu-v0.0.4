@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,12 +13,9 @@
 #include "audio_core/audio_core.h"
 #include "audio_core/common/common.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-
-MICROPROFILE_DEFINE(OpusDecoder, "Audio", "DSP_OpusDecoder", MP_RGB(60, 19, 97));
 
 namespace AudioCore::ADSP::OpusDecoder {
 

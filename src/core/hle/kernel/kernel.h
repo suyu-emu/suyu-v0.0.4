@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -270,12 +273,6 @@ public:
     bool IsMulticore() const;
 
     bool IsShuttingDown() const;
-
-#if MICROPROFILE_ENABLED
-    void EnterSVCProfile();
-
-    void ExitSVCProfile();
-#endif
 
     /// Workaround for single-core mode when preempting threads while idle.
     bool IsPhantomModeForSingleCore() const;

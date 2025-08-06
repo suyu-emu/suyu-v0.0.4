@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-FileCopyrightText: 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
@@ -90,20 +90,6 @@ if (mbedtls_ADDED)
     endif()
 endif()
 
-# MicroProfile
-add_library(microprofile INTERFACE)
-target_include_directories(microprofile INTERFACE ./microprofile)
-if (ENABLE_MICROPROFILE)
-    target_compile_definitions(microprofile INTERFACE MICROPROFILE_ENABLED=1)
-else()
-    target_compile_definitions(microprofile INTERFACE MICROPROFILE_ENABLED=0)
-endif()
-
-# GCC bugs
-if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND MINGW)
-    target_compile_options(microprofile INTERFACE "-Wno-array-bounds")
-endif()
-
 # libusb
 if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
     add_subdirectory(libusb)
@@ -130,6 +116,7 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
+    include(CPM)
     set(CPM_USE_LOCAL_PACKAGES OFF)
 
     if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
@@ -415,7 +402,7 @@ if (ANDROID)
     endif()
 endif()
 
-if ((CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID) AND NOT TARGET gamemode::headers)
+if (UNIX AND NOT APPLE AND NOT TARGET gamemode::headers)
     add_library(gamemode INTERFACE)
     target_include_directories(gamemode INTERFACE gamemode)
     add_library(gamemode::headers ALIAS gamemode)

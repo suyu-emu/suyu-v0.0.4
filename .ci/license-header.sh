@@ -14,6 +14,8 @@ FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
 echo "Done"
 
 for file in $FILES; do
+    [ -f "$file" ] || continue
+
     EXTENSION="${file##*.}"
     case "$EXTENSION" in
         kts|kt|cpp|h)

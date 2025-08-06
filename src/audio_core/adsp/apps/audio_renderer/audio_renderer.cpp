@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,12 +12,9 @@
 #include "audio_core/common/common.h"
 #include "audio_core/sink/sink.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-
-MICROPROFILE_DEFINE(Audio_Renderer, "Audio", "DSP_AudioRenderer", MP_RGB(60, 19, 97));
 
 namespace AudioCore::ADSP::AudioRenderer {
 
@@ -131,7 +131,6 @@ void AudioRenderer::CreateSinkStreams() {
 
 void AudioRenderer::Main(std::stop_token stop_token) {
     static constexpr char name[]{"DSP_AudioRenderer_Main"};
-    MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
@@ -203,7 +202,6 @@ void AudioRenderer::Main(std::stop_token stop_token) {
 
                     // Process the command list
                     {
-                        MICROPROFILE_SCOPE(Audio_Renderer);
                         render_times_taken[index] =
                             command_list_processor.Process(index) - start_time;
                     }

@@ -11,7 +11,6 @@
 
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 
-#include "common/microprofile.h"
 #include "common/thread.h"
 #include "video_core/renderer_vulkan/vk_command_pool.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
@@ -23,7 +22,6 @@
 
 namespace Vulkan {
 
-MICROPROFILE_DECLARE(Vulkan_WaitForWorker);
 
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
                                          vk::CommandBuffer upload_cmdbuf) {
@@ -67,7 +65,6 @@ void Scheduler::Finish(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore)
 }
 
 void Scheduler::WaitWorker() {
-    MICROPROFILE_SCOPE(Vulkan_WaitForWorker);
     DispatchWork();
 
     // Ensure the queue is drained.

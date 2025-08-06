@@ -1,7 +1,9 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/microprofile.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "core/frontend/emu_window.h"
@@ -14,8 +16,6 @@
 
 namespace Vulkan {
 
-MICROPROFILE_DEFINE(Vulkan_WaitPresent, "Vulkan", "Wait For Present", MP_RGB(128, 128, 128));
-MICROPROFILE_DEFINE(Vulkan_CopyToSwapchain, "Vulkan", "Copy to swapchain", MP_RGB(192, 255, 192));
 
 namespace {
 
@@ -157,7 +157,6 @@ PresentManager::PresentManager(const vk::Instance& instance_,
 PresentManager::~PresentManager() = default;
 
 Frame* PresentManager::GetRenderFrame() {
-    MICROPROFILE_SCOPE(Vulkan_WaitPresent);
 
     // Wait for free presentation frames
     std::unique_lock lock{free_mutex};
@@ -346,7 +345,6 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
 }
 
 void PresentManager::CopyToSwapchainImpl(Frame* frame) {
-    MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
 
     // If the size of the incoming frames has changed, recreate the swapchain
     // to account for that.

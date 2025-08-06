@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/fiber.h"
-#include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/thread.h"
 #include "core/core.h"
@@ -192,7 +194,6 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     } else {
         name = "CPUThread";
     }
-    MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     auto& data = core_data[core];
@@ -201,9 +202,6 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     // Cleanup
     SCOPE_EXIT {
         data.host_context->Exit();
-#if MICROPROFILE_ENABLED
-        MicroProfileOnThreadExit();
-#endif
     };
 
     // Running

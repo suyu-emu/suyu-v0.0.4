@@ -1,14 +1,14 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "common/microprofile.h"
 #include "video_core/host1x/syncpoint_manager.h"
 
 namespace Tegra {
 
 namespace Host1x {
-
-MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 
 SyncpointManager::ActionHandle SyncpointManager::RegisterAction(
     std::atomic<u32>& syncpoint, std::list<RegisteredAction>& action_storage, u32 expected_value,
@@ -70,7 +70,6 @@ void SyncpointManager::WaitGuest(u32 syncpoint_id, u32 expected_value) {
 }
 
 void SyncpointManager::WaitHost(u32 syncpoint_id, u32 expected_value) {
-    MICROPROFILE_SCOPE(GPU_wait);
     Wait(syncpoints_host[syncpoint_id], wait_host_cv, expected_value);
 }
 

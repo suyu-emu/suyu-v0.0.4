@@ -11,7 +11,6 @@
 
 #include <fmt/ranges.h>
 
-#include "common/microprofile.h"
 #include "common/socket_types.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_thread.h"

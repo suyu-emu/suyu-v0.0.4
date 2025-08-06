@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,6 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/thread.h"
 #include "common/thread_worker.h"
@@ -45,8 +47,6 @@
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/memory.h"
-
-MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 
 namespace Kernel {
 
@@ -1277,16 +1277,6 @@ void KernelCore::ExceptionalExitApplication() {
     exception_exited = true;
     SuspendEmulation(true);
 }
-
-#if MICROPROFILE_ENABLED
-void KernelCore::EnterSVCProfile() {
-    impl->svc_ticks[CurrentPhysicalCoreIndex()] = MicroProfileEnter(MICROPROFILE_TOKEN(Kernel_SVC));
-}
-
-void KernelCore::ExitSVCProfile() {
-    MicroProfileLeave(MICROPROFILE_TOKEN(Kernel_SVC), impl->svc_ticks[CurrentPhysicalCoreIndex()]);
-}
-#endif
 
 Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() {
     return impl->slab_resource_counts;

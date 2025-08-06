@@ -334,7 +334,6 @@ void BufferCache<P>::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
 
 template <class P>
 void BufferCache<P>::UpdateGraphicsBuffers(bool is_indexed) {
-    MICROPROFILE_SCOPE(GPU_PrepareBuffers);
     do {
         channel_state->has_deleted_buffers = false;
         DoUpdateGraphicsBuffers(is_indexed);
@@ -343,7 +342,6 @@ void BufferCache<P>::UpdateGraphicsBuffers(bool is_indexed) {
 
 template <class P>
 void BufferCache<P>::UpdateComputeBuffers() {
-    MICROPROFILE_SCOPE(GPU_PrepareBuffers);
     do {
         channel_state->has_deleted_buffers = false;
         DoUpdateComputeBuffers();
@@ -352,7 +350,6 @@ void BufferCache<P>::UpdateComputeBuffers() {
 
 template <class P>
 void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
-    MICROPROFILE_SCOPE(GPU_BindUploadBuffers);
     if (is_indexed) {
         BindHostIndexBuffer();
     } else if constexpr (!HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
@@ -372,7 +369,6 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
 
 template <class P>
 void BufferCache<P>::BindHostStageBuffers(size_t stage) {
-    MICROPROFILE_SCOPE(GPU_BindUploadBuffers);
     BindHostGraphicsUniformBuffers(stage);
     BindHostGraphicsStorageBuffers(stage);
     BindHostGraphicsTextureBuffers(stage);
@@ -380,7 +376,6 @@ void BufferCache<P>::BindHostStageBuffers(size_t stage) {
 
 template <class P>
 void BufferCache<P>::BindHostComputeBuffers() {
-    MICROPROFILE_SCOPE(GPU_BindUploadBuffers);
     BindHostComputeUniformBuffers();
     BindHostComputeStorageBuffers();
     BindHostComputeTextureBuffers();
@@ -534,7 +529,6 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
         async_buffers.emplace_back(std::optional<Async_Buffer>{});
         return;
     }
-    MICROPROFILE_SCOPE(GPU_DownloadMemory);
 
     auto it = committed_gpu_modified_ranges.begin();
     while (it != committed_gpu_modified_ranges.end()) {
@@ -621,7 +615,6 @@ void BufferCache<P>::CommitAsyncFlushes() {
 
 template <class P>
 void BufferCache<P>::PopAsyncFlushes() {
-    MICROPROFILE_SCOPE(GPU_DownloadMemory);
     PopAsyncBuffers();
 }
 
@@ -1611,7 +1604,6 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, DAddr device_addr, u64
     if (total_size_bytes == 0) {
         return;
     }
-    MICROPROFILE_SCOPE(GPU_DownloadMemory);
 
     if constexpr (USE_MEMORY_MAPS) {
         auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);

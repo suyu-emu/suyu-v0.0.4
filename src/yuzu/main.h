@@ -43,11 +43,7 @@ class GameList;
 class GImageInfo;
 class GRenderWindow;
 class LoadingScreen;
-#if MICROPROFILE_ENABLED
-class MicroProfileDialog;
-#endif
 class OverlayDialog;
-class ProfilerWidget;
 class ControllerDialog;
 class QLabel;
 class MultiplayerState;
@@ -566,10 +562,6 @@ private:
     std::unique_ptr<FileSys::ManualContentProvider> provider;
 
     // Debugger panes
-    ProfilerWidget* profilerWidget;
-#if MICROPROFILE_ENABLED
-    MicroProfileDialog* microProfileDialog;
-#endif
     WaitTreeWidget* waitTreeWidget;
     ControllerDialog* controller_dialog;
 

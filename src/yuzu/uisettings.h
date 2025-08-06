@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -91,10 +94,6 @@ struct Values {
     QByteArray renderwindow_geometry;
 
     QByteArray gamelist_header_state;
-
-    QByteArray microprofile_geometry;
-    Setting<bool> microprofile_visible{linkage, false, "microProfileDialogVisible",
-                                       Category::UiLayout};
 
     Setting<bool> single_window_mode{linkage, true, "singleWindowMode", Category::Ui};
     Setting<bool> fullscreen{linkage, false, "fullscreen", Category::Ui};

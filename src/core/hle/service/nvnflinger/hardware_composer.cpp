@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <boost/container/small_vector.hpp>
 
-#include "common/microprofile.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_item_consumer.h"
@@ -114,9 +116,6 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
         // Composite.
         nvdisp.Composite(composition_stack);
     }
-
-    // Render MicroProfile.
-    MicroProfileFlip();
 
     // Advance by at least one frame.
     const u32 frame_advance = swap_interval.value_or(1);

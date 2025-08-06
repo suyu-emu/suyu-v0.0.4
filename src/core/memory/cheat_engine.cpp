@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <locale>
 #include "common/hex_util.h"
-#include "common/microprofile.h"
 #include "common/swap.h"
 #include "core/arm/debug.h"
 #include "core/core.h"
@@ -269,8 +271,6 @@ void CheatEngine::Reload(std::vector<CheatEntry> reload_cheats) {
     is_pending_reload.exchange(true);
 }
 
-MICROPROFILE_DEFINE(Cheat_Engine, "Add-Ons", "Cheat Engine", MP_RGB(70, 200, 70));
-
 void CheatEngine::FrameCallback(std::chrono::nanoseconds ns_late) {
     if (is_pending_reload.exchange(false)) {
         vm.LoadProgram(cheats);
@@ -279,8 +279,6 @@ void CheatEngine::FrameCallback(std::chrono::nanoseconds ns_late) {
     if (vm.GetProgramSize() == 0) {
         return;
     }
-
-    MICROPROFILE_SCOPE(Cheat_Engine);
 
     vm.Execute(metadata);
 }

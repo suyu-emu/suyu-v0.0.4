@@ -396,14 +396,6 @@ public:
     /// Register a host thread as an auxiliary thread.
     void RegisterHostThread();
 
-#if MICROPROFILE_ENABLED
-    /// Enter CPU Microprofile
-    void EnterCPUProfile();
-
-    /// Exit CPU Microprofile
-    void ExitCPUProfile();
-#endif
-
     /// Tells if system is running on multicore.
     [[nodiscard]] bool IsMulticore() const;
 
