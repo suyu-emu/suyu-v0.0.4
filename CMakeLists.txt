@@ -516,7 +516,7 @@ if (ENABLE_QT)
     endif()
 
     if (UNIX AND NOT APPLE)
-        find_package(Qt6 REQUIRED COMPONENTS DBus)
+        find_package(Qt6 REQUIRED COMPONENTS DBus GuiPrivate)
     endif()
 
     if (ENABLE_QT_TRANSLATION)
