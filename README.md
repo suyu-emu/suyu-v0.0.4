@@ -22,7 +22,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 <p align="center">
     </a>
     <a href="https://discord.gg/kXAmGCXBGD">
-        <img src="https://img.shields.io/discord/1317386222229917696?color=5865F2&label=Eden&logo=discord&logoColor=white"
+        <img src="https://img.shields.io/discord/1367654015269339267?color=5865F2&label=Eden&logo=discord&logoColor=white"
             alt="Discord">
     </a>
 </p>
@@ -66,7 +66,7 @@ You can download the latest releases from [here](https://github.com/eden-emulato
 
 ## Support
 
-If you enjoy the project and would like to support us financially, please check out our developers' [donation pages](https://eden-emu.dev/donations.html)!
+If you enjoy the project and would like to support us financially, please check out our developers' [donation pages](https://eden-emu.dev/donations)!
 
 Any donations received will go towards things such as:
 * Switch consoles to explore and reverse-engineer the hardware
