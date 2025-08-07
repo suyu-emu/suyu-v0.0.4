@@ -211,6 +211,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                     if (shouldUseCustom) {
                         SettingsFile.loadCustomConfig(game!!)
+                        NativeConfig.unloadPerGameConfig()
                         Log.info("[EmulationFragment] Loading custom settings for ${game!!.title}")
                     } else {
                         Log.info("[EmulationFragment] Using global settings")

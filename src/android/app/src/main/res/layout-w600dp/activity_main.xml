@@ -6,7 +6,8 @@
     android:id="@+id/coordinator_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/eden_background_gradient">
+    android:background="@drawable/eden_background_gradient"
+    >
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container"

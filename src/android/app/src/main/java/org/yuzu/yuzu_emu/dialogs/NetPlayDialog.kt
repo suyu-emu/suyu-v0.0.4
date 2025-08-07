@@ -552,7 +552,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 if (result == 0) {
                     StringSetting.WEB_USERNAME.setString(username)
                     NetPlayManager.setRoomPort(activity, portStr)
-                    NetPlayManager.setRoomAddress(activity, ipAddress)
+
                     if (!isCreateRoom) NetPlayManager.setRoomAddress(activity, ipAddress)
 
                     Toast.makeText(
