@@ -3656,7 +3656,7 @@ void GMainWindow::OnOpenFAQ() {
 }
 
 void GMainWindow::OnOpenDiscord() {
-    OpenURL(QUrl(QStringLiteral("https://discord.gg/edenemu")));
+    OpenURL(QUrl(QStringLiteral("https://discord.gg/kXAmGCXBGD")));
 }
 
 void GMainWindow::ToggleFullscreen() {
