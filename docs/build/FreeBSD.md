@@ -1,42 +1,44 @@
 ## One word of caution before proceeding.
-This is not the usual or preferred way to build programs on FreeBSD.  
-As of writing there is no official fresh port available for eden-emu, but it is in the works.  
-After it is available you can find a link to the eden-emu fresh port here and on Escarys github repo.  
+This is not the usual or preferred way to build programs on FreeBSD.
+As of writing there is no official fresh port available for eden-emu, but it is in the works.
+After it is available you can find a link to the eden-emu fresh port here and on Escarys github repo.
 See this build as an App Image alternative for FreeBSD.
 
-## Dependencies.  
-Before we start we need some dependencies.  
+## Dependencies.
+Before we start we need some dependencies.
 These dependencies are generally needed to build eden-emu on FreeBSD.
 
 ```
-devel/cmake  
-devel/sdl20  
-devel/boost-libs  
-devel/catch2  
-devel/libfmt  
-devel/nlohmann-json  
-devel/ninja  
-devel/nasm  
-devel/autoconf  
-devel/pkg-config  
-devel/qt6-base  
+devel/cmake
+devel/sdl20
+devel/boost-libs
+devel/catch2
+devel/libfmt
+devel/nlohmann-json
+devel/ninja
+devel/nasm
+devel/autoconf
+devel/pkgconf
+devel/qt6-base
 
-multimedia/ffnvcodec-headers  
-multimedia/ffmpeg  
+multimedia/ffnvcodec-headers
+multimedia/ffmpeg
 
-audio/opus  
+audio/opus
 
-archivers/liblz4  
+archivers/liblz4
 
-lang/gcc12  
+lang/gcc12
 
-graphics/glslang  
-graphics/vulkan-utility-libraries  
+graphics/glslang
+graphics/vulkan-utility-libraries
 ```
+
+If using FreeBSD 12 or prior, use `devel/pkg-config` instead.
 
 ---
 
-### Build preparations:  
+### Build preparations:
 Run the following command to clone eden with git:
 ```sh
 git clone --recursive https://git.eden-emu.dev/eden-emu/eden
