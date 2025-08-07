@@ -440,9 +440,10 @@
     <string name="user_data_import_success">User data imported successfully</string>
     <string name="user_data_export_cancelled">Export cancelled</string>
     <string name="user_data_import_failed_description">Make sure the user data folders are at the root of the zip folder and contain a config file at config/config.ini and try again.</string>
-    <string name="support_link">https://discord.gg/edenemu</string>
-    <string name="website_link">https://eden-emulator.github.io</string>
-    <string name="github_link">https://git.eden-emu.dev/eden-emu</string>
+    <string name="discord_link" translatable="false">https://discord.gg/kXAmGCXBGD</string>
+    <string name="revolt_link" translatable="false">https://rvlt.gg/qKgFEAbH</string>
+    <string name="website_link" translatable="false">https://eden-emu.dev</string>
+    <string name="github_link" translatable="false">https://git.eden-emu.dev/eden-emu</string>
 
     <!-- General settings strings -->
     <string name="frame_limit_enable">Limit speed</string>

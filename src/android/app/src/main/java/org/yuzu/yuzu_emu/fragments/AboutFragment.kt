@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -91,7 +94,8 @@ class AboutFragment : Fragment() {
             }
         }
 
-        binding.buttonDiscord.setOnClickListener { openLink(getString(R.string.support_link)) }
+        binding.buttonDiscord.setOnClickListener { openLink(getString(R.string.discord_link)) }
+        binding.buttonRevolt.setOnClickListener { openLink(getString(R.string.revolt_link)) }
         binding.buttonWebsite.setOnClickListener { openLink(getString(R.string.website_link)) }
         binding.buttonGithub.setOnClickListener { openLink(getString(R.string.github_link)) }
 

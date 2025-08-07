@@ -214,6 +214,8 @@
     <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
     <addaction name="action_Discord"/>
+    <addaction name="action_Revolt"/>
+    <addaction name="separator"/>
     <addaction name="action_About"/>
    </widget>
    <addaction name="menu_File"/>
@@ -557,6 +559,20 @@
   <action name="action_Firmware_From_ZIP">
    <property name="text">
     <string>From ZIP</string>
+   </property>
+  </action>
+  <action name="action_Revolt">
+   <property name="text">
+    <string>&amp;Revolt</string>
+   </property>
+   <property name="toolTip">
+    <string>Revolt</string>
+   </property>
+   <property name="statusTip">
+    <string/>
+   </property>
+   <property name="whatsThis">
+    <string/>
    </property>
   </action>
  </widget>

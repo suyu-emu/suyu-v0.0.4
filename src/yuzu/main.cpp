@@ -1678,6 +1678,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Log_Folder, &GMainWindow::OnOpenLogFolder);
 
     connect_menu(ui->action_Discord, &GMainWindow::OnOpenDiscord);
+    connect_menu(ui->action_Revolt, &GMainWindow::OnOpenRevolt);
     connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_Firmware_From_Folder, &GMainWindow::OnInstallFirmware);
     connect_menu(ui->action_Firmware_From_ZIP, &GMainWindow::OnInstallFirmwareFromZIP);
@@ -2002,7 +2003,7 @@ bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletPa
                     tr("Error while loading ROM! %1", "%1 signifies a numeric error code.")
                         .arg(QString::fromStdString(error_code));
                 const auto description =
-                    tr("%1<br>Please redump your files or ask on Discord for help.",
+                    tr("%1<br>Please redump your files or ask on Discord/Revolt for help.",
                        "%1 signifies an error string.")
                         .arg(QString::fromStdString(
                             GetResultStatusString(static_cast<Loader::ResultStatus>(error_id))));
@@ -3657,6 +3658,10 @@ void GMainWindow::OnOpenFAQ() {
 
 void GMainWindow::OnOpenDiscord() {
     OpenURL(QUrl(QStringLiteral("https://discord.gg/kXAmGCXBGD")));
+}
+
+void GMainWindow::OnOpenRevolt() {
+    OpenURL(QUrl(QStringLiteral("https://rvlt.gg/qKgFEAbH")));
 }
 
 void GMainWindow::ToggleFullscreen() {
