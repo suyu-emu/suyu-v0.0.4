@@ -53,9 +53,9 @@ if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
     CPMAddPackage(
         NAME oaknut
         VERSION 2.0.1
-        URL "https://github.com/Wunkolo/oaknut/archive/d9a104d558.zip"
-        URL_HASH SHA512=3702c8cf818a8c2b19edf9b18278b3d2b857f118faf1e05064c9389c6da639aaf6e955c20abd4f8bf92e309efb6df79affdefc0d3a1e0f980f86203525dbbcd8
-        CUSTOM_CACHE_KEY "d9a1"
+        URL "https://github.com/merryhime/oaknut/archive/94c726ce03.zip"
+        URL_HASH SHA512=d8d082242fa1881abce3c82f8dafa002c4e561e66a69e7fc038af67faa5eff2630f082d3d19579c88c4c9f9488e54552accc8cb90e7ce743efe043b6230c08ac
+        CUSTOM_CACHE_KEY "94c7"
     )
     endif()
 
