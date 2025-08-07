@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,7 +31,6 @@ ControllerDialog::ControllerDialog(Core::HID::HIDCore& hid_core_,
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(widget);
-    setLayout(layout);
 
     // Configure focus so that widget is focusable and the dialog automatically forwards focus to
     // it.

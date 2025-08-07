@@ -418,7 +418,7 @@ bool ConfigureProfileManager::LoadAvatarData() {
 ConfigureProfileManagerAvatarDialog::ConfigureProfileManagerAvatarDialog(QWidget* parent)
     : QDialog{parent}, avatar_list{new QListWidget(this)}, bg_color_button{new QPushButton(this)} {
     auto* main_layout = new QVBoxLayout(this);
-    auto* button_layout = new QHBoxLayout(this);
+    auto* button_layout = new QHBoxLayout();
     auto* select_button = new QPushButton(tr("Select"), this);
     auto* cancel_button = new QPushButton(tr("Cancel"), this);
     auto* bg_color_label = new QLabel(tr("Background Color"), this);
@@ -442,7 +442,6 @@ ConfigureProfileManagerAvatarDialog::ConfigureProfileManagerAvatarDialog(QWidget
     button_layout->addWidget(select_button);
     button_layout->addWidget(cancel_button);
 
-    this->setLayout(main_layout);
     this->setWindowTitle(tr("Select Firmware Avatar"));
     main_layout->addWidget(avatar_list);
     main_layout->addLayout(button_layout);

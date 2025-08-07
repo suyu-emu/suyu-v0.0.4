@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -98,8 +101,8 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     };
 
     for (std::size_t i = 0; i < player_tabs.size(); ++i) {
-        player_tabs[i]->setLayout(new QHBoxLayout(player_tabs[i]));
-        player_tabs[i]->layout()->addWidget(player_controllers[i]);
+        QHBoxLayout *tab_layout = new QHBoxLayout(player_tabs[i]);
+        tab_layout->addWidget(player_controllers[i]);
         connect(player_controllers[i], &ConfigureInputPlayer::Connected, [this, i](bool checked) {
             // Ensures that connecting a controller changes the number of players
             if (connected_controller_checkboxes[i]->isChecked() != checked) {
@@ -138,8 +141,9 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
             [this](bool is_handheld) { UpdateDockedState(is_handheld); });
 
     advanced = new ConfigureInputAdvanced(hid_core, this);
-    ui->tabAdvanced->setLayout(new QHBoxLayout(ui->tabAdvanced));
-    ui->tabAdvanced->layout()->addWidget(advanced);
+
+    QHBoxLayout* advancedLayout = new QHBoxLayout(ui->tabAdvanced);
+    advancedLayout->addWidget(advanced);
 
     connect(advanced, &ConfigureInputAdvanced::CallDebugControllerDialog,
             [this, input_subsystem, &hid_core, is_powered_on] {

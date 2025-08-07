@@ -12,6 +12,7 @@
 #include <QDialog>
 #include <QList>
 #include <QWidget>
+#include "core/file_sys/vfs/vfs_types.h"
 
 namespace Common {
 struct UUID;

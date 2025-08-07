@@ -1,10 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <memory>
 #include <utility>
-#include <QGridLayout>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
@@ -13,7 +15,6 @@
 #include "common/assert.h"
 #include "common/param_package.h"
 #include "configuration/qt_config.h"
-#include "frontend_common/config.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"

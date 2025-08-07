@@ -391,14 +391,14 @@ void ProfileManager::ParseUserSaveFile() {
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
-                                 "user 'yuzu' with random UUID.");
+                                 "user 'eden' with random UUID.");
         return;
     }
 
     ProfileDataRaw data;
     if (!save.ReadObject(data)) {
         LOG_WARNING(Service_ACC, "profiles.dat is smaller than expected... Generating new user "
-                                 "'yuzu' with random UUID.");
+                                 "'eden' with random UUID.");
         return;
     }
 

@@ -287,7 +287,6 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
     setAttribute(Qt::WA_AcceptTouchEvents);
     auto* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(layout);
     input_subsystem->Initialize();
     this->setMouseTracking(true);
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -52,7 +55,7 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(
     Core::System& system, QWidget* parent,
     const Core::Frontend::ProfileSelectParameters& parameters)
     : QDialog(parent), profile_manager{system.GetProfileManager()} {
-    outer_layout = new QVBoxLayout;
+    outer_layout = new QVBoxLayout(this);
 
     instruction_label = new QLabel();
 
@@ -66,7 +69,7 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(
     outer_layout->addWidget(scroll_area);
     outer_layout->addWidget(buttons);
 
-    layout = new QVBoxLayout;
+    layout = new QVBoxLayout(scroll_area);
     tree_view = new QTreeView;
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
@@ -93,8 +96,6 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(tree_view);
-
-    scroll_area->setLayout(layout);
 
     connect(tree_view, &QTreeView::clicked, this, &QtProfileSelectionDialog::SelectUser);
     connect(tree_view, &QTreeView::doubleClicked, this, &QtProfileSelectionDialog::accept);
@@ -124,7 +125,6 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(
     for (const auto& item : list_items)
         item_model->appendRow(item);
 
-    setLayout(outer_layout);
     SetWindowTitle(parameters);
     SetDialogPurpose(parameters);
     resize(550, 400);
