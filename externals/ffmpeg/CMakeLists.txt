@@ -176,6 +176,7 @@ if (NOT WIN32 AND NOT ANDROID)
                 --enable-decoder=vp8
                 --enable-decoder=vp9
                 --enable-filter=yadif,scale
+                --enable-pic
                 --cc="${FFmpeg_CC}"
                 --cxx="${FFmpeg_CXX}"
                 ${FFmpeg_HWACCEL_FLAGS}
