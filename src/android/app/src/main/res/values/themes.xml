@@ -64,7 +64,7 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         <!-- Other theme attributes -->
-        <item name="android:shadowColor">@color/eden_overlay_dark</item>
+        <item name="android:shadowColor">@color/eden_overlay</item>
         <item name="sliderStyle">@style/EdenSlider</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:enforceStatusBarContrast">false</item>
