@@ -14,19 +14,34 @@ template<typename... Ts>
     assert_terminate_impl(expr_str, msg, fmt::make_format_args(args...));
 }
 
+// Temporary until MCL is fully removed
+#ifndef ASSERT_MSG
 #define ASSERT_MSG(_a_, ...)                                                                       \
     ([&]() {                                                                        \
         if (!(_a_)) [[unlikely]] {                                                                 \
             assert_terminate(#_a_, __VA_ARGS__);                                                   \
         }                                                                                          \
     }())
+#endif
 
+#ifndef ASSERT
 #define ASSERT(_a_) ASSERT_MSG(_a_, "")
+#endif
+#ifndef UNREACHABLE
 #define UNREACHABLE() ASSERT_MSG(false, "unreachable")
+#endif
 #ifdef _DEBUG
+#ifndef DEBUG_ASSERT
 #define DEBUG_ASSERT(_a_) ASSERT(_a_)
+#endif
+#ifndef DEBUG_ASSERT_MSG
 #define DEBUG_ASSERT_MSG(_a_, ...) ASSERT_MSG(_a_, __VA_ARGS__)
+#endif
 #else // not debug
+#ifndef DEBUG_ASSERT
 #define DEBUG_ASSERT(_a_)
+#endif
+#ifndef DEBUG_ASSERT_MSG
 #define DEBUG_ASSERT_MSG(_a_, _desc_, ...)
+#endif
 #endif
