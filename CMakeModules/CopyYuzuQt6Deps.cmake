@@ -63,6 +63,4 @@ function(copy_yuzu_Qt6_deps target_dir)
     else()
         # Update for non-MSVC platforms if needed
     endif()
-    # Fixes dark mode being forced automatically even when light theme is set in app settings.
-	file(WRITE "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/qt.conf" "[Platforms]\nWindowsArguments = darkmode=0")
 endfunction(copy_yuzu_Qt6_deps)

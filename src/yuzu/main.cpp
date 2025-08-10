@@ -96,6 +96,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QString>
+#include <QStyleHints>
 #include <QSysInfo>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrent>
@@ -171,6 +172,91 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 #include "yuzu/vk_device_info.h"
+
+#ifdef _WIN32
+#include <QPlatformSurfaceEvent>
+#include <dwmapi.h>
+#include <windows.h>
+#pragma comment(lib, "Dwmapi.lib")
+
+static inline void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
+    if (!hwnd)
+        return;
+    BOOL val = enabled ? TRUE : FALSE;
+    // 20 = Win11/21H2+
+    if (SUCCEEDED(DwmSetWindowAttribute(hwnd, 20, &val, sizeof(val))))
+        return;
+    // 19 = pre-21H2
+    DwmSetWindowAttribute(hwnd, 19, &val, sizeof(val));
+}
+
+static inline void ApplyDarkToTopLevel(QWidget* w, bool on) {
+    if (!w || !w->isWindow())
+        return;
+    ApplyWindowsTitleBarDarkMode(reinterpret_cast<HWND>(w->winId()), on);
+}
+
+namespace {
+struct TitlebarFilter final : QObject {
+    bool dark;
+    explicit TitlebarFilter(bool is_dark) : QObject(qApp), dark(is_dark) {}
+
+    void setDark(bool is_dark) {
+        dark = is_dark;
+    }
+
+    void onFocusChanged(QWidget*, QWidget* now) {
+        if (now)
+            ApplyDarkToTopLevel(now->window(), dark);
+    }
+
+    bool eventFilter(QObject* obj, QEvent* ev) override {
+        if (auto* w = qobject_cast<QWidget*>(obj)) {
+            switch (ev->type()) {
+            case QEvent::WinIdChange:
+            case QEvent::Show:
+            case QEvent::ShowToParent:
+            case QEvent::Polish:
+            case QEvent::WindowStateChange:
+            case QEvent::ZOrderChange:
+                ApplyDarkToTopLevel(w, dark);
+                break;
+            default:
+                break;
+            }
+        }
+        return QObject::eventFilter(obj, ev);
+    }
+};
+
+static TitlebarFilter* g_filter = nullptr;
+static QMetaObject::Connection g_focusConn;
+
+} // namespace
+
+static void ApplyGlobalDarkTitlebar(bool is_dark) {
+    if (!g_filter) {
+        g_filter = new TitlebarFilter(is_dark);
+        qApp->installEventFilter(g_filter);
+        g_focusConn = QObject::connect(qApp, &QApplication::focusChanged, g_filter,
+                                       &TitlebarFilter::onFocusChanged);
+    } else {
+        g_filter->setDark(is_dark);
+    }
+    for (QWidget* w : QApplication::topLevelWidgets())
+        ApplyDarkToTopLevel(w, is_dark);
+}
+
+static void RemoveTitlebarFilter() {
+    if (!g_filter)
+        return;
+    qApp->removeEventFilter(g_filter);
+    QObject::disconnect(g_focusConn);
+    g_filter->deleteLater();
+    g_filter = nullptr;
+}
+
+#endif
 
 #ifdef YUZU_CRASH_DUMPS
 #include "yuzu/breakpad.h"
@@ -299,16 +385,16 @@ static void OverrideWindowsFont() {
 }
 #endif
 
-bool GMainWindow::CheckDarkMode() {
-#ifdef __unix__
-    const QPalette test_palette(qApp->palette());
-    const QColor text_color = test_palette.color(QPalette::Active, QPalette::Text);
-    const QColor window_color = test_palette.color(QPalette::Active, QPalette::Window);
-    return (text_color.value() > window_color.value());
+inline static bool isDarkMode() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    const auto scheme = QGuiApplication::styleHints()->colorScheme();
+    return scheme == Qt::ColorScheme::Dark;
 #else
-    // TODO: Windows
-    return false;
-#endif // __unix__
+    const QPalette defaultPalette;
+    const auto text = defaultPalette.color(QPalette::WindowText);
+    const auto window = defaultPalette.color(QPalette::Window);
+    return text.lightness() > window.lightness();
+#endif // QT_VERSION
 }
 
 GMainWindow::GMainWindow(bool has_broken_vulkan)
@@ -358,7 +444,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     statusBar()->hide();
 
     // Check dark mode before a theme is loaded
-    os_dark_mode = CheckDarkMode();
     startup_icon_theme = QIcon::themeName();
     // fallback can only be set once, colorful theme icons are okay on both light/dark
     QIcon::setFallbackThemeName(QStringLiteral("colorful"));
@@ -5383,15 +5468,11 @@ void GMainWindow::UpdateUITheme() {
         current_theme = default_theme;
     }
 
-#ifdef _WIN32
-    QIcon::setThemeName(current_theme);
-    AdjustLinkColor();
-#else
     if (current_theme == QStringLiteral("default") || current_theme == QStringLiteral("colorful")) {
         QIcon::setThemeName(current_theme == QStringLiteral("colorful") ? current_theme
                                                                         : startup_icon_theme);
         QIcon::setThemeSearchPaths(QStringList(default_theme_paths));
-        if (CheckDarkMode()) {
+        if (isDarkMode()) {
             current_theme = QStringLiteral("default_dark");
         }
     } else {
@@ -5399,7 +5480,7 @@ void GMainWindow::UpdateUITheme() {
         QIcon::setThemeSearchPaths(QStringList(QStringLiteral(":/icons")));
         AdjustLinkColor();
     }
-#endif
+
     if (current_theme != default_theme) {
         QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
         QFile f(theme_uri);
@@ -5422,6 +5503,11 @@ void GMainWindow::UpdateUITheme() {
         qApp->setStyleSheet({});
         setStyleSheet({});
     }
+
+#ifdef _WIN32
+    RemoveTitlebarFilter();
+    ApplyGlobalDarkTitlebar(UISettings::IsDarkTheme());
+#endif
 }
 
 void GMainWindow::LoadTranslation() {

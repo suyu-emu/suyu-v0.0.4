@@ -466,7 +466,6 @@ private:
     void OpenURL(const QUrl& url);
     void LoadTranslation();
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
-    bool CheckDarkMode();
     bool CheckFirmwarePresence();
     void SetFirmwareVersion();
     void ConfigureFilesystemProvider(const std::string& filepath);
@@ -557,7 +556,6 @@ private:
     QTimer update_input_timer;
 
     QString startup_icon_theme;
-    bool os_dark_mode = false;
 
     // FS
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
