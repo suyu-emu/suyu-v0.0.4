@@ -217,6 +217,7 @@
     <addaction name="action_Revolt"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
+    <addaction name="action_Eden_Dependencies"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -573,6 +574,11 @@
    </property>
    <property name="whatsThis">
     <string/>
+   </property>
+  </action>
+  <action name="action_Eden_Dependencies">
+   <property name="text">
+    <string>&amp;Eden Dependencies</string>
    </property>
   </action>
  </widget>

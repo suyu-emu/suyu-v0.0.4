@@ -23,13 +23,13 @@ namespace Core {
 static constexpr std::chrono::seconds announce_time_interval(15);
 
 AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
-//#ifdef ENABLE_WEB_SERVICE
+#ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
                                                      Settings::values.eden_username.GetValue(),
                                                      Settings::values.eden_token.GetValue());
-//#else
-//    backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
-//#endif
+#else
+   backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
+#endif
 }
 
 WebService::WebResult AnnounceMultiplayerSession::Register() {
@@ -156,11 +156,11 @@ bool AnnounceMultiplayerSession::IsRunning() const {
 void AnnounceMultiplayerSession::UpdateCredentials() {
     ASSERT_MSG(!IsRunning(), "Credentials can only be updated when session is not running");
 
-//#ifdef ENABLE_WEB_SERVICE
+#ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
                                                      Settings::values.eden_username.GetValue(),
                                                      Settings::values.eden_token.GetValue());
-//#endif
+#endif
 }
 
 } // namespace Core

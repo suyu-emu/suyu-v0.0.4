@@ -337,6 +337,10 @@ if (VulkanUtilityLibraries_ADDED)
     target_include_directories(video_core PUBLIC ${VulkanUtilityLibraries_SOURCE_DIR}/include)
 endif()
 
+if (VulkanHeaders_ADDED)
+    target_include_directories(video_core PUBLIC ${VulkanHeaders_SOURCE_DIR}/include)
+endif()
+
 target_link_libraries(video_core PRIVATE sirit Vulkan::Headers)
 
 if (ENABLE_NSIGHT_AFTERMATH)

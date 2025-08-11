@@ -216,14 +216,14 @@ if (YUZU_USE_BUNDLED_VCPKG)
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
     endif()
 
-    include(CPM)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
+    include(CPMUtil)
 
-    CPMAddPackage(
+    AddPackage(
+        NAME vcpkg
         DOWNLOAD_ONLY YES
-        GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git"
+        URL "https://github.com/microsoft/vcpkg.git"
         GIT_TAG "ea2a964f93"
-        CUSTOM_CACHE_KEY "ea2a"
+        SHA "ea2a964f93"
     )
 
     include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
@@ -277,6 +277,30 @@ function(check_submodules_present)
             message(FATAL_ERROR "Git submodule ${module} not found. "
                 "Please run: \ngit submodule update --init --recursive")
         endif()
+
+        set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
+
+        execute_process(
+            COMMAND git rev-parse --short=10 HEAD
+            WORKING_DIRECTORY ${SUBMODULE_DIR}
+            OUTPUT_VARIABLE SUBMODULE_SHA
+        )
+
+        # would probably be better to do string parsing, but whatever
+        execute_process(
+            COMMAND git remote get-url origin
+            WORKING_DIRECTORY ${SUBMODULE_DIR}
+            OUTPUT_VARIABLE SUBMODULE_URL
+        )
+
+        string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
+        string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
+
+        get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
+
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
     endforeach()
 endfunction()
 
@@ -453,7 +477,7 @@ if (ENABLE_SDL2)
         endif()
 
         if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX)
+            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX 2.32.8)
         endif()
 
         set(SDL2_FOUND YES)
@@ -584,7 +608,7 @@ endif()
 
 if (WIN32 AND YUZU_CRASH_DUMPS)
     set(BREAKPAD_VER "breakpad-c89f9dd")
-    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX)
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} "breakpad-win" BREAKPAD_PREFIX "c89f9dd")
 
     set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
     set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
@@ -721,7 +745,6 @@ if(ENABLE_QT)
 else()
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yuzu-cmd)
 endif()
-
 
 # Installation instructions
 # =========================

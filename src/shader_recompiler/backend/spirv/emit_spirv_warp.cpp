@@ -70,7 +70,7 @@ Id GetMaxThreadId(EmitContext& ctx, Id thread_id, Id clamp, Id segmentation_mask
 Id SelectValue(EmitContext& ctx, Id in_range, Id value, Id src_thread_id) {
     return ctx.OpSelect(
         ctx.U32[1], in_range,
-        ctx.OpGroupNonUniformShuffleXor(ctx.U32[1], SubgroupScope(ctx), value, src_thread_id), value);
+        ctx.OpGroupNonUniformShuffle(ctx.U32[1], SubgroupScope(ctx), value, src_thread_id), value);
 }
 
 Id AddPartitionBase(EmitContext& ctx, Id thread_id) {

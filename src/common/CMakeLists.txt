@@ -159,7 +159,8 @@ add_library(
   wall_clock.cpp
   wall_clock.h
   zstd_compression.cpp
-  zstd_compression.h)
+  zstd_compression.h
+)
 
 if(YUZU_ENABLE_PORTABLE)
   add_compile_definitions(YUZU_ENABLE_PORTABLE)

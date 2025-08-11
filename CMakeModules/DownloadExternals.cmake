@@ -6,7 +6,7 @@
 #   remote_path: path to the file to download, relative to the remote repository root
 #   prefix_var: name of a variable which will be set with the path to the extracted contents
 set(CURRENT_MODULE_DIR ${CMAKE_CURRENT_LIST_DIR})
-function(download_bundled_external remote_path lib_name cpm_key prefix_var)
+function(download_bundled_external remote_path lib_name cpm_key prefix_var version)
     set(package_base_url "https://github.com/eden-emulator/")
     set(package_repo "no_platform")
     set(package_extension "no_platform")
@@ -29,13 +29,13 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var)
     set(package_url "${package_base_url}${package_repo}")
     set(full_url ${package_url}${remote_path}${lib_name}${package_extension})
 
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-
-    CPMAddPackage(
+    AddPackage(
         NAME ${cpm_key}
+        VERSION ${version}
         URL ${full_url}
         DOWNLOAD_ONLY YES
-        CUSTOM_CACHE_KEY ${CACHE_KEY}
+        KEY ${CACHE_KEY}
+        # TODO(crueter): hash
     )
 
     set(${prefix_var} "${${cpm_key}_SOURCE_DIR}" PARENT_SCOPE)
@@ -46,11 +46,11 @@ function(download_win_archives)
     set(FORCE_WIN_ARCHIVES ON)
     set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
 
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" "")
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" "" 7.1.1)
 
     # TODO(crueter): separate handling for arm64
     set(SDL2_VER "SDL2-2.32.8")
-    download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" "")
+    download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" "" 2.32.8)
     set(FORCE_WIN_ARCHIVES OFF)
 endfunction()
 

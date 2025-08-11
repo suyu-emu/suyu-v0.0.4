@@ -1,7 +1,4 @@
 #!/bin/sh
 
-for i in $@; do
-    SUM=`wget -q $i -O - | sha512sum`
-    echo "$i"
-    echo "URL_HASH SHA512=$SUM" | cut -d " " -f1-2
-done
+SUM=`wget -q https://github.com/$1/archive/$2.zip -O - | sha512sum`
+echo "$SUM" | cut -d " " -f1

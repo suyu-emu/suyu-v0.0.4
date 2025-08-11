@@ -397,6 +397,7 @@ private slots:
     void OnInstallFirmwareFromZIP();
     void OnInstallDecryptionKeys();
     void OnAbout();
+    void OnEdenDependencies();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
     void OnGameListRefresh();

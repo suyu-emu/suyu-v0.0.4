@@ -238,6 +238,10 @@ add_executable(yuzu
     migration_dialog.h migration_dialog.cpp
     migration_worker.h
     migration_worker.cpp
+
+    deps_dialog.cpp
+    deps_dialog.h
+    deps_dialog.ui
 )
 
 set_target_properties(yuzu PROPERTIES OUTPUT_NAME "eden")

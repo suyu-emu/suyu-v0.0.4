@@ -19,14 +19,11 @@ if (NOT WIN32 AND NOT ANDROID)
         message(FATAL_ERROR "Required program `autoconf` not found.")
     endif()
 
-    include(CPM)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-
-    CPMAddPackage(
+    AddPackage(
         NAME ffmpeg
-        URL "https://github.com/FFmpeg/FFmpeg/archive/c2184b65d2.zip"
-        URL_HASH SHA512=2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
-        CUSTOM_CACHE_KEY "c218"
+        REPO "FFmpeg/FFmpeg"
+        SHA c2184b65d2
+        HASH 2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
     )
 
     set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
@@ -243,7 +240,7 @@ elseif(ANDROID)
         message(FATAL_ERROR "Unsupported architecture for Android FFmpeg")
     endif()
 
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH)
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/lib" CACHE PATH "Path to FFmpeg library directory" FORCE)
@@ -268,7 +265,7 @@ elseif(WIN32)
     # Use yuzu FFmpeg binaries
     set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
 
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH)
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)

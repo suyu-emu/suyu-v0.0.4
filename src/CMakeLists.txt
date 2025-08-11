@@ -232,3 +232,5 @@ if (ANDROID)
     add_subdirectory(android/app/src/main/jni)
     target_include_directories(yuzu-android PRIVATE android/app/src/main)
 endif()
+
+include(GenerateDepHashes)
