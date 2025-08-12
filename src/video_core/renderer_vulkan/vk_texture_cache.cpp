@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <span>
+#include <memory>
 #include <vector>
 #include <boost/container/small_vector.hpp>
 
@@ -1538,7 +1539,7 @@ Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBas
 Image::~Image() = default;
 
 void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
-                          std::span<const VideoCommon::BufferImageCopy> copies) {
+                         std::span<const VideoCommon::BufferImageCopy> copies) {
     // TODO: Move this to another API
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
@@ -1546,69 +1547,88 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
     }
 
     // Handle MSAA upload if necessary
-    /* WARNING, TODO: This code uses some hacks, besides being fundamentally ugly 
-    since tropic didn't want to touch it for a long time, so it needs a rewrite from someone better than me at vulkan.*/
-    if (info.num_samples > 1 && runtime->CanUploadMSAA()) {
-        // Only use MSAA copy pass for color formats
-        // TODO: Depth/stencil formats need special handling
-        if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
-            // Create a temporary non-MSAA image to upload the data first
-            ImageInfo temp_info = info;
-            temp_info.num_samples = 1;
+    /* WARNING, TODO: This code uses some hacks, besides being fundamentally ugly
+       since tropic didn't want to touch it for a long time, so it needs a rewrite from someone
+       better than me at vulkan. */
+    // CHANGE: Gate the MSAA path more strictly and only use it for color, when the pass and device
+    //         support are available. Avoid running the MSAA path when prerequisites aren't met, preventing
+    //         validation and runtime issues.
+    const bool wants_msaa_upload = info.num_samples > 1 &&
+                                   aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT &&
+                                   runtime->CanUploadMSAA() && runtime->msaa_copy_pass != nullptr &&
+                                   runtime->device.IsStorageImageMultisampleSupported();
 
-            // Create image with same usage flags as the target image to avoid validation errors
-            VkImageCreateInfo image_ci = MakeImageCreateInfo(runtime->device, temp_info);
-            image_ci.usage = original_image.UsageFlags();
-            vk::Image temp_image = runtime->memory_allocator.CreateImage(image_ci);
+    if (wants_msaa_upload) {
+        // Create a temporary non-MSAA image to upload the data first
+        ImageInfo temp_info = info;
+        temp_info.num_samples = 1;
 
-            // Upload to the temporary non-MSAA image
-            scheduler->RequestOutsideRenderPassOperationContext();
-            auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
-            const VkBuffer src_buffer = buffer;
-            const VkImage temp_vk_image = *temp_image;
-            const VkImageAspectFlags vk_aspect_mask = aspect_mask;
-            scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
-                CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, vk_copies);
-            });
+        // CHANGE: Build a fresh VkImageCreateInfo with robust usage flags for the temp image.
+        //         Using the target image's usage as-is could miss STORAGE/TRANSFER bits and trigger validation errors.
+        VkImageCreateInfo image_ci = MakeImageCreateInfo(runtime->device, temp_info);
+        image_ci.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 
-            // Use MSAACopyPass to convert from non-MSAA to MSAA
-            std::vector<VideoCommon::ImageCopy> image_copies;
-            for (const auto& copy : copies) {
-                VideoCommon::ImageCopy image_copy;
-                image_copy.src_offset = {0, 0, 0}; // Use zero offset for source
-                image_copy.dst_offset = copy.image_offset;
-                image_copy.src_subresource = copy.image_subresource;
-                image_copy.dst_subresource = copy.image_subresource;
-                image_copy.extent = copy.image_extent;
-                image_copies.push_back(image_copy);
-            }
+        // CHANGE: The previous stack-allocated wrapper was destroyed at function exit,
+        //         which could destroy VkImage before the GPU used it.
+        auto temp_wrapper = std::make_shared<Image>(*runtime, temp_info, 0, 0);
+        temp_wrapper->original_image = runtime->memory_allocator.CreateImage(image_ci);
+        temp_wrapper->current_image = &Image::original_image;
+        temp_wrapper->aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT;
+        temp_wrapper->initialized = true;
 
-            // wrapper image for the temporary image
-            Image temp_wrapper(*runtime, temp_info, 0, 0);
-            temp_wrapper.original_image = std::move(temp_image);
-            temp_wrapper.current_image = &Image::original_image;
-            temp_wrapper.aspect_mask = aspect_mask;
-            temp_wrapper.initialized = true;
-
-            // Use MSAACopyPass to convert from non-MSAA to MSAA
-            runtime->msaa_copy_pass->CopyImage(*this, temp_wrapper, image_copies, false);
-            std::exchange(initialized, true);
-            return;
-        }
-        // For depth/stencil formats, fall back to regular upload
-    } else {
-        // Regular non-MSAA upload
+        // Upload to the temporary non-MSAA image
         scheduler->RequestOutsideRenderPassOperationContext();
-        auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
+        auto vk_copies = TransformBufferImageCopies(copies, offset, temp_wrapper->aspect_mask);
         const VkBuffer src_buffer = buffer;
-        const VkImage vk_image = *original_image;
-        const VkImageAspectFlags vk_aspect_mask = aspect_mask;
-        const bool is_initialized = std::exchange(initialized, true);
-        scheduler->Record([src_buffer, vk_image, vk_aspect_mask, is_initialized,
-                           vk_copies](vk::CommandBuffer cmdbuf) {
-            CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, is_initialized, vk_copies);
+        const VkImage temp_vk_image = *temp_wrapper->original_image;
+        const VkImageAspectFlags vk_aspect_mask = temp_wrapper->aspect_mask;
+        scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies,
+                           // CHANGE: capture shared_ptr to pin lifetime through submission
+                           keep = temp_wrapper](vk::CommandBuffer cmdbuf) {
+            CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, vk_copies);
         });
+
+        // Use MSAACopyPass to convert from non-MSAA to MSAA
+        // CHANGE: only lifetime and usage were fixed.
+        std::vector<VideoCommon::ImageCopy> image_copies;
+        image_copies.reserve(copies.size());
+        for (const auto& copy : copies) {
+            VideoCommon::ImageCopy image_copy;
+            image_copy.src_offset = {0, 0, 0}; // Use zero offset for source
+            image_copy.dst_offset = copy.image_offset;
+            image_copy.src_subresource = copy.image_subresource;
+            image_copy.dst_subresource = copy.image_subresource;
+            image_copy.extent = copy.image_extent;
+            image_copies.push_back(image_copy);
+        }
+
+        runtime->msaa_copy_pass->CopyImage(*this, *temp_wrapper, image_copies,
+                                           /*msaa_to_non_msaa=*/false);
+        std::exchange(initialized, true);
+
+        // CHANGE: Add a no-op recording that captures temp_wrapper to ensure it stays alive
+        //         at least until commands are submitted/recorded.
+        scheduler->Record([keep = std::move(temp_wrapper)](vk::CommandBuffer) {});
+
+        // CHANGE: Restore scaling before returning from the MSAA path.
+        if (is_rescaled) {
+            ScaleUp();
+        }
+        return;
     }
+
+    // Regular non-MSAA upload (original behavior preserved)
+    scheduler->RequestOutsideRenderPassOperationContext();
+    auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
+    const VkBuffer src_buffer = buffer;
+    const VkImage vk_image = *original_image;
+    const VkImageAspectFlags vk_aspect_mask = aspect_mask;
+    const bool is_initialized = std::exchange(initialized, true);
+    scheduler->Record([src_buffer, vk_image, vk_aspect_mask, is_initialized,
+                       vk_copies](vk::CommandBuffer cmdbuf) {
+        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, is_initialized, vk_copies);
+    });
 
     if (is_rescaled) {
         ScaleUp();
