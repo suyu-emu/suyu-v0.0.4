@@ -444,7 +444,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     ui->setupUi(this);
     statusBar()->hide();
 
-    // Check dark mode before a theme is loaded
     startup_icon_theme = QIcon::themeName();
     // fallback can only be set once, colorful theme icons are okay on both light/dark
     QIcon::setFallbackThemeName(QStringLiteral("colorful"));
@@ -5475,6 +5474,10 @@ void GMainWindow::UpdateUITheme() {
         current_theme = default_theme;
     }
 
+#ifdef _WIN32
+    QIcon::setThemeName(current_theme);
+    AdjustLinkColor();
+#else
     if (current_theme == QStringLiteral("default") || current_theme == QStringLiteral("colorful")) {
         QIcon::setThemeName(current_theme == QStringLiteral("colorful") ? current_theme
                                                                         : startup_icon_theme);
@@ -5487,6 +5490,7 @@ void GMainWindow::UpdateUITheme() {
         QIcon::setThemeSearchPaths(QStringList(QStringLiteral(":/icons")));
         AdjustLinkColor();
     }
+#endif
 
     if (current_theme != default_theme) {
         QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
