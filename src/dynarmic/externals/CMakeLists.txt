@@ -28,6 +28,7 @@ if ("riscv" IN_LIST ARCHITECTURE)
         REPO "lioncash/biscuit"
         SHA 76b0be8dae
         HASH 47d55ed02d032d6cf3dc107c6c0a9aea686d5f25aefb81d1af91db027b6815bd5add1755505e19d76625feeb17aa2db6cd1668fe0dad2e6a411519bde6ca4489
+        BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
     )
 endif()
 
@@ -92,12 +93,17 @@ AddPackage(
 
 # zydis
 
+# TODO(crueter): maybe it's just Gentoo but zydis system package really sucks
 if ("x86_64" IN_LIST ARCHITECTURE)
     AddPackage(
         NAME Zycore
         REPO "zyantific/zycore-c"
         SHA 75a36c45ae
         HASH 15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924
+        OPTIONS
+            "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
+        # BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
+        EXCLUDE_FROM_ALL ON
     )
 
     AddPackage(
@@ -112,5 +118,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
             "ZYDIS_BUILD_DOXYGEN OFF"
             "ZYAN_ZYCORE_PATH ${Zycore_SOURCE_DIR}"
             "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
+        # BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
+        EXCLUDE_FROM_ALL ON
     )
 endif()

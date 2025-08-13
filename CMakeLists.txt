@@ -218,13 +218,7 @@ if (YUZU_USE_BUNDLED_VCPKG)
 
     include(CPMUtil)
 
-    AddPackage(
-        NAME vcpkg
-        DOWNLOAD_ONLY YES
-        URL "https://github.com/microsoft/vcpkg.git"
-        GIT_TAG "ea2a964f93"
-        SHA "ea2a964f93"
-    )
+    CPMAddPackage("gh:microsoft/vcpkg#10d3b37514")
 
     include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
 elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
