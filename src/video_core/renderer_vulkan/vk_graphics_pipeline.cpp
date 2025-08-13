@@ -94,7 +94,7 @@ bool IsLine(VkPrimitiveTopology topology) {
         VK_PRIMITIVE_TOPOLOGY_LINE_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
         // VK_PRIMITIVE_TOPOLOGY_LINE_LOOP_EXT,
     };
-    return std::ranges::find(line_topologies, topology) == line_topologies.end();
+    return std::ranges::find(line_topologies, topology) != line_topologies.end();
 }
 
 VkViewportSwizzleNV UnpackViewportSwizzle(u16 swizzle) {
