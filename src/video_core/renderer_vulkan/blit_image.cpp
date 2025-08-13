@@ -1,4 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
@@ -518,7 +521,7 @@ void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, VkImageView 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([this, dst_framebuffer, src_image_view, src_image, src_sampler, dst_region,
                       src_region, src_size, pipeline, layout](vk::CommandBuffer cmdbuf) {
-        TransitionImageLayout(cmdbuf, src_image,  VK_IMAGE_LAYOUT_GENERAL);
+        TransitionImageLayout(cmdbuf, src_image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         BeginRenderPass(cmdbuf, dst_framebuffer);
         const VkDescriptorSet descriptor_set = one_texture_descriptor_allocator.Commit();
         UpdateOneTextureDescriptorSet(device, descriptor_set, src_sampler, src_image_view);
