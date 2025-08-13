@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "video_core/engines/draw_manager.h"
@@ -116,11 +116,11 @@ struct HostSyncValues {
 class SamplesStreamer : public BaseStreamer {
 public:
     explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_,
-                             VideoCore::RasterizerInterface* rasterizer_, const Device& device_,
+                             VideoCore::RasterizerInterface* rasterizer_, TextureCache& texture_cache_, const Device& device_,
                              Scheduler& scheduler_, const MemoryAllocator& memory_allocator_,
                              ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                              DescriptorPool& descriptor_pool)
-        : BaseStreamer(id_), runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
+        : BaseStreamer(id_), texture_cache{texture_cache_}, runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
           scheduler{scheduler_}, memory_allocator{memory_allocator_} {
         current_bank = nullptr;
         current_query = nullptr;
@@ -153,15 +153,32 @@ public:
         if (has_started) {
             return;
         }
+
         ReserveHostQuery();
+
+        // Ensure outside render pass
+        scheduler.RequestOutsideRenderPassOperationContext();
+
+        // Reset query pool outside render pass
         scheduler.Record([query_pool = current_query_pool,
-                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+            cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
+        });
+
+        // Manually restart the render pass (required for vkCmdClearAttachments, etc.)
+        scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
+
+        // Begin query inside the newly started render pass
+        scheduler.Record([query_pool = current_query_pool,
+                                 query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
                               use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
+
         has_started = true;
     }
+
 
     void PauseCounter() override {
         if (!has_started) {
@@ -404,7 +421,7 @@ private:
             size_slots -= amount;
         }
     }
-
+    TextureCache& texture_cache;
     template <bool is_ordered, typename Func>
     void ApplyBanksWideOp(std::vector<size_t>& queries, Func&& func) {
         std::conditional_t<is_ordered, std::map<size_t, std::pair<size_t, size_t>>,
@@ -1163,13 +1180,13 @@ struct QueryCacheRuntimeImpl {
                           const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
                           StagingBufferPool& staging_pool_,
                           ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                          DescriptorPool& descriptor_pool)
+                          DescriptorPool& descriptor_pool, TextureCache& texture_cache_)
         : rasterizer{rasterizer_}, device_memory{device_memory_}, buffer_cache{buffer_cache_},
           device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
           staging_pool{staging_pool_}, guest_streamer(0, runtime),
           sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
-                          device, scheduler, memory_allocator, compute_pass_descriptor_queue,
-                          descriptor_pool),
+                          texture_cache_, device, scheduler, memory_allocator,
+                          compute_pass_descriptor_queue, descriptor_pool),
           tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
                        scheduler, memory_allocator, staging_pool),
           primitives_succeeded_streamer(
@@ -1240,10 +1257,10 @@ QueryCacheRuntime::QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
                                      const MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_, StagingBufferPool& staging_pool_,
                                      ComputePassDescriptorQueue& compute_pass_descriptor_queue,
-                                     DescriptorPool& descriptor_pool) {
+                                     DescriptorPool& descriptor_pool, TextureCache& texture_cache_) {
     impl = std::make_unique<QueryCacheRuntimeImpl>(
         *this, rasterizer, device_memory_, buffer_cache_, device_, memory_allocator_, scheduler_,
-        staging_pool_, compute_pass_descriptor_queue, descriptor_pool);
+        staging_pool_, compute_pass_descriptor_queue, descriptor_pool, texture_cache_);
 }
 
 void QueryCacheRuntime::Bind3DEngine(Maxwell3D* maxwell3d) {

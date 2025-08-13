@@ -136,7 +136,6 @@ public:
     void BindChannel(Tegra::Control::ChannelState& channel) override;
 
     void ReleaseChannel(s32 channel_id) override;
-
     std::optional<FramebufferTextureInfo> AccelerateDisplay(const Tegra::FramebufferConfig& config,
                                                             VAddr framebuffer_addr,
                                                             u32 pixel_stride);
@@ -147,7 +146,6 @@ private:
         0x0100E95004038000ULL, // XC2
         0x0100A6301214E000ULL, // FE:Engage
     };
-
     static constexpr size_t MAX_TEXTURES = 192;
     static constexpr size_t MAX_IMAGES = 48;
     static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
