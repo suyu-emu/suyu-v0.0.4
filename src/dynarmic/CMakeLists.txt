@@ -147,8 +147,6 @@ if (DYNARMIC_USE_BUNDLED_EXTERNALS)
     set(CMAKE_DISABLE_FIND_PACKAGE_Zycore ON)
 endif()
 
-set(CPM_USE_LOCAL_PACKAGES ON)
-
 find_package(Boost 1.57 REQUIRED)
 find_package(fmt 9 CONFIG)
 

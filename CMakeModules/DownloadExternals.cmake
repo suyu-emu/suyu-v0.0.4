@@ -35,6 +35,7 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var versi
         URL ${full_url}
         DOWNLOAD_ONLY YES
         KEY ${CACHE_KEY}
+        BUNDLED_PACKAGE ON
         # TODO(crueter): hash
     )
 

@@ -34,6 +34,7 @@ endif()
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
 else()
@@ -50,6 +51,15 @@ option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
+
+# TODO(crueter): maybe this should default on everywhere...?
+if (MSVC OR ANDROID)
+    set(CPM_DEFAULT ON)
+else()
+    set(CPM_DEFAULT OFF)
+endif()
+
+option(YUZU_USE_CPM "Use CPM for Eden dependencies" "${CPM_DEFAULT}")
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
@@ -77,10 +87,6 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
 endif()
-
-option(YUZU_USE_SYSTEM_OPUS "Use the system Opus library if available" ON)
-
-option(YUZU_USE_SYSTEM_HTTPLIB "Use the system cpp-httplib if available" ON)
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -114,8 +120,6 @@ CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROI
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
-option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
-
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
 else()
@@ -134,11 +138,6 @@ CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead
 
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
-    set(DEFAULT_ENABLE_OPENSSL OFF)
-endif()
-option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
-
-if (ANDROID OR WIN32 OR APPLE)
     # - Windows defaults to the Schannel backend.
     # - macOS defaults to the SecureTransport backend.
     # - Android currently has no SSL backend as the NDK doesn't include any SSL
@@ -147,6 +146,11 @@ if (ANDROID OR WIN32 OR APPLE)
     # your own copy of it.
     set(DEFAULT_ENABLE_OPENSSL OFF)
 endif()
+
+if (ENABLE_WEB_SERVICE)
+    set(DEFAULT_ENABLE_OPENSSL ON)
+endif()
+
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
@@ -170,61 +174,6 @@ endif()
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5) # Workaround for Oboe
-endif()
-
-if (YUZU_USE_BUNDLED_VCPKG)
-    if (ANDROID)
-        set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
-        list(APPEND VCPKG_MANIFEST_FEATURES "android")
-
-        if (CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
-            set(VCPKG_TARGET_TRIPLET "arm64-android")
-            # this is to avoid CMake using the host pkg-config to find the host
-            # libraries when building for Android targets
-            set(PKG_CONFIG_EXECUTABLE "aarch64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
-        elseif (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86_64")
-            set(VCPKG_TARGET_TRIPLET "x64-android")
-            set(PKG_CONFIG_EXECUTABLE "x86_64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
-        else()
-            message(FATAL_ERROR "Unsupported Android architecture ${CMAKE_ANDROID_ARCH_ABI}")
-        endif()
-    endif()
-
-    if (MSVC)
-        set(VCPKG_DOWNLOADS_PATH ${PROJECT_SOURCE_DIR}/externals/vcpkg/downloads)
-        set(NASM_VERSION "2.16.01")
-        set(NASM_DESTINATION_PATH ${VCPKG_DOWNLOADS_PATH}/nasm-${NASM_VERSION}-win64.zip)
-        set(NASM_DOWNLOAD_URL "https://github.com/eden-emulator/ext-windows-bin/raw/master/nasm/nasm-${NASM_VERSION}-win64.zip")
-
-        if (NOT EXISTS ${NASM_DESTINATION_PATH})
-            file(DOWNLOAD ${NASM_DOWNLOAD_URL} ${NASM_DESTINATION_PATH} SHOW_PROGRESS STATUS NASM_STATUS)
-
-            if (NOT NASM_STATUS EQUAL 0)
-                # Warn and not fail since vcpkg is supposed to download this package for us in the first place
-                message(WARNING "External nasm vcpkg package download from ${NASM_DOWNLOAD_URL} failed with status ${NASM_STATUS}")
-            endif()
-        endif()
-    endif()
-
-    if (YUZU_TESTS)
-        list(APPEND VCPKG_MANIFEST_FEATURES "yuzu-tests")
-    endif()
-    if (ENABLE_WEB_SERVICE)
-        list(APPEND VCPKG_MANIFEST_FEATURES "web-service")
-    endif()
-    if (ANDROID)
-        list(APPEND VCPKG_MANIFEST_FEATURES "android")
-    endif()
-
-    include(CPMUtil)
-
-    CPMAddPackage("gh:microsoft/vcpkg#10d3b37514")
-
-    include(${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake)
-elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
-    # Disable manifest mode (use vcpkg classic mode) when using a custom vcpkg installation
-    option(VCPKG_MANIFEST_MODE "")
-    include("$ENV{VCPKG_TOOLCHAIN_FILE}")
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
@@ -271,30 +220,31 @@ function(check_submodules_present)
             message(FATAL_ERROR "Git submodule ${module} not found. "
                 "Please run: \ngit submodule update --init --recursive")
         endif()
+        if (EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
+            set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
 
-        set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
+            execute_process(
+                COMMAND git rev-parse --short=10 HEAD
+                WORKING_DIRECTORY ${SUBMODULE_DIR}
+                OUTPUT_VARIABLE SUBMODULE_SHA
+            )
 
-        execute_process(
-            COMMAND git rev-parse --short=10 HEAD
-            WORKING_DIRECTORY ${SUBMODULE_DIR}
-            OUTPUT_VARIABLE SUBMODULE_SHA
-        )
+            # would probably be better to do string parsing, but whatever
+            execute_process(
+                COMMAND git remote get-url origin
+                WORKING_DIRECTORY ${SUBMODULE_DIR}
+                OUTPUT_VARIABLE SUBMODULE_URL
+            )
 
-        # would probably be better to do string parsing, but whatever
-        execute_process(
-            COMMAND git remote get-url origin
-            WORKING_DIRECTORY ${SUBMODULE_DIR}
-            OUTPUT_VARIABLE SUBMODULE_URL
-        )
+            string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
+            string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
 
-        string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
-        string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
+            get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
 
-        get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
-
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
+        endif()
     endforeach()
 endfunction()
 
@@ -420,23 +370,178 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
-# Enforce the search mode of non-required packages for better and shorter failure messages
-# TODO(crueter): some of these should be converted to CPM
-find_package(enet 1.3 MODULE)
-find_package(fmt 8 REQUIRED)
-find_package(LLVM MODULE COMPONENTS Demangle)
-find_package(lz4 REQUIRED)
-find_package(nlohmann_json 3.8 REQUIRED)
-find_package(RenderDoc MODULE)
-find_package(SimpleIni MODULE)
-find_package(stb MODULE)
-find_package(ZLIB 1.2 REQUIRED)
-find_package(zstd 1.5 REQUIRED)
+if (YUZU_USE_CPM)
+    include(CPMUtil)
+    message(STATUS "Fetching needed dependencies with CPM")
 
-# TODO(crueter): Work around this
-if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
+    set(BUILD_SHARED_LIBS OFF)
+    set(BUILD_TESTING OFF)
+
+    # TODO(crueter): renderdoc?
+
+    # openssl funniness
+    if (ENABLE_OPENSSL)
+        if (MSVC)
+            set(BUILD_SHARED_LIBS OFF)
+            AddPackage(
+                NAME OpenSSL
+                REPO crueter/OpenSSL-CI
+                TAG v3.5.2
+                VERSION 3.5.2
+                ARTIFACT openssl-windows-3.5.2.tar.zst
+
+                KEY windows
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+            )
+
+            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+        endif()
+
+        if (ANDROID)
+            set(BUILD_SHARED_LIBS OFF)
+            AddPackage(
+                NAME OpenSSL
+                REPO crueter/OpenSSL-CI
+                TAG v3.5.2
+                VERSION 3.5.2
+                ARTIFACT openssl-android-3.5.2.tar.zst
+
+                KEY android
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+            )
+
+            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+        endif()
+    endif()
+
+    AddPackage(
+        NAME Boost
+        REPO boostorg/boost
+        TAG boost-1.88.0
+        ARTIFACT boost-1.88.0-cmake.7z
+
+        HASH e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01
+
+        GIT_VERSION 1.88.0
+        VERSION 1.57
+    )
+
+    set(BOOST_NO_HEADERS ${Boost_ADDED})
+
+    if (Boost_ADDED)
+        if (MSVC OR ANDROID)
+            add_compile_definitions(YUZU_BOOST_v1)
+        else()
+            message(WARNING "Using bundled Boost on a non-MSVC or Android system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
+        endif()
+
+        if (NOT MSVC)
+            # boost sucks
+            target_compile_options(boost_heap INTERFACE -Wno-shadow)
+            target_compile_options(boost_icl INTERFACE -Wno-shadow)
+            target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
+        endif()
+    endif()
+
+    AddPackage(
+        NAME fmt
+        REPO fmtlib/fmt
+        SHA 40626af88b
+        HASH d59f06c24339f223de4ec2afeba1c67b5835a0f350a1ffa86242a72fc3e616a6b8b21798355428d4200c75287308b66634619ffa0b52ba5bd74cc01772ea1a8a
+        VERSION 8
+        OPTIONS
+            "FMT_INSTALL OFF"
+    )
+
+    AddPackage(
+        NAME lz4
+        REPO lz4/lz4
+        SHA ebb370ca83
+        HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
+        SOURCE_SUBDIR build/cmake
+    )
+
+    if (lz4_ADDED)
+        add_library(lz4::lz4 ALIAS lz4_static)
+    endif()
+
+    AddPackage(
+        NAME nlohmann_json
+        REPO nlohmann/json
+        SHA 55f93686c0
+        HASH b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486
+        VERSION 3.8
+    )
+
+    AddPackage(
+        NAME SimpleIni
+        REPO brofield/simpleini
+        SHA 09c21bda1d
+        HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
+        EXCLUDE_FROM_ALL ON
+    )
+
+    AddPackage(
+        NAME ZLIB
+        REPO madler/zlib
+        SHA 51b7f2abda
+        HASH 16eaf1f3752489d12fd9ce30f7b5f7cbd5cb8ff53d617005a9847ae72d937f65e01e68be747f62d7ac19fd0c9aeba9956e60f16d6b465c5fdc2f3d08b4db2e6c
+        VERSION 1.2
+        OPTIONS
+            "ZLIB_BUILD_SHARED OFF"
+            "ZLIB_INSTALL OFF"
+        EXCLUDE_FROM_ALL ON
+    )
+
+    if (ZLIB_ADDED)
+        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    endif()
+
+    set(ZSTD_BUILD_SHARED OFF)
+    AddPackage(
+        NAME zstd
+        REPO facebook/zstd
+        SHA f8745da6ff
+        HASH 3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee
+        VERSION 1.5
+        SOURCE_SUBDIR build/cmake
+        EXCLUDE_FROM_ALL ON
+    )
+
+    if (YUZU_TESTS OR DYNARMIC_TESTS)
+        AddPackage(
+            NAME Catch2
+            REPO catchorg/Catch2
+            SHA 644821ce28
+            HASH f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f
+            VERSION 3.0.1
+        )
+    endif()
+else()
+    # Enforce the search mode of non-required packages for better and shorter failure messages
+    find_package(fmt 8 REQUIRED)
+    find_package(LLVM MODULE COMPONENTS Demangle)
+    find_package(nlohmann_json 3.8 REQUIRED)
+    find_package(lz4 REQUIRED)
+    find_package(RenderDoc MODULE)
+    find_package(SimpleIni MODULE)
+    find_package(stb MODULE)
+    find_package(ZLIB 1.2 REQUIRED)
+    find_package(zstd 1.5 REQUIRED)
+
+    if (YUZU_TESTS)
+        find_package(Catch2 3.0.1 REQUIRED)
+    endif()
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
+        find_package(gamemode 1.7 MODULE)
+    endif()
+
+    if (ENABLE_OPENSSL)
+        find_package(OpenSSL 1.1.1 REQUIRED)
+    endif()
 endif()
 
 if (ENABLE_LIBUSB)
@@ -447,16 +552,10 @@ if (ENABLE_LIBUSB)
     endif()
 endif()
 
-if (YUZU_TESTS)
-    find_package(Catch2 3.0.1 REQUIRED)
-endif()
-
-if(ENABLE_OPENSSL)
-    find_package(OpenSSL 1.1.1 REQUIRED)
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
-    find_package(gamemode 1.7 MODULE)
+# TODO(crueter): Work around this
+if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
@@ -515,6 +614,23 @@ function(create_target_directory_groups target_name)
 endfunction()
 
 add_subdirectory(externals)
+
+# pass targets from externals
+find_package(VulkanHeaders REQUIRED)
+find_package(VulkanUtilityLibraries REQUIRED)
+find_package(VulkanMemoryAllocator REQUIRED)
+
+if (ENABLE_WEB_SERVICE)
+    find_package(httplib REQUIRED)
+endif()
+
+if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
+    find_package(cpp-jwt REQUIRED)
+endif()
+
+if (NOT YUZU_USE_BUNDLED_SDL2)
+    find_package(SDL2 REQUIRED)
+endif()
 
 if (ENABLE_QT)
     if (YUZU_USE_BUNDLED_QT)
@@ -590,6 +706,11 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
     #find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
     find_package(FFmpeg REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+
+    # TODO(crueter): Version
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES FFmpeg)
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "unknown (system)")
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/FFmpeg/FFmpeg")
 endif()
 
 if(ENABLE_QT)

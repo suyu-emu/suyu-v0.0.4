@@ -183,18 +183,18 @@ public:
               FileType type = FileType::BinaryFile,
               FileShareFlag flag = FileShareFlag::ShareReadOnly);
 
-#ifdef _WIN32
-    template <typename Path>
-    void Open(const Path& path, FileAccessMode mode, FileType type = FileType::BinaryFile,
-              FileShareFlag flag = FileShareFlag::ShareReadOnly) {
-        using ValueType = typename Path::value_type;
-        if constexpr (IsChar<ValueType>) {
-            Open(ToU8String(path), mode, type, flag);
-        } else {
-            Open(std::filesystem::path{path}, mode, type, flag);
-        }
-    }
-#endif
+// #ifdef _WIN32
+//     template <typename Path>
+//     void Open(const Path& path, FileAccessMode mode, FileType type = FileType::BinaryFile,
+//               FileShareFlag flag = FileShareFlag::ShareReadOnly) {
+//         using ValueType = typename Path::value_type;
+//         if constexpr (IsChar<ValueType>) {
+//             Open(ToU8String(path), mode, type, flag);
+//         } else {
+//             Open(std::filesystem::path{path}, mode, type, flag);
+//         }
+//     }
+// #endif
 
     /// Closes the file if it is opened.
     void Close();

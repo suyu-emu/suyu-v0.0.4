@@ -1186,7 +1186,14 @@ endif()
 
 target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
 target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
-target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
+
+if (BOOST_NO_HEADERS)
+    target_link_libraries(core PUBLIC Boost::container Boost::heap Boost::asio Boost::process Boost::crc)
+else()
+    target_link_libraries(core PUBLIC Boost::headers)
+endif()
+
+target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()
@@ -1239,9 +1246,14 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
 endif()
 
 if(ENABLE_OPENSSL)
+    find_package(OpenSSL REQUIRED)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_openssl.cpp)
-    target_link_libraries(core PRIVATE OpenSSL::SSL)
+    if (ANDROID OR MSVC)
+        link_openssl(core)
+    else()
+        target_link_libraries(core PRIVATE OpenSSL::SSL)
+    endif()
 elseif (APPLE)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_securetransport.cpp)

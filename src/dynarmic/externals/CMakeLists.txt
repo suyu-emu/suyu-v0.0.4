@@ -95,6 +95,7 @@ AddPackage(
 
 # TODO(crueter): maybe it's just Gentoo but zydis system package really sucks
 if ("x86_64" IN_LIST ARCHITECTURE)
+    # TODO(crueter): system zycore doesn't work with zydis
     AddPackage(
         NAME Zycore
         REPO "zyantific/zycore-c"
@@ -102,8 +103,8 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         HASH 15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924
         OPTIONS
             "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
-        # BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
         EXCLUDE_FROM_ALL ON
+        SYSTEM_PACKAGE OFF
     )
 
     AddPackage(
@@ -112,13 +113,13 @@ if ("x86_64" IN_LIST ARCHITECTURE)
         REPO "zyantific/zydis"
         SHA c2d2bab025
         HASH 7b48f213ff7aab2926f8c9c65195959143bebbfb2b9a25051ffd8b8b0f1baf1670d9739781de674577d955925f91ac89376e16b476a03828c84e2fd765d45020
+        FIND_PACKAGE_ARGUMENTS "CONFIG"
         OPTIONS
             "ZYDIS_BUILD_TOOLS OFF"
             "ZYDIS_BUILD_EXAMPLES OFF"
             "ZYDIS_BUILD_DOXYGEN OFF"
-            "ZYAN_ZYCORE_PATH ${Zycore_SOURCE_DIR}"
+            "ZYAN_SYSTEM_ZYCORE ON"
             "CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON"
-        # BUNDLED_PACKAGE ${DYNARMIC_USE_BUNDLED_EXTERNALS}
         EXCLUDE_FROM_ALL ON
     )
 endif()

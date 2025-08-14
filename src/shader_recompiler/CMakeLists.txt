@@ -242,13 +242,7 @@ add_library(shader_recompiler STATIC
     varying_state.h
 )
 
-if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    set(SPIRV_TOOLS_LIBRARY SPIRV-Tools-opt)
-else()
-    set(SPIRV_TOOLS_LIBRARY SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)
-endif()
-
-target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit ${SPIRV_TOOLS_LIBRARY})
+target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)
 
 if (MSVC)
     target_compile_options(shader_recompiler PRIVATE

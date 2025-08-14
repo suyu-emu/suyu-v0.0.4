@@ -19,7 +19,7 @@ add_library(network STATIC
 
 create_target_directory_groups(network)
 
-target_link_libraries(network PRIVATE common enet::enet Boost::headers)
+target_link_libraries(network PRIVATE common enet Boost::headers)
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(network PRIVATE -DENABLE_WEB_SERVICE)
     target_link_libraries(network PRIVATE web_service)

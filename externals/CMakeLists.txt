@@ -4,6 +4,9 @@
 # SPDX-FileCopyrightText: 2016 Citra Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# TODO(crueter): A lot of this should be moved to the root.
+# otherwise we have to do weird shenanigans with library linking and stuff
+
 # cpm
 include(CPMUtil)
 
@@ -74,7 +77,6 @@ AddPackage(
     HASH 769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966
     PATCHES
         ${CMAKE_SOURCE_DIR}/.patch/mbedtls/0001-cmake-version.patch
-    SYSTEM_PACKAGE ON
 )
 
 if (mbedtls_ADDED)
@@ -93,7 +95,7 @@ if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
 endif()
 
 # SDL2
-if (YUZU_USE_EXTERNAL_SDL2)
+if (NOT YUZU_USE_BUNDLED_SDL2)
     if (NOT WIN32)
         # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
         # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
@@ -113,9 +115,6 @@ if (YUZU_USE_EXTERNAL_SDL2)
         set(SDL_FILE ON)
     endif()
 
-    include(CPM)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-
     if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
         set(SDL_HASH cc016b0046)
         set(SDL_PIPEWIRE OFF) # build errors out with this on
@@ -134,14 +133,22 @@ if (YUZU_USE_EXTERNAL_SDL2)
         SHA ${SDL_HASH}
         HASH ${SDL_SHA512SUM}
         KEY ${YUZU_SYSTEM_PROFILE}
+        BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_SDL2}
     )
 endif()
 
 # ENet
-if (NOT TARGET enet::enet)
-    add_subdirectory(enet)
-    target_include_directories(enet INTERFACE ./enet/include)
-    add_library(enet::enet ALIAS enet)
+AddPackage(
+    NAME enet
+    REPO lsalzman/enet
+    SHA 2662c0de09
+    VERSION 1.3
+    HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
+    FIND_PACKAGE_ARGUMENTS "MODULE"
+)
+
+if (enet_ADDED)
+    target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
 endif()
 
 AddPackage(
@@ -154,7 +161,7 @@ AddPackage(
         "USE_SANITIZERS OFF"
         "BUILD_TESTS OFF"
         "BUILD_TOOLS OFF"
-    SYSTEM_PACKAGE ON
+        "BUNDLE_SPEEX ON"
 )
 
 if (cubeb_ADDED)
@@ -169,7 +176,7 @@ if (cubeb_ADDED)
             -Wno-shadow
             -Wno-missing-declarations
             -Wno-return-type
-            -Wno-maybe-uninitialized
+            -Wno-uninitialized
         )
     else()
         target_compile_options(cubeb PRIVATE
@@ -214,21 +221,17 @@ AddPackage(
     HASH 73eb3a042848c63a10656545797e85f40d142009dfb7827384548a385e1e28e1ac72f42b25924ce530d58275f8638554281e884d72f9c7aaf4ed08690a414b05
     OPTIONS
         "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
-    SYSTEM_PACKAGE ON
 )
 
 # httplib
 if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
     AddPackage(
         NAME httplib
-        VERSION 0.12
         REPO "yhirose/cpp-httplib"
         SHA a609330e4c
         HASH dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2
-        FIND_PACKAGE_ARGUMENTS "MODULE"
         OPTIONS
-            "HTTPLIB_REQUIRE_OPENSSL ON"
-        SYSTEM_PACKAGE ${YUZU_USE_SYSTEM_HTTPLIB}
+            "HTTPLIB_REQUIRE_OPENSSL ${ENABLE_OPENSSL}"
     )
 endif()
 
@@ -238,13 +241,16 @@ if (ENABLE_WEB_SERVICE)
         NAME cpp-jwt
         VERSION 1.4
         REPO "arun11299/cpp-jwt"
-        SHA 10ef5735d8
-        HASH ebba3d26b33a3b0aa909f475e099594560edbce10ecd03e76d7fea68549a28713ea606d363808f88a5495b62c54c3cdb7e47aee2d946eceabd36e310479dadb7
+        SHA a54fa08a3b
+        HASH a90f7e594ada0c7e49d5ff9211c71097534e7742a8e44bf0851b0362642a7271d53f5d83d04eeaae2bad17ef3f35e09e6818434d8eaefa038f3d1f7359d0969a
         FIND_PACKAGE_ARGUMENTS "CONFIG"
         OPTIONS
             "CPP_JWT_BUILD_EXAMPLES OFF"
             "CPP_JWT_BUILD_TESTS OFF"
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
+        PATCHES
+            ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0001-no-install.patch
+            ${CMAKE_SOURCE_DIR}/.patch/cpp-jwt/0002-missing-decl.patch
     )
 endif()
 
@@ -261,7 +267,6 @@ AddPackage(
         "OPUS_BUILD_PROGRAMS OFF"
         "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
         "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
-    SYSTEM_PACKAGE ${YUZU_USE_SYSTEM_OPUS}
 )
 
 # FFMpeg
@@ -274,15 +279,9 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 endif()
 
 # Vulkan-Headers
-if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-else()
-    set(CPM_USE_LOCAL_PACKAGES OFF)
-endif()
 
 # TODO(crueter): Vk1.4 impl
 
-# TODO(crueter): allow sys packages?
 AddPackage(
     NAME VulkanHeaders
     VERSION 1.3.274
@@ -293,12 +292,9 @@ AddPackage(
 )
 
 # CMake's interface generator sucks
-if (VulkanHeaders_ADDED)
-    target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
-endif()
-
-set(VulkanHeaders_SOURCE_DIR "${VulkanHeaders_SOURCE_DIR}" PARENT_SCOPE)
-set(VulkanHeaders_ADDED "${VulkanHeaders_ADDED}" PARENT_SCOPE)
+# if (VulkanHeaders_ADDED)
+#     target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
+# endif()
 
 # Vulkan-Utility-Libraries
 AddPackage(
@@ -308,9 +304,6 @@ AddPackage(
     HASH 3e468c3d9ff93f6d418d71e5527abe0a12c8c7ab5b0b52278bbbee4d02bb87e99073906729b727e0147242b7e3fd5dedf68b803f1878cb4c0e4f730bc2238d79
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES}
 )
-
-set(VulkanUtilityLibraries_SOURCE_DIR "${VulkanUtilityLibraries_SOURCE_DIR}" PARENT_SCOPE)
-set(VulkanUtilityLibraries_ADDED "${VulkanUtilityLibraries_ADDED}" PARENT_SCOPE)
 
 # SPIRV-Tools
 if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
@@ -324,14 +317,6 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     )
 endif()
 
-# Boost headers
-AddPackage(
-    NAME boost_headers
-    REPO "boostorg/headers"
-    SHA 0456900fad
-    HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
-)
-
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 
@@ -342,11 +327,7 @@ AddPackage(
     SHA 1076b348ab
     HASH a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772
     FIND_PACKAGE_ARGUMENTS "CONFIG"
-    # SYSTEM_PACKAGE ON
 )
-
-set(VulkanMemoryAllocator_SOURCE_DIR "${VulkanMemoryAllocator_SOURCE_DIR}" PARENT_SCOPE)
-set(VulkanMemoryAllocator_ADDED "${VulkanMemoryAllocator_ADDED}" PARENT_SCOPE)
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
@@ -503,7 +484,7 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
             ${breakpad_SOURCE_DIR}/src/common/linux/memory_mapped_file.cc
             ${breakpad_SOURCE_DIR}/src/common/linux/safe_readlink.cc
             ${breakpad_SOURCE_DIR}/src/tools/linux/dump_syms/dump_syms.cc)
-        target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
+        target_link_libraries(dump_syms PRIVATE libbreakpad_client)
     endif()
 endif()
 

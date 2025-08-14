@@ -411,10 +411,16 @@ endif()
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
 target_link_libraries(dynarmic
     PRIVATE
-        Boost::boost
         fmt::fmt
         merry::mcl
 )
+
+if (BOOST_NO_HEADERS)
+target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)
+else()
+    target_link_libraries(dynarmic PRIVATE Boost::headers)
+endif()
+
 if (DYNARMIC_USE_LLVM)
     target_include_directories(dynarmic PRIVATE ${LLVM_INCLUDE_DIRS})
     target_compile_definitions(dynarmic PRIVATE DYNARMIC_USE_LLVM=1 ${LLVM_DEFINITIONS})

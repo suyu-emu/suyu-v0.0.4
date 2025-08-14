@@ -23,4 +23,8 @@ if (ARCHITECTURE_arm64)
     target_link_libraries(yuzu-android PRIVATE adrenotools)
 endif()
 
-set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} yuzu-android)
+if (ENABLE_OPENSSL OR ENABLE_WEB_SERVICE)
+    target_link_libraries(yuzu-android PRIVATE OpenSSL::SSL cpp-jwt::cpp-jwt)
+endif()
+
+    set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} yuzu-android)
