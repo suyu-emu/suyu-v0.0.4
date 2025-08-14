@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -312,7 +315,7 @@ NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
 NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
     LOG_DEBUG(Service_NVDRV,
               "called, flags={:X}, nvmap_handle={:X}, buffer_offset={}, mapping_size={}"
-              ", offset={}",
+              ", offset=0x{:X}",
               params.flags, params.handle, params.buffer_offset, params.mapping_size,
               params.offset);
 
@@ -406,19 +409,21 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
         mapping_map[params.offset] = mapping;
     }
 
+    map_buffer_offsets.insert(params.offset);
+
     return NvResult::Success;
 }
 
 NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
-    LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
+    if (map_buffer_offsets.find(params.offset) != map_buffer_offsets.end()) {
+        LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
-    std::scoped_lock lock(mutex);
+        std::scoped_lock lock(mutex);
 
-    if (!vm.initialised) {
-        return NvResult::BadValue;
-    }
+        if (!vm.initialised) {
+            return NvResult::BadValue;
+        }
 
-    try {
         auto mapping{mapping_map.at(params.offset)};
 
         if (!mapping->fixed) {
@@ -440,10 +445,8 @@ NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
         nvmap.UnpinHandle(mapping->handle);
 
         mapping_map.erase(params.offset);
-    } catch (const std::out_of_range&) {
-        LOG_WARNING(Service_NVDRV, "Couldn't find region to unmap at 0x{:X}", params.offset);
+        map_buffer_offsets.erase(params.offset);
     }
-
     return NvResult::Success;
 }
 
