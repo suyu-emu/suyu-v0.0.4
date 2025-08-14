@@ -317,6 +317,17 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
     )
 endif()
 
+# Boost headers
+if (NOT Boost_ADDED AND NOT TARGET Boost::headers)
+    AddPackage(
+        NAME boost_headers
+        REPO "boostorg/headers"
+        SHA 0456900fad
+        HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
+        BUNDLED_PACKAGE ON
+    )
+endif()
+
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 

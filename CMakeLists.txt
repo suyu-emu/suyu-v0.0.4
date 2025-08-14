@@ -616,16 +616,16 @@ endfunction()
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(VulkanHeaders REQUIRED)
-find_package(VulkanUtilityLibraries REQUIRED)
-find_package(VulkanMemoryAllocator REQUIRED)
+find_package(VulkanHeaders)
+find_package(VulkanUtilityLibraries)
+find_package(VulkanMemoryAllocator)
 
 if (ENABLE_WEB_SERVICE)
-    find_package(httplib REQUIRED)
+    find_package(httplib)
 endif()
 
 if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
-    find_package(cpp-jwt REQUIRED)
+    find_package(cpp-jwt)
 endif()
 
 if (NOT YUZU_USE_BUNDLED_SDL2)
