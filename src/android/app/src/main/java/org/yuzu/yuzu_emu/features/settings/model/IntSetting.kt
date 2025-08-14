@@ -39,6 +39,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     SOC_OVERLAY_POSITION("soc_overlay_position"),
     MEMORY_LAYOUT("memory_layout_mode"),
     FSR_SHARPENING_SLIDER("fsr_sharpening_slider"),
+    RENDERER_SAMPLE_SHADING_FRACTION("sample_shading_fraction"),
     FAST_CPU_TIME("fast_cpu_time"),
     CPU_TICKS("cpu_ticks"),
     FAST_GPU_TIME("fast_gpu_time"),
@@ -57,7 +58,7 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     OFFLINE_WEB_APPLET("offline_web_applet_mode"),
     LOGIN_SHARE_APPLET("login_share_applet_mode"),
     WIFI_WEB_AUTH_APPLET("wifi_web_auth_applet_mode"),
-    MY_PAGE_APPLET("my_page_applet_mode")
+    MY_PAGE_APPLET("my_page_applet_mode"),
     ;
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)

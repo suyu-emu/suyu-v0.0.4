@@ -360,8 +360,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Improves texture & buffer handling and the Maxwell translation layer.\n"
               "Some Vulkan 1.1+ and all 1.2+ devices support this extension."));
 
+    INSERT(Settings, sample_shading, QString(), QString());
+
     INSERT(Settings,
-           sample_shading,
+           sample_shading_fraction,
            tr("Sample Shading"),
            tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
               "instead once per fragment. Improves graphics quality at the cost of some performance.\n"

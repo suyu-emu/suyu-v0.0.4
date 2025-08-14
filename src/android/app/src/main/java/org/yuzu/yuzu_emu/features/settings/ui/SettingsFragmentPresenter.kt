@@ -443,6 +443,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_PROVOKING_VERTEX.key)
             add(BooleanSetting.RENDERER_DESCRIPTOR_INDEXING.key)
             add(BooleanSetting.RENDERER_SAMPLE_SHADING.key)
+            add(IntSetting.RENDERER_SAMPLE_SHADING_FRACTION.key)
 
             add(HeaderSetting(R.string.veil_renderer))
             add(BooleanSetting.ENABLE_RAII.key)

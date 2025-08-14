@@ -82,6 +82,8 @@
     <string name="descriptor_indexing_description">Improves texture and buffer handling, as well as the Maxwell translation layer. Supported by some Vulkan 1.1 GPUs and all Vulkan 1.2+ GPUs.</string>
     <string name="sample_shading">Sample Shading</string>
     <string name="sample_shading_description">Allows the fragment shader to execute per sample in a multi-sampled fragment instead once per fragment. Improves graphics quality at the cost of some performance. Only Vulkan 1.1+ devices support this extension.</string>
+    <string name="sample_shading_fraction">Sample Shading Fraction</string>
+    <string name="sample_shading_fraction_description">The intensity of the sample shading pass. Higher values improve quality more but also reduce performance to a greater extent.</string>
 
     <string name="veil_renderer">Renderer</string>
     <string name="enable_raii">RAII</string>

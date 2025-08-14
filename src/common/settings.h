@@ -527,7 +527,17 @@ struct Values {
 
     SwitchableSetting<bool> provoking_vertex{linkage, false, "provoking_vertex", Category::RendererExtensions};
     SwitchableSetting<bool> descriptor_indexing{linkage, false, "descriptor_indexing", Category::RendererExtensions};
-    SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions};
+    SwitchableSetting<bool> sample_shading{linkage, false, "sample_shading", Category::RendererExtensions, Specialization::Paired};
+    SwitchableSetting<u32, true> sample_shading_fraction{linkage,
+                                                         50,
+                                                         0,
+                                                         100,
+                                                         "sample_shading_fraction",
+                                                         Category::RendererExtensions,
+                                                         Specialization::Scalar,
+                                                         true,
+                                                         false,
+                                                         &sample_shading};
 
     Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
     Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",

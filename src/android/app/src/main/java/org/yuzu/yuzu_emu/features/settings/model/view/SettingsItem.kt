@@ -161,6 +161,14 @@ abstract class SettingsItem(
             )
             put(
                 SliderSetting(
+                    IntSetting.RENDERER_SAMPLE_SHADING_FRACTION,
+                    titleId = R.string.sample_shading_fraction,
+                    descriptionId = R.string.sample_shading_fraction_description,
+                    units = "%"
+                )
+            )
+            put(
+                SliderSetting(
                     ShortSetting.RENDERER_SPEED_LIMIT,
                     titleId = R.string.frame_limit_slider,
                     descriptionId = R.string.frame_limit_slider_description,
