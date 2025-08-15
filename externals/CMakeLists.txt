@@ -46,6 +46,7 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
         REPO "Lizzie841/xbyak"
         SHA ${XBYAK_HASH}
         HASH ${XBYAK_SHA512SUM}
+        BUNDLED_PACKAGE ON
     )
 endif()
 
