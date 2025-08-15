@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,25 +14,11 @@ namespace Core {
 void ArmInterface::LogBacktrace(Kernel::KProcess* process) const {
     Kernel::Svc::ThreadContext ctx;
     this->GetContext(ctx);
-
     LOG_ERROR(Core_ARM, "Backtrace, sp={:016X}, pc={:016X}", ctx.sp, ctx.pc);
     LOG_ERROR(Core_ARM, "{:20}{:20}{:20}{:20}{}", "Module Name", "Address", "Original Address", "Offset", "Symbol");
-    LOG_ERROR(Core_ARM, "");
-
-    const auto backtrace = GetBacktraceFromContext(process, ctx);
-    u64 last_address = 0;
-
-    for (const auto& entry : backtrace) {
-
-        // Skip duplicate consecutive addresses
-        if (entry.address == last_address)
-            continue;
-
-        LOG_ERROR(Core_ARM, "{:20}{:016X}    {:016X}    {:016X}    {}", entry.module, entry.address,
-                  entry.original_address, entry.offset, entry.name);
-
-        last_address = entry.address;
-    }
+    auto const backtrace = GetBacktraceFromContext(process, ctx);
+    for (auto const& entry : backtrace)
+        LOG_ERROR(Core_ARM, "{:20}{:016X}    {:016X}    {:016X}    {}", entry.module, entry.address, entry.original_address, entry.offset, entry.name);
 }
 
 const Kernel::DebugWatchpoint* ArmInterface::MatchingWatchpoint(
