@@ -1,5 +1,8 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
@@ -153,12 +156,15 @@ public:
         // Atomically decrement the reference count, not allowing it to become negative.
         u32 cur_ref_count = m_ref_count.load(std::memory_order_acquire);
         do {
+            if (cur_ref_count == 0) {
+                return;
+            }
             ASSERT(cur_ref_count > 0);
         } while (!m_ref_count.compare_exchange_weak(cur_ref_count, cur_ref_count - 1,
                                                     std::memory_order_acq_rel));
 
-        // If ref count hits zero, destroy the object.
-        if (cur_ref_count - 1 == 0) {
+        // If ref count hits 1, destroy the object.
+        if (cur_ref_count == 1) {
             KernelCore& kernel = m_kernel;
             this->Destroy();
             KAutoObject::UnregisterWithKernel(kernel, this);
