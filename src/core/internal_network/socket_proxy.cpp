@@ -15,7 +15,7 @@
 #include "core/internal_network/socket_proxy.h"
 #include "network/network.h"
 
-#if YUZU_UNIX
+#ifdef __unix__
 #include <sys/socket.h>
 #endif
 

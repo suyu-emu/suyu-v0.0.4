@@ -2429,7 +2429,7 @@ void PlayerControlPreview::DrawProJoystick(QPainter& p, const QPointF center, co
         1.0 - std::sqrt((offset.x() * offset.x()) + (offset.y() * offset.y())) * 0.1f);
 
     const float rotation =
-        ((offset.x() == 0) ? atan(1) * 2 : atan(offset.y() / offset.x())) * (180 / (atan(1) * 4));
+        ((offset.x() == 0.f) ? std::atan(1.f) * 2.f : std::atan(offset.y() / offset.x())) * (180.f / (std::atan(1.f) * 4.f));
 
     p.save();
     p.translate(offset_center);

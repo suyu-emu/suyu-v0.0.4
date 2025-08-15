@@ -118,7 +118,7 @@ QWidget* Widget::CreateCheckBox(Settings::BasicSetting* bool_setting, const QStr
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(checkbox, &QCheckBox::clicked, [touch]() { touch(); });
+        checkbox->connect(checkbox, &QCheckBox::clicked, [touch]() { touch(); });
     }
 
     return checkbox;
@@ -165,7 +165,7 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(combobox, QOverload<int>::of(&QComboBox::activated),
+        combobox->connect(combobox, QOverload<int>::of(&QComboBox::activated),
                          [touch]() { touch(); });
     }
 
@@ -223,9 +223,8 @@ QWidget* Widget::CreateRadioGroup(std::function<std::string()>& serializer,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        for (const auto& [id, button] : radio_buttons) {
-            QObject::connect(button, &QAbstractButton::clicked, [touch]() { touch(); });
-        }
+        for (const auto& [id, button] : radio_buttons)
+            button->connect(button, &QAbstractButton::clicked, [touch]() { touch(); });
     }
 
     return group;
@@ -249,7 +248,7 @@ QWidget* Widget::CreateLineEdit(std::function<std::string()>& serializer,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(line_edit, &QLineEdit::textChanged, [touch]() { touch(); });
+        line_edit->connect(line_edit, &QLineEdit::textChanged, [touch]() { touch(); });
     }
 
     return line_edit;
@@ -266,7 +265,7 @@ static void CreateIntSlider(Settings::BasicSetting& setting, bool reversed, floa
         feedback->setText(use_format.arg(QVariant::fromValue(present).value<QString>()));
     };
 
-    QObject::connect(slider, &QAbstractSlider::valueChanged, update_feedback);
+    slider->connect(slider, &QAbstractSlider::valueChanged, update_feedback);
     update_feedback(std::strtol(setting.ToString().c_str(), nullptr, 0));
 
     slider->setMinimum(std::strtol(setting.MinVal().c_str(), nullptr, 0));
@@ -293,7 +292,7 @@ static void CreateFloatSlider(Settings::BasicSetting& setting, bool reversed, fl
         feedback->setText(use_format.arg(QVariant::fromValue(present).value<QString>()));
     };
 
-    QObject::connect(slider, &QAbstractSlider::valueChanged, update_feedback);
+    slider->connect(slider, &QAbstractSlider::valueChanged, update_feedback);
     update_feedback(std::strtof(setting.ToString().c_str(), nullptr));
 
     slider->setMinimum(min_val * use_multiplier);
@@ -346,7 +345,7 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& gi
     slider->setInvertedAppearance(reversed);
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(slider, &QAbstractSlider::actionTriggered, [touch]() { touch(); });
+        slider->connect(slider, &QAbstractSlider::actionTriggered, [touch]() { touch(); });
     }
 
     return container;
@@ -376,7 +375,7 @@ QWidget* Widget::CreateSpinBox(const QString& given_suffix,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this, touch]() {
+        spinbox->connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this, touch]() {
             if (spinbox->value() != std::strtol(setting.ToStringGlobal().c_str(), nullptr, 0)) {
                 touch();
             }
@@ -410,7 +409,7 @@ QWidget* Widget::CreateDoubleSpinBox(const QString& given_suffix,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(double_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+        double_spinbox->connect(double_spinbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                          [this, touch]() {
                              if (double_spinbox->value() !=
                                  std::strtod(setting.ToStringGlobal().c_str(), nullptr)) {
@@ -453,8 +452,7 @@ QWidget* Widget::CreateHexEdit(std::function<std::string()>& serializer,
     restore_func = [this, to_hex]() { line_edit->setText(to_hex(RelevantDefault(setting))); };
 
     if (!Settings::IsConfiguringGlobal()) {
-
-        QObject::connect(line_edit, &QLineEdit::textChanged, [touch]() { touch(); });
+        line_edit->connect(line_edit, &QLineEdit::textChanged, [touch]() { touch(); });
     }
 
     return line_edit;
@@ -488,7 +486,7 @@ QWidget* Widget::CreateDateTimeEdit(bool disabled, bool restrict,
     restore_func = [this, get_clear_val]() { date_time_edit->setDateTime(get_clear_val()); };
 
     if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(date_time_edit, &QDateTimeEdit::editingFinished,
+        date_time_edit->connect(date_time_edit, &QDateTimeEdit::editingFinished,
                          [this, get_clear_val, touch]() {
                              if (date_time_edit->dateTime() != get_clear_val()) {
                                  touch();
@@ -665,7 +663,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     } else {
         layout->addWidget(restore_button);
 
-        QObject::connect(restore_button, &QAbstractButton::clicked,
+        restore_button->connect(restore_button, &QAbstractButton::clicked,
                          [this, restore_func, checkbox_restore_func](bool) {
                              LOG_DEBUG(Frontend, "Restore global state for \"{}\"",
                                        setting.GetLabel());

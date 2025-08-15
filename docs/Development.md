@@ -104,6 +104,7 @@ Then type `target remote localhost:1234` and type `c` (for continue) - and then 
 - `br <expr>`: Set breakpoint at `<expr>`.
 - `delete`: Deletes all breakpoints.
 - `catch throw`: Breakpoint at throw. Can also use `br __cxa_throw`
+- `br _mesa_error`: Break on mesa errors (set environment variable `MESA_DEBUG=1` beforehand), see [MESA_DEBUG](https://mesa-docs.readthedocs.io/en/latest/debugging.html).
 
 Expressions can be `variable_names` or `1234` (numbers) or `*var` (dereference of a pointer) or `*(1 + var)` (computed expression).
 

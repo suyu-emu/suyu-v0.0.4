@@ -13,9 +13,9 @@
 #include "common/settings.h"
 #include "network/network.h"
 
-//#ifdef ENABLE_WEB_SERVICE
+#ifdef ENABLE_WEB_SERVICE
 #include "web_service/announce_room_json.h"
-//#endif
+#endif
 
 namespace Core {
 
@@ -28,7 +28,7 @@ AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
                                                      Settings::values.eden_username.GetValue(),
                                                      Settings::values.eden_token.GetValue());
 #else
-   backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
+    backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
 #endif
 }
 
@@ -155,11 +155,12 @@ bool AnnounceMultiplayerSession::IsRunning() const {
 
 void AnnounceMultiplayerSession::UpdateCredentials() {
     ASSERT_MSG(!IsRunning(), "Credentials can only be updated when session is not running");
-
 #ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
                                                      Settings::values.eden_username.GetValue(),
                                                      Settings::values.eden_token.GetValue());
+#else
+    backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
 #endif
 }
 

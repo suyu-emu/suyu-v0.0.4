@@ -7,6 +7,11 @@ project(yuzu)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+    # Terrific Solaris pkg shenanigans
+    list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
+    list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
+endif()
 
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
@@ -649,8 +654,10 @@ if (ENABLE_QT)
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
     endif()
 
-    if (UNIX AND NOT APPLE)
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         find_package(Qt6 REQUIRED COMPONENTS DBus GuiPrivate)
+    elseif (UNIX AND NOT APPLE)
+        find_package(Qt6 REQUIRED COMPONENTS DBus Gui)
     endif()
 
     if (ENABLE_QT_TRANSLATION)

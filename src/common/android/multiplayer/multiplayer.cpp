@@ -205,8 +205,8 @@ NetPlayStatus AndroidMultiplayer::NetPlayCreateRoom(const std::string &ipaddress
 
     std::string token;
     // TODO(alekpop): properly handle the compile definition, it's not working right
-//#ifdef ENABLE_WEB_SERVICE
-//    LOG_INFO(WebService, "Web Service enabled");
+#ifdef ENABLE_WEB_SERVICE
+    LOG_INFO(WebService, "Web Service enabled");
     if (isPublic) {
         WebService::Client client(Settings::values.web_api_url.GetValue(),
                                   Settings::values.eden_username.GetValue(),
@@ -220,9 +220,9 @@ NetPlayStatus AndroidMultiplayer::NetPlayCreateRoom(const std::string &ipaddress
             LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
         }
     }
-//#else
-//    LOG_INFO(WebService, "Web Service disabled");
-//#endif
+#else
+    LOG_ERROR(WebService, "Web Service disabled");
+#endif
 
     member->Join(username, ipaddress.c_str(), static_cast<u16>(port), 0, Network::NoPreferredIP,
                  password, token);
@@ -432,12 +432,12 @@ std::vector<std::string> AndroidMultiplayer::NetPlayGetBanList() {
 std::unique_ptr<Network::VerifyUser::Backend> AndroidMultiplayer::CreateVerifyBackend(bool use_validation) {
     std::unique_ptr<Network::VerifyUser::Backend> verify_backend;
     if (use_validation) {
-//#ifdef ENABLE_WEB_SERVICE
+#ifdef ENABLE_WEB_SERVICE
         verify_backend =
             std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
-//#else
-//        verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
-//#endif
+#else
+        verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
+#endif
     } else {
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }

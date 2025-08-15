@@ -100,7 +100,7 @@ void DiscordImpl::Update() {
         request.setTransferTimeout(3000);
         QNetworkReply* reply = manager.head(request);
         QEventLoop request_event_loop;
-        QObject::connect(reply, &QNetworkReply::finished, &request_event_loop, &QEventLoop::quit);
+        reply->connect(reply, &QNetworkReply::finished, &request_event_loop, &QEventLoop::quit);
         request_event_loop.exec();
         UpdateGameStatus(reply->error());
 

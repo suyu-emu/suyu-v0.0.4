@@ -60,6 +60,7 @@ size_t StagingBuffers::RequestBuffer(size_t requested_size) {
                          storage_flags | GL_MAP_PERSISTENT_BIT);
     alloc.map = static_cast<u8*>(glMapNamedBufferRange(alloc.buffer.handle, 0, next_pow2_size,
                                                        map_flags | GL_MAP_PERSISTENT_BIT));
+    DEBUG_ASSERT(alloc.map != nullptr);
     alloc.size = next_pow2_size;
     allocs.emplace_back(std::move(alloc));
     return allocs.size() - 1;

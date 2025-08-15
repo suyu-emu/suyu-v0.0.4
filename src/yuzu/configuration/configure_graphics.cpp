@@ -295,7 +295,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             api_restore_global_button = widget->restore_button;
 
             if (!Settings::IsConfiguringGlobal()) {
-                QObject::connect(api_restore_global_button, &QAbstractButton::clicked,
+                api_restore_global_button->connect(api_restore_global_button, &QAbstractButton::clicked,
                                  [this](bool) { UpdateAPILayout(); });
 
                 // Detach API's restore button and place it where we want
@@ -327,7 +327,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
                 restore_button->setEnabled(true);
                 widget->layout()->addWidget(restore_button);
 
-                QObject::connect(restore_button, &QAbstractButton::clicked,
+                restore_button->connect(restore_button, &QAbstractButton::clicked,
                                  [restore_button, this](bool) {
                                      Settings::values.vsync_mode.SetGlobal(true);
                                      PopulateVSyncModeSelection(true);
@@ -340,7 +340,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
                     UpdateVsyncSetting();
                     restore_button->setVisible(true);
                 };
-                QObject::connect(widget->combobox, QOverload<int>::of(&QComboBox::activated),
+                widget->combobox->connect(widget->combobox, QOverload<int>::of(&QComboBox::activated),
                                  [set_non_global]() { set_non_global(); });
                 vsync_restore_global_button = restore_button;
             }
@@ -379,7 +379,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             Settings::values.bg_red.UsingGlobal(), ui->bg_widget);
         ui->bg_widget->layout()->addWidget(bg_restore_button);
 
-        QObject::connect(bg_restore_button, &QAbstractButton::clicked,
+        bg_restore_button->connect(bg_restore_button, &QAbstractButton::clicked,
                          [bg_restore_button, this](bool) {
                              const int r = Settings::values.bg_red.GetValue(true);
                              const int g = Settings::values.bg_green.GetValue(true);
@@ -390,7 +390,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
                              bg_restore_button->setEnabled(false);
                          });
 
-        QObject::connect(ui->bg_button, &QAbstractButton::clicked, [bg_restore_button](bool) {
+        ui->bg_button->connect(ui->bg_button, &QAbstractButton::clicked, [bg_restore_button](bool) {
             bg_restore_button->setVisible(true);
             bg_restore_button->setEnabled(true);
         });

@@ -1199,8 +1199,8 @@ if (MINGW)
 endif()
 
 if (ENABLE_WEB_SERVICE)
-    target_compile_definitions(core PRIVATE -DENABLE_WEB_SERVICE)
-    target_link_libraries(core PRIVATE web_service)
+    target_compile_definitions(core PUBLIC -DENABLE_WEB_SERVICE)
+    target_link_libraries(core PUBLIC web_service)
 endif()
 
 if (HAS_NCE)

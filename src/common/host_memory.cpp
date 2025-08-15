@@ -442,16 +442,15 @@ static int shm_open_anon(int flags, mode_t mode) {
         for (char *fill = start; fill < limit; r /= 8)
             *fill++ = '0' + (r % 8);
         int fd = shm_open(name, flags, mode);
-        if (fd != -1)
-            return ([](const char *name, int fd) {
-                if (shm_unlink(name) == -1) {
-                    int tmp = errno;
-                    close(fd);
-                    errno = tmp;
-                    return -1;
-                }
-                return fd;
-            })(name, fd);
+        if (fd != -1) {
+            if (shm_unlink(name) == -1) {
+                int tmp = errno;
+                close(fd);
+                errno = tmp;
+                return -1;
+            }
+            return fd;
+        }
         if (errno != EEXIST)
             break;
     }
@@ -464,15 +463,13 @@ static int shm_open_anon(int flags, mode_t mode) {
     int fd;
     if ((fd = shm_mkstemp(name)) == -1)
         return -1;
-    return ([](const char *name, int fd) {
-        if (shm_unlink(name) == -1) {
-            int tmp = errno;
-            close(fd);
-            errno = tmp;
-            return -1;
-        }
-        return fd;
-    })(name, fd);
+    if (shm_unlink(name) == -1) {
+        int tmp = errno;
+        close(fd);
+        errno = tmp;
+        return -1;
+    }
+    return fd;
 }
 #endif
 

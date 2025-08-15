@@ -536,7 +536,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
             }
             return QString{};
         });
-        QObject::connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
+        update_watcher.connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
                          &GMainWindow::OnEmulatorUpdateAvailable);
         update_watcher.setFuture(update_future);
     }
@@ -5786,7 +5786,7 @@ int main(int argc, char* argv[]) {
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
-    QObject::connect(&app, &QGuiApplication::applicationStateChanged, &main_window,
+    app.connect(&app, &QGuiApplication::applicationStateChanged, &main_window,
                      &GMainWindow::OnAppFocusStateChanged);
 
     int result = app.exec();

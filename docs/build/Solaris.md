@@ -87,6 +87,19 @@ export PATH="$PATH:$PWD"
 - **Build**: `cmake --build build`.
 - **Installing**: `sudo cmake --install build`.
 
+### Running
+
+Default Mesa is a bit outdated, the following environment variables should be set for a smoother experience:
+```sh
+export MESA_GL_VERSION_OVERRIDE=4.6
+export MESA_GLSL_VERSION_OVERRIDE=460
+export MESA_EXTENSION_MAX_YEAR=2025
+export MESA_DEBUG=1
+export MESA_VK_VERSION_OVERRIDE=1.3
+# Only if nvidia/intel drm drivers cause crashes, will severely hinder performance
+export LIBGL_ALWAYS_SOFTWARE=1
+```
+
 ### Notes
 
 - Modify the generated ffmpeg.make (in build dir) if using multiple threads (base system `make` doesn't use `-j4`, so change for `gmake`).
