@@ -367,7 +367,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            tr("Sample Shading"),
            tr("Allows the fragment shader to execute per sample in a multi-sampled fragment "
               "instead once per fragment. Improves graphics quality at the cost of some performance.\n"
-              "Only Vulkan 1.1+ devices support this extension."));
+              "Higher values improve quality more but also reduce performance to a greater extent."));
 
     // Renderer (Debug)
 
