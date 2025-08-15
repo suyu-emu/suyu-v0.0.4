@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -52,6 +55,30 @@ enum class FPCompareOp : u64 {
     GEU,
     T,
 };
+
+namespace Isberd {
+enum class Mode : u64 {
+    Default,
+    Patch,
+    Prim,
+    Attr,
+};
+
+enum class Shift : u64 {
+    Default,
+    U16,
+    B32,
+};
+
+enum class SZ : u64 {
+    U8,
+    U16,
+    U32,
+    F32,
+};
+
+} // namespace Isberd
+
 
 class TranslatorVisitor {
 public:
@@ -381,6 +408,12 @@ public:
     void ResetSFlag();
     void ResetCFlag();
     void ResetOFlag();
+
+private:
+    // Helper functions for various translator visitors
+    IR::U32 apply_ISBERD_shift(IR::U32 result, Isberd::Shift shift_value);
+    IR::U32 apply_ISBERD_size_read(IR::U32 address, Isberd::SZ sz_value);
+    IR::U32 compute_ISBERD_address(IR::Reg src_reg, u32 src_reg_num, u32 imm, u64 skew_value);
 };
 
 } // namespace Shader::Maxwell

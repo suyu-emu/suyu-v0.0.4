@@ -9,21 +9,6 @@
 #include "shader_recompiler/frontend/maxwell/translate/impl/impl.h"
 
 namespace Shader::Maxwell {
-namespace {
-enum class Mode : u64 {
-    Default,
-    Patch,
-    Prim,
-    Attr,
-};
-
-enum class Shift : u64 {
-    Default,
-    U16,
-    B32,
-};
-
-} // Anonymous namespace
 
 // Valid only for GS, TI, VS and trap
 void TranslatorVisitor::ISBERD(u64 insn) {
@@ -35,70 +20,49 @@ void TranslatorVisitor::ISBERD(u64 insn) {
         BitField<24, 8, u32> imm;
         BitField<31, 1, u64> skew;
         BitField<32, 1, u64> o;
-        BitField<33, 2, Mode> mode;
-        BitField<47, 2, Shift> shift;
+        BitField<33, 2, Isberd::Mode> mode;
+        BitField<36, 4, Isberd::SZ> sz;
+        BitField<47, 2, Isberd::Shift> shift;
     } const isberd{insn};
 
-    if (isberd.skew != 0) {
-        IR::U32 current_lane_id{ir.LaneId()};
-        IR::U32 result{ir.IAdd(X(isberd.src_reg), current_lane_id)};
-        X(isberd.dest_reg, result);
-    }
+    auto address = compute_ISBERD_address(isberd.src_reg, isberd.src_reg_num, isberd.imm, isberd.skew);
     if (isberd.o != 0) {
-        IR::U32 address{};
-        IR::F32 result{};
-        if (isberd.src_reg_num == 0xFF) {
-            address = ir.Imm32(isberd.imm);
-            result = ir.GetAttributeIndexed(address);
-        } else {
-            IR::U32 offset = ir.Imm32(isberd.imm);
-            address = ir.IAdd(X(isberd.src_reg), offset);
-            result = ir.GetAttributeIndexed(address);
-        }
-        X(isberd.dest_reg, ir.BitCast<IR::U32>(result));
+        auto result = apply_ISBERD_size_read(address, isberd.sz.Value());
+        X(isberd.dest_reg, apply_ISBERD_shift(result, isberd.shift.Value()));
+
+        return;
     }
-    if (isberd.mode != Mode::Default) {
-        IR::F32 result{};
-        IR::U32 index{};
-        if (isberd.src_reg_num == 0xFF) {
-            index = ir.Imm32(isberd.imm);
-        } else {
-            index = ir.IAdd(X(isberd.src_reg), ir.Imm32(isberd.imm));
+
+    if (isberd.mode != Isberd::Mode::Default) {
+        IR::F32 result_f32{};
+        switch (isberd.mode.Value()) {
+        case Isberd::Mode::Patch:
+            result_f32 = ir.GetPatch(address.Patch());
+            break;
+        case Isberd::Mode::Prim:
+            result_f32 = ir.GetAttribute(address.Attribute());
+            break;
+        case Isberd::Mode::Attr:
+            result_f32 = ir.GetAttributeIndexed(address);
+            break;
+        default:
+            UNREACHABLE();
         }
 
-        switch (static_cast<u64>(isberd.mode.Value())) {
-        case static_cast<u64>(Mode::Patch):
-            result = ir.GetPatch(index.Patch());
-            break;
-        case static_cast<u64>(Mode::Prim):
-            result = ir.GetAttribute(index.Attribute());
-            break;
-        case static_cast<u64>(Mode::Attr):
-            result = ir.GetAttributeIndexed(index);
-            break;
-        }
-        X(isberd.dest_reg, ir.BitCast<IR::U32>(result));
+        auto result_u32 = ir.BitCast<IR::U32>(result_f32);
+        X(isberd.dest_reg, apply_ISBERD_shift(result_u32, isberd.shift.Value()));
+        return;
     }
-    if (isberd.shift != Shift::Default) {
-        IR::U32 result{};
-        switch (static_cast<u64>(isberd.shift.Value())) {
-        case static_cast<u64>(Shift::U16):
-            result = ir.ShiftLeftLogical(result, static_cast<IR::U32>(ir.Imm16(1)));
-            break;
-        case static_cast<u64>(Shift::B32):
-            result = ir.ShiftLeftLogical(result, ir.Imm32(1));
-            break;
-        }
+
+    if (isberd.skew != 0) {
+        auto result = ir.IAdd(X(isberd.src_reg), ir.LaneId());
         X(isberd.dest_reg, result);
+
+        return;
     }
-    //LOG_DEBUG(Shader, "(STUBBED) called {}", insn);
-    if (isberd.src_reg_num == 0xFF) {
-        IR::U32 src_imm{ir.Imm32(static_cast<u32>(isberd.imm))};
-        IR::U32 result{ir.IAdd(X(isberd.src_reg), src_imm)};
-        X(isberd.dest_reg, result);
-    } else {
-        X(isberd.dest_reg, X(isberd.src_reg));
-    }
+
+    // Fallback if nothing else applies
+    X(isberd.dest_reg, X(isberd.src_reg));
 }
 
 } // namespace Shader::Maxwell

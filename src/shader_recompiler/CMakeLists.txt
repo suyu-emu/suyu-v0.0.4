@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -240,6 +243,7 @@ add_library(shader_recompiler STATIC
     runtime_info.h
     shader_info.h
     varying_state.h
+
 )
 
 target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-link)
