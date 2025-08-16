@@ -215,6 +215,7 @@
     <addaction name="separator"/>
     <addaction name="action_Discord"/>
     <addaction name="action_Revolt"/>
+    <addaction name="action_X"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
     <addaction name="action_Eden_Dependencies"/>
@@ -560,6 +561,17 @@
   <action name="action_Firmware_From_ZIP">
    <property name="text">
     <string>From ZIP</string>
+   </property>
+  </action>
+  <action name="action_X">
+   <property name="text">
+    <string>&amp;X</string>
+   </property>
+   <property name="toolTip">
+    <string>X (Twitter)</string>
+   </property>
+   <property name="statusTip">
+    <string/>
    </property>
   </action>
   <action name="action_Revolt">
