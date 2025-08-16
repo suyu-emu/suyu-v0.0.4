@@ -10,25 +10,28 @@ The following are handled by Eden's externals:
 
   * [FFmpeg](https://ffmpeg.org/)
   * [SDL2](https://www.libsdl.org/download-2.0.php) 2.0.18+
-  * [opus](https://opus-codec.org/downloads/)
+  * [opus](https://opus-codec.org/downloads/) 1.3+
   
-All other dependencies will be downloaded by [vcpkg](https://vcpkg.io/) if needed:
+All other dependencies will be downloaded and built by [CPM](https://github.com/cpm-cmake/CPM.cmake/) if `YUZU_USE_CPM` is on, but will use system dependencies if available:
 
   * [Boost](https://www.boost.org/users/download/) 1.79.0+
   * [Catch2](https://github.com/catchorg/Catch2) 2.13.7 - 2.13.9
   * [fmt](https://fmt.dev/) 8.0.1+
   * [lz4](http://www.lz4.org) 1.8+
   * [nlohmann_json](https://github.com/nlohmann/json) 3.8+
-  * [OpenSSL](https://www.openssl.org/source/)
+  * [OpenSSL](https://www.openssl.org/source/) 1.1.1+
   * [ZLIB](https://www.zlib.net/) 1.2+
   * [zstd](https://facebook.github.io/zstd/) 1.5+
+  * [enet](http://enet.bespin.org/) 1.3+
+  * [cubeb](https://github.com/mozilla/cubeb)
+  * [SimpleIni](https://github.com/brofield/simpleini)
 
-If an ARM64 build is intended, export `VCPKG_FORCE_SYSTEM_BINARIES=1`.
+Certain other dependencies (httplib, jwt, sirit, etc.) will be fetched by CPM regardless. System packages *can* be used for these libraries but this is generally not recommended.
 
 Dependencies are listed here as commands that can be copied/pasted. Of course, they should be inspected before being run.
 
 - Arch / Manjaro:
-  - `sudo pacman -Syu --needed base-devel boost catch2 cmake ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt6-base qt6-multimedia sdl2 zlib zstd zip unzip`
+  - `sudo pacman -Syu --needed base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 mbedtls ninja nlohmann-json openssl opus qt6-base qt6-multimedia sdl2 zlib zstd zip unzip`
   - Building with QT Web Engine requires `qt6-webengine` as well.
   - Proper wayland support requires `qt6-wayland`
   - GCC 11 or later is required.

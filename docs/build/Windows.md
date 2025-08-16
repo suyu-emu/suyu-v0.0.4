@@ -10,7 +10,6 @@ On Windows, all library dependencies are automatically included within the `exte
   * **[CMake](https://cmake.org/download/)** - Used to generate Visual Studio project files. Does not matter if either 32-bit or 64-bit version is installed.
   * **[Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)** - **Make sure to select Latest SDK.**
     - A convenience script to install the latest SDK is provided in `.ci\windows\install-vulkan-sdk.ps1`.
-  * **[OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)** - You are recommended to keep the default install location, otherwise you will have to specify a custom OpenSSL root.
 
   ![2](https://i.imgur.com/giDwuTm.png)
 
@@ -47,8 +46,6 @@ On Windows, all library dependencies are automatically included within the `exte
   ![12](https://i.imgur.com/DKiREaK.png)
 
   * *(Note: If you used GitHub's own app to clone, run `git submodule update --init --recursive` to get the remaining dependencies)*
-
-* If you get an error about missing packages, enable `YUZU_USE_BUNDLED_VCPKG`, and then click Configure again.
 
   * *(You may also want to disable `YUZU_TESTS` in this case since Catch2 is not yet supported with this.)*
 
@@ -100,7 +97,7 @@ On Windows, all library dependencies are automatically included within the `exte
 
 ```bash
 mkdir build && cd build
-cmake -G "MSYS Makefiles" -DYUZU_USE_BUNDLED_VCPKG=ON -DYUZU_TESTS=OFF ..
+cmake -G "MSYS Makefiles" -DYUZU_TESTS=OFF ..
 make -j$(nproc)
 # test eden out with
 ./bin/eden.exe

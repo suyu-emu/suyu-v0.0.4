@@ -59,7 +59,7 @@ if (ARCHITECTURE_arm64 OR DYNARMIC_TESTS)
         SHA 94c726ce03
         HASH d8d082242fa1881abce3c82f8dafa002c4e561e66a69e7fc038af67faa5eff2630f082d3d19579c88c4c9f9488e54552accc8cb90e7ce743efe043b6230c08ac
     )
-    endif()
+endif()
 
 # getopt
 if (MSVC)
@@ -70,7 +70,6 @@ endif()
 add_subdirectory(glad)
 
 # mbedtls
-# TODO(crueter): test local mbedtls
 AddPackage(
     NAME mbedtls
     REPO "Mbed-TLS/mbedtls"
@@ -138,74 +137,6 @@ if (NOT YUZU_USE_BUNDLED_SDL2)
     )
 endif()
 
-# ENet
-AddPackage(
-    NAME enet
-    REPO lsalzman/enet
-    SHA 2662c0de09
-    VERSION 1.3
-    HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
-    FIND_PACKAGE_ARGUMENTS "MODULE"
-)
-
-if (enet_ADDED)
-    target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
-endif()
-
-AddPackage(
-    NAME cubeb
-    REPO "mozilla/cubeb"
-    SHA fa02160712
-    HASH 82d808356752e4064de48c8fecbe7856715ade1e76b53937116bf07129fc1cc5b3de5e4b408de3cd000187ba8dc32ca4109661cb7e0355a52e54bd81b9be1c61
-    FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
-    OPTIONS
-        "USE_SANITIZERS OFF"
-        "BUILD_TESTS OFF"
-        "BUILD_TOOLS OFF"
-        "BUNDLE_SPEEX ON"
-)
-
-if (cubeb_ADDED)
-    if (NOT MSVC)
-        if (TARGET speex)
-            target_compile_options(speex PRIVATE -Wno-sign-compare)
-        endif()
-
-        set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
-        target_compile_options(cubeb INTERFACE
-            -Wno-implicit-const-int-float-conversion
-            -Wno-shadow
-            -Wno-missing-declarations
-            -Wno-return-type
-            -Wno-uninitialized
-        )
-    else()
-        target_compile_options(cubeb PRIVATE
-            /wd4456
-            /wd4458
-        )
-    endif()
-endif()
-
-# DiscordRPC
-if (USE_DISCORD_PRESENCE)
-    AddPackage(
-        NAME discord-rpc
-        REPO "discord/discord-rpc"
-        SHA 963aa9f3e5
-        HASH 386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde
-        OPTIONS
-            "BUILD_EXAMPLES OFF"
-        PATCHES
-            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
-            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
-            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
-    )
-
-    target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
-    add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
-endif()
-
 # Sirit
 # TODO(crueter): spirv-tools doesn't work w/ system
 AddPackage(
@@ -225,7 +156,7 @@ AddPackage(
 )
 
 # httplib
-if ((ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER))
+if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     AddPackage(
         NAME httplib
         REPO "yhirose/cpp-httplib"
@@ -255,21 +186,6 @@ if (ENABLE_WEB_SERVICE)
     )
 endif()
 
-# Opus
-AddPackage(
-    NAME Opus
-    VERSION 1.3
-    REPO "xiph/opus"
-    SHA 5ded705cf4
-    HASH 0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203
-    FIND_PACKAGE_ARGUMENTS "MODULE"
-    OPTIONS
-        "OPUS_BUILD_TESTING OFF"
-        "OPUS_BUILD_PROGRAMS OFF"
-        "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
-        "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
-)
-
 # FFMpeg
 if (YUZU_USE_BUNDLED_FFMPEG)
     add_subdirectory(ffmpeg)
@@ -292,11 +208,6 @@ AddPackage(
     BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_HEADERS}
 )
 
-# CMake's interface generator sucks
-# if (VulkanHeaders_ADDED)
-#     target_include_directories(Vulkan-Headers INTERFACE ${VulkanHeaders_SOURCE_DIR}/include)
-# endif()
-
 # Vulkan-Utility-Libraries
 AddPackage(
     NAME VulkanUtilityLibraries
@@ -315,17 +226,6 @@ if (YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
         HASH 58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa
         OPTIONS
             "SPIRV_SKIP_EXECUTABLES ON"
-    )
-endif()
-
-# Boost headers
-if (NOT Boost_ADDED AND NOT TARGET Boost::headers)
-    AddPackage(
-        NAME boost_headers
-        REPO "boostorg/headers"
-        SHA 0456900fad
-        HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
-        BUNDLED_PACKAGE ON
     )
 endif()
 
@@ -500,11 +400,6 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
     endif()
 endif()
 
-# SimpleIni
-if (NOT TARGET SimpleIni::SimpleIni)
-    add_subdirectory(simpleini)
-endif()
-
 # oboe
 if (ANDROID)
     AddPackage(
@@ -512,6 +407,7 @@ if (ANDROID)
         REPO "google/oboe"
         SHA 2bc873e53c
         HASH 02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768
+        BUNDLED_PACKAGE ON
     )
 
     add_library(oboe::oboe ALIAS oboe)

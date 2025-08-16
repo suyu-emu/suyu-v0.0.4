@@ -128,10 +128,6 @@ Copyright: 2020-2021 Its-Rei <kupfel@gmail.com>
            2020-2021 yuzu Emulator Project
 License: GPL-2.0-or-later
 
-Files: vcpkg.json
-Copyright: 2022 yuzu Emulator Project
-License: GPL-3.0-or-later
-
 Files: .github/ISSUE_TEMPLATE/*
 Copyright: 2022 yuzu Emulator Project
 License: GPL-2.0-or-later

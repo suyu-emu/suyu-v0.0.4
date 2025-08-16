@@ -57,14 +57,7 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-# TODO(crueter): maybe this should default on everywhere...?
-if (MSVC OR ANDROID)
-    set(CPM_DEFAULT ON)
-else()
-    set(CPM_DEFAULT OFF)
-endif()
-
-option(YUZU_USE_CPM "Use CPM for Eden dependencies" "${CPM_DEFAULT}")
+option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
@@ -101,7 +94,7 @@ set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundl
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
-option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
+CMAKE_DEPENDENT_OPTION(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF "ENABLE_QT" OFF)
 
 option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
@@ -375,8 +368,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # System imported libraries
 # =======================================================================
 
+include(CPMUtil)
+
 if (YUZU_USE_CPM)
-    include(CPMUtil)
     message(STATUS "Fetching needed dependencies with CPM")
 
     set(BUILD_SHARED_LIBS OFF)
@@ -421,6 +415,8 @@ if (YUZU_USE_CPM)
         endif()
     endif()
 
+    # boost
+    set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
     AddPackage(
         NAME Boost
         REPO boostorg/boost
@@ -433,6 +429,8 @@ if (YUZU_USE_CPM)
         VERSION 1.57
     )
 
+    # really annoying thing where boost::headers doesn't work with cpm
+    # TODO(crueter) investigate
     set(BOOST_NO_HEADERS ${Boost_ADDED})
 
     if (Boost_ADDED)
@@ -450,6 +448,7 @@ if (YUZU_USE_CPM)
         endif()
     endif()
 
+    # fmt
     AddPackage(
         NAME fmt
         REPO fmtlib/fmt
@@ -460,6 +459,7 @@ if (YUZU_USE_CPM)
             "FMT_INSTALL OFF"
     )
 
+    # lz4
     AddPackage(
         NAME lz4
         REPO lz4/lz4
@@ -472,6 +472,7 @@ if (YUZU_USE_CPM)
         add_library(lz4::lz4 ALIAS lz4_static)
     endif()
 
+    # nlohmann
     AddPackage(
         NAME nlohmann_json
         REPO nlohmann/json
@@ -480,14 +481,7 @@ if (YUZU_USE_CPM)
         VERSION 3.8
     )
 
-    AddPackage(
-        NAME SimpleIni
-        REPO brofield/simpleini
-        SHA 09c21bda1d
-        HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
-        EXCLUDE_FROM_ALL ON
-    )
-
+    # zlib
     AddPackage(
         NAME ZLIB
         REPO madler/zlib
@@ -504,7 +498,7 @@ if (YUZU_USE_CPM)
         add_library(ZLIB::ZLIB ALIAS zlibstatic)
     endif()
 
-    set(ZSTD_BUILD_SHARED OFF)
+    # zstd
     AddPackage(
         NAME zstd
         REPO facebook/zstd
@@ -512,9 +506,12 @@ if (YUZU_USE_CPM)
         HASH 3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee
         VERSION 1.5
         SOURCE_SUBDIR build/cmake
+        OPTIONS
+            "ZSTD_BUILD_SHARED OFF"
         EXCLUDE_FROM_ALL ON
     )
 
+    # Catch2
     if (YUZU_TESTS OR DYNARMIC_TESTS)
         AddPackage(
             NAME Catch2
@@ -524,6 +521,72 @@ if (YUZU_USE_CPM)
             VERSION 3.0.1
         )
     endif()
+
+    # ENet
+    AddPackage(
+        NAME enet
+        REPO lsalzman/enet
+        SHA 2662c0de09
+        VERSION 1.3
+        HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
+        FIND_PACKAGE_ARGUMENTS "MODULE"
+    )
+
+    if (enet_ADDED)
+        target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
+    endif()
+
+    # Opus
+    AddPackage(
+        NAME Opus
+        VERSION 1.3
+        REPO "xiph/opus"
+        SHA 5ded705cf4
+        HASH 0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203
+        FIND_PACKAGE_ARGUMENTS "MODULE"
+        OPTIONS
+            "OPUS_BUILD_TESTING OFF"
+            "OPUS_BUILD_PROGRAMS OFF"
+            "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
+            "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+    )
+
+    if(ENABLE_CUBEB)
+        AddPackage(
+            NAME cubeb
+            REPO "mozilla/cubeb"
+            SHA fa02160712
+            HASH 82d808356752e4064de48c8fecbe7856715ade1e76b53937116bf07129fc1cc5b3de5e4b408de3cd000187ba8dc32ca4109661cb7e0355a52e54bd81b9be1c61
+            FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
+            OPTIONS
+                "USE_SANITIZERS OFF"
+                "BUILD_TESTS OFF"
+                "BUILD_TOOLS OFF"
+                "BUNDLE_SPEEX ON"
+        )
+
+        if (cubeb_ADDED)
+            if (NOT MSVC)
+                if (TARGET speex)
+                    target_compile_options(speex PRIVATE -Wno-sign-compare)
+                endif()
+
+                set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+                target_compile_options(cubeb INTERFACE
+                    -Wno-implicit-const-int-float-conversion
+                    -Wno-shadow
+                    -Wno-missing-declarations
+                    -Wno-return-type
+                    -Wno-uninitialized
+                )
+            else()
+                target_compile_options(cubeb PRIVATE
+                    /wd4456
+                    /wd4458
+                )
+            endif()
+        endif()
+    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -531,10 +594,15 @@ else()
     find_package(nlohmann_json 3.8 REQUIRED)
     find_package(lz4 REQUIRED)
     find_package(RenderDoc MODULE)
-    find_package(SimpleIni MODULE)
     find_package(stb MODULE)
+    find_package(enet 1.3 MODULE)
+    find_package(Opus 1.3 MODULE)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED)
+
+    if (ENABLE_CUBEB)
+        find_package(cubeb CONFIG)
+    endif()
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
@@ -549,6 +617,16 @@ else()
     endif()
 endif()
 
+if(NOT TARGET Boost::headers)
+    AddPackage(
+        NAME boost_headers
+        REPO "boostorg/headers"
+        SHA 0456900fad
+        HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
+        BUNDLED_PACKAGE ON
+    )
+endif()
+
 if (ENABLE_LIBUSB)
     if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
         find_package(libusb MODULE)
@@ -556,6 +634,35 @@ if (ENABLE_LIBUSB)
         find_package(libusb 1.0.24 MODULE)
     endif()
 endif()
+
+# DiscordRPC
+if (USE_DISCORD_PRESENCE)
+    AddPackage(
+        NAME discord-rpc
+        REPO "discord/discord-rpc"
+        SHA 963aa9f3e5
+        HASH 386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde
+        OPTIONS
+            "BUILD_EXAMPLES OFF"
+        PATCHES
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
+            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
+    )
+
+    target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
+    add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
+endif()
+
+# SimpleIni
+AddPackage(
+    NAME SimpleIni
+    REPO brofield/simpleini
+    SHA 09c21bda1d
+    HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
+    EXCLUDE_FROM_ALL ON
+    FIND_PACKAGE_ARGUMENTS "MODULE"
+)
 
 # TODO(crueter): Work around this
 if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
@@ -634,7 +741,7 @@ if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
 endif()
 
 if (NOT YUZU_USE_BUNDLED_SDL2)
-    find_package(SDL2 REQUIRED)
+    find_package(SDL2)
 endif()
 
 if (ENABLE_QT)
