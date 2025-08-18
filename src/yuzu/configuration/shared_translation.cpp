@@ -247,7 +247,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
            vram_usage_mode,
            tr("VRAM Usage Mode:"),
            tr("Selects whether the emulator should prefer to conserve memory or make maximum usage "
-              "of available video memory for performance. Has no effect on integrated graphics. "
+              "of available video memory for performance.\nHas no effect on integrated graphics. "
               "Aggressive mode may severely impact the performance of other applications such as "
               "recording software."));
     INSERT(Settings,
