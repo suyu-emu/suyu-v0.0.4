@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(EXPÉRIMENTAL) Change la disposition de la mémoire émulée. Ce paramètre n\'augmente pas les performances, mais peut aider les jeux utilisant des résolutions élevées via des mods. Ne pas utiliser sur les téléphones avec 8 Go de RAM ou moins.</string>
     <string name="sample_shading">Échantillonnage de shading</string>
     <string name="sample_shading_description">Permet au fragment shader de s\'exécuter par échantillon dans un fragment multi-échantillonné au lieu d\'une fois par fragment. Améliore la qualité graphique au détriment des performances. Seuls les appareils Vulkan 1.1+ prennent en charge cette extension.</string>
+    <string name="sample_shading_fraction">Fraction d\'ombrage d\'échantillon</string>
+    <string name="sample_shading_fraction_description">L\'intensité de la passe d\'ombrage d\'échantillon. Des valeurs plus élevées améliorent davantage la qualité mais réduisent aussi plus fortement les performances.</string>
     <string name="custom_cpu_ticks">Ticks CPU personnalisés</string>
     <string name="custom_cpu_ticks_description">Définissez une valeur personnalisée de ticks CPU. Des valeurs plus élevées peuvent améliorer les performances, mais peuvent aussi provoquer des gels du jeu. Une plage de 77 à 21000 est recommandée.</string>
     <string name="cpu_ticks">Ticks</string>

@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(EXPERIMENTELL) Ändert das emulierte Speicherlayout. Diese Einstellung erhöht nicht die Leistung, kann aber bei Spielen helfen, die hohe Auflösungen über Mods nutzen. Nicht auf Telefonen mit 8 GB RAM oder weniger verwenden.</string>
     <string name="sample_shading">Sample Shading</string>
     <string name="sample_shading_description">Ermöglicht dem Fragment-Shader, pro Sample in einem mehrfach gesampleten Fragment ausgeführt zu werden, anstatt einmal pro Fragment. Verbessert die Grafikqualität auf Kosten der Leistung. Nur Vulkan 1.1+-Geräte unterstützen diese Erweiterung.</string>
+    <string name="sample_shading_fraction">Sample-Shading-Anteil</string>
+    <string name="sample_shading_fraction_description">Die Intensität des Sample-Shading-Durchgangs. Höhere Werte verbessern die Qualität stärker, beeinträchtigen aber auch die Leistung stärker.</string>
     <string name="custom_cpu_ticks">Benutzerdefinierte CPU-Ticks</string>
     <string name="custom_cpu_ticks_description">Legen Sie einen benutzerdefinierten Wert für CPU-Ticks fest. Höhere Werte können die Leistung steigern, aber auch zum Einfrieren des Spiels führen. Ein Bereich von 77–21000 wird empfohlen.</string>
     <string name="cpu_ticks">Ticks</string>

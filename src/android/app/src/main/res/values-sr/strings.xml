@@ -110,6 +110,8 @@
 
     <string name="sample_shading">Семпловање сенчења</string>
     <string name="sample_shading_description">Омогућава фрагмент шејдеру да се извршава по узорку у вишеузорачном фрагменту уместо једном по фрагменту. Побољшава квалитет графике на рачун перформанси. Само Vulkan 1.1+ уређаји подржавају ову екстензију.</string>
+    <string name="sample_shading_fraction">Удео сенчења узорка</string>
+    <string name="sample_shading_fraction_description">Интензитет проласка сенчења узорка. Веће вредности побољшавају квалитет више, али такође више смањују перформансе.</string>
     <string name="custom_cpu_ticks">Прилагођени CPU тактови</string>
     <string name="custom_cpu_ticks_description">Поставите прилагођену вредност CPU тактова. Веће вредности могу повећати перформансе, али могу изазвати залеђивање игре. Препоручује се опсег 77–21000.</string>
     <string name="cpu_ticks">Тактови</string>

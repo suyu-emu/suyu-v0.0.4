@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(THỬ NGHIỆM) Thay đổi bố cục bộ nhớ mô phỏng. Cài đặt này không tăng hiệu suất, nhưng có thể giúp ích cho các trò chơi sử dụng độ phân giải cao thông qua mod. Không sử dụng trên điện thoại có 8GB RAM trở xuống.</string>
     <string name="sample_shading">Tô bóng mẫu</string>
     <string name="sample_shading_description">Cho phép fragment shader thực thi trên mỗi mẫu trong một fragment đa mẫu thay vì một lần mỗi fragment. Cải thiện chất lượng đồ họa với chi phí hiệu suất. Chỉ thiết bị Vulkan 1.1+ hỗ trợ tiện ích mở rộng này.</string>
+    <string name="sample_shading_fraction">Phần trăm tô bóng mẫu</string>
+    <string name="sample_shading_fraction_description">Cường độ của bước tô bóng mẫu. Giá trị cao hơn cải thiện chất lượng tốt hơn nhưng cũng giảm hiệu suất nhiều hơn.</string>
     <string name="custom_cpu_ticks">Tích CPU tùy chỉnh</string>
     <string name="custom_cpu_ticks_description">Đặt giá trị tích CPU tùy chỉnh. Giá trị cao hơn có thể tăng hiệu suất, nhưng cũng có thể khiến trò chơi bị đơ. Phạm vi 77–21000 được khuyến nghị.</string>
     <string name="cpu_ticks">Tích</string>

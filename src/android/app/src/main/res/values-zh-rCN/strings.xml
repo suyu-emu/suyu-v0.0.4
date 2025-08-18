@@ -116,6 +116,8 @@
     <string name="memory_layout_description">(实验性) 更改模拟内存布局。此设置不会提高性能，但可能有助于通过模组使用高分辨率的游戏。不要在 RAM 为 8GB 或更少的手机上使用。</string>
     <string name="sample_shading">采样着色</string>
     <string name="sample_shading_description">允许片段着色器在多采样片段中每个样本执行一次，而不是每个片段执行一次。以提高性能为代价改善图形质量。仅Vulkan 1.1+设备支持此扩展。</string>
+    <string name="sample_shading_fraction">采样着色比例</string>
+    <string name="sample_shading_fraction_description">采样着色处理的强度。值越高，质量改善越多，但性能降低也越明显。</string>
     <string name="custom_cpu_ticks">自定义CPU时钟</string>
     <string name="custom_cpu_ticks_description">设置自定义的CPU时钟值。更高的值可能提高性能，但也可能导致游戏卡顿。建议范围为77-21000。</string>
     <string name="cpu_ticks">时钟</string>

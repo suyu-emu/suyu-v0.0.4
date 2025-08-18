@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(KÍSÉRLETI) Megváltoztatja az emulált memórialayoutot. Ez a beállítás nem növeli a teljesítményt, de segíthet a magas felbontást használó játékokban modok segítségével. Ne használd 8GB RAM vagy kevesebb rendelkező telefonokon.</string>
     <string name="sample_shading">Mintavételezés árnyékolás</string>
     <string name="sample_shading_description">Lehetővé teszi, hogy a fragment shader mintánként fusson egy többmintás fragmentben a fragmentenkénti futtatás helyett. Javítja a grafikai minőséget a teljesítmény rovására. Csak Vulkan 1.1+ eszközök támogatják ezt a kiterjesztést.</string>
+    <string name="sample_shading_fraction">Mintavételezés árnyékolási hányad</string>
+    <string name="sample_shading_fraction_description">A mintavételezés árnyékolási lépés intenzitása. A magasabb értékek jobb minőséget eredményeznek, de nagyobb mértékben csökkentik a teljesítményt.</string>
     <string name="custom_cpu_ticks">Egyéni CPU tick-ek</string>
     <string name="custom_cpu_ticks_description">Egyéni CPU tick érték beállítása. A magasabb értékek növelhetik a teljesítményt, de a játék befagyását is okozhatják. 77–21000 közötti tartomány ajánlott.</string>
     <string name="cpu_ticks">Tick-ek</string>

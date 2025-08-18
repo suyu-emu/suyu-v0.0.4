@@ -118,6 +118,8 @@
     <string name="memory_layout_description">(ניסיוני) שנה את מבנה הזיכרון המדומה. הגדרה זו לא תגדיל את הביצועים, אך עשויה לעזור במשחקים המשתמשים ברזולוציות גבוהות באמצעות מודים. אל תשתמש בטלפונים עם 8GB זיכרון RAM או פחות.</string>
     <string name="sample_shading">דגימת צל</string>
     <string name="sample_shading_description">מאפשר לשברי הצללה לרוץ לכל דגימה בקטע רב-דגימות במקום פעם אחת לקטע. משפר את איכות הגרפיקה במחיר של ביצועים. רק מכשירי Vulkan 1.1+ תומכים בהרחבה זו.</string>
+    <string name="sample_shading_fraction">שבר הצללה לדוגמה</string>
+    <string name="sample_shading_fraction_description">עוצמת מעבר ההצללה לדוגמה. ערכים גבוהים יותר משפרים את האיכות יותר אך גם מפחיתים את הביצועים במידה רבה יותר.</string>
     <string name="custom_cpu_ticks">טיקי CPU מותאמים</string>
     <string name="custom_cpu_ticks_description">הגדר ערך מותאם לטיקי CPU. ערכים גבוהים יותר עשויים לשפר ביצועים, אך גם עלולים לגרום להקפאת המשחק. מומלץ טווח של 77-21000.</string>
     <string name="cpu_ticks">טיקים</string>

@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(SPERIMENTALE) Cambia il layout della memoria emulata. Questa impostazione non aumenta le prestazioni, ma può aiutare nei giochi che utilizzano alte risoluzioni tramite mod. Non usare su telefoni con 8GB di RAM o meno.</string>
     <string name="sample_shading">Shading campione</string>
     <string name="sample_shading_description">Permette al fragment shader di eseguire per campione in un frammento multi-campione invece che una volta per frammento. Migliora la qualità grafica a scapito delle prestazioni. Solo i dispositivi Vulkan 1.1+ supportano questa estensione.</string>
+    <string name="sample_shading_fraction">Frazione di ombreggiatura campione</string>
+    <string name="sample_shading_fraction_description">L\'intensità della passata di ombreggiatura campione. Valori più alti migliorano la qualità ma riducono maggiormente le prestazioni.</string>
     <string name="custom_cpu_ticks">Tick CPU personalizzati</string>
     <string name="custom_cpu_ticks_description">Imposta un valore personalizzato per i tick della CPU. Valori più alti possono aumentare le prestazioni, ma possono anche causare il blocco del gioco. Si consiglia un intervallo di 77–21000.</string>
     <string name="cpu_ticks">Tick</string>

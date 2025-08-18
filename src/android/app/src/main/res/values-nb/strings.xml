@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(EKSPERIMENTELL) Endre det emulerte minneoppsettet. Denne innstillingen øker ikke ytelsen, men kan hjelpe spill som bruker høy oppløsning via mods. Ikke bruk på telefoner med 8GB RAM eller mindre.</string>
     <string name="sample_shading">Prøvegjengivelse</string>
     <string name="sample_shading_description">Lar fragment-shaderen kjøres per prøve i et flerprøvefragment i stedet for en gang per fragment. Forbedrer grafikkvaliteten på bekostning av ytelse. Bare Vulkan 1.1+-enheter støtter denne utvidelsen.</string>
+    <string name="sample_shading_fraction">Prøveskyggebrøk</string>
+    <string name="sample_shading_fraction_description">Intensiteten til prøveskyggepasseringen. Høyere verdier forbedrer kvaliteten mer, men reduserer også ytelsen i større grad.</string>
     <string name="custom_cpu_ticks">Egendefinerte CPU-takter</string>
     <string name="custom_cpu_ticks_description">Angi en egendefinert verdi for CPU-takter. Høyere verdier kan øke ytelsen, men kan også føre til at spret fryser. Et område på 77–21000 anbefales.</string>
     <string name="cpu_ticks">Takter</string>

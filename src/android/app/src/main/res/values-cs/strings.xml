@@ -116,6 +116,8 @@
     <string name="memory_layout_description">(EXPERIMENTÁLNÍ) Změna emulovaného rozložení paměti. Toto nastavení nezvyšuje výkon, ale může pomoci hrám využívajícím vysoké rozlišení pomocí modů. Nepoužívejte na telefonech s 8GB RAM nebo méně.</string>
     <string name="sample_shading">Vzorkovací stínování</string>
     <string name="sample_shading_description">Umožňuje fragment shaderu provádět výpočty pro každý vzorek ve fragmentu s více vzorky namísto jednou pro fragment. Zlepšuje kvalitu grafiky na úkor výkonu. Tuto funkci podporují pouze zařízení s Vulkan 1.1+.</string>
+    <string name="sample_shading_fraction">Podíl stínování vzorku</string>
+    <string name="sample_shading_fraction_description">Intenzita průchodu stínování vzorku. Vyšší hodnoty zlepšují kvalitu, ale také výrazněji snižují výkon.</string>
     <string name="custom_cpu_ticks">Vlastní CPU takty</string>
     <string name="custom_cpu_ticks_description">Nastavte vlastní hodnotu CPU taktů. Vyšší hodnoty mohou zvýšit výkon, ale mohou také způsobit zamrznutí hry. Doporučuje se rozsah 77–21000.</string>
     <string name="cpu_ticks">Takty</string>

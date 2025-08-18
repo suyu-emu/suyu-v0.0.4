@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(EKSPERYMENTALNY) Zmienia emulowany układ pamięci. To ustawienie nie zwiększa wydajności, ale może pomóc w grach wykorzystujących wysokie rozdzielczości poprzez mody. Nie używaj na telefonach z 8GB RAM lub mniej.</string>
     <string name="sample_shading">Cieniowanie próbek</string>
     <string name="sample_shading_description">Pozwala shaderowi fragmentów wykonywać się na próbkę w fragmencie wielopróbkowym zamiast raz na fragment. Poprawia jakość grafiki kosztem wydajności. Tylko urządzenia Vulkan 1.1+ obsługują to rozszerzenie.</string>
+    <string name="sample_shading_fraction">Ułamek cieniowania próbki</string>
+    <string name="sample_shading_fraction_description">Intensywność przebiegu cieniowania próbki. Wyższe wartości poprawiają jakość, ale także w większym stopniu zmniejszają wydajność.</string>
     <string name="custom_cpu_ticks">Niestandardowe takty CPU</string>
     <string name="custom_cpu_ticks_description">Ustaw niestandardową wartość taktów CPU. Wyższe wartości mogą zwiększyć wydajność, ale mogą też powodować zawieszanie się gry. Zalecany zakres to 77–21000.</string>
     <string name="cpu_ticks">Takty</string>

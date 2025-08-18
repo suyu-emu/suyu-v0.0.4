@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(EKSPERIMENTAL) Ubah tata letak memori emulasi. Pengaturan ini tidak meningkatkan kinerja, tetapi dapat membantu game yang menggunakan resolusi tinggi melalui mod. Jangan gunakan pada ponsel dengan RAM 8GB atau kurang.</string>
     <string name="sample_shading">Pencahayaan Sampel</string>
     <string name="sample_shading_description">Memungkinkan fragment shader dieksekusi per sampel dalam fragmen multisampel alih-alih sekali per fragmen. Meningkatkan kualitas grafis dengan mengorbankan kinerja. Hanya perangkat Vulkan 1.1+ yang mendukung ekstensi ini.</string>
+    <string name="sample_shading_fraction">Fraksi Pencahayaan Sampel</string>
+    <string name="sample_shading_fraction_description">Intensitas proses pencahayaan sampel. Nilai lebih tinggi meningkatkan kualitas lebih baik tetapi juga mengurangi performa lebih besar.</string>
     <string name="custom_cpu_ticks">Ticks CPU Kustom</string>
     <string name="custom_cpu_ticks_description">Atur nilai ticks CPU kustom. Nilai yang lebih tinggi dapat meningkatkan kinerja, tetapi juga dapat menyebabkan game membeku. Kisaran 77–21000 direkomendasikan.</string>
     <string name="cpu_ticks">Ticks</string>

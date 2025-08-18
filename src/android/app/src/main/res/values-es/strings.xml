@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(EXPERIMENTAL) Cambia la distribución de memoria emulada. Esta configuración no aumenta el rendimiento, pero puede ayudar en juegos que utilizan altas resoluciones mediante mods. No usar en teléfonos con 8GB de RAM o menos.</string>
     <string name="sample_shading">Muestreo de sombreado</string>
     <string name="sample_shading_description">Permite que el fragment shader se ejecute por muestra en un fragmento multisample en lugar de una vez por fragmento. Mejora la calidad gráfica a costa de algo de rendimiento. Solo los dispositivos Vulkan 1.1+ admiten esta extensión.</string>
+    <string name="sample_shading_fraction">Fracción de sombreado de muestra</string>
+    <string name="sample_shading_fraction_description">La intensidad del paso de sombreado de muestra. Valores más altos mejoran más la calidad pero también reducen en mayor medida el rendimiento.</string>
     <string name="custom_cpu_ticks">Ticks de CPU personalizados</string>
     <string name="custom_cpu_ticks_description">Establece un valor personalizado de ticks de CPU. Valores más altos pueden aumentar el rendimiento, pero también pueden hacer que el juego se congele. Se recomienda un rango de 77–21000.</string>
     <string name="cpu_ticks">Ticks</string>

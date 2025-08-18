@@ -108,6 +108,8 @@
     <string name="memory_layout_description">(تجريبي) تغيير تخطيط الذاكرة المحاكاة. هذا الإعداد لن يزيد الأداء، ولكن قد يساعد في الألعاب التي تستخدم دقة عالية عبر التعديلات. لا تستخدم على الهواتف التي تحتوي على 8 جيجابايت من الذاكرة العشوائية أو أقل.</string>
     <string name="sample_shading">تظليل العينة</string>
     <string name="sample_shading_description">يسمح لمُظلل الأجزاء بالتنفيذ لكل عينة في جزء متعدد العينات بدلاً من مرة واحدة لكل جزء. يحسن جودة الرسومات على حساب بعض الأداء. تدعم فقط أجهزة Vulkan 1.1+ هذا الامتداد.</string>
+    <string name="sample_shading_fraction">كسر التظليل العيني</string>
+    <string name="sample_shading_fraction_description">شدة تمرير التظليل العيني. القيم الأعلى تحسن الجودة أكثر ولكنها تقلل الأداء بدرجة أكبر.</string>
     <string name="custom_cpu_ticks">تخصيص دورات المعالج</string>
     <string name="custom_cpu_ticks_description">تعيين قيمة مخصصة لدورات المعالج. القيم الأعلى قد تزيد الأداء، ولكن قد تتسبب أيضًا في تجمد اللعبة. يوصى بنطاق 77-21000.</string>
     <string name="cpu_ticks">دورات</string>

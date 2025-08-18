@@ -109,6 +109,8 @@
     <string name="memory_layout_description">(實驗性) 更改模擬記憶體佈局。此設定不會提高效能，但可能有助於通過模組使用高解析度的遊戲。不要在 RAM 為 8GB 或更少的手機上使用。</string>
     <string name="sample_shading">取樣著色</string>
     <string name="sample_shading_description">允許片段著色器在多取樣片段中每個樣本執行一次，而不是每個片段執行一次。以提高效能為代價改善圖形品質。僅Vulkan 1.1+裝置支援此擴充功能。</string>
+    <string name="sample_shading_fraction">採樣著色比例</string>
+    <string name="sample_shading_fraction_description">採樣著色處理的強度。數值越高，品質改善越多，但效能降低也越明顯。</string>
     <string name="custom_cpu_ticks">自訂CPU時脈</string>
     <string name="custom_cpu_ticks_description">設定自訂的CPU時脈值。更高的值可能提高效能，但也可能導致遊戲卡頓。建議範圍為77-21000。</string>
     <string name="cpu_ticks">時脈</string>

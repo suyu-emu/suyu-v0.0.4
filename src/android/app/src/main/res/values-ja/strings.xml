@@ -117,6 +117,8 @@
     <string name="memory_layout_description">(実験的) エミュレートされたメモリレイアウトを変更します。この設定はパフォーマンスを向上させませんが、modを介して高解像度を利用するゲームに役立つ場合があります。8GB以下のRAMを搭載した電話では使用しないでください。</string>
     <string name="sample_shading">サンプルシェーディング</string>
     <string name="sample_shading_description">マルチサンプルフラグメントでフラグメントシェーダーをフラグメントごとではなくサンプルごとに実行できるようにします。パフォーマンスを犠牲にしてグラフィック品質を向上させます。Vulkan 1.1+デバイスのみがこの拡張機能をサポートしています。</string>
+    <string name="sample_shading_fraction">サンプルシェーディング率</string>
+    <string name="sample_shading_fraction_description">サンプルシェーディング処理の強度。高い値ほど品質は向上しますが、パフォーマンスも大きく低下します。</string>
     <string name="custom_cpu_ticks">カスタムCPUティック</string>
     <string name="custom_cpu_ticks_description">CPUティックのカスタム値を設定します。高い値はパフォーマンスを向上させる可能性がありますが、ゲームがフリーズする可能性もあります。77〜21000の範囲が推奨されます。</string>
     <string name="cpu_ticks">ティック</string>
