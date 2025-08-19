@@ -3,11 +3,16 @@ GITREV=$(git show -s --format='%h')
 
 ZIP_NAME="Eden-Windows-${ARCH}-${GITDATE}-${GITREV}.zip"
 
-mkdir -p artifacts
-mkdir -p pack
+ARTIFACTS_DIR="artifacts"
+PKG_DIR="build/pkg"
 
-cp -r build/pkg/* pack
+mkdir -p "$ARTIFACTS_DIR"
 
-cp LICENSE* README* pack/
+TMP_DIR=$(mktemp -d)
 
-7z a -tzip artifacts/$ZIP_NAME pack/*
+cp -r "$PKG_DIR"/* "$TMP_DIR"/
+cp LICENSE* README* "$TMP_DIR"/
+
+7z a -tzip "$ARTIFACTS_DIR/$ZIP_NAME" "$TMP_DIR"/*
+
+rm -rf "$TMP_DIR"

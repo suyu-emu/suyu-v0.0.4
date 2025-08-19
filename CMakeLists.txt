@@ -5,9 +5,19 @@ cmake_minimum_required(VERSION 3.22)
 
 project(yuzu)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+    set(PLATFORM_SUN ON)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    set(PLATFORM_FREEBSD ON)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+    set(PLATFORM_OPENBSD ON)
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(PLATFORM_LINUX ON)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
-if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+if (PLATFORM_SUN)
     # Terrific Solaris pkg shenanigans
     list(APPEND CMAKE_PREFIX_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
     list(APPEND CMAKE_MODULE_PATH "/usr/lib/qt/6.6/lib/amd64/cmake")
@@ -24,7 +34,7 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
@@ -40,7 +50,7 @@ endif()
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
 else()
     CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
@@ -62,25 +72,25 @@ option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
 else()
     option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
 endif()
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
 endif()
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
 endif()
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" OFF)
 else()
     option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
@@ -100,7 +110,7 @@ option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
 else()
     option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
@@ -110,6 +120,8 @@ option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" 
 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
+option(FORCE_DOWNLOAD_OPENSSL "Forcefully download all bundled OpenSSL builds (useful for CI)" OFF)
+
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
@@ -118,7 +130,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROI
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (PLATFORM_FREEBSD)
     option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
 else()
     option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
@@ -135,7 +147,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available
 CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
 
 set(DEFAULT_ENABLE_OPENSSL ON)
-if (ANDROID OR WIN32 OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     # - Windows defaults to the Schannel backend.
     # - macOS defaults to the SecureTransport backend.
     # - Android currently has no SSL backend as the NDK doesn't include any SSL
@@ -312,7 +324,7 @@ if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR APPLE OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
+if (ARCHITECTURE_arm64 AND (ANDROID OR APPLE OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_definitions(-DHAS_NCE=1)
 endif()
@@ -322,7 +334,7 @@ if (YUZU_ROOM)
 endif()
 
 # Build/optimization presets
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if (PLATFORM_LINUX)
     if (ARCHITECTURE_x86_64)
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
@@ -380,38 +392,182 @@ if (YUZU_USE_CPM)
 
     # openssl funniness
     if (ENABLE_OPENSSL)
-        if (MSVC)
-            set(BUILD_SHARED_LIBS OFF)
-            AddPackage(
-                NAME OpenSSL
-                REPO crueter/OpenSSL-CI
-                TAG v3.5.2
-                VERSION 3.5.2
-                ARTIFACT openssl-windows-3.5.2.tar.zst
+        set(SSL_VERSION 3.5.2)
 
-                KEY windows
+        if ((MSVC AND ARCHITECTURE_x86_64) OR FORCE_DOWNLOAD_OPENSSL)
+            set(ARTIFACT openssl-windows-amd64-${SSL_VERSION}.tar.zst)
+            set(KEY windows-amd64)
+
+            if (MSVC AND ARCHITECTURE_x86_64)
+                set(DOWNLOAD_ONLY OFF)
+                set(BUILD_SHARED_LIBS OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
+            AddPackage(
+                NAME OpenSSL-windows-amd64
+                REPO crueter/OpenSSL-CI
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT ${ARTIFACT}
+
+                KEY ${KEY}
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-windows-amd64_SOURCE_DIR})
+            endif()
+            message("OPENSSL ${DOWNLOAD_ONLY} ${OPENSSL_DIR}")
+
         endif()
 
-        if (ANDROID)
-            set(BUILD_SHARED_LIBS OFF)
+        if ((MSVC AND ARCHITECTURE_arm64) OR FORCE_DOWNLOAD_OPENSSL)
+            set(ARTIFACT openssl-windows-arm64-${SSL_VERSION}.tar.zst)
+            set(KEY windows-arm64)
+
+            if (MSVC AND ARCHITECTURE_arm64)
+                set(DOWNLOAD_ONLY OFF)
+                set(BUILD_SHARED_LIBS OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
             AddPackage(
-                NAME OpenSSL
+                NAME OpenSSL-windows-arm64
                 REPO crueter/OpenSSL-CI
-                TAG v3.5.2
-                VERSION 3.5.2
-                ARTIFACT openssl-android-3.5.2.tar.zst
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT ${ARTIFACT}
+
+                KEY ${KEY}
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
+            )
+
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-windows-arm64_SOURCE_DIR})
+            endif()
+        endif()
+
+        if (ANDROID OR FORCE_DOWNLOAD_OPENSSL)
+            if (ANDROID)
+                set(DOWNLOAD_ONLY OFF)
+                set(BUILD_SHARED_LIBS OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
+            AddPackage(
+                NAME OpenSSL-android
+                REPO crueter/OpenSSL-CI
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT openssl-android-${SSL_VERSION}.tar.zst
 
                 KEY android
                 HASH_SUFFIX sha512sum
                 BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
             )
 
-            include(${OpenSSL_SOURCE_DIR}/openssl.cmake)
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-android_SOURCE_DIR})
+            endif()
+        endif()
+
+        if(PLATFORM_SUN OR FORCE_DOWNLOAD_OPENSSL)
+            if (PLATFORM_SUN)
+                set(DOWNLOAD_ONLY OFF)
+                set(BUILD_SHARED_LIBS OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
+            AddPackage(
+                NAME OpenSSL-solaris
+                REPO crueter/OpenSSL-CI
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT openssl-solaris-${SSL_VERSION}.tar.zst
+
+                KEY solaris
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
+            )
+
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-solaris_SOURCE_DIR})
+            endif()
+        endif()
+
+        if(PLATFORM_FREEBSD OR FORCE_DOWNLOAD_OPENSSL)
+            if (PLATFORM_FREEBSD)
+                set(DOWNLOAD_ONLY OFF)
+                set(BUILD_SHARED_LIBS OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
+            AddPackage(
+                NAME OpenSSL-freebsd
+                REPO crueter/OpenSSL-CI
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT openssl-freebsd-${SSL_VERSION}.tar.zst
+
+                KEY freebsd
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
+            )
+
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-freebsd_SOURCE_DIR})
+            endif()
+        endif()
+
+        if(PLATFORM_LINUX OR FORCE_DOWNLOAD_OPENSSL)
+            if (PLATFORM_LINUX)
+                set(DOWNLOAD_ONLY OFF)
+                set(BUILD_SHARED_LIBS OFF)
+            else()
+                set(DOWNLOAD_ONLY ON)
+            endif()
+
+            AddPackage(
+                NAME OpenSSL-linux
+                REPO crueter/OpenSSL-CI
+                TAG v${SSL_VERSION}
+                VERSION ${SSL_VERSION}
+                ARTIFACT openssl-linux-${SSL_VERSION}.tar.zst
+
+                KEY linux
+                HASH_SUFFIX sha512sum
+                BUNDLED_PACKAGE ON
+                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
+            )
+
+            if (NOT DOWNLOAD_ONLY)
+                set(OPENSSL_DIR ${OpenSSL-linux_SOURCE_DIR})
+            endif()
+        endif()
+
+        if (DEFINED OPENSSL_DIR)
+            include(${OPENSSL_DIR}/openssl.cmake)
+
+            # Overrides find package
+            CPMAddPackage(
+                NAME OpenSSL
+                SOURCE_DIR ${OPENSSL_DIR}
+            )
+        else()
+            find_package(OpenSSL 1.1.1 REQUIRED)
         endif()
     endif()
 
@@ -628,7 +784,7 @@ if(NOT TARGET Boost::headers)
 endif()
 
 if (ENABLE_LIBUSB)
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    if (PLATFORM_FREEBSD)
         find_package(libusb MODULE)
     else()
         find_package(libusb 1.0.24 MODULE)
@@ -648,6 +804,7 @@ if (USE_DISCORD_PRESENCE)
             ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
             ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
             ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
+        EXCLUDE_FROM_ALL ON
     )
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
@@ -793,7 +950,7 @@ endif()
 function(set_yuzu_qt_components)
     # Best practice is to ask for all components at once, so they are from the same version
     set(YUZU_QT_COMPONENTS2 Core Widgets Concurrent)
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (PLATFORM_LINUX)
         list(APPEND YUZU_QT_COMPONENTS2 DBus)
     endif()
     if (YUZU_USE_QT_MULTIMEDIA)

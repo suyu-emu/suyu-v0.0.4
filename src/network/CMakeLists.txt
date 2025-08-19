@@ -26,7 +26,7 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 # Solaris uses /lib/amd64/libsocket.so and /lib/amd64/libnsl.so
-if (${CMAKE_SYSTEM_NAME} STREQUAL "SunOS")
+if (PLATFORM_SUN)
     target_link_libraries(network PRIVATE socket nsl)
 endif()
 

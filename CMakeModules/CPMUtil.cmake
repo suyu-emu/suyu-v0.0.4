@@ -6,8 +6,14 @@
 # and some cmake magic to allow for runtime viewing of dependency versions
 
 include(CMakeDependentOption)
+if (MSVC OR ANDROID)
+    set(SYSTEM_DEFAULT OFF)
+else()
+    set(SYSTEM_DEFAULT ON)
+endif()
+
 CMAKE_DEPENDENT_OPTION(CPMUTIL_DEFAULT_SYSTEM
-                       "Allow usage of system packages for CPM dependencies" ON
+                       "Allow usage of system packages for CPM dependencies" ${SYSTEM_DEFAULT}
                        "NOT ANDROID" OFF)
 
 cmake_minimum_required(VERSION 3.22)
