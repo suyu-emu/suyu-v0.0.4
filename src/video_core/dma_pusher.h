@@ -1,9 +1,13 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <condition_variable>
 #include <span>
 #include <vector>
 #include <boost/container/small_vector.hpp>
@@ -74,8 +78,10 @@ struct CommandListHeader {
     union {
         u64 raw;
         BitField<0, 40, GPUVAddr> addr;
-        BitField<41, 1, u64> is_non_main;
+        BitField<40, 1, u64> allow_flush;
+        BitField<41, 1, u64> is_push_buffer;
         BitField<42, 21, u64> size;
+        BitField<63, 1, u64> sync;
     };
 };
 static_assert(sizeof(CommandListHeader) == sizeof(u64), "CommandListHeader is incorrect size");
@@ -178,6 +184,12 @@ private:
     Core::System& system;
     MemoryManager& memory_manager;
     mutable Engines::Puller puller;
+
+    VideoCore::RasterizerInterface* rasterizer;
+    bool signal_sync;
+    bool synced;
+    std::mutex sync_mutex;
+    std::condition_variable sync_cv;
 };
 
 } // namespace Tegra

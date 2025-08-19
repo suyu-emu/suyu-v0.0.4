@@ -78,6 +78,8 @@
     <string name="frame_interpolation_description">프레임 간 타이밍을 동기화하여 부드럽고 일관된 프레임 전달을 보장하며, 끊김과 불균일한 애니메이션을 줄입니다. 프레임 타이밍 불안정이나 게임 플레이 중 미세 끊김이 발생하는 게임에 이상적입니다.</string>
     <string name="renderer_early_release_fences">펜스 조기 해제</string>
     <string name="renderer_early_release_fences_description">DKCR:HD, Subnautica Below Zero, Ori 2 등의 게임에서 0 FPS 현상을 해결하지만, Unreal Engine 게임의 로딩이나 성능에 문제를 일으킬 수 있습니다.</string>
+    <string name="sync_memory_operations">메모리 작업 동기화</string>
+    <string name="sync_memory_operations_description">컴퓨팅 및 메모리 작업 간 데이터 일관성을 보장합니다. 이 옵션은 일부 게임의 문제를 해결할 수 있지만 경우에 따라 성능이 저하될 수 있습니다. Unreal Engine 4 게임이 가장 큰 영향을 받는 것으로 보입니다.</string>
     <string name="buffer_reorder_disable">버퍼 재정렬 비활성화</string>
     <string name="buffer_reorder_disable_description">체크 시, 매핑된 메모리 업로드의 재정렬을 비활성화하여 특정 그리기와 업로드를 연결할 수 있습니다. 경우에 따라 성능이 저하될 수 있습니다.</string>
     <string name="use_lru_cache">LRU 캐시 사용</string>

@@ -78,6 +78,8 @@
     <string name="frame_interpolation_description">Sikrer jevn og konsekvent bildelevering ved å synkronisere tiden mellom bilder, noe som reduserer hakking og ujevn animasjon. Ideelt for spill som opplever ustabil bildetid eller mikro-hakk under spilling.</string>
     <string name="renderer_early_release_fences">Frigjør gjerder tidlig</string>
     <string name="renderer_early_release_fences_description">Løser 0 FPS i spill som DKCR:HD, Subnautica Below Zero og Ori 2, men kan forårsake problemer med lasting eller ytelse i Unreal Engine-spill.</string>
+    <string name="sync_memory_operations">Synkroniser minneoperasjoner</string>
+    <string name="sync_memory_operations_description">Sikrer datakonsistens mellom beregnings- og minneoperasjoner. Dette alternativet bør fikse problemer i noen spill, men kan redusere ytelsen i noen tilfeller. Spill med Unreal Engine 4 ser ut til å være de mest berørte.</string>
     <string name="buffer_reorder_disable">Deaktiver bufferomorganisering</string>
     <string name="buffer_reorder_disable_description">Når merket, deaktiveres omorganisering av kartlagt minneopplasting som tillater å knytte opplastinger til spesifikke tegninger. Kan redusere ytelsen i noen tilfeller.</string>
     <string name="use_lru_cache">Aktiver LRU-mellomlager</string>

@@ -78,6 +78,8 @@
     <string name="frame_interpolation_description">ارسال یکنواخت و پایدار فریم‌ها را با همگام‌سازی زمان بین آن‌ها تضمین می‌کند، که منجر به کاهش لرزش و انیمیشن‌های ناهموار می‌شود. برای بازی‌هایی که ناپایداری در زمان‌بندی فریم‌ها یا میکرو لرزش در حین بازی دارند ایده‌آل است</string>
     <string name="renderer_early_release_fences">رهاسازی حصارها زودتر</string>
     <string name="renderer_early_release_fences_description">به رفع مشکل 0 فریم بر ثانیه در بازی‌هایی مانند DKCR:HD، Subnautica Below Zero و Ori 2 کمک می‌کند، اما ممکن است بارگذاری یا عملکرد بازی‌های Unreal Engine را مختل کند.</string>
+    <string name="sync_memory_operations">همگام‌سازی عملیات حافظه</string>
+    <string name="sync_memory_operations_description">اطمینان از سازگاری داده‌ها بین عملیات محاسباتی و حافظه. این گزینه ممکن است مشکلات برخی بازی‌ها را رفع کند، اما در برخی موارد ممکن است عملکرد را کاهش دهد. به نظر می‌رسد بازی‌های با Unreal Engine 4 بیشترین تأثیر را داشته باشند.</string>
     <string name="buffer_reorder_disable">غیرفعال کردن مرتب‌سازی مجدد بافر</string>
     <string name="buffer_reorder_disable_description">در صورت انتخاب، مرتب‌سازی مجدد آپلودهای حافظه نگاشت‌شده غیرفعال می‌شود که امکان ارتباط آپلودها با ترسیمات خاص را فراهم می‌کند. ممکن است در برخی موارد عملکرد را کاهش دهد.</string>
     <string name="use_lru_cache">فعال‌سازی حافظه نهان LRU</string>

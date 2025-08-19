@@ -274,7 +274,6 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_sync_core_description
                 )
             )
-
             put(
                 SingleChoiceSetting(
                     IntSetting.REGION_INDEX,
@@ -677,6 +676,13 @@ abstract class SettingsItem(
                     BooleanSetting.RENDERER_EARLY_RELEASE_FENCES,
                     titleId = R.string.renderer_early_release_fences,
                     descriptionId = R.string.renderer_early_release_fences_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.SYNC_MEMORY_OPERATIONS,
+                    titleId = R.string.sync_memory_operations,
+                    descriptionId = R.string.sync_memory_operations_description
                 )
             )
             put(

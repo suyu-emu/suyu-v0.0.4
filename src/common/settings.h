@@ -466,7 +466,7 @@ struct Values {
                                                  true,
                                                  true};
 #endif
-
+    SwitchableSetting<bool> sync_memory_operations{linkage, false, "sync_memory_operations", Category::RendererAdvanced, true, true};
     SwitchableSetting<bool> async_presentation{linkage,
 #ifdef ANDROID
                                                true,
