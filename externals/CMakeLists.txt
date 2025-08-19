@@ -155,6 +155,13 @@ AddPackage(
         "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
 )
 
+if(MSVC AND USE_CCACHE AND TARGET sirit)
+    get_target_property(_opts sirit COMPILE_OPTIONS)
+    list(FILTER _opts EXCLUDE REGEX "/Zi")
+    list(APPEND _opts "/Z7")
+    set_target_properties(sirit PROPERTIES COMPILE_OPTIONS "${_opts}")
+endif()
+
 # httplib
 if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     AddPackage(
