@@ -12,7 +12,7 @@ The following are handled by Eden's externals:
   * [SDL2](https://www.libsdl.org/download-2.0.php) 2.0.18+
   * [opus](https://opus-codec.org/downloads/) 1.3+
   
-All other dependencies will be downloaded and built by [CPM](https://github.com/cpm-cmake/CPM.cmake/) if `YUZU_USE_CPM` is on, but will use system dependencies if available:
+All other dependencies will be downloaded and built by [CPM](https://github.com/cpm-cmake/CPM.cmake/) if `YUZU_USE_CPM` is on, but will always use system dependencies if available:
 
   * [Boost](https://www.boost.org/users/download/) 1.79.0+
   * [Catch2](https://github.com/catchorg/Catch2) 2.13.7 - 2.13.9

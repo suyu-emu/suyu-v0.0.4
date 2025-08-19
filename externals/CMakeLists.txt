@@ -139,6 +139,7 @@ endif()
 
 # Sirit
 # TODO(crueter): spirv-tools doesn't work w/ system
+set(SPIRV_WERROR OFF)
 AddPackage(
     NAME SPIRV-Headers
     REPO "KhronosGroup/SPIRV-Headers"

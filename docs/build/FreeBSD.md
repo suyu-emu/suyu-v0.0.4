@@ -1,12 +1,13 @@
 ## One word of caution before proceeding.
+
 This is not the usual or preferred way to build programs on FreeBSD.
-As of writing there is no official fresh port available for eden-emu, but it is in the works.
-After it is available you can find a link to the eden-emu fresh port here and on Escarys github repo.
-See this build as an App Image alternative for FreeBSD.
+As of writing there is no official fresh port available for Eden, but it is in the works.
+After it is available you can find a link to the eden-emu fresh port here and on Escary's github repo.
+See this build as an AppImage alternative for FreeBSD.
 
 ## Dependencies.
 Before we start we need some dependencies.
-These dependencies are generally needed to build eden-emu on FreeBSD.
+These dependencies are generally needed to build Eden on FreeBSD.
 
 ```
 devel/cmake
@@ -56,8 +57,6 @@ Change into that build directory:
 cd build
 ```
 
-Now choose one option either 1 or 2, but not both as one option overwrites the other.
-
 #### 1. Building in Release Mode (usually preferred and the most performant choice):
 ```sh
 cmake .. -GNinja -DYUZU_TESTS=OFF
@@ -81,3 +80,6 @@ OR
 ```sh
 doas -- ninja install
 ```
+
+## OpenSSL
+The available OpenSSL port (3.0.17) is out-of-date, and using a bundled static library instead is recommended; to do so, add `-DYUZU_USE_CPM=ON` to your CMake configure command.
