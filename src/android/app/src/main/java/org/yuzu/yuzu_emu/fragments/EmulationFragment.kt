@@ -174,7 +174,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
 
             game = gameToUse
-
         } catch (e: Exception) {
             Log.error("[EmulationFragment] Error during game setup: ${e.message}")
             Toast.makeText(
@@ -193,10 +192,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     game?.let { gameInstance ->
                         val customConfigFile = SettingsFile.getCustomSettingsFile(gameInstance)
                         if (customConfigFile.exists()) {
-                            Log.info("[EmulationFragment] Found existing custom settings for ${gameInstance.title}, loading them")
+                            Log.info(
+                                "[EmulationFragment] Found existing custom settings for ${gameInstance.title}, loading them"
+                            )
                             SettingsFile.loadCustomConfig(gameInstance)
                         } else {
-                            Log.info("[EmulationFragment] No custom settings found for ${gameInstance.title}, using global settings")
+                            Log.info(
+                                "[EmulationFragment] No custom settings found for ${gameInstance.title}, using global settings"
+                            )
                             NativeConfig.reloadGlobalConfig()
                         }
                     } ?: run {
@@ -225,7 +228,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             try {
                 NativeConfig.reloadGlobalConfig()
             } catch (fallbackException: Exception) {
-                Log.error("[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}")
+                Log.error(
+                    "[EmulationFragment] Critical error: could not load global config: ${fallbackException.message}"
+                )
                 throw fallbackException
             }
         }
@@ -233,7 +238,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         emulationState = EmulationState(game!!.path) {
             return@EmulationState driverViewModel.isInteractionAllowed.value
         }
-
     }
 
     /**
@@ -333,10 +337,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         val customConfigFile = SettingsFile.getCustomSettingsFile(foundGame)
                         if (customConfigFile.exists()) {
-                            Log.info("[EmulationFragment] Found existing custom settings for ${foundGame.title}, loading them")
+                            Log.info(
+                                "[EmulationFragment] Found existing custom settings for ${foundGame.title}, loading them"
+                            )
                             SettingsFile.loadCustomConfig(foundGame)
                         } else {
-                            Log.info("[EmulationFragment] No custom settings found for ${foundGame.title}, using global settings")
+                            Log.info(
+                                "[EmulationFragment] No custom settings found for ${foundGame.title}, using global settings"
+                            )
                         }
 
                         Toast.makeText(
@@ -352,7 +360,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         withContext(Dispatchers.Main) {
                             try {
                                 finishGameSetup()
-                                Log.info("[EmulationFragment] Game setup complete for intent launch")
+                                Log.info(
+                                    "[EmulationFragment] Game setup complete for intent launch"
+                                )
 
                                 if (_binding != null) {
                                     // Hide loading indicator immediately for intent launches
@@ -365,12 +375,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                                     binding.root.post {
                                         if (binding.surfaceEmulation.holder.surface?.isValid == true && !emulationStarted) {
                                             emulationStarted = true
-                                            emulationState.newSurface(binding.surfaceEmulation.holder.surface)
+                                            emulationState.newSurface(
+                                                binding.surfaceEmulation.holder.surface
+                                            )
                                         }
                                     }
                                 }
                             } catch (e: Exception) {
-                                Log.error("[EmulationFragment] Error in finishGameSetup: ${e.message}")
+                                Log.error(
+                                    "[EmulationFragment] Error in finishGameSetup: ${e.message}"
+                                )
                                 requireActivity().finish()
                                 return@withContext
                             }
@@ -477,7 +491,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         if (game == null) {
-            Log.warning("[EmulationFragment] Game not yet initialized in onViewCreated - will be set up by async intent handler")
+            Log.warning(
+                "[EmulationFragment] Game not yet initialized in onViewCreated - will be set up by async intent handler"
+            )
             return
         }
 

@@ -52,8 +52,10 @@ class GradientBorderCardView @JvmOverloads constructor(
         if (isEdenTheme) {
             // Gradient for Eden theme
             borderPaint.shader = LinearGradient(
-                0f, 0f,
-                w.toFloat(), h.toFloat(),
+                0f,
+                0f,
+                w.toFloat(),
+                h.toFloat(),
                 context.getColor(R.color.eden_border_gradient_start),
                 context.getColor(R.color.eden_border_gradient_end),
                 Shader.TileMode.CLAMP
@@ -62,7 +64,11 @@ class GradientBorderCardView @JvmOverloads constructor(
             // Solid color for other themes
             borderPaint.shader = null
             val typedValue = android.util.TypedValue()
-            context.theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+            context.theme.resolveAttribute(
+                com.google.android.material.R.attr.colorPrimary,
+                typedValue,
+                true
+            )
             borderPaint.color = typedValue.data
         }
 

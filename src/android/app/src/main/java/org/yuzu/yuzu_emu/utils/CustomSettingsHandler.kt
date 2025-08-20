@@ -18,6 +18,13 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import android.net.Uri
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.yuzu.yuzu_emu.databinding.DialogProgressBinding
+import android.view.LayoutInflater
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
 
 object CustomSettingsHandler {
     const val CUSTOM_CONFIG_ACTION = "dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG"
@@ -44,7 +51,9 @@ object CustomSettingsHandler {
         // Check if config already exists - this should be handled by the caller
         val configFile = getConfigFile(game)
         if (configFile.exists()) {
-            Log.warning("[CustomSettingsHandler] Config file already exists for game: ${game.title}")
+            Log.warning(
+                "[CustomSettingsHandler] Config file already exists for game: ${game.title}"
+            )
         }
 
         // Write the config file
@@ -121,37 +130,158 @@ object CustomSettingsHandler {
                 // Check if driver exists in the driver storage
                 val driverFile = File(driverPath)
                 if (!driverFile.exists()) {
-                    Log.error("[CustomSettingsHandler] Required driver not found: $driverPath")
-                    Toast.makeText(
-                        activity,
-                        activity.getString(
-                            R.string.custom_settings_failed_message,
-                            game.title,
-                            activity.getString(R.string.driver_not_found, driverFile.name)
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    // Don't write config if driver is missing
-                    return null
-                }
+                    Log.info("[CustomSettingsHandler] Driver not found locally: ${driverFile.name}")
 
-                // Verify it's a valid driver
-                val metadata = GpuDriverHelper.getMetadataFromZip(driverFile)
-                if (metadata.name == null) {
-                    Log.error("[CustomSettingsHandler] Invalid driver file: $driverPath")
-                    Toast.makeText(
-                        activity,
-                        activity.getString(
-                            R.string.custom_settings_failed_message,
-                            game.title,
-                            activity.getString(R.string.invalid_driver_file, driverFile.name)
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return null
-                }
+                    // Ask user if they want to download the missing driver
+                    val shouldDownload = askUserToDownloadDriver(activity, driverFile.name)
+                    if (!shouldDownload) {
+                        Log.info("[CustomSettingsHandler] User declined to download driver")
+                        Toast.makeText(
+                            activity,
+                            activity.getString(R.string.driver_download_cancelled),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return null
+                    }
 
-                Log.info("[CustomSettingsHandler] Driver verified: ${metadata.name}")
+                    // Check network connectivity after user consent
+                    if (!DriverResolver.isNetworkAvailable(activity)) {
+                        Log.error("[CustomSettingsHandler] No network connection available")
+                        Toast.makeText(
+                            activity,
+                            activity.getString(R.string.network_unavailable),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return null
+                    }
+
+                    Log.info("[CustomSettingsHandler] User approved, downloading driver")
+
+                    // Show progress dialog for driver download
+                    val dialogBinding = DialogProgressBinding.inflate(LayoutInflater.from(activity))
+                    dialogBinding.progressBar.isIndeterminate = false
+                    dialogBinding.title.text = activity.getString(R.string.installing_driver)
+                    dialogBinding.status.text = activity.getString(R.string.downloading)
+
+                    val progressDialog = MaterialAlertDialogBuilder(activity)
+                        .setView(dialogBinding.root)
+                        .setCancelable(false)
+                        .create()
+
+                    withContext(Dispatchers.Main) {
+                        progressDialog.show()
+                    }
+
+                    try {
+                        // Set up progress channel for thread-safe UI updates
+                        val progressChannel = Channel<Int>(Channel.CONFLATED)
+                        val progressJob = CoroutineScope(Dispatchers.Main).launch {
+                            for (progress in progressChannel) {
+                                dialogBinding.progressBar.progress = progress
+                            }
+                        }
+
+                        // Attempt to download and install the driver
+                        val driverUri = DriverResolver.ensureDriverAvailable(driverPath, activity) { progress ->
+                            progressChannel.trySend(progress.toInt())
+                        }
+
+                        progressChannel.close()
+                        progressJob.cancel()
+
+                        withContext(Dispatchers.Main) {
+                            progressDialog.dismiss()
+                        }
+
+                        if (driverUri == null) {
+                            Log.error(
+                                "[CustomSettingsHandler] Failed to download driver: ${driverFile.name}"
+                            )
+                            Toast.makeText(
+                                activity,
+                                activity.getString(
+                                    R.string.custom_settings_failed_message,
+                                    game.title,
+                                    activity.getString(R.string.driver_not_found, driverFile.name)
+                                ),
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return null
+                        }
+
+                        // Verify the downloaded driver
+                        val installedFile = File(driverPath)
+                        val metadata = GpuDriverHelper.getMetadataFromZip(installedFile)
+                        if (metadata.name == null) {
+                            Log.error(
+                                "[CustomSettingsHandler] Downloaded driver is invalid: $driverPath"
+                            )
+                            Toast.makeText(
+                                activity,
+                                activity.getString(
+                                    R.string.custom_settings_failed_message,
+                                    game.title,
+                                    activity.getString(
+                                        R.string.invalid_driver_file,
+                                        driverFile.name
+                                    )
+                                ),
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return null
+                        }
+
+                        // Add to driver list
+                        driverViewModel.onDriverAdded(Pair(driverPath, metadata))
+                        Log.info(
+                            "[CustomSettingsHandler] Successfully downloaded and installed driver: ${metadata.name}"
+                        )
+
+                        Toast.makeText(
+                            activity,
+                            activity.getString(
+                                R.string.successfully_installed,
+                                metadata.name ?: driverFile.name
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            progressDialog.dismiss()
+                        }
+                        Log.error("[CustomSettingsHandler] Error downloading driver: ${e.message}")
+                        Toast.makeText(
+                            activity,
+                            activity.getString(
+                                R.string.custom_settings_failed_message,
+                                game.title,
+                                e.message ?: activity.getString(
+                                    R.string.driver_not_found,
+                                    driverFile.name
+                                )
+                            ),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return null
+                    }
+                } else {
+                    // Driver exists, verify it's valid
+                    val metadata = GpuDriverHelper.getMetadataFromZip(driverFile)
+                    if (metadata.name == null) {
+                        Log.error("[CustomSettingsHandler] Invalid driver file: $driverPath")
+                        Toast.makeText(
+                            activity,
+                            activity.getString(
+                                R.string.custom_settings_failed_message,
+                                game.title,
+                                activity.getString(R.string.invalid_driver_file, driverFile.name)
+                            ),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return null
+                    }
+                    Log.info("[CustomSettingsHandler] Driver verified: ${metadata.name}")
+                }
             }
         }
 
@@ -279,6 +409,29 @@ object CustomSettingsHandler {
                         activity.getString(R.string.config_already_exists_message, gameTitle)
                     )
                     .setPositiveButton(activity.getString(R.string.overwrite)) { _, _ ->
+                        continuation.resume(true)
+                    }
+                    .setNegativeButton(activity.getString(R.string.cancel)) { _, _ ->
+                        continuation.resume(false)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+        }
+    }
+
+    /**
+     * Ask user if they want to download a missing driver
+     */
+    private suspend fun askUserToDownloadDriver(activity: FragmentActivity, driverName: String): Boolean {
+        return suspendCoroutine { continuation ->
+            activity.runOnUiThread {
+                MaterialAlertDialogBuilder(activity)
+                    .setTitle(activity.getString(R.string.driver_missing_title))
+                    .setMessage(
+                        activity.getString(R.string.driver_missing_message, driverName)
+                    )
+                    .setPositiveButton(activity.getString(R.string.download)) { _, _ ->
                         continuation.resume(true)
                     }
                     .setNegativeButton(activity.getString(R.string.cancel)) { _, _ ->

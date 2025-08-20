@@ -151,7 +151,7 @@ android {
             create("genshinSpoof") {
                 dimension = "version"
                 resValue("string", "app_name_suffixed", "Eden Optimised")
-                applicationId = "com.miHoYo.Yuanshen" 
+                applicationId = "com.miHoYo.Yuanshen"
             }
         }
     }

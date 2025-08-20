@@ -816,6 +816,11 @@
     <string name="driver_not_available_message">The selected driver is not available for download.</string>
     <string name="driver_not_found">Required driver not installed: %s</string>
     <string name="invalid_driver_file">Invalid driver file: %s</string>
+    <string name="network_unavailable">No network connection available. Please check your internet connection and try again.</string>
+    <string name="driver_missing_title">GPU Driver Required</string>
+    <string name="driver_missing_message">The game configuration requires GPU driver \"%s\" which is not installed on your device.\n\nWould you like to download and install it now?</string>
+    <string name="driver_download_cancelled">Driver download cancelled. The game cannot be launched without the required driver.</string>
+    <string name="download">Download</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Exit emulation</string>
