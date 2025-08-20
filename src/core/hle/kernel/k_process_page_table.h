@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -409,6 +412,9 @@ public:
     }
     size_t GetAliasRegionSize() const {
         return m_page_table.GetAliasRegionSize();
+    }
+    size_t GetAliasRegionExtraSize() const {
+        return m_page_table.CalculateAliasRegionExtraSize();
     }
     size_t GetStackRegionSize() const {
         return m_page_table.GetStackRegionSize();

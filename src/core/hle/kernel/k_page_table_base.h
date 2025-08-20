@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -713,6 +716,17 @@ public:
 
     u32 GetAddressSpaceWidth() const {
         return m_address_space_width;
+    }
+
+    size_t CalculateAliasRegionExtraSize() const {
+        const size_t baseline = 64ull << 30;   // Mostly appropriate for DRAM values <= 8GB
+        const size_t region = GetAliasRegionSize();
+
+        if (region > baseline) {
+            return region - baseline;
+        }
+
+        return 0;
     }
 
 public:
