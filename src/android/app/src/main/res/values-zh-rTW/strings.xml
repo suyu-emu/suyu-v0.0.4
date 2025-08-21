@@ -85,7 +85,7 @@
     <string name="use_lru_cache">啟用LRU快取</string>
     <string name="use_lru_cache_description">啟用或停用LRU快取，透過節省CPU進程使用來提高效能。某些遊戲可能存在問題，特別是TotK 1.2.1，如果遊戲無法啟動或隨機崩潰，請停用此選項。</string>
     <string name="dyna_state">擴展動態狀態</string>
-    <string name="dyna_state_description">啟用Vulkan功能以提高效能、渲染效果，並在創建管線時節省資源，同時保持較低的CPU/GPU使用率。這些擴充功能可能會提高裝置溫度，舊款A6XX系列GPU可能無法正常運作。停用可模擬縮放格式。</string>
+    <string name="dyna_state_description">控制擴展動態狀態中可使用的功能數量。數值越高，允許的功能越多，並可能提高效能，但可能會導致某些驅動程式和供應商出現問題。預設值可能因系統和硬體能力而異。可以變更此值，直到實現穩定性和更好的視覺品質。</string>
     <string name="disabled">已停用</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">將核心速度與最大速度百分比同步，在不改變遊戲實際速度的情況下提高效能。</string>

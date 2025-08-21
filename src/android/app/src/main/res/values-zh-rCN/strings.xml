@@ -84,7 +84,7 @@
     <string name="use_lru_cache">启用LRU缓存</string>
     <string name="use_lru_cache_description">启用或禁用LRU缓存，通过节省CPU进程使用来提高性能。某些游戏可能存在问题，特别是TotK 1.2.1，如果游戏无法启动或随机崩溃，请禁用此选项。</string>
     <string name="dyna_state">扩展动态状态</string>
-    <string name="dyna_state_description">启用Vulkan功能以提高性能、渲染效果，并在创建管道时节省资源，同时保持较低的CPU/GPU使用率。这些扩展可能会提高设备温度，旧款A6XX系列GPU可能无法正常工作。禁用可模拟缩放格式。</string>
+    <string name="dyna_state_description">控制扩展动态状态中可使用的功能数量。数值越高，允许的功能越多，并可能提高性能，但可能会导致某些驱动程序和供应商出现问题。默认值可能因系统和硬件能力而异。可以更改此值，直到实现稳定性和更好的视觉质量。</string>
     <string name="disabled">已禁用</string>
     <string name="use_sync_core">同步核心速度</string>
     <string name="use_sync_core_description">将核心速度与最大速度百分比同步，在不改变游戏实际速度的情况下提高性能。</string>

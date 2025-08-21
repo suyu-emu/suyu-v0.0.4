@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Bật bộ nhớ đệm LRU</string>
     <string name="use_lru_cache_description">Bật hoặc tắt bộ nhớ đệm LRU để cải thiện hiệu suất bằng cách tiết kiệm quy trình sử dụng CPU. Một số trò chơi như TotK 1.2.1 có vấn đề - hãy tắt nếu trò chơi không khởi động hoặc bị treo ngẫu nhiên.</string>
     <string name="dyna_state">Trạng thái động mở rộng</string>
-    <string name="dyna_state_description">Kích hoạt tính năng Vulkan để cải thiện hiệu suất, kết xuất và tiết kiệm tài nguyên khi tạo pipeline trong khi vẫn duy trì mức sử dụng CPU/GPU thấp. Các tiện ích mở rộng này có thể làm tăng nhiệt độ thiết bị và GPU thuộc dòng A6XX cũ có thể không phản ứng đúng. Tắt để mô phỏng các định dạng tỷ lệ.</string>
+    <string name="dyna_state_description">Điều khiển số tính năng có thể được sử dụng trong Trạng thái Động Mở rộng. Giá trị cao hơn cho phép nhiều tính năng hơn và có thể tăng hiệu suất, nhưng có thể gây ra sự cố với một số trình điều khiển và nhà cung cấp. Giá trị mặc định có thể thay đổi tùy thuộc vào hệ thống và khả năng phần cứng của bạn. Giá trị này có thể được thay đổi cho đến khi đạt được độ ổn định và chất lượng hình ảnh tốt hơn.</string>
     <string name="disabled">Đã tắt</string>
     <string name="use_sync_core">Đồng bộ tốc độ lõi</string>
     <string name="use_sync_core_description">Đồng bộ tốc độ lõi với tỷ lệ phần trăm tốc độ tối đa để cải thiện hiệu suất mà không làm thay đổi tốc độ thực tế của trò chơi.</string>

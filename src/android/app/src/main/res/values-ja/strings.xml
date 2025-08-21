@@ -85,7 +85,7 @@
     <string name="use_lru_cache">LRUキャッシュを有効化</string>
     <string name="use_lru_cache_description">LRUキャッシュを有効/無効にし、CPUプロセスの使用を節約してパフォーマンスを向上させます。TotK 1.2.1など一部のゲームで問題が発生する可能性があるため、ゲームが起動しない場合やランダムにクラッシュする場合は無効にしてください。</string>
     <string name="dyna_state">拡張ダイナミックステート</string>
-    <string name="dyna_state_description">Vulkan機能を有効にし、パイプライン作成時のCPU/GPU使用率を低く保ちながら、パフォーマンス、レンダリング、リソース節約を改善します。これらの拡張機能はデバイスの温度を上昇させる可能性があり、旧A6XXシリーズのGPUは正しく反応しない場合があります。スケールフォーマットをエミュレートするには無効にしてください。</string>
+    <string name="dyna_state_description">拡張ダイナミックステートで使用できる機能の数を制御します。数値が高いほどより多くの機能が使用可能になり、パフォーマンスが向上する可能性がありますが、一部のドライバーやベンダーで問題が発生する可能性があります。デフォルト値は、お使いのシステムとハードウェアの機能によって異なります。安定性とより良い画質が得られるまでこの値を変更できます。</string>
     <string name="disabled">無効</string>
     <string name="use_sync_core">コア速度の同期</string>
     <string name="use_sync_core_description">コアの速度を最大速度パーセンテージに同期させ、ゲームの実際の速度を変えずにパフォーマンスを向上させます。</string>

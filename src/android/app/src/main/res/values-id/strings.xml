@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Aktifkan LRU Cache</string>
     <string name="use_lru_cache_description">Aktifkan atau nonaktifkan cache LRU untuk meningkatkan performa dengan mengurangi penggunaan proses CPU. Beberapa game seperti TotK 1.2.1 memiliki masalah - nonaktifkan jika game tidak mau berjalan atau crash acak.</string>
     <string name="dyna_state">Status Dinamis Ekstensi</string>
-    <string name="dyna_state_description">Aktifkan fitur Vulkan untuk meningkatkan performa, rendering dan menghemat sumber daya saat pembuatan pipeline sambil mempertahankan penggunaan CPU/GPU yang rendah. Ekstensi ini dapat meningkatkan suhu perangkat, dan GPU seri A6XX lama mungkin tidak merespons dengan benar. Nonaktifkan untuk emulasi format skala.</string>
+    <string name="dyna_state_description">Mengontrol jumlah fitur yang dapat digunakan dalam Extended Dynamic State. Angka yang lebih tinggi memungkinkan lebih banyak fitur dan dapat meningkatkan performa, tetapi dapat menyebabkan masalah dengan beberapa driver dan vendor. Nilai default dapat bervariasi tergantung pada sistem dan kemampuan hardware Anda. Nilai ini dapat diubah hingga stabilitas dan kualitas visual yang lebih baik tercapai.</string>
     <string name="disabled">Dinonaktifkan</string>
     <string name="use_sync_core">Sinkronisasi Kecepatan Inti</string>
     <string name="use_sync_core_description">Sinkronkan kecepatan inti dengan persentase kecepatan maksimum untuk meningkatkan performa tanpa mengubah kecepatan sebenarnya dari permainan.</string>

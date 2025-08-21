@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Aktiver LRU-mellomlager</string>
     <string name="use_lru_cache_description">Aktiver eller deaktiver LRU-mellomlager for å forbedre ytelsen ved å spare CPU-prosessorbruk. Noen spill som TotK 1.2.1 har problemer med dette - deaktiver hvis spillet ikke starter eller krasjer tilfeldig.</string>
     <string name="dyna_state">Utvidet dynamisk tilstand</string>
-    <string name="dyna_state_description">Aktiverer Vulkan-funksjoner for å forbedre ytelse, rendering og spare ressurser ved oppretting av pipeline samtidig som CPU/GPU-bruken holdes lav. Disse utvidelsene kan øke enhetstemperaturen, og eldre GPU-er fra A6XX-serien reagerer kanskje ikke ordentlig. Deaktiver for å emulere skalerte formater.</string>
+    <string name="dyna_state_description">Kontrollerer antall funksjoner som kan brukes i Utvidet Dynamisk Tilstand. Høyere tall tillater flere funksjoner og kan øke ytelsen, men kan forårsake problemer med noen drivere og leverandører. Standardverdien kan variere avhengig av systemet og maskinvareevnene dine. Denne verdien kan endres til stabilitet og bedre visuell kvalitet er oppnådd.</string>
     <string name="disabled">Deaktivert</string>
     <string name="use_sync_core">Synkroniser kjernespeed</string>
     <string name="use_sync_core_description">Synkroniser kjernens hastighet med maksimal hastighetsprosent for å forbedre ytelsen uten å endre spillets faktiske hastighet.</string>

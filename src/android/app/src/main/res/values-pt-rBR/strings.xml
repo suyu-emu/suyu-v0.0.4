@@ -85,7 +85,7 @@
     <string name="use_lru_cache">Ativar cache LRU</string>
     <string name="use_lru_cache_description">Ative ou desative o cache LRU para melhorar o desempenho economizando uso do processador. Alguns jogos como TotK 1.2.1 têm problemas - desative se o jogo não iniciar ou travar aleatoriamente.</string>
     <string name="dyna_state">Estado Dinâmico Estendido</string>
-    <string name="dyna_state_description">Ativa recursos Vulkan para melhorar desempenho, renderização e economizar recursos na criação de pipelines mantendo baixo uso de CPU/GPU. Essas extensões podem aumentar a temperatura do dispositivo e GPUs da linha A6XX mais antigos podem não responder adequadamente. Desative para emular formatos dimensionados.</string>
+    <string name="dyna_state_description">Controla o número de recursos que podem ser usados no Estado Dinâmico Estendido. Números mais altos permitem mais recursos e podem aumentar o desempenho, mas podem causar problemas com alguns drivers e fabricantes. O valor padrão pode variar dependendo do seu sistema e capacidades de hardware. Este valor pode ser alterado até que a estabilidade e uma melhor qualidade visual sejam alcançadas.</string>
     <string name="disabled">Desativado</string>
     <string name="use_sync_core">Sincronizar velocidade do núcleo</string>
     <string name="use_sync_core_description">Sincroniza a velocidade do núcleo com a porcentagem máxima de velocidade para melhorar o desempenho sem alterar a velocidade real do jogo.</string>
