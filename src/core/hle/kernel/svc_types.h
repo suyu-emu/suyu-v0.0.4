@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -643,9 +646,13 @@ enum class CreateProcessFlag : u32 {
     // 11.x+ DisableDeviceAddressSpaceMerge.
     DisableDeviceAddressSpaceMerge = (1 << 12),
 
+    // 18.x+ Add extra size to the already available AliasRegionSize
+    EnableAliasRegionExtraSize = (1 << 13),
+
     // Mask of all flags.
     All = Is64Bit | AddressSpaceMask | EnableDebug | EnableAslr | IsApplication |
-          PoolPartitionMask | OptimizeMemoryAllocation | DisableDeviceAddressSpaceMerge,
+          PoolPartitionMask | OptimizeMemoryAllocation | DisableDeviceAddressSpaceMerge |
+          EnableAliasRegionExtraSize,
 };
 DECLARE_ENUM_FLAG_OPERATORS(CreateProcessFlag);
 
