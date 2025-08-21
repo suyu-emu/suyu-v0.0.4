@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -727,20 +730,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_INFO(Render_Vulkan, "Dynamic state is disabled (dyna_state = 0), forcing scaled format emulation ON");
 
         // Disable dynamic state 1-3 and all extensions
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-                            VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state,
-                            VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-
-        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
-                            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3, VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
         dynamic_state3_enables = false;
 
@@ -750,8 +744,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_INFO(Render_Vulkan, "Dynamic state is enabled (dyna_state = 1-3), disabling scaled format emulation");
     }
 
-    logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions),
-                                 first_next, dld);
+    logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);

@@ -22,21 +22,9 @@
      <item>
       <widget class="QGroupBox" name="groupBox_1">
        <property name="title">
-        <string>Vulkan Extension Settings</string>
+        <string>Vulkan Extensions Settings</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>While it's recommended to use state 3, some games may perform better on lower states. Setting to 0 (disabled) may also break games.
-If your GPU is older (i.e. RX570/580 or older), it may not support these features. If this is the case, set the slider to 0 and uncheck all boxes.
-These settings are experimental, and may cause black screens. If your games fail to boot or are stuck on a black screen, change these settings around.</string>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="QWidget" name="populate_target" native="true">
           <layout class="QVBoxLayout" name="verticalLayout">

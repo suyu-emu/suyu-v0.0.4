@@ -939,16 +939,11 @@ void RasterizerVulkan::UpdateDynamicStates() {
     const u8 dynamic_state = Settings::values.dyna_state.GetValue();
 
     auto features = DynamicFeatures{
-        .has_extended_dynamic_state =
-            device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
-        .has_extended_dynamic_state_2 =
-            device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
-        .has_extended_dynamic_state_2_extra =
-            device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
-        .has_extended_dynamic_state_3_blend =
-            device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
-        .has_extended_dynamic_state_3_enables =
-            device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported() && dynamic_state > 0,
+        .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported() && dynamic_state > 1,
+        .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported() && dynamic_state > 1,
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported() && dynamic_state > 2,
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported() && dynamic_state > 2,
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 

@@ -518,7 +518,15 @@ struct Values {
                                                    Category::RendererAdvanced};
 
     SwitchableSetting<u8, true> dyna_state{linkage,
+#if defined (_WIN32)
+                                           3,
+#elif defined(__FreeBSD__)
+                                           3,
+#elif defined(__unix__)
+                                           2,
+#else
                                            0,
+#endif
                                            0,
                                            3,
                                            "dyna_state",
