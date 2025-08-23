@@ -694,10 +694,77 @@
     <string name="loader_requires_firmware">Гра вимагає прошивки</string>
     <string name="loader_requires_firmware_description"><![CDATA[Гра, яку ви намагаєтеся запустити, вимагає прошивки для завантаження або пропуску початкового меню. Будь ласка, <a href="https://yuzu-mirror.github.io/help/quickstart"> зробіть дамп і встановіть прошивку</a>, або натисніть "OK", щоб продовжити в будь-якому разі.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Пошук гри...</string>
+    <string name="game_not_found_for_title_id">Гру не знайдено для ID заголовку: %1$s</string>
+    <string name="custom_settings_failed_title">Користувацькі налаштування не застосовано</string>
+    <string name="custom_settings_failed_message">Не вдалося застосувати користувацькі налаштування для %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Запустити з налаштуваннями за замовчуванням</string>
+    <string name="launch_cancelled">Запуск скасовано</string>
+    <string name="custom_settings_failure_reasons">Не вдалося застосувати запитувані налаштування. Це може бути пов\'язано з відсутністю драйверів GPU або проблемами конфігурації.</string>
+    <string name="custom_settings_applied">Користувацькі налаштування застосовано</string>
+    <string name="launching_game">Запуск %1$s...</string>
+    <string name="failed_to_initialize_game">Не вдалося ініціалізувати гру</string>
+    <string name="custom_intent_launch_message_with_settings">Бажаєте запустити %1$s з користувацькими налаштуваннями?</string>
+    <string name="custom_intent_launch_message">Бажаєте запустити %1$s?</string>
+    <string name="custom_intent_launch_title">Запустити гру</string>
+    <string name="launch">Запустити</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Не вдалося записати файл конфігурації</string>
+    <string name="config_apply_failed">Не вдалося застосувати конфігурацію</string>
+    <string name="config_already_exists_title">Конфігурація вже існує</string>
+    <string name="config_already_exists_message">Користувацькі налаштування вже існують для %1$s.\n\nБажаєте перезаписати існуючу конфігурацію?\n\nЦю дію не можна скасувати.</string>
+    <string name="config_exists_prompt">Перевірка наявної конфігурації...</string>
+    <string name="overwrite_cancelled">Перезапис скасовано</string>
+    <string name="checking_driver">Перевірка користувацького драйвера: %1$s</string>
+    <string name="driver_unavailable">Користувацький драйвер недоступний для цього пристрою</string>
+    <string name="overwrite">Перезаписати</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Відсутній драйвер GPU</string>
+    <string name="missing_gpu_driver_message">Обраний користувацький драйвер \"%s\" не встановлено. Бажаєте завантажити та встановити його зараз?</string>
+    <string name="downloading_driver">Завантаження драйвера...</string>
+    <string name="driver_installed">Драйвер успішно встановлено</string>
+    <string name="driver_installation_failed_title">Помилка встановлення драйвера</string>
+    <string name="driver_installation_failed_message">Не вдалося встановити драйвер GPU: %s</string>
+    <string name="driver_not_available_title">Драйвер недоступний</string>
+    <string name="driver_not_available_message">Обраний драйвер недоступний для завантаження.</string>
+    <string name="driver_not_found">Необхідний драйвер не встановлено: %s</string>
+    <string name="invalid_driver_file">Недійсний файл драйвера: %s</string>
+    <string name="network_unavailable">Мережеве з\'єднання недоступне. Перевірте підключення до інтернету та спробуйте ще раз.</string>
+    <string name="driver_missing_title">Потрібен драйвер GPU</string>
+    <string name="driver_missing_message">Конфігурація гри вимагає драйвер GPU \"%s\", який не встановлено на вашому пристрої.\n\nБажаєте завантажити та встановити його зараз?</string>
+    <string name="driver_download_cancelled">Завантаження драйвера скасовано. Гру не можна запустити без необхідного драйвера.</string>
+    <string name="download">Завантажити</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Вийти з емуляції</string>
     <string name="emulation_done">Готово</string>
+    <string name="emulation_fps_counter">Лічильник FPS</string>
+    <string name="emulation_thermal_indicator">Індикатор температури</string>
+    <string name="emulation_toggle_controls">Перемкнути елементи керування</string>
+    <string name="emulation_rel_stick_center">Відносний центр джойстика</string>
+    <string name="emulation_dpad_slide">Ковзання D-pad</string>
+    <string name="emulation_haptics">Тактильний відгук</string>
+    <string name="emulation_show_overlay">Показати накладання</string>
+    <string name="emulation_toggle_all">Перемкнути все</string>
+    <string name="emulation_control_adjust">Налаштувати накладання</string>
     <string name="emulation_control_scale">Масштаб</string>
     <string name="emulation_control_opacity">Непрозорість</string>
+    <string name="emulation_touch_overlay_reset">Скинути накладання</string>
+    <string name="emulation_touch_overlay_edit">Редагувати накладання</string>
+    <string name="emulation_pause">Призупинити емуляцію</string>
+    <string name="emulation_unpause">Продовжити емуляцію</string>
+    <string name="emulation_input_overlay">Опції накладання</string>
     <string name="touchscreen">Сенсорний екран</string>
+    <string name="lock_drawer">Заблокувати панель</string>
+    <string name="unlock_drawer">Розблокувати панель</string>
+
+    <string name="load_settings">Завантаження налаштувань…</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Програмна клавіатура</string>
 
     <!-- Errors and warnings -->
     <string name="abort_button">Зупинити</string>

@@ -685,6 +685,50 @@
     <string name="loader_requires_firmware">המשחק דורש קושחה</string>
     <string name="loader_requires_firmware_description"><![CDATA[המשחק שאתה מנסה להפעיל דורש קושחה לאתחול או למעבר מתפריט הפתיחה. אנא <a href="https://yuzu-mirror.github.io/help/quickstart">שמור והתקן קושחה</a> או לחץ "אישור" כדי להמשיך בכל מקרה.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">מחפש משחק...</string>
+    <string name="game_not_found_for_title_id">משחק לא נמצא למזהה כותרת: %1$s</string>
+    <string name="custom_settings_failed_title">הגדרות מותאמות אישית נכשלו</string>
+    <string name="custom_settings_failed_message">נכשל בהחלת הגדרות מותאמות אישית עבור %1$s: %2$s</string>
+    <string name="launch_with_default_settings">הפעל עם הגדרות ברירת מחדל</string>
+    <string name="launch_cancelled">ההפעלה בוטלה</string>
+    <string name="custom_settings_failure_reasons">לא ניתן להחיל את ההגדרות המבוקשות. זה עשוי להיות עקב חסרון מנהלי התקן של GPU או בעיות תצורה.</string>
+    <string name="custom_settings_applied">הגדרות מותאמות אישית הוחלו</string>
+    <string name="launching_game">מפעיל את %1$s...</string>
+    <string name="failed_to_initialize_game">נכשל באתחול המשחק</string>
+    <string name="custom_intent_launch_message_with_settings">האם ברצונך להפעיל את %1$s עם הגדרות מותאמות אישית?</string>
+    <string name="custom_intent_launch_message">האם ברצונך להפעיל את %1$s?</string>
+    <string name="custom_intent_launch_title">הפעל משחק</string>
+    <string name="launch">הפעל</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">נכשל בכתיבת קובץ התצורה</string>
+    <string name="config_apply_failed">נכשל בהחלת התצורה</string>
+    <string name="config_already_exists_title">תצורה כבר קיימת</string>
+    <string name="config_already_exists_message">הגדרות מותאמות אישית כבר קיימות עבור %1$s.\n\nהאם ברצונך לדרוס את התצורה הקיימת?\n\nפעולה זו לא ניתנת לביטול.</string>
+    <string name="config_exists_prompt">בודק אם קיימת תצורה...</string>
+    <string name="overwrite_cancelled">דריסה בוטלה</string>
+    <string name="checking_driver">בודק מנהל התקן מותאם אישית: %1$s</string>
+    <string name="driver_unavailable">מנהל התקן מותאם אישית לא זמין למכשיר זה</string>
+    <string name="overwrite">דרוס</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">מנהל התקן GPU חסר</string>
+    <string name="missing_gpu_driver_message">מנהל ההתקן המותאם אישית הנבחר \"%s\" אינו מותקן. האם ברצונך להוריד ולהתקין אותו כעת?</string>
+    <string name="downloading_driver">מוריד מנהל התקן...</string>
+    <string name="driver_installed">מנהל ההתקן הותקן בהצלחה</string>
+    <string name="driver_installation_failed_title">התקנת מנהל ההתקן נכשלה</string>
+    <string name="driver_installation_failed_message">נכשלה התקנת מנהל ההתקן של GPU: %s</string>
+    <string name="driver_not_available_title">מנהל התקן לא זמין</string>
+    <string name="driver_not_available_message">מנהל ההתקן הנבחר אינו זמין להורדה.</string>
+    <string name="driver_not_found">מנהל התקן נדרש לא מותקן: %s</string>
+    <string name="invalid_driver_file">קובץ מנהל התקן לא חוקי: %s</string>
+    <string name="network_unavailable">אין חיבור אינטרנט זמין. אנא בדוק את חיבור האינטרנט שלך ונסה שוב.</string>
+    <string name="driver_missing_title">נדרש מנהל התקן GPU</string>
+    <string name="driver_missing_message">תצורת המשחק דורשת מנהל התקן GPU \"%s\" אשר אינו מותקן במכשירך.\n\nהאם ברצונך להוריד ולהתקין אותו כעת?</string>
+    <string name="driver_download_cancelled">הורדת מנהל ההתקן בוטלה. לא ניתן להפעיל את המשחק ללא מנהל ההתקן הנדרש.</string>
+    <string name="download">הורד</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">צא מהאמולציה</string>
     <string name="emulation_done">סיום</string>

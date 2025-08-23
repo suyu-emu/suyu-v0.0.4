@@ -674,7 +674,7 @@
     <string name="delete">Удалить</string>
     <string name="edit">Редактировать</string>
     <string name="export_success">Экспорт успешно выполнен</string>
-    <string name="start">Start</string>
+    <string name="start">Запуск</string>
     <string name="clear">Очистить</string>
     <string name="global">Глобальный</string>
     <string name="custom">Другое</string>
@@ -800,6 +800,50 @@
     <string name="loader_error_file_not_found">Файл ROM не существует</string>
     <string name="loader_requires_firmware">Игре требуется прошивка</string>
     <string name="loader_requires_firmware_description"><![CDATA[Для запуска этой игры или прохождения начального меню требуется прошивка. Пожалуйста, <a href="https://yuzu-mirror.github.io/help/quickstart">сохраните и установите прошивку</a> или нажмите "OK" для запуска в любом случае.]]></string>
+
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Поиск игры...</string>
+    <string name="game_not_found_for_title_id">Игра не найдена для ID заголовка: %1$s</string>
+    <string name="custom_settings_failed_title">Пользовательские настройки не применены</string>
+    <string name="custom_settings_failed_message">Не удалось применить пользовательские настройки для %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Запустить с настройками по умолчанию</string>
+    <string name="launch_cancelled">Запуск отменен</string>
+    <string name="custom_settings_failure_reasons">Не удалось применить запрошенные настройки. Это может быть связано с отсутствием драйверов GPU или проблемами конфигурации.</string>
+    <string name="custom_settings_applied">Пользовательские настройки применены</string>
+    <string name="launching_game">Запуск %1$s...</string>
+    <string name="failed_to_initialize_game">Не удалось инициализировать игру</string>
+    <string name="custom_intent_launch_message_with_settings">Хотите запустить %1$s с пользовательскими настройками?</string>
+    <string name="custom_intent_launch_message">Хотите запустить %1$s?</string>
+    <string name="custom_intent_launch_title">Запуск игры</string>
+    <string name="launch">Запустить</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Не удалось записать файл конфигурации</string>
+    <string name="config_apply_failed">Не удалось применить конфигурацию</string>
+    <string name="config_already_exists_title">Конфигурация уже существует</string>
+    <string name="config_already_exists_message">Пользовательские настройки уже существуют для %1$s.\n\nХотите перезаписать существующую конфигурацию?\n\nЭто действие нельзя отменить.</string>
+    <string name="config_exists_prompt">Проверка существующей конфигурации...</string>
+    <string name="overwrite_cancelled">Перезапись отменена</string>
+    <string name="checking_driver">Проверка пользовательского драйвера: %1$s</string>
+    <string name="driver_unavailable">Пользовательский драйвер недоступен для этого устройства</string>
+    <string name="overwrite">Перезаписать</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Отсутствует драйвер GPU</string>
+    <string name="missing_gpu_driver_message">Выбранный пользовательский драйвер \"%s\" не установлен. Хотите скачать и установить его сейчас?</string>
+    <string name="downloading_driver">Загрузка драйвера...</string>
+    <string name="driver_installed">Драйвер успешно установлен</string>
+    <string name="driver_installation_failed_title">Ошибка установки драйвера</string>
+    <string name="driver_installation_failed_message">Не удалось установить драйвер GPU: %s</string>
+    <string name="driver_not_available_title">Драйвер недоступен</string>
+    <string name="driver_not_available_message">Выбранный драйвер недоступен для загрузки.</string>
+    <string name="driver_not_found">Необходимый драйвер не установлен: %s</string>
+    <string name="invalid_driver_file">Неверный файл драйвера: %s</string>
+    <string name="network_unavailable">Сетевое соединение недоступно. Проверьте подключение к интернету и попробуйте снова.</string>
+    <string name="driver_missing_title">Требуется драйвер GPU</string>
+    <string name="driver_missing_message">Конфигурация игры требует драйвер GPU \"%s\", который не установлен на вашем устройстве.\n\nХотите скачать и установить его сейчас?</string>
+    <string name="driver_download_cancelled">Загрузка драйвера отменена. Игра не может быть запущена без необходимого драйвера.</string>
+    <string name="download">Скачать</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Выход из эмуляции</string>

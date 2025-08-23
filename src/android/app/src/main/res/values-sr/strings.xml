@@ -757,6 +757,50 @@
     <string name="loader_requires_firmware">Игра захтева firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Игра коју покушавате да покренете захтева firmware за покретање или прелазак почетног менија. Молимо <a href="https://yuzu-mirror.github.io/help/quickstart"> направите дамп и инсталирајте firmware</a>, или притисните "OK" да бисте наставили у сваком случају.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Тражење игре...</string>
+    <string name="game_not_found_for_title_id">Игра није пронађена за ID наслова: %1$s</string>
+    <string name="custom_settings_failed_title">Прилагођена подешавања нису успела</string>
+    <string name="custom_settings_failed_message">Неуспело применљивање прилагођених подешавања за %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Покрени са подразумеваним подешавањима</string>
+    <string name="launch_cancelled">Покретање отказано</string>
+    <string name="custom_settings_failure_reasons">Није могуће применити тражена подешавања. Ово може бити услед недостајућих GPU драјвера или проблема са конфигурацијом.</string>
+    <string name="custom_settings_applied">Прилагођена подешавања применљена</string>
+    <string name="launching_game">Покрећем %1$s...</string>
+    <string name="failed_to_initialize_game">Неуспела иницијализација игре</string>
+    <string name="custom_intent_launch_message_with_settings">Да ли желите да покренете %1$s са прилагођеним подешавањима?</string>
+    <string name="custom_intent_launch_message">Да ли желите да покренете %1$s?</string>
+    <string name="custom_intent_launch_title">Покрени игру</string>
+    <string name="launch">Покрени</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Неуспело писање конфигурационе датотеке</string>
+    <string name="config_apply_failed">Неуспела примена конфигурације</string>
+    <string name="config_already_exists_title">Конфигурација већ постоји</string>
+    <string name="config_already_exists_message">Прилагођена подешавања већ постоје за %1$s.\n\nДа ли желите да препишете постојећу конфигурацију?\n\nОву радњу није могуће поништити.</string>
+    <string name="config_exists_prompt">Провера постојеће конфигурације...</string>
+    <string name="overwrite_cancelled">Преписивање отказано</string>
+    <string name="checking_driver">Провера прилагођеног драјвера: %1$s</string>
+    <string name="driver_unavailable">Прилагођени драјвер није доступан за овај уређај</string>
+    <string name="overwrite">Препиши</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU драјвер недостаје</string>
+    <string name="missing_gpu_driver_message">Одабрани прилагођени драјвер \"%s\" није инсталиран. Да ли желите да га преузмете и инсталирате сада?</string>
+    <string name="downloading_driver">Преузимање драјвера...</string>
+    <string name="driver_installed">Драјвер успешно инсталиран</string>
+    <string name="driver_installation_failed_title">Инсталација драјвера није успела</string>
+    <string name="driver_installation_failed_message">Неуспела инсталација GPU драјвера: %s</string>
+    <string name="driver_not_available_title">Драјвер није доступан</string>
+    <string name="driver_not_available_message">Одабрани драјвер није доступан за преузимање.</string>
+    <string name="driver_not_found">Потребни драјвер није инсталиран: %s</string>
+    <string name="invalid_driver_file">Неисправна датотека драјвера: %s</string>
+    <string name="network_unavailable">Мрежна веза није доступна. Проверите интернет конекцију и покушајте поново.</string>
+    <string name="driver_missing_title">GPU драјвер је потребан</string>
+    <string name="driver_missing_message">Конфигурација игре захтева GPU драјвер \"%s\" који није инсталиран на вашем уређају.\n\nДа ли желите да га преузмете и инсталирате сада?</string>
+    <string name="driver_download_cancelled">Преузимање драјвера отказано. Игра се не може покренути без потребног драјвера.</string>
+    <string name="download">Преузми</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Излазни емулација</string>
     <string name="emulation_done">Доношен</string>

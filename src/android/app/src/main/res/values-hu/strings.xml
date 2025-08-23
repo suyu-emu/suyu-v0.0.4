@@ -789,6 +789,50 @@
     <string name="loader_requires_firmware">A játék firmware-t igényel</string>
     <string name="loader_requires_firmware_description"><![CDATA[A játék, amelyet el szeretne indítani, firmware-t igényel a bootoláshoz vagy a kezdőmenü átlépéséhez. Kérjük, <a href="https://yuzu-mirror.github.io/help/quickstart"> dumpolja és telepítse a firmware-t</a>, vagy nyomja meg az "OK" gombot a folytatáshoz.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Játék keresése...</string>
+    <string name="game_not_found_for_title_id">A játék nem található a következő címazonosítóhoz: %1$s</string>
+    <string name="custom_settings_failed_title">Egyéni beállítások sikertelenek</string>
+    <string name="custom_settings_failed_message">Nem sikerült alkalmazni az egyéni beállításokat ehhez: %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Indítás alapértelmezett beállításokkal</string>
+    <string name="launch_cancelled">Indítás megszakítva</string>
+    <string name="custom_settings_failure_reasons">Nem sikerült alkalmazni a kért beállításokat. Ennek oka hiányzó GPU illesztőprogramok vagy konfigurációs problémák lehetnek.</string>
+    <string name="custom_settings_applied">Egyéni beállítások alkalmazva</string>
+    <string name="launching_game">%1$s indítása...</string>
+    <string name="failed_to_initialize_game">A játék inicializálása sikertelen</string>
+    <string name="custom_intent_launch_message_with_settings">Szeretné elindítani a(z) %1$s-t egyéni beállításokkal?</string>
+    <string name="custom_intent_launch_message">Szeretné elindítani a(z) %1$s-t?</string>
+    <string name="custom_intent_launch_title">Játék indítása</string>
+    <string name="launch">Indítás</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">A konfigurációs fájl írása sikertelen</string>
+    <string name="config_apply_failed">A konfiguráció alkalmazása sikertelen</string>
+    <string name="config_already_exists_title">A konfiguráció már létezik</string>
+    <string name="config_already_exists_message">Már léteznek egyéni beállítások a(z) %1$s számára.\n\nSzeretné felülírni a meglévő konfigurációt?\n\nEzt a műveletet nem lehet visszavonni.</string>
+    <string name="config_exists_prompt">Létező konfiguráció keresése...</string>
+    <string name="overwrite_cancelled">A felülírás megszakítva</string>
+    <string name="checking_driver">Egyéni illesztőprogram ellenőrzése: %1$s</string>
+    <string name="driver_unavailable">Egyéni illesztőprogram nem elérhető ehhez az eszközhöz</string>
+    <string name="overwrite">Felülírás</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU illesztőprogram hiányzik</string>
+    <string name="missing_gpu_driver_message">A kiválasztott egyéni illesztőprogram \"%s\" nincs telepítve. Szeretné most letölteni és telepíteni?</string>
+    <string name="downloading_driver">Illesztőprogram letöltése...</string>
+    <string name="driver_installed">Az illesztőprogram sikeresen telepítve</string>
+    <string name="driver_installation_failed_title">Az illesztőprogram telepítése sikertelen</string>
+    <string name="driver_installation_failed_message">Nem sikerült telepíteni a GPU illesztőprogramot: %s</string>
+    <string name="driver_not_available_title">Az illesztőprogram nem elérhető</string>
+    <string name="driver_not_available_message">A kiválasztott illesztőprogram nem érhető el letöltésre.</string>
+    <string name="driver_not_found">A szükséges illesztőprogram nincs telepítve: %s</string>
+    <string name="invalid_driver_file">Érvénytelen illesztőprogramfájl: %s</string>
+    <string name="network_unavailable">Nincs hálózati kapcsolat. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.</string>
+    <string name="driver_missing_title">GPU illesztőprogram szükséges</string>
+    <string name="driver_missing_message">A játék konfigurációja \"%s\" GPU illesztőprogramot igényel, amely nincs telepítve az eszközén.\n\nSzeretné most letölteni és telepíteni?</string>
+    <string name="driver_download_cancelled">Az illesztőprogram letöltése megszakítva. A játék nem indítható el a szükséges illesztőprogram nélkül.</string>
+    <string name="download">Letöltés</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Emuláció bezárása</string>
     <string name="emulation_done">Kész</string>

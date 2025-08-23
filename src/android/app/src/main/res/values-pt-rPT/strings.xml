@@ -800,6 +800,50 @@ uma tentativa de mapeamento automático</string>
     <string name="loader_requires_firmware">O jogo requer firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[O jogo que está a tentar iniciar requer firmware para arrancar ou passar o menu inicial. Por favor <a href="https://yuzu-mirror.github.io/help/quickstart"> faça dump e instale o firmware</a>, ou pressione "OK" para continuar mesmo assim.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">A procurar jogo...</string>
+    <string name="game_not_found_for_title_id">Jogo não encontrado para o ID do Título: %1$s</string>
+    <string name="custom_settings_failed_title">Definições Personalizadas Falharam</string>
+    <string name="custom_settings_failed_message">Falha ao aplicar definições personalizadas para %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Iniciar com Definições Predefinidas</string>
+    <string name="launch_cancelled">Inicialização cancelada</string>
+    <string name="custom_settings_failure_reasons">Não foi possível aplicar as definições solicitadas. Isto pode ser devido a controladores de GPU em falta ou problemas de configuração.</string>
+    <string name="custom_settings_applied">Definições personalizadas aplicadas</string>
+    <string name="launching_game">A iniciar %1$s...</string>
+    <string name="failed_to_initialize_game">Falha ao inicializar o jogo</string>
+    <string name="custom_intent_launch_message_with_settings">Deseja iniciar %1$s com definições personalizadas?</string>
+    <string name="custom_intent_launch_message">Deseja iniciar %1$s?</string>
+    <string name="custom_intent_launch_title">Iniciar Jogo</string>
+    <string name="launch">Iniciar</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Falha ao escrever ficheiro de configuração</string>
+    <string name="config_apply_failed">Falha ao aplicar configuração</string>
+    <string name="config_already_exists_title">Configuração Já Existe</string>
+    <string name="config_already_exists_message">Definições personalizadas já existem para %1$s.\n\nDeseja substituir a configuração existente?\n\nEsta ação não pode ser desfeita.</string>
+    <string name="config_exists_prompt">A verificar configuração existente...</string>
+    <string name="overwrite_cancelled">Substituição cancelada</string>
+    <string name="checking_driver">A verificar controlador personalizado: %1$s</string>
+    <string name="driver_unavailable">Controlador personalizado não disponível para este dispositivo</string>
+    <string name="overwrite">Substituir</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Controlador de GPU em Falta</string>
+    <string name="missing_gpu_driver_message">O controlador personalizado selecionado \"%s\" não está instalado. Deseja transferir e instalá-lo agora?</string>
+    <string name="downloading_driver">A transferir controlador...</string>
+    <string name="driver_installed">Controlador instalado com sucesso</string>
+    <string name="driver_installation_failed_title">Instalação do Controlador Falhou</string>
+    <string name="driver_installation_failed_message">Falha ao instalar o controlador da GPU: %s</string>
+    <string name="driver_not_available_title">Controlador Não Disponível</string>
+    <string name="driver_not_available_message">O controlador selecionado não está disponível para transferência.</string>
+    <string name="driver_not_found">Controlador necessário não instalado: %s</string>
+    <string name="invalid_driver_file">Ficheiro de controlador inválido: %s</string>
+    <string name="network_unavailable">Nenhuma ligação de rede disponível. Verifique a sua ligação à internet e tente novamente.</string>
+    <string name="driver_missing_title">Controlador de GPU Necessário</string>
+    <string name="driver_missing_message">A configuração do jogo requer o controlador de GPU \"%s\" que não está instalado no seu dispositivo.\n\nDeseja transferir e instalá-lo agora?</string>
+    <string name="driver_download_cancelled">Transferência do controlador cancelada. O jogo não pode ser iniciado sem o controlador necessário.</string>
+    <string name="download">Transferir</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Parar emulação</string>
     <string name="emulation_done">Feito</string>

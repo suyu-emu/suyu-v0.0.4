@@ -799,6 +799,50 @@
     <string name="loader_requires_firmware">Jeu nécessite un firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Ce jeu nécessite un firmware pour démarrer ou passer le menu d\'accueil. Veuillez <a href="https://yuzu-mirror.github.io/help/quickstart">dumper et installer le firmware</a> ou appuyez sur "OK" pour continuer quand même.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Recherche du jeu...</string>
+    <string name="game_not_found_for_title_id">Jeu non trouvé pour l\'ID de titre : %1$s</string>
+    <string name="custom_settings_failed_title">Échec des paramètres personnalisés</string>
+    <string name="custom_settings_failed_message">Échec de l\'application des paramètres personnalisés pour %1$s : %2$s</string>
+    <string name="launch_with_default_settings">Lancer avec les paramètres par défaut</string>
+    <string name="launch_cancelled">Lancement annulé</string>
+    <string name="custom_settings_failure_reasons">Impossible d\'appliquer les paramètres demandés. Cela peut être dû à des pilotes GPU manquants ou à des problèmes de configuration.</string>
+    <string name="custom_settings_applied">Paramètres personnalisés appliqués</string>
+    <string name="launching_game">Lancement de %1$s...</string>
+    <string name="failed_to_initialize_game">Échec de l\'initialisation du jeu</string>
+    <string name="custom_intent_launch_message_with_settings">Voulez-vous lancer %1$s avec des paramètres personnalisés ?</string>
+    <string name="custom_intent_launch_message">Voulez-vous lancer %1$s ?</string>
+    <string name="custom_intent_launch_title">Lancer le jeu</string>
+    <string name="launch">Lancer</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Échec de l\'écriture du fichier de configuration</string>
+    <string name="config_apply_failed">Échec de l\'application de la configuration</string>
+    <string name="config_already_exists_title">Configuration déjà existante</string>
+    <string name="config_already_exists_message">Des paramètres personnalisés existent déjà pour %1$s.\n\nVoulez-vous écraser la configuration existante ?\n\nCette action ne peut pas être annulée.</string>
+    <string name="config_exists_prompt">Vérification de la configuration existante...</string>
+    <string name="overwrite_cancelled">Écrasement annulé</string>
+    <string name="checking_driver">Vérification du pilote personnalisé : %1$s</string>
+    <string name="driver_unavailable">Pilote personnalisé non disponible pour cet appareil</string>
+    <string name="overwrite">Écraser</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Pilote GPU manquant</string>
+    <string name="missing_gpu_driver_message">Le pilote personnalisé sélectionné \"%s\" n\'est pas installé. Voulez-vous le télécharger et l\'installer maintenant ?</string>
+    <string name="downloading_driver">Téléchargement du pilote...</string>
+    <string name="driver_installed">Pilote installé avec succès</string>
+    <string name="driver_installation_failed_title">Échec de l\'installation du pilote</string>
+    <string name="driver_installation_failed_message">Échec de l\'installation du pilote GPU : %s</string>
+    <string name="driver_not_available_title">Pilote non disponible</string>
+    <string name="driver_not_available_message">Le pilote sélectionné n\'est pas disponible au téléchargement.</string>
+    <string name="driver_not_found">Pilote requis non installé : %s</string>
+    <string name="invalid_driver_file">Fichier de pilote invalide : %s</string>
+    <string name="network_unavailable">Aucune connexion réseau disponible. Veuillez vérifier votre connexion Internet et réessayer.</string>
+    <string name="driver_missing_title">Pilote GPU requis</string>
+    <string name="driver_missing_message">La configuration du jeu nécessite le pilote GPU \"%s\" qui n\'est pas installé sur votre appareil.\n\nVoulez-vous le télécharger et l\'installer maintenant ?</string>
+    <string name="driver_download_cancelled">Téléchargement du pilote annulé. Le jeu ne peut pas être lancé sans le pilote requis.</string>
+    <string name="download">Télécharger</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Quitter l\'émulation</string>
     <string name="emulation_done">Terminé</string>

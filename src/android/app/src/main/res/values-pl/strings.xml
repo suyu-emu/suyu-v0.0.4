@@ -664,6 +664,50 @@
     <string name="loader_requires_firmware">Gra wymaga oprogramowania sprzętowego</string>
     <string name="loader_requires_firmware_description"><![CDATA[Gra, którą próbujesz uruchomić, wymaga oprogramowania sprzętowego do uruchomienia lub przejścia przez menu startowe. Proszę <a href="https://yuzu-mirror.github.io/help/quickstart"> zrzuć i zainstaluj oprogramowanie sprzętowe</a>, lub naciśnij "OK", aby kontynuować mimo to.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Wyszukiwanie gry...</string>
+    <string name="game_not_found_for_title_id">Nie znaleziono gry dla ID tytułu: %1$s</string>
+    <string name="custom_settings_failed_title">Niestandardowe ustawienia nie powiodły się</string>
+    <string name="custom_settings_failed_message">Nie udało się zastosować niestandardowych ustawień dla %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Uruchom z ustawieniami domyślnymi</string>
+    <string name="launch_cancelled">Uruchamianie anulowane</string>
+    <string name="custom_settings_failure_reasons">Nie można zastosować żądanych ustawień. Może to być spowodowane brakującymi sterownikami GPU lub problemami z konfiguracją.</string>
+    <string name="custom_settings_applied">Zastosowano niestandardowe ustawienia</string>
+    <string name="launching_game">Uruchamianie %1$s...</string>
+    <string name="failed_to_initialize_game">Nie udało się zainicjować gry</string>
+    <string name="custom_intent_launch_message_with_settings">Czy chcesz uruchomić %1$s z niestandardowymi ustawieniami?</string>
+    <string name="custom_intent_launch_message">Czy chcesz uruchomić %1$s?</string>
+    <string name="custom_intent_launch_title">Uruchom grę</string>
+    <string name="launch">Uruchom</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Nie udało się zapisać pliku konfiguracyjnego</string>
+    <string name="config_apply_failed">Nie udało się zastosować konfiguracji</string>
+    <string name="config_already_exists_title">Konfiguracja już istnieje</string>
+    <string name="config_already_exists_message">Niestandardowe ustawienia już istnieją dla %1$s.\n\nCzy chcesz nadpisać istniejącą konfigurację?\n\nTej czynności nie można cofnąć.</string>
+    <string name="config_exists_prompt">Sprawdzanie istniejącej konfiguracji...</string>
+    <string name="overwrite_cancelled">Nadpisywanie anulowane</string>
+    <string name="checking_driver">Sprawdzanie niestandardowego sterownika: %1$s</string>
+    <string name="driver_unavailable">Niestandardowy sterownik niedostępny dla tego urządzenia</string>
+    <string name="overwrite">Nadpisz</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Brak sterownika GPU</string>
+    <string name="missing_gpu_driver_message">Wybrany niestandardowy sterownik \"%s\" nie jest zainstalowany. Czy chcesz go teraz pobrać i zainstalować?</string>
+    <string name="downloading_driver">Pobieranie sterownika...</string>
+    <string name="driver_installed">Sterownik pomyślnie zainstalowany</string>
+    <string name="driver_installation_failed_title">Instalacja sterownika nie powiodła się</string>
+    <string name="driver_installation_failed_message">Nie udało się zainstalować sterownika GPU: %s</string>
+    <string name="driver_not_available_title">Sterownik niedostępny</string>
+    <string name="driver_not_available_message">Wybrany sterownik nie jest dostępny do pobrania.</string>
+    <string name="driver_not_found">Wymagany sterownik nie jest zainstalowany: %s</string>
+    <string name="invalid_driver_file">Nieprawidłowy plik sterownika: %s</string>
+    <string name="network_unavailable">Brak dostępnego połączenia sieciowego. Sprawdź swoje połączenie internetowe i spróbuj ponownie.</string>
+    <string name="driver_missing_title">Wymagany sterownik GPU</string>
+    <string name="driver_missing_message">Konfiguracja gry wymaga sterownika GPU \"%s\", który nie jest zainstalowany na Twoim urządzeniu.\n\nCzy chcesz go teraz pobrać i zainstalować?</string>
+    <string name="driver_download_cancelled">Pobieranie sterownika anulowane. Gra nie może zostać uruchomiona bez wymaganego sterownika.</string>
+    <string name="download">Pobierz</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Zakończ emulację</string>
     <string name="emulation_done">Gotowe</string>

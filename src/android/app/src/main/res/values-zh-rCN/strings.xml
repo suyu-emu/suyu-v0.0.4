@@ -793,6 +793,50 @@
     <string name="loader_requires_firmware">游戏需要固件</string>
     <string name="loader_requires_firmware_description"><![CDATA[您尝试启动的游戏需要固件才能引导或通过启动菜单。请<a href="https://yuzu-mirror.github.io/help/quickstart">转储并安装固件</a>，或点击"确定"继续。]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">正在搜索游戏...</string>
+    <string name="game_not_found_for_title_id">未找到标题ID的游戏: %1$s</string>
+    <string name="custom_settings_failed_title">自定义设置失败</string>
+    <string name="custom_settings_failed_message">无法应用自定义设置 %1$s: %2$s</string>
+    <string name="launch_with_default_settings">使用默认设置启动</string>
+    <string name="launch_cancelled">启动已取消</string>
+    <string name="custom_settings_failure_reasons">无法应用请求的设置。这可能是由于缺少GPU驱动程序或配置问题。</string>
+    <string name="custom_settings_applied">已应用自定义设置</string>
+    <string name="launching_game">正在启动 %1$s...</string>
+    <string name="failed_to_initialize_game">无法初始化游戏</string>
+    <string name="custom_intent_launch_message_with_settings">是否要使用自定义设置启动 %1$s？</string>
+    <string name="custom_intent_launch_message">是否要启动 %1$s？</string>
+    <string name="custom_intent_launch_title">启动游戏</string>
+    <string name="launch">启动</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">无法写入配置文件</string>
+    <string name="config_apply_failed">无法应用配置</string>
+    <string name="config_already_exists_title">配置已存在</string>
+    <string name="config_already_exists_message">%1$s 的自定义设置已存在。\n\n是否要覆盖现有配置？\n\n此操作无法撤消。</string>
+    <string name="config_exists_prompt">正在检查现有配置...</string>
+    <string name="overwrite_cancelled">覆盖已取消</string>
+    <string name="checking_driver">正在检查自定义驱动程序: %1$s</string>
+    <string name="driver_unavailable">自定义驱动程序不适用于此设备</string>
+    <string name="overwrite">覆盖</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">缺少GPU驱动程序</string>
+    <string name="missing_gpu_driver_message">选定的自定义驱动程序 \"%s\" 未安装。是否要立即下载并安装？</string>
+    <string name="downloading_driver">正在下载驱动程序...</string>
+    <string name="driver_installed">驱动程序安装成功</string>
+    <string name="driver_installation_failed_title">驱动程序安装失败</string>
+    <string name="driver_installation_failed_message">无法安装GPU驱动程序: %s</string>
+    <string name="driver_not_available_title">驱动程序不可用</string>
+    <string name="driver_not_available_message">选定的驱动程序不可下载。</string>
+    <string name="driver_not_found">未安装所需的驱动程序: %s</string>
+    <string name="invalid_driver_file">无效的驱动程序文件: %s</string>
+    <string name="network_unavailable">无可用网络连接。请检查您的互联网连接并重试。</string>
+    <string name="driver_missing_title">需要GPU驱动程序</string>
+    <string name="driver_missing_message">游戏配置需要GPU驱动程序 \"%s\"，但您的设备上未安装。\n\n是否要立即下载并安装？</string>
+    <string name="driver_download_cancelled">驱动程序下载已取消。没有所需的驱动程序无法启动游戏。</string>
+    <string name="download">下载</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">退出模拟</string>
     <string name="emulation_done">完成</string>

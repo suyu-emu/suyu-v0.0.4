@@ -712,6 +712,50 @@ Wirklich fortfahren?</string>
     <string name="loader_requires_firmware">Spiel erfordert Firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Das Spiel, das Sie starten möchten, benötigt Firmware zum Booten oder zum Überspringen des Startmenüs. Bitte <a href="https://yuzu-mirror.github.io/help/quickstart"> dumpen und installieren Sie Firmware</a>, oder drücken Sie "OK", um trotzdem zu starten.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Suche nach Spiel...</string>
+    <string name="game_not_found_for_title_id">Spiel nicht gefunden für Titel-ID: %1$s</string>
+    <string name="custom_settings_failed_title">Benutzerdefinierte Einstellungen fehlgeschlagen</string>
+    <string name="custom_settings_failed_message">Fehler beim Anwenden der benutzerdefinierten Einstellungen für %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Mit Standardeinstellungen starten</string>
+    <string name="launch_cancelled">Start abgebrochen</string>
+    <string name="custom_settings_failure_reasons">Die angeforderten Einstellungen konnten nicht angewendet werden. Dies kann an fehlenden GPU-Treibern oder Konfigurationsproblemen liegen.</string>
+    <string name="custom_settings_applied">Benutzerdefinierte Einstellungen übernommen</string>
+    <string name="launching_game">Starte %1$s...</string>
+    <string name="failed_to_initialize_game">Spielinitialisierung fehlgeschlagen</string>
+    <string name="custom_intent_launch_message_with_settings">Möchten Sie %1$s mit benutzerdefinierten Einstellungen starten?</string>
+    <string name="custom_intent_launch_message">Möchten Sie %1$s starten?</string>
+    <string name="custom_intent_launch_title">Spiel starten</string>
+    <string name="launch">Starten</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Konfigurationsdatei konnte nicht geschrieben werden</string>
+    <string name="config_apply_failed">Konfiguration konnte nicht angewendet werden</string>
+    <string name="config_already_exists_title">Konfiguration existiert bereits</string>
+    <string name="config_already_exists_message">Benutzerdefinierte Einstellungen existieren bereits für %1$s.\n\nMöchten Sie die bestehende Konfiguration überschreiben?\n\nDiese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="config_exists_prompt">Überprüfe auf vorhandene Konfiguration...</string>
+    <string name="overwrite_cancelled">Überschreiben abgebrochen</string>
+    <string name="checking_driver">Üoverprüfe benutzerdefinierten Treiber: %1$s</string>
+    <string name="driver_unavailable">Benutzerdefinierter Treiber für dieses Gerät nicht verfügbar</string>
+    <string name="overwrite">Überschreiben</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU-Treiber fehlt</string>
+    <string name="missing_gpu_driver_message">Der ausgewählte benutzerdefinierte Treiber \"%s\" ist nicht installiert. Möchten Sie ihn jetzt herunterladen und installieren?</string>
+    <string name="downloading_driver">Treiber wird heruntergeladen...</string>
+    <string name="driver_installed">Treiber erfolgreich installiert</string>
+    <string name="driver_installation_failed_title">Treiberinstallation fehlgeschlagen</string>
+    <string name="driver_installation_failed_message">Fehler beim Installieren des GPU-Treibers: %s</string>
+    <string name="driver_not_available_title">Treiber nicht verfügbar</string>
+    <string name="driver_not_available_message">Der ausgewählte Treiber ist nicht zum Download verfügbar.</string>
+    <string name="driver_not_found">Erforderlicher Treiber nicht installiert: %s</string>
+    <string name="invalid_driver_file">Ungültige Treiberdatei: %s</string>
+    <string name="network_unavailable">Keine Netzwerkverbindung verfügbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
+    <string name="driver_missing_title">GPU-Treiber erforderlich</string>
+    <string name="driver_missing_message">Die Spielkonfiguration erfordert den GPU-Treiber \"%s\", der auf Ihrem Gerät nicht installiert ist.\n\nMöchten Sie ihn jetzt herunterladen и installieren?</string>
+    <string name="driver_download_cancelled">Treiberdownload abgebrochen. Das Spiel kann ohne den erforderlichen Treiber nicht gestartet werden.</string>
+    <string name="download">Herunterladen</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Emulation beenden</string>
     <string name="emulation_done">Fertig</string>

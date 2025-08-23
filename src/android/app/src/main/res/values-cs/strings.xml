@@ -636,6 +636,50 @@
     <string name="loader_requires_firmware">Hra vyžaduje firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Hra, kterou se pokoušíte spustit, vyžaduje firmware pro spuštění nebo pro překročení úvodní nabídky. Prosím <a href="https://yuzu-mirror.github.io/help/quickstart"> převezměte a nainstalujte firmware</a>, nebo stiskněte "OK" pro pokračování v každém případě.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Hledání hry...</string>
+    <string name="game_not_found_for_title_id">Hra nebyla nalezena pro ID titulu: %1$s</string>
+    <string name="custom_settings_failed_title">Vlastní nastavení selhalo</string>
+    <string name="custom_settings_failed_message">Nepodařilo se použít vlastní nastavení pro %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Spustit s výchozím nastavením</string>
+    <string name="launch_cancelled">Spuštění zrušeno</string>
+    <string name="custom_settings_failure_reasons">Nelze použít požadovaná nastavení. Důvodem může být chybějící ovladač GPU nebo problémy s konfigurací.</string>
+    <string name="custom_settings_applied">Vlastní nastavení použito</string>
+    <string name="launching_game">Spouštím %1$s...</string>
+    <string name="failed_to_initialize_game">Nepodařilo se inicializovat hru</string>
+    <string name="custom_intent_launch_message_with_settings">Chcete spustit %1$s s vlastním nastavením?</string>
+    <string name="custom_intent_launch_message">Chcete spustit %1$s?</string>
+    <string name="custom_intent_launch_title">Spustit hru</string>
+    <string name="launch">Spustit</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Nepodařilo se zapsat konfigurační soubor</string>
+    <string name="config_apply_failed">Nepodařilo se použít konfiguraci</string>
+    <string name="config_already_exists_title">Konfigurace již existuje</string>
+    <string name="config_already_exists_message">Vlastní nastavení již existuje pro %1$s.\n\nChcete přepsat stávající konfiguraci?\n\nTuto akci nelze vrátit zpět.</string>
+    <string name="config_exists_prompt">Kontrola existující konfigurace...</string>
+    <string name="overwrite_cancelled">Přepsání zrušeno</string>
+    <string name="checking_driver">Kontrola vlastního ovladače: %1$s</string>
+    <string name="driver_unavailable">Vlastní ovladač není pro toto zařízení k dispozici</string>
+    <string name="overwrite">Přepsat</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Chybí ovladač GPU</string>
+    <string name="missing_gpu_driver_message">Vybraný vlastní ovladač \"%s\" není nainstalován. Chcete jej nyní stáhnout и nainstalovat?</string>
+    <string name="downloading_driver">Stahování ovladače...</string>
+    <string name="driver_installed">Ovladač byl úspěšně nainstalován</string>
+    <string name="driver_installation_failed_title">Instalace ovladače selhala</string>
+    <string name="driver_installation_failed_message">Nepodařilo se nainstalovat ovladač GPU: %s</string>
+    <string name="driver_not_available_title">Ovladač není k dispozici</string>
+    <string name="driver_not_available_message">Vybraný ovladač není k dispozici ke stažení.</string>
+    <string name="driver_not_found">Požadovaný ovladač není nainstalován: %s</string>
+    <string name="invalid_driver_file">Neplatný soubor ovladače: %s</string>
+    <string name="network_unavailable">Není dostupné síťové připojení. Zkontrolujte prosím připojení k internetu a zkuste to znovu.</string>
+    <string name="driver_missing_title">Vyžadován ovladač GPU</string>
+    <string name="driver_missing_message">Konfigurace hry vyžaduje ovladač GPU \"%s\", který není na vašem zařízení nainstalován.\n\nChcete jej nyní stáhnout a nainstalovat?</string>
+    <string name="driver_download_cancelled">Stahování ovladače bylo zrušeno. Hru nelze spustit bez požadovaného ovladače.</string>
+    <string name="download">Stáhnout</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Ukončit emulaci</string>
     <string name="emulation_done">Hotovo</string>

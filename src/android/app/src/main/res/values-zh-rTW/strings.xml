@@ -798,6 +798,50 @@
     <string name="loader_requires_firmware">遊戲需要韌體</string>
     <string name="loader_requires_firmware_description"><![CDATA[您嘗試啟動的遊戲需要韌體才能引導或通過啟動選單。請<a href="https://yuzu-mirror.github.io/help/quickstart">轉儲並安裝韌體</a>，或點擊"確定"繼續。]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">正在搜尋遊戲...</string>
+    <string name="game_not_found_for_title_id">找不到標題ID的遊戲: %1$s</string>
+    <string name="custom_settings_failed_title">自訂設定失敗</string>
+    <string name="custom_settings_failed_message">無法套用自訂設定 %1$s: %2$s</string>
+    <string name="launch_with_default_settings">使用預設設定啟動</string>
+    <string name="launch_cancelled">啟動已取消</string>
+    <string name="custom_settings_failure_reasons">無法套用請求的設定。這可能是由於缺少GPU驅動程式或設定問題。</string>
+    <string name="custom_settings_applied">已套用自訂設定</string>
+    <string name="launching_game">正在啟動 %1$s...</string>
+    <string name="failed_to_initialize_game">無法初始化遊戲</string>
+    <string name="custom_intent_launch_message_with_settings">是否要使用自訂設定啟動 %1$s？</string>
+    <string name="custom_intent_launch_message">是否要啟動 %1$s？</string>
+    <string name="custom_intent_launch_title">啟動遊戲</string>
+    <string name="launch">啟動</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">無法寫入設定檔</string>
+    <string name="config_apply_failed">無法套用設定</string>
+    <string name="config_already_exists_title">設定已存在</string>
+    <string name="config_already_exists_message">%1$s 的自訂設定已存在。\n\n是否要覆蓋現有設定？\n\n此操作無法復原。</string>
+    <string name="config_exists_prompt">正在檢查現有設定...</string>
+    <string name="overwrite_cancelled">覆蓋已取消</string>
+    <string name="checking_driver">正在檢查自訂驅動程式: %1$s</string>
+    <string name="driver_unavailable">自訂驅動程式不適用於此裝置</string>
+    <string name="overwrite">覆蓋</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">缺少GPU驅動程式</string>
+    <string name="missing_gpu_driver_message">選定的自訂驅動程式 \"%s\" 未安裝。是否要立即下載並安裝？</string>
+    <string name="downloading_driver">正在下載驅動程式...</string>
+    <string name="driver_installed">驅動程式安裝成功</string>
+    <string name="driver_installation_failed_title">驅動程式安裝失敗</string>
+    <string name="driver_installation_failed_message">無法安裝GPU驅動程式: %s</string>
+    <string name="driver_not_available_title">驅動程式不可用</string>
+    <string name="driver_not_available_message">選定的驅動程式無法下載。</string>
+    <string name="driver_not_found">未安裝所需的驅動程式: %s</string>
+    <string name="invalid_driver_file">無效的驅動程式檔案: %s</string>
+    <string name="network_unavailable">無可用網路連線。請檢查您的網路連線並重試。</string>
+    <string name="driver_missing_title">需要GPU驅動程式</string>
+    <string name="driver_missing_message">遊戲設定需要GPU驅動程式 \"%s\"，但您的裝置上未安裝。\n\n是否要立即下載並安裝？</string>
+    <string name="driver_download_cancelled">驅動程式下載已取消。沒有所需的驅動程式無法啟動遊戲。</string>
+    <string name="download">下載</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">結束模擬</string>
     <string name="emulation_done">完成</string>

@@ -750,6 +750,50 @@
     <string name="loader_requires_firmware">بازی نیاز به فیرمور دارد</string>
     <string name="loader_requires_firmware_description"><![CDATA[بازی که می‌خواهید اجرا کنید برای بوت شدن یا عبور از منوی شروع نیاز به فیرمور دارد. لطفا <a href="https://yuzu-mirror.github.io/help/quickstart"> فیرمور را دامپ و نصب کنید</a> یا برای ادامه کار "تایید" را فشار دهید.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">در حال جستجوی بازی...</string>
+    <string name="game_not_found_for_title_id">بازی برای شناسه عنوان یافت نشد: %1$s</string>
+    <string name="custom_settings_failed_title">تنظیمات سفارشی ناموفق بود</string>
+    <string name="custom_settings_failed_message">اعمال تنظیمات سفارشی برای %1$s ناموفق بود: %2$s</string>
+    <string name="launch_with_default_settings">اجرا با تنظیمات پیش‌فرض</string>
+    <string name="launch_cancelled">اجرا لغو شد</string>
+    <string name="custom_settings_failure_reasons">قادر به اعمال تنظیمات درخواستی نیست. این ممکن است به دلیل عدم وجود درایورهای GPU یا مشکلات پیکربندی باشد.</string>
+    <string name="custom_settings_applied">تنظیمات سفارشی اعمال شد</string>
+    <string name="launching_game">در حال اجرای %1$s...</string>
+    <string name="failed_to_initialize_game">مشکل در مقداردهی اولیه بازی</string>
+    <string name="custom_intent_launch_message_with_settings">آیا می‌خواهید %1$s را با تنظیمات سفارشی اجرا کنید؟</string>
+    <string name="custom_intent_launch_message">آیا می‌خواهید %1$s را اجرا کنید؟</string>
+    <string name="custom_intent_launch_title">اجرای بازی</string>
+    <string name="launch">اجرا</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">نوشتن فایل پیکربندی ناموفق بود</string>
+    <string name="config_apply_failed">اعمال پیکربندی ناموفق بود</string>
+    <string name="config_already_exists_title">پیکربندی از قبل وجود دارد</string>
+    <string name="config_already_exists_message">تنظیمات سفارشی از قبل برای %1$s وجود دارد.\n\nآیا می‌خواهید پیکربندی موجود را بازنویسی کنید؟\n\nاین عمل قابل بازگشت نیست.</string>
+    <string name="config_exists_prompt">در حال بررسی پیکربندی موجود...</string>
+    <string name="overwrite_cancelled">بازنویسی لغو شد</string>
+    <string name="checking_driver">در حال بررسی درایور سفارشی: %1$s</string>
+    <string name="driver_unavailable">درایور سفارشی برای این دستگاه در دسترس نیست</string>
+    <string name="overwrite">بازنویسی</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">درایور GPU یافت نشد</string>
+    <string name="missing_gpu_driver_message">درایور سفارشی انتخاب شده \"%s\" نصب نشده است. آیا می‌خواهید هم اکنون آن را دانلود و نصب کنید؟</string>
+    <string name="downloading_driver">در حال دانلود درایور...</string>
+    <string name="driver_installed">درایور با موفقیت نصب شد</string>
+    <string name="driver_installation_failed_title">نصب درایور ناموفق بود</string>
+    <string name="driver_installation_failed_message">نصب درایور GPU ناموفق بود: %s</string>
+    <string name="driver_not_available_title">درایور در دسترس نیست</string>
+    <string name="driver_not_available_message">درایور انتخاب شده برای دانلود در دسترس نیست.</string>
+    <string name="driver_not_found">درایور مورد نیاز نصب نشده است: %s</string>
+    <string name="invalid_driver_file">فایل درایور نامعتبر: %s</string>
+    <string name="network_unavailable">اتصال شبکه در دسترس نیست. لطفاً اتصال اینترنت خود را بررسی کرده و مجدداً تلاش کنید.</string>
+    <string name="driver_missing_title">درایور GPU مورد نیاز است</string>
+    <string name="driver_missing_message">پیکربندی بازی به درایور GPU \"%s\" نیاز دارد که روی دستگاه شما نصب نیست.\n\nآیا می‌خواهید هم اکنون آن را دانلود و نصب کنید?</string>
+    <string name="driver_download_cancelled">دانلود درایور لغو شد. بازی بدون درایور مورد نیاز قابل اجرا نیست.</string>
+    <string name="download">دانلود</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">خروج از شبیه‌سازی</string>
     <string name="emulation_done">انجام شد</string>

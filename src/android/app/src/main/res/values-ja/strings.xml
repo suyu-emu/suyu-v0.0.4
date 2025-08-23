@@ -675,6 +675,50 @@
     <string name="loader_requires_firmware">ゲームにはファームウェアが必要です</string>
     <string name="loader_requires_firmware_description"><![CDATA[起動しようとしているゲームは、起動または開始メニューを通過するためにファームウェアが必要です。<a href="https://yuzu-mirror.github.io/help/quickstart"> ファームウェアをダンプしてインストール</a>するか、"OK"を押して続行してください。]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">ゲームを検索中...</string>
+    <string name="game_not_found_for_title_id">タイトルID: %1$s のゲームが見つかりません</string>
+    <string name="custom_settings_failed_title">カスタム設定の失敗</string>
+    <string name="custom_settings_failed_message">%1$s のカスタム設定の適用に失敗しました: %2$s</string>
+    <string name="launch_with_default_settings">デフォルト設定で起動</string>
+    <string name="launch_cancelled">起動がキャンセルされました</string>
+    <string name="custom_settings_failure_reasons">要求された設定を適用できません。GPUドライバーの不足または設定の問題が原因である可能性があります。</string>
+    <string name="custom_settings_applied">カスタム設定が適用されました</string>
+    <string name="launching_game">%1$s を起動中...</string>
+    <string name="failed_to_initialize_game">ゲームの初期化に失敗しました</string>
+    <string name="custom_intent_launch_message_with_settings">%1$s をカスタム設定で起動しますか？</string>
+    <string name="custom_intent_launch_message">%1$s を起動しますか？</string>
+    <string name="custom_intent_launch_title">ゲームを起動</string>
+    <string name="launch">起動</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">設定ファイルの書き込みに失敗しました</string>
+    <string name="config_apply_failed">設定の適用に失敗しました</string>
+    <string name="config_already_exists_title">設定が既に存在します</string>
+    <string name="config_already_exists_message">%1$s のカスタム設定は既に存在します。\n\n既存の設定を上書きしますか？\n\nこの操作は元に戻せません。</string>
+    <string name="config_exists_prompt">既存の設定を確認中...</string>
+    <string name="overwrite_cancelled">上書きがキャンセルされました</string>
+    <string name="checking_driver">カスタムドライバーを確認中: %1$s</string>
+    <string name="driver_unavailable">このデバイスではカスタムドライバーは利用できません</string>
+    <string name="overwrite">上書き</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPUドライバーが見つかりません</string>
+    <string name="missing_gpu_driver_message">選択したカスタムドライバー \"%s\" がインストールされていません。今すぐダウンロードしてインストールしますか？</string>
+    <string name="downloading_driver">ドライバーをダウンロード中...</string>
+    <string name="driver_installed">ドライバーが正常にインストールされました</string>
+    <string name="driver_installation_failed_title">ドライバーのインストールに失敗しました</string>
+    <string name="driver_installation_failed_message">GPUドライバーのインストールに失敗しました: %s</string>
+    <string name="driver_not_available_title">ドライバーが利用できません</string>
+    <string name="driver_not_available_message">選択したドライバーはダウンロードできません。</string>
+    <string name="driver_not_found">必要なドライバーがインストールされていません: %s</string>
+    <string name="invalid_driver_file">無効なドライバーファイル: %s</string>
+    <string name="network_unavailable">ネットワーク接続が利用できません。インターネット接続を確認してからもう一度お試しください。</string>
+    <string name="driver_missing_title">GPUドライバーが必要です</string>
+    <string name="driver_missing_message">ゲーム設定にはGPUドライバー \"%s\" が必要ですが、お使いのデバイスにインストールされていません。\n\n今すぐダウンロードしてインストールしますか？</string>
+    <string name="driver_download_cancelled">ドライバーのダウンロードがキャンセルされました。必要なドライバーがないとゲームを起動できません。</string>
+    <string name="download">ダウンロード</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">終了</string>
     <string name="emulation_done">完了</string>

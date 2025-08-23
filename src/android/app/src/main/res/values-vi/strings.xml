@@ -669,6 +669,50 @@
     <string name="loader_requires_firmware">Trò chơi yêu cầu firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[Trò chơi bạn đang cố khởi chạy yêu cầu firmware để khởi động hoặc vượt qua menu mở đầu. Vui lòng <a href="https://yuzu-mirror.github.io/help/quickstart"> dump và cài đặt firmware</a>, hoặc nhấn "OK" để tiếp tục dù sao đi nữa.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Đang tìm kiếm trò chơi...</string>
+    <string name="game_not_found_for_title_id">Không tìm thấy trò chơi cho ID Tiêu đề: %1$s</string>
+    <string name="custom_settings_failed_title">Cài đặt Tùy chỉnh Thất bại</string>
+    <string name="custom_settings_failed_message">Không thể áp dụng cài đặt tùy chỉnh cho %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Khởi chạy với Cài đặt Mặc định</string>
+    <string name="launch_cancelled">Đã hủy khởi chạy</string>
+    <string name="custom_settings_failure_reasons">Không thể áp dụng các cài đặt được yêu cầu. Điều này có thể do thiếu trình điều khiển GPU hoặc sự cố cấu hình.</string>
+    <string name="custom_settings_applied">Đã áp dụng cài đặt tùy chỉnh</string>
+    <string name="launching_game">Đang khởi chạy %1$s...</string>
+    <string name="failed_to_initialize_game">Không thể khởi tạo trò chơi</string>
+    <string name="custom_intent_launch_message_with_settings">Bạn có muốn khởi chạy %1$s với cài đặt tùy chỉnh không?</string>
+    <string name="custom_intent_launch_message">Bạn có muốn khởi chạy %1$s không?</string>
+    <string name="custom_intent_launch_title">Khởi chạy Trò chơi</string>
+    <string name="launch">Khởi chạy</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Không thể ghi tệp cấu hình</string>
+    <string name="config_apply_failed">Không thể áp dụng cấu hình</string>
+    <string name="config_already_exists_title">Cấu hình Đã Tồn tại</string>
+    <string name="config_already_exists_message">Cài đặt tùy chỉnh đã tồn tại cho %1$s.\n\nBạn có muốn ghi đè cấu hình hiện có không?\n\nHành động này không thể hoàn tác.</string>
+    <string name="config_exists_prompt">Đang kiểm tra cấu hình hiện có...</string>
+    <string name="overwrite_cancelled">Đã hủy ghi đè</string>
+    <string name="checking_driver">Đang kiểm tra trình điều khiển tùy chỉnh: %1$s</string>
+    <string name="driver_unavailable">Trình điều khiển tùy chỉnh không khả dụng cho thiết bị này</string>
+    <string name="overwrite">Ghi đè</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">Thiếu Trình điều khiển GPU</string>
+    <string name="missing_gpu_driver_message">Trình điều khiển tùy chỉnh được chọn \"%s\" chưa được cài đặt. Bạn có muốn tải xuống và cài đặt ngay bây giờ không?</string>
+    <string name="downloading_driver">Đang tải xuống trình điều khiển...</string>
+    <string name="driver_installed">Đã cài đặt trình điều khiển thành công</string>
+    <string name="driver_installation_failed_title">Cài đặt Trình điều khiển Thất bại</string>
+    <string name="driver_installation_failed_message">Không thể cài đặt trình điều khiển GPU: %s</string>
+    <string name="driver_not_available_title">Trình điều khiển Không khả dụng</string>
+    <string name="driver_not_available_message">Trình điều khiển được chọn không có sẵn để tải xuống.</string>
+    <string name="driver_not_found">Không tìm thấy trình điều khiển bắt buộc: %s</string>
+    <string name="invalid_driver_file">Tệp trình điều khiển không hợp lệ: %s</string>
+    <string name="network_unavailable">Không có kết nối mạng khả dụng. Vui lòng kiểm tra kết nối internet của bạn và thử lại.</string>
+    <string name="driver_missing_title">Yêu cầu Trình điều khiển GPU</string>
+    <string name="driver_missing_message">Cấu hình trò chơi yêu cầu trình điều khiển GPU \"%s\" chưa được cài đặt trên thiết bị của bạn.\n\nBạn có muốn tải xuống và cài đặt ngay bây giờ không?</string>
+    <string name="driver_download_cancelled">Đã hủy tải xuống trình điều khiển. Không thể khởi chạy trò chơi nếu thiếu trình điều khiển bắt buộc.</string>
+    <string name="download">Tải xuống</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Thoát giả lập</string>
     <string name="emulation_done">Hoàn tất</string>

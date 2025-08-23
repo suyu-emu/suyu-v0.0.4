@@ -666,6 +666,50 @@
     <string name="loader_requires_firmware">Spillet krever fastvare</string>
     <string name="loader_requires_firmware_description"><![CDATA[Spillet du prøver å starte krever fastvare for oppstart eller for å komme forbi startmenyen. Vennligst <a href="https://yuzu-mirror.github.io/help/quickstart"> dump og installer fastvare</a>, eller trykk "OK" for å fortsette likevel.]]></string>
 
+    <!-- Intent Launch strings -->
+    <string name="searching_for_game">Søker etter spill...</string>
+    <string name="game_not_found_for_title_id">Spill ikke funnet for tittel-ID: %1$s</string>
+    <string name="custom_settings_failed_title">Egendefinerte innstillinger mislyktes</string>
+    <string name="custom_settings_failed_message">Kunne ikke bruke egendefinerte innstillinger for %1$s: %2$s</string>
+    <string name="launch_with_default_settings">Start med standardinnstillinger</string>
+    <string name="launch_cancelled">Start avbrutt</string>
+    <string name="custom_settings_failure_reasons">Kan ikke bruke de forespurte innstillingene. Dette kan skyldes manglende GPU-drivere eller konfigurasjonsproblemer.</string>
+    <string name="custom_settings_applied">Egendefinerte innstillinger brukt</string>
+    <string name="launching_game">Starter %1$s...</string>
+    <string name="failed_to_initialize_game">Kunne ikke initialisere spillet</string>
+    <string name="custom_intent_launch_message_with_settings">Vil du starte %1$s med egendefinerte innstillinger?</string>
+    <string name="custom_intent_launch_message">Vil du starte %1$s?</string>
+    <string name="custom_intent_launch_title">Start spill</string>
+    <string name="launch">Start</string>
+
+    <!-- Custom Config strings -->
+    <string name="config_write_failed">Kunne ikke skrive konfigurasjonsfil</string>
+    <string name="config_apply_failed">Kunne ikke bruke konfigurasjon</string>
+    <string name="config_already_exists_title">Konfigurasjon finnes allerede</string>
+    <string name="config_already_exists_message">Egendefinerte innstillinger finnes allerede for %1$s.\n\nVil du overskrive den eksisterende konfigurasjonen?\n\nDenne handlingen kan ikke angres.</string>
+    <string name="config_exists_prompt">Sjekker for eksisterende konfigurasjon...</string>
+    <string name="overwrite_cancelled">Overskriving avbrutt</string>
+    <string name="checking_driver">Sjekker for egendefinert driver: %1$s</string>
+    <string name="driver_unavailable">Egendefinert driver ikke tilgjengelig for denne enheten</string>
+    <string name="overwrite">Overskriv</string>
+
+    <!-- Driver strings -->
+    <string name="missing_gpu_driver_title">GPU-driver mangler</string>
+    <string name="missing_gpu_driver_message">Den valgte egendefinerte driveren \"%s\" er ikke installert. Vil du laste ned og installere den nå?</string>
+    <string name="downloading_driver">Laster ned driver...</string>
+    <string name="driver_installed">Driver installert vellykket</string>
+    <string name="driver_installation_failed_title">Driverinstallasjon mislyktes</string>
+    <string name="driver_installation_failed_message">Kunne ikke installere GPU-driveren: %s</string>
+    <string name="driver_not_available_title">Driver ikke tilgjengelig</string>
+    <string name="driver_not_available_message">Den valgte driveren er ikke tilgjengelig for nedlasting.</string>
+    <string name="driver_not_found">Påkrevd driver ikke installert: %s</string>
+    <string name="invalid_driver_file">Ugyldig driverfil: %s</string>
+    <string name="network_unavailable">Ingen nettverkstilkobling tilgjengelig. Vennligst sjekk internettilkoblingen din og prøv på nytt.</string>
+    <string name="driver_missing_title">GPU-driver kreves</string>
+    <string name="driver_missing_message">Spillkonfigurasjonen krever GPU-driver \"%s\" som ikke er installert på enheten din.\n\nVil du laste ned og installere den nå?</string>
+    <string name="driver_download_cancelled">Driver-nedlasting avbrutt. Spillet kan ikke startes uten den påkrevde driveren.</string>
+    <string name="download">Last ned</string>
+
     <!-- Emulation Menu -->
     <string name="emulation_exit">Avslutt emulering</string>
     <string name="emulation_done">Ferdig</string>
