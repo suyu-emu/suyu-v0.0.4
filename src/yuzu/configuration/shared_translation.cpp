@@ -288,12 +288,16 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "and safe to set at 16x on most GPUs."));
     INSERT(Settings,
            gpu_accuracy,
-           tr("Accuracy Level:"),
-           tr("GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
+           tr("GPU Level:"),
+           tr("Controls the GPU emulation accuracy.\nMost games render fine with Normal, but High is still "
               "required for some.\nParticles tend to only render correctly with High "
               "accuracy.\nExtreme should only be used for debugging.\nThis option can "
               "be changed while playing.\nSome games may require booting on high to render "
               "properly."));
+    INSERT(Settings,
+           dma_accuracy,
+           tr("DMA Level:"),
+           tr("Controls the DMA precision accuracy. Higher precision can fix issues in some games, but it can also impact performance in some cases.\nIf unsure, leave it at Default."));
     INSERT(Settings,
            use_asynchronous_shaders,
            tr("Use asynchronous shader building (Hack)"),
@@ -521,6 +525,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent)
                               PAIR(GpuAccuracy, Normal, tr("Normal")),
                               PAIR(GpuAccuracy, High, tr("High")),
                               PAIR(GpuAccuracy, Extreme, tr("Extreme")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
+                          {
+                              PAIR(DmaAccuracy, Default, tr("Default")),
+                              PAIR(DmaAccuracy, Normal, tr("Normal")),
+                              PAIR(DmaAccuracy, High, tr("High")),
+                              PAIR(DmaAccuracy, Extreme, tr("Extreme")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),

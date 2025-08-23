@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Takty</string>
     <string name="skip_cpu_inner_invalidation">Pomiń wewnętrzne unieważnienie CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Pomija niektóre unieważnienia pamięci podręcznej po stronie CPU podczas aktualizacji pamięci, zmniejszając użycie CPU i poprawiając jego wydajność. Może powodować błędy lub awarie w niektórych grach.</string>
+    <string name="dma_accuracy">Poziom DMA</string>
+    <string name="dma_accuracy_description">Kontroluje dokładność precyzji DMA. Wyższy poziom może naprawić problemy w niektórych grach, ale może również wpłynąć na wydajność. Jeśli nie jesteś pewien, pozostaw wartość «Domyślny».</string>
 
     <string name="memory_4gb">4GB (Zalecane)</string>
     <string name="memory_6gb">6GB (Niebezpieczne)</string>
@@ -707,6 +709,7 @@
 
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Żadny</string>
@@ -715,6 +718,12 @@
     <string name="renderer_accuracy_normal">Normalny</string>
     <string name="renderer_accuracy_high">Wysoki</string>
     <string name="renderer_accuracy_extreme">Ekstremalny (Wolny)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">預設</string>
+    <string name="dma_accuracy_normal">普通</string>
+    <string name="dma_accuracy_high">高</string>
+    <string name="dma_accuracy_extreme">極高</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

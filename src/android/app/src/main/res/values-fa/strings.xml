@@ -126,6 +126,8 @@
     <string name="cpu_ticks">تیک‌ها</string>
     <string name="skip_cpu_inner_invalidation">رد کردن ابطال داخلی CPU</string>
     <string name="skip_cpu_inner_invalidation_description">بعضی ابطال‌های حافظه نهان در هنگام به‌روزرسانی‌های حافظه را رد می‌کند، استفاده از CPU را کاهش داده و عملکرد آن را بهبود می‌بخشد. ممکن است در برخی بازی‌ها باعث مشکلات یا خرابی شود.</string>
+    <string name="dma_accuracy">سطح DMA</string>
+    <string name="dma_accuracy_description">دقت صحت DMA را کنترل می کند. دقت بالاتر می تواند مشکلات برخی بازی ها را برطرف کند، اما در برخی موارد نیز می تواند بر عملکرد تأثیر بگذارد. اگر مطمئن نیستید، آن را روی پیش فرض بگذارید.</string>
 
     <string name="memory_4gb">4 گیگابایت (توصیه شده)</string>
     <string name="memory_6gb">6 گیگابایت (ناامن)</string>
@@ -817,6 +819,12 @@
     <string name="renderer_accuracy_normal">معمولی</string>
     <string name="renderer_accuracy_high">زیاد</string>
     <string name="renderer_accuracy_extreme">افراطی (کند)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">پیش فرض</string>
+    <string name="dma_accuracy_normal">معمولی</string>
+    <string name="dma_accuracy_high">بالا</string>
+    <string name="dma_accuracy_extreme">فوق العاده</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

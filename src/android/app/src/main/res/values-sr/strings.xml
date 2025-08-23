@@ -119,6 +119,8 @@
     <string name="cpu_ticks">Тактови</string>
     <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
     <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
+    <string name="dma_accuracy">DMA ниво</string>
+    <string name="dma_accuracy_description">Контролише тачност DMA прецизности. Виши ниво може да поправи проблеме у неким играма, али може и да утиче на перформансе. Ако нисте сигурни, оставите на «Подразумевано».</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Схадер Бацкенд</string>
@@ -863,6 +865,12 @@
     <string name="renderer_accuracy_normal">Нормалан</string>
     <string name="renderer_accuracy_high">Високо</string>
     <string name="renderer_accuracy_extreme">Екстремни (спор)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Подразумевано</string>
+    <string name="dma_accuracy_normal">Нормално</string>
+    <string name="dma_accuracy_high">Високо</string>
+    <string name="dma_accuracy_extreme">Екстремно</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">АСТЦ метода декодирања</string>

@@ -118,6 +118,8 @@
     <string name="cpu_ticks">時脈</string>
     <string name="skip_cpu_inner_invalidation">跳過CPU內部無效化</string>
     <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取無效化，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
+    <string name="dma_accuracy">DMA 級別</string>
+    <string name="dma_accuracy_description">控制 DMA 精確度。更高的精確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4GB (推薦)</string>
@@ -865,6 +867,12 @@
     <string name="renderer_accuracy_normal">標準</string>
     <string name="renderer_accuracy_high">高</string>
     <string name="renderer_accuracy_extreme">極高 (慢)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">預設</string>
+    <string name="dma_accuracy_normal">普通</string>
+    <string name="dma_accuracy_high">高</string>
+    <string name="dma_accuracy_extreme">極高</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

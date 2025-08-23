@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Такты</string>
     <string name="skip_cpu_inner_invalidation">Пропустить внутреннюю инвалидацию ЦП</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
+    <string name="dma_accuracy">Уровень DMA</string>
+    <string name="dma_accuracy_description">Управляет точностью DMA. Более высокий уровень может исправить проблемы в некоторых играх, но также может повлиять на производительность. Если не уверены, оставьте значение «По умолчанию».</string>
 
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
@@ -868,6 +870,12 @@
     <string name="renderer_accuracy_normal">Нормальная</string>
     <string name="renderer_accuracy_high">Высокая</string>
     <string name="renderer_accuracy_extreme">Экстрим (медленный)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">По умолчанию</string>
+    <string name="dma_accuracy_normal">Нормальный</string>
+    <string name="dma_accuracy_high">Высокий</string>
+    <string name="dma_accuracy_extreme">Экстремальный</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

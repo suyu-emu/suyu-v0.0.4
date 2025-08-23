@@ -603,6 +603,15 @@ abstract class SettingsItem(
                 )
             )
             put(
+                SingleChoiceSetting(
+                    IntSetting.DMA_ACCURACY,
+                    titleId = R.string.dma_accuracy,
+                    descriptionId = R.string.dma_accuracy_description,
+                    choicesId = R.array.dmaAccuracyNames,
+                    valuesId = R.array.dmaAccuracyValues
+                )
+            )
+            put(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     titleId = R.string.renderer_asynchronous_shaders,

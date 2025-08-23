@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
     <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+    <string name="dma_accuracy">DMA-Level</string>
+    <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Eine höhere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel auf „Standard“ belassen.</string>
 
     <string name="memory_4gb">4 GB (Empfohlen)</string>
     <string name="memory_6gb">6 GB (Unsicher)</string>
@@ -769,6 +771,12 @@ Wirklich fortfahren?</string>
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Hoch</string>
     <string name="renderer_accuracy_extreme">Extrem (Langsam)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Standard</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">Hoch</string>
+    <string name="dma_accuracy_extreme">Extrem</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

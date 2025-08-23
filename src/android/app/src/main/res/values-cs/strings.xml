@@ -125,6 +125,8 @@
     <string name="cpu_ticks">Takty</string>
     <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
+    <string name="dma_accuracy">Úroveň DMA</string>
+    <string name="dma_accuracy_description">Ovládá přesnost DMA. Vyšší přesnost může opravit problémy v některých hrách, ale může také ovlivnit výkon. Pokud si nejste jisti, ponechejte výchozí nastavení.</string>
 
     <string name="memory_4gb">4GB (Doporučeno)</string>
     <string name="memory_6gb">6GB (Nebezpečné)</string>
@@ -683,6 +685,12 @@
     <string name="renderer_accuracy_normal">Normální</string>
     <string name="renderer_accuracy_high">Vysoká</string>
     <string name="renderer_accuracy_extreme">Extrémní (Pomalé)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Výchozí</string>
+    <string name="dma_accuracy_normal">Normální</string>
+    <string name="dma_accuracy_high">Vysoká</string>
+    <string name="dma_accuracy_extreme">Extrémní</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

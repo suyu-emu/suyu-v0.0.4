@@ -127,6 +127,8 @@
     <string name="cpu_ticks">טיקים</string>
     <string name="skip_cpu_inner_invalidation">דלג על איפוס מטמון פנימי של המעבד</string>
     <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
+    <string name="dma_accuracy">רמת DMA</string>
+    <string name="dma_accuracy_description">שולטת בדיוק הדיוק של DMA. דיוק גבוה יותר יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר ברירת מחדל.</string>
 
     <string name="memory_4gb">4GB (מומלץ)</string>
     <string name="memory_6gb">6GB (לא בטוח)</string>
@@ -748,6 +750,12 @@
     <string name="renderer_accuracy_normal">רגיל</string>
     <string name="renderer_accuracy_high">גבוה</string>
     <string name="renderer_accuracy_extreme">אקסטרים (איטי)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">ברירת מחדל</string>
+    <string name="dma_accuracy_normal">רגיל</string>
+    <string name="dma_accuracy_high">גבוה</string>
+    <string name="dma_accuracy_extreme">קיצוני</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

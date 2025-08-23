@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Ignorar invalidação interna da CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Ignora algumas invalidações de cache do lado da CPU durante atualizações de memória, reduzindo a utilização da CPU e melhorando o desempenho. Pode causar falhas ou crashes em alguns jogos.</string>
+    <string name="dma_accuracy">Nível DMA</string>
+    <string name="dma_accuracy_description">Controla a precisão do DMA. Maior precisão pode corrigir problemas em alguns jogos, mas também pode afetar o desempenho nalguns casos. Se não tiver a certeza, deixe em Predefinido.</string>
 
     <string name="memory_4gb">4GB (Recomendado)</string>
     <string name="memory_6gb">6GB (Inseguro)</string>
@@ -867,6 +869,12 @@ uma tentativa de mapeamento automático</string>
     <string name="renderer_accuracy_normal">Normal</string>
     <string name="renderer_accuracy_high">Alto</string>
     <string name="renderer_accuracy_extreme">Estremo (Lento)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Predefinido</string>
+    <string name="dma_accuracy_normal">Normal</string>
+    <string name="dma_accuracy_high">Alto</string>
+    <string name="dma_accuracy_extreme">Extremo</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

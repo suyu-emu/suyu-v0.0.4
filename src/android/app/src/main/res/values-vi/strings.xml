@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Tích</string>
     <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+    <string name="dma_accuracy">Cấp độ DMA</string>
+    <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác cao hơn có thể sửa lỗi trong một số trò chơi, nhưng cũng có thể ảnh hưởng đến hiệu suất trong một số trường hợp. Nếu không chắc chắn, hãy để ở Mặc định.</string>
 
     <string name="memory_4gb">4GB (Được đề xuất)</string>
     <string name="memory_6gb">6GB (Không an toàn)</string>
@@ -701,6 +703,7 @@
     <string name="fatal_error">Lỗi nghiêm trọng</string>
     <string name="fatal_error_message">Đã xảy ra lỗi nghiêm trọng. Kiểm tra nhật ký để biết chi tiết.\nViệc tiếp tục giả lập có thể dẫn đến sự cố và lỗi.</string>
     <string name="performance_warning">Tắt cài đặt này sẽ làm giảm đáng kể hiệu suất giả lập! Để có trải nghiệm tốt nhất, bạn nên bật cài này.</string>
+
     <!-- Region Names -->
     <string name="region_japan">Nhật Bản</string>
     <string name="region_usa">Hoa Kỳ</string>
@@ -712,6 +715,7 @@
 
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Trống</string>
@@ -720,6 +724,12 @@
     <string name="renderer_accuracy_normal">Trung bình</string>
     <string name="renderer_accuracy_high">Khỏe</string>
     <string name="renderer_accuracy_extreme">Tối đa (Chậm)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Mặc định</string>
+    <string name="dma_accuracy_normal">Bình thường</string>
+    <string name="dma_accuracy_high">Cao</string>
+    <string name="dma_accuracy_extreme">Cực cao</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

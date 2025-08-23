@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Такти</string>
     <string name="skip_cpu_inner_invalidation">Пропустити внутрішнє інвалідування CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
+    <string name="dma_accuracy">Рівень DMA</string>
+    <string name="dma_accuracy_description">Керує точністю DMA. Вищий рівень може виправити проблеми в деяких іграх, але також може вплинути на продуктивність. Якщо не впевнені, залиште значення «Типово».</string>
 
     <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
     <string name="memory_6gb">6 ГБ (Небезпечно)</string>
@@ -734,6 +736,12 @@
     <string name="renderer_accuracy_normal">Нормальна</string>
     <string name="renderer_accuracy_high">Висока</string>
     <string name="renderer_accuracy_extreme">Екстрим (повільно)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">Типово</string>
+    <string name="dma_accuracy_normal">Нормальний</string>
+    <string name="dma_accuracy_high">Високий</string>
+    <string name="dma_accuracy_extreme">Екстремальний</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

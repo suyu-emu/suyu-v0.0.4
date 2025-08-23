@@ -126,6 +126,8 @@
     <string name="cpu_ticks">تیک</string>
     <string name="skip_cpu_inner_invalidation">بازنەکردنی ناوەکی CPU</string>
     <string name="skip_cpu_inner_invalidation_description">هەندێک لە بازنەکردنەکانی هەڵگر لە کاتی نوێکردنەوەی بیرگە دەنێرێت، کەمکردنەوەی بەکارهێنانی CPU و باشترکردنی کارایی. لەوانەیە لە هەندێک یاری کێشە درووست بکات.</string>
+    <string name="dma_accuracy">ئاستی DMA</string>
+    <string name="dma_accuracy_description">کۆنتڕۆڵی وردی ڕێکخستنی DMA دەکات. وردی زیاتر دەتوانێ هەندێک کێشە لە هەندێک یاری چارەسەر بکات، بەڵام لە هەندێک حاڵەتدا کاریگەری لەسەر کارایی هەیە. ئەگەر دڵنیا نیت، بە ڕێکخستنی بنەڕەتی بێڵە.</string>
 
     <string name="memory_4gb">4GB (پێشنیارکراو)</string>
     <string name="memory_6gb">6GB (نائاسایش)</string>
@@ -688,6 +690,7 @@
     <string name="fatal_error">هەڵەی کوشندە</string>
     <string name="fatal_error_message">هەڵەیەکی کوشندە ڕوویدا. بۆ وردەکارییەکان لۆگەکە بپشکنە.\nبەردەوامی ئیمولەیشن لەوانەیە ببێتە هۆی تێکچوون و فڕێدانەدەرەوە.</string>
     <string name="performance_warning">کوژاندنەوەی ئەم ڕێکخستنە دەبێتە هۆی کەمکردنەوەی کارایی ئیمولەیشن! بۆ باشترین ئەزموون، باشترە ئەم ڕێکخستنە چالاک بهێڵیتەوە.</string>
+
     <!-- Region Names -->
     <string name="region_japan">ژاپۆن</string>
     <string name="region_usa">ئەمریکا</string>
@@ -699,6 +702,7 @@
 
     <string name="memory_byte_shorthand">B</string>
     <string name="memory_gigabyte">GB</string>
+
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">ڤوڵکان</string>
     <string name="renderer_none">هیچ</string>
@@ -707,6 +711,12 @@
     <string name="renderer_accuracy_normal">ئاسایی</string>
     <string name="renderer_accuracy_high">بەرز</string>
     <string name="renderer_accuracy_extreme">ئەوپەڕ (خاو)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">بنەڕەتی</string>
+    <string name="dma_accuracy_normal">ئاسایی</string>
+    <string name="dma_accuracy_high">بەرز</string>
+    <string name="dma_accuracy_extreme">زۆر بەرز</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

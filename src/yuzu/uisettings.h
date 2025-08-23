@@ -270,6 +270,7 @@ Q_DECLARE_METATYPE(UISettings::GameDir*);
 // These metatype declarations cannot be in common/settings.h because core is devoid of QT
 Q_DECLARE_METATYPE(Settings::CpuAccuracy);
 Q_DECLARE_METATYPE(Settings::GpuAccuracy);
+Q_DECLARE_METATYPE(Settings::DmaAccuracy);
 Q_DECLARE_METATYPE(Settings::FullscreenMode);
 Q_DECLARE_METATYPE(Settings::NvdecEmulation);
 Q_DECLARE_METATYPE(Settings::ResolutionSetup);

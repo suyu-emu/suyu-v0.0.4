@@ -117,6 +117,8 @@
     <string name="cpu_ticks">دورات</string>
     <string name="skip_cpu_inner_invalidation">تخطي إبطال ذاكرة التخزين المؤقت الداخلية للوحدة المركزية</string>
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقت أثناء تحديثات الذاكرة، مما يقلل استخدام المعالج ويحسن أدائه. قد يسبب هذا أعطالاً أو تعطلًا في بعض الألعاب.</string>
+    <string name="dma_accuracy">مستوى DMA</string>
+    <string name="dma_accuracy_description">يتحكم في دقة تحديد مستوى DMA. الدقة الأعلى يمكنها إصلاح بعض المشاكل في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا كنت غير متأكد، اتركه على الوضع الافتراضي.</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4 جيجابايت (موصى به)</string>
@@ -740,6 +742,12 @@
     <string name="renderer_accuracy_normal">عادي</string>
     <string name="renderer_accuracy_high">عالي</string>
     <string name="renderer_accuracy_extreme">Extreme (بطيء)</string>
+
+    <!-- DMA Accuracy -->
+    <string name="dma_accuracy_default">افتراضي</string>
+    <string name="dma_accuracy_normal">عادي</string>
+    <string name="dma_accuracy_high">عالي</string>
+    <string name="dma_accuracy_extreme">مفرط</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
