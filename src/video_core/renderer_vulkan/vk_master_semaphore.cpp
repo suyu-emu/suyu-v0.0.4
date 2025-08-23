@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -129,11 +132,19 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
     const std::array cmdbuffers{*upload_cmdbuf, *cmdbuf};
 
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
+    // Pointers must be null when the count is zero (best-practices)
+    const VkSemaphore* p_wait_sems =
+        (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
+    const VkPipelineStageFlags* p_wait_masks =
+        (num_wait_semaphores > 0) ? wait_stage_masks.data() : nullptr;
+    const VkSemaphore* p_signal_sems =
+        (num_signal_semaphores > 0) ? signal_semaphores.data() : nullptr;
+    const u64 wait_zero = 0; // dummy for binary wait
     const VkTimelineSemaphoreSubmitInfo timeline_si{
         .sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
         .pNext = nullptr,
-        .waitSemaphoreValueCount = 0,
-        .pWaitSemaphoreValues = nullptr,
+        .waitSemaphoreValueCount = num_wait_semaphores,
+        .pWaitSemaphoreValues    = num_wait_semaphores ? &wait_zero : nullptr,
         .signalSemaphoreValueCount = num_signal_semaphores,
         .pSignalSemaphoreValues = signal_values.data(),
     };
@@ -141,12 +152,12 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = &timeline_si,
         .waitSemaphoreCount = num_wait_semaphores,
-        .pWaitSemaphores = &wait_semaphore,
-        .pWaitDstStageMask = wait_stage_masks.data(),
+        .pWaitSemaphores = p_wait_sems,
+        .pWaitDstStageMask = p_wait_masks,
         .commandBufferCount = static_cast<u32>(cmdbuffers.size()),
         .pCommandBuffers = cmdbuffers.data(),
         .signalSemaphoreCount = num_signal_semaphores,
-        .pSignalSemaphores = signal_semaphores.data(),
+        .pSignalSemaphores = p_signal_sems,
     };
 
     return device.GetGraphicsQueue().Submit(submit_info);
@@ -159,18 +170,24 @@ VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf,
     const u32 num_signal_semaphores = signal_semaphore ? 1 : 0;
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
 
+    const VkSemaphore* p_wait_sems =
+            (num_wait_semaphores > 0) ? &wait_semaphore : nullptr;
+    const VkPipelineStageFlags* p_wait_masks =
+        (num_wait_semaphores > 0) ? wait_stage_masks.data() : nullptr;
+    const VkSemaphore* p_signal_sems =
+        (num_signal_semaphores > 0) ? &signal_semaphore : nullptr;
     const std::array cmdbuffers{*upload_cmdbuf, *cmdbuf};
 
     const VkSubmitInfo submit_info{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
         .waitSemaphoreCount = num_wait_semaphores,
-        .pWaitSemaphores = &wait_semaphore,
-        .pWaitDstStageMask = wait_stage_masks.data(),
+        .pWaitSemaphores = p_wait_sems,
+        .pWaitDstStageMask = p_wait_masks,
         .commandBufferCount = static_cast<u32>(cmdbuffers.size()),
         .pCommandBuffers = cmdbuffers.data(),
         .signalSemaphoreCount = num_signal_semaphores,
-        .pSignalSemaphores = &signal_semaphore,
+        .pSignalSemaphores = p_signal_sems,
     };
 
     auto fence = GetFreeFence();
