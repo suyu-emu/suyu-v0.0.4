@@ -1002,7 +1002,10 @@ void RasterizerVulkan::UpdateDynamicStates() {
         }
     }
     if (features.has_dynamic_vertex_input) {
-        UpdateVertexInput(regs);
+        if (auto* gp = pipeline_cache.CurrentGraphicsPipeline();
+                gp && gp->HasDynamicVertexInput()) {
+            UpdateVertexInput(regs);
+        }
     }
 }
 

@@ -80,7 +80,8 @@ public:
         PipelineStatistics* pipeline_statistics, RenderPassCache& render_pass_cache,
         const GraphicsPipelineCacheKey& key, std::array<vk::ShaderModule, NUM_STAGES> stages,
         const std::array<const Shader::Info*, NUM_STAGES>& infos);
-
+    // True if this pipeline was created with VK_DYNAMIC_STATE_VERTEX_INPUT_EXT
+    bool HasDynamicVertexInput() const noexcept { return key.state.dynamic_vertex_input; }
     GraphicsPipeline& operator=(GraphicsPipeline&&) noexcept = delete;
     GraphicsPipeline(GraphicsPipeline&&) noexcept = delete;
 
