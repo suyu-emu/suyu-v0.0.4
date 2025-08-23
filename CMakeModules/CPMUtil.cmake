@@ -252,3 +252,171 @@ function(AddPackage)
         PARENT_SCOPE)
 
 endfunction()
+
+function(add_ci_package key)
+    set(ARTIFACT ${ARTIFACT_NAME}-${key}-${ARTIFACT_VERSION}.${ARTIFACT_EXT})
+
+    AddPackage(
+        NAME ${ARTIFACT_PACKAGE}-${key}
+        REPO ${ARTIFACT_REPO}
+        TAG v${ARTIFACT_VERSION}
+        VERSION ${ARTIFACT_VERSION}
+        ARTIFACT ${ARTIFACT}
+
+        KEY ${key}
+        HASH_SUFFIX sha512sum
+        BUNDLED_PACKAGE ON
+        DOWNLOAD_ONLY ON
+    )
+
+    if (NOT ARTIFACT_FORCE_DOWNLOAD OR ARTIFACT_OVERRIDE)
+        set(ARTIFACT_DIR ${${ARTIFACT_PACKAGE}-${key}_SOURCE_DIR} PARENT_SCOPE)
+    endif()
+endfunction()
+
+# TODO(crueter): doc
+function(AddCIPackage)
+    set(oneValueArgs
+        VERSION
+        NAME
+        REPO
+        PACKAGE
+        EXTENSION
+        FORCE_DOWNLOAD
+        MIN_VERSION
+        DISABLED_PLATFORMS
+        CMAKE_FILENAME
+        TARGET
+    )
+
+    cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "" ${ARGN})
+
+    if(NOT DEFINED PKG_ARGS_VERSION)
+        message(FATAL_ERROR "[CPMUtil] VERSION is required")
+    endif()
+    if(NOT DEFINED PKG_ARGS_NAME)
+        message(FATAL_ERROR "[CPMUtil] NAME is required")
+    endif()
+    if(NOT DEFINED PKG_ARGS_REPO)
+        message(FATAL_ERROR "[CPMUtil] REPO is required")
+    endif()
+    if(NOT DEFINED PKG_ARGS_PACKAGE)
+        message(FATAL_ERROR "[CPMUtil] PACKAGE is required")
+    endif()
+
+    if (NOT DEFINED PKG_ARGS_CMAKE_FILENAME)
+        set(ARTIFACT_CMAKE ${PKG_ARGS_NAME})
+    else()
+        set(ARTIFACT_CMAKE ${PKG_ARGS_CMAKE_FILENAME})
+    endif()
+
+    if(NOT DEFINED PKG_ARGS_EXTENSION)
+        set(ARTIFACT_EXT "tar.zst")
+    else()
+        set(ARTIFACT_EXT ${PKG_ARGS_EXTENSION})
+    endif()
+
+    if(NOT DEFINED PKG_ARGS_FORCE_DOWNLOAD)
+        set(ARTIFACT_FORCE_DOWNLOAD OFF)
+    else()
+        set(ARTIFACT_FORCE_DOWNLOAD ${PKG_ARGS_FORCE_DOWNLOAD})
+    endif()
+
+    if (DEFINED PKG_ARGS_MIN_VERSION)
+        set(ARTIFACT_MIN_VERSION ${PKG_ARGS_MIN_VERSION})
+    endif()
+
+    if (DEFINED PKG_ARGS_DISABLED_PLATFORMS)
+        set(DISABLED_PLATFORMS ${PKG_ARGS_DISABLED_PLATFORMS})
+    endif()
+
+    # this is mildly annoying
+    set(ARTIFACT_VERSION ${PKG_ARGS_VERSION})
+    set(ARTIFACT_NAME ${PKG_ARGS_NAME})
+    set(ARTIFACT_REPO ${PKG_ARGS_REPO})
+    set(ARTIFACT_PACKAGE ${PKG_ARGS_PACKAGE})
+
+    if ((MSVC AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
+        # kinda hacky
+        if(MSVC AND ARCHITECTURE_x86_64)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(windows-amd64)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if ((MSVC AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "windows-arm64" IN_LIST DISABLED_PLATFORMS)
+        if(MSVC AND ARCHITECTURE_arm64)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(windows-arm64)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if (ANDROID OR ARTIFACT_FORCE_DOWNLOAD AND NOT "android" IN_LIST DISABLED_PLATFORMS)
+        if(ANDROID)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(android)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if(PLATFORM_SUN OR ARTIFACT_FORCE_DOWNLOAD AND NOT "solaris" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_SUN)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(solaris)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if(PLATFORM_FREEBSD OR ARTIFACT_FORCE_DOWNLOAD AND NOT "freebsd" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_FREEBSD)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(freebsd)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_LINUX AND ARCHITECTURE_x86_64)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(linux)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if((PLATFORM_LINUX AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux-aarch64" IN_LIST DISABLED_PLATFORMS)
+        if(PLATFORM_LINUX AND ARCHITECTURE_arm64)
+            set(ARTIFACT_OVERRIDE ON)
+        endif()
+
+        add_ci_package(linux-aarch64)
+        set(ARTIFACT_OVERRIDE OFF)
+    endif()
+
+    if (DEFINED ARTIFACT_DIR)
+        if (NOT DEFINED PKG_ARGS_TARGET OR NOT TARGET "${PKG_ARGS_TARGET}")
+            include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
+
+            # Overrides find package
+            CPMAddPackage(
+                NAME ${ARTIFACT_PACKAGE}
+                SOURCE_DIR ${ARTIFACT_DIR}
+            )
+
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${ARTIFACT_NAME})
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/${ARTIFACT_REPO}") # TODO(crueter) other hosts?
+            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${ARTIFACT_VERSION})
+
+            set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
+        endif()
+    else()
+        find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)
+    endif()
+endfunction()

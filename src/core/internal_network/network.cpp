@@ -12,7 +12,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#elif defined(__unix__)
+#elif defined(__unix__) || defined(__APPLE__)
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -162,7 +162,7 @@ Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
     }
 }
 
-#elif defined(__unix__) // ^ _WIN32 v __unix__
+#elif defined(__unix__) || defined(__APPLE__) // ^ _WIN32 v __unix__
 
 using SOCKET = int;
 using WSAPOLLFD = pollfd;

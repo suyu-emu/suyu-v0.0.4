@@ -44,23 +44,17 @@ if (PLATFORM_FREEBSD)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
-# Check if SDL2::SDL2 target exists; if not, create an alias
-if (TARGET SDL2::SDL2-static)
-    add_library(SDL2::SDL2 ALIAS SDL2::SDL2-static)
-elseif (TARGET SDL2::SDL2-shared)
-    add_library(SDL2::SDL2 ALIAS SDL2::SDL2-shared)
-endif()
-
 # Set bundled sdl2/qt as dependent options.
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
-option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
+CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" OFF)
+
+set(EXT_DEFAULT ON)
 
 if (PLATFORM_FREEBSD)
-    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "ENABLE_SDL2;NOT MSVC" OFF)
-else()
-    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
+    set(EXT_DEFAULT OFF)
 endif()
+
+CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -78,29 +72,10 @@ option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" OFF)
-else()
-    option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON)
-endif()
-
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" OFF)
-else()
-    option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ON)
-endif()
-
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" OFF)
-else()
-    option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ON)
-endif()
-
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" OFF)
-else()
-    option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ON)
-endif()
+option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
 
@@ -116,17 +91,16 @@ option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
 option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
-if (PLATFORM_FREEBSD)
-    option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" OFF)
-else()
-    option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
-endif()
+option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
-option(FORCE_DOWNLOAD_OPENSSL "Forcefully download all bundled OpenSSL builds (useful for CI)" OFF)
+if (YUZU_USE_CPM AND ENABLE_SDL2)
+    option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
+    CMAKE_DEPENDENT_OPTION(FORCE_DOWNLOAD_SDL2 "Forcefully download all bundled SDL2 builds (useful for CI)" OFF "YUZU_USE_BUNDLED_SDL2" OFF)
+endif()
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
@@ -168,6 +142,11 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
+
+if (YUZU_USE_CPM AND ENABLE_OPENSSL)
+    CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" "${MSVC}" "NOT ANDROID" ON)
+    CMAKE_DEPENDENT_OPTION(FORCE_DOWNLOAD_OPENSSL "Forcefully download all bundled OpenSSL builds (useful for CI)" OFF "YUZU_USE_BUNDLED_OPENSSL" OFF)
+endif()
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
     set(vvl_version "sdk-1.3.261.1")
@@ -330,7 +309,7 @@ if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR APPLE OR PLATFORM_LINUX))
+if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_definitions(-DHAS_NCE=1)
 endif()
@@ -398,183 +377,18 @@ if (YUZU_USE_CPM)
 
     # openssl funniness
     if (ENABLE_OPENSSL)
-        set(SSL_VERSION 3.5.2)
-
-        if ((MSVC AND ARCHITECTURE_x86_64) OR FORCE_DOWNLOAD_OPENSSL)
-            set(ARTIFACT openssl-windows-amd64-${SSL_VERSION}.tar.zst)
-            set(KEY windows-amd64)
-
-            if (MSVC AND ARCHITECTURE_x86_64)
-                set(DOWNLOAD_ONLY OFF)
-                set(BUILD_SHARED_LIBS OFF)
-            else()
-                set(DOWNLOAD_ONLY ON)
-            endif()
-
-            AddPackage(
-                NAME OpenSSL-windows-amd64
-                REPO crueter/OpenSSL-CI
-                TAG v${SSL_VERSION}
-                VERSION ${SSL_VERSION}
-                ARTIFACT ${ARTIFACT}
-
-                KEY ${KEY}
-                HASH_SUFFIX sha512sum
-                BUNDLED_PACKAGE ON
-                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
+        if (YUZU_USE_BUNDLED_OPENSSL)
+            AddCIPackage(
+                PACKAGE OpenSSL
+                NAME openssl
+                REPO crueter-ci/OpenSSL
+                VERSION 3.5.2
+                MIN_VERSION 1.1.1
+                FORCE_DOWNLOAD ${FORCE_DOWNLOAD_OPENSSL}
             )
-
-            if (NOT DOWNLOAD_ONLY)
-                set(OPENSSL_DIR ${OpenSSL-windows-amd64_SOURCE_DIR})
-            endif()
-            message("OPENSSL ${DOWNLOAD_ONLY} ${OPENSSL_DIR}")
-
         endif()
 
-        if ((MSVC AND ARCHITECTURE_arm64) OR FORCE_DOWNLOAD_OPENSSL)
-            set(ARTIFACT openssl-windows-arm64-${SSL_VERSION}.tar.zst)
-            set(KEY windows-arm64)
-
-            if (MSVC AND ARCHITECTURE_arm64)
-                set(DOWNLOAD_ONLY OFF)
-                set(BUILD_SHARED_LIBS OFF)
-            else()
-                set(DOWNLOAD_ONLY ON)
-            endif()
-
-            AddPackage(
-                NAME OpenSSL-windows-arm64
-                REPO crueter/OpenSSL-CI
-                TAG v${SSL_VERSION}
-                VERSION ${SSL_VERSION}
-                ARTIFACT ${ARTIFACT}
-
-                KEY ${KEY}
-                HASH_SUFFIX sha512sum
-                BUNDLED_PACKAGE ON
-                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
-            )
-
-            if (NOT DOWNLOAD_ONLY)
-                set(OPENSSL_DIR ${OpenSSL-windows-arm64_SOURCE_DIR})
-            endif()
-        endif()
-
-        if (ANDROID OR FORCE_DOWNLOAD_OPENSSL)
-            if (ANDROID)
-                set(DOWNLOAD_ONLY OFF)
-                set(BUILD_SHARED_LIBS OFF)
-            else()
-                set(DOWNLOAD_ONLY ON)
-            endif()
-
-            AddPackage(
-                NAME OpenSSL-android
-                REPO crueter/OpenSSL-CI
-                TAG v${SSL_VERSION}
-                VERSION ${SSL_VERSION}
-                ARTIFACT openssl-android-${SSL_VERSION}.tar.zst
-
-                KEY android
-                HASH_SUFFIX sha512sum
-                BUNDLED_PACKAGE ON
-                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
-            )
-
-            if (NOT DOWNLOAD_ONLY)
-                set(OPENSSL_DIR ${OpenSSL-android_SOURCE_DIR})
-            endif()
-        endif()
-
-        if(PLATFORM_SUN OR FORCE_DOWNLOAD_OPENSSL)
-            if (PLATFORM_SUN)
-                set(DOWNLOAD_ONLY OFF)
-                set(BUILD_SHARED_LIBS OFF)
-            else()
-                set(DOWNLOAD_ONLY ON)
-            endif()
-
-            AddPackage(
-                NAME OpenSSL-solaris
-                REPO crueter/OpenSSL-CI
-                TAG v${SSL_VERSION}
-                VERSION ${SSL_VERSION}
-                ARTIFACT openssl-solaris-${SSL_VERSION}.tar.zst
-
-                KEY solaris
-                HASH_SUFFIX sha512sum
-                BUNDLED_PACKAGE ON
-                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
-            )
-
-            if (NOT DOWNLOAD_ONLY)
-                set(OPENSSL_DIR ${OpenSSL-solaris_SOURCE_DIR})
-            endif()
-        endif()
-
-        if(PLATFORM_FREEBSD OR FORCE_DOWNLOAD_OPENSSL)
-            if (PLATFORM_FREEBSD)
-                set(DOWNLOAD_ONLY OFF)
-                set(BUILD_SHARED_LIBS OFF)
-            else()
-                set(DOWNLOAD_ONLY ON)
-            endif()
-
-            AddPackage(
-                NAME OpenSSL-freebsd
-                REPO crueter/OpenSSL-CI
-                TAG v${SSL_VERSION}
-                VERSION ${SSL_VERSION}
-                ARTIFACT openssl-freebsd-${SSL_VERSION}.tar.zst
-
-                KEY freebsd
-                HASH_SUFFIX sha512sum
-                BUNDLED_PACKAGE ON
-                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
-            )
-
-            if (NOT DOWNLOAD_ONLY)
-                set(OPENSSL_DIR ${OpenSSL-freebsd_SOURCE_DIR})
-            endif()
-        endif()
-
-        if(PLATFORM_LINUX OR FORCE_DOWNLOAD_OPENSSL)
-            if (PLATFORM_LINUX)
-                set(DOWNLOAD_ONLY OFF)
-                set(BUILD_SHARED_LIBS OFF)
-            else()
-                set(DOWNLOAD_ONLY ON)
-            endif()
-
-            AddPackage(
-                NAME OpenSSL-linux
-                REPO crueter/OpenSSL-CI
-                TAG v${SSL_VERSION}
-                VERSION ${SSL_VERSION}
-                ARTIFACT openssl-linux-${SSL_VERSION}.tar.zst
-
-                KEY linux
-                HASH_SUFFIX sha512sum
-                BUNDLED_PACKAGE ON
-                DOWNLOAD_ONLY ${DOWNLOAD_ONLY}
-            )
-
-            if (NOT DOWNLOAD_ONLY)
-                set(OPENSSL_DIR ${OpenSSL-linux_SOURCE_DIR})
-            endif()
-        endif()
-
-        if (DEFINED OPENSSL_DIR)
-            include(${OPENSSL_DIR}/openssl.cmake)
-
-            # Overrides find package
-            CPMAddPackage(
-                NAME OpenSSL
-                SOURCE_DIR ${OPENSSL_DIR}
-            )
-        else()
-            find_package(OpenSSL 1.1.1 REQUIRED)
-        endif()
+        find_package(OpenSSL 1.1.1 REQUIRED)
     endif()
 
     # boost
@@ -589,6 +403,7 @@ if (YUZU_USE_CPM)
 
         GIT_VERSION 1.88.0
         VERSION 1.57
+        EXCLUDE_FROM_ALL ON
     )
 
     # really annoying thing where boost::headers doesn't work with cpm
@@ -619,6 +434,7 @@ if (YUZU_USE_CPM)
         VERSION 8
         OPTIONS
             "FMT_INSTALL OFF"
+        EXCLUDE_FROM_ALL ON
     )
 
     # lz4
@@ -628,6 +444,7 @@ if (YUZU_USE_CPM)
         SHA ebb370ca83
         HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
         SOURCE_SUBDIR build/cmake
+        EXCLUDE_FROM_ALL ON
     )
 
     if (lz4_ADDED)
@@ -641,6 +458,7 @@ if (YUZU_USE_CPM)
         SHA 55f93686c0
         HASH b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486
         VERSION 3.8
+        EXCLUDE_FROM_ALL ON
     )
 
     # zlib
@@ -681,6 +499,7 @@ if (YUZU_USE_CPM)
             SHA 644821ce28
             HASH f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f
             VERSION 3.0.1
+            EXCLUDE_FROM_ALL ON
         )
     endif()
 
@@ -692,6 +511,7 @@ if (YUZU_USE_CPM)
         VERSION 1.3
         HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
         FIND_PACKAGE_ARGUMENTS "MODULE"
+        EXCLUDE_FROM_ALL ON
     )
 
     if (enet_ADDED)
@@ -711,6 +531,7 @@ if (YUZU_USE_CPM)
             "OPUS_BUILD_PROGRAMS OFF"
             "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
             "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+        EXCLUDE_FROM_ALL ON
     )
 
     if(ENABLE_CUBEB)
@@ -725,6 +546,7 @@ if (YUZU_USE_CPM)
                 "BUILD_TESTS OFF"
                 "BUILD_TOOLS OFF"
                 "BUNDLE_SPEEX ON"
+            EXCLUDE_FROM_ALL ON
         )
 
         if (cubeb_ADDED)
@@ -786,6 +608,7 @@ if(NOT TARGET Boost::headers)
         SHA 0456900fad
         HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
         BUNDLED_PACKAGE ON
+        EXCLUDE_FROM_ALL ON
     )
 endif()
 
@@ -823,8 +646,8 @@ AddPackage(
     REPO brofield/simpleini
     SHA 09c21bda1d
     HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
-    EXCLUDE_FROM_ALL ON
     FIND_PACKAGE_ARGUMENTS "MODULE"
+    EXCLUDE_FROM_ALL ON
 )
 
 # TODO(crueter): Work around this
@@ -834,33 +657,66 @@ if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
-# TODO(crueter): combine this all with CPM.
 if (ENABLE_SDL2)
-    if (YUZU_USE_BUNDLED_SDL2)
-        # Detect toolchain and platform
-        if ((MSVC_VERSION GREATER_EQUAL 1920) AND ARCHITECTURE_x86_64)
-            set(SDL2_VER "SDL2-2.32.8")
-        else()
-            message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable YUZU_USE_BUNDLED_SDL2 and provide your own.")
-        endif()
-
-        if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" SDL2_PREFIX 2.32.8)
-        endif()
-
-        set(SDL2_FOUND YES)
-        set(SDL2_INCLUDE_DIR "${SDL2_PREFIX}/include" CACHE PATH "Path to SDL2 headers")
-        set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/x64/SDL2.lib" CACHE PATH "Path to SDL2 library")
-        set(SDL2_DLL_DIR "${SDL2_PREFIX}/lib/x64/" CACHE PATH "Path to SDL2.dll")
-
-        add_library(SDL2::SDL2 INTERFACE IMPORTED)
-        target_link_libraries(SDL2::SDL2 INTERFACE "${SDL2_LIBRARY}")
-        target_include_directories(SDL2::SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
-    elseif (YUZU_USE_EXTERNAL_SDL2)
+    # this was hard to get right, but ultimately I decided to make it so that FORCE_DOWNLOAD_SDL2 also downloads the
+    # external one. Really silly behavior imo but in the interest of getting something out there I'm leaving it for now
+    if (YUZU_USE_EXTERNAL_SDL2 OR FORCE_DOWNLOAD_SDL2)
         message(STATUS "Using SDL2 from externals.")
-    else()
-        find_package(SDL2 2.26.4 REQUIRED)
+        if (NOT WIN32)
+            # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
+            # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
+            # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+            # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
+            set(SDL_UNUSED_SUBSYSTEMS
+                File Filesystem
+                Locale Power Render)
+            foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
+              string(TOUPPER ${_SUB} _OPT)
+              set(SDL_${_OPT} OFF)
+            endforeach()
+
+            set(HIDAPI ON)
+        endif()
+
+        if (APPLE)
+            set(SDL_FILE ON)
+        endif()
+
+        if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
+            set(SDL_HASH cc016b0046)
+            set(SDL_PIPEWIRE OFF) # build errors out with this on
+            set(SDL_SHA512SUM 34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b)
+        else()
+            set(SDL_HASH 54772f345a)
+            set(SDL_SHA512SUM 2a68a0e01c390043aa9d9df63d8a20a52076c88bb460ac4e0f33194ca7d9bc8fadbbcc04e7506872ac4b6354a73fbc267c036f82200da59465789b87c7d9e3a4)
+        endif()
+
+        AddPackage(
+            NAME SDL2
+            REPO "libsdl-org/SDL"
+            SHA ${SDL_HASH}
+            HASH ${SDL_SHA512SUM}
+            KEY ${YUZU_SYSTEM_PROFILE}
+            BUNDLED_PACKAGE ON
+            EXCLUDE_FROM_ALL ON
+        )
     endif()
+
+    if (YUZU_USE_BUNDLED_SDL2)
+        message(STATUS "Using bundled SDL2")
+        AddCIPackage(
+            PACKAGE SDL2
+            NAME SDL2
+            REPO crueter-ci/SDL2
+            VERSION 2.32.8
+            MIN_VERSION 2.26.4
+            CMAKE_FILENAME sdl2
+            FORCE_DOWNLOAD ${FORCE_DOWNLOAD_SDL2}
+            TARGET "SDL2::SDL2"
+        )
+    endif()
+
+    find_package(SDL2 2.26.4 REQUIRED)
 endif()
 
 # List of all FFmpeg components required
@@ -903,7 +759,7 @@ if (ENABLE_WEB_SERVICE OR ENABLE_QT_UPDATE_CHECKER)
     find_package(cpp-jwt)
 endif()
 
-if (NOT YUZU_USE_BUNDLED_SDL2)
+if (ENABLE_SDL2)
     find_package(SDL2)
 endif()
 
@@ -925,7 +781,7 @@ if (ENABLE_QT)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        find_package(Qt6 REQUIRED COMPONENTS DBus GuiPrivate)
+        find_package(Qt6 REQUIRED COMPONENTS DBus OPTIONAL_COMPONENTS GuiPrivate)
     elseif (UNIX AND NOT APPLE)
         find_package(Qt6 REQUIRED COMPONENTS DBus Gui)
     endif()

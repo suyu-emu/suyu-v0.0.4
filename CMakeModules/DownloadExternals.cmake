@@ -49,9 +49,6 @@ function(download_win_archives)
 
     download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" "" 7.1.1)
 
-    # TODO(crueter): separate handling for arm64
-    set(SDL2_VER "SDL2-2.32.8")
-    download_bundled_external("sdl2/" ${SDL2_VER} "sdl2-bundled" "" 2.32.8)
     set(FORCE_WIN_ARCHIVES OFF)
 endfunction()
 

@@ -10,7 +10,7 @@
 
 #if defined(_WIN32)
 // windows
-#elif defined(__unix__)
+#elif defined(__unix__) || defined(__APPLE__)
 // unix
 #else
 // haiku
@@ -28,7 +28,7 @@ struct ProxyPacket;
 
 class SocketBase {
 public:
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
     using SOCKET = int;
     static constexpr SOCKET INVALID_SOCKET = -1;
     static constexpr SOCKET SOCKET_ERROR = -1;
