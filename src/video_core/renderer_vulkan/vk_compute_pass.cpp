@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -258,7 +261,7 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
             .pDescriptorUpdateEntries = templates.data(),
             .templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET,
             .descriptorSetLayout = *descriptor_set_layout,
-            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_COMPUTE,
             .pipelineLayout = *layout,
             .set = 0,
         });
