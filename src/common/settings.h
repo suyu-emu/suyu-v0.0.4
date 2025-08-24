@@ -538,12 +538,12 @@ struct Values {
     SwitchableSetting<u8, true> dyna_state{linkage,
 #if defined (_WIN32)
                                            3,
-#elif defined(__FreeBSD__)
+#elif defined (__FreeBSD__)
                                            3,
-#elif defined(__unix__)
-                                           2,
-#else
+#elif defined (ANDROID)
                                            0,
+#else
+                                           2,
 #endif
                                            0,
                                            3,
