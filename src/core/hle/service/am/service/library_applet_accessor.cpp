@@ -108,7 +108,7 @@ Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_stora
         caller_applet->lifecycle_manager.GetSystemEvent().Signal();
         caller_applet->lifecycle_manager.RequestResumeNotification();
         caller_applet->lifecycle_manager.GetSystemEvent().Clear();
-        caller_applet->lifecycle_manager.SignalSystemEventIfNeeded();
+        caller_applet->lifecycle_manager.UpdateRequestedFocusState();
     }
     R_RETURN(m_broker->GetOutData().Pop(out_storage.Get()));
 }
