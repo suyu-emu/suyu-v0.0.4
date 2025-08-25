@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -101,12 +104,12 @@ Result ILibraryAppletAccessor::PushInData(SharedPointer<IStorage> storage) {
 
 Result ILibraryAppletAccessor::PopOutData(Out<SharedPointer<IStorage>> out_storage) {
     LOG_DEBUG(Service_AM, "called");
-	if (auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
-		Event m_system_event = caller_applet->lifecycle_manager.GetSystemEvent();
-		m_system_event.Signal();
-		caller_applet->lifecycle_manager.RequestResumeNotification();
-		m_system_event.Clear();
-	}
+    if (auto caller_applet = m_applet->caller_applet.lock(); caller_applet) {
+        caller_applet->lifecycle_manager.GetSystemEvent().Signal();
+        caller_applet->lifecycle_manager.RequestResumeNotification();
+        caller_applet->lifecycle_manager.GetSystemEvent().Clear();
+        caller_applet->lifecycle_manager.SignalSystemEventIfNeeded();
+    }
     R_RETURN(m_broker->GetOutData().Pop(out_storage.Get()));
 }
 
