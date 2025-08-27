@@ -697,3 +697,29 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_space:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_space_shift:disabled {
     image: url(:/overlay/osk_button_Y_disabled.png);
 }
+
+/* QGroupBox --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qgroupbox
+
+--------------------------------------------------------------------------- */
+QGroupBox {
+  border: 1px solid #32414B;
+  border-radius: 4px;
+  margin-top: 22px;
+  padding: 2px;
+}
+
+QGroupBox::title {
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 2px;
+}
+
+QGroupBox::indicator {
+  margin-left: 2px;
+  height: 16px;
+  width: 16px;
+}

@@ -235,10 +235,9 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qgroupbox
 
 --------------------------------------------------------------------------- */
 QGroupBox {
-  font-weight: bold;
   border: 1px solid #32414B;
   border-radius: 4px;
-  margin-top: 12px;
+  margin-top: 20px;
   padding: 2px;
 }
 

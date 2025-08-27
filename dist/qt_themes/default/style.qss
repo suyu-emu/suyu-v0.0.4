@@ -95,6 +95,60 @@ QPushButton#button_reset_defaults {
     padding: 4px 8px;
 }
 
+/* QGroupBox --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qgroupbox
+
+--------------------------------------------------------------------------- */
+QGroupBox {
+  border: 1px solid #32414B;
+  border-radius: 4px;
+  margin-top: 20px;
+  padding: 2px;
+}
+
+QGroupBox::title {
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  padding-left: 3px;
+  padding-right: 5px;
+  padding-top: 2px;
+}
+
+QGroupBox::indicator {
+  margin-left: 2px;
+  height: 16px;
+  width: 16px;
+}
+
+QGroupBox::indicator:unchecked {
+  border: none;
+  image: url(":/qss_icons/rc/checkbox_unchecked.png");
+}
+
+QGroupBox::indicator:unchecked:hover, QGroupBox::indicator:unchecked:focus, QGroupBox::indicator:unchecked:pressed {
+  border: none;
+  image: url(":/qss_icons/rc/checkbox_unchecked_focus.png");
+}
+
+QGroupBox::indicator:unchecked:disabled {
+  image: url(":/qss_icons/rc/checkbox_unchecked_disabled.png");
+}
+
+QGroupBox::indicator:checked {
+  border: none;
+  image: url(":/qss_icons/rc/checkbox_checked.png");
+}
+
+QGroupBox::indicator:checked:hover, QGroupBox::indicator:checked:focus, QGroupBox::indicator:checked:pressed {
+  border: none;
+  image: url(":/qss_icons/rc/checkbox_checked_focus.png");
+}
+
+QGroupBox::indicator:checked:disabled {
+  image: url(":/qss_icons/rc/checkbox_checked_disabled.png");
+}
+
 QWidget#bottomPerGameInput,
 QWidget#topControllerApplet,
 QWidget#bottomControllerApplet,
