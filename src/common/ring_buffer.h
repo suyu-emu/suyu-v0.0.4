@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -37,10 +39,10 @@ public:
     /// @param slot_count  Number of slots to push
     /// @returns The number of slots actually pushed
     std::size_t Push(const void* new_slots, std::size_t slot_count) {
-        const std::size_t write_index = m_write_index.load();
-        const std::size_t slots_free = capacity + m_read_index.load() - write_index;
-        const std::size_t push_count = std::min(slot_count, slots_free);
+        std::lock_guard lock(rb_mutex);
 
+        const std::size_t slots_free = capacity + read_index - write_index;
+        const std::size_t push_count = std::min(slot_count, slots_free);
         const std::size_t pos = write_index % capacity;
         const std::size_t first_copy = std::min(capacity - pos, push_count);
         const std::size_t second_copy = push_count - first_copy;
@@ -50,8 +52,7 @@ public:
         in += first_copy * slot_size;
         std::memcpy(m_data.data(), in, second_copy * slot_size);
 
-        m_write_index.store(write_index + push_count);
-
+        write_index = write_index + push_count;
         return push_count;
     }
 
@@ -64,10 +65,10 @@ public:
     /// @param max_slots  Maximum number of slots to pop
     /// @returns The number of slots actually popped
     std::size_t Pop(void* output, std::size_t max_slots = ~std::size_t(0)) {
-        const std::size_t read_index = m_read_index.load();
-        const std::size_t slots_filled = m_write_index.load() - read_index;
-        const std::size_t pop_count = std::min(slots_filled, max_slots);
+        std::lock_guard lock(rb_mutex);
 
+        const std::size_t slots_filled = write_index - read_index;
+        const std::size_t pop_count = std::min(slots_filled, max_slots);
         const std::size_t pos = read_index % capacity;
         const std::size_t first_copy = std::min(capacity - pos, pop_count);
         const std::size_t second_copy = pop_count - first_copy;
@@ -77,8 +78,7 @@ public:
         out += first_copy * slot_size;
         std::memcpy(out, m_data.data(), second_copy * slot_size);
 
-        m_read_index.store(read_index + pop_count);
-
+        read_index = read_index + pop_count;
         return pop_count;
     }
 
@@ -90,29 +90,21 @@ public:
     }
 
     /// @returns Number of slots used
-    [[nodiscard]] std::size_t Size() const {
-        return m_write_index.load() - m_read_index.load();
+    [[nodiscard]] inline std::size_t Size() const {
+        return write_index - read_index;
     }
 
     /// @returns Maximum size of ring buffer
-    [[nodiscard]] constexpr std::size_t Capacity() const {
+    [[nodiscard]] consteval std::size_t Capacity() const {
         return capacity;
     }
 
 private:
-    // It is important to align the below variables for performance reasons:
-    // Having them on the same cache-line would result in false-sharing between them.
-    // TODO: Remove this ifdef whenever clang and GCC support
-    //       std::hardware_destructive_interference_size.
-#ifdef __cpp_lib_hardware_interference_size
-    alignas(std::hardware_destructive_interference_size) std::atomic_size_t m_read_index{0};
-    alignas(std::hardware_destructive_interference_size) std::atomic_size_t m_write_index{0};
-#else
-    alignas(128) std::atomic_size_t m_read_index{0};
-    alignas(128) std::atomic_size_t m_write_index{0};
-#endif
-
     std::array<T, capacity> m_data;
+    // This is wrong, a thread-safe ringbuffer is impossible.
+    std::size_t read_index{0};
+    std::size_t write_index{0};
+    std::mutex rb_mutex;
 };
 
 } // namespace Common
