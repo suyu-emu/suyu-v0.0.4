@@ -327,8 +327,13 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
             config.check_halt_on_memory_access = true;
         }
     } else {
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+        config.fastmem_pointer = std::nullopt;
+        config.fastmem_exclusive_access = false;
+#endif
         // Unsafe optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
+        switch(Settings::values.cpu_accuracy.GetValue()) {
+        case Settings::CpuAccuracy::Unsafe:
             config.unsafe_optimizations = true;
             if (Settings::values.cpuopt_unsafe_unfuse_fma) {
                 config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
@@ -345,20 +350,21 @@ std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* pa
             if (Settings::values.cpuopt_unsafe_ignore_global_monitor) {
                 config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
             }
-        }
-
+            break;
         // Curated optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
+        case Settings::CpuAccuracy::Auto:
             config.unsafe_optimizations = true;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             config.fastmem_address_space_bits = 64;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
-        }
-
+            break;
         // Paranoia mode for debugging optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Paranoid) {
+        case Settings::CpuAccuracy::Paranoid:
             config.unsafe_optimizations = false;
             config.optimizations = Dynarmic::no_optimizations;
+            break;
+        default:
+            break;
         }
     }
 
