@@ -28,7 +28,7 @@ TEST_CASE("A64: ADD", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 3);
     REQUIRE(jit.GetRegister(1) == 1);
@@ -54,7 +54,7 @@ TEST_CASE("A64: ADD{V,P}", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(1) == Vector{0x0000000000000008, 0x0000000000000000});
     REQUIRE(jit.GetVector(2) == Vector{0x0000000000000010, 0x0000000000000000});
@@ -79,9 +79,8 @@ TEST_CASE("A64: CLZ", "[a64]") {
     jit.SetVector(0, {0xeff0fafbfcfdfeff, 0xff7f3f1f0f070301});
     jit.SetVector(1, {0xfffcfffdfffeffff, 0x000F000700030001});
     jit.SetVector(2, {0xfffffffdfffffffe, 0x0000000300000001});
-
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(3) == Vector{0x0, 0x0001020304050607});
     REQUIRE(jit.GetVector(4) == Vector{0x0, 0x000c000d000e000f});
@@ -106,7 +105,7 @@ TEST_CASE("A64: UADDL{V,P}", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(1) == Vector{0x00000000000007f8, 0x0000000000000000});
     REQUIRE(jit.GetVector(2) == Vector{0x0000000000000ff0, 0x0000000000000000});
@@ -134,7 +133,7 @@ TEST_CASE("A64: SADDL{V,P}", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(1) == Vector{0x000000000000fff8, 0x0000000000000000});
     REQUIRE(jit.GetVector(2) == Vector{0x000000000000fff0, 0x0000000000000000});
@@ -165,7 +164,7 @@ TEST_CASE("A64: VQADD", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xff8fff7ffffe7f7f, 0xffffffffffffffff});
     REQUIRE(jit.GetVector(3) == Vector{0xff7f7e7fff7f7f7f, 0xffffffffffffffff});
@@ -198,7 +197,7 @@ TEST_CASE("A64: VQSUB", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0x0100800001000000, 0x0100000001000100});
     REQUIRE(jit.GetVector(3) == Vector{0x8091808180008181, 0x8001010180018001});
@@ -225,7 +224,7 @@ TEST_CASE("A64: REV", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x11ffeeddccbbaa);
     REQUIRE(jit.GetRegister(1) == 0xddccbbaa);
@@ -245,7 +244,7 @@ TEST_CASE("A64: REV32", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0xddccbbaa0011ffee);
     REQUIRE(jit.GetPC() == 4);
 }
@@ -266,7 +265,7 @@ TEST_CASE("A64: REV16", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 0xbbaaddccffee0011);
     REQUIRE(jit.GetRegister(1) == 0xbbaaddcc);
     REQUIRE(jit.GetPC() == 8);
@@ -299,7 +298,7 @@ TEST_CASE("A64: SSHL", "[a64]") {
     jit.SetVector(17, {0x8000000000000000, 0xFFFFFFFFFFFFFFFF});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(4) == Vector{0xfffffefcf8f0e0c0, 0x0080e0f0f8fcfeff});
     CHECK(jit.GetVector(5) == Vector{0xf800f000e000c000, 0xfff0fff8fffcfffe});
@@ -344,7 +343,7 @@ TEST_CASE("A64: USHL", "[a64]") {
     jit.SetVector(17, {0x8000000000000000, 0x0000000000000001});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(4) == Vector{0x003f000000000000, 0x0080e0f0f8fcfeff});
     CHECK(jit.GetVector(14) == Vector{0x0000000102040810});
@@ -380,7 +379,7 @@ TEST_CASE("A64: URSHL", "[a64]") {
     jit.SetVector(11, Vector{0xffffffffffffffc1, 0x00555555555555f5});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == Vector{0x00000001'53500000, 0x00000001'00000000});
     CHECK(jit.GetVector(3) == Vector{0x00000001'00000002, 0x80000000'fffffffe});
@@ -406,7 +405,7 @@ TEST_CASE("A64: XTN", "[a64]") {
     jit.SetVector(2, {0x0000000000000000, 0x1111111111111111});
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(3) == Vector{0x7766554433221100, 0x0000000000000000});
     REQUIRE(jit.GetVector(4) == Vector{0x3333222211110000, 0x0000000000000000});
@@ -449,7 +448,7 @@ TEST_CASE("A64: TBL", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x001122334455'00'77, 0x0000000000000000});
     REQUIRE(jit.GetVector(1) == Vector{0x001122334455'00'77, 0x8899aabbccddeeff});
@@ -497,7 +496,7 @@ TEST_CASE("A64: TBX", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 9;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x001122334455'FF'77, 0x0000000000000000});
     REQUIRE(jit.GetVector(1) == Vector{0x001122334455'FF'77, 0x8899aabbccddeeff});
@@ -524,7 +523,7 @@ TEST_CASE("A64: AND", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 1);
     REQUIRE(jit.GetRegister(1) == 1);
@@ -546,7 +545,7 @@ TEST_CASE("A64: Bitmasks", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x01010101);
     REQUIRE(jit.GetRegister(1) == 0x00F000F0);
@@ -570,7 +569,7 @@ TEST_CASE("A64: ANDS NZCV", "[a64]") {
         jit.SetPC(0);
 
         env.ticks_left = 2;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(0) == 0xFFFFFFFF);
         REQUIRE(jit.GetRegister(1) == 0xFFFFFFFF);
@@ -586,7 +585,7 @@ TEST_CASE("A64: ANDS NZCV", "[a64]") {
         jit.SetPC(0);
 
         env.ticks_left = 2;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(0) == 0x00000000);
         REQUIRE(jit.GetRegister(1) == 0xFFFFFFFF);
@@ -601,7 +600,7 @@ TEST_CASE("A64: ANDS NZCV", "[a64]") {
         jit.SetPC(0);
 
         env.ticks_left = 2;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(0) == 0x12240010);
         REQUIRE(jit.GetRegister(1) == 0x12345678);
@@ -628,7 +627,7 @@ TEST_CASE("A64: CBZ", "[a64]") {
         jit.SetRegister(0, 1);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 1);
         REQUIRE(jit.GetPC() == 8);
@@ -639,7 +638,7 @@ TEST_CASE("A64: CBZ", "[a64]") {
         jit.SetRegister(0, 0);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 2);
         REQUIRE(jit.GetPC() == 16);
@@ -663,7 +662,7 @@ TEST_CASE("A64: TBZ", "[a64]") {
         jit.SetRegister(0, 0xFF);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 1);
         REQUIRE(jit.GetPC() == 8);
@@ -674,7 +673,7 @@ TEST_CASE("A64: TBZ", "[a64]") {
         jit.SetRegister(0, 0);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 2);
         REQUIRE(jit.GetPC() == 16);
@@ -685,7 +684,7 @@ TEST_CASE("A64: TBZ", "[a64]") {
         jit.SetRegister(0, 1);
 
         env.ticks_left = 4;
-        jit.Run();
+        CheckedRun([&]() { jit.Run(); });
 
         REQUIRE(jit.GetRegister(2) == 2);
         REQUIRE(jit.GetPC() == 16);
@@ -706,7 +705,7 @@ TEST_CASE("A64: FABD", "[a64]") {
     jit.SetVector(21, {0x56d3f085ff890e2b, 0x6e4b0a41801a2d00});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(22) == Vector{0x56d3f0857fc90e2b, 0x6e4b0a4144873176});
 }
@@ -728,7 +727,7 @@ TEST_CASE("A64: FABS", "[a64]") {
     jit.SetVector(2, {0xffffffffffffffff, 0x8000000000000000});
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(4) == Vector{0x7fff7fff7fff7fff, 0x7fff7fff7fff0000});
     REQUIRE(jit.GetVector(5) == Vector{0x7fbfffff7fc00000, 0x7f80000000000000});
@@ -753,7 +752,7 @@ TEST_CASE("A64: FMIN (example)", "[a64]") {
     jit.SetVector(3, {0xbff0000000000000, 0x6e4b0a41ffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7fc00000'00000001, 0x00000000'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0xbff0000000000000, 0x3ff0000000000000});
@@ -777,7 +776,7 @@ TEST_CASE("A64: FMAX (example)", "[a64]") {
     jit.SetVector(3, {0xbff0000000000000, 0x6e4b0a41ffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7fc00000'09503366, 0x6e4b0a41'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0x7fc0000009503366, 0x6e4b0a41ffffffff});
@@ -801,7 +800,7 @@ TEST_CASE("A64: FMINNM (example)", "[a64]") {
     jit.SetVector(3, {0xfff0000000000000, 0xffffffffffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0xc1200000'00000001, 0x00000000'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0xfff0000000000000, 0x3ff0000000000000});
@@ -825,7 +824,7 @@ TEST_CASE("A64: FMAXNM (example)", "[a64]") {
     jit.SetVector(3, {0xfff0000000000000, 0xffffffffffffffff});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0xc1200000'09503366, 0x6e4b0a41'7fd84a37});
     REQUIRE(jit.GetVector(2) == Vector{0x7fc0000009503366, 0x3ff0000000000000});
@@ -846,7 +845,7 @@ TEST_CASE("A64: FMAXNM (example 2)", "[a64]") {
     jit.SetVector(27, {0xbc48d091'c79b271e, 0xff800001'3304c3ef});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(29) == Vector{0xb485877c'42280000, 0xffc00001'3304c3ef});
 }
@@ -876,7 +875,7 @@ TEST_CASE("A64: 128-bit exclusive read/write", "[a64]") {
     jit.SetRegister(6, 0xd0d0cacad0d0caca);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(1) == 0x7f7e7d7c7b7a7978);
     REQUIRE(jit.GetRegister(2) == 0x8786858483828180);
@@ -903,7 +902,7 @@ TEST_CASE("A64: CNTPCT_EL0", "[a64]") {
     env.code_mem.emplace_back(0x14000000);  // B .
 
     env.ticks_left = 10;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(3) == 7);
 }
@@ -923,7 +922,7 @@ TEST_CASE("A64: FNMSUB 1", "[a64]") {
     jit.SetVector(2, {0x0000000000000000, 0xc79b271e3f000000});
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(28) == Vector{0x66ca513533ee6076, 0x0000000000000000});
 }
@@ -944,7 +943,7 @@ TEST_CASE("A64: FNMSUB 2", "[a64]") {
     jit.SetFpcr(0x00400000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(14) == Vector{0x0000000080045284, 0x0000000000000000});
 }
@@ -965,7 +964,7 @@ TEST_CASE("A64: FMADD", "[a64]") {
     jit.SetFpcr(0x00400000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(10) == Vector{0x3f059921bf0dbfff, 0x0000000000000000});
 }
@@ -992,7 +991,7 @@ TEST_CASE("A64: FMLA.4S(lane)", "[a64]") {
     jit.SetVector(15, {0x3ff00000'40000000, 0x40400000'40800000});
 
     env.ticks_left = 5;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x40b4000040b40000, 0x4070000040700000});
     REQUIRE(jit.GetVector(1) == Vector{0x40ac800040ac8000, 0x4061000040610000});
@@ -1017,7 +1016,7 @@ TEST_CASE("A64: FMUL.4S(lane)", "[a64]") {
     jit.SetVector(15, {0x3ff00000'40000000, 0x40400000'40800000});
 
     env.ticks_left = 5;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x4070000040700000, 0x4070000040700000});
     REQUIRE(jit.GetVector(1) == Vector{0x4061000040610000, 0x4061000040610000});
@@ -1041,7 +1040,7 @@ TEST_CASE("A64: FMLA.4S (denormal)", "[a64]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(12) == Vector{0x7ff800007fc00000, 0xbff0000068e8e581});
 }
@@ -1062,7 +1061,7 @@ TEST_CASE("A64: FMLA.4S (0x80800000)", "[a64]") {
     jit.SetFpcr(0x03000000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(11) == Vector{0xc79b271e7fc00000, 0x7fc0000080000000});
 }
@@ -1086,7 +1085,7 @@ TEST_CASE("A64: FMADD (0x80800000)", "[a64]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(25) == Vector{0x80000000, 0});
 }
@@ -1106,7 +1105,7 @@ TEST_CASE("A64: FNEG failed to zero upper", "[a64]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 6;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(28) == Vector{0x79ee7a03980db670, 0});
     REQUIRE(FP::FPSR{jit.GetFpsr()}.QC() == false);
@@ -1131,7 +1130,7 @@ TEST_CASE("A64: FRSQRTS", "[a64]") {
     jit.SetFpcr(0x00400000);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(13) == Vector{0xff7fffff, 0});
 }
@@ -1153,7 +1152,7 @@ TEST_CASE("A64: SQDMULH.8H (saturate)", "[a64]") {
     jit.SetFpsr(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7ffe7fff7ffc7ffe, 0x8001800180028002});
     REQUIRE(FP::FPSR{jit.GetFpsr()}.QC() == true);
@@ -1176,7 +1175,7 @@ TEST_CASE("A64: SQDMULH.4S (saturate)", "[a64]") {
     jit.SetFpsr(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x7ffffffe7fffffff, 0x8000000180000001});
     REQUIRE(FP::FPSR{jit.GetFpsr()}.QC() == true);
@@ -1197,7 +1196,7 @@ TEST_CASE("A64: This is an infinite loop if fast dispatch is enabled", "[a64]") 
     env.code_mem.emplace_back(0x14000000);  // B .
 
     env.ticks_left = 6;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: EXTR", "[a64]") {
@@ -1214,7 +1213,7 @@ TEST_CASE("A64: EXTR", "[a64]") {
     jit.SetRegister(24, 1);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(23) == 0);
 }
@@ -1249,7 +1248,7 @@ TEST_CASE("A64: Isolated GetNZCVFromOp", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 20;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: Optimization failure when folding ADD", "[a64]") {
@@ -1302,7 +1301,7 @@ TEST_CASE("A64: Optimization failure when folding ADD", "[a64]") {
     jit.SetPstate(0x30000000);
 
     env.ticks_left = 6;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x46e15845dba57924);
     REQUIRE(jit.GetRegister(1) == 0x6f60d04350581fea);
@@ -1365,7 +1364,7 @@ TEST_CASE("A64: Cache Maintenance Instructions", "[a64]") {
     env.code_mem.emplace_back(0x14000000);  // B .
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 }
 
 TEST_CASE("A64: Memory access (fastmem)", "[a64]") {
@@ -1408,7 +1407,7 @@ TEST_CASE("A64: Memory access (fastmem)", "[a64]") {
     jit.SetPstate(0x30000000);
     env.ticks_left = 5;
 
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(strncmp(backing_memory + 0x100, backing_memory + 0x1F0, 23) == 0);
 }
 
@@ -1428,7 +1427,7 @@ TEST_CASE("A64: SQRDMULH QC flag when output invalidated", "[a64]") {
     jit.SetFpcr(0x05400000);
 
     env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetFpsr() == 0x08000000);
     REQUIRE(jit.GetVector(11) == Vector{0xb4cb'4fec'8563'1032, 0x0000'0000'0000'0000});
@@ -1449,7 +1448,7 @@ TEST_CASE("A64: SDIV maximally", "[a64]") {
     jit.SetPC(0);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0xffffffffffffffff);
     REQUIRE(jit.GetRegister(1) == 0x8000000000000000);
@@ -1540,7 +1539,7 @@ TEST_CASE("A64: rand1", "[a64]") {
     jit.SetFpcr(0x01080000);
 
     env.ticks_left = 16;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetRegister(0) == 0x67e1d59cc30a788c);
     REQUIRE(jit.GetRegister(1) == 0x0e771a2a79dfb060);
@@ -1575,15 +1574,67 @@ TEST_CASE("A64: rand1", "[a64]") {
     REQUIRE(jit.GetRegister(30) == 0x9a5d96aa066e5c39);
 }
 
-TEST_CASE("A64: rand2", "[a64][.]") {
-    A64TestEnv env;
-    A64::UserConfig jit_user_config{};
-    jit_user_config.callbacks = &env;
-    jit_user_config.fastmem_pointer = 0xffffffff00000000;
-    A64::Jit jit{jit_user_config};
+TEST_CASE("A64: rand3", "[a64]") {
+    constexpr size_t address_width = 12;
+    constexpr size_t memory_size = 1ull << address_width;  // 4K
+    constexpr size_t page_size = 4 * 1024;
+    constexpr size_t buffer_size = 2 * page_size;
+    char buffer[buffer_size];
 
-    env.code_mem = {0xea80f352, 0x6e65e59d, 0x1e20c343, 0x2e3a7192, 0x2e267249, 0xd500405f, 0x6f01f461, 0x6eb684fc, 0x58028edd, 0x0ea5f5b6, 0x0ea069fb, 0x2e769517, 0x5e066063, 0x1e65c3f5, 0x4f00ff52, 0x93401cf6, 0x1e274248, 0x6f67aaf5, 0x5e0c0782, 0x5ef43f3c, 0x2e6595b7, 0x4e20590f, 0xb35aa451, 0x6ee2c5ed, 0x4e32bf46, 0x2ea1ba8f, 0x2f68a85e, 0x9237d90a, 0x5e23dd10, 0x0e762e32, 0x4e31a8cf, 0xce1f3360, 0x781a4ac0, 0x13834066, 0x5fa8101c, 0x6f7c5594, 0x0e71bb68, 0xbc0b3e8f, 0x785dbbda, 0x6f51e794, 0xce50af75, 0x1ad728ec, 0x6ee0da4c, 0xb84efa14, 0x2eb3f613, 0x4e287ade, 0x4eb8c734, 0x2e83f4e8, 0x0e397c80, 0xd08f93f8, 0xce718e48, 0x0f672a0d, 0x2e9edd40, 0x0e14128b, 0x6f5942e6, 0x8b3a0f03, 0x3c5d16b9, 0x7f7e3743, 0x4f4c54e4, 0x0ea0a9e9, 0x9e59dbe6, 0x6e7ddcd3, 0xcec08377, 0x9ba759f8, 0x2ea5046e, 0x0e24c569, 0xb8979780, 0x4e31b98c, 0x4efe4f46, 0x4ea7c762, 0x7e61c9c6, 0x6e30c880, 0x1ada0c25, 0x4e603a2f, 0xda9d7218, 0x0d40c5d9, 0x5e214b05, 0x9ba9efc5, 0x5e61b81e, 0x6e7bc31c, 0x0e61a163, 0x9e5832d2, 0x4e772248, 0x4e3d17c8, 0x92624f60, 0x7a1a02dc, 0x79891f65, 0x6eb45036, 0x0e321ee8, 0x4e2566f0, 0x4ea02b9b, 0x0f9dcb3d, 0x2e21b9f9, 0x0e21a8c3, 0xda1700bd, 0x6ea0fb38, 0x7e607a0b, 0x72845817, 0x7f61068e, 0x0d60e529, 0x4ea0ca5c, 0x1a94b20f, 0x8b87419d, 0x7ea9ed71, 0x2ea1a86e, 0x4d40c4da, 0x5ea0eada, 0x784ba96e, 0x7eb6ee02, 0x3db1c710, 0x0e217836, 0x7ee0bb96, 0x4e786c08, 0x4e976a08, 0x489ffe86, 0x4e79fc9b, 0x0e21cbce, 0x5ef7fc65, 0x4ea1286d, 0xd29c771e, 0x6f5c2839, 0x0ea00a9d, 0x6ee44c06, 0x5ee1d858, 0x5ef2fda6, 0x7eb0c9fe, 0x7f762791, 0x2e212ae6, 0x4e61c9db, 0x13003c57, 0x5ee1b8f8, 0x0f2396d2, 0x6ea0db1e, 0x0e71ba82, 0xab29c807, 0x6ef8f8b3, 0x1f18d4a1, 0x0e261d15, 0x1e290081, 0x1b0c7d12, 0x4e7771c3, 0xf845f1e4, 0x4d40c9e8, 0xce778452, 0x6eb9879d, 0x6e21c93d, 0xcec0829f, 0x52a0969f, 0x1e772b4f, 0x7ee1da88, 0x5f52fe0a, 0x7f3387b1, 0x5e214850, 0x1e65c025, 0x0e2ca294, 0x2e614829, 0x1e640077, 0x9e240048, 0x4ebe9537, 0x9bb7925e, 0x38b669c5, 0x2840d089, 0x6f43e648, 0x2e662d28, 0x4eabaff3, 0x6e734cc7, 0x0e31baee, 0x7ee0d93c, 0x5e282bde, 0x7e21bba4, 0x4e6c75fa, 0x5ac01217, 0x7f4304af, 0x1e7878ed, 0x1ada2196, 0x7ee1aba3, 0x93407f3c, 0x4f6c34eb, 0x6e3447a9, 0x7e7ae545, 0x5e0802bb, 0x6eeae63a, 0x7ee1da62, 0x5e280bb3, 0xf81d4009, 0x1e603b21, 0x5e281a14, 0x6eb0a99b, 0x1e266a25, 0x0d60cafe, 0x0e0b6194, 0x7a4ed2c5, 0x92b762ec, 0x4e6b5749, 0x3c16a6e5, 0x4ea0a92b, 0x0fa58b6a, 0x5f76148c, 0x6e30c95f, 0x1e6540fd, 0x5e28e40f, 0x0d403fd4, 0x7e30da36, 0x7fda9b51, 0x2ea04bde, 0x1e25c3d2, 0x1ee0434c, 0x5e21d8e7, 0x5ee1ba51, 0x5e61aba9, 0x4e2849fb, 0x5ee098ea, 0x4e60f63d, 0x0f280443, 0x5ee0da27, 0x2e78a6ce, 0x78054afc, 0x4e14286b, 0x4e218bd8, 0x2a3d2551, 0x3a04017a, 0x5f4317cd, 0x0e604a37, 0x9a834614, 0x0e2edf4d, 0x7a51a0a0, 0x5f8e9043, 0x6ea06bb2, 0xaa2857dd, 0x7a1903fc, 0x301ba9ba, 0x9ac929cd, 0x4e061ff0, 0x2e38fcfc, 0x0e2f614a, 0x7ee0d8e4, 0x6e73afda, 0x7f4156f7, 0x0e6078bf, 0x4ee1d9ed, 0x93403fbe, 0xce6f8640, 0x4e3855e3, 0x6f76fe23, 0x112466e8, 0x1e358a90, 0x7f45272c, 0x6ea19a9d, 0x8a696350, 0x1e3900f6, 0x5e61c866, 0x0e3fbfd0, 0x5ee09ad0, 0x0e651d27, 0x4dffc35e, 0x2e20c6ce, 0x0fbe118d, 0x1e656a15, 0xd1357365, 0x0e20a847, 0xce4a835c, 0x4e203905, 0x2e60090d, 0x7f4a27bb, 0x1e64c316, 0xce7d86a4, 0x7ebded2d, 0x6e70a97e, 0x4eb9a42b, 0x0e209bef, 0x6f151730, 0x0e7e30f7, 0x4e724509, 0xd503375f, 0xce58b6ae, 0x5e21a9b8, 0xcb2ca538, 0x5ac01131, 0x6ea19a24, 0xeb40c8b3, 0xc8df7d65, 0x78108341, 0x3218ab9b, 0x0f3da7dd, 0x2e003089, 0x4e21cab5, 0x8aa5c924, 0x1a94950c, 0x123e506f, 0x13117e37, 0x1ee6005b, 0x5ac00647, 0x5eec8cd5, 0x7ef0fb3d, 0x9223272a, 0x5ee0cb02, 0x6e66071d, 0x6ea1dbbf, 0x5e61c903, 0x5ac015ea, 0x93db6206, 0x7e62b5e3, 0x6ea0c87b, 0xdac0090e, 0x48df7d90, 0x6e206ba5, 0x9e2503c2, 0x6e25fc89, 0x4d60e2db, 0x1e3e22a0, 0x2eb81c19, 0x7856ea00, 0x5fbfb22d, 0x1e630244, 0x4e202a83, 0x1f50a722, 0x7f7b55d2, 0x0fae89b9, 0x4e781d73, 0xce738c3a, 0x4f15a591, 0x6e21c7e1, 0x586ff77e, 0x8a5d3592, 0x93401c67, 0x5e61cb86, 0xce6bc2c1, 0x6e393f10, 0x9bb70ec3, 0xdac0098c, 0x4da84b95, 0x7f494476, 0x9ace5c11, 0x7e61ca14, 0x4f7a60ef, 0x1ad32b39, 0x0ea3777f, 0x5e61da7f, 0x4f1404e2, 0x4e3244e2, 0x6e1b1ceb, 0x0dee5aac, 0x4e2f9dc4, 0x5ea1b8c3, 0x1e59f863, 0xd500403f, 0x4e3ae7d0, 0x4ef5c6ea, 0x08dffe3b, 0x6e36f4f6, 0x2e764f29, 0x0e726f23, 0x5f42375b, 0x7f71fc40, 0x6e618aad, 0x93403e5b, 0x0e205976, 0x0e7250c4, 0x6eb0abc9, 0x2e2049f0, 0x5f14754d, 0x7f6ce468, 0x6f950bbe, 0x6e31aa47, 0x4eb83396, 0x0dccc952, 0x2ea1ca90, 0xce69c701, 0xb0bed69e, 0x7c5dec39, 0x4e2868a2, 0x0e591b08, 0x5f34e6dd, 0x3a449184, 0x5e3ce6de, 0x4ea149b7, 0x4e7ad29b, 0xba198503, 0x1f683e8f, 0xfa52f2a7, 0x6e30dffc, 0x4e6c3d17, 0x2eae3248, 0xd503349f, 0x1e60002c, 0x0f180680, 0x9e240049, 0x6f75774e, 0xa90d8678, 0x9ad924c4, 0x7eb0f85b, 0x0e205aaf, 0x7ee08899, 0x5f4bffd8, 0x1b0ff5f3, 0x4ee11dcd, 0x2e218948, 0x0dcb2733, 0x4eac107c, 0x4ea04a53, 0x4e287b44, 0x0e60b82a, 0x5ee0ebbc, 0xce454ff1, 0x5e1761e7, 0x5e09202f, 0x0e0c0754, 0x1e72e6b9, 0x7e21da70, 0x0fbdb20c, 0x5efb8c84, 0xd500401f, 0x3a47526e, 0x1e680acf, 0x7f7375fc, 0xf80522da, 0x4ee60c02, 0x4d40c2e7, 0x6f89096b, 0x7ee1bb6e, 0x5e280b4a, 0x1e3120c8, 0x7eb2ef96, 0x4fd012dd, 0x0f3027ef, 0x4e2078a8, 0xd503201f, 0x2e2312d9, 0x6ebf1c6e, 0x5ee1f8df, 0x4e607a46, 0x6e30c877, 0x6c09d2d1, 0x4e61abd8, 0x0e35267e, 0x6ac17728, 0x0e861aa0, 0x6f63fe26, 0x6f157628, 0x6f30a5f9, 0x4d60cc0c, 0x4e21cb59, 0x2e68a3fb, 0x7efae601, 0x6ea0f82c, 0x9b25ec12, 0x1a1a0305, 0x0e043fe1, 0x6e73c0ed, 0x6ea1b8c0, 0x7e20380b, 0x0f0534e8, 0x1f56bc7d, 0xba0c0128, 0x1e672160, 0x6e7b259b, 0x7ee07b5d, 0x9a820443, 0x4e040581, 0x2f1d87e8, 0x1acd2f5b, 0x6e20794f, 0x2e6a3c93, 0xc8dffe13, 0xce5ab1c6, 0x6eea55f6, 0x4ea039b3, 0x0d602fec, 0x2e246e2f, 0x7857be39, 0xb80608fb, 0x1e67c017, 0x9bcf7f63, 0x0f92d857, 0x5e0812f7, 0x1e210172, 0x7e6128e9, 0x7ea94d41, 0x981179e1, 0x1effb018, 0x2e600828, 0x0eb9c6b2, 0x6ee1baae, 0x4ea0db28, 0x2ea1487b, 0x4ea6c7f0, 0x2e2374c7, 0x7e30d8dd, 0xb9991fa7, 0x4e791e3e, 0x889f7c4b, 0x0e6c753c, 0x1e740ad1, 0x1e244324, 0x1ef33010, 0x5ac01102, 0x9bd97fba, 0x6e290143, 0x1e2220d8, 0x4d8d5aee, 0x6f28570b, 0xfa4ab0c1, 0xdac00b14, 0x7ea1a90e, 0x2e3027d8, 0x6f25a733, 0x4e61a96e, 0x4e1a2fcb, 0x0e22fe0a, 0xc8df7cd0, 0x5e280a55, 0x4e012b20, 0x7e70dbf4, 0x520c5a4e, 0x6ea6c57f, 0x0e861af8, 0xd503233f, 0x889ffe3c, 0x5e274ea9, 0x4e21a89a, 0x0e170c02, 0x6efd4c0b, 0xd5033ebf, 0x6e61a92c, 0x2e205b72, 0x789fb828, 0x0e626e94, 0x2ea6724c, 0x9a10028b, 0x2c6c51fc, 0x5a9de6b9, 0x6e6881f3, 0x5ee0ea6b, 0x0faec36e, 0x0e955bca, 0x1acf206d, 0x7f6f571b, 0x4e286930, 0x12b41ceb, 0x1e770b7a, 0x0ea18ac2, 0x5e282aaf, 0xf2b7fa1e, 0x1ac34311, 0x13167d11, 0x4ea63412, 0x6e758038, 0x2f1d85d6, 0x0f275480, 0x0ead6c71, 0x6e204b69, 0x1e6303f4, 0x5e0031ef, 0x13001e40, 0x7a16006f, 0x6e6ae4c0, 0x0f0f242f, 0x6e674f50, 0x4e606b7a, 0x7e6ee684, 0x1e6b5957, 0x7ea1bbab, 0x7ea0b6cb, 0xce4da241, 0x0ea1b953, 0x0eb2af4b, 0x9ac309d0, 0x6e61d8bd, 0x5ea0d890, 0x5f47d1e7, 0xfa5981ca, 0x1e7f7959, 0x6ef24dd8, 0x0e0a41d1, 0x5ee0e898, 0x4e6038e2, 0x13097d65, 0x6f839088, 0x9e290265, 0x0e208824, 0x2e65af79, 0x6f36a561, 0x9ad3204b, 0x0e21482e, 0x1e24431d, 0xd50330bf, 0x0df641aa, 0x6e602a83, 0xce30505f, 0x5e025238, 0xd503201f, 0x4e608880, 0x4de9c38d, 0x5e0f5348, 0x6eb48ca9, 0x50fda31b, 0x2e251eec, 0x7842ba50, 0xd8a1cd86, 0x2ea09862, 0x0ea09983, 0x2ea333b0, 0x0ea6032c, 0x4f94801b, 0x7e3ee57d, 0x38135e4f, 0xd8fdd9dd, 0x5ee0fcde, 0x9e64033d, 0x6e37f547, 0x6e3dd7ef, 0x13003f3d, 0x0e602f9f, 0x4e7ad014, 0x9b3b6857, 0x5ea0cb67, 0x0eb31c9f, 0x4e7c5372, 0x5e61b8c0, 0x0ea19b23, 0x0ee6e1df, 0x6e63a626, 0x2f139405, 0x7eb0f96d, 0x9e588c63, 0x2e714c3a, 0x6e8c941e, 0x0f61b331, 0x6f01f625, 0x4e78d4ea, 0x6f403709, 0x1a0300da, 0xda0102c8, 0x7e61d9fd, 0xb89469bb, 0x0c838780, 0x2e60a590, 0x4dfd29e1, 0x4e150f2e, 0xce2810bc, 0x5f541591, 0x9ee60259, 0x2eb40e56, 0x5e014027, 0x2ef71faf, 0x4e2d452f, 0x5ee0a813, 0x4eb03301, 0x38443acf, 0x6eabd502, 0x0e2ee71e, 0x5a960364, 0xce7ec596, 0x7efbed09, 0x4ef42ea2, 0x0eb30ea5, 0x5ee0d9f8, 0x6f513552, 0xf89eb3fa, 0x7ea2eca6, 0x9b00cc19, 0xf897409e, 0x1e73485f, 0x381afa77, 0x0f169f3b, 0x5ee1aa70, 0x5e1803ee, 0x0dbf5a4c, 0xce78c7a6, 0x9b0b260c, 0x2ef8fa19, 0x6e70aa4b, 0xce45b805, 0x2ea08e86, 0x4ee0bafd, 0x2ea09a1f, 0x4e218900, 0x6e744f13, 0xce518653, 0xf81b7a68, 0xce45ac5e, 0x7e62e416, 0x1a1b02b6, 0x7e21db48, 0x381daaaf, 0x6b2c0987, 0x0e2ec651, 0x4eae8502, 0x9bde7ca0, 0x6f47201f, 0x7e61a8a3, 0x6e60d5db, 0x4e2879de, 0xf81d194e, 0x4f1b8d05, 0x4d0048b2, 0x6e203be9, 0x4e3e7eb1, 0x0e260ef8, 0x2e688518, 0x7e3fec46, 0xdac00843, 0xf85c8917, 0x2e212a0f, 0x0e8196da, 0xd503359f, 0xce4c81f2, 0x6ee19992, 0x6e21ca79, 0x4d40c1d2, 0x4f5816ef, 0x4e34c3ea, 0x4df7c283, 0x7ef7eeb6, 0x18e276ce, 0xab0d21c0, 0xd5032f7f, 0x4ea00dbf, 0x5ac01251, 0xd0121955, 0x7f1495e4, 0x7ef0fa11, 0x5e24dd9c, 0x9add25b5, 0x0eb2bdef, 0x9e1977c7, 0x6f4b26bd, 0x0e200a9c, 0x9b4f7c00, 0x0ea0392e, 0x7e212a2c, 0x0b248b90, 0x1acc27a1, 0x2e701c90, 0x5ee1b870, 0x5e280aba, 0x5ea0780e, 0x1e264246, 0x4e052d04, 0x0e731dc4, 0xce461997, 0x9a9e9413, 0x3d462048, 0x5ea1fac5, 0x2ea0c8c4, 0x9a030280, 0x2ebda4b8, 0x5eef8614, 0x6eadc4e0, 0xbd035a8f, 0x4e606b84, 0x4eb1aba1, 0x4e286928, 0x4e2858cc, 0x9add0ce9, 0x4e070d65, 0x5fd399d5, 0x0f03fde7, 0x6ee90c74, 0x4ef8e31e, 0x381d986a, 0x5ea0ebf4, 0x5ea0d87e, 0x2e76ac9e, 0x6eb36cd4, 0x2e6e1c4c, 0x2e2feebc, 0x1ace4b03, 0x5ee0db12, 0x5ea0e9b1, 0x2e1c32d5, 0x5fa49a09, 0x0e258737, 0x7e21ca8e, 0xce4f9988, 0x5f7f56a6, 0x0e739766, 0x4e28586c, 0x6e619908, 0xd500401f, 0xf88b9252, 0x6e251c8e, 0x9e20015b, 0x7f1486b9, 0x717c339b, 0x1f31ff70, 0x4ea0eb62, 0x9acb0926, 0x489f7d85, 0x4e209b54, 0x2e84cf03, 0x2e65946c, 0x0e7d80cd, 0xc8dffecc, 0xce668bd8, 0x6e2188af, 0xeb4ada34, 0x2b25ec33, 0x0d40e6e7, 0x4eb2c757, 0x4ec82ad0, 0x7e21cb0a, 0x0e21a847, 0x4e0b1ec0, 0x381e6ac0, 0x6e61c8f5, 0x0f10071c, 0x2ee21daa, 0x5e61ab31, 0x6e218892, 0x2e7e7cb5, 0x6f2826aa, 0x7f6b54df, 0x4eaa2620, 0xdac00034, 0x4f6477be, 0x7e6148ea, 0x4eef1f57, 0x78459aeb, 0x2ebc3f10, 0x2e35f4eb, 0x4fbf19ce, 0xd8d0e58e, 0x2e21bbc7, 0x6ee0cab6, 0x9bc57e3f, 0x2f854037, 0x4e92181c, 0x6e6d1f89, 0x0f305545, 0x4ee19a57, 0x0e887bdf, 0x5e1a4185, 0x7ef0c821, 0x2eb6607c, 0x2ea0d9b8, 0x9e0380f4, 0x2ebf1c83, 0x1e62597d, 0x7f6e2548, 0x5ac00205, 0x4e616adb, 0xce638b8c, 0x5e1653cf, 0x2e6069be, 0x0e2ac641, 0x1e33c76f, 0xce44956d, 0x9bb90d31, 0x1e24c20a, 0x7ee038c1, 0x93407e5e, 0x4e280127, 0xc8df7f7d, 0xba42f263, 0x1e6f199c, 0x6e212889, 0x6e92f60e, 0x6ebdc499, 0x8b9acbf8, 0x4d40c581, 0x3a020250, 0x6e6a6716, 0x9248403b, 0x9081ffea, 0x4e603856, 0x9ad1242b, 0x6f270579, 0x1a070349, 0xcec08133, 0xd503305f, 0x5a1a00ca, 0x2e60b8a2, 0x0e5f28fd, 0x0e31a3da, 0x7e61cbc1, 0xd503399f, 0x5f5e54aa, 0x0eb8bdea, 0x4eba8f10, 0x4e2a2e60, 0x2f3da7d6, 0x1e58e297, 0x6e71aa3e, 0x6b86701a, 0xce4fa5e6, 0x4ee7c463, 0x8a79307f, 0x0ebea541, 0x2e218af4, 0x4e774f8a, 0xb9b95dc5, 0x6e61abd5, 0x4dd1e814, 0x4da72098, 0x98307582, 0x3a512101, 0x7ef95497, 0x1ace5535, 0x5a0c0349, 0x4e28581b, 0x6ebf1c02, 0x5ea1da23, 0x1e274314, 0x5e25dd29, 0x6e75f594, 0x6eaf6ed5, 0x4e214abe, 0x4e064172, 0x2e21c8f4, 0xf84c5b08, 0x1e244312, 0x14000000};
-    env.code_mem.emplace_back(0x14000000);  // B .
+    void* buffer_ptr = reinterpret_cast<void*>(buffer);
+    size_t buffer_size_nconst = buffer_size;
+    char* backing_memory = reinterpret_cast<char*>(std::align(page_size, memory_size, buffer_ptr, buffer_size_nconst));
+
+    A64FastmemTestEnv env{backing_memory};
+    Dynarmic::A64::UserConfig config{};
+    config.callbacks = &env;
+    config.fastmem_pointer = reinterpret_cast<uintptr_t>(backing_memory);
+    config.fastmem_address_space_bits = address_width;
+    config.recompile_on_fastmem_failure = false;
+    config.silently_mirror_fastmem = true;
+    config.processor_id = 0;
+    A64::Jit jit{config};
+    memset(backing_memory, 0, memory_size);
+
+    // cat rand2.txt | awk '{print "env.code_mem.emplace_back(0x"$2"); // "$0}' > rand2-out.txt
+    env.MemoryWrite32(100, 0x58028edd); // 0000000000000084  58028edd      ldr     x29, #20952
+    env.MemoryWrite32(104, 0x14000000); // 0000000000000ea4  14000000      b       #0
+
+    jit.SetPC(100);
+    jit.SetPstate(0xb0000000);
+    jit.SetFpcr(0x01000000);
+    env.ticks_left = 110;
+    //jit.DumpDisassembly();
+    CheckedRun([&]() { jit.Run(); });
+}
+
+TEST_CASE("A64: rand2", "[a64][.]") {
+    constexpr size_t address_width = 12;
+    constexpr size_t memory_size = 1ull << address_width;  // 4K
+    constexpr size_t page_size = 4 * 1024;
+    constexpr size_t buffer_size = 2 * page_size;
+    char buffer[buffer_size];
+
+    void* buffer_ptr = reinterpret_cast<void*>(buffer);
+    size_t buffer_size_nconst = buffer_size;
+    char* backing_memory = reinterpret_cast<char*>(std::align(page_size, memory_size, buffer_ptr, buffer_size_nconst));
+
+    A64FastmemTestEnv env{backing_memory};
+    Dynarmic::A64::UserConfig config{};
+    config.callbacks = &env;
+    config.fastmem_pointer = reinterpret_cast<uintptr_t>(backing_memory);
+    config.fastmem_address_space_bits = address_width;
+    config.recompile_on_fastmem_failure = false;
+    config.silently_mirror_fastmem = true;
+    config.processor_id = 0;
+    A64::Jit jit{config};
+    memset(backing_memory, 0, memory_size);
+
+    // cat rand2.txt | awk '{print "env.code_mem.emplace_back(0x"$2"); // "$0}' > rand2-out.txt
+    const std::array<uint32_t, 4096> code32 = {0xea80f352, 0x6e65e59d, 0x1e20c343, 0x2e3a7192, 0x2e267249, 0xd500405f, 0x6f01f461, 0x6eb684fc, 0x58028edd, 0x0ea5f5b6, 0x0ea069fb, 0x2e769517, 0x5e066063, 0x1e65c3f5, 0x4f00ff52, 0x93401cf6, 0x1e274248, 0x6f67aaf5, 0x5e0c0782, 0x5ef43f3c, 0x2e6595b7, 0x4e20590f, 0xb35aa451, 0x6ee2c5ed, 0x4e32bf46, 0x2ea1ba8f, 0x2f68a85e, 0x9237d90a, 0x5e23dd10, 0x0e762e32, 0x4e31a8cf, 0xce1f3360, 0x781a4ac0, 0x13834066, 0x5fa8101c, 0x6f7c5594, 0x0e71bb68, 0xbc0b3e8f, 0x785dbbda, 0x6f51e794, 0xce50af75, 0x1ad728ec, 0x6ee0da4c, 0xb84efa14, 0x2eb3f613, 0x4e287ade, 0x4eb8c734, 0x2e83f4e8, 0x0e397c80, 0xd08f93f8, 0xce718e48, 0x0f672a0d, 0x2e9edd40, 0x0e14128b, 0x6f5942e6, 0x8b3a0f03, 0x3c5d16b9, 0x7f7e3743, 0x4f4c54e4, 0x0ea0a9e9, 0x9e59dbe6, 0x6e7ddcd3, 0xcec08377, 0x9ba759f8, 0x2ea5046e, 0x0e24c569, 0xb8979780, 0x4e31b98c, 0x4efe4f46, 0x4ea7c762, 0x7e61c9c6, 0x6e30c880, 0x1ada0c25, 0x4e603a2f, 0xda9d7218, 0x0d40c5d9, 0x5e214b05, 0x9ba9efc5, 0x5e61b81e, 0x6e7bc31c, 0x0e61a163, 0x9e5832d2, 0x4e772248, 0x4e3d17c8, 0x92624f60, 0x7a1a02dc, 0x79891f65, 0x6eb45036, 0x0e321ee8, 0x4e2566f0, 0x4ea02b9b, 0x0f9dcb3d, 0x2e21b9f9, 0x0e21a8c3, 0xda1700bd, 0x6ea0fb38, 0x7e607a0b, 0x72845817, 0x7f61068e, 0x0d60e529, 0x4ea0ca5c, 0x1a94b20f, 0x8b87419d, 0x7ea9ed71, 0x2ea1a86e, 0x4d40c4da, 0x5ea0eada, 0x784ba96e, 0x7eb6ee02, 0x3db1c710, 0x0e217836, 0x7ee0bb96, 0x4e786c08, 0x4e976a08, 0x489ffe86, 0x4e79fc9b, 0x0e21cbce, 0x5ef7fc65, 0x4ea1286d, 0xd29c771e, 0x6f5c2839, 0x0ea00a9d, 0x6ee44c06, 0x5ee1d858, 0x5ef2fda6, 0x7eb0c9fe, 0x7f762791, 0x2e212ae6, 0x4e61c9db, 0x13003c57, 0x5ee1b8f8, 0x0f2396d2, 0x6ea0db1e, 0x0e71ba82, 0xab29c807, 0x6ef8f8b3, 0x1f18d4a1, 0x0e261d15, 0x1e290081, 0x1b0c7d12, 0x4e7771c3, 0xf845f1e4, 0x4d40c9e8, 0xce778452, 0x6eb9879d, 0x6e21c93d, 0xcec0829f, 0x52a0969f, 0x1e772b4f, 0x7ee1da88, 0x5f52fe0a, 0x7f3387b1, 0x5e214850, 0x1e65c025, 0x0e2ca294, 0x2e614829, 0x1e640077, 0x9e240048, 0x4ebe9537, 0x9bb7925e, 0x38b669c5, 0x2840d089, 0x6f43e648, 0x2e662d28, 0x4eabaff3, 0x6e734cc7, 0x0e31baee, 0x7ee0d93c, 0x5e282bde, 0x7e21bba4, 0x4e6c75fa, 0x5ac01217, 0x7f4304af, 0x1e7878ed, 0x1ada2196, 0x7ee1aba3, 0x93407f3c, 0x4f6c34eb, 0x6e3447a9, 0x7e7ae545, 0x5e0802bb, 0x6eeae63a, 0x7ee1da62, 0x5e280bb3, 0xf81d4009, 0x1e603b21, 0x5e281a14, 0x6eb0a99b, 0x1e266a25, 0x0d60cafe, 0x0e0b6194, 0x7a4ed2c5, 0x92b762ec, 0x4e6b5749, 0x3c16a6e5, 0x4ea0a92b, 0x0fa58b6a, 0x5f76148c, 0x6e30c95f, 0x1e6540fd, 0x5e28e40f, 0x0d403fd4, 0x7e30da36, 0x7fda9b51, 0x2ea04bde, 0x1e25c3d2, 0x1ee0434c, 0x5e21d8e7, 0x5ee1ba51, 0x5e61aba9, 0x4e2849fb, 0x5ee098ea, 0x4e60f63d, 0x0f280443, 0x5ee0da27, 0x2e78a6ce, 0x78054afc, 0x4e14286b, 0x4e218bd8, 0x2a3d2551, 0x3a04017a, 0x5f4317cd, 0x0e604a37, 0x9a834614, 0x0e2edf4d, 0x7a51a0a0, 0x5f8e9043, 0x6ea06bb2, 0xaa2857dd, 0x7a1903fc, 0x301ba9ba, 0x9ac929cd, 0x4e061ff0, 0x2e38fcfc, 0x0e2f614a, 0x7ee0d8e4, 0x6e73afda, 0x7f4156f7, 0x0e6078bf, 0x4ee1d9ed, 0x93403fbe, 0xce6f8640, 0x4e3855e3, 0x6f76fe23, 0x112466e8, 0x1e358a90, 0x7f45272c, 0x6ea19a9d, 0x8a696350, 0x1e3900f6, 0x5e61c866, 0x0e3fbfd0, 0x5ee09ad0, 0x0e651d27, 0x4dffc35e, 0x2e20c6ce, 0x0fbe118d, 0x1e656a15, 0xd1357365, 0x0e20a847, 0xce4a835c, 0x4e203905, 0x2e60090d, 0x7f4a27bb, 0x1e64c316, 0xce7d86a4, 0x7ebded2d, 0x6e70a97e, 0x4eb9a42b, 0x0e209bef, 0x6f151730, 0x0e7e30f7, 0x4e724509, 0xd503375f, 0xce58b6ae, 0x5e21a9b8, 0xcb2ca538, 0x5ac01131, 0x6ea19a24, 0xeb40c8b3, 0xc8df7d65, 0x78108341, 0x3218ab9b, 0x0f3da7dd, 0x2e003089, 0x4e21cab5, 0x8aa5c924, 0x1a94950c, 0x123e506f, 0x13117e37, 0x1ee6005b, 0x5ac00647, 0x5eec8cd5, 0x7ef0fb3d, 0x9223272a, 0x5ee0cb02, 0x6e66071d, 0x6ea1dbbf, 0x5e61c903, 0x5ac015ea, 0x93db6206, 0x7e62b5e3, 0x6ea0c87b, 0xdac0090e, 0x48df7d90, 0x6e206ba5, 0x9e2503c2, 0x6e25fc89, 0x4d60e2db, 0x1e3e22a0, 0x2eb81c19, 0x7856ea00, 0x5fbfb22d, 0x1e630244, 0x4e202a83, 0x1f50a722, 0x7f7b55d2, 0x0fae89b9, 0x4e781d73, 0xce738c3a, 0x4f15a591, 0x6e21c7e1, 0x586ff77e, 0x8a5d3592, 0x93401c67, 0x5e61cb86, 0xce6bc2c1, 0x6e393f10, 0x9bb70ec3, 0xdac0098c, 0x4da84b95, 0x7f494476, 0x9ace5c11, 0x7e61ca14, 0x4f7a60ef, 0x1ad32b39, 0x0ea3777f, 0x5e61da7f, 0x4f1404e2, 0x4e3244e2, 0x6e1b1ceb, 0x0dee5aac, 0x4e2f9dc4, 0x5ea1b8c3, 0x1e59f863, 0xd500403f, 0x4e3ae7d0, 0x4ef5c6ea, 0x08dffe3b, 0x6e36f4f6, 0x2e764f29, 0x0e726f23, 0x5f42375b, 0x7f71fc40, 0x6e618aad, 0x93403e5b, 0x0e205976, 0x0e7250c4, 0x6eb0abc9, 0x2e2049f0, 0x5f14754d, 0x7f6ce468, 0x6f950bbe, 0x6e31aa47, 0x4eb83396, 0x0dccc952, 0x2ea1ca90, 0xce69c701, 0xb0bed69e, 0x7c5dec39, 0x4e2868a2, 0x0e591b08, 0x5f34e6dd, 0x3a449184, 0x5e3ce6de, 0x4ea149b7, 0x4e7ad29b, 0xba198503, 0x1f683e8f, 0xfa52f2a7, 0x6e30dffc, 0x4e6c3d17, 0x2eae3248, 0xd503349f, 0x1e60002c, 0x0f180680, 0x9e240049, 0x6f75774e, 0xa90d8678, 0x9ad924c4, 0x7eb0f85b, 0x0e205aaf, 0x7ee08899, 0x5f4bffd8, 0x1b0ff5f3, 0x4ee11dcd, 0x2e218948, 0x0dcb2733, 0x4eac107c, 0x4ea04a53, 0x4e287b44, 0x0e60b82a, 0x5ee0ebbc, 0xce454ff1, 0x5e1761e7, 0x5e09202f, 0x0e0c0754, 0x1e72e6b9, 0x7e21da70, 0x0fbdb20c, 0x5efb8c84, 0xd500401f, 0x3a47526e, 0x1e680acf, 0x7f7375fc, 0xf80522da, 0x4ee60c02, 0x4d40c2e7, 0x6f89096b, 0x7ee1bb6e, 0x5e280b4a, 0x1e3120c8, 0x7eb2ef96, 0x4fd012dd, 0x0f3027ef, 0x4e2078a8, 0xd503201f, 0x2e2312d9, 0x6ebf1c6e, 0x5ee1f8df, 0x4e607a46, 0x6e30c877, 0x6c09d2d1, 0x4e61abd8, 0x0e35267e, 0x6ac17728, 0x0e861aa0, 0x6f63fe26, 0x6f157628, 0x6f30a5f9, 0x4d60cc0c, 0x4e21cb59, 0x2e68a3fb, 0x7efae601, 0x6ea0f82c, 0x9b25ec12, 0x1a1a0305, 0x0e043fe1, 0x6e73c0ed, 0x6ea1b8c0, 0x7e20380b, 0x0f0534e8, 0x1f56bc7d, 0xba0c0128, 0x1e672160, 0x6e7b259b, 0x7ee07b5d, 0x9a820443, 0x4e040581, 0x2f1d87e8, 0x1acd2f5b, 0x6e20794f, 0x2e6a3c93, 0xc8dffe13, 0xce5ab1c6, 0x6eea55f6, 0x4ea039b3, 0x0d602fec, 0x2e246e2f, 0x7857be39, 0xb80608fb, 0x1e67c017, 0x9bcf7f63, 0x0f92d857, 0x5e0812f7, 0x1e210172, 0x7e6128e9, 0x7ea94d41, 0x981179e1, 0x1effb018, 0x2e600828, 0x0eb9c6b2, 0x6ee1baae, 0x4ea0db28, 0x2ea1487b, 0x4ea6c7f0, 0x2e2374c7, 0x7e30d8dd, 0xb9991fa7, 0x4e791e3e, 0x889f7c4b, 0x0e6c753c, 0x1e740ad1, 0x1e244324, 0x1ef33010, 0x5ac01102, 0x9bd97fba, 0x6e290143, 0x1e2220d8, 0x4d8d5aee, 0x6f28570b, 0xfa4ab0c1, 0xdac00b14, 0x7ea1a90e, 0x2e3027d8, 0x6f25a733, 0x4e61a96e, 0x4e1a2fcb, 0x0e22fe0a, 0xc8df7cd0, 0x5e280a55, 0x4e012b20, 0x7e70dbf4, 0x520c5a4e, 0x6ea6c57f, 0x0e861af8, 0xd503233f, 0x889ffe3c, 0x5e274ea9, 0x4e21a89a, 0x0e170c02, 0x6efd4c0b, 0xd5033ebf, 0x6e61a92c, 0x2e205b72, 0x789fb828, 0x0e626e94, 0x2ea6724c, 0x9a10028b, 0x2c6c51fc, 0x5a9de6b9, 0x6e6881f3, 0x5ee0ea6b, 0x0faec36e, 0x0e955bca, 0x1acf206d, 0x7f6f571b, 0x4e286930, 0x12b41ceb, 0x1e770b7a, 0x0ea18ac2, 0x5e282aaf, 0xf2b7fa1e, 0x1ac34311, 0x13167d11, 0x4ea63412, 0x6e758038, 0x2f1d85d6, 0x0f275480, 0x0ead6c71, 0x6e204b69, 0x1e6303f4, 0x5e0031ef, 0x13001e40, 0x7a16006f, 0x6e6ae4c0, 0x0f0f242f, 0x6e674f50, 0x4e606b7a, 0x7e6ee684, 0x1e6b5957, 0x7ea1bbab, 0x7ea0b6cb, 0xce4da241, 0x0ea1b953, 0x0eb2af4b, 0x9ac309d0, 0x6e61d8bd, 0x5ea0d890, 0x5f47d1e7, 0xfa5981ca, 0x1e7f7959, 0x6ef24dd8, 0x0e0a41d1, 0x5ee0e898, 0x4e6038e2, 0x13097d65, 0x6f839088, 0x9e290265, 0x0e208824, 0x2e65af79, 0x6f36a561, 0x9ad3204b, 0x0e21482e, 0x1e24431d, 0xd50330bf, 0x0df641aa, 0x6e602a83, 0xce30505f, 0x5e025238, 0xd503201f, 0x4e608880, 0x4de9c38d, 0x5e0f5348, 0x6eb48ca9, 0x50fda31b, 0x2e251eec, 0x7842ba50, 0xd8a1cd86, 0x2ea09862, 0x0ea09983, 0x2ea333b0, 0x0ea6032c, 0x4f94801b, 0x7e3ee57d, 0x38135e4f, 0xd8fdd9dd, 0x5ee0fcde, 0x9e64033d, 0x6e37f547, 0x6e3dd7ef, 0x13003f3d, 0x0e602f9f, 0x4e7ad014, 0x9b3b6857, 0x5ea0cb67, 0x0eb31c9f, 0x4e7c5372, 0x5e61b8c0, 0x0ea19b23, 0x0ee6e1df, 0x6e63a626, 0x2f139405, 0x7eb0f96d, 0x9e588c63, 0x2e714c3a, 0x6e8c941e, 0x0f61b331, 0x6f01f625, 0x4e78d4ea, 0x6f403709, 0x1a0300da, 0xda0102c8, 0x7e61d9fd, 0xb89469bb, 0x0c838780, 0x2e60a590, 0x4dfd29e1, 0x4e150f2e, 0xce2810bc, 0x5f541591, 0x9ee60259, 0x2eb40e56, 0x5e014027, 0x2ef71faf, 0x4e2d452f, 0x5ee0a813, 0x4eb03301, 0x38443acf, 0x6eabd502, 0x0e2ee71e, 0x5a960364, 0xce7ec596, 0x7efbed09, 0x4ef42ea2, 0x0eb30ea5, 0x5ee0d9f8, 0x6f513552, 0xf89eb3fa, 0x7ea2eca6, 0x9b00cc19, 0xf897409e, 0x1e73485f, 0x381afa77, 0x0f169f3b, 0x5ee1aa70, 0x5e1803ee, 0x0dbf5a4c, 0xce78c7a6, 0x9b0b260c, 0x2ef8fa19, 0x6e70aa4b, 0xce45b805, 0x2ea08e86, 0x4ee0bafd, 0x2ea09a1f, 0x4e218900, 0x6e744f13, 0xce518653, 0xf81b7a68, 0xce45ac5e, 0x7e62e416, 0x1a1b02b6, 0x7e21db48, 0x381daaaf, 0x6b2c0987, 0x0e2ec651, 0x4eae8502, 0x9bde7ca0, 0x6f47201f, 0x7e61a8a3, 0x6e60d5db, 0x4e2879de, 0xf81d194e, 0x4f1b8d05, 0x4d0048b2, 0x6e203be9, 0x4e3e7eb1, 0x0e260ef8, 0x2e688518, 0x7e3fec46, 0xdac00843, 0xf85c8917, 0x2e212a0f, 0x0e8196da, 0xd503359f, 0xce4c81f2, 0x6ee19992, 0x6e21ca79, 0x4d40c1d2, 0x4f5816ef, 0x4e34c3ea, 0x4df7c283, 0x7ef7eeb6, 0x18e276ce, 0xab0d21c0, 0xd5032f7f, 0x4ea00dbf, 0x5ac01251, 0xd0121955, 0x7f1495e4, 0x7ef0fa11, 0x5e24dd9c, 0x9add25b5, 0x0eb2bdef, 0x9e1977c7, 0x6f4b26bd, 0x0e200a9c, 0x9b4f7c00, 0x0ea0392e, 0x7e212a2c, 0x0b248b90, 0x1acc27a1, 0x2e701c90, 0x5ee1b870, 0x5e280aba, 0x5ea0780e, 0x1e264246, 0x4e052d04, 0x0e731dc4, 0xce461997, 0x9a9e9413, 0x3d462048, 0x5ea1fac5, 0x2ea0c8c4, 0x9a030280, 0x2ebda4b8, 0x5eef8614, 0x6eadc4e0, 0xbd035a8f, 0x4e606b84, 0x4eb1aba1, 0x4e286928, 0x4e2858cc, 0x9add0ce9, 0x4e070d65, 0x5fd399d5, 0x0f03fde7, 0x6ee90c74, 0x4ef8e31e, 0x381d986a, 0x5ea0ebf4, 0x5ea0d87e, 0x2e76ac9e, 0x6eb36cd4, 0x2e6e1c4c, 0x2e2feebc, 0x1ace4b03, 0x5ee0db12, 0x5ea0e9b1, 0x2e1c32d5, 0x5fa49a09, 0x0e258737, 0x7e21ca8e, 0xce4f9988, 0x5f7f56a6, 0x0e739766, 0x4e28586c, 0x6e619908, 0xd500401f, 0xf88b9252, 0x6e251c8e, 0x9e20015b, 0x7f1486b9, 0x717c339b, 0x1f31ff70, 0x4ea0eb62, 0x9acb0926, 0x489f7d85, 0x4e209b54, 0x2e84cf03, 0x2e65946c, 0x0e7d80cd, 0xc8dffecc, 0xce668bd8, 0x6e2188af, 0xeb4ada34, 0x2b25ec33, 0x0d40e6e7, 0x4eb2c757, 0x4ec82ad0, 0x7e21cb0a, 0x0e21a847, 0x4e0b1ec0, 0x381e6ac0, 0x6e61c8f5, 0x0f10071c, 0x2ee21daa, 0x5e61ab31, 0x6e218892, 0x2e7e7cb5, 0x6f2826aa, 0x7f6b54df, 0x4eaa2620, 0xdac00034, 0x4f6477be, 0x7e6148ea, 0x4eef1f57, 0x78459aeb, 0x2ebc3f10, 0x2e35f4eb, 0x4fbf19ce, 0xd8d0e58e, 0x2e21bbc7, 0x6ee0cab6, 0x9bc57e3f, 0x2f854037, 0x4e92181c, 0x6e6d1f89, 0x0f305545, 0x4ee19a57, 0x0e887bdf, 0x5e1a4185, 0x7ef0c821, 0x2eb6607c, 0x2ea0d9b8, 0x9e0380f4, 0x2ebf1c83, 0x1e62597d, 0x7f6e2548, 0x5ac00205, 0x4e616adb, 0xce638b8c, 0x5e1653cf, 0x2e6069be, 0x0e2ac641, 0x1e33c76f, 0xce44956d, 0x9bb90d31, 0x1e24c20a, 0x7ee038c1, 0x93407e5e, 0x4e280127, 0xc8df7f7d, 0xba42f263, 0x1e6f199c, 0x6e212889, 0x6e92f60e, 0x6ebdc499, 0x8b9acbf8, 0x4d40c581, 0x3a020250, 0x6e6a6716, 0x9248403b, 0x9081ffea, 0x4e603856, 0x9ad1242b, 0x6f270579, 0x1a070349, 0xcec08133, 0xd503305f, 0x5a1a00ca, 0x2e60b8a2, 0x0e5f28fd, 0x0e31a3da, 0x7e61cbc1, 0xd503399f, 0x5f5e54aa, 0x0eb8bdea, 0x4eba8f10, 0x4e2a2e60, 0x2f3da7d6, 0x1e58e297, 0x6e71aa3e, 0x6b86701a, 0xce4fa5e6, 0x4ee7c463, 0x8a79307f, 0x0ebea541, 0x2e218af4, 0x4e774f8a, 0xb9b95dc5, 0x6e61abd5, 0x4dd1e814, 0x4da72098, 0x98307582, 0x3a512101, 0x7ef95497, 0x1ace5535, 0x5a0c0349, 0x4e28581b, 0x6ebf1c02, 0x5ea1da23, 0x1e274314, 0x5e25dd29, 0x6e75f594, 0x6eaf6ed5, 0x4e214abe, 0x4e064172, 0x2e21c8f4, 0xf84c5b08, 0x1e244312, 0x14000000};
+    for (size_t i = 0; i < code32.size(); ++i)
+        env.MemoryWrite32(100 + i, code32[i]);
+    env.ignore_invalid_insn = true;
 
     jit.SetRegister(0, 0x866524401a1d4e47);
     jit.SetRegister(1, 0x02ca8cec51301b60);
@@ -1618,8 +1669,6 @@ TEST_CASE("A64: rand2", "[a64][.]") {
     jit.SetRegister(30, 0x91fcc5fdd8a78378);
     jit.SetPC(100);
     jit.SetSP(0x000000cdfadeaff0);
-
-    env.code_mem_start_address = 100;
 
     jit.SetVector(0, {0x4d5a180ac0ffdac8, 0xfc6eb113cd5ff2a8});
     jit.SetVector(1, {0x39f8cecc9de9cefd, 0x3a6b35d333d89a6b});
@@ -1658,7 +1707,7 @@ TEST_CASE("A64: rand2", "[a64][.]") {
     jit.SetFpcr(0x01000000);
 
     env.ticks_left = 110;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(0) == Vector{0x0101010211914707, 0x090000007fd9991a});
     REQUIRE(jit.GetVector(1) == Vector{0x00000000fffffffe, 0x0000000000000000});
@@ -1730,7 +1779,7 @@ TEST_CASE("A64: SABD", "[a64]") {
     jit.SetVector(8, vectors[8]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == vectors[0]);
     CHECK(jit.GetVector(1) == vectors[1]);
@@ -1747,7 +1796,7 @@ TEST_CASE("A64: SABD", "[a64]") {
     jit.SetVector(8, vectors[7]);
 
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == vectors[0]);
     CHECK(jit.GetVector(1) == vectors[1]);
@@ -1769,7 +1818,7 @@ TEST_CASE("A64: UZP{1,2}.2D", "[a64]") {
     jit.SetVector(1, {0xA0A1A2A3A4A5A6A7, 0xB0B1B2B3B4B5B6B7});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xF0F1F2F3F4F5F6F7, 0xA0A1A2A3A4A5A6A7});
     REQUIRE(jit.GetVector(3) == Vector{0xE0E1E2E3E4E5E6E7, 0xB0B1B2B3B4B5B6B7});
@@ -1792,7 +1841,7 @@ TEST_CASE("A64: UZP{1,2}.S", "[a64]") {
     jit.SetVector(1, {0xA4A5A6A7'A0A1A2A3, 0xB4B5B6B7'B0B1B2B3});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xA0A1A2A3'F0F1F2F3, 0});
     REQUIRE(jit.GetVector(3) == Vector{0xA4A5A6A7'F4F5F6F7, 0});
@@ -1817,7 +1866,7 @@ TEST_CASE("A64: UZP{1,2}.H", "[a64]") {
     jit.SetVector(1, {0xA6A7'A4A5'A2A3'A0A1, 0xB6B7'B4B5'B2B3'B0B1});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xA4A5'A0A1'F4F5'F0F1, 0});
     REQUIRE(jit.GetVector(3) == Vector{0xA6A7'A2A3'F6F7'F2F3, 0});
@@ -1842,7 +1891,7 @@ TEST_CASE("A64: UZP{1,2}.B", "[a64]") {
     jit.SetVector(1, {0xA7'A6'A5'A4'A3'A2'A1'A0, 0xB7'B6'B5'B4'B3'B2'B1'B0});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.GetVector(2) == Vector{0xA6'A4'A2'A0'F6'F4'F2'F0, 0});
     REQUIRE(jit.GetVector(3) == Vector{0xA7'A5'A3'A1'F7'F5'F3'F1, 0});
@@ -1883,7 +1932,7 @@ TEST_CASE("A64: {S,U}MIN.S, {S,U}MAX.S", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -1929,7 +1978,7 @@ TEST_CASE("A64: {S,U}MIN.H, {S,U}MAX.H", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -1975,7 +2024,7 @@ TEST_CASE("A64: {S,U}MIN.B, {S,U}MAX.B", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2027,7 +2076,7 @@ TEST_CASE("A64: {S,U}MINP.S, {S,U}MAXP.S", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2046,7 +2095,7 @@ TEST_CASE("A64: {S,U}MINP.S, {S,U}MAXP.S", "[a64]") {
     jit.SetVector(1, vectors[11]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2097,7 +2146,7 @@ TEST_CASE("A64: {S,U}MINP.H, {S,U}MAXP.H", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2116,7 +2165,7 @@ TEST_CASE("A64: {S,U}MINP.H, {S,U}MAXP.H", "[a64]") {
     jit.SetVector(1, vectors[11]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2167,7 +2216,7 @@ TEST_CASE("A64: {S,U}MINP.B, {S,U}MAXP.B", "[a64]") {
     jit.SetVector(1, vectors[1]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2189,7 +2238,7 @@ TEST_CASE("A64: {S,U}MINP.B, {S,U}MAXP.B", "[a64]") {
     jit.SetVector(1, vectors[11]);
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(2) == vectors[2]);
     CHECK(jit.GetVector(3) == vectors[3]);
@@ -2258,7 +2307,7 @@ TEST_CASE("A64: SQABS", "[a64]") {
     jit.SetVector(13, Vector{0x89C1B48FBC43F53B, 0x5FDD5D671D399E2});
 
     env.ticks_left = env.code_mem.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     CHECK(jit.GetVector(0) == Vector{0x2B'7F'14'2A'77'32'7F'10, 0x63'16'7E'45'7F'33'42'04});
     CHECK(FP::FPSR{(uint32_t)jit.GetRegister(0)}.QC() == 1);
@@ -2277,4 +2326,62 @@ TEST_CASE("A64: SQABS", "[a64]") {
     CHECK(FP::FPSR{(uint32_t)jit.GetRegister(12)}.QC() == 0);
     CHECK(jit.GetVector(13) == Vector{0x763E4B7043BC0AC5, 0x5FDD5D671D399E2});
     CHECK(FP::FPSR{(uint32_t)jit.GetRegister(13)}.QC() == 0);
+}
+
+TEST_CASE("A64: RBIT{16b}", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
+    A64::Jit jit{conf};
+    env.code_mem.emplace_back(0x6e605841); // rbit v1.16b, v2.16b
+    env.code_mem.emplace_back(0x6e605822); // rbit v2.16b, v1.16b
+    env.code_mem.emplace_back(0x14000000); // b .
+    jit.SetVector(2, { 0xcafedead, 0xbabebeef });
+    jit.SetPC(0); // at _start
+    env.ticks_left = 4;
+    CheckedRun([&]() { jit.Run(); });
+    REQUIRE(jit.GetVector(1)[0] == 0x537f7bb5);
+    REQUIRE(jit.GetVector(1)[1] == 0x5d7d7df7);
+    REQUIRE(jit.GetVector(2)[0] == 0xcafedead);
+    REQUIRE(jit.GetVector(2)[1] == 0xbabebeef);
+}
+
+TEST_CASE("A64: CLZ{X}", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
+    A64::Jit jit{conf};
+    env.code_mem.emplace_back(0xdac01060); // clz x0, x3
+    env.code_mem.emplace_back(0xdac01081); // clz x1, x4
+    env.code_mem.emplace_back(0xdac010a2); // clz x2, x5
+    env.code_mem.emplace_back(0x14000000); // b .
+    jit.SetRegister(3, 0xfffffffffffffff0);
+    jit.SetRegister(4, 0x0fffffff0ffffff0);
+    jit.SetRegister(5, 0x07fffffeffeffef0);
+    jit.SetPC(0); // at _start
+    env.ticks_left = 4;
+    CheckedRun([&]() { jit.Run(); });
+    REQUIRE(jit.GetRegister(0) == 0);
+    REQUIRE(jit.GetRegister(1) == 4);
+    REQUIRE(jit.GetRegister(2) == 5);
+}
+
+TEST_CASE("A64: CLZ{W}", "[a64]") {
+    A64TestEnv env;
+    A64::UserConfig conf{};
+    conf.callbacks = &env;
+    A64::Jit jit{conf};
+    env.code_mem.emplace_back(0x5ac01060); // clz w0, w3
+    env.code_mem.emplace_back(0x5ac01081); // clz w1, w4
+    env.code_mem.emplace_back(0x5ac010a2); // clz w2, w5
+    env.code_mem.emplace_back(0x14000000); // b .
+    jit.SetRegister(3, 0xffff1110);
+    jit.SetRegister(4, 0x0fff1110);
+    jit.SetRegister(5, 0x07fffffe);
+    jit.SetPC(0); // at _start
+    env.ticks_left = 4;
+    CheckedRun([&]() { jit.Run(); });
+    REQUIRE(jit.GetRegister(0) == 0);
+    REQUIRE(jit.GetRegister(1) == 4);
+    REQUIRE(jit.GetRegister(2) == 5);
 }

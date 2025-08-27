@@ -31,7 +31,7 @@ TEST_CASE("arm: svc", "[arm][A32]") {
     jit.SetCpsr(0x000001d0);  // User-mode
 
     test_env.ticks_left = 3;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(test_env.svc_called == 0x1ee);
     REQUIRE(jit.Regs()[15] == 0x00000008);

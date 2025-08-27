@@ -91,6 +91,9 @@ static u32 GenRandomInst(u64 pc, bool is_last_inst) {
             "MSR_reg",
             "MSR_imm",
             "MRS",
+            // Does not need test
+            "SVC",
+            "BRK"
         };
 
         for (const auto& [fn, bitstring] : list) {
@@ -198,9 +201,9 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
     uni.ClearPageCache();
 
     jit_env.ticks_left = instructions.size();
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
-    uni_env.ticks_left = instructions.size();
+    uni_env.ticks_left = instructions.size() * 4;
     uni.Run();
 
     SCOPE_FAIL {
@@ -296,7 +299,7 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
         return;
     }
 
-    REQUIRE(uni.GetPC() == jit.GetPC());
+    REQUIRE(uni.GetPC() + 4 == jit.GetPC());
     REQUIRE(uni.GetRegisters() == jit.GetRegisters());
     REQUIRE(uni.GetVectors() == jit.GetVectors());
     REQUIRE(uni.GetSP() == jit.GetSP());
@@ -306,7 +309,7 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
     REQUIRE(FP::FPSR{uni.GetFpsr()}.QC() == FP::FPSR{jit.GetFpsr()}.QC());
 }
 
-TEST_CASE("A64: Single random instruction", "[a64]") {
+TEST_CASE("A64: Single random instruction", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
@@ -333,7 +336,7 @@ TEST_CASE("A64: Single random instruction", "[a64]") {
     }
 }
 
-TEST_CASE("A64: Floating point instructions", "[a64]") {
+TEST_CASE("A64: Floating point instructions", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
@@ -458,7 +461,7 @@ TEST_CASE("A64: Floating point instructions", "[a64]") {
     }
 }
 
-TEST_CASE("A64: Small random block", "[a64]") {
+TEST_CASE("A64: Small random block", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 
@@ -493,7 +496,7 @@ TEST_CASE("A64: Small random block", "[a64]") {
     }
 }
 
-TEST_CASE("A64: Large random block", "[a64]") {
+TEST_CASE("A64: Large random block", "[a64][unicorn]") {
     A64TestEnv jit_env{};
     A64TestEnv uni_env{};
 

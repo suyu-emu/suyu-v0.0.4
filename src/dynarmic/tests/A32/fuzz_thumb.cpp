@@ -130,7 +130,7 @@ static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32Unicorn<Th
     test_env.code_mem_modified_by_guest = false;
     test_env.modified_memory.clear();
     test_env.ticks_left = instructions_to_execute_count;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     const bool jit_code_memory_modified = test_env.code_mem_modified_by_guest;
     const auto jit_write_records = test_env.modified_memory;
     test_env.code_mem_modified_by_guest = false;

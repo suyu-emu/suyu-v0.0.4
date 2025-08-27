@@ -8,13 +8,11 @@
 
 #pragma once
 
-#include <array>
-#include <map>
-
+#include <unordered_map>
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
-
 #include "dynarmic/interface/A64/a64.h"
+#include "../native/testenv.h"
 
 using Vector = Dynarmic::A64::Vector;
 
@@ -26,7 +24,7 @@ public:
     u64 code_mem_start_address = 0;
     std::vector<u32> code_mem;
 
-    std::map<u64, u8> modified_memory;
+    std::unordered_map<u64, u8> modified_memory;
     std::vector<std::string> interrupts;
 
     bool IsInCodeMem(u64 vaddr) const {
@@ -133,9 +131,9 @@ class A64FastmemTestEnv final : public Dynarmic::A64::UserCallbacks {
 public:
     u64 ticks_left = 0;
     char* backing_memory = nullptr;
+    bool ignore_invalid_insn = false;
 
-    explicit A64FastmemTestEnv(char* addr)
-            : backing_memory(addr) {}
+    explicit A64FastmemTestEnv(char* addr) : backing_memory(addr) {}
 
     template<typename T>
     T read(u64 vaddr) {
@@ -205,7 +203,7 @@ public:
         return true;
     }
 
-    void InterpreterFallback(u64 pc, size_t num_instructions) override { ASSERT_MSG(false, "InterpreterFallback({:016x}, {})", pc, num_instructions); }
+    void InterpreterFallback(u64 pc, size_t num_instructions) override { ASSERT_MSG(ignore_invalid_insn, "InterpreterFallback({:016x}, {})", pc, num_instructions); }
 
     void CallSVC(std::uint32_t swi) override { ASSERT_MSG(false, "CallSVC({})", swi); }
 

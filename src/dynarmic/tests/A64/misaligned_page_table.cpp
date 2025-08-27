@@ -24,7 +24,7 @@ TEST_CASE("misaligned load/store do not use page_table when detect_misaligned_ac
     jit.SetRegister(0, 0x000000000b0afff8);
 
     env.ticks_left = 2;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     // If we don't crash we're fine.
 }

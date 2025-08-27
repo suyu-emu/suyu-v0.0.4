@@ -27,38 +27,38 @@ TEST_CASE("ensure fast dispatch entry is cleared even when a block does not have
 
     jit.SetPC(100);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     jit.SetPC(100);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     jit.InvalidateCacheRange(108, 4);
 
     jit.SetPC(100);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     env.code_mem[2] = 0xd28008a0;  // MOV X0, 69
 
     jit.SetPC(100);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     jit.InvalidateCacheRange(108, 4);
 
     jit.SetPC(100);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 69);
 
     jit.SetPC(100);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 69);
 }
 
@@ -77,37 +77,37 @@ TEST_CASE("ensure fast dispatch entry is cleared even when a block does not have
 
     jit.SetPC(0);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     jit.SetPC(0);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     jit.InvalidateCacheRange(8, 4);
 
     jit.SetPC(0);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     env.code_mem[2] = 0xd28008a0;  // MOV X0, 69
 
     jit.SetPC(0);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 42);
 
     jit.InvalidateCacheRange(8, 4);
 
     jit.SetPC(0);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 69);
 
     jit.SetPC(0);
     env.ticks_left = 4;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
     REQUIRE(jit.GetRegister(0) == 69);
 }

@@ -28,11 +28,10 @@ public:
         for (u64 page = page_start; page < page_end; ++page) {
             int& value = page_table[page];
             value += delta;
-            if (value < 0) {
-                throw std::logic_error{"negative page"};
-            }
             if (value == 0) {
                 page_table.erase(page);
+            } else if (value < 0) {
+                throw std::logic_error{"negative page"};
             }
         }
     }

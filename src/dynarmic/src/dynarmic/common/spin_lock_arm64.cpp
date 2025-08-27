@@ -73,12 +73,12 @@ void SpinLockImpl::Initialize() {
 
 }  // namespace
 
-void SpinLock::Lock() {
+void SpinLock::Lock() noexcept {
     std::call_once(flag, &SpinLockImpl::Initialize, impl);
     impl.lock(&storage);
 }
 
-void SpinLock::Unlock() {
+void SpinLock::Unlock() noexcept {
     std::call_once(flag, &SpinLockImpl::Initialize, impl);
     impl.unlock(&storage);
 }

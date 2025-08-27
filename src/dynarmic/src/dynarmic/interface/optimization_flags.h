@@ -32,6 +32,8 @@ enum class OptimizationFlag : std::uint32_t {
     ConstProp = 0x00000010,
     /// This is enables miscellaneous safe IR optimizations.
     MiscIROpt = 0x00000020,
+    /// Optimize for code speed rather than for code size (this serves well for tight loops)
+    CodeSpeed = 0x00000040,
 
     /// This is an UNSAFE optimization that reduces accuracy of fused multiply-add operations.
     /// This unfuses fused instructions to improve performance on host CPUs without FMA support.

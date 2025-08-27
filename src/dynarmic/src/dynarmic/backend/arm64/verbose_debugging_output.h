@@ -20,7 +20,7 @@ struct Label;
 }  // namespace oaknut
 
 namespace Dynarmic::IR {
-enum class Type;
+enum class Type : u16;
 }  // namespace Dynarmic::IR
 
 namespace Dynarmic::Backend::Arm64 {

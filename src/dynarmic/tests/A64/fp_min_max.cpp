@@ -87,7 +87,7 @@ void run_test(u32 instruction, Fn fn) {
             jit.SetPC(0);
 
             env.ticks_left = 2;
-            jit.Run();
+            CheckedRun([&]() { jit.Run(); });
 
             REQUIRE(jit.GetVector(0)[0] == fn(test_case));
 
@@ -97,7 +97,7 @@ void run_test(u32 instruction, Fn fn) {
             jit.SetPC(0);
 
             env.ticks_left = 2;
-            jit.Run();
+            CheckedRun([&]() { jit.Run(); });
 
             REQUIRE(jit.GetVector(0)[0] == fn(test_case));
 
@@ -109,7 +109,7 @@ void run_test(u32 instruction, Fn fn) {
             jit.SetPC(0);
 
             env.ticks_left = 2;
-            jit.Run();
+            CheckedRun([&]() { jit.Run(); });
 
             REQUIRE(jit.GetVector(0)[0] == force_default_nan(fn(test_case)));
 
@@ -119,7 +119,7 @@ void run_test(u32 instruction, Fn fn) {
             jit.SetPC(0);
 
             env.ticks_left = 2;
-            jit.Run();
+            CheckedRun([&]() { jit.Run(); });
 
             REQUIRE(jit.GetVector(0)[0] == force_default_nan(fn(test_case)));
         }
@@ -136,7 +136,7 @@ void run_test(u32 instruction, Fn fn) {
             jit.SetPC(0);
 
             env.ticks_left = 2;
-            jit.Run();
+            CheckedRun([&]() { jit.Run(); });
 
             REQUIRE(jit.GetVector(0)[0] == fn(test_case));
 
@@ -148,7 +148,7 @@ void run_test(u32 instruction, Fn fn) {
             jit.SetPC(0);
 
             env.ticks_left = 2;
-            jit.Run();
+            CheckedRun([&]() { jit.Run(); });
 
             REQUIRE(jit.GetVector(0)[0] == force_default_nan(fn(test_case)));
         }

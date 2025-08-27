@@ -16,7 +16,7 @@
 
 namespace Dynarmic::Backend::X64 {
 
-enum class HostLoc : uint16_t;
+enum class HostLoc : std::uint8_t;
 using Vector = std::array<u64, 2>;
 
 #ifdef _MSC_VER

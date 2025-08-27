@@ -86,11 +86,9 @@ static std::string TerminalToString(const Terminal& terminal_variant) noexcept {
 }
 
 std::string DumpBlock(const IR::Block& block) noexcept {
-    std::string ret;
-
-    ret += fmt::format("Block: location={}\n", block.Location());
-    ret += fmt::format("cycles={}", block.CycleCount());
-    ret += fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
+    std::string ret = fmt::format("Block: location={}-{}\n", block.Location(), block.EndLocation())
+        + fmt::format("cycles={}", block.CycleCount())
+        + fmt::format(", entry_cond={}", A64::CondToString(block.GetCondition()));
     if (block.GetCondition() != Cond::AL) {
         ret += fmt::format(", cond_fail={}", block.ConditionFailedLocation());
     }
@@ -116,6 +114,8 @@ std::string DumpBlock(const IR::Block& block) noexcept {
             return fmt::format("#{:#x}", arg.GetU32());
         case Type::U64:
             return fmt::format("#{:#x}", arg.GetU64());
+        case Type::U128:
+            return fmt::format("#<u128 imm>");
         case Type::A32Reg:
             return A32::RegToString(arg.GetA32RegRef());
         case Type::A32ExtReg:
@@ -124,8 +124,18 @@ std::string DumpBlock(const IR::Block& block) noexcept {
             return A64::RegToString(arg.GetA64RegRef());
         case Type::A64Vec:
             return A64::VecToString(arg.GetA64VecRef());
+        case Type::CoprocInfo:
+            return fmt::format("#<coproc>");
+        case Type::NZCVFlags:
+            return fmt::format("#<NZCV flags>");
+        case Type::Cond:
+            return fmt::format("#<cond={}>", A32::CondToString(arg.GetCond()));
+        case Type::Table:
+            return fmt::format("#<table>");
+        case Type::AccType:
+            return fmt::format("#<acc-type={}>", u32(arg.GetAccType()));
         default:
-            return "<unknown immediate type>";
+            return fmt::format("<unknown immediate type {}>", arg.GetType());
         }
     };
 

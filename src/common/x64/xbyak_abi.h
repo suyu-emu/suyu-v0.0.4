@@ -47,6 +47,7 @@ constexpr std::bitset<32> BuildRegSet(std::initializer_list<Xbyak::Reg> regs) {
 constexpr inline std::bitset<32> ABI_ALL_GPRS(0x0000FFFF);
 constexpr inline std::bitset<32> ABI_ALL_XMMS(0xFFFF0000);
 
+constexpr inline Xbyak::Reg ABI_JIT_REG = Xbyak::util::rbx;
 #ifdef _WIN32
 
 // Microsoft x64 ABI

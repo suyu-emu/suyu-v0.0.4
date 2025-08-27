@@ -13,7 +13,7 @@
 
 using namespace Dynarmic;
 
-TEST_CASE("Unicorn: Sanity test", "[a64]") {
+TEST_CASE("Unicorn: Sanity test", "[a64][unicorn]") {
     A64TestEnv env;
 
     env.code_mem.emplace_back(0x8b020020);  // ADD X0, X1, X2
@@ -39,7 +39,7 @@ TEST_CASE("Unicorn: Sanity test", "[a64]") {
     REQUIRE(unicorn.GetPC() == 4);
 }
 
-TEST_CASE("Unicorn: Ensure 0xFFFF'FFFF'FFFF'FFFF is readable", "[a64]") {
+TEST_CASE("Unicorn: Ensure 0xFFFF'FFFF'FFFF'FFFF is readable", "[a64][unicorn]") {
     A64TestEnv env;
 
     env.code_mem.emplace_back(0x385fed99);  // LDRB W25, [X12, #0xfffffffffffffffe]!
@@ -59,7 +59,7 @@ TEST_CASE("Unicorn: Ensure 0xFFFF'FFFF'FFFF'FFFF is readable", "[a64]") {
     REQUIRE(unicorn.GetPC() == 4);
 }
 
-TEST_CASE("Unicorn: Ensure is able to read across page boundaries", "[a64]") {
+TEST_CASE("Unicorn: Ensure is able to read across page boundaries", "[a64][unicorn]") {
     A64TestEnv env;
 
     env.code_mem.emplace_back(0xb85f93d9);  // LDUR W25, [X30, #0xfffffffffffffff9]

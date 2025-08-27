@@ -8,9 +8,8 @@
 namespace Dynarmic {
 
 struct SpinLock {
-    void Lock();
-    void Unlock();
-
+    void Lock() noexcept;
+    void Unlock() noexcept;
     volatile int storage = 0;
 };
 

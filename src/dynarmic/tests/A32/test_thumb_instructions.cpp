@@ -32,7 +32,7 @@ TEST_CASE("thumb: lsls r0, r1, #2", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[0] == 8);
     REQUIRE(jit.Regs()[1] == 2);
@@ -54,7 +54,7 @@ TEST_CASE("thumb: lsls r0, r1, #31", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[0] == 0x80000000);
     REQUIRE(jit.Regs()[1] == 0xffffffff);
@@ -75,7 +75,7 @@ TEST_CASE("thumb: revsh r4, r3", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[3] == 0x12345678);
     REQUIRE(jit.Regs()[4] == 0x00007856);
@@ -96,7 +96,7 @@ TEST_CASE("thumb: ldr r3, [r3, #28]", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[3] == 0x97969594);  // Memory location 0x12345694
     REQUIRE(jit.Regs()[15] == 2);
@@ -115,7 +115,7 @@ TEST_CASE("thumb: blx +#67712", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[14] == (0x4 | 1));
     REQUIRE(jit.Regs()[15] == 0x10880);
@@ -134,7 +134,7 @@ TEST_CASE("thumb: bl +#234584", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[14] == (0x4 | 1));
     REQUIRE(jit.Regs()[15] == 0x39458);
@@ -153,7 +153,7 @@ TEST_CASE("thumb: bl -#42", "[thumb]") {
     jit.SetCpsr(0x00000030);  // Thumb, User-mode
 
     test_env.ticks_left = 1;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[14] == (0x4 | 1));
     REQUIRE(jit.Regs()[15] == 0xFFFFFFD6);
@@ -208,7 +208,7 @@ TEST_CASE("thumb: Opt Failure: Get/Set Elimination for Flags", "[thumb]") {
     jit.SetCpsr(0x000001f0);  // Thumb, User-mode
 
     test_env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     REQUIRE(jit.Regs()[0] == 0x2154abb5);
     REQUIRE(jit.Regs()[1] == 0xdbaa6333);
@@ -248,7 +248,7 @@ TEST_CASE("thumb: Opt Failure: Get/Set Elimination for Flags 2", "[thumb]") {
     jit.SetCpsr(0x000001f0);  // Thumb, User-mode
 
     test_env.ticks_left = 7;
-    jit.Run();
+    CheckedRun([&]() { jit.Run(); });
 
     const std::array<u32, 16> expected = {0x954d53b0, 0x4caaad40, 0xb0afaead, 0x0da0cdb6, 0x0f43507e, 0xb4b3b2b1, 0x00000066, 0x892a6888,
                                           0x3b9ffb23, 0x0a92ef93, 0x38dee619, 0xc0e95e81, 0x6a448690, 0xc2d4d6b9, 0xe93600b9, 0x0000000a};

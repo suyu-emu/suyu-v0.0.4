@@ -13,9 +13,9 @@
 
 namespace Dynarmic::Backend::X64 {
 
-// Our static vector will contain 32 elements, stt. an uint16_t will fill up 64 bytes
+// Our static vector will contain 32 elements, stt. an uint8_t will fill up 64 bytes
 // (an entire cache line). Thanks.
-enum class HostLoc : uint16_t {
+enum class HostLoc : std::uint8_t {
     // Ordering of the registers is intentional. See also: HostLocToX64.
     RAX,
     RCX,
@@ -60,48 +60,48 @@ enum class HostLoc : uint16_t {
 
 constexpr size_t NonSpillHostLocCount = static_cast<size_t>(HostLoc::FirstSpill);
 
-inline bool HostLocIsGPR(HostLoc reg) {
+constexpr bool HostLocIsGPR(HostLoc reg) {
     return reg >= HostLoc::RAX && reg <= HostLoc::R15;
 }
 
-inline bool HostLocIsXMM(HostLoc reg) {
+constexpr bool HostLocIsXMM(HostLoc reg) {
     return reg >= HostLoc::XMM0 && reg <= HostLoc::XMM15;
 }
 
-inline bool HostLocIsRegister(HostLoc reg) {
+constexpr bool HostLocIsRegister(HostLoc reg) {
     return HostLocIsGPR(reg) || HostLocIsXMM(reg);
 }
 
-inline bool HostLocIsFlag(HostLoc reg) {
+constexpr bool HostLocIsFlag(HostLoc reg) {
     return reg >= HostLoc::CF && reg <= HostLoc::OF;
 }
 
-inline HostLoc HostLocRegIdx(int idx) {
+constexpr HostLoc HostLocRegIdx(int idx) {
     ASSERT(idx >= 0 && idx <= 15);
-    return static_cast<HostLoc>(idx);
+    return HostLoc(idx);
 }
 
-inline HostLoc HostLocXmmIdx(int idx) {
+constexpr HostLoc HostLocXmmIdx(int idx) {
     ASSERT(idx >= 0 && idx <= 15);
-    return static_cast<HostLoc>(static_cast<size_t>(HostLoc::XMM0) + idx);
+    return HostLoc(size_t(HostLoc::XMM0) + idx);
 }
 
-inline HostLoc HostLocSpill(size_t i) {
-    return static_cast<HostLoc>(static_cast<size_t>(HostLoc::FirstSpill) + i);
+constexpr HostLoc HostLocSpill(size_t i) {
+    return HostLoc(size_t(HostLoc::FirstSpill) + i);
 }
 
-inline bool HostLocIsSpill(HostLoc reg) {
+constexpr bool HostLocIsSpill(HostLoc reg) {
     return reg >= HostLoc::FirstSpill;
 }
 
-inline size_t HostLocBitWidth(HostLoc loc) {
+constexpr size_t HostLocBitWidth(HostLoc loc) {
     if (HostLocIsGPR(loc))
         return 64;
-    if (HostLocIsXMM(loc))
+    else if (HostLocIsXMM(loc))
         return 128;
-    if (HostLocIsSpill(loc))
+    else if (HostLocIsSpill(loc))
         return 128;
-    if (HostLocIsFlag(loc))
+    else if (HostLocIsFlag(loc))
         return 1;
     UNREACHABLE();
 }
@@ -109,6 +109,8 @@ inline size_t HostLocBitWidth(HostLoc loc) {
 using HostLocList = std::initializer_list<HostLoc>;
 
 // RSP is preserved for function calls
+// R13 contains fastmem pointer if any
+// R14 contains the pagetable pointer
 // R15 contains the JitState pointer
 const HostLocList any_gpr = {
     HostLoc::RAX,
@@ -125,12 +127,16 @@ const HostLocList any_gpr = {
     HostLoc::R12,
     HostLoc::R13,
     HostLoc::R14,
+    //HostLoc::R15,
 };
 
 // XMM0 is reserved for use by instructions that implicitly use it as an argument
+// XMM1 is used by 128 mem accessors
+// XMM2 is also used by that (and other stuff)
+// Basically dont use either XMM0, XMM1 or XMM2 ever; they're left for the regsel
 const HostLocList any_xmm = {
-    HostLoc::XMM1,
-    HostLoc::XMM2,
+    //HostLoc::XMM1,
+    //HostLoc::XMM2,
     HostLoc::XMM3,
     HostLoc::XMM4,
     HostLoc::XMM5,
