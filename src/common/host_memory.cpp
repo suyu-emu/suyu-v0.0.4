@@ -477,19 +477,9 @@ class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
         : backing_size{backing_size_}, virtual_size{virtual_size_} {
-        bool good = false;
-        SCOPE_EXIT {
-            if (!good) {
-                Release();
-            }
-        };
-
         long page_size = sysconf(_SC_PAGESIZE);
-        if (page_size != 0x1000) {
-            LOG_CRITICAL(HW_Memory, "page size {:#x} is incompatible with 4K paging", page_size);
-            throw std::bad_alloc{};
-        }
-
+        ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging",
+                   page_size);
         // Backing memory initialization
 #if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
@@ -501,38 +491,23 @@ public:
 #else
         fd = memfd_create("HostMemory", 0);
 #endif
-        if (fd < 0) {
-            LOG_CRITICAL(HW_Memory, "memfd_create failed: {}", strerror(errno));
-            throw std::bad_alloc{};
-        }
+        ASSERT_MSG(fd >= 0, "memfd_create failed: {}", strerror(errno));
 
         // Defined to extend the file with zeros
         int ret = ftruncate(fd, backing_size);
-        if (ret != 0) {
-            LOG_CRITICAL(HW_Memory, "ftruncate failed with {}, are you out-of-memory?",
-                         strerror(errno));
-            throw std::bad_alloc{};
-        }
+        ASSERT_MSG(ret == 0, "ftruncate failed with {}, are you out-of-memory?", strerror(errno));
 
         backing_base = static_cast<u8*>(
             mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
-        if (backing_base == MAP_FAILED) {
-            LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
-            throw std::bad_alloc{};
-        }
+        ASSERT_MSG(backing_base != MAP_FAILED, "mmap failed: {}", strerror(errno));
 
         // Virtual memory initialization
         virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
-        if (virtual_base == MAP_FAILED) {
-            LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
-            throw std::bad_alloc{};
-        }
+        ASSERT_MSG(virtual_base != MAP_FAILED, "mmap failed: {}", strerror(errno));
 #if defined(__linux__)
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
 #endif
-
         free_manager.SetAddressSpace(virtual_base, virtual_size);
-        good = true;
     }
 
     ~Impl() {
@@ -673,10 +648,9 @@ private:
 
 class HostMemory::Impl {
 public:
-    explicit Impl(size_t /*backing_size */, size_t /* virtual_size */) {
+    explicit Impl([[maybe_unused]] size_t backing_size, [[maybe_unused]] size_t virtual_size) {
         // This is just a place holder.
-        // Please implement fastmem in a proper way on your platform.
-        throw std::bad_alloc{};
+        ASSERT_MSG(false, "Please implement fastmem in a proper way on your platform.");
     }
 
     void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perm) {}

@@ -175,7 +175,6 @@ public:
     Kernel::KProcess* m_process{};
     const bool m_debugger_enabled{};
     const bool m_check_memory_access{};
-    static constexpr u64 MinimumRunCycles = 10000U;
 };
 
 std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* page_table) const {
