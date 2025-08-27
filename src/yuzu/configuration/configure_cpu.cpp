@@ -90,15 +90,15 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
         unsafe_layout->addWidget(widget);
     }
 
-    UpdateGroup(accuracy_combobox->currentIndex());
-    UpdateGroup(backend_combobox->currentIndex());
+    UpdateGroup();
 }
 
-void ConfigureCpu::UpdateGroup(int index) {
-    const auto accuracy = static_cast<Settings::CpuAccuracy>(
-        combobox_translations.at(Settings::EnumMetadata<Settings::CpuAccuracy>::Index())[index]
-            .first);
-    ui->unsafe_group->setVisible(accuracy == Settings::CpuAccuracy::Unsafe);
+void ConfigureCpu::UpdateGroup()
+{
+    const u32 accuracy = accuracy_combobox->currentIndex();
+    const u32 backend = backend_combobox->currentIndex();
+    // TODO(crueter): see if this works on NCE
+    ui->unsafe_group->setVisible(accuracy == (u32) Settings::CpuAccuracy::Unsafe && backend == (u32) Settings::CpuBackend::Dynarmic);
 }
 
 void ConfigureCpu::ApplyConfiguration() {

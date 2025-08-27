@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">Omitir invalidación interna de la CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Omite ciertas invalidaciones de caché durante actualizaciones de memoria, reduciendo el uso de CPU y mejorando su rendimiento. Puede causar fallos en algunos juegos.</string>
+    <string name="cpuopt_unsafe_host_mmu">Habilitar emulación de MMU del host</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Esta optimización acelera los accesos a la memoria por parte del programa invitado. Al habilitarla, las lecturas/escrituras de memoria del invitado se realizan directamente en la memoria y utilizan la MMU del host. Deshabilitar esto obliga a que todos los accesos a la memoria utilicen la emulación de MMU por software.</string>
     <string name="dma_accuracy">Nivel de DMA</string>
     <string name="dma_accuracy_description">Controla la precisión del DMA. Una mayor precisión puede solucionar problemas en algunos juegos, pero también puede afectar el rendimiento en algunos casos. Si no está seguro, déjelo en Predeterminado.</string>
 

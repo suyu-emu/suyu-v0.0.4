@@ -299,6 +299,18 @@ struct Values {
                                               Category::CpuDebug};
     Setting<bool> cpuopt_ignore_memory_aborts{linkage, true, "cpuopt_ignore_memory_aborts",
                                               Category::CpuDebug};
+
+    SwitchableSetting<bool> cpuopt_unsafe_host_mmu{linkage,
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
+                                        false,
+#else
+                                        true,
+#endif
+                                        "cpuopt_unsafe_host_mmu",
+                                        Category::CpuUnsafe,
+                                        Specialization::Default,
+                                                 true,
+                                                 true};
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
                                                      Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{
@@ -574,8 +586,11 @@ struct Values {
                                                     linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
     Setting<bool> enable_renderdoc_hotkey{linkage, false, "renderdoc_hotkey",
                                           Category::RendererDebug};
-    Setting<bool> disable_buffer_reorder{linkage, false, "disable_buffer_reorder",
-                                         Category::RendererDebug};
+    SwitchableSetting<bool> disable_buffer_reorder{linkage, false, "disable_buffer_reorder",
+                                         Category::RendererDebug,
+                                         Specialization::Default,
+                                                         true,
+                                                         true};
 
     // System
     SwitchableSetting<Language, true> language_index{linkage,
@@ -741,7 +756,7 @@ struct Values {
 
     // Miscellaneous
     Setting<std::string> log_filter{linkage, "*:Info", "log_filter", Category::Miscellaneous};
-    Setting<bool> log_flush_lines{linkage, true, "flush_lines", Category::Miscellaneous, Specialization::Default, true, true};
+    Setting<bool> log_flush_lines{linkage, false, "flush_lines", Category::Miscellaneous, Specialization::Default, true, true};
     Setting<bool> censor_username{linkage, true, "censor_username", Category::Miscellaneous};
     Setting<bool> use_dev_keys{linkage, false, "use_dev_keys", Category::Miscellaneous};
     Setting<bool> first_launch{linkage, true, "first_launch", Category::Miscellaneous};

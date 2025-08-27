@@ -126,6 +126,8 @@
     <string name="cpu_ticks">ティック</string>
     <string name="skip_cpu_inner_invalidation">CPU内部無効化をスキップ</string>
     <string name="skip_cpu_inner_invalidation_description">メモリ更新時のCPU側キャッシュ無効化をスキップし、CPU使用率を減らして性能を向上させます。一部のゲームで不具合やクラッシュが発生する可能性があります。</string>
+    <string name="cpuopt_unsafe_host_mmu">ホストMMUエミュレーションを有効化</string>
+    <string name="cpuopt_unsafe_host_mmu_description">この最適化により、ゲストプログラムによるメモリアクセスが高速化されます。有効にすると、ゲストのメモリ読み書きが直接メモリ内で実行され、ホストのMMUを利用します。無効にすると、すべてのメモリアクセスでソフトウェアMMUエミュレーションが使用されます。</string>
     <string name="dma_accuracy">DMAレベル</string>
     <string name="dma_accuracy_description">DMAの精度を制御します。精度を高くすると一部のゲームの問題が修正される場合がありますが、場合によってはパフォーマンスに影響を与える可能性もあります。不明な場合は、デフォルトのままにしてください。</string>
 

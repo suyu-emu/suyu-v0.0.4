@@ -118,6 +118,8 @@
     <string name="cpu_ticks">時脈</string>
     <string name="skip_cpu_inner_invalidation">跳過CPU內部無效化</string>
     <string name="skip_cpu_inner_invalidation_description">在記憶體更新期間跳過某些CPU端快取無效化，減少CPU使用率並提高其性能。可能會導致某些遊戲出現故障或崩潰。</string>
+    <string name="cpuopt_unsafe_host_mmu">啟用主機 MMU 模擬</string>
+    <string name="cpuopt_unsafe_host_mmu_description">此最佳化可加速來賓程式的記憶體存取。啟用後，來賓記憶體讀取/寫入將直接在記憶體中執行並利用主機的 MMU。停用此功能將強制所有記憶體存取使用軟體 MMU 模擬。</string>
     <string name="dma_accuracy">DMA 級別</string>
     <string name="dma_accuracy_description">控制 DMA 精確度。更高的精確度可以修復某些遊戲中的問題，但在某些情況下也可能影響效能。如果不確定，請保留為「預設」。</string>
 

@@ -125,6 +125,8 @@
     <string name="cpu_ticks">时钟</string>
     <string name="skip_cpu_inner_invalidation">跳过CPU内部无效化</string>
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
+    <string name="cpuopt_unsafe_host_mmu">启用主机 MMU 模拟</string>
+    <string name="cpuopt_unsafe_host_mmu_description">此优化可加速来宾程序的内存访问。启用后，来宾内存读取/写入将直接在内存中执行并利用主机的 MMU。禁用此功能将强制所有内存访问使用软件 MMU 模拟。</string>
     <string name="dma_accuracy">DMA 级别</string>
     <string name="dma_accuracy_description">控制 DMA 精度。更高的精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
 

@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Tích</string>
     <string name="skip_cpu_inner_invalidation">Bỏ qua vô hiệu hóa bên trong CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
+    <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
     <string name="dma_accuracy">Cấp độ DMA</string>
     <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác cao hơn có thể sửa lỗi trong một số trò chơi, nhưng cũng có thể ảnh hưởng đến hiệu suất trong một số trường hợp. Nếu không chắc chắn, hãy để ở Mặc định.</string>
 

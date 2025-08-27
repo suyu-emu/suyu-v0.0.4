@@ -119,6 +119,8 @@
     <string name="cpu_ticks">Тактови</string>
     <string name="skip_cpu_inner_invalidation">Preskoči unutrašnje poništavanje CPU-a</string>
     <string name="skip_cpu_inner_invalidation_description">Preskače određena poništavanja keša na strani CPU-a tokom ažuriranja memorije, smanjujući opterećenje procesora i poboljšavajući performanse. Može izazvati greške u nekim igrama.</string>
+    <string name="cpuopt_unsafe_host_mmu">Омогући емулацију MMU домаћина</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Ова оптимизација убрзава приступ меморији од стране гостујућег програма. Укључивање изазива да се читања/уписа меморије госта обављају директно у меморији и користе MMU домаћина. Искључивање присиљава све приступе меморији да користе софтверску емулацију MMU.</string>
     <string name="dma_accuracy">DMA ниво</string>
     <string name="dma_accuracy_description">Контролише тачност DMA прецизности. Виши ниво може да поправи проблеме у неким играма, али може и да утиче на перформансе. Ако нисте сигурни, оставите на «Подразумевано».</string>
 

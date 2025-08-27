@@ -39,7 +39,7 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void UpdateGroup(int index);
+    void UpdateGroup();
 
     void Setup(const ConfigurationShared::Builder& builder);
 

@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Ticks</string>
     <string name="skip_cpu_inner_invalidation">CPU-interne Invalidierung überspringen</string>
     <string name="skip_cpu_inner_invalidation_description">Überspringt bestimmte Cache-Invalidierungen auf CPU-Seite während Speicherupdates, reduziert die CPU-Auslastung und verbessert die Leistung. Kann in einigen Spielen zu Fehlern oder Abstürzen führen.</string>
+    <string name="cpuopt_unsafe_host_mmu">Host-MMU-Emulation aktivieren</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Diese Optimierung beschleunigt Speicherzugriffe durch das Gastprogramm. Wenn aktiviert, erfolgen Speicherlese- und -schreibvorgänge des Gastes direkt im Speicher und nutzen die MMU des Hosts. Das Deaktivieren erzwingt die Verwendung der Software-MMU-Emulation für alle Speicherzugriffe.</string>
     <string name="dma_accuracy">DMA-Level</string>
     <string name="dma_accuracy_description">Steuert die DMA-Präzisionsgenauigkeit. Eine höhere Präzision kann Probleme in einigen Spielen beheben, kann aber in einigen Fällen auch die Leistung beeinträchtigen. Im Zweifel auf „Standard“ belassen.</string>
 

@@ -126,6 +126,8 @@
     <string name="cpu_ticks">Takter</string>
     <string name="skip_cpu_inner_invalidation">Hopp over CPU intern invalidering</string>
     <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
+    <string name="cpuopt_unsafe_host_mmu">Aktiver verts-MMU-emulering</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Denne optimaliseringen fremskynder minnetilgang av gjesteprogrammet. Hvis aktivert, utføres gjestens minnelesing/skriving direkte i minnet og bruker vertens MMU. Deaktivering tvinger alle minnetilganger til å bruke programvarebasert MMU-emulering.</string>
     <string name="dma_accuracy">DMA-nivå</string>
     <string name="dma_accuracy_description">Styrer DMA-presisjonsnøyaktigheten. Høyere presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la den stå på Standard.</string>
 

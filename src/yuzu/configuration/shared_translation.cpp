@@ -118,6 +118,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
     // Cpu Debug
 
     // Cpu Unsafe
+    INSERT(Settings, cpuopt_unsafe_host_mmu, tr("Enable Host MMU Emulation (fastmem)"),
+           tr("This optimization speeds up memory accesses by the guest program.\nEnabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.\nDisabling this forces all memory accesses to use Software MMU Emulation."));
     INSERT(
         Settings,
         cpuopt_unsafe_unfuse_fma,

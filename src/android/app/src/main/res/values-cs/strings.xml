@@ -125,6 +125,8 @@
     <string name="cpu_ticks">Takty</string>
     <string name="skip_cpu_inner_invalidation">Přeskočit vnitřní invalidaci CPU</string>
     <string name="skip_cpu_inner_invalidation_description">Přeskočí některé invalidace mezipaměti na straně CPU během aktualizací paměti, čímž sníží zatížení CPU a zlepší jeho výkon. Může způsobit chyby nebo pády v některých hrách.</string>
+    <string name="cpuopt_unsafe_host_mmu">Povolit emulaci hostitelské MMU</string>
+    <string name="cpuopt_unsafe_host_mmu_description">Tato optimalizace zrychluje přístup do paměti hostovaného programu. Její povolení způsobí, že čtení a zápisy do paměti hosta se provádějí přímo v paměti a využívají hostitelskou MMU. Zakázání této funkce vynutí použití softwarové emulace MMU pro všechny přístupy do paměti.</string>
     <string name="dma_accuracy">Úroveň DMA</string>
     <string name="dma_accuracy_description">Ovládá přesnost DMA. Vyšší přesnost může opravit problémy v některých hrách, ale může také ovlivnit výkon. Pokud si nejste jisti, ponechejte výchozí nastavení.</string>
 
