@@ -151,6 +151,17 @@ if (ENABLE_WEB_SERVICE)
     )
 endif()
 
+# unordered_dense
+AddPackage(
+    NAME unordered_dense
+    REPO "Lizzie841/unordered_dense"
+    SHA e59d30b7b1
+    HASH 71eff7bd9ba4b9226967bacd56a8ff000946f8813167cb5664bb01e96fb79e4e220684d824fe9c59c4d1cc98c606f13aff05b7940a1ed8ab3c95d6974ee34fa0
+    FIND_PACKAGE_ARGUMENTS "CONFIG"
+    OPTIONS
+        "UNORDERED_DENSE_INSTALL OFF"
+)
+
 # FFMpeg
 if (YUZU_USE_BUNDLED_FFMPEG)
     add_subdirectory(ffmpeg)

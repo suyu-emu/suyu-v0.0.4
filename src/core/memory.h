@@ -487,13 +487,8 @@ public:
      *              marked as debug or non-debug.
      */
     void MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug);
-
     void SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers);
-
     bool InvalidateNCE(Common::ProcessAddress vaddr, size_t size);
-
-    bool InvalidateSeparateHeap(void* fault_address);
-
 private:
     Core::System& system;
 
