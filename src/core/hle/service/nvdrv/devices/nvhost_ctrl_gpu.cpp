@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -205,7 +208,7 @@ NvResult nvhost_ctrl_gpu::GetCharacteristics3(
 }
 
 NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
-    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size=0x{:X}", params.mask_buffer_size);
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#X}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
@@ -213,7 +216,7 @@ NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
 }
 
 NvResult nvhost_ctrl_gpu::GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask) {
-    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size=0x{:X}", params.mask_buffer_size);
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size={:#X}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
@@ -312,7 +315,7 @@ NvResult nvhost_ctrl_gpu::ZBCQueryTable(IoctlZbcQueryTable& params) {
 }
 
 NvResult nvhost_ctrl_gpu::FlushL2(IoctlFlushL2& params) {
-    LOG_DEBUG(Service_NVDRV, "called 0x{:X}", params.flush);
+    LOG_DEBUG(Service_NVDRV, "called {:#X}", params.flush);
     // if ((params.flush & 0x01) != 0) //l2 flush
     //     /* we dont emulate l2 */;
     // if ((params.flush & 0x04) != 0) //fb flush

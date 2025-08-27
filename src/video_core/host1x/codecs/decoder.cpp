@@ -44,7 +44,7 @@ void Decoder::Decode() {
 
         if (!frame.get()) {
             LOG_ERROR(HW_GPU,
-                      "Nvdec {} failed to decode interlaced frame for top 0x{:X} bottom 0x{:X}", id,
+                      "Nvdec {} failed to decode interlaced frame for top {:#X} bottom 0x{:X}", id,
                       luma_top, luma_bottom);
         }
 
@@ -59,7 +59,7 @@ void Decoder::Decode() {
         auto [luma_offset, chroma_offset] = GetProgressiveOffsets();
 
         if (!frame.get()) {
-            LOG_ERROR(HW_GPU, "Nvdec {} failed to decode progressive frame for luma 0x{:X}", id,
+            LOG_ERROR(HW_GPU, "Nvdec {} failed to decode progressive frame for luma {:#X}", id,
                       luma_offset);
         }
 

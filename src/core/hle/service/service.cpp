@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,7 +30,7 @@ namespace Service {
 
     std::string function_string = fmt::format("function '{}': port={}", name, port_name);
     for (int i = 1; i <= num_params; ++i) {
-        function_string += fmt::format(", cmd_buff[{}]=0x{:X}", i, cmd_buff[i]);
+        function_string += fmt::format(", cmd_buff[{}]={:#X}", i, cmd_buff[i]);
     }
     return function_string;
 }
@@ -66,10 +69,10 @@ void ServiceFrameworkBase::ReportUnimplementedFunction(HLERequestContext& ctx,
     std::string function_name = info == nullptr ? "<unknown>" : info->name;
 
     fmt::memory_buffer buf;
-    fmt::format_to(std::back_inserter(buf), "function '{}({})': port='{}' cmd_buf={{[0]=0x{:X}",
+    fmt::format_to(std::back_inserter(buf), "function '{}({})': port='{}' cmd_buf={{[0]={:#X}",
                    ctx.GetCommand(), function_name, service_name, cmd_buf[0]);
     for (int i = 1; i <= 8; ++i) {
-        fmt::format_to(std::back_inserter(buf), ", [{}]=0x{:X}", i, cmd_buf[i]);
+        fmt::format_to(std::back_inserter(buf), ", [{}]={:#X}", i, cmd_buf[i]);
     }
     buf.push_back('}');
 

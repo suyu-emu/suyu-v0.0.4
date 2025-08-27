@@ -88,7 +88,7 @@ public:
     void InterpreterFallback(u32 pc, std::size_t num_instructions) override {
         m_parent.LogBacktrace(m_process);
         LOG_ERROR(Core_ARM,
-                  "Unimplemented instruction @ 0x{:X} for {} instructions (instr = {:08X})", pc,
+                  "Unimplemented instruction @ {:#X} for {} instructions (instr = {:08X})", pc,
                   num_instructions, m_memory.Read32(pc));
     }
 

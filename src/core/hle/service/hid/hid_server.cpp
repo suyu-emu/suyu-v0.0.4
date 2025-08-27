@@ -200,7 +200,7 @@ Result IHidServer::CreateAppletResource(OutInterface<IAppletResource> out_applet
                                         ClientAppletResourceUserId aruid) {
     const auto result = GetResourceManager()->CreateAppletResource(aruid.pid);
 
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result=0x{:X}", aruid.pid,
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#X}", aruid.pid,
               result.raw);
 
     *out_applet_resource = std::make_shared<IAppletResource>(system, resource_manager, aruid.pid);

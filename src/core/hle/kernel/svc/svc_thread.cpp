@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -136,7 +139,7 @@ void SleepThread(Core::System& system, s64 ns) {
 
 /// Gets the thread context
 Result GetThreadContext3(Core::System& system, u64 out_context, Handle thread_handle) {
-    LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle=0x{:X}", out_context,
+    LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle={:#X}", out_context,
               thread_handle);
 
     auto& kernel = system.Kernel();

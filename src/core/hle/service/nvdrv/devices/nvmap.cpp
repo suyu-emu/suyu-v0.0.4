@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -89,7 +92,7 @@ NvResult nvmap::IocCreate(IocCreateParams& params) {
     }
     handle_description->orig_size = params.size; // Orig size is the unaligned size
     params.handle = handle_description->id;
-    LOG_DEBUG(Service_NVDRV, "handle: {}, size: 0x{:X}", handle_description->id, params.size);
+    LOG_DEBUG(Service_NVDRV, "handle: {}, size: {:#X}", handle_description->id, params.size);
 
     return NvResult::Success;
 }

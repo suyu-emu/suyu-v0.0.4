@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -27,7 +30,7 @@ Result IAppletResource::GetSharedMemoryHandle(
     OutCopyHandle<Kernel::KSharedMemory> out_shared_memory_handle) {
     const auto result = resource_manager->GetSharedMemoryHandle(out_shared_memory_handle, aruid);
 
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result=0x{:X}", aruid, result.raw);
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result={:#X}", aruid, result.raw);
     R_RETURN(result);
 }
 

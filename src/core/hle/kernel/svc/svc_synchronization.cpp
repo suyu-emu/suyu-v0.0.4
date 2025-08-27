@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -105,7 +108,7 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
 
 /// Resumes a thread waiting on WaitSynchronization
 Result CancelSynchronization(Core::System& system, Handle handle) {
-    LOG_TRACE(Kernel_SVC, "called handle=0x{:X}", handle);
+    LOG_TRACE(Kernel_SVC, "called handle={:#X}", handle);
 
     // Get the thread from its handle.
     KScopedAutoObject thread =

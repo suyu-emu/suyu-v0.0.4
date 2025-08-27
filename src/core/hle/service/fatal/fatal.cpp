@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,7 +71,7 @@ static void GenerateErrorReport(Core::System& system, Result error_code, const F
     std::string crash_report = fmt::format(
         "Yuzu {}-{} crash report\n"
         "Title ID:                        {:016x}\n"
-        "Result:                          0x{:X} ({:04}-{:04d})\n"
+        "Result:                          {:#X} ({:04}-{:04d})\n"
         "Set flags:                       0x{:16X}\n"
         "Program entry point:             0x{:16X}\n"
         "\n",
@@ -108,7 +111,7 @@ static void GenerateErrorReport(Core::System& system, Result error_code, const F
 
 static void ThrowFatalError(Core::System& system, Result error_code, FatalType fatal_type,
                             const FatalInfo& info) {
-    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code 0x{:X}", fatal_type,
+    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code {:#X}", fatal_type,
               error_code.raw);
 
     switch (fatal_type) {

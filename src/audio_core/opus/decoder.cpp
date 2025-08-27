@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -148,7 +151,7 @@ Result OpusDecoder::DecodeInterleavedForMultiStream(u32* out_data_size, u64* out
     auto* header_p{reinterpret_cast<const OpusPacketHeader*>(input_data.data())};
     OpusPacketHeader header{ReverseHeader(*header_p)};
 
-    LOG_TRACE(Service_Audio, "header size 0x{:X} input data size 0x{:X} in_data size 0x{:X}",
+    LOG_TRACE(Service_Audio, "header size {:#X} input data size 0x{:X} in_data size 0x{:X}",
               header.size, input_data.size_bytes(), in_data.size_bytes());
 
     R_UNLESS(in_data.size_bytes() >= header.size &&

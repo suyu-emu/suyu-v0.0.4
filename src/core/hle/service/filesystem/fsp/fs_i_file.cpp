@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,7 +30,7 @@ Result IFile::Read(
     FileSys::ReadOption option, Out<s64> out_size, s64 offset,
     const OutBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> out_buffer,
     s64 size) {
-    LOG_DEBUG(Service_FS, "called, option={}, offset=0x{:X}, length={}", option.value, offset,
+    LOG_DEBUG(Service_FS, "called, option={}, offset={:#X}, length={}", option.value, offset,
               size);
 
     // Read the data from the Storage backend
@@ -38,7 +41,7 @@ Result IFile::Read(
 Result IFile::Write(
     const InBuffer<BufferAttr_HipcMapAlias | BufferAttr_HipcMapTransferAllowsNonSecure> buffer,
     FileSys::WriteOption option, s64 offset, s64 size) {
-    LOG_DEBUG(Service_FS, "called, option={}, offset=0x{:X}, length={}", option.value, offset,
+    LOG_DEBUG(Service_FS, "called, option={}, offset={:#X}, length={}", option.value, offset,
               size);
 
     R_RETURN(backend->Write(offset, buffer.data(), size, option));

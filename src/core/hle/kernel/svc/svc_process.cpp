@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -92,7 +95,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, u64 out_proc
 
 Result GetProcessInfo(Core::System& system, s64* out, Handle process_handle,
                       ProcessInfoType info_type) {
-    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type=0x{:X}", process_handle, info_type);
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type={:#X}", process_handle, info_type);
 
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
     KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);

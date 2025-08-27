@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +32,7 @@ constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
 Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u64 address,
                                   u64 size, Svc::MemoryPermission perm) {
     LOG_TRACE(Kernel_SVC,
-              "called, process_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              "called, process_handle={:#X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
               process_handle, address, size, perm);
 
     // Validate the address/size.
@@ -59,7 +62,7 @@ Result SetProcessMemoryPermission(Core::System& system, Handle process_handle, u
 Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_handle,
                         u64 src_address, u64 size) {
     LOG_TRACE(Kernel_SVC,
-              "called, dst_address=0x{:X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
+              "called, dst_address={:#X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
               dst_address, process_handle, src_address, size);
 
     // Validate the address/size.
@@ -100,7 +103,7 @@ Result MapProcessMemory(Core::System& system, u64 dst_address, Handle process_ha
 Result UnmapProcessMemory(Core::System& system, u64 dst_address, Handle process_handle,
                           u64 src_address, u64 size) {
     LOG_TRACE(Kernel_SVC,
-              "called, dst_address=0x{:X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
+              "called, dst_address={:#X}, process_handle=0x{:X}, src_address=0x{:X}, size=0x{:X}",
               dst_address, process_handle, src_address, size);
 
     // Validate the address/size.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,7 +33,7 @@ constexpr bool IsValidUnmapFromOwnerCodeMemoryPermission(MemoryPermission perm) 
 } // namespace
 
 Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t size) {
-    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, size=0x{:X}", address, size);
+    LOG_TRACE(Kernel_SVC, "called, address={:#X}, size=0x{:X}", address, size);
 
     // Get kernel instance.
     auto& kernel = system.Kernel();
@@ -70,8 +73,8 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
                          MemoryPermission perm) {
 
     LOG_TRACE(Kernel_SVC,
-              "called, code_memory_handle=0x{:X}, operation=0x{:X}, address=0x{:X}, size=0x{:X}, "
-              "permission=0x{:X}",
+              "called, code_memory_handle={:#X}, operation=0x{:X}, address=0x{:X}, size=0x{:X}, "
+              "permission={:#X}",
               code_memory_handle, operation, address, size, perm);
 
     // Validate the address / size.

@@ -360,20 +360,20 @@ NvResult nvhost_gpu::SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
 }
 
 NvResult nvhost_gpu::GetWaitbase(IoctlGetWaitbase& params) {
-    LOG_INFO(Service_NVDRV, "called, unknown=0x{:X}", params.unknown);
+    LOG_INFO(Service_NVDRV, "called, unknown={:#X}", params.unknown);
 
     params.value = 0; // Seems to be hard coded at 0
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::ChannelSetTimeout(IoctlChannelSetTimeout& params) {
-    LOG_INFO(Service_NVDRV, "called, timeout=0x{:X}", params.timeout);
+    LOG_INFO(Service_NVDRV, "called, timeout={:#X}", params.timeout);
 
     return NvResult::Success;
 }
 
 NvResult nvhost_gpu::ChannelSetTimeslice(IoctlSetTimeslice& params) {
-    LOG_INFO(Service_NVDRV, "called, timeslice=0x{:X}", params.timeslice);
+    LOG_INFO(Service_NVDRV, "called, timeslice={:#X}", params.timeslice);
 
     channel_timeslice = params.timeslice;
 

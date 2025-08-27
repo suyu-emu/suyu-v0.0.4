@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -105,7 +108,7 @@ Vic::~Vic() {
 }
 
 void Vic::ProcessMethod(u32 method, u32 arg) {
-    LOG_TRACE(HW_GPU, "Vic {} method 0x{:X}", id, static_cast<u32>(method));
+    LOG_TRACE(HW_GPU, "Vic {} method {:#X}", id, static_cast<u32>(method));
     regs.reg_array[method] = arg;
 
     switch (static_cast<Method>(method * sizeof(u32))) {
@@ -142,7 +145,7 @@ void Vic::Execute() {
 
             auto frame = frame_queue.GetFrame(nvdec_id, luma_offset);
             if (!frame.get()) {
-                LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset 0x{:X}", id, luma_offset);
+                LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id, luma_offset);
                 continue;
             }
 
@@ -999,9 +1002,9 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) {
         LOG_TRACE(
             HW_GPU,
             "Writing Y8__V8U8_N420 swizzled frame\n"
-            "\tinput surface {}x{} stride {} size 0x{:X}\n"
-            "\toutput   luma {}x{} stride {} size 0x{:X} block height {} swizzled size 0x{:X}\n",
-            "\toutput chroma {}x{} stride {} size 0x{:X} block height {} swizzled size 0x{:X}",
+            "\tinput surface {}x{} stride {} size {:#X}\n"
+            "\toutput   luma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}\n",
+            "\toutput chroma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
             surface_width, surface_height, surface_stride * BytesPerPixel,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size, block_height, out_luma_swizzle_size, out_chroma_width,
@@ -1041,9 +1044,9 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) {
         LOG_TRACE(
             HW_GPU,
             "Writing Y8__V8U8_N420 swizzled frame\n"
-            "\tinput surface {}x{} stride {} size 0x{:X}\n"
-            "\toutput   luma {}x{} stride {} size 0x{:X} block height {} swizzled size 0x{:X}\n",
-            "\toutput chroma {}x{} stride {} size 0x{:X} block height {} swizzled size 0x{:X}",
+            "\tinput surface {}x{} stride {} size {:#X}\n"
+            "\toutput   luma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}\n",
+            "\toutput chroma {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
             surface_width, surface_height, surface_stride * BytesPerPixel,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size, out_chroma_width, out_chroma_height, out_chroma_stride,
@@ -1212,8 +1215,8 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config) {
         LOG_TRACE(
             HW_GPU,
             "Writing ABGR swizzled frame\n"
-            "\tinput surface {}x{} stride {} size 0x{:X}\n"
-            "\toutput surface {}x{} stride {} size 0x{:X} block height {} swizzled size 0x{:X}",
+            "\tinput surface {}x{} stride {} size {:#X}\n"
+            "\toutput surface {}x{} stride {} size {:#X} block height {} swizzled size 0x{:X}",
             surface_width, surface_height, surface_stride * BytesPerPixel,
             surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
             out_luma_stride, out_luma_size, block_height, out_swizzle_size);
@@ -1237,8 +1240,8 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config) {
     case BLK_KIND::PITCH: {
         LOG_TRACE(HW_GPU,
                   "Writing ABGR pitch frame\n"
-                  "\tinput surface {}x{} stride {} size 0x{:X}"
-                  "\toutput surface {}x{} stride {} size 0x{:X}",
+                  "\tinput surface {}x{} stride {} size {:#X}"
+                  "\toutput surface {}x{} stride {} size {:#X}",
                   surface_width, surface_height, surface_stride,
                   surface_stride * surface_height * BytesPerPixel, out_luma_width, out_luma_height,
                   out_luma_stride, out_luma_size);
