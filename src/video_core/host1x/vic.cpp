@@ -17,6 +17,8 @@
 #elif defined(ARCHITECTURE_arm64)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-int-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <sse2neon.h>
 #pragma GCC diagnostic pop
 #endif
