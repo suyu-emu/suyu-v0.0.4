@@ -215,7 +215,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
 #ifdef ARCHITECTURE_arm64
     config.code_cache_size = std::uint32_t(128_MiB);
 #else
-    config.code_cache_size = std::uint32_t(512_MiB);
+    config.code_cache_size = std::uint32_t(2_GiB);
 #endif
 
     // Allow memory fault handling to work
