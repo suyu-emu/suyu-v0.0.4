@@ -143,9 +143,6 @@ public:
         return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
     }
 
-    [[nodiscard]] bool IsEmpty() const noexcept {
-        return commits.empty();
-    }
 
 private:
     [[nodiscard]] static constexpr u32 ShiftType(u32 type) {
@@ -287,99 +284,23 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
 }
 
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
-    // Find the fastest memory flags we can afford with the current requirements
-    const u32 type_mask = requirements.memoryTypeBits;
-    const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
-    const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
-    if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
-        return std::move(*commit);
-    }
-
-    // Commit has failed, try progressive fallback strategy
-    u64 chunk_size = AllocationChunkSize(requirements.size);
-    const u64 minimum_size = std::max<u64>(requirements.size, 4ULL << 20); // 4MB minimum
-
-    // try 1: Try allocating with original chunk size
-    if (TryAllocMemory(flags, type_mask, chunk_size)) {
+        // Find the fastest memory flags we can afford with the current requirements
+        const u32 type_mask = requirements.memoryTypeBits;
+        const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
+        const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
+        if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
+            return std::move(*commit);
+        }
+        // Commit has failed, allocate more memory.
+        const u64 chunk_size = AllocationChunkSize(requirements.size);
+        if (!TryAllocMemory(flags, type_mask, chunk_size)) {
+            // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
+            throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+        }
+        // Commit again, this time it won't fail since there's a fresh allocation above.
+        // If it does, there's a bug.
         return TryCommit(requirements, flags).value();
     }
-
-    // try 2: Clean up empty allocations and try again
-    bool cleaned_up = false;
-    for (auto it = allocations.begin(); it != allocations.end();) {
-        if ((*it)->IsEmpty()) {
-            it = allocations.erase(it);
-            cleaned_up = true;
-        } else {
-            ++it;
-        }
-    }
-
-    if (cleaned_up && TryAllocMemory(flags, type_mask, chunk_size)) {
-        LOG_INFO(Render_Vulkan, "Memory allocation succeeded after cleanup");
-        return TryCommit(requirements, flags).value();
-    }
-
-    // try 3: Progressive size reduction with cleanup between attempts
-    while (chunk_size > minimum_size) {
-        chunk_size >>= 1; // Halve the chunk size
-        chunk_size = std::max(chunk_size, minimum_size);
-
-        if (TryAllocMemory(flags, type_mask, chunk_size)) {
-            LOG_WARNING(Render_Vulkan, "Memory allocation succeeded with reduced chunk size: {} MB",
-                       chunk_size >> 20);
-            return TryCommit(requirements, flags).value();
-        }
-
-        // Clean up again between size reduction attempts
-        for (auto it = allocations.begin(); it != allocations.end();) {
-            if ((*it)->IsEmpty()) {
-                it = allocations.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-
-    // try 4: Try minimum size allocation
-    if (chunk_size <= minimum_size && TryAllocMemory(flags, type_mask, minimum_size)) {
-        LOG_WARNING(Render_Vulkan, "Memory allocation succeeded with minimum size: {} MB",
-                    minimum_size >> 20);
-        return TryCommit(requirements, flags).value();
-    }
-    // try 5: Fallback to non-device-local memory if original was device-local
-    if (flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-            const VkMemoryPropertyFlags fallback_flags = flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-            // Try with original chunk size first
-            u64 fallback_chunk_size = AllocationChunkSize(requirements.size);
-            if (TryAllocMemory(fallback_flags, type_mask, fallback_chunk_size)) {
-                if (auto commit = TryCommit(requirements, fallback_flags)) {
-                    LOG_WARNING(Render_Vulkan, "Falling back to non-device-local memory due to OOM");
-                    return std::move(*commit);
-                }
-            }
-
-            // Progressive size reduction for non-device-local memory
-            while (fallback_chunk_size > minimum_size) {
-                fallback_chunk_size >>= 1;
-                fallback_chunk_size = std::max(fallback_chunk_size, minimum_size);
-
-                if (TryAllocMemory(fallback_flags, type_mask, fallback_chunk_size)) {
-                    if (auto commit = TryCommit(requirements, fallback_flags)) {
-                        LOG_WARNING(Render_Vulkan,
-                                   "Falling back to non-device-local memory with reduced size: {} MB",
-                                   fallback_chunk_size >> 20);
-                        return std::move(*commit);
-                    }
-                }
-            }
-    }
-
-
-    LOG_CRITICAL(Render_Vulkan, "Vulkan memory allocation failed - exhausted all strategies");
-    throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
-}
 
 bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
     const auto type_opt = FindType(flags, type_mask);
@@ -387,7 +308,7 @@ bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask,
         return false;
     }
 
-    // Adreno requires 4KB alignment(subject to review)
+    // Adreno stands firm
     const u64 aligned_size = (device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) ?
                             Common::AlignUp(size, 4096) :
                             size;
