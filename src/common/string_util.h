@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -13,18 +16,38 @@
 namespace Common {
 
 /// Make a string lowercase
-[[nodiscard]] std::string ToLower(std::string str);
+[[nodiscard]] std::string ToLower(const std::string_view sv);
 
 /// Make a string uppercase
-[[nodiscard]] std::string ToUpper(std::string str);
+[[nodiscard]] std::string ToUpper(const std::string_view sv);
 
-[[nodiscard]] std::string StringFromBuffer(std::span<const u8> data);
-[[nodiscard]] std::string StringFromBuffer(std::span<const char> data);
+[[nodiscard]] inline std::string StringFromBuffer(std::span<const u8> data) noexcept {
+    return std::string(data.begin(), std::find(data.begin(), data.end(), '\0'));
+}
+[[nodiscard]] inline std::string StringFromBuffer(std::span<const char> data) noexcept {
+    return std::string(data.begin(), std::find(data.begin(), data.end(), '\0'));
+}
 
-[[nodiscard]] std::string StripSpaces(const std::string& s);
-[[nodiscard]] std::string StripQuotes(const std::string& s);
+/// Turns "  hej " into "hej". Also handles tabs.
+[[nodiscard]] inline std::string StripSpaces(const std::string_view str) noexcept {
+    const std::size_t s = str.find_first_not_of(" \t\r\n");
+    if (str.npos != s)
+        return std::string{str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1)};
+    return {};
+}
 
-[[nodiscard]] std::string StringFromBool(bool value);
+/// "\"hello\"" is turned to "hello"
+/// This one assumes that the string has already been space stripped in both
+/// ends, as done by StripSpaces above, for example.
+[[nodiscard]] inline std::string StripQuotes(const std::string_view s) noexcept {
+    if (s.size() && '\"' == s[0] && '\"' == *s.rbegin())
+        return std::string{s.substr(1, s.size() - 2)};
+    return std::string{s};
+}
+
+[[nodiscard]] inline std::string StringFromBool(bool value) noexcept {
+    return value ? "True" : "False";
+}
 
 [[nodiscard]] std::string TabsToSpaces(int tab_size, std::string in);
 
@@ -54,7 +77,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
  * `other` for equality.
  */
 template <typename InIt>
-[[nodiscard]] bool ComparePartialString(InIt begin, InIt end, const char* other) {
+[[nodiscard]] inline bool ComparePartialString(InIt begin, InIt end, const char* other) noexcept {
     for (; begin != end && *other != '\0'; ++begin, ++other) {
         if (*begin != *other) {
             return false;
@@ -64,18 +87,14 @@ template <typename InIt>
     return (begin == end) == (*other == '\0');
 }
 
-/**
- * Creates a std::string from a fixed-size NUL-terminated char buffer. If the buffer isn't
- * NUL-terminated then the string ends at max_len characters.
- */
+/// Creates a std::string from a fixed-size NUL-terminated char buffer. If the buffer isn't
+/// NUL-terminated then the string ends at max_len characters.
 [[nodiscard]] std::string StringFromFixedZeroTerminatedBuffer(std::string_view buffer,
                                                               std::size_t max_len);
 
-/**
- * Creates a UTF-16 std::u16string from a fixed-size NUL-terminated char buffer. If the buffer isn't
- * null-terminated, then the string ends at the greatest multiple of two less then or equal to
- * max_len_bytes.
- */
+/// Creates a UTF-16 std::u16string from a fixed-size NUL-terminated char buffer. If the buffer isn't
+/// null-terminated, then the string ends at the greatest multiple of two less then or equal to
+/// max_len_bytes.
 [[nodiscard]] std::u16string UTF16StringFromFixedZeroTerminatedBuffer(std::u16string_view buffer,
                                                                       std::size_t max_len);
 

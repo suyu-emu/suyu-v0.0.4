@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -61,25 +64,23 @@ FileType IdentifyFile(FileSys::VirtualFile file) {
 FileType GuessFromFilename(const std::string& name) {
     if (name == "main")
         return FileType::DeconstructedRomDirectory;
-    if (name == "00")
+    else if (name == "00")
         return FileType::NCA;
 
-    const std::string extension =
+    auto const extension =
         Common::ToLower(std::string(Common::FS::GetExtensionFromFilename(name)));
-
     if (extension == "nro")
         return FileType::NRO;
-    if (extension == "nso")
+    else if (extension == "nso")
         return FileType::NSO;
-    if (extension == "nca")
+    else if (extension == "nca")
         return FileType::NCA;
-    if (extension == "xci")
+    else if (extension == "xci")
         return FileType::XCI;
-    if (extension == "nsp")
+    else if (extension == "nsp")
         return FileType::NSP;
-    if (extension == "kip")
+    else if (extension == "kip")
         return FileType::KIP;
-
     return FileType::Unknown;
 }
 

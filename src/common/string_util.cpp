@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2013 Dolphin Emulator Project
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -7,6 +10,7 @@
 #include <codecvt>
 #include <locale>
 #include <sstream>
+#include <string_view>
 
 #include "common/string_util.h"
 
@@ -21,49 +25,19 @@
 namespace Common {
 
 /// Make a string lowercase
-std::string ToLower(std::string str) {
+std::string ToLower(const std::string_view sv) {
+    std::string str{sv};
     std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                   [](auto const c) { return char(std::tolower(c)); });
     return str;
 }
 
 /// Make a string uppercase
-std::string ToUpper(std::string str) {
+std::string ToUpper(const std::string_view sv) {
+    std::string str{sv};
     std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+                   [](auto const c) { return char(std::toupper(c)); });
     return str;
-}
-
-std::string StringFromBuffer(std::span<const u8> data) {
-    return std::string(data.begin(), std::find(data.begin(), data.end(), '\0'));
-}
-
-std::string StringFromBuffer(std::span<const char> data) {
-    return std::string(data.begin(), std::find(data.begin(), data.end(), '\0'));
-}
-
-// Turns "  hej " into "hej". Also handles tabs.
-std::string StripSpaces(const std::string& str) {
-    const std::size_t s = str.find_first_not_of(" \t\r\n");
-
-    if (str.npos != s)
-        return str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1);
-    else
-        return "";
-}
-
-// "\"hello\"" is turned to "hello"
-// This one assumes that the string has already been space stripped in both
-// ends, as done by StripSpaces above, for example.
-std::string StripQuotes(const std::string& s) {
-    if (s.size() && '\"' == s[0] && '\"' == *s.rbegin())
-        return s.substr(1, s.size() - 2);
-    else
-        return s;
-}
-
-std::string StringFromBool(bool value) {
-    return value ? "True" : "False";
 }
 
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,

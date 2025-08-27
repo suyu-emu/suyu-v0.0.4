@@ -4,10 +4,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fstream>
-#include <vector>
-
 #include "common/heap_tracker.h"
 #include "common/logging/log.h"
+#include "common/assert.h"
 
 namespace Common {
 

@@ -352,9 +352,17 @@ enum class DirectorySeparator {
 [[nodiscard]] std::string_view GetPathWithoutTop(std::string_view path);
 
 // Gets the filename of the path
-[[nodiscard]] std::string_view GetFilename(std::string_view path);
+[[nodiscard]] inline std::string_view GetFilename(const std::string_view path) noexcept {
+    if (auto const name_index = path.find_last_of("\\/"); name_index != std::string_view::npos)
+        return path.substr(name_index + 1);
+    return {};
+}
 
 // Gets the extension of the filename
-[[nodiscard]] std::string_view GetExtensionFromFilename(std::string_view name);
+[[nodiscard]] inline std::string_view GetExtensionFromFilename(const std::string_view name) noexcept {
+    if (auto const index = name.rfind('.'); index != std::string_view::npos)
+        return name.substr(index + 1);
+    return {};
+}
 
 } // namespace Common::FS

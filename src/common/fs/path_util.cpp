@@ -517,24 +517,4 @@ std::string_view GetPathWithoutTop(std::string_view path) {
     return path.substr(std::min(name_bck_index, name_fwd_index) + 1);
 }
 
-std::string_view GetFilename(std::string_view path) {
-    const auto name_index = path.find_last_of("\\/");
-
-    if (name_index == std::string_view::npos) {
-        return {};
-    }
-
-    return path.substr(name_index + 1);
-}
-
-std::string_view GetExtensionFromFilename(std::string_view name) {
-    const std::size_t index = name.rfind('.');
-
-    if (index == std::string_view::npos) {
-        return {};
-    }
-
-    return name.substr(index + 1);
-}
-
 } // namespace Common::FS
