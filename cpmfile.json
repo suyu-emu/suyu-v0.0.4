@@ -1,0 +1,147 @@
+{
+    "openssl": {
+        "ci": true,
+        "package": "OpenSSL",
+        "name": "openssl",
+        "repo": "crueter-ci/OpenSSL",
+        "version": "3.5.2",
+        "min_version": "1.1.1"
+    },
+    "boost": {
+        "package": "Boost",
+        "repo": "boostorg/boost",
+        "tag": "boost-1.88.0",
+        "artifact": "boost-1.88.0-cmake.7z",
+        "hash": "e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01",
+        "git_version": "1.88.0",
+        "version": "1.57"
+    },
+    "fmt": {
+        "repo": "fmtlib/fmt",
+        "sha": "40626af88b",
+        "hash": "d59f06c24339f223de4ec2afeba1c67b5835a0f350a1ffa86242a72fc3e616a6b8b21798355428d4200c75287308b66634619ffa0b52ba5bd74cc01772ea1a8a",
+        "version": "8",
+        "options": [
+            "FMT_INSTALL OFF"
+        ]
+    },
+    "lz4": {
+        "name": "lz4",
+        "repo": "lz4/lz4",
+        "sha": "ebb370ca83",
+        "hash": "43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37",
+        "source_subdir": "build/cmake"
+    },
+    "nlohmann": {
+        "package": "nlohmann_json",
+        "repo": "nlohmann/json",
+        "sha": "55f93686c0",
+        "hash": "b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486",
+        "version": "3.8"
+    },
+    "zlib": {
+        "package": "ZLIB",
+        "repo": "madler/zlib",
+        "sha": "51b7f2abda",
+        "hash": "16eaf1f3752489d12fd9ce30f7b5f7cbd5cb8ff53d617005a9847ae72d937f65e01e68be747f62d7ac19fd0c9aeba9956e60f16d6b465c5fdc2f3d08b4db2e6c",
+        "version": "1.2",
+        "options": [
+            "ZLIB_BUILD_SHARED OFF",
+            "ZLIB_INSTALL OFF"
+        ]
+    },
+    "zstd": {
+        "repo": "facebook/zstd",
+        "sha": "f8745da6ff",
+        "hash": "3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee",
+        "version": "1.5",
+        "source_subdir": "build/cmake",
+        "find_args": "MODULE",
+        "options": [
+            "ZSTD_BUILD_SHARED OFF"
+        ]
+    },
+    "catch2": {
+        "package": "Catch2",
+        "repo": "catchorg/Catch2",
+        "sha": "644821ce28",
+        "hash": "f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f",
+        "version": "3.0.1"
+    },
+    "enet": {
+        "repo": "lsalzman/enet",
+        "sha": "2662c0de09",
+        "hash": "3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd",
+        "version": "1.3",
+        "find_args": "MODULE"
+    },
+    "opus": {
+        "package": "Opus",
+        "repo": "xiph/opus",
+        "sha": "5ded705cf4",
+        "hash": "0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203",
+        "version": "1.3",
+        "find_args": "MODULE",
+        "options": [
+            "OPUS_BUILD_TESTING OFF",
+            "OPUS_BUILD_PROGRAMS OFF",
+            "OPUS_INSTALL_PKG_CONFIG_MODULE OFF",
+            "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+        ]
+    },
+    "cubeb": {
+        "repo": "mozilla/cubeb",
+        "sha": "fa02160712",
+        "hash": "82d808356752e4064de48c8fecbe7856715ade1e76b53937116bf07129fc1cc5b3de5e4b408de3cd000187ba8dc32ca4109661cb7e0355a52e54bd81b9be1c61",
+        "find_args": "CONFIG",
+        "options": [
+            "USE_SANITIZERS OFF",
+            "BUILD_TESTS OFF",
+            "BUILD_TOOLS OFF",
+            "BUNDLE_SPEEX ON"
+        ]
+    },
+    "boost_headers": {
+        "repo": "boostorg/headers",
+        "sha": "0456900fad",
+        "hash": "50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3",
+        "bundled": true
+    },
+    "discord-rpc": {
+        "repo": "eden-emulator/discord-rpc",
+        "sha": "1cf7772bb6",
+        "hash": "e9b35e6f2c075823257bcd59f06fe7bb2ccce1976f44818d2e28810435ef79c712a3c4f20f40da41f691342a4058cf86b078eb7f9d9e4dae83c0547c21ec4f97"
+    },
+    "simpleini": {
+        "package": "SimpleIni",
+        "repo": "brofield/simpleini",
+        "sha": "09c21bda1d",
+        "hash": "99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c",
+        "find_args": "MODULE"
+    },
+    "sdl2_generic": {
+        "package": "SDL2",
+        "repo": "libsdl-org/SDL",
+        "sha": "54772f345a",
+        "hash": "2a68a0e01c390043aa9d9df63d8a20a52076c88bb460ac4e0f33194ca7d9bc8fadbbcc04e7506872ac4b6354a73fbc267c036f82200da59465789b87c7d9e3a4",
+        "key": "generic",
+        "bundled": true
+    },
+    "sdl2_steamdeck": {
+        "package": "SDL2",
+        "repo": "libsdl-org/SDL",
+        "sha": "cc016b0046",
+        "hash": "34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b",
+        "key": "steamdeck",
+        "bundled": true
+    },
+    "sdl2": {
+        "ci": true,
+        "package": "SDL2",
+        "name": "SDL2",
+        "repo": "crueter-ci/SDL2",
+        "version": "2.32.8",
+        "min_version": "2.26.4",
+        "cmake_filename": "sdl2"
+    }
+}

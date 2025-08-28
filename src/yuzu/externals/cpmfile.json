@@ -1,0 +1,12 @@
+{
+    "quazip": {
+        "package": "QuaZip-Qt6",
+        "repo": "crueter/quazip-qt6",
+        "sha": "f838774d63",
+        "hash": "9f629a438699801244a106c8df6d5f8f8d19e80df54f530a89403a10c8c4e37a6e95606bbdd307f23636961e8ce34eb37a2186d589a1f227ac9c8e2c678e326e",
+        "version": "1.3",
+        "options": [
+            "QUAZIP_INSTALL OFF"
+        ]
+    }
+}

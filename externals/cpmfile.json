@@ -1,0 +1,109 @@
+{
+    "mbedtls": {
+        "repo": "Mbed-TLS/mbedtls",
+        "sha": "8c88150ca1",
+        "hash": "769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966",
+        "patches": [
+            "0001-cmake-version.patch"
+        ]
+    },
+    "spirv-headers": {
+        "package": "SPIRV-Headers",
+        "repo": "KhronosGroup/SPIRV-Headers",
+        "sha": "4e209d3d7e",
+        "hash": "f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4"
+    },
+    "sirit": {
+        "repo": "eden-emulator/sirit",
+        "sha": "db1f1e8ab5",
+        "hash": "73eb3a042848c63a10656545797e85f40d142009dfb7827384548a385e1e28e1ac72f42b25924ce530d58275f8638554281e884d72f9c7aaf4ed08690a414b05",
+        "options": [
+            "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
+        ]
+    },
+    "httplib": {
+        "repo": "yhirose/cpp-httplib",
+        "sha": "a609330e4c",
+        "hash": "dd3fd0572f8367d8549e1319fd98368b3e75801a293b0c3ac9b4adb806473a4506a484b3d389dc5bee5acc460cb90af7a20e5df705a1696b56496b30b9ce7ed2"
+    },
+    "cpp-jwt": {
+        "version": "1.4",
+        "repo": "arun11299/cpp-jwt",
+        "sha": "a54fa08a3b",
+        "hash": "a90f7e594ada0c7e49d5ff9211c71097534e7742a8e44bf0851b0362642a7271d53f5d83d04eeaae2bad17ef3f35e09e6818434d8eaefa038f3d1f7359d0969a",
+        "find_args": "CONFIG",
+        "options": [
+            "CPP_JWT_BUILD_EXAMPLES OFF",
+            "CPP_JWT_BUILD_TESTS OFF",
+            "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
+        ],
+        "patches": [
+            "0001-no-install.patch",
+            "0002-missing-decl.patch"
+        ]
+    },
+    "vulkan-headers": {
+        "package": "VulkanHeaders",
+        "version": "1.3.274",
+        "repo": "KhronosGroup/Vulkan-Headers",
+        "sha": "89268a6d17",
+        "hash": "3ab349f74298ba72cafb8561015690c0674d428a09fb91ccd3cd3daca83650d190d46d33fd97b0a8fd4223fe6df2bcabae89136fbbf7c0bfeb8776f9448304c8"
+    },
+    "vulkan-utility-libraries": {
+        "package": "VulkanUtilityLibraries",
+        "repo": "KhronosGroup/Vulkan-Utility-Libraries",
+        "sha": "df2e358152",
+        "hash": "3e468c3d9ff93f6d418d71e5527abe0a12c8c7ab5b0b52278bbbee4d02bb87e99073906729b727e0147242b7e3fd5dedf68b803f1878cb4c0e4f730bc2238d79"
+    },
+    "vulkan-memory-allocator": {
+        "package": "VulkanMemoryAllocator",
+        "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
+        "sha": "1076b348ab",
+        "hash": "a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772",
+        "find_args": "CONFIG"
+    },
+    "spirv-tools": {
+        "package": "SPIRV-Tools",
+        "repo": "KhronosGroup/SPIRV-Tools",
+        "sha": "40eb301f32",
+        "hash": "58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa",
+        "find_args": "MODULE",
+        "options": [
+            "SPIRV_SKIP_EXECUTABLES ON"
+        ]
+    },
+    "xbyak_sun": {
+        "package": "xbyak",
+        "repo": "Lizzie841/xbyak",
+        "sha": "51f507b0b3",
+        "hash": "4a29a3c2f97f7d5adf667a21a008be03c951fb6696b0d7ba27e7e4afa037bc76eb5e059bb84860e01baf741d4d3ac851b840cd54c99d038812fbe0f1fa6d38a4",
+        "bundled": true
+    },
+    "xbyak": {
+        "package": "xbyak",
+        "repo": "Lizzie841/xbyak",
+        "sha": "4e44f4614d",
+        "hash": "5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70",
+        "bundled": true
+    },
+    "oaknut": {
+        "version": "2.0.1",
+        "repo": "merryhime/oaknut",
+        "sha": "94c726ce03",
+        "hash": "d8d082242fa1881abce3c82f8dafa002c4e561e66a69e7fc038af67faa5eff2630f082d3d19579c88c4c9f9488e54552accc8cb90e7ce743efe043b6230c08ac"
+    },
+    "libadrenotools": {
+        "repo": "bylaws/libadrenotools",
+        "sha": "8fae8ce254",
+        "hash": "c74fa855f0edebbf25c9bce40b00966daa2447bfc5e15f0cf1a95f86cbf70fc6b02590707edbde16328a0a2a4fb9a1fc419d2dfc22a4a4150971be91892d4edb",
+        "patches": [
+            "0001-linkerns-cpm.patch"
+        ]
+    },
+    "oboe": {
+        "repo": "google/oboe",
+        "sha": "2bc873e53c",
+        "hash": "02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768",
+        "bundled": true
+    }
+}

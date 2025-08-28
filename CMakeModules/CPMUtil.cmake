@@ -1,26 +1,220 @@
 # SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# SPDX-FileCopyrightText: Copyright 2025 crueter
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # Created-By: crueter
 # Docs will come at a later date, mostly this is to just reduce boilerplate
 # and some cmake magic to allow for runtime viewing of dependency versions
 
-include(CMakeDependentOption)
+# Future crueter: Wow this was a lie and a half, at this point I might as well make my own CPN
+# haha just kidding... unless?
+
 if (MSVC OR ANDROID)
-    set(SYSTEM_DEFAULT OFF)
+    set(BUNDLED_DEFAULT OFF)
 else()
-    set(SYSTEM_DEFAULT ON)
+    set(BUNDLED_DEFAULT ON)
 endif()
 
-CMAKE_DEPENDENT_OPTION(CPMUTIL_DEFAULT_SYSTEM
-                       "Allow usage of system packages for CPM dependencies" ${SYSTEM_DEFAULT}
-                       "NOT ANDROID" OFF)
+option(CPMUTIL_FORCE_BUNDLED
+    "Force bundled packages for all CPM depdendencies" ${BUNDLED_DEFAULT})
+
+option(CPMUTIL_FORCE_SYSTEM
+    "Force system packages for all CPM dependencies (NOT RECOMMENDED)" OFF)
 
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
+# TODO(crueter): Better solution for separate cpmfiles e.g. per-directory
+set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json" CACHE STRING "Location of cpmfile.json")
+
+if (EXISTS ${CPMUTIL_JSON_FILE})
+    file(READ ${CPMUTIL_JSON_FILE} CPMFILE_CONTENT)
+else()
+    message(WARNING "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE} does not exist, AddJsonPackage will be a no-op")
+endif()
+
+# utility
 function(cpm_utils_message level name message)
     message(${level} "[CPMUtil] ${name}: ${message}")
+endfunction()
+
+# utility
+function(array_to_list array length out)
+    math(EXPR range "${length} - 1")
+
+    foreach(IDX RANGE ${range})
+        string(JSON _element GET "${array}" "${IDX}")
+
+        list(APPEND NEW_LIST ${_element})
+    endforeach()
+
+    set("${out}" "${NEW_LIST}" PARENT_SCOPE)
+endfunction()
+
+# utility
+function(get_json_element object out member default)
+    string(JSON out_type ERROR_VARIABLE err TYPE "${object}" ${member})
+
+    if (err)
+        set("${out}" "${default}" PARENT_SCOPE)
+        return()
+    endif()
+
+    string(JSON outvar GET "${object}" ${member})
+
+    if (out_type STREQUAL "ARRAY")
+        string(JSON _len LENGTH "${object}" ${member})
+        # array_to_list("${outvar}" ${_len} outvar)
+        set("${out}_LENGTH" "${_len}" PARENT_SCOPE)
+    endif()
+
+    set("${out}" "${outvar}" PARENT_SCOPE)
+endfunction()
+
+# Kinda cancerous but whatever
+function(AddJsonPackage)
+    set(oneValueArgs
+        NAME
+
+        # these are overrides that can be generated at runtime, so can be defined separately from the json
+        DOWNLOAD_ONLY
+        SYSTEM_PACKAGE
+        BUNDLED_PACKAGE
+    )
+
+    set(multiValueArgs OPTIONS)
+
+    cmake_parse_arguments(JSON "" "${oneValueArgs}" "${multiValueArgs}"
+                          "${ARGN}")
+
+    list(LENGTH ARGN argnLength)
+    # single name argument
+    if(argnLength EQUAL 1)
+        set(JSON_NAME "${ARGV0}")
+    endif()
+
+    if (NOT DEFINED CPMFILE_CONTENT)
+        cpm_utils_message(WARNING ${name} "No cpmfile, AddJsonPackage is a no-op")
+        return()
+    endif()
+
+    if (NOT DEFINED JSON_NAME)
+        cpm_utils_message(FATAL_ERROR "json package" "No name specified")
+    endif()
+
+    string(JSON object ERROR_VARIABLE err GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
+
+    if (err)
+        cpm_utils_message(FATAL_ERROR ${JSON_NAME} "Not found in cpmfile")
+    endif()
+
+    get_json_element("${object}" package package ${JSON_NAME})
+    get_json_element("${object}" repo repo "")
+    get_json_element("${object}" ci ci OFF)
+    get_json_element("${object}" version version "")
+
+    if (ci)
+        get_json_element("${object}" name name "${JSON_NAME}")
+        get_json_element("${object}" extension extension "tar.zst")
+        get_json_element("${object}" min_version min_version "")
+        get_json_element("${object}" cmake_filename cmake_filename "")
+        get_json_element("${object}" raw_disabled disabled_platforms "")
+
+        if (raw_disabled)
+            array_to_list("${raw_disabled}" ${raw_disabled_LENGTH} disabled_platforms)
+        else()
+            set(disabled_platforms "")
+        endif()
+
+        AddCIPackage(
+            VERSION ${version}
+            NAME ${name}
+            REPO ${repo}
+            PACKAGE ${package}
+            EXTENSION ${extension}
+            MIN_VERSION ${min_version}
+            DISABLED_PLATFORMS ${disabled_platforms}
+            CMAKE_FILENAME ${cmake_filename}
+        )
+        return()
+    endif()
+
+    get_json_element("${object}" hash hash "")
+    get_json_element("${object}" sha sha "")
+    get_json_element("${object}" url url "")
+    get_json_element("${object}" key key "")
+    get_json_element("${object}" tag tag "")
+    get_json_element("${object}" artifact artifact "")
+    get_json_element("${object}" git_version git_version "")
+    get_json_element("${object}" source_subdir source_subdir "")
+    get_json_element("${object}" bundled bundled "unset")
+    get_json_element("${object}" find_args find_args "")
+    get_json_element("${object}" raw_patches patches "")
+
+    # format patchdir
+    if (raw_patches)
+        math(EXPR range "${raw_patches_LENGTH} - 1")
+
+        foreach(IDX RANGE ${range})
+            string(JSON _patch GET "${raw_patches}" "${IDX}")
+
+            set(full_patch "${CMAKE_SOURCE_DIR}/.patch/${JSON_NAME}/${_patch}")
+            if (NOT EXISTS ${full_patch})
+                cpm_utils_message(FATAL_ERROR ${JSON_NAME} "specifies patch ${full_patch} which does not exist")
+            endif()
+
+            list(APPEND patches "${full_patch}")
+        endforeach()
+    endif()
+    # end format patchdir
+
+    # options
+    get_json_element("${object}" raw_options options "")
+
+    if (raw_options)
+        array_to_list("${raw_options}" ${raw_options_LENGTH} options)
+    endif()
+
+    set(options ${options} ${JSON_OPTIONS})
+
+    # end options
+
+    # system/bundled
+    if (bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
+        set(bundled ${JSON_BUNDLED_PACKAGE})
+    else()
+        set(bundled ON)
+    endif()
+
+    AddPackage(
+        NAME "${package}"
+        VERSION "${version}"
+        URL "${url}"
+        HASH "${hash}"
+        SHA "${sha}"
+        REPO "${repo}"
+        KEY "${key}"
+        PATCHES "${patches}"
+        OPTIONS "${options}"
+        FIND_PACKAGE_ARGUMENTS "${find_args}"
+        BUNDLED_PACKAGE "${bundled}"
+        SOURCE_SUBDIR "${source_subdir}"
+
+        GIT_VERSION ${git_version}
+        ARTIFACT ${artifact}
+        TAG ${tag}
+    )
+
+    # pass stuff to parent scope
+    set(${package}_ADDED "${${package}_ADDED}"
+        PARENT_SCOPE)
+    set(${package}_SOURCE_DIR "${${package}_SOURCE_DIR}"
+        PARENT_SCOPE)
+    set(${package}_BINARY_DIR "${${package}_BINARY_DIR}"
+        PARENT_SCOPE)
+
 endfunction()
 
 function(AddPackage)
@@ -64,9 +258,6 @@ function(AddPackage)
         GIT_URL
 
         KEY
-        DOWNLOAD_ONLY
-        FIND_PACKAGE_ARGUMENTS
-        SYSTEM_PACKAGE
         BUNDLED_PACKAGE
     )
 
@@ -78,6 +269,9 @@ function(AddPackage)
     if (NOT DEFINED PKG_ARGS_NAME)
         cpm_utils_message(FATAL_ERROR "package" "No package name defined")
     endif()
+
+    option(${PKG_ARGS_NAME}_FORCE_SYSTEM "Force the system package for ${PKG_ARGS_NAME}")
+    option(${PKG_ARGS_NAME}_FORCE_BUNDLED "Force the bundled package for ${PKG_ARGS_NAME}")
 
     if (DEFINED PKG_ARGS_URL)
         set(pkg_url ${PKG_ARGS_URL})
@@ -124,9 +318,9 @@ function(AddPackage)
     cpm_utils_message(STATUS ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
 
     if (DEFINED PKG_ARGS_GIT_VERSION)
-        set(git_version ${PKG_ARGS_VERSION})
-    elseif(DEFINED PKG_ARGS_VERSION)
         set(git_version ${PKG_ARGS_GIT_VERSION})
+    elseif(DEFINED PKG_ARGS_VERSION)
+        set(git_version ${PKG_ARGS_VERSION})
     endif()
 
     if (NOT DEFINED PKG_ARGS_KEY)
@@ -178,25 +372,55 @@ function(AddPackage)
     if (DEFINED hash_url)
         set(outfile ${CMAKE_CURRENT_BINARY_DIR}/${PKG_ARGS_NAME}.hash)
 
-        file(DOWNLOAD ${hash_url} ${outfile})
-        file(READ ${outfile} pkg_hash_tmp)
-        file(REMOVE ${outfile})
+        # TODO(crueter): This is kind of a bad solution
+        # because "technically" the hash is invalidated each week
+        # but it works for now kjsdnfkjdnfjksdn
+        string(TOLOWER ${PKG_ARGS_NAME} lowername)
+        if (NOT EXISTS ${outfile} AND NOT EXISTS ${CPM_SOURCE_CACHE}/${lowername}/${pkg_key})
+            file(DOWNLOAD ${hash_url} ${outfile})
+        endif()
 
-        set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
+        if (EXISTS ${outfile})
+            file(READ ${outfile} pkg_hash_tmp)
+        endif()
+
+        if (DEFINED ${pkg_hash_tmp})
+            set(pkg_hash "${hash_algo}=${pkg_hash_tmp}")
+        endif()
     endif()
 
-    if (NOT CPMUTIL_DEFAULT_SYSTEM)
-        set(CPM_USE_LOCAL_PACKAGES OFF)
-    elseif (DEFINED PKG_ARGS_SYSTEM_PACKAGE)
-        set(CPM_USE_LOCAL_PACKAGES ${PKG_ARGS_SYSTEM_PACKAGE})
+    macro(set_precedence local force)
+        set(CPM_USE_LOCAL_PACKAGES ${local})
+        set(CPM_LOCAL_PACKAGES_ONLY ${force})
+    endmacro()
+
+    #[[
+        Precedence:
+        - package_FORCE_SYSTEM
+        - package_FORCE_BUNDLED
+        - CPMUTIL_FORCE_SYSTEM
+        - CPMUTIL_FORCE_BUNDLED
+        - BUNDLED_PACKAGE
+        - default to allow local
+    ]]#
+    if (${PKG_ARGS_NAME}_FORCE_SYSTEM)
+        set_precedence(ON ON)
+    elseif (${PKG_ARGS_NAME}_FORCE_BUNDLED)
+        set_precedence(OFF OFF)
+    elseif (CPMUTIL_FORCE_SYSTEM)
+        set_precedence(ON ON)
+    elseif(NOT CPMUTIL_FORCE_BUNDLED)
+        set_precedence(OFF OFF)
     elseif (DEFINED PKG_ARGS_BUNDLED_PACKAGE)
         if (PKG_ARGS_BUNDLED_PACKAGE)
-            set(CPM_USE_LOCAL_PACKAGES OFF)
+            set(local OFF)
         else()
-            set(CPM_USE_LOCAL_PACKAGES ON)
+            set(local ON)
         endif()
+
+        set_precedence(${local} OFF)
     else()
-        set(CPM_USE_LOCAL_PACKAGES ON)
+        set_precedence(ON OFF)
     endif()
 
     CPMAddPackage(
@@ -210,6 +434,7 @@ function(AddPackage)
 
         OPTIONS ${PKG_ARGS_OPTIONS}
         PATCHES ${PKG_ARGS_PATCHES}
+        EXCLUDE_FROM_ALL ON
 
         ${PKG_ARGS_UNPARSED_ARGUMENTS}
     )
@@ -257,7 +482,7 @@ function(add_ci_package key)
     set(ARTIFACT ${ARTIFACT_NAME}-${key}-${ARTIFACT_VERSION}.${ARTIFACT_EXT})
 
     AddPackage(
-        NAME ${ARTIFACT_PACKAGE}-${key}
+        NAME ${ARTIFACT_PACKAGE}
         REPO ${ARTIFACT_REPO}
         TAG v${ARTIFACT_VERSION}
         VERSION ${ARTIFACT_VERSION}
@@ -266,15 +491,12 @@ function(add_ci_package key)
         KEY ${key}
         HASH_SUFFIX sha512sum
         BUNDLED_PACKAGE ON
-        DOWNLOAD_ONLY ON
     )
 
-    if (NOT ARTIFACT_FORCE_DOWNLOAD OR ARTIFACT_OVERRIDE)
-        set(ARTIFACT_DIR ${${ARTIFACT_PACKAGE}-${key}_SOURCE_DIR} PARENT_SCOPE)
-    endif()
+    set(ARTIFACT_DIR ${${ARTIFACT_PACKAGE}_SOURCE_DIR} PARENT_SCOPE)
 endfunction()
 
-# TODO(crueter): doc
+# name is the artifact name, package is for find_package override
 function(AddCIPackage)
     set(oneValueArgs
         VERSION
@@ -282,11 +504,9 @@ function(AddCIPackage)
         REPO
         PACKAGE
         EXTENSION
-        FORCE_DOWNLOAD
         MIN_VERSION
         DISABLED_PLATFORMS
         CMAKE_FILENAME
-        TARGET
     )
 
     cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "" ${ARGN})
@@ -316,12 +536,6 @@ function(AddCIPackage)
         set(ARTIFACT_EXT ${PKG_ARGS_EXTENSION})
     endif()
 
-    if(NOT DEFINED PKG_ARGS_FORCE_DOWNLOAD)
-        set(ARTIFACT_FORCE_DOWNLOAD OFF)
-    else()
-        set(ARTIFACT_FORCE_DOWNLOAD ${PKG_ARGS_FORCE_DOWNLOAD})
-    endif()
-
     if (DEFINED PKG_ARGS_MIN_VERSION)
         set(ARTIFACT_MIN_VERSION ${PKG_ARGS_MIN_VERSION})
     endif()
@@ -336,86 +550,42 @@ function(AddCIPackage)
     set(ARTIFACT_REPO ${PKG_ARGS_REPO})
     set(ARTIFACT_PACKAGE ${PKG_ARGS_PACKAGE})
 
-    if ((MSVC AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
-        # kinda hacky
-        if(MSVC AND ARCHITECTURE_x86_64)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if ((MSVC AND ARCHITECTURE_x86_64) AND NOT "windows-amd64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(windows-amd64)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
-    if ((MSVC AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "windows-arm64" IN_LIST DISABLED_PLATFORMS)
-        if(MSVC AND ARCHITECTURE_arm64)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if ((MSVC AND ARCHITECTURE_arm64) AND NOT "windows-arm64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(windows-arm64)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
-    if (ANDROID OR ARTIFACT_FORCE_DOWNLOAD AND NOT "android" IN_LIST DISABLED_PLATFORMS)
-        if(ANDROID)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if (ANDROID AND NOT "android" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(android)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
-    if(PLATFORM_SUN OR ARTIFACT_FORCE_DOWNLOAD AND NOT "solaris" IN_LIST DISABLED_PLATFORMS)
-        if(PLATFORM_SUN)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if(PLATFORM_SUN AND NOT "solaris" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(solaris)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
-    if(PLATFORM_FREEBSD OR ARTIFACT_FORCE_DOWNLOAD AND NOT "freebsd" IN_LIST DISABLED_PLATFORMS)
-        if(PLATFORM_FREEBSD)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if(PLATFORM_FREEBSD AND NOT "freebsd" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(freebsd)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
-    if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
-        if(PLATFORM_LINUX AND ARCHITECTURE_x86_64)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if((PLATFORM_LINUX AND ARCHITECTURE_x86_64) AND NOT "linux" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(linux)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
-    if((PLATFORM_LINUX AND ARCHITECTURE_arm64) OR ARTIFACT_FORCE_DOWNLOAD AND NOT "linux-aarch64" IN_LIST DISABLED_PLATFORMS)
-        if(PLATFORM_LINUX AND ARCHITECTURE_arm64)
-            set(ARTIFACT_OVERRIDE ON)
-        endif()
-
+    if((PLATFORM_LINUX AND ARCHITECTURE_arm64) AND NOT "linux-aarch64" IN_LIST DISABLED_PLATFORMS)
         add_ci_package(linux-aarch64)
-        set(ARTIFACT_OVERRIDE OFF)
     endif()
 
     if (DEFINED ARTIFACT_DIR)
-        if (NOT DEFINED PKG_ARGS_TARGET OR NOT TARGET "${PKG_ARGS_TARGET}")
-            include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
+        include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
 
-            # Overrides find package
-            CPMAddPackage(
-                NAME ${ARTIFACT_PACKAGE}
-                SOURCE_DIR ${ARTIFACT_DIR}
-            )
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${ARTIFACT_NAME})
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/${ARTIFACT_REPO}") # TODO(crueter) other hosts?
+        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${ARTIFACT_VERSION})
 
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${ARTIFACT_NAME})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/${ARTIFACT_REPO}") # TODO(crueter) other hosts?
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${ARTIFACT_VERSION})
-
-            set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
-        endif()
+        set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
     else()
         find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)
     endif()

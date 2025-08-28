@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Explicitly include CPMUtil here since we have a separate cpmfile for nx_tzdb
+set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
+include(CPMUtil)
+
 set(NX_TZDB_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 add_library(nx_tzdb INTERFACE)
@@ -28,28 +32,15 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ANDROID)
 endif()
 
 set(NX_TZDB_VERSION "250725")
-set(NX_TZDB_ARCHIVE "${CPM_SOURCE_CACHE}/nx_tzdb/${NX_TZDB_VERSION}.zip")
 
-set(NX_TZDB_ROMFS_DIR "${CPM_SOURCE_CACHE}/nx_tzdb/tz")
+set(NX_TZDB_ROMFS_DIR "${CPM_SOURCE_CACHE}/nx_tzdb/")
 
 if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_TZDB_ROMFS_DIR})
-    set(NX_TZDB_DOWNLOAD_URL "https://github.com/crueter/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
-
-    message(STATUS "Downloading time zone data from ${NX_TZDB_DOWNLOAD_URL}...")
-    file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE}
-        STATUS NX_TZDB_DOWNLOAD_STATUS)
-    list(GET NX_TZDB_DOWNLOAD_STATUS 0 NX_TZDB_DOWNLOAD_STATUS_CODE)
-    if (NOT NX_TZDB_DOWNLOAD_STATUS_CODE EQUAL 0)
-        message(FATAL_ERROR "Time zone data download failed (status code ${NX_TZDB_DOWNLOAD_STATUS_CODE})")
-    endif()
-
-    file(ARCHIVE_EXTRACT
-        INPUT
-            ${NX_TZDB_ARCHIVE}
-        DESTINATION
-            ${NX_TZDB_ROMFS_DIR})
+    message(STATUS "Downloading time zone data...")
+    AddJsonPackage(tzdb)
 elseif (CAN_BUILD_NX_TZDB AND NOT YUZU_DOWNLOAD_TIME_ZONE_DATA)
     # TODO(crueter): this sucked to do with cpm, see if i can get it to work again
+    message(FATAL_ERROR "Building tzdb is currently unsupported. Check back later.")
     add_subdirectory(tzdb_to_nx)
     add_dependencies(nx_tzdb x80e)
 
@@ -79,24 +70,24 @@ function(CreateHeader ZONE_PATH HEADER_NAME)
 endfunction()
 
 CreateHeader(${NX_TZDB_ROMFS_DIR} base)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo zoneinfo)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Africa africa)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/America america)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/America/Argentina america_argentina)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/America/Indiana america_indiana)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/America/Kentucky america_kentucky)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/America/North_Dakota america_north_dakota)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Antarctica antarctica)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Arctic arctic)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Asia asia)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Atlantic atlantic)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Australia australia)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Brazil brazil)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Canada canada)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Chile chile)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Etc etc)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Europe europe)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Indian indian)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Mexico mexico)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/Pacific pacific)
-CreateHeader(${NX_TZDB_ROMFS_DIR}/zoneinfo/US us)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION} zoneinfo)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Africa africa)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/America america)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/America/Argentina america_argentina)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/America/Indiana america_indiana)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/America/Kentucky america_kentucky)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/America/North_Dakota america_north_dakota)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Antarctica antarctica)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Arctic arctic)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Asia asia)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Atlantic atlantic)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Australia australia)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Brazil brazil)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Canada canada)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Chile chile)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Etc etc)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Europe europe)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Indian indian)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Mexico mexico)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/Pacific pacific)
+CreateHeader(${NX_TZDB_ROMFS_DIR}/${NX_TZDB_VERSION}/US us)

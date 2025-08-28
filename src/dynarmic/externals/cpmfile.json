@@ -1,0 +1,47 @@
+{
+    "biscuit": {
+        "version": "0.9.1",
+        "repo": "lioncash/biscuit",
+        "sha": "76b0be8dae",
+        "hash": "47d55ed02d032d6cf3dc107c6c0a9aea686d5f25aefb81d1af91db027b6815bd5add1755505e19d76625feeb17aa2db6cd1668fe0dad2e6a411519bde6ca4489"
+    },
+    "mcl": {
+        "version": "0.1.12",
+        "repo": "azahar-emu/mcl",
+        "sha": "7b08d83418",
+        "hash": "f943bac39c1879986decad7a442ff4288eaeca4a2907684c7914e115a55ecc43c2782ded85c0835763fe04e40d5c82220ce864423e489e648e408a84f54dc4f3",
+        "options": [
+            "MCL_INSTALL OFF"
+        ]
+    },
+    "unordered-dense": {
+        "package": "unordered_dense",
+        "repo": "Lizzie841/unordered_dense",
+        "sha": "e59d30b7b1",
+        "hash": "71eff7bd9ba4b9226967bacd56a8ff000946f8813167cb5664bb01e96fb79e4e220684d824fe9c59c4d1cc98c606f13aff05b7940a1ed8ab3c95d6974ee34fa0",
+        "find_args": "CONFIG",
+        "options": [
+            "UNORDERED_DENSE_INSTALL OFF"
+        ]
+    },
+    "zycore": {
+        "package": "Zycore",
+        "repo": "zyantific/zycore-c",
+        "sha": "75a36c45ae",
+        "hash": "15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924",
+        "bundled": true
+    },
+    "zydis": {
+        "package": "Zydis",
+        "version": "4",
+        "repo": "zyantific/zydis",
+        "sha": "c2d2bab025",
+        "hash": "7b48f213ff7aab2926f8c9c65195959143bebbfb2b9a25051ffd8b8b0f1baf1670d9739781de674577d955925f91ac89376e16b476a03828c84e2fd765d45020",
+        "options": [
+            "ZYDIS_BUILD_TOOLS OFF",
+            "ZYDIS_BUILD_EXAMPLES OFF",
+            "ZYDIS_BUILD_DOXYGEN OFF",
+            "ZYAN_SYSTEM_ZYCORE ON"
+        ]
+    }
+}

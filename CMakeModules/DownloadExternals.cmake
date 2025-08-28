@@ -29,6 +29,7 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var versi
     set(package_url "${package_base_url}${package_repo}")
     set(full_url ${package_url}${remote_path}${lib_name}${package_extension})
 
+    # TODO(crueter): DELETE THIS ENTIRELY, GLORY BE TO THE CI!
     AddPackage(
         NAME ${cpm_key}
         VERSION ${version}

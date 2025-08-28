@@ -1,0 +1,8 @@
+{
+    "tzdb": {
+        "package": "nx_tzdb",
+        "url": "https://github.com/crueter/tzdb_to_nx/releases/download/250725/250725.zip",
+        "hash": "8f60b4b29f285e39c0443f3d5572a73780f3dbfcfd5b35004451fadad77f3a215b2e2aa8d0fffe7e348e2a7b0660882b35228b6178dda8804a14ce44509fd2ca",
+        "version": "250725"
+    }
+}

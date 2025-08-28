@@ -99,7 +99,6 @@ option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependenc
 
 if (YUZU_USE_CPM AND ENABLE_SDL2)
     option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
-    CMAKE_DEPENDENT_OPTION(FORCE_DOWNLOAD_SDL2 "Forcefully download all bundled SDL2 builds (useful for CI)" OFF "YUZU_USE_BUNDLED_SDL2" OFF)
 endif()
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
@@ -110,11 +109,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROI
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
-if (PLATFORM_FREEBSD)
-    option(YUZU_CHECK_SUBMODULES "Check if submodules are present" OFF)
-else()
-    option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
-endif()
+option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ${EXT_DEFAULT})
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
@@ -143,9 +138,8 @@ endif()
 
 option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
 
-if (YUZU_USE_CPM AND ENABLE_OPENSSL)
+if (ENABLE_OPENSSL)
     CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" "${MSVC}" "NOT ANDROID" ON)
-    CMAKE_DEPENDENT_OPTION(FORCE_DOWNLOAD_OPENSSL "Forcefully download all bundled OpenSSL builds (useful for CI)" OFF "YUZU_USE_BUNDLED_OPENSSL" OFF)
 endif()
 
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
@@ -180,11 +174,11 @@ if (YUZU_USE_PRECOMPILED_HEADERS)
         set(YUZU_USE_PRECOMPILED_HEADERS OFF CACHE BOOL "" FORCE)
     endif()
 endif()
+
 if (YUZU_USE_PRECOMPILED_HEADERS)
     message(STATUS "Using Precompiled Headers.")
     set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 endif()
-
 
 # Default to a Release build
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -246,20 +240,24 @@ endfunction()
 if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND YUZU_CHECK_SUBMODULES)
     check_submodules_present()
 endif()
+
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
     COPYONLY)
+
 if (EXISTS ${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json)
     configure_file("${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.json"
         "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json"
         COPYONLY)
 endif()
+
 if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
     message(STATUS "Downloading compatibility list for yuzu...")
     file(DOWNLOAD
         https://api.yuzu-emu.org/gamedb/
         "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
 endif()
+
 if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
     file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
@@ -303,7 +301,14 @@ if (NOT DEFINED ARCHITECTURE)
     set(ARCHITECTURE_GENERIC 1)
     add_definitions(-DARCHITECTURE_GENERIC=1)
 endif()
+
 message(STATUS "Target architecture: ${ARCHITECTURE}")
+
+if (MSVC AND ARCHITECTURE_x86)
+    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
+        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
+endif()
 
 if (UNIX)
     add_definitions(-DYUZU_UNIX=1)
@@ -367,6 +372,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 include(CPMUtil)
 
+# openssl funniness
+if (ENABLE_OPENSSL)
+    if (YUZU_USE_BUNDLED_OPENSSL)
+        AddJsonPackage(openssl)
+    endif()
+
+    find_package(OpenSSL 1.1.1 REQUIRED)
+endif()
+
 if (YUZU_USE_CPM)
     message(STATUS "Fetching needed dependencies with CPM")
 
@@ -375,36 +389,9 @@ if (YUZU_USE_CPM)
 
     # TODO(crueter): renderdoc?
 
-    # openssl funniness
-    if (ENABLE_OPENSSL)
-        if (YUZU_USE_BUNDLED_OPENSSL)
-            AddCIPackage(
-                PACKAGE OpenSSL
-                NAME openssl
-                REPO crueter-ci/OpenSSL
-                VERSION 3.5.2
-                MIN_VERSION 1.1.1
-                FORCE_DOWNLOAD ${FORCE_DOWNLOAD_OPENSSL}
-            )
-        endif()
-
-        find_package(OpenSSL 1.1.1 REQUIRED)
-    endif()
-
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
-    AddPackage(
-        NAME Boost
-        REPO boostorg/boost
-        TAG boost-1.88.0
-        ARTIFACT boost-1.88.0-cmake.7z
-
-        HASH e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01
-
-        GIT_VERSION 1.88.0
-        VERSION 1.57
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(boost)
 
     # really annoying thing where boost::headers doesn't work with cpm
     # TODO(crueter) investigate
@@ -419,6 +406,10 @@ if (YUZU_USE_CPM)
 
         if (NOT MSVC)
             # boost sucks
+            if (NOT PLATFORM_LINUX AND NOT ANDROID)
+                target_compile_definitions(boost_container INTERFACE BOOST_HAS_PTHREADS)
+            endif()
+
             target_compile_options(boost_heap INTERFACE -Wno-shadow)
             target_compile_options(boost_icl INTERFACE -Wno-shadow)
             target_compile_options(boost_asio INTERFACE -Wno-conversion -Wno-implicit-fallthrough)
@@ -426,151 +417,46 @@ if (YUZU_USE_CPM)
     endif()
 
     # fmt
-    AddPackage(
-        NAME fmt
-        REPO fmtlib/fmt
-        SHA 40626af88b
-        HASH d59f06c24339f223de4ec2afeba1c67b5835a0f350a1ffa86242a72fc3e616a6b8b21798355428d4200c75287308b66634619ffa0b52ba5bd74cc01772ea1a8a
-        VERSION 8
-        OPTIONS
-            "FMT_INSTALL OFF"
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(fmt)
 
     # lz4
-    AddPackage(
-        NAME lz4
-        REPO lz4/lz4
-        SHA ebb370ca83
-        HASH 43600e87b35256005c0f2498fa56a77de6783937ba4cfce38c099f27c03188d097863e8a50c5779ca0a7c63c29c4f7ed0ae526ec798c1fd2e3736861b62e0a37
-        SOURCE_SUBDIR build/cmake
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(lz4)
 
     if (lz4_ADDED)
         add_library(lz4::lz4 ALIAS lz4_static)
     endif()
 
     # nlohmann
-    AddPackage(
-        NAME nlohmann_json
-        REPO nlohmann/json
-        SHA 55f93686c0
-        HASH b739749b066800e21154506ea150d2c5cbce8a45344177f46f884547a1399d26753166fd0df8135269ce28cf223552b1b65cd625b88c844d54753f2434900486
-        VERSION 3.8
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(nlohmann)
 
     # zlib
-    AddPackage(
-        NAME ZLIB
-        REPO madler/zlib
-        SHA 51b7f2abda
-        HASH 16eaf1f3752489d12fd9ce30f7b5f7cbd5cb8ff53d617005a9847ae72d937f65e01e68be747f62d7ac19fd0c9aeba9956e60f16d6b465c5fdc2f3d08b4db2e6c
-        VERSION 1.2
-        OPTIONS
-            "ZLIB_BUILD_SHARED OFF"
-            "ZLIB_INSTALL OFF"
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(zlib)
 
     if (ZLIB_ADDED)
         add_library(ZLIB::ZLIB ALIAS zlibstatic)
     endif()
 
     # zstd
-    AddPackage(
-        NAME zstd
-        REPO facebook/zstd
-        SHA f8745da6ff
-        HASH 3037007f990040fe32573b46f9bef8762fd5dbeeb07ffffcbfeba51ec98167edae39bb9c87f9299efcd61c4e467c5e84f7c19f0df7799bc1fc04864a278792ee
-        VERSION 1.5
-        SOURCE_SUBDIR build/cmake
-        OPTIONS
-            "ZSTD_BUILD_SHARED OFF"
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(zstd)
+
+    if (zstd_ADDED)
+        add_library(zstd::zstd ALIAS libzstd_static)
+    endif()
 
     # Catch2
     if (YUZU_TESTS OR DYNARMIC_TESTS)
-        AddPackage(
-            NAME Catch2
-            REPO catchorg/Catch2
-            SHA 644821ce28
-            HASH f8795f98acf2c02c0db8e734cc866d5caebab4b4a306e93598b97cb3c0c728dafe8283dce27ffe8d42460e5ae7302f3f32e7e274a7f991b73511ac88eef21b1f
-            VERSION 3.0.1
-            EXCLUDE_FROM_ALL ON
-        )
+        AddJsonPackage(catch2)
     endif()
 
     # ENet
-    AddPackage(
-        NAME enet
-        REPO lsalzman/enet
-        SHA 2662c0de09
-        VERSION 1.3
-        HASH 3de1beb4fa3d6b1e03eda8dd1e7580694f854af3ed3975dcdabfdcdf76b97f322b9734d35ea7f185855bb490d957842b938b26da4dd2dfded509390f8d2794dd
-        FIND_PACKAGE_ARGUMENTS "MODULE"
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(enet)
 
     if (enet_ADDED)
         target_include_directories(enet INTERFACE ${enet_SOURCE_DIR}/include)
     endif()
 
     # Opus
-    AddPackage(
-        NAME Opus
-        VERSION 1.3
-        REPO "xiph/opus"
-        SHA 5ded705cf4
-        HASH 0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203
-        FIND_PACKAGE_ARGUMENTS "MODULE"
-        OPTIONS
-            "OPUS_BUILD_TESTING OFF"
-            "OPUS_BUILD_PROGRAMS OFF"
-            "OPUS_INSTALL_PKG_CONFIG_MODULE OFF"
-            "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
-        EXCLUDE_FROM_ALL ON
-    )
-
-    if(ENABLE_CUBEB)
-        AddPackage(
-            NAME cubeb
-            REPO "mozilla/cubeb"
-            SHA fa02160712
-            HASH 82d808356752e4064de48c8fecbe7856715ade1e76b53937116bf07129fc1cc5b3de5e4b408de3cd000187ba8dc32ca4109661cb7e0355a52e54bd81b9be1c61
-            FIND_PACKAGE_ARGUMENTS "CONFIG" # not sure this works outside of gentoo
-            OPTIONS
-                "USE_SANITIZERS OFF"
-                "BUILD_TESTS OFF"
-                "BUILD_TOOLS OFF"
-                "BUNDLE_SPEEX ON"
-            EXCLUDE_FROM_ALL ON
-        )
-
-        if (cubeb_ADDED)
-            if (NOT MSVC)
-                if (TARGET speex)
-                    target_compile_options(speex PRIVATE -Wno-sign-compare)
-                endif()
-
-                set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
-                target_compile_options(cubeb INTERFACE
-                    -Wno-implicit-const-int-float-conversion
-                    -Wno-shadow
-                    -Wno-missing-declarations
-                    -Wno-return-type
-                    -Wno-uninitialized
-                )
-            else()
-                target_compile_options(cubeb PRIVATE
-                    /wd4456
-                    /wd4458
-                )
-            endif()
-        endif()
-    endif()
+    AddJsonPackage(opus)
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -582,11 +468,7 @@ else()
     find_package(enet 1.3 MODULE REQUIRED)
     find_package(Opus 1.3 MODULE REQUIRED)
     find_package(ZLIB 1.2 REQUIRED)
-    find_package(zstd 1.5 REQUIRED)
-
-    if (ENABLE_CUBEB)
-        find_package(cubeb CONFIG)
-    endif()
+    find_package(zstd 1.5 REQUIRED MODULE)
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
@@ -602,14 +484,7 @@ else()
 endif()
 
 if(NOT TARGET Boost::headers)
-    AddPackage(
-        NAME boost_headers
-        REPO "boostorg/headers"
-        SHA 0456900fad
-        HASH 50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3
-        BUNDLED_PACKAGE ON
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(boost_headers)
 endif()
 
 if (ENABLE_LIBUSB)
@@ -622,45 +497,45 @@ endif()
 
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
-    AddPackage(
-        NAME discord-rpc
-        REPO "discord/discord-rpc"
-        SHA 963aa9f3e5
-        HASH 386e1344e9a666d730f2d335ee3aef1fd05b1039febefd51aa751b705009cc764411397f3ca08dffd46205c72f75b235c870c737b2091a4ed0c3b061f5919bde
-        OPTIONS
-            "BUILD_EXAMPLES OFF"
-        PATCHES
-            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0001-cmake-version.patch
-            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0002-no-clang-format.patch
-            ${CMAKE_SOURCE_DIR}/.patch/discord-rpc/0003-fix-cpp17.patch
-        EXCLUDE_FROM_ALL ON
-    )
+    AddJsonPackage(discord-rpc)
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
     add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
 endif()
 
 # SimpleIni
-AddPackage(
-    NAME SimpleIni
-    REPO brofield/simpleini
-    SHA 09c21bda1d
-    HASH 99779ca9b6e040d36558cadf484f9ffdab5b47bcc8fc72e4d33639d1d60c0ceb4410d335ba445d72a4324e455167fd6769d99b459943aa135bec085dff2d4b7c
-    FIND_PACKAGE_ARGUMENTS "MODULE"
-    EXCLUDE_FROM_ALL ON
-)
+AddJsonPackage(simpleini)
 
-# TODO(crueter): Work around this
-if (NOT YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SPIRV-Tools REQUIRED SPIRV-Tools)
+# Most linux distros don't package cubeb, so enable regardless of cpm settings
+if(ENABLE_CUBEB)
+    AddJsonPackage(cubeb)
+
+    if (cubeb_ADDED)
+        if (NOT MSVC)
+            if (TARGET speex)
+                target_compile_options(speex PRIVATE -Wno-sign-compare)
+            endif()
+
+            set_target_properties(cubeb PROPERTIES COMPILE_OPTIONS "")
+            target_compile_options(cubeb INTERFACE
+                -Wno-implicit-const-int-float-conversion
+                -Wno-shadow
+                -Wno-missing-declarations
+                -Wno-return-type
+                -Wno-uninitialized
+            )
+        else()
+            target_compile_options(cubeb PRIVATE
+                /wd4456
+                /wd4458
+            )
+        endif()
+    endif()
 endif()
 
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the YUZU_find_package
 if (ENABLE_SDL2)
-    # this was hard to get right, but ultimately I decided to make it so that FORCE_DOWNLOAD_SDL2 also downloads the
-    # external one. Really silly behavior imo but in the interest of getting something out there I'm leaving it for now
-    if (YUZU_USE_EXTERNAL_SDL2 OR FORCE_DOWNLOAD_SDL2)
+    if (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
         if (NOT WIN32)
             # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
@@ -683,37 +558,14 @@ if (ENABLE_SDL2)
         endif()
 
         if ("${YUZU_SYSTEM_PROFILE}" STREQUAL "steamdeck")
-            set(SDL_HASH cc016b0046)
             set(SDL_PIPEWIRE OFF) # build errors out with this on
-            set(SDL_SHA512SUM 34d5ef58da6a4f9efa6689c82f67badcbd741f5a4f562a9c2c30828fa839830fb07681c5dc6a7851520e261c8405a416ac0a2c2513b51984fb3b4fa4dcb3e20b)
+            AddJsonPackage("sdl2_steamdeck")
         else()
-            set(SDL_HASH 54772f345a)
-            set(SDL_SHA512SUM 2a68a0e01c390043aa9d9df63d8a20a52076c88bb460ac4e0f33194ca7d9bc8fadbbcc04e7506872ac4b6354a73fbc267c036f82200da59465789b87c7d9e3a4)
+            AddJsonPackage("sdl2_generic")
         endif()
-
-        AddPackage(
-            NAME SDL2
-            REPO "libsdl-org/SDL"
-            SHA ${SDL_HASH}
-            HASH ${SDL_SHA512SUM}
-            KEY ${YUZU_SYSTEM_PROFILE}
-            BUNDLED_PACKAGE ON
-            EXCLUDE_FROM_ALL ON
-        )
-    endif()
-
-    if (YUZU_USE_BUNDLED_SDL2)
+    elseif (YUZU_USE_BUNDLED_SDL2)
         message(STATUS "Using bundled SDL2")
-        AddCIPackage(
-            PACKAGE SDL2
-            NAME SDL2
-            REPO crueter-ci/SDL2
-            VERSION 2.32.8
-            MIN_VERSION 2.26.4
-            CMAKE_FILENAME sdl2
-            FORCE_DOWNLOAD ${FORCE_DOWNLOAD_SDL2}
-            TARGET "SDL2::SDL2"
-        )
+        AddJsonPackage(sdl2)
     endif()
 
     find_package(SDL2 2.26.4 REQUIRED)
@@ -750,6 +602,7 @@ add_subdirectory(externals)
 find_package(VulkanHeaders)
 find_package(VulkanUtilityLibraries)
 find_package(VulkanMemoryAllocator)
+find_package(SPIRV-Tools)
 
 if (ENABLE_WEB_SERVICE)
     find_package(httplib)

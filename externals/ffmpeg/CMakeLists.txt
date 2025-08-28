@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Explicitly include CPMUtil here since we have a separate cpmfile for ffmpeg
+set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
+include(CPMUtil)
+
 if (NOT WIN32 AND NOT ANDROID)
     # Build FFmpeg from externals
     message(STATUS "Using FFmpeg from externals")
@@ -19,13 +23,7 @@ if (NOT WIN32 AND NOT ANDROID)
         message(FATAL_ERROR "Required program `autoconf` not found.")
     endif()
 
-    AddPackage(
-        NAME ffmpeg
-        REPO "FFmpeg/FFmpeg"
-        SHA c2184b65d2
-        HASH 2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97
-        SYSTEM_PACKAGE OFF
-    )
+    AddJsonPackage(ffmpeg)
 
     set(FFmpeg_PREFIX ${ffmpeg_SOURCE_DIR})
     set(FFmpeg_BUILD_DIR ${ffmpeg_BINARY_DIR})

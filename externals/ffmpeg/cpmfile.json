@@ -1,0 +1,8 @@
+{
+    "ffmpeg": {
+        "repo": "FFmpeg/FFmpeg",
+        "sha": "c2184b65d2",
+        "hash": "2a89d664119debbb3c006ab1c48d5d7f26e889f4a65ad2e25c8b0503308295123d5a9c5c78bf683aef5ff09acef8c3fc2837f22d3e8c611528b933bf03bcdd97",
+        "bundled": true
+    }
+}

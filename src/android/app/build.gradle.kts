@@ -175,7 +175,10 @@ android {
                     "-DYUZU_USE_CPM=ON",
                     "-DYUZU_USE_BUNDLED_FFMPEG=ON",
                     "-DYUZU_ENABLE_LTO=ON",
-                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+                    "-DBUILD_TESTING=OFF",
+                    "-DYUZU_TESTS=OFF",
+                    "-DDYNARMIC_TESTS=OFF"
                 )
 
                 abiFilters("arm64-v8a")
