@@ -307,10 +307,7 @@ struct Values {
                                         true,
 #endif
                                         "cpuopt_unsafe_host_mmu",
-                                        Category::CpuUnsafe,
-                                        Specialization::Default,
-                                                 true,
-                                                 true};
+                                        Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
                                                      Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{
