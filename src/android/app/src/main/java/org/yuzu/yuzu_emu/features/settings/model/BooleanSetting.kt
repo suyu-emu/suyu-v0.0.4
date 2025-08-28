@@ -66,7 +66,7 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     SHOW_POWER_INFO("show_power_info"),
     SHOW_SHADERS_BUILDING("show_shaders_building"),
 
-    DEBUG_FLUSH_BY_LINE("flush_lines"),
+    DEBUG_FLUSH_BY_LINE("flush_line"),
     USE_LRU_CACHE("use_lru_cache");
 
     external fun isRaiiEnabled(): Boolean
