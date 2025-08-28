@@ -40,11 +40,6 @@ target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
 
 target_link_libraries(yuzu-cmd PRIVATE SDL2::SDL2 Vulkan::Headers)
 
-# In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
-if (PLATFORM_SUN)
-    target_link_libraries(yuzu-cmd PRIVATE X11 "/usr/lib/xorg/amd64/libdrm.so")
-endif()
-
 if(UNIX AND NOT APPLE)
     install(TARGETS yuzu-cmd)
 endif()

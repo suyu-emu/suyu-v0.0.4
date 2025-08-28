@@ -501,11 +501,6 @@ if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
 endif()
 
-# Explicit linking required
-if (PLATFORM_SUN)
-    target_link_libraries(yuzu PRIVATE X11 "/usr/lib/xorg/amd64/libdrm.so")
-endif()
-
 # Extra deps
 add_subdirectory(externals)
 target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
