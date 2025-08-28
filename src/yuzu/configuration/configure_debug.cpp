@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,7 +42,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->toggle_console->setEnabled(runtime_lock);
     ui->toggle_console->setChecked(UISettings::values.show_console.GetValue());
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter.GetValue()));
-    ui->flush_line->setChecked(Settings::values.log_flush_lines.GetValue());
+    ui->flush_line->setChecked(Settings::values.log_flush_line.GetValue());
     ui->censor_username->setChecked(Settings::values.censor_username.GetValue());
     ui->homebrew_args_edit->setText(
         QString::fromStdString(Settings::values.program_args.GetValue()));
@@ -90,7 +93,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.gdbstub_port = ui->gdbport_spinbox->value();
     UISettings::values.show_console = ui->toggle_console->isChecked();
     Settings::values.log_filter = ui->log_filter_edit->text().toStdString();
-    Settings::values.log_flush_lines = ui->flush_line->isChecked();
+    Settings::values.log_flush_line = ui->flush_line->isChecked();
     Settings::values.censor_username = ui->censor_username->isChecked();
     Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();
     Settings::values.enable_fs_access_log = ui->fs_access_log->isChecked();
