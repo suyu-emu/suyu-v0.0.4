@@ -406,8 +406,10 @@ if (YUZU_USE_CPM)
 
         if (NOT MSVC)
             # boost sucks
-            if (NOT PLATFORM_LINUX AND NOT ANDROID)
-                target_compile_definitions(boost_container INTERFACE BOOST_HAS_PTHREADS)
+            # Solaris (and probably other NIXes) need explicit pthread definition
+            if (PLATFORM_SUN)
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthreads")
             endif()
 
             target_compile_options(boost_heap INTERFACE -Wno-shadow)
