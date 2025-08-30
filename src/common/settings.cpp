@@ -163,8 +163,9 @@ bool IsFastmemEnabled() {
     }
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)
     return false;
-#endif
+#else
     return true;
+#endif
 }
 
 static bool is_nce_enabled = false;
