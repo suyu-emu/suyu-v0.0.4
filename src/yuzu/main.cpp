@@ -553,9 +553,6 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     // Gen keys if necessary
     OnCheckFirmwareDecryption();
 
-    // Check firmware
-    OnCheckFirmware();
-
     game_list->LoadCompatibilityList();
     // force reload on first load to ensure add-ons get updated
     game_list->PopulateAsync(UISettings::values.game_dirs, false);
@@ -4459,7 +4456,6 @@ void GMainWindow::InstallFirmware(const QString& location, bool recursive) {
 
     progress.close();
     OnCheckFirmwareDecryption();
-    OnCheckFirmware();
 }
 
 void GMainWindow::OnInstallFirmware() {
@@ -4580,7 +4576,6 @@ void GMainWindow::OnInstallDecryptionKeys() {
     }
 
     OnCheckFirmwareDecryption();
-    OnCheckFirmware();
 }
 
 void GMainWindow::OnAbout() {
@@ -4609,6 +4604,7 @@ void GMainWindow::OnToggleStatusBar() {
 void GMainWindow::OnGameListRefresh() {
     // force reload add-ons etc
     game_list->ForceRefreshGameDirectory();
+    SetFirmwareVersion();
 }
 
 void GMainWindow::OnAlbum() {
@@ -4707,13 +4703,42 @@ void GMainWindow::OnOpenControllerMenu() {
 }
 
 void GMainWindow::OnHomeMenu() {
+    auto result = FirmwareManager::VerifyFirmware(*system.get());
+
+    switch (result) {
+    case FirmwareManager::ErrorFirmwareMissing:
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install firmware to use the Home Menu."));
+        return;
+    case FirmwareManager::ErrorFirmwareCorrupted:
+        QMessageBox::warning(this, tr("Firmware Corrupted"),
+                             tr(FirmwareManager::GetFirmwareCheckString(result)));
+        return;
+    case FirmwareManager::ErrorFirmwareTooNew: {
+        if (!UISettings::values.show_fw_warning.GetValue()) break;
+
+        QMessageBox box(QMessageBox::Warning,
+                        tr("Firmware Too New"),
+                        tr(FirmwareManager::GetFirmwareCheckString(result)) + tr("\nContinue anyways?"),
+                        QMessageBox::Yes | QMessageBox::No,
+                        this);
+
+        QCheckBox *checkbox = new QCheckBox(tr("Don't show again"));
+        box.setCheckBox(checkbox);
+
+        int button = box.exec();
+        if (checkbox->isChecked()) {
+            UISettings::values.show_fw_warning.SetValue(false);
+        }
+
+        if (button == static_cast<int>(QMessageBox::No)) return;
+        break;
+    } default:
+        break;
+    }
+
     constexpr u64 QLaunchId = static_cast<u64>(Service::AM::AppletProgramId::QLaunch);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
-    if (!bis_system) {
-        QMessageBox::warning(this, tr("No firmware available"),
-                             tr("Please install the firmware to use the Home Menu."));
-        return;
-    }
 
     auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
     if (!qlaunch_applet_nca) {
@@ -5238,19 +5263,6 @@ void GMainWindow::OnCheckFirmwareDecryption() {
     }
     SetFirmwareVersion();
     UpdateMenuState();
-}
-
-void GMainWindow::OnCheckFirmware() {
-    auto result = FirmwareManager::VerifyFirmware(*system.get());
-
-    switch (result) {
-    case FirmwareManager::FirmwareGood:
-        break;
-    default:
-        QMessageBox::warning(this, tr("Firmware Read Error"),
-                             tr(FirmwareManager::GetFirmwareCheckString(result)));
-        break;
-    }
 }
 
 bool GMainWindow::CheckFirmwarePresence() {

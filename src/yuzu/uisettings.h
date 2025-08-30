@@ -212,6 +212,9 @@ struct Values {
     // Play time
     Setting<bool> show_play_time{linkage, true, "show_play_time", Category::UiGameList};
 
+    // misc
+    Setting<bool> show_fw_warning{linkage, true, "show_fw_warning", Category::Miscellaneous};
+
     bool configuration_applied;
     bool reset_to_defaults;
     bool shortcut_already_warned{false};

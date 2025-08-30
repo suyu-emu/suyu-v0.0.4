@@ -424,7 +424,6 @@ private slots:
     void OnCreateHomeMenuShortcut(GameListShortcutTarget target);
     void OnCaptureScreenshot();
     void OnCheckFirmwareDecryption();
-    void OnCheckFirmware();
     void OnLanguageChanged(const QString& locale);
     void OnMouseActivity();
     bool OnShutdownBegin();
