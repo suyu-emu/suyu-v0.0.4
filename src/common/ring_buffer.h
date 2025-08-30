@@ -15,6 +15,7 @@
 #include <span>
 #include <type_traits>
 #include <vector>
+#include <mutex>
 
 namespace Common {
 
