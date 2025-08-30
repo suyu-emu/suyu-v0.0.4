@@ -3091,34 +3091,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
                                      const std::filesystem::path& command,
                                      const std::string& arguments, const std::string& categories,
                                      const std::string& keywords, const std::string& name) try {
-#if defined(__linux__) || defined(__FreeBSD__) // Linux and FreeBSD
-    std::filesystem::path shortcut_path_full = shortcut_path / (name + ".desktop");
-    std::ofstream shortcut_stream(shortcut_path_full, std::ios::binary | std::ios::trunc);
-    if (!shortcut_stream.is_open()) {
-        LOG_ERROR(Frontend, "Failed to create shortcut");
-        return false;
-    }
-    // TODO: Migrate fmt::print to std::print in futures STD C++ 23.
-    fmt::print(shortcut_stream, "[Desktop Entry]\n");
-    fmt::print(shortcut_stream, "Type=Application\n");
-    fmt::print(shortcut_stream, "Version=1.0\n");
-    fmt::print(shortcut_stream, "Name={}\n", name);
-    if (!comment.empty()) {
-        fmt::print(shortcut_stream, "Comment={}\n", comment);
-    }
-    if (std::filesystem::is_regular_file(icon_path)) {
-        fmt::print(shortcut_stream, "Icon={}\n", icon_path.string());
-    }
-    fmt::print(shortcut_stream, "TryExec={}\n", command.string());
-    fmt::print(shortcut_stream, "Exec={} {}\n", command.string(), arguments);
-    if (!categories.empty()) {
-        fmt::print(shortcut_stream, "Categories={}\n", categories);
-    }
-    if (!keywords.empty()) {
-        fmt::print(shortcut_stream, "Keywords={}\n", keywords);
-    }
-    return true;
-#elif defined(_WIN32) // Windows
+#ifdef _WIN32 // Windows
     HRESULT hr = CoInitialize(nullptr);
     if (FAILED(hr)) {
         LOG_ERROR(Frontend, "CoInitialize failed");
@@ -3180,7 +3153,34 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
         return false;
     }
     return true;
-#else                 // Unsupported platform
+#elif defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__) // Any desktop NIX
+    std::filesystem::path shortcut_path_full = shortcut_path / (name + ".desktop");
+    std::ofstream shortcut_stream(shortcut_path_full, std::ios::binary | std::ios::trunc);
+    if (!shortcut_stream.is_open()) {
+        LOG_ERROR(Frontend, "Failed to create shortcut");
+        return false;
+    }
+    // TODO: Migrate fmt::print to std::print in futures STD C++ 23.
+    fmt::print(shortcut_stream, "[Desktop Entry]\n");
+    fmt::print(shortcut_stream, "Type=Application\n");
+    fmt::print(shortcut_stream, "Version=1.0\n");
+    fmt::print(shortcut_stream, "Name={}\n", name);
+    if (!comment.empty()) {
+        fmt::print(shortcut_stream, "Comment={}\n", comment);
+    }
+    if (std::filesystem::is_regular_file(icon_path)) {
+        fmt::print(shortcut_stream, "Icon={}\n", icon_path.string());
+    }
+    fmt::print(shortcut_stream, "TryExec={}\n", command.string());
+    fmt::print(shortcut_stream, "Exec={} {}\n", command.string(), arguments);
+    if (!categories.empty()) {
+        fmt::print(shortcut_stream, "Categories={}\n", categories);
+    }
+    if (!keywords.empty()) {
+        fmt::print(shortcut_stream, "Keywords={}\n", keywords);
+    }
+    return true;
+#else // Unsupported platform
     return false;
 #endif
 } catch (const std::exception& e) {
@@ -3225,7 +3225,7 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
 #if defined(_WIN32)
     out_icon_path = Common::FS::GetEdenPath(Common::FS::EdenPath::IconsDir);
     ico_extension = "ico";
-#elif defined(__linux__) || defined(__FreeBSD__)
+#elif defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
 #endif
     // Create icons directory if it doesn't exist
@@ -4878,7 +4878,7 @@ void GMainWindow::CreateShortcut(const std::string& game_path, const u64 program
         }
     }
 
-#if defined(__linux__)
+#if defined(__unix__) && !defined(__APPLE__) && !defined(__ANDROID__)
     // Special case for AppImages
     // Warn once if we are making a shortcut to a volatile AppImage
     if (command.string().ends_with(".AppImage") && !UISettings::values.shortcut_already_warned) {
@@ -4888,7 +4888,7 @@ void GMainWindow::CreateShortcut(const std::string& game_path, const u64 program
         }
         UISettings::values.shortcut_already_warned = true;
     }
-#endif // __linux__
+#endif
 
     // Create shortcut
     std::string arguments{arguments_};
@@ -5742,17 +5742,13 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32
     // Increases the maximum open file limit to 8192
     _setmaxstdio(8192);
-#endif
-
-#ifdef __APPLE__
+#elif defined(__APPLE__)
     // If you start a bundle (binary) on OSX without the Terminal, the working directory is "/".
     // But since we require the working directory to be the executable path for the location of
     // the user folder in the Qt Frontend, we need to cd into that working directory
     const auto bin_path = Common::FS::GetBundleDirectory() / "..";
     chdir(Common::FS::PathToUTF8String(bin_path).c_str());
-#endif
-
-#ifdef __linux__
+#elif defined(__unix__) && !defined(__ANDROID__)
     // Set the DISPLAY variable in order to open web browsers
     // TODO (lat9nq): Find a better solution for AppImages to start external applications
     if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {
