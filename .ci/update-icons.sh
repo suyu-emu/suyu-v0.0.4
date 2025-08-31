@@ -6,7 +6,7 @@
 which png2icns || [ which yay && yay libicns ] || exit
 which magick || exit
 
-export EDEN_SVG_ICO="dist/org.eden_emu.eden.svg"
+export EDEN_SVG_ICO="dist/dev.eden_emu.eden.svg"
 svgo --multipass $EDEN_SVG_ICO
 
 magick -density 256x256 -background transparent $EDEN_SVG_ICO \

@@ -59,15 +59,15 @@ VERSION="$(echo "$EDEN_TAG")"
 mkdir -p ./AppDir
 cd ./AppDir
 
-cp ../dist/org.eden_emu.eden.desktop .
-cp ../dist/org.eden_emu.eden.svg .
+cp ../dist/dev.eden_emu.eden.desktop .
+cp ../dist/dev.eden_emu.eden.svg .
 
-ln -sf ./org.eden_emu.eden.svg ./.DirIcon
+ln -sf ./dev.eden_emu.eden.svg ./.DirIcon
 
 UPINFO='gh-releases-zsync|eden-emulator|Releases|latest|*.AppImage.zsync'
 
 if [ "$DEVEL" = 'true' ]; then
-	sed -i 's|Name=Eden|Name=Eden Nightly|' ./org.eden_emu.eden.desktop
+	sed -i 's|Name=Eden|Name=Eden Nightly|' ./dev.eden_emu.eden.desktop
  	UPINFO="$(echo "$UPINFO" | sed 's|Releases|nightly|')"
 fi
 

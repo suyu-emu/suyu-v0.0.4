@@ -1,6 +1,6 @@
 AppRun
 eden.desktop
-org.eden_emu.eden.desktop
+dev.eden_emu.eden.desktop
 shared/bin/eden
 shared/lib/lib.path
 shared/lib/ld-linux-x86-64.so.2
