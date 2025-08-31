@@ -219,28 +219,55 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(IoctlAllocGpfifoEx& params, DeviceFD fd) {
     return NvResult::Success;
 }
 
-NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
-    LOG_DEBUG(Service_NVDRV, "called, class_num={:X}, flags={:X}, obj_id={:X}", params.class_num,
-                params.flags, params.obj_id);
+s32_le nvhost_gpu::GetObjectContextClassNumberIndex(CtxClasses class_number) {
+    constexpr s32_le invalid_class_number_index = -1;
+    switch (class_number) {
+    case CtxClasses::Ctx2D: return 0;
+    case CtxClasses::Ctx3D: return 1;
+    case CtxClasses::CtxCompute: return 2;
+    case CtxClasses::CtxKepler: return 3;
+    case CtxClasses::CtxDMA: return 4;
+    case CtxClasses::CtxChannelGPFIFO: return 5;
+    default: return invalid_class_number_index;
+    }
+}
 
-    if (!channel_state->initialized) {
+NvResult nvhost_gpu::AllocateObjectContext(IoctlAllocObjCtx& params) {
+    LOG_DEBUG(Service_NVDRV, "called, class_num={:#X}, flags={:#X}, obj_id={:#X}", params.class_num,
+              params.flags, params.obj_id);
+
+    if (!channel_state || !channel_state->initialized) {
         LOG_CRITICAL(Service_NVDRV, "No address space bound to allocate a object context!");
         return NvResult::NotInitialized;
     }
 
-    switch (static_cast<CtxClasses>(params.class_num)) { 
-    case CtxClasses::Ctx2D:
-    case CtxClasses::Ctx3D:
-    case CtxClasses::CtxCompute:
-    case CtxClasses::CtxKepler:
-    case CtxClasses::CtxDMA:
-    case CtxClasses::CtxChannelGPFIFO:
-        ctxObj_params.push_back(params);
-        return NvResult::Success;
-    default:
-        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:X}", params.class_num);
+    std::scoped_lock lk(channel_mutex);
+
+    if (params.flags) {
+        LOG_WARNING(Service_NVDRV, "non-zero flags={:#X} for class={:#X}", params.flags,
+                    params.class_num);
+
+        constexpr u32 allowed_mask{};
+        params.flags = allowed_mask;
+    }
+
+    s32_le ctx_class_number_index = 
+        GetObjectContextClassNumberIndex(static_cast<CtxClasses>(params.class_num));
+    if (ctx_class_number_index < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid class number for object context: {:#X}",
+                  params.class_num);
         return NvResult::BadParameter;
     }
+
+    if (ctxObjs[ctx_class_number_index].has_value()) {
+        LOG_ERROR(Service_NVDRV, "Object context for class {:#X} already allocated on this channel",
+                  params.class_num);
+        return NvResult::AlreadyAllocated;
+    }
+
+    ctxObjs[ctx_class_number_index] = params;
+
+    return NvResult::Success;
 }
 
 static boost::container::small_vector<Tegra::CommandHeader, 512> BuildWaitCommandList(
