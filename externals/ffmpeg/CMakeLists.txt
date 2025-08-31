@@ -63,20 +63,22 @@ if (NOT WIN32 AND NOT ANDROID)
     set(FFmpeg_HWACCEL_INCLUDE_DIRS)
     set(FFmpeg_HWACCEL_LDFLAGS)
 
-    # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
-    if(PLATFORM_SUN)
-        list(APPEND FFmpeg_HWACCEL_LIBRARIES
-            X11
-            "/usr/lib/xorg/amd64/libdrm.so")
-    else()
-        pkg_check_modules(LIBDRM libdrm REQUIRED)
-        list(APPEND FFmpeg_HWACCEL_LIBRARIES
-            ${LIBDRM_LIBRARIES})
-        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-            ${LIBDRM_INCLUDE_DIRS})
+    if (NOT APPLE)
+        # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
+        if(PLATFORM_SUN)
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                X11
+                "/usr/lib/xorg/amd64/libdrm.so")
+        else()
+            pkg_check_modules(LIBDRM libdrm REQUIRED)
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                ${LIBDRM_LIBRARIES})
+            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
+                ${LIBDRM_INCLUDE_DIRS})
+        endif()
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-libdrm)
     endif()
-    list(APPEND FFmpeg_HWACCEL_FLAGS
-        --enable-libdrm)
 
     if(LIBVA_FOUND)
         find_package(X11 REQUIRED)
