@@ -68,6 +68,48 @@ object DriverResolver {
         val filename: String
     )
 
+    // Matching helpers
+    private val KNOWN_SUFFIXES = listOf(
+        ".adpkg.zip",
+        ".zip",
+        ".7z",
+        ".tar.gz",
+        ".tar.xz",
+        ".rar"
+    )
+
+    private fun stripKnownSuffixes(name: String): String {
+        var result = name
+        var changed: Boolean
+        do {
+            changed = false
+            for (s in KNOWN_SUFFIXES) {
+                if (result.endsWith(s, ignoreCase = true)) {
+                    result = result.dropLast(s.length)
+                    changed = true
+                }
+            }
+        } while (changed)
+        return result
+    }
+
+    private fun normalizeName(name: String): String {
+        val base = stripKnownSuffixes(name.lowercase())
+        // Remove non-alphanumerics to make substring checks resilient
+        return base.replace(Regex("[^a-z0-9]+"), " ").trim()
+    }
+
+    private fun tokenize(name: String): Set<String> =
+        normalizeName(name).split(Regex("\\s+")).filter { it.isNotBlank() }.toSet()
+
+    // Jaccard similarity between two sets
+    private fun jaccard(a: Set<String>, b: Set<String>): Double {
+        if (a.isEmpty() || b.isEmpty()) return 0.0
+        val inter = a.intersect(b).size.toDouble()
+        val uni = a.union(b).size.toDouble()
+        return if (uni == 0.0) 0.0 else inter / uni
+    }
+
     /**
      * Resolve a driver download URL from its filename
      * @param filename The driver filename (e.g., "turnip_mrpurple-T19-toasted.adpkg.zip")
@@ -98,7 +140,7 @@ object DriverResolver {
                 async {
                     searchRepository(repoPath, filename)
                 }
-            }.mapNotNull { it.await() }.firstOrNull().also { resolved ->
+            }.firstNotNullOfOrNull { it.await() }.also { resolved ->
                 // Cache the result if found
                 resolved?.let {
                     urlCache[filename] = it
@@ -119,21 +161,55 @@ object DriverResolver {
                     releaseCache[repoPath] = it
                 }
 
-                // Search through all releases and artifacts
+                // First pass: exact name (case-insensitive) against asset filenames
+                val target = filename.lowercase()
                 for (release in releases) {
                     for (artifact in release.artifacts) {
-                        if (artifact.name == filename) {
-                            Log.info(
-                                "[DriverResolver] Found $filename in $repoPath/${release.tagName}"
-                            )
+                        if (artifact.name.equals(filename, ignoreCase = true) || artifact.name.lowercase() == target) {
+                            Log.info("[DriverResolver] Found $filename in $repoPath/${release.tagName}")
                             return@withContext ResolvedDriver(
                                 downloadUrl = artifact.url.toString(),
                                 repoPath = repoPath,
                                 releaseTag = release.tagName,
-                                filename = filename
+                                filename = artifact.name
                             )
                         }
                     }
+                }
+
+                // Second pass: fuzzy match by asset filenames only
+                val reqNorm = normalizeName(filename)
+                val reqTokens = tokenize(filename)
+                var best: ResolvedDriver? = null
+                var bestScore = 0.0
+
+                for (release in releases) {
+                    for (artifact in release.artifacts) {
+                        val artNorm = normalizeName(artifact.name)
+                        val artTokens = tokenize(artifact.name)
+
+                        var score = jaccard(reqTokens, artTokens)
+                        // Boost if one normalized name contains the other
+                        if (artNorm.contains(reqNorm) || reqNorm.contains(artNorm)) {
+                            score = maxOf(score, 0.92)
+                        }
+
+                        if (score > bestScore) {
+                            bestScore = score
+                            best = ResolvedDriver(
+                                downloadUrl = artifact.url.toString(),
+                                repoPath = repoPath,
+                                releaseTag = release.tagName,
+                                filename = artifact.name
+                            )
+                        }
+                    }
+                }
+
+                // Threshold to avoid bad guesses, this worked fine in testing but might need tuning
+                if (best != null && bestScore >= 0.6) {
+                    Log.info("[DriverResolver] Fuzzy matched $filename -> ${best.filename} in ${best.repoPath} (score=%.2f)".format(bestScore))
+                    return@withContext best
                 }
                 null
             } catch (e: Exception) {
@@ -296,8 +372,8 @@ object DriverResolver {
         context: Context,
         onProgress: ((Float) -> Unit)? = null
     ): Uri? {
-        // Extract filename from path
-        val filename = driverPath.substringAfterLast('/')
+        // Extract filename from path (support both separators)
+        val filename = driverPath.substringAfterLast('/').substringAfterLast('\\')
 
         // Check if driver already exists locally
         val localPath = "${GpuDriverHelper.driverStoragePath}$filename"

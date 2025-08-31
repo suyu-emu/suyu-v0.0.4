@@ -124,11 +124,16 @@ object CustomSettingsHandler {
 
         // Check for driver requirements if activity and driverViewModel are provided
         if (activity != null && driverViewModel != null) {
-            val driverPath = extractDriverPath(customSettings)
-            if (driverPath != null) {
-                Log.info("[CustomSettingsHandler] Custom settings specify driver: $driverPath")
+            val rawDriverPath = extractDriverPath(customSettings)
+            if (rawDriverPath != null) {
+                // Normalize to local storage path (we only store drivers under driverStoragePath)
+                val driverFilename = rawDriverPath.substringAfterLast('/')
+                    .substringAfterLast('\\')
+                val localDriverPath = "${GpuDriverHelper.driverStoragePath}$driverFilename"
+                Log.info("[CustomSettingsHandler] Custom settings specify driver: $rawDriverPath (normalized: $localDriverPath)")
+
                 // Check if driver exists in the driver storage
-                val driverFile = File(driverPath)
+                val driverFile = File(localDriverPath)
                 if (!driverFile.exists()) {
                     Log.info("[CustomSettingsHandler] Driver not found locally: ${driverFile.name}")
 
@@ -182,7 +187,7 @@ object CustomSettingsHandler {
                         }
 
                         // Attempt to download and install the driver
-                        val driverUri = DriverResolver.ensureDriverAvailable(driverPath, activity) { progress ->
+                        val driverUri = DriverResolver.ensureDriverAvailable(driverFilename, activity) { progress ->
                             progressChannel.trySend(progress.toInt())
                         }
 
@@ -209,12 +214,12 @@ object CustomSettingsHandler {
                             return null
                         }
 
-                        // Verify the downloaded driver
-                        val installedFile = File(driverPath)
+                        // Verify the downloaded driver (from normalized local path)
+                        val installedFile = File(localDriverPath)
                         val metadata = GpuDriverHelper.getMetadataFromZip(installedFile)
                         if (metadata.name == null) {
                             Log.error(
-                                "[CustomSettingsHandler] Downloaded driver is invalid: $driverPath"
+                                "[CustomSettingsHandler] Downloaded driver is invalid: $localDriverPath"
                             )
                             Toast.makeText(
                                 activity,
@@ -232,7 +237,7 @@ object CustomSettingsHandler {
                         }
 
                         // Add to driver list
-                        driverViewModel.onDriverAdded(Pair(driverPath, metadata))
+                        driverViewModel.onDriverAdded(Pair(localDriverPath, metadata))
                         Log.info(
                             "[CustomSettingsHandler] Successfully downloaded and installed driver: ${metadata.name}"
                         )
@@ -268,7 +273,7 @@ object CustomSettingsHandler {
                     // Driver exists, verify it's valid
                     val metadata = GpuDriverHelper.getMetadataFromZip(driverFile)
                     if (metadata.name == null) {
-                        Log.error("[CustomSettingsHandler] Invalid driver file: $driverPath")
+                        Log.error("[CustomSettingsHandler] Invalid driver file: $localDriverPath")
                         Toast.makeText(
                             activity,
                             activity.getString(
@@ -459,6 +464,8 @@ object CustomSettingsHandler {
 
             if (inGpuDriverSection && trimmed.startsWith("driver_path=")) {
                 return trimmed.substringAfter("driver_path=")
+                    .trim()
+                    .removeSurrounding("\"", "\"")
             }
         }
 
