@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <span>
 #include <string>
