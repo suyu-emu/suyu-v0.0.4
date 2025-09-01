@@ -38,6 +38,7 @@ import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.InstallResult
+import android.os.Build
 import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
@@ -47,6 +48,7 @@ import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import androidx.core.content.edit
+import kotlin.text.compareTo
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -109,6 +111,19 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         NativeLibrary.initMultiplayer()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+        // Since Android 15, google automatically forces "games" to be 60 hrz
+        // This ensures the display's max refresh rate is actually used
+        display?.let {
+            val supportedModes = it.supportedModes
+            val maxRefreshRate = supportedModes.maxByOrNull { mode -> mode.refreshRate }
+
+            if (maxRefreshRate != null) {
+                val layoutParams = window.attributes
+                layoutParams.preferredDisplayModeId = maxRefreshRate.modeId
+                window.attributes = layoutParams
+            }
+        }
 
         setContentView(binding.root)
 
