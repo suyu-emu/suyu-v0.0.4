@@ -1,0 +1,22 @@
+From e59d30b7b12e1d04cc2fc9c6219e35bda447c17e Mon Sep 17 00:00:00 2001
+From: Lizzie <159065448+Lizzie841@users.noreply.github.com>
+Date: Fri, 16 May 2025 04:12:13 +0100
+Subject: [PATCH] Update CMakeLists.txt
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b5f4c4f..c5c6f31 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -24,7 +24,7 @@ target_include_directories(
+ 
+ target_compile_features(unordered_dense INTERFACE cxx_std_17)
+ 
+-if(_unordered_dense_is_toplevel_project)
++if(_unordered_dense_is_toplevel_project OR UNORDERED_DENSE_INSTALL)
+     # locations are provided by GNUInstallDirs
+     install(
+         TARGETS unordered_dense

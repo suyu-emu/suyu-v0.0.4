@@ -74,14 +74,14 @@
     },
     "xbyak_sun": {
         "package": "xbyak",
-        "repo": "Lizzie841/xbyak",
-        "sha": "51f507b0b3",
-        "hash": "4a29a3c2f97f7d5adf667a21a008be03c951fb6696b0d7ba27e7e4afa037bc76eb5e059bb84860e01baf741d4d3ac851b840cd54c99d038812fbe0f1fa6d38a4",
+        "repo": "herumi/xbyak",
+        "sha": "9bb219333a",
+        "hash": "303165d45c8c19387ec49d9fda7d7a4e0d86d4c0153898c23f25ce2d58ece567f44c0bbbfe348239b933edb6e1a1e34f4bc1c0ab3a285bee5da0e548879387b0",
         "bundled": true
     },
     "xbyak": {
         "package": "xbyak",
-        "repo": "Lizzie841/xbyak",
+        "repo": "herumi/xbyak",
         "sha": "4e44f4614d",
         "hash": "5824e92159e07fa36a774aedd3b3ef3541d0241371d522cffa4ab3e1f215fa5097b1b77865b47b2481376c704fa079875557ea463ca63d0a7fd6a8a20a589e70",
         "bundled": true
