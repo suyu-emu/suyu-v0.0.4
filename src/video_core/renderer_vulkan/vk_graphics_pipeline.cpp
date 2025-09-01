@@ -635,14 +635,16 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .topology = input_assembly_topology,
         .primitiveRestartEnable =
-        dynamic.primitive_restart_enable != 0 &&
+        // MoltenVK/Metal always has primitive restart enabled and cannot disable it
+        device.IsMoltenVK() ? VK_TRUE :
+        (dynamic.primitive_restart_enable != 0 &&
                 ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
                   device.IsTopologyListPrimitiveRestartSupported()) ||
                  SupportsPrimitiveRestart(input_assembly_topology) ||
                  (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
                   device.IsPatchListPrimitiveRestartSupported()))
             ? VK_TRUE
-            : VK_FALSE,
+            : VK_FALSE),
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,

@@ -725,6 +725,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = true;
     }
 
+    if (is_mvk && Settings::values.dyna_state.GetValue() != 0) {
+        LOG_WARNING(Render_Vulkan, "MoltenVK detected: Forcing dynamic state to 0 to prevent black screen issues");
+        Settings::values.dyna_state.SetValue(0);
+    }
+
     if (Settings::values.dyna_state.GetValue() == 0) {
         must_emulate_scaled_formats = true;
         LOG_INFO(Render_Vulkan, "Dynamic state is disabled (dyna_state = 0), forcing scaled format emulation ON");
@@ -1096,8 +1101,15 @@ bool Device::GetSuitability(bool requires_swapchain) {
 // Some features are mandatory. Check those.
 #define CHECK_FEATURE(feature, name)                                                               \
     if (!features.feature.name) {                                                                  \
-            LOG_ERROR(Render_Vulkan, "Missing required feature {}", #name);                            \
-            suitable = false;                                                                          \
+        if (IsMoltenVK() && (strcmp(#name, "geometryShader") == 0 ||                               \
+                            strcmp(#name, "logicOp") == 0 ||                                       \
+                            strcmp(#name, "shaderCullDistance") == 0 ||                            \
+                            strcmp(#name, "wideLines") == 0)) {                                    \
+            LOG_INFO(Render_Vulkan, "MoltenVK missing feature {} - using fallback", #name);       \
+        } else {                                                                                    \
+            LOG_ERROR(Render_Vulkan, "Missing required feature {}", #name);                        \
+            suitable = false;                                                                       \
+        }                                                                                           \
     }
 
 #define LOG_FEATURE(feature, name)                                                                 \

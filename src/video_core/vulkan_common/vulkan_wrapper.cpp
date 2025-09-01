@@ -580,6 +580,7 @@ DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) c
     case VK_SUCCESS:
         return DescriptorSets(std::move(sets), num, owner, handle, *dld);
     case VK_ERROR_OUT_OF_POOL_MEMORY:
+    case VK_ERROR_FRAGMENTED_POOL:
         return {};
     default:
         throw Exception(result);
@@ -604,6 +605,7 @@ CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLev
     case VK_SUCCESS:
         return CommandBuffers(std::move(buffers), num_buffers, owner, handle, *dld);
     case VK_ERROR_OUT_OF_POOL_MEMORY:
+    case VK_ERROR_FRAGMENTED_POOL:
         return {};
     default:
         throw Exception(result);

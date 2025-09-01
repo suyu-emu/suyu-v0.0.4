@@ -551,6 +551,8 @@ struct Values {
                                            3,
 #elif defined (ANDROID)
                                            0,
+#elif defined (__APPLE__)
+                                           0,
 #else
                                            2,
 #endif

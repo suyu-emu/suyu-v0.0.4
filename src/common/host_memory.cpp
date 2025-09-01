@@ -12,7 +12,7 @@
 #include <windows.h>
 #include "common/dynamic_library.h"
 
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -20,9 +20,17 @@
 #include <boost/icl/interval_set.hpp>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <sys/random.h>
 #include <unistd.h>
 #include "common/scope_exit.h"
+
+#if defined(__linux__)
+#include <sys/random.h>
+#elif defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/random.h>
+#include <mach/vm_map.h>
+#include <mach/mach.h>
+#endif
 
 // FreeBSD
 #ifndef MAP_NORESERVE
@@ -32,8 +40,12 @@
 #ifndef MAP_ALIGNED_SUPER
 #define MAP_ALIGNED_SUPER 0
 #endif
+// macOS
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
 
-#endif // ^^^ Linux ^^^
+#endif // ^^^ POSIX ^^^
 
 #include <mutex>
 #include <random>
@@ -372,7 +384,7 @@ private:
     std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__) // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifdef ARCHITECTURE_arm64
 
@@ -489,6 +501,13 @@ public:
 #elif defined(__FreeBSD__) && __FreeBSD__ < 13
         // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
+#elif defined(__APPLE__)
+        // macOS doesn't have memfd_create, use anonymous temporary file
+        char template_path[] = "/tmp/eden_mem_XXXXXX";
+        fd = mkstemp(template_path);
+        if (fd >= 0) {
+            unlink(template_path);
+        }
 #else
         fd = memfd_create("HostMemory", 0);
 #endif
@@ -645,7 +664,7 @@ private:
     FreeRegionManager free_manager{};
 };
 
-#else // ^^^ Linux ^^^ vvv Generic vvv
+#else // ^^^ POSIX ^^^ vvv Generic vvv
 
 class HostMemory::Impl {
 public:

@@ -60,6 +60,10 @@ void ConfigureGraphicsExtensions::Setup(const ConfigurationShared::Builder& buil
         if (setting->Id() == Settings::values.dyna_state.Id()) {
             widget->slider->setTickInterval(1);
             widget->slider->setTickPosition(QSlider::TicksAbove);
+#ifdef __APPLE__
+            widget->setEnabled(false);
+            widget->setToolTip(tr("Extended Dynamic State is disabled on macOS due to MoltenVK compatibility issues that cause black screens."));
+#endif
         }
     }
 
