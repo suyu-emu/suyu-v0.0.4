@@ -105,5 +105,18 @@
         "sha": "2bc873e53c",
         "hash": "02329058a7f9cf7d5039afaae5ab170d9f42f60f4c01e21eaf4f46073886922b057a9ae30eeac040b3ac182f51b9c1bfe9fe1050a2c9f6ce567a1a9a0ec2c768",
         "bundled": true
+    },
+    "unordered-dense": {
+        "package": "unordered_dense",
+        "repo": "martinus/unordered_dense",
+        "sha": "73f3cbb237",
+        "hash": "c08c03063938339d61392b687562909c1a92615b6ef39ec8df19ea472aa6b6478e70d7d5e33d4a27b5d23f7806daf57fe1bacb8124c8a945c918c7663a9e8532",
+        "find_args": "CONFIG",
+        "options": [
+            "UNORDERED_DENSE_INSTALL OFF"
+        ],
+        "patches": [
+            "0001-cmake.patch"
+        ]
     }
 }
