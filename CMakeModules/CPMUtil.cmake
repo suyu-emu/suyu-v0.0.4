@@ -184,8 +184,6 @@ function(AddJsonPackage)
     # system/bundled
     if (bundled STREQUAL "unset" AND DEFINED JSON_BUNDLED_PACKAGE)
         set(bundled ${JSON_BUNDLED_PACKAGE})
-    else()
-        set(bundled ON)
     endif()
 
     AddPackage(
@@ -259,6 +257,7 @@ function(AddPackage)
 
         KEY
         BUNDLED_PACKAGE
+        FIND_PACKAGE_ARGUMENTS
     )
 
     set(multiValueArgs OPTIONS PATCHES)
@@ -409,9 +408,9 @@ function(AddPackage)
         set_precedence(OFF OFF)
     elseif (CPMUTIL_FORCE_SYSTEM)
         set_precedence(ON ON)
-    elseif(NOT CPMUTIL_FORCE_BUNDLED)
+    elseif(CPMUTIL_FORCE_BUNDLED)
         set_precedence(OFF OFF)
-    elseif (DEFINED PKG_ARGS_BUNDLED_PACKAGE)
+    elseif (DEFINED PKG_ARGS_BUNDLED_PACKAGE AND NOT PKG_ARGS_BUNDLED_PACKAGE STREQUAL "unset")
         if (PKG_ARGS_BUNDLED_PACKAGE)
             set(local OFF)
         else()
