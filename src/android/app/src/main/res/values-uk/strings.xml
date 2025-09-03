@@ -749,7 +749,8 @@
     <string name="emulation_rel_stick_center">Відносний центр джойстика</string>
     <string name="emulation_dpad_slide">Ковзання D-pad</string>
     <string name="emulation_haptics">Тактильний відгук</string>
-    <string name="emulation_show_overlay">Показати накладання</string>
+    <string name="emulation_show_overlay">Показати контролер</string>
+    <string name="emulation_hide_overlay">Сховати контролер</string>
     <string name="emulation_toggle_all">Перемкнути все</string>
     <string name="emulation_control_adjust">Налаштувати накладання</string>
     <string name="emulation_control_scale">Масштаб</string>

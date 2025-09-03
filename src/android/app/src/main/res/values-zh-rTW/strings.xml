@@ -853,7 +853,8 @@
     <string name="emulation_rel_stick_center">相對搖桿中心</string>
     <string name="emulation_dpad_slide">方向鍵滑動</string>
     <string name="emulation_haptics">觸覺回饋技術</string>
-    <string name="emulation_show_overlay">顯示覆疊</string>
+    <string name="emulation_show_overlay">顯示控制器</string>
+    <string name="emulation_hide_overlay">隱藏控制器</string>
     <string name="emulation_toggle_all">全部切換</string>
     <string name="emulation_control_adjust">調整覆疊</string>
     <string name="emulation_control_scale">縮放</string>

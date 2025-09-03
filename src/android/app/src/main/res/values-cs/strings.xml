@@ -691,7 +691,8 @@
     <string name="emulation_rel_stick_center">Relativní střed joysticku</string>
     <string name="emulation_dpad_slide">D-pad slide</string>
     <string name="emulation_haptics">Haptická odezva</string>
-    <string name="emulation_show_overlay">Zobrazit překryv</string>
+    <string name="emulation_show_overlay">Zobrazit ovladač</string>
+    <string name="emulation_hide_overlay">Skrýt ovladač</string>
     <string name="emulation_toggle_all">Přepnout vše</string>
     <string name="emulation_control_adjust">Upravit překryv</string>
     <string name="emulation_control_scale">Měřítko</string>

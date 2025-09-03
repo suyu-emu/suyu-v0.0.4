@@ -854,7 +854,8 @@
     <string name="emulation_rel_stick_center">Centre du stick relatif</string>
     <string name="emulation_dpad_slide">Glissement du D-pad</string>
     <string name="emulation_haptics">Toucher haptique</string>
-    <string name="emulation_show_overlay">Afficher l\'overlay</string>
+    <string name="emulation_show_overlay">Afficher la manette</string>
+    <string name="emulation_hide_overlay">Masquer la manette</string>
     <string name="emulation_toggle_all">Tout basculer</string>
     <string name="emulation_control_adjust">Ajuster l\'overlay</string>
     <string name="emulation_control_scale">Échelle</string>

@@ -710,7 +710,8 @@
     <string name="emulation_rel_stick_center">ناوەندی گێڕ بەنزیکەیی</string>
     <string name="emulation_dpad_slide">خلیسکانی 4 دوگمەکە</string>
     <string name="emulation_haptics">لەرینەوەی پەنجەلێدان</string>
-    <string name="emulation_show_overlay">نیشاندانی داپۆشەر</string>
+    <string name="emulation_show_overlay">نیشاندانی کۆنتڕۆڵەر</string>
+    <string name="emulation_hide_overlay">پیشاندانی کۆنتڕۆڵەر</string>
     <string name="emulation_toggle_all">گۆڕینی سەرجەم</string>
     <string name="emulation_control_adjust">ڕێکخستنی داپۆشەر</string>
     <string name="emulation_control_scale">پێوەر</string>

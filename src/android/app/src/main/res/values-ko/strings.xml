@@ -798,6 +798,7 @@
     <string name="emulation_dpad_slide">십자키 슬라이드</string>
     <string name="emulation_haptics">터치 햅틱</string>
     <string name="emulation_show_overlay">컨트롤러 표시</string>
+    <string name="emulation_hide_overlay">컨트롤러 숨기기</string>
     <string name="emulation_toggle_all">모두 선택</string>
     <string name="emulation_control_adjust">컨트롤러 조정</string>
     <string name="emulation_control_scale">크기</string>

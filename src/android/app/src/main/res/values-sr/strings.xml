@@ -812,7 +812,8 @@
     <string name="emulation_rel_stick_center">Релативни центар за штапић</string>
     <string name="emulation_dpad_slide">Д-Пад Слиде</string>
     <string name="emulation_haptics">Додирните ХАптицс</string>
-    <string name="emulation_show_overlay">Приказати прекривање</string>
+    <string name="emulation_show_overlay">Приказати контролер</string>
+    <string name="emulation_hide_overlay">Сакрити контролер</string>
     <string name="emulation_toggle_all">Пребацивати све</string>
     <string name="emulation_control_adjust">Подесити прекривање</string>
     <string name="emulation_control_scale">Скала</string>

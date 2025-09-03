@@ -762,6 +762,13 @@ Wirklich fortfahren?</string>
     <string name="emulation_exit">Emulation beenden</string>
     <string name="emulation_done">Fertig</string>
     <string name="emulation_fps_counter">FPS Zähler</string>
+    <string name="emulation_thermal_indicator"></string>
+    <string name="emulation_toggle_controls">Steuerung umschalten</string>
+    <string name="emulation_rel_stick_center">Relativer Stick-Zentrum</string>
+    <string name="emulation_dpad_slide">D-Pad-Scrollen</string>
+    <string name="emulation_haptics">Haptisches Feedback</string>
+    <string name="emulation_show_overlay">Controller anzeigen</string>
+    <string name="emulation_hide_overlay">Controller ausblenden</string>
     <string name="emulation_toggle_all">Alle umschalten</string>
     <string name="emulation_control_adjust">Overlay anpassen</string>
     <string name="emulation_control_scale">Größe</string>

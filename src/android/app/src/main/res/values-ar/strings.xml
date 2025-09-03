@@ -733,7 +733,8 @@
     <string name="emulation_rel_stick_center">مركز العصا النسبي</string>
     <string name="emulation_dpad_slide">مزلاق الأسهم</string>
     <string name="emulation_haptics">الاهتزازات الديناميكية</string>
-    <string name="emulation_show_overlay">عرض التراكب</string>
+    <string name="emulation_show_overlay">إظهار وحدة التحكم</string>
+    <string name="emulation_hide_overlay">إخفاء وحدة التحكم</string>
     <string name="emulation_toggle_all">الكل</string>
     <string name="emulation_control_adjust">ضبط التراكب</string>
     <string name="emulation_control_scale">الحجم</string>

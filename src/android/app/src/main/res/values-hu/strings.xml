@@ -843,7 +843,8 @@
     <string name="emulation_toggle_controls">Irányítás átkapcsolása</string>
     <string name="emulation_dpad_slide">D-pad csúsztatása</string>
     <string name="emulation_haptics">Érintés haptikája</string>
-    <string name="emulation_show_overlay">Átfedés mutatása</string>
+    <string name="emulation_show_overlay">Vezérlő megjelenítése</string>
+    <string name="emulation_hide_overlay">Vezérlő elrejtése</string>
     <string name="emulation_toggle_all">Összes átkapcsolása</string>
     <string name="emulation_control_adjust">Átfedés testreszabása</string>
     <string name="emulation_control_scale">Skálázás</string>

@@ -798,7 +798,8 @@
     <string name="emulation_rel_stick_center">Pusat stick relatif</string>
     <string name="emulation_dpad_slide">Geser Dpad</string>
     <string name="emulation_haptics">Haptik</string>
-    <string name="emulation_show_overlay">Tampilkan Hamparan</string>
+    <string name="emulation_show_overlay">Tampilkan Kontroler</string>
+    <string name="emulation_hide_overlay">Sembunyikan Kontroler</string>
     <string name="emulation_toggle_all">Alihkan Semua</string>
     <string name="emulation_control_adjust">Menyesuaikan</string>
     <string name="emulation_control_scale">Skala</string>

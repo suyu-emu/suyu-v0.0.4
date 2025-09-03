@@ -9,6 +9,11 @@
         android:title="@string/emulation_pause" />
 
     <item
+        android:id="@+id/menu_quick_overlay"
+        android:icon="@drawable/ic_controller"
+        android:title="@string/emulation_show_overlay"/>
+
+    <item
         android:id="@+id/menu_settings"
         android:icon="@drawable/ic_settings"
         android:title="@string/preferences_settings" />

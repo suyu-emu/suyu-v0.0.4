@@ -509,6 +509,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         gpuModel = GpuDriverHelper.getGpuModel().toString()
         fwVersion = NativeLibrary.firmwareVersion()
 
+        updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
+
         binding.surfaceEmulation.holder.addCallback(this)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
@@ -530,6 +532,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
                 binding.inGameMenu.requestFocus()
                 emulationViewModel.setDrawerOpen(true)
+                updateQuickOverlayMenuEntry(BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean())
             }
 
             override fun onDrawerClosed(drawerView: View) {
@@ -571,22 +574,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_pause_emulation -> {
                     if (emulationState.isPaused) {
                         emulationState.run(false)
-                        it.title = resources.getString(R.string.emulation_pause)
-                        it.icon = ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.ic_pause,
-                            requireContext().theme
-                        )
+                        updatePauseMenuEntry(false)
                     } else {
                         emulationState.pause()
-                        it.title = resources.getString(R.string.emulation_unpause)
-                        it.icon = ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.ic_play,
-                            requireContext().theme
-                        )
+                        updatePauseMenuEntry(true)
                     }
                     binding.inGameMenu.requestFocus()
+                    true
+                }
+
+                R.id.menu_quick_overlay -> {
+                    val newState = !BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
+                    BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(newState)
+                    updateQuickOverlayMenuEntry(newState)
+                    binding.surfaceInputOverlay.refreshControls()
+                    NativeConfig.saveGlobalConfig()
                     true
                 }
 
@@ -844,9 +846,50 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    private fun updateQuickOverlayMenuEntry(isVisible: Boolean) {
+        val menu = binding.inGameMenu.menu
+        val item = menu.findItem(R.id.menu_quick_overlay)
+        if (isVisible) {
+            item.title = getString(R.string.emulation_hide_overlay)
+            item.icon = ResourcesCompat.getDrawable(
+                resources,
+                R.drawable.ic_controller_disconnected,
+                requireContext().theme
+            )
+        } else {
+            item.title = getString(R.string.emulation_show_overlay)
+            item.icon = ResourcesCompat.getDrawable(
+                resources,
+                R.drawable.ic_controller,
+                requireContext().theme
+            )
+        }
+    }
+
+    private fun updatePauseMenuEntry(isPaused: Boolean) {
+        val menu = binding.inGameMenu.menu
+        val pauseItem = menu.findItem(R.id.menu_pause_emulation)
+        if (isPaused) {
+            pauseItem.title = getString(R.string.emulation_unpause)
+            pauseItem.icon = ResourcesCompat.getDrawable(
+                resources,
+                R.drawable.ic_play,
+                requireContext().theme
+            )
+        } else {
+            pauseItem.title = getString(R.string.emulation_pause)
+            pauseItem.icon = ResourcesCompat.getDrawable(
+                resources,
+                R.drawable.ic_pause,
+                requireContext().theme
+            )
+        }
+    }
+
     override fun onPause() {
         if (emulationState.isRunning && emulationActivity?.isInPictureInPictureMode != true) {
             emulationState.pause()
+            updatePauseMenuEntry(true)
         }
         super.onPause()
     }
@@ -869,6 +912,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         val socPosition = IntSetting.SOC_OVERLAY_POSITION.getInt()
         updateSocPosition(socPosition)
+
+        binding.inGameMenu.post {
+            emulationState?.isPaused?.let { updatePauseMenuEntry(it) }
+        }
     }
 
     private fun resetInputOverlay() {
@@ -1391,6 +1438,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_show_overlay -> {
                     it.isChecked = !it.isChecked
                     BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(it.isChecked)
+                    updateQuickOverlayMenuEntry(it.isChecked)
                     binding.surfaceInputOverlay.refreshControls()
                     true
                 }

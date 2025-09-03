@@ -723,7 +723,8 @@
     <string name="emulation_rel_stick_center">Trung tâm nút cần xoay tương đối</string>
     <string name="emulation_dpad_slide">Trượt D-pad</string>
     <string name="emulation_haptics">Chạm haptics</string>
-    <string name="emulation_show_overlay">Hiện lớp phủ</string>
+    <string name="emulation_show_overlay">Hiện bộ điều khiển</string>
+    <string name="emulation_hide_overlay">Ẩn bộ điều khiển</string>
     <string name="emulation_toggle_all">Chuyển đổi tất cả</string>
     <string name="emulation_control_adjust">Điều chỉnh lớp phủ</string>
     <string name="emulation_control_scale">Tỉ lệ thu phóng</string>

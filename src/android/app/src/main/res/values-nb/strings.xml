@@ -720,7 +720,8 @@
     <string name="emulation_rel_stick_center">Relativt pinnesenter</string>
     <string name="emulation_dpad_slide">D-pad-skyving</string>
     <string name="emulation_haptics">Berøringshaptikk</string>
-    <string name="emulation_show_overlay">Vis overlegg</string>
+    <string name="emulation_show_overlay">Vis kontroller</string>
+    <string name="emulation_hide_overlay">Skjul kontroller</string>
     <string name="emulation_toggle_all">Veksle mellom alle</string>
     <string name="emulation_control_adjust">Juster overlegg</string>
     <string name="emulation_control_scale">Skaler</string>

@@ -855,7 +855,8 @@ uma tentativa de mapeamento automático</string>
     <string name="emulation_rel_stick_center">Centro Relativo do Analógico</string>
     <string name="emulation_dpad_slide">Deslizamento dos Botões Direcionais</string>
     <string name="emulation_haptics">Vibração ao tocar</string>
-    <string name="emulation_show_overlay">Mostrar overlay</string>
+    <string name="emulation_show_overlay">Mostrar controle</string>
+    <string name="emulation_hide_overlay">Ocultar controle</string>
     <string name="emulation_toggle_all">Marcar/Desmarcar tudo</string>
     <string name="emulation_control_adjust">Ajustar overlay</string>
     <string name="emulation_control_scale">Escala</string>

@@ -856,7 +856,8 @@
     <string name="emulation_rel_stick_center">Относительный центр стика</string>
     <string name="emulation_dpad_slide">Слайд крестовиной</string>
     <string name="emulation_haptics">Обратная связь от нажатий</string>
-    <string name="emulation_show_overlay">Показать оверлей</string>
+    <string name="emulation_show_overlay">Показать контроллер</string>
+    <string name="emulation_hide_overlay">Скрыть контроллер</string>
     <string name="emulation_toggle_all">Переключить всё</string>
     <string name="emulation_control_adjust">Регулировка оверлея</string>
     <string name="emulation_control_scale">Масштаб</string>

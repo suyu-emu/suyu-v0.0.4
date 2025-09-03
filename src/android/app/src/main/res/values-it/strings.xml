@@ -770,7 +770,8 @@
     <string name="emulation_rel_stick_center">Centro relativo degli Stick</string>
     <string name="emulation_dpad_slide">DPad A Scorrimento</string>
     <string name="emulation_haptics">Feedback Aptico</string>
-    <string name="emulation_show_overlay">Mostra l\'overlay</string>
+    <string name="emulation_show_overlay">Mostra l\'controller</string>
+    <string name="emulation_hide_overlay">Nascondi l\'controller</string>
     <string name="emulation_toggle_all">Attiva/Disattiva tutto</string>
     <string name="emulation_control_adjust">Regola l\'overlay</string>
     <string name="emulation_control_scale">Scala</string>

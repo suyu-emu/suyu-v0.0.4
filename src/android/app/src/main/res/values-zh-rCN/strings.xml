@@ -848,7 +848,8 @@
     <string name="emulation_rel_stick_center">相对摇杆中心</string>
     <string name="emulation_dpad_slide">十字方向键滑动</string>
     <string name="emulation_haptics">触觉反馈</string>
-    <string name="emulation_show_overlay">显示虚拟按键</string>
+    <string name="emulation_show_overlay">显示控制器</string>
+    <string name="emulation_hide_overlay">隐藏控制器</string>
     <string name="emulation_toggle_all">全部切换</string>
     <string name="emulation_control_adjust">调整虚拟按键</string>
     <string name="emulation_control_scale">缩放</string>
