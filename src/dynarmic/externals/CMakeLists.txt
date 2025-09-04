@@ -60,7 +60,7 @@ AddJsonPackage(
 #     endif()
 # endif()
 
-# unordered_dense - already in root
+# unordered_dense
 
 # AddJsonPackage(
 #     NAME unordered-dense

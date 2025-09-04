@@ -262,22 +262,17 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if (BOOST_NO_HEADERS)
-  target_link_libraries(common PUBLIC Boost::algorithm Boost::icl Boost::pool)
+    target_link_libraries(common PUBLIC Boost::algorithm Boost::icl Boost::pool)
 else()
-  target_link_libraries(common PUBLIC Boost::headers)
+    target_link_libraries(common PUBLIC Boost::headers)
 endif()
 
 if (lz4_ADDED)
-  target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
+    target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)
 endif()
 
 target_link_libraries(common PUBLIC fmt::fmt stb::headers Threads::Threads)
 target_link_libraries(common PRIVATE lz4::lz4 LLVM::Demangle zstd::zstd)
-
-if (TARGET unordered_dense::unordered_dense)
-  # weird quirk of system installs
-  target_link_libraries(common PUBLIC unordered_dense::unordered_dense)
-endif()
 
 if(ANDROID)
   # For ASharedMemory_create
