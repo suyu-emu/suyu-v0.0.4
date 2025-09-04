@@ -36,6 +36,9 @@ import androidx.core.net.toUri
 import androidx.core.content.edit
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
@@ -229,6 +232,8 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 binding.root.findNavController().navigate(action)
             }
 
+            val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
             if (NativeLibrary.gameRequiresFirmware(game.programId) && !NativeLibrary.isFirmwareAvailable()) {
                 MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.loader_requires_firmware)
@@ -239,6 +244,23 @@ class GameAdapter(private val activity: AppCompatActivity) :
                         )
                     )
                     .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+                        launch()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                    .show()
+            } else if (BooleanSetting.DISABLE_NCA_VERIFICATION.getBoolean(false) && !preferences.getBoolean(
+                    Settings.PREF_HIDE_NCA_POPUP, false)) {
+                MaterialAlertDialogBuilder(activity)
+                    .setTitle(R.string.nca_verification_disabled)
+                    .setMessage(activity.getString(R.string.nca_verification_disabled_description))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        launch()
+                    }
+                    .setNeutralButton(R.string.dont_show_again) { _, _ ->
+                        preferences.edit {
+                            putBoolean(Settings.PREF_HIDE_NCA_POPUP, true)
+                        }
+
                         launch()
                     }
                     .setNegativeButton(android.R.string.cancel) { _, _ -> }

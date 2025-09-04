@@ -297,7 +297,13 @@ abstract class SettingsItem(
                     descriptionId = R.string.use_custom_rtc_description
                 )
             )
-
+            put(
+                SwitchSetting(
+                    BooleanSetting.DISABLE_NCA_VERIFICATION,
+                    titleId = R.string.disable_nca_verification,
+                    descriptionId = R.string.disable_nca_verification_description
+                )
+            )
             put(
                 StringInputSetting(
                     StringSetting.WEB_TOKEN,

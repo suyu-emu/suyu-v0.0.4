@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,11 +13,13 @@ u8 NcaHeader::GetProperKeyGeneration() const {
 }
 
 bool NcaPatchInfo::HasIndirectTable() const {
-    return this->indirect_size != 0;
+    static constexpr unsigned char BKTR[4] = {'B', 'K', 'T', 'R'};
+    return std::memcmp(indirect_header.data(), BKTR, sizeof(BKTR)) == 0;
 }
 
 bool NcaPatchInfo::HasAesCtrExTable() const {
-    return this->aes_ctr_ex_size != 0;
+    static constexpr unsigned char BKTR[4] = {'B', 'K', 'T', 'R'};
+    return std::memcmp(aes_ctr_ex_header.data(), BKTR, sizeof(BKTR)) == 0;
 }
 
 } // namespace FileSys

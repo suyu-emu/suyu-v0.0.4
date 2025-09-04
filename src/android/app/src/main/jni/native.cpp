@@ -596,6 +596,8 @@ jstring Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_getGpuModel(JNIEnv *env, j
 
     const std::string model_name{device.GetModelName()};
 
+    window.release();
+
     return Common::Android::ToJString(env, model_name);
 }
 

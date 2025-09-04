@@ -31,9 +31,6 @@ class HomeViewModel : ViewModel() {
     private val _checkKeys = MutableStateFlow(false)
     val checkKeys = _checkKeys.asStateFlow()
 
-    private val _checkFirmware = MutableStateFlow(false)
-    val checkFirmware = _checkFirmware.asStateFlow()
-
     var navigatedToSetup = false
 
     fun setStatusBarShadeVisibility(visible: Boolean) {
@@ -65,9 +62,5 @@ class HomeViewModel : ViewModel() {
 
     fun setCheckKeys(value: Boolean) {
         _checkKeys.value = value
-    }
-
-    fun setCheckFirmware(value: Boolean) {
-        _checkFirmware.value = value
     }
 }

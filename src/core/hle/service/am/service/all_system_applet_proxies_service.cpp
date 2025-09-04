@@ -18,6 +18,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxy"},
+        {110, D<&IAllSystemAppletProxiesService::OpenSystemAppletProxy>, "OpenSystemAppletProxyEx"},
         {200, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld>, "OpenLibraryAppletProxyOld"},
         {201, D<&IAllSystemAppletProxiesService::OpenLibraryAppletProxy>, "OpenLibraryAppletProxy"},
         {300, nullptr, "OpenOverlayAppletProxy"},
@@ -25,6 +26,7 @@ IAllSystemAppletProxiesService::IAllSystemAppletProxiesService(Core::System& sys
         {400, nullptr, "CreateSelfLibraryAppletCreatorForDevelop"},
         {410, nullptr, "GetSystemAppletControllerForDebug"},
         {450, D<&IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions>, "GetSystemProcessCommonFunctions"}, // 19.0.0+
+        {460, D<&IAllSystemAppletProxiesService::GetAppletAlternativeFunctions>, "GetAppletAlternativeFunctions"}, // 20.0.0+
         {1000, nullptr, "GetDebugFunctions"},
     };
     // clang-format on
@@ -95,6 +97,14 @@ Result IAllSystemAppletProxiesService::GetSystemProcessCommonFunctions() {
     LOG_DEBUG(Service_AM, "(STUBBED) called.");
 
     // TODO (jarrodnorwell)
+
+    R_SUCCEED();
+}
+
+Result IAllSystemAppletProxiesService::GetAppletAlternativeFunctions() {
+    LOG_DEBUG(Service_AM, "(STUBBED) called.");
+
+    // TODO (maufeat)
 
     R_SUCCEED();
 }

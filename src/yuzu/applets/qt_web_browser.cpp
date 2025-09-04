@@ -17,14 +17,15 @@
 #include "yuzu/applets/qt_web_browser_scripts.h"
 #endif
 
+#include "yuzu/applets/qt_web_browser.h"
+#include "yuzu/main.h"
+
+#ifdef YUZU_USE_QT_WEB_ENGINE
+
 #include "common/fs/path_util.h"
 #include "core/core.h"
 #include "input_common/drivers/keyboard.h"
-#include "yuzu/applets/qt_web_browser.h"
-#include "yuzu/main.h"
 #include "yuzu/util/url_request_interceptor.h"
-
-#ifdef YUZU_USE_QT_WEB_ENGINE
 
 namespace {
 

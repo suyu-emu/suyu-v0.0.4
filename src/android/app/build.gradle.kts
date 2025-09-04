@@ -30,8 +30,8 @@ val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toIn
 android {
     namespace = "org.yuzu.yuzu_emu"
 
-    compileSdkVersion = "android-35"
-    ndkVersion = "26.1.10909125"
+    compileSdkVersion = "android-36"
+    ndkVersion = "28.2.13676358"
 
     buildFeatures {
         viewBinding = true

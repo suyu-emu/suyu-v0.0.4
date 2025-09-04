@@ -88,6 +88,8 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_crypto_configuration.h
     file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.cpp
     file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.h
+    file_sys/fssystem/fssystem_hierarchical_sha3_storage.cpp
+    file_sys/fssystem/fssystem_hierarchical_sha3_storage.h
     file_sys/fssystem/fssystem_hierarchical_sha256_storage.cpp
     file_sys/fssystem/fssystem_hierarchical_sha256_storage.h
     file_sys/fssystem/fssystem_indirect_storage.cpp
@@ -102,6 +104,7 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_nca_header.cpp
     file_sys/fssystem/fssystem_nca_header.h
     file_sys/fssystem/fssystem_nca_reader.cpp
+    file_sys/fssystem/fssystem_passthrough_storage.h
     file_sys/fssystem/fssystem_pooled_buffer.cpp
     file_sys/fssystem/fssystem_pooled_buffer.h
     file_sys/fssystem/fssystem_sparse_storage.cpp

@@ -217,7 +217,8 @@ struct Values {
                                              true,
                                              true,
                                              &use_speed_limit};
-    SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core, Specialization::Default};
+    SwitchableSetting<bool> sync_core_speed{linkage, false, "sync_core_speed", Category::Core,
+                                            Specialization::Default};
 
     // Memory
 #ifdef HAS_NCE
@@ -624,7 +625,11 @@ struct Values {
                                     linkage, 0,    "rng_seed",       Category::System, Specialization::Hex,
                                     true,    true, &rng_seed_enabled};
     Setting<std::string> device_name{
-                                     linkage, "Eden", "device_name", Category::System, Specialization::Default, true, true};
+        linkage, "Eden", "device_name", Category::System, Specialization::Default, true, true};
+    SwitchableSetting<bool> disable_nca_verification{linkage, true, "disable_nca_verification",
+                                                     Category::System, Specialization::Default};
+    Setting<bool> hide_nca_verification_popup{
+        linkage, false, "hide_nca_verification_popup", Category::System, Specialization::Default};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 

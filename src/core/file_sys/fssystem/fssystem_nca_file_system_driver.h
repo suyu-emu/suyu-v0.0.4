@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -328,6 +331,10 @@ private:
                                   s64 offset, const NcaAesCtrUpperIv& upper_iv,
                                   const NcaPatchInfo& patch_info,
                                   const NcaMetaDataHashDataInfo& meta_data_hash_data_info);
+
+
+    Result CreateSha3Storage(VirtualFile* out, VirtualFile base_storage,
+                             const NcaFsHeader::HashData::HierarchicalSha256Data& hash_data);
 
     Result CreateSha256Storage(VirtualFile* out, VirtualFile base_storage,
                                const NcaFsHeader::HashData::HierarchicalSha256Data& sha256_data);

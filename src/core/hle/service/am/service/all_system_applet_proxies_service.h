@@ -39,6 +39,7 @@ private:
         InCopyHandle<Kernel::KProcess> process_handle,
         InLargeData<AppletAttribute, BufferAttr_HipcMapAlias> attribute);
     Result GetSystemProcessCommonFunctions();
+    Result GetAppletAlternativeFunctions();
 
 private:
     std::shared_ptr<Applet> GetAppletFromProcessId(ProcessId pid);

@@ -409,6 +409,12 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent)
               "their resolution, details and supported controllers and depending on this setting.\n"
               "Setting to Handheld can help improve performance for low end systems."));
     INSERT(Settings, current_user, QString(), QString());
+    INSERT(Settings, disable_nca_verification, tr("Disable NCA Verification"),
+           tr("Disables integrity verification of NCA content archives."
+              "\nThis may improve loading speed but risks data corruption or invalid files going "
+              "undetected.\n"
+              "Is necessary to make games and updates work that needs firmware 20+."));
+    INSERT(Settings, hide_nca_verification_popup, QString(), QString());
 
     // Controls
 

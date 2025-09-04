@@ -53,6 +53,8 @@ public:
                                         u64 application_id);
     Result CheckApplicationLaunchVersion(u64 application_id);
     Result GetApplicationTerminateResult(Out<Result> out_result, u64 application_id);
+    Result Unknown4022(OutCopyHandle<Kernel::KReadableEvent> out_event);
+    Result Unknown4023(Out<u64> out_result);
 
 private:
     KernelHelpers::ServiceContext service_context;

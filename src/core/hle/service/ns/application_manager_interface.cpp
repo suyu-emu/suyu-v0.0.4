@@ -306,6 +306,9 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {3013, nullptr, "IsGameCardEnabled"},
         {3014, nullptr, "IsLocalContentShareEnabled"},
         {3050, nullptr, "ListAssignELicenseTaskResult"},
+        {4022, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4022"},
+        {4023, D<&IApplicationManagerInterface::Unknown4023>, "Unknown4023"},
+        {4088, D<&IApplicationManagerInterface::Unknown4022>, "Unknown4088"},
         {9999, nullptr, "GetApplicationCertificate"},
     };
     // clang-format on
@@ -520,6 +523,19 @@ Result IApplicationManagerInterface::GetApplicationTerminateResult(Out<Result> o
                                                                    u64 application_id) {
     LOG_WARNING(Service_NS, "(STUBBED) called. application_id={:016X}", application_id);
     *out_result = ResultSuccess;
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::Unknown4022(
+    OutCopyHandle<Kernel::KReadableEvent> out_event) {
+    LOG_WARNING(Service_NS, "(STUBBED) called");
+    *out_event = gamecard_update_detection_event.GetHandle();
+    R_SUCCEED();
+}
+
+Result IApplicationManagerInterface::Unknown4023(Out<u64> out_result) {
+    LOG_WARNING(Service_NS, "(STUBBED) called.");
+    *out_result = 0;
     R_SUCCEED();
 }
 

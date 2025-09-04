@@ -80,11 +80,12 @@ IParentalControlService::IParentalControlService(Core::System& system_, Capabili
         {1451, D<&IParentalControlService::StartPlayTimer>, "StartPlayTimer"},
         {1452, D<&IParentalControlService::StopPlayTimer>, "StopPlayTimer"},
         {1453, D<&IParentalControlService::IsPlayTimerEnabled>, "IsPlayTimerEnabled"},
-        {1454, nullptr, "GetPlayTimerRemainingTime"},
+        {1454, D<&IParentalControlService::GetPlayTimerRemainingTime>, "GetPlayTimerRemainingTime"},
         {1455, D<&IParentalControlService::IsRestrictedByPlayTimer>, "IsRestrictedByPlayTimer"},
         {1456, D<&IParentalControlService::GetPlayTimerSettingsOld>, "GetPlayTimerSettingsOld"},
         {1457, D<&IParentalControlService::GetPlayTimerEventToRequestSuspension>, "GetPlayTimerEventToRequestSuspension"},
         {1458, D<&IParentalControlService::IsPlayTimerAlarmDisabled>, "IsPlayTimerAlarmDisabled"},
+        {1459, D<&IParentalControlService::GetPlayTimerRemainingTimeDisplayInfo>, "GetPlayTimerRemainingTimeDisplayInfo"},
         {1471, nullptr, "NotifyWrongPinCodeInputManyTimes"},
         {1472, nullptr, "CancelNetworkRequest"},
         {1473, D<&IParentalControlService::GetUnlinkedEvent>, "GetUnlinkedEvent"},
@@ -378,6 +379,12 @@ Result IParentalControlService::IsPlayTimerEnabled(Out<bool> out_is_play_timer_e
     R_SUCCEED();
 }
 
+Result IParentalControlService::GetPlayTimerRemainingTime(Out<s32> out_remaining_time) {
+    LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    *out_remaining_time = std::numeric_limits<s32>::max();
+    R_SUCCEED();
+}
+
 Result IParentalControlService::IsRestrictedByPlayTimer(Out<bool> out_is_restricted_by_play_timer) {
     *out_is_restricted_by_play_timer = false;
     LOG_WARNING(Service_PCTL, "(STUBBED) called, restricted={}", *out_is_restricted_by_play_timer);
@@ -409,6 +416,11 @@ Result IParentalControlService::IsPlayTimerAlarmDisabled(Out<bool> out_play_time
     *out_play_timer_alarm_disabled = false;
     LOG_INFO(Service_PCTL, "called, is_play_timer_alarm_disabled={}",
              *out_play_timer_alarm_disabled);
+    R_SUCCEED();
+}
+
+Result IParentalControlService::GetPlayTimerRemainingTimeDisplayInfo(/* Out 0x18 */) {
+    LOG_INFO(Service_PCTL, "called");
     R_SUCCEED();
 }
 

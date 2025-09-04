@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -120,6 +123,7 @@ struct Applet {
     Event friend_invitation_storage_channel_event;
     Event notification_storage_channel_event;
     Event health_warning_disappeared_system_event;
+    Event unknown_event;
     Event acquired_sleep_lock_event;
     Event pop_from_general_channel_event;
     Event library_applet_launchable_event;

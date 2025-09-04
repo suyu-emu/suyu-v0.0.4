@@ -35,6 +35,7 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {310, nullptr, "IsSystemAppletHomeMenu"}, //19.0.0+
         {320, nullptr, "SetGpuTimeSliceBoost"}, //19.0.0+
         {321, nullptr, "SetGpuTimeSliceBoostDueToApplication"}, //19.0.0+
+        {350, D<&IAppletCommonFunctions::Unknown350>, "Unknown350"} //20.0.0+
     };
     // clang-format on
 
@@ -67,6 +68,12 @@ Result IAppletCommonFunctions::SetCpuBoostRequestPriority(s32 priority) {
 Result IAppletCommonFunctions::GetCurrentApplicationId(Out<u64> out_application_id) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
     *out_application_id = system.GetApplicationProcessProgramID() & ~0xFFFULL;
+    R_SUCCEED();
+}
+
+Result IAppletCommonFunctions::Unknown350(Out<u16> out_unknown) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+    *out_unknown = 0;
     R_SUCCEED();
 }
 
