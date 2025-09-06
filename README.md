@@ -4,6 +4,7 @@ SPDX-FileCopyrightText: 2024 suyu Emulator Project
 SPDX-FileCopyrightText: 2025 CharlieDoesStuff
 SPDX-License-Identifier: GPL-3.0-or-later
 -->
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/5c5e01fb109f4ad38ff54111046da4bf)](https://app.codacy.com?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 **Notes**: We do not support or condone piracy in any form. In order to use suyu, you'll need keys from your real Switch system, and games which you have legally obtained and paid for. We do not intend to make money or profit from this project.
 
