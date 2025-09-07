@@ -104,6 +104,7 @@ cmake .. -G Ninja \
     -DYUZU_USE_QT_WEB_ENGINE=$WEBENGINE \
     -DYUZU_USE_FASTER_LD=ON \
     -DYUZU_ENABLE_LTO=ON \
+    -DDYNARMIC_ENABLE_LTO=ON \
     "${EXTRA_CMAKE_FLAGS[@]}"
 
 ninja -j${NPROC}

@@ -179,7 +179,8 @@ android {
                     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                     "-DBUILD_TESTING=OFF",
                     "-DYUZU_TESTS=OFF",
-                    "-DDYNARMIC_TESTS=OFF"
+                    "-DDYNARMIC_TESTS=OFF",
+                    "-DDYNARMIC_ENABLE_LTO=ON"
                 )
 
                 abiFilters("arm64-v8a")
