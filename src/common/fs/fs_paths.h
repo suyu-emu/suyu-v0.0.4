@@ -12,7 +12,6 @@
 #define PORTABLE_DIR "user"
 
 // Sub-directories contained within a yuzu data directory
-
 #define AMIIBO_DIR "amiibo"
 #define CACHE_DIR "cache"
 #define CONFIG_DIR "config"
@@ -28,11 +27,12 @@
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"
 #define ICONS_DIR "icons"
+
+// Compatibility with other emulators
 #define CITRON_DIR "citron"
 #define SUDACHI_DIR "sudachi"
 #define YUZU_DIR "yuzu"
 #define SUYU_DIR "suyu"
 
 // yuzu-specific files
-
 #define LOG_FILE "eden_log.txt"

@@ -162,10 +162,6 @@ add_library(
   zstd_compression.h
 )
 
-if(YUZU_ENABLE_PORTABLE)
-  add_compile_definitions(YUZU_ENABLE_PORTABLE)
-endif()
-
 if(WIN32)
   target_sources(common PRIVATE windows/timer_resolution.cpp
                                 windows/timer_resolution.h)

@@ -101,61 +101,53 @@ public:
         legacy_paths.insert_or_assign(legacy_path, new_path);
     }
 
+    /// In non-android devices, the current directory will first search for "user"
+    /// if such directory (and it must be a directory) is found, that takes priority
+    /// over the global configuration directory (in other words, portable directories
+    /// take priority over the global ones, always)
+    /// On Android, the behaviour is to look for the current directory only.
     void Reinitialize(fs::path eden_path = {}) {
         fs::path eden_path_cache;
         fs::path eden_path_config;
-
 #ifdef _WIN32
-#ifdef YUZU_ENABLE_PORTABLE
+        // User directory takes priority over global %AppData% directory
         eden_path = GetExeDirectory() / PORTABLE_DIR;
-#endif
-        if (!IsDir(eden_path)) {
+        if (!Exists(eden_path) || !IsDir(eden_path)) {
             eden_path = GetAppDataRoamingDirectory() / EDEN_DIR;
         }
-
         eden_path_cache = eden_path / CACHE_DIR;
         eden_path_config = eden_path / CONFIG_DIR;
-
 #define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(LegacyPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
         GenerateLegacyPath(LegacyPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
         GenerateLegacyPath(LegacyPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
-
         LEGACY_PATH(Citron, CITRON)
         LEGACY_PATH(Sudachi, SUDACHI)
         LEGACY_PATH(Yuzu, YUZU)
         LEGACY_PATH(Suyu, SUYU)
 #undef LEGACY_PATH
-
 #elif ANDROID
         ASSERT(!eden_path.empty());
         eden_path_cache = eden_path / CACHE_DIR;
         eden_path_config = eden_path / CONFIG_DIR;
 #else
-#ifdef YUZU_ENABLE_PORTABLE
         eden_path = GetCurrentDir() / PORTABLE_DIR;
-#endif
-        if (Exists(eden_path) && IsDir(eden_path)) {
-            eden_path_cache = eden_path / CACHE_DIR;
-            eden_path_config = eden_path / CONFIG_DIR;
-        } else {
+        if (!Exists(eden_path) || !IsDir(eden_path)) {
             eden_path = GetDataDirectory("XDG_DATA_HOME") / EDEN_DIR;
             eden_path_cache = GetDataDirectory("XDG_CACHE_HOME") / EDEN_DIR;
             eden_path_config = GetDataDirectory("XDG_CONFIG_HOME") / EDEN_DIR;
+        } else {
+            eden_path_cache = eden_path / CACHE_DIR;
+            eden_path_config = eden_path / CONFIG_DIR;
         }
-
 #define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(LegacyPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
         GenerateLegacyPath(LegacyPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
         GenerateLegacyPath(LegacyPath::titleName##CacheDir, GetDataDirectory("XDG_CACHE_HOME") / upperName##_DIR);
-
         LEGACY_PATH(Citron, CITRON)
         LEGACY_PATH(Sudachi, SUDACHI)
         LEGACY_PATH(Yuzu, YUZU)
         LEGACY_PATH(Suyu, SUYU)
-
 #undef LEGACY_PATH
-
 #endif
-
         GenerateEdenPath(EdenPath::EdenDir, eden_path);
         GenerateEdenPath(EdenPath::AmiiboDir, eden_path / AMIIBO_DIR);
         GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
