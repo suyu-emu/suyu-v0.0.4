@@ -33,7 +33,7 @@ endif()
 
 # Xbyak (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    if (PLATFORM_SUN)
+    if (PLATFORM_SUN OR PLATFORM_OPENBSD)
         AddJsonPackage(xbyak_sun)
     else()
         AddJsonPackage(xbyak)

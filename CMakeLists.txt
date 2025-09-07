@@ -50,7 +50,9 @@ CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" O
 
 set(EXT_DEFAULT ON)
 
-if (PLATFORM_FREEBSD)
+# See https://github.com/llvm/llvm-project/issues/123946
+# OpenBSD va_list doesn't play nice with precompiled headers
+if (PLATFORM_FREEBSD OR PLATFORM_OPENBSD)
     set(EXT_DEFAULT OFF)
 endif()
 

@@ -7,7 +7,7 @@
 #include <boost/asio.hpp>
 #include <boost/version.hpp>
 
-#if BOOST_VERSION > 108300 && (!defined(_WINDOWS) && !defined(ANDROID)) || defined(YUZU_BOOST_v1)
+#if BOOST_VERSION > 108400 && (!defined(_WINDOWS) && !defined(ANDROID)) || defined(YUZU_BOOST_v1)
 #define USE_BOOST_v1
 #endif
 

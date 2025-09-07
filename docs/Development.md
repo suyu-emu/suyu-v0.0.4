@@ -6,6 +6,7 @@
 * **Solaris**: [Solaris Building Guide](./build/Solaris.md)
 * **FreeBSD**: [FreeBSD Building Guide](./build/FreeBSD.md)
 * **macOS**: [macOS Building Guide](./build/macOS.md)
+* **OpenBSD**: [OpenBSD Building Guide](./build/OpenBSD.md)
 
 # CPM
 

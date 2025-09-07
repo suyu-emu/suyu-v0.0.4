@@ -37,7 +37,7 @@ namespace {
 struct SpinLockImpl {
     void Initialize();
 
-    Xbyak::CodeGenerator code;
+    Xbyak::CodeGenerator code = Xbyak::CodeGenerator(4096, Xbyak::DontSetProtectRWE);
 
     void (*lock)(volatile int*);
     void (*unlock)(volatile int*);
