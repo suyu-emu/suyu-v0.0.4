@@ -11,6 +11,12 @@
 #include "dynarmic/backend/x64/hostloc.h"
 #include "dynarmic/common/spin_lock.h"
 
+#ifdef DYNARMIC_ENABLE_NO_EXECUTE_SUPPORT
+static const auto default_cg_mode = Xbyak::DontSetProtectRWE;
+#else
+static const auto default_cg_mode = nullptr; //Allow RWE
+#endif
+
 namespace Dynarmic {
 
 void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Reg64 ptr, Xbyak::Reg32 tmp) {
@@ -37,7 +43,7 @@ namespace {
 struct SpinLockImpl {
     void Initialize();
 
-    Xbyak::CodeGenerator code = Xbyak::CodeGenerator(4096, Xbyak::DontSetProtectRWE);
+    Xbyak::CodeGenerator code = Xbyak::CodeGenerator(4096, default_cg_mode);
 
     void (*lock)(volatile int*);
     void (*unlock)(volatile int*);
