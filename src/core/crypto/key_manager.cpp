@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,6 +33,10 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
+
+#ifndef MBEDTLS_CMAC_C
+#error mbedtls was compiled without CMAC support. Check your USE flags (Gentoo) or contact your package maintainer.
+#endif
 
 namespace Core::Crypto {
 namespace {

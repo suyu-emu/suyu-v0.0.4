@@ -401,7 +401,6 @@ target_link_libraries(yuzu PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-target_link_libraries(yuzu PRIVATE Vulkan::Headers)
 if (NOT WIN32)
     target_include_directories(yuzu PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
 endif()
@@ -416,24 +415,24 @@ endif()
 target_compile_definitions(yuzu PRIVATE
     # Use QStringBuilder for string concatenation to reduce
     # the overall number of temporary strings created.
-    -DQT_USE_QSTRINGBUILDER
+    QT_USE_QSTRINGBUILDER
 
     # Disable implicit conversions from/to C strings
-    -DQT_NO_CAST_FROM_ASCII
-    -DQT_NO_CAST_TO_ASCII
+    QT_NO_CAST_FROM_ASCII
+    QT_NO_CAST_TO_ASCII
 
     # Disable implicit type narrowing in signal/slot connect() calls.
-    -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+    QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
 
     # Disable unsafe overloads of QProcess' start() function.
-    -DQT_NO_PROCESS_COMBINED_ARGUMENT_START
+    QT_NO_PROCESS_COMBINED_ARGUMENT_START
 
     # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
-    -DQT_NO_URL_CAST_FROM_STRING
+    QT_NO_URL_CAST_FROM_STRING
 )
 
 if (YUZU_ENABLE_COMPATIBILITY_REPORTING)
-    target_compile_definitions(yuzu PRIVATE -DYUZU_ENABLE_COMPATIBILITY_REPORTING)
+    target_compile_definitions(yuzu PRIVATE YUZU_ENABLE_COMPATIBILITY_REPORTING)
 endif()
 
 if (USE_DISCORD_PRESENCE)
@@ -441,22 +440,22 @@ if (USE_DISCORD_PRESENCE)
         discord_impl.cpp
         discord_impl.h
     )
-    target_link_libraries(yuzu PRIVATE DiscordRPC::discord-rpc httplib::httplib Qt${QT_MAJOR_VERSION}::Network)
-    target_compile_definitions(yuzu PRIVATE -DUSE_DISCORD_PRESENCE)
+    target_link_libraries(yuzu PRIVATE DiscordRPC::discord-rpc httplib::httplib Qt6::Network)
+    target_compile_definitions(yuzu PRIVATE USE_DISCORD_PRESENCE)
 endif()
 
 if (ENABLE_WEB_SERVICE)
-    target_compile_definitions(yuzu PRIVATE -DENABLE_WEB_SERVICE)
+    target_compile_definitions(yuzu PRIVATE ENABLE_WEB_SERVICE)
 endif()
 
 if (YUZU_USE_QT_MULTIMEDIA)
-    target_link_libraries(yuzu PRIVATE Qt${QT_MAJOR_VERSION}::Multimedia)
-    target_compile_definitions(yuzu PRIVATE -DYUZU_USE_QT_MULTIMEDIA)
+    target_link_libraries(yuzu PRIVATE Qt6::Multimedia)
+    target_compile_definitions(yuzu PRIVATE YUZU_USE_QT_MULTIMEDIA)
 endif ()
 
 if (YUZU_USE_QT_WEB_ENGINE)
-    target_link_libraries(yuzu PRIVATE Qt${QT_MAJOR_VERSION}::WebEngineCore Qt${QT_MAJOR_VERSION}::WebEngineWidgets)
-    target_compile_definitions(yuzu PRIVATE -DYUZU_USE_QT_WEB_ENGINE)
+    target_link_libraries(yuzu PRIVATE Qt6::WebEngineCore Qt6::WebEngineWidgets)
+    target_compile_definitions(yuzu PRIVATE YUZU_USE_QT_WEB_ENGINE)
 endif ()
 
 if(UNIX AND NOT APPLE)
@@ -468,6 +467,7 @@ if (WIN32 AND NOT YUZU_USE_BUNDLED_QT AND QT_VERSION VERSION_GREATER_EQUAL 6)
     add_custom_command(TARGET yuzu POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} "${YUZU_EXE_DIR}/eden.exe" --dir "${YUZU_EXE_DIR}" --libdir "${YUZU_EXE_DIR}" --plugindir "${YUZU_EXE_DIR}/plugins" --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-translations --verbose 0)
 endif()
 
+# TODO(crueter): this can be done with system qt in a better way
 if (YUZU_USE_BUNDLED_QT)
     include(CopyYuzuQt6Deps)
     copy_yuzu_Qt6_deps(yuzu)

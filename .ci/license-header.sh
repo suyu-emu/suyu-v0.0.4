@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 HEADER="$(cat "$PWD/.ci/license/header.txt")"
+HEADER_HASH="$(cat "$PWD/.ci/license/header-hash.txt")"
 
 echo "Getting branch changes"
 
@@ -13,41 +14,86 @@ FILES=`git diff-tree --no-commit-id --name-only ${RANGE} -r`
 
 echo "Done"
 
+check_header() {
+    CONTENT="`head -n3 < $1`"
+    case "$CONTENT" in
+        "$HEADER"*) ;;
+        *) BAD_FILES="$BAD_FILES $1" ;;
+    esac
+}
+
+check_cmake_header() {
+    CONTENT="`head -n3 < $1`"
+
+    case "$CONTENT" in
+        "$HEADER_HASH"*) ;;
+        *)
+            BAD_CMAKE="$BAD_CMAKE $1" ;;
+    esac
+}
 for file in $FILES; do
     [ -f "$file" ] || continue
+
+    if [ `basename -- "$file"` = "CMakeLists.txt" ]; then
+        check_cmake_header "$file"
+        continue
+    fi
 
     EXTENSION="${file##*.}"
     case "$EXTENSION" in
         kts|kt|cpp|h)
-            CONTENT="`cat $file`"
-            case "$CONTENT" in
-                "$HEADER"*) ;;
-                *) BAD_FILES="$BAD_FILES $file" ;;
-            esac
+            check_header "$file"
+            ;;
+        cmake)
+            check_cmake_header "$file"
             ;;
     esac
 done
 
-if [ "$BAD_FILES" = "" ]; then
+if [ "$BAD_FILES" = "" ] && [ "$BAD_CMAKE" = "" ]; then
     echo
     echo "All good."
 
     exit
 fi
 
-echo "The following files have incorrect license headers:"
-echo
+if [ "$BAD_FILES" != "" ]; then
+    echo "The following source files have incorrect license headers:"
+    echo
 
-for file in $BAD_FILES; do echo $file; done
+    for file in $BAD_FILES; do echo $file; done
 
-cat << EOF
+    cat << EOF
 
-The following license header should be added to the start of all offending files:
+The following license header should be added to the start of all offending SOURCE files:
 
 === BEGIN ===
 $HEADER
 ===  END  ===
 
+EOF
+
+fi
+
+if [ "$BAD_CMAKE" != "" ]; then
+    echo "The following CMake files have incorrect license headers:"
+    echo
+
+    for file in $BAD_CMAKE; do echo $file; done
+
+    cat << EOF
+
+The following license header should be added to the start of all offending CMake files:
+
+=== BEGIN ===
+$HEADER_HASH
+===  END  ===
+
+EOF
+
+fi
+
+cat << EOF
 If some of the code in this PR is not being contributed by the original author,
 the files which have been exclusively changed by that code can be ignored.
 If this happens, this PR requirement can be bypassed once all other files are addressed.
@@ -70,6 +116,17 @@ if [ "$FIX" = "true" ]; then
         git add $file
     done
 
+    for file in $BAD_CMAKE; do
+        cat $file > $file.bak
+
+        cat .ci/license/header-hash.txt > $file
+        echo >> $file
+        cat $file.bak >> $file
+
+        rm $file.bak
+
+        git add $file
+    done
     echo "License headers fixed."
 
     if [ "$COMMIT" = "true" ]; then

@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Explicitly include CPMUtil here since we have a separate cpmfile for ffmpeg
-set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
 include(CPMUtil)
 
 if (NOT WIN32 AND NOT ANDROID)

@@ -15,14 +15,13 @@
         ]
     },
     "zycore": {
-        "package": "Zycore",
+        "package": "zycore",
         "repo": "zyantific/zycore-c",
         "sha": "75a36c45ae",
-        "hash": "15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924",
-        "bundled": true
+        "hash": "15aa399f39713e042c4345bc3175c82f14dca849fde2a21d4f591f62c43e227b70d868d8bb86beb5f4eb68b1d6bd3792cdd638acf89009e787e3d10ee7401924"
     },
     "zydis": {
-        "package": "Zydis",
+        "package": "zydis",
         "version": "4",
         "repo": "zyantific/zydis",
         "sha": "c2d2bab025",

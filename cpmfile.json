@@ -10,8 +10,8 @@
     "boost": {
         "package": "Boost",
         "repo": "boostorg/boost",
-        "tag": "boost-1.88.0",
-        "artifact": "boost-1.88.0-cmake.7z",
+        "tag": "boost-%VERSION%",
+        "artifact": "%TAG%-cmake.7z",
         "hash": "e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01",
         "git_version": "1.88.0",
         "version": "1.57"

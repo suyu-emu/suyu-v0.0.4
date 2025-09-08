@@ -23,7 +23,7 @@ CPMUtil is a wrapper around CPM that aims to reduce boilerplate and add useful u
 
 - `NAME` (required): The package name (must be the same as the `find_package` name if applicable)
 - `VERSION`: The minimum version of this package that can be used on the system
-- `GIT_VERSION`: The version found within git, only used for identification
+- `GIT_VERSION`: The "version" found within git
 - `URL`: The URL to fetch.
 - `REPO`: The GitHub repo to use (`owner/repo`).
   * Only GitHub is supported for now, though other platforms will see support at some point
@@ -71,8 +71,9 @@ Hashing strategies, descending order of precedence:
 - `KEY`: Custom cache key to use (stored as `.cache/cpm/${packagename_lower}/${key}`)
   * Default is based on, in descending order of precedence:
     - First 4 characters of the sha
-    - `GIT_VERSION`, or `VERSION` if not specified
+    - `GIT_VERSION`
     - Tag
+    - `VERSION`
     - Otherwise, CPM defaults will be used. This is not recommended as it doesn't produce reproducible caches
 - `DOWNLOAD_ONLY`: Whether or not to configure the downloaded package via CMake
   * Useful to turn `OFF` if the project doesn't use CMake
@@ -232,11 +233,8 @@ In order: OpenSSL CI, Boost (tag + artifact), discord-rpc (sha + options + patch
 To include CPMUtil:
 
 ```cmake
-set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
 include(CPMUtil)
 ```
-
-You may omit the first line if you are not utilizing cpmfile.
 
 ## Prefetching
 
@@ -245,8 +243,8 @@ You may omit the first line if you are not utilizing cpmfile.
 - To prefetch all CPM dependencies:
   * `tools/cpm-fetch-all.sh`
 
-Currently, `cpm-fetch.sh` defines the following directories for cpmfiles:
+Currently, `cpm-fetch.sh` defines the following directories for cpmfiles (max depth of 2, so subdirs are caught as well):
 
-`externals src/yuzu/externals externals/ffmpeg src/dynarmic/externals externals/nx_tzdb`
+`externals src/yuzu src/dynarmic .`
 
 Whenever you add a new cpmfile, update the script accordingly

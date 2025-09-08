@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -1155,7 +1158,7 @@ add_library(core STATIC
 
 if (ENABLE_WIFI_SCAN)
     # find_package(libiw REQUIRED)
-    target_compile_definitions(core PRIVATE -DENABLE_WIFI_SCAN)
+    target_compile_definitions(core PRIVATE ENABLE_WIFI_SCAN)
     target_link_libraries(core PRIVATE iw)
 endif()
 
@@ -1196,13 +1199,13 @@ else()
     target_link_libraries(core PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
+target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API mbedtls)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()
 
 if (ENABLE_WEB_SERVICE)
-    target_compile_definitions(core PUBLIC -DENABLE_WEB_SERVICE)
+    target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
     target_link_libraries(core PUBLIC web_service)
 endif()
 

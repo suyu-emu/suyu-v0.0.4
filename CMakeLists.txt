@@ -48,12 +48,10 @@ endif()
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(ENABLE_SDL2 "Enable the SDL2 frontend" ON "NOT ANDROID" OFF)
 
-set(EXT_DEFAULT ON)
+set(EXT_DEFAULT OFF)
 
-# See https://github.com/llvm/llvm-project/issues/123946
-# OpenBSD va_list doesn't play nice with precompiled headers
-if (PLATFORM_FREEBSD OR PLATFORM_OPENBSD)
-    set(EXT_DEFAULT OFF)
+if (MSVC OR ANDROID)
+    set(EXT_DEFAULT ON)
 endif()
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
@@ -69,14 +67,13 @@ option(ENABLE_QT_UPDATE_CHECKER "Enable update checker for the Qt frontend" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSVC}" "ENABLE_QT" OFF)
 
-option(YUZU_USE_CPM "Use CPM to fetch Eden dependencies if needed" ON)
+option(YUZU_USE_CPM "Use CPM to fetch system dependencies (fmt, boost, etc) if needed. Externals will still be fetched." ${EXT_DEFAULT})
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 option(ENABLE_WIFI_SCAN "Enable WiFi scanning" OFF)
 
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_HEADERS "Use Vulkan-Headers from externals" ${EXT_DEFAULT})
-option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan-Utility-Libraries from externals" ${EXT_DEFAULT})
+option(YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES "Use Vulkan Utility Headers from externals" ${EXT_DEFAULT})
 option(YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS "Use SPIRV-Tools from externals" ${EXT_DEFAULT})
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
@@ -95,10 +92,12 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 
+# TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
+# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
 if (YUZU_USE_CPM AND ENABLE_SDL2)
     option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
 endif()
@@ -107,11 +106,9 @@ CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT A
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL2;NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
-
-option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ${EXT_DEFAULT})
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
@@ -194,53 +191,6 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE
     endif()
 endif()
 
-# Sanity check : Check that all submodules are present
-# =======================================================================
-
-function(check_submodules_present)
-    file(READ "${PROJECT_SOURCE_DIR}/.gitmodules" gitmodules)
-    string(REGEX MATCHALL "path *= *[^ \t\r\n]*" gitmodules ${gitmodules})
-    foreach(module ${gitmodules})
-        string(REGEX REPLACE "path *= *" "" module ${module})
-
-        file(GLOB RESULT "${PROJECT_SOURCE_DIR}/${module}/*")
-        list(LENGTH RESULT RES_LEN)
-        if(RES_LEN EQUAL 0)
-            message(FATAL_ERROR "Git submodule ${module} not found. "
-                "Please run: \ngit submodule update --init --recursive")
-        endif()
-        if (EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
-            set(SUBMODULE_DIR "${PROJECT_SOURCE_DIR}/${module}")
-
-            execute_process(
-                COMMAND git rev-parse --short=10 HEAD
-                WORKING_DIRECTORY ${SUBMODULE_DIR}
-                OUTPUT_VARIABLE SUBMODULE_SHA
-            )
-
-            # would probably be better to do string parsing, but whatever
-            execute_process(
-                COMMAND git remote get-url origin
-                WORKING_DIRECTORY ${SUBMODULE_DIR}
-                OUTPUT_VARIABLE SUBMODULE_URL
-            )
-
-            string(REGEX REPLACE "\n|\r" "" SUBMODULE_SHA ${SUBMODULE_SHA})
-            string(REGEX REPLACE "\n|\r|\\.git" "" SUBMODULE_URL ${SUBMODULE_URL})
-
-            get_filename_component(SUBMODULE_NAME ${SUBMODULE_DIR} NAME)
-
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${SUBMODULE_NAME})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${SUBMODULE_SHA})
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${SUBMODULE_URL})
-        endif()
-    endforeach()
-endfunction()
-
-if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND YUZU_CHECK_SUBMODULES)
-    check_submodules_present()
-endif()
-
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
     COPYONLY)
@@ -277,7 +227,7 @@ function(detect_architecture symbol arch)
         if (ARCHITECTURE_${arch})
             set(ARCHITECTURE "${arch}" PARENT_SCOPE)
             set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_definitions(-DARCHITECTURE_${arch}=1)
+            add_compile_definitions(ARCHITECTURE_${arch}=1)
         endif()
     endif()
 endfunction()
@@ -299,7 +249,7 @@ endif()
 if (NOT DEFINED ARCHITECTURE)
     set(ARCHITECTURE "GENERIC")
     set(ARCHITECTURE_GENERIC 1)
-    add_definitions(-DARCHITECTURE_GENERIC=1)
+    add_compile_definitions(ARCHITECTURE_GENERIC=1)
 endif()
 
 message(STATUS "Target architecture: ${ARCHITECTURE}")
@@ -311,16 +261,16 @@ if (MSVC AND ARCHITECTURE_x86)
 endif()
 
 if (UNIX)
-    add_definitions(-DYUZU_UNIX=1)
+    add_compile_definitions(YUZU_UNIX=1)
 endif()
 
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
-    add_definitions(-DHAS_NCE=1)
+    add_compile_definitions(HAS_NCE=1)
 endif()
 
 if (YUZU_ROOM)
-    add_definitions(-DYUZU_ROOM)
+    add_compile_definitions(YUZU_ROOM)
 endif()
 
 # Build/optimization presets
@@ -489,14 +439,6 @@ if(NOT TARGET Boost::headers)
     AddJsonPackage(boost_headers)
 endif()
 
-if (ENABLE_LIBUSB)
-    if (PLATFORM_FREEBSD)
-        find_package(libusb MODULE)
-    else()
-        find_package(libusb 1.0.24 MODULE)
-    endif()
-endif()
-
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
     AddJsonPackage(discord-rpc)
@@ -601,8 +543,8 @@ endfunction()
 add_subdirectory(externals)
 
 # pass targets from externals
-find_package(VulkanHeaders)
 find_package(VulkanUtilityLibraries)
+find_package(libusb)
 find_package(VulkanMemoryAllocator)
 find_package(SPIRV-Tools)
 
@@ -736,7 +678,7 @@ if (APPLE)
     list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
 elseif (WIN32)
     # Target Windows 10
-    add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)
+    add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
     set(PLATFORM_LIBRARIES winmm ws2_32 iphlpapi)
     if (MINGW)
         # PSAPI is the Process Status API

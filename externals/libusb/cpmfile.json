@@ -1,0 +1,8 @@
+{
+	"libusb": {
+		"repo": "libusb/libusb",
+		"sha": "c060e9ce30",
+		"hash": "44647357ba1179020cfa6674d809fc35cf6f89bff1c57252fe3a610110f5013ad678fc6eb5918e751d4384c30e2fe678868dbffc5f85736157e546cb9d10accc",
+		"find_args": "MODULE"
+	}
+}

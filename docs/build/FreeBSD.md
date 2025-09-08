@@ -1,13 +1,7 @@
-## One word of caution before proceeding.
-
-This is not the usual or preferred way to build programs on FreeBSD.
-As of writing there is no official fresh port available for Eden, but it is in the works.
-After it is available you can find a link to the eden-emu fresh port here and on Escary's github repo.
-See this build as an AppImage alternative for FreeBSD.
+Eden is not currently available as a port on FreeBSD, though it is in the works. For now, the recommended method of usage is to compile it yourself. Check back often, as the build process frequently changes.
 
 ## Dependencies.
-Before we start we need some dependencies.
-These dependencies are generally needed to build Eden on FreeBSD.
+Eden needs the following dependencies:
 
 ```
 devel/cmake
@@ -21,6 +15,8 @@ devel/nasm
 devel/autoconf
 devel/pkgconf
 devel/qt6-base
+
+net/enet
 
 multimedia/ffnvcodec-headers
 multimedia/ffmpeg

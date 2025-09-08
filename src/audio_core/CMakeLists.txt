@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -229,9 +232,10 @@ endif()
 target_include_directories(audio_core PRIVATE ${OPUS_INCLUDE_DIRS})
 target_link_libraries(audio_core PUBLIC common core opus)
 
-if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    target_link_libraries(audio_core PRIVATE dynarmic::dynarmic)
-endif()
+# what?
+# if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
+#     target_link_libraries(audio_core PRIVATE dynarmic::dynarmic)
+# endif()
 
 if (ENABLE_CUBEB)
     target_sources(audio_core PRIVATE
@@ -240,7 +244,7 @@ if (ENABLE_CUBEB)
     )
 
     target_link_libraries(audio_core PRIVATE cubeb)
-    target_compile_definitions(audio_core PRIVATE -DHAVE_CUBEB=1)
+    target_compile_definitions(audio_core PRIVATE HAVE_CUBEB=1)
 endif()
 
 if (ENABLE_SDL2)

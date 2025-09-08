@@ -164,7 +164,7 @@ if ("x86_64" IN_LIST ARCHITECTURE)
     target_link_libraries(dynarmic
         PRIVATE
             xbyak::xbyak
-            Zydis
+            Zydis::Zydis
     )
 
     target_architecture_specific_sources(dynarmic "x86_64"

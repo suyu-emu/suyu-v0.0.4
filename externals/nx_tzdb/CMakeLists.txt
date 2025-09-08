@@ -4,8 +4,6 @@
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Explicitly include CPMUtil here since we have a separate cpmfile for nx_tzdb
-set(CPMUTIL_JSON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json)
 include(CPMUtil)
 
 set(NX_TZDB_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")

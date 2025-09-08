@@ -22,16 +22,16 @@ if (MSVC)
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
 
     # Silence "deprecation" warnings
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE _SCL_SECURE_NO_WARNINGS)
 
     # Avoid windows.h junk
-    add_definitions(-DNOMINMAX)
+    add_compile_definitions(NOMINMAX)
 
     # Avoid windows.h from including some usually unused libs like winsocks.h, since this might cause some redefinition errors.
-    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN)
 
     # Ensure that projects are built with Unicode support.
-    add_definitions(-DUNICODE -D_UNICODE)
+    add_compile_definitions(UNICODE _UNICODE)
 
     # /W4                 - Level 4 warnings
     # /MP                 - Multi-threaded compilation
@@ -169,15 +169,15 @@ else()
     # glibc, which may default to 32 bits. glibc allows this to be configured
     # by setting _FILE_OFFSET_BITS.
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
-        add_definitions(-D_FILE_OFFSET_BITS=64)
+        add_compile_definitions(_FILE_OFFSET_BITS=64)
     endif()
 
     if (MINGW)
-        add_definitions(-DMINGW_HAS_SECURE_API)
+        add_compile_definitions(MINGW_HAS_SECURE_API)
         add_compile_options("-msse4.1")
 
         if (MINGW_STATIC_BUILD)
-            add_definitions(-DQT_STATICPLUGIN)
+            add_compile_definitions(QT_STATICPLUGIN)
             add_compile_options("-static")
         endif()
     endif()
