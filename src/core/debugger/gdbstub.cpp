@@ -664,7 +664,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
 
             if (svc_mem_info.state != Kernel::Svc::MemoryState::Inaccessible ||
                 svc_mem_info.base_address + svc_mem_info.size - 1 !=
-                    std::numeric_limits<u64>::max()) {
+                    (std::numeric_limits<u64>::max)()) {
                 const char* state = GetMemoryStateName(svc_mem_info.state);
                 const char* perm = GetMemoryPermissionString(svc_mem_info);
                 const char l = True(svc_mem_info.attribute & MemoryAttribute::Locked) ? 'L' : '-';
@@ -710,7 +710,7 @@ std::vector<char>::const_iterator GDBStub::CommandEnd() const {
     const auto end{std::find(current_command.begin(), current_command.end(), GDB_STUB_END)};
 
     // Require the checksum to be present
-    return std::min(end + 2, current_command.end());
+    return (std::min)(end + 2, current_command.end());
 }
 
 std::optional<std::string> GDBStub::DetachCommand() {

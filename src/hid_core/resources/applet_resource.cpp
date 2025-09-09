@@ -271,7 +271,7 @@ void AppletResource::EnablePalmaBoostMode(u64 aruid, bool is_enabled) {
 }
 
 Result AppletResource::RegisterCoreAppletResource() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultAppletResourceOverflow;
     }
     if (ref_counter == 0) {

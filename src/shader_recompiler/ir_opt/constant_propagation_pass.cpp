@@ -905,7 +905,7 @@ void FoldConstBuffer(Environment& env, IR::Block& block, IR::Inst& inst) {
 }
 
 void FoldDriverConstBuffer(Environment& env, IR::Block& block, IR::Inst& inst, u32 which_bank,
-                           u32 offset_start = 0, u32 offset_end = std::numeric_limits<u16>::max()) {
+                           u32 offset_start = 0, u32 offset_end = (std::numeric_limits<u16>::max)()) {
     const IR::Value bank{inst.Arg(0)};
     const IR::Value offset{inst.Arg(1)};
     if (!bank.IsImmediate() || !offset.IsImmediate()) {

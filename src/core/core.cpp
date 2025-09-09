@@ -185,7 +185,7 @@ struct System::Impl {
 
         Service::PSC::Time::LocationName name{};
         auto new_name = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
-        std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.size()));
+        std::memcpy(name.data(), new_name.data(), (std::min)(name.size(), new_name.size()));
 
         timezone_service->SetDeviceLocationName(name);
 

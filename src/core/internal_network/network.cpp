@@ -105,7 +105,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
 }
 
 LINGER MakeLinger(bool enable, u32 linger_value) {
-    ASSERT(linger_value <= std::numeric_limits<u_short>::max());
+    ASSERT(linger_value <= (std::numeric_limits<u_short>::max)());
 
     LINGER value;
     value.l_onoff = enable ? 1 : 0;
@@ -798,7 +798,7 @@ Errno Socket::Shutdown(ShutdownHow how) {
 
 std::pair<s32, Errno> Socket::Recv(int flags, std::span<u8> message) {
     ASSERT(flags == 0);
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
 
     const auto result =
         recv(fd, reinterpret_cast<char*>(message.data()), static_cast<int>(message.size()), 0);
@@ -811,7 +811,7 @@ std::pair<s32, Errno> Socket::Recv(int flags, std::span<u8> message) {
 
 std::pair<s32, Errno> Socket::RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) {
     ASSERT(flags == 0);
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
 
     sockaddr_in addr_in{};
     socklen_t addrlen = sizeof(addr_in);
@@ -831,7 +831,7 @@ std::pair<s32, Errno> Socket::RecvFrom(int flags, std::span<u8> message, SockAdd
 }
 
 std::pair<s32, Errno> Socket::Send(std::span<const u8> message, int flags) {
-    ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
+    ASSERT(message.size() < static_cast<size_t>((std::numeric_limits<int>::max)()));
     ASSERT(flags == 0);
 
     int native_flags = 0;

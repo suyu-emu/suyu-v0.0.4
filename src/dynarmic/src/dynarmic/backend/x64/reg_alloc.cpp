@@ -85,7 +85,7 @@ void HostLocInfo::ReleaseOne() noexcept {
     if (current_references == 0)
         return;
 
-    ASSERT(size_t(accumulated_uses) + 1 < std::numeric_limits<uint16_t>::max());
+    ASSERT(size_t(accumulated_uses) + 1 < (std::numeric_limits<uint16_t>::max)());
     accumulated_uses++;
     current_references--;
 
@@ -116,7 +116,7 @@ void HostLocInfo::AddValue(IR::Inst* inst) noexcept {
         values.clear();
     }
     values.push_back(inst);
-    ASSERT(size_t(total_uses) + inst->UseCount() < std::numeric_limits<uint16_t>::max());
+    ASSERT(size_t(total_uses) + inst->UseCount() < (std::numeric_limits<uint16_t>::max)());
     total_uses += inst->UseCount();
     max_bit_width = std::max<uint8_t>(max_bit_width, GetBitWidth(inst->GetType()));
 }
@@ -400,14 +400,14 @@ void RegAlloc::HostCall(IR::Inst* result_def,
 }
 
 void RegAlloc::AllocStackSpace(const size_t stack_space) noexcept {
-    ASSERT(stack_space < size_t(std::numeric_limits<s32>::max()));
+    ASSERT(stack_space < size_t((std::numeric_limits<s32>::max)()));
     ASSERT(reserved_stack_space == 0);
     reserved_stack_space = stack_space;
     code->sub(code->rsp, u32(stack_space));
 }
 
 void RegAlloc::ReleaseStackSpace(const size_t stack_space) noexcept {
-    ASSERT(stack_space < size_t(std::numeric_limits<s32>::max()));
+    ASSERT(stack_space < size_t((std::numeric_limits<s32>::max)()));
     ASSERT(reserved_stack_space == stack_space);
     reserved_stack_space = 0;
     code->add(code->rsp, u32(stack_space));

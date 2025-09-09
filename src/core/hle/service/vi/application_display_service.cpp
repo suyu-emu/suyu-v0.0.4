@@ -192,7 +192,7 @@ Result IApplicationDisplayService::OpenLayer(Out<u64> out_size,
 
     const auto buffer = parcel.Serialize();
     std::memcpy(out_native_window.data(), buffer.data(),
-                std::min(out_native_window.size(), buffer.size()));
+                (std::min)(out_native_window.size(), buffer.size()));
     *out_size = buffer.size();
 
     R_SUCCEED();
@@ -226,7 +226,7 @@ Result IApplicationDisplayService::CreateStrayLayer(
 
     const auto buffer = parcel.Serialize();
     std::memcpy(out_native_window.data(), buffer.data(),
-                std::min(out_native_window.size(), buffer.size()));
+                (std::min)(out_native_window.size(), buffer.size()));
 
     *out_size = buffer.size();
 

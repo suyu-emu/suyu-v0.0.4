@@ -34,7 +34,7 @@ void IntegrityVerificationStorage::Initialize(VirtualFile hs,
     ASSERT(m_verification_block_size == 1ll << m_verification_block_order);
 
     // Set upper layer block sizes.
-    upper_layer_verif_block_size = std::max(upper_layer_verif_block_size, HashSize);
+    upper_layer_verif_block_size = (std::max)(upper_layer_verif_block_size, HashSize);
     m_upper_layer_verification_block_size = upper_layer_verif_block_size;
     m_upper_layer_verification_block_order = ILog2(static_cast<u32>(upper_layer_verif_block_size));
     ASSERT(m_upper_layer_verification_block_size == 1ll << m_upper_layer_verification_block_order);

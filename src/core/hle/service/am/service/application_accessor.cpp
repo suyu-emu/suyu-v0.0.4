@@ -115,7 +115,7 @@ Result IApplicationAccessor::GetApplicationControlProperty(
     R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
     std::memcpy(out_control_property.data(), nacp.data(),
-                std::min(out_control_property.size(), nacp.size()));
+                (std::min)(out_control_property.size(), nacp.size()));
 
     R_SUCCEED();
 }

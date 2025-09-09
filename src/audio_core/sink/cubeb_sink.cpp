@@ -73,7 +73,7 @@ public:
             minimum_latency = TargetSampleCount * 2;
         }
 
-        minimum_latency = std::max(minimum_latency, TargetSampleCount * 2);
+        minimum_latency = (std::max)(minimum_latency, TargetSampleCount * 2);
 
         LOG_INFO(Service_Audio,
                  "Opening cubeb stream {} type {} with: rate {} channels {} (system channels {}) "
@@ -372,7 +372,7 @@ u32 GetCubebLatency() {
         LOG_CRITICAL(Audio_Sink, "Error getting minimum latency, error: {}", latency_error);
         latency = TargetSampleCount * 2;
     }
-    latency = std::max(latency, TargetSampleCount * 2);
+    latency = (std::max)(latency, TargetSampleCount * 2);
     cubeb_destroy(ctx);
     return latency;
 }
@@ -426,7 +426,7 @@ bool IsCubebSuitable() {
         LOG_ERROR(Audio_Sink, "Cubeb could not get min latency, it is not suitable.");
         return false;
     }
-    latency = std::max(latency, TargetSampleCount * 2);
+    latency = (std::max)(latency, TargetSampleCount * 2);
 
     // Test opening a device with standard parameters
     cubeb_devid output_device{0};

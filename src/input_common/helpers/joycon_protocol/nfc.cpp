@@ -327,7 +327,7 @@ Common::Input::DriverResult NfcProtocol::IsTagInRange(TagFoundData& data,
              (output.mcu_data[6] != 0x09 && output.mcu_data[6] != 0x04));
 
     data.type = output.mcu_data[12];
-    data.uuid_size = std::min(output.mcu_data[14], static_cast<u8>(sizeof(TagUUID)));
+    data.uuid_size = (std::min)(output.mcu_data[14], static_cast<u8>(sizeof(TagUUID)));
     memcpy(data.uuid.data(), output.mcu_data.data() + 15, data.uuid.size());
 
     return Common::Input::DriverResult::Success;
@@ -433,7 +433,7 @@ Common::Input::DriverResult NfcProtocol::WriteAmiiboData(const TagUUID& tag_uuid
     // Send Data. Nfc buffer size is 31, Send the data in smaller packages
     while (current_position < buffer.size() && tries++ < timeout_limit) {
         const std::size_t next_position =
-            std::min(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
+            (std::min)(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
         const std::size_t block_size = next_position - current_position;
         const bool is_last_packet = block_size < sizeof(NFCRequestState::raw_data);
 
@@ -479,7 +479,7 @@ Common::Input::DriverResult NfcProtocol::GetMifareData(
     // Send data request. Nfc buffer size is 31, Send the data in smaller packages
     while (current_position < buffer.size() && tries++ < timeout_limit) {
         const std::size_t next_position =
-            std::min(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
+            (std::min)(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
         const std::size_t block_size = next_position - current_position;
         const bool is_last_packet = block_size < sizeof(NFCRequestState::raw_data);
 
@@ -559,7 +559,7 @@ Common::Input::DriverResult NfcProtocol::WriteMifareData(
     // Send data request. Nfc buffer size is 31, Send the data in smaller packages
     while (current_position < buffer.size() && tries++ < timeout_limit) {
         const std::size_t next_position =
-            std::min(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
+            (std::min)(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
         const std::size_t block_size = next_position - current_position;
         const bool is_last_packet = block_size < sizeof(NFCRequestState::raw_data);
 
@@ -731,7 +731,7 @@ Common::Input::DriverResult NfcProtocol::SendWriteDataAmiiboRequest(MCUCommandRe
                                                                     u8 block_id,
                                                                     bool is_last_packet,
                                                                     std::span<const u8> data) {
-    const auto data_size = std::min(data.size(), sizeof(NFCRequestState::raw_data));
+    const auto data_size = (std::min)(data.size(), sizeof(NFCRequestState::raw_data));
     NFCRequestState request{
         .command_argument = NFCCommand::WriteNtag,
         .block_id = block_id,
@@ -754,7 +754,7 @@ Common::Input::DriverResult NfcProtocol::SendWriteDataAmiiboRequest(MCUCommandRe
 Common::Input::DriverResult NfcProtocol::SendReadDataMifareRequest(MCUCommandResponse& output,
                                                                    u8 block_id, bool is_last_packet,
                                                                    std::span<const u8> data) {
-    const auto data_size = std::min(data.size(), sizeof(NFCRequestState::raw_data));
+    const auto data_size = (std::min)(data.size(), sizeof(NFCRequestState::raw_data));
     NFCRequestState request{
         .command_argument = NFCCommand::Mifare,
         .block_id = block_id,

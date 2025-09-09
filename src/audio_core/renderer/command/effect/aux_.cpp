@@ -86,7 +86,7 @@ static u32 WriteAuxBufferDsp(Core::Memory::Memory& memory, CpuAddr send_info_,
     u32 write_count{write_count_};
     u32 read_pos{0};
     while (write_count > 0) {
-        u32 to_write{std::min(count_max - target_write_offset, write_count)};
+        u32 to_write{(std::min)(count_max - target_write_offset, write_count)};
         if (to_write > 0) {
             const auto write_addr = send_buffer + target_write_offset * sizeof(s32);
             memory.WriteBlockUnsafe(write_addr, &input[read_pos], to_write * sizeof(s32));
@@ -157,7 +157,7 @@ static u32 ReadAuxBufferDsp(Core::Memory::Memory& memory, CpuAddr return_info_,
     u32 read_count{read_count_};
     u32 write_pos{0};
     while (read_count > 0) {
-        u32 to_read{std::min(count_max - target_read_offset, read_count)};
+        u32 to_read{(std::min)(count_max - target_read_offset, read_count)};
         if (to_read > 0) {
             const auto read_addr = return_buffer + target_read_offset * sizeof(s32);
             memory.ReadBlockUnsafe(read_addr, &output[write_pos], to_read * sizeof(s32));

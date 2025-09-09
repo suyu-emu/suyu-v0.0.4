@@ -131,8 +131,8 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     s32 max_y = lower_left ? (clip_height - src.min_y) : src.max_y.Value();
 
     // Bound to render area
-    min_y = std::max(min_y, 0);
-    max_y = std::max(max_y, 0);
+    min_y = (std::max)(min_y, 0);
+    max_y = (std::max)(max_y, 0);
 
     if (src.enable) {
         scissor.offset.x = scale_up(src.min_x);
@@ -142,8 +142,8 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
     } else {
         scissor.offset.x = 0;
         scissor.offset.y = 0;
-        scissor.extent.width = std::numeric_limits<s32>::max();
-        scissor.extent.height = std::numeric_limits<s32>::max();
+        scissor.extent.width = (std::numeric_limits<s32>::max)();
+        scissor.extent.height = (std::numeric_limits<s32>::max)();
     }
     return scissor;
 }
@@ -380,8 +380,8 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     VkRect2D default_scissor;
     default_scissor.offset.x = 0;
     default_scissor.offset.y = 0;
-    default_scissor.extent.width = std::numeric_limits<s32>::max();
-    default_scissor.extent.height = std::numeric_limits<s32>::max();
+    default_scissor.extent.width = (std::numeric_limits<s32>::max)();
+    default_scissor.extent.height = (std::numeric_limits<s32>::max)();
 
     VkClearRect clear_rect{
         .rect = regs.clear_control.use_scissor ? GetScissorState(regs, 0, up_scale, down_shift)
@@ -393,8 +393,8 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         return;
     }
     clear_rect.rect.extent = VkExtent2D{
-        .width = std::min(clear_rect.rect.extent.width, render_area.width),
-        .height = std::min(clear_rect.rect.extent.height, render_area.height),
+        .width = (std::min)(clear_rect.rect.extent.width, render_area.width),
+        .height = (std::min)(clear_rect.rect.extent.height, render_area.height),
     };
 
     const u32 color_attachment = regs.clear_surface.RT;

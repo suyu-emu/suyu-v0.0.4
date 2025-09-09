@@ -37,14 +37,14 @@ struct ResolutionScalingInfo {
         if (value == 0) {
             return 0;
         }
-        return std::max((value * static_cast<s32>(up_scale)) >> static_cast<s32>(down_shift), 1);
+        return (std::max)((value * static_cast<s32>(up_scale)) >> static_cast<s32>(down_shift), 1);
     }
 
     u32 ScaleUp(u32 value) const {
         if (value == 0U) {
             return 0U;
         }
-        return std::max((value * up_scale) >> down_shift, 1U);
+        return (std::max)((value * up_scale) >> down_shift, 1U);
     }
 };
 
@@ -612,8 +612,8 @@ struct Values {
                                       false,   true, &custom_rtc_enabled};
     SwitchableSetting<s64, true> custom_rtc_offset{linkage,
                                                    0,
-                                                   std::numeric_limits<int>::min(),
-                                                   std::numeric_limits<int>::max(),
+                                                   (std::numeric_limits<int>::min)(),
+                                                   (std::numeric_limits<int>::max)(),
                                                    "custom_rtc_offset",
                                                    Category::System,
                                                    Specialization::Countable,

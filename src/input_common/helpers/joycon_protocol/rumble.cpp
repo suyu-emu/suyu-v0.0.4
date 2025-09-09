@@ -29,7 +29,7 @@ Common::Input::DriverResult RumbleProtocol::SendVibration(const VibrationValue& 
 
     // Protect joycons from damage from strong vibrations
     const f32 clamp_amplitude =
-        1.0f / std::max(1.0f, vibration.high_amplitude + vibration.low_amplitude);
+        1.0f / (std::max)(1.0f, vibration.high_amplitude + vibration.low_amplitude);
 
     const u16 encoded_high_frequency = EncodeHighFrequency(vibration.high_frequency);
     const u8 encoded_high_amplitude =

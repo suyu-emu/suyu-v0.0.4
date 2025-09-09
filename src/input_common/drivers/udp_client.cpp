@@ -615,8 +615,8 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
                                     }
                                     LOG_DEBUG(Input, "Current touch: {} {}", data.touch[0].x,
                                               data.touch[0].y);
-                                    min_x = std::min(min_x, static_cast<u16>(data.touch[0].x));
-                                    min_y = std::min(min_y, static_cast<u16>(data.touch[0].y));
+                                    min_x = (std::min)(min_x, static_cast<u16>(data.touch[0].x));
+                                    min_y = (std::min)(min_y, static_cast<u16>(data.touch[0].y));
                                     if (current_status == Status::Ready) {
                                         // First touch - min data (min_x/min_y)
                                         current_status = Status::Stage1Completed;

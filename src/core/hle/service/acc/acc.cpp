@@ -72,7 +72,7 @@ static void SanitizeJPEGImageSize(std::vector<u8>& image) {
         }
     }
 
-    image.resize(std::min(image.size(), max_jpeg_image_size));
+    image.resize((std::min)(image.size(), max_jpeg_image_size));
 }
 
 class IManagerForSystemService final : public ServiceFramework<IManagerForSystemService> {

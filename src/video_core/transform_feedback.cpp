@@ -104,8 +104,8 @@ std::pair<std::array<Shader::TransformFeedbackVarying, 256>, u32> MakeTransformF
                 }
             }
             xfb[attribute] = varying;
-            count = std::max(count, attribute);
-            highest = std::max(highest, (base_offset + varying.components) * 4);
+            count = (std::max)(count, attribute);
+            highest = (std::max)(highest, (base_offset + varying.components) * 4);
         }
         UNIMPLEMENTED_IF(highest != layout.stride);
     }

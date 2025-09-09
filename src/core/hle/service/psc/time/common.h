@@ -138,12 +138,12 @@ constexpr inline std::chrono::nanoseconds ConvertToTimeSpan(s64 ticks) {
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count()};
 
     constexpr s64 max{Common::WallClock::CNTFRQ *
-                      (std::numeric_limits<s64>::max() / one_second_ns)};
+                      ((std::numeric_limits<s64>::max)() / one_second_ns)};
 
     if (ticks > max) {
-        return std::chrono::nanoseconds(std::numeric_limits<s64>::max());
+        return std::chrono::nanoseconds((std::numeric_limits<s64>::max)());
     } else if (ticks < -max) {
-        return std::chrono::nanoseconds(std::numeric_limits<s64>::min());
+        return std::chrono::nanoseconds((std::numeric_limits<s64>::min)());
     }
 
     auto a{ticks / Common::WallClock::CNTFRQ * one_second_ns};
@@ -156,9 +156,9 @@ constexpr inline Result GetSpanBetweenTimePoints(s64* out_seconds, const SteadyC
                                                  const SteadyClockTimePoint& b) {
     R_UNLESS(out_seconds, ResultInvalidArgument);
     R_UNLESS(a.IdMatches(b), ResultInvalidArgument);
-    R_UNLESS(a.time_point >= 0 || b.time_point <= a.time_point + std::numeric_limits<s64>::max(),
+    R_UNLESS(a.time_point >= 0 || b.time_point <= a.time_point + (std::numeric_limits<s64>::max)(),
              ResultOverflow);
-    R_UNLESS(a.time_point < 0 || b.time_point >= a.time_point + std::numeric_limits<s64>::min(),
+    R_UNLESS(a.time_point < 0 || b.time_point >= a.time_point + (std::numeric_limits<s64>::min)(),
              ResultOverflow);
 
     *out_seconds = b.time_point - a.time_point;

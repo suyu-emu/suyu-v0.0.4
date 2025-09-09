@@ -18,7 +18,7 @@ private:
         virtual ~ZeroStorage() {}
 
         virtual size_t GetSize() const override {
-            return std::numeric_limits<size_t>::max();
+            return (std::numeric_limits<size_t>::max)();
         }
 
         virtual size_t Read(u8* buffer, size_t size, size_t offset) const override {
@@ -62,7 +62,7 @@ public:
 
 private:
     void SetZeroStorage() {
-        return this->SetStorage(1, m_zero_storage, 0, std::numeric_limits<s64>::max());
+        return this->SetStorage(1, m_zero_storage, 0, (std::numeric_limits<s64>::max)());
     }
 
 private:

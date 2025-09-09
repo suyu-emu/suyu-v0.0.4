@@ -15,6 +15,21 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(PLATFORM_LINUX ON)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CXX_CLANG ON)
+    if (MSVC)
+        set(CXX_CLANG_CL ON)
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CXX_GCC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CXX_CL ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    set(CXX_ICC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set(CXX_APPLE ON)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 if (PLATFORM_SUN)
@@ -29,6 +44,77 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
+# Detect current compilation architecture and create standard definitions
+# =======================================================================
+
+include(CheckSymbolExists)
+function(detect_architecture symbol arch)
+    if (NOT DEFINED ARCHITECTURE)
+        set(CMAKE_REQUIRED_QUIET 1)
+        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
+        unset(CMAKE_REQUIRED_QUIET)
+
+        # The output variable needs to be unique across invocations otherwise
+        # CMake's crazy scope rules will keep it defined
+        if (ARCHITECTURE_${arch})
+            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
+            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
+            add_definitions(-DARCHITECTURE_${arch}=1)
+        endif()
+    endif()
+endfunction()
+
+if (NOT ENABLE_GENERIC)
+    if (MSVC)
+        detect_architecture("_M_AMD64" x86_64)
+        detect_architecture("_M_IX86" x86)
+        detect_architecture("_M_ARM" arm)
+        detect_architecture("_M_ARM64" arm64)
+    else()
+        detect_architecture("__x86_64__" x86_64)
+        detect_architecture("__i386__" x86)
+        detect_architecture("__arm__" arm)
+        detect_architecture("__aarch64__" arm64)
+    endif()
+endif()
+
+if (NOT DEFINED ARCHITECTURE)
+    set(ARCHITECTURE "GENERIC")
+    set(ARCHITECTURE_GENERIC 1)
+    add_definitions(-DARCHITECTURE_GENERIC=1)
+endif()
+
+message(STATUS "Target architecture: ${ARCHITECTURE}")
+
+if (MSVC AND ARCHITECTURE_x86)
+    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
+        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
+endif()
+
+if (CXX_CLANG_CL)
+    add_compile_options(
+        # clang-cl prints literally 10000+ warnings without this
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-command-line-argument>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unsafe-buffer-usage>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-unused-value>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-extra-semi-stmt>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-sign-conversion>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-reserved-identifier>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-deprecated-declarations>
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wno-cast-function-type-mismatch>
+        $<$<COMPILE_LANGUAGE:C,CXX>:/EHsc> # thanks microsoft
+    )
+
+    if (ARCHITECTURE_x86_64)
+        add_compile_options(
+            # Required CPU features for amd64
+            $<$<COMPILE_LANGUAGE:C,CXX>:-msse4.1>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>
+        )
+    endif()
+endif()
+
 set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/.cache/cpm)
 
 include(DownloadExternals)
@@ -36,7 +122,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Disable Warnings as Errors for MSVC
-if (MSVC)
+if (CXX_CL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
@@ -58,7 +144,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFA
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
-option(ENABLE_OPENGL "Enable OpenGL" ON)
+cmake_dependent_option(ENABLE_OPENGL "Enable OpenGL" ON "NOT WIN32 OR NOT ARCHITECTURE_arm64" OFF)
 mark_as_advanced(FORCE ENABLE_OPENGL)
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
@@ -212,54 +298,6 @@ if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.
     file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
 
-# Detect current compilation architecture and create standard definitions
-# =======================================================================
-
-include(CheckSymbolExists)
-function(detect_architecture symbol arch)
-    if (NOT DEFINED ARCHITECTURE)
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch})
-        unset(CMAKE_REQUIRED_QUIET)
-
-        # The output variable needs to be unique across invocations otherwise
-        # CMake's crazy scope rules will keep it defined
-        if (ARCHITECTURE_${arch})
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE)
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE)
-            add_compile_definitions(ARCHITECTURE_${arch}=1)
-        endif()
-    endif()
-endfunction()
-
-if (NOT ENABLE_GENERIC)
-    if (MSVC)
-        detect_architecture("_M_AMD64" x86_64)
-        detect_architecture("_M_IX86" x86)
-        detect_architecture("_M_ARM" arm)
-        detect_architecture("_M_ARM64" arm64)
-    else()
-        detect_architecture("__x86_64__" x86_64)
-        detect_architecture("__i386__" x86)
-        detect_architecture("__arm__" arm)
-        detect_architecture("__aarch64__" arm64)
-    endif()
-endif()
-
-if (NOT DEFINED ARCHITECTURE)
-    set(ARCHITECTURE "GENERIC")
-    set(ARCHITECTURE_GENERIC 1)
-    add_compile_definitions(ARCHITECTURE_GENERIC=1)
-endif()
-
-message(STATUS "Target architecture: ${ARCHITECTURE}")
-
-if (MSVC AND ARCHITECTURE_x86)
-    message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
-        This can typically happen if you used the Developer Command Prompt from the start menu;\
-        instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
-endif()
-
 if (UNIX)
     add_compile_definitions(YUZU_UNIX=1)
 endif()
@@ -274,7 +312,7 @@ if (YUZU_ROOM)
 endif()
 
 # Build/optimization presets
-if (PLATFORM_LINUX)
+if (PLATFORM_LINUX OR CXX_CLANG)
     if (ARCHITECTURE_x86_64)
         set(YUZU_BUILD_PRESET "custom" CACHE STRING "Build preset to use. One of: custom, generic, v3, zen2, zen4, native")
         if (${YUZU_BUILD_PRESET} STREQUAL "generic")
@@ -341,6 +379,7 @@ if (YUZU_USE_CPM)
 
     # boost
     set(BOOST_INCLUDE_LIBRARIES algorithm icl pool container heap asio headers process filesystem crc variant)
+
     AddJsonPackage(boost)
 
     # really annoying thing where boost::headers doesn't work with cpm
@@ -350,13 +389,10 @@ if (YUZU_USE_CPM)
     if (Boost_ADDED)
         if (MSVC OR ANDROID)
             add_compile_definitions(YUZU_BOOST_v1)
-        else()
-            message(WARNING "Using bundled Boost on a non-MSVC or Android system is not recommended. You are strongly encouraged to install Boost through your system's package manager.")
         endif()
 
-        if (NOT MSVC)
+        if (NOT MSVC OR CXX_CLANG)
             # boost sucks
-            # Solaris (and probably other NIXes) need explicit pthread definition
             if (PLATFORM_SUN)
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
                 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthreads")
@@ -409,6 +445,14 @@ if (YUZU_USE_CPM)
 
     # Opus
     AddJsonPackage(opus)
+
+    if (Opus_ADDED)
+        if (MSVC AND CXX_CLANG)
+            target_compile_options(opus PRIVATE
+                -Wno-implicit-function-declaration
+            )
+        endif()
+    endif()
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
@@ -441,6 +485,10 @@ endif()
 
 # DiscordRPC
 if (USE_DISCORD_PRESENCE)
+    if (ARCHITECTURE_arm64)
+        add_compile_definitions(RAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
+    endif()
+
     AddJsonPackage(discord-rpc)
 
     target_include_directories(discord-rpc INTERFACE ${discord-rpc_SOURCE_DIR}/include)
@@ -746,6 +794,27 @@ if (MSVC AND CMAKE_GENERATOR STREQUAL "Ninja")
         /wd4711 # function 'function' selected for automatic inline expansion
         /wd4820 # 'bytes' bytes padding added after construct 'member_name'
     )
+endif()
+
+# Adjustments for clang-cl
+if (MSVC AND CXX_CLANG)
+    if (ARCHITECTURE_x86_64)
+        set(FILE_ARCH x86_64)
+    elseif (ARCHITECTURE_arm64)
+        set(FILE_ARCH aarch64)
+    else()
+        message(FATAL_ERROR "clang-cl: Unsupported architecture ${ARCHITECTURE}")
+    endif()
+
+    AddJsonPackage(llvm-mingw)
+    set(LIB_PATH "${llvm-mingw_SOURCE_DIR}/libclang_rt.builtins-${FILE_ARCH}.a")
+
+    add_library(llvm-mingw-runtime STATIC IMPORTED)
+    set_target_properties(llvm-mingw-runtime PROPERTIES
+        IMPORTED_LOCATION "${LIB_PATH}"
+    )
+
+    link_libraries(llvm-mingw-runtime)
 endif()
 
 if (YUZU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

@@ -978,7 +978,7 @@ Result NfcDevice::GetApplicationArea(std::span<u8> data) const {
     }
 
     memcpy(data.data(), tag_data.application_area.data(),
-           std::min(data.size(), sizeof(NFP::ApplicationArea)));
+           (std::min)(data.size(), sizeof(NFP::ApplicationArea)));
 
     return ResultSuccess;
 }

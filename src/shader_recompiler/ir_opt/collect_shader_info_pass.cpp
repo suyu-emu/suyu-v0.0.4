@@ -509,7 +509,7 @@ void VisitUsages(Info& info, IR::Inst& inst) {
             u32 element_size = GetElementSize(info.used_constant_buffer_types, inst.GetOpcode());
             u32& size{info.constant_buffer_used_sizes[index.U32()]};
             if (offset.IsImmediate()) {
-                size = Common::AlignUp(std::max(size, offset.U32() + element_size), 16u);
+                size = Common::AlignUp((std::max)(size, offset.U32() + element_size), 16u);
             } else {
                 size = 0x10'000;
             }

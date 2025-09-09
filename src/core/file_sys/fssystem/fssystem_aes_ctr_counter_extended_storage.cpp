@@ -213,7 +213,7 @@ size_t AesCtrCounterExtendedStorage::Read(u8* buffer, size_t size, size_t offset
 
         // Determine how much is left.
         const auto remaining_size = end_offset - cur_offset;
-        const auto cur_size = static_cast<size_t>(std::min(remaining_size, data_size));
+        const auto cur_size = static_cast<size_t>((std::min)(remaining_size, data_size));
         ASSERT(cur_size <= size);
 
         // If necessary, perform decryption.

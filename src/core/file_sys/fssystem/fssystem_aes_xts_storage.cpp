@@ -65,7 +65,7 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
         // Determine the size of the pre-data read.
         const size_t skip_size =
             static_cast<size_t>(offset - Common::AlignDown(offset, m_block_size));
-        const size_t data_size = std::min(size, m_block_size - skip_size);
+        const size_t data_size = (std::min)(size, m_block_size - skip_size);
 
         // Decrypt into a pooled buffer.
         {
@@ -84,14 +84,14 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
 
         AddCounter(ctr.data(), IvSize, 1);
         processed_size += data_size;
-        ASSERT(processed_size == std::min(size, m_block_size - skip_size));
+        ASSERT(processed_size == (std::min)(size, m_block_size - skip_size));
     }
 
     // Decrypt aligned chunks.
     char* cur = reinterpret_cast<char*>(buffer) + processed_size;
     size_t remaining = size - processed_size;
     while (remaining > 0) {
-        const size_t cur_size = std::min(m_block_size, remaining);
+        const size_t cur_size = (std::min)(m_block_size, remaining);
 
         m_cipher->SetIV(ctr);
         m_cipher->Transcode(cur, cur_size, cur, Core::Crypto::Op::Decrypt);

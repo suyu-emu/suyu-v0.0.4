@@ -35,4 +35,6 @@ set(REPO_NAME "Eden")
 set(BUILD_ID ${GIT_BRANCH})
 set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_VERSION} ")
 
+set(CXX_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
 configure_file(scm_rev.cpp.in scm_rev.cpp @ONLY)

@@ -180,7 +180,7 @@ private:
         if (length == 0) {
             return std::nullopt;
         }
-        const auto length_to_read = std::min(length, data.size() - offset);
+        const auto length_to_read = (std::min)(length, data.size() - offset);
 
         std::string output(length_to_read, '\0');
         std::memcpy(output.data(), data.data() + offset, length_to_read);

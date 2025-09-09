@@ -43,7 +43,7 @@ void BehaviorInfo::AppendError(const ErrorInfo& error) {
 }
 
 void BehaviorInfo::CopyErrorInfo(std::span<ErrorInfo> out_errors, u32& out_count) const {
-    out_count = std::min(error_count, MaxErrors);
+    out_count = (std::min)(error_count, MaxErrors);
 
     for (size_t i = 0; i < MaxErrors; i++) {
         if (i < out_count) {

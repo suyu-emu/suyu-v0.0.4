@@ -101,7 +101,7 @@ u32 HardwareComposer::ComposeLocked(f32* out_speed_scale, Display& display,
         // only swap intervals of 0, 1 and 2 have been observed, but if 3 were
         // to be introduced, this would cause an issue.
         if (swap_interval) {
-            swap_interval = std::min(*swap_interval, item_swap_interval);
+            swap_interval = (std::min)(*swap_interval, item_swap_interval);
         } else {
             swap_interval = item_swap_interval;
         }

@@ -73,7 +73,7 @@ u64 NpadAbstractedPadHolder::RemoveAbstractPadByAssignmentStyle(
 }
 
 u32 NpadAbstractedPadHolder::GetAbstractedPads(std::span<IAbstractedPad*> list) const {
-    u32 num_elements = std::min(static_cast<u32>(list.size()), list_size);
+    u32 num_elements = (std::min)(static_cast<u32>(list.size()), list_size);
     for (std::size_t i = 0; i < num_elements; i++) {
         list[i] = assignment_list[i].abstracted_pad;
     }

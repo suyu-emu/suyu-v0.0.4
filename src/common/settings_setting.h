@@ -223,7 +223,7 @@ public:
         if constexpr (std::is_enum_v<Type>) {
             return EnumMetadata<Type>::Index();
         } else {
-            return std::numeric_limits<u32>::max();
+            return (std::numeric_limits<u32>::max)();
         }
     }
 
@@ -237,14 +237,14 @@ public:
 
     [[nodiscard]] std::string MinVal() const override final {
         if constexpr (std::is_arithmetic_v<Type> && !ranged) {
-            return this->ToString(std::numeric_limits<Type>::min());
+            return this->ToString((std::numeric_limits<Type>::min)());
         } else {
             return this->ToString(minimum);
         }
     }
     [[nodiscard]] std::string MaxVal() const override final {
         if constexpr (std::is_arithmetic_v<Type> && !ranged) {
-            return this->ToString(std::numeric_limits<Type>::max());
+            return this->ToString((std::numeric_limits<Type>::max)());
         } else {
             return this->ToString(maximum);
         }

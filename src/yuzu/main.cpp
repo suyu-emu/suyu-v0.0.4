@@ -386,6 +386,7 @@ static void OverrideWindowsFont() {
 }
 #endif
 
+#ifndef _WIN32
 inline static bool isDarkMode() {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     const auto scheme = QGuiApplication::styleHints()->colorScheme();
@@ -397,6 +398,7 @@ inline static bool isDarkMode() {
     return text.lightness() > window.lightness();
 #endif // QT_VERSION
 }
+#endif // _WIN32
 
 GMainWindow::GMainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
@@ -2473,7 +2475,7 @@ void GMainWindow::StoreRecentFile(const QString& filename) {
 
 void GMainWindow::UpdateRecentFiles() {
     const int num_recent_files =
-        std::min(static_cast<int>(UISettings::values.recent_files.size()), max_recent_files_item);
+        (std::min)(static_cast<int>(UISettings::values.recent_files.size()), max_recent_files_item);
 
     for (int i = 0; i < num_recent_files; i++) {
         const QString text = QStringLiteral("&%1. %2").arg(i + 1).arg(
@@ -2652,7 +2654,7 @@ static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& 
             if ((new_timestamp - last_timestamp) > 33ms) {
                 last_timestamp = new_timestamp;
                 dialog.setValue(
-                    static_cast<int>(std::min(read_size, total_size) * 100 / total_size));
+                    static_cast<int>((std::min)(read_size, total_size) * 100 / total_size));
                 QCoreApplication::processEvents();
             }
 
@@ -4115,7 +4117,7 @@ void GMainWindow::OnDecreaseVolume() {
     if (current_volume <= 6) {
         step = 1;
     }
-    Settings::values.volume.SetValue(std::max(current_volume - step, 0));
+    Settings::values.volume.SetValue((std::max)(current_volume - step, 0));
     UpdateVolumeUI();
 }
 
@@ -5020,14 +5022,15 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
 
 void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
                                     std::string_view gpu_vendor) {
-    const auto description = std::string(Common::g_build_version);
-    const auto build_id = std::string(Common::g_build_id);
+    static const std::string description = std::string(Common::g_build_version);
+    static const std::string build_id = std::string(Common::g_build_id);
+    static const std::string compiler = std::string(Common::g_compiler_id);
 
     std::string yuzu_title;
     if (Common::g_is_dev_build) {
-        yuzu_title = fmt::format("Eden Nightly | {}-{}", description, build_id);
+        yuzu_title = fmt::format("Eden Nightly | {}-{} | {}", description, build_id, compiler);
     } else {
-        yuzu_title = fmt::format("Eden | {}", description);
+        yuzu_title = fmt::format("Eden | {} | {}", description, compiler);
     }
 
     const auto override_title =
@@ -5674,13 +5677,13 @@ void VolumeButton::wheelEvent(QWheelEvent* event) {
 
     if (num_steps > 0) {
         Settings::values.volume.SetValue(
-            std::min(200, Settings::values.volume.GetValue() + num_steps));
+            (std::min)(200, Settings::values.volume.GetValue() + num_steps));
     } else {
         Settings::values.volume.SetValue(
-            std::max(0, Settings::values.volume.GetValue() + num_steps));
+            (std::max)(0, Settings::values.volume.GetValue() + num_steps));
     }
 
-    scroll_multiplier = std::min(MaxMultiplier, scroll_multiplier * 2);
+    scroll_multiplier = (std::min)(MaxMultiplier, scroll_multiplier * 2);
     scroll_timer.start(100); // reset the multiplier if no scroll event occurs within 100 ms
 
     emit VolumeChanged();
@@ -5721,11 +5724,11 @@ static void SetHighDPIAttributes() {
     constexpr float minimum_width = 1350.0f;
     constexpr float minimum_height = 900.0f;
 
-    const float width_ratio = std::max(1.0f, real_width / minimum_width);
-    const float height_ratio = std::max(1.0f, real_height / minimum_height);
+    const float width_ratio = (std::max)(1.0f, real_width / minimum_width);
+    const float height_ratio = (std::max)(1.0f, real_height / minimum_height);
 
     // Get the lower of the 2 ratios and truncate, this is the maximum integer scale.
-    const float max_ratio = std::trunc(std::min(width_ratio, height_ratio));
+    const float max_ratio = std::trunc((std::min)(width_ratio, height_ratio));
 
     if (max_ratio > real_ratio) {
         QApplication::setHighDpiScaleFactorRoundingPolicy(

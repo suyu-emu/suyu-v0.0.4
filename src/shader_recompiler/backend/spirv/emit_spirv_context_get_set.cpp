@@ -366,7 +366,7 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
         return ctx.OpBitcast(ctx.F32[1], ctx.OpLoad(ctx.U32[1], ctx.draw_index));
     case IR::Attribute::FrontFace:
         return ctx.OpSelect(ctx.F32[1], ctx.OpLoad(ctx.U1, ctx.front_face),
-                            ctx.OpBitcast(ctx.F32[1], ctx.Const(std::numeric_limits<u32>::max())),
+                            ctx.OpBitcast(ctx.F32[1], ctx.Const((std::numeric_limits<u32>::max)())),
                             ctx.f32_zero_value);
     case IR::Attribute::PointSpriteS:
         return ctx.OpLoad(ctx.F32[1],

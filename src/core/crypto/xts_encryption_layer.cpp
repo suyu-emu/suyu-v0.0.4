@@ -34,8 +34,8 @@ std::size_t XTSEncryptionLayer::Read(u8* data, std::size_t length, std::size_t o
             buffer.resize(XTS_SECTOR_SIZE);
         cipher.XTSTranscode(buffer.data(), buffer.size(), buffer.data(), offset / XTS_SECTOR_SIZE,
                             XTS_SECTOR_SIZE, Op::Decrypt);
-        std::memcpy(data, buffer.data(), std::min(buffer.size(), length));
-        return std::min(buffer.size(), length);
+        std::memcpy(data, buffer.data(), (std::min)(buffer.size(), length));
+        return (std::min)(buffer.size(), length);
     }
 
     // offset does not fall on block boundary (0x4000)

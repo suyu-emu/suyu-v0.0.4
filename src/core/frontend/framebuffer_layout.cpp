@@ -14,7 +14,7 @@ namespace Layout {
 template <class T>
 static Common::Rectangle<T> MaxRectangle(Common::Rectangle<T> window_area,
                                          float screen_aspect_ratio) {
-    const float scale = std::min(static_cast<float>(window_area.GetWidth()),
+    const float scale = (std::min)(static_cast<float>(window_area.GetWidth()),
                                  static_cast<float>(window_area.GetHeight()) / screen_aspect_ratio);
     return Common::Rectangle<T>{0, 0, static_cast<T>(std::round(scale)),
                                 static_cast<T>(std::round(scale * screen_aspect_ratio))};

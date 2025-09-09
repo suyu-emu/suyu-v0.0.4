@@ -551,7 +551,7 @@ public:
         }
 
         m_device_disable_merge_left_count =
-            std::min(m_device_disable_merge_left_count, m_device_use_count);
+            (std::min)(m_device_disable_merge_left_count, m_device_use_count);
 
         if (m_device_disable_merge_left_count == 0) {
             m_disable_merge_attribute = static_cast<KMemoryBlockDisableMergeAttribute>(

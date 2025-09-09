@@ -274,7 +274,7 @@ void OverlapRangeSet<AddressType>::Subtract(AddressType base_address, size_t siz
 
 template <typename AddressType>
 void OverlapRangeSet<AddressType>::DeleteAll(AddressType base_address, size_t size) {
-    m_impl->template Subtract<false>(base_address, size, std::numeric_limits<s32>::max(),
+    m_impl->template Subtract<false>(base_address, size, (std::numeric_limits<s32>::max)(),
                                      [](AddressType, AddressType) {});
 }
 

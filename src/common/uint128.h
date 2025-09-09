@@ -20,7 +20,7 @@ namespace Common {
 
 // This function multiplies 2 u64 values and divides it by a u64 value.
 [[nodiscard]] static inline u64 MultiplyAndDivide64(u64 a, u64 b, u64 d) {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
     u128 r{};
     r[0] = _umul128(a, b, &r[1]);
     u64 remainder;
@@ -41,7 +41,7 @@ namespace Common {
 // This function multiplies 2 u64 values and produces a u128 value;
 [[nodiscard]] static inline u128 Multiply64Into128(u64 a, u64 b) {
     u128 result;
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
     result[0] = _umul128(a, b, &result[1]);
 #else
     unsigned __int128 tmp = a;
@@ -65,7 +65,7 @@ namespace Common {
 #endif
 #else
     // This one is bit more inaccurate.
-    return MultiplyAndDivide64(std::numeric_limits<u64>::max(), numerator, divisor);
+    return MultiplyAndDivide64((std::numeric_limits<u64>::max)(), numerator, divisor);
 #endif
 }
 

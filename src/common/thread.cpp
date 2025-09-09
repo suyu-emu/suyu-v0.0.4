@@ -66,7 +66,7 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
     const auto scheduling_type = SCHED_OTHER;
     s32 max_prio = sched_get_priority_max(scheduling_type);
     s32 min_prio = sched_get_priority_min(scheduling_type);
-    u32 level = std::max(static_cast<u32>(new_priority) + 1, 4U);
+    u32 level = (std::max)(static_cast<u32>(new_priority) + 1, 4U);
 
     struct sched_param params;
     if (max_prio > min_prio) {
@@ -101,7 +101,7 @@ void SetCurrentThreadName(const char* name) {
 #elif defined(__linux__)
     // Linux limits thread names to 15 characters and will outright reject any
     // attempt to set a longer name with ERANGE.
-    std::string truncated(name, std::min(strlen(name), static_cast<size_t>(15)));
+    std::string truncated(name, (std::min)(strlen(name), static_cast<size_t>(15)));
     if (int e = pthread_setname_np(pthread_self(), truncated.c_str())) {
         errno = e;
         LOG_ERROR(Common, "Failed to set thread name to '{}': {}", truncated, GetLastErrorMsg());

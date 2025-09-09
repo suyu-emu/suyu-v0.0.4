@@ -445,7 +445,7 @@ private:
 
     void GetNextAlpnProto(HLERequestContext& ctx) {
         const size_t writable = ctx.GetWriteBufferSize();
-        const size_t to_write = std::min(next_alpn_proto.size(), writable);
+        const size_t to_write = (std::min)(next_alpn_proto.size(), writable);
 
         if (to_write != 0) {
             ctx.WriteBuffer(std::span<const u8>(next_alpn_proto.data(), to_write));

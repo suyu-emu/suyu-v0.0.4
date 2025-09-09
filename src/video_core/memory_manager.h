@@ -152,7 +152,7 @@ public:
     PTEKind GetPageKind(GPUVAddr gpu_addr) const;
 
     size_t GetMemoryLayoutSize(GPUVAddr gpu_addr,
-                               size_t max_size = std::numeric_limits<size_t>::max()) const;
+                               size_t max_size = (std::numeric_limits<size_t>::max)()) const;
 
     void FlushCaching();
 

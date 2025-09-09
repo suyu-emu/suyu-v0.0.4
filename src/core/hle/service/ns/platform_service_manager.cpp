@@ -254,7 +254,7 @@ Result IPlatformServiceManager::GetSharedFontInOrderOfPriority(
     constexpr size_t MaxElementCount = 6;
 
     // TODO(ogniK): Have actual priority order
-    const auto max_size = std::min({MaxElementCount, out_font_codes.size(), out_font_offsets.size(),
+    const auto max_size = (std::min)({MaxElementCount, out_font_codes.size(), out_font_offsets.size(),
                                     out_font_sizes.size(), impl->shared_font_regions.size()});
 
     for (size_t i = 0; i < max_size; i++) {

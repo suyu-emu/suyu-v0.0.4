@@ -104,7 +104,7 @@ size_t AlignmentMatchingStorageImpl::Read(VirtualFile base_storage, char* work_b
     while (remaining_tail_size > 0) {
         const auto aligned_tail_offset = Common::AlignDown(tail_offset, data_alignment);
         const auto cur_size =
-            std::min(static_cast<size_t>(aligned_tail_offset + data_alignment - tail_offset),
+            (std::min)(static_cast<size_t>(aligned_tail_offset + data_alignment - tail_offset),
                      remaining_tail_size);
         base_storage->Read(reinterpret_cast<u8*>(work_buf), data_alignment, aligned_tail_offset);
 
@@ -186,7 +186,7 @@ size_t AlignmentMatchingStorageImpl::Write(VirtualFile base_storage, char* work_
 
         const auto aligned_tail_offset = Common::AlignDown(tail_offset, data_alignment);
         const auto cur_size =
-            std::min(static_cast<size_t>(aligned_tail_offset + data_alignment - tail_offset),
+            (std::min)(static_cast<size_t>(aligned_tail_offset + data_alignment - tail_offset),
                      remaining_tail_size);
 
         base_storage->Read(reinterpret_cast<u8*>(work_buf), data_alignment, aligned_tail_offset);

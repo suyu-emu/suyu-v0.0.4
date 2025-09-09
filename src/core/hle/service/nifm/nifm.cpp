@@ -613,7 +613,7 @@ void IGeneralService::EnumerateNetworkInterfaces(HLERequestContext& ctx) {
 
     const size_t guest_bytes = ctx.GetWriteBufferSize();
     if (guest_bytes && !blob.empty())
-        ctx.WriteBuffer(blob.data(), std::min(guest_bytes, blob.size()));
+        ctx.WriteBuffer(blob.data(), (std::min)(guest_bytes, blob.size()));
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -639,7 +639,7 @@ void IGeneralService::EnumerateNetworkProfiles(HLERequestContext& ctx) {
 
     const size_t guest_sz = ctx.GetWriteBufferSize();
     if (guest_sz && uuids.size()) {
-        const size_t to_copy = std::min(guest_sz, uuids.size() * sizeof(u128));
+        const size_t to_copy = (std::min)(guest_sz, uuids.size() * sizeof(u128));
         ctx.WriteBuffer(uuids.data(), to_copy);
     }
 

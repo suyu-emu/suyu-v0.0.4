@@ -273,7 +273,7 @@ std::vector<NcaID> PlaceholderCache::List() const {
 NcaID PlaceholderCache::Generate() {
     std::random_device device;
     std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
+    std::uniform_int_distribution<u64> distribution(1, (std::numeric_limits<u64>::max)());
 
     NcaID out{};
 

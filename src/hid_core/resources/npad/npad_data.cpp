@@ -46,7 +46,7 @@ Result NPadData::SetSupportedNpadIdType(std::span<const Core::HID::NpadIdType> l
 }
 
 std::size_t NPadData::GetSupportedNpadIdType(std::span<Core::HID::NpadIdType> out_list) const {
-    std::size_t out_size = std::min(supported_npad_id_types_count, out_list.size());
+    std::size_t out_size = (std::min)(supported_npad_id_types_count, out_list.size());
 
     memcpy(out_list.data(), supported_npad_id_types.data(),
            out_size * sizeof(Core::HID::NpadIdType));

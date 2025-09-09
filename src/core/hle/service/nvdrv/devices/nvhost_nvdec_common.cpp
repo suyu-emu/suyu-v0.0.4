@@ -139,7 +139,7 @@ NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
 
 NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries,
                                         DeviceFD fd) {
-    const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
+    const size_t num_entries = (std::min)(params.num_entries, static_cast<u32>(entries.size()));
     for (size_t i = 0; i < num_entries; i++) {
         DAddr pin_address = nvmap.PinHandle(entries[i].map_handle, true);
         entries[i].map_address = static_cast<u32>(pin_address);
@@ -150,7 +150,7 @@ NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBuf
 
 NvResult nvhost_nvdec_common::UnmapBuffer(IoctlMapBuffer& params,
                                           std::span<MapBufferEntry> entries) {
-    const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
+    const size_t num_entries = (std::min)(params.num_entries, static_cast<u32>(entries.size()));
     for (size_t i = 0; i < num_entries; i++) {
         nvmap.UnpinHandle(entries[i].map_handle);
         entries[i] = {};

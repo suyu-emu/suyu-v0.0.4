@@ -110,7 +110,7 @@ public:
 
         // Update our tracking.
         m_page_bitmap.ClearBit(offset);
-        m_peak = std::max(m_peak, (++m_used));
+        m_peak = (std::max)(m_peak, (++m_used));
 
         return GetPointer<PageBuffer>(m_aligned_address) + offset;
     }
@@ -131,7 +131,7 @@ public:
         // Update our tracking.
         m_page_bitmap.ClearRange(offset, count);
         m_used += count;
-        m_peak = std::max(m_peak, m_used);
+        m_peak = (std::max)(m_peak, m_used);
 
         return GetPointer<PageBuffer>(m_aligned_address) + offset;
     }

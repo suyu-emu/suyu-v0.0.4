@@ -34,7 +34,7 @@ void PooledBuffer::AllocateCore(size_t ideal_size, size_t required_size, bool la
     ASSERT(required_size <= GetAllocatableSizeMaxCore(large));
 
     const size_t target_size =
-        std::min(std::max(ideal_size, required_size), GetAllocatableSizeMaxCore(large));
+        (std::min)((std::max)(ideal_size, required_size), GetAllocatableSizeMaxCore(large));
 
     // Dummy implementation for allocate.
     if (target_size > 0) {

@@ -45,13 +45,13 @@ bool IsConnectionBased(Type type) {
 template <typename T>
 T GetValue(std::span<const u8> buffer) {
     T t{};
-    std::memcpy(&t, buffer.data(), std::min(sizeof(T), buffer.size()));
+    std::memcpy(&t, buffer.data(), (std::min)(sizeof(T), buffer.size()));
     return t;
 }
 
 template <typename T>
 void PutValue(std::span<u8> buffer, const T& t) {
-    std::memcpy(buffer.data(), &t, std::min(sizeof(T), buffer.size()));
+    std::memcpy(buffer.data(), &t, (std::min)(sizeof(T), buffer.size()));
 }
 
 } // Anonymous namespace

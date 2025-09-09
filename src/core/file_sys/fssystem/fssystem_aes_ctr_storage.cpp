@@ -94,7 +94,7 @@ size_t AesCtrStorage::Write(const u8* buffer, size_t size, size_t offset) {
     while (remaining > 0) {
         // Determine data we're writing and where.
         const size_t write_size =
-            use_work_buffer ? std::min(pooled_buffer.GetSize(), remaining) : remaining;
+            use_work_buffer ? (std::min)(pooled_buffer.GetSize(), remaining) : remaining;
 
         void* write_buf;
         if (use_work_buffer) {

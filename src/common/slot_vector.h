@@ -17,7 +17,7 @@
 namespace Common {
 
 struct SlotId {
-    static constexpr u32 INVALID_INDEX = std::numeric_limits<u32>::max();
+    static constexpr u32 INVALID_INDEX = (std::numeric_limits<u32>::max)();
 
     constexpr auto operator<=>(const SlotId&) const noexcept = default;
 

@@ -79,7 +79,7 @@ enum : u8 {
 
     Last
 };
-static_assert(Last <= std::numeric_limits<u8>::max());
+static_assert(Last <= (std::numeric_limits<u8>::max)());
 
 } // namespace Dirty
 

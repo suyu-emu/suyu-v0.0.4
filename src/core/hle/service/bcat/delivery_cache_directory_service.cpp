@@ -57,12 +57,12 @@ Result IDeliveryCacheDirectoryService::Read(
     R_UNLESS(current_dir != nullptr, ResultNoOpenEntry);
 
     const auto files = current_dir->GetFiles();
-    *out_count = static_cast<s32>(std::min(files.size(), out_buffer.size()));
+    *out_count = static_cast<s32>((std::min)(files.size(), out_buffer.size()));
     std::transform(files.begin(), files.begin() + *out_count, out_buffer.begin(),
                    [](const auto& file) {
                        FileName name{};
                        std::memcpy(name.data(), file->GetName().data(),
-                                   std::min(file->GetName().size(), name.size()));
+                                   (std::min)(file->GetName().size(), name.size()));
                        return DeliveryCacheDirectoryEntry{name, file->GetSize(), DigestFile(file)};
                    });
     R_SUCCEED();

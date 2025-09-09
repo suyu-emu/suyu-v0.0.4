@@ -29,7 +29,7 @@ static s64 CalendarTimeToEpoch(Service::PSC::Time::CalendarTime calendar) {
     };
 
     s16 month_s16{calendar.month};
-    s8 month{static_cast<s8>(((month_s16 * 43) & ~std::numeric_limits<s16>::max()) +
+    s8 month{static_cast<s8>(((month_s16 * 43) & ~(std::numeric_limits<s16>::max)()) +
                              ((month_s16 * 43) >> 9))};
     s8 month_index{static_cast<s8>(calendar.month - 12 * month)};
     if (month_index == 0) {
@@ -71,13 +71,13 @@ static Service::PSC::Time::LocationName GetTimeZoneString(
 
     Service::PSC::Time::LocationName configured_name{};
     std::memcpy(configured_name.data(), configured_zone.data(),
-                std::min(configured_name.size(), configured_zone.size()));
+                (std::min)(configured_name.size(), configured_zone.size()));
 
     if (!time_zone_binary.IsValid(configured_name)) {
         configured_zone = Common::TimeZone::FindSystemTimeZone();
         configured_name = {};
         std::memcpy(configured_name.data(), configured_zone.data(),
-                    std::min(configured_name.size(), configured_zone.size()));
+                    (std::min)(configured_name.size(), configured_zone.size()));
     }
 
     ASSERT_MSG(time_zone_binary.IsValid(configured_name), "Invalid time zone {}!",

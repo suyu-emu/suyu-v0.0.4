@@ -11,10 +11,15 @@
         "package": "Boost",
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
-        "artifact": "%TAG%-cmake.7z",
-        "hash": "e5b049e5b61964480ca816395f63f95621e66cb9bcf616a8b10e441e0e69f129e22443acb11e77bc1e8170f8e4171b9b7719891efc43699782bfcd4b3a365f01",
-        "git_version": "1.88.0",
-        "version": "1.57"
+        "artifact": "%TAG%-cmake.tar.xz",
+        "hash": "4fb7f6fde92762305aad8754d7643cd918dd1f3f67e104e9ab385b18c73178d72a17321354eb203b790b6702f2cf6d725a5d6e2dfbc63b1e35f9eb59fb42ece9",
+        "git_version": "1.89.0",
+        "version": "1.57",
+        "patches": [
+            "0001-clang-cl.patch",
+            "0002-use-marmasm.patch",
+            "0003-armasm-options.patch"
+        ]
     },
     "fmt": {
         "repo": "fmtlib/fmt",
@@ -77,16 +82,13 @@
     },
     "opus": {
         "package": "Opus",
-        "repo": "xiph/opus",
-        "sha": "5ded705cf4",
-        "hash": "0dc89e58ddda1f3bc6a7037963994770c5806c10e66f5cc55c59286fc76d0544fe4eca7626772b888fd719f434bc8a92f792bdb350c807968b2ac14cfc04b203",
+        "repo": "crueter/opus",
+        "sha": "ab19c44fad",
+        "hash": "79d0d015b19e74ce6076197fc32b86fe91d724a0b5a79e86adfc4bdcb946ece384e252adbbf742b74d03040913b70bb0e9556eafa59ef20e42d2f3f4d6f2859a",
         "version": "1.3",
         "find_args": "MODULE",
         "options": [
-            "OPUS_BUILD_TESTING OFF",
-            "OPUS_BUILD_PROGRAMS OFF",
-            "OPUS_INSTALL_PKG_CONFIG_MODULE OFF",
-            "OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF"
+            "OPUS_PRESUME_NEON ON"
         ]
     },
     "cubeb": {
@@ -103,8 +105,8 @@
     },
     "boost_headers": {
         "repo": "boostorg/headers",
-        "sha": "0456900fad",
-        "hash": "50cd75dcdfc5f082225cdace058f47b4fb114a47585f7aee1d22236a910a80b667186254c214fa2fcebac67ae6d37ba4b6e695e1faea8affd6fd42a03cf996e3",
+        "sha": "95930ca8f5",
+        "hash": "d1dece16f3b209109de02123c537bfe1adf07a62b16c166367e7e5d62e0f7c323bf804c89b3192dd6871bc58a9d879d25a1cc3f7b9da0e497cf266f165816e2a",
         "bundled": true
     },
     "discord-rpc": {
@@ -143,5 +145,13 @@
         "version": "2.32.8",
         "min_version": "2.26.4",
         "cmake_filename": "sdl2"
+    },
+    "llvm-mingw": {
+        "repo": "misc/llvm-mingw",
+        "git_host": "git.crueter.xyz",
+        "tag": "20250828",
+        "version": "20250828",
+        "artifact": "clang-rt-builtins.tar.zst",
+        "hash": "d902392caf94e84f223766e2cc51ca5fab6cae36ab8dc6ef9ef6a683ab1c483bfcfe291ef0bd38ab16a4ecc4078344fa8af72da2f225ab4c378dee23f6186181"
     }
 }

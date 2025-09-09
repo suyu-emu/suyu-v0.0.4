@@ -29,8 +29,8 @@ constexpr std::array<u8, 3> PitchBySrcQuality = {4, 8, 4};
 template <typename T>
 static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
                      const DecodeArg& req) {
-    constexpr s32 min{std::numeric_limits<s16>::min()};
-    constexpr s32 max{std::numeric_limits<s16>::max()};
+    constexpr s32 min{(std::numeric_limits<s16>::min)()};
+    constexpr s32 max{(std::numeric_limits<s16>::max)()};
 
     if (req.buffer == 0 || req.buffer_size == 0) {
         return 0;
@@ -41,7 +41,7 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
     }
 
     auto samples_to_decode{
-        std::min(req.samples_to_read, req.end_offset - req.start_offset - req.offset)};
+        (std::min)(req.samples_to_read, req.end_offset - req.start_offset - req.offset)};
     u32 channel_count{static_cast<u32>(req.channel_count)};
 
     switch (req.channel_count) {
@@ -55,7 +55,7 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
         if constexpr (std::is_floating_point_v<T>) {
             for (u32 i = 0; i < samples_to_decode; i++) {
                 auto sample{static_cast<s32>(samples[i * channel_count + req.target_channel] *
-                                             std::numeric_limits<s16>::max())};
+                                             (std::numeric_limits<s16>::max)())};
                 out_buffer[i] = static_cast<s16>(std::clamp(sample, min, max));
             }
         } else {
@@ -79,7 +79,7 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
         if constexpr (std::is_floating_point_v<T>) {
             for (u32 i = 0; i < samples_to_decode; i++) {
                 auto sample{static_cast<s32>(samples[i * channel_count + req.target_channel] *
-                                             std::numeric_limits<s16>::max())};
+                                             (std::numeric_limits<s16>::max)())};
                 out_buffer[i] = static_cast<s16>(std::clamp(sample, min, max));
             }
         } else {
@@ -125,7 +125,7 @@ static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
     }
 
     auto start_pos{req.start_offset + req.offset};
-    auto samples_to_process{std::min(req.end_offset - start_pos, req.samples_to_read)};
+    auto samples_to_process{(std::min)(req.end_offset - start_pos, req.samples_to_read)};
     if (samples_to_process == 0) {
         return 0;
     }
@@ -139,7 +139,7 @@ static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
         position_in_frame += 2;
     }
 
-    const auto size{std::max((samples_to_process / 8U) * SamplesPerFrame, 8U)};
+    const auto size{(std::max)((samples_to_process / 8U) * SamplesPerFrame, 8U)};
     Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> wavebuffer(
         memory, req.buffer + position_in_frame / 2, size);
 
@@ -260,7 +260,7 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
     auto max_remaining_sample_count{
         ((Common::FixedPoint<17, 15>(TempBufferSize) - fraction) / sample_rate_ratio)
             .to_uint_floor()};
-    max_remaining_sample_count = std::min(max_remaining_sample_count, remaining_sample_count);
+    max_remaining_sample_count = (std::min)(max_remaining_sample_count, remaining_sample_count);
 
     auto wavebuffers_consumed{voice_state.wave_buffers_consumed};
     auto wavebuffer_index{voice_state.wave_buffer_index};
@@ -273,7 +273,7 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
     std::array<s16, TempBufferSize> temp_buffer{};
 
     while (remaining_sample_count > 0) {
-        const auto samples_to_write{std::min(remaining_sample_count, max_remaining_sample_count)};
+        const auto samples_to_write{(std::min)(remaining_sample_count, max_remaining_sample_count)};
         const auto samples_to_read{
             (fraction + samples_to_write * sample_rate_ratio).to_uint_floor()};
 

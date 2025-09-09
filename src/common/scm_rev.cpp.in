@@ -1,11 +1,10 @@
+// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/scm_rev.h"
-
-#include <fstream>
-#include <string>
-#include <fmt/ranges.h>
 
 #define GIT_REV "@GIT_REV@"
 #define GIT_BRANCH "@GIT_BRANCH@"
@@ -18,64 +17,21 @@
 #define TITLE_BAR_FORMAT_IDLE "@TITLE_BAR_FORMAT_IDLE@"
 #define TITLE_BAR_FORMAT_RUNNING "@TITLE_BAR_FORMAT_RUNNING@"
 #define IS_DEV_BUILD @IS_DEV_BUILD@
+#define COMPILER_ID "@CXX_COMPILER@"
 
 namespace Common {
 
-const char* g_scm_rev;
-const char* g_scm_branch;
-const char* g_scm_desc;
-const char g_build_name[] = BUILD_NAME;
-const char g_build_date[] = BUILD_DATE;
-const char g_build_fullname[] = BUILD_FULLNAME;
-const char g_build_version[] = BUILD_VERSION;
-const char g_build_id[] = BUILD_ID;
-const char g_title_bar_format_idle[] = TITLE_BAR_FORMAT_IDLE;
-const char g_title_bar_format_running[] = TITLE_BAR_FORMAT_RUNNING;
-const bool g_is_dev_build = IS_DEV_BUILD;
+constexpr const char g_scm_rev[] = GIT_REV;
+constexpr const char g_scm_branch[] = GIT_BRANCH;
+constexpr const char g_scm_desc[] = GIT_DESC;
+constexpr const char g_build_name[] = BUILD_NAME;
+constexpr const char g_build_date[] = BUILD_DATE;
+constexpr const char g_build_fullname[] = BUILD_FULLNAME;
+constexpr const char g_build_version[] = BUILD_VERSION;
+constexpr const char g_build_id[] = BUILD_ID;
+constexpr const char g_title_bar_format_idle[] = TITLE_BAR_FORMAT_IDLE;
+constexpr const char g_title_bar_format_running[] = TITLE_BAR_FORMAT_RUNNING;
+constexpr const bool g_is_dev_build = IS_DEV_BUILD;
+constexpr const char g_compiler_id[] = COMPILER_ID;
 
-/// Anonymizes SCM data
-/// This is quite weak. But better than nothing.
-class scm_encrypt {
-    std::string m_scm_rev, m_scm_branch, m_scm_desc;
-
-public:
-    scm_encrypt() {
-        // Get a key that is easy to obtain when asking the person directly but (usually) hard to
-        // guess
-        std::string key;
-#ifdef __linux__
-        if (!std::getline(std::ifstream("/proc/sys/kernel/hostname"), key))
-            key = "linux_error_key";
-#else
-        // Not a good fallback, but better than nothing I guess?
-        key = g_build_date;
-#endif
-        // Copy strings in place
-        m_scm_rev = GIT_REV;
-        m_scm_branch = GIT_BRANCH;
-        m_scm_desc = GIT_DESC;
-        // XOR each string with key
-        auto key_it = key.begin();
-        for (auto& string : {&m_scm_rev, &m_scm_branch, &m_scm_desc}) {
-            for (auto& c : *string) {
-                c ^= *key_it;
-                if (++key_it == key.end())
-                    key_it = key.begin();
-            }
-        }
-        // Make each string human-readable
-        for (auto& string : {&m_scm_rev, &m_scm_branch, &m_scm_desc}) {
-            const std::string original = *string;
-            string->clear();
-            for (const auto c : original) {
-                string->append(fmt::format("{:x}", unsigned(c)));
-            }
-            string->pop_back();
-        }
-        // Set pointers
-        g_scm_rev = m_scm_rev.c_str();
-        g_scm_branch = m_scm_branch.c_str();
-        g_scm_desc = m_scm_desc.c_str();
-    }
-} scm_encrypt_instance;
 } // namespace Common

@@ -12,7 +12,7 @@ static T HexToValue(std::string_view hex) {
     static_assert(std::is_trivially_copyable_v<T>);
     T value{};
     const auto mem{Common::HexStringToVector(hex, false)};
-    std::memcpy(&value, mem.data(), std::min(mem.size(), sizeof(T)));
+    std::memcpy(&value, mem.data(), (std::min)(mem.size(), sizeof(T)));
     return value;
 }
 

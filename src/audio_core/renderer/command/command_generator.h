@@ -56,11 +56,11 @@ public:
         // Voices
         u64 voice_size{0};
         if (behavior.IsWaveBufferVer2Supported()) {
-            voice_size = std::max(std::max(sizeof(AdpcmDataSourceVersion2Command),
+            voice_size = (std::max)((std::max)(sizeof(AdpcmDataSourceVersion2Command),
                                            sizeof(PcmInt16DataSourceVersion2Command)),
                                   sizeof(PcmFloatDataSourceVersion2Command));
         } else {
-            voice_size = std::max(std::max(sizeof(AdpcmDataSourceVersion1Command),
+            voice_size = (std::max)((std::max)(sizeof(AdpcmDataSourceVersion1Command),
                                            sizeof(PcmInt16DataSourceVersion1Command)),
                                   sizeof(PcmFloatDataSourceVersion1Command));
         }
@@ -82,7 +82,7 @@ public:
 
         // Sinks
         size +=
-            params.sinks * std::max(sizeof(DeviceSinkCommand), sizeof(CircularBufferSinkCommand));
+            params.sinks * (std::max)(sizeof(DeviceSinkCommand), sizeof(CircularBufferSinkCommand));
 
         // Performance
         size += (params.effects + params.voices + params.sinks + params.sub_mixes + 1 +

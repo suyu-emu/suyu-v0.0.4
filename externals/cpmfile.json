@@ -1,12 +1,9 @@
 {
     "mbedtls": {
-        "repo": "Mbed-TLS/mbedtls",
-        "sha": "8c88150ca1",
-        "hash": "769ad1e94c570671071e1f2a5c0f1027e0bf6bcdd1a80ea8ac970f2c86bc45ce4e31aa88d6d8110fc1bed1de81c48bc624df1b38a26f8b340a44e109d784a966",
-        "find_args": "MODULE",
-        "patches": [
-            "0001-cmake-version.patch"
-        ]
+        "repo": "eden-emulator/mbedtls",
+        "sha": "ce4f81f4a9",
+        "hash": "f2e7f887651b28745e508149214d409fd7cfdb92cb94b4146b47ff1e0fc09e47143f203ac18e34c2c1814b5bd031d04c74828676c0d4342920a2ddb7fd35e9a5",
+        "find_args": "MODULE"
     },
     "spirv-headers": {
         "package": "SPIRV-Headers",
@@ -29,18 +26,12 @@
     },
     "cpp-jwt": {
         "version": "1.4",
-        "repo": "arun11299/cpp-jwt",
-        "sha": "a54fa08a3b",
-        "hash": "a90f7e594ada0c7e49d5ff9211c71097534e7742a8e44bf0851b0362642a7271d53f5d83d04eeaae2bad17ef3f35e09e6818434d8eaefa038f3d1f7359d0969a",
+        "repo": "crueter/cpp-jwt",
+        "sha": "9eaea6328f",
+        "hash": "e237d92c59ebbf0dc8ac0bae3bc80340e1e9cf430e1c1c9638443001118e16de2b3e9036ac4b98105427667b0386d97831415170b68c432438dcad9ef8052de7",
         "find_args": "CONFIG",
         "options": [
-            "CPP_JWT_BUILD_EXAMPLES OFF",
-            "CPP_JWT_BUILD_TESTS OFF",
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
-        ],
-        "patches": [
-            "0001-no-install.patch",
-            "0002-missing-decl.patch"
         ]
     },
     "vulkan-utility-headers": {
@@ -107,12 +98,6 @@
         "repo": "martinus/unordered_dense",
         "sha": "73f3cbb237",
         "hash": "c08c03063938339d61392b687562909c1a92615b6ef39ec8df19ea472aa6b6478e70d7d5e33d4a27b5d23f7806daf57fe1bacb8124c8a945c918c7663a9e8532",
-        "find_args": "CONFIG",
-        "options": [
-            "UNORDERED_DENSE_INSTALL OFF"
-        ],
-        "patches": [
-            "0001-cmake.patch"
-        ]
+        "find_args": "CONFIG"
     }
 }

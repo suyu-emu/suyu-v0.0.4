@@ -75,7 +75,7 @@ std::pair<EntryType, std::string> GetEntry(const RomFSTraversalContext& ctx, siz
     }
     std::memcpy(&entry, data + offset, sizeof(EntryType));
 
-    const size_t name_length = std::min(entry_end + entry.name_length, size) - entry_end;
+    const size_t name_length = (std::min)(entry_end + entry.name_length, size) - entry_end;
     std::string name(reinterpret_cast<const char*>(data + entry_end), name_length);
 
     return {entry, std::move(name)};

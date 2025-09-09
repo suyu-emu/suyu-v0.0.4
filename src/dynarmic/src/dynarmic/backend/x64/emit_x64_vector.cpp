@@ -548,7 +548,7 @@ void EmitX64::EmitVectorArithmeticShiftRight32(EmitContext& ctx, IR::Inst* inst)
 void EmitX64::EmitVectorArithmeticShiftRight64(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Xmm result = ctx.reg_alloc.UseScratchXmm(args[0]);
-    const u8 shift_amount = std::min(args[1].GetImmediateU8(), u8(63));
+    const u8 shift_amount = (std::min)(args[1].GetImmediateU8(), u8(63));
 
     if (code.HasHostFeature(HostFeature::AVX512_Ortho)) {
         code.vpsraq(result, result, shift_amount);
@@ -2139,7 +2139,7 @@ void EmitX64::EmitVectorMaxS64(EmitContext& ctx, IR::Inst* inst) {
     }
 
     EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s64>& result, const VectorArray<s64>& a, const VectorArray<s64>& b) {
-        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return std::max(x, y); });
+        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return (std::max)(x, y); });
     });
 }
 
@@ -2201,7 +2201,7 @@ void EmitX64::EmitVectorMaxU64(EmitContext& ctx, IR::Inst* inst) {
     }
 
     EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<u64>& result, const VectorArray<u64>& a, const VectorArray<u64>& b) {
-        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return std::max(x, y); });
+        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return (std::max)(x, y); });
     });
 }
 
@@ -2259,7 +2259,7 @@ void EmitX64::EmitVectorMinS64(EmitContext& ctx, IR::Inst* inst) {
     }
 
     EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<s64>& result, const VectorArray<s64>& a, const VectorArray<s64>& b) {
-        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return std::min(x, y); });
+        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return (std::min)(x, y); });
     });
 }
 
@@ -2321,7 +2321,7 @@ void EmitX64::EmitVectorMinU64(EmitContext& ctx, IR::Inst* inst) {
     }
 
     EmitTwoArgumentFallback(code, ctx, inst, [](VectorArray<u64>& result, const VectorArray<u64>& a, const VectorArray<u64>& b) {
-        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return std::min(x, y); });
+        std::transform(a.begin(), a.end(), b.begin(), result.begin(), [](auto x, auto y) { return (std::min)(x, y); });
     });
 }
 
@@ -2837,22 +2837,22 @@ static void LowerPairedOperation(VectorArray<T>& result, const VectorArray<T>& x
 
 template<typename T>
 static void PairedMax(VectorArray<T>& result, const VectorArray<T>& x, const VectorArray<T>& y) {
-    PairedOperation(result, x, y, [](auto a, auto b) { return std::max(a, b); });
+    PairedOperation(result, x, y, [](auto a, auto b) { return (std::max)(a, b); });
 }
 
 template<typename T>
 static void PairedMin(VectorArray<T>& result, const VectorArray<T>& x, const VectorArray<T>& y) {
-    PairedOperation(result, x, y, [](auto a, auto b) { return std::min(a, b); });
+    PairedOperation(result, x, y, [](auto a, auto b) { return (std::min)(a, b); });
 }
 
 template<typename T>
 static void LowerPairedMax(VectorArray<T>& result, const VectorArray<T>& x, const VectorArray<T>& y) {
-    LowerPairedOperation(result, x, y, [](auto a, auto b) { return std::max(a, b); });
+    LowerPairedOperation(result, x, y, [](auto a, auto b) { return (std::max)(a, b); });
 }
 
 template<typename T>
 static void LowerPairedMin(VectorArray<T>& result, const VectorArray<T>& x, const VectorArray<T>& y) {
-    LowerPairedOperation(result, x, y, [](auto a, auto b) { return std::min(a, b); });
+    LowerPairedOperation(result, x, y, [](auto a, auto b) { return (std::min)(a, b); });
 }
 
 template<typename Function>
@@ -4933,7 +4933,7 @@ static bool VectorSignedSaturatedShiftLeft(VectorArray<T>& dst, const VectorArra
     for (size_t i = 0; i < dst.size(); i++) {
         const T element = data[i];
         const T shift = std::clamp<T>(static_cast<T>(mcl::bit::sign_extend<8>(static_cast<U>(shift_values[i] & 0xFF))),
-                                      -static_cast<T>(bit_size_minus_one), std::numeric_limits<T>::max());
+                                      -static_cast<T>(bit_size_minus_one), (std::numeric_limits<T>::max)());
 
         if (element == 0) {
             dst[i] = 0;
@@ -4995,7 +4995,7 @@ static bool VectorSignedSaturatedShiftLeftUnsigned(VectorArray<T>& dst, const Ve
             const U shifted_test = shifted >> static_cast<U>(shift);
 
             if (shifted_test != static_cast<U>(element)) {
-                dst[i] = static_cast<T>(std::numeric_limits<U>::max());
+                dst[i] = static_cast<T>((std::numeric_limits<U>::max)());
                 qc_flag = true;
             } else {
                 dst[i] = shifted;
@@ -5845,11 +5845,11 @@ static bool EmitVectorUnsignedSaturatedAccumulateSigned(VectorArray<U>& result, 
         const s64 y = static_cast<s64>(static_cast<std::make_unsigned_t<U>>(rhs[i]));
         const s64 sum = x + y;
 
-        if (sum > std::numeric_limits<U>::max()) {
-            result[i] = std::numeric_limits<U>::max();
+        if (sum > (std::numeric_limits<U>::max)()) {
+            result[i] = (std::numeric_limits<U>::max)();
             qc_flag = true;
         } else if (sum < 0) {
-            result[i] = std::numeric_limits<U>::min();
+            result[i] = (std::numeric_limits<U>::min)();
             qc_flag = true;
         } else {
             result[i] = static_cast<U>(sum);
@@ -5947,20 +5947,20 @@ static bool VectorUnsignedSaturatedShiftLeft(VectorArray<T>& dst, const VectorAr
     for (size_t i = 0; i < dst.size(); i++) {
         const T element = data[i];
         const S shift = std::clamp(static_cast<S>(mcl::bit::sign_extend<8>(static_cast<T>(shift_values[i] & 0xFF))),
-                                   negative_bit_size, std::numeric_limits<S>::max());
+                                   negative_bit_size, (std::numeric_limits<S>::max)());
 
         if (element == 0 || shift <= negative_bit_size) {
             dst[i] = 0;
         } else if (shift < 0) {
             dst[i] = static_cast<T>(element >> -shift);
         } else if (shift >= static_cast<S>(bit_size)) {
-            dst[i] = std::numeric_limits<T>::max();
+            dst[i] = (std::numeric_limits<T>::max)();
             qc_flag = true;
         } else {
             const T shifted = element << shift;
 
             if ((shifted >> shift) != element) {
-                dst[i] = std::numeric_limits<T>::max();
+                dst[i] = (std::numeric_limits<T>::max)();
                 qc_flag = true;
             } else {
                 dst[i] = shifted;

@@ -301,7 +301,7 @@ private:
         const u32 indirect_words = 5 + padding;
         const std::size_t first_draw = start_indirect;
         const std::size_t effective_draws = end_indirect - start_indirect;
-        const std::size_t last_draw = start_indirect + std::min(effective_draws, max_draws);
+        const std::size_t last_draw = start_indirect + (std::min)(effective_draws, max_draws);
 
         for (std::size_t index = first_draw; index < last_draw; index++) {
             const std::size_t base = index * indirect_words + 5;

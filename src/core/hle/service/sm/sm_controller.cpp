@@ -74,9 +74,9 @@ void Controller::QueryPointerBufferSize(HLERequestContext& ctx) {
     ASSERT(process != nullptr);
 
     u32 buffer_size = process->GetPointerBufferSize();
-    if (buffer_size > std::numeric_limits<u16>::max()) {
+    if (buffer_size > (std::numeric_limits<u16>::max)()) {
         LOG_WARNING(Service, "Pointer buffer size exceeds u16 max, clamping");
-        buffer_size = std::numeric_limits<u16>::max();
+        buffer_size = (std::numeric_limits<u16>::max)();
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -94,9 +94,9 @@ void Controller::SetPointerBufferSize(HLERequestContext& ctx) {
 
     u32 requested_size = rp.PopRaw<u32>();
 
-    if (requested_size > std::numeric_limits<u16>::max()) {
+    if (requested_size > (std::numeric_limits<u16>::max)()) {
         LOG_WARNING(Service, "Requested pointer buffer size too large, clamping to 0xFFFF");
-        requested_size = std::numeric_limits<u16>::max();
+        requested_size = (std::numeric_limits<u16>::max)();
     }
 
     process->SetPointerBufferSize(requested_size);

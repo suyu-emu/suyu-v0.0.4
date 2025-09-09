@@ -573,8 +573,8 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
         buffer_handles.push_back(handle);
     }
     const u32 device_max = device.GetMaxVertexInputBindings();
-    const u32 min_binding = std::min(bindings.min_index, device_max);
-    const u32 max_binding = std::min(bindings.max_index, device_max);
+    const u32 min_binding = (std::min)(bindings.min_index, device_max);
+    const u32 max_binding = (std::min)(bindings.max_index, device_max);
     const u32 binding_count = max_binding - min_binding;
     if (binding_count == 0) {
         return;

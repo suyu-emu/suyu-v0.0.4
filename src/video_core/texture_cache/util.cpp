@@ -327,8 +327,8 @@ template <u32 GOB_EXTENT>
     }
     const SubresourceExtent resources = new_info.resources;
     return SubresourceExtent{
-        .levels = std::max(resources.levels, info.resources.levels),
-        .layers = std::max(resources.layers, info.resources.layers),
+        .levels = (std::max)(resources.levels, info.resources.levels),
+        .layers = (std::max)(resources.layers, info.resources.layers),
     };
 }
 
@@ -354,7 +354,7 @@ template <u32 GOB_EXTENT>
         return std::nullopt;
     }
     return SubresourceExtent{
-        .levels = std::max(new_info.resources.levels, info.resources.levels + base.level),
+        .levels = (std::max)(new_info.resources.levels, info.resources.levels + base.level),
         .layers = 1,
     };
 }
@@ -388,8 +388,8 @@ template <u32 GOB_EXTENT>
         return std::nullopt;
     }
     return SubresourceExtent{
-        .levels = std::max(new_info.resources.levels, info.resources.levels + base.level),
-        .layers = std::max(new_info.resources.layers, info.resources.layers + base.layer),
+        .levels = (std::max)(new_info.resources.levels, info.resources.levels + base.level),
+        .layers = (std::max)(new_info.resources.layers, info.resources.layers + base.layer),
     };
 }
 
@@ -439,14 +439,14 @@ template <u32 GOB_EXTENT>
         }
         layers = 1;
     } else {
-        layers = std::max(resources.layers, info.resources.layers + base->layer);
+        layers = (std::max)(resources.layers, info.resources.layers + base->layer);
     }
     return OverlapResult{
         .gpu_addr = overlap.gpu_addr,
         .cpu_addr = overlap.cpu_addr,
         .resources =
             {
-                .levels = std::max(resources.levels + base->level, info.resources.levels),
+                .levels = (std::max)(resources.levels + base->level, info.resources.levels),
                 .layers = layers,
             },
     };

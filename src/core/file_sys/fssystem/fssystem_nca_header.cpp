@@ -9,7 +9,7 @@
 namespace FileSys {
 
 u8 NcaHeader::GetProperKeyGeneration() const {
-    return std::max(this->key_generation, this->key_generation_2);
+    return (std::max)(this->key_generation, this->key_generation_2);
 }
 
 bool NcaPatchInfo::HasIndirectTable() const {

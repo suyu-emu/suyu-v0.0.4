@@ -25,9 +25,9 @@ template <typename T>
 inline bool CanAddWithoutOverflow(T lhs, T rhs) {
 #ifdef _MSC_VER
     if (lhs >= 0 && rhs >= 0) {
-        return WrappingAdd(lhs, rhs) >= std::max(lhs, rhs);
+        return WrappingAdd(lhs, rhs) >= (std::max)(lhs, rhs);
     } else if (lhs < 0 && rhs < 0) {
-        return WrappingAdd(lhs, rhs) <= std::min(lhs, rhs);
+        return WrappingAdd(lhs, rhs) <= (std::min)(lhs, rhs);
     } else {
         return true;
     }

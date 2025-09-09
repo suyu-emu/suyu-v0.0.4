@@ -215,7 +215,7 @@ auto UpsampleCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProc
 
 void UpsampleCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     const auto info{reinterpret_cast<UpsamplerInfo*>(upsampler_info)};
-    const auto input_count{std::min(info->input_count, buffer_count)};
+    const auto input_count{(std::min)(info->input_count, buffer_count)};
     const std::span<const s16> inputs_{reinterpret_cast<const s16*>(inputs), input_count};
 
     for (u32 i = 0; i < input_count; i++) {

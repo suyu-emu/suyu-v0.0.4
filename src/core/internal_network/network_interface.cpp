@@ -147,7 +147,7 @@ std::vector<Network::NetworkInterface> GetAvailableNetworkInterfaces() {
         }
 
         // ignore header
-        file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        file.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
 
         bool gateway_found = false;
 

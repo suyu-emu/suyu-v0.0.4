@@ -117,7 +117,7 @@ std::span<const u8> H264::ComposeFrame() {
                            (current_context.h264_parameter_set.frame_mbs_only_flag ? 1 : 2);
 
     u32 max_num_ref_frames =
-        std::max(std::max(current_context.h264_parameter_set.num_refidx_l0_default_active,
+        (std::max)((std::max)(current_context.h264_parameter_set.num_refidx_l0_default_active,
                           current_context.h264_parameter_set.num_refidx_l1_default_active) +
                      1,
                  4);

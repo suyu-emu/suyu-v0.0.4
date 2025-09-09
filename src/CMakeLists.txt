@@ -18,7 +18,7 @@ set_property(DIRECTORY APPEND PROPERTY
     COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
 # Set compilation flags
-if (MSVC)
+if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
 
     # Silence "deprecation" warnings
@@ -69,10 +69,6 @@ if (MSVC)
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
         /external:W0            # Sets the default warning level to 0 for external headers, effectively disabling warnings for them.
 
-        # Warnings
-        /W4
-        /WX-
-
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4189 # 'identifier': local variable is initialized but not referenced
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
@@ -97,6 +93,14 @@ if (MSVC)
         /wd4702 # unreachable code (when used with LTO)
     )
 
+    if (NOT CXX_CLANG)
+        add_compile_options(
+            # Warnings
+            /W4
+            /WX-
+        )
+    endif()
+
     if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
         # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
         # Precompiled headers are deleted if not using /Z7. See https://github.com/nanoant/CMakePCHCompiler/issues/21
@@ -118,9 +122,13 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "/DEBUG /MANIFEST:NO" CACHE STRING "" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
-    add_compile_options(
-        -fwrapv
+    if (NOT MSVC)
+        add_compile_options(
+            -fwrapv
+        )
+    endif()
 
+    add_compile_options(
         -Werror=all
         -Werror=extra
         -Werror=missing-declarations
@@ -133,14 +141,19 @@ else()
         -Wno-missing-field-initializers
     )
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM) # Clang or AppleClang
+    if (CXX_CLANG OR CXX_ICC) # Clang or AppleClang
+        if (NOT MSVC)
+            add_compile_options(
+                -Werror=shadow-uncaptured-local
+                -Werror=implicit-fallthrough
+                -Werror=type-limits
+            )
+        endif()
+
         add_compile_options(
             -Wno-braced-scalar-init
             -Wno-unused-private-field
             -Wno-nullability-completeness
-            -Werror=shadow-uncaptured-local
-            -Werror=implicit-fallthrough
-            -Werror=type-limits
         )
     endif()
 
@@ -148,12 +161,12 @@ else()
         add_compile_options("-mcx16")
     endif()
 
-    if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+    if (APPLE AND CXX_CLANG)
         add_compile_options("-stdlib=libc++")
     endif()
 
     # GCC bugs
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CXX_GCC)
         # These diagnostics would be great if they worked, but are just completely broken
         # and produce bogus errors on external libraries like fmt.
         add_compile_options(

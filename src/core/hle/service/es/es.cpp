@@ -203,7 +203,7 @@ private:
         std::transform(tickets.begin(), tickets.end(), std::back_inserter(ids),
                        [](const auto& pair) { return pair.first; });
 
-        out_entries = std::min(ids.size(), out_entries);
+        out_entries = (std::min)(ids.size(), out_entries);
         ctx.WriteBuffer(ids.data(), out_entries * sizeof(u128));
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -225,7 +225,7 @@ private:
         std::transform(tickets.begin(), tickets.end(), std::back_inserter(ids),
                        [](const auto& pair) { return pair.first; });
 
-        out_entries = std::min(ids.size(), out_entries);
+        out_entries = (std::min)(ids.size(), out_entries);
         ctx.WriteBuffer(ids.data(), out_entries * sizeof(u128));
 
         IPC::ResponseBuilder rb{ctx, 3};

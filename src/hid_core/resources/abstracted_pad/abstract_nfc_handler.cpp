@@ -24,7 +24,7 @@ void NpadAbstractNfcHandler::SetPropertiesHandler(NpadAbstractPropertiesHandler*
 }
 
 Result NpadAbstractNfcHandler::IncrementRefCounter() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultNpadHandlerOverflow;
     }
     ref_counter++;

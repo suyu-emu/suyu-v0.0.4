@@ -108,7 +108,7 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     /// True when the API can do asynchronous texture downloads.
     static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = P::IMPLEMENTS_ASYNC_DOWNLOADS;
 
-    static constexpr size_t UNSET_CHANNEL{std::numeric_limits<size_t>::max()};
+    static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
 
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;

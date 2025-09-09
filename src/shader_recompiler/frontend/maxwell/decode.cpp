@@ -73,7 +73,7 @@ constexpr auto ENCODINGS{SortedEncodings()};
 constexpr int WidestLeftBits() {
     int bits{64};
     for (const InstEncoding& encoding : ENCODINGS) {
-        bits = std::min(bits, std::countr_zero(encoding.mask_value.mask));
+        bits = (std::min)(bits, std::countr_zero(encoding.mask_value.mask));
     }
     return 64 - bits;
 }
@@ -87,7 +87,7 @@ constexpr size_t ToFastLookupIndex(u64 value) {
 constexpr size_t FastLookupSize() {
     size_t max_width{};
     for (const InstEncoding& encoding : ENCODINGS) {
-        max_width = std::max(max_width, ToFastLookupIndex(encoding.mask_value.mask));
+        max_width = (std::max)(max_width, ToFastLookupIndex(encoding.mask_value.mask));
     }
     return max_width + 1;
 }

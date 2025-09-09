@@ -11,7 +11,7 @@ namespace Kernel {
 
 namespace {
 
-constexpr u64 InvalidThreadId = std::numeric_limits<u64>::max();
+constexpr u64 InvalidThreadId = (std::numeric_limits<u64>::max)();
 
 class ThreadQueueImplForKLightServerSessionRequest final : public KThreadQueue {
 private:

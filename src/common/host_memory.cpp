@@ -199,8 +199,8 @@ public:
         std::scoped_lock lock{placeholder_mutex};
         auto [it, end] = placeholders.equal_range({virtual_offset, virtual_end});
         while (it != end) {
-            const size_t offset = std::max(it->lower(), virtual_offset);
-            const size_t protect_length = std::min(it->upper(), virtual_end) - offset;
+            const size_t offset = (std::max)(it->lower(), virtual_offset);
+            const size_t protect_length = (std::min)(it->upper(), virtual_end) - offset;
             DWORD old_flags{};
             if (!VirtualProtect(virtual_base + offset, protect_length, new_flags, &old_flags)) {
                 LOG_CRITICAL(HW_Memory, "Failed to change virtual memory protect rules");
@@ -266,8 +266,8 @@ private:
         }
         const size_t placeholder_begin = it->lower();
         const size_t placeholder_end = it->upper();
-        const size_t unmap_begin = std::max(virtual_offset, placeholder_begin);
-        const size_t unmap_end = std::min(virtual_offset + length, placeholder_end);
+        const size_t unmap_begin = (std::max)(virtual_offset, placeholder_begin);
+        const size_t unmap_end = (std::min)(virtual_offset + length, placeholder_end);
         ASSERT(unmap_begin >= placeholder_begin && unmap_begin < placeholder_end);
         ASSERT(unmap_end <= placeholder_end && unmap_end > placeholder_begin);
 
@@ -655,8 +655,8 @@ private:
             *virtual_offset = 0;
             *length = 0;
         } else {
-            *virtual_offset = std::max(intended_start, address_space_start);
-            *length = std::min(intended_end, address_space_end) - *virtual_offset;
+            *virtual_offset = (std::max)(intended_start, address_space_start);
+            *length = (std::min)(intended_end, address_space_end) - *virtual_offset;
         }
     }
 

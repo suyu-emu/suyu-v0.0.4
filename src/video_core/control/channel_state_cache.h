@@ -73,7 +73,7 @@ public:
     }
 
 protected:
-    static constexpr size_t UNSET_CHANNEL{std::numeric_limits<size_t>::max()};
+    static constexpr size_t UNSET_CHANNEL{(std::numeric_limits<size_t>::max)()};
 
     P* channel_state;
     size_t current_channel_id{UNSET_CHANNEL};

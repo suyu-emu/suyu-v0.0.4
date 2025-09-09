@@ -410,7 +410,7 @@ Result IApplicationManagerInterface::IsAnyApplicationEntityInstalled(
 Result IApplicationManagerInterface::GetApplicationView(
     OutArray<ApplicationView, BufferAttr_HipcMapAlias> out_application_views,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
-    const auto size = std::min(out_application_views.size(), application_ids.size());
+    const auto size = (std::min)(out_application_views.size(), application_ids.size());
     LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
 
     for (size_t i = 0; i < size; i++) {
@@ -428,7 +428,7 @@ Result IApplicationManagerInterface::GetApplicationView(
 Result IApplicationManagerInterface::GetApplicationViewWithPromotionInfo(
     OutArray<ApplicationViewWithPromotionInfo, BufferAttr_HipcMapAlias> out_application_views,
     InArray<u64, BufferAttr_HipcMapAlias> application_ids) {
-    const auto size = std::min(out_application_views.size(), application_ids.size());
+    const auto size = (std::min)(out_application_views.size(), application_ids.size());
     LOG_WARNING(Service_NS, "(STUBBED) called, size={}", application_ids.size());
 
     for (size_t i = 0; i < size; i++) {

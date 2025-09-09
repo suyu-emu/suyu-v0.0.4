@@ -86,10 +86,10 @@ protected:
     u32 shared_memory_size{};
     std::array<u32, 3> workgroup_size{};
 
-    u32 read_lowest = std::numeric_limits<u32>::max();
+    u32 read_lowest = (std::numeric_limits<u32>::max)();
     u32 read_highest = 0;
 
-    u32 cached_lowest = std::numeric_limits<u32>::max();
+    u32 cached_lowest = (std::numeric_limits<u32>::max)();
     u32 cached_highest = 0;
     u32 initial_offset = 0;
 

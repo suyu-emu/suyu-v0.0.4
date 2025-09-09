@@ -85,10 +85,10 @@ struct Rectangle {
     }
 
     [[nodiscard]] constexpr bool Intersect(const Rectangle<T>& with, Rectangle<T>* result) const {
-        result->left = std::max(left, with.left);
-        result->top = std::max(top, with.top);
-        result->right = std::min(right, with.right);
-        result->bottom = std::min(bottom, with.bottom);
+        result->left = (std::max)(left, with.left);
+        result->top = (std::max)(top, with.top);
+        result->right = (std::min)(right, with.right);
+        result->bottom = (std::min)(bottom, with.bottom);
         return !result->IsEmpty();
     }
 };

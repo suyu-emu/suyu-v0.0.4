@@ -122,8 +122,8 @@ Result ISettingsServer::GetAvailableLanguageCodes(
     Out<s32> out_count, OutArray<LanguageCode, BufferAttr_HipcPointer> out_language_codes) {
     LOG_DEBUG(Service_SET, "called");
 
-    const std::size_t max_amount = std::min(PRE_4_0_0_MAX_ENTRIES, out_language_codes.size());
-    *out_count = static_cast<s32>(std::min(available_language_codes.size(), max_amount));
+    const std::size_t max_amount = (std::min)(PRE_4_0_0_MAX_ENTRIES, out_language_codes.size());
+    *out_count = static_cast<s32>((std::min)(available_language_codes.size(), max_amount));
 
     memcpy(out_language_codes.data(), available_language_codes.data(),
            static_cast<std::size_t>(*out_count) * sizeof(LanguageCode));
@@ -159,8 +159,8 @@ Result ISettingsServer::GetAvailableLanguageCodes2(
     Out<s32> out_count, OutArray<LanguageCode, BufferAttr_HipcMapAlias> language_codes) {
     LOG_DEBUG(Service_SET, "called");
 
-    const std::size_t max_amount = std::min(POST_4_0_0_MAX_ENTRIES, language_codes.size());
-    *out_count = static_cast<s32>(std::min(available_language_codes.size(), max_amount));
+    const std::size_t max_amount = (std::min)(POST_4_0_0_MAX_ENTRIES, language_codes.size());
+    *out_count = static_cast<s32>((std::min)(available_language_codes.size(), max_amount));
 
     memcpy(language_codes.data(), available_language_codes.data(),
            static_cast<std::size_t>(*out_count) * sizeof(LanguageCode));
@@ -233,7 +233,7 @@ Result ISettingsServer::GetDeviceNickName(
     LOG_DEBUG(Service_SET, "called");
 
     const std::size_t string_size =
-        std::min(Settings::values.device_name.GetValue().size(), out_device_name->size());
+        (std::min)(Settings::values.device_name.GetValue().size(), out_device_name->size());
 
     *out_device_name = {};
     memcpy(out_device_name->data(), Settings::values.device_name.GetValue().data(), string_size);

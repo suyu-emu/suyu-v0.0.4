@@ -61,10 +61,10 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
             if (offset_tick > 0) {
                 timeout = kernel.HardwareTimer().GetTick() + offset_tick + 2;
                 if (timeout <= 0) {
-                    timeout = std::numeric_limits<s64>::max();
+                    timeout = (std::numeric_limits<s64>::max)();
                 }
             } else {
-                timeout = std::numeric_limits<s64>::max();
+                timeout = (std::numeric_limits<s64>::max)();
             }
         } else {
             timeout = timeout_ns;

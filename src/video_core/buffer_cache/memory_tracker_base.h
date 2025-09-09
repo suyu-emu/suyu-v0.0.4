@@ -230,7 +230,7 @@ private:
         std::size_t remaining_size{size};
         std::size_t page_index{cpu_address >> HIGHER_PAGE_BITS};
         u64 page_offset{cpu_address & HIGHER_PAGE_MASK};
-        u64 begin = std::numeric_limits<u64>::max();
+        u64 begin = (std::numeric_limits<u64>::max)();
         u64 end = 0;
         while (remaining_size > 0) {
             const std::size_t copy_amount{
@@ -240,8 +240,8 @@ private:
                 auto [new_begin, new_end] = func(manager, page_offset, copy_amount);
                 if (new_begin != 0 || new_end != 0) {
                     const u64 base_address = page_index << HIGHER_PAGE_BITS;
-                    begin = std::min(new_begin + base_address, begin);
-                    end = std::max(new_end + base_address, end);
+                    begin = (std::min)(new_begin + base_address, begin);
+                    end = (std::max)(new_end + base_address, end);
                 }
             };
             if (manager) {

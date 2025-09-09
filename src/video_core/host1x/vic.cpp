@@ -201,8 +201,8 @@ void Vic::ReadProgressiveY8__V8U8_N420(const SlotStruct& slot,
 
     slot_surface.resize_destructive(out_luma_width * out_luma_height);
 
-    const auto in_luma_width{std::min(frame->GetWidth(), static_cast<s32>(out_luma_width))};
-    const auto in_luma_height{std::min(frame->GetHeight(), static_cast<s32>(out_luma_height))};
+    const auto in_luma_width{(std::min)(frame->GetWidth(), static_cast<s32>(out_luma_width))};
+    const auto in_luma_height{(std::min)(frame->GetHeight(), static_cast<s32>(out_luma_height))};
     const auto in_luma_stride{frame->GetStride(0)};
 
     const auto in_chroma_stride{frame->GetStride(1)};
@@ -425,9 +425,9 @@ void Vic::ReadInterlacedY8__V8U8_N420(const SlotStruct& slot, std::span<const Pl
 
     slot_surface.resize_destructive(out_luma_width * out_luma_height);
 
-    const auto in_luma_width{std::min(frame->GetWidth(), static_cast<s32>(out_luma_width))};
+    const auto in_luma_width{(std::min)(frame->GetWidth(), static_cast<s32>(out_luma_width))};
     [[maybe_unused]] const auto in_luma_height{
-        std::min(frame->GetHeight(), static_cast<s32>(out_luma_height))};
+        (std::min)(frame->GetHeight(), static_cast<s32>(out_luma_height))};
     const auto in_luma_stride{frame->GetStride(0)};
 
     [[maybe_unused]] const auto in_chroma_width{(frame->GetWidth() + 1) / 2};
@@ -543,15 +543,15 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot) {
     auto rect_top{add_one(config.output_config.target_rect_top.Value())};
     auto rect_bottom{add_one(config.output_config.target_rect_bottom.Value())};
 
-    rect_left = std::max(rect_left, dest_left);
-    rect_right = std::min(rect_right, dest_right);
-    rect_top = std::max(rect_top, dest_top);
-    rect_bottom = std::min(rect_bottom, dest_bottom);
+    rect_left = (std::max)(rect_left, dest_left);
+    rect_right = (std::min)(rect_right, dest_right);
+    rect_top = (std::max)(rect_top, dest_top);
+    rect_bottom = (std::min)(rect_bottom, dest_bottom);
 
-    source_left = std::max(source_left, rect_left);
-    source_right = std::min(source_right, rect_right);
-    source_top = std::max(source_top, rect_top);
-    source_bottom = std::min(source_bottom, rect_bottom);
+    source_left = (std::max)(source_left, rect_left);
+    source_right = (std::min)(source_right, rect_right);
+    source_top = (std::max)(source_top, rect_top);
+    source_bottom = (std::min)(source_bottom, rect_bottom);
 
     if (source_left >= source_right || source_top >= source_bottom) {
         return;
@@ -562,14 +562,14 @@ void Vic::Blend(const ConfigStruct& config, const SlotStruct& slot) {
                                                    1};
     const auto in_surface_width{slot.surface_config.slot_surface_width + 1};
 
-    source_bottom = std::min(source_bottom, out_surface_height);
-    source_right = std::min(source_right, out_surface_width);
+    source_bottom = (std::min)(source_bottom, out_surface_height);
+    source_right = (std::min)(source_right, out_surface_width);
 
     // TODO Alpha blending. No games I've seen use more than a single surface or supply an alpha
     // below max, so it's ignored for now.
 
     if (!slot.color_matrix.matrix_enable) {
-        const auto copy_width = std::min(source_right - source_left, rect_right - rect_left);
+        const auto copy_width = (std::min)(source_right - source_left, rect_right - rect_left);
 
         for (u32 y = source_top; y < source_bottom; y++) {
             const auto dst_line = y * out_surface_width;
@@ -818,8 +818,8 @@ void Vic::WriteY8__V8U8_N420(const OutputSurfaceConfig& output_surface_config) {
     const auto out_chroma_stride = Common::AlignUp(out_chroma_width * BytesPerPixel * 2, 0x10);
     const auto out_chroma_size = out_chroma_height * out_chroma_stride;
 
-    surface_width = std::min(surface_width, out_luma_width);
-    surface_height = std::min(surface_height, out_luma_height);
+    surface_width = (std::min)(surface_width, out_luma_width);
+    surface_height = (std::min)(surface_height, out_luma_height);
 
     [[maybe_unused]] auto DecodeLinear = [&](std::span<u8> out_luma, std::span<u8> out_chroma) {
         for (u32 y = 0; y < surface_height; ++y) {
@@ -1089,8 +1089,8 @@ void Vic::WriteABGR(const OutputSurfaceConfig& output_surface_config) {
     const auto out_luma_stride = Common ::AlignUp(out_luma_width * BytesPerPixel, 0x10);
     const auto out_luma_size = out_luma_height * out_luma_stride;
 
-    surface_width = std::min(surface_width, out_luma_width);
-    surface_height = std::min(surface_height, out_luma_height);
+    surface_width = (std::min)(surface_width, out_luma_width);
+    surface_height = (std::min)(surface_height, out_luma_height);
 
     [[maybe_unused]] auto DecodeLinear = [&](std::span<u8> out_buffer) {
         for (u32 y = 0; y < surface_height; y++) {

@@ -149,7 +149,7 @@ public:
     size_t GetObjectIndex(const void* obj) const {
         if constexpr (SupportDynamicExpansion) {
             if (!this->Contains(reinterpret_cast<uintptr_t>(obj))) {
-                return std::numeric_limits<size_t>::max();
+                return (std::numeric_limits<size_t>::max)();
             }
         }
 

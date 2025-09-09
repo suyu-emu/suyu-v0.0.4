@@ -381,8 +381,8 @@ qreal GRenderWindow::windowPixelRatio() const {
 
 std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF& pos) const {
     const qreal pixel_ratio = windowPixelRatio();
-    return {static_cast<u32>(std::max(std::round(pos.x() * pixel_ratio), qreal{0.0})),
-            static_cast<u32>(std::max(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
+    return {static_cast<u32>((std::max)(std::round(pos.x() * pixel_ratio), qreal{0.0})),
+            static_cast<u32>((std::max)(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
 }
 
 void GRenderWindow::closeEvent(QCloseEvent* event) {

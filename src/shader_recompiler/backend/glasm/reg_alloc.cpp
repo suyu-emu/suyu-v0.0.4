@@ -123,7 +123,7 @@ Id RegAlloc::Alloc(bool is_long) {
             if (use[reg]) {
                 continue;
             }
-            num_regs = std::max(num_regs, reg + 1);
+            num_regs = (std::max)(num_regs, reg + 1);
             use[reg] = true;
             Id ret{};
             ret.is_valid.Assign(1);

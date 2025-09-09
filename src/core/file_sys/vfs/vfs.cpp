@@ -507,9 +507,9 @@ bool VfsRawCopy(const VirtualFile& src, const VirtualFile& dest, std::size_t blo
     if (!dest->Resize(src->GetSize()))
         return false;
 
-    std::vector<u8> temp(std::min(block_size, src->GetSize()));
+    std::vector<u8> temp((std::min)(block_size, src->GetSize()));
     for (std::size_t i = 0; i < src->GetSize(); i += block_size) {
-        const auto read = std::min(block_size, src->GetSize() - i);
+        const auto read = (std::min)(block_size, src->GetSize() - i);
 
         if (src->Read(temp.data(), read, i) != read) {
             return false;

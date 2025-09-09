@@ -58,6 +58,8 @@ CallbackOrAccessOneWord DynarmicCP15::CompileSendOneWord(bool two, unsigned opc1
                     _mm_lfence();
 #elif defined(ARCHITECTURE_x86_64)
                     asm volatile("mfence\n\tlfence\n\t" : : : "memory");
+#elif defined(_MSC_VER) && defined(ARCHITECTURE_arm64)
+                    _Memory_barrier();
 #elif defined(ARCHITECTURE_arm64)
                     asm volatile("dsb sy\n\t" : : : "memory");
 #else
@@ -75,6 +77,8 @@ CallbackOrAccessOneWord DynarmicCP15::CompileSendOneWord(bool two, unsigned opc1
                     _mm_mfence();
 #elif defined(ARCHITECTURE_x86_64)
                     asm volatile("mfence\n\t" : : : "memory");
+#elif defined(_MSC_VER) && defined(ARCHITECTURE_arm64)
+                    _Memory_barrier();
 #elif defined(ARCHITECTURE_arm64)
                     asm volatile("dmb sy\n\t" : : : "memory");
 #else

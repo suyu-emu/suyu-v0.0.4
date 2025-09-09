@@ -19,7 +19,7 @@ private:
     KLightSession* m_parent{};
     KThread::WaiterList m_request_list{};
     KThread* m_current_request{};
-    u64 m_server_thread_id{std::numeric_limits<u64>::max()};
+    u64 m_server_thread_id{(std::numeric_limits<u64>::max)()};
     KThread* m_server_thread{};
 
 public:

@@ -124,7 +124,7 @@ public:
         this->state.data[3] = ParamTmat;
 
         {
-            const int num_init_iterations = std::max(seed_count + 1, MinimumInitIterations) - 1;
+            const int num_init_iterations = (std::max)(seed_count + 1, MinimumInitIterations) - 1;
 
             GenerateInitialValuePlus(&this->state, 0, seed_count);
 

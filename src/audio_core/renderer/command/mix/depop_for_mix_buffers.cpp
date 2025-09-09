@@ -43,7 +43,7 @@ void DepopForMixBuffersCommand::Dump(
 }
 
 void DepopForMixBuffersCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
-    auto end_index{std::min(processor.buffer_count, input + count)};
+    auto end_index{(std::min)(processor.buffer_count, input + count)};
     std::span<s32> depop_buff{reinterpret_cast<s32*>(depop_buffer), end_index};
 
     for (u32 index = input; index < end_index; index++) {

@@ -38,7 +38,7 @@ Core::HID::NpadIdType NpadAbstractPropertiesHandler::GetNpadId() const {
 }
 
 Result NpadAbstractPropertiesHandler::IncrementRefCounter() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultNpadHandlerOverflow;
     }
 

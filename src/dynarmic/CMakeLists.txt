@@ -103,7 +103,7 @@ if (MSVC)
              /WX)
     endif()
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    if (CXX_CLANG)
         list(APPEND DYNARMIC_CXX_FLAGS
              -Qunused-arguments
              -Wno-missing-braces)
@@ -131,7 +131,7 @@ else()
              -Wfatal-errors)
     endif()
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    if (CXX_GCC)
         # GCC produces bogus -Warray-bounds warnings from xbyak headers for code paths that are not
         # actually reachable.  Specifically, it happens in cases where some code casts an Operand&
         # to Address& after first checking isMEM(), and that code is inlined in a situation where
@@ -141,7 +141,7 @@ else()
         list(APPEND DYNARMIC_CXX_FLAGS -Wstack-usage=4096)
     endif()
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES "[Cc]lang")
+    if (CXX_CLANG)
         # Bracket depth determines maximum size of a fold expression in Clang since 9c9974c3ccb6.
         # And this in turns limits the size of a std::array.
         list(APPEND DYNARMIC_CXX_FLAGS -fbracket-depth=1024)

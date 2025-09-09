@@ -66,7 +66,7 @@ bool KMemoryRegionTree::Insert(u64 address, size_t size, u32 type_id, u32 new_at
         this->insert(*found);
 
         // Insert a new region for the split.
-        const u64 new_pair = (old_pair != std::numeric_limits<u64>::max())
+        const u64 new_pair = (old_pair != (std::numeric_limits<u64>::max)())
                                  ? old_pair + (address - old_address)
                                  : old_pair;
         this->insert(*AllocateRegion(m_memory_region_allocator, address, inserted_region_last,
@@ -75,7 +75,7 @@ bool KMemoryRegionTree::Insert(u64 address, size_t size, u32 type_id, u32 new_at
 
     // If we need to insert a region after the region, do so.
     if (old_last != inserted_region_last) {
-        const u64 after_pair = (old_pair != std::numeric_limits<u64>::max())
+        const u64 after_pair = (old_pair != (std::numeric_limits<u64>::max)())
                                    ? old_pair + (inserted_region_end - old_address)
                                    : old_pair;
         this->insert(*AllocateRegion(m_memory_region_allocator, inserted_region_end, old_last,

@@ -484,9 +484,9 @@ std::string GetParentPath(std::string_view path) {
     std::size_t name_index;
 
     if (name_bck_index == std::string_view::npos || name_fwd_index == std::string_view::npos) {
-        name_index = std::min(name_bck_index, name_fwd_index);
+        name_index = (std::min)(name_bck_index, name_fwd_index);
     } else {
-        name_index = std::max(name_bck_index, name_fwd_index);
+        name_index = (std::max)(name_bck_index, name_fwd_index);
     }
 
     return std::string(path.substr(0, name_index));
@@ -506,7 +506,7 @@ std::string_view GetPathWithoutTop(std::string_view path) {
 
     const auto name_bck_index = path.find('\\');
     const auto name_fwd_index = path.find('/');
-    return path.substr(std::min(name_bck_index, name_fwd_index) + 1);
+    return path.substr((std::min)(name_bck_index, name_fwd_index) + 1);
 }
 
 } // namespace Common::FS

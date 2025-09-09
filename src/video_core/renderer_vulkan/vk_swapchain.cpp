@@ -79,15 +79,15 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
 }
 
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 width, u32 height) {
-    constexpr auto undefined_size{std::numeric_limits<u32>::max()};
+    constexpr auto undefined_size{(std::numeric_limits<u32>::max)()};
     if (capabilities.currentExtent.width != undefined_size) {
         return capabilities.currentExtent;
     }
     VkExtent2D extent;
-    extent.width = std::max(capabilities.minImageExtent.width,
-                            std::min(capabilities.maxImageExtent.width, width));
-    extent.height = std::max(capabilities.minImageExtent.height,
-                             std::min(capabilities.maxImageExtent.height, height));
+    extent.width = (std::max)(capabilities.minImageExtent.width,
+                            (std::min)(capabilities.maxImageExtent.width, width));
+    extent.height = (std::max)(capabilities.minImageExtent.height,
+                             (std::min)(capabilities.maxImageExtent.height, height));
     return extent;
 }
 
@@ -172,7 +172,7 @@ void Swapchain::Create(
 
 bool Swapchain::AcquireNextImage() {
     const VkResult result = device.GetLogical().AcquireNextImageKHR(
-        *swapchain, std::numeric_limits<u64>::max(), *present_semaphores[frame_index],
+        *swapchain, (std::numeric_limits<u64>::max)(), *present_semaphores[frame_index],
         VK_NULL_HANDLE, &image_index);
     switch (result) {
     case VK_SUCCESS:
@@ -261,10 +261,10 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
             requested_image_count = capabilities.maxImageCount;
         } else {
             requested_image_count =
-                std::max(requested_image_count, std::min(3U, capabilities.maxImageCount));
+                (std::max)(requested_image_count, (std::min)(3U, capabilities.maxImageCount));
         }
     } else {
-        requested_image_count = std::max(requested_image_count, 3U);
+        requested_image_count = (std::max)(requested_image_count, 3U);
     }
     VkSwapchainCreateInfoKHR swapchain_ci{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,

@@ -144,8 +144,7 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
         }
 
         // Clamp to end.
-        next = std::min(next, end);
-
+        next = (std::min)(next, end);
         // Reprotect, if we need to.
         if (should_protect) {
             m_buffer.Protect(cur, next - cur, perm);
@@ -211,8 +210,8 @@ void HeapTracker::RebuildSeparateHeapAddressSpace() {
     // Despite being worse in theory, this has proven to be better in practice than more
     // regularly dumping a smaller amount, because it significantly reduces average case
     // lock contention.
-    const size_t desired_count = std::min(m_resident_map_count, m_max_resident_map_count) / 2;
-    const size_t evict_count = m_resident_map_count - desired_count;
+    std::size_t const desired_count = (std::min)(m_resident_map_count, m_max_resident_map_count) / 2;
+    std::size_t const evict_count = m_resident_map_count - desired_count;
     auto it = m_resident_mappings.begin();
 
     for (size_t i = 0; i < evict_count && it != m_resident_mappings.end(); i++) {

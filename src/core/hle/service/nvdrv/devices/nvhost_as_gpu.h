@@ -197,12 +197,12 @@ private:
 
     struct VM {
         static constexpr u32 YUZU_PAGESIZE{0x1000};
-        static constexpr u32 PAGE_SIZE_BITS{std::countr_zero(YUZU_PAGESIZE)};
+        static constexpr u32 PAGE_SIZE_BITS{static_cast<u32>(std::countr_zero<u32>(YUZU_PAGESIZE))};
 
         static constexpr u32 SUPPORTED_BIG_PAGE_SIZES{0x30000};
         static constexpr u32 DEFAULT_BIG_PAGE_SIZE{0x20000};
         u32 big_page_size{DEFAULT_BIG_PAGE_SIZE};
-        u32 big_page_size_bits{std::countr_zero(DEFAULT_BIG_PAGE_SIZE)};
+        u32 big_page_size_bits{static_cast<u32>(std::countr_zero<u32>(DEFAULT_BIG_PAGE_SIZE))};
 
         static constexpr u32 VA_START_SHIFT{10};
         static constexpr u64 DEFAULT_VA_SPLIT{1ULL << 34};

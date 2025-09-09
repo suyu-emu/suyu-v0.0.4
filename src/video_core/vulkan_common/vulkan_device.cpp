@@ -699,9 +699,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan,
                     "MVK driver breaks when using more than 16 vertex attributes/bindings");
         properties.properties.limits.maxVertexInputAttributes =
-            std::min(properties.properties.limits.maxVertexInputAttributes, 16U);
+            (std::min)(properties.properties.limits.maxVertexInputAttributes, 16U);
         properties.properties.limits.maxVertexInputBindings =
-            std::min(properties.properties.limits.maxVertexInputBindings, 16U);
+            (std::min)(properties.properties.limits.maxVertexInputBindings, 16U);
     }
 
     if (is_turnip) {

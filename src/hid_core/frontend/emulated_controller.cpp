@@ -1308,9 +1308,9 @@ bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationV
                         : Common::Input::VibrationAmplificationType::Linear;
 
     const Common::Input::VibrationStatus status = {
-        .low_amplitude = std::min(vibration.low_amplitude * strength, 1.0f),
+        .low_amplitude = (std::min)(vibration.low_amplitude * strength, 1.0f),
         .low_frequency = vibration.low_frequency,
-        .high_amplitude = std::min(vibration.high_amplitude * strength, 1.0f),
+        .high_amplitude = (std::min)(vibration.high_amplitude * strength, 1.0f),
         .high_frequency = vibration.high_frequency,
         .type = type,
     };

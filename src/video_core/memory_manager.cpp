@@ -293,7 +293,7 @@ const u8* MemoryManager::GetPointer(GPUVAddr gpu_addr) const {
     return memory.GetPointer<u8>(*address);
 }
 
-#ifdef _MSC_VER // no need for gcc / clang but msvc's compiler is more conservative with inlining.
+#if defined(_MSC_VER) && !defined(__clang__) // no need for gcc / clang but msvc's compiler is more conservative with inlining.
 #pragma inline_recursion(on)
 #endif
 
@@ -329,7 +329,7 @@ inline void MemoryManager::MemoryOperation(GPUVAddr gpu_src_addr, std::size_t si
 
     while (remaining_size > 0) {
         const std::size_t copy_amount{
-            std::min(static_cast<std::size_t>(used_page_size) - page_offset, remaining_size)};
+            (std::min)(static_cast<std::size_t>(used_page_size) - page_offset, remaining_size)};
         auto entry = GetEntry<is_big_pages>(current_address);
         if (entry == EntryType::Mapped) [[likely]] {
             if constexpr (BOOL_BREAK_MAPPED) {

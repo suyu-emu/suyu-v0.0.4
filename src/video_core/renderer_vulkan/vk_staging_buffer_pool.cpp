@@ -31,7 +31,7 @@ size_t GetStreamBufferSize(const Device& device) {
     VkDeviceSize size{0};
     if (device.HasDebuggingToolAttached()) {
         ForEachDeviceLocalHostVisibleHeap(device, [&size](size_t index, VkMemoryHeap& heap) {
-            size = std::max(size, heap.size);
+            size = (std::max)(size, heap.size);
         });
         // If rebar is not supported, cut the max heap size to 40%. This will allow 2 captures to be
         // loaded at the same time in RenderDoc. If rebar is supported, this shouldn't be an issue
@@ -42,7 +42,7 @@ size_t GetStreamBufferSize(const Device& device) {
     } else {
         size = MAX_STREAM_BUFFER_SIZE;
     }
-    return std::min(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
+    return (std::min)(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
 }
 } // Anonymous namespace
 
@@ -104,7 +104,7 @@ void StagingBufferPool::TickFrame() {
 
 StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     if (AreRegionsActive(Region(free_iterator) + 1,
-                         std::min(Region(iterator + size) + 1, NUM_SYNCS))) {
+                         (std::min)(Region(iterator + size) + 1, NUM_SYNCS))) {
         // Avoid waiting for the previous usages to be free
         return GetStagingBuffer(size, MemoryUsage::Upload);
     }
@@ -112,7 +112,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + Region(iterator),
               current_tick);
     used_iterator = iterator;
-    free_iterator = std::max(free_iterator, iterator + size);
+    free_iterator = (std::max)(free_iterator, iterator + size);
 
     if (iterator + size >= stream_buffer_size) {
         std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + NUM_SYNCS,
@@ -170,7 +170,7 @@ std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t s
         }
     }
     cache_level.iterate_index = std::distance(entries.begin(), it) + 1;
-    it->tick = deferred ? std::numeric_limits<u64>::max() : scheduler.CurrentTick();
+    it->tick = deferred ? (std::numeric_limits<u64>::max)() : scheduler.CurrentTick();
     ASSERT(!it->deferred);
     it->deferred = deferred;
     return it->Ref();
@@ -206,7 +206,7 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage
         .usage = usage,
         .log2_level = log2,
         .index = unique_ids++,
-        .tick = deferred ? std::numeric_limits<u64>::max() : scheduler.CurrentTick(),
+        .tick = deferred ? (std::numeric_limits<u64>::max)() : scheduler.CurrentTick(),
         .deferred = deferred,
     });
     return entry.Ref();
@@ -240,7 +240,7 @@ void StagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, size_t log2) {
         return scheduler.IsFree(entry.tick);
     };
     const size_t begin_offset = staging.delete_index;
-    const size_t end_offset = std::min(begin_offset + deletions_per_tick, old_size);
+    const size_t end_offset = (std::min)(begin_offset + deletions_per_tick, old_size);
     const auto begin = entries.begin() + begin_offset;
     const auto end = entries.begin() + end_offset;
     entries.erase(std::remove_if(begin, end, is_deletable), end);

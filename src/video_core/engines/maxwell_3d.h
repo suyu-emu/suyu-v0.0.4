@@ -1180,11 +1180,11 @@ public:
             }
 
             f32 GetX() const {
-                return std::max(0.0f, translate_x - std::fabs(scale_x));
+                return (std::max)(0.0f, translate_x - std::fabs(scale_x));
             }
 
             f32 GetY() const {
-                return std::max(0.0f, translate_y - std::fabs(scale_y));
+                return (std::max)(0.0f, translate_y - std::fabs(scale_y));
             }
 
             f32 GetWidth() const {
@@ -3091,7 +3091,7 @@ public:
     }
 
     struct DirtyState {
-        using Flags = std::bitset<std::numeric_limits<u8>::max()>;
+        using Flags = std::bitset<(std::numeric_limits<u8>::max)()>;
         using Table = std::array<u8, Regs::NUM_REGS>;
         using Tables = std::array<Table, 2>;
 

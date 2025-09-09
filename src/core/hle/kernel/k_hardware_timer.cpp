@@ -19,7 +19,7 @@ void KHardwareTimer::Initialize() {
 
 void KHardwareTimer::Finalize() {
     m_kernel.System().CoreTiming().UnscheduleEvent(m_event_type);
-    m_wakeup_time = std::numeric_limits<s64>::max();
+    m_wakeup_time = (std::numeric_limits<s64>::max)();
     m_event_type.reset();
 }
 
@@ -37,7 +37,7 @@ void KHardwareTimer::DoTask() {
         // Disable the timer interrupt while we handle this.
         // Not necessary due to core timing already having popped this event to call it.
         // this->DisableInterrupt();
-        m_wakeup_time = std::numeric_limits<s64>::max();
+        m_wakeup_time = (std::numeric_limits<s64>::max)();
 
         if (const s64 next_time = this->DoInterruptTaskImpl(GetTick());
             0 < next_time && next_time <= m_wakeup_time) {
@@ -63,7 +63,7 @@ void KHardwareTimer::EnableInterrupt(s64 wakeup_time) {
 void KHardwareTimer::DisableInterrupt() {
     m_kernel.System().CoreTiming().UnscheduleEvent(m_event_type,
                                                    Core::Timing::UnscheduleEventType::NoWait);
-    m_wakeup_time = std::numeric_limits<s64>::max();
+    m_wakeup_time = (std::numeric_limits<s64>::max)();
 }
 
 s64 KHardwareTimer::GetTick() const {
@@ -71,7 +71,7 @@ s64 KHardwareTimer::GetTick() const {
 }
 
 bool KHardwareTimer::GetInterruptEnabled() {
-    return m_wakeup_time != std::numeric_limits<s64>::max();
+    return m_wakeup_time != (std::numeric_limits<s64>::max)();
 }
 
 } // namespace Kernel

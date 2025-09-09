@@ -464,7 +464,7 @@ void CommandBuffer::GenerateDeviceSinkCommand(const s32 node_id, const s16 buffe
     s16 max_input{0};
     for (u32 i = 0; i < parameter.input_count; i++) {
         cmd.inputs[i] = buffer_offset + parameter.inputs[i];
-        max_input = std::max(max_input, cmd.inputs[i]);
+        max_input = (std::max)(max_input, cmd.inputs[i]);
     }
 
     if (state.upsampler_info != nullptr) {

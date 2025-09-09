@@ -1266,7 +1266,7 @@ void RasterizerOpenGL::SyncPointState() {
     oglEnable(GL_PROGRAM_POINT_SIZE, maxwell3d->regs.point_size_attribute.enabled);
     const bool is_rescaling{texture_cache.IsRescaling()};
     const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
-    glPointSize(std::max(1.0f, maxwell3d->regs.point_size * scale));
+    glPointSize((std::max)(1.0f, maxwell3d->regs.point_size * scale));
 }
 
 void RasterizerOpenGL::SyncLineState() {

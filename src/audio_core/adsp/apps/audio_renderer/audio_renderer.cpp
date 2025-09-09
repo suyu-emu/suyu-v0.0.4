@@ -193,7 +193,7 @@ void AudioRenderer::Main(std::stop_token stop_token) {
                         }
                     }
 
-                    max_time = std::min(command_buffer.time_limit, max_time);
+                    max_time = (std::min)(command_buffer.time_limit, max_time);
                     command_list_processor.SetProcessTimeMax(max_time);
 
                     if (index == 0) {

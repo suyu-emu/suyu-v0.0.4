@@ -533,7 +533,7 @@ Result ISystemSettingsServer::GetEulaVersions(
     LOG_INFO(Service_SET, "called, elements={}", m_system_settings.eula_version_count);
 
     *out_count =
-        std::min(m_system_settings.eula_version_count, static_cast<s32>(out_eula_versions.size()));
+        (std::min)(m_system_settings.eula_version_count, static_cast<s32>(out_eula_versions.size()));
     memcpy(out_eula_versions.data(), m_system_settings.eula_versions.data(),
            static_cast<std::size_t>(*out_count) * sizeof(EulaVersion));
     R_SUCCEED();
@@ -599,7 +599,7 @@ Result ISystemSettingsServer::GetAccountNotificationSettings(
     LOG_INFO(Service_SET, "called, elements={}",
              m_system_settings.account_notification_settings_count);
 
-    *out_count = std::min(m_system_settings.account_notification_settings_count,
+    *out_count = (std::min)(m_system_settings.account_notification_settings_count,
                           static_cast<s32>(out_account_notification_settings.size()));
     memcpy(out_account_notification_settings.data(),
            m_system_settings.account_notification_settings.data(),

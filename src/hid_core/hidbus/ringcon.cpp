@@ -283,7 +283,7 @@ u8 RingController::GetCrcValue(const std::vector<u8>& data) const {
 template <typename T>
 u64 RingController::GetData(const T& reply, std::span<u8> out_data) const {
     static_assert(std::is_trivially_copyable_v<T>);
-    const auto data_size = static_cast<u64>(std::min(sizeof(reply), out_data.size()));
+    const auto data_size = static_cast<u64>((std::min)(sizeof(reply), out_data.size()));
     std::memcpy(out_data.data(), &reply, data_size);
     return data_size;
 }

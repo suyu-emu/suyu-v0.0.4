@@ -202,8 +202,8 @@ public:
         });
         rasterizer->SyncOperation(std::move(func));
         accumulation_since_last_sync = false;
-        first_accumulation_checkpoint = std::min(first_accumulation_checkpoint, num_slots_used);
-        last_accumulation_checkpoint = std::max(last_accumulation_checkpoint, num_slots_used);
+        first_accumulation_checkpoint = (std::min)(first_accumulation_checkpoint, num_slots_used);
+        last_accumulation_checkpoint = (std::max)(last_accumulation_checkpoint, num_slots_used);
     }
 
     void CloseCounter() override {
@@ -311,9 +311,9 @@ public:
 
         if (has_multi_queries) {
             const size_t min_accumulation_limit =
-                std::min(first_accumulation_checkpoint, num_slots_used);
+                (std::min)(first_accumulation_checkpoint, num_slots_used);
             const size_t max_accumulation_limit =
-                std::max(last_accumulation_checkpoint, num_slots_used);
+                (std::max)(last_accumulation_checkpoint, num_slots_used);
             const size_t intermediary_buffer_index = ObtainBuffer<false>(num_slots_used);
             resolve_buffers.push_back(intermediary_buffer_index);
             queries_prefix_scan_pass->Run(*accumulation_buffer, *buffers[intermediary_buffer_index],
@@ -332,7 +332,7 @@ public:
         rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
         num_slots_used = 0;
-        first_accumulation_checkpoint = std::numeric_limits<size_t>::max();
+        first_accumulation_checkpoint = (std::numeric_limits<size_t>::max)();
         last_accumulation_checkpoint = 0;
         accumulation_since_last_sync = has_multi_queries;
         pending_sync.clear();
@@ -414,7 +414,7 @@ private:
         size_t start_slot = query->start_slot;
         for (size_t i = 0; i < banks_set; i++) {
             auto& the_bank = bank_pool.GetBank(bank_id);
-            size_t amount = std::min(the_bank.Size() - start_slot, size_slots);
+            size_t amount = (std::min)(the_bank.Size() - start_slot, size_slots);
             func(&the_bank, start_slot, amount);
             bank_id = the_bank.next_bank - 1;
             start_slot = 0;
@@ -431,11 +431,11 @@ private:
             auto* query = GetQuery(q);
             ApplyBankOp(query, [&indexer](SamplesQueryBank* bank, size_t start, size_t amount) {
                 auto id_ = bank->GetIndex();
-                auto pair = indexer.try_emplace(id_, std::numeric_limits<size_t>::max(),
-                                                std::numeric_limits<size_t>::min());
+                auto pair = indexer.try_emplace(id_, (std::numeric_limits<size_t>::max)(),
+                                                (std::numeric_limits<size_t>::min)());
                 auto& current_pair = pair.first->second;
-                current_pair.first = std::min(current_pair.first, start);
-                current_pair.second = std::max(current_pair.second, amount + start);
+                current_pair.first = (std::min)(current_pair.first, start);
+                current_pair.second = (std::max)(current_pair.second, amount + start);
             });
         }
         for (auto& cont : indexer) {

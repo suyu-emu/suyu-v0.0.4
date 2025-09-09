@@ -31,8 +31,8 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
         return;
     }
 
-    constexpr s32 min{std::numeric_limits<s16>::min()};
-    constexpr s32 max{std::numeric_limits<s16>::max()};
+    constexpr s32 min{(std::numeric_limits<s16>::min)()};
+    constexpr s32 max{(std::numeric_limits<s16>::max)()};
 
     auto yuzu_volume{Settings::Volume()};
     if (yuzu_volume > 1.0f) {
@@ -123,8 +123,8 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
 }
 
 std::vector<s16> SinkStream::ReleaseBuffer(u64 num_samples) {
-    constexpr s32 min = std::numeric_limits<s16>::min();
-    constexpr s32 max = std::numeric_limits<s16>::max();
+    constexpr s32 min = (std::numeric_limits<s16>::min)();
+    constexpr s32 max = (std::numeric_limits<s16>::max)();
 
     auto samples{samples_buffer.Pop(num_samples)};
 

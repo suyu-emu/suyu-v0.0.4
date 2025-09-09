@@ -323,7 +323,7 @@ Result KMemoryManager::AllocateAndOpen(KPageGroup* out, size_t num_pages, u32 op
 
             // Process part or all of the block.
             const size_t cur_pages =
-                std::min(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
+                (std::min)(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
             manager.OpenFirst(cur_address, cur_pages);
 
             // Advance.
@@ -385,7 +385,7 @@ Result KMemoryManager::AllocateForProcess(KPageGroup* out, size_t num_pages, u32
 
                     // Process part or all of the block.
                     const size_t cur_pages =
-                        std::min(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
+                        (std::min)(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
                     any_new = manager.ProcessOptimizedAllocation(m_system.Kernel(), cur_address,
                                                                  cur_pages, fill_pattern);
 
@@ -409,7 +409,7 @@ Result KMemoryManager::AllocateForProcess(KPageGroup* out, size_t num_pages, u32
 
                     // Track some or all of the current pages.
                     const size_t cur_pages =
-                        std::min(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
+                        (std::min)(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
                     manager.TrackOptimizedAllocation(m_system.Kernel(), cur_address, cur_pages);
 
                     // Advance.

@@ -52,18 +52,18 @@ public:
         is_set_last_use = true;
     }
     inline void ReadLock() noexcept {
-        ASSERT(size_t(is_being_used_count) + 1 < std::numeric_limits<uint16_t>::max());
+        ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<uint16_t>::max)());
         ASSERT(!is_scratch);
         is_being_used_count++;
     }
     inline void WriteLock() noexcept {
-        ASSERT(size_t(is_being_used_count) + 1 < std::numeric_limits<uint16_t>::max());
+        ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<uint16_t>::max)());
         ASSERT(is_being_used_count == 0);
         is_being_used_count++;
         is_scratch = true;
     }
     inline void AddArgReference() noexcept {
-        ASSERT(size_t(current_references) + 1 < std::numeric_limits<uint16_t>::max());
+        ASSERT(size_t(current_references) + 1 < (std::numeric_limits<uint16_t>::max)());
         current_references++;
         ASSERT(accumulated_uses + current_references <= total_uses);
     }

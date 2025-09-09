@@ -106,6 +106,7 @@ inline size_t RegNumber(ExtReg reg) {
     }
 
     ASSERT_MSG(false, "Invalid extended register");
+    return 0;
 }
 
 inline Reg operator+(Reg reg, size_t number) {

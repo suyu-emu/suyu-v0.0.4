@@ -82,7 +82,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, u64 out_proc
 
     const auto num_processes = process_list.size();
     const auto copy_amount =
-        std::min(static_cast<std::size_t>(out_process_ids_size), num_processes);
+        (std::min)(static_cast<std::size_t>(out_process_ids_size), num_processes);
 
     for (std::size_t i = 0; i < copy_amount && it != process_list.end(); ++i, ++it) {
         memory.Write64(out_process_ids, (*it)->GetProcessId());

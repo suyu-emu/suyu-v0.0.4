@@ -107,7 +107,7 @@ public:
 
     void AddTicks(u64 ticks) override {}
     u64 GetTicksRemaining() override {
-        return std::numeric_limits<u32>::max();
+        return (std::numeric_limits<u32>::max)();
     }
     u64 GetCNTPCT() override {
         return 0;

@@ -29,12 +29,12 @@ void GenerateKey(void* dst_key, size_t dst_key_size, const void* src_key, size_t
         key_type == static_cast<s32>(KeyType::NcaHeaderKey2)) {
         const s32 key_index = static_cast<s32>(KeyType::NcaHeaderKey2) == key_type;
         const auto key = instance.GetKey(Core::Crypto::S256KeyType::Header);
-        std::memcpy(dst_key, key.data() + key_index * 0x10, std::min(dst_key_size, key.size() / 2));
+        std::memcpy(dst_key, key.data() + key_index * 0x10, (std::min)(dst_key_size, key.size() / 2));
         return;
     }
 
     const s32 key_generation =
-        std::max(key_type / NcaCryptoConfiguration::KeyAreaEncryptionKeyIndexCount, 1) - 1;
+        (std::max)(key_type / NcaCryptoConfiguration::KeyAreaEncryptionKeyIndexCount, 1) - 1;
     const s32 key_index = key_type % NcaCryptoConfiguration::KeyAreaEncryptionKeyIndexCount;
 
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(

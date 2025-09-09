@@ -1291,7 +1291,7 @@ static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
     case 1: {
         READ_UINT_VALUES(2)
         u32 L0 = (v[0] >> 2) | (v[1] & 0xC0);
-        u32 L1 = std::min(L0 + (v[1] & 0x3F), 0xFFU);
+        u32 L1 = (std::min)(L0 + (v[1] & 0x3F), 0xFFU);
         ep1 = Pixel(0xFF, L0, L0, L0);
         ep2 = Pixel(0xFF, L1, L1, L1);
     } break;
@@ -1522,7 +1522,7 @@ static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
     // Read color data...
     u32 colorDataBits = remainingBits;
     while (remainingBits > 0) {
-        u32 nb = std::min(remainingBits, 8);
+        u32 nb = (std::min)(remainingBits, 8);
         u32 b = strm.ReadBits(nb);
         colorEndpointStream.WriteBits(b, nb);
         remainingBits -= 8;
@@ -1603,7 +1603,7 @@ static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
         texelWeightData[clearByteStart - 1] &=
             static_cast<u8>((1 << (weightParams.GetPackedBitSize() % 8)) - 1);
         std::memset(texelWeightData.data() + clearByteStart, 0,
-                    std::min(16U - clearByteStart, 16U));
+                    (std::min)(16U - clearByteStart, 16U));
     }
 
     IntegerEncodedVector texelWeightValues;
@@ -1674,8 +1674,8 @@ void Decompress(std::span<const uint8_t> data, uint32_t width, uint32_t height, 
                     std::array<u32, 12 * 12> uncompData;
                     DecompressBlock(blockPtr, block_width, block_height, uncompData);
 
-                    u32 decompWidth = std::min(block_width, width - x);
-                    u32 decompHeight = std::min(block_height, height - y);
+                    u32 decompWidth = (std::min)(block_width, width - x);
+                    u32 decompHeight = (std::min)(block_height, height - y);
 
                     const std::span<u8> outRow = output.subspan(depth_offset + (y * width + x) * 4);
                     for (u32 h = 0; h < decompHeight; ++h) {

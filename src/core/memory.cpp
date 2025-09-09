@@ -48,7 +48,7 @@ struct Memory::Impl {
     explicit Impl(Core::System& system_) : system{system_} {
         // Initialize thread count based on available cores for parallel memory operations
         const unsigned int hw_concurrency = std::thread::hardware_concurrency();
-        thread_count = std::max(2u, std::min(hw_concurrency, 8u)); // Limit to 8 threads max
+        thread_count = (std::max)(2u, (std::min)(hw_concurrency, 8u)); // Limit to 8 threads max
     }
 
     void SetCurrentPageTable(Kernel::KProcess& process) {
@@ -263,7 +263,7 @@ struct Memory::Impl {
 
         while (remaining_size) {
             const std::size_t copy_amount =
-                std::min(static_cast<std::size_t>(YUZU_PAGESIZE) - page_offset, remaining_size);
+                (std::min)(static_cast<std::size_t>(YUZU_PAGESIZE) - page_offset, remaining_size);
             const auto current_vaddr =
                 static_cast<u64>((page_index << YUZU_PAGEBITS) + page_offset);
 
@@ -948,7 +948,7 @@ struct Memory::Impl {
         const auto* p = GetPointerImpl(
             v_address, []() {}, []() {});
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
-        const size_t core = std::min(system.GetCurrentHostThreadID(),
+        const size_t core = (std::min)(system.GetCurrentHostThreadID(),
                                      sys_core); // any other calls threads go to syscore.
         if (!gpu_device_memory) [[unlikely]] {
             gpu_device_memory = &system.Host1x().MemoryManager();
@@ -989,7 +989,7 @@ struct Memory::Impl {
 
     void InvalidateGPUMemory(u8* p, size_t size) {
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
-        const size_t core = std::min(system.GetCurrentHostThreadID(),
+        const size_t core = (std::min)(system.GetCurrentHostThreadID(),
                                      sys_core); // any other calls threads go to syscore.
         if (!gpu_device_memory) [[unlikely]] {
             gpu_device_memory = &system.Host1x().MemoryManager();

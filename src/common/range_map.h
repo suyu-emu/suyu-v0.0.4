@@ -18,7 +18,7 @@ private:
 
 public:
     explicit RangeMap(ValueT null_value_) : null_value{null_value_} {
-        container.emplace(std::numeric_limits<KeyT>::min(), null_value);
+        container.emplace((std::numeric_limits<KeyT>::min)(), null_value);
     };
     ~RangeMap() = default;
 
@@ -66,7 +66,7 @@ private:
         }
         const auto it_end = std::next(it);
         if (it_end == container.end()) {
-            return std::numeric_limits<KeyT>::max() - address;
+            return (std::numeric_limits<KeyT>::max)() - address;
         }
         return it_end->first - address;
     }

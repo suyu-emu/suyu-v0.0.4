@@ -19,7 +19,7 @@ namespace {
 
 using Tegra::Texture::TextureType;
 
-constexpr u8 RENDER_TARGET_SWIZZLE = std::numeric_limits<u8>::max();
+constexpr u8 RENDER_TARGET_SWIZZLE = (std::numeric_limits<u8>::max)();
 
 [[nodiscard]] u8 CastSwizzle(SwizzleSource source) {
     const u8 casted = static_cast<u8>(source);

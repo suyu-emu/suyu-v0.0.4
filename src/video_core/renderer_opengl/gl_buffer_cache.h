@@ -59,7 +59,7 @@ class BufferCacheRuntime {
     friend Buffer;
 
 public:
-    static constexpr u8 INVALID_BINDING = std::numeric_limits<u8>::max();
+    static constexpr u8 INVALID_BINDING = (std::numeric_limits<u8>::max)();
 
     explicit BufferCacheRuntime(const Device& device_, StagingBufferPool& staging_buffer_pool_);
 

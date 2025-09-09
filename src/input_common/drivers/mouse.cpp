@@ -102,11 +102,11 @@ void Mouse::UpdateStickInput() {
     SetAxis(identifier, mouse_axis_y, -last_mouse_change.y);
 
     // Decay input over time
-    const float clamped_length = std::min(1.0f, length);
+    const float clamped_length = (std::min)(1.0f, length);
     const float decay_strength = Settings::values.mouse_panning_decay_strength.GetValue();
     const float decay = 1 - clamped_length * clamped_length * decay_strength * 0.01f;
     const float min_decay = Settings::values.mouse_panning_min_decay.GetValue();
-    const float clamped_decay = std::min(1 - min_decay / 100.0f, decay);
+    const float clamped_decay = (std::min)(1 - min_decay / 100.0f, decay);
     last_mouse_change *= clamped_decay;
 }
 

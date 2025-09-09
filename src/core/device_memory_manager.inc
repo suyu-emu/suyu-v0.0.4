@@ -388,7 +388,7 @@ void DeviceMemoryManager<Traits>::WalkBlock(DAddr addr, std::size_t size, auto o
     while (remaining_size) {
         const size_t next_pages = static_cast<std::size_t>(continuity_tracker[page_index]);
         const std::size_t copy_amount =
-            std::min((next_pages << Memory::YUZU_PAGEBITS) - page_offset, remaining_size);
+            (std::min)((next_pages << Memory::YUZU_PAGEBITS) - page_offset, remaining_size);
         const auto current_vaddr =
             static_cast<u64>((page_index << Memory::YUZU_PAGEBITS) + page_offset);
         SCOPE_EXIT{

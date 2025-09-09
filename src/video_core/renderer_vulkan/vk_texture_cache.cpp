@@ -509,16 +509,16 @@ TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t bu
     }
 }
 struct RangedBarrierRange {
-    u32 min_mip = std::numeric_limits<u32>::max();
-    u32 max_mip = std::numeric_limits<u32>::min();
-    u32 min_layer = std::numeric_limits<u32>::max();
-    u32 max_layer = std::numeric_limits<u32>::min();
+    u32 min_mip = (std::numeric_limits<u32>::max)();
+    u32 max_mip = (std::numeric_limits<u32>::min)();
+    u32 min_layer = (std::numeric_limits<u32>::max)();
+    u32 max_layer = (std::numeric_limits<u32>::min)();
 
     void AddLayers(const VkImageSubresourceLayers& layers) {
-        min_mip = std::min(min_mip, layers.mipLevel);
-        max_mip = std::max(max_mip, layers.mipLevel + 1);
-        min_layer = std::min(min_layer, layers.baseArrayLayer);
-        max_layer = std::max(max_layer, layers.baseArrayLayer + layers.layerCount);
+        min_mip = (std::min)(min_mip, layers.mipLevel);
+        max_mip = (std::max)(max_mip, layers.mipLevel + 1);
+        min_layer = (std::min)(min_layer, layers.baseArrayLayer);
+        max_layer = (std::max)(max_layer, layers.baseArrayLayer + layers.layerCount);
     }
 
     VkImageSubresourceRange SubresourceRange(VkImageAspectFlags aspect_mask) const noexcept {
@@ -747,8 +747,8 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
                         .z = 0,
                     },
                     {
-                        .x = std::max(1, src_size.x >> level),
-                        .y = std::max(1, src_size.y >> level),
+                        .x = (std::max)(1, src_size.x >> level),
+                        .y = (std::max)(1, src_size.y >> level),
                         .z = 1,
                     },
                 },
@@ -765,8 +765,8 @@ void BlitScale(Scheduler& scheduler, VkImage src_image, VkImage dst_image, const
                         .z = 0,
                     },
                     {
-                        .x = std::max(1, dst_size.x >> level),
-                        .y = std::max(1, dst_size.y >> level),
+                        .x = (std::max)(1, dst_size.x >> level),
+                        .y = (std::max)(1, dst_size.y >> level),
                         .z = 1,
                     },
                 },
@@ -1956,8 +1956,8 @@ bool Image::BlitScaleHelper(bool scale_up) {
         .end = {static_cast<s32>(dst_width), static_cast<s32>(dst_height)},
     };
     const VkExtent2D extent{
-        .width = std::max(scaled_width, info.size.width),
-        .height = std::max(scaled_height, info.size.height),
+        .width = (std::max)(scaled_width, info.size.width),
+        .height = (std::max)(scaled_height, info.size.height),
     };
 
     auto* view_ptr = blit_view.get();
@@ -2310,21 +2310,21 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
     is_rescaled = is_rescaled_;
     const auto& resolution = runtime.resolution;
 
-    u32 width = std::numeric_limits<u32>::max();
-    u32 height = std::numeric_limits<u32>::max();
+    u32 width = (std::numeric_limits<u32>::max)();
+    u32 height = (std::numeric_limits<u32>::max)();
     for (size_t index = 0; index < NUM_RT; ++index) {
         const ImageView* const color_buffer = color_buffers[index];
         if (!color_buffer) {
             renderpass_key.color_formats[index] = PixelFormat::Invalid;
             continue;
         }
-        width = std::min(width, is_rescaled ? resolution.ScaleUp(color_buffer->size.width)
+        width = (std::min)(width, is_rescaled ? resolution.ScaleUp(color_buffer->size.width)
                                             : color_buffer->size.width);
-        height = std::min(height, is_rescaled ? resolution.ScaleUp(color_buffer->size.height)
+        height = (std::min)(height, is_rescaled ? resolution.ScaleUp(color_buffer->size.height)
                                               : color_buffer->size.height);
         attachments.push_back(color_buffer->RenderTarget());
         renderpass_key.color_formats[index] = color_buffer->format;
-        num_layers = std::max(num_layers, color_buffer->range.extent.layers);
+        num_layers = (std::max)(num_layers, color_buffer->range.extent.layers);
         images[num_images] = color_buffer->ImageHandle();
         image_ranges[num_images] = MakeSubresourceRange(color_buffer);
         rt_map[index] = num_images;
@@ -2333,13 +2333,13 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
     }
     const size_t num_colors = attachments.size();
     if (depth_buffer) {
-        width = std::min(width, is_rescaled ? resolution.ScaleUp(depth_buffer->size.width)
+        width = (std::min)(width, is_rescaled ? resolution.ScaleUp(depth_buffer->size.width)
                                             : depth_buffer->size.width);
-        height = std::min(height, is_rescaled ? resolution.ScaleUp(depth_buffer->size.height)
+        height = (std::min)(height, is_rescaled ? resolution.ScaleUp(depth_buffer->size.height)
                                               : depth_buffer->size.height);
         attachments.push_back(depth_buffer->RenderTarget());
         renderpass_key.depth_format = depth_buffer->format;
-        num_layers = std::max(num_layers, depth_buffer->range.extent.layers);
+        num_layers = (std::max)(num_layers, depth_buffer->range.extent.layers);
         images[num_images] = depth_buffer->ImageHandle();
         const VkImageSubresourceRange subresource_range = MakeSubresourceRange(depth_buffer);
         image_ranges[num_images] = subresource_range;
@@ -2353,8 +2353,8 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
     renderpass_key.samples = samples;
 
     renderpass = runtime.render_pass_cache.Get(renderpass_key);
-    render_area.width = std::min(render_area.width, width);
-    render_area.height = std::min(render_area.height, height);
+    render_area.width = (std::min)(render_area.width, width);
+    render_area.height = (std::min)(render_area.height, height);
 
     num_color_buffers = static_cast<u32>(num_colors);
     framebuffer = runtime.device.GetLogical().CreateFramebuffer({
@@ -2366,7 +2366,7 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
         .pAttachments = attachments.data(),
         .width = render_area.width,
         .height = render_area.height,
-        .layers = static_cast<u32>(std::max(num_layers, 1)),
+        .layers = static_cast<u32>((std::max)(num_layers, 1)),
     });
 }
 

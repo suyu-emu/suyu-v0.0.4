@@ -216,7 +216,7 @@ Result IApplicationFunctions::GetDisplayVersion(Out<DisplayVersion> out_display_
     if (res.first != nullptr) {
         const auto& version = res.first->GetVersionString();
         std::memcpy(out_display_version->string.data(), version.data(),
-                    std::min(version.size(), out_display_version->string.size()));
+                    (std::min)(version.size(), out_display_version->string.size()));
     } else {
         static constexpr char default_version[]{"1.0.0"};
         std::memcpy(out_display_version->string.data(), default_version, sizeof(default_version));
@@ -284,7 +284,7 @@ Result IApplicationFunctions::GetCacheStorageMax(Out<u32> out_cache_storage_inde
     R_TRY(system.GetARPManager().GetControlProperty(&nacp, m_applet->program_id));
 
     auto raw_nacp = std::make_unique<FileSys::RawNACP>();
-    std::memcpy(raw_nacp.get(), nacp.data(), std::min(sizeof(*raw_nacp), nacp.size()));
+    std::memcpy(raw_nacp.get(), nacp.data(), (std::min)(sizeof(*raw_nacp), nacp.size()));
 
     *out_cache_storage_index_max = static_cast<u32>(raw_nacp->cache_storage_max_index);
     *out_max_journal_size = static_cast<u64>(raw_nacp->cache_storage_data_and_journal_max_size);

@@ -60,28 +60,28 @@ std::pair<f64, f64> ClampBounds(DestFormat format, bool is_signed) {
     if (is_signed) {
         switch (format) {
         case DestFormat::I16:
-            return {static_cast<f64>(std::numeric_limits<s16>::max()),
-                    static_cast<f64>(std::numeric_limits<s16>::min())};
+            return {static_cast<f64>((std::numeric_limits<s16>::max)()),
+                    static_cast<f64>((std::numeric_limits<s16>::min)())};
         case DestFormat::I32:
-            return {static_cast<f64>(std::numeric_limits<s32>::max()),
-                    static_cast<f64>(std::numeric_limits<s32>::min())};
+            return {static_cast<f64>((std::numeric_limits<s32>::max)()),
+                    static_cast<f64>((std::numeric_limits<s32>::min)())};
         case DestFormat::I64:
-            return {static_cast<f64>(std::numeric_limits<s64>::max()),
-                    static_cast<f64>(std::numeric_limits<s64>::min())};
+            return {static_cast<f64>((std::numeric_limits<s64>::max)()),
+                    static_cast<f64>((std::numeric_limits<s64>::min)())};
         default:
             break;
         }
     } else {
         switch (format) {
         case DestFormat::I16:
-            return {static_cast<f64>(std::numeric_limits<u16>::max()),
-                    static_cast<f64>(std::numeric_limits<u16>::min())};
+            return {static_cast<f64>((std::numeric_limits<u16>::max)()),
+                    static_cast<f64>((std::numeric_limits<u16>::min)())};
         case DestFormat::I32:
-            return {static_cast<f64>(std::numeric_limits<u32>::max()),
-                    static_cast<f64>(std::numeric_limits<u32>::min())};
+            return {static_cast<f64>((std::numeric_limits<u32>::max)()),
+                    static_cast<f64>((std::numeric_limits<u32>::min)())};
         case DestFormat::I64:
-            return {static_cast<f64>(std::numeric_limits<u64>::max()),
-                    static_cast<f64>(std::numeric_limits<u64>::min())};
+            return {static_cast<f64>((std::numeric_limits<u64>::max)()),
+                    static_cast<f64>((std::numeric_limits<u64>::min)())};
         default:
             break;
         }

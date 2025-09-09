@@ -179,7 +179,7 @@ private:
 
         m_free_head_index = m_entry_infos[index].GetNextFreeIndex();
 
-        m_max_count = std::max(m_max_count, ++m_count);
+        m_max_count = (std::max)(m_max_count, ++m_count);
 
         return index;
     }

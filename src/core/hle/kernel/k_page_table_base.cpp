@@ -1731,7 +1731,7 @@ void KPageTableBase::RemapPageGroup(PageLinkedList* page_list, KProcessAddress a
             }
 
             // Map whatever we can.
-            const size_t cur_pages = std::min(pg_pages, map_pages);
+            const size_t cur_pages = (std::min)(pg_pages, map_pages);
             R_ASSERT(this->Operate(page_list, map_address, map_pages, pg_phys_addr, true,
                                    map_properties, OperationType::Map, true));
 
@@ -1929,7 +1929,7 @@ Result KPageTableBase::GetContiguousMemoryRangeWithState(
     }
 
     // Take the minimum size for our region.
-    size = std::min(size, contig_size);
+    size = (std::min)(size, contig_size);
 
     // Check that the memory is contiguous (modulo the reference count bit).
     const KMemoryState test_state_mask = state_mask | KMemoryState::FlagReferenceCounted;
@@ -5297,7 +5297,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                                     KMemoryPermission::None, false, false,
                                     DisableMergeAttribute::None};
                                 const size_t cur_pages =
-                                    std::min(KProcessAddress(info.GetEndAddress()) - cur_address,
+                                    (std::min)(KProcessAddress(info.GetEndAddress()) - cur_address,
                                              last_unmap_address + 1 - cur_address) /
                                     PageSize;
 
@@ -5345,7 +5345,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                                 ? DisableMergeAttribute::DisableHead
                                 : DisableMergeAttribute::None};
                         size_t map_pages =
-                            std::min(KProcessAddress(info.GetEndAddress()) - cur_address,
+                            (std::min)(KProcessAddress(info.GetEndAddress()) - cur_address,
                                      last_address + 1 - cur_address) /
                             PageSize;
 
@@ -5373,7 +5373,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                                     }
 
                                     // Add whatever we can to the current block.
-                                    const size_t cur_pages = std::min(pg_pages, remain_pages);
+                                    const size_t cur_pages = (std::min)(pg_pages, remain_pages);
                                     R_TRY(cur_pg.AddBlock(pg_phys_addr +
                                                               ((pg_pages - cur_pages) * PageSize),
                                                           cur_pages));
@@ -5535,7 +5535,7 @@ Result KPageTableBase::UnmapPhysicalMemory(KProcessAddress address, size_t size)
             // Determine the range to unmap.
             const KPageProperties unmap_properties = {KMemoryPermission::None, false, false,
                                                       DisableMergeAttribute::None};
-            const size_t cur_pages = std::min(KProcessAddress(info.GetEndAddress()) - cur_address,
+            const size_t cur_pages = (std::min)(KProcessAddress(info.GetEndAddress()) - cur_address,
                                               last_address + 1 - cur_address) /
                                      PageSize;
 
@@ -5656,7 +5656,7 @@ Result KPageTableBase::UnmapProcessMemory(KProcessAddress dst_address, size_t si
                     }
 
                     // Update our current size.
-                    m_cur_size = std::min(m_remaining_size, m_cur_size + m_entry.block_size);
+                    m_cur_size = (std::min)(m_remaining_size, m_cur_size + m_entry.block_size);
                 }
             }
         };

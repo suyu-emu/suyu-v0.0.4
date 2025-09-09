@@ -94,7 +94,7 @@ static void UpdateReverbEffectParameter(const ReverbInfo::ParameterVersion2& par
     for (u32 i = 0; i < ReverbInfo::MaxDelayTaps; i++) {
         auto early_delay{
             ((pre_delay_time + EarlyDelayTimes[params.early_mode][i]) * sample_rate).to_int()};
-        early_delay = std::min(early_delay, state.pre_delay_line.sample_count_max);
+        early_delay = (std::min)(early_delay, state.pre_delay_line.sample_count_max);
         state.early_delay_times[i] = early_delay + 1;
         state.early_gains[i] = Common::FixedPoint<50, 14>::from_base(params.early_gain) *
                                EarlyDelayGains[params.early_mode][i];
@@ -107,7 +107,7 @@ static void UpdateReverbEffectParameter(const ReverbInfo::ParameterVersion2& par
 
     auto pre_time{
         ((pre_delay_time + EarlyDelayTimes[params.early_mode][10]) * sample_rate).to_int()};
-    state.pre_delay_time = std::min(pre_time, state.pre_delay_line.sample_count_max);
+    state.pre_delay_time = (std::min)(pre_time, state.pre_delay_line.sample_count_max);
 
     if (!unk_initialized) {
         unk_value = cos((1280.0f / sample_rate).to_float());
@@ -117,13 +117,13 @@ static void UpdateReverbEffectParameter(const ReverbInfo::ParameterVersion2& par
     for (u32 i = 0; i < ReverbInfo::MaxDelayLines; i++) {
         const auto fdn_delay{(FdnDelayTimes[params.late_mode][i] * sample_rate).to_int()};
         state.fdn_delay_lines[i].sample_count =
-            std::min(fdn_delay, state.fdn_delay_lines[i].sample_count_max);
+            (std::min)(fdn_delay, state.fdn_delay_lines[i].sample_count_max);
         state.fdn_delay_lines[i].buffer_end =
             &state.fdn_delay_lines[i].buffer[state.fdn_delay_lines[i].sample_count - 1];
 
         const auto decay_delay{(DecayDelayTimes[params.late_mode][i] * sample_rate).to_int()};
         state.decay_delay_lines[i].sample_count =
-            std::min(decay_delay, state.decay_delay_lines[i].sample_count_max);
+            (std::min)(decay_delay, state.decay_delay_lines[i].sample_count_max);
         state.decay_delay_lines[i].buffer_end =
             &state.decay_delay_lines[i].buffer[state.decay_delay_lines[i].sample_count - 1];
 

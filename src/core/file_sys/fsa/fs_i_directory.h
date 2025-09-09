@@ -48,7 +48,7 @@ public:
 private:
     Result DoRead(s64* out_count, DirectoryEntry* out_entries, s64 max_entries) {
         const u64 actual_entries =
-            std::min(static_cast<u64>(max_entries), entries.size() - next_entry_index);
+            (std::min)(static_cast<u64>(max_entries), entries.size() - next_entry_index);
         const auto* begin = reinterpret_cast<u8*>(entries.data() + next_entry_index);
         const auto* end = reinterpret_cast<u8*>(entries.data() + next_entry_index + actual_entries);
         const auto range_size = static_cast<std::size_t>(std::distance(begin, end));

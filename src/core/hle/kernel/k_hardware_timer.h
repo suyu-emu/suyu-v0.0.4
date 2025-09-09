@@ -40,7 +40,7 @@ private:
 
 private:
     // Absolute time in nanoseconds
-    s64 m_wakeup_time{std::numeric_limits<s64>::max()};
+    s64 m_wakeup_time{(std::numeric_limits<s64>::max)()};
     std::shared_ptr<Core::Timing::EventType> m_event_type{};
 };
 

@@ -51,7 +51,7 @@ public:
      */
     void RegisterBuffers(boost::container::static_vector<AudioBuffer, N>& out_buffers) {
         std::scoped_lock l{lock};
-        const s32 to_register{std::min(std::min(appended_count, BufferAppendLimit),
+        const s32 to_register{(std::min)((std::min)(appended_count, BufferAppendLimit),
                                        BufferAppendLimit - registered_count)};
 
         for (s32 i = 0; i < to_register; i++) {
@@ -175,7 +175,7 @@ public:
         }
 
         size_t buffers_to_flush{
-            std::min(static_cast<u32>(registered_count + appended_count), max_buffers)};
+            (std::min)(static_cast<u32>(registered_count + appended_count), max_buffers)};
         if (buffers_to_flush == 0) {
             return 0;
         }

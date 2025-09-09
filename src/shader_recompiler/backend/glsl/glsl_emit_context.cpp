@@ -314,9 +314,9 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         break;
     case Stage::Compute:
         stage_name = "cs";
-        const u32 local_x{std::max(program.workgroup_size[0], 1u)};
-        const u32 local_y{std::max(program.workgroup_size[1], 1u)};
-        const u32 local_z{std::max(program.workgroup_size[2], 1u)};
+        const u32 local_x{(std::max)(program.workgroup_size[0], 1u)};
+        const u32 local_y{(std::max)(program.workgroup_size[1], 1u)};
+        const u32 local_z{(std::max)(program.workgroup_size[2], 1u)};
         header += fmt::format("layout(local_size_x={},local_size_y={},local_size_z={}) in;",
                               local_x, local_y, local_z);
         break;

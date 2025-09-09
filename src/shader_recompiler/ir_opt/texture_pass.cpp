@@ -517,11 +517,11 @@ void PatchTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_
         case TexturePixelFormat::A8B8G8R8_SNORM:
         case TexturePixelFormat::R8G8_SNORM:
         case TexturePixelFormat::R8_SNORM:
-            return 1.f / std::numeric_limits<char>::max();
+            return 1.f / (std::numeric_limits<char>::max)();
         case TexturePixelFormat::R16G16B16A16_SNORM:
         case TexturePixelFormat::R16G16_SNORM:
         case TexturePixelFormat::R16_SNORM:
-            return 1.f / std::numeric_limits<short>::max();
+            return 1.f / (std::numeric_limits<short>::max)();
         default:
             throw InvalidArgument("Invalid texture pixel format");
         }

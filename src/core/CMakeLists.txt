@@ -1187,6 +1187,7 @@ else()
         -Wno-cast-function-type
 
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-cast-function-type-mismatch>
     )
 endif()
 

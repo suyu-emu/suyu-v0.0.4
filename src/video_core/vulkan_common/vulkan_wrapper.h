@@ -860,7 +860,7 @@ public:
     /// Set object name.
     void SetObjectNameEXT(const char* name) const;
 
-    VkResult Wait(u64 timeout = std::numeric_limits<u64>::max()) const noexcept {
+    VkResult Wait(u64 timeout = (std::numeric_limits<u64>::max)()) const noexcept {
         return dld->vkWaitForFences(owner, 1, &handle, true, timeout);
     }
 
@@ -961,7 +961,7 @@ public:
      * @param timeout Time in nanoseconds to timeout
      * @return        True on successful wait, false on timeout
      */
-    bool Wait(u64 value, u64 timeout = std::numeric_limits<u64>::max()) const {
+    bool Wait(u64 value, u64 timeout = (std::numeric_limits<u64>::max)()) const {
         const VkSemaphoreWaitInfo wait_info{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
             .pNext = nullptr,

@@ -44,7 +44,7 @@ Result ISaveDataInfoReader::ReadSaveDataInfo(
     const u64 count_entries = out_entries.size();
 
     // Cap at total number of entries.
-    const u64 actual_entries = std::min(count_entries, info.size() - next_entry_index);
+    const u64 actual_entries = (std::min)(count_entries, info.size() - next_entry_index);
 
     // Determine data start and end
     const auto* begin = reinterpret_cast<u8*>(info.data() + next_entry_index);

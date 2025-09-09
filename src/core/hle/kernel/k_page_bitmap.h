@@ -83,7 +83,7 @@ public:
                 }
 
                 // Determine how many bits to take this round.
-                const auto cur_bits = std::min(num_bits, m_bits_available);
+                const auto cur_bits = (std::min)(num_bits, m_bits_available);
 
                 // Generate mask for our current bits.
                 const u64 mask = (static_cast<u64>(1) << cur_bits) - 1;

@@ -93,7 +93,7 @@ protected:
         R_TRY(this->DoGetSize(std::addressof(file_size)));
         R_UNLESS(offset <= file_size, ResultOutOfRange);
 
-        *out = static_cast<size_t>(std::min(file_size - offset, static_cast<s64>(size)));
+        *out = static_cast<size_t>((std::min)(file_size - offset, static_cast<s64>(size)));
         R_SUCCEED();
     }
 

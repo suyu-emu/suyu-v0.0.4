@@ -59,7 +59,7 @@ public:
     static constexpr u64 InitialProcessIdMax = 0x50;
 
     static constexpr u64 ProcessIdMin = InitialProcessIdMax + 1;
-    static constexpr u64 ProcessIdMax = std::numeric_limits<u64>::max();
+    static constexpr u64 ProcessIdMax = (std::numeric_limits<u64>::max)();
 
 private:
     using SharedMemoryInfoList = Common::IntrusiveListBaseTraits<KSharedMemoryInfo>::ListType;

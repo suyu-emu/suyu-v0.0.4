@@ -504,7 +504,7 @@ NvResult nvhost_as_gpu::GetVARegions3(IoctlGetVaRegions& params, std::span<VaReg
 
     GetVARegionsImpl(params);
 
-    const size_t num_regions = std::min(params.regions.size(), regions.size());
+    const size_t num_regions = (std::min)(params.regions.size(), regions.size());
     for (size_t i = 0; i < num_regions; i++) {
         regions[i] = params.regions[i];
     }

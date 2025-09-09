@@ -2116,7 +2116,7 @@ void EmitFPVectorToFixed(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                     }
                 } else {
                     using FPT = mcl::unsigned_integer_of_size<fsize>;  // WORKAROUND: For issue 678 on MSVC
-                    constexpr u64 integer_max = static_cast<FPT>(std::numeric_limits<std::conditional_t<unsigned_, FPT, std::make_signed_t<FPT>>>::max());
+                    constexpr u64 integer_max = static_cast<FPT>((std::numeric_limits<std::conditional_t<unsigned_, FPT, std::make_signed_t<FPT>>>::max)());
 
                     code.movaps(xmm0, GetVectorOf<fsize, float_upper_limit_signed>(code));
                     FCODE(cmplep)(xmm0, src);

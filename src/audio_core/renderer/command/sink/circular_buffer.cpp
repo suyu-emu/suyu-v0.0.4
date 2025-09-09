@@ -21,8 +21,8 @@ void CircularBufferSinkCommand::Dump(
 }
 
 void CircularBufferSinkCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
-    constexpr s32 min{std::numeric_limits<s16>::min()};
-    constexpr s32 max{std::numeric_limits<s16>::max()};
+    constexpr s32 min{(std::numeric_limits<s16>::min)()};
+    constexpr s32 max{(std::numeric_limits<s16>::max)()};
 
     std::array<s16, TargetSampleCount * MaxChannels> output{};
     for (u32 channel = 0; channel < input_count; channel++) {

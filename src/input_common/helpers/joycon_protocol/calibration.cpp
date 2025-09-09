@@ -140,8 +140,8 @@ Common::Input::DriverResult CalibrationProtocol::GetRingCalibration(RingCalibrat
         ring_data_min = current_value - DefaultRingRange;
         ring_data_default = current_value;
     }
-    ring_data_max = std::max(ring_data_max, current_value);
-    ring_data_min = std::min(ring_data_min, current_value);
+    ring_data_max = (std::max)(ring_data_max, current_value);
+    ring_data_min = (std::min)(ring_data_min, current_value);
     calibration = {
         .default_value = ring_data_default,
         .max_value = ring_data_max,

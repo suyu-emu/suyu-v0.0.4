@@ -256,7 +256,7 @@ if (YUZU_CRASH_DUMPS)
     target_compile_definitions(yuzu PRIVATE YUZU_CRASH_DUMPS)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CXX_CLANG)
     target_compile_definitions(yuzu PRIVATE
         $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>
     )

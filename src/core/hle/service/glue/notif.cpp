@@ -67,7 +67,7 @@ Result NotificationServiceImpl::ListAlarmSettings(s32* out_count,
                                                   std::span<AlarmSetting> out_alarms) {
     LOG_INFO(Service_NOTIF, "called, alarm_count={}", alarms.size());
 
-    const auto count = std::min(out_alarms.size(), alarms.size());
+    const auto count = (std::min)(out_alarms.size(), alarms.size());
     for (size_t i = 0; i < count; i++) {
         out_alarms[i] = alarms[i];
     }
@@ -90,7 +90,7 @@ Result NotificationServiceImpl::LoadApplicationParameter(u32* out_size,
 
     LOG_WARNING(Service_NOTIF, "(STUBBED) called, alarm_setting_id={}", alarm_setting_id);
     std::memcpy(out_application_parameter.data(), application_parameter.data(),
-                std::min(sizeof(application_parameter), out_application_parameter.size()));
+                (std::min)(sizeof(application_parameter), out_application_parameter.size()));
 
     *out_size = static_cast<u32>(application_parameter.size());
     R_SUCCEED();

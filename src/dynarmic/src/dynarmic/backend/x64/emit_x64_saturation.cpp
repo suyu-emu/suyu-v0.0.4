@@ -38,7 +38,7 @@ void EmitSignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) 
     Xbyak::Reg addend = ctx.reg_alloc.UseGpr(args[1]).changeBit(size);
     Xbyak::Reg overflow = ctx.reg_alloc.ScratchGpr().changeBit(size);
 
-    constexpr u64 int_max = static_cast<u64>(std::numeric_limits<mcl::signed_integer_of_size<size>>::max());
+    constexpr u64 int_max = static_cast<u64>((std::numeric_limits<mcl::signed_integer_of_size<size>>::max)());
     if constexpr (size < 64) {
         code.xor_(overflow.cvt32(), overflow.cvt32());
         code.bt(result.cvt32(), size - 1);
@@ -82,7 +82,7 @@ void EmitUnsignedSaturatedOp(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst
     Xbyak::Reg op_result = ctx.reg_alloc.UseScratchGpr(args[0]).changeBit(size);
     Xbyak::Reg addend = ctx.reg_alloc.UseScratchGpr(args[1]).changeBit(size);
 
-    constexpr u64 boundary = op == Op::Add ? std::numeric_limits<mcl::unsigned_integer_of_size<size>>::max() : 0;
+    constexpr u64 boundary = op == Op::Add ? (std::numeric_limits<mcl::unsigned_integer_of_size<size>>::max)() : 0;
 
     if constexpr (op == Op::Add) {
         code.add(op_result, addend);

@@ -24,7 +24,7 @@ constexpr auto PauseCycles = 100'000U;
 
 } // Anonymous namespace
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 __forceinline static void TPAUSE() {
     static constexpr auto RequestC02State = 0U;
     _tpause(RequestC02State, FencedRDTSC() + PauseCycles);

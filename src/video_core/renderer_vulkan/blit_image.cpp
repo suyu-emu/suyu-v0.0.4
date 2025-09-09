@@ -340,8 +340,8 @@ void UpdateTwoTexturesDescriptorSet(const Device& device, VkDescriptorSet descri
 
 void BindBlitState(vk::CommandBuffer cmdbuf, const Region2D& dst_region) {
     const VkOffset2D offset{
-        .x = std::min(dst_region.start.x, dst_region.end.x),
-        .y = std::min(dst_region.start.y, dst_region.end.y),
+        .x = (std::min)(dst_region.start.x, dst_region.end.x),
+        .y = (std::min)(dst_region.start.y, dst_region.end.y),
     };
     const VkExtent2D extent{
         .width = static_cast<u32>(std::abs(dst_region.end.x - dst_region.start.x)),

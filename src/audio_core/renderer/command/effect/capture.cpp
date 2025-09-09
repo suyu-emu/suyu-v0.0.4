@@ -79,7 +79,7 @@ static u32 WriteAuxBufferDsp(Core::Memory::Memory& memory, const CpuAddr send_in
     u32 write_count{write_count_};
     u32 write_pos{0};
     while (write_count > 0) {
-        u32 to_write{std::min(count_max - target_write_offset, write_count)};
+        u32 to_write{(std::min)(count_max - target_write_offset, write_count)};
 
         if (to_write > 0) {
             memory.WriteBlockUnsafe(send_buffer + target_write_offset * sizeof(s32),

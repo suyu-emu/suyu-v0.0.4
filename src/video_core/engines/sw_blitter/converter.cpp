@@ -771,7 +771,7 @@ private:
         };
         const auto to_fp_n = [](f32 base_value, size_t bits, size_t mantissa) {
             constexpr size_t fp32_mantissa_bits = 23;
-            u32 tmp_value = Common::BitCast<u32>(std::max(base_value, 0.0f));
+            u32 tmp_value = Common::BitCast<u32>((std::max)(base_value, 0.0f));
             size_t shift_towards = fp32_mantissa_bits - mantissa;
             return tmp_value >> shift_towards;
         };

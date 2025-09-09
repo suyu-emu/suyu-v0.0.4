@@ -162,7 +162,7 @@ Result ILibraryAppletSelfAccessor::GetMainAppletApplicationControlProperty(
         system.GetARPManager().GetControlProperty(&nacp, application.application_id);
 
     if (R_SUCCEEDED(result)) {
-        std::memcpy(out_nacp->data(), nacp.data(), std::min(nacp.size(), out_nacp->size()));
+        std::memcpy(out_nacp->data(), nacp.data(), (std::min)(nacp.size(), out_nacp->size()));
     }
 
     R_RETURN(result);

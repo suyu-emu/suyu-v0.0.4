@@ -164,7 +164,7 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     // Begin iterating the file.
     while (processed_size < total_size) {
         // Refill the buffer.
-        const size_t intended_read_size = std::min(buffer.size(), total_size - processed_size);
+        const size_t intended_read_size = (std::min)(buffer.size(), total_size - processed_size);
         const size_t read_size = file->Read(buffer.data(), intended_read_size, processed_size);
 
         // Update the hash function with the buffer contents.

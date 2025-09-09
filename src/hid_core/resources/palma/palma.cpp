@@ -62,7 +62,7 @@ Result Palma::GetPalmaOperationInfo(const PalmaConnectionHandle& handle,
     }
     operation_type = static_cast<PalmaOperationType>(operation.operation);
     std::memcpy(out_data.data(), operation.data.data(),
-                std::min(out_data.size(), operation.data.size()));
+                (std::min)(out_data.size(), operation.data.size()));
 
     return ResultSuccess;
 }

@@ -102,7 +102,7 @@ Result IBcatService::SetPassphrase(u64 application_id,
 
     Passphrase passphrase{};
     std::memcpy(passphrase.data(), passphrase_buffer.data(),
-                std::min(passphrase.size(), passphrase_buffer.size()));
+                (std::min)(passphrase.size(), passphrase_buffer.size()));
 
     backend.SetPassphrase(application_id, passphrase);
     R_SUCCEED();

@@ -86,8 +86,8 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
             },
         .extent =
             {
-                .width = std::min(frame_width, swapchain_width),
-                .height = std::min(frame_height, swapchain_height),
+                .width = (std::min)(frame_width, swapchain_width),
+                .height = (std::min)(frame_height, swapchain_height),
                 .depth = 1,
             },
     };

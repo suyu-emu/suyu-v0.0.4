@@ -55,7 +55,7 @@ NPad::~NPad() {
 }
 
 Result NPad::Activate() {
-    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultNpadResourceOverflow;
     }
 

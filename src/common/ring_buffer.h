@@ -29,7 +29,7 @@ class RingBuffer {
     // T must be safely memcpy-able and have a trivial default constructor.
     static_assert(std::is_trivial_v<T>);
     // Ensure capacity is sensible.
-    static_assert(capacity < std::numeric_limits<std::size_t>::max() / 2);
+    static_assert(capacity < (std::numeric_limits<std::size_t>::max)() / 2);
     static_assert((capacity & (capacity - 1)) == 0, "capacity must be a power of two");
     // Ensure lock-free.
     static_assert(std::atomic_size_t::is_always_lock_free);
@@ -43,9 +43,9 @@ public:
         std::lock_guard lock(rb_mutex);
 
         const std::size_t slots_free = capacity + read_index - write_index;
-        const std::size_t push_count = std::min(slot_count, slots_free);
+        const std::size_t push_count = (std::min)(slot_count, slots_free);
         const std::size_t pos = write_index % capacity;
-        const std::size_t first_copy = std::min(capacity - pos, push_count);
+        const std::size_t first_copy = (std::min)(capacity - pos, push_count);
         const std::size_t second_copy = push_count - first_copy;
 
         const char* in = static_cast<const char*>(new_slots);
@@ -69,9 +69,9 @@ public:
         std::lock_guard lock(rb_mutex);
 
         const std::size_t slots_filled = write_index - read_index;
-        const std::size_t pop_count = std::min(slots_filled, max_slots);
+        const std::size_t pop_count = (std::min)(slots_filled, max_slots);
         const std::size_t pos = read_index % capacity;
-        const std::size_t first_copy = std::min(capacity - pos, pop_count);
+        const std::size_t first_copy = (std::min)(capacity - pos, pop_count);
         const std::size_t second_copy = pop_count - first_copy;
 
         char* out = static_cast<char*>(output);
@@ -84,7 +84,7 @@ public:
     }
 
     std::vector<T> Pop(std::size_t max_slots = ~std::size_t(0)) {
-        std::vector<T> out(std::min(max_slots, capacity));
+        std::vector<T> out((std::min)(max_slots, capacity));
         const std::size_t count = Pop(out.data(), out.size());
         out.resize(count);
         return out;

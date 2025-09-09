@@ -507,7 +507,7 @@ struct KernelCore::Impl {
         constexpr size_t MiscRegionAlign = KernelAslrAlignment;
         constexpr size_t MiscRegionMinimumSize = 32_MiB;
         const size_t misc_region_size = Common::AlignUp(
-            std::max(misc_region_needed_size, MiscRegionMinimumSize), MiscRegionAlign);
+            (std::max)(misc_region_needed_size, MiscRegionMinimumSize), MiscRegionAlign);
         ASSERT(misc_region_size > 0);
 
         // Setup the misc region.

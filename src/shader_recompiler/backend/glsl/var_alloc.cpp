@@ -155,7 +155,7 @@ Id VarAlloc::Alloc(GlslVarType type) {
         if (use_tracker.var_use[var]) {
             continue;
         }
-        use_tracker.num_used = std::max(use_tracker.num_used, var + 1);
+        use_tracker.num_used = (std::max)(use_tracker.num_used, var + 1);
         use_tracker.var_use[var] = true;
         Id ret{};
         ret.is_valid.Assign(1);

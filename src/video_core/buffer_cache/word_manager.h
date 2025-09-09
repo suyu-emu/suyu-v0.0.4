@@ -181,7 +181,7 @@ public:
 
     static u64 ExtractBits(u64 word, size_t page_start, size_t page_end) {
         constexpr size_t number_bits = sizeof(u64) * 8;
-        const size_t limit_page_end = number_bits - std::min(page_end, number_bits);
+        const size_t limit_page_end = number_bits - (std::min)(page_end, number_bits);
         u64 bits = (word >> page_start) << page_start;
         bits = (bits << limit_page_end) >> limit_page_end;
         return bits;
@@ -206,11 +206,11 @@ public:
         auto [start_word, start_page] = GetWordPage(start);
         auto [end_word, end_page] = GetWordPage(end + BYTES_PER_PAGE - 1ULL);
         const size_t num_words = NumWords();
-        start_word = std::min(start_word, num_words);
-        end_word = std::min(end_word, num_words);
+        start_word = (std::min)(start_word, num_words);
+        end_word = (std::min)(end_word, num_words);
         const size_t diff = end_word - start_word;
         end_word += (end_page + PAGES_PER_WORD - 1ULL) / PAGES_PER_WORD;
-        end_word = std::min(end_word, num_words);
+        end_word = (std::min)(end_word, num_words);
         end_page += diff * PAGES_PER_WORD;
         constexpr u64 base_mask{~0ULL};
         for (size_t word_index = start_word; word_index < end_word; word_index++) {
@@ -382,7 +382,7 @@ public:
         const std::span<const u64> state_words = words.template Span<type>();
         [[maybe_unused]] const std::span<const u64> untracked_words =
             words.template Span<Type::Untracked>();
-        u64 begin = std::numeric_limits<u64>::max();
+        u64 begin = (std::numeric_limits<u64>::max)();
         u64 end = 0;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
             if constexpr (type == Type::GPU) {
@@ -395,7 +395,7 @@ public:
             const u64 local_page_begin = std::countr_zero(word);
             const u64 local_page_end = PAGES_PER_WORD - std::countl_zero(word);
             const u64 page_index = index * PAGES_PER_WORD;
-            begin = std::min(begin, page_index + local_page_begin);
+            begin = (std::min)(begin, page_index + local_page_begin);
             end = page_index + local_page_end;
         });
         static constexpr std::pair<u64, u64> EMPTY{0, 0};

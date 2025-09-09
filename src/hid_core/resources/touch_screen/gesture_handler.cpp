@@ -16,7 +16,7 @@ GestureHandler::~GestureHandler() {}
 
 void GestureHandler::SetTouchState(std::span<TouchState> touch_state, u32 count, s64 timestamp) {
     gesture = {};
-    gesture.active_points = std::min(MaxPoints, static_cast<std::size_t>(count));
+    gesture.active_points = (std::min)(MaxPoints, static_cast<std::size_t>(count));
 
     for (size_t id = 0; id < gesture.active_points; ++id) {
         const auto& [active_x, active_y] = touch_state[id].position;

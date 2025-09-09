@@ -683,7 +683,7 @@ public:
         const auto max_mount_len =
             out_mount_name_buffer_size == 0
                 ? MountNameLengthMax + 1
-                : std::min(MountNameLengthMax + 1, out_mount_name_buffer_size);
+                : (std::min)(MountNameLengthMax + 1, out_mount_name_buffer_size);
 
         // Parse the path until we see a drive separator
         size_t mount_len = 0;

@@ -484,8 +484,8 @@ void TouchScreenPreview::resizeEvent(QResizeEvent* event) {
         return;
     }
 
-    const int target_width = std::min(width(), height() * 4 / 3);
-    const int target_height = std::min(height(), width() * 3 / 4);
+    const int target_width = (std::min)(width(), height() * 4 / 3);
+    const int target_height = (std::min)(height(), width() * 3 / 4);
     if (target_width == width() && target_height == height()) {
         return;
     }

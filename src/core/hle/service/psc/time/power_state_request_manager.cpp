@@ -17,7 +17,7 @@ PowerStateRequestManager::~PowerStateRequestManager() {
 void PowerStateRequestManager::UpdatePendingPowerStateRequestPriority(u32 priority) {
     std::scoped_lock l{m_mutex};
     if (m_has_pending_request) {
-        m_pending_request_priority = std::max(m_pending_request_priority, priority);
+        m_pending_request_priority = (std::max)(m_pending_request_priority, priority);
     } else {
         m_pending_request_priority = priority;
         m_has_pending_request = true;

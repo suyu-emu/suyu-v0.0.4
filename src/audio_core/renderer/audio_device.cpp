@@ -45,7 +45,7 @@ u32 AudioDevice::ListAudioDeviceName(std::span<AudioDeviceName> out_buffer) cons
         names = device_names;
     }
 
-    const u32 out_count{static_cast<u32>(std::min(out_buffer.size(), names.size()))};
+    const u32 out_count{static_cast<u32>((std::min)(out_buffer.size(), names.size()))};
     for (u32 i = 0; i < out_count; i++) {
         out_buffer[i] = names[i];
     }
@@ -53,7 +53,7 @@ u32 AudioDevice::ListAudioDeviceName(std::span<AudioDeviceName> out_buffer) cons
 }
 
 u32 AudioDevice::ListAudioOutputDeviceName(std::span<AudioDeviceName> out_buffer) const {
-    const u32 out_count{static_cast<u32>(std::min(out_buffer.size(), output_device_names.size()))};
+    const u32 out_count{static_cast<u32>((std::min)(out_buffer.size(), output_device_names.size()))};
 
     for (u32 i = 0; i < out_count; i++) {
         out_buffer[i] = output_device_names[i];

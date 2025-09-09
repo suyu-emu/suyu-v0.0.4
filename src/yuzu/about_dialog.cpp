@@ -11,14 +11,15 @@ AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent)
     , ui{std::make_unique<Ui::AboutDialog>()}
 {
-    const auto description = std::string(Common::g_build_version);
-    const auto build_id = std::string(Common::g_build_id);
+    static const std::string description = std::string(Common::g_build_version);
+    static const std::string build_id = std::string(Common::g_build_id);
+    static const std::string compiler = std::string(Common::g_compiler_id);
 
     std::string yuzu_build;
     if (Common::g_is_dev_build) {
-        yuzu_build = fmt::format("Eden Nightly | {}-{}", description, build_id);
+        yuzu_build = fmt::format("Eden Nightly | {}-{} | {}", description, build_id, compiler);
     } else {
-        yuzu_build = fmt::format("Eden | {}", description);
+        yuzu_build = fmt::format("Eden | {} | {}", description, compiler);
     }
 
     const auto override_build = fmt::format(fmt::runtime(

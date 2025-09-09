@@ -146,7 +146,7 @@ void ImageTransferProcessor::SetTransferMemoryAddress(Common::ProcessAddress t_m
 
 Core::IrSensor::ImageTransferProcessorState ImageTransferProcessor::GetState(
     std::span<u8> data) const {
-    const auto size = std::min(GetDataSize(current_config.trimming_format), data.size());
+    const auto size = (std::min)(GetDataSize(current_config.trimming_format), data.size());
     system.ApplicationMemory().ReadBlock(transfer_memory, data.data(), size);
     return processor_state;
 }

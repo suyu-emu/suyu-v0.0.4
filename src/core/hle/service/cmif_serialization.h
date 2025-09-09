@@ -304,7 +304,7 @@ void ReadInArgument(bool is_domain, CallArguments& args, const u8* raw_data, HLE
                 buffer = ctx.ReadBufferX(InBufferIndex);
             }
 
-            std::memcpy(&std::get<ArgIndex>(args), buffer.data(), std::min(BufferSize, buffer.size()));
+            std::memcpy(&std::get<ArgIndex>(args), buffer.data(), (std::min)(BufferSize, buffer.size()));
 
             return ReadInArgument<MethodArguments, CallArguments, PrevAlign, DataOffset, HandleIndex, InBufferIndex + 1, OutBufferIndex, RawDataFinished, ArgIndex + 1>(is_domain, args, raw_data, ctx, temp);
         } else if constexpr (ArgumentTraits<ArgType>::Type == ArgumentType::InBuffer) {

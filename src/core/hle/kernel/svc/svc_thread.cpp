@@ -117,10 +117,10 @@ void SleepThread(Core::System& system, s64 ns) {
         if (offset_tick > 0) {
             timeout = kernel.HardwareTimer().GetTick() + offset_tick + 2;
             if (timeout <= 0) {
-                timeout = std::numeric_limits<s64>::max();
+                timeout = (std::numeric_limits<s64>::max)();
             }
         } else {
-            timeout = std::numeric_limits<s64>::max();
+            timeout = (std::numeric_limits<s64>::max)();
         }
 
         // Sleep.
@@ -226,7 +226,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, u64 out_thread_
     auto& memory = GetCurrentMemory(system.Kernel());
     const auto& thread_list = current_process->GetThreadList();
     const auto num_threads = thread_list.size();
-    const auto copy_amount = std::min(static_cast<std::size_t>(out_thread_ids_size), num_threads);
+    const auto copy_amount = (std::min)(static_cast<std::size_t>(out_thread_ids_size), num_threads);
 
     auto list_iter = thread_list.cbegin();
     for (std::size_t i = 0; i < copy_amount; ++i, ++list_iter) {

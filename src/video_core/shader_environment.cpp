@@ -139,8 +139,8 @@ std::array<u32, 3> GenericEnvironment::WorkgroupSize() const {
 }
 
 u64 GenericEnvironment::ReadInstruction(u32 address) {
-    read_lowest = std::min(read_lowest, address);
-    read_highest = std::max(read_highest, address);
+    read_lowest = (std::min)(read_lowest, address);
+    read_highest = (std::max)(read_highest, address);
 
     if (address >= cached_lowest && address < cached_highest) {
         return code[(address - cached_lowest) / INST_SIZE];
@@ -319,7 +319,7 @@ GraphicsEnvironment::GraphicsEnvironment(Tegra::Engines::Maxwell3D& maxwell3d_,
         break;
     }
     const u64 local_size{sph.LocalMemorySize()};
-    ASSERT(local_size <= std::numeric_limits<u32>::max());
+    ASSERT(local_size <= (std::numeric_limits<u32>::max)());
     local_memory_size = static_cast<u32>(local_size) + sph.common3.shader_local_memory_crs_size;
     texture_bound = maxwell3d->regs.bindless_texture_const_buffer_slot;
     is_proprietary_driver = texture_bound == 2;

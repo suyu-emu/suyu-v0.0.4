@@ -170,7 +170,7 @@ void SplitterContext::RecomposeDestination(SplitterInfo& out_info,
 
     auto dest_count{info_header->destination_count};
     if (!splitter_bug_fixed) {
-        dest_count = std::min(dest_count, GetDestCountPerInfoForCompat());
+        dest_count = (std::min)(dest_count, GetDestCountPerInfoForCompat());
     }
 
     if (dest_count == 0) {

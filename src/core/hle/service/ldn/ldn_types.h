@@ -170,7 +170,7 @@ struct Ssid {
     Ssid() = default;
 
     constexpr explicit Ssid(std::string_view data) {
-        length = static_cast<u8>(std::min(data.size(), SsidLengthMax));
+        length = static_cast<u8>((std::min)(data.size(), SsidLengthMax));
         raw = {};
         data.copy(raw.data(), length);
         raw[length] = 0;

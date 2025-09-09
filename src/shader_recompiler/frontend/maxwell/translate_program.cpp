@@ -336,7 +336,7 @@ IR::Program MergeDualVertexPrograms(IR::Program& vertex_a, IR::Program& vertex_b
     }
     result.stage = Stage::VertexB;
     result.info = vertex_a.info;
-    result.local_memory_size = std::max(vertex_a.local_memory_size, vertex_b.local_memory_size);
+    result.local_memory_size = (std::max)(vertex_a.local_memory_size, vertex_b.local_memory_size);
     result.info.loads.mask |= vertex_b.info.loads.mask;
     result.info.stores.mask |= vertex_b.info.stores.mask;
 

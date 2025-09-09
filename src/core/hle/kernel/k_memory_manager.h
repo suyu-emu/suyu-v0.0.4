@@ -68,7 +68,7 @@ public:
         // Repeatedly open references until we've done so for all pages.
         while (num_pages) {
             auto& manager = this->GetManager(address);
-            const size_t cur_pages = std::min(num_pages, manager.GetPageOffsetToEnd(address));
+            const size_t cur_pages = (std::min)(num_pages, manager.GetPageOffsetToEnd(address));
 
             {
                 KScopedLightLock lk(m_pool_locks[static_cast<size_t>(manager.GetPool())]);
@@ -84,7 +84,7 @@ public:
         // Repeatedly open references until we've done so for all pages.
         while (num_pages) {
             auto& manager = this->GetManager(address);
-            const size_t cur_pages = std::min(num_pages, manager.GetPageOffsetToEnd(address));
+            const size_t cur_pages = (std::min)(num_pages, manager.GetPageOffsetToEnd(address));
 
             {
                 KScopedLightLock lk(m_pool_locks[static_cast<size_t>(manager.GetPool())]);
@@ -100,7 +100,7 @@ public:
         // Repeatedly close references until we've done so for all pages.
         while (num_pages) {
             auto& manager = this->GetManager(address);
-            const size_t cur_pages = std::min(num_pages, manager.GetPageOffsetToEnd(address));
+            const size_t cur_pages = (std::min)(num_pages, manager.GetPageOffsetToEnd(address));
 
             {
                 KScopedLightLock lk(m_pool_locks[static_cast<size_t>(manager.GetPool())]);

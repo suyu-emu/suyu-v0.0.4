@@ -25,8 +25,8 @@ TouchResource::~TouchResource() {
 };
 
 Result TouchResource::ActivateTouch() {
-    if (global_ref_counter == std::numeric_limits<s32>::max() - 1 ||
-        touch_ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (global_ref_counter == (std::numeric_limits<s32>::max)() - 1 ||
+        touch_ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultTouchOverflow;
     }
 
@@ -91,8 +91,8 @@ Result TouchResource::ActivateTouch(u64 aruid) {
 }
 
 Result TouchResource::ActivateGesture() {
-    if (global_ref_counter == std::numeric_limits<s32>::max() - 1 ||
-        gesture_ref_counter == std::numeric_limits<s32>::max() - 1) {
+    if (global_ref_counter == (std::numeric_limits<s32>::max)() - 1 ||
+        gesture_ref_counter == (std::numeric_limits<s32>::max)() - 1) {
         return ResultGestureOverflow;
     }
 

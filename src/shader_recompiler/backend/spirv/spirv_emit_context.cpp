@@ -1593,7 +1593,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
             throw NotImplementedException("Storing ClipDistance in fragment stage");
         }
         if (profile.max_user_clip_distances > 0) {
-            const u32 used{std::min(profile.max_user_clip_distances, 8u)};
+            const u32 used{(std::min)(profile.max_user_clip_distances, 8u)};
             const std::array<Id, 8> zero{f32_zero_value, f32_zero_value, f32_zero_value,
                                          f32_zero_value, f32_zero_value, f32_zero_value,
                                          f32_zero_value, f32_zero_value};

@@ -178,7 +178,7 @@ Result IHidDebugServer::SetTouchScreenAutoPilotState(
     AutoPilotState auto_pilot{};
 
     auto_pilot.count =
-        static_cast<u64>(std::min(auto_pilot_buffer.size(), auto_pilot.state.size()));
+        static_cast<u64>((std::min)(auto_pilot_buffer.size(), auto_pilot.state.size()));
     memcpy(auto_pilot.state.data(), auto_pilot_buffer.data(),
            auto_pilot.count * sizeof(TouchState));
 

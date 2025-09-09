@@ -27,8 +27,8 @@ public:
 
         // If we are, join with them, ensuring we stay in bounds.
         if (it != m_free_regions.end()) {
-            start_address = std::min(start_address, it->lower());
-            end_address = std::max(end_address, it->upper());
+            start_address = (std::min)(start_address, it->lower());
+            end_address = (std::max)(end_address, it->upper());
         }
 
         // Free the relevant region.

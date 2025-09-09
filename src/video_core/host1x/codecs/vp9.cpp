@@ -228,10 +228,10 @@ constexpr std::array<u8, 254> map_lut{
     std::size_t index{};
 
     if (old_prob * 2 <= 0xff) {
-        index = static_cast<std::size_t>(std::max(0, RecenterNonNeg(new_prob, old_prob) - 1));
+        index = static_cast<std::size_t>((std::max)(0, RecenterNonNeg(new_prob, old_prob) - 1));
     } else {
         index = static_cast<std::size_t>(
-            std::max(0, RecenterNonNeg(0xff - 1 - new_prob, 0xff - 1 - old_prob) - 1));
+            (std::max)(0, RecenterNonNeg(0xff - 1 - new_prob, 0xff - 1 - old_prob) - 1));
     }
 
     return static_cast<s32>(map_lut[index]);

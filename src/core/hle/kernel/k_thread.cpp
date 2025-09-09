@@ -1016,7 +1016,7 @@ void KThread::RestorePriority(KernelCore& kernel, KThread* thread) {
         s32 new_priority = thread->GetBasePriority();
         for (const auto& held_lock : thread->m_held_lock_info_list) {
             new_priority =
-                std::min(new_priority, held_lock.GetHighestPriorityWaiter()->GetPriority());
+                (std::min)(new_priority, held_lock.GetHighestPriorityWaiter()->GetPriority());
         }
 
         // If the priority we would inherit is not different from ours, don't do anything.

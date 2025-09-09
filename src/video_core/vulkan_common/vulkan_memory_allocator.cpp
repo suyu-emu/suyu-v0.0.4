@@ -136,7 +136,7 @@ namespace Vulkan {
             if (vmaMapMemory(allocator, allocation, &mapped_ptr) != VK_SUCCESS) return {};
         }
         const size_t n = static_cast<size_t>(std::min<VkDeviceSize>(size,
-                                                                    std::numeric_limits<size_t>::max()));
+                                                                    (std::numeric_limits<size_t>::max)()));
         return std::span<u8>{static_cast<u8 *>(mapped_ptr), n};
     }
 
@@ -149,7 +149,7 @@ namespace Vulkan {
             const_cast<MemoryCommit *>(this)->mapped_ptr = p;
         }
         const size_t n = static_cast<size_t>(std::min<VkDeviceSize>(size,
-                                                                    std::numeric_limits<size_t>::max()));
+                                                                    (std::numeric_limits<size_t>::max)()));
         return std::span<const u8>{static_cast<const u8 *>(mapped_ptr), n};
     }
 

@@ -63,7 +63,14 @@ if (mbedtls_ADDED)
     if (NOT MSVC)
         target_compile_options(mbedcrypto PRIVATE
             -Wno-unused-but-set-variable
-            -Wno-string-concatenation)
+            -Wno-string-concatenation
+        )
+    elseif(CXX_CLANG)
+        foreach(TARGET mbedtls mbedcrypto mbedx509)
+            target_compile_options(${TARGET} PRIVATE
+                -w
+            )
+        endforeach()
     endif()
 endif()
 
@@ -84,6 +91,8 @@ if(MSVC AND USE_CCACHE AND sirit_ADDED)
     list(FILTER _opts EXCLUDE REGEX "/Zi")
     list(APPEND _opts "/Z7")
     set_target_properties(sirit PROPERTIES COMPILE_OPTIONS "${_opts}")
+elseif(MSVC AND CXX_CLANG)
+    target_compile_options(sirit PRIVATE -Wno-error=unused-command-line-argument)
 endif()
 
 # httplib
@@ -136,8 +145,16 @@ add_subdirectory(nx_tzdb)
 # VMA
 AddJsonPackage(vulkan-memory-allocator)
 
-if (VulkanMemoryAllocator_ADDED AND MSVC)
-    target_compile_options(VulkanMemoryAllocator INTERFACE /wd4189)
+if (VulkanMemoryAllocator_ADDED)
+    if (CXX_CLANG)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            -Wno-unused-variable
+        )
+    elseif(MSVC)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            /wd4189
+        )
+    endif()
 endif()
 
 if (NOT TARGET LLVM::Demangle)

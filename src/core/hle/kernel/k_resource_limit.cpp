@@ -111,7 +111,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         if (m_current_values[index] + value <= m_limit_values[index]) {
             m_current_values[index] += value;
             m_current_hints[index] += value;
-            m_peak_values[index] = std::max(m_peak_values[index], m_current_values[index]);
+            m_peak_values[index] = (std::max)(m_peak_values[index], m_current_values[index]);
             return true;
         }
 

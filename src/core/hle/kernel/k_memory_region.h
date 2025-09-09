@@ -28,7 +28,7 @@ public:
         : m_address(address), m_last_address(last_address), m_pair_address(pair_address),
           m_attributes(attributes), m_type_id(type_id) {}
     constexpr KMemoryRegion(u64 address, u64 last_address, u32 attributes, u32 type_id)
-        : KMemoryRegion(address, last_address, std::numeric_limits<u64>::max(), attributes,
+        : KMemoryRegion(address, last_address, (std::numeric_limits<u64>::max)(), attributes,
                         type_id) {}
 
     ~KMemoryRegion() = default;
