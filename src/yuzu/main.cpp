@@ -178,7 +178,9 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QPlatformSurfaceEvent>
 #include <dwmapi.h>
 #include <windows.h>
+#ifdef _MSC_VER
 #pragma comment(lib, "Dwmapi.lib")
+#endif
 
 static inline void ApplyWindowsTitleBarDarkMode(HWND hwnd, bool enabled) {
     if (!hwnd)

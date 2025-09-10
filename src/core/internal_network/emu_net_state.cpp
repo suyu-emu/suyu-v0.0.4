@@ -10,7 +10,9 @@
 #define NOMINMAX
 #include <windows.h>
 #include <wlanapi.h>
+#ifdef _MSC_VER
 #pragma comment(lib, "wlanapi.lib")
+#endif
 #endif
 #include <common/settings.h>
 

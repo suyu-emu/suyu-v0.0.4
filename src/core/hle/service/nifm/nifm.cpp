@@ -21,6 +21,7 @@
 #include <atomic>
 #include <chrono>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <unordered_set>
 #include <common/settings.h>
@@ -32,7 +33,9 @@
 #undef interface
 #include <wlanapi.h>
 #pragma pop_macro("interface")
+#ifdef _MSC_VER
 #pragma comment(lib, "wlanapi.lib")
+#endif
 #endif
 
 namespace {
