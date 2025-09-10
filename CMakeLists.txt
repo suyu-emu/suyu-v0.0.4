@@ -204,6 +204,8 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available
 
 CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
 
+set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
+
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
     # - Windows defaults to the Schannel backend.
@@ -465,6 +467,7 @@ else()
     find_package(Opus 1.3 MODULE REQUIRED)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
+    find_package(Boost 1.79.0 REQUIRED headers context system fiber)
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)
@@ -595,6 +598,10 @@ find_package(VulkanUtilityLibraries)
 find_package(libusb)
 find_package(VulkanMemoryAllocator)
 find_package(SPIRV-Tools)
+
+if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
+    find_package(xbyak)
+endif()
 
 if (ENABLE_WEB_SERVICE)
     find_package(httplib)

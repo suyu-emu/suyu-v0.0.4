@@ -15,6 +15,7 @@
         "repo": "eden-emulator/sirit",
         "sha": "db1f1e8ab5",
         "hash": "73eb3a042848c63a10656545797e85f40d142009dfb7827384548a385e1e28e1ac72f42b25924ce530d58275f8638554281e884d72f9c7aaf4ed08690a414b05",
+        "find_args": "MODULE",
         "options": [
             "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
         ]

@@ -33,9 +33,12 @@ if (CAN_BUILD_NX_TZDB AND NOT YUZU_DOWNLOAD_TIME_ZONE_DATA)
     set(NX_TZDB_TZ_DIR "${NX_TZDB_BASE_DIR}/zoneinfo")
 endif()
 
-# TODO(crueter): This is a terrible solution, but MSVC fails to link without it
-# Need to investigate further but I still can't reproduce...
-if (MSVC)
+if(NOT YUZU_TZDB_PATH STREQUAL "")
+    set(NX_TZDB_BASE_DIR "${YUZU_TZDB_PATH}")
+    set(NX_TZDB_TZ_DIR "${NX_TZDB_BASE_DIR}/zoneinfo")
+elseif (MSVC)
+    # TODO(crueter): This is a terrible solution, but MSVC fails to link without it
+    # Need to investigate further but I still can't reproduce...
     set(NX_TZDB_VERSION "250725")
     set(NX_TZDB_ARCHIVE "${CPM_SOURCE_CACHE}/nx_tzdb/${NX_TZDB_VERSION}.zip")
 
