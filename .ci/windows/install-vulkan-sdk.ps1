@@ -3,6 +3,12 @@
 
 $ErrorActionPreference = "Stop"
 
+# Check if running as administrator
+if (-not ([bool](net session 2>$null))) {
+    Write-Host "This script must be run with administrator privileges!"
+    Exit 1
+}
+
 $VulkanSDKVer = "1.4.321.1"
 $ExeFile = "vulkansdk-windows-X64-$VulkanSDKVer.exe"
 $Uri = "https://sdk.lunarg.com/sdk/download/$VulkanSDKVer/windows/$ExeFile"
