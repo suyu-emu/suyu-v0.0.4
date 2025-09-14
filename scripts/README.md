@@ -4,7 +4,15 @@ This directory contains scripts and workflows to synchronize issues from a Forge
 
 ## Overview
 
-The issue sync system addresses the problem of keeping GitHub issues in sync with a Forgejo repository. It uses the Forgejo API instead of web scraping for better reliability and includes proper error handling, duplicate detection, and rate limiting.
+The issue sync system addresses the problem of keeping GitHub issues in sync with a Forgejo repository.
+
+**🔧 Recent Fix (Issue #29):**
+- Fixed 403 Forbidden error by switching from web scraping to Forgejo REST API
+- Corrected malformed GitHub API URL
+- Added proper authentication handling for both public and private repositories
+- Improved error handling and logging with emoji indicators
+- Added comprehensive duplicate detection
+- Implemented rate limiting to prevent API abuse
 
 ## Files
 
@@ -124,3 +132,9 @@ When modifying the sync script:
 2. Update both the workflow and standalone script
 3. Update this documentation if needed
 4. Test with a small number of issues before full deployment
+
+## Issue Resolution
+
+This implementation resolves the original issue #29 by:
+- Using `https://git.suyu.dev/api/v1/repos/suyu/suyu/issues` instead of the web interface
+- Handling 403 errors gracefully by falling back to unauthenticated requests for public repos
