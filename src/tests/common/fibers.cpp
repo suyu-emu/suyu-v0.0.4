@@ -278,7 +278,7 @@ public:
     TestControl4() {
         fiber1 = std::make_shared<Fiber>([this] { DoWork(); });
         goal_reached = false;
-        rewinded = false;
+        rewound = false;
     }
 
     void Execute() {
