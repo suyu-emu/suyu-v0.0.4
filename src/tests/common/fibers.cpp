@@ -293,7 +293,7 @@ public:
             goal_reached = true;
             Fiber::YieldTo(fiber1, *thread_fiber);
         }
-        rewinded = true;
+        rewound = true;
         fiber1->Rewind();
     }
 
