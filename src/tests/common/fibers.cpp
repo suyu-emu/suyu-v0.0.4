@@ -307,7 +307,7 @@ TEST_CASE("Fibers::Rewind", "[common]") {
     TestControl4 test_control{};
     test_control.Execute();
     REQUIRE(test_control.goal_reached);
-    REQUIRE(test_control.rewinded);
+    REQUIRE(test_control.rewound);
 }
 
 } // namespace Common
