@@ -54,9 +54,9 @@ def test_forgejo_api():
 if __name__ == "__main__":
     success = test_forgejo_api()
     if success:
-        print("🎉 Test completed successfully!")
+        print("\n🎉 Test completed successfully!")
     else:
-        print("💥 Test failed - but this might be expected for private repositories")
+        print("\n💥 Test failed - but this might be expected for private repositories")
         print("ℹ️  The main sync workflow has additional logic to handle authentication")
 
     # Always exit with success code since 403 is an expected scenario
