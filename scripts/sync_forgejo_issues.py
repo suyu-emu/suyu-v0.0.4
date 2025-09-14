@@ -22,7 +22,6 @@ import time
 from urllib.parse import urlparse
 
 import requests
-from config import *
 # Configuration constants
 DEFAULT_FORGEJO_URL = "https://git.suyu.dev/api/v1/repos/suyu/suyu/issues"
 ISSUE_TITLE_PREFIX = "[Forgejo]"
