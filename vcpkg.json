@@ -32,6 +32,7 @@
     "lz4",
     "nlohmann-json",
     "opus",
+    "renderdoc-api",
     "simpleini",
     "stb",
     "vulkan-memory-allocator",
