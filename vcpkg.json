@@ -29,6 +29,7 @@
     "enet",
     "fmt",
     "libusb",
+    "llvm",
     "lz4",
     "nlohmann-json",
     "opus",
