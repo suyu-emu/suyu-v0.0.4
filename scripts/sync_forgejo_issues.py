@@ -15,12 +15,14 @@ Environment Variables:
     GITHUB_TOKEN: GitHub access token
 """
 
-import os
-import requests
 import json
-import time
+import os
 import sys
+import time
 from urllib.parse import urlparse
+
+import requests
+from config import *
 
 
 def get_existing_github_issues(github_repo, github_headers):
@@ -32,7 +34,7 @@ def get_existing_github_issues(github_repo, github_headers):
 
     while True:
         url = f"https://api.github.com/repos/{github_repo}/issues"
-        params = {"state": "all", "per_page": 100, "page": page}
+        params = {"state": "all", "per_page": GITHUB_PAGE_SIZE, "page": page}
 
         try:
             response = requests.get(url, headers=github_headers, params=params)
@@ -63,7 +65,7 @@ def fetch_forgejo_issues(forgejo_api_url, forgejo_headers):
     print("🔍 Fetching issues from Forgejo...")
 
     while True:
-        params = {"state": "open", "per_page": 50, "page": page}
+        params = {"state": ",".join(SYNC_STATES), "per_page": FORGEJO_PAGE_SIZE, "page": page}
 
         try:
             response = requests.get(forgejo_api_url, headers=forgejo_headers, params=params)
@@ -97,17 +99,17 @@ def create_github_issue(title, body, labels, github_repo, github_headers, forgej
 
     # Prepare issue body with source attribution
     source_url = forgejo_api_url.replace('/api/v1/repos/', '/').replace('/issues', '')
-    attributed_body = f"**Imported from Forgejo**: {source_url}\n\n---\n\n{body}"
+    attributed_body = ATTRIBUTION_TEMPLATE.format(source_url=source_url, original_body=body)
 
     new_issue = {
-        "title": f"[Forgejo] {title}",
+        "title": f"{ISSUE_TITLE_PREFIX} {title}",
         "body": attributed_body,
     }
 
     if labels:
-        new_issue["labels"] = labels + ["imported-from-forgejo"]
+        new_issue["labels"] = labels + [IMPORT_LABEL]
     else:
-        new_issue["labels"] = ["imported-from-forgejo"]
+        new_issue["labels"] = [IMPORT_LABEL]
 
     try:
         create_response = requests.post(create_issue_url, json=new_issue, headers=github_headers)
@@ -128,7 +130,7 @@ def create_github_issue(title, body, labels, github_repo, github_headers, forgej
 
 def main():
     # Environment variables
-    forgejo_api_url = os.getenv("FORGEJO_URL")
+    forgejo_api_url = os.getenv("FORGEJO_URL", DEFAULT_FORGEJO_URL)
     forgejo_token = os.getenv("FORGEJO_TOKEN")
     github_repo = os.getenv("GITHUB_REPOSITORY")
     github_token = os.getenv("GITHUB_TOKEN")
@@ -176,7 +178,7 @@ def main():
         labels = [label["name"] for label in issue.get("labels", [])]
 
         # Check for duplicates (with and without [Forgejo] prefix)
-        prefixed_title = f"[Forgejo] {title}"
+        prefixed_title = f"{ISSUE_TITLE_PREFIX} {title}"
 
         if title in existing_issues or prefixed_title in existing_issues:
             print(f"⏭️  Issue '{title}' already exists, skipping...")
@@ -187,12 +189,17 @@ def main():
         if create_github_issue(title, body, labels, github_repo, github_headers, forgejo_api_url):
             created_count += 1
             # Add small delay to avoid rate limiting
-            time.sleep(1)
+            time.sleep(RATE_LIMIT_DELAY)
 
         # Rate limiting protection
-        if created_count > 0 and created_count % 10 == 0:
+        if created_count > 0 and created_count % RATE_LIMIT_BATCH_SIZE == 0:
             print("⏸️  Pausing for rate limit protection...")
-            time.sleep(5)
+            time.sleep(RATE_LIMIT_BATCH_DELAY)
+
+        # Check if we've hit the maximum issues per run
+        if MAX_ISSUES_PER_RUN > 0 and created_count >= MAX_ISSUES_PER_RUN:
+            print(f"⏹️  Reached maximum issues per run ({MAX_ISSUES_PER_RUN}), stopping...")
+            break
 
     print(f"\n📊 Sync completed:")
     print(f"   ✅ Created: {created_count} issues")
