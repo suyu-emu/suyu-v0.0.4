@@ -23,6 +23,24 @@ from urllib.parse import urlparse
 
 import requests
 from config import *
+# Configuration constants
+DEFAULT_FORGEJO_URL = "https://git.suyu.dev/api/v1/repos/suyu/suyu/issues"
+ISSUE_TITLE_PREFIX = "[Forgejo]"
+IMPORT_LABEL = "imported-from-forgejo"
+RATE_LIMIT_DELAY = 1
+RATE_LIMIT_BATCH_SIZE = 10
+RATE_LIMIT_BATCH_DELAY = 5
+FORGEJO_PAGE_SIZE = 50
+GITHUB_PAGE_SIZE = 100
+SYNC_STATES = ["open"]
+MAX_ISSUES_PER_RUN = 0
+
+# Attribution message template
+ATTRIBUTION_TEMPLATE = """**Imported from Forgejo**: {source_url}
+
+---
+
+{original_body}"""
 
 
 def get_existing_github_issues(github_repo, github_headers):
