@@ -289,7 +289,7 @@ public:
 
     void DoWork() {
         fiber1->SetRewindPoint([this] { DoWork(); });
-        if (rewinded) {
+        if (rewound) {
             goal_reached = true;
             Fiber::YieldTo(fiber1, *thread_fiber);
         }
