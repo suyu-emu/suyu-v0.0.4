@@ -171,6 +171,10 @@ def main():
     github_headers = {"Authorization": f"Bearer {github_token}"}
 
     print("🔄 Starting Forgejo to GitHub issue sync...")
+    print(f"🔗 Forgejo URL: {forgejo_api_url}")
+    print(f"🏠 GitHub Repository: {github_repo}")
+    print(f"🔑 Using Forgejo Token: {'Yes' if forgejo_token else 'No'}")
+
 
     # Get existing GitHub issues
     existing_issues = get_existing_github_issues(github_repo, github_headers)
