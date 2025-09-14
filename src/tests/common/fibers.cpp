@@ -300,7 +300,7 @@ public:
     std::shared_ptr<Common::Fiber> fiber1;
     std::shared_ptr<Common::Fiber> thread_fiber;
     bool goal_reached;
-    bool rewinded;
+    bool rewound;
 };
 
 TEST_CASE("Fibers::Rewind", "[common]") {
