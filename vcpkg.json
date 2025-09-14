@@ -25,6 +25,7 @@
     "cpp-httplib",
     "cpp-jwt",
     "cubeb",
+    "dynarmic",
     "enet",
     "fmt",
     "libusb",
