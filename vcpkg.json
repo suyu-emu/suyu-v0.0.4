@@ -76,6 +76,10 @@
     {
       "name": "fmt",
       "version": "10.1.1"
+    },
+    {
+      "name": "llvm",
+      "version": "17.0.6"
     }
   ]
 }
