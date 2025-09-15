@@ -32,6 +32,7 @@ inline SHA256Hash operator"" _HASH(const char* data, size_t len) {
     }
 
     // Convert hex string to array manually to avoid potential assertion issues
+    // Each pair of hex characters becomes one byte
     SHA256Hash result{};
     for (size_t i = 0; i < len; i += 2) {
         u8 high_nibble = (data[i] >= '0' && data[i] <= '9') ? (data[i] - '0') :
