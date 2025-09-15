@@ -17,7 +17,7 @@ TEST_CASE("SHA256Hash typedef", "[crypto]") {
         static_assert(sizeof(SHA256Hash) == 0x20);
         static_assert(sizeof(SHA256Hash) == 32);
 
-        SHA256Hash hash{};
+        Crypto::SHA256Hash hash{};
         REQUIRE(hash.size() == 32);
         REQUIRE(hash.max_size() == 32);
     }
