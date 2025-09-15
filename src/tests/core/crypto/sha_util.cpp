@@ -120,7 +120,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
             0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14,
             0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
             0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
-            0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
+            0xa4, 0x95, 0x99, 1b, 0x78, 0x52, 0xb8, 0x55
         };
 
         REQUIRE(hash == expected);
@@ -131,12 +131,33 @@ TEST_CASE("_HASH operator", "[crypto]") {
         auto hash1 = "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"_HASH; // 64 'g' chars
         auto hash2 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdeg"_HASH; // 'g' at end
         auto hash3 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd@g"_HASH; // '@' and 'g'
+        auto hash4 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd z"_HASH; // space and 'z'
 
         // These should return empty because they contain invalid hex characters
         Crypto::SHA256Hash empty{};
         REQUIRE(hash1 == empty);
         REQUIRE(hash2 == empty);
         REQUIRE(hash3 == empty);
+        REQUIRE(hash4 == empty);
+    }
+
+    SECTION("Edge case hex characters") {
+        // Test edge cases around valid hex character ranges
+        auto hash1 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd/0"_HASH; // '/' is before '0'
+        auto hash2 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd:0"_HASH; // ':' is after '9'
+        auto hash3 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd`0"_HASH; // '`' is before 'a'
+        auto hash4 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdg0"_HASH; // 'g' is after 'f'
+        auto hash5 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd@0"_HASH; // '@' is before 'A'
+        auto hash6 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdG0"_HASH; // 'G' is after 'F'
+
+        // All should return empty because they contain invalid hex characters
+        Crypto::SHA256Hash empty{};
+        REQUIRE(hash1 == empty);
+        REQUIRE(hash2 == empty);
+        REQUIRE(hash3 == empty);
+        REQUIRE(hash4 == empty);
+        REQUIRE(hash5 == empty);
+        REQUIRE(hash6 == empty);
     }
 
     SECTION("Boundary test - exactly 64 characters") {
@@ -158,5 +179,13 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(compile_time_hash == runtime_hash);
 
         static_assert(compile_time_hash.size() == 32);
+
+        // Test another compile-time hash
+        constexpr auto compile_time_hash2 = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"_HASH;
+        static_assert(compile_time_hash2.size() == 32);
+
+        Crypto::SHA256Hash runtime_hash2;
+        runtime_hash2.fill(0xff);
+        REQUIRE(compile_time_hash2 == runtime_hash2);
     }
 }
