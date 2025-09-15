@@ -7,7 +7,7 @@
 #include "common/common_types.h"
 
 namespace Crypto {
-typedef std::array<u8, 0x20> SHA256Hash;
+using SHA256Hash = std::array<u8, 0x20>;
 
 // User-defined literal operator to convert hex strings to SHA256Hash
 constexpr SHA256Hash operator""_HASH(const char* data, std::size_t len) {
