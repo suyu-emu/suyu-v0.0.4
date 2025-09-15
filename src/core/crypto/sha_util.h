@@ -15,11 +15,6 @@ inline SHA256Hash operator"" _HASH(const char* data, size_t len) {
         return {};
     }
 
-    // Check for null pointer
-    if (data == nullptr) {
-        return {};
-    }
-
     // Validate that all characters are valid hex characters
     for (size_t i = 0; i < len; ++i) {
         char c = data[i];
