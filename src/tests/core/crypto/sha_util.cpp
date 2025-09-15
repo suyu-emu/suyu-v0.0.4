@@ -170,4 +170,12 @@ TEST_CASE("_HASH operator", "[crypto]") {
         Crypto::SHA256Hash expected{};  // All zeros
         REQUIRE(hash == expected);
     }
+
+    SECTION("Runtime evaluation works correctly") {
+        // Test that the operator works at runtime
+        auto runtime_hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
+        Crypto::SHA256Hash expected{};
+        REQUIRE(runtime_hash == expected);
+        REQUIRE(runtime_hash.size() == 32);
+    }
 }
