@@ -25,7 +25,9 @@ inline SHA256Hash operator"" _HASH(const char* data, size_t len) {
         }
     }
 
-    return Common::HexStringToArray<0x20>(std::string_view(data, len));
+    // Only call HexStringToArray if we've validated the input
+    std::string_view hex_view(data, len);
+    return Common::HexStringToArray<0x20>(hex_view);
 }
 
 } // namespace Crypto
