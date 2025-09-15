@@ -182,3 +182,5 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(count == 32);
     }
 }
+
+} // namespace
