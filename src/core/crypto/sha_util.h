@@ -4,7 +4,6 @@
 #pragma once
 
 #include <string_view>
-#include "common/assert.h"
 #include "common/hex_util.h"
 
 namespace Crypto {
