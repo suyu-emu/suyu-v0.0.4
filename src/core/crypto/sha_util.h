@@ -17,7 +17,10 @@ inline SHA256Hash operator"" _HASH(const char* data, size_t len) {
     // Validate that all characters are valid hex characters
     for (size_t i = 0; i < len; ++i) {
         char c = data[i];
-        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+        bool is_valid_hex = (c >= '0' && c <= '9') ||
+                           (c >= 'a' && c <= 'f') ||
+                           (c >= 'A' && c <= 'F');
+        if (!is_valid_hex) {
             return {};
         }
     }
