@@ -10,6 +10,8 @@
 #include "core/crypto/sha_util.h"
 
 
+using namespace Crypto;
+
 TEST_CASE("SHA256Hash typedef", "[crypto]") {
     SECTION("SHA256Hash is correct size") {
         // SHA256Hash should be 32 bytes (0x20)
