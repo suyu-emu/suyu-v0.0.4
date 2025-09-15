@@ -5,7 +5,6 @@
 #include <array>
 #include <string_view>
 #include "common/common_types.h"
-#include "common/hex_util.h"
 
 namespace Crypto {
 typedef std::array<u8, 0x20> SHA256Hash;
