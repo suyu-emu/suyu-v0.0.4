@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+#include <array>
 
 #include <string_view>
 #include "common/hex_util.h"
