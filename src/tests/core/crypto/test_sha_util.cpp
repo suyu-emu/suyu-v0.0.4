@@ -82,7 +82,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
     SECTION("All zeros hex string") {
         auto hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
 
-        SHA256Hash expected{};  // All zeros
+        Crypto::SHA256Hash expected{};  // All zeros
         REQUIRE(hash == expected);
     }
 
