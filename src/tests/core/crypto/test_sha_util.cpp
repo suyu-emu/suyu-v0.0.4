@@ -1,12 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <catch2/catch_test_macros.hpp>
+
 #include <array>
-#include <cstddef>
 #include <cstring>
 #include <type_traits>
-
-#include <catch2/catch_test_macros.hpp>
 #include "common/common_types.h"
 #include "core/crypto/sha_util.h"
 
