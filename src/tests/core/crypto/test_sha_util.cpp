@@ -106,7 +106,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
         auto hash = "0123456789AbCdEf0123456789aBcDeF0123456789abcdef0123456789ABCDEF"_HASH;
 
         // Expected bytes from the hex string (case should not matter)
-        SHA256Hash expected{
+        Crypto::SHA256Hash expected{
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
