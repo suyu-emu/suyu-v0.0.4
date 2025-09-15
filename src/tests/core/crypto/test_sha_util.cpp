@@ -89,7 +89,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
     SECTION("All ones hex string (lowercase)") {
         auto hash = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"_HASH;
 
-        SHA256Hash expected;
+        Crypto::SHA256Hash expected;
         expected.fill(0xff);  // All bytes set to 0xff
         REQUIRE(hash == expected);
     }
