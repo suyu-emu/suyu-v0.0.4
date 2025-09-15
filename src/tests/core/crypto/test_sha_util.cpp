@@ -155,7 +155,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
         auto hash6 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdG0"_HASH; // 'G' is after 'F'
 
         // All should return empty because they contain invalid hex characters
-        SHA256Hash empty{};
+        Crypto::SHA256Hash empty{};
         REQUIRE(hash1 == empty);
         REQUIRE(hash2 == empty);
         REQUIRE(hash3 == empty);
