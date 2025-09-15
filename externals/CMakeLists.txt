@@ -54,36 +54,27 @@ endif()
 # Glad
 add_subdirectory(glad)
 
-# mbedtls
-AddJsonPackage(mbedtls)
-
-if (mbedtls_ADDED)
-    target_include_directories(mbedtls PUBLIC ${mbedtls_SOURCE_DIR}/include)
-
-    if (NOT MSVC)
-        target_compile_options(mbedcrypto PRIVATE
-            -Wno-unused-but-set-variable
-            -Wno-string-concatenation
-        )
-    elseif(CXX_CLANG)
-        foreach(TARGET mbedtls mbedcrypto mbedx509)
-            target_compile_options(${TARGET} PRIVATE
-                -w
-            )
-        endforeach()
-    endif()
-endif()
-
 # libusb
 if (ENABLE_LIBUSB)
     add_subdirectory(libusb)
 endif()
 
-# Sirit
-# TODO(crueter): spirv-tools doesn't work w/ system
-set(SPIRV_WERROR OFF)
-AddJsonPackage(spirv-headers)
+# VMA
+AddJsonPackage(vulkan-memory-allocator)
 
+if (VulkanMemoryAllocator_ADDED)
+    if (CXX_CLANG)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            -Wno-unused-variable
+        )
+    elseif(MSVC)
+        target_compile_options(VulkanMemoryAllocator INTERFACE
+            /wd4189
+        )
+    endif()
+endif()
+
+# Sirit
 AddJsonPackage(sirit)
 
 if(MSVC AND USE_CCACHE AND sirit_ADDED)
@@ -117,45 +108,8 @@ if (YUZU_USE_BUNDLED_FFMPEG)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
-# VulkanUtilityHeaders - pulls in headers and utility libs
-AddJsonPackage(
-    NAME vulkan-utility-headers
-    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES}
-)
-
-# small hack
-if (NOT VulkanUtilityLibraries_ADDED)
-    find_package(VulkanHeaders 1.3.274 REQUIRED)
-endif()
-
-# SPIRV Tools
-AddJsonPackage(
-    NAME spirv-tools
-    BUNDLED_PACKAGE ${YUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS}
-)
-
-if (SPIRV-Tools_ADDED)
-    add_library(SPIRV-Tools::SPIRV-Tools ALIAS SPIRV-Tools-static)
-    target_link_libraries(SPIRV-Tools-static PRIVATE SPIRV-Tools-opt SPIRV-Tools-link)
-endif()
-
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
-
-# VMA
-AddJsonPackage(vulkan-memory-allocator)
-
-if (VulkanMemoryAllocator_ADDED)
-    if (CXX_CLANG)
-        target_compile_options(VulkanMemoryAllocator INTERFACE
-            -Wno-unused-variable
-        )
-    elseif(MSVC)
-        target_compile_options(VulkanMemoryAllocator INTERFACE
-            /wd4189
-        )
-    endif()
-endif()
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)

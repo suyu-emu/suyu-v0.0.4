@@ -178,7 +178,7 @@ struct ProcessContext {
             std::vector<u8> nro_data(size);
             m_process->GetMemory().ReadBlock(base_address, nro_data.data(), size);
 
-            mbedtls_sha256_ret(nro_data.data(), size, hash.data(), 0);
+            mbedtls_sha256(nro_data.data(), size, hash.data(), 0);
         }
 
         for (size_t i = 0; i < MaxNrrInfos; i++) {

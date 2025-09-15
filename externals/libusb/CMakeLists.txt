@@ -3,7 +3,17 @@
 
 include(CPMUtil)
 
-AddJsonPackage(libusb)
+if (PLATFORM_SUN OR PLATFORM_OPENBSD OR PLATFORM_FREEBSD)
+    set(libusb_bundled ON)
+else()
+    set(libusb_bundled OFF)
+endif()
+
+# TODO(crueter): Fix on *BSD/Solaris
+AddJsonPackage(
+    NAME libusb
+    BUNDLED_PACKAGE ${libusb_bundled}
+)
 
 if (NOT libusb_ADDED)
     return()

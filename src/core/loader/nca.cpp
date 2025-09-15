@@ -150,7 +150,7 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
     // Initialize sha256 verification context.
     mbedtls_sha256_context ctx;
     mbedtls_sha256_init(&ctx);
-    mbedtls_sha256_starts_ret(&ctx, 0);
+    mbedtls_sha256_starts(&ctx, 0);
 
     // Ensure we maintain a clean state on exit.
     SCOPE_EXIT {
@@ -168,7 +168,7 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
         const size_t read_size = file->Read(buffer.data(), intended_read_size, processed_size);
 
         // Update the hash function with the buffer contents.
-        mbedtls_sha256_update_ret(&ctx, buffer.data(), read_size);
+        mbedtls_sha256_update(&ctx, buffer.data(), read_size);
 
         // Update counters.
         processed_size += read_size;
@@ -181,7 +181,7 @@ ResultStatus AppLoader_NCA::VerifyIntegrity(std::function<bool(size_t, size_t)> 
 
     // Finalize context and compute the output hash.
     std::array<u8, NcaSha256HashLength> output_hash;
-    mbedtls_sha256_finish_ret(&ctx, output_hash.data());
+    mbedtls_sha256_finish(&ctx, output_hash.data());
 
     // Compare to expected.
     if (std::memcmp(input_hash.data(), output_hash.data(), NcaSha256HalfHashLength) != 0) {

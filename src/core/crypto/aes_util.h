@@ -16,7 +16,7 @@ struct CipherContext;
 enum class Mode {
     CTR = 11,
     ECB = 2,
-    XTS = 70,
+    XTS = 74,
 };
 
 enum class Op {

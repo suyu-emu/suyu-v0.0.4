@@ -15,7 +15,7 @@ namespace Service::BCAT {
 static BcatDigest DigestFile(const FileSys::VirtualFile& file) {
     BcatDigest out{};
     const auto bytes = file->ReadAllBytes();
-    mbedtls_md5_ret(bytes.data(), bytes.size(), out.data());
+    mbedtls_md5(bytes.data(), bytes.size(), out.data());
     return out;
 }
 

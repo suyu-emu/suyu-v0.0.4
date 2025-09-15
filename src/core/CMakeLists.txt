@@ -1200,7 +1200,7 @@ else()
     target_link_libraries(core PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API mbedtls mbedcrypto)
+target_link_libraries(core PRIVATE fmt::fmt nlohmann_json::nlohmann_json RenderDoc::API MbedTLS::mbedcrypto MbedTLS::mbedtls)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()

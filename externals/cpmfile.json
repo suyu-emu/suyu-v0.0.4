@@ -1,15 +1,10 @@
 {
-    "mbedtls": {
-        "repo": "eden-emulator/mbedtls",
-        "sha": "ce4f81f4a9",
-        "hash": "f2e7f887651b28745e508149214d409fd7cfdb92cb94b4146b47ff1e0fc09e47143f203ac18e34c2c1814b5bd031d04c74828676c0d4342920a2ddb7fd35e9a5",
-        "find_args": "MODULE"
-    },
-    "spirv-headers": {
-        "package": "SPIRV-Headers",
-        "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "4e209d3d7e",
-        "hash": "f48bbe18341ed55ea0fe280dbbbc0a44bf222278de6e716e143ca1e95ca320b06d4d23d6583fbf8d03e1428f3dac8fa00e5b82ddcd6b425e6236d85af09550a4"
+    "vulkan-memory-allocator": {
+        "package": "VulkanMemoryAllocator",
+        "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
+        "sha": "1076b348ab",
+        "hash": "a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772",
+        "find_args": "CONFIG"
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
@@ -33,31 +28,6 @@
         "find_args": "CONFIG",
         "options": [
             "CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF"
-        ]
-    },
-    "vulkan-utility-headers": {
-        "package": "VulkanUtilityLibraries",
-        "repo": "scripts/VulkanUtilityHeaders",
-        "tag": "1.4.326",
-        "artifact": "VulkanUtilityHeaders.tar.zst",
-        "git_host": "git.crueter.xyz",
-        "hash": "5924629755cb1605c4aa4eee20ef7957a9dd8d61e4df548be656d98054f2730c4109693c1bd35811f401f4705d2ccff9fc849be32b0d8480bc3f73541a5e0964"
-    },
-    "vulkan-memory-allocator": {
-        "package": "VulkanMemoryAllocator",
-        "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
-        "sha": "1076b348ab",
-        "hash": "a46b44e4286d08cffda058e856c47f44c7fed3da55fe9555976eb3907fdcc20ead0b1860b0c38319cda01dbf9b1aa5d4b4038c7f1f8fbd97283d837fa9af9772",
-        "find_args": "CONFIG"
-    },
-    "spirv-tools": {
-        "package": "SPIRV-Tools",
-        "repo": "KhronosGroup/SPIRV-Tools",
-        "sha": "40eb301f32",
-        "hash": "58d0fb1047d69373cf24c73e6f78c73a72a6cca3b4df1d9f083b9dcc0962745ef154abf3dbe9b3623b835be20c6ec769431cf11733349f45e7568b3525f707aa",
-        "find_args": "MODULE",
-        "options": [
-            "SPIRV_SKIP_EXECUTABLES ON"
         ]
     },
     "xbyak_sun": {

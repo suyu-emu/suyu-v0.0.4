@@ -68,7 +68,7 @@ NAX::NAX(VirtualFile file_, std::array<u8, 0x10> nca_id)
     : header(std::make_unique<NAXHeader>()),
       file(std::move(file_)), keys{Core::Crypto::KeyManager::Instance()} {
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256_ret(nca_id.data(), nca_id.size(), hash.data(), 0);
+    mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
     status = Parse(fmt::format("/registered/000000{:02X}/{}.nca", hash[0],
                                Common::HexToString(nca_id, false)));
 }

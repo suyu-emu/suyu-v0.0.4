@@ -64,7 +64,7 @@ static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bo
     }
 
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256_ret(nca_id.data(), nca_id.size(), hash.data(), 0);
+    mbedtls_sha256(nca_id.data(), nca_id.size(), hash.data(), 0);
 
     const auto format_str =
         fmt::runtime(cnmt_suffix ? "/000000{:02X}/{}.cnmt.nca" : "/000000{:02X}/{}.nca");
@@ -146,7 +146,7 @@ bool PlaceholderCache::Create(const NcaID& id, u64 size) const {
     }
 
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256_ret(id.data(), id.size(), hash.data(), 0);
+    mbedtls_sha256(id.data(), id.size(), hash.data(), 0);
     const auto dirname = fmt::format("000000{:02X}", hash[0]);
 
     const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
@@ -170,7 +170,7 @@ bool PlaceholderCache::Delete(const NcaID& id) const {
     }
 
     Core::Crypto::SHA256Hash hash{};
-    mbedtls_sha256_ret(id.data(), id.size(), hash.data(), 0);
+    mbedtls_sha256(id.data(), id.size(), hash.data(), 0);
     const auto dirname = fmt::format("000000{:02X}", hash[0]);
 
     const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
@@ -665,7 +665,7 @@ InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
     const OptionalHeader opt_header{0, 0};
     ContentRecord c_rec{{}, {}, {}, GetCRTypeFromNCAType(nca.GetType()), {}};
     const auto& data = nca.GetBaseFile()->ReadBytes(0x100000);
-    mbedtls_sha256_ret(data.data(), data.size(), c_rec.hash.data(), 0);
+    mbedtls_sha256(data.data(), data.size(), c_rec.hash.data(), 0);
     std::memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
     if (!RawInstallYuzuMeta(new_cnmt)) {
@@ -776,7 +776,7 @@ InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFuncti
         id = *override_id;
     } else {
         const auto& data = in->ReadBytes(0x100000);
-        mbedtls_sha256_ret(data.data(), data.size(), hash.data(), 0);
+        mbedtls_sha256(data.data(), data.size(), hash.data(), 0);
         memcpy(id.data(), hash.data(), 16);
     }
 
