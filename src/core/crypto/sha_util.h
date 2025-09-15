@@ -16,7 +16,7 @@ constexpr SHA256Hash operator""_HASH(const char* data, std::size_t len) {
     }
 
     // Validate that all characters are valid hex characters
-    for (size_t i = 0; i < len; ++i) {
+    for (std::size_t i = 0; i < len; ++i) {
         char c = data[i];
         const bool is_valid_hex = (c >= '0' && c <= '9') ||
                            (c >= 'a' && c <= 'f') ||
