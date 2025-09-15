@@ -60,34 +60,69 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(hash4 == empty);
     }
 
-    SECTION("Valid 64-character hex string length") {
-        // Test with exactly 64 characters (0x40)
+    SECTION("Valid 64-character hex string conversion") {
+        // Test with exactly 64 characters (0x40) - should convert properly
         auto hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
 
-        // The current implementation only checks length and returns empty for invalid length
-        // Since the implementation is incomplete, it should return empty for now
-        Crypto::SHA256Hash empty{};
-        REQUIRE(hash == empty);
+        // Expected bytes from the hex string
+        Crypto::SHA256Hash expected{
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef
+        };
+
+        REQUIRE(hash == expected);
     }
 
     SECTION("All zeros hex string") {
         auto hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
 
-        Crypto::SHA256Hash empty{};
-        REQUIRE(hash == empty);
+        Crypto::SHA256Hash expected{};  // All zeros
+        REQUIRE(hash == expected);
     }
 
-    SECTION("All ones hex string") {
+    SECTION("All ones hex string (lowercase)") {
         auto hash = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"_HASH;
 
-        Crypto::SHA256Hash empty{};
-        REQUIRE(hash == empty);
+        Crypto::SHA256Hash expected;
+        expected.fill(0xff);  // All bytes set to 0xff
+        REQUIRE(hash == expected);
+    }
+
+    SECTION("All ones hex string (uppercase)") {
+        auto hash = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"_HASH;
+
+        Crypto::SHA256Hash expected;
+        expected.fill(0xff);  // All bytes set to 0xff
+        REQUIRE(hash == expected);
     }
 
     SECTION("Mixed case hex string") {
         auto hash = "0123456789AbCdEf0123456789aBcDeF0123456789abcdef0123456789ABCDEF"_HASH;
 
-        Crypto::SHA256Hash empty{};
-        REQUIRE(hash == empty);
+        // Expected bytes from the hex string (case should not matter)
+        Crypto::SHA256Hash expected{
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef
+        };
+
+        REQUIRE(hash == expected);
+    }
+
+    SECTION("Real SHA256 hash example") {
+        // Example of a real SHA256 hash (empty string hash)
+        auto hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"_HASH;
+
+        Crypto::SHA256Hash expected{
+            0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14,
+            0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
+            0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
+            0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
+        };
+
+        REQUIRE(hash == expected);
     }
 }
