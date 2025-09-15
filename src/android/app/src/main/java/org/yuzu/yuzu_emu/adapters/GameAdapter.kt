@@ -36,17 +36,18 @@ import androidx.core.net.toUri
 import androidx.core.content.edit
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.databinding.CardGameGridCompactBinding
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class GameAdapter(private val activity: AppCompatActivity) :
     AbstractDiffAdapter<Game, GameAdapter.GameViewHolder>(exact = false) {
 
     companion object {
         const val VIEW_TYPE_GRID = 0
-        const val VIEW_TYPE_LIST = 1
-        const val VIEW_TYPE_CAROUSEL = 2
+        const val VIEW_TYPE_GRID_COMPACT = 1
+        const val VIEW_TYPE_LIST = 2
+        const val VIEW_TYPE_CAROUSEL = 3
     }
 
     private var viewType = 0
@@ -80,6 +81,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 listBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                 listBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
+
             VIEW_TYPE_GRID -> {
                 val gridBinding = holder.binding as CardGameGridBinding
                 gridBinding.cardGameGrid.scaleX = 1f
@@ -89,6 +91,17 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 gridBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                 gridBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
+
+            VIEW_TYPE_GRID_COMPACT -> {
+                val gridCompactBinding = holder.binding as CardGameGridCompactBinding
+                gridCompactBinding.cardGameGridCompact.scaleX = 1f
+                gridCompactBinding.cardGameGridCompact.scaleY = 1f
+                gridCompactBinding.cardGameGridCompact.alpha = 1f
+                // Reset layout params to XML defaults (same as normal grid)
+                gridCompactBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                gridCompactBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+
             VIEW_TYPE_CAROUSEL -> {
                 val carouselBinding = holder.binding as CardGameCarouselBinding
                 // soothens transient flickering
@@ -105,16 +118,25 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 parent,
                 false
             )
+
             VIEW_TYPE_GRID -> CardGameGridBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
+
+            VIEW_TYPE_GRID_COMPACT -> CardGameGridCompactBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+
             VIEW_TYPE_CAROUSEL -> CardGameCarouselBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
+
             else -> throw IllegalArgumentException("Invalid view type")
         }
         return GameViewHolder(binding, viewType)
@@ -130,6 +152,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 VIEW_TYPE_LIST -> bindListView(model)
                 VIEW_TYPE_GRID -> bindGridView(model)
                 VIEW_TYPE_CAROUSEL -> bindCarouselView(model)
+                VIEW_TYPE_GRID_COMPACT -> bindGridCompactView(model)
             }
         }
 
@@ -166,6 +189,23 @@ class GameAdapter(private val activity: AppCompatActivity) :
             // Reset layout params to XML defaults
             gridBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
             gridBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+
+        private fun bindGridCompactView(model: Game) {
+            val gridCompactBinding = binding as CardGameGridCompactBinding
+
+            gridCompactBinding.imageGameScreenCompact.scaleType = ImageView.ScaleType.CENTER_CROP
+            GameIconUtils.loadGameIcon(model, gridCompactBinding.imageGameScreenCompact)
+
+            gridCompactBinding.textGameTitleCompact.text = model.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+
+            gridCompactBinding.textGameTitleCompact.marquee()
+            gridCompactBinding.cardGameGridCompact.setOnClickListener { onClick(model) }
+            gridCompactBinding.cardGameGridCompact.setOnLongClickListener { onLongClick(model) }
+
+            // Reset layout params to XML defaults (same as normal grid)
+            gridCompactBinding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+            gridCompactBinding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
 
         private fun bindCarouselView(model: Game) {

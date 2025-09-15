@@ -194,6 +194,10 @@ class GamesFragment : Fragment() {
                     val columns = resources.getInteger(R.integer.game_columns_grid)
                     GridLayoutManager(context, columns)
                 }
+                GameAdapter.VIEW_TYPE_GRID_COMPACT -> {
+                    val columns = resources.getInteger(R.integer.game_columns_grid)
+                    GridLayoutManager(context, columns)
+                }
                 GameAdapter.VIEW_TYPE_LIST -> {
                     val columns = resources.getInteger(R.integer.game_columns_list)
                     GridLayoutManager(context, columns)
@@ -300,6 +304,7 @@ class GamesFragment : Fragment() {
         val currentViewType = getCurrentViewType()
         when (currentViewType) {
             GameAdapter.VIEW_TYPE_LIST -> popup.menu.findItem(R.id.view_list).isChecked = true
+            GameAdapter.VIEW_TYPE_GRID_COMPACT -> popup.menu.findItem(R.id.view_grid_compact).isChecked = true
             GameAdapter.VIEW_TYPE_GRID -> popup.menu.findItem(R.id.view_grid).isChecked = true
             GameAdapter.VIEW_TYPE_CAROUSEL -> popup.menu.findItem(R.id.view_carousel).isChecked = true
         }
@@ -309,6 +314,14 @@ class GamesFragment : Fragment() {
                 R.id.view_grid -> {
                     if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) onPause()
                     setCurrentViewType(GameAdapter.VIEW_TYPE_GRID)
+                    applyGridGamesBinding()
+                    item.isChecked = true
+                    true
+                }
+
+                R.id.view_grid_compact -> {
+                    if (getCurrentViewType() == GameAdapter.VIEW_TYPE_CAROUSEL) onPause()
+                    setCurrentViewType(GameAdapter.VIEW_TYPE_GRID_COMPACT)
                     applyGridGamesBinding()
                     item.isChecked = true
                     true

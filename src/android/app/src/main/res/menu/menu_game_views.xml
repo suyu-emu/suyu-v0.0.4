@@ -5,6 +5,9 @@
             android:id="@+id/view_grid"
             android:title="@string/view_grid"/>
         <item
+            android:id="@+id/view_grid_compact"
+            android:title="@string/view_grid_compact"/>
+        <item
             android:id="@+id/view_list"
             android:title="@string/view_list"
             android:checked="true"/>

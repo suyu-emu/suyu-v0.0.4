@@ -266,6 +266,7 @@
     <string name="alphabetical">Alphabetical</string>
     <string name="view_list">List</string>
     <string name="view_grid">Grid</string>
+    <string name="view_grid_compact">Compact Grid</string>
     <string name="view_carousel">Carousel</string>
     <string name="game_image_desc">Screenshot for %1$s</string>
     <string name="folder">Folder</string>
