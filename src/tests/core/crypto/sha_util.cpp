@@ -160,7 +160,6 @@ TEST_CASE("_HASH operator", "[crypto]") {
     }
 
     SECTION("Boundary test - exactly 64 characters") {
-
         // Test that a string of exactly 64 '0' characters works
         auto hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
         Crypto::SHA256Hash expected{};  // All zeros
