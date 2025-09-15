@@ -486,8 +486,6 @@ Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die 
     <string name="select_rtc_date">RTC-Datum auswählen</string>
     <string name="select_rtc_time">RTC-Zeit auswählen</string>
     <string name="use_custom_rtc">Benutzerdefinierte Echtzeituhr</string>
-    <string name="disable_nca_verification">NCA-Verifizierung deaktivieren</string>
-    <string name="disable_nca_verification_description">Deaktiviert die Integritätsprüfung von NCA-Inhaltsarchiven. Dies kann die Ladegeschwindigkeit verbessern, riskiert jedoch Datenbeschädigung oder dass ungültige Dateien unentdeckt bleiben. Ist notwendig, um Spiele und Updates, die Firmware 20+ benötigen, zum Laufen zu bringen.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Generieren</string>
