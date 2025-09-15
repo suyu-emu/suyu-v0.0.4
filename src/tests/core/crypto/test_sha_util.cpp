@@ -8,6 +8,7 @@
 #include "common/common_types.h"
 #include "core/crypto/sha_util.h"
 #include <catch2/catch_test_macros.hpp>
+#include <cstring>
 
 namespace {
 
@@ -180,6 +181,20 @@ TEST_CASE("_HASH operator", "[crypto]") {
             count++;
         }
         REQUIRE(count == 32);
+    }
+}
+
+TEST_CASE("SHA256Hash memory layout", "[crypto]") {
+    SECTION("Hash can be used with memcmp") {
+        auto hash1 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
+        auto hash2 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
+        auto hash3 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdee"_HASH;
+
+        // Same hashes should compare equal
+        REQUIRE(std::memcmp(hash1.data(), hash2.data(), hash1.size()) == 0);
+
+        // Different hashes should not compare equal
+        REQUIRE(std::memcmp(hash1.data(), hash3.data(), hash1.size()) != 0);
     }
 }
 
