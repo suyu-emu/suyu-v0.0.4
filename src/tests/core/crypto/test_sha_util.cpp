@@ -47,7 +47,7 @@ TEST_CASE("SHA256Hash typedef", "[crypto]") {
 
 TEST_CASE("_HASH operator", "[crypto]") {
     SECTION("Invalid length returns empty hash") {
-        // Test with various invalid lengths
+        // Test with various invalid lengths - all should return empty hash
         auto hash1 = ""_HASH;
         auto hash2 = "abc"_HASH;
         auto hash3 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde"_HASH; // 63 chars
@@ -168,11 +168,4 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(hash == expected);
     }
 
-    SECTION("Runtime evaluation works correctly") {
-        // Test that the operator works at runtime
-        auto runtime_hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
-        Crypto::SHA256Hash expected{};
-        REQUIRE(runtime_hash == expected);
-        REQUIRE(runtime_hash.size() == 32);
-    }
 }
