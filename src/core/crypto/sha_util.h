@@ -7,7 +7,6 @@
 #include "common/assert.h"
 #include "core/file_sys/vfs.h"
 #include "common/hex_util.h"
-#include "core/crypto/key_manager.h"
 #include "mbedtls/cipher.h"
 
 namespace Crypto {
