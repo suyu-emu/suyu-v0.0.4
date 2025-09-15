@@ -158,7 +158,6 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(hash5 == empty);
         REQUIRE(hash6 == empty);
     }
-
     SECTION("Boundary test - exactly 64 characters") {
         // Test that a string of exactly 64 '0' characters works
         auto hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
