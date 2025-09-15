@@ -175,7 +175,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
     SECTION("Array properties and iterators") {
         auto hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
 
-        // Test that we can iterate over the hash
+        // Test that we can iterate over the hash and verify size
         size_t count = 0;
         for (const auto& byte : hash) {
             count++;
@@ -186,7 +186,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
 
 TEST_CASE("SHA256Hash memory layout", "[crypto]") {
     SECTION("Hash can be used with memcmp") {
-        auto hash1 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
+        const auto hash1 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
         auto hash2 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
         auto hash3 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdee"_HASH;
 
@@ -195,6 +195,15 @@ TEST_CASE("SHA256Hash memory layout", "[crypto]") {
 
         // Different hashes should not compare equal
         REQUIRE(std::memcmp(hash1.data(), hash3.data(), hash1.size()) != 0);
+    }
+
+    SECTION("Hash data pointer and size consistency") {
+        const auto hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
+
+        // Verify data pointer is not null and size is consistent
+        REQUIRE(hash.data() != nullptr);
+        REQUIRE(hash.size() == 32);
+        REQUIRE(sizeof(hash) == 32);
     }
 }
 
