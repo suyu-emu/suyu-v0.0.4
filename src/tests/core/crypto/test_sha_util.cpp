@@ -5,9 +5,10 @@
 #include <type_traits>
 #include <cstddef>
 
+#include <catch2/catch_test_macros.hpp>
 #include "common/common_types.h"
 #include "core/crypto/sha_util.h"
-#include <catch2/catch_test_macros.hpp>
+
 
 TEST_CASE("SHA256Hash typedef", "[crypto]") {
     SECTION("SHA256Hash is correct size") {
