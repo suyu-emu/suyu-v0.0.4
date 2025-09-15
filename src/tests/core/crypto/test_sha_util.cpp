@@ -3,6 +3,7 @@
 
 #include <array>
 #include <type_traits>
+#include <cstddef>
 #include <catch2/catch_test_macros.hpp>
 
 #include "common/common_types.h"
