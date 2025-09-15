@@ -7,8 +7,8 @@
 #include <type_traits>
 
 #include "common/common_types.h"
-#include "core/crypto/sha_util.h"
 #include <catch2/catch_test_macros.hpp>
+#include "core/crypto/sha_util.h"
 
 namespace {
 
