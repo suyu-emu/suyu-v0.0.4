@@ -168,4 +168,14 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(hash == expected);
     }
 
+    SECTION("Array properties and iterators") {
+        auto hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
+
+        // Test that we can iterate over the hash
+        size_t count = 0;
+        for (const auto& byte : hash) {
+            count++;
+        }
+        REQUIRE(count == 32);
+    }
 }
