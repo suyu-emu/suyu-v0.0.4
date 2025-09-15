@@ -146,4 +146,14 @@ TEST_CASE("_HASH operator", "[crypto]") {
         std::string hex_string(64, '0');
         REQUIRE(hex_string.length() == 64);
     }
+
+    SECTION("Compile-time evaluation") {
+        // Test that the operator can be used at compile time
+        constexpr auto compile_time_hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
+
+        Crypto::SHA256Hash runtime_hash{};
+        REQUIRE(compile_time_hash == runtime_hash);
+
+        static_assert(compile_time_hash.size() == 32);
+    }
 }
