@@ -28,7 +28,7 @@ TEST_CASE("SHA256Hash typedef", "[crypto]") {
     }
 
     SECTION("SHA256Hash default initialization") {
-        SHA256Hash hash{};
+        Crypto::SHA256Hash hash{};
         // Default initialized array should be zero-filled
         for (const auto& byte : hash) {
             REQUIRE(byte == 0);
