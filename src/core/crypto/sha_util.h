@@ -5,7 +5,6 @@
 
 #include <string_view>
 #include "common/assert.h"
-#include "core/file_sys/vfs.h"
 #include "common/hex_util.h"
 
 namespace Crypto {
