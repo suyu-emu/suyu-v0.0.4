@@ -3,6 +3,7 @@
 
 #pragma once
 #include <array>
+#include <cstddef>
 #include "common/common_types.h"
 
 namespace Crypto {
