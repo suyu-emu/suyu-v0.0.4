@@ -160,9 +160,6 @@ TEST_CASE("_HASH operator", "[crypto]") {
     }
 
     SECTION("Boundary test - exactly 64 characters") {
-        // Verify that exactly 64 characters works
-        std::string hex_string(64, '0');
-        REQUIRE(hex_string.length() == 64);
 
         // Test that a string of exactly 64 '0' characters works
         auto hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
