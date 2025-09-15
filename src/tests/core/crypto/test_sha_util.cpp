@@ -176,7 +176,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
         auto hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
 
         // Test that we can iterate over the hash and verify size
-        size_t count = 0;
+        std::size_t count = 0;
         for (const auto& byte : hash) {
             count++;
         }
