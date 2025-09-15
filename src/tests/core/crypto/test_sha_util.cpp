@@ -15,17 +15,17 @@ using namespace Crypto;
 TEST_CASE("SHA256Hash typedef", "[crypto]") {
     SECTION("SHA256Hash is correct size") {
         // SHA256Hash should be 32 bytes (0x20)
-        static_assert(sizeof(Crypto::SHA256Hash) == 0x20);
-        static_assert(sizeof(Crypto::SHA256Hash) == 32);
+        static_assert(sizeof(SHA256Hash) == 0x20);
+        static_assert(sizeof(SHA256Hash) == 32);
 
-        Crypto::SHA256Hash hash{};
+        SHA256Hash hash{};
         REQUIRE(hash.size() == 32);
         REQUIRE(hash.max_size() == 32);
     }
 
     SECTION("SHA256Hash is array of u8") {
-        static_assert(std::is_same_v<Crypto::SHA256Hash::value_type, u8>);
-        static_assert(std::is_same_v<Crypto::SHA256Hash, std::array<u8, 0x20>>);
+        static_assert(std::is_same_v<SHA256Hash::value_type, u8>);
+        static_assert(std::is_same_v<SHA256Hash, std::array<u8, 0x20>>);
     }
 
     SECTION("SHA256Hash default initialization") {
