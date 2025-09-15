@@ -30,7 +30,7 @@ constexpr SHA256Hash operator""_HASH(const char* data, std::size_t len) {
     // Each pair of hex characters becomes one byte
     SHA256Hash result{};
     for (size_t i = 0; i < len; i += 2) {
-        u8 high_nibble = (data[i] >= '0' && data[i] <= '9') ? (data[i] - '0') :
+        const u8 high_nibble = (data[i] >= '0' && data[i] <= '9') ? (data[i] - '0') :
                         (data[i] >= 'a' && data[i] <= 'f') ? (data[i] - 'a' + 10) :
                         (data[i] - 'A' + 10);
         u8 low_nibble = (data[i + 1] >= '0' && data[i + 1] <= '9') ? (data[i + 1] - '0') :
