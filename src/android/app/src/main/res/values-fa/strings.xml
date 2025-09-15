@@ -504,8 +504,6 @@
     <string name="use_custom_rtc">زمان سفارشی</string>
     <string name="use_custom_rtc_description">به شما امکان می‌دهد یک ساعت سفارشی جدا از زمان فعلی سیستم خود تنظیم کنید.</string>
     <string name="set_custom_rtc">تنظیم زمان سفارشی</string>
-    <string name="disable_nca_verification">غیرفعال کردن تأیید اعتبار NCA</string>
-    <string name="disable_nca_verification_description">بررسی صحت آرشیوهای محتوای NCA را غیرفعال می‌کند. این ممکن است سرعت بارگذاری را بهبود بخشد اما خطر خرابی داده یا تشخیص داده نشدن فایل‌های نامعتبر را به همراه دارد. برای کار کردن بازی‌ها و به‌روزرسانی‌هایی که به فرمور ۲۰+ نیاز دارند، ضروری است.</string>
 
     <!-- Network settings strings -->
     <string name="generate">تولید</string>

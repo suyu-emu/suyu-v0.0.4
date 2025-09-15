@@ -238,9 +238,7 @@ void BucketTree::Initialize(size_t node_size, s64 end_offset) {
     ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
     ASSERT(Common::IsPowerOfTwo(node_size));
 
-    if (!Settings::values.disable_nca_verification.GetValue()) {
-        ASSERT(end_offset > 0);
-    }
+    ASSERT(end_offset > 0);
     ASSERT(!this->IsInitialized());
 
     m_node_size = node_size;

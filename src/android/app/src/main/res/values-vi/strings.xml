@@ -482,8 +482,6 @@
     <string name="use_custom_rtc">RTC tuỳ chỉnh</string>
     <string name="use_custom_rtc_description">Cho phép bạn thiết lập một đồng hồ thời gian thực tùy chỉnh riêng biệt so với thời gian hệ thống hiện tại.</string>
     <string name="set_custom_rtc">Thiết lập RTC tùy chỉnh</string>
-    <string name="disable_nca_verification">Tắt xác minh NCA</string>
-    <string name="disable_nca_verification_description">Tắt xác minh tính toàn vẹn của kho lưu trữ nội dung NCA. Có thể cải thiện tốc độ tải nhưng có nguy cơ hỏng dữ liệu hoặc các tệp không hợp lệ không bị phát hiện. Cần thiết để các trò chơi và bản cập nhật yêu cầu firmware 20+ hoạt động.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Tạo</string>

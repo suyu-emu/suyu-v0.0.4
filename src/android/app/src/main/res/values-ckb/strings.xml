@@ -482,8 +482,6 @@
     <string name="use_custom_rtc">RTCی تایبەتمەند</string>
     <string name="use_custom_rtc_description">ڕێگەت پێدەدات کاتژمێرێکی کاتی ڕاستەقینەی تایبەتمەند دابنێیت کە جیاوازە لە کاتی ئێستای سیستەمەکەت.</string>
     <string name="set_custom_rtc">دانانی RTCی تایبەتمەند</string>
-    <string name="disable_nca_verification">ناچالاککردنی پشکنینی NCA</string>
-    <string name="disable_nca_verification_description">پشکنینی پێکهاتەی ئارشیڤەکانی ناوەڕۆکی NCA ناچالاک دەکات. ئەمە لەوانەیە خێرایی بارکردن به‌ره‌وپێش ببات، بەڵام مەترسی لەناوچوونی داتا یان ئەوەی فایلە نادروستەکان بەبێ ئەوەی دۆزرایەوە تێپەڕبن زیاتر دەکات. بۆ ئەوەی یاری و نوێکردنەوەکان کار بکەن کە پێویستی بە فریموێری 20+ هەیە زۆر پێویستە.</string>
 
     <!-- Network settings strings -->
     <string name="generate">بەرهەم هێنان</string>

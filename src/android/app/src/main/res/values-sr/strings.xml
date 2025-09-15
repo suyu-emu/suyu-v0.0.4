@@ -457,8 +457,6 @@
     <string name="use_custom_rtc">Цустом РТЦ</string>
     <string name="use_custom_rtc_description">Омогућава вам да поставите прилагођени сат у реалном времену одвојено од тренутног времена система.</string>
     <string name="set_custom_rtc">Подесите прилагођени РТЦ</string>
-    <string name="disable_nca_verification">Искључи верификацију НЦА</string>
-    <string name="disable_nca_verification_description">Искључује верификацију интегритета НЦА архива садржаја. Ово може побољшати брзину учитавања, али ризикује оштећење података или да неважећи фајлови прођу незапажено. Неопходно је да би игре и ажурирања која захтевају firmware 20+ радили.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Генериши</string>

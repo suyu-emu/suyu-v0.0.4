@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -1296,91 +1296,65 @@ Result NcaFileSystemDriver::CreateIntegrityVerificationStorageImpl(
     ASSERT(base_storage != nullptr);
     ASSERT(layer_info_offset >= 0);
 
-    if (!Settings::values.disable_nca_verification.GetValue()) {
-        // Define storage types.
-        using VerificationStorage = HierarchicalIntegrityVerificationStorage;
-        using StorageInfo = VerificationStorage::HierarchicalStorageInformation;
+    // Define storage types.
+    using VerificationStorage = HierarchicalIntegrityVerificationStorage;
+    using StorageInfo = VerificationStorage::HierarchicalStorageInformation;
 
-        // Validate the meta info.
-        HierarchicalIntegrityVerificationInformation level_hash_info;
-        std::memcpy(std::addressof(level_hash_info), std::addressof(meta_info.level_hash_info),
-                    sizeof(level_hash_info));
+    // Validate the meta info.
+    HierarchicalIntegrityVerificationInformation level_hash_info;
+    std::memcpy(std::addressof(level_hash_info),
+                std::addressof(meta_info.level_hash_info),
+                sizeof(level_hash_info));
 
-        R_UNLESS(IntegrityMinLayerCount <= level_hash_info.max_layers,
-                 ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
-        R_UNLESS(level_hash_info.max_layers <= IntegrityMaxLayerCount,
-                 ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
+    R_UNLESS(IntegrityMinLayerCount <= level_hash_info.max_layers,
+             ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
+    R_UNLESS(level_hash_info.max_layers <= IntegrityMaxLayerCount,
+             ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
 
-        // Get the base storage size.
-        s64 base_storage_size = base_storage->GetSize();
+    // Get the base storage size.
+    s64 base_storage_size = base_storage->GetSize();
 
-        // Create storage info.
-        StorageInfo storage_info;
-        for (s32 i = 0; i < static_cast<s32>(level_hash_info.max_layers - 2); ++i) {
-            const auto& layer_info = level_hash_info.info[i];
-            R_UNLESS(layer_info_offset + layer_info.offset + layer_info.size <= base_storage_size,
-                     ResultNcaBaseStorageOutOfRangeD);
-
-            storage_info[i + 1] = std::make_shared<OffsetVfsFile>(
-                base_storage, layer_info.size, layer_info_offset + layer_info.offset);
-        }
-
-        // Set the last layer info.
-        const auto& layer_info = level_hash_info.info[level_hash_info.max_layers - 2];
-        const s64 last_layer_info_offset = layer_info_offset > 0 ? 0LL : layer_info.offset.Get();
-        R_UNLESS(last_layer_info_offset + layer_info.size <= base_storage_size,
+    // Create storage info.
+    StorageInfo storage_info;
+    for (s32 i = 0; i < static_cast<s32>(level_hash_info.max_layers - 2); ++i) {
+        const auto& layer_info = level_hash_info.info[i];
+        R_UNLESS(layer_info_offset + layer_info.offset + layer_info.size <= base_storage_size,
                  ResultNcaBaseStorageOutOfRangeD);
-        if (layer_info_offset > 0) {
-            R_UNLESS(last_layer_info_offset + layer_info.size <= layer_info_offset,
-                     ResultRomNcaInvalidIntegrityLayerInfoOffset);
-        }
-        storage_info[level_hash_info.max_layers - 1] = std::make_shared<OffsetVfsFile>(
-            std::move(base_storage), layer_info.size, last_layer_info_offset);
 
-        // Make the integrity romfs storage.
-        auto integrity_storage = std::make_shared<IntegrityRomFsStorage>();
-        R_UNLESS(integrity_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
-
-        // Initialize the integrity storage.
-        R_TRY(integrity_storage->Initialize(level_hash_info, meta_info.master_hash, storage_info,
-                                            max_data_cache_entries, max_hash_cache_entries,
-                                            buffer_level));
-
-        // Set the output.
-        *out = std::move(integrity_storage);
-        R_SUCCEED();
-    } else {
-        // Read IVFC layout
-        HierarchicalIntegrityVerificationInformation lhi{};
-        std::memcpy(std::addressof(lhi), std::addressof(meta_info.level_hash_info), sizeof(lhi));
-
-        R_UNLESS(IntegrityMinLayerCount <= lhi.max_layers,
-                 ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
-        R_UNLESS(lhi.max_layers <= IntegrityMaxLayerCount,
-                 ResultInvalidNcaHierarchicalIntegrityVerificationLayerCount);
-
-        const auto& data_li = lhi.info[lhi.max_layers - 2];
-
-        const s64 base_size = base_storage->GetSize();
-
-        // Compute the data layer window
-        const s64 data_off = (layer_info_offset > 0) ? 0LL : data_li.offset.Get();
-        R_UNLESS(data_off + data_li.size <= base_size, ResultNcaBaseStorageOutOfRangeD);
-        if (layer_info_offset > 0) {
-            R_UNLESS(data_off + data_li.size <= layer_info_offset,
-                     ResultRomNcaInvalidIntegrityLayerInfoOffset);
-        }
-
-        // TODO: Passthrough (temporary compatibility: integrity disabled)
-        auto data_view = std::make_shared<OffsetVfsFile>(base_storage, data_li.size, data_off);
-        R_UNLESS(data_view != nullptr, ResultAllocationMemoryFailedAllocateShared);
-
-        auto passthrough = std::make_shared<PassthroughStorage>(std::move(data_view));
-        R_UNLESS(passthrough != nullptr, ResultAllocationMemoryFailedAllocateShared);
-
-        *out = std::move(passthrough);
-        R_SUCCEED();
+        storage_info[i + 1] = std::make_shared<OffsetVfsFile>(base_storage,
+                                                              layer_info.size,
+                                                              layer_info_offset + layer_info.offset);
     }
+
+    // Set the last layer info.
+    const auto& layer_info = level_hash_info.info[level_hash_info.max_layers - 2];
+    const s64 last_layer_info_offset = layer_info_offset > 0 ? 0LL : layer_info.offset.Get();
+    R_UNLESS(last_layer_info_offset + layer_info.size <= base_storage_size,
+             ResultNcaBaseStorageOutOfRangeD);
+    if (layer_info_offset > 0) {
+        R_UNLESS(last_layer_info_offset + layer_info.size <= layer_info_offset,
+                 ResultRomNcaInvalidIntegrityLayerInfoOffset);
+    }
+    storage_info[level_hash_info.max_layers - 1]
+        = std::make_shared<OffsetVfsFile>(std::move(base_storage),
+                                          layer_info.size,
+                                          last_layer_info_offset);
+
+    // Make the integrity romfs storage.
+    auto integrity_storage = std::make_shared<IntegrityRomFsStorage>();
+    R_UNLESS(integrity_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
+
+    // Initialize the integrity storage.
+    R_TRY(integrity_storage->Initialize(level_hash_info,
+                                        meta_info.master_hash,
+                                        storage_info,
+                                        max_data_cache_entries,
+                                        max_hash_cache_entries,
+                                        buffer_level));
+
+    // Set the output.
+    *out = std::move(integrity_storage);
+    R_SUCCEED();
 }
 
 Result NcaFileSystemDriver::CreateRegionSwitchStorage(VirtualFile* out,

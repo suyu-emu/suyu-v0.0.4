@@ -495,8 +495,6 @@
     <string name="use_custom_rtc">Свій RTC</string>
     <string name="use_custom_rtc_description">Дозволяє встановити власний час (Real-time clock, або RTC), відмінний від системного.</string>
     <string name="set_custom_rtc">Встановити RTC</string>
-    <string name="disable_nca_verification">Вимкнути перевірку NCA</string>
-    <string name="disable_nca_verification_description">Вимкає перевірку цілісності архівів вмісту NCA. Може покращити швидкість завантаження, але ризикує пошкодженням даних або тим, що недійсні файли залишаться непоміченими. Необхідно для роботи ігор та оновлень, які вимагають прошивки 20+.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Створити</string>

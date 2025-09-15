@@ -12,7 +12,7 @@
 
 #include <QtCore/qglobal.h>
 #include "common/settings_enums.h"
-#include "uisettings.h"
+#include "qt_common/uisettings.h"
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
 #include <QCamera>
 #include <QCameraImageCapture>
@@ -58,7 +58,7 @@
 #include "video_core/renderer_base.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/main.h"
-#include "yuzu/qt_common.h"
+#include "qt_common/qt_common.h"
 
 class QObject;
 class QPaintEngine;
@@ -234,7 +234,7 @@ class DummyContext : public Core::Frontend::GraphicsContext {};
 
 class RenderWidget : public QWidget {
 public:
-    explicit RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
+    explicit RenderWidget(GRenderWindow* parent) : QWidget(parent) {
         setAttribute(Qt::WA_NativeWindow);
         setAttribute(Qt::WA_PaintOnScreen);
         if (QtCommon::GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
@@ -247,9 +247,6 @@ public:
     QPaintEngine* paintEngine() const override {
         return nullptr;
     }
-
-private:
-    GRenderWindow* render_window;
 };
 
 struct OpenGLRenderWidget : public RenderWidget {

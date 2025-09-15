@@ -210,7 +210,6 @@ class SettingsFragmentPresenter(
             add(IntSetting.LANGUAGE_INDEX.key)
             add(BooleanSetting.USE_CUSTOM_RTC.key)
             add(LongSetting.CUSTOM_RTC.key)
-            add(BooleanSetting.DISABLE_NCA_VERIFICATION.key)
 
             add(HeaderSetting(R.string.network))
             add(StringSetting.WEB_TOKEN.key)

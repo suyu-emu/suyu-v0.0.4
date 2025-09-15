@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,7 +12,7 @@
 
 #include "ui_configure_input_per_game.h"
 #include "yuzu/configuration/input_profiles.h"
-#include "yuzu/configuration/qt_config.h"
+#include "qt_common/qt_config.h"
 
 class QComboBox;
 

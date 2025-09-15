@@ -502,8 +502,6 @@
     <string name="use_custom_rtc">RTC Kustom</string>
     <string name="use_custom_rtc_description">Memungkinkan Anda untuk mengatur jam waktu nyata kustom yang terpisah dari waktu sistem saat ini Anda.</string>
     <string name="set_custom_rtc">Setel RTC Kustom</string>
-    <string name="disable_nca_verification">Nonaktifkan Verifikasi NCA</string>
-    <string name="disable_nca_verification_description">Menonaktifkan verifikasi integritas arsip konten NCA. Ini dapat meningkatkan kecepatan pemuatan tetapi berisiko kerusakan data atau file yang tidak valid tidak terdeteksi. Diperlukan untuk membuat game dan pembaruan yang membutuhkan firmware 20+ bekerja.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Hasilkan</string>

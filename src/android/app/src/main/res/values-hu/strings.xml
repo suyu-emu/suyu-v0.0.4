@@ -501,8 +501,6 @@
     <string name="use_custom_rtc">Egyéni RTC</string>
     <string name="use_custom_rtc_description">Megadhatsz egy valós idejű órát, amely eltér a rendszer által használt órától.</string>
     <string name="set_custom_rtc">Egyéni RTC beállítása</string>
-    <string name="disable_nca_verification">NCA ellenőrzés letiltása</string>
-    <string name="disable_nca_verification_description">Letiltja az NCA tartalomarchívumok integritás-ellenőrzését. Ez javíthatja a betöltési sebességet, de az adatsérülés vagy az érvénytelen fájlok észrevétlen maradásának kockázatával jár. Elengedhetetlen a 20+ firmware-et igénylő játékok és frissítések működtetéséhez.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Generálás</string>

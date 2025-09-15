@@ -245,6 +245,6 @@ include(CPMUtil)
 
 Currently, `cpm-fetch.sh` defines the following directories for cpmfiles (max depth of 2, so subdirs are caught as well):
 
-`externals src/yuzu src/dynarmic .`
+`externals src/qt_common src/dynarmic .`
 
 Whenever you add a new cpmfile, update the script accordingly

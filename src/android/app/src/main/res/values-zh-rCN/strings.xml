@@ -500,8 +500,6 @@
     <string name="use_custom_rtc">自定义系统时间</string>
     <string name="use_custom_rtc_description">此选项允许您设置与目前系统时间相独立的自定义系统时钟。</string>
     <string name="set_custom_rtc">设置自定义系统时间</string>
-<string name="disable_nca_verification">禁用NCA验证</string>
-<string name="disable_nca_verification_description">禁用NCA内容存档的完整性验证。可能会提高加载速度，但存在数据损坏或无效文件未被检测到的风险。对于需要固件20+的游戏和更新是必需的。</string>
 
     <!-- Network settings strings -->
     <string name="generate">生成</string>

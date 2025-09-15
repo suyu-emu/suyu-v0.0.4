@@ -491,8 +491,6 @@
     <string name="use_custom_rtc">カスタム RTC</string>
     <string name="use_custom_rtc_description">現在のシステム時間とは別に、任意のリアルタイムクロックを設定できます。</string>
     <string name="set_custom_rtc">カスタムRTCを設定</string>
-    <string name="disable_nca_verification">NCA検証を無効化</string>
-    <string name="disable_nca_verification_description">NCAコンテンツアーカイブの整合性検証を無効にします。読み込み速度が向上する可能性がありますが、データ破損や不正なファイルが検出されないリスクがあります。ファームウェア20以上が必要なゲームや更新を動作させるために必要です。</string>
 
     <!-- Network settings strings -->
     <string name="generate">生成</string>

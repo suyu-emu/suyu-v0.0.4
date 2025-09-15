@@ -10,6 +10,7 @@
 #include <QMainWindow>
 #include "migration_worker.h"
 
+// TODO(crueter): Quick implementation
 class UserDataMigrator {
 public:
     UserDataMigrator(QMainWindow* main_window);

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,7 +30,7 @@
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 namespace {
 
@@ -199,8 +202,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path,
                                         u64 program_id,
                                         const CompatibilityList& compatibility_list,
                                         const PlayTime::PlayTimeManager& play_time_manager,
-                                        const FileSys::PatchManager& patch,
-                                        const bool cached)
+                                        const FileSys::PatchManager& patch)
 {
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
@@ -224,14 +226,10 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path,
 
     QString patch_versions;
 
-    if (cached) {
-        patch_versions = GetGameListCachedObject(
-            fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
-                return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
-            });
-    } else {
-        patch_versions = FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
-    }
+    patch_versions = GetGameListCachedObject(
+        fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
+            return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
+        });
 
     list.insert(2, new GameListItem(patch_versions));
 
@@ -244,15 +242,13 @@ GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs_,
                                QVector<UISettings::GameDir>& game_dirs_,
                                const CompatibilityList& compatibility_list_,
                                const PlayTime::PlayTimeManager& play_time_manager_,
-                               Core::System& system_,
-                               const bool cached_)
+                               Core::System& system_)
     : vfs{std::move(vfs_)}
     , provider{provider_}
     , game_dirs{game_dirs_}
     , compatibility_list{compatibility_list_}
     , play_time_manager{play_time_manager_}
     , system{system_}
-    , cached{cached_}
 {
     // We want the game list to manage our lifetime.
     setAutoDelete(false);
@@ -355,8 +351,7 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
                                        program_id,
                                        compatibility_list,
                                        play_time_manager,
-                                       patch,
-                                       cached);
+                                       patch);
         RecordEvent([=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
     }
 }
@@ -439,8 +434,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                                                        id,
                                                        compatibility_list,
                                                        play_time_manager,
-                                                       patch,
-                                                       cached);
+                                                       patch);
 
                         RecordEvent(
                             [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
@@ -463,8 +457,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                                                    program_id,
                                                    compatibility_list,
                                                    play_time_manager,
-                                                   patch,
-                                                   cached);
+                                                   patch);
 
                     RecordEvent(
                         [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });

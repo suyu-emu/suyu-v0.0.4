@@ -150,12 +150,8 @@ add_executable(yuzu
     configuration/configure_web.ui
     configuration/input_profiles.cpp
     configuration/input_profiles.h
-    configuration/shared_translation.cpp
-    configuration/shared_translation.h
     configuration/shared_widget.cpp
     configuration/shared_widget.h
-    configuration/qt_config.cpp
-    configuration/qt_config.h
     debugger/console.cpp
     debugger/console.h
     debugger/controller.cpp
@@ -205,12 +201,8 @@ add_executable(yuzu
     play_time_manager.cpp
     play_time_manager.h
     precompiled_headers.h
-    qt_common.cpp
-    qt_common.h
     startup_checks.cpp
     startup_checks.h
-    uisettings.cpp
-    uisettings.h
     util/clickable_label.cpp
     util/clickable_label.h
     util/controller_navigation.cpp
@@ -396,14 +388,17 @@ elseif(WIN32)
     endif()
 endif()
 
-target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core)
 target_link_libraries(yuzu PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core qt_common)
 target_link_libraries(yuzu PRIVATE Boost::headers glad Qt6::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 if (NOT WIN32)
     target_include_directories(yuzu PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
 endif()
+
+target_link_libraries(yuzu PRIVATE Vulkan::Headers)
+
 if (UNIX AND NOT APPLE)
     target_link_libraries(yuzu PRIVATE Qt6::DBus)
 
@@ -500,9 +495,5 @@ endif()
 if (YUZU_ROOM)
     target_link_libraries(yuzu PRIVATE yuzu-room)
 endif()
-
-# Extra deps
-add_subdirectory(externals)
-target_link_libraries(yuzu PRIVATE QuaZip::QuaZip)
 
 create_target_directory_groups(yuzu)

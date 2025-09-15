@@ -17,7 +17,7 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include "common/settings.h"
 #include "ui_configure_web.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 ConfigureWeb::ConfigureWeb(QWidget* parent)
     : QWidget(parent)

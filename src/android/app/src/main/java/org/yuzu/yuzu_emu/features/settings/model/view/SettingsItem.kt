@@ -298,13 +298,6 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.DISABLE_NCA_VERIFICATION,
-                    titleId = R.string.disable_nca_verification,
-                    descriptionId = R.string.disable_nca_verification_description
-                )
-            )
-            put(
                 StringInputSetting(
                     StringSetting.WEB_TOKEN,
                     titleId = R.string.web_token,

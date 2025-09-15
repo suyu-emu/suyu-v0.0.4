@@ -506,8 +506,6 @@
     <string name="use_custom_rtc">RTC personalizado</string>
     <string name="use_custom_rtc_description">Te permite tener un reloj personalizado en tiempo real diferente del tiempo del propio sistema.</string>
     <string name="set_custom_rtc">Configurar RTC personalizado</string>
-    <string name="disable_nca_verification">Desactivar verificación NCA</string>
-    <string name="disable_nca_verification_description">Desactiva la verificación de integridad de los archivos de contenido NCA. Esto puede mejorar la velocidad de carga, pero arriesga corrupción de datos o que archivos inválidos pasen desapercibidos. Es necesario para que funcionen juegos y actualizaciones que requieren firmware 20+.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Generar</string>

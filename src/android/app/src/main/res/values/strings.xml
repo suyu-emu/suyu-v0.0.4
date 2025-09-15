@@ -475,8 +475,6 @@
     <string name="use_custom_rtc">Custom RTC</string>
     <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
     <string name="set_custom_rtc">Set custom RTC</string>
-    <string name="disable_nca_verification">Disable NCA Verification</string>
-    <string name="disable_nca_verification_description">Disables integrity verification of NCA content archives. This may improve loading speed but risks data corruption or invalid files going undetected. Some games that require firmware versions 20+ may need this as well.</string>
 
     <string name="generate">Generate</string>
 
@@ -784,9 +782,6 @@
 
     <string name="loader_requires_firmware">Game Requires Firmware</string>
     <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href="https://yuzu-mirror.github.io/help/quickstart"> dump and install firmware</a>, or press "OK" to launch anyways.]]></string>
-
-    <string name="nca_verification_disabled">NCA Verification Disabled</string>
-    <string name="nca_verification_disabled_description">This is required to run new games and updates, but may cause instability or crashes if NCA files are corrupt, modified, or tampered with. If unsure, re-enable verification in Advanced Settings -> System, and use firmware versions of 19.0.1 or below.</string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Searching for game...</string>

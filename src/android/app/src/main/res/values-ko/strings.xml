@@ -501,8 +501,6 @@
     <string name="use_custom_rtc">사용자 지정 RTC</string>
     <string name="use_custom_rtc_description">현재 시스템 시간과 별도로 사용자 지정 RTC를 설정할 수 있습니다.</string>
     <string name="set_custom_rtc">사용자 지정 RTC 설정</string>
-    <string name="disable_nca_verification">NCA 검증 비활성화</string>
-    <string name="disable_nca_verification_description">NCA 콘텐츠 아카이브의 무결성 검증을 비활성화합니다. 로딩 속도를 향상시킬 수 있지만 데이터 손상이나 유효하지 않은 파일이 미검증될 위험이 있습니다. 펌웨어 20+가 필요한 게임 및 업데이트를 실행하려면 필요합니다.</string>
 
     <!-- Network settings strings -->
     <string name="generate">생성</string>

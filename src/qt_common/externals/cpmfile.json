@@ -8,5 +8,12 @@
         "options": [
             "QUAZIP_INSTALL OFF"
         ]
+    },
+    "frozen": {
+        "package": "frozen",
+        "repo": "serge-sans-paille/frozen",
+        "sha": "61dce5ae18",
+        "hash": "1ae3d073e659c1f24b2cdd76379c90d6af9e06bc707d285a4fafce05f7a4c9e592ff208c94a9ae0f0d07620b3c6cec191f126b03d70ad4dfa496a86ed5658a6d",
+        "bundled": true
     }
 }

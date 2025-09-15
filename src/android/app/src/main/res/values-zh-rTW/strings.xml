@@ -505,8 +505,6 @@
     <string name="use_custom_rtc">自訂 RTC</string>
     <string name="use_custom_rtc_description">允許您設定與您的目前系統時間相互獨立的自訂即時時鐘。</string>
     <string name="set_custom_rtc">設定自訂 RTC</string>
-    <string name="disable_nca_verification">停用NCA驗證</string>
-    <string name="disable_nca_verification_description">停用NCA內容存檔的完整性驗證。可能會提高載入速度，但存在資料損毀或無效檔案未被偵測到的風險。對於需要韌體20+的遊戲和更新是必需的。</string>
 
     <!-- Network settings strings -->
     <string name="generate">生成</string>

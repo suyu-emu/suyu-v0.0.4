@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +22,7 @@
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "yuzu/play_time_manager.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/util/util.h"
 
 enum class GameListItemType {

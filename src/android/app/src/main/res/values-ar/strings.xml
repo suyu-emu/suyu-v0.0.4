@@ -498,8 +498,6 @@
     <string name="use_custom_rtc">ساعة مخصصة في الوقت الحقيقي</string>
     <string name="use_custom_rtc_description">يسمح لك بتعيين ساعة مخصصة في الوقت الفعلي منفصلة عن وقت النظام الحالي لديك</string>
     <string name="set_custom_rtc">تعيين ساعة مخصصة في الوقت الحقيقي</string>
-    <string name="disable_nca_verification">تعطيل التحقق من NCA</string>
-    <string name="disable_nca_verification_description">يعطل التحقق من سلامة أرشيفات محتوى NCA. قد يحسن هذا من سرعة التحميل لكنه يخاطر بتلف البيانات أو تمرير ملفات غير صالحة دون اكتشاف. ضروري لجعل الألعاب والتحديثات التي تتطلب نظامًا أساسيًا 20+ تعمل.</string>
 
     <!-- Network settings strings -->
     <string name="generate">توليد</string>

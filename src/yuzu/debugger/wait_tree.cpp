@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -5,7 +8,7 @@
 #include <fmt/ranges.h>
 
 #include "yuzu/debugger/wait_tree.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 #include "core/arm/debug.h"
 #include "core/core.h"

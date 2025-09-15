@@ -1,14 +1,19 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "yuzu/configuration/configure_filesystem.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
+#include "qt_common/qt_common.h"
+#include "qt_common/qt_game_util.h"
+#include "qt_common/uisettings.h"
 #include "ui_configure_filesystem.h"
-#include "yuzu/configuration/configure_filesystem.h"
-#include "yuzu/uisettings.h"
 
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureFilesystem>()) {
@@ -126,20 +131,7 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
 }
 
 void ConfigureFilesystem::ResetMetadata() {
-    if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
-                            "game_list/")) {
-        QMessageBox::information(this, tr("Reset Metadata Cache"),
-                                 tr("The metadata cache is already empty."));
-    } else if (Common::FS::RemoveDirRecursively(
-                   Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
-        QMessageBox::information(this, tr("Reset Metadata Cache"),
-                                 tr("The operation completed successfully."));
-        UISettings::values.is_game_list_reload_pending.exchange(true);
-    } else {
-        QMessageBox::warning(
-            this, tr("Reset Metadata Cache"),
-            tr("The metadata cache couldn't be deleted. It might be in use or non-existent."));
-    }
+    QtCommon::Game::ResetMetadata();
 }
 
 void ConfigureFilesystem::UpdateEnabledControls() {

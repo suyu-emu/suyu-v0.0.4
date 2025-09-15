@@ -21,7 +21,7 @@
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/multiplayer/validation.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 enum class ConnectionType : u8 { TraversalServer, IP };
 

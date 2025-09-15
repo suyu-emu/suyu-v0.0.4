@@ -482,8 +482,6 @@
     <string name="use_custom_rtc">Tilpasset Sannhetstidsklokke</string>
     <string name="use_custom_rtc_description">Gjør det mulig å stille inn en egendefinert sanntidsklokke separat fra den gjeldende systemtiden.</string>
     <string name="set_custom_rtc">Angi tilpasset RTC</string>
-    <string name="disable_nca_verification">Deaktiver NCA-verifisering</string>
-    <string name="disable_nca_verification_description">Deaktiverer integritetsverifisering av NCA-innholdsarkiv. Dette kan forbedre lastehastigheten, men medfører risiko for datakorrupsjon eller at ugyldige filer ikke oppdages. Er nødvendig for å få spill og oppdateringer som trenger firmware 20+ til å fungere.</string>
 
     <!-- Network settings strings -->
     <string name="generate">Generer</string>

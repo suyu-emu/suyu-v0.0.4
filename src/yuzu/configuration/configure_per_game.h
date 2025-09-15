@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,8 +18,8 @@
 #include "frontend_common/config.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/qt_config.h"
-#include "yuzu/configuration/shared_translation.h"
+#include "qt_common/qt_config.h"
+#include "qt_common/shared_translation.h"
 
 namespace Core {
 class System;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,7 +22,7 @@
 #include "yuzu/multiplayer/lobby.h"
 #include "yuzu/multiplayer/message.h"
 #include "yuzu/multiplayer/state.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 
 MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model_,

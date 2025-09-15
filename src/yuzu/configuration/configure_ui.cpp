@@ -27,7 +27,7 @@
 #include "core/core.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "ui_configure_ui.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 namespace {
 constexpr std::array default_game_icon_sizes{

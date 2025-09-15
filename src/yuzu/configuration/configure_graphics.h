@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +18,7 @@
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
 #include "common/settings_enums.h"
-#include "configuration/shared_translation.h"
+#include "qt_common/shared_translation.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
 

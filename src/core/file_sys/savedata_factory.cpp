@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -125,6 +128,10 @@ std::string SaveDataFactory::GetFullPath(ProgramId program_id, VirtualDir dir,
     }
 
     std::string out = GetSaveDataSpaceIdPath(space);
+
+    LOG_INFO(Common_Filesystem, "Save ID: {:016X}", save_id);
+    LOG_INFO(Common_Filesystem, "User ID[1]: {:016X}", user_id[1]);
+    LOG_INFO(Common_Filesystem, "User ID[0]: {:016X}", user_id[0]);
 
     switch (type) {
     case SaveDataType::System:

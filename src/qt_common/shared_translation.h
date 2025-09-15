@@ -11,23 +11,20 @@
 
 #include <map>
 #include <memory>
-#include <typeindex>
 #include <utility>
 #include <vector>
 #include <QString>
 #include "common/common_types.h"
-#include "common/settings.h"
-
-class QWidget;
+#include "common/settings_enums.h"
 
 namespace ConfigurationShared {
 using TranslationMap = std::map<u32, std::pair<QString, QString>>;
 using ComboboxTranslations = std::vector<std::pair<u32, QString>>;
 using ComboboxTranslationMap = std::map<u32, ComboboxTranslations>;
 
-std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent);
+std::unique_ptr<TranslationMap> InitializeTranslations(QObject *parent);
 
-std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent);
+std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent);
 
 static const std::map<Settings::AntiAliasing, QString> anti_aliasing_texts_map = {
     {Settings::AntiAliasing::None, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "None"))},

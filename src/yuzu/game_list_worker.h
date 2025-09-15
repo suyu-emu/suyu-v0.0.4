@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,7 +18,7 @@
 
 #include "common/thread.h"
 #include "core/file_sys/registered_cache.h"
-#include "uisettings.h"
+#include "qt_common/uisettings.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 
@@ -45,8 +48,7 @@ public:
                             QVector<UISettings::GameDir>& game_dirs_,
                             const CompatibilityList& compatibility_list_,
                             const PlayTime::PlayTimeManager& play_time_manager_,
-                            Core::System& system_,
-                            const bool cached = true);
+                            Core::System& system_);
     ~GameListWorker() override;
 
     /// Starts the processing of directory tree information.
@@ -95,6 +97,4 @@ private:
     Common::Event processing_completed;
 
     Core::System& system;
-
-    const bool cached;
 };

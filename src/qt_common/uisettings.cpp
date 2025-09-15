@@ -7,7 +7,7 @@
 #include <QSettings>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 #ifndef CANNOT_EXPLICITLY_INSTANTIATE
 namespace Settings {

@@ -15,7 +15,7 @@
 #include "ui_configure_debug.h"
 #include "yuzu/configuration/configure_debug.h"
 #include "yuzu/debugger/console.h"
-#include "yuzu/uisettings.h"
+#include "qt_common/uisettings.h"
 
 ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
     : QScrollArea(parent), ui{std::make_unique<Ui::ConfigureDebug>()}, system{system_} {

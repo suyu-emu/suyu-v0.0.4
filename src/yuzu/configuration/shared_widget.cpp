@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -42,7 +45,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
-#include "yuzu/configuration/shared_translation.h"
+#include "qt_common/shared_translation.h"
 
 namespace ConfigurationShared {
 

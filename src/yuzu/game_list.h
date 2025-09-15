@@ -20,7 +20,8 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
-#include "uisettings.h"
+#include "qt_common/uisettings.h"
+#include "qt_common/qt_game_util.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 
@@ -46,28 +47,9 @@ enum class GameListOpenTarget {
     ModData,
 };
 
-enum class GameListRemoveTarget {
-    GlShaderCache,
-    VkShaderCache,
-    AllShaderCache,
-    CustomConfiguration,
-    CacheStorage,
-};
-
 enum class DumpRomFSTarget {
     Normal,
     SDMC,
-};
-
-enum class GameListShortcutTarget {
-    Desktop,
-    Applications,
-};
-
-enum class InstalledEntryType {
-    Game,
-    Update,
-    AddOnContent,
 };
 
 class GameList : public QWidget {
@@ -97,7 +79,7 @@ public:
     bool IsEmpty() const;
 
     void LoadCompatibilityList();
-    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs, const bool cached = true);
+    void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
 
     void SaveInterfaceLayout();
     void LoadInterfaceLayout();
@@ -110,7 +92,6 @@ public:
     static const QStringList supported_file_extensions;
 
 public slots:
-    void ForceRefreshGameDirectory();
     void RefreshGameDirectory();
 
 signals:
@@ -119,15 +100,15 @@ signals:
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
                              const std::string& game_path);
     void OpenTransferableShaderCacheRequested(u64 program_id);
-    void RemoveInstalledEntryRequested(u64 program_id, InstalledEntryType type);
-    void RemoveFileRequested(u64 program_id, GameListRemoveTarget target,
+    void RemoveInstalledEntryRequested(u64 program_id, QtCommon::Game::InstalledEntryType type);
+    void RemoveFileRequested(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
                              const std::string& game_path);
     void RemovePlayTimeRequested(u64 program_id);
     void DumpRomFSRequested(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void VerifyIntegrityRequested(const std::string& game_path);
     void CopyTIDRequested(u64 program_id);
     void CreateShortcut(u64 program_id, const std::string& game_path,
-                        GameListShortcutTarget target);
+                        const QtCommon::Game::ShortcutTarget target);
     void NavigateToGamedbEntryRequested(u64 program_id,
                                         const CompatibilityList& compatibility_list);
     void OpenPerGameGeneralRequested(const std::string& file);

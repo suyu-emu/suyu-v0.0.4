@@ -17,9 +17,10 @@
 #include <QTranslator>
 
 #include "common/common_types.h"
-#include "configuration/qt_config.h"
 #include "frontend_common/content_manager.h"
 #include "input_common/drivers/tas_input.h"
+#include "qt_common/qt_config.h"
+#include "qt_common/qt_game_util.h"
 #include "user_data_migration.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -53,10 +54,7 @@ class QSlider;
 class QHBoxLayout;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
-enum class GameListRemoveTarget;
-enum class GameListShortcutTarget;
 enum class DumpRomFSTarget;
-enum class InstalledEntryType;
 class GameListPlaceholder;
 
 class QtAmiiboSettingsDialog;
@@ -72,7 +70,6 @@ enum class StartGameType {
 
 namespace Core {
 enum class SystemResultStatus : u32;
-class System;
 } // namespace Core
 
 namespace Core::Frontend {
@@ -163,13 +160,6 @@ class GMainWindow : public QMainWindow {
     /// Max number of recently loaded items to keep track of
     static const int max_recent_files_item = 10;
 
-    enum {
-        CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES,
-        CREATE_SHORTCUT_MSGBOX_SUCCESS,
-        CREATE_SHORTCUT_MSGBOX_ERROR,
-        CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING,
-    };
-
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
@@ -179,7 +169,7 @@ public:
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
 
-    std::filesystem::path GetShortcutPath(GameListShortcutTarget target);
+    std::filesystem::path GetShortcutPath(QtCommon::Game::ShortcutTarget target);
 
 signals:
 
@@ -257,8 +247,6 @@ private:
     /// Updates an action's shortcut and text to reflect an updated hotkey from the hotkey registry.
     void LinkActionShortcut(QAction* action, const QString& action_name,
                             const bool tas_allowed = false);
-
-    void RegisterMetaTypes();
 
     void InitializeWidgets();
     void InitializeDebugWidgets();
@@ -353,9 +341,8 @@ private slots:
     void OnGameListLoadFile(QString game_path, u64 program_id);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
                               const std::string& game_path);
-    void OnTransferableShaderCacheOpenFile(u64 program_id);
-    void OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type);
-    void OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
+    void OnGameListRemoveInstalledEntry(u64 program_id, QtCommon::Game::InstalledEntryType type);
+    void OnGameListRemoveFile(u64 program_id, QtCommon::Game::GameListRemoveTarget target,
                               const std::string& game_path);
     void OnGameListRemovePlayTimeData(u64 program_id);
     void OnGameListDumpRomFS(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
@@ -363,8 +350,9 @@ private slots:
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
                                          const CompatibilityList& compatibility_list);
-    void OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
-                                  GameListShortcutTarget target);
+    void OnGameListCreateShortcut(u64 program_id,
+                                  const std::string& game_path,
+                                  const QtCommon::Game::ShortcutTarget target);
     void OnGameListOpenDirectory(const QString& directory);
     void OnGameListAddDirectory();
     void OnGameListShowList(bool show);
@@ -421,7 +409,6 @@ private slots:
     void OnInitialSetup();
     void OnCreateHomeMenuDesktopShortcut();
     void OnCreateHomeMenuApplicationMenuShortcut();
-    void OnCreateHomeMenuShortcut(GameListShortcutTarget target);
     void OnCaptureScreenshot();
     void OnCheckFirmwareDecryption();
     void OnLanguageChanged(const QString& locale);
@@ -436,16 +423,7 @@ private slots:
 #endif
 
 private:
-    QString GetGameListErrorRemoving(InstalledEntryType type) const;
-    void RemoveBaseContent(u64 program_id, InstalledEntryType type);
-    void RemoveUpdateContent(u64 program_id, InstalledEntryType type);
-    void RemoveAddOnContent(u64 program_id, InstalledEntryType type);
-    void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target);
-    void RemoveVulkanDriverPipelineCache(u64 program_id);
-    void RemoveAllTransferableShaderCaches(u64 program_id);
-    void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
     void RemovePlayTimeData(u64 program_id);
-    void RemoveCacheStorage(u64 program_id);
     bool SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id,
                                u64* selected_title_id, u8* selected_content_record_type);
     ContentManager::InstallResult InstallNCA(const QString& filename);
@@ -478,15 +456,6 @@ private:
 
     QString GetTasStateDescription() const;
     bool CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title);
-    bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
-                             std::filesystem::path& out_icon_path);
-    bool CreateShortcutLink(const std::filesystem::path& shortcut_path, const std::string& comment,
-                            const std::filesystem::path& icon_path,
-                            const std::filesystem::path& command, const std::string& arguments,
-                            const std::string& categories, const std::string& keywords,
-                            const std::string& name);
-
-    bool OnCheckNcaVerification();
 
     /**
      * Mimic the behavior of QMessageBox::question but link controller navigation to the dialog
@@ -501,7 +470,6 @@ private:
 
     std::unique_ptr<Ui::MainWindow> ui;
 
-    std::unique_ptr<Core::System> system;
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
     std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
@@ -561,10 +529,6 @@ private:
 
     QString startup_icon_theme;
 
-    // FS
-    std::shared_ptr<FileSys::VfsFilesystem> vfs;
-    std::unique_ptr<FileSys::ManualContentProvider> provider;
-
     // Debugger panes
     WaitTreeWidget* waitTreeWidget;
     ControllerDialog* controller_dialog;
@@ -611,7 +575,7 @@ private:
     void CreateShortcut(const std::string& game_path,
                         const u64 program_id,
                         const std::string& game_title,
-                        GameListShortcutTarget target,
+                        QtCommon::Game::ShortcutTarget target,
                         std::string arguments,
                         const bool needs_title);
 
