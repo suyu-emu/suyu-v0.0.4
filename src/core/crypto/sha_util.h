@@ -3,7 +3,6 @@
 
 #pragma once
 #include <array>
-
 #include <string_view>
 #include "common/common_types.h"
 #include "common/hex_util.h"
@@ -32,9 +31,18 @@ inline SHA256Hash operator"" _HASH(const char* data, size_t len) {
         }
     }
 
-    // Only call HexStringToArray if we've validated the input
-    std::string_view hex_view(data, len);
-    return Common::HexStringToArray<0x20>(hex_view);
+    // Convert hex string to array manually to avoid potential assertion issues
+    SHA256Hash result{};
+    for (size_t i = 0; i < len; i += 2) {
+        u8 high_nibble = (data[i] >= '0' && data[i] <= '9') ? (data[i] - '0') :
+                        (data[i] >= 'a' && data[i] <= 'f') ? (data[i] - 'a' + 10) :
+                        (data[i] - 'A' + 10);
+        u8 low_nibble = (data[i + 1] >= '0' && data[i + 1] <= '9') ? (data[i + 1] - '0') :
+                       (data[i + 1] >= 'a' && data[i + 1] <= 'f') ? (data[i + 1] - 'a' + 10) :
+                       (data[i + 1] - 'A' + 10);
+        result[i / 2] = (high_nibble << 4) | low_nibble;
+    }
+    return result;
 }
 
 } // namespace Crypto
