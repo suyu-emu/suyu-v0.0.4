@@ -37,7 +37,7 @@ TEST_CASE("SHA256Hash typedef", "[crypto]") {
     }
 
     SECTION("SHA256Hash can be initialized with values") {
-        Crypto::SHA256Hash hash{};
+        SHA256Hash hash{};
         hash[0] = 0xAB;
         hash[1] = 0xCD;
         hash[31] = 0xEF;
