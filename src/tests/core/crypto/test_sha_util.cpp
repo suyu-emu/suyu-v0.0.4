@@ -10,6 +10,8 @@
 #include "common/common_types.h"
 #include "core/crypto/sha_util.h"
 
+using namespace Crypto;
+
 namespace {
 
 // Compile-time test to ensure constexpr functionality works
