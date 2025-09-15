@@ -33,7 +33,7 @@ constexpr SHA256Hash operator""_HASH(const char* data, std::size_t len) {
         const u8 high_nibble = (data[i] >= '0' && data[i] <= '9') ? (data[i] - '0') :
                         (data[i] >= 'a' && data[i] <= 'f') ? (data[i] - 'a' + 10) :
                         (data[i] - 'A' + 10);
-        u8 low_nibble = (data[i + 1] >= '0' && data[i + 1] <= '9') ? (data[i + 1] - '0') :
+        const u8 low_nibble = (data[i + 1] >= '0' && data[i + 1] <= '9') ? (data[i + 1] - '0') :
                        (data[i + 1] >= 'a' && data[i + 1] <= 'f') ? (data[i + 1] - 'a' + 10) :
                        (data[i + 1] - 'A' + 10);
         result[i / 2] = (high_nibble << 4) | low_nibble;
