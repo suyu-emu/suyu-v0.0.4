@@ -14,8 +14,8 @@ namespace {
 TEST_CASE("SHA256Hash typedef", "[crypto]") {
     SECTION("SHA256Hash is correct size") {
         // SHA256Hash should be 32 bytes (0x20)
-        static_assert(sizeof(SHA256Hash) == 0x20);
-        static_assert(sizeof(SHA256Hash) == 32);
+        static_assert(sizeof(Crypto::SHA256Hash) == 0x20);
+        static_assert(sizeof(Crypto::SHA256Hash) == 32);
 
         Crypto::SHA256Hash hash{};
         REQUIRE(hash.size() == 32);
