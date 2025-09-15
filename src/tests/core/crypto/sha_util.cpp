@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-
 #include <array>
 #include <type_traits>
 #include <catch2/catch_test_macros.hpp>
@@ -160,6 +159,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
         REQUIRE(hash5 == empty);
         REQUIRE(hash6 == empty);
     }
+
     SECTION("Boundary test - exactly 64 characters") {
         // Test that a string of exactly 64 '0' characters works
         auto hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
