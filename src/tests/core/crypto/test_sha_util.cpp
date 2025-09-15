@@ -57,7 +57,7 @@ TEST_CASE("_HASH operator", "[crypto]") {
         auto hash4 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0"_HASH; // 65 chars
 
         // All should return empty (zero-filled) hash
-        SHA256Hash empty{};
+        Crypto::SHA256Hash empty{};
         REQUIRE(hash1 == empty);
         REQUIRE(hash2 == empty);
         REQUIRE(hash3 == empty);
