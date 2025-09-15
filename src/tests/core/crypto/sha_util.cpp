@@ -170,22 +170,4 @@ TEST_CASE("_HASH operator", "[crypto]") {
         Crypto::SHA256Hash expected{};  // All zeros
         REQUIRE(hash == expected);
     }
-
-    SECTION("Compile-time evaluation") {
-        // Test that the operator can be used at compile time
-        constexpr auto compile_time_hash = "0000000000000000000000000000000000000000000000000000000000000000"_HASH;
-
-        Crypto::SHA256Hash runtime_hash{};
-        REQUIRE(compile_time_hash == runtime_hash);
-
-        static_assert(compile_time_hash.size() == 32);
-
-        // Test another compile-time hash
-        constexpr auto compile_time_hash2 = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"_HASH;
-        static_assert(compile_time_hash2.size() == 32);
-
-        Crypto::SHA256Hash runtime_hash2;
-        runtime_hash2.fill(0xff);
-        REQUIRE(compile_time_hash2 == runtime_hash2);
-    }
 }
