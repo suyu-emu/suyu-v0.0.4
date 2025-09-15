@@ -23,8 +23,8 @@ TEST_CASE("SHA256Hash typedef", "[crypto]") {
     }
 
     SECTION("SHA256Hash is array of u8") {
-        static_assert(std::is_same_v<SHA256Hash::value_type, u8>);
-        static_assert(std::is_same_v<SHA256Hash, std::array<u8, 0x20>>);
+        static_assert(std::is_same_v<Crypto::SHA256Hash::value_type, u8>);
+        static_assert(std::is_same_v<Crypto::SHA256Hash, std::array<u8, 0x20>>);
     }
 
     SECTION("SHA256Hash default initialization") {
