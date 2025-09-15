@@ -12,6 +12,13 @@
 
 namespace {
 
+// Compile-time test to ensure constexpr functionality works
+constexpr auto compile_time_hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"_HASH;
+static_assert(compile_time_hash.size() == 32, "Compile-time hash should have correct size");
+static_assert(compile_time_hash[0] == 0x01, "Compile-time hash should have correct first byte");
+static_assert(compile_time_hash[1] == 0x23, "Compile-time hash should have correct second byte");
+static_assert(compile_time_hash[31] == 0xef, "Compile-time hash should have correct last byte");
+
 TEST_CASE("SHA256Hash typedef", "[crypto]") {
     SECTION("SHA256Hash is correct size") {
         // SHA256Hash should be 32 bytes (0x20)
