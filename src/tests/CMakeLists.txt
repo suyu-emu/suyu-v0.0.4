@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
     common/assert.cpp
+    common/assert.cpp
 add_executable(tests
     common/bit_field.cpp
     common/cityhash.cpp
