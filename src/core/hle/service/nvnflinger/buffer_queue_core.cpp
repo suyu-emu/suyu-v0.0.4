@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -10,11 +13,18 @@
 
 namespace Service::android {
 
-BufferQueueCore::BufferQueueCore() {
-    history.resize(8);
-};
-
+BufferQueueCore::BufferQueueCore() = default;
 BufferQueueCore::~BufferQueueCore() = default;
+
+void BufferQueueCore::PushHistory(u64 frame_number, s64 queue_time, s64 presentation_time, BufferState state) {
+    buffer_history_pos = (buffer_history_pos + 1) % BUFFER_HISTORY_SIZE;
+    buffer_history[buffer_history_pos] = BufferHistoryInfo{
+        .frame_number = frame_number,
+        .queue_time = queue_time,
+        .presentation_time = presentation_time,
+        .state = state,
+    };
+}
 
 void BufferQueueCore::SignalDequeueCondition() {
     dequeue_possible.store(true);
@@ -47,7 +57,7 @@ s32 BufferQueueCore::GetMinMaxBufferCountLocked(bool async) const {
 
 s32 BufferQueueCore::GetMaxBufferCountLocked(bool async) const {
     const auto min_buffer_count = GetMinMaxBufferCountLocked(async);
-    auto max_buffer_count = (std::max)(default_max_buffer_count, min_buffer_count);
+    auto max_buffer_count = std::max(default_max_buffer_count, min_buffer_count);
 
     if (override_max_buffer_count != 0) {
         ASSERT(override_max_buffer_count >= min_buffer_count);

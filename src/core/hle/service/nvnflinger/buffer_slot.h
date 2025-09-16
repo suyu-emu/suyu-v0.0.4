@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -15,7 +18,7 @@ namespace Service::android {
 
 class GraphicBuffer;
 
-enum class BufferState : s32 {
+enum class BufferState : u32 {
     Free = 0,
     Dequeued = 1,
     Queued = 2,

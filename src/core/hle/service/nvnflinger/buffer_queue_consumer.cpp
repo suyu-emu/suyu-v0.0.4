@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: Copyright 2014 The Android Open Source Project
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -97,18 +100,18 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         slots[slot].needs_cleanup_on_release = false;
         slots[slot].buffer_state = BufferState::Acquired;
 
+        // Mark tracked buffer history records as acquired
+        for (auto& buffer_history_record : core->buffer_history) {
+            if (buffer_history_record.frame_number == core->frame_counter) {
+                buffer_history_record.state = BufferState::Acquired;
+                break;
+            }
+        }
+
         // TODO: for now, avoid resetting the fence, so that when we next return this
         // slot to the producer, it will wait for the fence to pass. We should fix this
         // by properly waiting for the fence in the BufferItemConsumer.
         // slots[slot].fence = Fence::NoFence();
-
-        const auto target_frame_number = slots[slot].frame_number;
-        for (size_t i = 0; i < core->history.size(); i++) {
-            if (core->history[i].frame_number == target_frame_number) {
-                core->history[i].state = BufferState::Acquired;
-                break;
-            }
-        }
     }
 
     // If the buffer has previously been acquired by the consumer, set graphic_buffer to nullptr to
