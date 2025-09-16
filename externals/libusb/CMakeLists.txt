@@ -1,15 +1,19 @@
+# SPDX-FileCopyrightText: 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # SPDX-FileCopyrightText: 2020 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 include(CPMUtil)
 
-if (PLATFORM_SUN OR PLATFORM_OPENBSD OR PLATFORM_FREEBSD)
+# we love our libraries don't we folks
+if (PLATFORM_SUN)
     set(libusb_bundled ON)
 else()
     set(libusb_bundled OFF)
 endif()
 
-# TODO(crueter): Fix on *BSD/Solaris
+# TODO(crueter): Fix on Solaris
 AddJsonPackage(
     NAME libusb
     BUNDLED_PACKAGE ${libusb_bundled}
@@ -19,6 +23,7 @@ if (NOT libusb_ADDED)
     return()
 endif()
 
+# TODO: *BSD fails to compile--may need different configs/symbols
 if (MINGW OR PLATFORM_LINUX OR APPLE)
     set(LIBUSB_FOUND ON CACHE BOOL "libusb is present" FORCE)
     set(LIBUSB_VERSION "1.0.24" CACHE STRING "libusb version string" FORCE)

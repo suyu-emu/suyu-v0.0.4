@@ -44,6 +44,13 @@ if (PLATFORM_SUN)
     endif()
 endif()
 
+# Needed for FFmpeg w/ VAAPI and DRM
+if (PLATFORM_OPENBSD)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/usr/X11R6/include")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/X11R6/include")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/X11R6/lib")
+endif()
+
 # Detect current compilation architecture and create standard definitions
 # =======================================================================
 
@@ -88,7 +95,7 @@ message(STATUS "Target architecture: ${ARCHITECTURE}")
 
 if (MSVC AND ARCHITECTURE_x86)
     message(FATAL_ERROR "Attempting to build with the x86 environment is not supported. \
-        This can typically happen if you used the Developer Command Prompt from the start menu;\
+        This can typically happen if you used the Developer Command Prompt from the start menu; \
         instead, run vcvars64.bat directly, located at C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat")
 endif()
 
@@ -122,7 +129,7 @@ include(CMakeDependentOption)
 include(CTest)
 
 # Disable Warnings as Errors for MSVC
-if (CXX_CL)
+if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /WX-")
 endif()
 
@@ -485,13 +492,32 @@ else()
     find_package(Opus 1.3 MODULE REQUIRED)
     find_package(ZLIB 1.2 REQUIRED)
     find_package(zstd 1.5 REQUIRED MODULE)
-    find_package(Boost 1.57.0 REQUIRED context system fiber)
-    find_package(MbedTLS 3)
+
+    # wow
+    if (PLATFORM_LINUX)
+        find_package(Boost 1.57.0 REQUIRED headers context system fiber)
+    else()
+        find_package(Boost 1.57.0 REQUIRED)
+    endif()
+
+    # OpenBSD does not package mbedtls3 (only 2)
+    if (PLATFORM_OPENBSD)
+        AddJsonPackage(mbedtls)
+    else()
+        find_package(MbedTLS 3 REQUIRED)
+    endif()
 
     find_package(VulkanUtilityLibraries REQUIRED)
     find_package(VulkanHeaders 1.3.274 REQUIRED)
+
+    # FreeBSD does not package spirv-headers
+    if (PLATFORM_FREEBSD)
+        AddJsonPackage(spirv-headers)
+    else()
+        find_package(SPIRV-Headers 1.3.274 REQUIRED)
+    endif()
+
     find_package(SPIRV-Tools MODULE REQUIRED)
-    find_package(SPIRV-Headers 1.3.274 REQUIRED)
 
     if (YUZU_TESTS)
         find_package(Catch2 3.0.1 REQUIRED)

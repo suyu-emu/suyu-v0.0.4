@@ -1,17 +1,6 @@
-# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 # SPDX-FileCopyrightText: Copyright 2025 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Created-By: crueter
-# Docs will come at a later date, mostly this is to just reduce boilerplate
-# and some cmake magic to allow for runtime viewing of dependency versions
-
-# Future crueter: Wow this was a lie and a half, at this point I might as well make my own CPN
-# haha just kidding... unless?
-
-# TODO(crueter): Remember to get more than 6 hours of sleep whenever making giant cmake changes
 if (MSVC OR ANDROID)
     set(BUNDLED_DEFAULT ON)
 else()
@@ -27,6 +16,7 @@ option(CPMUTIL_FORCE_SYSTEM
 cmake_minimum_required(VERSION 3.22)
 include(CPM)
 
+# cpmfile parsing
 set(CPMUTIL_JSON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpmfile.json")
 
 if (EXISTS ${CPMUTIL_JSON_FILE})
@@ -35,12 +25,11 @@ else()
     message(WARNING "[CPMUtil] cpmfile ${CPMUTIL_JSON_FILE} does not exist, AddJsonPackage will be a no-op")
 endif()
 
-# utility
+# Utility stuff
 function(cpm_utils_message level name message)
     message(${level} "[CPMUtil] ${name}: ${message}")
 endfunction()
 
-# utility
 function(array_to_list array length out)
     math(EXPR range "${length} - 1")
 
@@ -53,7 +42,6 @@ function(array_to_list array length out)
     set("${out}" "${NEW_LIST}" PARENT_SCOPE)
 endfunction()
 
-# utility
 function(get_json_element object out member default)
     string(JSON out_type ERROR_VARIABLE err TYPE "${object}" ${member})
 
@@ -73,14 +61,13 @@ function(get_json_element object out member default)
     set("${out}" "${outvar}" PARENT_SCOPE)
 endfunction()
 
-# Kinda cancerous but whatever
+# The preferred usage
 function(AddJsonPackage)
     set(oneValueArgs
         NAME
 
         # these are overrides that can be generated at runtime, so can be defined separately from the json
         DOWNLOAD_ONLY
-        SYSTEM_PACKAGE
         BUNDLED_PACKAGE
     )
 
@@ -90,6 +77,7 @@ function(AddJsonPackage)
                           "${ARGN}")
 
     list(LENGTH ARGN argnLength)
+
     # single name argument
     if(argnLength EQUAL 1)
         set(JSON_NAME "${ARGV0}")
@@ -199,7 +187,6 @@ function(AddJsonPackage)
     endif()
 
     set(options ${options} ${JSON_OPTIONS})
-
     # end options
 
     # system/bundled
@@ -241,7 +228,7 @@ endfunction()
 function(AddPackage)
     cpm_set_policies()
 
-    # TODO(crueter): docs, git clone
+    # TODO(crueter): git clone?
 
     #[[
         URL configurations, descending order of precedence:
