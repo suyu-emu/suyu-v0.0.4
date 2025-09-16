@@ -278,7 +278,7 @@ public:
     TestControl4() {
         fiber1 = std::make_shared<Fiber>([this] { DoWork(); });
         goal_reached = false;
-        rewinded = false;
+        rewound = false;
     }
 
     void Execute() {
@@ -289,25 +289,25 @@ public:
 
     void DoWork() {
         fiber1->SetRewindPoint([this] { DoWork(); });
-        if (rewinded) {
+        if (rewound) {
             goal_reached = true;
             Fiber::YieldTo(fiber1, *thread_fiber);
         }
-        rewinded = true;
+        rewound = true;
         fiber1->Rewind();
     }
 
     std::shared_ptr<Common::Fiber> fiber1;
     std::shared_ptr<Common::Fiber> thread_fiber;
     bool goal_reached;
-    bool rewinded;
+    bool rewound;
 };
 
 TEST_CASE("Fibers::Rewind", "[common]") {
     TestControl4 test_control{};
     test_control.Execute();
     REQUIRE(test_control.goal_reached);
-    REQUIRE(test_control.rewinded);
+    REQUIRE(test_control.rewound);
 }
 
 } // namespace Common

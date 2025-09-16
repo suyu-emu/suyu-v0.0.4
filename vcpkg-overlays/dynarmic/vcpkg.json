@@ -1,0 +1,12 @@
+{
+  "name": "dynarmic",
+  "version": "6.7.2",
+  "description": "ARM dynamic library compiler",
+  "homepage": "https://github.com/yuzu-mirror/dynarmic",
+  "dependencies": [
+    "boost",
+    "fmt",
+    "zstd",
+    "vcpkg-cmake"
+  ]
+}
