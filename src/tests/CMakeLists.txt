@@ -13,6 +13,7 @@ add_executable(tests
     common/scratch_buffer.cpp
     common/unique_function.cpp
     core/core_timing.cpp
+    core/crypto/test_sha_util.cpp
     core/internal_network/network.cpp
     precompiled_headers.h
     video_core/memory_tracker.cpp
