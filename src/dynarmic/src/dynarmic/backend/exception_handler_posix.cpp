@@ -6,8 +6,13 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "dynarmic/backend/exception_handler.h"
-
+#include <cstring>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <optional>
+#include <sys/mman.h>
 #ifdef __APPLE__
 #    include <signal.h>
 #    include <sys/ucontext.h>
@@ -21,17 +26,10 @@
 #    endif
 #endif
 
-#include <cstring>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <optional>
-#include <vector>
+#include <ankerl/unordered_dense.h>
 
-#include "dynarmic/common/assert.h"
-#include <mcl/bit_cast.hpp>
+#include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/common/common_types.h"
-
 #if defined(MCL_ARCHITECTURE_X86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
 #elif defined(MCL_ARCHITECTURE_ARM64)
@@ -43,42 +41,80 @@
 #else
 #    error "Invalid architecture"
 #endif
+#include <mcl/bit_cast.hpp>
 
 namespace Dynarmic::Backend {
 
 namespace {
 
 struct CodeBlockInfo {
-    u64 code_begin, code_end;
+    u64 size;
     std::function<FakeCall(u64)> cb;
 };
 
 class SigHandler {
-public:
-    SigHandler();
-    ~SigHandler();
-
-    void AddCodeBlock(CodeBlockInfo info);
-    void RemoveCodeBlock(u64 host_pc);
-
-    bool SupportsFastmem() const { return supports_fast_mem; }
-
-private:
-    auto FindCodeBlockInfo(u64 host_pc) {
-        return std::find_if(code_block_infos.begin(), code_block_infos.end(), [&](const auto& x) { return x.code_begin <= host_pc && x.code_end > host_pc; });
+    auto FindCodeBlockInfo(u64 offset) noexcept {
+        return std::find_if(code_block_infos.begin(), code_block_infos.end(), [&](auto const& e) {
+            return e.first <= offset && e.first + e.second.size > offset;
+        });
     }
+    static void SigAction(int sig, siginfo_t* info, void* raw_context);
 
     bool supports_fast_mem = true;
-
     void* signal_stack_memory = nullptr;
-
-    std::vector<CodeBlockInfo> code_block_infos;
-    std::mutex code_block_infos_mutex;
-
+    ankerl::unordered_dense::map<u64, CodeBlockInfo> code_block_infos;
+    std::shared_mutex code_block_infos_mutex;
     struct sigaction old_sa_segv;
     struct sigaction old_sa_bus;
+    std::size_t signal_stack_size;
+public:
+    SigHandler() noexcept {
+        signal_stack_size = std::max<size_t>(SIGSTKSZ, 2 * 1024 * 1024);
+        signal_stack_memory = mmap(nullptr, signal_stack_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    static void SigAction(int sig, siginfo_t* info, void* raw_context);
+        stack_t signal_stack{};
+        signal_stack.ss_sp = signal_stack_memory;
+        signal_stack.ss_size = signal_stack_size;
+        signal_stack.ss_flags = 0;
+        if (sigaltstack(&signal_stack, nullptr) != 0) {
+            fmt::print(stderr, "dynarmic: POSIX SigHandler: init failure at sigaltstack\n");
+            supports_fast_mem = false;
+            return;
+        }
+
+        struct sigaction sa{};
+        sa.sa_handler = nullptr;
+        sa.sa_sigaction = &SigHandler::SigAction;
+        sa.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
+        sigemptyset(&sa.sa_mask);
+        if (sigaction(SIGSEGV, &sa, &old_sa_segv) != 0) {
+            fmt::print(stderr, "dynarmic: POSIX SigHandler: could not set SIGSEGV handler\n");
+            supports_fast_mem = false;
+            return;
+        }
+#ifdef __APPLE__
+        if (sigaction(SIGBUS, &sa, &old_sa_bus) != 0) {
+            fmt::print(stderr, "dynarmic: POSIX SigHandler: could not set SIGBUS handler\n");
+            supports_fast_mem = false;
+            return;
+        }
+#endif
+    }
+
+    ~SigHandler() noexcept {
+        munmap(signal_stack_memory, signal_stack_size);
+    }
+
+    void AddCodeBlock(u64 offset, CodeBlockInfo cbi) noexcept {
+        std::unique_lock guard(code_block_infos_mutex);
+        code_block_infos.insert_or_assign(offset, cbi);
+    }
+    void RemoveCodeBlock(u64 offset) noexcept {
+        std::unique_lock guard(code_block_infos_mutex);
+        code_block_infos.erase(offset);
+    }
+
+    bool SupportsFastmem() const noexcept { return supports_fast_mem; }
 };
 
 std::mutex handler_lock;
@@ -91,64 +127,8 @@ void RegisterHandler() {
     }
 }
 
-SigHandler::SigHandler() {
-    const size_t signal_stack_size = std::max<size_t>(SIGSTKSZ, 2 * 1024 * 1024);
-
-    signal_stack_memory = std::malloc(signal_stack_size);
-
-    stack_t signal_stack;
-    signal_stack.ss_sp = signal_stack_memory;
-    signal_stack.ss_size = signal_stack_size;
-    signal_stack.ss_flags = 0;
-    if (sigaltstack(&signal_stack, nullptr) != 0) {
-        fmt::print(stderr, "dynarmic: POSIX SigHandler: init failure at sigaltstack\n");
-        supports_fast_mem = false;
-        return;
-    }
-
-    struct sigaction sa;
-    sa.sa_handler = nullptr;
-    sa.sa_sigaction = &SigHandler::SigAction;
-    sa.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
-    sigemptyset(&sa.sa_mask);
-    if (sigaction(SIGSEGV, &sa, &old_sa_segv) != 0) {
-        fmt::print(stderr, "dynarmic: POSIX SigHandler: could not set SIGSEGV handler\n");
-        supports_fast_mem = false;
-        return;
-    }
-#ifdef __APPLE__
-    if (sigaction(SIGBUS, &sa, &old_sa_bus) != 0) {
-        fmt::print(stderr, "dynarmic: POSIX SigHandler: could not set SIGBUS handler\n");
-        supports_fast_mem = false;
-        return;
-    }
-#endif
-}
-
-SigHandler::~SigHandler() {
-    std::free(signal_stack_memory);
-}
-
-void SigHandler::AddCodeBlock(CodeBlockInfo cbi) {
-    std::lock_guard<std::mutex> guard(code_block_infos_mutex);
-    if (auto iter = FindCodeBlockInfo(cbi.code_begin); iter != code_block_infos.end()) {
-        code_block_infos.erase(iter);
-    }
-    code_block_infos.push_back(cbi);
-}
-
-void SigHandler::RemoveCodeBlock(u64 host_pc) {
-    std::lock_guard<std::mutex> guard(code_block_infos_mutex);
-    const auto iter = FindCodeBlockInfo(host_pc);
-    if (iter == code_block_infos.end()) {
-        return;
-    }
-    code_block_infos.erase(iter);
-}
-
 void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
-    ASSERT(sig == SIGSEGV || sig == SIGBUS);
-
+    DEBUG_ASSERT(sig == SIGSEGV || sig == SIGBUS);
 #ifndef MCL_ARCHITECTURE_RISCV
     ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
 #ifndef __OpenBSD__
@@ -157,7 +137,6 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #endif
 
 #if defined(MCL_ARCHITECTURE_X86_64)
-
 #    if defined(__APPLE__)
 #        define CTX_RIP (mctx->__ss.__rip)
 #        define CTX_RSP (mctx->__ss.__rsp)
@@ -179,26 +158,18 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #    else
 #        error "Unknown platform"
 #    endif
-
     {
-        std::lock_guard<std::mutex> guard(sig_handler->code_block_infos_mutex);
-
-        const auto iter = sig_handler->FindCodeBlockInfo(CTX_RIP);
-        if (iter != sig_handler->code_block_infos.end()) {
-            FakeCall fc = iter->cb(CTX_RIP);
-
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_RIP);
             CTX_RSP -= sizeof(u64);
             *mcl::bit_cast<u64*>(CTX_RSP) = fc.ret_rip;
             CTX_RIP = fc.call_rip;
-
             return;
         }
     }
-
     fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
-
 #elif defined(MCL_ARCHITECTURE_ARM64)
-
 #    if defined(__APPLE__)
 #        define CTX_PC (mctx->__ss.__pc)
 #        define CTX_SP (mctx->__ss.__sp)
@@ -240,30 +211,19 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 #    else
 #        error "Unknown platform"
 #    endif
-
     {
-        std::lock_guard<std::mutex> guard(sig_handler->code_block_infos_mutex);
-
-        const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC);
-        if (iter != sig_handler->code_block_infos.end()) {
-            FakeCall fc = iter->cb(CTX_PC);
-
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_PC);
             CTX_PC = fc.call_pc;
-
             return;
         }
     }
-
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
-
 #elif defined(MCL_ARCHITECTURE_RISCV)
-
     ASSERT_FALSE("Unimplemented");
-
 #else
-
 #    error "Invalid architecture"
-
 #endif
 
     struct sigaction* retry_sa = sig == SIGSEGV ? &sig_handler->old_sa_segv : &sig_handler->old_sa_bus;
@@ -284,26 +244,26 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
 }  // anonymous namespace
 
 struct ExceptionHandler::Impl final {
-    Impl(u64 code_begin_, u64 code_end_)
-            : code_begin(code_begin_)
-            , code_end(code_end_) {
+    Impl(u64 offset_, u64 size_)
+            : offset(offset_)
+            , size(size_) {
         RegisterHandler();
     }
 
     void SetCallback(std::function<FakeCall(u64)> cb) {
-        CodeBlockInfo cbi;
-        cbi.code_begin = code_begin;
-        cbi.code_end = code_end;
-        cbi.cb = cb;
-        sig_handler->AddCodeBlock(cbi);
+        sig_handler->AddCodeBlock(offset, CodeBlockInfo{
+            .size = size,
+            .cb = cb
+        });
     }
 
     ~Impl() {
-        sig_handler->RemoveCodeBlock(code_begin);
+        sig_handler->RemoveCodeBlock(offset);
     }
 
 private:
-    u64 code_begin, code_end;
+    u64 offset;
+    u64 size;
 };
 
 ExceptionHandler::ExceptionHandler() = default;
@@ -311,28 +271,22 @@ ExceptionHandler::~ExceptionHandler() = default;
 
 #if defined(MCL_ARCHITECTURE_X86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
-    const u64 code_begin = mcl::bit_cast<u64>(code.getCode());
-    const u64 code_end = code_begin + code.GetTotalCodeSize();
-    impl = std::make_unique<Impl>(code_begin, code_end);
+    impl = std::make_unique<Impl>(mcl::bit_cast<u64>(code.getCode()), code.GetTotalCodeSize());
 }
 #elif defined(MCL_ARCHITECTURE_ARM64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
-    const u64 code_begin = mcl::bit_cast<u64>(mem.ptr());
-    const u64 code_end = code_begin + size;
-    impl = std::make_unique<Impl>(code_begin, code_end);
+    impl = std::make_unique<Impl>(mcl::bit_cast<u64>(mem.ptr()), size);
 }
 #elif defined(MCL_ARCHITECTURE_RISCV)
 void ExceptionHandler::Register(RV64::CodeBlock& mem, std::size_t size) {
-    const u64 code_begin = mcl::bit_cast<u64>(mem.ptr<u64>());
-    const u64 code_end = code_begin + size;
-    impl = std::make_unique<Impl>(code_begin, code_end);
+    impl = std::make_unique<Impl>(mcl::bit_cast<u64>(mem.ptr<u64>()), size);
 }
 #else
 #    error "Invalid architecture"
 #endif
 
 bool ExceptionHandler::SupportsFastmem() const noexcept {
-    return static_cast<bool>(impl) && sig_handler->SupportsFastmem();
+    return bool(impl) && sig_handler->SupportsFastmem();
 }
 
 void ExceptionHandler::SetFastmemCallback(std::function<FakeCall(u64)> cb) {
