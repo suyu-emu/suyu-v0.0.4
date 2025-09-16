@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-    common/assert.cpp
-    common/assert.cpp
 add_executable(tests
+    common/assert.cpp
     common/bit_field.cpp
     common/cityhash.cpp
     common/container_hash.cpp
