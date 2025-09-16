@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Salta alcuni invalidamenti della cache lato CPU durante gli aggiornamenti di memoria, riducendo l\'uso della CPU e migliorandone le prestazioni. Potrebbe causare glitch o crash in alcuni giochi.</string>
     <string name="cpuopt_unsafe_host_mmu">Abilita emulazione MMU host</string>
     <string name="cpuopt_unsafe_host_mmu_description">Questa ottimizzazione accelera gli accessi alla memoria da parte del programma guest. Abilitandola, le letture/scritture della memoria guest vengono eseguite direttamente in memoria e sfruttano la MMU host. Disabilitandola, tutti gli accessi alla memoria sono costretti a utilizzare l\'emulazione software della MMU.</string>
-    <string name="dma_accuracy">Livello DMA</string>
-    <string name="dma_accuracy_description">Controlla la precisione del DMA. Una precisione più alta può risolvere problemi in alcuni giochi, ma in alcuni casi può influire sulle prestazioni. Se non sei sicuro, lascia su Predefinito.</string>
+    <string name="dma_accuracy">Precisione DMA</string>
+    <string name="dma_accuracy_description">Controlla la precisione del DMA. La precisione sicura può risolvere problemi in alcuni giochi, ma in alcuni casi può anche influire sulle prestazioni. In caso di dubbi, lascia questo su Predefinito.</string>
 
     <string name="memory_4gb">4GB (Consigliato)</string>
     <string name="memory_6gb">6GB (Non sicuro)</string>
@@ -831,9 +831,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Predefinito</string>
-    <string name="dma_accuracy_normal">Normale</string>
-    <string name="dma_accuracy_high">Alto</string>
-    <string name="dma_accuracy_extreme">Estremo</string>
+    <string name="dma_accuracy_unsafe">Non sicuro (veloce)</string>
+    <string name="dma_accuracy_safe">Sicuro (stabile)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

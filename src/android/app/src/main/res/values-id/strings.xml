@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Melewati beberapa pembatalan cache sisi CPU selama pembaruan memori, mengurangi penggunaan CPU dan meningkatkan kinerjanya. Mungkin menyebabkan gangguan atau crash pada beberapa game.</string>
     <string name="cpuopt_unsafe_host_mmu">Aktifkan Emulasi MMU Host</string>
     <string name="cpuopt_unsafe_host_mmu_description">Optimasi ini mempercepat akses memori oleh program tamu. Mengaktifkannya menyebabkan pembacaan/penulisan memori tamu dilakukan langsung ke memori dan memanfaatkan MMU Host. Menonaktifkan ini memaksa semua akses memori menggunakan Emulasi MMU Perangkat Lunak.</string>
-    <string name="dma_accuracy">Level DMA</string>
-    <string name="dma_accuracy_description">Mengontrol akurasi presisi DMA. Presisi yang lebih tinggi dapat memperbaiki masalah di beberapa game, tetapi juga dapat memengaruhi performa dalam beberapa kasus. Jika tidak yakin, biarkan di Bawaan.</string>
+    <string name="dma_accuracy">Akurasi DMA</string>
+    <string name="dma_accuracy_description">Mengontrol keakuratan presisi DMA. Presisi aman dapat memperbaiki masalah di beberapa game, tetapi juga dapat memengaruhi kinerja dalam beberapa kasus. Jika tidak yakin, biarkan ini pada Bawaan.</string>
 
     <string name="memory_4gb">4GB (Direkomendasikan)</string>
     <string name="memory_6gb">6GB (Tidak Aman)</string>
@@ -862,9 +862,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Bawaan</string>
-    <string name="dma_accuracy_normal">Normal</string>
-    <string name="dma_accuracy_high">Tinggi</string>
-    <string name="dma_accuracy_extreme">Ekstrem</string>
+    <string name="dma_accuracy_unsafe">Tidak Aman (cepat)</string>
+    <string name="dma_accuracy_safe">Aman (stabil)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

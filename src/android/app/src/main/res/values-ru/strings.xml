@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Пропускает некоторые инвалидации кэша на стороне ЦП при обновлениях памяти, уменьшая нагрузку на процессор и повышая производительность. Может вызывать сбои в некоторых играх.</string>
     <string name="cpuopt_unsafe_host_mmu">Включить эмуляцию MMU хоста</string>
     <string name="cpuopt_unsafe_host_mmu_description">Эта оптимизация ускоряет доступ к памяти гостевой программой. При включении операции чтения/записи памяти гостя выполняются напрямую в памяти с использованием MMU хоста. Отключение заставляет все обращения к памяти использовать программную эмуляцию MMU.</string>
-    <string name="dma_accuracy">Уровень DMA</string>
-    <string name="dma_accuracy_description">Управляет точностью DMA. Более высокий уровень может исправить проблемы в некоторых играх, но также может повлиять на производительность. Если не уверены, оставьте значение «По умолчанию».</string>
+    <string name="dma_accuracy">Точность DMA</string>
+    <string name="dma_accuracy_description">Управляет точностью DMA. Безопасная точность может исправить проблемы в некоторых играх, но в некоторых случаях также может повлиять на производительность. Если не уверены, оставьте значение По умолчанию.</string>
 
     <string name="memory_4gb">4 ГБ (Рекомендуется)</string>
     <string name="memory_6gb">6 ГБ (Небезопасно)</string>
@@ -920,9 +920,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">По умолчанию</string>
-    <string name="dma_accuracy_normal">Нормальный</string>
-    <string name="dma_accuracy_high">Высокий</string>
-    <string name="dma_accuracy_extreme">Экстремальный</string>
+    <string name="dma_accuracy_unsafe">Небезопасно (быстро)</string>
+    <string name="dma_accuracy_safe">Безопасно (стабильно)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
@@ -956,7 +955,7 @@
     <!-- Screen Layouts -->
     <string name="screen_layout_auto">Авто</string>
     <string name="screen_layout_sensor_landscape">Альбомная (сенсор)</string>
-    <string name="screen_layout_landscape">Пейзаж</string>
+    <string name="screen_layout_landscape">Альбомная</string>
     <string name="screen_layout_reverse_landscape">Обратная альбомная</string>
     <string name="screen_layout_sensor_portrait">Портретная (сенсор)</string>
     <string name="screen_layout_portrait">Портрет</string>

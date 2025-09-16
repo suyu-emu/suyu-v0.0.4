@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Пропускає деякі інвалідації кешу на стороні CPU під час оновлення пам\'яті, зменшуючи навантаження на процесор і покращуючи продуктивність. Може спричинити збої в деяких іграх.</string>
     <string name="cpuopt_unsafe_host_mmu">Увімкнути емуляцію MMU хоста</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ця оптимізація пришвидшує доступ до пам\'яті гостьовою програмою. Увімкнення призводить до того, що читання/запис пам\'яті гостя виконуються безпосередньо в пам\'яті та використовують MMU хоста. Вимкнення змушує всі звернення до пам\'яті використовувати програмну емуляцію MMU.</string>
-    <string name="dma_accuracy">Рівень DMA</string>
-    <string name="dma_accuracy_description">Керує точністю DMA. Вищий рівень може виправити проблеми в деяких іграх, але також може вплинути на продуктивність. Якщо не впевнені, залиште значення «Типово».</string>
+    <string name="dma_accuracy">Точність DMA</string>
+    <string name="dma_accuracy_description">Керує точністю DMA. Безпечна точність може виправити проблеми в деяких іграх, але в деяких випадках також може вплинути на продуктивність. Якщо не впевнені, залиште це значення за замовчуванням.</string>
 
     <string name="memory_4gb">4 ГБ (Рекомендовано)</string>
     <string name="memory_6gb">6 ГБ (Небезпечно)</string>
@@ -809,9 +809,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Типово</string>
-    <string name="dma_accuracy_normal">Нормальний</string>
-    <string name="dma_accuracy_high">Високий</string>
-    <string name="dma_accuracy_extreme">Екстремальний</string>
+    <string name="dma_accuracy_unsafe">Небезпечно (швидко)</string>
+    <string name="dma_accuracy_safe">Безпечно (стабільно)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

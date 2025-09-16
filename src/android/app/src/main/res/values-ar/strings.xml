@@ -119,8 +119,8 @@
     <string name="skip_cpu_inner_invalidation_description">يتخطى بعض عمليات إبطال ذاكرة التخزين المؤقت أثناء تحديثات الذاكرة، مما يقلل استخدام المعالج ويحسن أدائه. قد يسبب هذا أعطالاً أو تعطلًا في بعض الألعاب.</string>
     <string name="cpuopt_unsafe_host_mmu">تمكين محاكاة MMU المضيف</string>
     <string name="cpuopt_unsafe_host_mmu_description">يعمل هذا التحسين على تسريع وصول الذاكرة بواسطة البرنامج الضيف. يؤدي تمكينه إلى إجراء عمليات قراءة/كتابة ذاكرة الضيف مباشرة في الذاكرة والاستفادة من MMU المضيف. يؤدي تعطيل هذا إلى إجبار جميع عمليات الوصول إلى الذاكرة على استخدام محاكاة MMU البرمجية.</string>
-    <string name="dma_accuracy">مستوى DMA</string>
-    <string name="dma_accuracy_description">يتحكم في دقة تحديد مستوى DMA. الدقة الأعلى يمكنها إصلاح بعض المشاكل في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا كنت غير متأكد، اتركه على الوضع الافتراضي.</string>
+    <string name="dma_accuracy">دقة DMA</string>
+    <string name="dma_accuracy_description">يتحكم في دقة تحديد DMA. يمكن أن تصلح الدقة الآمنة المشاكل في بعض الألعاب، ولكنها قد تؤثر أيضًا على الأداء في بعض الحالات. إذا كنت غير متأكد، اترك هذا على الوضع الافتراضي.</string>
 
     <!-- Memory Layouts -->
     <string name="memory_4gb">4 جيجابايت (موصى به)</string>
@@ -792,9 +792,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">افتراضي</string>
-    <string name="dma_accuracy_normal">عادي</string>
-    <string name="dma_accuracy_high">عالي</string>
-    <string name="dma_accuracy_extreme">مفرط</string>
+    <string name="dma_accuracy_unsafe">غير آمن (سريع)</string>
+    <string name="dma_accuracy_safe">آمن (مستقر)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

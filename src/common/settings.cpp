@@ -154,11 +154,19 @@ bool IsGPULevelHigh() {
            values.current_gpu_accuracy == GpuAccuracy::High;
 }
 
+bool IsDMALevelDefault() {
+    return values.dma_accuracy.GetValue() == DmaAccuracy::Default;
+}
+
+bool IsDMALevelSafe() {
+    return values.dma_accuracy.GetValue() == DmaAccuracy::Safe;
+}
+
 bool IsFastmemEnabled() {
     if (values.cpu_debug_mode) {
         return static_cast<bool>(values.cpuopt_fastmem);
     }
-    if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
+    if (values.cpu_accuracy.GetValue() == CpuAccuracy::Unsafe) {
         return static_cast<bool>(values.cpuopt_unsafe_host_mmu);
     }
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__)

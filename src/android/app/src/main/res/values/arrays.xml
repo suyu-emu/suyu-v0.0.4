@@ -454,15 +454,13 @@
 
     <string-array name="dmaAccuracyNames">
         <item>@string/dma_accuracy_default</item>
-        <item>@string/dma_accuracy_normal</item>
-        <item>@string/dma_accuracy_high</item>
-        <item>@string/dma_accuracy_extreme</item>
+        <item>@string/dma_accuracy_unsafe</item>
+        <item>@string/dma_accuracy_safe</item>
     </string-array>
     <integer-array name="dmaAccuracyValues">
         <item>0</item>
         <item>1</item>
         <item>2</item>
-        <item>3</item>
     </integer-array>
 
     <string-array name="appletEntries">

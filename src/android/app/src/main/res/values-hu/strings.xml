@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Kihagy néhány CPU-oldali gyorsítótár-érvénytelenítést memóriafrissítések közben, csökkentve a CPU használatát és javítva a teljesítményt. Néhány játékban hibákat vagy összeomlást okozhat.</string>
     <string name="cpuopt_unsafe_host_mmu">Gazda MMU emuláció engedélyezése</string>
     <string name="cpuopt_unsafe_host_mmu_description">Ez az optimalizáció gyorsítja a vendégprogram memória-hozzáférését. Engedélyezése esetén a vendég memóriaolvasási/írási műveletei közvetlenül a memóriában történnek, és kihasználják a gazda MMU-ját. Letiltás esetén minden memória-hozzáférés a szoftveres MMU emulációt használja.</string>
-    <string name="dma_accuracy">DMA szint</string>
-    <string name="dma_accuracy_description">Szabályozza a DMA pontosságát. A magasabb pontosság megoldhat néhány játék problémáit, de bizonyos esetekben befolyásolhatja a teljesítményt. Ha bizonytalan, hagyja Alapértelmezett beállításnál.</string>
+    <string name="dma_accuracy">DMA pontosság</string>
+    <string name="dma_accuracy_description">Szabályozza a DMA pontosságát. A biztonságos pontosság megoldhat néhány játék problémáit, de bizonyos esetekben befolyásolhatja a teljesítményt. Ha bizonytalan, hagyja Alapértelmezett beállításon.</string>
 
     <string name="memory_4gb">4GB (Ajánlott)</string>
     <string name="memory_6gb">6GB (Nem biztonságos)</string>
@@ -907,9 +907,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Alapértelmezett</string>
-    <string name="dma_accuracy_normal">Normál</string>
-    <string name="dma_accuracy_high">Magas</string>
-    <string name="dma_accuracy_extreme">Extrém</string>
+    <string name="dma_accuracy_unsafe">Nem biztonságos (gyors)</string>
+    <string name="dma_accuracy_safe">Biztonságos (stabil)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

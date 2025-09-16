@@ -102,23 +102,10 @@ bool DmaPusher::Step() {
             ProcessCommands(headers);
         };
 
-        const Settings::DmaAccuracy accuracy = Settings::values.dma_accuracy.GetValue();
-        const bool use_gpu_accuracy = accuracy == Settings::DmaAccuracy::Default;
+        const bool use_safe = Settings::IsDMALevelDefault() ? Settings::IsGPULevelHigh() : Settings::IsDMALevelSafe();
 
-        // reduces eye bleeding but also macros are dumb so idk
-#define CHECK_LEVEL(level) use_gpu_accuracy ? Settings::IsGPULevel##level() : accuracy == Settings::DmaAccuracy::level;
-            const bool force_safe = CHECK_LEVEL(Extreme)
-            const bool unsafe_compute = CHECK_LEVEL(High)
-#undef CHECK_LEVEL
-
-        if (force_safe) {
+        if (use_safe) {
             safe_process();
-        } else if (unsafe_compute) {
-            if (dma_state.method >= MacroRegistersStart) {
-                unsafe_process();
-            } else {
-                safe_process();
-            }
         } else {
             unsafe_process();
         }

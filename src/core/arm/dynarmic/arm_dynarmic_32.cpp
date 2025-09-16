@@ -305,7 +305,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ArmDynarmic32::MakeJit(Common::PageTable* pa
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreGlobalMonitor;
         }
 
-        // Paranoid mode for debugging optimizations
+        // Paranoia mode for debugging optimizations
         if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Paranoid) {
             config.unsafe_optimizations = false;
             config.optimizations = Dynarmic::no_optimizations;

@@ -136,7 +136,7 @@ ENUM(ShaderBackend, Glsl, Glasm, SpirV);
 
 ENUM(GpuAccuracy, Normal, High, Extreme);
 
-ENUM(DmaAccuracy, Default, Normal, High, Extreme);
+ENUM(DmaAccuracy, Default, Unsafe, Safe);
 
 ENUM(CpuBackend, Dynarmic, Nce);
 

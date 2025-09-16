@@ -127,8 +127,8 @@
     <string name="skip_cpu_inner_invalidation_description">在内存更新期间跳过某些CPU端缓存无效化，减少CPU使用率并提高其性能。可能会导致某些游戏出现故障或崩溃。</string>
     <string name="cpuopt_unsafe_host_mmu">启用主机 MMU 模拟</string>
     <string name="cpuopt_unsafe_host_mmu_description">此优化可加速来宾程序的内存访问。启用后，来宾内存读取/写入将直接在内存中执行并利用主机的 MMU。禁用此功能将强制所有内存访问使用软件 MMU 模拟。</string>
-    <string name="dma_accuracy">DMA 级别</string>
-    <string name="dma_accuracy_description">控制 DMA 精度。更高的精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
+    <string name="dma_accuracy">DMA 精度</string>
+    <string name="dma_accuracy_description">控制 DMA 精度。安全精度可以修复某些游戏中的问题，但在某些情况下也可能影响性能。如果不确定，请保留为“默认”。</string>
 
     <string name="memory_4gb">4GB (推荐)</string>
     <string name="memory_6gb">6GB (不安全)</string>
@@ -912,9 +912,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">默认</string>
-    <string name="dma_accuracy_normal">普通</string>
-    <string name="dma_accuracy_high">高</string>
-    <string name="dma_accuracy_extreme">极高</string>
+    <string name="dma_accuracy_unsafe">不安全（快速）</string>
+    <string name="dma_accuracy_safe">安全（稳定）</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

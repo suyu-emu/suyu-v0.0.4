@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Bỏ qua một số lần vô hiệu hóa bộ nhớ đệm phía CPU trong khi cập nhật bộ nhớ, giảm mức sử dụng CPU và cải thiện hiệu suất. Có thể gây ra lỗi hoặc treo máy trong một số trò chơi.</string>
     <string name="cpuopt_unsafe_host_mmu">Bật giả lập MMU Máy chủ</string>
     <string name="cpuopt_unsafe_host_mmu_description">Tối ưu hóa này tăng tốc độ truy cập bộ nhớ của chương trình khách. Bật nó lên khiến các thao tác đọc/ghi bộ nhớ khách được thực hiện trực tiếp vào bộ nhớ và sử dụng MMU của Máy chủ. Tắt tính năng này buộc tất cả quyền truy cập bộ nhớ phải sử dụng Giả lập MMU Phần mềm.</string>
-    <string name="dma_accuracy">Cấp độ DMA</string>
-    <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác cao hơn có thể sửa lỗi trong một số trò chơi, nhưng cũng có thể ảnh hưởng đến hiệu suất trong một số trường hợp. Nếu không chắc chắn, hãy để ở Mặc định.</string>
+    <string name="dma_accuracy">Độ chính xác DMA</string>
+    <string name="dma_accuracy_description">Điều khiển độ chính xác của DMA. Độ chính xác an toàn có thể khắc phục sự cố trong một số trò chơi, nhưng trong một số trường hợp cũng có thể ảnh hưởng đến hiệu suất. Nếu không chắc chắn, hãy để giá trị này ở Mặc định.</string>
 
     <string name="memory_4gb">4GB (Được đề xuất)</string>
     <string name="memory_6gb">6GB (Không an toàn)</string>
@@ -774,9 +774,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Mặc định</string>
-    <string name="dma_accuracy_normal">Bình thường</string>
-    <string name="dma_accuracy_high">Cao</string>
-    <string name="dma_accuracy_extreme">Cực cao</string>
+    <string name="dma_accuracy_unsafe">Không an toàn (nhanh)</string>
+    <string name="dma_accuracy_safe">An toàn (ổn định)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

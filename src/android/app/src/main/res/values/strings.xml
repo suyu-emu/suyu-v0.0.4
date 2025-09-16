@@ -115,8 +115,8 @@
     <string name="fast_cpu_time_description">Use Boost (1700MHz) to run at the Switch\'s highest native clock, or Fast (2000MHz) to run at 2x clock.</string>
     <string name="memory_layout">Memory Layout</string>
     <string name="memory_layout_description">(EXPERIMENTAL) Change the emulated memory layout. This setting will not increase performance, but may help with games utilizing high resolutions via mods. Do not use on phones with 8GB of RAM or less. Only works on the Dynarmic (JIT) backend.</string>
-    <string name="dma_accuracy">DMA Level</string>
-    <string name="dma_accuracy_description">Controls the DMA precision accuracy. Higher precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave it at Default.</string>
+    <string name="dma_accuracy">DMA Accuracy</string>
+    <string name="dma_accuracy_description">Controls the DMA precision accuracy. Safe precision can fix issues in some games, but it can also impact performance in some cases. If unsure, leave this on Default.</string>
 
     <!-- Shader Backend -->
     <string name="shader_backend">Shader Backend</string>
@@ -940,9 +940,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Default</string>
-    <string name="dma_accuracy_normal">Normal</string>
-    <string name="dma_accuracy_high">High</string>
-    <string name="dma_accuracy_extreme">Extreme</string>
+    <string name="dma_accuracy_unsafe">Unsafe (fast)</string>
+    <string name="dma_accuracy_safe">Safe (stable)</string>
 
     <!-- ASTC Decoding Method -->
     <string name="accelerate_astc">ASTC Decoding Method</string>

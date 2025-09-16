@@ -129,8 +129,8 @@
     <string name="skip_cpu_inner_invalidation_description">מדלג על איפוסי מטמון מסוימים במהלך עדכוני זיכרון, מפחית שימוש במעבד ומשפר ביצועים. עלול לגרום לתקלות או קריסות בחלק מהמשחקים.</string>
     <string name="cpuopt_unsafe_host_mmu">הפעל אמולציית MMU מארח</string>
     <string name="cpuopt_unsafe_host_mmu_description">אופטימיזציה זו מאיצה את גישת הזיכרון על ידי התוכנית האורחת. הפעלתה גורמת לכך שפעולות קריאה/כתיבה לזיכרון האורח מתבצעות ישירות לזיכרון ומשתמשות ב-MMU של המארח. השבתת זאת מאלצת את כל גישות הזיכרון להשתמש באמולציית MMU תוכנתית.</string>
-    <string name="dma_accuracy">רמת DMA</string>
-    <string name="dma_accuracy_description">שולטת בדיוק הדיוק של DMA. דיוק גבוה יותר יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר ברירת מחדל.</string>
+    <string name="dma_accuracy">דיוק DMA</string>
+    <string name="dma_accuracy_description">שולט בדיוק הדיוק של DMA. דיוק בטוח יכול לתקן בעיות בחלק מהמשחקים, אך הוא עלול גם להשפיע על הביצועים במקרים מסוימים. אם אינך בטוח, השאר זאת על ברירת מחדל.</string>
 
     <string name="memory_4gb">4GB (מומלץ)</string>
     <string name="memory_6gb">6GB (לא בטוח)</string>
@@ -800,9 +800,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">ברירת מחדל</string>
-    <string name="dma_accuracy_normal">רגיל</string>
-    <string name="dma_accuracy_high">גבוה</string>
-    <string name="dma_accuracy_extreme">קיצוני</string>
+    <string name="dma_accuracy_unsafe">לא בטוח (מהיר)</string>
+    <string name="dma_accuracy_safe">בטוח (יציב)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>

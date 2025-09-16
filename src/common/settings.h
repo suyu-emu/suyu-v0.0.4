@@ -443,7 +443,7 @@ struct Values {
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
                                                       DmaAccuracy::Default,
-                                                      DmaAccuracy::Extreme,
+                                                      DmaAccuracy::Safe,
                                                       "dma_accuracy",
                                                       Category::RendererAdvanced,
                                                       Specialization::Default,
@@ -782,6 +782,9 @@ extern Values values;
 void UpdateGPUAccuracy();
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
+
+bool IsDMALevelDefault();
+bool IsDMALevelSafe();
 
 bool IsFastmemEnabled();
 void SetNceEnabled(bool is_64bit);

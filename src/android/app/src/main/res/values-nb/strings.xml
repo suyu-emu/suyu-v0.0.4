@@ -128,8 +128,8 @@
     <string name="skip_cpu_inner_invalidation_description">Hopper over enkelte CPU-side cache-invalideringer under minneoppdateringer, reduserer CPU-bruk og forbedrer ytelsen. Kan forårsake feil eller krasj i noen spill.</string>
     <string name="cpuopt_unsafe_host_mmu">Aktiver verts-MMU-emulering</string>
     <string name="cpuopt_unsafe_host_mmu_description">Denne optimaliseringen fremskynder minnetilgang av gjesteprogrammet. Hvis aktivert, utføres gjestens minnelesing/skriving direkte i minnet og bruker vertens MMU. Deaktivering tvinger alle minnetilganger til å bruke programvarebasert MMU-emulering.</string>
-    <string name="dma_accuracy">DMA-nivå</string>
-    <string name="dma_accuracy_description">Styrer DMA-presisjonsnøyaktigheten. Høyere presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la den stå på Standard.</string>
+    <string name="dma_accuracy">DMA-nøyaktighet</string>
+    <string name="dma_accuracy_description">Kontrollerer DMA-presisjonsnøyaktigheten. Sikker presisjon kan fikse problemer i noen spill, men kan også påvirke ytelsen i noen tilfeller. Hvis du er usikker, la dette stå på Standard.</string>
 
     <string name="memory_4gb">4GB (Anbefalt)</string>
     <string name="memory_6gb">6GB (Usikkert)</string>
@@ -771,9 +771,8 @@
 
     <!-- DMA Accuracy -->
     <string name="dma_accuracy_default">Standard</string>
-    <string name="dma_accuracy_normal">Normal</string>
-    <string name="dma_accuracy_high">Høy</string>
-    <string name="dma_accuracy_extreme">Ekstrem</string>
+    <string name="dma_accuracy_unsafe">Usikker (rask)</string>
+    <string name="dma_accuracy_safe">Sikker (stabil)</string>
 
     <!-- Resolutions -->
     <string name="resolution_quarter">0.25X (180p/270p)</string>
