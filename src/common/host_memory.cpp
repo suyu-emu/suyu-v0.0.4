@@ -598,12 +598,17 @@ public:
 
     bool ClearBackingRegion(size_t physical_offset, size_t length) {
 #ifdef __linux__
-        // Set MADV_REMOVE on backing map to destroy it instantly.
-        // This also deletes the area from the backing file.
-        int ret = madvise(backing_base + physical_offset, length, MADV_REMOVE);
-        ASSERT_MSG(ret == 0, "madvise failed: {}", strerror(errno));
-
-        return true;
+        // Only incur syscall cost IF memset would be slower (theshold = 16MiB)
+        // TODO(lizzie): Smarter way to dynamically get this threshold (broadwell != raptor lake) for example
+        if (length >= 2097152UL * 8) {
+            // Set MADV_REMOVE on backing map to destroy it instantly.
+            // This also deletes the area from the backing file.
+            int ret = madvise(backing_base + physical_offset, length, MADV_REMOVE);
+            ASSERT_MSG(ret == 0, "madvise failed: {}", strerror(errno));
+            return true;
+        } else {
+            return false;
+        }
 #else
         return false;
 #endif
