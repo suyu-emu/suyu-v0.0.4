@@ -49,6 +49,9 @@ namespace Vulkan {
         }
 
         [[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferredVmaFlags(MemoryUsage usage) {
+            if (usage == MemoryUsage::Download) {
+                return VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            }
             return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
                                                      : VkMemoryPropertyFlagBits{};
         }
