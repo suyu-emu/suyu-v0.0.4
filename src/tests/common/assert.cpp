@@ -134,6 +134,22 @@ TEST_CASE("Assert macros compilation", "[common][assert]") {
         REQUIRE_NOTHROW(UNIMPLEMENTED_MSG("Not implemented yet"));
     }
 
+    SECTION("UNIMPLEMENTED_IF macro behavior") {
+        Settings::values.use_debug_asserts.SetValue(false);
+
+        // UNIMPLEMENTED_IF should not crash when debug asserts are disabled
+        REQUIRE_NOTHROW(UNIMPLEMENTED_IF(true));  // Should trigger but not crash
+        REQUIRE_NOTHROW(UNIMPLEMENTED_IF(false)); // Should not trigger
+    }
+
+    SECTION("UNIMPLEMENTED_IF_MSG macro behavior") {
+        Settings::values.use_debug_asserts.SetValue(false);
+
+        // UNIMPLEMENTED_IF_MSG should not crash when debug asserts are disabled
+        REQUIRE_NOTHROW(UNIMPLEMENTED_IF_MSG(true, "Condition is true"));  // Should trigger but not crash
+        REQUIRE_NOTHROW(UNIMPLEMENTED_IF_MSG(false, "Condition is false")); // Should not trigger
+    }
+
     SECTION("ASSERT_OR_EXECUTE macro behavior") {
         Settings::values.use_debug_asserts.SetValue(false);
         bool executed = false;
@@ -146,6 +162,117 @@ TEST_CASE("Assert macros compilation", "[common][assert]") {
         executed = false;
         ASSERT_OR_EXECUTE(true, executed = true;);
         REQUIRE(executed == false);
+    }
+
+    SECTION("ASSERT_OR_EXECUTE_MSG macro behavior") {
+        Settings::values.use_debug_asserts.SetValue(false);
+        bool executed = false;
+
+        // When condition is false, the execution block should run
+        ASSERT_OR_EXECUTE_MSG(false, executed = true;, "Condition failed");
+        REQUIRE(executed == true);
+
+        // When condition is true, the execution block should not run
+        executed = false;
+        ASSERT_OR_EXECUTE_MSG(true, executed = true;, "This should not execute");
+        REQUIRE(executed == false);
+    }
+
+    RestoreOriginalSettings();
+}
+
+#ifdef _DEBUG
+TEST_CASE("Debug assert macros", "[common][assert]") {
+    SaveOriginalSettings();
+
+    SECTION("DEBUG_ASSERT macro behavior in debug builds") {
+        Settings::values.use_debug_asserts.SetValue(false);
+
+        // In debug builds, DEBUG_ASSERT should behave like ASSERT
+        REQUIRE_NOTHROW(DEBUG_ASSERT(true));
+        REQUIRE_NOTHROW(DEBUG_ASSERT(false)); // Should not crash when debug asserts are off
+    }
+
+    SECTION("DEBUG_ASSERT_MSG macro behavior in debug builds") {
+        Settings::values.use_debug_asserts.SetValue(false);
+
+        // In debug builds, DEBUG_ASSERT_MSG should behave like ASSERT_MSG
+        REQUIRE_NOTHROW(DEBUG_ASSERT_MSG(true, "This should not trigger"));
+        REQUIRE_NOTHROW(DEBUG_ASSERT_MSG(false, "This should not crash when debug asserts are off"));
+    }
+
+    RestoreOriginalSettings();
+}
+#else
+TEST_CASE("Debug assert macros in release builds", "[common][assert]") {
+    SECTION("DEBUG_ASSERT macro is no-op in release builds") {
+        // In release builds, DEBUG_ASSERT should be a no-op
+        REQUIRE_NOTHROW(DEBUG_ASSERT(true));
+        REQUIRE_NOTHROW(DEBUG_ASSERT(false)); // Should always be no-op in release
+    }
+
+    SECTION("DEBUG_ASSERT_MSG macro is no-op in release builds") {
+        // In release builds, DEBUG_ASSERT_MSG should be a no-op
+        REQUIRE_NOTHROW(DEBUG_ASSERT_MSG(true, "This should not trigger"));
+        REQUIRE_NOTHROW(DEBUG_ASSERT_MSG(false, "This should be no-op in release"));
+    }
+}
+#endif
+
+TEST_CASE("Macro edge cases", "[common][assert]") {
+    SaveOriginalSettings();
+    Settings::values.use_debug_asserts.SetValue(false);
+
+    SECTION("Multiple ASSERT_OR_EXECUTE calls") {
+        int counter = 0;
+
+        // Test multiple calls with different conditions
+        ASSERT_OR_EXECUTE(false, counter++;);
+        ASSERT_OR_EXECUTE(true, counter++;);
+        ASSERT_OR_EXECUTE(false, counter++;);
+
+        REQUIRE(counter == 2); // Only false conditions should execute
+    }
+
+    SECTION("Complex expressions in ASSERT") {
+        int value = 5;
+
+        // Test with complex boolean expressions
+        REQUIRE_NOTHROW(ASSERT(value > 0 && value < 10));
+        REQUIRE_NOTHROW(ASSERT(value < 0 || value > 10)); // Should not crash when debug asserts are off
+    }
+
+    SECTION("ASSERT_OR_EXECUTE with complex execution blocks") {
+        int result = 0;
+
+        ASSERT_OR_EXECUTE(false, {
+            result = 42;
+            result *= 2;
+        });
+
+        REQUIRE(result == 84);
+    }
+
+    RestoreOriginalSettings();
+}
+
+TEST_CASE("Function behavior consistency", "[common][assert]") {
+    SaveOriginalSettings();
+
+    SECTION("assert_fail_impl consistency across multiple calls") {
+        Settings::values.use_debug_asserts.SetValue(false);
+
+        // Multiple calls should behave consistently
+        REQUIRE_NOTHROW(assert_fail_impl());
+        REQUIRE_NOTHROW(assert_fail_impl());
+        REQUIRE_NOTHROW(assert_fail_impl());
+    }
+
+    SECTION("unreachable_impl always throws") {
+        // Multiple calls should always throw
+        REQUIRE_THROWS_AS(unreachable_impl(), std::runtime_error);
+        REQUIRE_THROWS_AS(unreachable_impl(), std::runtime_error);
+        REQUIRE_THROWS_AS(unreachable_impl(), std::runtime_error);
     }
 
     RestoreOriginalSettings();
