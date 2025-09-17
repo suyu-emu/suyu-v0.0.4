@@ -4,7 +4,6 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/settings.h"
 #include "core/file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.h"
 #include "core/file_sys/fssystem/fssystem_aes_ctr_storage.h"
 #include "core/file_sys/fssystem/fssystem_aes_xts_storage.h"
@@ -14,7 +13,6 @@
 #include "core/file_sys/fssystem/fssystem_hierarchical_sha256_storage.h"
 #include "core/file_sys/fssystem/fssystem_indirect_storage.h"
 #include "core/file_sys/fssystem/fssystem_integrity_romfs_storage.h"
-#include "core/file_sys/fssystem/fssystem_passthrough_storage.h"
 #include "core/file_sys/fssystem/fssystem_memory_resource_buffer_hold_storage.h"
 #include "core/file_sys/fssystem/fssystem_nca_file_system_driver.h"
 #include "core/file_sys/fssystem/fssystem_sparse_storage.h"

@@ -13,13 +13,11 @@ u8 NcaHeader::GetProperKeyGeneration() const {
 }
 
 bool NcaPatchInfo::HasIndirectTable() const {
-    static constexpr unsigned char BKTR[4] = {'B', 'K', 'T', 'R'};
-    return std::memcmp(indirect_header.data(), BKTR, sizeof(BKTR)) == 0;
+    return this->indirect_size != 0;
 }
 
 bool NcaPatchInfo::HasAesCtrExTable() const {
-    static constexpr unsigned char BKTR[4] = {'B', 'K', 'T', 'R'};
-    return std::memcmp(aes_ctr_ex_header.data(), BKTR, sizeof(BKTR)) == 0;
+    return this->aes_ctr_ex_size != 0;
 }
 
 } // namespace FileSys
