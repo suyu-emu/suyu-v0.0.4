@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,6 +37,11 @@ public:
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
 private:
+    enum class ZBCTypes {
+        color = 1,
+        depth = 2,
+    };
+
     struct IoctlGpuCharacteristics {
         u32_le arch;                       // 0x120 (NVGPU_GPU_ARCH_GM200)
         u32_le impl;                       // 0xB (NVGPU_GPU_IMPL_GM20B)
@@ -139,6 +147,21 @@ private:
     };
     static_assert(sizeof(IoctlZbcQueryTable) == 52, "IoctlZbcQueryTable is incorrect size");
 
+    struct ZbcColorEntry {
+        std::array<u32, 4> color_ds{};
+        std::array<u32, 4> color_l2{};
+        u32 format{};
+        u32 ref_cnt{};
+    };
+    static_assert(sizeof(ZbcColorEntry) == 40, "ZbcColorEntry is incorrect size");
+
+    struct ZbcDepthEntry {
+        u32 depth{};
+        u32 format{};
+        u32 ref_cnt{};
+    };
+    static_assert(sizeof(ZbcDepthEntry) == 12, "ZbcDepthEntry is incorrect size");
+
     struct IoctlFlushL2 {
         u32_le flush; // l2_flush | l2_invalidate << 1 | fb_flush << 2
         u32_le reserved;
@@ -182,17 +205,11 @@ private:
     Kernel::KEvent* error_notifier_event;
     Kernel::KEvent* unknown_event;
 
-    struct ZbcEntry {
-        u32_le color_ds[4];
-        u32_le color_l2[4];
-        u32_le depth;
-        u32_le type;
-        u32_le format;
-    };
-    std::array<ZbcEntry, 16> color_entries;
-    std::array<ZbcEntry, 16> depth_entries;
-    u8 max_color_entries;
-    u8 max_depth_entries;
+    // ZBC Tables
+    std::mutex zbc_mutex{};
+    std::vector<ZbcColorEntry> zbc_colors{};
+    std::vector<ZbcDepthEntry> zbc_depths{};
+    const u32 supported_types = 2u;
 };
 
 } // namespace Service::Nvidia::Devices
