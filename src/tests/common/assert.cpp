@@ -4,10 +4,7 @@
 #include <stdexcept>
 #include <catch2/catch_test_macros.hpp>
 #include "common/settings.h"
-
-// Forward declarations for the functions we're testing
-void assert_fail_impl();
-[[noreturn]] void unreachable_impl();
+#include "common/assert.h"
 
 // Test state tracking
 namespace {
@@ -23,27 +20,35 @@ void RestoreOriginalSettings() {
 
 } // namespace
 
-TEST_CASE("assert_fail_impl behavior", "[common][assert]") {
+TEST_CASE("assert_fail_impl behavior when debug asserts disabled", "[common][assert]") {
     SaveOriginalSettings();
-
-    SECTION("when use_debug_asserts is true") {
-        Settings::values.use_debug_asserts.SetValue(true);
-
-        // Since assert_fail_impl() calls Crash() which would terminate the process,
-        // we can't directly test the crash behavior in a unit test.
-        // Instead, we test that the function exists and can be called.
-        // The actual crash behavior would need to be tested through integration tests
-        // or by mocking the Crash() function at a lower level.
-
-        // We can verify the function doesn't throw an exception when called
-        REQUIRE_NOTHROW(assert_fail_impl());
-    }
 
     SECTION("when use_debug_asserts is false") {
         Settings::values.use_debug_asserts.SetValue(false);
 
         // When use_debug_asserts is false, assert_fail_impl should return without crashing
         REQUIRE_NOTHROW(assert_fail_impl());
+    }
+
+    RestoreOriginalSettings();
+}
+
+TEST_CASE("assert_fail_impl behavior when debug asserts enabled", "[common][assert]") {
+    SaveOriginalSettings();
+
+    SECTION("when use_debug_asserts is true") {
+        Settings::values.use_debug_asserts.SetValue(true);
+
+        // When use_debug_asserts is true, assert_fail_impl calls Crash() which terminates the process.
+        // We cannot directly test this in a unit test as it would kill the test runner.
+        // However, we can verify that the function exists and the setting is properly read.
+        // The actual crash behavior would need to be tested through integration tests.
+
+        // Verify the setting is correctly set
+        REQUIRE(Settings::values.use_debug_asserts.GetValue() == true);
+
+        // Note: We cannot call assert_fail_impl() here as it would crash the test process
+        // This is expected behavior - the function is designed to terminate the program
     }
 
     RestoreOriginalSettings();
@@ -59,6 +64,17 @@ TEST_CASE("unreachable_impl behavior", "[common][assert]") {
         // Verify the exception message is correct
         REQUIRE_THROWS_WITH(unreachable_impl(), "Unreachable code");
     }
+
+    SECTION("function is marked as noreturn") {
+        // Test that the function consistently throws and never returns
+        bool exception_thrown = false;
+        try {
+            unreachable_impl();
+        } catch (const std::runtime_error&) {
+            exception_thrown = true;
+        }
+        REQUIRE(exception_thrown == true);
+    }
 }
 
 TEST_CASE("Settings integration", "[common][assert]") {
@@ -73,12 +89,8 @@ TEST_CASE("Settings integration", "[common][assert]") {
         REQUIRE(Settings::values.use_debug_asserts.GetValue() == false);
     }
 
-    SECTION("assert_fail_impl respects use_debug_asserts setting") {
-        // Test with debug asserts enabled
-        Settings::values.use_debug_asserts.SetValue(true);
-        REQUIRE_NOTHROW(assert_fail_impl());
-
-        // Test with debug asserts disabled
+    SECTION("assert_fail_impl respects use_debug_asserts setting when disabled") {
+        // Test with debug asserts disabled - should not crash
         Settings::values.use_debug_asserts.SetValue(false);
         REQUIRE_NOTHROW(assert_fail_impl());
     }
@@ -86,13 +98,10 @@ TEST_CASE("Settings integration", "[common][assert]") {
     RestoreOriginalSettings();
 }
 
-// Test the macro behavior indirectly by including the header
-#include "common/assert.h"
-
-TEST_CASE("Assert macros compilation", "[common][assert]") {
+TEST_CASE("Assert macros compilation and basic behavior", "[common][assert]") {
     SaveOriginalSettings();
 
-    SECTION("ASSERT macro compiles and can be used") {
+    SECTION("ASSERT macro compiles and works with debug asserts disabled") {
         Settings::values.use_debug_asserts.SetValue(false);
 
         // These should compile and not crash when debug asserts are disabled
@@ -100,7 +109,7 @@ TEST_CASE("Assert macros compilation", "[common][assert]") {
         REQUIRE_NOTHROW(ASSERT(false)); // Should not crash when debug asserts are off
     }
 
-    SECTION("ASSERT_MSG macro compiles and can be used") {
+    SECTION("ASSERT_MSG macro compiles and works with debug asserts disabled") {
         Settings::values.use_debug_asserts.SetValue(false);
 
         // These should compile and not crash when debug asserts are disabled
@@ -182,7 +191,7 @@ TEST_CASE("Assert macros compilation", "[common][assert]") {
 }
 
 #ifdef _DEBUG
-TEST_CASE("Debug assert macros", "[common][assert]") {
+TEST_CASE("Debug assert macros in debug builds", "[common][assert]") {
     SaveOriginalSettings();
 
     SECTION("DEBUG_ASSERT macro behavior in debug builds") {
@@ -219,7 +228,7 @@ TEST_CASE("Debug assert macros in release builds", "[common][assert]") {
 }
 #endif
 
-TEST_CASE("Macro edge cases", "[common][assert]") {
+TEST_CASE("Macro edge cases and complex scenarios", "[common][assert]") {
     SaveOriginalSettings();
     Settings::values.use_debug_asserts.SetValue(false);
 
@@ -253,13 +262,26 @@ TEST_CASE("Macro edge cases", "[common][assert]") {
         REQUIRE(result == 84);
     }
 
+    SECTION("Nested macro usage") {
+        bool outer_executed = false;
+        bool inner_executed = false;
+
+        ASSERT_OR_EXECUTE(false, {
+            outer_executed = true;
+            ASSERT_OR_EXECUTE(false, inner_executed = true;);
+        });
+
+        REQUIRE(outer_executed == true);
+        REQUIRE(inner_executed == true);
+    }
+
     RestoreOriginalSettings();
 }
 
 TEST_CASE("Function behavior consistency", "[common][assert]") {
     SaveOriginalSettings();
 
-    SECTION("assert_fail_impl consistency across multiple calls") {
+    SECTION("assert_fail_impl consistency across multiple calls when disabled") {
         Settings::values.use_debug_asserts.SetValue(false);
 
         // Multiple calls should behave consistently
@@ -268,7 +290,7 @@ TEST_CASE("Function behavior consistency", "[common][assert]") {
         REQUIRE_NOTHROW(assert_fail_impl());
     }
 
-    SECTION("unreachable_impl always throws") {
+    SECTION("unreachable_impl always throws consistently") {
         // Multiple calls should always throw
         REQUIRE_THROWS_AS(unreachable_impl(), std::runtime_error);
         REQUIRE_THROWS_AS(unreachable_impl(), std::runtime_error);
@@ -276,4 +298,63 @@ TEST_CASE("Function behavior consistency", "[common][assert]") {
     }
 
     RestoreOriginalSettings();
+}
+
+TEST_CASE("Assert macro parameter evaluation", "[common][assert]") {
+    SaveOriginalSettings();
+    Settings::values.use_debug_asserts.SetValue(false);
+
+    SECTION("ASSERT evaluates condition only once") {
+        int call_count = 0;
+        auto condition = [&call_count]() -> bool {
+            call_count++;
+            return true;
+        };
+
+        ASSERT(condition());
+        REQUIRE(call_count == 1);
+    }
+
+    SECTION("ASSERT_OR_EXECUTE evaluates condition correctly") {
+        int condition_calls = 0;
+        int execution_calls = 0;
+
+        auto condition = [&condition_calls]() -> bool {
+            condition_calls++;
+            return false;
+        };
+
+        ASSERT_OR_EXECUTE(condition(), execution_calls++;);
+
+        // Condition should be evaluated at least once for the ASSERT and once for the if check
+        REQUIRE(condition_calls >= 1);
+        REQUIRE(execution_calls == 1);
+    }
+
+    RestoreOriginalSettings();
+}
+
+TEST_CASE("Exception safety and resource management", "[common][assert]") {
+    SECTION("unreachable_impl exception is properly typed") {
+        try {
+            unreachable_impl();
+            FAIL("unreachable_impl should have thrown an exception");
+        } catch (const std::runtime_error& e) {
+            REQUIRE(std::string(e.what()) == "Unreachable code");
+        } catch (...) {
+            FAIL("unreachable_impl should throw std::runtime_error, not other exception types");
+        }
+    }
+
+    SECTION("Settings state is preserved across test sections") {
+        SaveOriginalSettings();
+
+        // Modify settings
+        Settings::values.use_debug_asserts.SetValue(!original_use_debug_asserts);
+        REQUIRE(Settings::values.use_debug_asserts.GetValue() != original_use_debug_asserts);
+
+        // Restore settings
+        RestoreOriginalSettings();
+        REQUIRE(Settings::values.use_debug_asserts.GetValue() == original_use_debug_asserts);
+    }
 }
