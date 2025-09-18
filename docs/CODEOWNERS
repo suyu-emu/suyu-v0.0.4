@@ -1,0 +1,26 @@
+# ui stuff
+/src/android         @AleksandrPopovich @nyxynx @Producdevity
+/src/yuzu            @crueter
+/src/eden            @crueter
+/src/frontend_common @crueter
+/src/qt_common       @crueter
+
+# docs, meta
+/docs                @Lizzie @crueter
+/.ci                 @crueter
+
+# cmake
+*.cmake             @crueter
+*/CMakeLists.txt    @crueter
+*.in                @crueter
+
+# individual stuff
+/src/web_service     @AleksandrPopovich
+/src/dynarmic        @Lizzie
+/src/core            @Lizzie @Maufeat @PavelBARABANOV @MrPurple666
+/src/core/hle        @Maufeat @PavelBARABANOV @SDK-Chan
+/src/*_room          @AleksandrPopovich
+/src/video_core      @CamilleLaVey @MaranBr @Wildcard @weakboson
+
+# Global owners/triage
+*                    @CamilleLaVey @Maufeat @crueter @MrPurple666 @MaranBr @Lizzie
