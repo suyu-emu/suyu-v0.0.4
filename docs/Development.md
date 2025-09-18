@@ -1,23 +1,3 @@
-# Development
-
-* **Windows**: [Windows Building Guide](./build/Windows.md)
-* **Linux**: [Linux Building Guide](./build/Linux.md)
-* **Android**: [Android Building Guide](./build/Android.md)
-* **Solaris**: [Solaris Building Guide](./build/Solaris.md)
-* **FreeBSD**: [FreeBSD Building Guide](./build/FreeBSD.md)
-* **macOS**: [macOS Building Guide](./build/macOS.md)
-* **OpenBSD**: [OpenBSD Building Guide](./build/OpenBSD.md)
-
-# CPM
-
-CPM (CMake Package Manager) is the preferred method of managing dependencies within Eden. Documentation on adding dependencies/using CPMUtil is in the works.
-
-Notes:
-- `YUZU_USE_CPM` is set by default on MSVC and Android. Other platforms should use this if certain "required" system dependencies (e.g. OpenSSL) are broken or missing
-- `CPMUTIL_DEFAULT_SYSTEM` can be set to `OFF` to force the usage of bundled dependencies. This can marginally decrease the final package size.
-- When adding new prebuilt dependencies a la OpenSSL, SDL2, or FFmpeg, there *must* be a CMake option made available to forcefully download this bundle. See the OpenSSL implementation in the root CMakeLists for an example.
-  * This is necessary to allow for creation of fully-qualified source packs that allow for offline builds after download (some package managers and distros enforce this)
-	
 # Guidelines
 
 ## License Headers
@@ -37,6 +17,8 @@ FIX=true .ci/license-header.sh
 git commit --amend -a --no-edit
 ```
 
+If the work is licensed/vendored from other people or projects, you may omit the license headers. Additionally, if you wish to retain authorship over a piece of code, you may attribute it to yourself; however, the code may be changed at any given point and brought under the attribution of Eden.
+
 ## Pull Requests
 Pull requests are only to be merged by core developers when properly tested and discussions conclude on Discord or other communication channels. Labels are recommended but not required. However, all PRs MUST be namespaced and optionally typed:
 ```
@@ -49,7 +31,7 @@ Pull requests are only to be merged by core developers when properly tested and 
 
 - The level of namespacing is generally left to the committer's choice.
 - However, we never recommend going more than two levels *except* in `hle`, in which case you may go as many as four levels depending on the specificity of your changes.
-- Ocassionally, up to two namespaces may be provided for more clarity.
+- Ocassionally, up to two additional namespaces may be provided for more clarity.
   * Changes that affect the entire project (sans CMake changes) should be namespaced as `meta`.
 - Maintainers are permitted to change namespaces at will.
 - Commits within PRs are not required to be namespaced, but it is highly recommended.

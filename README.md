@@ -57,13 +57,7 @@ If you would like to contribute, we are open to new developers and pull requests
 
 ## Building
 
-* **Windows**: [Windows Building Guide](./docs/build/Windows.md)
-* **Linux**: [Linux Building Guide](./docs/build/Linux.md)
-* **Android**: [Android Building Guide](./docs/build/Android.md)
-* **Solaris**: [Solaris Building Guide](./docs/build/Solaris.md)
-* **FreeBSD**: [FreeBSD Building Guide](./docs/build/FreeBSD.md)
-* **macOS**: [macOS Building Guide](./docs/build/macOS.md)
-* **OpenBSD**: [OpenBSD Building Guide](./docs/build/OpenBSD.md)
+See the [General Build Guide](docs/Build.md)
 
 ## Download
 

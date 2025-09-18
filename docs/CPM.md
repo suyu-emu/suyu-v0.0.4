@@ -177,7 +177,7 @@ If `ci` is `true`:
 
 ### Examples
 
-In order: OpenSSL CI, Boost (tag + artifact), discord-rpc (sha + options + patches), Opus (options + find_args)
+In order: OpenSSL CI, Boost (tag + artifact), Opus (options + find_args), discord-rpc (sha + options + patches)
 
 ```json
 {

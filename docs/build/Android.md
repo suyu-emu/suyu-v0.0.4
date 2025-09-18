@@ -2,7 +2,7 @@
 
 ## Dependencies
 * [Android Studio](https://developer.android.com/studio)
-* [NDK 25.2.9519653 and CMake 3.22.1](https://developer.android.com/studio/projects/install-ndk#default-version)
+* [NDK 27+ and CMake 3.22.1](https://developer.android.com/studio/projects/install-ndk#default-version)
 * [Git](https://git-scm.com/download)
 
 ### WINDOWS ONLY - Additional Dependencies
@@ -16,8 +16,7 @@ git clone --recursive https://git.eden-emu.dev/eden-emu/eden.git
 ```
 Eden by default will be cloned into -
 * `C:\Users\<user-name>\eden` on Windows
-* `~/eden` on Linux
-* And wherever on macOS
+* `~/eden` on Linux and macOS
 
 ## Building
 1. Start Android Studio, on the startup dialog select `Open`.
@@ -32,7 +31,7 @@ Eden by default will be cloned into -
 `export ANDROID_SDK_ROOT=path/to/sdk`
 `export ANDROID_NDK_ROOT=path/to/ndk`.
 4. Navigate to `eden/src/android`.
-5. Then Build with `./gradlew assemblerelWithDebInfo`.
+5. Then Build with `./gradlew assembleRelWithDebInfo`.
 6. To build the optimised build use `./gradlew assembleGenshinSpoofRelWithDebInfo`.
 
 ### Script
