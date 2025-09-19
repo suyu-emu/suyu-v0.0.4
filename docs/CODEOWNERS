@@ -10,17 +10,18 @@
 /.ci                 @crueter
 
 # cmake
-*.cmake             @crueter
-*/CMakeLists.txt    @crueter
-*.in                @crueter
+*.cmake              @crueter
+*CMakeLists.txt      @crueter
+*.in                 @crueter
 
 # individual stuff
-/src/web_service     @AleksandrPopovich
-/src/dynarmic        @Lizzie
-/src/core            @Lizzie @Maufeat @PavelBARABANOV @MrPurple666
-/src/core/hle        @Maufeat @PavelBARABANOV @SDK-Chan
-/src/*_room          @AleksandrPopovich
-/src/video_core      @CamilleLaVey @MaranBr @Wildcard @weakboson
+src/web_service      @AleksandrPopovich
+src/dynarmic         @Lizzie
+src/core             @Lizzie @Maufeat @PavelBARABANOV @MrPurple666 @JPikachu
+src/core/hle         @Maufeat @PavelBARABANOV @SDK-Chan
+src/core/arm         @Lizzie @MrPurple666
+src/*_room           @AleksandrPopovich
+src/video_core       @CamilleLaVey @MaranBr @Wildcard @weakboson
 
 # Global owners/triage
 *                    @CamilleLaVey @Maufeat @crueter @MrPurple666 @MaranBr @Lizzie
