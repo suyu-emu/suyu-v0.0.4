@@ -919,13 +919,13 @@
     <string name="ratio_stretch">Ajustar a la ventana</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">DynARMic (lento)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Ejecución nativa de código (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Preciso</string>
     <string name="cpu_accuracy_unsafe">Impreciso</string>
-    <string name="cpu_accuracy_paranoid">Paranoico (Lento)</string>
+    <string name="cpu_accuracy_paranoid">Paranoico</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Cruceta</string>

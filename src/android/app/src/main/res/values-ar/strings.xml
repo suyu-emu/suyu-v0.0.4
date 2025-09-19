@@ -836,13 +836,13 @@
     <string name="ratio_stretch">تمتد إلى النافذة</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (بطيء)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">تنفيذ التعليمات البرمجية الأصلية (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">دقه</string>
     <string name="cpu_accuracy_unsafe">غير آمن</string>
-    <string name="cpu_accuracy_paranoid">Paranoid (بطيء)</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">الأسهم</string>

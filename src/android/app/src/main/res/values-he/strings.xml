@@ -844,13 +844,13 @@
     <string name="ratio_stretch">הרחב לגודל המסך</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">דינמי (איטי)</string>
+    <string name="cpu_backend_dynarmic">דינמי</string>
     <string name="cpu_backend_nce">ביצוע קוד מקורי (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">מדויק</string>
     <string name="cpu_accuracy_unsafe">לא בטוח</string>
-    <string name="cpu_accuracy_paranoid">פראנואידי (איטי)</string>
+    <string name="cpu_accuracy_paranoid">פראנואידי</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>

@@ -918,13 +918,13 @@
     <string name="ratio_stretch">کشش تا پر کردن پنجره</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">دینارمیک (کند)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">اجرای کد اصلی (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">دقیق</string>
     <string name="cpu_accuracy_unsafe">ناامن</string>
-    <string name="cpu_accuracy_paranoid">بدگمان (کند)</string>
+    <string name="cpu_accuracy_paranoid">بدگمان</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">کلیدهای جهتی</string>

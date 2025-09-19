@@ -954,13 +954,13 @@
     <string name="ratio_stretch">Ablakhoz nyújtás</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dinamikus (lassú)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Natív kód végrehajtás (Native code execution (NCE))</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Pontos</string>
     <string name="cpu_accuracy_unsafe">Nem biztonságos</string>
-    <string name="cpu_accuracy_paranoid">Paranoid (Lassú)</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>

@@ -966,13 +966,13 @@
     <string name="ratio_stretch">延展視窗</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">動態 (慢)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">機器碼執行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高精度</string>
     <string name="cpu_accuracy_unsafe">低精度</string>
-    <string name="cpu_accuracy_paranoid">不合理 (慢)</string>
+    <string name="cpu_accuracy_paranoid">不合理</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">方向鍵</string>

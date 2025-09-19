@@ -961,13 +961,13 @@
     <string name="ratio_stretch">拉伸窗口</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">动态编译 (慢速)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">本机代码执行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">高精度</string>
     <string name="cpu_accuracy_unsafe">低精度</string>
-    <string name="cpu_accuracy_paranoid">偏执模式 (慢速)</string>
+    <string name="cpu_accuracy_paranoid">偏执模式</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">十字方向键</string>

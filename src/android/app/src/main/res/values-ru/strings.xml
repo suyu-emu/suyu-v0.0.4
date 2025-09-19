@@ -969,13 +969,13 @@
     <string name="ratio_stretch">Растянуть до окна</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (Медленно)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Нативное выполнение (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезопасно</string>
-    <string name="cpu_accuracy_paranoid">Параноик (медленно)</string>
+    <string name="cpu_accuracy_paranoid">Параноик</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Крестовина</string>

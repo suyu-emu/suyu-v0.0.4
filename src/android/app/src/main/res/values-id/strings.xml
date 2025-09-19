@@ -911,13 +911,13 @@
     <string name="ratio_stretch">Merentangkan</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynamic (Lambat)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Akurat</string>
     <string name="cpu_accuracy_unsafe">Berbahaya</string>
-    <string name="cpu_accuracy_paranoid">Paranoid (Slow)</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D Pad</string>

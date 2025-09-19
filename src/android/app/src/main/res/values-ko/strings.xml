@@ -910,13 +910,13 @@
     <string name="ratio_stretch">화면에 맞춤</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (느림)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">네이티브 코드 실행 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">정확함</string>
     <string name="cpu_accuracy_unsafe">최적화 (안전하지 않음)</string>
-    <string name="cpu_accuracy_paranoid">최적화하지 않음 (느림)</string>
+    <string name="cpu_accuracy_paranoid">최적화하지 않음</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">십자키</string>

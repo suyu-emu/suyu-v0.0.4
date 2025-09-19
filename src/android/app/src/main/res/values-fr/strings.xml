@@ -967,13 +967,13 @@
     <string name="ratio_stretch">Étirer à la fenêtre</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (Lent)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Exécution de code natif (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Précis</string>
     <string name="cpu_accuracy_unsafe">Risqué</string>
-    <string name="cpu_accuracy_paranoid">Paranoïaque (Lent)</string>
+    <string name="cpu_accuracy_paranoid">Paranoïaque</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Pavé directionnel</string>

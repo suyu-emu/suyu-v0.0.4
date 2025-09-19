@@ -968,13 +968,13 @@ uma tentativa de mapeamento automático</string>
     <string name="ratio_stretch">Esticar à janela</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (Lento)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Preciso</string>
     <string name="cpu_accuracy_unsafe">Inseguro</string>
-    <string name="cpu_accuracy_paranoid">Paranoid (Lento)</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Botões Direcionais</string>

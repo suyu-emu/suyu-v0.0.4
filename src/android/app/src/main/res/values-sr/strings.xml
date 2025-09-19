@@ -988,13 +988,13 @@
     <string name="ratio_stretch">Протезање до прозора</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Динамина (споро)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Извођење изворног кода (НЦЕ)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Тачан</string>
     <string name="cpu_accuracy_unsafe">Несигуран</string>
-    <string name="cpu_accuracy_paranoid">Параноичан (споро)</string>
+    <string name="cpu_accuracy_paranoid">Параноичан</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Д-пад</string>

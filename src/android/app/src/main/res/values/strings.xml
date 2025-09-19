@@ -1014,13 +1014,13 @@
     <string name="ratio_stretch">Stretch to window</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (Slow)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Accurate</string>
     <string name="cpu_accuracy_unsafe">Unsafe</string>
-    <string name="cpu_accuracy_paranoid">Paranoid (Slow)</string>
+    <string name="cpu_accuracy_paranoid">Paranoid</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">D-pad</string>

@@ -834,13 +834,13 @@
     <string name="ratio_stretch">画面に合わせる</string>
 
     <!-- CPU Backend -->
-    <string name="cpu_backend_dynarmic">Dynarmic (低速)</string>
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
     <string name="cpu_backend_nce">ネイティブコード実行 (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">正確</string>
     <string name="cpu_accuracy_unsafe">不安定</string>
-    <string name="cpu_accuracy_paranoid">パラノイド (低速)</string>
+    <string name="cpu_accuracy_paranoid">パラノイド</string>
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">方向ボタン</string>
