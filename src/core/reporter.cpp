@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -33,7 +36,9 @@ std::filesystem::path GetPath(std::string_view type, u64 title_id, std::string_v
 
 std::string GetTimestamp() {
     const auto time = std::time(nullptr);
-    return fmt::format("{:%FT%H-%M-%S}", *std::localtime(&time));
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&time), "%FT%H-%M-%S");
+    return oss.str();
 }
 
 using namespace nlohmann;

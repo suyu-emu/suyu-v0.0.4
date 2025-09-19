@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,7 +44,14 @@ PerfStats::~PerfStats() {
 
     const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
-    const auto filename = fmt::format("{:%F-%H-%M}_{:016X}.csv", *std::localtime(&t), title_id);
+    const auto filename = fmt::format("{}_{:016X}.csv",
+        [&] {
+            std::ostringstream oss;
+            oss << std::put_time(std::localtime(&t), "%F-%H-%M");
+            return oss.str();
+        }(),
+        title_id);
+
     const auto filepath = path / filename;
 
     if (Common::FS::CreateParentDir(filepath)) {
