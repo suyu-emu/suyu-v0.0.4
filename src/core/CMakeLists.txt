@@ -107,7 +107,6 @@ add_library(core STATIC
     file_sys/fssystem/fssystem_nca_header.cpp
     file_sys/fssystem/fssystem_nca_header.h
     file_sys/fssystem/fssystem_nca_reader.cpp
-    file_sys/fssystem/fssystem_passthrough_storage.h
     file_sys/fssystem/fssystem_sparse_storage.cpp
     file_sys/fssystem/fssystem_sparse_storage.h
     file_sys/fssystem/fssystem_switch_storage.h
