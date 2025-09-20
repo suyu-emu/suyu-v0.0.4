@@ -187,9 +187,7 @@ option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" 
 option(FORCE_DOWNLOAD_WIN_BUNDLES "Forcefully download bundled Windows dependencies (useful for CI)" OFF)
 
 # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
-if (YUZU_USE_CPM AND ENABLE_SDL2)
-    option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
-endif()
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "ENABLE_SDL2" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
@@ -208,6 +206,8 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available
 CMAKE_DEPENDENT_OPTION(USE_SYSTEM_MOLTENVK "Use the system MoltenVK lib (instead of the bundled one)" OFF "APPLE" OFF)
 
 set(YUZU_TZDB_PATH "" CACHE STRING "Path to a pre-downloaded timezone database")
+
+option(YUZU_DISABLE_LLVM "Disable LLVM (useful for CI)" OFF)
 
 set(DEFAULT_ENABLE_OPENSSL ON)
 if (ANDROID OR WIN32 OR APPLE OR PLATFORM_SUN)
@@ -483,7 +483,10 @@ if (YUZU_USE_CPM)
 else()
     # Enforce the search mode of non-required packages for better and shorter failure messages
     find_package(fmt 8 REQUIRED)
-    find_package(LLVM MODULE COMPONENTS Demangle)
+    if (NOT YUZU_DISABLE_LLVM)
+        find_package(LLVM MODULE COMPONENTS Demangle)
+    endif()
+
     find_package(nlohmann_json 3.8 REQUIRED)
     find_package(lz4 REQUIRED)
     find_package(RenderDoc MODULE)

@@ -4205,16 +4205,11 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
 
 void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
                                     std::string_view gpu_vendor) {
-    static const std::string description = std::string(Common::g_build_version);
-    static const std::string build_id = std::string(Common::g_build_id);
-    static const std::string compiler = std::string(Common::g_compiler_id);
+    static const std::string description = std::string{Common::g_build_version};
+    static const std::string build_id = std::string{Common::g_build_id};
+    static const std::string compiler = std::string{Common::g_compiler_id};
 
-    std::string yuzu_title;
-    if (Common::g_is_dev_build) {
-        yuzu_title = fmt::format("Eden Nightly | {}-{} | {}", description, build_id, compiler);
-    } else {
-        yuzu_title = fmt::format("Eden | {} | {}", description, compiler);
-    }
+    static const std::string yuzu_title = fmt::format("Eden | {} | {}", description, compiler);
 
     const auto override_title =
         fmt::format(fmt::runtime(std::string(Common::g_title_bar_format_idle)), build_id);

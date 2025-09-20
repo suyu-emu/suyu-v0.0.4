@@ -6,8 +6,8 @@
 
 #include "common/scm_rev.h"
 
-#define GIT_REV "@GIT_REV@"
-#define GIT_BRANCH "@GIT_BRANCH@"
+#define GIT_REV "@GIT_COMMIT@"
+#define GIT_BRANCH "@GIT_REFSPEC@"
 #define GIT_DESC "@GIT_DESC@"
 #define BUILD_NAME "@REPO_NAME@"
 #define BUILD_DATE "@BUILD_DATE@"
@@ -31,7 +31,7 @@ constexpr const char g_build_version[] = BUILD_VERSION;
 constexpr const char g_build_id[] = BUILD_ID;
 constexpr const char g_title_bar_format_idle[] = TITLE_BAR_FORMAT_IDLE;
 constexpr const char g_title_bar_format_running[] = TITLE_BAR_FORMAT_RUNNING;
-constexpr const bool g_is_dev_build = IS_DEV_BUILD;
 constexpr const char g_compiler_id[] = COMPILER_ID;
+constexpr const bool g_is_dev_build = IS_DEV_BUILD;
 
 } // namespace Common

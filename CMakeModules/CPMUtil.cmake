@@ -598,11 +598,6 @@ function(AddCIPackage)
 
     if (DEFINED ARTIFACT_DIR)
         include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
-
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${ARTIFACT_NAME})
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS "https://github.com/${ARTIFACT_REPO}") # TODO(crueter) other hosts?
-        set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS ${ARTIFACT_VERSION})
-
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
     else()
         find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)

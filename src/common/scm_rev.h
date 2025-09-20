@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
@@ -19,7 +19,7 @@ extern const char g_build_id[];
 extern const char g_title_bar_format_idle[];
 extern const char g_title_bar_format_running[];
 extern const char g_shader_cache_version[];
-extern const bool g_is_dev_build;
 extern const char g_compiler_id[];
+extern const bool g_is_dev_build;
 
 } // namespace Common

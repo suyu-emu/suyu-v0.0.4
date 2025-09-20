@@ -40,7 +40,10 @@ endif()
 add_subdirectory(externals)
 
 target_link_libraries(qt_common PRIVATE core Qt6::Core SimpleIni::SimpleIni QuaZip::QuaZip frozen::frozen)
-target_link_libraries(qt_common PRIVATE Qt6::Core)
+
+if (NOT APPLE AND ENABLE_OPENGL)
+    target_compile_definitions(qt_common PUBLIC HAS_OPENGL)
+endif()
 
 if (NOT WIN32)
     target_include_directories(qt_common PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})

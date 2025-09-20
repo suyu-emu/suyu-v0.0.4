@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,16 +14,11 @@ AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent)
     , ui{std::make_unique<Ui::AboutDialog>()}
 {
-    static const std::string description = std::string(Common::g_build_version);
-    static const std::string build_id = std::string(Common::g_build_id);
-    static const std::string compiler = std::string(Common::g_compiler_id);
+    static const std::string description = std::string{Common::g_build_version};
+    static const std::string build_id = std::string{Common::g_build_id};
+    static const std::string compiler = std::string{Common::g_compiler_id};
 
-    std::string yuzu_build;
-    if (Common::g_is_dev_build) {
-        yuzu_build = fmt::format("Eden Nightly | {}-{} | {}", description, build_id, compiler);
-    } else {
-        yuzu_build = fmt::format("Eden | {} | {}", description, compiler);
-    }
+    static const std::string yuzu_build = fmt::format("Eden | {} | {}", description, compiler);
 
     const auto override_build = fmt::format(fmt::runtime(
                                                 std::string(Common::g_title_bar_format_idle)),
