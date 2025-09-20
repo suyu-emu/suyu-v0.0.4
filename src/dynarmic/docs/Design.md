@@ -273,52 +273,73 @@ Exclusive OR (i.e.: XOR)
 
 ### Callback: {Read,Write}Memory{8,16,32,64}
 
-    <u8> ReadMemory8(<u32> vaddr)
-    <u8> ReadMemory16(<u32> vaddr)
-    <u8> ReadMemory32(<u32> vaddr)
-    <u8> ReadMemory64(<u32> vaddr)
-    <void> WriteMemory8(<u32> vaddr, <u8> value_to_store)
-    <void> WriteMemory16(<u32> vaddr, <u16> value_to_store)
-    <void> WriteMemory32(<u32> vaddr, <u32> value_to_store)
-    <void> WriteMemory64(<u32> vaddr, <u64> value_to_store)
+```c++
+<u8> ReadMemory8(<u32> vaddr)
+<u8> ReadMemory16(<u32> vaddr)
+<u8> ReadMemory32(<u32> vaddr)
+<u8> ReadMemory64(<u32> vaddr)
+<void> WriteMemory8(<u32> vaddr, <u8> value_to_store)
+<void> WriteMemory16(<u32> vaddr, <u16> value_to_store)
+<void> WriteMemory32(<u32> vaddr, <u32> value_to_store)
+<void> WriteMemory64(<u32> vaddr, <u64> value_to_store)
+```
 
 Memory access.
 
 ### Terminal: Interpret
 
-    SetTerm(IR::Term::Interpret{next})
+```c++
+SetTerm(IR::Term::Interpret{next})
+```
 
 This terminal instruction calls the interpreter, starting at `next`.
 The interpreter must interpret exactly one instruction.
 
 ### Terminal: ReturnToDispatch
 
-    SetTerm(IR::Term::ReturnToDispatch{})
+```c++
+SetTerm(IR::Term::ReturnToDispatch{})
+```
 
 This terminal instruction returns control to the dispatcher.
 The dispatcher will use the value in R15 to determine what comes next.
 
 ### Terminal: LinkBlock
 
-    SetTerm(IR::Term::LinkBlock{next})
+```c++
+SetTerm(IR::Term::LinkBlock{next})
+```
 
 This terminal instruction jumps to the basic block described by `next` if we have enough
 cycles remaining. If we do not have enough cycles remaining, we return to the
 dispatcher, which will return control to the host.
 
+### Terminal: LinkBlockFast
+
+```c++
+SetTerm(IR::Term::LinkBlockFast{next})
+```
+
+This terminal instruction jumps to the basic block described by `next` unconditionally.
+This promises guarantees that must be held at runtime - i.e that the program wont hang,
+
 ### Terminal: PopRSBHint
 
-    SetTerm(IR::Term::PopRSBHint{})
+```c++
+SetTerm(IR::Term::PopRSBHint{})
+```
 
 This terminal instruction checks the top of the Return Stack Buffer against R15.
 If RSB lookup fails, control is returned to the dispatcher.
 This is an optimization for faster function calls. A backend that doesn't support
 this optimization or doesn't have a RSB may choose to implement this exactly as
-ReturnToDispatch.
+`ReturnToDispatch`.
 
 ### Terminal: If
 
-    SetTerm(IR::Term::If{cond, term_then, term_else})
+```c++
+SetTerm(IR::Term::If{cond, term_then, term_else})
+```
 
 This terminal instruction conditionally executes one terminal or another depending
 on the run-time state of the ARM flags.
