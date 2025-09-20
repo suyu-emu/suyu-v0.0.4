@@ -1,13 +1,14 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include "common/alignment.h"
-#include "core/file_sys/errors.h"
 #include "core/file_sys/fssystem/fs_i_storage.h"
 #include "core/file_sys/fssystem/fssystem_alignment_matching_storage_impl.h"
-#include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
 
 namespace FileSys {
 
@@ -89,10 +90,11 @@ private:
     VirtualFile m_base_storage;
     s64 m_base_storage_size;
     size_t m_data_align;
+    mutable std::vector<char> work_buffer;
 
 public:
     explicit AlignmentMatchingStoragePooledBuffer(VirtualFile bs, size_t da)
-        : m_base_storage(std::move(bs)), m_data_align(da) {
+        : m_base_storage(std::move(bs)), m_data_align(da), work_buffer(da) {
         ASSERT(Common::IsPowerOfTwo(da));
     }
 
@@ -104,16 +106,10 @@ public:
 
         // Validate arguments.
         ASSERT(buffer != nullptr);
-
         s64 bs_size = this->GetSize();
         ASSERT(R_SUCCEEDED(IStorage::CheckAccessRange(offset, size, bs_size)));
-
-        // Allocate a pooled buffer.
-        PooledBuffer pooled_buffer;
-        pooled_buffer.AllocateParticularlyLarge(m_data_align, m_data_align);
-
-        return AlignmentMatchingStorageImpl::Read(m_base_storage, pooled_buffer.GetBuffer(),
-                                                  pooled_buffer.GetSize(), m_data_align,
+        return AlignmentMatchingStorageImpl::Read(m_base_storage, work_buffer.data(),
+                                                  work_buffer.size(), m_data_align,
                                                   BufferAlign, offset, buffer, size);
     }
 
@@ -125,16 +121,10 @@ public:
 
         // Validate arguments.
         ASSERT(buffer != nullptr);
-
         s64 bs_size = this->GetSize();
         ASSERT(R_SUCCEEDED(IStorage::CheckAccessRange(offset, size, bs_size)));
-
-        // Allocate a pooled buffer.
-        PooledBuffer pooled_buffer;
-        pooled_buffer.AllocateParticularlyLarge(m_data_align, m_data_align);
-
-        return AlignmentMatchingStorageImpl::Write(m_base_storage, pooled_buffer.GetBuffer(),
-                                                   pooled_buffer.GetSize(), m_data_align,
+        return AlignmentMatchingStorageImpl::Write(m_base_storage, work_buffer.data(),
+                                                   work_buffer.size(), m_data_align,
                                                    BufferAlign, offset, buffer, size);
     }
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,7 +9,6 @@
 #include "core/file_sys/errors.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree.h"
 #include "core/file_sys/fssystem/fssystem_bucket_tree_utils.h"
-#include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
 
 namespace FileSys {
 
@@ -35,23 +37,19 @@ Result BucketTree::ScanContinuousReading(ContinuousReadingInfo* out_info,
     R_UNLESS(entry.GetVirtualOffset() <= cur_offset, ResultOutOfRange);
 
     // Create a pooled buffer for our scan.
-    PooledBuffer pool(m_node_size, 1);
-    char* buffer = nullptr;
-
+    std::vector<char> pool(m_node_size);
     s64 entry_storage_size = m_entry_storage->GetSize();
 
     // Read the node.
-    if (m_node_size <= pool.GetSize()) {
-        buffer = pool.GetBuffer();
-        const auto ofs = param.entry_set.index * static_cast<s64>(m_node_size);
-        R_UNLESS(m_node_size + ofs <= static_cast<size_t>(entry_storage_size),
-                 ResultInvalidBucketTreeNodeEntryCount);
+    u8* buffer = reinterpret_cast<u8*>(pool.data());
+    const auto ofs = param.entry_set.index * s64(m_node_size);
+    R_UNLESS(m_node_size + ofs <= size_t(entry_storage_size),
+                ResultInvalidBucketTreeNodeEntryCount);
 
-        m_entry_storage->Read(reinterpret_cast<u8*>(buffer), m_node_size, ofs);
-    }
+    m_entry_storage->Read(buffer, m_node_size, ofs);
 
     // Calculate extents.
-    const auto end_offset = cur_offset + static_cast<s64>(param.size);
+    const auto end_offset = cur_offset + s64(param.size);
     s64 phys_offset = entry.GetPhysicalOffset();
 
     // Start merge tracking.
@@ -76,14 +74,8 @@ Result BucketTree::ScanContinuousReading(ContinuousReadingInfo* out_info,
         s64 next_entry_offset;
 
         if (entry_index + 1 < entry_count) {
-            if (buffer != nullptr) {
-                const auto ofs = impl::GetBucketTreeEntryOffset(0, m_entry_size, entry_index + 1);
-                std::memcpy(std::addressof(next_entry), buffer + ofs, m_entry_size);
-            } else {
-                const auto ofs = impl::GetBucketTreeEntryOffset(param.entry_set.index, m_node_size,
-                                                                m_entry_size, entry_index + 1);
-                m_entry_storage->ReadObject(std::addressof(next_entry), ofs);
-            }
+            const auto offset = impl::GetBucketTreeEntryOffset(0, m_entry_size, entry_index + 1);
+            std::memcpy(std::addressof(next_entry), buffer + offset, m_entry_size);
 
             next_entry_offset = next_entry.GetVirtualOffset();
             R_UNLESS(param.offsets.IsInclude(next_entry_offset), ResultInvalidIndirectEntryOffset);

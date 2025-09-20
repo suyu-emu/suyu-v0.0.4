@@ -1,11 +1,12 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
 #include "common/swap.h"
-#include "core/file_sys/errors.h"
 #include "core/file_sys/fssystem/fssystem_aes_xts_storage.h"
-#include "core/file_sys/fssystem/fssystem_pooled_buffer.h"
 #include "core/file_sys/fssystem/fssystem_utility.h"
 
 namespace FileSys {
@@ -69,17 +70,14 @@ size_t AesXtsStorage::Read(u8* buffer, size_t size, size_t offset) const {
 
         // Decrypt into a pooled buffer.
         {
-            PooledBuffer tmp_buf(m_block_size, m_block_size);
-            ASSERT(tmp_buf.GetSize() >= m_block_size);
-
-            std::memset(tmp_buf.GetBuffer(), 0, skip_size);
-            std::memcpy(tmp_buf.GetBuffer() + skip_size, buffer, data_size);
+            std::vector<char> tmp_buf(m_block_size, 0);
+            std::memcpy(tmp_buf.data() + skip_size, buffer, data_size);
 
             m_cipher->SetIV(ctr);
-            m_cipher->Transcode(tmp_buf.GetBuffer(), m_block_size, tmp_buf.GetBuffer(),
+            m_cipher->Transcode(tmp_buf.data(), m_block_size, tmp_buf.data(),
                                 Core::Crypto::Op::Decrypt);
 
-            std::memcpy(buffer, tmp_buf.GetBuffer() + skip_size, data_size);
+            std::memcpy(buffer, tmp_buf.data() + skip_size, data_size);
         }
 
         AddCounter(ctr.data(), IvSize, 1);
