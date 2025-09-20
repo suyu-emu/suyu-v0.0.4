@@ -246,10 +246,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            vram_usage_mode,
            tr("VRAM Usage Mode:"),
-           tr("Selects whether the emulator should prefer to conserve memory or make maximum usage "
-              "of available video memory for performance.\nHas no effect on integrated graphics. "
-              "Aggressive mode may severely impact the performance of other applications such as "
-              "recording software."));
+           tr("Selects whether the emulator should prefer to conserve memory or make maximum usage of available video memory for performance.\nAggressive mode may severely impact the performance of other applications such as recording software."));
     INSERT(Settings,
            skip_cpu_inner_invalidation,
            tr("Skip CPU Inner Invalidation"),
