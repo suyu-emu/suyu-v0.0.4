@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +21,8 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> 
         {5, &ACC_U0::GetProfile, "GetProfile"},
         {6, nullptr, "GetProfileDigest"}, // 3.0.0+
         {50, &ACC_U0::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
-        {51, &ACC_U0::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
+        {51, &ACC_U0::TrySelectUserWithoutInteractionDeprecated, "TrySelectUserWithoutInteractionDeprecated"},
+        {52, &ACC_U0::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
         {60, &ACC_U0::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"}, // 5.0.0 - 5.1.0
         {99, nullptr, "DebugActivateOpenContextRetention"}, // 6.0.0+
         {100, &ACC_U0::InitializeApplicationInfo, "InitializeApplicationInfo"},
