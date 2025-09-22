@@ -381,7 +381,7 @@ public:
 
 private:
     void Submit(HLERequestContext& ctx) {
-        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
 
         if (state == RequestState::NotSubmitted) {
             UpdateState(RequestState::OnHold);
@@ -392,7 +392,7 @@ private:
     }
 
     void GetRequestState(HLERequestContext& ctx) {
-        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -424,7 +424,7 @@ private:
     }
 
     void GetResult(HLERequestContext& ctx) {
-        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
 
         const auto result = [this] {
             const auto has_connection = Network::GetHostIPv4Address().has_value() &&
@@ -486,7 +486,7 @@ private:
     }
 
     void UpdateState(RequestState new_state) {
-        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+        LOG_DEBUG(Service_NIFM, "(STUBBED) called");
         state = new_state;
         event1->Signal();
     }
