@@ -166,7 +166,7 @@ ENUM(ResolutionSetup,
      Res7X,
      Res8X);
 
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, Area, MaxEnum);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Spline1, Gaussian, Lanczos, ScaleForce, Fsr, Area, MaxEnum);
 
 ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 

@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2018 yuzu Emulator Project
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 set(FIDELITYFX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/FidelityFX-FSR/ffx-fsr)
 
@@ -45,6 +45,8 @@ set(SHADER_FILES
     present_area.frag
     present_bicubic.frag
     present_gaussian.frag
+    present_lanczos.frag
+    present_spline1.frag
     queries_prefix_scan_sum.comp
     queries_prefix_scan_sum_nosubgroups.comp
     resolve_conditional_render.comp

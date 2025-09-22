@@ -12,6 +12,7 @@
 #include "video_core/host_shaders/present_area_frag_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
+#include "video_core/host_shaders/present_lanczos_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp16_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp32_frag_spv.h"
@@ -45,6 +46,11 @@ std::unique_ptr<WindowAdaptPass> MakeBilinear(const Device& device, VkFormat fra
                                              BuildShader(device, VULKAN_PRESENT_FRAG_SPV));
 }
 
+std::unique_ptr<WindowAdaptPass> MakeSpline1(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
+                                             BuildShader(device, PRESENT_SPLINE1_FRAG_SPV));
+}
+
 std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat frame_format) {
     // No need for handrolled shader -- if the VK impl can do it for us ;)
     if (device.IsExtFilterCubicSupported())
@@ -57,6 +63,11 @@ std::unique_ptr<WindowAdaptPass> MakeBicubic(const Device& device, VkFormat fram
 std::unique_ptr<WindowAdaptPass> MakeGaussian(const Device& device, VkFormat frame_format) {
     return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
                                              BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV));
+}
+
+std::unique_ptr<WindowAdaptPass> MakeLanczos(const Device& device, VkFormat frame_format) {
+    return std::make_unique<WindowAdaptPass>(device, frame_format, CreateBilinearSampler(device),
+                                             BuildShader(device, PRESENT_LANCZOS_FRAG_SPV));
 }
 
 std::unique_ptr<WindowAdaptPass> MakeScaleForce(const Device& device, VkFormat frame_format) {
