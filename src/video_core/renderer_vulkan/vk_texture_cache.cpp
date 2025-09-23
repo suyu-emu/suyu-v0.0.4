@@ -1377,17 +1377,13 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
     // these images that aren't size-compatible
     if (BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
-
-        if (src.info.type == ImageType::Linear || dst.info.type == ImageType::Linear) {
-            return;
-        }
-
-        auto oneCopy = VideoCommon::ImageCopy{.src_offset = VideoCommon::Offset3D(0, 0, 0),
-                                              .dst_offset = VideoCommon::Offset3D(0, 0, 0),
-                                              .extent = dst.info.size};
+        auto oneCopy = VideoCommon::ImageCopy{
+            .src_offset = VideoCommon::Offset3D(0, 0, 0),
+            .dst_offset = VideoCommon::Offset3D(0, 0, 0),
+            .extent = dst.info.size
+        };
         return ReinterpretImage(dst, src, std::span{&oneCopy, 1});
     }
-
     boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
     const VkImageAspectFlags aspect_mask = dst.AspectMask();
     ASSERT(aspect_mask == src.AspectMask());
@@ -1565,10 +1561,10 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
        since tropic didn't want to touch it for a long time, so it needs a rewrite from someone
        better than me at vulkan. */
     // CHANGE: Gate the MSAA path more strictly and only use it for color, when the pass and device
-    //         support are available. Avoid running the MSAA path when prerequisites aren't met, preventing
-    //         validation and runtime issues.
+    //         support are available. Avoid running the MSAA path when prerequisites aren't met,
+    //         preventing validation and runtime issues.
     const bool wants_msaa_upload = info.num_samples > 1 &&
-                                   aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT &&
+                                   (aspect_mask & VK_IMAGE_ASPECT_COLOR_BIT) != 0 &&
                                    runtime->CanUploadMSAA() && runtime->msaa_copy_pass != nullptr &&
                                    runtime->device.IsStorageImageMultisampleSupported();
 
@@ -1578,7 +1574,8 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         temp_info.num_samples = 1;
 
         // CHANGE: Build a fresh VkImageCreateInfo with robust usage flags for the temp image.
-        //         Using the target image's usage as-is could miss STORAGE/TRANSFER bits and trigger validation errors.
+        //         Using the target image's usage as-is could miss STORAGE/TRANSFER bits and trigger
+        //         validation errors.
         VkImageCreateInfo image_ci = MakeImageCreateInfo(runtime->device, temp_info);
         image_ci.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                          VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
@@ -1588,7 +1585,7 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         auto temp_wrapper = std::make_shared<Image>(*runtime, temp_info, 0, 0);
         temp_wrapper->original_image = runtime->memory_allocator.CreateImage(image_ci);
         temp_wrapper->current_image = &Image::original_image;
-        temp_wrapper->aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT;
+        temp_wrapper->aspect_mask = aspect_mask;
         temp_wrapper->initialized = true;
 
         // Upload to the temporary non-MSAA image
@@ -1597,18 +1594,17 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         const VkBuffer src_buffer = buffer;
         const VkImage temp_vk_image = *temp_wrapper->original_image;
         const VkImageAspectFlags vk_aspect_mask = temp_wrapper->aspect_mask;
+
         scheduler->Record([src_buffer, temp_vk_image, vk_aspect_mask, vk_copies,
-                           // CHANGE: capture shared_ptr to pin lifetime through submission
                            keep = temp_wrapper](vk::CommandBuffer cmdbuf) {
             CopyBufferToImage(cmdbuf, src_buffer, temp_vk_image, vk_aspect_mask, false, vk_copies);
         });
 
         // Use MSAACopyPass to convert from non-MSAA to MSAA
-        // CHANGE: only lifetime and usage were fixed.
         std::vector<VideoCommon::ImageCopy> image_copies;
         image_copies.reserve(copies.size());
         for (const auto& copy : copies) {
-            VideoCommon::ImageCopy image_copy;
+            VideoCommon::ImageCopy image_copy{};
             image_copy.src_offset = {0, 0, 0}; // Use zero offset for source
             image_copy.dst_offset = copy.image_offset;
             image_copy.src_subresource = copy.image_subresource;
@@ -1621,11 +1617,9 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
                                            /*msaa_to_non_msaa=*/false);
         std::exchange(initialized, true);
 
-        // CHANGE: Add a no-op recording that captures temp_wrapper to ensure it stays alive
-        //         at least until commands are submitted/recorded.
-        scheduler->Record([keep = std::move(temp_wrapper)](vk::CommandBuffer) {});
+        const u64 tick = scheduler->Flush();
+        scheduler->Wait(tick);
 
-        // CHANGE: Restore scaling before returning from the MSAA path.
         if (is_rescaled) {
             ScaleUp();
         }
@@ -1638,10 +1632,11 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
     const VkBuffer src_buffer = buffer;
     const VkImage vk_image = *original_image;
     const VkImageAspectFlags vk_aspect_mask = aspect_mask;
-    const bool is_initialized = std::exchange(initialized, true);
-    scheduler->Record([src_buffer, vk_image, vk_aspect_mask, is_initialized,
+    const bool was_initialized = std::exchange(initialized, true);
+
+    scheduler->Record([src_buffer, vk_image, vk_aspect_mask, was_initialized,
                        vk_copies](vk::CommandBuffer cmdbuf) {
-        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, is_initialized, vk_copies);
+        CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, was_initialized, vk_copies);
     });
 
     if (is_rescaled) {
