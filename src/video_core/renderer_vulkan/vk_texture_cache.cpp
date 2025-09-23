@@ -1377,6 +1377,9 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
     // As per the size-compatible formats section of vulkan, copy manually via ReinterpretImage
     // these images that aren't size-compatible
     if (BytesPerBlock(src.info.format) != BytesPerBlock(dst.info.format)) {
+        if (src.info.type == ImageType::Linear || dst.info.type == ImageType::Linear) {
+            return;
+        }
         auto oneCopy = VideoCommon::ImageCopy{
             .src_offset = VideoCommon::Offset3D(0, 0, 0),
             .dst_offset = VideoCommon::Offset3D(0, 0, 0),
