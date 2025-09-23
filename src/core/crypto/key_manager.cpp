@@ -45,13 +45,6 @@ constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
 
 using Common::AsArray;
 
-// clang-format off
-constexpr std::array eticket_source_hashes{
-    AsArray("B71DB271DC338DF380AA2C4335EF8873B1AFD408E80B3582D8719FC81C5E511C"), // eticket_rsa_kek_source
-    AsArray("E8965A187D30E57869F562D04383C996DE487BBA5761363D2D4D32391866A85C"), // eticket_rsa_kekek_source
-};
-// clang-format on
-
 constexpr std::array<std::pair<std::string_view, KeyIndex<S128KeyType>>, 30> s128_file_id{{
     {"eticket_rsa_kek", {S128KeyType::ETicketRSAKek, 0, 0}},
     {"eticket_rsa_kek_source",
@@ -1117,81 +1110,25 @@ void KeyManager::DeriveBase() {
 
 void KeyManager::DeriveETicket(PartitionDataManager& data,
                                const FileSys::ContentProvider& provider) {
-    // ETicket keys
-    const auto es = provider.GetEntry(0x0100000000000033, FileSys::ContentRecordType::Program);
-
-    if (es == nullptr) {
+    // The emulator no longer derives the ETicket RSA Kek.
+    // It is now required for the user to provide this key in their keys file.
+    if (!HasKey(S128KeyType::ETicketRSAKek)) {
+        LOG_WARNING(Crypto, "ETicket RSA Kek not found, skipping eTicket parsing.");
         return;
     }
 
-    const auto exefs = es->GetExeFS();
-    if (exefs == nullptr) {
-        return;
-    }
-
-    const auto main = exefs->GetFile("main");
-    if (main == nullptr) {
-        return;
-    }
-
-    const auto bytes = main->ReadAllBytes();
-
-    const auto eticket_kek = FindKeyFromHex16(bytes, eticket_source_hashes[0]);
-    const auto eticket_kekek = FindKeyFromHex16(bytes, eticket_source_hashes[1]);
-
-    const auto seed3 = data.GetRSAKekSeed3();
-    const auto mask0 = data.GetRSAKekMask0();
-
-    if (eticket_kek != Key128{}) {
-        SetKey(S128KeyType::Source, eticket_kek, static_cast<size_t>(SourceKeyType::ETicketKek));
-    }
-    if (eticket_kekek != Key128{}) {
-        SetKey(S128KeyType::Source, eticket_kekek,
-               static_cast<size_t>(SourceKeyType::ETicketKekek));
-    }
-    if (seed3 != Key128{}) {
-        SetKey(S128KeyType::RSAKek, seed3, static_cast<size_t>(RSAKekType::Seed3));
-    }
-    if (mask0 != Key128{}) {
-        SetKey(S128KeyType::RSAKek, mask0, static_cast<size_t>(RSAKekType::Mask0));
-    }
-    if (eticket_kek == Key128{} || eticket_kekek == Key128{} || seed3 == Key128{} ||
-        mask0 == Key128{}) {
-        return;
-    }
-
-    const Key128 rsa_oaep_kek = seed3 ^ mask0;
-    if (rsa_oaep_kek == Key128{}) {
-        return;
-    }
-
-    SetKey(S128KeyType::Source, rsa_oaep_kek,
-           static_cast<u64>(SourceKeyType::RSAOaepKekGeneration));
-
-    Key128 temp_kek{};
-    Key128 temp_kekek{};
-    Key128 eticket_final{};
-
-    // Derive ETicket RSA Kek
-    AESCipher<Key128> es_master(GetKey(S128KeyType::Master), Mode::ECB);
-    es_master.Transcode(rsa_oaep_kek.data(), rsa_oaep_kek.size(), temp_kek.data(), Op::Decrypt);
-    AESCipher<Key128> es_kekek(temp_kek, Mode::ECB);
-    es_kekek.Transcode(eticket_kekek.data(), eticket_kekek.size(), temp_kekek.data(), Op::Decrypt);
-    AESCipher<Key128> es_kek(temp_kekek, Mode::ECB);
-    es_kek.Transcode(eticket_kek.data(), eticket_kek.size(), eticket_final.data(), Op::Decrypt);
-
-    if (eticket_final == Key128{}) {
-        return;
-    }
-
-    SetKey(S128KeyType::ETicketRSAKek, eticket_final);
-
-    // Titlekeys
+    // Decrypt PRODINFO to get the extended kek needed for the RSA keypair.
     data.DecryptProdInfo(GetBISKey(0));
 
+    // The extended kek is read from the decrypted PRODINFO.
     eticket_extended_kek = data.GetETicketExtendedKek();
     WriteKeyToFile(KeyCategory::Console, "eticket_extended_kek", eticket_extended_kek);
+
+    // Derive the final RSA keypair using the user-provided ETicketRSAKek
+    // and the extended kek from PRODINFO.
     DeriveETicketRSAKey();
+
+    // Load personalized tickets from the NAND.
     PopulateTickets();
 }
 
@@ -1272,22 +1209,6 @@ void KeyManager::PopulateFromPartitionData(PartitionDataManager& data) {
                              encrypted_keyblobs[i]);
     }
 
-    SetKeyWrapped(S128KeyType::Source, data.GetPackage2KeySource(),
-                  static_cast<u64>(SourceKeyType::Package2));
-    SetKeyWrapped(S128KeyType::Source, data.GetAESKekGenerationSource(),
-                  static_cast<u64>(SourceKeyType::AESKekGeneration));
-    SetKeyWrapped(S128KeyType::Source, data.GetTitlekekSource(),
-                  static_cast<u64>(SourceKeyType::Titlekek));
-    SetKeyWrapped(S128KeyType::Source, data.GetMasterKeySource(),
-                  static_cast<u64>(SourceKeyType::Master));
-    SetKeyWrapped(S128KeyType::Source, data.GetKeyblobMACKeySource(),
-                  static_cast<u64>(SourceKeyType::KeyblobMAC));
-
-    for (size_t i = 0; i < PartitionDataManager::MAX_KEYBLOB_SOURCE_HASH; ++i) {
-        SetKeyWrapped(S128KeyType::Source, data.GetKeyblobKeySource(i),
-                      static_cast<u64>(SourceKeyType::Keyblob), i);
-    }
-
     if (data.HasFuses()) {
         SetKeyWrapped(S128KeyType::SecureBoot, data.GetSecureBootKey());
     }
@@ -1299,13 +1220,6 @@ void KeyManager::PopulateFromPartitionData(PartitionDataManager& data) {
         if (GetKey(S128KeyType::Master, static_cast<u8>(i)) != Key128{}) {
             latest_master = GetKey(S128KeyType::Master, static_cast<u8>(i));
             break;
-        }
-    }
-
-    const auto masters = data.GetTZMasterKeys(latest_master);
-    for (size_t i = 0; i < masters.size(); ++i) {
-        if (masters[i] != Key128{} && !HasKey(S128KeyType::Master, i)) {
-            SetKey(S128KeyType::Master, masters[i], i);
         }
     }
 
@@ -1321,27 +1235,6 @@ void KeyManager::PopulateFromPartitionData(PartitionDataManager& data) {
         }
     }
     data.DecryptPackage2(package2_keys, Package2Type::NormalMain);
-
-    SetKeyWrapped(S128KeyType::Source, data.GetKeyAreaKeyApplicationSource(),
-                  static_cast<u64>(SourceKeyType::KeyAreaKey),
-                  static_cast<u64>(KeyAreaKeyType::Application));
-    SetKeyWrapped(S128KeyType::Source, data.GetKeyAreaKeyOceanSource(),
-                  static_cast<u64>(SourceKeyType::KeyAreaKey),
-                  static_cast<u64>(KeyAreaKeyType::Ocean));
-    SetKeyWrapped(S128KeyType::Source, data.GetKeyAreaKeySystemSource(),
-                  static_cast<u64>(SourceKeyType::KeyAreaKey),
-                  static_cast<u64>(KeyAreaKeyType::System));
-    SetKeyWrapped(S128KeyType::Source, data.GetSDKekSource(),
-                  static_cast<u64>(SourceKeyType::SDKek));
-    SetKeyWrapped(S256KeyType::SDKeySource, data.GetSDSaveKeySource(),
-                  static_cast<u64>(SDKeyType::Save));
-    SetKeyWrapped(S256KeyType::SDKeySource, data.GetSDNCAKeySource(),
-                  static_cast<u64>(SDKeyType::NCA));
-    SetKeyWrapped(S128KeyType::Source, data.GetHeaderKekSource(),
-                  static_cast<u64>(SourceKeyType::HeaderKek));
-    SetKeyWrapped(S256KeyType::HeaderSource, data.GetHeaderKeySource());
-    SetKeyWrapped(S128KeyType::Source, data.GetAESKeyGenerationSource(),
-                  static_cast<u64>(SourceKeyType::AESKeyGeneration));
 
     DeriveBase();
 }
