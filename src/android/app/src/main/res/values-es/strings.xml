@@ -453,8 +453,7 @@
     <string name="applets_description">Ejecutar applets de sistema usando el firmware instalado</string>
     <string name="applets_error_firmware">Firmware no instalado o versión inválida</string>
     <string name="applets_error_applet">Applet no disponible</string>
-    <string name="applets_error_description"><![CDATA[Por favor, asegúrate de que tu archivo <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> y
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> estén instalados e inténtalo de nuevo.<br>Además, asegúrate de que tu firmware sea de la versión 19.0.1 o anterior.]]></string>
+    <string name="applets_error_description"><![CDATA[Por favor, asegúrate de que tu archivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> y <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> estén instalados e inténtalo de nuevo.<br>Además, asegúrate de que tu firmware sea de la versión 19.0.1 o anterior.]]></string>
     <string name="album_applet">Álbum</string>
     <string name="album_applet_description">Ver las imágenes que están en la carpeta \"screenshots\" del usuario con el visor de fotos del sistema</string>
     <string name="mii_edit_applet">Editor de Mii</string>
@@ -722,10 +721,10 @@
     <string name="updates_and_dlc">Actualizaciones y DLC</string>
     <string name="mods_and_cheats">Mods y trucos</string>
     <string name="addon_notice">Aviso importante de addons</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Para instalar mods y trucos, debes seleccionar una carpeta que contiene los directorios cheats/, romfs/, o exefs/ . ¡No podemos confirmar si éstos serán compatibles con tu juego, así que ten cuidado!</string>
     <string name="invalid_directory">Directorio no válido</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Por favor, asegúrese de que el directorio que ha selecionado incluye las carpetas cheats/, romfs/, o exefs/ e inténtelo de nuevo.</string>
     <string name="addon_installed_successfully">Addon instalado con éxito</string>
     <string name="verifying_content">Verificando contenido...</string>
@@ -744,14 +743,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Su ROM está encriptada</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Siga las guías para volver a volcar sus <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">tarjetas de juego</a> o <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">títulos digitales</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Siga las guías para volver a volcar sus <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">tarjetas de juego</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">títulos digitales</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Por favor, compruebe que su archivo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> está instalado, para que los juegos sean descifrados.]]></string>
     <string name="loader_error_video_core">Ocurrió un error al inicializar el núcleo de video, posiblemente debido a una incompatibilidad con el driver seleccionado</string>
     <string name="loader_error_video_core_description">Esto suele deberse a un driver de GPU incompatible. La instalación de un controlador de GPU personalizado puede resolver este problema.</string>
     <string name="loader_error_invalid_format">No se pudo cargar la ROM</string>
     <string name="loader_error_file_not_found">Archivo ROM no existe</string>
     <string name="loader_requires_firmware">El juego requiere firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[El juego que intentas iniciar requiere firmware para arrancar o pasar el menú de inicio. Por favor <a href="https://yuzu-mirror.github.io/help/quickstart"> vuelca e instala el firmware</a>, o pulsa "Aceptar" para continuar de todos modos.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[El juego que intentas iniciar requiere firmware para arrancar o pasar el menú de inicio. Por favor <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> vuelca e instala el firmware</a>, o pulsa \"Aceptar\" para continuar de todos modos.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Buscando juego...</string>

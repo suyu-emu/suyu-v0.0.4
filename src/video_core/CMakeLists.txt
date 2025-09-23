@@ -321,11 +321,12 @@ add_library(video_core STATIC
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PUBLIC glad shader_recompiler stb bc_decoder)
 
-if (YUZU_USE_BUNDLED_FFMPEG AND NOT (WIN32 OR ANDROID))
+if (YUZU_USE_EXTERNAL_FFMPEG)
     add_dependencies(video_core ffmpeg-build)
 endif()
 
 target_include_directories(video_core PRIVATE ${FFmpeg_INCLUDE_DIR})
+
 target_link_libraries(video_core PRIVATE ${FFmpeg_LIBRARIES})
 target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 

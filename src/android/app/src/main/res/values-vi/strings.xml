@@ -412,11 +412,9 @@
     <string name="folder_already_added">Thư mục đã tồn tại</string>
     <string name="game_folder_properties">Thuộc tính thư mục</string>
     <plurals name="saves_import_failed">
-        <item quantity="one">Lỗi nhập %d save</item>
         <item quantity="other">Lỗi nhập %d saves</item>
     </plurals>
     <plurals name="saves_import_success">
-        <item quantity="one">Nhập thành công %d save</item>
         <item quantity="other">Nhập thành công %d saves</item>
     </plurals>
     <string name="no_save_data_found">Không tìm thấy save</string>
@@ -441,8 +439,7 @@
     <string name="applets_description">Khởi chạy applet hệ thống</string>
     <string name="applets_error_firmware">Firmware chưa cài đặt hoặc phiên bản không hợp lệ</string>
     <string name="applets_error_applet">Applet không khả dụng</string>
-    <string name="applets_error_description"><![CDATA[Hãy đảm bảo file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> và
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> đã được cài đặt và thử lại.<br>Đồng thời đảm bảo firmware của bạn là phiên bản 19.0.1 hoặc cũ hơn.]]></string>
+    <string name="applets_error_description"><![CDATA[Hãy đảm bảo file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> và <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> đã được cài đặt và thử lại.<br>Đồng thời đảm bảo firmware của bạn là phiên bản 19.0.1 hoặc cũ hơn.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Xem ảnh trong thư mục chụp màn hình</string>
     <string name="mii_edit_applet">Chỉnh sửa Mii</string>
@@ -662,14 +659,14 @@
     <string name="verify_failure">Kiểm tra tính toàn vẹn thất bại!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM của bạn đã bị mã hoá</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Vui lòng làm theo hướng dẫn để dump lại <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">băng trò chơi</a> hoặc <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">tựa game kỹ thuật số</a> của bạn.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Vui lòng làm theo hướng dẫn để dump lại <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">băng trò chơi</a> hoặc <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">tựa game kỹ thuật số</a> của bạn.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vui lòng đảm bảo file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> đã được cài đặt để game có thể được giải mã.]]></string>
     <string name="loader_error_video_core">Đã xảy ra lỗi khi khởi tạo lõi video</string>
     <string name="loader_error_video_core_description">Việc này thường do driver GPU không tương thích. Cài đặt một driver GPU tùy chỉnh có thể giải quyết vấn đề này.</string>
     <string name="loader_error_invalid_format">Không thể tải ROM</string>
     <string name="loader_error_file_not_found">Tệp ROM không tồn tại</string>
     <string name="loader_requires_firmware">Trò chơi yêu cầu firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Trò chơi bạn đang cố khởi chạy yêu cầu firmware để khởi động hoặc vượt qua menu mở đầu. Vui lòng <a href="https://yuzu-mirror.github.io/help/quickstart"> dump và cài đặt firmware</a>, hoặc nhấn "OK" để tiếp tục dù sao đi nữa.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Trò chơi bạn đang cố khởi chạy yêu cầu firmware để khởi động hoặc vượt qua menu mở đầu. Vui lòng <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump và cài đặt firmware</a>, hoặc nhấn \"OK\" để tiếp tục dù sao đi nữa.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Đang tìm kiếm trò chơi...</string>

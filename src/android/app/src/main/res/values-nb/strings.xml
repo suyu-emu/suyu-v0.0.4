@@ -441,8 +441,7 @@
     <string name="applets_description">Start systemapplets</string>
     <string name="applets_error_firmware">Firmware er ikke installert eller ugyldig versjon</string>
     <string name="applets_error_applet">Applet utilgjengelig</string>
-    <string name="applets_error_description"><![CDATA[Kontroller at <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>-filen din og
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> er installert og prøv igjen.<br>Kontroller også at firmwaren din er versjon 19.0.1 eller eldre.]]></string>
+    <string name="applets_error_description"><![CDATA[Kontroller at <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>-filen din og <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> er installert og prøv igjen.<br>Kontroller også at firmwaren din er versjon 19.0.1 eller eldre.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Vis bilder i systemets fotovisning</string>
     <string name="mii_edit_applet">Mii-redigering</string>
@@ -659,14 +658,14 @@
     <string name="verify_failure">Integritetsverifisering mislyktes!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-en din er kryptert</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Følg veiledningene for å dumpe <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">spillkort</a> eller <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">digitale titler</a> på nytt.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Følg veiledningene for å dumpe <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">spillkort</a> eller <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitale titler</a> på nytt.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
     <string name="loader_error_video_core">Det oppstod en feil ved initialisering av videokjernen</string>
     <string name="loader_error_video_core_description">Dette skyldes vanligvis en inkompatibel GPU-driver. Installering av en tilpasset GPU-driver kan løse problemet.</string>
     <string name="loader_error_invalid_format">Kunne ikke laste inn ROM</string>
     <string name="loader_error_file_not_found">ROM-filen finnes ikke</string>
     <string name="loader_requires_firmware">Spillet krever fastvare</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Spillet du prøver å starte krever fastvare for oppstart eller for å komme forbi startmenyen. Vennligst <a href="https://yuzu-mirror.github.io/help/quickstart"> dump og installer fastvare</a>, eller trykk "OK" for å fortsette likevel.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Spillet du prøver å starte krever fastvare for oppstart eller for å komme forbi startmenyen. Vennligst <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump og installer fastvare</a>, eller trykk \"OK\" for å fortsette likevel.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Søker etter spill...</string>

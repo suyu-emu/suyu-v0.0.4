@@ -25,10 +25,6 @@ set(BUILD_SHARED_LIBS OFF)
 # Skip install rules for all externals
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
 
-if (FORCE_DOWNLOAD_WIN_BUNDLES)
-    download_win_archives()
-endif()
-
 # Xbyak (also used by Dynarmic, so needs to be added first)
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
     if (PLATFORM_SUN OR PLATFORM_OPENBSD)
@@ -97,12 +93,16 @@ endif()
 AddJsonPackage(unordered-dense)
 
 # FFMpeg
-if (YUZU_USE_BUNDLED_FFMPEG)
+if (YUZU_USE_EXTERNAL_FFMPEG OR YUZU_USE_BUNDLED_FFMPEG)
     add_subdirectory(ffmpeg)
+
     set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
     set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
     set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
+    set(FFmpeg_LIBRARY_DIR "${FFmpeg_LIBRARY_DIR}" PARENT_SCOPE)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
+
+    message(STATUS "FFmpeg Libraries: ${FFmpeg_LIBRARIES}")
 endif()
 
 # TZDB (Time Zone Database)

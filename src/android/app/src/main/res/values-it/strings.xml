@@ -424,10 +424,12 @@
     <string name="game_folder_properties">Proprietà della cartella di Gioco</string>
     <plurals name="saves_import_failed">
         <item quantity="one">Importazione fallita per %d salvataggio</item>
+        <item quantity="many">Importazione fallita per %d salvataggi</item>
         <item quantity="other">Importazione fallita per %d salvataggi</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">Importati %d salvataggio</item>
+        <item quantity="many">Importati %d salvataggi</item>
         <item quantity="other">Importati %d salvataggi</item>
     </plurals>
     <string name="no_save_data_found">Nessun salvataggio trovato</string>
@@ -452,8 +454,7 @@
     <string name="applets_description">Avvia applet di sistema usando il firmware installato</string>
     <string name="applets_error_firmware">Firmware non installato o versione non valida</string>
     <string name="applets_error_applet">Applet non disponibile</string>
-    <string name="applets_error_description"><![CDATA[Assicurati che il tuo file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> e
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> siano installati e riprova.<br>Inoltre, assicurati che il tuo firmware sia versione 19.0.1 o precedente.]]></string>
+    <string name="applets_error_description"><![CDATA[Assicurati che il tuo file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> e <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> siano installati e riprova.<br>Inoltre, assicurati che il tuo firmware sia versione 19.0.1 o precedente.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Visualizza le immagini salvate nella cartella screenshots dell\'utente con il visualizzatore immagini di sistema</string>
     <string name="mii_edit_applet">Modifica Mii</string>
@@ -709,14 +710,14 @@
     <string name="verify_no_result_description">L\'integrità dei contenuti non è stata validata</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">La tua ROM è criptata</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Segui le guide per ridumpare le tue <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">schede di gioco</a> o <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">titoli digitali</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Segui le guide per ridumpare le tue <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">schede di gioco</a> o <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">titoli digitali</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Per favore assicurati che il file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> sia installato in modo che i giochi possano essere decrittati.]]></string>
     <string name="loader_error_video_core">È stato riscontrato un errore nell\'inizializzazione del core video</string>
     <string name="loader_error_video_core_description">Questo è causato solitamente dal driver incompatibile di una GPU. L\'installazione di driver GPU personalizzati potrebbe risolvere questo problema.</string>
     <string name="loader_error_invalid_format">Impossibile caricare la ROM</string>
     <string name="loader_error_file_not_found">Il file della ROM non esiste</string>
     <string name="loader_requires_firmware">Il gioco richiede firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Il gioco che stai cercando di avviare richiede firmware per l\'avvio o per superare il menu iniziale. Per favore <a href="https://yuzu-mirror.github.io/help/quickstart"> dumpa e installa il firmware</a>, o premi "OK" per continuare comunque.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Il gioco che stai cercando di avviare richiede firmware per l\'avvio o per superare il menu iniziale. Per favore <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dumpa e installa il firmware</a>, o premi \"OK\" per continuare comunque.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Ricerca del gioco in corso...</string>

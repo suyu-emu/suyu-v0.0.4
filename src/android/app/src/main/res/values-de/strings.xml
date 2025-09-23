@@ -440,8 +440,7 @@ Wirklich fortfahren?</string>
     <string name="applets_description">System-Applets mit Firmware starten</string>
     <string name="applets_error_firmware">Firmware nicht installiert oder ungültige Version</string>
     <string name="applets_error_applet">Applet nicht verfügbar</string>
-    <string name="applets_error_description"><![CDATA[Bitte stellen Sie sicher, dass Ihre <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>-Datei und
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">Firmware</a> installiert sind, und versuchen Sie es erneut.<br>Stellen Sie außerdem sicher, dass Ihre Firmware Version 19.0.1 oder älter ist.]]></string>
+    <string name="applets_error_description"><![CDATA[Bitte stellen Sie sicher, dass Ihre <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>-Datei und <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">Firmware</a> installiert sind, und versuchen Sie es erneut.<br>Stellen Sie außerdem sicher, dass Ihre Firmware Version 19.0.1 oder älter ist.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Bilder im Screenshot-Ordner anzeigen</string>
     <string name="mii_edit_applet">Mii-Editor</string>
@@ -705,14 +704,14 @@ Wirklich fortfahren?</string>
     <string name="verify_no_result">Integritätsüberprüfung konnte nicht durchgeführt werden</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Das ROM ist verschlüsselt</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Bitte folgen Sie den Anleitungen zum erneuten Dumpen Ihrer <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">Spielkarten</a> oder <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">digitalen Titel</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Bitte folgen Sie den Anleitungen zum erneuten Dumpen Ihrer <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">Spielkarten</a> oder <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitalen Titel</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Bitte stelle sicher dass die <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> Datei installiert ist, damit Spiele entschlüsselt werden können.]]></string>
     <string name="loader_error_video_core">Bei der Initialisierung des Videokerns ist ein Fehler aufgetreten</string>
     <string name="loader_error_video_core_description">Dies wird normalerweise durch einen inkompatiblen GPU-Treiber verursacht. Die Installation eines passenden GPU-Treibers kann dieses Problem beheben.</string>
     <string name="loader_error_invalid_format">ROM konnte nicht geladen werden</string>
     <string name="loader_error_file_not_found">ROM-Datei existiert nicht</string>
     <string name="loader_requires_firmware">Spiel erfordert Firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Das Spiel, das Sie starten möchten, benötigt Firmware zum Booten oder zum Überspringen des Startmenüs. Bitte <a href="https://yuzu-mirror.github.io/help/quickstart"> dumpen und installieren Sie Firmware</a>, oder drücken Sie "OK", um trotzdem zu starten.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Das Spiel, das Sie starten möchten, benötigt Firmware zum Booten oder zum Überspringen des Startmenüs. Bitte <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dumpen und installieren Sie Firmware</a>, oder drücken Sie \"OK\", um trotzdem zu starten.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Suche nach Spiel...</string>

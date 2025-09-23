@@ -323,10 +323,10 @@
     <string name="view_carousel">Karousel</string>
     <string name="folder">Folder</string>
     <string name="pre_alpha_warning_title">Perangkat Lunak Pre-Alpha</string>
-    <string name="pre_alpha_warning_description">"PERINGATAN: Build ini tidak dimaksudkan untuk dibagikan atau ditunjukkan ke publik. Perangkat lunak ini dalam tahap pre-alpha dan mungkin memiliki bug dan fitur yang belum lengkap. \nJika Anda mendapatkan akses tidak sah ke build ini; sangat disarankan untuk mencopotnya segera"</string>
+    <string name="pre_alpha_warning_description">PERINGATAN: Build ini tidak dimaksudkan untuk dibagikan atau ditunjukkan ke publik. Perangkat lunak ini dalam tahap pre-alpha dan mungkin memiliki bug dan fitur yang belum lengkap. \nJika Anda mendapatkan akses tidak sah ke build ini; sangat disarankan untuk mencopotnya segera</string>
     <string name="dont_show_again">Jangan Tampilkan Lagi</string>
-    <string name="pre_alpha_warning">PERANGKAT LUNAK PRE-ALPHA; TIDAK UNTUK PENGGUNAAN PUBLIK</string>\
-    <string name="add_directory_success">"Direktori game baru berhasil ditambahkan"</string>
+    <string name="pre_alpha_warning">PERANGKAT LUNAK PRE-ALPHA; TIDAK UNTUK PENGGUNAAN PUBLIK</string>
+    <string name="add_directory_success">Direktori game baru berhasil ditambahkan</string>
     <string name="home_games">Permainan</string>
     <string name="home_search">Cari</string>
     <string name="home_settings">Pengaturan</string>
@@ -449,8 +449,7 @@
     <string name="applets_description">Meluncurkan sistem applet menggunakan firmware yang diinstal</string>
     <string name="applets_error_firmware">Firmware tidak terinstal atau versi tidak valid</string>
     <string name="applets_error_applet">Applet tidak tersedia</string>
-    <string name="applets_error_description"><![CDATA[Pastikan file <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> dan
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> Anda terinstal dan coba lagi.<br>Pastikan juga firmware Anda versi 19.0.1 atau lebih lama.]]></string>
+    <string name="applets_error_description"><![CDATA[Pastikan file <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> dan <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> Anda terinstal dan coba lagi.<br>Pastikan juga firmware Anda versi 19.0.1 atau lebih lama.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Lihat gambar yang disimpan di folder tangkapan layar pengguna dengan penampil foto sistem.</string>
     <string name="mii_edit_applet">Ubah Mii</string>
@@ -714,10 +713,10 @@
     <string name="updates_and_dlc">Update Dan Dlc</string>
     <string name="mods_and_cheats">Mod Dan Cheat</string>
     <string name="addon_notice">Pemberitahuan Pengaya</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Untuk memasang mod dan cheat, Anda harus memilih folder yang berisi direktori cheats/, romfs/, atau exefs/. Kami tidak dapat memverifikasi apakah semua ini kompatibel dengan game Anda, jadi berhati-hatilah!</string>
     <string name="invalid_directory">Direktori Tidak Valid</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Pastikan direktori yang Anda pilih berisi folder cheats/, romfs/, atau exefs/, lalu coba lagi.</string>
     <string name="addon_installed_successfully">Pengaya Sukses Dipasang</string>
     <string name="verifying_content">Memverifikasi Konten</string>
@@ -736,14 +735,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-mu ter-enkripsi</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk mendump ulang <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">kartrid game</a> atau <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">judul digital</a> Anda.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Silakan ikuti panduan untuk mendump ulang <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">kartrid game</a> atau <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">judul digital</a> Anda.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Harap pastikan bahwa Anda <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> diinstal sehingga game dapat didekripsi.]]></string>
     <string name="loader_error_video_core">Terjadi kesalahan ketika menginisialisasi inti video.</string>
     <string name="loader_error_video_core_description">Hal ini biasanya disebabkan oleh driver GPU yang tidak kompatibel. Menginstal driver GPU khusus dapat mengatasi masalah ini</string>
     <string name="loader_error_invalid_format">Tidak Dapat Memuat ROM</string>
     <string name="loader_error_file_not_found">Berkas Tidak Ditemukan</string>
     <string name="loader_requires_firmware">Game memerlukan firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Game yang ingin Anda jalankan memerlukan firmware untuk boot atau melewati menu pembuka. Silakan <a href="https://yuzu-mirror.github.io/help/quickstart"> dump dan instal firmware</a>, atau tekan "OK" untuk melanjutkan.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Game yang ingin Anda jalankan memerlukan firmware untuk boot atau melewati menu pembuka. Silakan <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dump dan instal firmware</a>, atau tekan \"OK\" untuk melanjutkan.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Mencari game...</string>

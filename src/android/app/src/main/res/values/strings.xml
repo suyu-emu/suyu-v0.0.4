@@ -271,10 +271,10 @@
     <string name="game_image_desc">Screenshot for %1$s</string>
     <string name="folder">Folder</string>
     <string name="pre_alpha_warning_title">Pre-Alpha Software</string>
-    <string name="pre_alpha_warning_description">"WARNING: This software is in the pre-alpha stage and may have bugs and incomplete feature implementations."</string>
+    <string name="pre_alpha_warning_description">WARNING: This software is in the pre-alpha stage and may have bugs and incomplete feature implementations.</string>
     <string name="dont_show_again">Don\'t Show Again</string>
-    <string name="pre_alpha_warning">PRE-ALPHA SOFTWARE</string>\
-    <string name="add_directory_success">"New game directory added successfully "</string>
+    <string name="pre_alpha_warning">PRE-ALPHA SOFTWARE</string>
+    <string name="add_directory_success">New game directory added successfully </string>
     <string name="home_games">Games</string>
     <string name="home_search">Search</string>
     <string name="home_settings">Settings</string>
@@ -751,10 +751,10 @@
     <string name="updates_and_dlc">Updates and DLC</string>
     <string name="mods_and_cheats">Mods and cheats</string>
     <string name="addon_notice">Important addon notice</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">In order to install mods and cheats, you must select a folder that contains a cheats/, romfs/, or exefs/ directory. We can\'t verify if these will be compatible with your game so be careful!</string>
     <string name="invalid_directory">Invalid directory</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Please make sure that the directory you selected contains a cheats/, romfs/, or exefs/ folder and try again.</string>
     <string name="addon_installed_successfully">Addon installed successfully</string>
     <string name="verifying_content">Verifying content…</string>
@@ -781,7 +781,7 @@
     <string name="loader_error_file_not_found">ROM file does not exist</string>
 
     <string name="loader_requires_firmware">Game Requires Firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href="https://yuzu-mirror.github.io/help/quickstart"> dump and install firmware</a>, or press "OK" to launch anyways.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[The game you are trying to launch requires firmware to boot or to get past the opening menu. Please <a href="https://yuzu-mirror.github.io/help/quickstart"> dump and install firmware</a>, or press \"OK\" to launch anyways.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Searching for game...</string>

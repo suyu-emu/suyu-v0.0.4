@@ -455,8 +455,7 @@
     <string name="applets_description">Запуск системных апплетов на установленной прошивке</string>
     <string name="applets_error_firmware">Прошивка не установлена или неверная версия</string>
     <string name="applets_error_applet">Апплет недоступен</string>
-    <string name="applets_error_description"><![CDATA[Убедитесь, что файлы <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> и
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> установлены, и попробуйте снова.<br>Также убедитесь, что ваша прошивка версии 19.0.1 или ниже.]]></string>
+    <string name="applets_error_description"><![CDATA[Убедитесь, что файлы <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> и <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">прошивка</a> установлены, и попробуйте снова.<br>Также убедитесь, что ваша прошивка версии 19.0.1 или ниже.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Просмотрите изображения, сохраненные в папке скриншотов пользователя, с помощью системного просмотрщика фотографий.</string>
     <string name="mii_edit_applet">Mii редактор</string>
@@ -772,10 +771,10 @@
     <string name="updates_and_dlc">Обновления и DLC</string>
     <string name="mods_and_cheats">Моды и читы</string>
     <string name="addon_notice">Важное уведомление о дополнении</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Для установки модов и читов необходимо выбрать папку, содержащую каталог cheats/, romfs/ или exefs/. Мы не можем гарантировать их совместимость с вашей игрой, поэтому будьте осторожны!</string>
     <string name="invalid_directory">Неверный каталог</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Пожалуйста, убедитесь, что выбранная вами директория содержит папку cheats/, romfs/ или exefs/ и попробуйте снова.</string>
     <string name="addon_installed_successfully">Аддон успешно установлен</string>
     <string name="verifying_content">Проверка содержимого...</string>
@@ -794,14 +793,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">игровых картриджей</a> или <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">установленных игр</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям по пересохранению <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">игровых картриджей</a> или <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">установленных игр</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Пожалуйста, убедитесь, что ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> установлен, чтобы игры можно было расшифровать.]]></string>
     <string name="loader_error_video_core">Произошла ошибка при инициализации видеоядра.</string>
     <string name="loader_error_video_core_description">Обычно это вызвано несовместимым драйвером ГП. Установка пользовательского драйвера ГП может решить эту проблему.</string>
     <string name="loader_error_invalid_format">Не удалось запустить ROM</string>
     <string name="loader_error_file_not_found">Файл ROM не существует</string>
     <string name="loader_requires_firmware">Игре требуется прошивка</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Для запуска этой игры или прохождения начального меню требуется прошивка. Пожалуйста, <a href="https://yuzu-mirror.github.io/help/quickstart">сохраните и установите прошивку</a> или нажмите "OK" для запуска в любом случае.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Для запуска этой игры или прохождения начального меню требуется прошивка. Пожалуйста, <a href=\"https://yuzu-mirror.github.io/help/quickstart\">сохраните и установите прошивку</a> или нажмите \"OK\" для запуска в любом случае.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Поиск игры...</string>

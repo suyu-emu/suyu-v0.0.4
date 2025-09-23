@@ -413,10 +413,14 @@
     <string name="game_folder_properties">Властивості теки</string>
     <plurals name="saves_import_failed">
         <item quantity="one">Не вдалося імпортувати %d збереження</item>
+        <item quantity="few">Не вдалося імпортувати %d збережень</item>
+        <item quantity="many">Не вдалося імпортувати %d збережень</item>
         <item quantity="other">Не вдалося імпортувати %d збережень</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">Успішно імпортовано %d збереження</item>
+        <item quantity="few">Успішно імпортовано %d збережень</item>
+        <item quantity="many">Успішно імпортовано %d збережень</item>
         <item quantity="other">Успішно імпортовано %d збережень</item>
     </plurals>
     <string name="no_save_data_found">Збережень не знайдено</string>
@@ -441,8 +445,7 @@
     <string name="applets_description">Запуск системних аплетів за допомогою прошивки.</string>
     <string name="applets_error_firmware">Прошивка не встановлена або недійсна версія</string>
     <string name="applets_error_applet">Аплет недоступний</string>
-    <string name="applets_error_description"><![CDATA[Переконайтеся, що ваш файл <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> та
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">прошивка</a> встановлені, і спробуйте ще раз.<br>Також переконайтеся, що ваша прошивка має версію 19.0.1 або старішу.]]></string>
+    <string name="applets_error_description"><![CDATA[Переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> та <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">прошивка</a> встановлені, і спробуйте ще раз.<br>Також переконайтеся, що ваша прошивка має версію 19.0.1 або старішу.]]></string>
     <string name="album_applet">Альбом</string>
     <string name="album_applet_description">Перегляд зображень у папці скріншотів.</string>
     <string name="mii_edit_applet">Редактор Mii</string>
@@ -462,7 +465,7 @@
     <string name="contributors">Автори проєкту</string>
     <string name="contributors_description">Зроблено з \u2764 командою Eden</string>
 	<string name="licenses_description">Проєкти, які зробили запуск Eden на Android можливим</string>
-	
+
     <string name="build">Збірка</string>
 	<string name="user_data">Дані користувача</string>
     <string name="user_data_description">Імпортувати/експортувати всі дані застосунку.\n\nПід час імпорту всі наявні дані користувача буде видалено!\n\nІмпортування даних із Citron може спричинити помилки. Рекомендується вручну імпортувати всі потрібні дані.</string>
@@ -687,14 +690,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Будь ласка, дотримуйтесь інструкцій для повторного дампу ваших <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">ігрових картриджів</a> або <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">цифрових назв</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Будь ласка, дотримуйтесь інструкцій для повторного дампу ваших <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ігрових картриджів</a> або <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">цифрових назв</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
     <string name="loader_error_video_core">Сталася помилка під час ініціалізації відеоядра.</string>
     <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером GPU. Встановлення користувацького драйвера GPU може вирішити цю проблему.</string>
     <string name="loader_error_invalid_format">Не вдалося запустити ROM</string>
     <string name="loader_error_file_not_found">ROM файлу не існує</string>
     <string name="loader_requires_firmware">Гра вимагає прошивки</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Гра, яку ви намагаєтеся запустити, вимагає прошивки для завантаження або пропуску початкового меню. Будь ласка, <a href="https://yuzu-mirror.github.io/help/quickstart"> зробіть дамп і встановіть прошивку</a>, або натисніть "OK", щоб продовжити в будь-якому разі.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Гра, яку ви намагаєтеся запустити, вимагає прошивки для завантаження або пропуску початкового меню. Будь ласка, <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> зробіть дамп і встановіть прошивку</a>, або натисніть \"OK\", щоб продовжити в будь-якому разі.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Пошук гри...</string>

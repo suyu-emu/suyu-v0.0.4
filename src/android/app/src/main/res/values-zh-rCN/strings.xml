@@ -447,8 +447,7 @@
     <string name="applets_description">使用已安装的固件启动系统小程序</string>
     <string name="applets_error_firmware">固件未安装或版本无效</string>
     <string name="applets_error_applet">小程序不可用</string>
-    <string name="applets_error_description"><![CDATA[请确保您的<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>文件和
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">固件</a>已安装并重试。<br>同时请确保您的固件版本为19.0.1或更早。]]></string>
+    <string name="applets_error_description"><![CDATA[请确保您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>文件和 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">固件</a>已安装并重试。<br>同时请确保您的固件版本为19.0.1或更早。]]></string>
     <string name="album_applet">相册</string>
     <string name="album_applet_description">查看存储在用户屏幕截图文件夹中的图像</string>
     <string name="mii_edit_applet">Mii edit</string>
@@ -764,10 +763,10 @@
     <string name="updates_and_dlc">游戏更新和 DLC</string>
     <string name="mods_and_cheats">Mod 和金手指</string>
     <string name="addon_notice">附加项重要提醒</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">为了安装 mod 和金手指，您必须选择一个包含 cheats/、romfs/ 或 exefs/ 目录的文件夹。我们无法验证这些内容是否与您的游戏兼容，所以请小心使用！</string>
     <string name="invalid_directory">无效目录</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">请确保您选择的目录下包含 cheats/、romfs/ 或 exefs/ 文件夹然后重试。</string>
     <string name="addon_installed_successfully">附加项安装成功</string>
     <string name="verifying_content">验证安装内容...</string>
@@ -786,14 +785,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">您的 ROM 已加密</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">游戏卡带</a>或<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">数字版游戏</a>。]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[请按照指南重新转储您的<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">游戏卡带</a>或<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">数字版游戏</a>。]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[请确保 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 文件已安装，使得游戏可以被解密。]]></string>
     <string name="loader_error_video_core">初始化视频核心时发生错误</string>
     <string name="loader_error_video_core_description">这通常由不兼容的 GPU 驱动程序造成，安装自定义 GPU 驱动程序可能解决此问题。</string>
     <string name="loader_error_invalid_format">无法载入 ROM</string>
     <string name="loader_error_file_not_found">ROM 文件不存在</string>
     <string name="loader_requires_firmware">游戏需要固件</string>
-    <string name="loader_requires_firmware_description"><![CDATA[您尝试启动的游戏需要固件才能引导或通过启动菜单。请<a href="https://yuzu-mirror.github.io/help/quickstart">转储并安装固件</a>，或点击"确定"继续。]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[您尝试启动的游戏需要固件才能引导或通过启动菜单。请<a href=\"https://yuzu-mirror.github.io/help/quickstart\">转储并安装固件</a>，或点击\"确定\"继续。]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">正在搜索游戏...</string>

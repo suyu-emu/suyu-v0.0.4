@@ -6,7 +6,138 @@
 
 include(CPMUtil)
 
-if (NOT WIN32 AND NOT ANDROID)
+# TODO(crueter, MaranBr): Externals FFmpeg 8.0
+
+set(FFmpeg_HWACCEL_LIBRARIES)
+set(FFmpeg_HWACCEL_FLAGS)
+set(FFmpeg_HWACCEL_INCLUDE_DIRS)
+set(FFmpeg_HWACCEL_LDFLAGS)
+
+if (UNIX AND NOT ANDROID)
+    find_package(PkgConfig REQUIRED)
+    if (NOT ANDROID)
+        pkg_check_modules(LIBVA libva)
+        pkg_check_modules(CUDA cuda)
+        pkg_check_modules(FFNVCODEC ffnvcodec)
+        pkg_check_modules(VDPAU vdpau)
+    endif()
+
+    if (NOT APPLE)
+        # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
+        if(PLATFORM_SUN)
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                X11
+                "/usr/lib/xorg/amd64/libdrm.so")
+        else()
+            pkg_check_modules(LIBDRM libdrm REQUIRED)
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                ${LIBDRM_LIBRARIES})
+            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
+                ${LIBDRM_INCLUDE_DIRS})
+        endif()
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-libdrm)
+    endif()
+
+    if(LIBVA_FOUND)
+        find_package(X11 REQUIRED)
+        pkg_check_modules(LIBVA-DRM libva-drm REQUIRED)
+        pkg_check_modules(LIBVA-X11 libva-x11 REQUIRED)
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES
+            ${X11_LIBRARIES}
+            ${LIBVA-DRM_LIBRARIES}
+            ${LIBVA-X11_LIBRARIES}
+            ${LIBVA_LIBRARIES})
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-hwaccel=h264_vaapi
+            --enable-hwaccel=vp8_vaapi
+            --enable-hwaccel=vp9_vaapi)
+        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
+            ${X11_INCLUDE_DIRS}
+            ${LIBVA-DRM_INCLUDE_DIRS}
+            ${LIBVA-X11_INCLUDE_DIRS}
+            ${LIBVA_INCLUDE_DIRS}
+        )
+        message(STATUS "ffmpeg: va-api libraries version ${LIBVA_VERSION} found")
+    else()
+        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
+        message(WARNING "ffmpeg: libva-dev not found, disabling Video Acceleration API (VA-API)...")
+    endif()
+
+    if (FFNVCODEC_FOUND)
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-cuvid
+            --enable-ffnvcodec
+            --enable-nvdec
+            --enable-hwaccel=h264_nvdec
+            --enable-hwaccel=vp8_nvdec
+            --enable-hwaccel=vp9_nvdec
+        )
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES ${FFNVCODEC_LIBRARIES})
+        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${FFNVCODEC_INCLUDE_DIRS})
+        list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
+        message(STATUS "ffmpeg: ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
+        # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
+        # here we handle the hard-linking scenario where CUDA is linked during compilation
+        if (CUDA_FOUND)
+            # This line causes build error if CUDA_INCLUDE_DIRS is anything but a single non-empty value
+            #list(APPEND FFmpeg_HWACCEL_FLAGS --extra-cflags=-I${CUDA_INCLUDE_DIRS})
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
+            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
+            list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
+            message(STATUS "ffmpeg: CUDA libraries version ${CUDA_VERSION} found, hard-linking will be performed")
+        endif(CUDA_FOUND)
+    endif()
+
+    if (VDPAU_FOUND)
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-vdpau
+            --enable-hwaccel=h264_vdpau
+            --enable-hwaccel=vp9_vdpau
+        )
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES ${VDPAU_LIBRARIES})
+        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${VDPAU_INCLUDE_DIRS})
+        list(APPEND FFmpeg_HWACCEL_LDFLAGS ${VDPAU_LDFLAGS})
+        message(STATUS "ffmpeg: vdpau libraries version ${VDPAU_VERSION} found")
+    else()
+        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
+        message(WARNING "ffmpeg: libvdpau-dev not found, disabling Video Decode and Presentation API for Unix (VDPAU)...")
+    endif()
+endif()
+
+if (YUZU_USE_BUNDLED_FFMPEG)
+    # MSVC conflicts with ksuser otherwise
+    # Android needs some deps to be compiled with PIC (TODO)
+    # TODO(crueter) fix
+    if (MSVC OR ANDROID)
+        set(BUILD_SHARED_LIBS ON)
+    else()
+        set(BUILD_SHARED_LIBS OFF)
+    endif()
+
+    AddJsonPackage(ffmpeg-ci)
+
+    set(FFmpeg_INCLUDE_DIR
+        "${FFmpeg_SOURCE_DIR}/include;${FFmpeg_HWACCEL_INCLUDE_DIRS}"
+        PARENT_SCOPE
+    )
+
+    set(FFmpeg_PATH
+        "${FFmpeg_SOURCE_DIR}"
+        PARENT_SCOPE
+    )
+
+    set(FFmpeg_LIBRARY_DIR
+        "${FFmpeg_SOURCE_DIR}/bin"
+        PARENT_SCOPE
+    )
+
+    set(FFmpeg_LIBRARIES
+        FFmpeg::FFmpeg
+        ${FFmpeg_HWACCEL_LIBRARIES}
+        PARENT_SCOPE
+    )
+else()
     # Build FFmpeg from externals
     message(STATUS "Using FFmpeg from externals")
 
@@ -50,101 +181,6 @@ if (NOT WIN32 AND NOT ANDROID)
             ${FFmpeg_${COMPONENT}_LIBRARY}
             CACHE PATH "Paths to FFmpeg libraries" FORCE)
     endforeach()
-
-    find_package(PkgConfig REQUIRED)
-    if (NOT ANDROID)
-        pkg_check_modules(LIBVA libva)
-        pkg_check_modules(CUDA cuda)
-        pkg_check_modules(FFNVCODEC ffnvcodec)
-        pkg_check_modules(VDPAU vdpau)
-    endif()
-
-    set(FFmpeg_HWACCEL_LIBRARIES)
-    set(FFmpeg_HWACCEL_FLAGS)
-    set(FFmpeg_HWACCEL_INCLUDE_DIRS)
-    set(FFmpeg_HWACCEL_LDFLAGS)
-
-    if (NOT APPLE)
-        # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
-        if(PLATFORM_SUN)
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                X11
-                "/usr/lib/xorg/amd64/libdrm.so")
-        else()
-            pkg_check_modules(LIBDRM libdrm REQUIRED)
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                ${LIBDRM_LIBRARIES})
-            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-                ${LIBDRM_INCLUDE_DIRS})
-        endif()
-        list(APPEND FFmpeg_HWACCEL_FLAGS
-            --enable-libdrm)
-    endif()
-
-    if(LIBVA_FOUND)
-        find_package(X11 REQUIRED)
-        pkg_check_modules(LIBVA-DRM libva-drm REQUIRED)
-        pkg_check_modules(LIBVA-X11 libva-x11 REQUIRED)
-        list(APPEND FFmpeg_HWACCEL_LIBRARIES
-            ${X11_LIBRARIES}
-            ${LIBVA-DRM_LIBRARIES}
-            ${LIBVA-X11_LIBRARIES}
-            ${LIBVA_LIBRARIES})
-        list(APPEND FFmpeg_HWACCEL_FLAGS
-            --enable-hwaccel=h264_vaapi
-            --enable-hwaccel=vp8_vaapi
-            --enable-hwaccel=vp9_vaapi)
-        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-            ${X11_INCLUDE_DIRS}
-            ${LIBVA-DRM_INCLUDE_DIRS}
-            ${LIBVA-X11_INCLUDE_DIRS}
-            ${LIBVA_INCLUDE_DIRS}
-        )
-        message(STATUS "ffmpeg: va-api libraries version ${LIBVA_VERSION} found")
-    else()
-        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
-        message(WARNING "ffmpeg: libva-dev not found, disabling Video Aceleraion API (VA-API)...")
-    endif()
-
-    if (FFNVCODEC_FOUND)
-        list(APPEND FFmpeg_HWACCEL_FLAGS
-            --enable-cuvid
-            --enable-ffnvcodec
-            --enable-nvdec
-            --enable-hwaccel=h264_nvdec
-            --enable-hwaccel=vp8_nvdec
-            --enable-hwaccel=vp9_nvdec
-        )
-        list(APPEND FFmpeg_HWACCEL_LIBRARIES ${FFNVCODEC_LIBRARIES})
-        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${FFNVCODEC_INCLUDE_DIRS})
-        list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
-        message(STATUS "ffmpeg: ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
-        # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
-        # here we handle the hard-linking senario where CUDA is linked during compilation
-        if (CUDA_FOUND)
-            # This line causes build error if CUDA_INCLUDE_DIRS is anything but a single non-empty value
-            #list(APPEND FFmpeg_HWACCEL_FLAGS --extra-cflags=-I${CUDA_INCLUDE_DIRS})
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
-            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
-            list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
-            message(STATUS "ffmpeg: CUDA libraries found, hard-linking will be performed")
-        endif(CUDA_FOUND)
-    endif()
-
-    if (VDPAU_FOUND)
-        list(APPEND FFmpeg_HWACCEL_FLAGS
-            --enable-vdpau
-            --enable-hwaccel=h264_vdpau
-            --enable-hwaccel=vp9_vdpau
-        )
-        list(APPEND FFmpeg_HWACCEL_LIBRARIES ${VDPAU_LIBRARIES})
-        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${VDPAU_INCLUDE_DIRS})
-        list(APPEND FFmpeg_HWACCEL_LDFLAGS ${VDPAU_LDFLAGS})
-        message(STATUS "ffmpeg: vdpau libraries version ${VDPAU_VERSION} found")
-    else()
-        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
-        message(WARNING "ffmpeg: libvdpau-dev not found, disabling Video Decode and Presentation API for Unix (VDPAU)...")
-    endif()
 
     find_program(BASH_PROGRAM bash REQUIRED)
 
@@ -245,57 +281,6 @@ if (NOT WIN32 AND NOT ANDROID)
     else()
         message(FATAL_ERROR "FFmpeg not found")
     endif()
-elseif(ANDROID)
-    # Use yuzu FFmpeg binaries
-    if (ARCHITECTURE_arm64)
-        set(FFmpeg_EXT_NAME "ffmpeg-android-7.1.1-aarch64")
-    elseif (ARCHITECTURE_x86_64)
-        set(FFmpeg_EXT_NAME "ffmpeg-android-v5.1.LTS-x86_64")
-    else()
-        message(FATAL_ERROR "Unsupported architecture for Android FFmpeg")
-    endif()
-
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
-    set(FFmpeg_FOUND YES)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-    set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/lib" CACHE PATH "Path to FFmpeg library directory" FORCE)
-    set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
-    set(FFmpeg_LIBRARIES
-        ${FFmpeg_LIBRARY_DIR}/libavcodec.so
-        ${FFmpeg_LIBRARY_DIR}/libavdevice.so
-        ${FFmpeg_LIBRARY_DIR}/libavfilter.so
-        ${FFmpeg_LIBRARY_DIR}/libavformat.so
-        ${FFmpeg_LIBRARY_DIR}/libavutil.so
-        ${FFmpeg_LIBRARY_DIR}/libswresample.so
-        ${FFmpeg_LIBRARY_DIR}/libswscale.so
-        ${FFmpeg_LIBRARY_DIR}/libvpx.a
-        ${FFmpeg_LIBRARY_DIR}/libx264.a
-        CACHE PATH "Paths to FFmpeg libraries" FORCE)
-    # exported variables
-    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
-    set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
-    set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
-elseif(WIN32)
-    # Use yuzu FFmpeg binaries
-    set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
-
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" FFmpeg_PATH 7.1.1)
-    set(FFmpeg_FOUND YES)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-    set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
-    set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
-    set(FFmpeg_LIBRARIES
-    ${FFmpeg_LIBRARY_DIR}/swscale.lib
-    ${FFmpeg_LIBRARY_DIR}/avcodec.lib
-    ${FFmpeg_LIBRARY_DIR}/avfilter.lib
-    ${FFmpeg_LIBRARY_DIR}/avutil.lib
-    CACHE PATH "Paths to FFmpeg libraries" FORCE)
-    # exported variables
-    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
-    set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
-    set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
-    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif()
 
 unset(FFmpeg_COMPONENTS)

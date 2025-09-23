@@ -126,6 +126,15 @@ function(AddJsonPackage)
             DISABLED_PLATFORMS ${disabled_platforms}
             CMAKE_FILENAME ${cmake_filename}
         )
+
+        # pass stuff to parent scope
+        set(${package}_ADDED "${${package}_ADDED}"
+            PARENT_SCOPE)
+        set(${package}_SOURCE_DIR "${${package}_SOURCE_DIR}"
+            PARENT_SCOPE)
+        set(${package}_BINARY_DIR "${${package}_BINARY_DIR}"
+            PARENT_SCOPE)
+
         return()
     endif()
 
@@ -598,7 +607,9 @@ function(AddCIPackage)
 
     if (DEFINED ARTIFACT_DIR)
         include(${ARTIFACT_DIR}/${ARTIFACT_CMAKE}.cmake)
+
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
+        set(${ARTIFACT_PACKAGE}_SOURCE_DIR "${ARTIFACT_DIR}" PARENT_SCOPE)
     else()
         find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)
     endif()

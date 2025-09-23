@@ -322,10 +322,10 @@
     <string name="view_carousel">캐러셀</string>
     <string name="folder">폴더</string>
     <string name="pre_alpha_warning_title">프리-알파 소프트웨어</string>
-    <string name="pre_alpha_warning_description">"경고: 이 빌드는 공개용이 아닙니다. 이 소프트웨어는 프리-알파 단계이며 버그 및 미완성 기능이 있을 수 있습니다. \n무단으로 이 빌드를 획득한 경우 즉시 삭제하는 것이 좋습니다."</string>
+    <string name="pre_alpha_warning_description">경고: 이 빌드는 공개용이 아닙니다. 이 소프트웨어는 프리-알파 단계이며 버그 및 미완성 기능이 있을 수 있습니다. \n무단으로 이 빌드를 획득한 경우 즉시 삭제하는 것이 좋습니다.</string>
     <string name="dont_show_again">다시 보지 않기</string>
-    <string name="pre_alpha_warning">프리-알파 소프트웨어; 공개용 아님</string>\
-    <string name="add_directory_success">새 게임 디렉터리가 성공적으로 추가되었습니다."</string>
+    <string name="pre_alpha_warning">프리-알파 소프트웨어; 공개용 아님</string>
+    <string name="add_directory_success">새 게임 디렉터리가 성공적으로 추가되었습니다.</string>
     <string name="home_games">게임</string>
     <string name="home_search">검색</string>
     <string name="home_settings">설정</string>
@@ -448,8 +448,7 @@
     <string name="applets_description">설치된 펌웨어를 사용해 시스템 애플릿을 실행합니다.</string>
     <string name="applets_error_firmware">펌웨어가 설치되지 않았거나 유효하지 않은 버전입니다</string>
     <string name="applets_error_applet">애플릿을 사용할 수 없음</string>
-    <string name="applets_error_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> 파일과
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">펌웨어</a>가 설치되어 있는지 확인하고 다시 시도하세요.<br>또한 펌웨어 버전이 19.0.1 이하인지 확인하세요.]]></string>
+    <string name="applets_error_description"><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 파일과 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">펌웨어</a>가 설치되어 있는지 확인하고 다시 시도하세요.<br>또한 펌웨어 버전이 19.0.1 이하인지 확인하세요.]]></string>
     <string name="album_applet">앨범</string>
     <string name="album_applet_description">시스템 사진 뷰어로 유저 스크린샷 폴더에 저장된 이미지를 확인합니다. </string>
     <string name="mii_edit_applet">Mii 편집</string>
@@ -714,10 +713,10 @@
     <string name="updates_and_dlc">업데이트 및 DLC</string>
     <string name="mods_and_cheats">모드 및 치트</string>
     <string name="addon_notice">중요 애드온 알림</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">모드와 치트를 설치하려면 cheats/, romfs/, 또는 exefs/ 디렉토리를 포함하는 폴더를 선택해야 합니다. 게임과의 호환 여부를 확인할 수 없기 때문에 신중하게 결정하세요.</string>
     <string name="invalid_directory">잘못된 디렉토리</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">선택한 디렉토리가 cheats/, romfs/, 또는 exefs/ 폴더를 포함하는지 확인하고 다시 시도하세요.</string>
     <string name="addon_installed_successfully">애드온을 설치했습니다.</string>
     <string name="verifying_content">콘텐츠 확인 중...</string>
@@ -736,14 +735,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">롬 파일이 암호화되어있음</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">게임 카드</a> 또는 <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">디지털 타이틀</a>을 다시 덤프하려면 가이드를 따르세요.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">게임 카드</a> 또는 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">디지털 타이틀</a>을 다시 덤프하려면 가이드를 따르세요.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[게임을 해독할 수 있도록 <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> 파일이 설치되어 있는지 확인하세요.]]></string>
     <string name="loader_error_video_core">비디오 코어를 초기화하는 동안 오류 발생</string>
     <string name="loader_error_video_core_description">일반적으로 이 문제는 호환되지 않는 GPU 드라이버로 인해 발생합니다. 사용자 지정 GPU 드라이버를 설치하면 이 문제가 해결될 수 있습니다.</string>
     <string name="loader_error_invalid_format">롬 파일을 불러올 수 없음</string>
     <string name="loader_error_file_not_found">롬 파일이 존재하지 않음</string>
     <string name="loader_requires_firmware">게임에 펌웨어가 필요합니다</string>
-    <string name="loader_requires_firmware_description"><![CDATA[실행하려는 게임은 부팅하거나 시작 메뉴를 통과하기 위해 펌웨어가 필요합니다. <a href="https://yuzu-mirror.github.io/help/quickstart">펌웨어를 덤프하여 설치</a>하거나 "확인"을 눌러 계속 진행하세요.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[실행하려는 게임은 부팅하거나 시작 메뉴를 통과하기 위해 펌웨어가 필요합니다. <a href=\"https://yuzu-mirror.github.io/help/quickstart\">펌웨어를 덤프하여 설치</a>하거나 \"확인\"을 눌러 계속 진행하세요.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">게임 검색 중...</string>

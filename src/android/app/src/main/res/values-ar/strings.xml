@@ -419,10 +419,18 @@
     <string name="game_folder_properties">خصائص مجلد اللعبة</string>
     <plurals name="saves_import_failed">
         <item quantity="one">فشل استيراد %d حفظ</item>
+        <item quantity="zero">فشل استيراد %d حفظ</item>
+        <item quantity="two">فشل استيراد %d حفظ</item>
+        <item quantity="few">فشل استيراد %d حفظ</item>
+        <item quantity="many">فشل استيراد %d حفظ</item>
         <item quantity="other">فشل استيراد %d حفظ</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">تم استيراد %d حفظ بنجاح</item>
+        <item quantity="two">تم استيراد %d حفظ بنجاح</item>
+        <item quantity="few">تم استيراد %d حفظ بنجاح</item>
+        <item quantity="many">تم استيراد %d حفظ بنجاح</item>
+        <item quantity="zero">تم استيراد %d حفظ بنجاح</item>
         <item quantity="other">تم استيراد %d حفظ بنجاح</item>
     </plurals>
     <string name="no_save_data_found">لم يتم العثور على بيانات الحفظ</string>
@@ -447,8 +455,7 @@
     <string name="applets_description">قم بتشغيل تطبيقات النظام باستخدام فيرموير المثبت</string>
     <string name="applets_error_firmware">البرنامج الثابت غير مثبت أو إصدار غير صالح</string>
     <string name="applets_error_applet">التطبيق المصغر غير متوفر</string>
-    <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> الخاص بك و
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">البرنامج الثابت</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن برنامجك الثابت من إصدار 19.0.1 أو أقدم.]]></string>
+    <string name="applets_error_description"><![CDATA[يرجى التأكد من أن ملف <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> الخاص بك و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">البرنامج الثابت</a> مثبتة وحاول مرة أخرى.<br>بالإضافة إلى ذلك، تأكد من أن برنامجك الثابت من إصدار 19.0.1 أو أقدم.]]></string>
     <string name="album_applet">الألبوم</string>
     <string name="album_applet_description">شاهد الصور المخزنة في مجلد لقطات شاشة المستخدم باستخدام عارض صور النظام</string>
     <string name="mii_edit_applet">تحرير Mii</string>
@@ -672,14 +679,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">الخاص بك ROM تم تشفير</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[يرجى اتباع الأدلة لإعادة نسخ <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">ألعاب البطاقات</a> أو <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">العناوين الرقمية</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[تأكد من تثبيت <a href="https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a>]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[يرجى اتباع الأدلة لإعادة نسخ <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">ألعاب البطاقات</a> أو <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">العناوين الرقمية</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[تأكد من تثبيت <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a>]]></string>
     <string name="loader_error_video_core">حدث خطأ أثناء تهيئة مركز الفيديو</string>
     <string name="loader_error_video_core_description">قد يكون بسبب تعريف GPU غير متوافق</string>
     <string name="loader_error_invalid_format">ROM غير قادر على تحميل</string>
     <string name="loader_error_file_not_found">غير موجود ROM ملف</string>
     <string name="loader_requires_firmware">اللعبة تتطلب برنامجاً ثابتاً</string>
-    <string name="loader_requires_firmware_description"><![CDATA[اللعبة التي تحاول تشغيلها تتطلب برنامجاً ثابتاً للتمهيد أو لتجاوز القائمة الافتتاحية. يرجى <a href="https://yuzu-mirror.github.io/help/quickstart">نسخ وتثبيت البرنامج الثابت</a>، أو اضغط "موافق" للمتابعة على أي حال.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[اللعبة التي تحاول تشغيلها تتطلب برنامجاً ثابتاً للتمهيد أو لتجاوز القائمة الافتتاحية. يرجى <a href=\"https://yuzu-mirror.github.io/help/quickstart\">نسخ وتثبيت البرنامج الثابت</a>، أو اضغط \"موافق\" للمتابعة على أي حال.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">جاري البحث عن اللعبة...</string>

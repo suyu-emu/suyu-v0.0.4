@@ -322,7 +322,7 @@
     <string name="view_carousel">کارۆسێل</string>
     <string name="folder">فۆڵدەر</string>
     <string name="pre_alpha_warning_title">نەرمەکاڵای پێش-ئەلفا</string>
-    <string name="pre_alpha_warning_description">"ئاگاداری: ئەم وەشانە بۆ بڵاوکردنەوە یان پیشاندانی گشتی نییە. ئەم نەرمەکاڵایە لە قۆناغی پێش-ئەلفادایە و لەوانەیە هەڵەی تێدا بێت."</string>
+    <string name="pre_alpha_warning_description">ئاگاداری: ئەم وەشانە بۆ بڵاوکردنەوە یان پیشاندانی گشتی نییە. ئەم نەرمەکاڵایە لە قۆناغی پێش-ئەلفادایە و لەوانەیە هەڵەی تێدا بێت.</string>
     <string name="dont_show_again">دووبارە نیشان مەدە</string>
     <string name="pre_alpha_warning">نەرمەکاڵای پێش-ئەلفا؛ بۆ بەکارهێنانی گشتی نییە</string>
     <string name="add_directory_success">فۆڵدەری نوێ بە سەرکەوتوویی زیادکرا</string>
@@ -441,8 +441,7 @@
     <string name="applets_description">ئەپلێتی سیستەم دەستپێبکە بە بەکارهێنانی پتەوواڵای دامەزراو</string>
     <string name="applets_error_firmware">فریموێر نەنێردراوە یان وەشانێکی نادروستە</string>
     <string name="applets_error_applet">ئەپلێت بەردەست نییە</string>
-    <string name="applets_error_description"><![CDATA[تکایە دڵنیابە لەوەی فایلی <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> و
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">فریموێر</a>ەکەت نێردراوە و هەوڵ بدەرەوە.<br>هەروەها دڵنیابە لەوەی فریموێرەکەت وەشانی ١٩.٠.١ یان کەمتر بێت.]]></string>
+    <string name="applets_error_description"><![CDATA[تکایە دڵنیابە لەوەی فایلی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">فریموێر</a>ەکەت نێردراوە و هەوڵ بدەرەوە.<br>هەروەها دڵنیابە لەوەی فریموێرەکەت وەشانی ١٩.٠.١ یان کەمتر بێت.]]></string>
     <string name="album_applet">ئەلبوم</string>
     <string name="album_applet_description">وێنەکان لە فۆڵدەری وێنەی بەکارهێنەر ببینە</string>
     <string name="mii_edit_applet">دەستکاریی Mii</string>
@@ -649,14 +648,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ڕۆمەکەت کۆدکراوە</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[تکایە ڕێنمایییەکان بە شوێن بکەوە بۆ دووبارە دامپکردنی <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">یارییە کارتەکان</a> یان <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">ناونیشانە دیجیتاڵییەکان</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[تکایە ڕێنمایییەکان بە شوێن بکەوە بۆ دووبارە دامپکردنی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">یارییە کارتەکان</a> یان <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">ناونیشانە دیجیتاڵییەکان</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[تکایە دڵنیابەوە لەدامەزراوی <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> فایلەکەت بۆ ئەوەی بتوانرێت یارییەکان کۆد بکرێنەوە.]]></string>
     <string name="loader_error_video_core">هەڵەیەک لە دەستپێکردنی ناوەکی ڤیدیۆکەدا ڕوویدا</string>
     <string name="loader_error_video_core_description">ئەمەش بەزۆری بەهۆی وەگەڕخەرێکی ناتەبای GPU ەوەیە. دامەزراندنی وەگەڕخەری GPU ی تایبەتمەندکراو لەوانەیە ئەم کێشەیە چارەسەر بکات.</string>
     <string name="loader_error_invalid_format">ناتوانرێت ڕۆم باربکرێت</string>
     <string name="loader_error_file_not_found">فایلی ڕۆم بوونی نییە</string>
     <string name="loader_requires_firmware">یارییەکە فریموێر پێویستە</string>
-    <string name="loader_requires_firmware_description"><![CDATA[یارییەکە کە تۆ هەوڵ دەدەیت بیخەیتە کار فریموێر پێویستە بۆ کردنەوە یان تێپەڕاندنی مێنیوی کردنەوە. تکایە <a href="https://yuzu-mirror.github.io/help/quickstart"> فریموێر دامپ بکە و دابنێ</a>, یان پەنجە بنێ سەر "باشە" بۆ بەردەوامبوون هەرچۆنێک بێت.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[یارییەکە کە تۆ هەوڵ دەدەیت بیخەیتە کار فریموێر پێویستە بۆ کردنەوە یان تێپەڕاندنی مێنیوی کردنەوە. تکایە <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> فریموێر دامپ بکە و دابنێ</a>, یان پەنجە بنێ سەر \"باشە\" بۆ بەردەوامبوون هەرچۆنێک بێت.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">گەڕان بە دوای یارییە...</string>

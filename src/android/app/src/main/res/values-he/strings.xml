@@ -424,10 +424,12 @@
     <string name="game_folder_properties">מאפייני תיקיית משחקים</string>
     <plurals name="saves_import_failed">
         <item quantity="one">נכשל בייבוא %d שמירה</item>
+        <item quantity="two">נכשל בייבוא %d שמירות</item>
         <item quantity="other">נכשל בייבוא %d שמירות</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">יובא בהצלחה %d שמירה</item>
+        <item quantity="two">יובא בהצלחה %d שמירות</item>
         <item quantity="other">יובא בהצלחה %d שמירות</item>
     </plurals>
     <string name="no_save_data_found">לא נמצאו שמירות</string>
@@ -452,8 +454,8 @@
     <string name="applets_description">מערכת שיגור Applet משתמשת בתוכנה המותקנת</string>
     <string name="applets_error_firmware">קושחה לא מותקנת או גרסה לא תקינה</string>
     <string name="applets_error_applet">Applet לא זמין</string>
-    <string name="applets_error_description"><![CDATA[אנא ודא שקובץ ה-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> שלך
-וה-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">קושחה</a> מותקנים ונסה שוב.<br>כמו כן, ודא שהקושחה שלך בגרסה 19.0.1 או ישנה יותר.]]></string>
+    <string name="applets_error_description"><![CDATA[אנא ודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> שלך
+וה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">קושחה</a> מותקנים ונסה שוב.<br>כמו כן, ודא שהקושחה שלך בגרסה 19.0.1 או ישנה יותר.]]></string>
     <string name="album_applet">אלבום</string>
     <string name="album_applet_description">צפה בתמונות השמורות בתיקיית צילומי המסך של המשתמש בעזרת מציג התמונות של המערכת</string>
     <string name="mii_edit_applet">עורך Mii</string>
@@ -678,14 +680,14 @@
     <string name="verify_success">אימות  התקינות הצליח!</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">המשחק שלך מוצפן</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[אנא עקוב אחר המדריכים לשמירת <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">כרטיסי משחק</a> או <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">כותרות דיגיטליות</a> מחדש.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[אנא עקוב אחר המדריכים לשמירת <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">כרטיסי משחק</a> או <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">כותרות דיגיטליות</a> מחדש.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[אנא וודא שקובץ ה-<a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> מותקן כך שניתן יהיה לפענח משחקים.]]></string>
     <string name="loader_error_video_core">התרחשה בעיה באתחול של ליבת הווידאו</string>
     <string name="loader_error_video_core_description">זה בדרך כלל נגרם על ידי דרייבר לא מתאים עבור המעבד הגרפי. התקנת דרייבר אשר מתאים למעבד הגרפי יכול לפתור את הבעיה הזו.</string>
     <string name="loader_error_invalid_format">אין אפשרות לטעון את המשחק</string>
     <string name="loader_error_file_not_found">קובץ המשחק לא קיים</string>
     <string name="loader_requires_firmware">המשחק דורש קושחה</string>
-    <string name="loader_requires_firmware_description"><![CDATA[המשחק שאתה מנסה להפעיל דורש קושחה לאתחול או למעבר מתפריט הפתיחה. אנא <a href="https://yuzu-mirror.github.io/help/quickstart">שמור והתקן קושחה</a> או לחץ "אישור" כדי להמשיך בכל מקרה.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[המשחק שאתה מנסה להפעיל דורש קושחה לאתחול או למעבר מתפריט הפתיחה. אנא <a href=\"https://yuzu-mirror.github.io/help/quickstart\">שמור והתקן קושחה</a> או לחץ \"אישור\" כדי להמשיך בכל מקרה.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">מחפש משחק...</string>

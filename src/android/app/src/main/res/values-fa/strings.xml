@@ -451,8 +451,7 @@
     <string name="applets_description">برنامک‌های سیستم را با استفاده از ثابت‌افزار نصب شده راه اندازی کنید</string>
     <string name="applets_error_firmware">فریمور نصب نشده یا نسخه نامعتبر است</string>
     <string name="applets_error_applet">برنامک در دسترس نیست</string>
-    <string name="applets_error_description"><![CDATA[لطفاً مطمئن شوید که فایل <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> و
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">فریمور</a> شما نصب شده است و دوباره امتحان کنید.<br>همچنین مطمئن شوید که فریمور شما نسخه 19.0.1 یا قدیمی‌تر است.]]></string>
+    <string name="applets_error_description"><![CDATA[لطفاً مطمئن شوید که فایل <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> و <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">فریمور</a> شما نصب شده است و دوباره امتحان کنید.<br>همچنین مطمئن شوید که فریمور شما نسخه 19.0.1 یا قدیمی‌تر است.]]></string>
     <string name="album_applet">آلبوم</string>
     <string name="album_applet_description">تصاویر ذخیره شده در پوشه اسکرین شات‌های کاربر را با نمایشگر عکس سیستم مشاهده کنید</string>
     <string name="mii_edit_applet">ویرایش Mii</string>
@@ -721,10 +720,10 @@
     <string name="updates_and_dlc">آپدیت‌ها و DLC</string>
     <string name="mods_and_cheats">مودها و چیت‌ها</string>
     <string name="addon_notice">اطلاعیه مهم افزونه</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">برای نصب مودها و چیت ها، باید پوشه ای را انتخاب کنید که حاوی مسیر cheats/ یا romfs/ یا exefs/ باشد. ما نمی‌توانیم تأیید کنیم که این‌ها با بازی شما سازگار هستند، بنابراین مراقب باشید!</string>
     <string name="invalid_directory">مسیر نامعتبر</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">لطفاً مطمئن شوید که مسیر انتخابی شما حاوی یک پوشه cheats/ یا romfs/ یا exefs/ می‌باشد و دوباره امتحان کنید.</string>
     <string name="addon_installed_successfully">افزونه با موفقیت نصب شد</string>
     <string name="verifying_content">در حال تأیید محتوا…</string>
@@ -743,14 +742,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">رام شما رمزگذاری شده است</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[لطفا راهنماهای دامپ مجدد <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">کارت‌های بازی</a> یا <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">عنوان‌های دیجیتال</a> را دنبال کنید.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[لطفا راهنماهای دامپ مجدد <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">کارت‌های بازی</a> یا <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">عنوان‌های دیجیتال</a> را دنبال کنید.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[لطفاً مطمئن شوید که فایل prod.keys شما نصب شده است تا بازی‌ها رمزگشایی شوند.]]></string>
     <string name="loader_error_video_core">در راه‌اندازی اولیه هسته ویدیو خطایی رخ داد</string>
     <string name="loader_error_video_core_description">این مورد معمولاً توسط یک درایور گرافیکی ناسازگار ایجاد می‌شود. نصب درایور گرافیکی سفارشی ممکن است این مشکل را حل کند.</string>
     <string name="loader_error_invalid_format">رام بارگذاری نشد</string>
     <string name="loader_error_file_not_found">فایل رام وجود ندارد</string>
     <string name="loader_requires_firmware">بازی نیاز به فیرمور دارد</string>
-    <string name="loader_requires_firmware_description"><![CDATA[بازی که می‌خواهید اجرا کنید برای بوت شدن یا عبور از منوی شروع نیاز به فیرمور دارد. لطفا <a href="https://yuzu-mirror.github.io/help/quickstart"> فیرمور را دامپ و نصب کنید</a> یا برای ادامه کار "تایید" را فشار دهید.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[بازی که می‌خواهید اجرا کنید برای بوت شدن یا عبور از منوی شروع نیاز به فیرمور دارد. لطفا <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> فیرمور را دامپ و نصب کنید</a> یا برای ادامه کار \"تایید\" را فشار دهید.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">در حال جستجوی بازی...</string>

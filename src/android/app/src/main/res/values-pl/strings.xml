@@ -413,10 +413,14 @@
     <string name="game_folder_properties">Właściwości folderu</string>
     <plurals name="saves_import_failed">
         <item quantity="one">Błąd importu %d zapisu</item>
+        <item quantity="few">Błąd importu %d zapisów</item>
+        <item quantity="many">Błąd importu %d zapisów</item>
         <item quantity="other">Błąd importu %d zapisów</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">Pomyślnie zaimportowano %d zapis</item>
+        <item quantity="few">Pomyślnie zaimportowano %d zapisów</item>
+        <item quantity="many">Pomyślnie zaimportowano %d zapisów</item>
         <item quantity="other">Pomyślnie zaimportowano %d zapisów</item>
     </plurals>
     <string name="no_save_data_found">Brak zapisów</string>
@@ -441,8 +445,7 @@
     <string name="applets_description">Uruchamia aplety systemowe.</string>
     <string name="applets_error_firmware">Firmware nie zainstalowany lub nieprawidłowa wersja</string>
     <string name="applets_error_applet">Aplet niedostępny</string>
-    <string name="applets_error_description"><![CDATA[Upewnij się, że plik <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> i
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> są zainstalowane i spróbuj ponownie.<br>Upewnij się również, że firmware jest w wersji 19.0.1 lub starszej.]]></string>
+    <string name="applets_error_description"><![CDATA[Upewnij się, że plik <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> i <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> są zainstalowane i spróbuj ponownie.<br>Upewnij się również, że firmware jest w wersji 19.0.1 lub starszej.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Przeglądaj zrzuty ekranu.</string>
     <string name="mii_edit_applet">Edytor Mii</string>
@@ -657,14 +660,14 @@
     <string name="add_ons">Dodatki</string>
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Twój ROM jest zakodowany</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Postępuj zgodnie z przewodnikami, aby ponownie zrzucić swoje <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">karty gry</a> lub <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">tytuły cyfrowe</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Postępuj zgodnie z przewodnikami, aby ponownie zrzucić swoje <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">karty gry</a> lub <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">tytuły cyfrowe</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Upewnij się że plik kluczy <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> jest zainstalowany aby gry mogły zostać odczytane.]]></string>
     <string name="loader_error_video_core">Błąd inicjacji podsystemu graficznego</string>
     <string name="loader_error_video_core_description">Zazwyczaj spowodowane niekompatybilnym sterownikiem GPU, instalacja niestandardowego sterownika może rozwiązać ten problem.</string>
     <string name="loader_error_invalid_format">Nie można wczytać pliku ROM</string>
     <string name="loader_error_file_not_found">Plik ROM nie istnieje</string>
     <string name="loader_requires_firmware">Gra wymaga oprogramowania sprzętowego</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Gra, którą próbujesz uruchomić, wymaga oprogramowania sprzętowego do uruchomienia lub przejścia przez menu startowe. Proszę <a href="https://yuzu-mirror.github.io/help/quickstart"> zrzuć i zainstaluj oprogramowanie sprzętowe</a>, lub naciśnij "OK", aby kontynuować mimo to.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Gra, którą próbujesz uruchomić, wymaga oprogramowania sprzętowego do uruchomienia lub przejścia przez menu startowe. Proszę <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> zrzuć i zainstaluj oprogramowanie sprzętowe</a>, lub naciśnij \"OK\", aby kontynuować mimo to.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Wyszukiwanie gry...</string>

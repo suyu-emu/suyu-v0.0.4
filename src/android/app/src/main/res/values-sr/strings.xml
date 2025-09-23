@@ -274,10 +274,10 @@
     <string name="view_carousel">Карусел</string>
     <string name="folder">Мапа</string>
     <string name="pre_alpha_warning_title">Пре-Алпха софтвер</string>
-    <string name="pre_alpha_warning_description">"УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција."</string>
+    <string name="pre_alpha_warning_description">УПОЗОРЕЊЕ: Овај софтвер је у пре-алфа фази и може имати грешке и непотпуне примене функција.</string>
     <string name="dont_show_again">Не покажи поново</string>
     <string name="pre_alpha_warning">Пре-Алпха софтвер</string>
-    <string name="add_directory_success">"Нова играчка игара је успешно додата"</string>
+    <string name="add_directory_success">Нова играчка игара је успешно додата</string>
     <string name="home_games">Игре</string>
     <string name="home_search">Тражити</string>
     <string name="home_settings">Подешавања</string>
@@ -287,7 +287,7 @@
     <string name="manage_game_folders">Управљајте мапама игара</string>
     <string name="select_games_folder_description">Омогућује ЕДЕН-у да попуни листу игара</string>
     <string name="add_games_warning">Прескочите одабир мапе игре?</string>
-    <string name="add_games_warning_description">Игре побеђују \ "т приказују се на листи игара ако је изабрана мапа н \" т.</string>
+    <string name="add_games_warning_description">Игре побеђују \"т приказују се на листи игара ако је изабрана мапа н \" т.</string>
     <string name="home_search_games">Претражите игре</string>
     <string name="search_settings">Подешавања претраге</string>
     <string name="games_dir_selected">Изабрани Игре Именик</string>
@@ -364,7 +364,7 @@
     <string name="install_game_content_success_install">%1$d инсталирано успешно</string>
     <string name="install_game_content_success_overwrite">%1$d преписано успешно</string>
     <string name="custom_driver_not_supported">Прилагођени управљачки програми нису подржани</string>
-    <string name="custom_driver_not_supported_description">Прилагођени управљачки програм за учитавање ИСН \ "т тренутно подржан за овај уређај. \ НХЕЦК Поново у будућности да бисте видели да ли је додата подршка!</string>
+    <string name="custom_driver_not_supported_description">Прилагођени управљачки програм за учитавање ИСН \"т тренутно подржан за овај уређај.\" НХЕЦК Поново у будућности да бисте видели да ли је додата подршка!</string>
     <string name="manage_yuzu_data">Управљајте подацима ЕДЕН-а</string>
     <string name="manage_yuzu_data_description">Увоз / извозни софтвер, кључеви, кориснички подаци и још много тога!</string>
     <string name="share_save_file">Схаре Спреми датотеку</string>
@@ -376,10 +376,12 @@
     <string name="game_folder_properties">Играње некретнина</string>
     <plurals name="saves_import_failed" tools:ignore="MissingQuantity">
         <item quantity="one" tools:ignore="ImpliedQuantity">Увоз%d уштедите%d</item>
+        <item quantity="few">Увоз%d уносе%d</item>
         <item quantity="other">Увоз%d уносе%d</item>
     </plurals>
     <plurals name="saves_import_success" tools:ignore="MissingQuantity">
         <item quantity="one" tools:ignore="ImpliedQuantity">Успешно увезено%d уштеда</item>
+        <item quantity="few">Успешно увезени%d штеди</item>
         <item quantity="other">Успешно увезени%d штеди</item>
     </plurals>
     <string name="no_save_data_found">Не пронађени су подаци сачувања</string>
@@ -479,7 +481,7 @@
     <string name="renderer_aspect_ratio">Омјер аспекта</string>
     <string name="renderer_scaling_filter">Филтер прилагођавања прозора</string>
     <string name="fsr_sharpness">ФСР оштрина</string>
-    <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи ФСР \ "динамички контраст</string>
+    <string name="fsr_sharpness_description">Одређује колико ће се слика наоштрен трајати док користи \"ФСР\" динамички контраст</string>
     <string name="renderer_anti_aliasing">Метода против алиасирања</string>
     <string name="renderer_force_max_clock">Формирајте максималне сатове (само адрено)</string>
     <string name="renderer_force_max_clock_description">Снагује ГПУ да се покреће максималним могућим сатовима (топлотна ограничења ће се и даље примењивати).</string>
@@ -728,10 +730,10 @@
     <string name="updates_and_dlc">Ажурирања и ДЛЦ</string>
     <string name="mods_and_cheats">Модови и варалице</string>
     <string name="addon_notice">Важна Обавештење о Аддон-у</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">Да бисте инсталирали модс и варалице, морате да одаберете мапу која садржи шифре /, Ромфс / или ЕкеФС / директориј. Не можемо да проверимо да ли ће то бити компатибилно са вашом игром, па будите опрезни!</string>
     <string name="invalid_directory">Неважећи директориј</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Молимо вас проверите да ли је име одабрано да садржи варалице /, Ромфс / или ЕкеФС / мапу и покушајте поново.</string>
     <string name="addon_installed_successfully">Аддон је успешно инсталиран</string>
     <string name="verifying_content">Верификација садржаја ...</string>
@@ -757,7 +759,7 @@
     <string name="loader_error_invalid_format">Није могуће учитати РОМ</string>
     <string name="loader_error_file_not_found">РОМ датотека не постоји</string>
     <string name="loader_requires_firmware">Игра захтева firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Игра коју покушавате да покренете захтева firmware за покретање или прелазак почетног менија. Молимо <a href="https://yuzu-mirror.github.io/help/quickstart"> направите дамп и инсталирајте firmware</a>, или притисните "OK" да бисте наставили у сваком случају.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Игра коју покушавате да покренете захтева firmware за покретање или прелазак почетног менија. Молимо <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> направите дамп и инсталирајте firmware</a>, или притисните \"OK\" да бисте наставили у сваком случају.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Тражење игре...</string>

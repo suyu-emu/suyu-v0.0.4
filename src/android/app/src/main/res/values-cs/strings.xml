@@ -379,10 +379,14 @@
     <string name="game_folder_properties">Vlastnosti složky s hrami</string>
     <plurals name="saves_import_failed">
         <item quantity="one">Chyba při importu %d uložení</item>
+        <item quantity="few">Chyba při importu %d uložení</item>
+        <item quantity="many">Chyba při importu %d uložení</item>
         <item quantity="other">Chyba při importu %d uložení</item>
     </plurals>
     <plurals name="saves_import_success">
         <item quantity="one">Úspěšně importováno %d uložení</item>
+        <item quantity="few">Úspěšně importováno %d uložení</item>
+        <item quantity="many">Úspěšně importováno %d uložení</item>
         <item quantity="other">Úspěšně importováno %d uložení</item>
     </plurals>
     <string name="no_save_data_found">Nenalezena uložená data</string>
@@ -407,8 +411,7 @@
     <string name="applets_description">Spouštění systémových apletů</string>
     <string name="applets_error_firmware">Firmware není nainstalován nebo je neplatná verze</string>
     <string name="applets_error_applet">Aplet není dostupný</string>
-    <string name="applets_error_description"><![CDATA[Ujistěte se, že máte nainstalovaný soubor <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> a
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a>, a zkuste to znovu.<br>Dále se ujistěte, že váš firmware je verze 19.0.1 nebo starší.]]></string>
+    <string name="applets_error_description"><![CDATA[Ujistěte se, že máte nainstalovaný soubor <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a>, a zkuste to znovu.<br>Dále se ujistěte, že váš firmware je verze 19.0.1 nebo starší.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Zobrazovat obrázky uložené v uživatelské složce se snímky obrazovky pomocí systémového prohlížeče fotografií</string>
     <string name="mii_edit_applet">Editor Mii</string>
@@ -629,14 +632,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM je zašifrován</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Postupujte podle průvodců pro opětovné převzetí vašich <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">herních karet</a> nebo <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">digitálních titulů</a>.]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[Nainstalujte <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> pro dešifrování.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Postupujte podle průvodců pro opětovné převzetí vašich <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">herních karet</a> nebo <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitálních titulů</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Nainstalujte <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> pro dešifrování.]]></string>
     <string name="loader_error_video_core">Chyba inicializace</string>
     <string name="loader_error_video_core_description">Neplatný GPU ovladač</string>
     <string name="loader_error_invalid_format">Nelze načíst ROM</string>
     <string name="loader_error_file_not_found">ROM neexistuje</string>
     <string name="loader_requires_firmware">Hra vyžaduje firmware</string>
-    <string name="loader_requires_firmware_description"><![CDATA[Hra, kterou se pokoušíte spustit, vyžaduje firmware pro spuštění nebo pro překročení úvodní nabídky. Prosím <a href="https://yuzu-mirror.github.io/help/quickstart"> převezměte a nainstalujte firmware</a>, nebo stiskněte "OK" pro pokračování v každém případě.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[Hra, kterou se pokoušíte spustit, vyžaduje firmware pro spuštění nebo pro překročení úvodní nabídky. Prosím <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> převezměte a nainstalujte firmware</a>, nebo stiskněte \"OK\" pro pokračování v každém případě.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Hledání hry...</string>

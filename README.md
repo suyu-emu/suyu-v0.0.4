@@ -57,6 +57,8 @@ If you would like to contribute, we are open to new developers and pull requests
 
 See the [sign-up instructions](docs/SIGNUP.md) for information on registration.
 
+Alternatively, if you wish to add translations, go to the [Eden project on Transifex](https://app.transifex.com/edenemu/eden-emulator) and review [the translations README](./dist/languages).
+
 ## Building
 
 See the [General Build Guide](docs/Build.md)

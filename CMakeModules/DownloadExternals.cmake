@@ -51,15 +51,6 @@ function(download_bundled_external remote_path lib_name cpm_key prefix_var versi
     message(STATUS "Using bundled binaries at ${${cpm_key}_SOURCE_DIR}")
 endfunction()
 
-function(download_win_archives)
-    set(FORCE_WIN_ARCHIVES ON)
-    set(FFmpeg_EXT_NAME "ffmpeg-7.1.1")
-
-    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "ffmpeg-bundled" "" 7.1.1)
-
-    set(FORCE_WIN_ARCHIVES OFF)
-endfunction()
-
 function(download_moltenvk_external platform version)
     set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
     set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")

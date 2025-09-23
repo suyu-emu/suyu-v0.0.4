@@ -449,8 +449,7 @@
     <string name="applets_description">Rendszer appletek indítása a telepített firmware-rel</string>
     <string name="applets_error_firmware">A firmware nincs telepítve vagy érvénytelen verzió</string>
     <string name="applets_error_applet">Applet nem elérhető</string>
-    <string name="applets_error_description"><![CDATA[Kérjük, ellenőrizze, hogy a <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> fájl és
-<a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware">firmware</a> telepítve van-e, majd próbálja újra.<br>Győződjön meg arról is, hogy a firmware verziója 19.0.1 vagy régebbi.]]></string>
+    <string name="applets_error_description"><![CDATA[Kérjük, ellenőrizze, hogy a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl és <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-system-firmware\">firmware</a> telepítve van-e, majd próbálja újra.<br>Győződjön meg arról is, hogy a firmware verziója 19.0.1 vagy régebbi.]]></string>
     <string name="album_applet">Album</string>
     <string name="album_applet_description">Képernyőképek megtekintése a rendszer fényképnézegetőjével</string>
     <string name="mii_edit_applet">Mii szerkesztés</string>
@@ -760,10 +759,10 @@
     <string name="updates_and_dlc">Frissítések és DLC</string>
     <string name="mods_and_cheats">Modok és csalások</string>
     <string name="addon_notice">Fontos kiegészítő értesítés</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="addon_notice_description">A modok és csalások telepítéséhez olyan mappát válassz, amely tartalmaz cheats/, romfs/ vagy exefs/ könyvtárat. Nem tudjuk garantálni, hogy ezek kompatibilisek lesznek a játékoddal, ezért légy óvatos!</string>
     <string name="invalid_directory">Érvénytelen könyvtár</string>
-    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <!-- \"cheats/" "romfs/" and \"exefs/ should not be translated -->
     <string name="invalid_directory_description">Kérjük, győződj meg róla, hogy a kiválasztott könyvtár tartalmazza a cheats/, romfs/ vagy exefs/ mappát, majd próbáld újra.</string>
     <string name="addon_installed_successfully">Kiegészítő sikeresen telepítve</string>
     <string name="verifying_content">Tartalom ellenőrzése...</string>
@@ -782,14 +781,14 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM titkosítva</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Kérjük, kövesse az útmutatót a <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards">játékkártyák</a> vagy <a href="https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop">digitális címek</a> újradumpolásához.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Kérjük, kövesse az útmutatót a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-physical-titles-game-cards\">játékkártyák</a> vagy <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-digital-titles-eshop\">digitális címek</a> újradumpolásához.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Győződj meg róla, hogy a <a href=\"https://yuzu-mirror.github.io/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> fájl telepítve van, hogy a játékok visszafejthetők legyenek.]]></string>
     <string name="loader_error_video_core">Hiba lépett fel a videómag inicializása során</string>
     <string name="loader_error_video_core_description">Ezt általában egy nem kompatibilis GPU illesztő okozza. Egyéni GPU illesztőprogram telepítése megoldhatja a problémát.</string>
     <string name="loader_error_invalid_format">Nem sikerült betölteni a ROM-ot</string>
     <string name="loader_error_file_not_found">ROM fájl nem létezik</string>
     <string name="loader_requires_firmware">A játék firmware-t igényel</string>
-    <string name="loader_requires_firmware_description"><![CDATA[A játék, amelyet el szeretne indítani, firmware-t igényel a bootoláshoz vagy a kezdőmenü átlépéséhez. Kérjük, <a href="https://yuzu-mirror.github.io/help/quickstart"> dumpolja és telepítse a firmware-t</a>, vagy nyomja meg az "OK" gombot a folytatáshoz.]]></string>
+    <string name="loader_requires_firmware_description"><![CDATA[A játék, amelyet el szeretne indítani, firmware-t igényel a bootoláshoz vagy a kezdőmenü átlépéséhez. Kérjük, <a href=\"https://yuzu-mirror.github.io/help/quickstart\"> dumpolja és telepítse a firmware-t</a>, vagy nyomja meg az \"OK\" gombot a folytatáshoz.]]></string>
 
     <!-- Intent Launch strings -->
     <string name="searching_for_game">Játék keresése...</string>
