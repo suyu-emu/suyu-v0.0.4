@@ -647,7 +647,8 @@ public:
             {0, &IManagerForApplication::CheckAvailability, "CheckAvailability"},
             {1, &IManagerForApplication::GetAccountId, "GetAccountId"},
             {2, &IManagerForApplication::EnsureIdTokenCacheAsync, "EnsureIdTokenCacheAsync"},
-            {3, &IManagerForApplication::LoadIdTokenCache, "LoadIdTokenCache"},
+            {3, &IManagerForApplication::LoadIdTokenCacheDeprecated, "LoadIdTokenCache"},
+            {4, &IManagerForApplication::LoadIdTokenCache, "LoadIdTokenCache"},
             {130, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCacheForApplication"},
             {136, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCache"}, // 19.0.0+
             {150, nullptr, "CreateAuthorizationRequest"},
@@ -683,10 +684,23 @@ private:
         rb.PushIpcInterface(ensure_token_id);
     }
 
-    void LoadIdTokenCache(HLERequestContext& ctx) {
+    void LoadIdTokenCacheDeprecated(HLERequestContext& ctx) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
 
         ensure_token_id->LoadIdTokenCache(ctx);
+    }
+
+    void LoadIdTokenCache(HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        std::vector<u8> token_data(0x100);
+        std::fill(token_data.begin(), token_data.end(), 0);
+
+        ctx.WriteBuffer(token_data, 0);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(static_cast<u32>(token_data.size()));
     }
 
     void GetNintendoAccountUserResourceCacheForApplication(HLERequestContext& ctx) {
