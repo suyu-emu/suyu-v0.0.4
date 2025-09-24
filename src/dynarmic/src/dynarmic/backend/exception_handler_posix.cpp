@@ -12,31 +12,17 @@
 #include <mutex>
 #include <shared_mutex>
 #include <optional>
-#include <sys/mman.h>
-#ifdef __APPLE__
-#    include <signal.h>
-#    include <sys/ucontext.h>
-#else
-#    include <signal.h>
-#    ifndef __OpenBSD__
-#        include <ucontext.h>
-#    endif
-#    ifdef __sun__
-#        include <sys/regset.h>
-#    endif
-#endif
-
 #include <ankerl/unordered_dense.h>
-
 #include "dynarmic/backend/exception_handler.h"
+#include "dynarmic/common/assert.h"
+#include "dynarmic/common/context.h"
 #include "dynarmic/common/common_types.h"
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 #    include <oaknut/code_block.hpp>
-
 #    include "dynarmic/backend/arm64/abi.h"
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 #    include "dynarmic/backend/riscv64/code_block.h"
 #else
 #    error "Invalid architecture"
@@ -129,35 +115,8 @@ void RegisterHandler() {
 
 void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     DEBUG_ASSERT(sig == SIGSEGV || sig == SIGBUS);
-#ifndef MCL_ARCHITECTURE_RISCV
-    ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(raw_context);
-#ifndef __OpenBSD__
-    auto& mctx = ucontext->uc_mcontext;
-#endif
-#endif
-
-#if defined(MCL_ARCHITECTURE_X86_64)
-#    if defined(__APPLE__)
-#        define CTX_RIP (mctx->__ss.__rip)
-#        define CTX_RSP (mctx->__ss.__rsp)
-#    elif defined(__linux__)
-#        define CTX_RIP (mctx.gregs[REG_RIP])
-#        define CTX_RSP (mctx.gregs[REG_RSP])
-#    elif defined(__FreeBSD__)
-#        define CTX_RIP (mctx.mc_rip)
-#        define CTX_RSP (mctx.mc_rsp)
-#    elif defined(__NetBSD__)
-#        define CTX_RIP (mctx.__gregs[_REG_RIP])
-#        define CTX_RSP (mctx.__gregs[_REG_RSP])
-#    elif defined(__OpenBSD__)
-#        define CTX_RIP (ucontext->sc_rip)
-#        define CTX_RSP (ucontext->sc_rsp)
-#    elif defined(__sun__)
-#        define CTX_RIP (mctx.gregs[REG_RIP])
-#        define CTX_RSP (mctx.gregs[REG_RSP])
-#    else
-#        error "Unknown platform"
-#    endif
+    CTX_DECLARE(raw_context);
+#if defined(ARCHITECTURE_x86_64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
         if (auto const iter = sig_handler->FindCodeBlockInfo(CTX_RIP); iter != sig_handler->code_block_infos.end()) {
@@ -169,48 +128,7 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
         }
     }
     fmt::print(stderr, "Unhandled {} at rip {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_RIP);
-#elif defined(MCL_ARCHITECTURE_ARM64)
-#    if defined(__APPLE__)
-#        define CTX_PC (mctx->__ss.__pc)
-#        define CTX_SP (mctx->__ss.__sp)
-#        define CTX_LR (mctx->__ss.__lr)
-#        define CTX_X(i) (mctx->__ss.__x[i])
-#        define CTX_Q(i) (mctx->__ns.__v[i])
-#    elif defined(__linux__)
-#        define CTX_PC (mctx.pc)
-#        define CTX_SP (mctx.sp)
-#        define CTX_LR (mctx.regs[30])
-#        define CTX_X(i) (mctx.regs[i])
-#        define CTX_Q(i) (fpctx->vregs[i])
-    [[maybe_unused]] const auto fpctx = [&mctx] {
-        _aarch64_ctx* header = (_aarch64_ctx*)&mctx.__reserved;
-        while (header->magic != FPSIMD_MAGIC) {
-            ASSERT(header->magic && header->size);
-            header = (_aarch64_ctx*)((char*)header + header->size);
-        }
-        return (fpsimd_context*)header;
-    }();
-#    elif defined(__FreeBSD__)
-#        define CTX_PC (mctx.mc_gpregs.gp_elr)
-#        define CTX_SP (mctx.mc_gpregs.gp_sp)
-#        define CTX_LR (mctx.mc_gpregs.gp_lr)
-#        define CTX_X(i) (mctx.mc_gpregs.gp_x[i])
-#        define CTX_Q(i) (mctx.mc_fpregs.fp_q[i])
-#    elif defined(__NetBSD__)
-#        define CTX_PC (mctx.mc_gpregs.gp_elr)
-#        define CTX_SP (mctx.mc_gpregs.gp_sp)
-#        define CTX_LR (mctx.mc_gpregs.gp_lr)
-#        define CTX_X(i) (mctx.mc_gpregs.gp_x[i])
-#        define CTX_Q(i) (mctx.mc_fpregs.fp_q[i])
-#    elif defined(__OpenBSD__)
-#        define CTX_PC (ucontext->sc_elr)
-#        define CTX_SP (ucontext->sc_sp)
-#        define CTX_LR (ucontext->sc_lr)
-#        define CTX_X(i) (ucontext->sc_x[i])
-#        define CTX_Q(i) (ucontext->sc_q[i])
-#    else
-#        error "Unknown platform"
-#    endif
+#elif defined(ARCHITECTURE_arm64)
     {
         std::shared_lock guard(sig_handler->code_block_infos_mutex);
         if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_PC); iter != sig_handler->code_block_infos.end()) {
@@ -220,7 +138,7 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
         }
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
     ASSERT_FALSE("Unimplemented");
 #else
 #    error "Invalid architecture"

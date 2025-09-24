@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2016 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -13,15 +16,15 @@ struct ExceptionHandler::Impl final {
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode&) {
     // Do nothing
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock&, std::size_t) {
     // Do nothing
 }
-#elif defined(MCL_ARCHITECTURE_RISCV)
+#elif defined(ARCHITECTURE_riscv64)
 void ExceptionHandler::Register(RV64::CodeBlock&, std::size_t) {
     // Do nothing
 }

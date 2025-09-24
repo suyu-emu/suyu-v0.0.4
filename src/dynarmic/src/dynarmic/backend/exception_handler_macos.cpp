@@ -25,7 +25,7 @@
 
 #include "dynarmic/backend/exception_handler.h"
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 
 #    include "dynarmic/backend/x64/block_of_code.h"
 #    define mig_external extern "C"
@@ -36,7 +36,7 @@
 
 using dynarmic_thread_state_t = x86_thread_state64_t;
 
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 
 #    include <oaknut/code_block.hpp>
 #    define mig_external extern "C"
@@ -133,7 +133,7 @@ void MachHandler::MessagePump() {
     }
 }
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 kern_return_t MachHandler::HandleRequest(x86_thread_state64_t* ts) {
     std::lock_guard<std::mutex> guard(code_block_infos_mutex);
 
@@ -151,7 +151,7 @@ kern_return_t MachHandler::HandleRequest(x86_thread_state64_t* ts) {
 
     return KERN_SUCCESS;
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 kern_return_t MachHandler::HandleRequest(arm_thread_state64_t* ts) {
     std::lock_guard<std::mutex> guard(code_block_infos_mutex);
 
@@ -269,13 +269,13 @@ private:
 ExceptionHandler::ExceptionHandler() = default;
 ExceptionHandler::~ExceptionHandler() = default;
 
-#if defined(MCL_ARCHITECTURE_X86_64)
+#if defined(ARCHITECTURE_x86_64)
 void ExceptionHandler::Register(X64::BlockOfCode& code) {
     const u64 code_begin = mcl::bit_cast<u64>(code.getCode());
     const u64 code_end = code_begin + code.GetTotalCodeSize();
     impl = std::make_unique<Impl>(code_begin, code_end);
 }
-#elif defined(MCL_ARCHITECTURE_ARM64)
+#elif defined(ARCHITECTURE_arm64)
 void ExceptionHandler::Register(oaknut::CodeBlock& mem, std::size_t size) {
     const u64 code_begin = mcl::bit_cast<u64>(mem.ptr());
     const u64 code_end = code_begin + size;
