@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,7 @@
 
 #include <boost/intrusive/list.hpp>
 
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"

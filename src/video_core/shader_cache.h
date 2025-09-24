@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,7 +15,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/rasterizer_interface.h"

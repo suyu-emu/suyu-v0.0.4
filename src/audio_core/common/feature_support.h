@@ -13,7 +13,7 @@
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 
 namespace AudioCore {
 constexpr u32 CurrentRevision = 16;

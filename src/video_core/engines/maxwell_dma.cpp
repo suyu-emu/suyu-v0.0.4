@@ -7,7 +7,7 @@
 #include "common/algorithm.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "common/settings.h"
 #include "core/core.h"
 #include "video_core/engines/maxwell_3d.h"

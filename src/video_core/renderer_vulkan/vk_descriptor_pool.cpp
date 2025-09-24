@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,7 +10,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "common/polyfill_ranges.h"
+#include <ranges>
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
