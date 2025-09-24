@@ -694,7 +694,7 @@ private:
         LOG_WARNING(Service_ACC, "(STUBBED) called");
 
         std::vector<u8> token_data(0x100);
-        std::fill(token_data.begin(), token_data.end(), 0);
+        std::fill(token_data.begin(), token_data.end(), u8(0));
 
         ctx.WriteBuffer(token_data, 0);
 
