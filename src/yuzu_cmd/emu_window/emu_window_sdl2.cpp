@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,19 +51,23 @@ InputCommon::MouseButton EmuWindow_SDL2::SDLButtonToMouseButton(u32 button) cons
     }
 }
 
-std::pair<float, float> EmuWindow_SDL2::MouseToTouchPos(s32 touch_x, s32 touch_y) const {
-    int w, h;
+/// @brief Translates pixel position to float position
+EmuWindow_SDL2::FloatPairNonHFA EmuWindow_SDL2::MouseToTouchPos(s32 touch_x, s32 touch_y) const {
+    int w = 0, h = 0;
     SDL_GetWindowSize(render_window, &w, &h);
-    const float fx = static_cast<float>(touch_x) / w;
-    const float fy = static_cast<float>(touch_y) / h;
-
-    return {std::clamp<float>(fx, 0.0f, 1.0f), std::clamp<float>(fy, 0.0f, 1.0f)};
+    const float fx = float(touch_x) / w;
+    const float fy = float(touch_y) / h;
+    return {
+        std::clamp<float>(fx, 0.0f, 1.0f),
+        std::clamp<float>(fy, 0.0f, 1.0f),
+        0
+    };
 }
 
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
     const auto mouse_button = SDLButtonToMouseButton(button);
     if (state == SDL_PRESSED) {
-        const auto [touch_x, touch_y] = MouseToTouchPos(x, y);
+        auto const [touch_x, touch_y, _] = MouseToTouchPos(x, y);
         input_subsystem->GetMouse()->PressButton(x, y, mouse_button);
         input_subsystem->GetMouse()->PressMouseButton(mouse_button);
         input_subsystem->GetMouse()->PressTouchButton(touch_x, touch_y, mouse_button);
@@ -71,7 +77,7 @@ void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
 }
 
 void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
-    const auto [touch_x, touch_y] = MouseToTouchPos(x, y);
+    auto const [touch_x, touch_y, _] = MouseToTouchPos(x, y);
     input_subsystem->GetMouse()->Move(x, y, 0, 0);
     input_subsystem->GetMouse()->MouseMove(touch_x, touch_y);
     input_subsystem->GetMouse()->TouchMove(touch_x, touch_y);
