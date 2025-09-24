@@ -296,9 +296,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent)
     INSERT(Settings,
            use_asynchronous_shaders,
            tr("Use asynchronous shader building (Hack)"),
-           tr("Enables asynchronous shader compilation, which may reduce shader stutter.\nThis "
-              "feature "
-              "is experimental."));
+           tr("Enables asynchronous shader compilation, which may reduce shader stutter."));
     INSERT(Settings, use_fast_gpu_time, QString(), QString());
     INSERT(Settings,
            fast_gpu_time,
