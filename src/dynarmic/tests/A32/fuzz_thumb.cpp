@@ -29,7 +29,7 @@
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/ir/basic_block.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 using namespace Dynarmic;
 
@@ -179,13 +179,7 @@ static void RunInstance(size_t run_number, ThumbTestEnv& test_env, A32Unicorn<Th
         while (num_insts < instructions_to_execute_count) {
             A32::LocationDescriptor descriptor = {u32(num_insts * 4), cpsr, A32::FPSCR{}};
             IR::Block ir_block = A32::Translate(descriptor, &test_env, {});
-            Optimization::NamingPass(ir_block);
-            Optimization::A32GetSetElimination(ir_block, {.convert_nz_to_nzc = true});
-            Optimization::DeadCodeElimination(ir_block);
-            Optimization::A32ConstantMemoryReads(ir_block, &test_env);
-            Optimization::ConstantPropagation(ir_block);
-            Optimization::DeadCodeElimination(ir_block);
-            Optimization::VerificationPass(ir_block);
+            Optimization::Optimize(ir_block, &test_env, {});
             printf("\n\nIR:\n%s", IR::DumpBlock(ir_block).c_str());
             printf("\n\nx86_64:\n");
             jit.DumpDisassembly();

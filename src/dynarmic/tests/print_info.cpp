@@ -34,7 +34,7 @@
 #include "dynarmic/interface/A32/a32.h"
 #include "dynarmic/interface/A32/disassembler.h"
 #include "dynarmic/ir/basic_block.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 using namespace Dynarmic;
 
@@ -64,18 +64,9 @@ void PrintA32Instruction(u32 instruction) {
     IR::Block ir_block{location};
     const bool should_continue = A32::TranslateSingleInstruction(ir_block, location, instruction);
     fmt::print("should_continue: {}\n\n", should_continue);
-
-    Optimization::NamingPass(ir_block);
-
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-    Optimization::A32GetSetElimination(ir_block, {});
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::ConstantPropagation(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::IdentityRemovalPass(ir_block);
-
+    Optimization::Optimize(ir_block, conf, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -88,18 +79,9 @@ void PrintA64Instruction(u32 instruction) {
     IR::Block ir_block{location};
     const bool should_continue = A64::TranslateSingleInstruction(ir_block, location, instruction);
     fmt::print("should_continue: {}\n\n", should_continue);
-
-    Optimization::NamingPass(ir_block);
-
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-    Optimization::A64GetSetElimination(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::ConstantPropagation(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::IdentityRemovalPass(ir_block);
-
+    Optimization::Optimize(ir_block, conf, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }
@@ -115,18 +97,9 @@ void PrintThumbInstruction(u32 instruction) {
     IR::Block ir_block{location};
     const bool should_continue = A32::TranslateSingleInstruction(ir_block, location, instruction);
     fmt::print("should_continue: {}\n\n", should_continue);
-
-    Optimization::NamingPass(ir_block);
-
     fmt::print("IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-    Optimization::A32GetSetElimination(ir_block, {});
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::ConstantPropagation(ir_block);
-    Optimization::DeadCodeElimination(ir_block);
-    Optimization::IdentityRemovalPass(ir_block);
-
+    Optimization::Optimize(ir_block, conf, {});
     fmt::print("Optimized IR:\n");
     fmt::print("{}\n", IR::DumpBlock(ir_block));
 }

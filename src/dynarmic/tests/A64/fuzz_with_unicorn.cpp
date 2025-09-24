@@ -28,7 +28,7 @@
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/opcodes.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 // Must be declared last for all necessary operator<< to be declared prior to this.
 #include <fmt/format.h>
@@ -271,17 +271,9 @@ static void RunTestInstance(Dynarmic::A64::Jit& jit, A64Unicorn& uni, A64TestEnv
 
         const auto get_code = [&jit_env](u64 vaddr) { return jit_env.MemoryReadCode(vaddr); };
         IR::Block ir_block = A64::Translate({instructions_start, FP::FPCR{fpcr}}, get_code, {});
-        Optimization::A64CallbackConfigPass(ir_block, GetUserConfig(jit_env));
-        Optimization::NamingPass(ir_block);
-
         fmt::print("IR:\n");
         fmt::print("{}\n", IR::DumpBlock(ir_block));
-
-        Optimization::A64GetSetElimination(ir_block);
-        Optimization::DeadCodeElimination(ir_block);
-        Optimization::ConstantPropagation(ir_block);
-        Optimization::DeadCodeElimination(ir_block);
-
+        Optimization::Optimize(ir_block, conf, {});
         fmt::print("Optimized IR:\n");
         fmt::print("{}\n", IR::DumpBlock(ir_block));
 

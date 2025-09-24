@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2022 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -15,7 +18,7 @@
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/interface/A64/config.h"
 #include "dynarmic/interface/exclusive_monitor.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -331,22 +334,7 @@ IR::Block A64AddressSpace::GenerateIR(IR::LocationDescriptor descriptor) const {
     const auto get_code = [this](u64 vaddr) { return conf.callbacks->MemoryReadCode(vaddr); };
     IR::Block ir_block = A64::Translate(A64::LocationDescriptor{descriptor}, get_code,
                                         {conf.define_unpredictable_behaviour, conf.wall_clock_cntpct});
-
-    Optimization::A64CallbackConfigPass(ir_block, conf);
-    Optimization::NamingPass(ir_block);
-    if (conf.HasOptimization(OptimizationFlag::GetSetElimination) && !conf.check_halt_on_memory_access) {
-        Optimization::A64GetSetElimination(ir_block);
-        Optimization::DeadCodeElimination(ir_block);
-    }
-    if (conf.HasOptimization(OptimizationFlag::ConstProp)) {
-        Optimization::ConstantPropagation(ir_block);
-        Optimization::DeadCodeElimination(ir_block);
-    }
-    if (conf.HasOptimization(OptimizationFlag::MiscIROpt)) {
-        Optimization::A64MergeInterpretBlocksPass(ir_block, conf.callbacks);
-    }
-    Optimization::VerificationPass(ir_block);
-
+    Optimization::Optimize(ir_block, conf, {});
     return ir_block;
 }
 

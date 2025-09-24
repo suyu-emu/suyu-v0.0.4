@@ -15,7 +15,7 @@
 #include "dynarmic/backend/riscv64/stack_layout.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/frontend/A32/translate/a32_translate.h"
-#include "dynarmic/ir/opt/passes.h"
+#include "dynarmic/ir/opt_passes.h"
 
 namespace Dynarmic::Backend::RV64 {
 
