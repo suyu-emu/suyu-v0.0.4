@@ -16,7 +16,6 @@
 #include "common/detached_tasks.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
-#include "common/nvidia_flags.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
@@ -333,8 +332,6 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     LocalFree(argv_w);
 #endif
-
-    Common::ConfigureNvidiaEnvironmentFlags();
 
     if (filepath.empty()) {
         LOG_CRITICAL(Frontend, "Failed to load ROM: No ROM specified");

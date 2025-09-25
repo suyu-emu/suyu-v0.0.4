@@ -35,7 +35,6 @@
 #include "applets/qt_profile_select.h"
 #include "applets/qt_software_keyboard.h"
 #include "applets/qt_web_browser.h"
-#include "common/nvidia_flags.h"
 #include "common/settings_enums.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
@@ -4917,7 +4916,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     Common::DetachedTasks detached_tasks;
-    Common::ConfigureNvidiaEnvironmentFlags();
 
     // Init settings params
     QCoreApplication::setOrganizationName(QStringLiteral("eden"));

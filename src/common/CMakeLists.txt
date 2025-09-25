@@ -97,8 +97,6 @@ add_library(
   memory_detect.h
   multi_level_page_table.cpp
   multi_level_page_table.h
-  nvidia_flags.cpp
-  nvidia_flags.h
   overflow.h
   page_table.cpp
   page_table.h
