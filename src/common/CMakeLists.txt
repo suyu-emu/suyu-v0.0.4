@@ -32,7 +32,6 @@ add_library(
   atomic_ops.h
   bit_cast.h
   bit_field.h
-  bit_set.h
   bit_util.h
   bounded_threadsafe_queue.h
   cityhash.cpp
