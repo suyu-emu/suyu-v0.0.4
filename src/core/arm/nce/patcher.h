@@ -27,11 +27,11 @@ template <>
 struct std::hash<PatchCacheKey> {
     size_t operator()(const PatchCacheKey& key) const {
         // Simple XOR hash of first few bytes
-        size_t hash = 0;
+        size_t hash_ = 0;
         for (size_t i = 0; i < key.module_id.size(); ++i) {
-            hash ^= static_cast<size_t>(key.module_id[i]) << ((i % sizeof(size_t)) * 8);
+            hash_ ^= static_cast<size_t>(key.module_id[i]) << ((i % sizeof(size_t)) * 8);
         }
-        return hash ^ std::hash<uintptr_t>{}(key.offset);
+        return hash_ ^ std::hash<uintptr_t>{}(key.offset);
     }
 };
 

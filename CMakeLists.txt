@@ -310,6 +310,7 @@ endif()
 if (ARCHITECTURE_arm64 AND (ANDROID OR PLATFORM_LINUX))
     set(HAS_NCE 1)
     add_compile_definitions(HAS_NCE=1)
+    find_package(oaknut 2.0.1)
 endif()
 
 if (YUZU_ROOM)
