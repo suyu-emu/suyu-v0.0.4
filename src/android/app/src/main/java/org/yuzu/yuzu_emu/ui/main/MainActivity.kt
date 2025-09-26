@@ -48,6 +48,7 @@ import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import androidx.core.content.edit
+import org.yuzu.yuzu_emu.activities.EmulationActivity
 import kotlin.text.compareTo
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
@@ -188,6 +189,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (it) checkKeys()
         }
 
+        // Dismiss previous notifications (should not happen unless a crash occurred)
+        EmulationActivity.stopForegroundService(this)
+
         setInsets()
     }
 
@@ -291,6 +295,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     override fun setTheme(resId: Int) {
         super.setTheme(resId)
         themeId = resId
+    }
+
+    override fun onDestroy() {
+        EmulationActivity.stopForegroundService(this)
+        super.onDestroy()
     }
 
     val getGamesDirectory =

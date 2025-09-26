@@ -8,6 +8,11 @@
     <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
     <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
     <string name="notification_permission_not_granted">Notification permission not granted!</string>
+    <string name="app_notification_channel_name" translatable="false">Eden</string>
+    <string name="app_notification_channel_id" translatable="false">Eden</string>
+    <string name="app_notification_channel_description">Eden Switch emulator notifications</string>
+    <string name="app_notification_running">Eden is Running</string>
+
 
     <!-- Stats Overlay settings -->
     <string name="enhanced_fps_suffix">(Enhanced)</string>

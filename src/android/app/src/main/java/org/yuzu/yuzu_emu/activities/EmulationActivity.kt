@@ -7,6 +7,7 @@
 package org.yuzu.yuzu_emu.activities
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -59,6 +60,7 @@ import org.yuzu.yuzu_emu.utils.ParamPackage
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import java.text.NumberFormat
 import kotlin.math.roundToInt
+import org.yuzu.yuzu_emu.utils.ForegroundService
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var binding: ActivityEmulationBinding
@@ -77,6 +79,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private val actionUnmute = "ACTION_EMULATOR_UNMUTE"
 
     private val emulationViewModel: EmulationViewModel by viewModels()
+
+    private var foregroundService: Intent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.gameLaunched = true
@@ -127,6 +131,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         nfcReader = NfcReader(this)
         nfcReader.initialize()
+
+        foregroundService = Intent(this, ForegroundService::class.java)
+        startForegroundService(foregroundService)
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         if (!preferences.getBoolean(Settings.PREF_MEMORY_WARNING_SHOWN, false)) {
@@ -187,6 +194,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onPause()
         nfcReader.stopScanning()
         stopMotionSensorListener()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopForegroundService(this)
+
     }
 
     override fun onUserLeaveHint() {
@@ -510,6 +523,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     companion object {
         const val EXTRA_SELECTED_GAME = "SelectedGame"
+
+        fun stopForegroundService(activity: Activity) {
+            val startIntent = Intent(activity, ForegroundService::class.java)
+            startIntent.action = ForegroundService.ACTION_STOP
+            activity.startForegroundService(startIntent)
+        }
 
         fun launch(activity: AppCompatActivity, game: Game) {
             val launcher = Intent(activity, EmulationActivity::class.java)

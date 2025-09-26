@@ -22,6 +22,17 @@ fun Context.getPublicFilesDir(): File = getExternalFilesDir(null) ?: filesDir
 
 class YuzuApplication : Application() {
     private fun createNotificationChannels() {
+        val name: CharSequence = getString(R.string.app_notification_channel_name)
+        val description = getString(R.string.app_notification_channel_description)
+        val foregroundService = NotificationChannel(
+            getString(R.string.app_notification_channel_id),
+            name,
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        foregroundService.description = description
+        foregroundService.setSound(null, null)
+        foregroundService.vibrationPattern = null
+
         val noticeChannel = NotificationChannel(
             getString(R.string.notice_notification_channel_id),
             getString(R.string.notice_notification_channel_name),
@@ -34,6 +45,7 @@ class YuzuApplication : Application() {
         // or other notification behaviors after this
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(noticeChannel)
+        notificationManager.createNotificationChannel(foregroundService)
     }
 
     override fun onCreate() {
