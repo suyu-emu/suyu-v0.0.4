@@ -374,7 +374,7 @@ endif()
 
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
 target_link_libraries(dynarmic
-    PRIVATE
+    PUBLIC
         fmt::fmt
         merry::mcl
 )
