@@ -69,6 +69,18 @@ cmake --build /tmp/ramdisk -- -j32
 sudo umount /tmp/ramdisk
 ```
 
+# Assets and large files
+
+A general rule of thumb, before uploading files:
+- PNG files: Use [optipng](https://web.archive.org/web/20240325055059/https://optipng.sourceforge.net/).
+- SVG files: Use [svgo](https://github.com/svg/svgo).
+
+May not be used but worth mentioning nonethless:
+- OGG files: Use [OptiVorbis](https://github.com/OptiVorbis/OptiVorbis).
+- Video files: Use ffmpeg, preferably re-encode as AV1.
+
+# Debugging
+
 ## Debugging (host code)
 
 Ignoring SIGSEGV when debugging in host:
