@@ -792,6 +792,11 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const u32 size = (std::min)(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
+    const bool sync_buffer = SynchronizeBuffer(buffer, device_addr, size);
+    if (sync_buffer) {
+        ++channel_state->uniform_cache_hits[0];
+    }
+    ++channel_state->uniform_cache_shots[0];
     const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
                                  size <= channel_state->uniform_buffer_skip_cache_size &&
                                  !memory_tracker.IsRegionGpuModified(device_addr, size);
@@ -822,12 +827,6 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
         device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
         return;
     }
-    // Classic cached path
-    const bool sync_cached = SynchronizeBuffer(buffer, device_addr, size);
-    if (sync_cached) {
-        ++channel_state->uniform_cache_hits[0];
-    }
-    ++channel_state->uniform_cache_shots[0];
 
     // Skip binding if it's not needed and if the bound buffer is not the fast version
     // This exists to avoid instances where the fast buffer is bound and a GPU write happens
