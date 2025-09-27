@@ -12,6 +12,7 @@
 #include <concepts>
 #include <cstddef>
 
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/concepts.h"
@@ -196,7 +197,12 @@ public:
         constexpr Member* GetFront(s32 core) const {
             ASSERT(IsValidCore(core));
 
-            const s32 priority = s32((~m_available_priorities[core]).count());
+            const s32 priority = s32([](auto const& e) {
+                for (size_t i = 0; i < e.size(); ++i)
+                    if (e[i])
+                        return i;
+                return e.size();
+            }(m_available_priorities[core]));
             if (priority <= LowestPriority) {
                 return m_queues[priority].GetFront(core);
             } else {
@@ -215,19 +221,22 @@ public:
             }
         }
 
+        template<size_t N>
+        constexpr size_t GetNextSet(std::bitset<N> const& bit, size_t n) const {
+            for (size_t i = n + 1; i < bit.size(); i++)
+                if (bit[i])
+                    return i;
+            return bit.size();
+        }
+
         constexpr Member* GetNext(s32 core, const Member* member) const {
             ASSERT(IsValidCore(core));
 
             Member* next = member->GetPriorityQueueEntry(core).GetNext();
             if (next == nullptr) {
-                s32 priority = member->GetPriority() + 1;
-                do {
-                    if (m_available_priorities[core][priority]) {
-                        next = m_queues[priority].GetFront(core);
-                        break;
-                    }
-                    ++priority;
-                } while (priority <= LowestPriority && priority < s32(m_available_priorities[core].size()));
+                s32 priority = s32(GetNextSet(m_available_priorities[core], member->GetPriority()));
+                if (priority <= LowestPriority)
+                    next = m_queues[priority].GetFront(core);
             }
             return next;
         }
