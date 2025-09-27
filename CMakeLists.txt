@@ -147,7 +147,11 @@ if (MSVC OR ANDROID)
     set(EXT_DEFAULT ON)
 endif()
 
-CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ${EXT_DEFAULT} "ENABLE_SDL2;NOT MSVC" OFF)
+if (ENABLE_SDL2)
+    # TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
+    CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" OFF "NOT MSVC" OFF)
+    option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}")
+endif()
 
 cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
@@ -185,8 +189,6 @@ option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ${EXT_DEFAULT})
 # TODO(crueter): CI this?
 option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" ON)
 
-# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "ENABLE_SDL2" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 
@@ -197,6 +199,14 @@ CMAKE_DEPENDENT_OPTION(YUZU_CMD "Compile the eden-cli executable" ON "ENABLE_SDL
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
+if(YUZU_ENABLE_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT COMPILER_SUPPORTS_LTO)
+    if(NOT COMPILER_SUPPORTS_LTO)
+        message(FATAL_ERROR "Your compiler does not support interprocedural optimization (IPO). Re-run CMake with -DYUZU_ENABLE_LTO=OFF.")
+    endif()
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ${COMPILER_SUPPORTS_LTO})
+endif()
 
 option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" ON)
 
@@ -884,19 +894,25 @@ if (MSVC AND CXX_CLANG)
     link_libraries(llvm-mingw-runtime)
 endif()
 
-if (YUZU_USE_FASTER_LD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # We will assume that if the compiler is GCC, it will attempt to use ld.bfd by default.
-    # Try to pick a faster linker.
+if (YUZU_USE_FASTER_LD)
+    # clang should always use lld
     find_program(LLD lld)
-    find_program(MOLD mold)
 
-    if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
-        message(NOTICE "Selecting mold as linker")
-        add_link_options("-fuse-ld=mold")
-    elseif (LLD)
-        message(NOTICE "Selecting lld as linker")
-        add_link_options("-fuse-ld=lld")
+    if (LLD)
+        set(LINKER lld)
     endif()
+
+    # GNU appears to work better with mold
+    # TODO: mold has been slow lately, see if better options exist (search for gold?)
+    if (CXX_GCC)
+        find_program(MOLD mold)
+        if (MOLD AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.1")
+            set(LINKER mold)
+        endif()
+    endif()
+
+    message(NOTICE "Selecting ${LINKER} as linker")
+    add_link_options("-fuse-ld=${LINKER}")
 endif()
 
 # Set runtime library to MD/MDd for all configurations

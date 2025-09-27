@@ -399,10 +399,6 @@ if (YUZU_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(video_core PRIVATE precompiled_headers.h)
 endif()
 
-if (YUZU_ENABLE_LTO)
-  set_property(TARGET video_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
 if (ANDROID AND ARCHITECTURE_arm64)
     target_link_libraries(video_core PRIVATE adrenotools)
 endif()
