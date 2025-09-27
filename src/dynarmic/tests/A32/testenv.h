@@ -17,7 +17,6 @@
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/interface/A32/a32.h"
-#include "../native/testenv.h"
 
 template<typename InstructionType_, u32 infinite_loop_u32>
 class A32TestEnv : public Dynarmic::A32::UserCallbacks {

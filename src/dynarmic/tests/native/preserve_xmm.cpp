@@ -6,6 +6,7 @@
 #include <immintrin.h>
 
 #include "../A64/testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/common/fp/fpsr.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 

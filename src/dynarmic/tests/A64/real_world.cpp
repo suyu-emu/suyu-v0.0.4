@@ -5,6 +5,7 @@
 #include <oaknut/oaknut.hpp>
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/interface/A64/a64.h"
 
 using namespace Dynarmic;

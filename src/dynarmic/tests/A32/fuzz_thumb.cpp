@@ -22,6 +22,7 @@
 #include "../rand_int.h"
 #include "../unicorn_emu/a32_unicorn.h"
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/frontend/A32/FPSCR.h"
 #include "dynarmic/frontend/A32/PSR.h"
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"

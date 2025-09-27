@@ -12,6 +12,7 @@
 #include "dynarmic/common/common_types.h"
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 
 using namespace Dynarmic;
 

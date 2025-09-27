@@ -10,6 +10,7 @@
 #include "dynarmic/common/common_types.h"
 
 #include "./testenv.h"
+#include "../native/testenv.h"
 #include "dynarmic/interface/A32/a32.h"
 
 static Dynarmic::A32::UserConfig GetUserConfig(ThumbTestEnv* testenv) {

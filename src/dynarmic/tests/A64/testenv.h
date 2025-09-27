@@ -12,7 +12,6 @@
 #include "dynarmic/common/assert.h"
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/interface/A64/a64.h"
-#include "../native/testenv.h"
 
 using Vector = Dynarmic::A64::Vector;
 
